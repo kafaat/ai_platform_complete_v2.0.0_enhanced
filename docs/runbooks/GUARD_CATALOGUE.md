@@ -12,7 +12,7 @@
 
 - حرّاس تحجب في CI: **257**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **39**
-- إجماليّ الطفرات المُسجَّلة: **261**
+- إجماليّ الطفرات المُسجَّلة: **265**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **98** على 35 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -434,6 +434,10 @@
 - علاقةٌ لا تقول اتّجاهها لا تُنفَّذ ولا تُختبَر — وقبولُها يُعيد السجلّ رسماً. — يُسقِط `test_a_relation_without_declared_semantics_is_blocked`
 - اسمٌ واحد بدلالتين هو «مصدر الحقيقة الظلّ» بوجهه العلائقيّ. — يُسقِط `test_a_duplicate_relation_name_is_blocked`
 - صفرُ علاقةٍ مُقابَلةٍ بالتنفيذ يمرّ ⇒ أخضرُ لأنّه لم ينظر. — يُسقِط `test_zero_relations_checked_fails_closed`
+- أي علاقة مسجّلة تتحول إلى تنفيذ مباشر تجعل السجل باب سلطة موازياً؛ يجب أن تبقى كل العلاقات وصف/تقييد بلا dispatch مباشر. — يُسقِط `test_no_registered_relation_can_grant_direct_execution`
+- reference/evidence لا تملك قراراً؛ إسقاط هذا الحد يحوّل KG/Evidence Graph إلى authority موازية. — يُسقِط `test_reference_relation_cannot_claim_authority`
+- العلاقات المرجعية/التفسيرية لا تثبت سببية؛ السماح بذلك يرقّي correlation إلى causal evidence. — يُسقِط `test_evidence_relation_cannot_claim_causality`
+- علاقة vocabulary غير موجودة في الثابت التنفيذي تعيد السجل إلى رسم وثائقي غير مربوط بالكود. — يُسقِط `test_vocabulary_bound_relation_must_exist_in_executed_vocabulary`
 
 ### `live_pg_evidence_guard.py`
 

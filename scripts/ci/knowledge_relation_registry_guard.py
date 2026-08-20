@@ -96,48 +96,98 @@ def violations(relations: list[dict], root: Path) -> tuple[list[str], int]:
             problems.append(f"✗ «{name}»: بلا دلالةٍ مُعلَنة — علاقةٌ لا تقول اتّجاهها لا تُنفَّذ")
             continue
 
-        chain = relation.get("chain")
-        if not isinstance(chain, list) or len(chain) < 2:
-            problems.append(f"✗ «{name}»: سلسلةٌ أقصر من حلقتين ليست علاقة")
+        graph_role = relation.get("graph_role")
+        if graph_role not in {"reference", "evidence", "operational"}:
+            problems.append(f"✗ «{name}»: graph_role غير قانوني — {graph_role!r}")
             continue
-        if any(not isinstance(x, str) or not x for x in chain):
-            problems.append(f"✗ «{name}»: السلسلة تحمل عنصراً ليس نصّاً")
+        authority = relation.get("authority_semantics")
+        evidence = relation.get("evidence_semantics")
+        if (
+            not isinstance(authority, str)
+            or not authority
+            or not isinstance(evidence, str)
+            or not evidence
+        ):
+            problems.append(f"✗ «{name}»: دلالة authority/evidence غير مكتملة")
             continue
-        if semantics.get("acyclic") and len(set(chain)) != len(chain):
-            problems.append(f"✗ «{name}»: علاقةٌ مُعلَنةٌ لا دوريّة وسلسلتها تكرّر حلقة")
+        if relation.get("direct_execution_permitted") is not False:
+            problems.append(f"✗ «{name}»: السجلّ لا يجوز أن يمنح تنفيذًا مباشرًا")
+            continue
+        if graph_role in {"reference", "evidence"} and authority != "none":
+            problems.append(f"✗ «{name}»: علاقة {graph_role} لا يجوز أن تمنح سلطة قرار")
+            continue
+        if (
+            graph_role in {"reference", "evidence"}
+            and relation.get("causal_claim_permitted") is not False
+        ):
+            problems.append(f"✗ «{name}»: علاقة {graph_role} لا يجوز أن تتحول إلى ادعاء سببي")
             continue
         if semantics.get("directional") and relation.get("from") == relation.get("to"):
             problems.append(f"✗ «{name}»: علاقةٌ موجَّهة طرفاها واحد")
             continue
 
+        chain = relation.get("chain")
         module = relation.get("chain_source_module")
         symbol = relation.get("chain_symbol")
-        if not isinstance(module, str) or not isinstance(symbol, str) or not module or not symbol:
-            problems.append(f"✗ «{name}»: بلا مصدرٍ منفَّذ — سلسلةٌ لا تُقابَل بشيفرةٍ تبقى رسماً")
+        vocab_module = relation.get("vocabulary_source_module")
+        vocab_symbol = relation.get("vocabulary_symbol")
+
+        if isinstance(chain, list):
+            if len(chain) < 2:
+                problems.append(f"✗ «{name}»: سلسلةٌ أقصر من حلقتين ليست علاقة")
+                continue
+            if any(not isinstance(x, str) or not x for x in chain):
+                problems.append(f"✗ «{name}»: السلسلة تحمل عنصراً ليس نصّاً")
+                continue
+            if semantics.get("acyclic") and len(set(chain)) != len(chain):
+                problems.append(f"✗ «{name}»: علاقةٌ مُعلَنةٌ لا دوريّة وسلسلتها تكرّر حلقة")
+                continue
+            if (
+                not isinstance(module, str)
+                or not isinstance(symbol, str)
+                or not module
+                or not symbol
+            ):
+                problems.append(f"✗ «{name}»: بلا مصدرٍ منفَّذ للسلسلة")
+                continue
+            path = root / module
+            binding_mode = "chain"
+            binding_symbol = symbol
+        elif (
+            isinstance(vocab_module, str)
+            and isinstance(vocab_symbol, str)
+            and vocab_module
+            and vocab_symbol
+        ):
+            path = root / vocab_module
+            binding_mode = "vocabulary"
+            binding_symbol = vocab_symbol
+        else:
+            problems.append(f"✗ «{name}»: بلا binding منفَّذ — لا chain ولا vocabulary")
             continue
-        path = root / module
+
         if not path.is_file():
-            problems.append(f"✗ «{name}»: مصدر السلسلة غير موجود — {module}")
+            problems.append(f"✗ «{name}»: مصدر العلاقة غير موجود — {path.relative_to(root)}")
             continue
         try:
             tree = ast.parse(path.read_text(encoding="utf-8"))
         except SyntaxError as exc:
-            problems.append(f"✗ «{name}»: تعذّر تحليل {module} — {exc}")
+            problems.append(f"✗ «{name}»: تعذّر تحليل {path.relative_to(root)} — {exc}")
             continue
-
-        executed = literal_sequence(tree, symbol)
+        executed = literal_sequence(tree, binding_symbol)
         if executed is None:
             problems.append(
-                f"✗ «{name}»: لم يُقرأ «{symbol}» متسلسلاً نصّيّاً في {module} — "
-                "السجلّ يصف شيئاً لا يُقابله ثابتٌ منفَّذ"
+                f"✗ «{name}»: لم يُقرأ «{binding_symbol}» متسلسلاً نصّيّاً في {path.relative_to(root)}"
             )
             continue
         checked += 1
-        if executed != list(chain):
+        if binding_mode == "chain" and executed != list(chain):
             problems.append(
-                f"✗ «{name}»: السلسلة المُسجَّلة تخالف المُنفَّذة — "
-                f"السجلّ {list(chain)} · الشيفرة {executed}. "
-                "وتغييرُ السلسلة يغيّر قرارَ تشغيلٍ حقيقيّاً"
+                f"✗ «{name}»: السلسلة المُسجَّلة تخالف المُنفَّذة — السجلّ {list(chain)} · الشيفرة {executed}"
+            )
+        if binding_mode == "vocabulary" and name not in executed:
+            problems.append(
+                f"✗ «{name}»: غير موجودة في المفردات المنفَّذة «{binding_symbol}» — {executed}"
             )
 
         for consumer in relation.get("consumers") or []:
@@ -145,6 +195,57 @@ def violations(relations: list[dict], root: Path) -> tuple[list[str], int]:
                 problems.append(f"✗ «{name}»: مُستهلِكٌ مُعلَنٌ غير موجود — {consumer}")
 
     return problems, checked
+
+
+RETRIEVAL_GATE_MODULE = "services/ai_agronomist/ai_evidence_runtime.py"
+RETRIEVAL_GATE_SYMBOL = "RETRIEVAL_CONTEXT_RELATIONS"
+
+
+def retrieval_gate_violations(relations: list[dict], root: Path) -> list[str]:
+    """بوّابةُ توسعة الاستدعاء تُقيَّد بالسجلّ، لا بحقلين يفرضهما المخزن أصلاً.
+
+    العطل الذي تمنعه هذه الحالة رفعه المالك بقياس: `kg_store` يفرض بقيدٍ في الجدول
+    ``confidence='reference'`` و``prescriptive=0``، فبوّابةٌ تفحص هذين الحقلين تقبل
+    **كلّ حافّةٍ يمكن للمخزن أن يحملها** — حشوٌ لا مُرشِّح. و``/v1/edges`` لا يُلحِق
+    ``graph_role``، فعلاقةٌ جديدة غير مُسجَّلة كانت تنزلق إلى توسعة الاستدعاء بمجرّد
+    كونها غير آمرة. فيُفرَض هنا أنّ الثابت المنفَّذ = مجموعة العلاقات المُسجَّلة
+    ``graph_role=reference`` و``evidence_semantics=retrieval_context_only`` تماماً.
+    """
+    expected = {
+        str(r.get("name"))
+        for r in relations
+        if r.get("graph_role") == "reference"
+        and r.get("evidence_semantics") == "retrieval_context_only"
+    }
+    path = root / RETRIEVAL_GATE_MODULE
+    if not path.is_file():
+        return [f"✗ بوّابة التوسعة: المصدر غير موجود — {RETRIEVAL_GATE_MODULE}"]
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    found: set[str] | None = None
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Assign):
+            continue
+        if not any(isinstance(t, ast.Name) and t.id == RETRIEVAL_GATE_SYMBOL for t in node.targets):
+            continue
+        try:
+            value = ast.literal_eval(
+                node.value.args[0]
+                if isinstance(node.value, ast.Call) and node.value.args
+                else node.value
+            )
+        except (ValueError, SyntaxError, AttributeError, IndexError):
+            return [f"✗ بوّابة التوسعة: تعذّر تقييم {RETRIEVAL_GATE_SYMBOL} ساكناً"]
+        found = {str(x) for x in value}
+    if found is None:
+        return [f"✗ بوّابة التوسعة: {RETRIEVAL_GATE_SYMBOL} غير معرّف في {RETRIEVAL_GATE_MODULE}"]
+    if not expected:
+        return ["✗ بوّابة التوسعة: صفرُ علاقةٍ مرجعيّةٍ في السجلّ — أخضرُ عن سؤال لم يُطرَح"]
+    if found != expected:
+        return [
+            f"✗ بوّابة التوسعة: {RETRIEVAL_GATE_SYMBOL} ≠ السجلّ — "
+            f"زائد={sorted(found - expected)} ناقص={sorted(expected - found)}"
+        ]
+    return []
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -155,6 +256,7 @@ def main(argv: list[str] | None = None) -> int:
 
     relations = load_relations(Path(args.registry))
     problems, checked = violations(relations, Path(args.root))
+    problems += retrieval_gate_violations(relations, Path(args.root))
 
     if checked == 0:
         problems.append("✗ لم تُقابَل أيّ علاقةٍ بشيفرةٍ منفَّذة — الحارس أخضرُ لأنّه لم ينظر")

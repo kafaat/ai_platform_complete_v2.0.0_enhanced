@@ -1815,7 +1815,7 @@
       "mutations": [
         {
           "expect": "test_a_chain_that_drifts_from_the_code_is_blocked",
-          "find": "        if executed != list(chain):",
+          "find": "        if binding_mode == \"chain\" and executed != list(chain):",
           "replace": "        if False:",
           "why": "نزعُ البند الحامل كلّه: السجلّ يعود ثلاثيّةً تُكتَب مرّةً وتَبيت بصمت، بينما `REQUIRED_LINKS` ثابتٌ يحكم قراراً — كلُّ حلقةٍ غير متاحة تُضيف حجباً وأضعفُها يُبنى عليه `operational_eligible`."
         },
@@ -1854,6 +1854,30 @@
           "find": "    if checked == 0:",
           "replace": "    if False:",
           "why": "صفرُ علاقةٍ مُقابَلةٍ بالتنفيذ يمرّ ⇒ أخضرُ لأنّه لم ينظر."
+        },
+        {
+          "expect": "test_no_registered_relation_can_grant_direct_execution",
+          "find": "        if relation.get(\"direct_execution_permitted\") is not False:",
+          "replace": "        if False:",
+          "why": "أي علاقة مسجّلة تتحول إلى تنفيذ مباشر تجعل السجل باب سلطة موازياً؛ يجب أن تبقى كل العلاقات وصف/تقييد بلا dispatch مباشر."
+        },
+        {
+          "expect": "test_reference_relation_cannot_claim_authority",
+          "find": "        if graph_role in {\"reference\", \"evidence\"} and authority != \"none\":",
+          "replace": "        if False:",
+          "why": "reference/evidence لا تملك قراراً؛ إسقاط هذا الحد يحوّل KG/Evidence Graph إلى authority موازية."
+        },
+        {
+          "expect": "test_evidence_relation_cannot_claim_causality",
+          "find": "            and relation.get(\"causal_claim_permitted\") is not False",
+          "replace": "            and False",
+          "why": "العلاقات المرجعية/التفسيرية لا تثبت سببية؛ السماح بذلك يرقّي correlation إلى causal evidence."
+        },
+        {
+          "expect": "test_vocabulary_bound_relation_must_exist_in_executed_vocabulary",
+          "find": "        if binding_mode == \"vocabulary\" and name not in executed:",
+          "replace": "        if False:",
+          "why": "علاقة vocabulary غير موجودة في الثابت التنفيذي تعيد السجل إلى رسم وثائقي غير مربوط بالكود."
         }
       ],
       "test": "tests_v9/test_knowledge_relation_registry_guard.py"
