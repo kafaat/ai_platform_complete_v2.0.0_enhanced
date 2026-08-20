@@ -43,6 +43,11 @@ SEED_TENANT_ID = (os.getenv("QDRANT_SEED_TENANT_ID") or "__seed_quarantine__").s
 SEED_REVISION = (os.getenv("QDRANT_SEED_REVISION") or "yemen-reference-v1").strip()
 SEED_PROVENANCE_FILE = (os.getenv("QDRANT_SEED_PROVENANCE_FILE") or "").strip()
 SEED_PROVENANCE_JSON = (os.getenv("QDRANT_SEED_PROVENANCE_JSON") or "").strip()
+SAHOOL_ENV = (os.getenv("SAHOOL_ENV") or "development").strip().lower()
+if SAHOOL_ENV == "production" and SEED_PROVENANCE_JSON:
+    raise RuntimeError(
+        "QDRANT_SEED_PROVENANCE_JSON is forbidden in production; use QDRANT_SEED_PROVENANCE_FILE"
+    )
 if not SEED_TENANT_ID:
     raise RuntimeError("QDRANT_SEED_TENANT_ID must not be empty")
 
@@ -151,6 +156,30 @@ def _load_provenance_manifest() -> dict[str, dict[str, str]]:
     return normalized
 
 
+def _collection_vector_size(info) -> int:
+    """Read an unnamed Qdrant vector size from get_collection() without guessing.
+
+    Named/missing vector schemas are outside the current canonical RAG contract and
+    therefore fail closed. This function is intentionally read-only: a mismatch is a
+    migration requirement, never permission to drop/recreate production data.
+    """
+    if hasattr(info, "model_dump"):
+        raw = info.model_dump()
+    elif hasattr(info, "dict"):
+        raw = info.dict()
+    elif isinstance(info, dict):
+        raw = info
+    else:
+        raise RuntimeError("Qdrant collection info is not serializable")
+    vectors = ((raw.get("config") or {}).get("params") or {}).get("vectors")
+    if not isinstance(vectors, dict):
+        raise RuntimeError("Qdrant collection vectors schema missing")
+    size = vectors.get("size")
+    if not isinstance(size, int) or size <= 0:
+        raise RuntimeError("Qdrant named/invalid vector schema is not supported by seed contract")
+    return size
+
+
 # ─── إضافة بيانات الجوف/السنيدار (52 قاعدة) ────────────────────
 # مع تصحيح S1 → SA1..SA13 (أسماء العيّنات vs تصنيف Sodium Hazard)
 try:
@@ -223,19 +252,43 @@ async def seed():
     logger.info(f"✅ وُلّد تضمين {len(vectors)} وثيقة (بُعد={dim}, نموذج={EMBED_MODEL})")
 
     client = AsyncQdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
-    try:
-        await client.create_collection(
-            collection_name=COLLECTION,
-            vectors_config=VectorParams(size=dim, distance=Distance.COSINE),
+    exists = await client.collection_exists(COLLECTION)
+    if not exists:
+        try:
+            await client.create_collection(
+                collection_name=COLLECTION,
+                vectors_config=VectorParams(size=dim, distance=Distance.COSINE),
+            )
+            logger.info(f"✅ Collection '{COLLECTION}' created (dim={dim})")
+        except Exception as e:
+            # Race-safe retry classification: if another initializer created it, verify below;
+            # otherwise preserve the real create/connect/auth failure.
+            #
+            # The re-probe is itself a network call and can fail for the same reason the
+            # create did (unreachable host, bad key). Letting it propagate raw would
+            # replace the real cause with a second-order symptom, and the operator would
+            # debug the probe instead of the connection. So it fails closed on a named
+            # error that keeps the original as `__cause__`.
+            try:
+                created_by_peer = await client.collection_exists(COLLECTION)
+            except Exception as probe_error:
+                logger.error("فشل إنشاء المجموعة '%s' وتعذّر التحقّق بعده: %s", COLLECTION, e)
+                raise RuntimeError(
+                    f"QDRANT_COLLECTION_CREATE_FAILED: collection={COLLECTION}; "
+                    f"post-failure existence probe also failed ({probe_error})"
+                ) from e
+            if not created_by_peer:
+                logger.error("فشل إنشاء/تهيئة المجموعة '%s': %s", COLLECTION, e)
+                raise
+    info = await client.get_collection(COLLECTION)
+    live_dim = _collection_vector_size(info)
+    if live_dim != dim:
+        raise RuntimeError(
+            "QDRANT_VECTOR_SCHEMA_MISMATCH: "
+            f"collection={COLLECTION} existing_dim={live_dim} embedding_dim={dim}; "
+            "migration/reindex required — refusing destructive auto-recreation"
         )
-        logger.info(f"✅ Collection '{COLLECTION}' created (dim={dim})")
-    except Exception as e:
-        # لا نبتلع الخطأ كـ"موجود مسبقاً" أعمى — نتحقّق فعليّاً: إن كان موجوداً
-        # نُكمل، وإلّا (تعذّر اتّصال/خطأ إعداد) نُعيد رفع الخطأ بدل فشل لاحق غامض.
-        if not await client.collection_exists(COLLECTION):
-            logger.error("فشل إنشاء/تهيئة المجموعة '%s': %s", COLLECTION, e)
-            raise
-        logger.info(f"Collection '{COLLECTION}' already exists")
+    logger.info("✅ Collection '%s' vector schema matches embedding dim=%s", COLLECTION, dim)
 
     points = []
     for i, doc in enumerate(KNOWLEDGE_BASE):

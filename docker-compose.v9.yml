@@ -443,7 +443,7 @@ services:
   sahool-vllm-jais:
     # Internal OpenAI-compatible inference runtime for Jais Natural Farmer.
     # Opt-in only; infrastructure, never retrieval/decision/field authority.
-    image: ${VLLM_IMAGE:-vllm/vllm-openai:v0.26.0}
+    image: ${VLLM_IMAGE:-vllm/vllm-openai:v0.26.0@sha256:ffb2d59b1c059a5bd8d781320c9f5189de8293693b7d95da54befddaa54abf52}
     profiles:
     - vllm
     ipc: host
@@ -1876,7 +1876,9 @@ services:
       QDRANT_SEED_TENANT_ID: ${QDRANT_SEED_TENANT_ID:-__seed_quarantine__}
       QDRANT_SEED_REVISION: ${QDRANT_SEED_REVISION:-yemen-reference-v1}
       QDRANT_SEED_PROVENANCE_FILE: ${QDRANT_SEED_PROVENANCE_FILE:-}
-      QDRANT_SEED_PROVENANCE_JSON: ${QDRANT_SEED_PROVENANCE_JSON:-}
+      # Inline provenance is deliberately not forwarded by canonical Compose. Dev/test may inject
+      # it explicitly; production seed.py rejects it and requires the mounted file path above.
+      SAHOOL_ENV: ${SAHOOL_ENV:-development}
     depends_on:
       sahool-qdrant:
         condition: service_started  # qdrant is distroless — no healthcheck; gate on start

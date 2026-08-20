@@ -93,6 +93,7 @@ DEC-003,test,services/sahool-platform/tests/test_review_fixes.py,3,applied
 DEC-003,test,services/vegetation-analysis-service/test_rs_review_hardening.py,3,applied
 DEC-003,test,tests_v9/test_ai_approval_audit_v55.py,3,applied
 DEC-003,test,tests_v9/test_ai_approval_endpoints_v58.py,3,applied
+DEC-003,test,tests_v9/test_ai_rag_pre_adoption_review.py,3,applied
 DEC-003,test,tests_v9/test_copilot_review_876_regressions.py,3,applied
 DEC-003,test,tests_v9/test_decision_review_backfill_verify.py,3,applied
 DEC-003,test,tests_v9/test_decision_review_boundary_guard.py,3,applied

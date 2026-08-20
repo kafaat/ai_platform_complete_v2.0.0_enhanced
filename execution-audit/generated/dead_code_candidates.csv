@@ -610,8 +610,6 @@ medium,shared,function,load_skill,shared/memory/skills.py,109,0,review_before_de
 medium,shared,function,list_skills,shared/memory/skills.py,147,0,review_before_delete,False
 medium,shared,function,register_dataset_version,shared/mlops/runtime.py,213,0,review_before_delete,False
 medium,shared,function,agricultural_evaluation_profile,shared/mlops/runtime.py,281,0,review_before_delete,False
-medium,shared,function,export_field_boundary_bundle,shared/precision_agriculture/adapt_v2_edge.py,79,0,review_before_delete,False
-medium,shared,function,import_field_boundary_bundle,shared/precision_agriculture/adapt_v2_edge.py,191,0,review_before_delete,False
 medium,shared,function,project_observation,shared/precision_agriculture/pail_om_edge.py,31,0,review_before_delete,False
 medium,shared,function,import_observation_projection,shared/precision_agriculture/pail_om_edge.py,110,0,review_before_delete,False
 medium,shared,function,bind_plot_outcomes,shared/precision_agriculture/trial_spatial.py,264,0,review_before_delete,False

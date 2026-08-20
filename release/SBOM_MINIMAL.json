@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8e840bb9880c3620ee1adfaacf3999a11f7a232ab10e5eb2394cf36304dd88d8"
+          "content": "7da2bc85053c7aa55bab098c026f49a8ef1314092b154d92ecd9cdb6267412e7"
         }
       ],
       "name": "docker-compose.rag-kg-mcp.yml",
@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "29a2b7219b1624b94273286789c11a4e2d882ef610b322fd961c311f5da8637e"
+          "content": "6505d899d0c16244e873be8a1980db2881ec46c741177bb4ce52bdd6db208d12"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -13035,7 +13035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "be2ad3eedf91bc1a18b94185152a50544dc120cf0c0500e3eed09c010452b5c9"
+          "content": "945e8442804b7fce81d3c12f5d342f21aba07dd21cfce6ef534736f55d735882"
         }
       ],
       "name": "services/qdrant-seed/seed.py",
@@ -13065,7 +13065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "862152d7864a27af9676af0d749104f35856933bf582198c04291558a191ef4f"
+          "content": "23e818b005bdddf5b60546e2cdff190a64a291925dc60519afb01dcb4e738e0e"
         }
       ],
       "name": "services/rag-retrieval/main.py",
@@ -21905,7 +21905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "947ddac819d2fc96c9222b6be3dfb353f0437c43cce09e70e6bba14c14e9132d"
+          "content": "a98caa31659fdffb0a9113ea11cbe00b4ce08c5622d91625f4d23245f26ea9fe"
         }
       ],
       "name": "services/sahool-platform/core/rag/production_qdrant.py",
@@ -30745,20 +30745,10 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c58687330fc59b3a2db64afe42c9bfe4658bf06333a45c0efa18f1a3a5bc600b"
+          "content": "c8829b8a75cd5d86248859e551d26a4e8f87fa59745cb80b0f0a21aca8acce53"
         }
       ],
       "name": "shared/precision_agriculture/__init__.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "3a49f48100132981709b4c250517447d088a1e41a8f96f1a20601f9345e3b4f6"
-        }
-      ],
-      "name": "shared/precision_agriculture/adapt_v2_edge.py",
       "type": "file"
     },
     {
