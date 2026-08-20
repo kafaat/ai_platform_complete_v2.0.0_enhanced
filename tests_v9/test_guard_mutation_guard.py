@@ -65,11 +65,16 @@ def test_this_guard_specifies_itself() -> None:
 def test_every_mutation_names_a_test_and_a_reason() -> None:
     for name, spec in REAL["mutated"].items():
         assert spec["mutations"], name
-        src = (ROOT / spec["test"]).read_text(encoding="utf-8")
         for m in spec["mutations"]:
             assert m["why"], name
             assert m["find"] != m["replace"], name
-            assert f"def {m['expect']}(" in src, f"{name}: {m['expect']}"
+            # جناحُ الطفرة يُحلّ بـ`mutation_test` لا بـ`spec["test"]` — وهو المُحلّ
+            # الذي يستعمله المُشغّل فعلاً (يقبل `test` على مستوى الطفرة). وقراءةُ
+            # `spec["test"]` هنا وحدها كانت تفرض قاعدةً لا يملكها الإنتاج: أنّ كلّ
+            # طفرات ملفٍّ تُقاس بجناحٍ واحد. فيسقط اختبارٌ صحيحٌ لأنّه في جناحه.
+            declared = gmg.mutation_test(spec, m)
+            src = (ROOT / declared).read_text(encoding="utf-8")
+            assert f"def {m['expect']}(" in src, f"{name}: {m['expect']} ← {declared}"
 
 
 def test_a_bare_prefix_is_not_an_expected_test(tmp_path: Path) -> None:

@@ -702,6 +702,7 @@ services:
       METNO_WIND_FALLBACK_ENABLED: ${METNO_WIND_FALLBACK_ENABLED:-1}
       METNO_USER_AGENT: ${METNO_USER_AGENT:-SAHOOL-AgriPlatform/1.0 (https://sahool.ye;
         ops@sahool.ye)}
+      WORKER_HEARTBEAT_CADENCE_SEC: '60'
     depends_on:
       sahool-postgres:
         condition: service_healthy
@@ -734,6 +735,7 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
       WEATHER_SIGNAL_INTERVAL_SEC: ${WEATHER_SIGNAL_INTERVAL_SEC:-300}
+      WORKER_HEARTBEAT_CADENCE_SEC: ${WEATHER_SIGNAL_INTERVAL_SEC:-300}
     depends_on:
       sahool-postgres:
         condition: service_healthy

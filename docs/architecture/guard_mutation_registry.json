@@ -814,6 +814,35 @@
         }
       ],
       "test": "services/sahool-platform/tests/test_agri_next_decision_support.py"
+    },
+    "services/weather-signal-engine/worker_health_probe.py": {
+      "test": "tests_v9/test_weather_worker_health_probe.py",
+      "mutations": [
+        {
+          "expect": "test_a_missing_heartbeat_is_not_ready",
+          "find": "        return False, \"not ready: heartbeat file missing\"\n",
+          "replace": "        return True, \"ready\"\n",
+          "why": "عودةُ الفشل مفتوحاً عند غياب النبضة ⇒ يبقى المطلوبُ الوحيد ملفَّ الجاهزيّة، وهو يُكتَب مرّةً عند الإقلاع ولا يُحدَّث. فيقيس الفحص «أقلعت مرّةً» ويُعلِنها «تعمل الآن» — وغيابُ الدليل يُقرأ دليلاً."
+        },
+        {
+          "expect": "test_a_future_dated_heartbeat_is_not_ready",
+          "find": "    if age < -FUTURE_TOLERANCE_SEC:\n",
+          "replace": "    if False:\n",
+          "why": "نبضةٌ مؤرَّخة في المستقبل: `now - mtime` تصير سالبةً فلا تتجاوز أيّ سقف، ويبقى الفحص أخضرَ حتّى يلحق الزمنُ الحقيقيّ بالختم. واختلافُ الساعات غيابُ دليلٍ لا دليلُ صحّة."
+        },
+        {
+          "expect": "test_the_bound_is_derived_from_the_declared_cadence",
+          "find": "    return max(max_age, 2 * cadence + 60)\n",
+          "replace": "    return max_age\n",
+          "why": "فكُّ ارتباط السقف بكادنس المنتِج ⇒ يعود رقماً مستقلّاً. مقيسٌ على المشحون: `.env.example` يضبط الدورة على ٣٦٠٠ ثانية والسقف الثابت ١٨٠ — فعاملٌ سليمٌ تماماً يُعلَن مريضاً ٩٥٪ من كلّ ساعة."
+        },
+        {
+          "expect": "test_an_unreadable_heartbeat_fails_closed_with_a_reason",
+          "find": "        return False, f\"not ready: heartbeat unreadable ({exc.__class__.__name__})\"\n",
+          "replace": "        return True, \"ready\"\n",
+          "why": "نبضةٌ موجودةٌ لا تُقرَأ (EIO مثلاً) تُقرَأ صحّةً. وأمسك أصلَ العطل مراجعٌ آليّ على #880: بلا التقاطٍ يخرج الفحص بـtraceback فيقرأ Docker رمزَ الخروج ولا يقرأ المشغّلُ سبباً — والأوسع أنّ `Path.exists()` نفسه يرمي على EIO، فوُحِّد النداء وأُلغيت النافذة بدل حراستها."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
@@ -2506,6 +2535,55 @@
           "find": "        if isinstance(arg, ast.Constant) and isinstance(arg.value, str):",
           "replace": "        if True:  # MUTANT: يعود المسح نصّيّاً لا مُرسًى على الاستدعاء",
           "why": "نزعُ الترسية على وسائط الاستدعاء ⇒ يعود الكشف يقرأ نصّ الملفّ، فيلتقط **شرح الحارس نفسه** مخالفةً — وقع فعلاً في أوّل صيغة. ملفٌّ يصف عيباً ليس ملفّاً يرتكبه، والـAST وحدها تفرّق."
+        },
+        {
+          "expect": "test_a_stale_stamp_passes_when_re_derivation_still_matches",
+          "test": "tests_v9/test_claim_base_guard.py",
+          "find": "    base = _load_baseline()\n    known = set(base.get(\"offenders\", []))\n",
+          "replace": "    base = _load_baseline()\n    known = set(base.get(\"offenders\", []))\n    if base.get(\"measured_on\") != _head_sha():\n        print(\"ختمٌ بائت\")\n        return 1\n",
+          "why": "ترقيةُ بياتِ `measured_on` إلى حجب ⇒ كلّ دمجٍ بـsquash يُحمِّر الحارس بلا تغيّرٍ دلاليّ واحد. الختمُ إشارةُ إسناد لا شهادةُ تطابق — GOV-01."
+        },
+        {
+          "expect": "test_a_stale_stamp_fails_when_re_derivation_diverges",
+          "test": "tests_v9/test_claim_base_guard.py",
+          "find": "    base = _load_baseline()\n    known = set(base.get(\"offenders\", []))\n",
+          "replace": "    base = _load_baseline()\n    known = set(base.get(\"offenders\", []))\n    found = set(known)\n",
+          "why": "إلغاءُ أثر إعادة الاشتقاق ⇒ يُقارَن الأساس بنفسه فيمرّ أبداً، ولا يبقى للقارئ إلّا `measured_on` — وهو ما يجعل الختم يُقرأ سلطةَ طزاجةٍ وهو ليس كذلك."
+        },
+        {
+          "expect": "test_a_changed_basis_with_an_identical_result_is_provenance_only",
+          "test": "tests_v9/test_measurement_basis_freshness.py",
+          "find": "    if stored != derived:\n",
+          "replace": "    if False:\n",
+          "why": "نزعُ حجب بيات الإسناد ⇒ يبقى provenance قديم إلى الأبد بحجّة أنّ النتيجة نفسها. وإعادةُ الاشتقاق لا تسدّ هذا: هي تُجيب عن **النتيجة** لا عن **الأساس** الذي أنتجها."
+        },
+        {
+          "expect": "test_a_missing_digest_is_an_explicit_migration_state_not_implicit_freshness",
+          "test": "tests_v9/test_measurement_basis_freshness.py",
+          "find": "    if not stored:\n",
+          "replace": "    if False:\n",
+          "why": "غيابُ البصمة يُقرأ تطابقاً ⇒ مصنوعةٌ سابقة للعقد تُصادِق نفسها. وهو صنفُ «يفشل مفتوحاً» بعينه: غيابُ الدليل ليس دليلاً."
+        },
+        {
+          "expect": "test_the_basis_binds_all_three_components",
+          "test": "tests_v9/test_measurement_basis_freshness.py",
+          "find": "        _algorithm_digest() if algorithm_digest is None else algorithm_digest,\n",
+          "replace": "        \"\",\n",
+          "why": "نزعُ مكوّن الخوارزميّة ⇒ يعود الأساس بصمةَ مدخلاتٍ وحدها، فيعمى عن تغيُّر منطق المولّد بمدخلاتٍ ثابتة — وهو أخطر الانحرافين لأنّه يبدّل معنى الرقم بلا أثرٍ في مدخلاته."
+        },
+        {
+          "expect": "test_the_generator_is_not_counted_as_its_own_input",
+          "test": "tests_v9/test_measurement_basis_freshness.py",
+          "find": "        if path.resolve() == me:\n",
+          "replace": "        if False:\n",
+          "why": "عدُّ المولّد مُدخَلاً لنفسه ⇒ يُبصَم مرّتين بقاعدتَي حسّاسيّة مختلفتين (بايتات · AST)، فيُبطِل تطبيعَ التوثيق: تعديلُ تعليقٍ فيه يصير انحرافَ مدخلات، وهو الـchurn الذي وُجِد العقد ليمنعه."
+        },
+        {
+          "expect": "test_a_measured_on_only_change_leaves_the_check_verdict_identical",
+          "test": "tests_v9/test_measurement_basis_freshness.py",
+          "find": "    stored = base.get(\"measurement_basis_digest\")\n",
+          "replace": "    if base.get(\"measured_on\") != _head_sha():\n        print(\"ختمٌ بائت\")\n        return 1\n    stored = base.get(\"measurement_basis_digest\")\n",
+          "why": "عودةُ `measured_on` سلطةَ طزاجةٍ من الباب الخلفيّ — لا في حساب الأساس بل **فرعاً في مسار القرار**. وثباتُ الأساس وحده لا يمسك هذا: الختمُ يبقى خارج الحساب ويدخل الحكم. مقيسٌ أثرُه: كلّ squash وكلّ التزامٍ توثيقيّ يصير عندئذٍ generated churn."
         }
       ],
       "test": "tests_v9/test_tenant_guc_scope_guard.py"
