@@ -1116,13 +1116,6 @@ def _normalize_role(raw: str | None) -> UserRole:
 
 
 def create_token(user: UserSchema) -> str:
-    # لحظةٌ واحدة يُشتقّ منها الحقلان. رفعه Copilot على #877 وأصاب: نداءان منفصلان
-    # للساعة يقعان في ثانيتين مختلفتين إن تخطّيا حدّ الثانية، و`jose` يحوّل عبر
-    # `utctimetuple()` أي يقصّ إلى ثوانٍ كاملة — فيصير `exp - iat` أقصر بثانية من
-    # المدّة المُعلَنة. سباقٌ نادر لكنّه حقيقيّ، وأثره صلاحيّةٌ لا تطابق عقدها.
-    # والعيب سابقٌ للتحويل من الساعة المُهمَلة (كان النداءان `utcnow()`)، فلم
-    # يُدخِله التحويل ولم يُصلحه — وهذا موضع إصلاحه.
-    now = datetime.now(UTC)
     payload = {
         "sub": user.user_id,
         "tenant_id": user.tenant_id,
@@ -1131,8 +1124,8 @@ def create_token(user: UserSchema) -> str:
         "aud": "sahool",  # توحيد: يطابق auth ويُقبل عبر كلّ الخدمات
         "iss": "sahool-platform",  # المُصدِر — تفرضه الخدمات للتحقّق من مصدر التوكن
         "jti": secrets.token_hex(16),  # معرّف توكن فريد — يتيح الإبطال (denylist)
-        "iat": now,
-        "exp": now + timedelta(hours=JWT_EXPIRY_HOURS),
+        "iat": (issued := datetime.now(UTC)),  # لحظةٌ **واحدة** يُشتقّ منها الحقلان
+        "exp": issued + timedelta(hours=JWT_EXPIRY_HOURS),
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
