@@ -389,7 +389,7 @@
         },
         {
           "function": "healthz",
-          "line": 81,
+          "line": 86,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/healthz",
@@ -524,7 +524,7 @@
         },
         {
           "function": "metrics",
-          "line": 86,
+          "line": 91,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/metrics",
@@ -731,7 +731,7 @@
         },
         {
           "function": "readyz",
-          "line": 99,
+          "line": 104,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/readyz",
@@ -1045,7 +1045,7 @@
         },
         {
           "function": "ingest",
-          "line": 129,
+          "line": 134,
           "method": "POST",
           "module": "services/rag-retrieval/main.py",
           "path": "/v1/ingest",
@@ -1151,7 +1151,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1096,
-  "route_inventory_sha256": "346e0537fb6c5af341224601156d02b7d1f4b77d4b52f1ac4509fef04535b718",
+  "route_inventory_sha256": "e24ec3077ace0e64442e7a111e9d22a8efa0185fbba483aa6d4ddd9fe0caf2eb",
   "runtime_verified": false,
   "schema_version": 1
 }

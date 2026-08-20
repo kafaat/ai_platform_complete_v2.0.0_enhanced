@@ -9,7 +9,8 @@ services:
     environment:
       QDRANT_URL: http://sahool-qdrant:6333
       QDRANT_COLLECTION: sahool_agri_kb
-      EMBEDDING_DIM: 384
+      # Vector size is discovered from the live embedding response and checked against Qdrant.
+      # A nominal EMBEDDING_DIM here would contradict docs/architecture/rag_embedding_contract.json.
       QDRANT_API_KEY: ${QDRANT_API_KEY:-}
     depends_on:
       sahool-qdrant:

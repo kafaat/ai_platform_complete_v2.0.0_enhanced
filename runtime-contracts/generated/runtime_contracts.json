@@ -1389,7 +1389,8 @@
         "QDRANT_SEED_PROVENANCE_JSON",
         "QDRANT_SEED_REVISION",
         "QDRANT_SEED_TENANT_ID",
-        "QDRANT_URL"
+        "QDRANT_URL",
+        "SAHOOL_ENV"
       ],
       "container": {
         "dockerfile": "services/qdrant-seed/Dockerfile",

@@ -21,12 +21,12 @@
       "database": 274,
       "governance": 60,
       "mobile": 51,
-      "other": 1404,
-      "tests": 1694,
+      "other": 1403,
+      "tests": 1695,
       "web": 456
     },
-    "unmapped_artifacts": 2091,
-    "ambiguous_artifacts": 406
+    "unmapped_artifacts": 2092,
+    "ambiguous_artifacts": 405
   },
   "capabilities": [
     {
@@ -5822,18 +5822,6 @@
         {
           "value": "fields.py @ services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py:50",
           "score": 12
-        },
-        {
-          "value": "catalog.fieldBoundaries @ shared/precision_agriculture/adapt_v2_edge.py:125",
-          "score": 9
-        },
-        {
-          "value": "catalog.fields @ shared/precision_agriculture/adapt_v2_edge.py:125",
-          "score": 9
-        },
-        {
-          "value": "sahool.adapt-edge.v1 @ shared/precision_agriculture/adapt_v2_edge.py:20",
-          "score": 9
         }
       ],
       "web": [
@@ -5967,14 +5955,6 @@
             "path:field geometry",
             "content:field geometry"
           ]
-        },
-        {
-          "path": "tests_v9/test_gap_closure_v6.py",
-          "score": 11,
-          "signals": [
-            "content:field boundary",
-            "content:field geometry"
-          ]
         }
       ],
       "governance": [
@@ -6080,14 +6060,6 @@
           ]
         },
         {
-          "path": "shared/precision_agriculture/adapt_v2_edge.py",
-          "score": 9,
-          "signals": [
-            "content:field boundary",
-            "content:field geometry"
-          ]
-        },
-        {
           "path": "skills/sahool-gis/README.md",
           "score": 9,
           "signals": [
@@ -6104,12 +6076,12 @@
         "backend": 13,
         "routes": 56,
         "database": 5,
-        "events": 64,
+        "events": 61,
         "web": 2,
         "mobile": 2,
-        "tests": 13,
+        "tests": 12,
         "governance": 1,
-        "other_evidence": 13
+        "other_evidence": 12
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -21147,7 +21119,7 @@
       "production_certified": false,
       "evidence_truncated": {
         "backend": 23,
-        "events": 40,
+        "events": 38,
         "tests": 72
       },
       "evidence_counts": {
@@ -41399,6 +41371,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_ai_rag_pre_adoption_review.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_ai_tool_executor_v55.py",
       "kind": "tests"
     },
@@ -52521,28 +52497,6 @@
         {
           "capability_id": "SAT-003",
           "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "tests_v9/test_gap_closure_v6.py",
-      "kind": "tests",
-      "candidates": [
-        {
-          "capability_id": "FM-003",
-          "score": 11,
-          "signals": [
-            "content:field boundary",
-            "content:field geometry"
-          ]
-        },
-        {
-          "capability_id": "SAT-003",
-          "score": 10,
           "signals": [
             "content:NDVI",
             "content:ndvi"

@@ -19,13 +19,8 @@ __all__ = [
 ]
 
 # Interchange/spatial-trial edge contracts (no new authority layer).
-from .adapt_v2_edge import (
-    AdaptExportBundle,
-    export_field_boundary_bundle,
-    geojson_polygon_to_wkt,
-    import_field_boundary_bundle,
-    wkt_to_geojson_polygon,
-)
+# ADAPT remains governance-DEFERRED until the first real B2B exchange trigger documented in
+# services/sahool-platform/docs/REFERENCE_DOCS_CRITIQUE.md.
 from .pail_om_edge import (
     PailObservationProjection,
     import_observation_projection,
@@ -39,11 +34,6 @@ from .trial_spatial import (
 )
 
 __all__ += [
-    "AdaptExportBundle",
-    "export_field_boundary_bundle",
-    "geojson_polygon_to_wkt",
-    "wkt_to_geojson_polygon",
-    "import_field_boundary_bundle",
     "PailObservationProjection",
     "project_observation",
     "import_observation_projection",

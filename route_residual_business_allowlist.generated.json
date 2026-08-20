@@ -789,7 +789,7 @@
     {
       "service": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 129,
+      "line": 134,
       "method": "POST",
       "path": "/v1/ingest",
       "function": "ingest"
@@ -797,7 +797,7 @@
     {
       "service": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 172,
+      "line": 177,
       "method": "POST",
       "path": "/v1/search",
       "function": "search"

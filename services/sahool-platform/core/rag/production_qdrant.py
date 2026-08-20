@@ -482,7 +482,7 @@ class QdrantHttpClient:
         self,
         base_url: str,
         collection: str,
-        vector_size: int = 384,
+        vector_size: int = 0,
         api_key: str | None = None,
         timeout_s: float = 20.0,
     ) -> None:

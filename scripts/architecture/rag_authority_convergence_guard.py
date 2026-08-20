@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import date
 from pathlib import Path
 
@@ -16,6 +17,8 @@ LOCAL_REQ = ROOT / "services/local-ai-rag/requirements.txt"
 RETRIEVAL = ROOT / "services/rag-retrieval/main.py"
 EMBED_CONTRACT = ROOT / "docs/architecture/rag_embedding_contract.json"
 COMPOSE = ROOT / "docker-compose.v9.yml"
+RAG_OVERLAY = ROOT / "docker-compose.rag-kg-mcp.yml"
+ENV_EXAMPLE = ROOT / ".env.example"
 CATALOG = ROOT / "platform_catalog.generated.json"
 
 
@@ -58,6 +61,19 @@ def findings(state: dict | None = None, *, today: date | None = None) -> list[st
     contract = json.loads(EMBED_CONTRACT.read_text(encoding="utf-8"))
     if contract.get("schema") != "sahool.rag-embedding-contract/v1":
         out.append("invalid embedding contract schema")
+    if (
+        contract.get("dimension_source") != "live_embedding_response"
+        or contract.get("no_hardcoded_vector_dimension") is not True
+    ):
+        out.append("embedding dimension contract must be live-response sourced and non-hardcoded")
+    overlay = yaml.safe_load(RAG_OVERLAY.read_text(encoding="utf-8"))["services"]
+    overlay_env = overlay["sahool-rag-retrieval"].get("environment") or {}
+    if "EMBEDDING_DIM" in overlay_env:
+        out.append("legacy RAG overlay hard-codes EMBEDDING_DIM")
+    if re.search(r"(?m)^EMBEDDING_DIM=", ENV_EXAMPLE.read_text(encoding="utf-8")):
+        out.append(".env.example hard-codes EMBEDDING_DIM")
+    if "vector_size=0" not in retrieval:
+        out.append("rag-retrieval must start with unknown Qdrant vector size and learn it live")
     provider_mismatch = (
         "HashEmbeddingProvider" in retrieval or "OllamaEmbeddingProvider" not in retrieval
     )

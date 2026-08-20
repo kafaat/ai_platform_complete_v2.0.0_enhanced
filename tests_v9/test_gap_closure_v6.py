@@ -8,6 +8,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+import yaml
 
 pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[1]
@@ -209,24 +210,6 @@ def test_trial_raster_zonal_outcomes_bind_real_pixels(tmp_path):
     assert all(np.isfinite(row["measurements"]["yield_mean"]) for row in bound)
 
 
-def test_adapt_field_boundary_roundtrip_is_identity_preserving_and_bounded():
-    m = _load("shared/precision_agriculture/adapt_v2_edge.py", "v6_adapt")
-    source = _field_polygon()
-    bundle = m.export_field_boundary_bundle(
-        field_id="f-17", field_name="Pivot 17", geometry=source, boundary_revision="42"
-    )
-    restored = m.import_field_boundary_bundle(bundle.document)
-    assert restored["field_id"] == "f-17"
-    assert restored["field_name"] == "Pivot 17"
-    assert restored["boundary_revision"] == "42"
-    assert restored["geometry"] == source
-    assert restored["authority"] == "interchange_roundtrip_only"
-    tampered = json.loads(json.dumps(bundle.document))
-    tampered["catalog"]["fieldBoundaries"][0]["fieldId"] = "sahool:field:other"
-    with pytest.raises(ValueError, match="inconsistent"):
-        m.import_field_boundary_bundle(tampered)
-
-
 def test_pail_projection_roundtrip_rejects_digest_or_authority_tamper():
     m = _load("shared/precision_agriculture/pail_om_edge.py", "v6_pail")
     projected = m.project_observation(
@@ -347,9 +330,25 @@ def test_global_seed_requires_explicit_provenance_manifest():
     assert (
         'SEED_PROVENANCE_JSON = (os.getenv("QDRANT_SEED_PROVENANCE_JSON") or "").strip()' in source
     )
+    assert "QDRANT_SEED_PROVENANCE_JSON is forbidden in production" in source
     assert (
         "global reference seed requires QDRANT_SEED_PROVENANCE_FILE or QDRANT_SEED_PROVENANCE_JSON"
         in source
+    )
+    # مفاتيحُ البيئة تُسأل من الـYAML المُحلَّل لا باقتطاعٍ نصّيّ: الاقتطاع على
+    # مسافةٍ بادئة وترتيبٍ بعينه يقيس **تنسيق** الملفّ، ويرفع `IndexError` عند أوّل
+    # نقلٍ للخدمة — وهو الدرس المكتوب أسفل هذا الاختبار نفسه بعد أن أسقط
+    # `ruff format` تأكيداً حرفيّاً فيه.
+    compose_doc = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))
+    seed_env = compose_doc["services"]["sahool-qdrant-seed"].get("environment") or {}
+    seed_keys = (
+        set(seed_env)
+        if isinstance(seed_env, dict)
+        else {item.split("=", 1)[0] for item in seed_env}
+    )
+    assert "QDRANT_SEED_PROVENANCE_JSON" not in seed_keys, (
+        "compose القانونيّ يمرّر provenance سطريّاً — والحظر في الإنتاج يفقد معناه "
+        "إن كان الملفّ نفسه يُمرّره"
     )
     assert "missing_sources = sorted(" in source
     # تأكيدُ نصٍّ مصدريّ يُقارَن **بعد تطبيع المسافات**: `ruff format` — وهو بوّابة
