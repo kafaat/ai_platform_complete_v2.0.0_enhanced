@@ -2506,6 +2506,20 @@
           "find": "        if isinstance(arg, ast.Constant) and isinstance(arg.value, str):",
           "replace": "        if True:  # MUTANT: يعود المسح نصّيّاً لا مُرسًى على الاستدعاء",
           "why": "نزعُ الترسية على وسائط الاستدعاء ⇒ يعود الكشف يقرأ نصّ الملفّ، فيلتقط **شرح الحارس نفسه** مخالفةً — وقع فعلاً في أوّل صيغة. ملفٌّ يصف عيباً ليس ملفّاً يرتكبه، والـAST وحدها تفرّق."
+        },
+        {
+          "expect": "test_a_stale_stamp_passes_when_re_derivation_still_matches",
+          "test": "tests_v9/test_claim_base_guard.py",
+          "find": "    base = _load_baseline()\n    known = set(base.get(\"offenders\", []))\n",
+          "replace": "    base = _load_baseline()\n    known = set(base.get(\"offenders\", []))\n    if base.get(\"measured_on\") != _head_sha():\n        print(\"ختمٌ بائت\")\n        return 1\n",
+          "why": "ترقيةُ بياتِ `measured_on` إلى حجب ⇒ كلّ دمجٍ بـsquash يُحمِّر الحارس بلا تغيّرٍ دلاليّ واحد. الختمُ إشارةُ إسناد لا شهادةُ تطابق — GOV-01."
+        },
+        {
+          "expect": "test_a_stale_stamp_fails_when_re_derivation_diverges",
+          "test": "tests_v9/test_claim_base_guard.py",
+          "find": "    base = _load_baseline()\n    known = set(base.get(\"offenders\", []))\n",
+          "replace": "    base = _load_baseline()\n    known = set(base.get(\"offenders\", []))\n    found = set(known)\n",
+          "why": "إلغاءُ أثر إعادة الاشتقاق ⇒ يُقارَن الأساس بنفسه فيمرّ أبداً، ولا يبقى للقارئ إلّا `measured_on` — وهو ما يجعل الختم يُقرأ سلطةَ طزاجةٍ وهو ليس كذلك."
         }
       ],
       "test": "tests_v9/test_tenant_guc_scope_guard.py"
