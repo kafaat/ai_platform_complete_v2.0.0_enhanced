@@ -2543,6 +2543,41 @@
           "find": "    base = _load_baseline()\n    known = set(base.get(\"offenders\", []))\n",
           "replace": "    base = _load_baseline()\n    known = set(base.get(\"offenders\", []))\n    found = set(known)\n",
           "why": "إلغاءُ أثر إعادة الاشتقاق ⇒ يُقارَن الأساس بنفسه فيمرّ أبداً، ولا يبقى للقارئ إلّا `measured_on` — وهو ما يجعل الختم يُقرأ سلطةَ طزاجةٍ وهو ليس كذلك."
+        },
+        {
+          "expect": "test_a_changed_basis_with_an_identical_result_is_provenance_only",
+          "test": "tests_v9/test_measurement_basis_freshness.py",
+          "find": "    if stored != basis_digest():\n",
+          "replace": "    if False:\n",
+          "why": "نزعُ حجب بيات الإسناد ⇒ يبقى provenance قديم إلى الأبد بحجّة أنّ النتيجة نفسها. وإعادةُ الاشتقاق لا تسدّ هذا: هي تُجيب عن **النتيجة** لا عن **الأساس** الذي أنتجها."
+        },
+        {
+          "expect": "test_a_missing_digest_is_an_explicit_migration_state_not_implicit_freshness",
+          "test": "tests_v9/test_measurement_basis_freshness.py",
+          "find": "    if not stored:\n",
+          "replace": "    if False:\n",
+          "why": "غيابُ البصمة يُقرأ تطابقاً ⇒ مصنوعةٌ سابقة للعقد تُصادِق نفسها. وهو صنفُ «يفشل مفتوحاً» بعينه: غيابُ الدليل ليس دليلاً."
+        },
+        {
+          "expect": "test_the_basis_binds_all_three_components",
+          "test": "tests_v9/test_measurement_basis_freshness.py",
+          "find": "        _algorithm_digest() if algorithm_digest is None else algorithm_digest,\n",
+          "replace": "        \"\",\n",
+          "why": "نزعُ مكوّن الخوارزميّة ⇒ يعود الأساس بصمةَ مدخلاتٍ وحدها، فيعمى عن تغيُّر منطق المولّد بمدخلاتٍ ثابتة — وهو أخطر الانحرافين لأنّه يبدّل معنى الرقم بلا أثرٍ في مدخلاته."
+        },
+        {
+          "expect": "test_the_generator_is_not_counted_as_its_own_input",
+          "test": "tests_v9/test_measurement_basis_freshness.py",
+          "find": "        if path.resolve() == me:\n",
+          "replace": "        if False:\n",
+          "why": "عدُّ المولّد مُدخَلاً لنفسه ⇒ يُبصَم مرّتين بقاعدتَي حسّاسيّة مختلفتين (بايتات · AST)، فيُبطِل تطبيعَ التوثيق: تعديلُ تعليقٍ فيه يصير انحرافَ مدخلات، وهو الـchurn الذي وُجِد العقد ليمنعه."
+        },
+        {
+          "expect": "test_a_measured_on_only_change_leaves_the_check_verdict_identical",
+          "test": "tests_v9/test_measurement_basis_freshness.py",
+          "find": "    stored = base.get(\"measurement_basis_digest\")\n",
+          "replace": "    if base.get(\"measured_on\") != _head_sha():\n        print(\"ختمٌ بائت\")\n        return 1\n    stored = base.get(\"measurement_basis_digest\")\n",
+          "why": "عودةُ `measured_on` سلطةَ طزاجةٍ من الباب الخلفيّ — لا في حساب الأساس بل **فرعاً في مسار القرار**. وثباتُ الأساس وحده لا يمسك هذا: الختمُ يبقى خارج الحساب ويدخل الحكم. مقيسٌ أثرُه: كلّ squash وكلّ التزامٍ توثيقيّ يصير عندئذٍ generated churn."
         }
       ],
       "test": "tests_v9/test_tenant_guc_scope_guard.py"

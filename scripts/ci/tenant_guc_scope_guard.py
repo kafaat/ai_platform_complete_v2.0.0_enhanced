@@ -50,6 +50,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import hashlib
 import json
 import pathlib
 import re
@@ -182,6 +183,106 @@ def _load_baseline() -> dict:
     return json.loads(BASELINE.read_text(encoding="utf-8"))
 
 
+# ── أساسُ القياس: طزاجةٌ حتميّة بدل هويّة التزام ─────────────────────────────
+#
+# ``measured_on`` **إشارةُ إسناد** لا سلطةَ طزاجة (GOV-01). لكنّ إبقاءه وحده يترك
+# سؤالاً بلا جواب: متى يكون الـprovenance المنشور نفسُه بائتاً والنتيجةُ مع ذلك
+# مطابقة؟ إعادةُ الاشتقاق تُجيب عن **النتيجة** ولا تُجيب عن **الأساس** — فيبقى ختمٌ
+# قديم إلى الأبد بحجّة أنّ الناتج لم يتغيّر.
+#
+# فالطزاجةُ هنا شرطٌ **اقترانيّ** لا بديل: طازجٌ ⇔ تطابقَ الأساسُ **و** تطابقت النتيجة.
+# وإعادةُ الاشتقاق تبقى سلطةَ النتيجة كما كانت.
+#
+# **ولمَ ثلاثةُ مكوّنات لا واحد:** بصمةُ المدخلات وحدها تعمى عن تغيّر المولّد نفسه
+# بمدخلاتٍ ثابتة — وهو أخطر الانحرافين لأنّه يغيّر معنى الرقم بلا أثرٍ في مدخلاته.
+CONTRACT_VERSION = 1
+
+
+def _algorithm_digest(source: str | None = None) -> str:
+    """بصمةُ **دلالة** المولّد لا بايتاته: AST مُجرَّدةً من التوثيق.
+
+    بايتاتٌ خام تجعل كلّ تعديل تعليقٍ انحرافاً — وهو بالضبط الـchurn الذي وُجِد
+    هذا العقد ليمنعه. والـAST تُطابِق حسّاسيّةَ البصمة بحسّاسيّة القياس: تغييرُ
+    منطقٍ يقلبها، وإعادةُ صياغة شرحٍ لا تقلبها.
+    """
+    text = pathlib.Path(__file__).read_text(encoding="utf-8") if source is None else source
+    tree = ast.parse(text)
+    for node in ast.walk(tree):
+        # نزعُ التوثيق: نصٌّ يصف ولا يُنفَّذ.
+        if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+            body = node.body
+            if (
+                body
+                and isinstance(body[0], ast.Expr)
+                and isinstance(body[0].value, ast.Constant)
+                and isinstance(body[0].value.value, str)
+            ):
+                node.body = body[1:] or [ast.Pass()]
+    return hashlib.sha256(ast.dump(tree).encode("utf-8")).hexdigest()
+
+
+def _input_manifest() -> list[dict]:
+    """المدخلاتُ التي **تصل القياس فعلاً**، مرتّبةً ترتيباً قانونيّاً بمسارات نسبيّة.
+
+    لا الشجرةُ كلّها ولا الملفّات الممسوحة كلّها (١٥٣٥): تلك تُعيد إنتاج الدوّامة
+    نفسها بصورة hash مختلفة — تعديلُ ملفٍّ لا يمسّ القياس يُبيت الأساس. والمُستهلَك
+    فعلاً هو ما يحمل ``set_config``؛ وما دونه يُقصَى في ``scan`` قبل أيّ تحليل.
+
+    ومصدرُ هذا الحارس **مُقصًى**: هو الخوارزميّة لا مُدخَلها، وبصمتُه في
+    ``_algorithm_digest`` بتطبيعٍ آخر. عدُّه مرّتين بقاعدتَي حسّاسيّة مختلفتين
+    يجعل تعديلَ تعليقٍ فيه انحرافَ مدخلات — وهو ما نمنعه.
+
+    ولا زمنَ ولا مسارَ مطلق ولا mtime في البصمة: كلّها تختلف بين آلتين على نفس
+    الشيفرة، فتُنتِج انحرافاً لا يصف شيئاً.
+    """
+    me = pathlib.Path(__file__).resolve()
+    out: list[dict] = []
+    for path in _iter_source_files():
+        if path.resolve() == me:
+            continue
+        try:
+            raw = path.read_bytes()
+        except OSError:
+            continue
+        if b"set_config" not in raw:
+            continue
+        out.append(
+            {
+                "path": path.relative_to(ROOT).as_posix(),
+                "sha256": hashlib.sha256(raw).hexdigest(),
+            }
+        )
+    return sorted(out, key=lambda e: e["path"])
+
+
+def _input_digest(manifest: list[dict] | None = None) -> str:
+    """التطبيعُ هنا لا عند المُنادي.
+
+    الاعتمادُ على ترتيبِ المُنادي يجعل البصمة تصف **ترتيبَ الاكتشاف** — وهو تفصيلُ
+    نظامِ ملفّاتٍ يختلف بين آلتين على نفس الشيفرة، لا خاصّيّةٌ من خواصّ القياس.
+    وأمسك هذا اختبارُ إعادةِ الترتيب قبل أن يُلتزَم.
+    """
+    entries = _input_manifest() if manifest is None else manifest
+    canonical = json.dumps(
+        sorted([e["path"], e["sha256"]] for e in entries),
+        ensure_ascii=False,
+    )
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def basis_digest(
+    input_digest: str | None = None,
+    algorithm_digest: str | None = None,
+    contract_version: int = CONTRACT_VERSION,
+) -> str:
+    parts = [
+        str(contract_version),
+        _input_digest() if input_digest is None else input_digest,
+        _algorithm_digest() if algorithm_digest is None else algorithm_digest,
+    ]
+    return hashlib.sha256("\n".join(parts).encode("utf-8")).hexdigest()
+
+
 def main() -> int:
     # مخرَجُ هذا الحارس عربيّ، و`print` يُرمّز بلغة الآلة. فتحت `LC_ALL=C` كان يحسب
     # **صحيحاً** ثمّ يموت وهو يطبع نجاحه (`UnicodeEncodeError`) ⇒ خروجٌ بـ1 يُقرَأ
@@ -201,6 +302,7 @@ def main() -> int:
     found = {_key(o) for o in offenders}
 
     if args.generate:
+        manifest = _input_manifest()
         BASELINE.parent.mkdir(parents=True, exist_ok=True)
         BASELINE.write_text(
             json.dumps(
@@ -209,9 +311,22 @@ def main() -> int:
                         "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — "
                         "`set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. "
                         "**يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. "
+                        "**`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ "
+                        "`measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · "
+                        "بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. "
                         "وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات "
                         "RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله."
                     ),
+                    # **عقدُ هذا الحقل، صريحاً حتّى لا يُقرأ شهادةً:**
+                    #
+                    #   measured_on is traceability metadata.
+                    #   It is NOT freshness authority.
+                    #
+                    # سلطةُ الطزاجة `measurement_basis_digest` مع إعادة الاشتقاق —
+                    # شرطان اقترانيّان. والاسم أُبقي على حاله لأنّ تغييره يكسر قرّاءً
+                    # قائمين، لا لأنّه دقيق: «قِيس على» يوحي لغةً بأنّ النتيجة تشهد
+                    # على ذلك الالتزام كلّه، وهي لا تفعل.
+                    #
                     # **يكتبه المولّد لا اليد.** `claim_base_guard` يُلزِم كلّ أساسٍ
                     # **مقيس** بـ`measured_on` — لأنّه يَبيت بحركة الشجرة، بخلاف قرارٍ
                     # بشريّ لا يَبيت. وأضفتُه يدويّاً أوّل مرّة فمحته أوّل إعادة توليد
@@ -219,6 +334,15 @@ def main() -> int:
                     # نفسه. تعديلٌ يدويّ على مصنوعةٍ مولَّدة لا ينجو — والمصدر الوحيد
                     # الذي ينجو هو المولّد.
                     "measured_on": _head_sha(),
+                    # **إسنادٌ لا سلطةُ طزاجة** (GOV-01). السلطةُ أدناه:
+                    # `measurement_basis_digest` مع إعادة الاشتقاق.
+                    "measurement_contract_version": CONTRACT_VERSION,
+                    "measurement_input_digest": _input_digest(manifest),
+                    "measurement_algorithm_digest": _algorithm_digest(),
+                    "measurement_basis_digest": basis_digest(
+                        _input_digest(manifest), _algorithm_digest()
+                    ),
+                    "measurement_inputs": manifest,
                     "baseline": "GUC-SCOPE-GUARD-SEES-ONE-FILE-01",
                     "offenders": sorted(found),
                     "guc_names": sorted(guc_names),
@@ -251,6 +375,28 @@ def main() -> int:
             print(f"     {k}")
         return 1
 
+    # النتيجةُ مطابقة. يبقى السؤال الذي لا تُجيب عنه إعادةُ الاشتقاق وحدها: أهذا
+    # الـprovenance المنشور يصف الأساسَ الذي أنتج هذا الرقم فعلاً؟
+    stored = base.get("measurement_basis_digest")
+    if not stored:
+        print(
+            "أساسُ القياس غير مُعلَن — حالةُ هجرةٍ صريحة لا طزاجةٌ ضمنيّة.\n"
+            "   المصنوعة سابقة لعقد `measurement_basis_digest`، ولا يجوز أن يُقرأ\n"
+            "   غيابُ البصمة تطابقاً. أغلِقها بـ--generate."
+        )
+        return 1
+    if stored != basis_digest():
+        # **بياتُ provenance لا انحدارٌ دلاليّ.** لا مخالفة جديدة ولا مخالفة اختفت؛
+        # تغيّر ما بُني عليه الرقم (مُدخَلٌ أصيل أو منطقُ المولّد) والناتج صمد.
+        # يُحجَب لأنّ الملفّ المنشور يحتاج تحديثاً — ولا يُصنَّف تغيّرَ قدرة.
+        print(
+            "PROVENANCE_STALE: أساسُ القياس تغيّر والنتيجةُ لم تتغيّر.\n"
+            "   لا مخالفةَ جديدة ولا مخالفةَ اختفت — تغيّر مُدخَلٌ أصيل أو منطقُ\n"
+            "   المولّد، فالـprovenance المنشور صار يصف أساساً غير الذي بين يديك.\n"
+            "   هذا **تجديدُ إسنادٍ لا انحدارٌ دلاليّ**: أعِد التوليد بـ--generate.\n"
+            f"   مُعلَن={stored[:12]}  مُشتقّ={basis_digest()[:12]}"
+        )
+        return 1
     print(
         f"tenant_guc_scope_ok  دَين مُعلَن={len(known)}  أسماء GUC={len(guc_names)}  (يتقلّص ولا ينمو)"
     )

@@ -7604,6 +7604,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_measurement_basis_freshness.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_merge_safety_bootstrap.py",
     "kind": "tests"
   },

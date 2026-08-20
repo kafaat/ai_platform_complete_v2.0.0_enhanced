@@ -292,9 +292,18 @@ def test_a_stale_stamp_passes_when_re_derivation_still_matches(tmp_path, monkeyp
     module = _tenant_guc_module()
     offenders, _ = module.scan()
     baseline = tmp_path / "baseline.json"
+    # الأساسُ **طازج** والختمُ **بائت** — وهذا بالضبط ما يجب أن يمرّ. وأُضيف
+    # `measurement_basis_digest` بعد أن صار العقد اقترانيّاً (طور ١ من
+    # MEASURED-ON-SQUASH-FRESHNESS-01): بدونه كانت الحالة تُقرَأ «هجرة» لا
+    # «ختمٌ بلا سلطة»، فتفقد التأكيدَ الذي وُجِدت لأجله. والدعوى لم تتغيّر —
+    # تقوّت: الختم بائت، والأساس مطابق، والحكم مرور.
     baseline.write_text(
         json.dumps(
-            {"measured_on": "0" * 40, "offenders": sorted(module._key(o) for o in offenders)},
+            {
+                "measured_on": "0" * 40,
+                "measurement_basis_digest": module.basis_digest(),
+                "offenders": sorted(module._key(o) for o in offenders),
+            },
             ensure_ascii=False,
         ),
         encoding="utf-8",
@@ -315,7 +324,11 @@ def test_a_stale_stamp_fails_when_re_derivation_diverges(tmp_path, monkeypatch, 
     baseline = tmp_path / "baseline.json"
     baseline.write_text(
         json.dumps(
-            {"measured_on": "0" * 40, "offenders": ["ملفٌّ لا وجود له::سطر"]},
+            {
+                "measured_on": "0" * 40,
+                "measurement_basis_digest": module.basis_digest(),
+                "offenders": ["ملفٌّ لا وجود له::سطر"],
+            },
             ensure_ascii=False,
         ),
         encoding="utf-8",
