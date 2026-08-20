@@ -52,13 +52,32 @@ def effective_max_age(max_age: int = MAX_AGE, cadence: int = CADENCE) -> int:
 def check(now: float | None = None) -> tuple[bool, str]:
     """منطقٌ صرف — (ok, reason). لا طباعة ولا خروج، فيُكذَّب باختبار."""
     now = time.time() if now is None else now
-    if not READY_FILE.exists():
+    # **نداءٌ واحد لا نداءان.** الصيغةُ السابقة كانت `exists()` ثمّ `stat()`، وبينهما
+    # نافذةُ سباق: المنتِج يكتب بـ`write_text` غيرِ الذرّيّ (يقطع ثمّ يكتب) لا
+    # بـ`os.replace`، فالنافذة مقيسةٌ لا مفترَضة. وأمسك ذلك مراجعٌ آليّ على #880.
+    #
+    # **والأوسع ممّا وصفه المراجع:** `Path.exists()` نفسه يرمي — لا يبتلع إلّا
+    # `ENOENT`/`ENOTDIR`/`EBADF`/`ELOOP`، فقرصٌ يُرجِع `EIO` كان يُخرِج الفحص
+    # بـtraceback قبل أن يبلغ أيّ `stat()`. أثبته اختبارٌ هنا فوراً.
+    #
+    # فبلا التقاطٍ يقرأ Docker رمزَ الخروج ويراه «غير سليم»، ولا يقرأ المشغّلُ
+    # **سبباً**. وهو نفسُ صنف العطل الذي وُجِد هذا الملفّ لإغلاقه: فحصٌ لا يُبلِغ
+    # عمّا قاس. والنداءُ الواحد يُلغي النافذة أصلاً بدل أن يحرسها.
+    try:
+        READY_FILE.stat()
+    except FileNotFoundError:
         return False, "not ready: ready file missing"
-    if not HEARTBEAT_FILE.exists():
+    except OSError as exc:
+        return False, f"not ready: ready file unreadable ({exc.__class__.__name__})"
+    try:
+        stamp = HEARTBEAT_FILE.stat().st_mtime
+    except FileNotFoundError:
         # يفشل مغلقاً: غيابُ الدليل ليس دليلاً. وملفّ الجاهزيّة وحده يشهد للإقلاع
         # لا للحياة، فلا يُقبَل بديلاً عن النبضة.
         return False, "not ready: heartbeat file missing"
-    age = now - HEARTBEAT_FILE.stat().st_mtime
+    except OSError as exc:
+        return False, f"not ready: heartbeat unreadable ({exc.__class__.__name__})"
+    age = now - stamp
     if age < -FUTURE_TOLERANCE_SEC:
         return False, f"not ready: heartbeat dated {int(-age)}s in the future"
     limit = effective_max_age()

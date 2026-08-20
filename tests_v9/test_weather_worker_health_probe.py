@@ -219,3 +219,52 @@ def test_the_probe_stays_stdlib_only():
         if stripped.startswith(("import ", "from ")) and "__future__" not in stripped:
             module = stripped.split()[1].split(".")[0]
             assert module in {"os", "sys", "time", "pathlib"}, stripped
+
+
+# ── ⑥ نبضةٌ موجودةٌ لا تُقرَأ: يفشل مغلقاً بسببٍ مقروء ────────────────────────
+
+
+def test_an_unreadable_heartbeat_fails_closed_with_a_reason(monkeypatch, tmp_path):
+    """`exists()` ثمّ `stat()` نداءان وبينهما نافذة — والمنتِج يكتب بغير ذرّيّة.
+
+    وأمسك هذا مراجعٌ آليّ على #880. وبلا الالتقاط يخرج الفحص بـtraceback: يقرأ
+    Docker رمزَ الخروج فيراه «غير سليم»، والمشغّلُ لا يقرأ **سبباً**. وهو نفسُ صنف
+    العطل الذي وُجِد هذا الملفّ لإغلاقه — فحصٌ لا يُبلِغ عمّا قاس.
+    """
+    module = _probe(monkeypatch, tmp_path)
+    _ready(tmp_path)
+    _beat(tmp_path, age_seconds=1)
+
+    real_stat = Path.stat
+
+    def exploding_stat(self, *a, **kw):
+        if self.name == "beat":
+            raise OSError(5, "I/O error")
+        return real_stat(self, *a, **kw)
+
+    monkeypatch.setattr(Path, "stat", exploding_stat)
+    ok, reason = module.check()
+    assert ok is False
+    assert "unreadable" in reason
+    assert "OSError" in reason
+
+
+def test_the_probe_never_raises_when_the_heartbeat_vanishes_mid_check(monkeypatch, tmp_path):
+    """السباق الحرفيّ: الملفّ موجودٌ عند `exists()` ومحذوفٌ عند `stat()`."""
+    module = _probe(monkeypatch, tmp_path)
+    _ready(tmp_path)
+    _beat(tmp_path, age_seconds=1)
+
+    real_stat = Path.stat
+
+    def vanishing_stat(self, *a, **kw):
+        if self.name == "beat":
+            raise FileNotFoundError(2, "No such file or directory")
+        return real_stat(self, *a, **kw)
+
+    monkeypatch.setattr(Path, "stat", vanishing_stat)
+    ok, reason = module.check()  # لا استثناء
+    assert ok is False
+    # ملفٌّ اختفى **هو** ملفٌّ مفقود، لا غيرُ مقروء. وأوّلُ صياغةٍ هنا أكّدت
+    # `unreadable` فسقطت — والصوابُ تصحيحُ التأكيد لا توسيعُ الرسالة لتوافقه.
+    assert "heartbeat file missing" in reason

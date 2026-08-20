@@ -393,3 +393,57 @@ def test_a_measured_on_only_change_leaves_the_check_verdict_identical(
     assert rc_current == 0, out_current
     assert rc_stale == rc_current, "الختمُ وحده قلب الحكم — فهو ما يزال سلطةَ طزاجة"
     assert out_stale == out_current, "الختمُ وحده غيّر المخرَج — فهو مقروءٌ في مسار القرار"
+
+
+# ── ⑨ حتميّةُ البصمة عبر المفسِّرات — أخفقت CI قبل أن يُثبَّت هذا ────────────
+
+
+_GOLDEN_SNIPPET = 'def f(x):\n    """doc."""\n    return x > 3\n'
+# **قيمةٌ مُثبَّتة بالقصد.** تغيُّرها يعني تغيُّر تعريف بصمة الخوارزميّة نفسه —
+# وذلك تغييرُ عقدٍ يستوجب رفع `CONTRACT_VERSION`، لا تحديثَ رقمٍ هنا ليخضرّ.
+_GOLDEN_DIGEST = "a9bc53a5679033305c7ab69ab18d97c5a55610c28a38fa45a6abe6f7d07ef800"
+
+
+def test_the_algorithm_digest_is_pinned_across_interpreter_versions() -> None:
+    """`ast.dump` تصف **تمثيلَ المفسِّر** لا دلالةَ الشيفرة، وتتبدّل مع كلّ ترقية.
+
+    مقيسٌ على أربعة مفسِّرات لنفس الملفّ: 3.10 و3.11 تتّفقان · 3.12 تختلف (أضافت
+    `type_params`) · 3.13 تختلف ثالثةً. وCI على 3.12 والتطوير على 3.11، فأخفقت
+    البوّابة على التزامٍ يمرّ محلّيّاً — وهو ما كشف العطل.
+
+    **وسلطةُ طزاجةٍ غيرُ حتميّة أسوأ من لا سلطة:** تُحمِّر بلا تغيّرٍ دلاليّ واحد
+    فيتعلّم القارئ تجاهلها. والقيمةُ المُثبَّتة تجعل الانحراف أحمرَ **هنا** بدل أن
+    يظهر إخفاقاً غامضاً في CI وحدها.
+    """
+    module = _guard()
+    assert module._algorithm_digest(_GOLDEN_SNIPPET) == _GOLDEN_DIGEST
+
+
+def test_a_new_empty_ast_field_does_not_move_the_digest() -> None:
+    """هذا حرفيّاً ما فعلته 3.12: أضافت `type_params=[]` لكلّ دالّة.
+
+    فالحقولُ الفارغة تُتخطّى — وإلّا صار كلُّ إصدارٍ جديد من بايثون انحرافَ إسناد.
+    """
+    import ast
+
+    module = _guard()
+    tree = ast.parse(_GOLDEN_SNIPPET)
+    before = module._stable_dump(tree)
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef):
+            node._fields = (*node._fields, "future_field_from_a_later_python")
+            node.future_field_from_a_later_python = []
+    assert module._stable_dump(tree) == before
+
+
+def test_line_positions_never_enter_the_algorithm_digest() -> None:
+    """أرقامُ الأسطر `_attributes` لا `_fields` — وإزاحةُ سطرٍ ليست تغييرَ منطق."""
+    module = _guard()
+    shifted = "\n\n\n" + _GOLDEN_SNIPPET
+    assert module._algorithm_digest(shifted) == module._algorithm_digest(_GOLDEN_SNIPPET)
+
+
+def test_a_literal_type_change_still_moves_the_digest() -> None:
+    """`1` و`True` يتشابهان في `repr` ولا يتشابهان دلالةً — فالنوعُ يُبصَم معهما."""
+    module = _guard()
+    assert module._algorithm_digest("x = 1\n") != module._algorithm_digest("x = True\n")

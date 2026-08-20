@@ -29125,7 +29125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "269a4632a21674bf827fac0ada9bc4df5789584013b50516d88c64cc2e225504"
+          "content": "445abbce3137c114cd8260bd3693d9daaec313d5ea48dbd79f64d9aafb31641a"
         }
       ],
       "name": "services/weather-polygon-worker/worker_health_probe.py",
@@ -29575,7 +29575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "269a4632a21674bf827fac0ada9bc4df5789584013b50516d88c64cc2e225504"
+          "content": "445abbce3137c114cd8260bd3693d9daaec313d5ea48dbd79f64d9aafb31641a"
         }
       ],
       "name": "services/weather-signal-engine/worker_health_probe.py",

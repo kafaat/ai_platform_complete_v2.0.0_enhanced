@@ -820,8 +820,8 @@
       "mutations": [
         {
           "expect": "test_a_missing_heartbeat_is_not_ready",
-          "find": "    if not HEARTBEAT_FILE.exists():\n",
-          "replace": "    if False:\n",
+          "find": "        return False, \"not ready: heartbeat file missing\"\n",
+          "replace": "        return True, \"ready\"\n",
           "why": "عودةُ الفشل مفتوحاً عند غياب النبضة ⇒ يبقى المطلوبُ الوحيد ملفَّ الجاهزيّة، وهو يُكتَب مرّةً عند الإقلاع ولا يُحدَّث. فيقيس الفحص «أقلعت مرّةً» ويُعلِنها «تعمل الآن» — وغيابُ الدليل يُقرأ دليلاً."
         },
         {
@@ -835,6 +835,12 @@
           "find": "    return max(max_age, 2 * cadence + 60)\n",
           "replace": "    return max_age\n",
           "why": "فكُّ ارتباط السقف بكادنس المنتِج ⇒ يعود رقماً مستقلّاً. مقيسٌ على المشحون: `.env.example` يضبط الدورة على ٣٦٠٠ ثانية والسقف الثابت ١٨٠ — فعاملٌ سليمٌ تماماً يُعلَن مريضاً ٩٥٪ من كلّ ساعة."
+        },
+        {
+          "expect": "test_an_unreadable_heartbeat_fails_closed_with_a_reason",
+          "find": "        return False, f\"not ready: heartbeat unreadable ({exc.__class__.__name__})\"\n",
+          "replace": "        return True, \"ready\"\n",
+          "why": "نبضةٌ موجودةٌ لا تُقرَأ (EIO مثلاً) تُقرَأ صحّةً. وأمسك أصلَ العطل مراجعٌ آليّ على #880: بلا التقاطٍ يخرج الفحص بـtraceback فيقرأ Docker رمزَ الخروج ولا يقرأ المشغّلُ سبباً — والأوسع أنّ `Path.exists()` نفسه يرمي على EIO، فوُحِّد النداء وأُلغيت النافذة بدل حراستها."
         }
       ]
     }
@@ -2547,7 +2553,7 @@
         {
           "expect": "test_a_changed_basis_with_an_identical_result_is_provenance_only",
           "test": "tests_v9/test_measurement_basis_freshness.py",
-          "find": "    if stored != basis_digest():\n",
+          "find": "    if stored != derived:\n",
           "replace": "    if False:\n",
           "why": "نزعُ حجب بيات الإسناد ⇒ يبقى provenance قديم إلى الأبد بحجّة أنّ النتيجة نفسها. وإعادةُ الاشتقاق لا تسدّ هذا: هي تُجيب عن **النتيجة** لا عن **الأساس** الذي أنتجها."
         },

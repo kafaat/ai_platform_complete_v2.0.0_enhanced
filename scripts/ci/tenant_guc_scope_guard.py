@@ -195,7 +195,41 @@ def _load_baseline() -> dict:
 #
 # **ولمَ ثلاثةُ مكوّنات لا واحد:** بصمةُ المدخلات وحدها تعمى عن تغيّر المولّد نفسه
 # بمدخلاتٍ ثابتة — وهو أخطر الانحرافين لأنّه يغيّر معنى الرقم بلا أثرٍ في مدخلاته.
-CONTRACT_VERSION = 1
+CONTRACT_VERSION = 2
+
+
+def _stable_dump(node: object) -> str:
+    """تسلسلٌ **مستقلٌّ عن إصدار المفسِّر**، لا ``ast.dump``.
+
+    ``ast.dump`` تصف تمثيلَ المفسِّر لا دلالةَ الشيفرة، وتتبدّل مع كلّ ترقية.
+    مقيسٌ على أربعة مفسِّرات لنفس الملفّ حرفاً بحرف: 3.10 و3.11 تتّفقان، و3.12
+    تختلف (أضافت ``type_params``)، و3.13 تختلف ثالثةً. وCI على 3.12 بينما التطوير
+    على 3.11 — فأخفقت البوّابة على التزامٍ يمرّ محلّيّاً، وهو أوّل ما كشف العطل.
+
+    **وسلطةُ طزاجةٍ غيرُ حتميّة أسوأ من لا سلطة:** تُحمِّر بلا تغيّرٍ دلاليّ واحد،
+    فيتعلّم القارئ تجاهلها — وهو العطل نفسه الذي وُجِد هذا العقد ليمنعه.
+
+    القواعد: اسمُ النوع · حقولٌ مرتّبةٌ أبجديّاً (فترتيب ``_fields`` لا يؤثّر) ·
+    وتُتخطّى الحقول الغائبة والفارغة (``type_params=[]`` في 3.12 لا تُسهم بشيء،
+    فتوافق 3.11 التي لا تعرفها أصلاً) · ولا تُقرأ ``_attributes`` إطلاقاً فلا
+    تدخل أرقامُ الأسطر والأعمدة.
+    """
+    if isinstance(node, ast.AST):
+        if isinstance(node, ast.Constant):
+            # نوعُ القيمة معها: ``1`` و``True`` يتشابهان في ``repr`` ولا يتشابهان دلالةً.
+            return f"Constant({type(node.value).__name__}:{node.value!r})"
+        parts = []
+        for field in sorted(node._fields):
+            if not hasattr(node, field):
+                continue
+            value = getattr(node, field)
+            if value is None or (isinstance(value, list) and not value):
+                continue
+            parts.append(f"{field}={_stable_dump(value)}")
+        return f"{type(node).__name__}({','.join(parts)})"
+    if isinstance(node, list):
+        return "[" + ",".join(_stable_dump(x) for x in node) + "]"
+    return repr(node)
 
 
 def _algorithm_digest(source: str | None = None) -> str:
@@ -218,7 +252,7 @@ def _algorithm_digest(source: str | None = None) -> str:
                 and isinstance(body[0].value.value, str)
             ):
                 node.body = body[1:] or [ast.Pass()]
-    return hashlib.sha256(ast.dump(tree).encode("utf-8")).hexdigest()
+    return hashlib.sha256(_stable_dump(tree).encode("utf-8")).hexdigest()
 
 
 def _input_manifest() -> list[dict]:
@@ -302,7 +336,13 @@ def main() -> int:
     found = {_key(o) for o in offenders}
 
     if args.generate:
+        # **تُحسَب مرّةً وتُعاد.** الصيغةُ السابقة كانت تبني الجرد وتحلّل الـAST
+        # مرّتين لكلٍّ، وأمسكه مراجعٌ آليّ على #880. والكلفةُ أهونُ ما فيه: حسابان
+        # منفصلان على شجرةٍ تتحرّك قد يُنتِجان قيمتين، فتُكتَب في المصنوعة بصمةُ
+        # أساسٍ لا تطابق مكوّنيها المكتوبين بجانبها — مصنوعةُ إسنادٍ تناقض نفسها.
         manifest = _input_manifest()
+        inputs_digest = _input_digest(manifest)
+        algo_digest = _algorithm_digest()
         BASELINE.parent.mkdir(parents=True, exist_ok=True)
         BASELINE.write_text(
             json.dumps(
@@ -337,11 +377,9 @@ def main() -> int:
                     # **إسنادٌ لا سلطةُ طزاجة** (GOV-01). السلطةُ أدناه:
                     # `measurement_basis_digest` مع إعادة الاشتقاق.
                     "measurement_contract_version": CONTRACT_VERSION,
-                    "measurement_input_digest": _input_digest(manifest),
-                    "measurement_algorithm_digest": _algorithm_digest(),
-                    "measurement_basis_digest": basis_digest(
-                        _input_digest(manifest), _algorithm_digest()
-                    ),
+                    "measurement_input_digest": inputs_digest,
+                    "measurement_algorithm_digest": algo_digest,
+                    "measurement_basis_digest": basis_digest(inputs_digest, algo_digest),
                     "measurement_inputs": manifest,
                     "baseline": "GUC-SCOPE-GUARD-SEES-ONE-FILE-01",
                     "offenders": sorted(found),
@@ -385,7 +423,10 @@ def main() -> int:
             "   غيابُ البصمة تطابقاً. أغلِقها بـ--generate."
         )
         return 1
-    if stored != basis_digest():
+    # وهنا الأخطر: حسابان منفصلان يعنيان أنّ الرقم المطبوع قد لا يكون الرقم الذي
+    # حُكِم به. حارسُ إسنادٍ يطبع بصمةً لم يُقرّر عليها هو نفسُه العطل الذي يقيسه.
+    derived = basis_digest()
+    if stored != derived:
         # **بياتُ provenance لا انحدارٌ دلاليّ.** لا مخالفة جديدة ولا مخالفة اختفت؛
         # تغيّر ما بُني عليه الرقم (مُدخَلٌ أصيل أو منطقُ المولّد) والناتج صمد.
         # يُحجَب لأنّ الملفّ المنشور يحتاج تحديثاً — ولا يُصنَّف تغيّرَ قدرة.
@@ -394,7 +435,7 @@ def main() -> int:
             "   لا مخالفةَ جديدة ولا مخالفةَ اختفت — تغيّر مُدخَلٌ أصيل أو منطقُ\n"
             "   المولّد، فالـprovenance المنشور صار يصف أساساً غير الذي بين يديك.\n"
             "   هذا **تجديدُ إسنادٍ لا انحدارٌ دلاليّ**: أعِد التوليد بـ--generate.\n"
-            f"   مُعلَن={stored[:12]}  مُشتقّ={basis_digest()[:12]}"
+            f"   مُعلَن={stored[:12]}  مُشتقّ={derived[:12]}"
         )
         return 1
     print(
