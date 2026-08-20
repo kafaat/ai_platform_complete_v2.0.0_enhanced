@@ -7608,6 +7608,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_measurement_basis_freshness.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_merge_safety_bootstrap.py",
     "kind": "tests"
   },
@@ -8329,6 +8333,10 @@
   },
   {
     "path": "tests_v9/test_weather_signal_engine.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_weather_worker_health_probe.py",
     "kind": "tests"
   },
   {

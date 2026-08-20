@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6505d899d0c16244e873be8a1980db2881ec46c741177bb4ce52bdd6db208d12"
+          "content": "858e52c1ccdbc41cc5597bfdf0bff501e969ea4c86c07ad1617ff89d364bdabb"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -29125,7 +29125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7ad62da20fd8bed0491aae8547be9501e8dc3356275040514853e0a60edc81f1"
+          "content": "445abbce3137c114cd8260bd3693d9daaec313d5ea48dbd79f64d9aafb31641a"
         }
       ],
       "name": "services/weather-polygon-worker/worker_health_probe.py",
@@ -29575,7 +29575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7ad62da20fd8bed0491aae8547be9501e8dc3356275040514853e0a60edc81f1"
+          "content": "445abbce3137c114cd8260bd3693d9daaec313d5ea48dbd79f64d9aafb31641a"
         }
       ],
       "name": "services/weather-signal-engine/worker_health_probe.py",
