@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1867,
     "route_handlers": 1049,
-    "call_edges": 74917,
+    "call_edges": 74921,
     "dead_code_candidates": 622,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -163370,48 +163370,13 @@
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "getenv",
-      "line": 253
+      "line": 257
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "rstrip",
-      "line": 253
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/ai_provider_config.py",
-      "source": "resolve_ai_provider",
-      "target": "strip",
-      "line": 253
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/ai_provider_config.py",
-      "source": "resolve_ai_provider",
-      "target": "getenv",
-      "line": 255
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/ai_provider_config.py",
-      "source": "resolve_ai_provider",
-      "target": "strip",
-      "line": 255
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/ai_provider_config.py",
-      "source": "resolve_ai_provider",
-      "target": "_resolve_model",
-      "line": 256
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/ai_provider_config.py",
-      "source": "resolve_ai_provider",
-      "target": "getenv",
       "line": 257
     },
     {
@@ -163425,15 +163390,64 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
-      "target": "AIProviderConfig",
+      "target": "endswith",
+      "line": 258
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/ai_provider_config.py",
+      "source": "resolve_ai_provider",
+      "target": "len",
       "line": 259
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
+      "target": "getenv",
+      "line": 261
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/ai_provider_config.py",
+      "source": "resolve_ai_provider",
+      "target": "strip",
+      "line": 261
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/ai_provider_config.py",
+      "source": "resolve_ai_provider",
+      "target": "_resolve_model",
+      "line": 262
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/ai_provider_config.py",
+      "source": "resolve_ai_provider",
+      "target": "getenv",
+      "line": 263
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/ai_provider_config.py",
+      "source": "resolve_ai_provider",
+      "target": "strip",
+      "line": 263
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/ai_provider_config.py",
+      "source": "resolve_ai_provider",
+      "target": "AIProviderConfig",
+      "line": 265
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/ai_provider_config.py",
+      "source": "resolve_ai_provider",
       "target": "bool",
-      "line": 264
+      "line": 270
     },
     {
       "owner": "sahool-platform",
@@ -518221,21 +518235,21 @@
       "file": "shared/iot_execution_runtime.py",
       "source": "project_thing_model",
       "target": "items",
-      "line": 352
+      "line": 355
     },
     {
       "owner": "shared",
       "file": "shared/iot_execution_runtime.py",
       "source": "project_thing_model",
       "target": "sorted",
-      "line": 352
+      "line": 355
     },
     {
       "owner": "shared",
       "file": "shared/iot_execution_runtime.py",
       "source": "project_thing_model",
       "target": "append",
-      "line": 353
+      "line": 356
     },
     {
       "owner": "shared",
@@ -525759,203 +525773,168 @@
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "project_observation",
-      "target": "float",
-      "line": 66
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "project_observation",
       "target": "get",
-      "line": 66
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "project_observation",
-      "target": "float",
-      "line": 67
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "project_observation",
-      "target": "get",
-      "line": 67
+      "line": 68
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "project_observation",
       "target": "ValueError",
-      "line": 69
+      "line": 70
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "project_observation",
+      "target": "join",
+      "line": 70
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "project_observation",
+      "target": "float",
+      "line": 72
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "project_observation",
+      "target": "float",
+      "line": 73
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "project_observation",
+      "target": "ValueError",
+      "line": 75
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "project_observation",
+      "target": "ValueError",
+      "line": 77
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "project_observation",
       "target": "fromkeys",
-      "line": 81
+      "line": 89
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "project_observation",
       "target": "list",
-      "line": 81
+      "line": 89
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "project_observation",
       "target": "items",
-      "line": 85
+      "line": 93
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "project_observation",
       "target": "dumps",
-      "line": 91
+      "line": 99
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "project_observation",
       "target": "encode",
-      "line": 91
+      "line": 99
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "project_observation",
       "target": "PailObservationProjection",
-      "line": 94
+      "line": 102
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "project_observation",
       "target": "hexdigest",
-      "line": 98
+      "line": 106
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "project_observation",
       "target": "sha256",
-      "line": 98
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
-      "target": "isinstance",
       "line": 106
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
+      "target": "isinstance",
+      "line": 114
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
       "target": "dict",
-      "line": 109
+      "line": 117
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
       "target": "isinstance",
-      "line": 112
+      "line": 120
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
       "target": "get",
-      "line": 113
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
-      "target": "str",
-      "line": 113
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
-      "target": "get",
-      "line": 114
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
-      "target": "str",
-      "line": 114
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
-      "target": "dict",
-      "line": 115
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
-      "target": "get",
-      "line": 115
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
-      "target": "get",
-      "line": 116
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
-      "target": "str",
-      "line": 116
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
-      "target": "bool",
-      "line": 117
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
-      "target": "get",
-      "line": 117
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
-      "target": "ValueError",
-      "line": 119
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
-      "target": "ValueError",
       "line": 121
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
-      "target": "ValueError",
+      "target": "str",
+      "line": 121
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
+      "target": "get",
+      "line": 122
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
+      "target": "str",
+      "line": 122
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
+      "target": "dict",
+      "line": 123
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
+      "target": "get",
       "line": 123
     },
     {
@@ -525969,7 +525948,14 @@
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
-      "target": "ValueError",
+      "target": "str",
+      "line": 124
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
+      "target": "bool",
       "line": 125
     },
     {
@@ -525977,6 +525963,13 @@
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
       "target": "get",
+      "line": 125
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
+      "target": "ValueError",
       "line": 127
     },
     {
@@ -525990,119 +525983,112 @@
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
-      "target": "join",
-      "line": 129
+      "target": "ValueError",
+      "line": 131
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
-      "target": "dumps",
-      "line": 130
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
-      "target": "encode",
-      "line": 130
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
-      "target": "hexdigest",
-      "line": 133
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
-      "target": "sha256",
-      "line": 133
+      "target": "get",
+      "line": 132
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
       "target": "ValueError",
+      "line": 133
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
+      "target": "get",
       "line": 135
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
-      "target": "get",
-      "line": 137
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
-      "target": "isinstance",
-      "line": 137
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
-      "target": "len",
-      "line": 137
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
       "target": "ValueError",
+      "line": 137
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
+      "target": "join",
+      "line": 137
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
+      "target": "dumps",
       "line": 138
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
-      "target": "isinstance",
+      "target": "encode",
+      "line": 138
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
+      "target": "hexdigest",
       "line": 141
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
-      "target": "get",
-      "line": 142
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
-      "target": "get",
-      "line": 143
+      "target": "sha256",
+      "line": 141
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
       "target": "ValueError",
+      "line": 143
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
+      "target": "get",
       "line": 145
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
-      "target": "str",
-      "line": 147
+      "target": "isinstance",
+      "line": 145
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
-      "target": "str",
-      "line": 148
+      "target": "len",
+      "line": 145
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
-      "target": "str",
+      "target": "ValueError",
+      "line": 146
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
+      "target": "isinstance",
       "line": 149
     },
     {
@@ -526116,49 +526102,35 @@
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
-      "target": "str",
+      "target": "get",
       "line": 151
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
-      "target": "get",
-      "line": 152
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
-      "target": "get",
+      "target": "ValueError",
       "line": 153
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
-      "target": "get",
-      "line": 154
-    },
-    {
-      "owner": "shared",
-      "file": "shared/precision_agriculture/pail_om_edge.py",
-      "source": "import_observation_projection",
-      "target": "get",
+      "target": "str",
       "line": 155
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
-      "target": "get",
+      "target": "str",
       "line": 156
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
-      "target": "get",
+      "target": "str",
       "line": 157
     },
     {
@@ -526172,15 +526144,71 @@
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
+      "target": "str",
+      "line": 159
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
+      "target": "get",
+      "line": 160
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
+      "target": "get",
+      "line": 161
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
+      "target": "get",
+      "line": 162
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
+      "target": "get",
+      "line": 163
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
+      "target": "get",
+      "line": 164
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
+      "target": "get",
+      "line": 165
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
+      "target": "get",
+      "line": 166
+    },
+    {
+      "owner": "shared",
+      "file": "shared/precision_agriculture/pail_om_edge.py",
+      "source": "import_observation_projection",
       "target": "list",
-      "line": 158
+      "line": 166
     },
     {
       "owner": "shared",
       "file": "shared/precision_agriculture/pail_om_edge.py",
       "source": "import_observation_projection",
       "target": "str",
-      "line": 159
+      "line": 167
     },
     {
       "owner": "shared",
@@ -539585,7 +539613,7 @@
       "symbol": "import_observation_projection",
       "kind": "function",
       "file": "shared/precision_agriculture/pail_om_edge.py",
-      "line": 102,
+      "line": 110,
       "owner": "shared",
       "decorated_route": false,
       "reference_count": 0,

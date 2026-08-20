@@ -25,6 +25,8 @@ DEFAULT_BASE_URL = "http://sahool-ollama:11434"
 DEFAULT_EXPECTED_VERSION = "0.32.5"
 DEFAULT_CHAT_MODEL = "llama3.2:3b"
 DEFAULT_EMBED_MODEL = "nomic-embed-text"
+# الرمز المطلوب في ردّ الدخان — مصدرٌ واحد للنصّ المُرسَل وللمقارنة، فلا ينحرف أحدهما.
+CHAT_SMOKE_TOKEN = "SAHOOL_OK"
 
 
 @dataclass
@@ -129,7 +131,9 @@ def probe(
             "/v1/chat/completions",
             payload={
                 "model": chat_model,
-                "messages": [{"role": "user", "content": "Reply with exactly: SAHOOL_OK"}],
+                "messages": [
+                    {"role": "user", "content": f"Reply with exactly: {CHAT_SMOKE_TOKEN}"}
+                ],
                 "temperature": 0,
                 "max_tokens": 16,
                 "stream": False,
@@ -143,7 +147,19 @@ def probe(
             if isinstance(message, dict):
                 content = str(message.get("content") or "").strip()
         evidence["chat_content"] = content
-        checks.append(Check("chat_smoke", bool(content), content[:120] or "<empty>"))
+        # الطلب يقول «Reply with exactly: SAHOOL_OK»، فقبولُ أيّ نصٍّ غير فارغ يجعل
+        # الفحص يخضرّ على ردٍّ لا يطابق العقد — أي يقيس «أنّ شيئاً عاد» لا «أنّ
+        # الاستدلال يعمل». يُقارَن الآن بالرمز المطلوب، **بعد تطبيعٍ خفيف** (حالة
+        # الأحرف وعلامات الترقيم المحيطة): التثبيت الحرفيّ التامّ يجعل الفحص هشّاً
+        # أمام نموذجٍ يضيف نقطة، والتطبيع يحفظ صرامته بلا هشاشة.
+        normalized = content.strip().strip(".!\"'` \t\n").upper()
+        checks.append(
+            Check(
+                "chat_smoke",
+                normalized == CHAT_SMOKE_TOKEN,
+                f"expected={CHAT_SMOKE_TOKEN} actual={content[:120] or '<empty>'}",
+            )
+        )
 
     return checks, evidence
 

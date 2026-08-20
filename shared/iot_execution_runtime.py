@@ -347,7 +347,10 @@ def project_thing_model(
     """
     if not device_model_id:
         raise ValueError("device_model_id is required")
-    caps = capabilities or DEFAULT_CAPABILITIES
+    # فحصُ `is None` لا صدقيّةَ القيمة: التوقيع يقول `dict | None`، فالقاموس الفارغ
+    # تمثيلٌ صريح لـ«لا قدرات» لا طلبٌ للافتراضيّ. و`or` تبتلعه فتُرجِع قدراتٍ لم
+    # يطلبها المُستدعي. (أمسكها مراجع Copilot على #876.)
+    caps = DEFAULT_CAPABILITIES if capabilities is None else capabilities
     functions = []
     for protocol, cap in sorted(caps.items()):
         functions.append(

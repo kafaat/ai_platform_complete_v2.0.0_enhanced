@@ -250,7 +250,13 @@ def resolve_ai_provider(requested_model: str | None = None) -> AIProviderConfig:
 
     # المحلّيّ (Ollama) يستخدم واجهة OpenAI-compatible الموثّقة /v1/chat/completions.
     # لا نعتمد Anthropic /v1/messages لأن الصورة التاريخية في هذا الخط لا تضمنها.
+    # `/v1` تُلحَق بالجذر — والجذر يُطبَّع أوّلاً بإسقاط لاحقة `/v1` إن حملها.
+    # `OLLAMA_BASE_URL` متغيّر بيئة، وضبطُه على نقطة OpenAI-compatible كاملة عادةٌ
+    # شائعة عند من يوجّهه إلى وسيطٍ آخر؛ وبلا تطبيع يصير `…/v1/v1/chat/completions`
+    # فيسقط الاستدعاء بـ404 بلا سببٍ ظاهر في الإعداد. (أمسكها مراجع Copilot على #876.)
     root_url = (os.getenv("OLLAMA_BASE_URL") or DEFAULT_OLLAMA_BASE_URL).strip().rstrip("/")
+    if root_url.endswith("/v1"):
+        root_url = root_url[: -len("/v1")]
     base_url = f"{root_url}/v1"
     local_default = shared_model or (os.getenv("LOCAL_LLM_MODEL") or DEFAULT_LOCAL_MODEL).strip()
     model = _resolve_model("local", local_default, requested_model)

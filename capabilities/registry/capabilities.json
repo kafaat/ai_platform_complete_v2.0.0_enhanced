@@ -4388,6 +4388,7 @@
         "services/vegetation-analysis-service/test_rs_review_hardening.py",
         "tests_v9/test_ai_approval_audit_v55.py",
         "tests_v9/test_ai_approval_endpoints_v58.py",
+        "tests_v9/test_copilot_review_876_regressions.py",
         "tests_v9/test_decision_review_backfill_verify.py",
         "tests_v9/test_decision_review_boundary_guard.py",
         "tests_v9/test_security_review_fixes.py"
@@ -4425,7 +4426,7 @@
           "path": "services/decision-service/migrations/012_model_activation_approval_command.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=23, tests=14, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=23, tests=15, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

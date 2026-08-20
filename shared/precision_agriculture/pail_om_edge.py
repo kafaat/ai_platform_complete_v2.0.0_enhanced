@@ -63,8 +63,16 @@ def project_observation(
     if isinstance(value, float) and not math.isfinite(value):
         raise ValueError("observation value must be finite")
     if position is not None:
-        lat = float(position.get("lat"))
-        lon = float(position.get("lon"))
+        # الغياب يُسمّى ولا يُترَك لـ`float(None)` — تلك ترفع `TypeError` عارياً بينما
+        # كلّ أخطاء المُدخَل هنا `ValueError` مُسمّاة، فيختلّ عقد الأخطاء على المُستدعي.
+        absent = [key for key in ("lat", "lon") if position.get(key) is None]
+        if absent:
+            raise ValueError(f"observation position missing: {', '.join(absent)}")
+        try:
+            lat = float(position["lat"])
+            lon = float(position["lon"])
+        except (TypeError, ValueError) as exc:
+            raise ValueError("observation position lat/lon must be numeric") from exc
         if not (-90.0 <= lat <= 90.0 and -180.0 <= lon <= 180.0):
             raise ValueError("observation position outside WGS84 bounds")
         position = {"lat": lat, "lon": lon}

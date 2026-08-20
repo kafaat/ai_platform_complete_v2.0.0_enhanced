@@ -14935,7 +14935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d476d0e20bd32f3f128188f720e5d3bf9905bdd841966df407ed1f29b9ba9430"
+          "content": "08b3b08fdf2bed7f446d7c97551fa699e7dbbfe1f8283bee4650b9603ce0491d"
         }
       ],
       "name": "services/sahool-platform/api/ai_provider_config.py",
@@ -30525,7 +30525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fd5a2658a8a377be4ea8a81cd50d433143c7da6600612ebf0ebbfcba936bed58"
+          "content": "3ad525f5e64b86e58a894698a0c1d9fb92de900bdd37297050e7dee1fba866a1"
         }
       ],
       "name": "shared/iot_execution_runtime.py",
@@ -30765,7 +30765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3d28c0d8352f0bb8b67da478955324968bc193f67038123ee920da1dc9334940"
+          "content": "73ea6683f7e8a3668e2fb8c6bb35d8171d02f767af9e84a8283f9ee89b65ee51"
         }
       ],
       "name": "shared/precision_agriculture/pail_om_edge.py",
