@@ -197,7 +197,11 @@ def resolve_ai_provider(requested_model: str | None = None) -> AIProviderConfig:
 
     if provider == "vllm":
         base_url = (os.getenv("VLLM_BASE_URL") or DEFAULT_VLLM_BASE_URL).strip()
-        token = (os.getenv("VLLM_API_KEY") or "sahool-vllm-local").strip()
+        # لا بديلَ مُصلَّب: قيمةٌ في الشيفرة **سرٌّ منشور** مهما نُظِّفت `.env.example`
+        # وcompose — وهذا بعينه ما كان يُبقي `sahool-vllm-local` حيّاً بعد إزالته
+        # منهما. و`if token:` أدناه قائمٌ سلفاً، فالفارغ يُسقِط الترويسة بلا عطل:
+        # مَن لا يضبط المفتاح لا يُرسِل مصادقة، ومَن يضبطه يُرسِلها.
+        token = (os.getenv("VLLM_API_KEY") or "").strip()
         default_model = shared_model or (os.getenv("VLLM_MODEL") or DEFAULT_VLLM_MODEL).strip()
         model = _resolve_model("vllm", default_model, requested_model)
         headers = {"content-type": "application/json"}

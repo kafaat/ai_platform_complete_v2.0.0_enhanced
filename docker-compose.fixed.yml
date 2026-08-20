@@ -137,9 +137,9 @@ services:
       PGPASSWORD: ${DB_PASSWORD:?DB_PASSWORD required}
       PGDATABASE: sahool
       APP_DB_ROLE: ${APP_DB_ROLE:-sahool_app}
-      APP_DB_PASSWORD: ${APP_DB_PASSWORD:-sahool_app_pw}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?APP_DB_PASSWORD مطلوب — لا سرّ افتراضيّ}
       JOBS_DB_ROLE: ${JOBS_DB_ROLE:-sahool_jobs}
-      JOBS_DB_PASSWORD: ${JOBS_DB_PASSWORD:-sahool_jobs_pw}
+      JOBS_DB_PASSWORD: ${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD مطلوب — لا سرّ افتراضيّ}
     volumes:
       - ./migrations:/migrations:ro
     command: ["bash", "/migrations/apply_in_compose.sh"]
@@ -349,7 +349,7 @@ services:
     environment:
       # v8-F9: يتّصل التطبيق بدور sahool_app المقيّد (NOBYPASSRLS) الذي يُنشئه sahool-migrate
       # (apply_in_compose.sh) — لا sahool_user المُمتاز. RLS يبقى مفروضاً (بلا تعطيل حارس FINDING-001).
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD مطلوب — لا سرّ افتراضيّ}@sahool-postgres:5432/sahool}
       MCP_SENTINEL_HUB_URL: http://sahool-sentinel-hub-mcp:8000/mcp/v1
       MCP_WEATHER_URL: http://sahool-weather-mcp:8000/mcp/v1
       MCP_WOFOST_URL: http://sahool-wofost-mcp:8000/mcp/v1
@@ -392,7 +392,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       # v8-F9: يتّصل التطبيق بدور sahool_app المقيّد (NOBYPASSRLS) الذي يُنشئه sahool-migrate
       # (apply_in_compose.sh) — لا sahool_user المُمتاز. RLS يبقى مفروضاً (بلا تعطيل حارس FINDING-001).
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD مطلوب — لا سرّ افتراضيّ}@sahool-postgres:5432/sahool}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_SERVICE_URL: ${RASTER_SERVICE_URL:-http://sahool-raster-service:8001}
@@ -444,7 +444,7 @@ services:
     environment:
       # v8-F9: يتّصل التطبيق بدور sahool_app المقيّد (NOBYPASSRLS) الذي يُنشئه sahool-migrate
       # (apply_in_compose.sh) — لا sahool_user المُمتاز. RLS يبقى مفروضاً (بلا تعطيل حارس FINDING-001).
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD مطلوب — لا سرّ افتراضيّ}@sahool-postgres:5432/sahool}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       JWT_SECRET: ${JWT_SECRET}
       # FINDING-003: /validate يتطلّب X-Agent-Token مطابقاً لـSAHOOL_AGENT_TOKEN؛ بلا حقنه
@@ -529,7 +529,7 @@ services:
     environment:
       # v8-F9: يتّصل التطبيق بدور sahool_app المقيّد (NOBYPASSRLS) الذي يُنشئه sahool-migrate
       # (apply_in_compose.sh) — لا sahool_user المُمتاز. RLS يبقى مفروضاً (بلا تعطيل حارس FINDING-001).
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD مطلوب — لا سرّ افتراضيّ}@sahool-postgres:5432/sahool}
       JWT_SECRET: ${JWT_SECRET}
       ERP_BRIDGE_URL: http://sahool-erp-bridge:8126
       ODOO_BRIDGE_URL: http://sahool-erp-bridge:8126  # legacy env alias
@@ -607,7 +607,7 @@ services:
     environment:
       # Declared owner of the `fields` table (docs/architecture/db_ownership.yml).
       # Connects with the restricted sahool_app role so RLS is enforced (NOBYPASSRLS).
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD مطلوب — لا سرّ افتراضيّ}@sahool-postgres:5432/sahool}
       # Service-token only — a user Bearer JWT is never accepted on this service.
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
     depends_on:
@@ -643,13 +643,13 @@ services:
       RASTER_UPLOAD_DIR: /data/rasters
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
       S3_BUCKET: ${S3_BUCKET:-}
-      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-sahool-admin}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
       S3_SECRET_KEY: ${S3_SECRET_KEY:-}
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_USE_SSL: ${S3_USE_SSL:-false}
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
       # v154: المطالبة الدائمة تحتاج PostgreSQL + Redis؛ يتّصل بدور sahool_app المقيّد (RLS).
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD مطلوب — لا سرّ افتراضيّ}@sahool-postgres:5432/sahool}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       RASTER_BATCH_CLAIM_TTL_SECONDS: ${RASTER_BATCH_CLAIM_TTL_SECONDS:-86400}
       RASTER_BATCH_LEASE_SECONDS: ${RASTER_BATCH_LEASE_SECONDS:-300}
@@ -684,7 +684,7 @@ services:
     environment:
       # v8-F9: يتّصل التطبيق بدور sahool_app المقيّد (NOBYPASSRLS) الذي يُنشئه sahool-migrate
       # (apply_in_compose.sh) — لا sahool_user المُمتاز. RLS يبقى مفروضاً (بلا تعطيل حارس FINDING-001).
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD مطلوب — لا سرّ افتراضيّ}@sahool-postgres:5432/sahool}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       NATS_URL: nats://sahool-nats:4222
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
@@ -771,7 +771,7 @@ services:
     environment:
       # v8-F9: يتّصل التطبيق بدور sahool_app المقيّد (NOBYPASSRLS) الذي يُنشئه sahool-migrate
       # (apply_in_compose.sh) — لا sahool_user المُمتاز. RLS يبقى مفروضاً (بلا تعطيل حارس FINDING-001).
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD مطلوب — لا سرّ افتراضيّ}@sahool-postgres:5432/sahool}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       # لا وسيط MQTT (sahool-fastbee) في هذا الـcompose ⇒ نُعطّل مستمع MQTT صراحةً
       # كي يقلع actuator نظيفاً (_mqtt_disabled) بدل حلقة "MQTT listener crashed" كلّ
@@ -914,7 +914,7 @@ services:
     environment:
       # v8-F9: يتّصل التطبيق بدور sahool_app المقيّد (NOBYPASSRLS) الذي يُنشئه sahool-migrate
       # (apply_in_compose.sh) — لا sahool_user المُمتاز. RLS يبقى مفروضاً (بلا تعطيل حارس FINDING-001).
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD مطلوب — لا سرّ افتراضيّ}@sahool-postgres:5432/sahool}
       ERP_PROVIDER: ${ERP_PROVIDER:-erpnext}
       ERPNEXT_URL: ${ERPNEXT_URL:-http://sahool-erpnext:8000}
       ERPNEXT_API_KEY: ${ERPNEXT_API_KEY:-}
@@ -1002,7 +1002,7 @@ services:
       TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:?TELEGRAM_WEBHOOK_SECRET required}
       # v8-F9: يتّصل التطبيق بدور sahool_app المقيّد (NOBYPASSRLS) الذي يُنشئه sahool-migrate
       # (apply_in_compose.sh) — لا sahool_user المُمتاز. RLS يبقى مفروضاً (بلا تعطيل حارس FINDING-001).
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD مطلوب — لا سرّ افتراضيّ}@sahool-postgres:5432/sahool}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       NATS_URL: nats://sahool-nats:4222
       EDGE_INFERENCE_URL: http://sahool-edge:8100
@@ -1040,7 +1040,7 @@ services:
     environment:
       # v8-F9: يتّصل التطبيق بدور sahool_app المقيّد (NOBYPASSRLS) الذي يُنشئه sahool-migrate
       # (apply_in_compose.sh) — لا sahool_user المُمتاز. RLS يبقى مفروضاً (بلا تعطيل حارس FINDING-001).
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD مطلوب — لا سرّ افتراضيّ}@sahool-postgres:5432/sahool}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       NATS_URL: nats://sahool-nats:4222
       SMTP_HOST: ${SMTP_HOST}

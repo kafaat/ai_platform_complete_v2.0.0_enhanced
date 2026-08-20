@@ -35,7 +35,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "21e278faa02a01cd50e70b3391e4955260298d6381f08802353514583ac5def3"
+          "content": "4083b93899e459ce7acbda5b037bd816739d332ea693888f837c2df52e85e303"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -55,7 +55,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "642c2983c4800cb3b9121a71732fb4c5198196804db788fea8a0d8c40d7588b1"
+          "content": "51b62fe9f20269b32715bbca1a481c43a5431ab9de61de5a94d64c8dd9c002a2"
         }
       ],
       "name": "docker-compose.light.yml",
@@ -65,7 +65,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f542e0b54696d942b45be6132983214d52daaf14a2e4dd936e38e0c0563e67eb"
+          "content": "cae554a80d8d29322ab31159961ae6819c59a48f3ede04326e08011e0c2ecf19"
         }
       ],
       "name": "docker-compose.odoo-snippet.yml",
@@ -125,7 +125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "67f44f86343fa7f56585e552bd94a5355f3f8e3b293a90648ade10d485eb0497"
+          "content": "429ed8a0cf76b50ea0a2cb04294871ae3a8f7e782e77daf33c88928761957bee"
         }
       ],
       "name": "docker-compose.unified.yml",
@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4541bba6fc111e8536a7bd3265526bc367ccae07fcc43b3058620a74a1241da2"
+          "content": "29a2b7219b1624b94273286789c11a4e2d882ef610b322fd961c311f5da8637e"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -10085,7 +10085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "59b4ebf96b85b209bb880f84a9353957466120482e051f9efc661b02dde8b1e7"
+          "content": "d35650d882e5f44dd075d7291438ae939169f3cbfeb9163b02b487cb045ed9ed"
         }
       ],
       "name": "services/ai_agronomist/ai_generation.py",
@@ -14935,7 +14935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "08b3b08fdf2bed7f446d7c97551fa699e7dbbfe1f8283bee4650b9603ce0491d"
+          "content": "fcd4642f632e7b1b6e4600f993564b626ed984e945f409ef7ff71452814e6f8b"
         }
       ],
       "name": "services/sahool-platform/api/ai_provider_config.py",
@@ -23125,7 +23125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "679c670d9a80744b2692434f52571acf08f278ba81ed1c53ef519c45c70f17d3"
+          "content": "b49e02ef73cc6db8a6c4ebe79ad8bc2a14f1382f208de3637f45a535356b8ec5"
         }
       ],
       "name": "services/sahool-platform/tests/test_ai_provider_config.py",

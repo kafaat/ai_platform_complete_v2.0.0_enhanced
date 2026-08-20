@@ -251,7 +251,11 @@ def resolve_generation(requested_model: str | None = None) -> GenConfig | None:
         if not model:
             return None
         base = (os.getenv("VLLM_BASE_URL") or DEFAULT_VLLM_BASE_URL).strip()
-        token = (os.getenv("VLLM_API_KEY") or "sahool-vllm-local").strip()
+        # لا بديلَ مُصلَّب: قيمةٌ في الشيفرة **سرٌّ منشور** مهما نُظِّفت `.env.example`
+        # وcompose — وهذا بعينه ما كان يُبقي `sahool-vllm-local` حيّاً بعد إزالته
+        # منهما. و`if token:` أدناه قائمٌ سلفاً، فالفارغ يُسقِط الترويسة بلا عطل:
+        # مَن لا يضبط المفتاح لا يُرسِل مصادقة، ومَن يضبطه يُرسِلها.
+        token = (os.getenv("VLLM_API_KEY") or "").strip()
         headers = {"content-type": "application/json"}
         if token:
             headers["authorization"] = f"Bearer {token}"

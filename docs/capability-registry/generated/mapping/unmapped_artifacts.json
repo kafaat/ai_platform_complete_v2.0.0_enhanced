@@ -6992,6 +6992,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_compose_no_default_secrets_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_compose_odoo_db_separation.py",
     "kind": "tests"
   },

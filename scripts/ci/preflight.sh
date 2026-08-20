@@ -288,6 +288,8 @@ fi
 
 # ── ٤) عقود compose/البيئة — أيّ متغيّر جديد يُعلَن في .env.example ─────────
 run "٤أ) compose_env_contract"    python3 scripts/ci/compose_env_contract_gate.py
+require_file scripts/ci/compose_no_default_secrets_guard.py "٤د) compose_no_default_secrets" \
+  && run "٤د) compose_no_default_secrets" python3 scripts/ci/compose_no_default_secrets_guard.py
 run "٤ب) env_compose_drift"       python3 scripts/ci/env_compose_drift_guard.py --check
 run "٤ج) compose_runtime_target"  python3 scripts/ci/compose_runtime_target_resolver.py --check
 

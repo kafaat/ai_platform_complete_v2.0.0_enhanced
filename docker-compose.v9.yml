@@ -477,7 +477,7 @@ services:
     - --tensor-parallel-size
     - ${VLLM_TENSOR_PARALLEL_SIZE:-1}
     - --api-key
-    - ${VLLM_API_KEY:-sahool-vllm-local}
+    - ${VLLM_API_KEY:-}
     deploy:
       resources:
         reservations:
@@ -639,7 +639,7 @@ services:
       AI_GENERATION_ENABLED: ${AI_GENERATION_ENABLED:-false}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://sahool-ollama:11434}
       VLLM_BASE_URL: ${VLLM_BASE_URL:-http://sahool-vllm-jais:8000/v1}
-      VLLM_API_KEY: ${VLLM_API_KEY:-sahool-vllm-local}
+      VLLM_API_KEY: ${VLLM_API_KEY:-}
       VLLM_MODEL: ${VLLM_MODEL:-jais-natural-farmer}
       VLLM_ENABLE_TOOLS: ${VLLM_ENABLE_TOOLS:-false}
       OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
@@ -1361,7 +1361,7 @@ services:
     environment:
       TITILER_API_CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       AWS_S3_ENDPOINT: ${S3_ENDPOINT_HOST:-sahool-minio:9000}
-      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:-sahool-admin}
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:-}
       AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:-}
       AWS_DEFAULT_REGION: ${S3_REGION:-us-east-1}
       AWS_HTTPS: ${S3_USE_SSL:-false}
@@ -1821,7 +1821,7 @@ services:
       AI_GENERATION_ENABLED: ${AI_GENERATION_ENABLED:-false}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://sahool-ollama:11434}
       VLLM_BASE_URL: ${VLLM_BASE_URL:-http://sahool-vllm-jais:8000/v1}
-      VLLM_API_KEY: ${VLLM_API_KEY:-sahool-vllm-local}
+      VLLM_API_KEY: ${VLLM_API_KEY:-}
       VLLM_MODEL: ${VLLM_MODEL:-jais-natural-farmer}
       VLLM_ENABLE_TOOLS: ${VLLM_ENABLE_TOOLS:-false}
       OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
@@ -1945,7 +1945,7 @@ services:
       # دور Odoo المقيَّد (لا مالك الهجرات sahool_user): يُنشئه apply_in_compose.sh
       # (LOGIN NOBYPASSRLS CREATEDB + سحب CONNECT من PUBLIC). لذا odoo يبدأ بعد sahool-migrate.
       USER: ${ODOO_DB_ROLE:-odoo_app}
-      PASSWORD: ${ODOO_DB_PASSWORD:-odoo_app_pw}
+      PASSWORD: ${ODOO_DB_PASSWORD:-}
       DB_NAME: ${ODOO_DB:-sahool_erp}
     volumes:
     - ./scripts/odoo-init.sh:/opt/odoo-init.sh:ro

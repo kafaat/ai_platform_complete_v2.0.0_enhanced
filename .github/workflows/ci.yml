@@ -351,6 +351,13 @@ jobs:
       - name: compose-env-contract-gate
         run: python scripts/ci/compose_env_contract_gate.py
 
+      # لا سرَّ افتراضيّ في Compose. `${APP_DB_PASSWORD:-sahool_app_pw}` كانت كلمة
+      # مرور **منشورة** لدورٍ مقيّد يحمل RLS — كلّ من قرأ المستودع يعرفها، وكلّ بيئة
+      # أُقلعت بلا ضبطٍ صريح تعمل بها. النطاق من `compose_surface.py` (مصدر اكتشاف
+      # واحد)، والشهود الخمسة في `tests_v9/test_compose_no_default_secrets_guard.py`.
+      - name: compose-no-default-secrets-guard
+        run: python scripts/ci/compose_no_default_secrets_guard.py
+
       # env↔compose drift guard (operational-backlog #3): every env var read WITHOUT a default and
       # absent from BOTH compose and .env.example must be classified in the reviewed allowlist
       # (flag / prod-secret / per-env infra URL / perf-default). Catches "code reads env, compose
