@@ -8,13 +8,29 @@ All models are UTF-8 safe and support Arabic content.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import Annotated, Any
 from uuid import uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, PlainSerializer
 
 # Schema version — increment when breaking changes are made to stored structures.
 SCHEMA_VERSION = "v2"
+
+# `json_encoders` is deprecated since Pydantic 2.0 (PydanticDeprecatedSince20, raised at
+# class creation). Its documented replacement is a serializer — but the swap is only safe
+# because it was measured: **dropping the encoder is not a no-op.** Pydantic v2's built-in
+# datetime serialization emits RFC 3339 with a `Z` suffix, while `.isoformat()` emits
+# `+00:00`, and `farm_memory.py` persists these models with `model_dump(mode="json")`.
+# So a plain removal would silently rewrite the on-disk format of every farm memory store
+# and leave existing files mixed-format.
+#
+# `PlainSerializer` was measured byte-identical to the encoder it replaces, for both
+# `model_dump(mode="json")` and `model_dump_json()`, while `mode="python"` still yields a
+# `datetime`. `when_used="json"` is what keeps that last property true.
+UtcDatetime = Annotated[
+    datetime,
+    PlainSerializer(lambda value: value.isoformat(), return_type=str, when_used="json"),
+]
 
 
 def _now_utc() -> datetime:
@@ -44,11 +60,9 @@ class ConversationTurn(BaseModel):
     farm_id: str
     user_query: str
     ai_response: str
-    timestamp: datetime = Field(default_factory=_now_utc)
+    timestamp: UtcDatetime = Field(default_factory=_now_utc)
     topic: str | None = None
     satisfaction_score: float | None = None
-
-    model_config = {"json_encoders": {datetime: lambda v: v.isoformat()}}
 
 
 class UsagePattern(BaseModel):
@@ -70,9 +84,7 @@ class UsagePattern(BaseModel):
     description: str
     cadence: str | None = None
     schedule: str | None = None
-    last_seen: datetime = Field(default_factory=_now_utc)
-
-    model_config = {"json_encoders": {datetime: lambda v: v.isoformat()}}
+    last_seen: UtcDatetime = Field(default_factory=_now_utc)
 
 
 class Recommendation(BaseModel):
@@ -91,12 +103,10 @@ class Recommendation(BaseModel):
     id: str = Field(default_factory=_new_id)
     farm_id: str
     text: str
-    made_at: datetime = Field(default_factory=_now_utc)
+    made_at: UtcDatetime = Field(default_factory=_now_utc)
     farmer_response: str | None = None
     outcome: str | None = None
     confidence: float = 1.0
-
-    model_config = {"json_encoders": {datetime: lambda v: v.isoformat()}}
 
 
 class MemoryItem(BaseModel):
@@ -117,6 +127,4 @@ class MemoryItem(BaseModel):
     kind: str
     payload: dict[str, Any]
     score: float = 0.0
-    timestamp: datetime = Field(default_factory=_now_utc)
-
-    model_config = {"json_encoders": {datetime: lambda v: v.isoformat()}}
+    timestamp: UtcDatetime = Field(default_factory=_now_utc)

@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5135,
+    "files_scanned": 5137,
     "files_by_kind": {
       "backend": 1198,
       "database": 274,
       "governance": 60,
       "mobile": 51,
       "other": 1404,
-      "tests": 1692,
+      "tests": 1694,
       "web": 456
     },
-    "unmapped_artifacts": 2089,
+    "unmapped_artifacts": 2091,
     "ambiguous_artifacts": 406
   },
   "capabilities": [
@@ -41791,6 +41791,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_deprecated_utc_clock_cleanup.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_design_token_contrast_gate.py",
       "kind": "tests"
     },
@@ -42868,6 +42872,10 @@
     },
     {
       "path": "tests_v9/test_unified_timeline.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_unit_dependency_dormancy_guard.py",
       "kind": "tests"
     },
     {

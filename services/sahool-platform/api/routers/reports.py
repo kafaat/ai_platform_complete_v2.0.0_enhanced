@@ -13,7 +13,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import PlainTextResponse
@@ -349,7 +349,7 @@ def operation_report_csv(
         fields=fields,
         period_start=req.period_start,
         period_end=req.period_end,
-        generated_at=datetime.utcnow().isoformat(),
+        generated_at=datetime.now(UTC).isoformat(),
     )
     return operation_to_csv(report, lang=req.lang)
 

@@ -1124,8 +1124,8 @@ def create_token(user: UserSchema) -> str:
         "aud": "sahool",  # توحيد: يطابق auth ويُقبل عبر كلّ الخدمات
         "iss": "sahool-platform",  # المُصدِر — تفرضه الخدمات للتحقّق من مصدر التوكن
         "jti": secrets.token_hex(16),  # معرّف توكن فريد — يتيح الإبطال (denylist)
-        "iat": datetime.utcnow(),
-        "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRY_HOURS),
+        "iat": (issued := datetime.now(UTC)),  # لحظةٌ **واحدة** يُشتقّ منها الحقلان
+        "exp": issued + timedelta(hours=JWT_EXPIRY_HOURS),
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
