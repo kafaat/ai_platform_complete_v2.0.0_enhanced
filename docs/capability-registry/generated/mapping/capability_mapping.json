@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5119,
+    "files_scanned": 5120,
     "files_by_kind": {
       "backend": 1196,
       "database": 274,
       "governance": 60,
       "mobile": 51,
       "other": 1397,
-      "tests": 1685,
+      "tests": 1686,
       "web": 456
     },
-    "unmapped_artifacts": 2082,
+    "unmapped_artifacts": 2083,
     "ambiguous_artifacts": 405
   },
   "capabilities": [
@@ -42812,6 +42812,10 @@
     },
     {
       "path": "tests_v9/test_unified_timeline.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_unit_dependency_dormancy_guard.py",
       "kind": "tests"
     },
     {

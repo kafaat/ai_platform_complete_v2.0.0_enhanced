@@ -56,3 +56,13 @@ pillow>=10.0.0  # = services/field-segmentation/requirements.txt:10
 # بلا مُتحقِّق واحد — المكتبة غير مثبَّتة ولا مُعلَنة ولا مستورَدة في أيّ سطر. المُتحقِّق
 # الموحَّد (`scripts/ci/schema_validation_guard.py`) يفشل مُغلَقاً بدونها، لا يتخطّى صامتاً.
 jsonschema>=4.20.0
+
+# UNIT-TEST-DORMANCY-01 بآليّة ثالثة — **طبقة التبعيّات** لا العلامة ولا مسار الجمع.
+# `tests_v9/test_prescription_shapefile.py` مُعلَّم `unit` ويُعلن نفسه «نقيّاً بلا
+# خدمات/شبكة»، لكنّه يستدعي `pytest.importorskip("shapefile")`. و`pyshp` مُعلَنة في
+# `services/sahool-platform/api/requirements.txt:26` — تُثبّتها وظيفة *Platform Unit
+# Tests* وحدها، وهي تُشغّل `pytest tests` داخل `services/sahool-platform` أي **دليلاً
+# آخر** لا `tests_v9/`. فالوظيفة التي تملك الحزمة لا تجمع الملفّ، والوظيفة التي تجمعه
+# لا تملكها ⇒ سبعةُ اختباراتٍ على مُصدِّر وصفة VRA لم تُنفَّذ في CI قطّ، وتُقرأ «متخطّاة»
+# أي خضراء. والكلفة صفر: عجلةٌ نقيّة-Python بـ٤٦ كيلوبايت بلا تبعيّات.
+pyshp==2.3.1  # = api/requirements.txt:26

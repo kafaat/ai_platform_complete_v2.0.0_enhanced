@@ -8188,6 +8188,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_unit_dependency_dormancy_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_unit_environment_completeness.py",
     "kind": "tests"
   },
