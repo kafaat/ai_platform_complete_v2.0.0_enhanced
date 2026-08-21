@@ -30,7 +30,14 @@ def findings(state: dict | None = None, *, today: date | None = None) -> list[st
     state = state or load()
     today = today or date.today()
     out: list[str] = []
-    if state.get("schema") != "sahool.rag-authority-convergence/v1":
+    # M0-C2: رُفِع إلى `/v2` حين انقسم `collection_schema_parity` اسمين في
+    # `cutover_requirements`. ومفرداتُ الشرط جزءٌ من الشكل لا حاشيةٌ عليه: وثيقةٌ
+    # بالمفردة القديمة تصف عقداً لم يعد قائماً، فتُرفَض هنا لا تُقرَأ قبولاً.
+    #
+    # وأوّلُ صياغةٍ للهجرة رفعت `version` وحده وأبقت `schema` على `/v1` — وهذا الحارس
+    # **لا يقرأ `version` إطلاقاً**، فكان الإبطالُ مُعلَناً في نثرٍ ومفروضاً بلا شيء.
+    # أمسكه مراجعٌ آليّ على #883.
+    if state.get("schema") != "sahool.rag-authority-convergence/v2":
         return ["invalid schema"]
     if (
         state.get("intended_retrieval_authority") != "rag-retrieval"

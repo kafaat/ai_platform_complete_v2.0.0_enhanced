@@ -891,6 +891,13 @@
           "find": "    \"canonical_payload_parity\": false,",
           "replace": "    \"canonical_payload_parity\": true,",
           "why": "رفعُ تكافؤِ الـpayload بلا إيصالِ جردِ مجموعة تلفيق: يحتاج عدّاً دقيقاً مطابقاً للمسح، وكلَّ نقطةٍ مصنّفة، وصفرَ غيرِ مصنّف. والشاهدُ الحيّ قاطع — مخطّطُ المتّجه سليمٌ بينما ٥٤ نقطة غير قابلة لإعادة البناء القانونيّة."
+        },
+        {
+          "expect": "test_s3_exception_expiry_fails_closed",
+          "test": "tests_v9/test_rag_authority_convergence_guard.py",
+          "find": "  \"schema\": \"sahool.rag-authority-convergence/v2\",",
+          "replace": "  \"schema\": \"sahool.rag-authority-convergence/v1\",",
+          "why": "M0-C2 بعد مراجعة #883: مفرداتُ `cutover_requirements` جزءٌ من الشكل لا حاشيةٌ عليه، فوثيقةٌ بالمفردة القديمة تصف عقداً لم يعد قائماً. وأوّلُ صياغةٍ للهجرة رفعت `version` وحده وأبقت `schema` على `/v1` — والحارسُ **لا يقرأ `version` إطلاقاً**، فكان الإبطالُ مُعلَناً في نثرٍ ومفروضاً بلا شيء، ووثيقةٌ قديمة تمرّ. هذه الطفرة تُثبِت أنّ الرفض صار مفروضاً فعلاً."
         }
       ]
     }

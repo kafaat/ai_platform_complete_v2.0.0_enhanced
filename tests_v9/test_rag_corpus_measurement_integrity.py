@@ -348,8 +348,24 @@ def test_the_wide_name_is_gone_from_every_producer_not_just_the_ones_named_above
         (ROOT / "services").rglob("*.py")
     ):
         try:
-            tree = ast.parse(path.read_text(encoding="utf-8"))
-        except (SyntaxError, UnicodeDecodeError):  # pragma: no cover - ليس موضوع هذا العقد
+            source = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:  # pragma: no cover - ليس موضوع هذا العقد
+            continue
+        # **ترشيحٌ نصّيّ قبل التحليل — وحدُّه يُقال لا يُسكَت عنه.** تحليلُ الشجرة
+        # لكلّ ملفّ كان يكلّف ٣٫١١ ثانية مقابل ٠٫٠٥ بعد الترشيح (٢١٠٥ ملفّاً، مقيس) —
+        # وثلاثُ ثوانٍ في كلّ تشغيلِ وحدةٍ تُقتطَع من الهامش الذي تدافع عنه هذه الـPR
+        # نفسها. رفعه مراجعٌ آليّ على #883، وبرهانُه مقيس.
+        #
+        # **والحدّ:** الترشيحُ يفترض أنّ الاسم يظهر **حرفيّاً**. ونصٌّ مُقسَّم عمداً
+        # (`"collection_schema" "_parity"`) يُنتِج الثابتَ نفسه ولا يحوي الاسمَ نصّاً —
+        # مُتحقَّقٌ منه لا مفترَض. فيمرّ من هذا الترشيح. وهو انحدارٌ متكلَّف لا يقع
+        # سهواً، والشاهدُ المُسجَّل يزرع الصيغةَ الحرفيّة لأنّها شكلُ الانحدار الحقيقيّ.
+        # يُوصَف هنا صراحةً كي لا تُقرأ خُضرةُ هذا العقد أوسعَ ممّا قاست.
+        if wide not in source:
+            continue
+        try:
+            tree = ast.parse(source, filename=str(path))
+        except SyntaxError:  # pragma: no cover - ليس موضوع هذا العقد
             continue
         for node in ast.walk(tree):
             if isinstance(node, ast.Constant) and node.value == wide:
