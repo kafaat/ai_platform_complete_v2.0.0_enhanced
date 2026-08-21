@@ -48,7 +48,10 @@ def test_real_registry_passes_the_static_check() -> None:
 
 
 def test_every_guard_on_disk_is_accounted_for() -> None:
-    assert gmg.guard_inventory() == set(REAL["mutated"]) | _debt(REAL)
+    # المفاتيحُ الجذريّة حرّاسٌ **مُسجَّلةٌ صراحةً** خارج `scripts/ci` — تُزرَع
+    # وتُتحقَّق، ولا تُدخِل كلّ `*_guard.py` في المستودع إلى راتشِت الدَّين.
+    bare_mutated = {k for k in REAL["mutated"] if "/" not in k and "\\" not in k}
+    assert gmg.guard_inventory() == bare_mutated | _debt(REAL)
 
 
 def test_the_ceiling_is_tight_against_the_debt() -> None:

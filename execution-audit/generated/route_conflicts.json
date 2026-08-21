@@ -1045,7 +1045,7 @@
         },
         {
           "function": "ingest",
-          "line": 143,
+          "line": 150,
           "method": "POST",
           "module": "services/rag-retrieval/main.py",
           "path": "/v1/ingest",
@@ -1151,7 +1151,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1096,
-  "route_inventory_sha256": "5dd415c4b36618a9833d48f878ce9dff115c614880fd386047bc0a49f265af69",
+  "route_inventory_sha256": "e12a06a693d76d74f0005a8cbdfeefc7a8908d14073ec639226cb7cbba732c6b",
   "runtime_verified": false,
   "schema_version": 1
 }

@@ -220,8 +220,8 @@ odoo-bridge,services/odoo-bridge/routers/webhooks.py,21,POST,/v1/webhook/odoo,od
 rag-retrieval,services/rag-retrieval/main.py,95,GET,/healthz,healthz,infra
 rag-retrieval,services/rag-retrieval/main.py,100,GET,/metrics,metrics,infra
 rag-retrieval,services/rag-retrieval/main.py,113,GET,/readyz,readyz,infra
-rag-retrieval,services/rag-retrieval/main.py,143,POST,/v1/ingest,ingest,versioned
-rag-retrieval,services/rag-retrieval/main.py,186,POST,/v1/search,search,versioned
+rag-retrieval,services/rag-retrieval/main.py,150,POST,/v1/ingest,ingest,versioned
+rag-retrieval,services/rag-retrieval/main.py,193,POST,/v1/search,search,versioned
 raster-service,services/raster-service/main.py,64,GET,/runtime-identity,runtime_evidence_identity,infra
 raster-service,services/raster-service/routers/analysis.py,30,POST,/v1/zones/classify,zones_classify,versioned
 raster-service,services/raster-service/routers/analysis.py,48,POST,/v1/change/detect,change_detect,versioned

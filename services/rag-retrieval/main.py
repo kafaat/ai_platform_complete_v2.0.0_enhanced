@@ -133,7 +133,14 @@ async def readyz():
         "embedding_model": EMBEDDING_MODEL,
         "vector_size": collection_dim,
         "embedding_contract_parity": True,
-        "collection_schema_parity": True,
+        # **الفصلُ يمرّ إلى المستهلكين، لا يقف عند الحارس.** كان `readyz` يُعيد
+        # `collection_schema_parity: True` بلا شرط — فيقرأ كلُّ مستهلكٍ تكافؤَ الـpayload
+        # أخضرَ لمجرّد نجاح إعادة البناء. وفصلُ الاسمين في حارس القبول وحده كان يترك
+        # الادّعاءَ الواسع حيّاً في المسار الذي يقرؤه التشغيل فعلاً.
+        "collection_vector_schema_parity": True,
+        # ونجاحُ التحليل ليس أهليّةَ payload قانونيّة: الارتداداتُ القديمة تبقى مقروءةً
+        # للتشخيص والهجرة حتّى يأتي جردُ المجموعة الحيّ بالدليل.
+        "canonical_payload_parity": False,
         "sparse_index_hydrated": True,
         "sparse_index_count": sparse["loaded_chunks"],
     }

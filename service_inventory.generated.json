@@ -207,7 +207,7 @@
     "service": "rag-retrieval",
     "domain": "Knowledge Retrieval",
     "python_files": 2,
-    "python_loc": 196,
+    "python_loc": 197,
     "tests": 1,
     "routes": 5,
     "main": "services/rag-retrieval/main.py",

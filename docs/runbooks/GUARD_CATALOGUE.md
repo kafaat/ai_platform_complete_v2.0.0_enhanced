@@ -10,10 +10,10 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **258**
-- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **40**
-- إجماليّ الطفرات المُسجَّلة: **274**
-- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **113** على 41 مصدراً
+- حرّاس تحجب في CI: **259**
+- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **41**
+- إجماليّ الطفرات المُسجَّلة: **300**
+- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **95** على 36 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
 أنّ المسار يستشير مفتاح الطوارئ مثلاً — ويمرّ أخضر على مسارٍ يستشيره ثمّ يتجاهل
@@ -27,7 +27,7 @@
 
 ---
 
-## الحرّاس المُثبَتة بالتكذيب (40)
+## الحرّاس المُثبَتة بالتكذيب (41)
 
 لكلٍّ منها عطلٌ يُزرَع في مصدرها فعليّاً (`guard_mutation_guard --run`) واختبارٌ
 **مُسمّى** يجب أن يحمرّ عندها. حمرةٌ باختبار آخر ليست دليلاً.
@@ -262,6 +262,25 @@
 - نزع حجب المصنوعة غير المصنَّفة ⇒ ملفّ جديد يدخل بلا صنف — يُسقِط `test_unclassified_artifact_is_blocked`
 - نزع حجب مدخل الدَّين البائت — يُسقِط `test_stale_debt_entry_is_blocked`
 - SHA مجهول يُبلَّغ «صفر التزام» بدل «غير قابل للحلّ» — يُسقِط `test_an_unknown_sha_reports_unresolvable_not_zero`
+
+### `compose_auth_sink_guard.py`
+
+**يفرض:** سرُّ استيثاقٍ لا يصل فارغاً — `SERVER-AUTH-SECRET-MUST-BE-NONEMPTY-01`.
+
+**يحجب في:** `ci.yml` → `structural-lint`
+
+**الاختبار الشاهد:** `tests_v9/test_compose_auth_sink_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- الطفرةُ A وأهمُّها: جعلُ النقطتين اختياريّتين يقبل `${V?required}` — وهي تفرض **الوجود** وتقبل الفارغ (مقيسٌ بـcompose). حارسٌ يبحث عن `?` وحدها يجب أن يموت هنا. — يُسقِط `test_the_guard_catches_every_form_that_does_not_prove_required_and_nonempty`
+- الطفرةُ B: قبولُ أيّ ذكرٍ للمتغيّر يمرّر `${QDRANT_API_KEY}` العاري — العطلُ الأصليّ بعينه. — يُسقِط `test_the_guard_catches_every_form_that_does_not_prove_required_and_nonempty`
+- الطفرةُ C: قبولُ `:-` مع `:?` يمرّر `${V:-}` الفارغة. **وتصحيح:** صياغتي الأولى استهدفت `min_expansion` فنجت — لأنّ تلك الدالّة صارت بعد إعادة الكتابة نموذجاً دلاليّاً موازياً **لا يقرّر شيئاً**، والقرارُ عند `_ACCEPTED` وحدها. فحُذفت الدالّة (اشتقاقان لا يُبنى على أحدهما حكمٌ ينحرفان) ووُجِّهت الطفرة إلى مسار الحكم. — يُسقِط `test_the_guard_catches_every_form_that_does_not_prove_required_and_nonempty`
+- الطفرةُ D: إخراجُ المصرف من سجلّ المصارف — حارسٌ لا يطابق شيئاً يمرّ أخضر على شجرةٍ منتهَكة، وهو «أخضرُ عن سؤالٍ لم يُطرَح». — يُسقِط `test_a_new_compose_file_carrying_the_sink_is_seen`
+- الطفرةُ E: إخراجُ المكدّس الذي حمل العطل من سطح الحارس. **وحدُّ صدق:** لا تُسجَّل طفرةٌ على `compose_surface.py` نفسه — `GUARD_GLOBS` يكتشف `*_guard.py` و`*_guard.sh` فقط (مقيس)، والسطحُ وحدةٌ مشتركة. فهذه مكافئتها **داخل** الحارس، ويحرس السطحَ نفسَه `test_the_stack_that_carried_the_defect_is_on_the_surface`. — يُسقِط `test_the_guard_actually_scanned_the_stack_that_carried_the_defect`
+- مصرفٌ مُسجَّل اختفى من السطح بلا تحديث العقد: الإبلاغُ وحده يُبقي حارساً بلا ما يفحص أخضرَ. — يُسقِط `test_a_registered_sink_that_vanishes_from_the_surface_blocks`
+- إسقاطُ حدّ الإنتاج يجعل الاستثناء التجريبيّ قابلاً للمنح لمكدّسٍ إنتاجيّ — أي أنّ الإعفاء يصير الطريقَ إلى العطل بدل أن يكون حدّاً عليه. — يُسقِط `test_an_exception_on_a_production_stack_is_refused`
+- العودةُ إلى عدّ التعليق حياةً: اسمٌ باقٍ في تعليقٍ — أو سطرُ إسنادٍ مُعطَّل — يُخفي اختفاءَ مصرفٍ مُسجَّل، فتسقط الخاصّيّة الحاجبة صامتةً. رفعتها مراجعةٌ خارجيّة وأصابت، وقِستُ الحالتين قبل الإصلاح فمرّتا بلا إبلاغ. — يُسقِط `test_a_sink_surviving_only_inside_a_comment_is_not_counted_as_live`
 
 ### `compose_no_default_secrets_guard.py`
 
@@ -969,13 +988,18 @@
 
 ---
 
-## مُواصَفة بطفرات ولا يستدعيها أيّ workflow (3)
+## مُواصَفة بطفرات ولا يستدعيها أيّ workflow (8)
 
 أداة غير موصولة لا تحرس شيئاً (§٣.٢). وجودها هنا سؤالٌ لا اتّهام.
 
 - `actuation_killswitch_coverage_guard.py`
 - `manifest_registry_guard.py`
 - `s5_exec_01_writer_cutover_guard.py`
+- `scripts/architecture/authority_cutover_guard.py`
+- `scripts/architecture/platform_shrink_ratchet_guard.py`
+- `scripts/architecture/rag_authority_convergence_guard.py`
+- `scripts/architecture/rag_cutover_admission_guard.py`
+- `scripts/architecture/rag_live_parity_receipt_guard.py`
 
 ---
 

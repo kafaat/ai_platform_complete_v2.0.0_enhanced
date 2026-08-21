@@ -7388,6 +7388,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_guard_mutation_registry_schema_delta.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_guardrails.py",
     "kind": "tests"
   },

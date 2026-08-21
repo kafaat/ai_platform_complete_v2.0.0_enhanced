@@ -54,7 +54,7 @@ def test_live_certification_passes_read_only_local_chain(monkeypatch):
                 {
                     "status": "ready",
                     "embedding_contract_parity": True,
-                    "collection_schema_parity": True,
+                    "collection_vector_schema_parity": True,
                     "sparse_index_hydrated": True,
                     "sparse_index_count": 10,
                     "vector_size": 3,
@@ -145,7 +145,7 @@ def test_generation_requirement_is_evidence_required_not_fake_pass(monkeypatch):
                 {
                     "status": "ready",
                     "embedding_contract_parity": True,
-                    "collection_schema_parity": True,
+                    "collection_vector_schema_parity": True,
                     "sparse_index_hydrated": True,
                     "sparse_index_count": 2,
                     "vector_size": 3,
@@ -238,7 +238,7 @@ def test_certification_fails_if_hybrid_is_dense_only(monkeypatch):
                 {
                     "status": "ready",
                     "embedding_contract_parity": True,
-                    "collection_schema_parity": True,
+                    "collection_vector_schema_parity": True,
                     "sparse_index_hydrated": True,
                     "sparse_index_count": 10,
                     "vector_size": 3,

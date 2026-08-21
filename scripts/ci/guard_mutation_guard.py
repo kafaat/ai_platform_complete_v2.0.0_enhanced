@@ -115,6 +115,34 @@ def guard_inventory(ci: Path = CI) -> set[str]:
     return {p.name for glob in GUARD_GLOBS for p in ci.glob(glob)}
 
 
+def _mutated_source(label: str, *, ci: Path = CI, root: Path = ROOT) -> Path:
+    """Resolve a guard mutation source without broadening the mandatory guard inventory.
+
+    Bare keys remain the canonical ``scripts/ci`` guard inventory.  A path-like key is
+    an explicitly registered guard outside that directory (for example an architecture
+    admission guard); it is plantable and validated, but does not implicitly pull every
+    ``*_guard.py`` in the repository into the debt ratchet.
+    """
+    if "/" not in label and "\\" not in label:
+        return ci / label
+    rel = Path(label)
+    if rel.is_absolute() or ".." in rel.parts:
+        raise ValueError(f"invalid mutated guard path: {label}")
+    return root / rel
+
+
+def _unknown_mutation_sections(registry: dict) -> list[str]:
+    """Return top-level keys that look like mutation specs but are outside legal sections."""
+    legal = {"mutated", "behavioural"}
+    out: list[str] = []
+    for key, value in registry.items():
+        if key in legal or key.startswith("$"):
+            continue
+        if isinstance(value, dict) and ("mutations" in value or "test" in value):
+            out.append(key)
+    return sorted(out)
+
+
 def behavioural_specs(registry: dict, root: Path = ROOT) -> list[tuple[str, Path, dict]]:
     """المواصفات السلوكيّة: ``(المعرِّف، مسار المصدر، المواصفة)`` — مفاتيحها **مسارات**.
 
@@ -187,50 +215,24 @@ def _spec_failures(label: str, src: Path, spec: dict, root: Path, section: str) 
 def check(registry: dict, ci: Path = CI, root: Path = ROOT) -> list[str]:
     """أسباب الحجب. الفارغة تعني مروراً."""
     failures: list[str] = []
-
-    # ── الكونُ المُعلَن = الكونُ القابل للتنفيذ ──────────────────────────────
-    #
-    # المُشغِّل يقرأ ``mutated`` و``behavioural`` وحدهما. ومواصفةٌ تجلس مفتاحاً أعلى
-    # الجذر تبدو مُسجَّلةً في الملفّ وهي **لا تُشغَّل أبداً** — فيشهد
-    # ``guard_mutation_guard_ok`` لكونٍ أضيق ممّا يُعلِنه السجلّ نفسه.
-    #
-    # مقيسٌ لا مفترَض: ثلاثُ مواصفات RAG حملت **٨ طفرات** بهذا الوصف، ومرّت البوّابةُ
-    # خضراء وهي لا تعرفها. فالصمتُ هنا أسوأ من الحمرة: تغطيةٌ مُعلَنةٌ غيرُ مملوكة.
-    #
-    # ولا يُصلَح هذا بنقل الثلاث وحدها — الصنفُ يُغلَق بجعل أيّ مفتاحٍ بشكل مواصفةٍ
-    # خارج القسمين إخفاقاً صريحاً.
-    _READ_SECTIONS = ("mutated", "behavioural")
-    _META_KEYS = {
-        "$comment",
-        "adjudicated_on",
-        "gap",
-        "honesty_limit",
-        "schema_version",
-        "unmutated_debt",
-        "unmutated_debt_ceiling",
-        "why_a_named_expect_and_not_just_red",
-        "why_having_a_test_is_not_evidence",
-    }
-    for key, value in registry.items():
-        if key in _READ_SECTIONS or key in _META_KEYS:
-            continue
-        if isinstance(value, dict) and "mutations" in value:
-            failures.append(
-                f"مواصفةُ طفراتٍ خارج ما يقرؤه المُشغِّل: {key} "
-                f"({len(value['mutations'])} طفرة مُعلَنة لا تُنفَّذ). "
-                f"انقلها إلى أحد {' أو '.join(_READ_SECTIONS)}."
-            )
-
     mutated = registry["mutated"]
     debt = {k for k in registry["unmutated_debt"] if not k.startswith("$")}
     ceiling = registry["unmutated_debt_ceiling"]
     present = guard_inventory(ci)
 
-    both = set(mutated) & debt
+    unknown_sections = _unknown_mutation_sections(registry)
+    if unknown_sections:
+        failures.append(
+            "مواصفات طفرة خارج القسمين القانونيّين `mutated`/`behavioural`: "
+            f"{unknown_sections}. إعلانٌ لا يقرأه runner ليس قياساً."
+        )
+
+    bare_mutated = {name for name in mutated if "/" not in name and "\\" not in name}
+    both = bare_mutated & debt
     if both:
         failures.append(f"حارس مُواصَف ومُعلَن ديناً معاً: {sorted(both)}")
 
-    missing = present - set(mutated) - debt
+    missing = present - bare_mutated - debt
     if missing:
         failures.append(
             f"حارس بلا مواصفة طفرة: {sorted(missing)}\n"
@@ -240,9 +242,21 @@ def check(registry: dict, ci: Path = CI, root: Path = ROOT) -> list[str]:
             "  يُحقّقها حارسٌ لا يفعل شيئاً."
         )
 
-    ghost = (set(mutated) | debt) - present
+    ghost = (bare_mutated | debt) - present
     if ghost:
         failures.append(f"مدخل لحارس غير موجود: {sorted(ghost)}")
+
+    external_mutated = sorted(set(mutated) - bare_mutated)
+    for label in external_mutated:
+        try:
+            src = _mutated_source(label, ci=ci, root=root)
+        except ValueError as exc:
+            failures.append(str(exc))
+            continue
+        if not src.exists():
+            failures.append(f"مدخل لحارس خارجي غير موجود: {label}")
+        elif not any(src.name.endswith(suffix.replace("*", "")) for suffix in GUARD_GLOBS):
+            failures.append(f"مدخل `mutated` خارجي ليس حارساً `*_guard.py|sh`: {label}")
 
     if len(debt) > ceiling:
         failures.append(
@@ -251,7 +265,10 @@ def check(registry: dict, ci: Path = CI, root: Path = ROOT) -> list[str]:
         )
 
     for name, spec in sorted(mutated.items()):
-        src = ci / name
+        try:
+            src = _mutated_source(name, ci=ci, root=root)
+        except ValueError:
+            continue
         if not src.exists():
             continue
         failures += _spec_failures(name, src, spec, root, "mutated")
@@ -392,7 +409,10 @@ def _diagnose_repeat(
 def _run_mutations_in_place(registry: dict, only: str | None, ci: Path, root: Path) -> list[str]:
     """ازرع داخل workspace غير قانونيّ (نسخة مؤقتة أو fixture اختبار فقط)."""
     failures: list[str] = []
-    plantable = [(name, ci / name, spec) for name, spec in sorted(registry["mutated"].items())]
+    plantable = [
+        (name, _mutated_source(name, ci=ci, root=root), spec)
+        for name, spec in sorted(registry["mutated"].items())
+    ]
     plantable += behavioural_specs(registry, root)
     # **مرشِّحٌ لا يُطابِق شيئاً كان يطبع `ok`.** المطابقة بالاسم **كاملاً**، ومفاتيح
     # القسم السلوكيّ مساراتٌ (`.github/workflows/certify-run.yml`) لا أسماءَ مختصرة —

@@ -67,6 +67,9 @@ def test_valid_live_parity_is_still_blocked_by_revocation_readiness(tmp_path):
     assert out["status"] == "BLOCKED"
     assert out["cutover_capable"] is False
     assert "direct_qdrant_revocation_ready" in out["blocking_requirements"]
+    assert "canonical_payload_parity" in out["blocking_requirements"]
+    assert out["observed_requirements"]["collection_vector_schema_parity"] is True
+    assert out["observed_requirements"]["canonical_payload_parity"] is False
     assert "direct_response_path_exception_present:local-ai-rag" in out["blocking_requirements"]
     assert out["authority_changed"] is False
 
@@ -77,3 +80,16 @@ def test_receipt_subject_mismatch_fails(tmp_path):
     assert rc == 1
     assert out["status"] == "FAILED"
     assert "live_parity_receipt_invalid" in out["findings"]
+
+
+def test_live_receipt_does_not_claim_canonical_payload_parity(tmp_path):
+    subject = "e" * 40
+    receipt = _receipt(tmp_path, subject)
+    rc, out = _run("--receipt", str(receipt), "--subject-sha", subject)
+    assert rc == 1
+    assert "canonical_payload_parity" in out["blocking_requirements"]
+    assert out["observed_requirements"] == {
+        "collection_vector_schema_parity": True,
+        "canonical_payload_parity": False,
+        "live_shadow_parity_receipt": True,
+    }
