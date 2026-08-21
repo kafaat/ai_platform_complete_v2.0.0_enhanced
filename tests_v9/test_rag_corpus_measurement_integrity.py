@@ -158,11 +158,81 @@ def test_the_missing_provenance_fields_are_named_not_just_counted() -> None:
 
 
 def test_every_emitted_code_is_declared_in_the_taxonomy() -> None:
-    """رمزٌ غيرُ مُعلَن يجعل الجردَ غيرَ قابلٍ للتجميع."""
+    """رمزٌ غيرُ مُعلَن يجعل الجردَ غيرَ قابلٍ للتجميع.
+
+    وأوّلُ صياغةٍ هنا جرّبت حالتين فقط رغم اسمها — ففرعٌ جديد كان يستطيع أن يُصدِر
+    رمزاً غير مُعلَن والعقدُ يمرّ. أمسكه مراجعٌ آليّ على #882.
+    """
     module = _pq()
-    for mutate in ({"page_content": None, "text": None}, {"metadata": {"evidence_level": "lab"}}):
-        code, _ = module.classify_rejection(_payload(**mutate), fallback_id="u1")
-        assert code in module.REJECTION_REASONS
+    mutations = [
+        {"page_content": None, "text": None},
+        {"metadata": {"chunk_id": None}},
+        {"metadata": {"tenant_id": None}},
+        {"metadata": {"tenant_id": ""}},
+        {"source_type": None},
+        {"source_type": ""},
+        {"document_id": None},
+        {"metadata": {"evidence_level": "lab"}},
+        {"metadata": {"prescriptive_eligible": True}},
+        {"metadata": {"content_digest": "0" * 64}},
+        {"metadata": {"content_digest": ""}},
+        {"metadata": {"content_digest": None}},
+        {"source_type": "external_reference", "metadata": {"source_revision": ""}},
+        {"metadata": {"chunk_index": "ليس رقماً"}},
+    ]
+    emitted = set()
+    for mutate in mutations:
+        verdict = module.classify_rejection(_payload(**mutate), fallback_id="u1")
+        if verdict is None:
+            continue
+        code, _ = verdict
+        assert code in module.REJECTION_REASONS, f"رمزٌ غير مُعلَن: {code}"
+        emitted.add(code)
+    assert len(emitted) >= 8, f"التغطيةُ ضاقت — {sorted(emitted)}"
+
+
+def test_no_rejected_payload_falls_into_the_catch_all() -> None:
+    """`OTHER_SCHEMA_ERROR` ملاذُ الأخير، وامتلاؤه يُفسِد الجرد صامتاً.
+
+    والانحرافُ الذي أمسكه المراجع كان بالضبط من هذا الصنف: `source_type=""` وثلاثُ
+    صيغٍ لـ`content_digest` يرفضها المحلّل بسببٍ مسمًّى وكانت تُبتلَع في الملاذ —
+    فيهاجر الرقمُ إلى الصنف الخطأ في تحكيمٍ سيُبنى عليه قرارُ هجرة.
+    """
+    module = _pq()
+    for mutate in (
+        {"source_type": ""},
+        {"metadata": {"tenant_id": ""}},
+        {"metadata": {"content_digest": ""}},
+        {"metadata": {"content_digest": None}},
+        {"metadata": {"content_digest": 0}},
+    ):
+        payload = _payload(**mutate)
+        with pytest.raises((TypeError, ValueError)):
+            module.KnowledgeChunk.from_payload(payload, fallback_id="u1")
+        code, _ = module.classify_rejection(payload, fallback_id="u1")
+        assert code != "OTHER_SCHEMA_ERROR", f"ابتُلِع في الملاذ: {mutate}"
+
+
+def test_the_classifier_and_the_parser_never_disagree() -> None:
+    """العقدُ الجامع: يُصنَّف ما رُفِض، ولا يُصنَّف ما قُبِل — مقيسٌ على الحالتين معاً."""
+    module = _pq()
+    cases = [
+        _payload(),
+        _payload(source_type=""),
+        _payload(metadata={"tenant_id": ""}),
+        _payload(metadata={"content_digest": ""}),
+        _payload(page_content=None, text=None),
+        _payload(metadata={"evidence_level": "lab"}),
+        _payload(document_id=None),
+    ]
+    for payload in cases:
+        try:
+            module.KnowledgeChunk.from_payload(payload, fallback_id="u1")
+            rejected = False
+        except (TypeError, ValueError):
+            rejected = True
+        verdict = module.classify_rejection(payload, fallback_id="u1")
+        assert (verdict is not None) is rejected, payload
 
 
 def test_the_classifier_never_returns_chunk_text() -> None:
@@ -194,7 +264,14 @@ def test_the_admission_guard_no_longer_carries_the_wide_name() -> None:
 def test_payload_parity_is_not_raised_by_the_vector_receipt() -> None:
     """لا تُلفَّق من فحصٍ ساكن: تحتاج جردَ مجموعةٍ فعليّاً، ولا إيصالَ جردٍ بعد."""
     source = ADMISSION.read_text(encoding="utf-8")
-    assert 'requirements.setdefault("canonical_payload_parity", False)' in source
+    # **إسنادٌ صريح لا `setdefault`.** الأخير كان يُبقي أيَّ `True` سابقة في وثيقة
+    # الحالة، وهذا الحارس لا يتحقّق من إيصال جرد — فعلامةٌ بائتة أو مكتوبةٌ يدويّاً
+    # كانت تكفي لإخضار تكافؤ الـpayload بعد إيصال المتّجه وحده.
+    assert 'requirements["canonical_payload_parity"] = False' in source
+    assert 'requirements.setdefault("canonical_payload_parity"' not in source, (
+        "`setdefault` يُورِّث `True` من وثيقة الحالة بلا إيصال جرد — "
+        "فيصير تكافؤُ الـpayload مُعلَناً بلا قياس"
+    )
     assert 'requirements["canonical_payload_parity"] = True' not in source, (
         "رفعُها من فحصٍ ساكن تلفيقٌ: تكافؤُ الـpayload يحتاج جردَ مجموعةٍ فعليّاً — "
         "عدٌّ دقيق مطابقٌ للمسح، وكلُّ نقطةٍ مصنّفة، وصفرُ غيرِ مصنّف"

@@ -155,7 +155,7 @@ def classify_rejection(
     if document_id is None and tenant and source_file:
         document_id = "derived"
 
-    # ① بوّابةُ الهويّة — بترتيب المحلّل، وتُسمّى الحقلُ الغائب بعينه.
+    # ① بوّابةُ الهويّة — بترتيب المحلّل، ويُسمّى الحقلُ الغائب بعينه.
     for value, code in (
         (text, "MISSING_CONTENT"),
         (chunk_id, "MISSING_CHUNK_IDENTITY"),
@@ -165,6 +165,15 @@ def classify_rejection(
     ):
         if value is None:
             return code, ()
+
+    # ثمّ **الكاذبُ لا الغائبُ وحده**: `__post_init__` يرفض بـ`if not self.tenant_id`
+    # و`if not self.source_type` بعد التحويل إلى نصّ. فـ`source_type=""` يرفضه المحلّل
+    # وكان يُصنَّف هنا `OTHER_SCHEMA_ERROR` — رقمٌ يهاجر إلى الصنف الخطأ فيُفسِد الجرد
+    # الذي سيُبنى عليه تحكيمُ الهجرة. أمسكه مراجعٌ آليّ على #882.
+    if not str(tenant):
+        return "MISSING_TENANT", ()
+    if not str(source_type):
+        return "MISSING_SOURCE_TYPE", ()
 
     # ② شكلُ الأرقام — يرفع ``TypeError``/``ValueError`` عند التحويل لا في التحقّق.
     try:
@@ -186,8 +195,11 @@ def classify_rejection(
 
     probe = dict(meta)
     source_class = _normalized_source_class(str(source_type), probe)
-    stored_digest = probe.get("content_digest")
-    if stored_digest and stored_digest != _content_digest(str(text)):
+    # **الحضورُ لا الصدق.** `__post_init__` يفعل `setdefault` ثمّ يقارن: فمفتاحٌ حاضرٌ
+    # بقيمةٍ كاذبة (`""` · `None` · `0`) لا يُستبدَل، ويسقط في مقارنة عدم التطابق.
+    # وحرسٌ بالصدق هنا كان يتخطّاها فيُعطيها رمزاً آخر — أي أنّ `skipped_by_reason`
+    # تصير تابعةً لتمثيل الـpayload لا لقرار المحلّل.
+    if "content_digest" in probe and probe["content_digest"] != _content_digest(str(text)):
         return "CONTENT_DIGEST_MISMATCH", ()
 
     probe.setdefault("content_digest", _content_digest(str(text)))

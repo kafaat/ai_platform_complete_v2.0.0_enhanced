@@ -213,6 +213,74 @@ def detect_storage_id_as_logical_id(m) -> dict:
     }
 
 
+# ── العيّناتُ القانونيّة: الجانبُ الصامت من العقد ────────────────────────────
+#
+# كاشفٌ يقول «موجود» دائماً يُخضِر تقريراً بلا معلومة. فلكلّ كاشفٍ عيّنةٌ قانونيّة
+# **تمرّ من الكاشف نفسه** — لا من بدائله. وأمسك مراجعٌ آليّ على #882 أنّ اختبارات
+# الجانب الصامت كانت تقيس البدائل (`from_payload` · `BM25Index` · `_expand_neighbors`)
+# ولا تستدعي الكاشف قطّ: فكاشفٌ يعود `present=True` أبداً كان يمرّ عليها كلّها.
+
+
+def _canonical_payload() -> dict:
+    return {
+        "page_content": "wheat guidance",
+        "source_type": "reference_document",
+        "document_id": "d1",
+        "metadata": {
+            "tenant_id": "tenant-a",
+            "chunk_id": "C1",
+            "source_uri": "sahool://x",
+            "source_revision": "r1",
+            "publisher": "p",
+            "license": "l",
+            "jurisdiction": "YE",
+            "language": "ar",
+            "evidence_level": "document",
+        },
+    }
+
+
+def detect_legacy_tenant_root_only_on(m, payload: dict) -> dict:
+    chunk = m.KnowledgeChunk.from_payload(payload, fallback_id="uuid-1")
+    dense_visible = chunk.metadata.get("tenant_id") is not None
+    return {
+        "finding": "LEGACY_TENANT_ROOT_ONLY",
+        "present": bool(chunk.tenant_id) and not dense_visible,
+        "dense_visible": dense_visible,
+    }
+
+
+def detect_bm25_cross_tenant_stats_on(m, corpus: list) -> dict:
+    """يقيس أثرَ **مستأجِرٍ آخر** وحده: يُبنى مؤشّران بمستأجِر A نفسه ومن دون سواه."""
+    own = [c for c in corpus if c.tenant_id == "tenant-a"]
+    isolated, mixed = m.BM25Index(), m.BM25Index()
+    isolated.rebuild(own)
+    mixed.rebuild(corpus)
+    target = own[0].chunk_id
+    return {
+        "finding": "BM25_CROSS_TENANT_STAT_INFLUENCE",
+        "present": isolated.score("wheat", target) != mixed.score("wheat", target),
+    }
+
+
+def detect_neighbor_filter_bypass_on(m, hit, neighbour, scope_key: str) -> dict:
+    retriever = m.HybridQdrantRetriever.__new__(m.HybridQdrantRetriever)
+    retriever._chunks = {hit.chunk_id: hit, neighbour.chunk_id: neighbour}
+    rows = retriever._expand_neighbors([m.RetrievedAnnotation(hit, 1.0, 0.0, 1.0)])
+    want = hit.metadata.get(scope_key)
+    off = [r.chunk.chunk_id for r in rows if r.chunk.metadata.get(scope_key) != want]
+    return {"finding": "NEIGHBOR_FILTER_BYPASS", "present": bool(off), "off_scope_chunks": off}
+
+
+def detect_storage_id_as_logical_id_on(m, payload: dict, fallback_id: str) -> dict:
+    chunk = m.KnowledgeChunk.from_payload(payload, fallback_id=fallback_id)
+    return {
+        "finding": "STORAGE_ID_USED_AS_LOGICAL_ID",
+        "present": chunk.chunk_id == fallback_id,
+        "resolved_chunk_id": chunk.chunk_id,
+    }
+
+
 DETECTORS = (
     detect_legacy_tenant_root_only,
     detect_bm25_cross_tenant_stats,

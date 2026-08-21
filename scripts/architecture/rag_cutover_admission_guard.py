@@ -112,7 +112,11 @@ def main(argv: list[str] | None = None) -> int:
     # مطابقٌ للمسح · وكلُّ نقطةٍ مصنّفة · وصفرُ غيرِ مصنّف. ولا يكفي `skipped == 0`
     # ما دام المحلّل يقبل ارتداداتٍ قديمة تجعل نقطةً مرئيّةً للمتناثر دون الكثيف.
     # فتبقى `False` حتّى يوجد إيصالُ جردٍ يقولها — لا تُلفَّق من فحصٍ ساكن.
-    requirements.setdefault("canonical_payload_parity", False)
+    # **إسنادٌ صريح لا `setdefault`.** الأخير كان يُبقي أيَّ `True` سابقة في وثيقة
+    # الحالة — ولا يتحقّق هذا الحارس من أيّ إيصال جرد، فتصير علامةٌ بائتةٌ أو مكتوبةٌ
+    # يدويّاً كافيةً لإخضار تكافؤ الـpayload بعد إيصال المتّجه وحده. أمسكه مراجعٌ
+    # آليّ على #882، وهو صنفُ العطل الذي تُصنّفه هذه الشريحة بعينه.
+    requirements["canonical_payload_parity"] = False
     blockers = sorted(key for key, value in requirements.items() if not bool(value))
 
     # A named pre-cutover direct response exception is explicit evidence that revocation

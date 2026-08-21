@@ -73,12 +73,17 @@ def test_the_root_only_tenant_detector_fires_on_a_planted_payload():
 
 
 def test_the_root_only_tenant_detector_stays_quiet_on_a_canonical_payload():
-    """كاشفٌ يقول «موجود» دائماً لا يكشف شيئاً — يُخضِر تقريراً بلا معلومة."""
-    module = _probe().load_module()
-    chunk = module.KnowledgeChunk.from_payload(_canonical_payload(), fallback_id="uuid-1")
-    assert chunk.metadata.get("tenant_id") == "tenant-a", (
-        "العيّنةُ القانونيّة تحمل المستأجِر في metadata ⇒ المسارُ الكثيف يراها"
-    )
+    """كاشفٌ يقول «موجود» دائماً لا يكشف شيئاً — يُخضِر تقريراً بلا معلومة.
+
+    **والعيّنةُ تمرّ من الكاشف نفسه لا من بديله.** أوّلُ صياغةٍ هنا استدعت
+    `from_payload` وحدها وتحقّقت من `metadata` — فكاشفٌ يعود `present=True` أبداً
+    كان يمرّ عليها. أمسك ذلك مراجعٌ آليّ على #882، والعقدُ المنقوض كان **عقدي أنا**.
+    """
+    probe = _probe()
+    module = probe.load_module()
+    row = probe.detect_legacy_tenant_root_only_on(module, probe._canonical_payload())
+    assert row["present"] is False
+    assert row["dense_visible"] is True
 
 
 # ── ② إحصاءاتُ BM25 ─────────────────────────────────────────────────────────
@@ -108,18 +113,20 @@ def test_the_bm25_detector_reports_both_directions_of_the_shift():
     assert row["score_after_other_tenant_unrelated_long_docs"] > alone
 
 
-def test_a_single_tenant_corpus_is_the_quiet_case():
-    """مستأجِرٌ وحده ⇒ لا تأثير: هذا ما يجعل الكاشف ذا معنًى."""
+def test_the_bm25_detector_is_quiet_on_a_single_tenant_corpus():
+    """مجموعةُ مستأجِرٍ واحد ⇒ لا أثرَ عابراً: هذا ما يجعل الكاشف ذا معنًى.
+
+    والمقياسُ هنا **الكاشف نفسه**، لا `BM25Index` مباشرةً: إضافةُ مستندٍ للمستأجِر
+    نفسه تحرّك إحصاءاته — وهو سلوكُ BM25 الصحيح لا عيباً — فقياسُ الفهرس وحده كان
+    يُثبِت شيئاً آخر غير الذي يدّعيه اسمُ الاختبار.
+    """
     probe = _probe()
     module = probe.load_module()
-    base = probe._chunk(module, "a1", "tenant-a", "wheat irrigation wheat")
-    first = module.BM25Index()
-    first.rebuild([base])
-    second = module.BM25Index()
-    second.rebuild([base, probe._chunk(module, "a2", "tenant-a", "wheat wheat")])
-    assert first.score("wheat", "a1") != second.score("wheat", "a1"), (
-        "الإحصاءاتُ تتحرّك بمستنداتِ المستأجِر نفسه — وهذا سلوكُ BM25 الصحيح"
-    )
+    own_only = [
+        probe._chunk(module, "a1", "tenant-a", "wheat irrigation wheat"),
+        probe._chunk(module, "a2", "tenant-a", "wheat schedule"),
+    ]
+    assert probe.detect_bm25_cross_tenant_stats_on(module, own_only)["present"] is False
 
 
 # ── ③ توسيعُ الجيران ────────────────────────────────────────────────────────
@@ -134,19 +141,18 @@ def test_the_neighbor_detector_fires_and_bounds_the_claim_to_scope_not_tenancy()
     assert row["cross_tenant_chunks"] == []
 
 
-def test_a_neighbour_inside_the_same_scope_is_not_a_finding():
+def test_the_neighbor_detector_is_quiet_when_the_neighbour_shares_the_scope():
     probe = _probe()
     module = probe.load_module()
     hit = probe._chunk(
         module, "h", "tenant-a", "t", document_id="doc-1", chunk_index=0, field_id="F1"
     )
-    neighbor = probe._chunk(
+    neighbour = probe._chunk(
         module, "n", "tenant-a", "t2", document_id="doc-1", chunk_index=1, field_id="F1"
     )
-    retriever = module.HybridQdrantRetriever.__new__(module.HybridQdrantRetriever)
-    retriever._chunks = {"h": hit, "n": neighbor}
-    rows = retriever._expand_neighbors([module.RetrievedAnnotation(hit, 1.0, 0.0, 1.0)])
-    assert [r.chunk.metadata.get("field_id") for r in rows] == ["F1", "F1"]
+    row = probe.detect_neighbor_filter_bypass_on(module, hit, neighbour, "field_id")
+    assert row["present"] is False
+    assert row["off_scope_chunks"] == []
 
 
 # ── ④ مُعرِّفُ التخزين هويّةً منطقيّة ────────────────────────────────────────
@@ -159,10 +165,14 @@ def test_the_storage_id_detector_fires_when_the_logical_key_is_absent():
     assert row["resolved_chunk_id"] == "storage-uuid-42"
 
 
-def test_a_payload_carrying_its_logical_key_keeps_it():
-    module = _probe().load_module()
-    chunk = module.KnowledgeChunk.from_payload(_canonical_payload(), fallback_id="storage-uuid-42")
-    assert chunk.chunk_id == "C1"
+def test_the_storage_id_detector_is_quiet_when_the_logical_key_is_present():
+    probe = _probe()
+    module = probe.load_module()
+    row = probe.detect_storage_id_as_logical_id_on(
+        module, probe._canonical_payload(), "storage-uuid-42"
+    )
+    assert row["present"] is False
+    assert row["resolved_chunk_id"] == "C1"
 
 
 # ── عقدُ المِسبار نفسه ──────────────────────────────────────────────────────

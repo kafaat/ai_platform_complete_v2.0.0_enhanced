@@ -933,9 +933,9 @@
         {
           "expect": "test_payload_parity_is_not_raised_by_the_vector_receipt",
           "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
-          "find": "    requirements.setdefault(\"canonical_payload_parity\", False)\n",
-          "replace": "    requirements[\"canonical_payload_parity\"] = True\n",
-          "why": "تلفيقُ تكافؤ الـpayload من إيصالٍ يقيس مخطّط المتّجه وحده ⇒ يعود الاسمُ الواسع بصيغةٍ أخرى، ويُمنَح جردُ المجموعة خُضرةً لم تُقَس."
+          "find": "    requirements[\"canonical_payload_parity\"] = False\n",
+          "replace": "    requirements.setdefault(\"canonical_payload_parity\", False)\n",
+          "why": "عودةُ `setdefault` مكان الإسناد الصريح ⇒ تُورَث أيُّ `True` سابقة من وثيقة الحالة، وهذا الحارس لا يتحقّق من أيّ إيصال جرد. فعلامةٌ بائتة أو مكتوبةٌ يدويّاً تكفي لإخضار تكافؤ الـpayload بعد إيصال المتّجه وحده — وهو الاسمُ الواسع عائداً بصيغةٍ أخرى."
         }
       ]
     }
