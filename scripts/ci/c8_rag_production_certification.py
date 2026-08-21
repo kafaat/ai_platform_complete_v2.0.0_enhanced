@@ -75,15 +75,26 @@ def main(argv=None):
             ["canonical_live_receipt_guard_failed", out[-800:]],
         )
 
-    # A valid live receipt proves live parity and live collection-schema parity for
+    # A valid live receipt proves live parity and live **vector**-schema parity for
     # this observation. It does *not* mutate the adjudicated convergence state and
     # cannot make direct-Qdrant revocation ready by itself. Report cutover-capable
     # only when every remaining adjudicated requirement is already true.
+    #
+    # M0-C2: كان هنا `effective["collection_schema_parity"] = True` — اسمٌ واحد يحمل
+    # حقيقتين، فيمنح تكافؤَ الـpayload خُضرةَ إيصالِ المتّجه. وهذا مسارُ شهادةٍ **ثانٍ**
+    # موازٍ لحارس القبول ومحجوزٌ في `ci.yml`، فبقي العطلُ حيّاً فيه بعد أن فُصِل
+    # الاسمان في الحارس و`/readyz`. والحسابُ كان قاطعاً: حارسُ تكافؤِ الـpayload
+    # الوحيد هنا كان **مصادفةَ** بقاءِ `direct_qdrant_revocation_ready` كاذبةً —
+    # ويومَ تُقلَب، وهي غايةُ البرنامج، تُصدَر `CERTIFIED_CUTOVER_CAPABLE` على إيصالٍ
+    # أثبت تكافؤَ المتّجه وحده. أمسكه مراجعٌ آليّ على #882.
+    #
+    # **ولا تُرفَع `canonical_payload_parity` من هنا** — لا يُقرَأ أيُّ إيصالِ جرد في
+    # هذا المسار، فتبقى على ما تقوله وثيقةُ الحالة وتظلّ حاجبةً بحقّ.
     state = json.loads(
         (ROOT / "docs/architecture/rag_authority_convergence.json").read_text(encoding="utf-8")
     )
     effective = dict(state.get("cutover_requirements") or {})
-    effective["collection_schema_parity"] = True
+    effective["collection_vector_schema_parity"] = True
     effective["live_shadow_parity_receipt"] = True
     blockers = sorted(key for key, value in effective.items() if not bool(value))
     status = "CERTIFIED_CUTOVER_CAPABLE" if not blockers else "LIVE_PARITY_VERIFIED"
@@ -94,8 +105,9 @@ def main(argv=None):
         cutover_capable=not blockers,
         blocking_requirements=blockers,
         observed_requirements={
-            "collection_schema_parity": True,
+            "collection_vector_schema_parity": True,
             "live_shadow_parity_receipt": True,
+            "canonical_payload_parity": bool(effective.get("canonical_payload_parity")),
         },
         authority_state=state.get("authority_state"),
         convergence_stage=state.get("stage"),

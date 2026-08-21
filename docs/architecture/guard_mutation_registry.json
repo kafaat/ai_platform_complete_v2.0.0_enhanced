@@ -270,6 +270,13 @@
           "find": "        return emit(\"C8\", \"EVIDENCE_REQUIRED\", [\"live_rag_parity_receipt_missing\"])",
           "replace": "        return emit(\"C8\", \"PASS\", [])  # mutated: missing live evidence accepted",
           "why": "C8 يجب أن يبقى غياب الدليل الحي EVIDENCE_REQUIRED لا نجاحاً."
+        },
+        {
+          "expect": "test_the_wide_name_is_gone_from_every_producer_not_just_the_ones_named_above",
+          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
+          "find": "    effective[\"collection_vector_schema_parity\"] = True",
+          "replace": "    effective[\"collection_schema_parity\"] = True  # mutated: الاسمُ الواسع يعود",
+          "why": "M0-C2: الاسمُ الواحد يحمل حقيقتين فيمنح تكافؤَ الـpayload خُضرةَ إيصالِ المتّجه. وقبل الهجرة كان حارسُ تكافؤِ الـpayload الوحيد هنا **مصادفةَ** بقاءِ `direct_qdrant_revocation_ready` كاذبةً — ويومَ تُقلَب، وهي غايةُ البرنامج نفسه، تُصدَر `CERTIFIED_CUTOVER_CAPABLE` على إيصالٍ أثبت تكافؤَ المتّجه وحده. وهذا مسارُ شهادةٍ ثانٍ محجوزٌ في `ci.yml`، أفلت من الشريحة الأولى لأنّ تثبيتَها كان على نصّ الإسناد في ملفٍّ سُمّي بعينه لا على الخاصّيّة. أمسكه مراجعٌ آليّ على #882."
         }
       ],
       "test": "tests_v9/test_c8_c13_certification_contracts.py"
@@ -874,6 +881,18 @@
         }
       ],
       "test": "tests_v9/test_mutation_sweep_headroom.py"
+    },
+    "docs/architecture/rag_authority_convergence.json": {
+      "$why_ar": "المفردةُ المحفوظة هي ما يقرؤه **كلُّ** مُنتِج. وكانت الوثيقةُ بلا مفتاح `canonical_payload_parity` إطلاقاً — فمُنتِجٌ يكتب الاسمَ الواسع `True` كان يُسقِط شرطَ الـpayload من الحساب رأساً، لا يُخالِفه بل لا يراه.",
+      "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
+      "mutations": [
+        {
+          "expect": "test_no_producer_can_certify_cutover_on_a_vector_only_receipt",
+          "find": "    \"canonical_payload_parity\": false,",
+          "replace": "    \"canonical_payload_parity\": true,",
+          "why": "رفعُ تكافؤِ الـpayload بلا إيصالِ جردِ مجموعة تلفيق: يحتاج عدّاً دقيقاً مطابقاً للمسح، وكلَّ نقطةٍ مصنّفة، وصفرَ غيرِ مصنّف. والشاهدُ الحيّ قاطع — مخطّطُ المتّجه سليمٌ بينما ٥٤ نقطة غير قابلة لإعادة البناء القانونيّة."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

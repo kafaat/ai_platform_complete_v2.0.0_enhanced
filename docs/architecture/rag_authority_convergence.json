@@ -1,6 +1,6 @@
 {
   "schema": "sahool.rag-authority-convergence/v1",
-  "version": 1,
+  "version": 2,
   "stage": "parity",
   "authority_state": "NOT_YET_AUTHORITATIVE",
   "intended_retrieval_authority": "rag-retrieval",
@@ -27,7 +27,8 @@
   },
   "cutover_requirements": {
     "embedding_contract_parity": true,
-    "collection_schema_parity": false,
+    "collection_vector_schema_parity": false,
+    "canonical_payload_parity": false,
     "live_shadow_parity_receipt": false,
     "canonical_ingest_parity": true,
     "direct_qdrant_revocation_ready": false
@@ -49,5 +50,6 @@
     "min_comparable_queries": 5
   },
   "adjudicated_on": "2026-08-17",
-  "cutover_admission_guard": "scripts/architecture/rag_cutover_admission_guard.py"
+  "cutover_admission_guard": "scripts/architecture/rag_cutover_admission_guard.py",
+  "$vocabulary_migration": "v1→v2 (2026-08-21، M0-C2): `collection_schema_parity` كان اسماً واحداً يحمل حقيقتين — تطابقَ مخطّط المتّجه وتطابقَ مجموعة الـpayload. والإيصالُ الحيّ يقيس الأولى وحدها (هويّةَ المجموعة وبُعدَ المتّجه وهويّةَ النموذج) ولا يجرد payload كلّ نقطة؛ والشاهدُ قاطع: مخطّطُ المتّجه سليمٌ بينما ٥٤ نقطة غير قابلة لإعادة البناء القانونيّة. فانقسم اسمين، و`canonical_payload_parity` تبقى False حتّى يوجد إيصالُ جردٍ يقولها. ورفعُ `version` صريحٌ لا تجميليّ: يُبطِل أيَّ دليلٍ قديم بدل أن يُقرَأ نقصُه قبولاً."
 }
