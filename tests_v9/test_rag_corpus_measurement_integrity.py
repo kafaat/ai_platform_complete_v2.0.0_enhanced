@@ -318,3 +318,106 @@ def test_the_live_certification_reads_the_measured_name() -> None:
     assert 'r.get("collection_schema_parity")' not in source, (
         "الشهادةُ تقرأ الاسم الواسع — فتشهد لتكافؤٍ لا يُثبِته أيُّ فحصٍ فيها"
     )
+
+
+# ── ⑤ الخاصّيّةُ على كلّ المُنتِجين، لا على ملفٍّ بعينه ──────────────────────
+
+
+def test_the_wide_name_is_gone_from_every_producer_not_just_the_ones_named_above() -> None:
+    """**العطلُ الذي أفلت من كلّ ما سبق — ``M0-C2``.**
+
+    التأكيداتُ أعلاه تُثبِّت كلٌّ منها **ملفّاً** سُمّي بعينه، وبنصّ الإسناد الحرفيّ
+    (``requirements[...]`` · ``r.get(...)``). و``c8_rag_production_certification.py``
+    مسارُ شهادةٍ ثانٍ محجوزٌ في ``ci.yml`` — يستعمل متغيّراً محلّيّاً اسمه ``effective``،
+    فلم يطابق أيَّ نصٍّ مثبَّت، ومرّ الاسمُ الواسع فيه أخضرَ عبر الشريحة كلّها.
+
+    **فثُبِّت الملفُّ لا الخاصّيّة** — وهو صنفُ العطل الذي وُجِدت هذه الشريحة لأجله،
+    واقعاً في حارسها. والحسابُ وقتها: حارسُ تكافؤِ الـpayload الوحيد في ``c8`` كان
+    **مصادفةَ** بقاءِ ``direct_qdrant_revocation_ready`` كاذبةً — ويومَ تُقلَب، وهي
+    غايةُ البرنامج نفسه، تُصدَر شهادةُ قدرةٍ كاملة على إيصالٍ أثبت تكافؤَ المتّجه وحده.
+
+    **ويُقرأ الشجرُ بـ``ast`` لا بالنصّ:** التعليقاتُ تذكر الاسمَ القديم لتشرح الهجرة —
+    وفحصٌ نصّيّ كان سيحمرّ عليها، وهو ``TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01``
+    المسجَّل في هذا المستودع. فيُقاس ما يُنفَّذ: ثوابتُ النصّ في الشجر، لا ما يُقال عنه.
+    """
+    import ast
+
+    wide = "collection_schema_parity"
+    offenders: list[str] = []
+    for path in sorted((ROOT / "scripts").rglob("*.py")) + sorted(
+        (ROOT / "services").rglob("*.py")
+    ):
+        try:
+            source = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:  # pragma: no cover - ليس موضوع هذا العقد
+            continue
+        # **ترشيحٌ نصّيّ قبل التحليل — وحدُّه يُقال لا يُسكَت عنه.** تحليلُ الشجرة
+        # لكلّ ملفّ كان يكلّف ٣٫١١ ثانية مقابل ٠٫٠٥ بعد الترشيح (٢١٠٥ ملفّاً، مقيس) —
+        # وثلاثُ ثوانٍ في كلّ تشغيلِ وحدةٍ تُقتطَع من الهامش الذي تدافع عنه هذه الـPR
+        # نفسها. رفعه مراجعٌ آليّ على #883، وبرهانُه مقيس.
+        #
+        # **والحدّ:** الترشيحُ يفترض أنّ الاسم يظهر **حرفيّاً**. ونصٌّ مُقسَّم عمداً
+        # (`"collection_schema" "_parity"`) يُنتِج الثابتَ نفسه ولا يحوي الاسمَ نصّاً —
+        # مُتحقَّقٌ منه لا مفترَض. فيمرّ من هذا الترشيح. وهو انحدارٌ متكلَّف لا يقع
+        # سهواً، والشاهدُ المُسجَّل يزرع الصيغةَ الحرفيّة لأنّها شكلُ الانحدار الحقيقيّ.
+        # يُوصَف هنا صراحةً كي لا تُقرأ خُضرةُ هذا العقد أوسعَ ممّا قاست.
+        if wide not in source:
+            continue
+        try:
+            tree = ast.parse(source, filename=str(path))
+        except SyntaxError:  # pragma: no cover - ليس موضوع هذا العقد
+            continue
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Constant) and node.value == wide:
+                offenders.append(f"{path.relative_to(ROOT)}:{node.lineno}")
+
+    assert not offenders, (
+        f"الاسمُ الواسع `{wide}` ما يزال مفتاحاً مُنفَّذاً في: {offenders}.\n"
+        "اسمٌ واحد يحمل حقيقتين يمنح تكافؤَ الـpayload خُضرةَ إيصالِ المتّجه — "
+        "والإيصالُ الحيّ يقيس هويّةَ المجموعة وبُعدَ المتّجه وهويّةَ النموذج، "
+        "ولا يجرد payload كلّ نقطة."
+    )
+
+
+def test_the_adjudicated_state_carries_the_split_vocabulary_itself() -> None:
+    """المفردةُ المحفوظة هي ما يقرؤه **كلُّ** مُنتِج — فلا يكفي إصلاحُ القارئين.
+
+    كانت وثيقةُ الحالة تحمل ``collection_schema_parity`` ولا تحمل
+    ``canonical_payload_parity`` **إطلاقاً**. فمُنتِجٌ يكتب الاسمَ الواسع ``True``
+    كان يُسقِط شرطَ الـpayload من الحساب رأساً — لا يُخالِفه، بل لا يراه.
+    """
+    state = json.loads(
+        (ROOT / "docs/architecture/rag_authority_convergence.json").read_text(encoding="utf-8")
+    )
+    reqs = state.get("cutover_requirements") or {}
+    assert "collection_schema_parity" not in reqs, "الاسمُ الواسع عاد إلى وثيقة الحالة"
+    assert reqs.get("collection_vector_schema_parity") is False
+    assert reqs.get("canonical_payload_parity") is False, (
+        "تكافؤُ الـpayload يحتاج إيصالَ جردٍ فعليّاً — عدٌّ دقيق مطابقٌ للمسح، "
+        "وكلُّ نقطةٍ مصنّفة، وصفرُ غيرِ مصنّف. ولا يُرفَع من فحصٍ ساكن."
+    )
+    assert state.get("version") == 2, (
+        "رفعُ النسخة صريحٌ لا تجميليّ: يُبطِل أيَّ دليلٍ قديم بمفرداتٍ سابقة بدل أن يُقرَأ نقصُه قبولاً"
+    )
+
+
+def test_no_producer_can_certify_cutover_on_a_vector_only_receipt() -> None:
+    """الخاصّيّةُ التي كُسِرت فعلاً — تُقاس بالحساب لا بوجود سطر.
+
+    قبل ``M0-C2`` كان ``c8`` يُصدِر ``CERTIFIED_CUTOVER_CAPABLE`` بمجرّد قلبِ
+    ``direct_qdrant_revocation_ready``؛ الآن يبقى تكافؤُ الـpayload حاجزاً قائماً.
+    """
+    state = json.loads(
+        (ROOT / "docs/architecture/rag_authority_convergence.json").read_text(encoding="utf-8")
+    )
+    # ما يرفعه إيصالٌ حيّ صالح، وما لا يرفعه — بأقصى سخاءٍ ممكن للإيصال.
+    effective = dict(state["cutover_requirements"])
+    effective["collection_vector_schema_parity"] = True
+    effective["live_shadow_parity_receipt"] = True
+    effective["direct_qdrant_revocation_ready"] = True  # الفرضُ الأسخى: قُلِبت
+
+    blockers = sorted(k for k, v in effective.items() if not bool(v))
+    assert blockers == ["canonical_payload_parity"], (
+        f"بإيصالٍ يقيس المتّجه وحده صارت الحاجباتُ {blockers} — وتكافؤُ الـpayload "
+        "يجب أن يبقى وحده قائماً حتّى يأتي إيصالُ جردِ المجموعة."
+    )
