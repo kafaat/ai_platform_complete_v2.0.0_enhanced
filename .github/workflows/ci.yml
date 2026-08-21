@@ -358,6 +358,16 @@ jobs:
       - name: compose-no-default-secrets-guard
         run: python scripts/ci/compose_no_default_secrets_guard.py
 
+      # عقدٌ **آخر** لا توسعةٌ للسابق: ذاك يقول «لا سرَّ افتراضيّ منشور»، وهذا يقول
+      # «خادمٌ تعتمد حمايتُه على سرٍّ لا يُقلِع والسرُّ فارغ». والقيمةُ الحرفيّة
+      # `test_qdrant_key` سرٌّ منشور يُدينه الأوّل ويُرضي الثاني بحقّ — فتغطيةُ هذه
+      # باستثناءٍ داخل تلك كانت ستخبّئ عقداً داخل عقد. النطاق **سجلٌّ صريح بالاسم**
+      # (`docs/architecture/compose_auth_sinks.json`) لا نمط `.*API_KEY`: بعض
+      # متغيّرات المفاتيح اعتمادُ عميلٍ اختياريّ، وإلزامُها عالميّاً يكسر مكدّسات
+      # تعمل بلا مزوّدٍ خارجيّ بحقّ.
+      - name: compose-auth-sink-guard
+        run: python scripts/ci/compose_auth_sink_guard.py
+
       # env↔compose drift guard (operational-backlog #3): every env var read WITHOUT a default and
       # absent from BOTH compose and .env.example must be classified in the reviewed allowlist
       # (flag / prod-secret / per-env infra URL / perf-default). Catches "code reads env, compose

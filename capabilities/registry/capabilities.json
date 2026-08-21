@@ -86,8 +86,8 @@
         "tests_v9/test_auth_service.py",
         "tests_v9/test_auth_session_revocation.py",
         "tests_v9/test_auth_signup_owner.py",
-        "tests_v9/test_decision_consistency_auth.py",
-        "tests_v9/test_dev_gateway_raster_tile_auth_guard.py"
+        "tests_v9/test_compose_auth_sink_guard.py",
+        "tests_v9/test_decision_consistency_auth.py"
       ],
       "runtime": {
         "metrics": [
@@ -130,7 +130,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 20
+        "tests": 21
       }
     },
     {

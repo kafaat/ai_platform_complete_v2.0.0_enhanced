@@ -125,7 +125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "429ed8a0cf76b50ea0a2cb04294871ae3a8f7e782e77daf33c88928761957bee"
+          "content": "0da0217996662940ef6ac763122ce8dad4a203fd7953a4e8cfbb6d06db45b779"
         }
       ],
       "name": "docker-compose.unified.yml",

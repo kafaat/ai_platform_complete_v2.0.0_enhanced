@@ -2714,6 +2714,59 @@
         }
       ],
       "test": "tests_v9/test_compose_no_default_secrets_guard.py"
+    },
+    "compose_auth_sink_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_the_guard_catches_every_form_that_does_not_prove_required_and_nonempty",
+          "find": "_ACCEPTED = re.compile(r\"^\\$\\{([A-Za-z_][A-Za-z0-9_]*):\\?[^}]*\\}$\")",
+          "replace": "_ACCEPTED = re.compile(r\"^\\$\\{([A-Za-z_][A-Za-z0-9_]*):?\\?[^}]*\\}$\")  # mutated",
+          "why": "الطفرةُ A وأهمُّها: جعلُ النقطتين اختياريّتين يقبل `${V?required}` — وهي تفرض **الوجود** وتقبل الفارغ (مقيسٌ بـcompose). حارسٌ يبحث عن `?` وحدها يجب أن يموت هنا."
+        },
+        {
+          "expect": "test_the_guard_catches_every_form_that_does_not_prove_required_and_nonempty",
+          "find": "        if _ACCEPTED.match(_unquote(value)):\n            continue",
+          "replace": "        if \"${QDRANT_API_KEY\" in _unquote(value):  # mutated\n            continue",
+          "why": "الطفرةُ B: قبولُ أيّ ذكرٍ للمتغيّر يمرّر `${QDRANT_API_KEY}` العاري — العطلُ الأصليّ بعينه."
+        },
+        {
+          "expect": "test_the_guard_catches_every_form_that_does_not_prove_required_and_nonempty",
+          "find": "_ACCEPTED = re.compile(r\"^\\$\\{([A-Za-z_][A-Za-z0-9_]*):\\?[^}]*\\}$\")",
+          "replace": "_ACCEPTED = re.compile(r\"^\\$\\{([A-Za-z_][A-Za-z0-9_]*):[?-][^}]*\\}$\")  # mutated",
+          "why": "الطفرةُ C: قبولُ `:-` مع `:?` يمرّر `${V:-}` الفارغة. **وتصحيح:** صياغتي الأولى استهدفت `min_expansion` فنجت — لأنّ تلك الدالّة صارت بعد إعادة الكتابة نموذجاً دلاليّاً موازياً **لا يقرّر شيئاً**، والقرارُ عند `_ACCEPTED` وحدها. فحُذفت الدالّة (اشتقاقان لا يُبنى على أحدهما حكمٌ ينحرفان) ووُجِّهت الطفرة إلى مسار الحكم."
+        },
+        {
+          "expect": "test_a_new_compose_file_carrying_the_sink_is_seen",
+          "find": "    sinks = _sinks()\n    out: list[tuple[str, str, int, str]] = []",
+          "replace": "    sinks = {}  # mutated\n    out: list[tuple[str, str, int, str]] = []",
+          "why": "الطفرةُ D: إخراجُ المصرف من سجلّ المصارف — حارسٌ لا يطابق شيئاً يمرّ أخضر على شجرةٍ منتهَكة، وهو «أخضرُ عن سؤالٍ لم يُطرَح»."
+        },
+        {
+          "expect": "test_the_guard_actually_scanned_the_stack_that_carried_the_defect",
+          "find": "    return list(compose_files())",
+          "replace": "    return [p for p in compose_files() if \"unified\" not in p.name]  # mutated",
+          "why": "الطفرةُ E: إخراجُ المكدّس الذي حمل العطل من سطح الحارس. **وحدُّ صدق:** لا تُسجَّل طفرةٌ على `compose_surface.py` نفسه — `GUARD_GLOBS` يكتشف `*_guard.py` و`*_guard.sh` فقط (مقيس)، والسطحُ وحدةٌ مشتركة. فهذه مكافئتها **داخل** الحارس، ويحرس السطحَ نفسَه `test_the_stack_that_carried_the_defect_is_on_the_surface`."
+        },
+        {
+          "expect": "test_a_registered_sink_that_vanishes_from_the_surface_blocks",
+          "find": "    live = {name for _, name, _, _ in _sink_assignments()}",
+          "replace": "    live = set(_sinks())  # mutated",
+          "why": "مصرفٌ مُسجَّل اختفى من السطح بلا تحديث العقد: الإبلاغُ وحده يُبقي حارساً بلا ما يفحص أخضرَ."
+        },
+        {
+          "expect": "test_an_exception_on_a_production_stack_is_refused",
+          "find": "        if key.split(\"::\", 1)[0] in production:",
+          "replace": "        if False:  # mutated",
+          "why": "إسقاطُ حدّ الإنتاج يجعل الاستثناء التجريبيّ قابلاً للمنح لمكدّسٍ إنتاجيّ — أي أنّ الإعفاء يصير الطريقَ إلى العطل بدل أن يكون حدّاً عليه."
+        },
+        {
+          "expect": "test_a_sink_surviving_only_inside_a_comment_is_not_counted_as_live",
+          "find": "            if stripped.startswith(\"#\"):\n                continue\n            match = _ASSIGN.match(stripped)\n            if not match or match.group(1) not in sinks:",
+          "replace": "            if False:  # mutated\n                continue\n            match = _ASSIGN.match(stripped.lstrip(\"# \"))\n            if not match or match.group(1) not in sinks:",
+          "why": "العودةُ إلى عدّ التعليق حياةً: اسمٌ باقٍ في تعليقٍ — أو سطرُ إسنادٍ مُعطَّل — يُخفي اختفاءَ مصرفٍ مُسجَّل، فتسقط الخاصّيّة الحاجبة صامتةً. رفعتها مراجعةٌ خارجيّة وأصابت، وقِستُ الحالتين قبل الإصلاح فمرّتا بلا إبلاغ."
+        }
+      ],
+      "test": "tests_v9/test_compose_auth_sink_guard.py"
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

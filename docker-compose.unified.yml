@@ -406,7 +406,11 @@ services:
     image: qdrant/qdrant:v1.11.0  # HIGH-DOCKER-03: pinned
     container_name: sahool-unified-qdrant
     environment:
-      QDRANT__SERVICE__API_KEY: "${QDRANT_API_KEY}"  # C-02 FIX
+      # SEC-QDRANT-AUTH-FAIL-CLOSED-01: كانت `"${QDRANT_API_KEY}"` — تؤول إلى
+      # الخالي عند عدم الضبط **وعند الضبط فارغاً** (مقيس بـ`compose config`)،
+      # ومفتاحٌ خالٍ يُعامَل كغير مضبوط فتُقلِع Qdrant بلا مصادقة. و`:?` وحدها
+      # تحجب البابين؛ الخدمة ليست خلف profile فلا تكسر المكدّس الافتراضيّ.
+      QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY:?QDRANT_API_KEY required}
     restart: unless-stopped
     ports: ["127.0.0.1:6333:6333"]  # HIGH-DOCKER-01: localhost only
     volumes:

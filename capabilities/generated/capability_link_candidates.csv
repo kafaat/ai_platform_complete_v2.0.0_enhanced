@@ -294,6 +294,7 @@ FM-001,test,tests_v9/test_auth_rs256_production.py,3,applied
 FM-001,test,tests_v9/test_auth_service.py,3,applied
 FM-001,test,tests_v9/test_auth_session_revocation.py,3,applied
 FM-001,test,tests_v9/test_auth_signup_owner.py,3,applied
+FM-001,test,tests_v9/test_compose_auth_sink_guard.py,3,applied
 FM-001,test,tests_v9/test_decision_consistency_auth.py,3,applied
 FM-001,test,tests_v9/test_dev_gateway_raster_tile_auth_guard.py,3,applied
 FM-001,test,tests_v9/test_endpoint_auth_coverage.py,3,applied
