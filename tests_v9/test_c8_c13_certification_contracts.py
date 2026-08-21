@@ -78,6 +78,7 @@ def test_wrappers_delegate_to_canonical_guards_instead_of_redefining_receipts():
             "rag_direct_qdrant_boundary_guard.py",
             "rag_operational_boundary_guard.py",
             "rag_live_parity_receipt_guard.py",
+            "rag_corpus_audit_receipt_guard.py",
         ),
         "C9": ("authority_cutover_guard.py", "s5_decision_live_closure_receipt_guard.py"),
         "C10": ("authority_cutover_guard.py", "s4_field_rls_receipt_guard.py"),
@@ -158,3 +159,21 @@ def test_c8_live_parity_receipt_does_not_overclaim_cutover(tmp_path):
     assert out["cutover_capable"] is False
     assert "direct_qdrant_revocation_ready" in out["blocking_requirements"]
     assert out["authority_changed"] is False
+
+
+def test_c8_can_only_raise_payload_parity_through_the_canonical_corpus_guard():
+    text = SCRIPTS["C8"].read_text(encoding="utf-8")
+    assert "rag_corpus_audit_receipt_guard.py" in text
+    assert 'effective["canonical_payload_parity"] = payload_parity_observed' in text, (
+        "تكافؤُ الـpayload يجب أن يُشتقّ من إيصالِ الجرد لا يُثبَّت — وإلّا صار مُعلَناً بلا قياس"
+    )
+    assert 'effective["canonical_payload_parity"] = True' not in text, (
+        "تثبيتُ تكافؤِ الـpayload على `True` في مسار الشهادة يمنحه خُضرةَ إيصالِ المتّجه، "
+        "والإيصالُ الحيّ يقيس هويّةَ المجموعة وبُعدَ المتّجه وهويّةَ النموذج ولا يجرد "
+        "payload كلّ نقطة. وهو المسارُ الثاني الذي أفلت من M0-C2 لأنّ التثبيت كان على "
+        "اسم المتغيّر لا على الخاصّيّة — فيُمنَع هنا عمداً لا لأنّ شيئاً انكسر."
+    )
+    assert "--subject-tree" in text, (
+        "الـSHA وحده لا يربط الإيصالَ بالمادّة المقيسة: بلا ربطِ الشجرة يمكن تقديمُ "
+        "قياسٍ أُجرِي على محتوًى آخر تحت الالتزام نفسه"
+    )

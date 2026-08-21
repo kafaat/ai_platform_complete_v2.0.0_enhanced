@@ -12,8 +12,8 @@
 
 - حرّاس تحجب في CI: **259**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **41**
-- إجماليّ الطفرات المُسجَّلة: **300**
-- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **106** على 41 مصدراً
+- إجماليّ الطفرات المُسجَّلة: **304**
+- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **110** على 42 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
 أنّ المسار يستشير مفتاح الطوارئ مثلاً — ويمرّ أخضر على مسارٍ يستشيره ثمّ يتجاهل
@@ -988,7 +988,7 @@
 
 ---
 
-## مُواصَفة بطفرات ولا يستدعيها أيّ workflow (8)
+## مُواصَفة بطفرات ولا يستدعيها أيّ workflow (9)
 
 أداة غير موصولة لا تحرس شيئاً (§٣.٢). وجودها هنا سؤالٌ لا اتّهام.
 
@@ -998,6 +998,7 @@
 - `scripts/architecture/authority_cutover_guard.py`
 - `scripts/architecture/platform_shrink_ratchet_guard.py`
 - `scripts/architecture/rag_authority_convergence_guard.py`
+- `scripts/architecture/rag_corpus_audit_receipt_guard.py`
 - `scripts/architecture/rag_cutover_admission_guard.py`
 - `scripts/architecture/rag_live_parity_receipt_guard.py`
 

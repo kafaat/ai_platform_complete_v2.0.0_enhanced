@@ -59,6 +59,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--receipt")
     parser.add_argument("--subject-sha")
+    parser.add_argument("--subject-tree")
+    parser.add_argument("--corpus-receipt")
     args = parser.parse_args(argv)
 
     structural_findings: list[str] = []
@@ -98,6 +100,35 @@ def main(argv: list[str] | None = None) -> int:
 
     state = json.loads(STATE.read_text(encoding="utf-8"))
     requirements = dict(state.get("cutover_requirements") or {})
+
+    # D08-C: payload parity is raised only by a separately validated full-corpus
+    # receipt.  The live parity receipt above proves vector/result continuity, not
+    # physical payload admissibility.
+    payload_parity_observed = False
+    if args.corpus_receipt:
+        if not args.subject_tree:
+            return _emit(
+                "FAILED",
+                ["subject_tree_required_with_corpus_receipt"],
+                cutover_capable=False,
+            )
+        rc, corpus_out = _run(
+            "scripts/architecture/rag_corpus_audit_receipt_guard.py",
+            "--receipt",
+            args.corpus_receipt,
+            "--subject-sha",
+            args.subject_sha,
+            "--subject-tree",
+            args.subject_tree,
+        )
+        if rc:
+            return _emit(
+                "FAILED",
+                ["corpus_audit_receipt_invalid", corpus_out[-800:]],
+                cutover_capable=False,
+            )
+        corpus_receipt = json.loads(Path(args.corpus_receipt).read_text(encoding="utf-8"))
+        payload_parity_observed = corpus_receipt.get("canonical_payload_parity") is True
     # ── ما يُثبِته الإيصال، وما لا يُثبِته ────────────────────────────────────
     #
     # كان اسمٌ واحد `collection_schema_parity` يحمل حقيقتين: تطابقَ **مخطّط المتّجه**
@@ -108,15 +139,15 @@ def main(argv: list[str] | None = None) -> int:
     # قابلة لإعادة البناء القانونيّة. فاسمٌ واحد كان يمنح الثانية خُضرةَ الأولى.
     requirements["collection_vector_schema_parity"] = True
     requirements["live_shadow_parity_receipt"] = True
-    # **ولا تُرفَع من هنا.** تكافؤُ الـpayload يحتاج جردَ مجموعةٍ فعليّاً: عدٌّ دقيق
+    # **ولا تُرفَع من إيصال المتّجه.** تكافؤُ الـpayload يحتاج جردَ مجموعةٍ فعليّاً: عدٌّ دقيق
     # مطابقٌ للمسح · وكلُّ نقطةٍ مصنّفة · وصفرُ غيرِ مصنّف. ولا يكفي `skipped == 0`
     # ما دام المحلّل يقبل ارتداداتٍ قديمة تجعل نقطةً مرئيّةً للمتناثر دون الكثيف.
-    # فتبقى `False` حتّى يوجد إيصالُ جردٍ يقولها — لا تُلفَّق من فحصٍ ساكن.
+    # وتبقى `False` بلا إيصال جردٍ صالح؛ ولا تُلفَّق من فحصٍ ساكن.
     # **إسنادٌ صريح لا `setdefault`.** الأخير كان يُبقي أيَّ `True` سابقة في وثيقة
     # الحالة — ولا يتحقّق هذا الحارس من أيّ إيصال جرد، فتصير علامةٌ بائتةٌ أو مكتوبةٌ
     # يدويّاً كافيةً لإخضار تكافؤ الـpayload بعد إيصال المتّجه وحده. أمسكه مراجعٌ
     # آليّ على #882، وهو صنفُ العطل الذي تُصنّفه هذه الشريحة بعينه.
-    requirements["canonical_payload_parity"] = False
+    requirements["canonical_payload_parity"] = payload_parity_observed
     blockers = sorted(key for key, value in requirements.items() if not bool(value))
 
     # A named pre-cutover direct response exception is explicit evidence that revocation
@@ -138,6 +169,7 @@ def main(argv: list[str] | None = None) -> int:
                 "collection_vector_schema_parity": True,
                 "live_shadow_parity_receipt": True,
                 "canonical_payload_parity": bool(requirements.get("canonical_payload_parity")),
+                "corpus_audit_receipt_present": bool(args.corpus_receipt),
             },
         )
 
@@ -152,6 +184,7 @@ def main(argv: list[str] | None = None) -> int:
             "collection_vector_schema_parity": True,
             "live_shadow_parity_receipt": True,
             "canonical_payload_parity": bool(requirements.get("canonical_payload_parity")),
+            "corpus_audit_receipt_present": bool(args.corpus_receipt),
         },
     )
 

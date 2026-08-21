@@ -35,6 +35,37 @@
       ],
       "test": "tests_v9/test_run_outcome_guard.py"
     },
+    ".github/workflows/ci.yml": {
+      "$why_a_workflow_belongs_here_ar": "المفتاحُ مسارُ ما يعمل فعلاً في CI، والسقفُ وموضعُ المكنسة بندان في ذلك الملفّ لا في حارسٍ يصفه. فتُزرَع الطفرةُ في الـYAML نفسه — وإلّا شهد الحارسُ لنسخةٍ من العقد لا للعقد.",
+      "mutations": [
+        {
+          "expect": "test_the_longest_job_has_the_decided_ceiling_not_a_six_hour_default",
+          "find": "    timeout-minutes: 90",
+          "replace": "    timeout-minutes: 60  # mutated: السقف يعود تحت أبطأ قياسٍ حقيقيّ",
+          "why": "MUT-SWEEP-TIMEOUT-01: على #882 أنهت *Unit Tests* عند ٥٩:٠٢ مقابل سقف ٦٠ — بفارق ٥٨ ثانية. وإعادةُ السقف إلى ٦٠ تُعيد الوظيفةَ إلى حافّة القتل بالمهلة، وأوّلُ طفرةٍ تُضاف تُسقِطها. والفشلُ بالمهلة يُقرَأ عطلاً في الاختبارات لا ضيقاً في السقف، فيُشخَّص في الاتّجاه الخطأ.",
+          "test": "tests_v9/test_ci_pipeline_settings.py"
+        },
+        {
+          "expect": "test_the_sweep_still_runs_inside_the_job_the_ruleset_actually_requires",
+          "find": "        run: python scripts/ci/guard_mutation_guard.py --run",
+          "replace": "        run: echo skipped  # mutated: المكنسة تخرج من الوظيفة الحاجبة",
+          "why": "نقلُ المكنسة خارج *Unit Tests* بلا إضافةِ اسمِ الوظيفة الجديدة إلى الفحوص المطلوبة في الـRuleset يجعلها إرشاديّةً **صامتاً**. و`branch_protection_contract_guard` يفرض حلَّ المحادثات وحده ولا يُعدّد الفحوصَ بالاسم، فلا شيءَ في الشجرة يمنع ذلك. وهو صنفُ «حارسٌ كفّ عن الحجب بلا أن يحمرّ» بعينه."
+        }
+      ],
+      "test": "tests_v9/test_mutation_sweep_headroom.py"
+    },
+    "docs/architecture/rag_authority_convergence.json": {
+      "$why_ar": "المفردةُ المحفوظة هي ما يقرؤه **كلُّ** مُنتِج. وكانت الوثيقةُ بلا مفتاح `canonical_payload_parity` إطلاقاً — فمُنتِجٌ يكتب الاسمَ الواسع `True` كان يُسقِط شرطَ الـpayload من الحساب رأساً، لا يُخالِفه بل لا يراه.",
+      "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
+      "mutations": [
+        {
+          "expect": "test_no_producer_can_certify_cutover_on_a_vector_only_receipt",
+          "find": "    \"canonical_payload_parity\": false,",
+          "replace": "    \"canonical_payload_parity\": true,",
+          "why": "رفعُ تكافؤِ الـpayload بلا إيصالِ جردِ مجموعة تلفيق: يحتاج عدّاً دقيقاً مطابقاً للمسح، وكلَّ نقطةٍ مصنّفة، وصفرَ غيرِ مصنّف. والشاهدُ الحيّ قاطع — مخطّطُ المتّجه سليمٌ بينما ٥٤ نقطة غير قابلة لإعادة البناء القانونيّة."
+        }
+      ]
+    },
     "scripts/architecture/build_platform_catalog.py": {
       "$why_ar": "ARCH-S1a+S2: بوّابتا التصنيف القانونيّ وحقيقة الاعتماد — نكوصهما يعيد السقوط الصامت إلى service والوحدات اليتيمة التي عاشت سنين بلا أن يراها أحد.",
       "mutations": [
@@ -161,6 +192,30 @@
         }
       ]
     },
+    "scripts/architecture/rag_live_corpus_audit.py": {
+      "$why_ar": "D08-A: أداة الجرد نفسها جزء من السلوك الذي يصنع الدليل؛ تُزرع عيوب في اكتمال العد وعزل الحجر وكشف عدم تناظر dense/sparse.",
+      "test": "tests_v9/test_rag_live_corpus_audit.py",
+      "mutations": [
+        {
+          "expect": "test_exact_scroll_mismatch_can_never_claim_payload_parity",
+          "find": "        physical_complete and unclassified == 0 and not serving_blockers\n",
+          "replace": "        unclassified == 0 and not serving_blockers  # mutated: exact count ignored\n",
+          "why": "إيصال من scroll ناقص لا يمكنه إثبات parity مهما كانت النقاط التي رآها قانونية."
+        },
+        {
+          "expect": "test_explicit_nonserving_quarantine_does_not_fake_an_active_blocker",
+          "find": "    serving_candidate = scope != \"quarantine\"\n",
+          "replace": "    serving_candidate = True  # mutated: quarantine becomes serving corpus\n",
+          "why": "الحجر المسمى يجب أن يبقى خارج serving corpus؛ إدخاله يعيد تأثير نقاط bootstrap إلى عقد cutover."
+        },
+        {
+          "expect": "test_full_audit_classifies_every_point_without_document_text",
+          "find": "    dense_sparse_divergent = current_dense_eligible != current_sparse_eligible\n",
+          "replace": "    dense_sparse_divergent = False  # mutated: legacy path asymmetry hidden\n",
+          "why": "النقطة المقبولة sparse وغير المرئية dense هي أحد أسباب فشل parity، ويجب ألا يصمت الجرد عنها."
+        }
+      ]
+    },
     "scripts/architecture/rag_live_parity_probe.py": {
       "$why_ar": "ARCH-S3: المسبار الحيّ قراءة-فقط وبُعد التضمين مربوط بالمجموعة الحيّة — يُثبَت بالتكذيب.",
       "test": "tests_v9/test_rag_live_parity_probe.py",
@@ -277,6 +332,12 @@
           "find": "    effective[\"collection_vector_schema_parity\"] = True",
           "replace": "    effective[\"collection_schema_parity\"] = True  # mutated: الاسمُ الواسع يعود",
           "why": "M0-C2: الاسمُ الواحد يحمل حقيقتين فيمنح تكافؤَ الـpayload خُضرةَ إيصالِ المتّجه. وقبل الهجرة كان حارسُ تكافؤِ الـpayload الوحيد هنا **مصادفةَ** بقاءِ `direct_qdrant_revocation_ready` كاذبةً — ويومَ تُقلَب، وهي غايةُ البرنامج نفسه، تُصدَر `CERTIFIED_CUTOVER_CAPABLE` على إيصالٍ أثبت تكافؤَ المتّجه وحده. وهذا مسارُ شهادةٍ ثانٍ محجوزٌ في `ci.yml`، أفلت من الشريحة الأولى لأنّ تثبيتَها كان على نصّ الإسناد في ملفٍّ سُمّي بعينه لا على الخاصّيّة. أمسكه مراجعٌ آليّ على #882."
+        },
+        {
+          "expect": "test_c8_can_only_raise_payload_parity_through_the_canonical_corpus_guard",
+          "find": "    effective[\"canonical_payload_parity\"] = payload_parity_observed\n",
+          "replace": "    effective[\"canonical_payload_parity\"] = True  # mutated: corpus evidence bypassed\n",
+          "why": "C8 مسار شهادة ثانٍ؛ يجب أن يستهلك الحارس القانوني نفسه ولا يمنح payload parity من نفسه."
         }
       ],
       "test": "tests_v9/test_c8_c13_certification_contracts.py"
@@ -2498,17 +2559,47 @@
           "find": "        for k in (\"component_id\", \"owner\", \"reason\", \"target_close_by\"):\n            if not exc.get(k):\n                out.append(f\"direct Qdrant exception missing {k}\")",
           "replace": "        for k in ():  # mutated: unowned exception tolerated\n            if not exc.get(k):\n                out.append(f\"direct Qdrant exception missing {k}\")",
           "why": "استثناء بلا مالك وسبب وتاريخ إغلاق ليس استثناءً بل ثغرة."
+        },
+        {
+          "expect": "test_s3_rejects_a_parallel_or_unbound_corpus_audit_guard",
+          "find": "    if audit.get(\"receipt_guard\") != \"scripts/architecture/rag_corpus_audit_receipt_guard.py\":\n        out.append(\"unexpected corpus audit receipt guard\")",
+          "replace": "    if False:  # mutated: parallel corpus guard tolerated\n        out.append(\"unexpected corpus audit receipt guard\")",
+          "why": "D08-B يملك حارس إيصالٍ قانونياً واحداً؛ قبول حارس موازٍ يعيد طبقة حقيقة ثانية لا تخضع لنفس العقد."
+        }
+      ]
+    },
+    "scripts/architecture/rag_corpus_audit_receipt_guard.py": {
+      "$why_ar": "D08-B/C: إيصال جرد المجموعة لا قيمة له إن أمكنه تجاوز ربط الشجرة أو مطابقة العد أو تسريب نص الوثيقة. كل شرط مثبت بطفرة مسماة.",
+      "test": "tests_v9/test_rag_live_corpus_audit.py",
+      "mutations": [
+        {
+          "expect": "test_guard_rejects_exact_scroll_mismatch",
+          "find": "    if isinstance(exact, int) and isinstance(scroll, int) and exact != scroll:\n        out.append(\"exact/scroll count mismatch\")",
+          "replace": "    if False:  # mutated: physical incompleteness accepted\n        out.append(\"exact/scroll count mismatch\")",
+          "why": "العد الدقيق هو سلطة اكتمال المجموعة؛ قبول scroll ناقص يجعل إيصالاً جزئياً يبدو كاملاً."
+        },
+        {
+          "expect": "test_guard_rejects_document_body_fields_even_if_digest_is_recomputed",
+          "find": "        if forbidden:\n            out.append(f\"document content leaked in point record: {sorted(forbidden)}\")",
+          "replace": "        if False:  # mutated: body leakage accepted\n            out.append(f\"document content leaked in point record: {sorted(forbidden)}\")",
+          "why": "إيصال الجرد هويات وبصمات وتصنيفات فقط؛ نص الوثيقة ليس دليلاً مطلوباً ويزيد سطح التسريب."
+        },
+        {
+          "expect": "test_guard_rejects_wrong_subject_tree",
+          "find": "    if receipt.get(\"subject_tree\") != subject_tree:\n        out.append(\"receipt subject tree mismatch\")",
+          "replace": "    if False:  # mutated: receipt from another tree accepted\n        out.append(\"receipt subject tree mismatch\")",
+          "why": "الـSHA وحده لا يكفي لإيصال جرد خارج checkout؛ ربط الشجرة يمنع إعادة تقديم قياس على مادة مختلفة."
         }
       ]
     },
     "scripts/architecture/rag_cutover_admission_guard.py": {
       "mutations": [
         {
-          "expect": "test_payload_parity_is_not_raised_by_the_vector_receipt",
-          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
-          "find": "    requirements[\"canonical_payload_parity\"] = False\n",
-          "replace": "    requirements.setdefault(\"canonical_payload_parity\", False)\n",
-          "why": "عودةُ `setdefault` مكان الإسناد الصريح ⇒ تُورَث أيُّ `True` سابقة من وثيقة الحالة، وهذا الحارس لا يتحقّق من أيّ إيصال جرد. فعلامةٌ بائتة أو مكتوبةٌ يدويّاً تكفي لإخضار تكافؤ الـpayload بعد إيصال المتّجه وحده — وهو الاسمُ الواسع عائداً بصيغةٍ أخرى."
+          "expect": "test_live_receipt_does_not_claim_canonical_payload_parity",
+          "test": "tests_v9/test_rag_cutover_admission_guard.py",
+          "find": "    requirements[\"canonical_payload_parity\"] = payload_parity_observed\n",
+          "replace": "    requirements[\"canonical_payload_parity\"] = True  # mutated: corpus receipt bypassed\n",
+          "why": "إيصال المتجه وحده لا يثبت payload parity؛ رفعها بلا إيصال جرد يعيد العطل الذي فصل M0 الاسمين لأجله."
         }
       ]
     },

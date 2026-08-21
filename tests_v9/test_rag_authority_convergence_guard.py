@@ -63,3 +63,23 @@ def test_s3_shadow_defaults_off():
     m = mod("off")
     state = m.load()
     assert state["shadow"]["enabled_by_default"] is False
+
+
+def test_s3_corpus_audit_acceptance_is_bound_to_one_guard_and_collection():
+    m = mod("audit")
+    state = m.load()
+    audit = state["corpus_audit_acceptance"]
+    assert audit["receipt_schema"] == "sahool.rag-corpus-audit-receipt/v1"
+    assert audit["receipt_guard"] == "scripts/architecture/rag_corpus_audit_receipt_guard.py"
+    assert audit["collection"] == "sahool_agri_kb"
+    assert not any("corpus audit" in x for x in m.findings(state, today=date(2026, 8, 16)))
+
+
+def test_s3_rejects_a_parallel_or_unbound_corpus_audit_guard():
+    m = mod("audit_bad")
+    state = m.load()
+    state["corpus_audit_acceptance"]["receipt_guard"] = "scripts/architecture/other_guard.py"
+    assert any(
+        "unexpected corpus audit receipt guard" in x
+        for x in m.findings(state, today=date(2026, 8, 16))
+    )

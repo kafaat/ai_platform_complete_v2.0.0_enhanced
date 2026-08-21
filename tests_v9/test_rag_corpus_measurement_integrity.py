@@ -264,17 +264,18 @@ def test_the_admission_guard_no_longer_carries_the_wide_name() -> None:
 def test_payload_parity_is_not_raised_by_the_vector_receipt() -> None:
     """لا تُلفَّق من فحصٍ ساكن: تحتاج جردَ مجموعةٍ فعليّاً، ولا إيصالَ جردٍ بعد."""
     source = ADMISSION.read_text(encoding="utf-8")
-    # **إسنادٌ صريح لا `setdefault`.** الأخير كان يُبقي أيَّ `True` سابقة في وثيقة
-    # الحالة، وهذا الحارس لا يتحقّق من إيصال جرد — فعلامةٌ بائتة أو مكتوبةٌ يدويّاً
-    # كانت تكفي لإخضار تكافؤ الـpayload بعد إيصال المتّجه وحده.
-    assert 'requirements["canonical_payload_parity"] = False' in source
+    # D08-C: إيصالُ المتّجه وحده يتركها False، والمسار الوحيد لرفعها هو إيصالُ
+    # جردٍ مستقل يمرّ بالحارس القانوني. فلا تُورَث من وثيقة الحالة ولا تُكتب True
+    # مباشرةً داخل حارس القبول.
+    assert "payload_parity_observed = False" in source
+    assert "rag_corpus_audit_receipt_guard.py" in source
+    assert 'requirements["canonical_payload_parity"] = payload_parity_observed' in source
     assert 'requirements.setdefault("canonical_payload_parity"' not in source, (
         "`setdefault` يُورِّث `True` من وثيقة الحالة بلا إيصال جرد — "
         "فيصير تكافؤُ الـpayload مُعلَناً بلا قياس"
     )
     assert 'requirements["canonical_payload_parity"] = True' not in source, (
-        "رفعُها من فحصٍ ساكن تلفيقٌ: تكافؤُ الـpayload يحتاج جردَ مجموعةٍ فعليّاً — "
-        "عدٌّ دقيق مطابقٌ للمسح، وكلُّ نقطةٍ مصنّفة، وصفرُ غيرِ مصنّف"
+        "رفعُها مباشرةً تلفيقٌ: تكافؤُ الـpayload يحتاج إيصالَ جردٍ قانونياً"
     )
 
 

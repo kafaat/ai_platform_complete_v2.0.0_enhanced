@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5151,
+    "files_scanned": 5154,
     "files_by_kind": {
       "backend": 1198,
       "database": 274,
       "governance": 60,
       "mobile": 51,
-      "other": 1409,
-      "tests": 1703,
+      "other": 1411,
+      "tests": 1704,
       "web": 456
     },
-    "unmapped_artifacts": 2100,
+    "unmapped_artifacts": 2101,
     "ambiguous_artifacts": 405
   },
   "capabilities": [
@@ -42488,6 +42488,10 @@
     },
     {
       "path": "tests_v9/test_rag_direct_qdrant_boundary_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_rag_live_corpus_audit.py",
       "kind": "tests"
     },
     {

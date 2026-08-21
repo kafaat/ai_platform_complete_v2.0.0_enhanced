@@ -68,6 +68,24 @@ def findings(state: dict | None = None, *, today: date | None = None) -> list[st
     contract = json.loads(EMBED_CONTRACT.read_text(encoding="utf-8"))
     if contract.get("schema") != "sahool.rag-embedding-contract/v1":
         out.append("invalid embedding contract schema")
+    audit = state.get("corpus_audit_acceptance") or {}
+    if audit.get("receipt_schema") != "sahool.rag-corpus-audit-receipt/v1":
+        out.append("invalid corpus audit receipt schema")
+    if audit.get("receipt_guard") != "scripts/architecture/rag_corpus_audit_receipt_guard.py":
+        out.append("unexpected corpus audit receipt guard")
+    if audit.get("collection") != contract.get("collection"):
+        out.append("corpus audit collection must match embedding contract")
+    for key in (
+        "require_subject_sha",
+        "require_subject_tree",
+        "require_exact_scroll_equality",
+        "require_zero_unclassified",
+    ):
+        if audit.get(key) is not True:
+            out.append(f"corpus audit acceptance missing {key}")
+    guard_path = ROOT / str(audit.get("receipt_guard") or "")
+    if not guard_path.is_file():
+        out.append("corpus audit receipt guard missing")
     if (
         contract.get("dimension_source") != "live_embedding_response"
         or contract.get("no_hardcoded_vector_dimension") is not True
