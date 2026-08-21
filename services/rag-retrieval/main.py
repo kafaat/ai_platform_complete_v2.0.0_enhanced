@@ -9,6 +9,7 @@ from core.rag.production_qdrant import (
     KnowledgeChunk,
     OllamaEmbeddingProvider,
     QdrantHttpClient,
+    readiness_problems,
 )
 from fastapi import Depends, FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel, Field
@@ -61,6 +62,19 @@ def _ensure_sparse_index(*, force: bool = False) -> dict[str, int]:
         raise ValueError(
             f"canonical sparse rebuild skipped {report['skipped_points']} Qdrant points [{detail}]"
         )
+    # ── D09-E — انحرافُ المجموعة حالةُ **خدمة**، لا شرطُ تصفيةٍ لكلّ نتيجة ──────
+    #
+    # المسارُ لا يحذف الصفَّ غيرَ القانونيّ من النتائج: حذفٌ كهذا يُنتِج `200`
+    # بنتائجَ ناقصة لا يعرف المستهلكُ نقصَها — إجابةٌ مبتورة تُقرَأ كاملة، وهي أسوأُ
+    # من `503` صريح في مسار RAG. فالحكمُ: إمّا الخدمةُ جاهزةٌ فتُخدَم كلُّ الصفوف،
+    # وإمّا غيرُ جاهزةٍ فيُمنَع المسارُ كلُّه.
+    #
+    # والحكمُ نفسُه في `readiness_problems` — دالّةٌ نقيّة تُستدعى بتقريرٍ مُختلَق
+    # فتُكذَّب بالسلوك. ولو بقي هنا لَما أمكن تكذيبُه إلّا بنصٍّ، والنصُّ يبقى قائماً
+    # بعد التعطيل الصريح (`if False and …`) فيمرّ العقدُ على حارسٍ معطَّل.
+    problems = readiness_problems(report)
+    if problems:
+        raise ValueError(" · ".join(problems))
     _sparse_report = report
     _sparse_ready = True
     return report

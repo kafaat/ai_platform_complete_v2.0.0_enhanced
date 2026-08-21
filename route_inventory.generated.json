@@ -1754,7 +1754,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 95,
+    "line": 109,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -1762,7 +1762,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 100,
+    "line": 114,
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
@@ -1770,7 +1770,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 113,
+    "line": 127,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -1778,7 +1778,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 150,
+    "line": 164,
     "method": "POST",
     "path": "/v1/ingest",
     "function": "ingest"
@@ -1786,7 +1786,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 193,
+    "line": 207,
     "method": "POST",
     "path": "/v1/search",
     "function": "search"

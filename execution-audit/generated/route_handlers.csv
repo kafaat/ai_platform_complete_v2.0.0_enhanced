@@ -209,11 +209,11 @@ odoo-bridge,GET,/readyz,readyz,services/odoo-bridge/routers/health.py,41
 odoo-bridge,GET,/v1/readyz/capabilities,readyz_capabilities,services/odoo-bridge/routers/health.py,76
 odoo-bridge,POST,/v1/sync,trigger_sync,services/odoo-bridge/routers/sync.py,78
 odoo-bridge,POST,/v1/webhook/odoo,odoo_webhook,services/odoo-bridge/routers/webhooks.py,21
-rag-retrieval,GET,/healthz,healthz,services/rag-retrieval/main.py,95
-rag-retrieval,GET,/metrics,metrics,services/rag-retrieval/main.py,100
-rag-retrieval,GET,/readyz,readyz,services/rag-retrieval/main.py,113
-rag-retrieval,POST,/v1/ingest,ingest,services/rag-retrieval/main.py,150
-rag-retrieval,POST,/v1/search,search,services/rag-retrieval/main.py,193
+rag-retrieval,GET,/healthz,healthz,services/rag-retrieval/main.py,109
+rag-retrieval,GET,/metrics,metrics,services/rag-retrieval/main.py,114
+rag-retrieval,GET,/readyz,readyz,services/rag-retrieval/main.py,127
+rag-retrieval,POST,/v1/ingest,ingest,services/rag-retrieval/main.py,164
+rag-retrieval,POST,/v1/search,search,services/rag-retrieval/main.py,207
 raster-service,GET,/runtime-identity,runtime_evidence_identity,services/raster-service/main.py,64
 raster-service,POST,/v1/zones/classify,zones_classify,services/raster-service/routers/analysis.py,30
 raster-service,POST,/v1/change/detect,change_detect,services/raster-service/routers/analysis.py,48

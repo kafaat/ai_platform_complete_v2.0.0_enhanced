@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5154,
+    "files_scanned": 5155,
     "files_by_kind": {
       "backend": 1198,
       "database": 274,
       "governance": 60,
       "mobile": 51,
       "other": 1411,
-      "tests": 1704,
+      "tests": 1705,
       "web": 456
     },
-    "unmapped_artifacts": 2101,
+    "unmapped_artifacts": 2102,
     "ambiguous_artifacts": 405
   },
   "capabilities": [
@@ -42476,6 +42476,10 @@
     },
     {
       "path": "tests_v9/test_rag_corpus_admissibility_probe.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_rag_corpus_identity_readiness.py",
       "kind": "tests"
     },
     {

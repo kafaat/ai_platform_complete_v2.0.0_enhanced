@@ -37,9 +37,142 @@ _REQUIRED_TENANT_PROVENANCE = ("source_uri", "source_revision", "content_digest"
 # سقفُ عيّنات المُعرِّفات لكلّ سببِ رفض — تشخيصٌ لا جرد.
 _SKIPPED_SAMPLE_CAP = 5
 
+#: مستأجِرُ الحجر: نقاطُ bootstrap مُعلَنةٌ غيرَ خادمة. تبقى للتدقيق والهجرة ولا
+#: تدخل حسابَ الخدمة النشطة — فوجودُها ليس انحرافاً يستوجب منعَ الجاهزيّة.
+SEED_QUARANTINE_TENANT = "__seed_quarantine__"
+
+#: مفاتيحُ الـmetadata التي يكتبها ``KnowledgeChunk.payload``. الشكلُ القانونيّ
+#: للتخزين هو ما يُنتِجه الكاتبُ القانونيّ، لا ما يقبله المحلّل.
+_CANONICAL_SERVING_META_KEYS = frozenset(
+    {
+        "chunk_id",
+        "tenant_id",
+        "source_type",
+        "document_id",
+        "chunk_index",
+        "total_chunks",
+        "evidence_level",
+        "source_class",
+        "content_digest",
+    }
+)
+
 
 def _content_digest(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+# ── D09-C — عقدُ الشكل القانونيّ: سياسةٌ حتميّة، لا نتيجةُ قياسٍ حيّ ──────────
+
+
+def canonical_storage_shape(payload: dict[str, Any]) -> bool:
+    """هل يحمل ``payload`` شكلَ التخزين القانونيّ الذي يكتبه الكاتبُ القانونيّ؟
+
+    **مُسنَدٌ حتميّ محلّيّ.** لا يقرأ إيصالاً ولا أساساً ولا يتّصل بشيء: جوابُه دالّةٌ
+    نقيّة في الـpayload وحده. فهو صالحٌ للاستعمال في أيّ سياق — تشخيصٍ أو جردٍ أو
+    قياسِ جاهزيّة — بلا أن يربط أيّاً منها بتوفّر قياسٍ حيّ.
+
+    **وسِعةُ المحلّل مقصودةٌ وأوسع:** ``from_payload`` يقبل ارتداداتٍ في الجذر
+    ومُعرِّفَ تخزينٍ بديلاً كي تبقى الهجرةُ والتدقيق ممكنَين على مادّةٍ قديمة. فصفٌّ
+    يقبله المحلّلُ ليس بالضرورة قانونيَّ الشكل — والفرقُ بينهما هو ما يُقاس هنا.
+
+    **وما ليس هذا المُسنَد:** ليس مِصفاةَ نتائج. ناتجُه يُغذّي **القياس**
+    (``noncanonical_serving_points``) الذي تقرؤه الجاهزيّة؛ ولا يُستعمَل لحذف صفٍّ
+    من نتيجةِ بحثٍ — فحذفٌ كهذا يُحوِّل انحرافَ المجموعة إلى ``200`` بنتائجَ ناقصة
+    لا يعرف المستهلكُ نقصَها، وهو أخفى من ``503`` وأسوأ منه لمسار RAG.
+    """
+    if not isinstance(payload.get("page_content"), str):
+        return False
+    nested = payload.get("metadata")
+    if not isinstance(nested, dict):
+        return False
+    if not _CANONICAL_SERVING_META_KEYS.issubset(nested):
+        return False
+    for key in ("chunk_id", "tenant_id", "source_type", "document_id", "evidence_level"):
+        if not str(nested.get(key) or "").strip():
+            return False
+    if not isinstance(nested.get("chunk_index"), int):
+        return False
+    if not isinstance(nested.get("total_chunks"), int):
+        return False
+    digest = nested.get("content_digest")
+    if not isinstance(digest, str) or len(digest) != 64:
+        return False
+    # وأخيراً: الشكلُ القانونيّ لا يكون قانونيّاً إن رفضه المحلّلُ نفسه. و``fallback_id``
+    # معدومٌ عمداً — المُعرِّفُ المنطقيّ يجب أن يكون في الـpayload لا أن يُستعار.
+    try:
+        KnowledgeChunk.from_payload(payload, fallback_id=None)
+    except (TypeError, ValueError):
+        return False
+    return True
+
+
+# ── D09-M — هويّةُ المجموعة: مركّبةٌ لا عدد ──────────────────────────────────
+
+
+def corpus_identity(payload_rows: list[tuple[str, dict[str, Any]]]) -> dict[str, Any]:
+    """بصمةٌ **مركّبة** للمجموعة الحيّة — ثلاثةُ مكوّناتٍ متعامدة.
+
+    **العددُ وحده دليلٌ ضعيف:** يبقى ``N`` بينما يتبدّل المحتوى كلُّه، فحارسٌ يقارن
+    ``count == N`` يمرّ على استبدالِ المجموعة بأكملها. ولذلك تُجمَع ثلاثةُ أشياء،
+    ويكفي انحرافُ أحدها لإعلان الانحراف:
+
+    * ``point_count`` — الحجم. يُمسِك الحذفَ والإضافة الصافيين.
+    * ``id_set_digest`` — بصمةُ **مجموعة المُعرِّفات المنطقيّة**. تُمسِك الاستبدالَ
+      المتوازن (حذفُ واحدٍ وإضافةُ آخر) الذي يُبقي العدد ثابتاً.
+    * ``content_digest`` — بصمةٌ فوق أزواج ``(مُعرِّف، بصمةُ محتوًى)``. تُمسِك
+      **تبدُّلَ المحتوى مع ثباتِ العدد والمُعرِّفات معاً** — وهي الحالةُ التي تفصل
+      حارسَ سلامةٍ عن حارسِ عدد، ولا يمسكها أيٌّ من المكوّنين الآخرين.
+
+    ولا يُخرَج نصُّ مقطعٍ ولا جزءٌ منه — مُعرِّفاتٌ وبصماتٌ وأعدادٌ فقط.
+    """
+    ids: list[str] = []
+    pairs: list[str] = []
+    for point_id, payload in payload_rows:
+        meta = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+        logical = str(meta.get("chunk_id") or payload.get("chunk_id") or point_id)
+        ids.append(logical)
+        # البصمةُ المُعلَنة إن وُجِدت، وإلّا تُشتقّ من النصّ — فنقطةٌ بلا
+        # ``content_digest`` لا تخرج من القياس صامتةً.
+        digest = str(meta.get("content_digest") or "")
+        if not digest:
+            digest = _content_digest(str(payload.get("page_content", payload.get("text")) or ""))
+        pairs.append(f"{logical}\x1f{digest}")
+
+    def _digest(values: list[str]) -> str:
+        return hashlib.sha256("\x1e".join(sorted(values)).encode("utf-8")).hexdigest()
+
+    return {
+        "point_count": len(payload_rows),
+        "id_set_digest": _digest(ids),
+        "content_digest": _digest(pairs),
+    }
+
+
+def readiness_problems(report: dict[str, Any]) -> list[str]:
+    """حكمُ الجاهزيّة على تقرير إعادة البناء — دالّةٌ نقيّة قابلةٌ للاستدعاء مباشرةً.
+
+    **استُخرِجت كي يُقاس السلوكُ لا نصُّه.** أوّلُ صياغةٍ للعقد فحصت ظهورَ أسماءٍ في
+    مصدر ``_ensure_sparse_index``؛ فمرّت على تعطيلٍ صريح (``if False and …``) لأنّ
+    الاسمَ يبقى في النصّ بعد التعطيل. والحكمُ هنا يُستدعى بتقريرٍ مُختلَق فيُكذَّب
+    بالسلوك.
+
+    تُعاد قائمةُ الأسباب — فارغةٌ تعني ``READY``.
+    """
+    problems: list[str] = []
+    noncanonical = report.get("noncanonical_serving_points") or 0
+    if noncanonical:
+        samples = report.get("noncanonical_serving_samples") or []
+        problems.append(
+            f"NOT_READY: {noncanonical} active points are parseable but not canonical "
+            f"[samples={','.join(str(s) for s in samples)}]"
+        )
+    identity = report.get("corpus_identity")
+    if not isinstance(identity, dict) or not identity.get("id_set_digest"):
+        problems.append("EVIDENCE_MISSING: corpus identity was not measured")
+    elif not identity.get("point_count"):
+        problems.append("EVIDENCE_MISSING: corpus is empty (empty parity is not parity)")
+    return problems
 
 
 def _normalized_source_class(source_type: str, metadata: dict[str, Any]) -> str:
@@ -834,6 +967,10 @@ class HybridQdrantRetriever:
         by_reason: dict[str, int] = {}
         samples: dict[str, list[str]] = {}
         missing_fields: dict[str, int] = {}
+        # D09 — قياسٌ لا تصفية. يُعدُّ الصفُّ النشطُ الذي يقبله المحلّل ولا يحمل
+        # الشكلَ القانونيّ، وتُقرأ هذه الأعدادُ في مسار الجاهزيّة وحده.
+        noncanonical_serving = 0
+        noncanonical_samples: list[str] = []
         seen: set[str] = set()
         for point_id, payload in payload_rows:
             try:
@@ -855,6 +992,13 @@ class HybridQdrantRetriever:
                 raise ValueError(f"duplicate canonical chunk_id in Qdrant: {chunk.chunk_id}")
             seen.add(chunk.chunk_id)
             chunks.append(chunk)
+            # **يُعَدُّ ولا يُحذَف.** الحجرُ المُعلَن ليس انحرافاً — هو مُعلَنٌ غيرُ
+            # خادمٍ بالقصد. والصفُّ النشطُ غيرُ القانونيّ يُعَدّ ويُعيَّن، ويبقى
+            # في `chunks` وفي BM25 كما هو؛ الحكمُ عليه في الجاهزيّة لا هنا.
+            if chunk.tenant_id != SEED_QUARANTINE_TENANT and not canonical_storage_shape(payload):
+                noncanonical_serving += 1
+                if len(noncanonical_samples) < _SKIPPED_SAMPLE_CAP:
+                    noncanonical_samples.append(str(point_id))
         self._chunks = {chunk.chunk_id: chunk for chunk in chunks}
         loaded = self.bm25.rebuild(chunks)
         return {
@@ -864,6 +1008,9 @@ class HybridQdrantRetriever:
             "skipped_by_reason": dict(sorted(by_reason.items())),
             "skipped_samples": {k: sorted(v) for k, v in sorted(samples.items())},
             "skipped_missing_fields": dict(sorted(missing_fields.items())),
+            "noncanonical_serving_points": noncanonical_serving,
+            "noncanonical_serving_samples": sorted(noncanonical_samples),
+            "corpus_identity": corpus_identity(payload_rows),
         }
 
     def retrieve(

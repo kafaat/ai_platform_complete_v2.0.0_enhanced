@@ -7852,6 +7852,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_rag_corpus_identity_readiness.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_rag_corpus_measurement_integrity.py",
     "kind": "tests"
   },
