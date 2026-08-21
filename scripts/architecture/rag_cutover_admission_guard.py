@@ -98,9 +98,21 @@ def main(argv: list[str] | None = None) -> int:
 
     state = json.loads(STATE.read_text(encoding="utf-8"))
     requirements = dict(state.get("cutover_requirements") or {})
-    # The validated live receipt supplies only these two observed requirements.
-    requirements["collection_schema_parity"] = True
+    # ── ما يُثبِته الإيصال، وما لا يُثبِته ────────────────────────────────────
+    #
+    # كان اسمٌ واحد `collection_schema_parity` يحمل حقيقتين: تطابقَ **مخطّط المتّجه**
+    # وتطابقَ **مجموعة الـpayload**. والإيصال الحيّ يقيس الأولى وحدها — هويّةَ
+    # المجموعة وبُعدَ المتّجه وهويّةَ النموذج — ولا يجرد payload كلّ نقطة.
+    #
+    # والشاهدُ الحيّ على الفرق قاطع: مخطّطُ المتّجه سليمٌ تماماً بينما ٥٤ نقطة غير
+    # قابلة لإعادة البناء القانونيّة. فاسمٌ واحد كان يمنح الثانية خُضرةَ الأولى.
+    requirements["collection_vector_schema_parity"] = True
     requirements["live_shadow_parity_receipt"] = True
+    # **ولا تُرفَع من هنا.** تكافؤُ الـpayload يحتاج جردَ مجموعةٍ فعليّاً: عدٌّ دقيق
+    # مطابقٌ للمسح · وكلُّ نقطةٍ مصنّفة · وصفرُ غيرِ مصنّف. ولا يكفي `skipped == 0`
+    # ما دام المحلّل يقبل ارتداداتٍ قديمة تجعل نقطةً مرئيّةً للمتناثر دون الكثيف.
+    # فتبقى `False` حتّى يوجد إيصالُ جردٍ يقولها — لا تُلفَّق من فحصٍ ساكن.
+    requirements.setdefault("canonical_payload_parity", False)
     blockers = sorted(key for key, value in requirements.items() if not bool(value))
 
     # A named pre-cutover direct response exception is explicit evidence that revocation
@@ -119,8 +131,9 @@ def main(argv: list[str] | None = None) -> int:
             convergence_stage=state.get("stage"),
             authority_state=state.get("authority_state"),
             observed_requirements={
-                "collection_schema_parity": True,
+                "collection_vector_schema_parity": True,
                 "live_shadow_parity_receipt": True,
+                "canonical_payload_parity": bool(requirements.get("canonical_payload_parity")),
             },
         )
 
@@ -132,8 +145,9 @@ def main(argv: list[str] | None = None) -> int:
         convergence_stage=state.get("stage"),
         authority_state=state.get("authority_state"),
         observed_requirements={
-            "collection_schema_parity": True,
+            "collection_vector_schema_parity": True,
             "live_shadow_parity_receipt": True,
+            "canonical_payload_parity": bool(requirements.get("canonical_payload_parity")),
         },
     )
 

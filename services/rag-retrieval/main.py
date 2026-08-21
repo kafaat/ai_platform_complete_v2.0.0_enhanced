@@ -43,14 +43,23 @@ def _ensure_sparse_index(*, force: bool = False) -> dict[str, int]:
     if _sparse_ready and not force:
         return _sparse_report
     report = _retriever.rebuild_sparse_index()
-    live_count = _qdrant.collection_point_count()
+    # العدّ الدقيق شرطُ إثباتٍ لا رفاهية: بلا عددٍ يمكن الوثوق به لا يُثبَت اكتمالُ
+    # المجموعة أصلاً. وتعذُّرُه يفشل **مغلقاً** بسببٍ مسمًّى — ولا يرتدّ إلى العدّ
+    # التقريبيّ، فارتدادٌ كهذا يُعيد العيب تحت مسارٍ متدهور وهو أخفى وأسوأ.
+    try:
+        live_count = _qdrant.collection_point_count()
+    except Exception as exc:  # noqa: BLE001 - سببٌ مسمًّى بدل انتشار غامض
+        raise ValueError(f"Qdrant exact point count unavailable: {exc}") from exc
     if report["total_points"] != live_count:
         raise ValueError(
             f"Qdrant scroll/count mismatch: scroll={report['total_points']} count={live_count}"
         )
     if report["skipped_points"]:
+        # التشخيصُ يدخل الرسالة: رقمٌ بلا تشريح لا يُبنى عليه تحكيمُ هجرة.
+        reasons = report.get("skipped_by_reason") or {}
+        detail = " · ".join(f"{k}={v}" for k, v in sorted(reasons.items())) or "unclassified"
         raise ValueError(
-            f"canonical sparse rebuild skipped {report['skipped_points']} Qdrant points"
+            f"canonical sparse rebuild skipped {report['skipped_points']} Qdrant points [{detail}]"
         )
     _sparse_report = report
     _sparse_ready = True

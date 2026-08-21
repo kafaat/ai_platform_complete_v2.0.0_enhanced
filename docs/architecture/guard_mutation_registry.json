@@ -909,6 +909,35 @@
           "why": "نبضةٌ موجودةٌ لا تُقرَأ (EIO مثلاً) تُقرَأ صحّةً. وأمسك أصلَ العطل مراجعٌ آليّ على #880: بلا التقاطٍ يخرج الفحص بـtraceback فيقرأ Docker رمزَ الخروج ولا يقرأ المشغّلُ سبباً — والأوسع أنّ `Path.exists()` نفسه يرمي على EIO، فوُحِّد النداء وأُلغيت النافذة بدل حراستها."
         }
       ]
+    },
+    "services/sahool-platform/core/rag/production_qdrant.py": {
+      "mutations": [
+        {
+          "expect": "test_the_point_count_comes_from_the_exact_count_api",
+          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
+          "find": "            \"POST\", f\"/collections/{self.collection}/points/count\", {\"exact\": True}\n",
+          "replace": "            \"GET\", f\"/collections/{self.collection}\"\n",
+          "why": "عودةُ العدّ التقريبيّ سلطةً دقيقة ⇒ `points_count` تقريبيّ بالعقد، فينتج ٥٠٣ في مسارٍ حاجب بلا فقد نقطةٍ واحدة — عطلٌ يبقى بعد أن يصير skipped=0 وتُهاجَر كلّ نقطة."
+        },
+        {
+          "expect": "test_a_payload_the_parser_accepts_is_never_given_a_reason_code",
+          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
+          "find": "        KnowledgeChunk.from_payload(payload, fallback_id=fallback_id)\n        return None\n",
+          "replace": "        pass\n",
+          "why": "نزعُ نداء المحلّل الحقيقيّ من التصنيف ⇒ يصير التصنيفُ محاكاةً تنحرف عن القرار، فيُعطى رمزُ رفضٍ لِما قَبِله المحلّل."
+        }
+      ]
+    },
+    "scripts/architecture/rag_cutover_admission_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_payload_parity_is_not_raised_by_the_vector_receipt",
+          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
+          "find": "    requirements.setdefault(\"canonical_payload_parity\", False)\n",
+          "replace": "    requirements[\"canonical_payload_parity\"] = True\n",
+          "why": "تلفيقُ تكافؤ الـpayload من إيصالٍ يقيس مخطّط المتّجه وحده ⇒ يعود الاسمُ الواسع بصيغةٍ أخرى، ويُمنَح جردُ المجموعة خُضرةً لم تُقَس."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

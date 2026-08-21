@@ -7840,6 +7840,14 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_rag_corpus_admissibility_probe.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_corpus_measurement_integrity.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_rag_cutover_admission_guard.py",
     "kind": "tests"
   },

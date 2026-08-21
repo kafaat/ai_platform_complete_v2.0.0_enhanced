@@ -4,9 +4,9 @@
   "measured_on": "9468191fcb0382800e36b37c6be486c3db89037b",
   "scope": "assert على نصّ مصدر فقط — متغيّر أُسنِد من read_text/read/getsource في الاختبار نفسه، مُشتقٌّ بالبنية لا بالاسم. ما يُؤكَّد على جسم استجابة أو حمولة JSON خارج النطاق: هناك التأكيد هو العقد.",
   "totals": {
-    "source_text_assertions": 2215,
-    "positive_pinning_a_call": 312,
-    "prohibitions": 178
+    "source_text_assertions": 2219,
+    "positive_pinning_a_call": 313,
+    "prohibitions": 180
   },
   "prohibitions_without_a_stated_reason": {
     "services/agriai-engine/tests/test_production_readiness_truth.py": {
