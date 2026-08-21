@@ -277,7 +277,9 @@ def certify(
         ready.status == 200
         and r.get("status") == "ready"
         and r.get("embedding_contract_parity") is True
-        and r.get("collection_schema_parity") is True
+        # الشهادةُ تقرأ **ما قِيس**: تكافؤَ مخطّط المتّجه. وقراءةُ الاسم الواسع
+        # كانت تجعلها تشهد لتكافؤ الـpayload الذي لا يُثبِته أيُّ فحصٍ هنا.
+        and r.get("collection_vector_schema_parity") is True
         and r.get("sparse_index_hydrated") is True
         and isinstance(r.get("sparse_index_count"), int)
         and int(r.get("sparse_index_count", 0)) > 0

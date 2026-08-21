@@ -75,6 +75,17 @@ HEADING_RE = re.compile(
     r"^##\s+(?P<gap_id>[A-Z][A-Z0-9_]*(?:-[A-Z0-9_]+)+)\b",
 )
 
+# **وصفُّ جدولٍ إعلانُ حالةٍ كالعنوان تماماً.** `gaps/registry.md` — وهو الموضع الذي
+# تعيش فيه هويّاتُ الفجوات أصلاً — جدولٌ لا عناوين، فكانت تغطيةُ هذا الحارس له
+# **صفراً**: مرّ أخضرَ على صفّين متلاصقين لنفس المعرّف. أمسك التكرارَ مراجعٌ آليّ
+# على #882 لا الحارسُ الموضوع لأجله بعينه.
+#
+# ومرساةُ `|` تُبقي الصرامة نفسها: ذكرُ معرّفٍ داخل خليّةٍ أخرى أو نثرٍ ليس إعلانَ
+# حالة، ولا يُطابَق — فلا يعود الإيجابيّ الكاذب الذي أُرسِيت `^##` لمنعه.
+ROW_RE = re.compile(
+    r"^\|\s*(?P<gap_id>[A-Z][A-Z0-9_]*(?:-[A-Z0-9_]+)+)\s*\|",
+)
+
 _FENCE_RE = re.compile(r"^\s*(```|~~~)")
 
 
@@ -108,7 +119,7 @@ def adjacent_duplicate_identities(text: str) -> list[tuple[str, int, int]]:
         if line is None:
             ids.append(None)
             continue
-        m = HEADING_RE.match(line)
+        m = HEADING_RE.match(line) or ROW_RE.match(line)
         ids.append(m.group("gap_id") if m else None)
 
     found: list[tuple[str, int, int]] = []

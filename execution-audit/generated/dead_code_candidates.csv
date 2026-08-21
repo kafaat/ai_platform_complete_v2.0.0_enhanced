@@ -211,8 +211,8 @@ medium,sahool-platform,function,detect_metric_drift,services/sahool-platform/cor
 medium,sahool-platform,function,multi_season_summary,services/sahool-platform/core/multi_season_analytics.py,275,0,review_before_delete,False
 medium,sahool-platform,class,ConnectivityState,services/sahool-platform/core/offline_first.py,334,0,review_before_delete,False
 medium,sahool-platform,function,propagate_add,services/sahool-platform/core/provenance.py,124,0,review_before_delete,False
-medium,sahool-platform,class,ReferenceProvenance,services/sahool-platform/core/rag/production_qdrant.py,54,0,review_before_delete,False
-medium,sahool-platform,class,HttpEmbeddingProvider,services/sahool-platform/core/rag/production_qdrant.py,339,0,review_before_delete,False
+medium,sahool-platform,class,ReferenceProvenance,services/sahool-platform/core/rag/production_qdrant.py,57,0,review_before_delete,False
+medium,sahool-platform,class,HttpEmbeddingProvider,services/sahool-platform/core/rag/production_qdrant.py,467,0,review_before_delete,False
 medium,sahool-platform,function,arbitrate_summary,services/sahool-platform/core/source_of_truth.py,273,0,review_before_delete,False
 medium,sahool-platform,function,detect_zones_of_interest,services/sahool-platform/core/spatial/indicators.py,90,0,review_before_delete,False
 medium,sahool-platform,function,link_farmer_knowledge,services/sahool-platform/core/spatial/indicators.py,202,0,review_before_delete,False

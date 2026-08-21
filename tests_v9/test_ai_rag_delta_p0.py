@@ -142,7 +142,14 @@ def test_dense_sparse_fusion_uses_canonical_chunk_id_and_survives_restart():
 
     restarted = HybridQdrantRetriever(q, emb)
     report = restarted.rebuild_sparse_index()
-    assert report == {"total_points": 1, "loaded_chunks": 1, "skipped_points": 0}
+    # التقريرُ اكتسب حقولَ تشخيصٍ (`RAG-CORPUS-MEASUREMENT-INTEGRITY-01`)، فالمساواةُ
+    # التامّة صارت تقيس **شكلَ التقرير** لا العدّ الذي وُجِد الاختبار لأجله. تُقاس
+    # الأعدادُ صراحةً، ويُقاس أنّ حقول الرفض **فارغة** — وهو تأكيدٌ أقوى من قبلُ.
+    assert report["total_points"] == 1
+    assert report["loaded_chunks"] == 1
+    assert report["skipped_points"] == 0
+    assert report["skipped_by_reason"] == {}
+    assert report["skipped_samples"] == {}
     row2 = restarted.retrieve("wheat irrigation", tenant_id="tenant-a", final_k=1)[0]
     assert row2.chunk.chunk_id == "wheat-001"
     assert row2.dense_score > 0 and row2.bm25_score > 0

@@ -7388,6 +7388,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_guard_mutation_registry_schema_delta.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_guardrails.py",
     "kind": "tests"
   },
@@ -7837,6 +7841,14 @@
   },
   {
     "path": "tests_v9/test_rag_authority_convergence_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_corpus_admissibility_probe.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_corpus_measurement_integrity.py",
     "kind": "tests"
   },
   {

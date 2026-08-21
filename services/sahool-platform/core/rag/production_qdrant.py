@@ -34,6 +34,9 @@ _REQUIRED_EXTERNAL_PROVENANCE = (
 )
 _REQUIRED_TENANT_PROVENANCE = ("source_uri", "source_revision", "content_digest")
 
+# سقفُ عيّنات المُعرِّفات لكلّ سببِ رفض — تشخيصٌ لا جرد.
+_SKIPPED_SAMPLE_CAP = 5
+
 
 def _content_digest(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
@@ -95,6 +98,131 @@ class ReferenceProvenance:
             "content_digest": _content_digest(text),
             "prescriptive_eligible": False,
         }
+
+
+# ── تصنيفُ الرفض: تصنيفٌ ثابت، لا نصوصُ استثناءاتٍ حرّة ──────────────────────
+#
+# ``skipped_points = 54`` رقمٌ بلا تشريح: لا يقول أيَّ عقدٍ خُرِق، فلا يُبنى عليه
+# تحكيمُ هجرة. والاشتقاق من نصّ ``ValueError`` هشٌّ — تعديلُ صياغةِ رسالةٍ يُعيد
+# تصنيفَ جردٍ كامل بلا تغيّرٍ دلاليّ واحد. فالرموز تُشتقّ من **التحقّق نفسه**.
+REJECTION_REASONS = (
+    "MISSING_CONTENT",
+    "MISSING_CHUNK_IDENTITY",
+    "MISSING_TENANT",
+    "MISSING_SOURCE_TYPE",
+    "MISSING_DOCUMENT_ID",
+    "MISSING_EVIDENCE_LEVEL",
+    "LAB_EVIDENCE_CLAIMED",
+    "METADATA_TENANT_MISMATCH",
+    "PRESCRIPTIVE_AUTHORITY_INVALID",
+    "CONTENT_DIGEST_MISMATCH",
+    "GLOBAL_REFERENCE_PROVENANCE_INCOMPLETE",
+    "TENANT_DOCUMENT_PROVENANCE_INCOMPLETE",
+    "UNSUPPORTED_SOURCE_CLASS",
+    "GLOBAL_REFERENCE_CLASS_INVALID",
+    "INVALID_CHUNK_SHAPE",
+    "OTHER_SCHEMA_ERROR",
+)
+
+
+def classify_rejection(
+    payload: dict[str, Any], *, fallback_id: str | None = None
+) -> tuple[str, tuple[str, ...]] | None:
+    """يُرجِع ``(رمز، حقولٌ ناقصة)`` لِما يرفضه المحلّل، أو ``None`` لِما يقبله.
+
+    **يُنادي المحلّلَ الحقيقيّ أوّلاً** ولا يحاكيه: فلا يمكن أن ينحرف التصنيف عن
+    القرار — إن قَبِل المحلّل، لا رمزَ هنا مهما بدا الـpayload ناقصاً. والتصنيف
+    يجري بعد الرفض فقط، ويعيد فحصَ الشروط بترتيب ``__post_init__`` نفسه.
+
+    ولا يُعيد نصَّ المقطع ولا أيَّ جزءٍ منه — أسماءُ حقولٍ وأرقامٌ فقط.
+    """
+    try:
+        KnowledgeChunk.from_payload(payload, fallback_id=fallback_id)
+        return None
+    except (TypeError, ValueError):
+        pass
+
+    nested = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+    meta = dict(nested)
+    text = payload.get("page_content", payload.get("text"))
+    chunk_id = meta.get("chunk_id", payload.get("chunk_id", fallback_id))
+    tenant = meta.get("tenant_id", payload.get("tenant_id"))
+    source_file = meta.get("source_file")
+    source_type = meta.get("source_type", payload.get("source_type"))
+    if source_type is None and source_file:
+        source_type = "uploaded_document"
+    document_id = meta.get("document_id", payload.get("document_id"))
+    if document_id is None and tenant and source_file:
+        document_id = "derived"
+
+    # ① بوّابةُ الهويّة — بترتيب المحلّل، ويُسمّى الحقلُ الغائب بعينه.
+    for value, code in (
+        (text, "MISSING_CONTENT"),
+        (chunk_id, "MISSING_CHUNK_IDENTITY"),
+        (tenant, "MISSING_TENANT"),
+        (source_type, "MISSING_SOURCE_TYPE"),
+        (document_id, "MISSING_DOCUMENT_ID"),
+    ):
+        if value is None:
+            return code, ()
+
+    # ثمّ **الكاذبُ لا الغائبُ وحده**: `__post_init__` يرفض بـ`if not self.tenant_id`
+    # و`if not self.source_type` بعد التحويل إلى نصّ. فـ`source_type=""` يرفضه المحلّل
+    # وكان يُصنَّف هنا `OTHER_SCHEMA_ERROR` — رقمٌ يهاجر إلى الصنف الخطأ فيُفسِد الجرد
+    # الذي سيُبنى عليه تحكيمُ الهجرة. أمسكه مراجعٌ آليّ على #882.
+    if not str(tenant):
+        return "MISSING_TENANT", ()
+    if not str(source_type):
+        return "MISSING_SOURCE_TYPE", ()
+
+    # ② شكلُ الأرقام — يرفع ``TypeError``/``ValueError`` عند التحويل لا في التحقّق.
+    try:
+        int(meta.get("chunk_index", payload.get("chunk_index", 0)))
+        int(meta.get("total_chunks", payload.get("total_chunks", 1)))
+    except (TypeError, ValueError):
+        return "INVALID_CHUNK_SHAPE", ()
+
+    # ③ شروطُ ``__post_init__`` بترتيبها.
+    evidence_level = meta.get("evidence_level", payload.get("evidence_level") or "document")
+    if not evidence_level:
+        return "MISSING_EVIDENCE_LEVEL", ()
+    if evidence_level == "lab":
+        return "LAB_EVIDENCE_CLAIMED", ()
+    if meta.get("tenant_id") not in (None, tenant):
+        return "METADATA_TENANT_MISMATCH", ()
+    if meta.get("prescriptive_eligible") not in (None, False):
+        return "PRESCRIPTIVE_AUTHORITY_INVALID", ()
+
+    probe = dict(meta)
+    source_class = _normalized_source_class(str(source_type), probe)
+    # **الحضورُ لا الصدق.** `__post_init__` يفعل `setdefault` ثمّ يقارن: فمفتاحٌ حاضرٌ
+    # بقيمةٍ كاذبة (`""` · `None` · `0`) لا يُستبدَل، ويسقط في مقارنة عدم التطابق.
+    # وحرسٌ بالصدق هنا كان يتخطّاها فيُعطيها رمزاً آخر — أي أنّ `skipped_by_reason`
+    # تصير تابعةً لتمثيل الـpayload لا لقرار المحلّل.
+    if "content_digest" in probe and probe["content_digest"] != _content_digest(str(text)):
+        return "CONTENT_DIGEST_MISMATCH", ()
+
+    probe.setdefault("content_digest", _content_digest(str(text)))
+    if source_class in GLOBAL_REFERENCE_CLASSES:
+        missing = tuple(
+            key for key in _REQUIRED_EXTERNAL_PROVENANCE if not str(probe.get(key) or "").strip()
+        )
+        if missing:
+            return "GLOBAL_REFERENCE_PROVENANCE_INCOMPLETE", missing
+    elif source_class in TENANT_DOCUMENT_CLASSES:
+        missing = tuple(
+            key for key in _REQUIRED_TENANT_PROVENANCE if not str(probe.get(key) or "").strip()
+        )
+        if missing:
+            return "TENANT_DOCUMENT_PROVENANCE_INCOMPLETE", missing
+    elif source_class != "internal_document":
+        return "UNSUPPORTED_SOURCE_CLASS", ()
+
+    if tenant == GLOBAL_REFERENCE_TENANT and source_class not in GLOBAL_REFERENCE_CLASSES:
+        return "GLOBAL_REFERENCE_CLASS_INVALID", ()
+
+    # رُفِض ولم يُطابِق شرطاً معروفاً — يُبلَّغ ولا يُبتلَع.
+    return "OTHER_SCHEMA_ERROR", ()
 
 
 @dataclass(frozen=True)
@@ -541,10 +669,25 @@ class QdrantHttpClient:
         return size
 
     def collection_point_count(self) -> int:
-        data = self._request("GET", f"/collections/{self.collection}")
-        count = data.get("result", {}).get("points_count")
+        """العدد **الدقيق** عبر Count API — لا ``points_count`` من معلومات المجموعة.
+
+        ``result.points_count`` في ``GET /collections/{c}`` **تقريبيّ بالعقد**: توثيق
+        Qdrant يقول صراحةً ألّا يُعتمد عليه عدداً دقيقاً، لأنّه قد ينحرف أثناء عمل
+        المُحسِّن. وكان يُستعمَل هنا سلطةً دقيقة في مسار ``readyz`` الحاجب
+        (``scroll_count != count ⇒ 503``) — فينتج **رفرفةُ جاهزيّةٍ بلا فقد نقطةٍ
+        واحدة**، ويبقى العطل قائماً حتّى بعد أن يصير ``skipped = 0`` وتُهاجَر كلّ نقطة.
+
+        **ولا ارتدادَ إلى التقريبيّ عند الفشل.** ارتدادٌ «لطيف» يُعيد العيب نفسه تحت
+        مسارٍ متدهور، وهو أسوأ لأنّه يظهر حين يكون النظام مضطرباً أصلاً. فتعذُّرُ
+        العدّ الدقيق يعني أنّ اكتمال المجموعة **لا يمكن إثباته**، والصواب أن يُقال
+        ذلك ويُفشَل مغلقاً.
+        """
+        data = self._request(
+            "POST", f"/collections/{self.collection}/points/count", {"exact": True}
+        )
+        count = data.get("result", {}).get("count")
         if not isinstance(count, int) or count < 0:
-            raise ValueError("Qdrant collection points_count missing/invalid")
+            raise ValueError("Qdrant exact points count missing/invalid")
         return count
 
     def scroll_payloads(
@@ -688,12 +831,25 @@ class HybridQdrantRetriever:
         payload_rows = self.qdrant.scroll_payloads()
         chunks: list[KnowledgeChunk] = []
         skipped = 0
+        by_reason: dict[str, int] = {}
+        samples: dict[str, list[str]] = {}
+        missing_fields: dict[str, int] = {}
         seen: set[str] = set()
         for point_id, payload in payload_rows:
             try:
                 chunk = KnowledgeChunk.from_payload(payload, fallback_id=point_id)
             except (TypeError, ValueError):
                 skipped += 1
+                verdict = classify_rejection(payload, fallback_id=point_id)
+                reason, absent = verdict if verdict else ("OTHER_SCHEMA_ERROR", ())
+                by_reason[reason] = by_reason.get(reason, 0) + 1
+                bucket = samples.setdefault(reason, [])
+                # سقفٌ صغير بالقصد: التقرير يُشخّص صنفاً ولا يصير جرداً ثانياً،
+                # ولا يحمل نصّ المقطع — مُعرِّفاتٌ وأسماءُ حقولٍ فقط.
+                if len(bucket) < _SKIPPED_SAMPLE_CAP:
+                    bucket.append(str(point_id))
+                for key in absent:
+                    missing_fields[key] = missing_fields.get(key, 0) + 1
                 continue
             if chunk.chunk_id in seen:
                 raise ValueError(f"duplicate canonical chunk_id in Qdrant: {chunk.chunk_id}")
@@ -705,6 +861,9 @@ class HybridQdrantRetriever:
             "total_points": len(payload_rows),
             "loaded_chunks": loaded,
             "skipped_points": skipped,
+            "skipped_by_reason": dict(sorted(by_reason.items())),
+            "skipped_samples": {k: sorted(v) for k, v in sorted(samples.items())},
+            "skipped_missing_fields": dict(sorted(missing_fields.items())),
         }
 
     def retrieve(

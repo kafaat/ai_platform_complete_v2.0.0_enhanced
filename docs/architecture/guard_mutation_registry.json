@@ -35,36 +35,6 @@
       ],
       "test": "tests_v9/test_run_outcome_guard.py"
     },
-    "scripts/architecture/authority_cutover_guard.py": {
-      "$why_ar": "ARCH-S4: حدود عدم الترقية المبكرة للسلطة والملكية الفيزيائية تُثبت بطفرات سلوكية؛ الأخضر بلا زرع لا يكفي.",
-      "test": "tests_v9/test_authority_cutover_guard.py",
-      "mutations": [
-        {
-          "expect": "test_decision_is_cutover_capable_but_not_yet_authoritative",
-          "find": "    if d.get(\"authority_state\") != \"NOT_YET_AUTHORITATIVE\":\n        out.append(\"decision prematurely authoritative\")",
-          "replace": "    if False:  # mutated: premature authority tolerated\n        out.append(\"decision prematurely authoritative\")",
-          "why": "تعطيل منع الترقية المبكرة يسمح بقراءة CUTOVER_CAPABLE كأنه AUTHORITATIVE."
-        },
-        {
-          "expect": "test_field_requires_restricted_application_role_live_proof",
-          "find": "    if (\n        \"NOBYPASSRLS\" not in field_test\n        or \"sahool_app\" not in field_test\n        or \"pytest.skip\" not in field_test\n    ):",
-          "replace": "    if False:  # mutated: owner/superuser or missing live role can pass",
-          "why": "Field لا يجوز قطعه اعتماداً على اختبار يعمل كمالك/BYPASSRLS أو لا يعمل فعلياً."
-        },
-        {
-          "expect": "test_kg_image_ships_the_module_its_entrypoint_imports",
-          "find": "        if f\"COPY services/knowledge-graph/{name}.py\" not in dockerfile:\n            out.append(f\"KG image does not ship an imported owned module: {name}.py\")",
-          "replace": "        if False:  # mutated: image need not ship what the entrypoint imports\n            out.append(f\"KG image does not ship an imported owned module: {name}.py\")",
-          "why": "الملكيّة الفيزيائيّة تشمل الشحن: وحدةٌ يستوردها المدخل ولا تنسخها الصورة تنهار عند الإقلاع، فيصير النقل إعلاناً."
-        },
-        {
-          "expect": "test_kg_legacy_store_path_reintroduction_is_blocked",
-          "find": "    if forbidden.exists():\n        out.append(\"legacy sahool-platform KG store path still exists\")",
-          "replace": "    if False:  # mutated: reintroduced legacy KG path tolerated\n        out.append(\"legacy sahool-platform KG store path still exists\")",
-          "why": "إعادة إنشاء مسار SQLite القديم داخل sahool-platform تعيد ملكية فيزيائية منافسة بعد S4/S5؛ يجب أن يحجبها الحارس مباشرةً."
-        }
-      ]
-    },
     "scripts/architecture/build_platform_catalog.py": {
       "$why_ar": "ARCH-S1a+S2: بوّابتا التصنيف القانونيّ وحقيقة الاعتماد — نكوصهما يعيد السقوط الصامت إلى service والوحدات اليتيمة التي عاشت سنين بلا أن يراها أحد.",
       "mutations": [
@@ -159,53 +129,162 @@
       ],
       "test": "tests_v9/test_component_registry_gate.py"
     },
-    "scripts/architecture/platform_shrink_ratchet_guard.py": {
-      "$why_ar": "ARCH-S5: راتشِت انكماش المنصّة يقيس هُويّات لا أعداداً؛ نكوصه يعيد التضخّم الصامت والاستثناء الأبديّ.",
-      "test": "tests_v9/test_platform_shrink_ratchet_guard.py",
+    "scripts/architecture/rag_corpus_admissibility_probe.py": {
       "mutations": [
         {
-          "expect": "test_new_platform_owned_table_is_identity_blocked",
-          "find": "        for ident in new:\n            if (cat, ident) not in exceptions:\n                out.append(f\"NEW {cat}: {ident}\")",
-          "replace": "        for ident in new:\n            if False:  # mutated: new platform-owned identity tolerated\n                out.append(f\"NEW {cat}: {ident}\")",
-          "why": "بلا حجب الهُويّة الجديدة يعود تضخّم المنصّة صامتاً — والراتشِت يقيس هُويّات لا أعداداً."
+          "expect": "test_the_root_only_tenant_detector_fires_on_a_planted_payload",
+          "test": "tests_v9/test_rag_corpus_admissibility_probe.py",
+          "find": "        \"present\": sparse_visible and not dense_visible,\n",
+          "replace": "        \"present\": False,\n",
+          "why": "تعميةُ كاشف الارتداد القديم ⇒ يصمت على نقطةٍ مرئيّةٍ للمتناثر عمياءَ عن الكثيف، فيُقرَأ صمتُه «لا دَين»."
         },
         {
-          "expect": "test_stale_identity_forces_baseline_lowering",
-          "find": "        for ident in stale:\n            out.append(f\"STALE {cat}: {ident} — lower baseline\")",
-          "replace": "        for ident in stale:\n            pass  # mutated: stale baseline entry need not be lowered",
-          "why": "أساسٌ لا ينزل عند اختفاء الهُويّة يترك رصيداً وهميّاً يُبتلَع به دخولٌ جديد بلا أثر."
+          "expect": "test_the_bm25_stat_detector_fires_and_reports_no_content_leak",
+          "test": "tests_v9/test_rag_corpus_admissibility_probe.py",
+          "find": "        \"present\": score_with_term != score_alone or score_without_term != score_alone,\n",
+          "replace": "        \"present\": False,\n",
+          "why": "تعميةُ كاشف الأثر العابر للمستأجِرين ⇒ يُخفي أخطر المُربِكات في أيّ قياس تكافؤ."
         },
         {
-          "expect": "test_exception_requires_owner_reason_and_close_date",
-          "find": "        if missing:\n            f.append(f\"exception[{i}] missing fields: {','.join(missing)}\")\n            continue",
-          "replace": "        if False:  # mutated: exception without owner/reason/close-date accepted\n            f.append(f\"exception[{i}] missing fields: {','.join(missing)}\")\n            continue",
-          "why": "استثناءٌ بلا مالك وسبب وتاريخ إغلاق إعفاءٌ دائم بلا صاحب — وهو كيف يصير المؤقّت أبديّاً."
+          "expect": "test_the_neighbor_detector_fires_and_bounds_the_claim_to_scope_not_tenancy",
+          "test": "tests_v9/test_rag_corpus_admissibility_probe.py",
+          "find": "        \"present\": bool(off_scope),\n",
+          "replace": "        \"present\": False,\n",
+          "why": "تعميةُ كاشف تجاوز الجيران ⇒ يصمت على استعلامٍ يُعيد مقطعاً خارج نطاقه المطلوب."
         },
         {
-          "expect": "test_tombstoned_imagery_provider_reintroduction_is_blocked",
-          "find": "        for ident in new:\n            if (cat, ident) not in exceptions:\n                out.append(f\"NEW {cat}: {ident}\")",
-          "replace": "        for ident in new:\n            if False:  # mutated: new platform-owned identity tolerated\n                out.append(f\"NEW {cat}: {ident}\")",
-          "why": "تعطيل حجب الهوية الجديدة يسمح بإحياء imagery_providers.py غير المستهلك ورفع S5 domain compute من 200 إلى 201."
-        },
-        {
-          "expect": "test_stale_or_unnecessary_exception_is_blocked",
-          "find": "    for (cat, ident), _e in exceptions.items():\n        if ident not in observed[cat] - base[cat]:\n            out.append(f\"stale/unnecessary exception: {cat}:{ident}\")",
-          "replace": "    for (cat, ident), _e in exceptions.items():\n        if False:  # mutated: expired exception may linger\n            out.append(f\"stale/unnecessary exception: {cat}:{ident}\")",
-          "why": "استثناءٌ بطل سببه يُقرأ حراسةً قائمة وهو أثرُ قرارٍ انتهى."
-        },
-        {
-          "expect": "test_inherited_authority_exception_requires_metadata",
-          "find": "    out.extend(_validate_baseline_authority_exception_metadata(policy, today))",
-          "replace": "    pass  # mutated: inherited baseline exception metadata is no longer enforced",
-          "why": "تعطيل عقد metadata للاستثناءات الموروثة يعيد إعفاءات Decision الخمسة بلا مالك/سبب/تاريخ إغلاق ملزم."
-        },
-        {
-          "expect": "test_inherited_authority_exception_expiry_is_blocking",
-          "find": "        if close < today:\n            out.append(f\"baseline authority exception expired: {ident}\")",
-          "replace": "        if False and close < today:  # mutated: expired inherited exception tolerated\n            out.append(f\"baseline authority exception expired: {ident}\")",
-          "why": "السماح بتاريخ إغلاق منتهٍ يحوّل استثناء Decision المؤقت إلى سلطة انتقالية بلا نهاية."
+          "expect": "test_the_storage_id_detector_fires_when_the_logical_key_is_absent",
+          "test": "tests_v9/test_rag_corpus_admissibility_probe.py",
+          "find": "        \"present\": chunk.chunk_id == \"storage-uuid-42\",\n",
+          "replace": "        \"present\": False,\n",
+          "why": "تعميةُ كاشف الهويّة ⇒ يصمت على UUID تخزينٍ صار هويّةً منطقيّة."
         }
       ]
+    },
+    "scripts/architecture/rag_live_parity_probe.py": {
+      "$why_ar": "ARCH-S3: المسبار الحيّ قراءة-فقط وبُعد التضمين مربوط بالمجموعة الحيّة — يُثبَت بالتكذيب.",
+      "test": "tests_v9/test_rag_live_parity_probe.py",
+      "mutations": [
+        {
+          "expect": "test_live_probe_rejects_vector_dimension_mismatch",
+          "find": "        if len(emb) != collection_dim:\n            raise ValueError(f\"embedding/Qdrant dimension mismatch: {len(emb)} != {collection_dim}\")",
+          "replace": "        if False:  # mutated: dimension drift tolerated\n            raise ValueError(f\"embedding/Qdrant dimension mismatch: {len(emb)} != {collection_dim}\")",
+          "why": "بُعد تضمين لا يطابق المجموعة الحيّة يجعل كلّ مقارنة تكافؤ بلا معنى."
+        },
+        {
+          "expect": "test_live_probe_is_read_only_and_dimension_bound",
+          "find": "        \"read_only\": True,\n        \"authority_promotion\": False,",
+          "replace": "        \"read_only\": True,\n        \"authority_promotion\": True,",
+          "why": "المسبار لا يرقّي السلطة أبداً؛ قلب العلم يكسر عقد الإيصال."
+        }
+      ]
+    },
+    "scripts/architecture/s5_exec_01_edge_freeze.py": {
+      "$why_ar": "S5-EXEC-01: بصمة التجميد السلطوية تخص سطح platform runtime فقط؛ نمو شهود الاختبار/خدمة القرار لا يجوز أن يُعاد تصنيفه كتضخم سلطة، لكن فقد الشهود دون أرضية أو نمو runtime يجب أن يُحجب.",
+      "mutations": [
+        {
+          "expect": "test_runtime_surface_growth_is_fail_closed_even_if_observed_graph_is_regenerated",
+          "find": "    if (\n        current.get(\"runtime_migration_surface_fingerprint_sha256\")\n        != FROZEN_RUNTIME_MIGRATION_FINGERPRINT\n    ):\n        findings.append(\"RUNTIME_MIGRATION_SURFACE_FINGERPRINT_DRIFT\")",
+          "replace": "    if False:  # mutated: runtime authority-surface growth tolerated\n        findings.append(\"RUNTIME_MIGRATION_SURFACE_FINGERPRINT_DRIFT\")",
+          "why": "إذا لم تُحجب بصمة runtime، يستطيع writer/read سلطوي جديد دخول منصة S5 مع بقاء artifact غير السلطوي قابلاً لإعادة التوليد."
+        },
+        {
+          "expect": "test_test_witnesses_are_not_migration_surface_and_cannot_fall_below_freeze_floor",
+          "find": "        if int(counts.get(key, 0)) < floor:\n            findings.append(\n                f\"NON_MIGRATION_WITNESS_FLOOR_BREACH {key} {counts.get(key, 0)}<{floor}\"\n            )",
+          "replace": "        if False:  # mutated: frozen witness floor may silently shrink\n            findings.append(\n                f\"NON_MIGRATION_WITNESS_FLOOR_BREACH {key} {counts.get(key, 0)}<{floor}\"\n            )",
+          "why": "الشهود ليست migration surface، لكن السماح بانخفاضها تحت إيصال التجميد يحذف حماية regression صامتاً."
+        }
+      ],
+      "test": "tests_v9/test_s5_exec_01_edge_freeze.py"
+    },
+    "scripts/ci/ai_rag_live_certification.py": {
+      "mutations": [
+        {
+          "expect": "test_the_live_certification_reads_the_measured_name",
+          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
+          "find": "        and r.get(\"collection_vector_schema_parity\") is True\n",
+          "replace": "        and r.get(\"collection_schema_parity\") is True\n",
+          "why": "عودةُ الشهادة إلى الاسم الواسع ⇒ تشهد لتكافؤ الـpayload الذي لا يُثبِته أيُّ فحصٍ فيها."
+        }
+      ]
+    },
+    "scripts/ci/c10_field_authority_certification.py": {
+      "$why_ar": "C10 يحافظ Field BLOCKED حتى receipt RLS حيّ تحت دور مقيّد.",
+      "mutations": [
+        {
+          "expect": "test_offline_stages_fail_closed_without_promoting_authority",
+          "find": "        return emit(\"C10\", \"EVIDENCE_REQUIRED\", [\"field_rls_live_receipt_missing\"])",
+          "replace": "        return emit(\"C10\", \"PASS\", [])  # mutated: missing live evidence accepted",
+          "why": "C10 يحافظ Field BLOCKED حتى receipt RLS حيّ تحت دور مقيّد."
+        }
+      ],
+      "test": "tests_v9/test_c8_c13_certification_contracts.py"
+    },
+    "scripts/ci/c11_closed_loop_lineage_certification.py": {
+      "$why_ar": "C11 لا يعمل حيّاً بوجود DATABASE_URL عرضيّاً؛ يلزم opt-in صريح وSHA كامل مطابق للـcheckout قبل أي migration.",
+      "mutations": [
+        {
+          "expect": "test_c11_never_runs_live_from_database_url_alone",
+          "find": "    if not args.live:\n        return emit(\n            \"C11\",\n            \"EVIDENCE_REQUIRED\",",
+          "replace": "    if False:  # mutated: DATABASE_URL may trigger live certification without explicit opt-in\n        return emit(\n            \"C11\",\n            \"EVIDENCE_REQUIRED\",",
+          "why": "غياب --live يجب أن يبقي C11 غير تدخّلي حتى لو كان DATABASE_URL مضبوطاً."
+        },
+        {
+          "expect": "test_c11_live_mode_requires_subject_before_any_migration",
+          "find": "    if not _SHA_RE.fullmatch(subject):\n        return emit(\"C11\", \"FAILED\", [\"full_40_char_subject_sha_required\"], live_execution=True)",
+          "replace": "    if False:  # mutated: live lineage accepted without subject binding\n        return emit(\"C11\", \"FAILED\", [\"full_40_char_subject_sha_required\"], live_execution=True)",
+          "why": "التشغيل الحي لا يجوز أن يبدأ قبل ربطه بـ40-char subject SHA."
+        }
+      ],
+      "test": "tests_v9/test_c8_c13_certification_contracts.py"
+    },
+    "scripts/ci/c12_governed_learning_promotion_certification.py": {
+      "$why_ar": "C12 لا يحوّل سلامة حدود WX11 الساكنة إلى promotion certification حي.",
+      "mutations": [
+        {
+          "expect": "test_offline_stages_fail_closed_without_promoting_authority",
+          "find": "        \"EVIDENCE_REQUIRED\",\n        [\"live_model_activation_evidence_required\"],\n        promotion_permitted=False,",
+          "replace": "        \"PASS\",\n        [],\n        promotion_permitted=True,",
+          "why": "C12 لا يحوّل سلامة حدود WX11 الساكنة إلى promotion certification حي."
+        }
+      ],
+      "test": "tests_v9/test_c8_c13_certification_contracts.py"
+    },
+    "scripts/ci/c13_physical_shrink_certification.py": {
+      "$why_ar": "C13 إغلاق idempotent ولا يمنح إذن حذف جديداً.",
+      "mutations": [
+        {
+          "expect": "test_c13_is_idempotent_and_does_not_lower_a_numeric_baseline",
+          "find": "        physical_shrink_authorized=False,",
+          "replace": "        physical_shrink_authorized=True,  # mutated: evidence authorizes deletion",
+          "why": "C13 إغلاق idempotent ولا يمنح إذن حذف جديداً."
+        }
+      ],
+      "test": "tests_v9/test_c8_c13_certification_contracts.py"
+    },
+    "scripts/ci/c8_rag_production_certification.py": {
+      "$why_ar": "C8 يجب أن يبقى غياب الدليل الحي EVIDENCE_REQUIRED لا نجاحاً.",
+      "mutations": [
+        {
+          "expect": "test_offline_stages_fail_closed_without_promoting_authority",
+          "find": "        return emit(\"C8\", \"EVIDENCE_REQUIRED\", [\"live_rag_parity_receipt_missing\"])",
+          "replace": "        return emit(\"C8\", \"PASS\", [])  # mutated: missing live evidence accepted",
+          "why": "C8 يجب أن يبقى غياب الدليل الحي EVIDENCE_REQUIRED لا نجاحاً."
+        }
+      ],
+      "test": "tests_v9/test_c8_c13_certification_contracts.py"
+    },
+    "scripts/ci/c9_decision_authority_certification.py": {
+      "$why_ar": "C9 لا يخلق سلطة Decision من CI؛ receipt الحي subject-bound شرط.",
+      "mutations": [
+        {
+          "expect": "test_offline_stages_fail_closed_without_promoting_authority",
+          "find": "        return emit(\"C9\", \"EVIDENCE_REQUIRED\", [\"decision_live_closure_receipt_missing\"])",
+          "replace": "        return emit(\"C9\", \"PASS\", [])  # mutated: missing live evidence accepted",
+          "why": "C9 لا يخلق سلطة Decision من CI؛ receipt الحي subject-bound شرط."
+        }
+      ],
+      "test": "tests_v9/test_c8_c13_certification_contracts.py"
     },
     "scripts/ci/capability_authority_view.py": {
       "$gap_ar": "CAPABILITY-CONSUMER-AUTHORITY-MIGRATION-01 — المستهلك يقرأ الحقول من مالكها لا من إسقاط واحد",
@@ -487,6 +566,18 @@
       ],
       "test": "tests/architecture/test_capability_truth_preconditions.py"
     },
+    "scripts/ci/s5_exec_01_writer_cutover_guard.py": {
+      "$why_ar": "S5-EXEC-01: وجود الكاتب القديم قبل القطع مقبول فقط إذا كان لكل writer عقد strict-mode قابل للتكذيب بالزرع.",
+      "test": "tests_v9/test_s5_exec_01_writer_cutover_guard.py",
+      "mutations": [
+        {
+          "expect": "test_removing_strict_mode_marker_is_blocked",
+          "find": "            if marker not in text:",
+          "replace": "            if False:  # mutated: missing cutover markers tolerated",
+          "why": "تعطيل فحص markers يجعل الكاتب القديم قابلاً للبقاء بلا strict cutover contract؛ زرع إزالة strict marker يجب أن يحمرّ."
+        }
+      ]
+    },
     "scripts/ci/sot_evidence_manifest.py": {
       "$why_ar": "أداةُ إنتاج البيان الموقَّع — ليست حارساً بالاسم لكنّ ما تكتبه يدخل الموضوع الموقَّع نفسه، فطفراتُها تقيس أنّ هويّة المُنتِج لا تُوقَّع فارغةً ولا مكتوبةً بيد.",
       "mutations": [
@@ -516,6 +607,42 @@
         }
       ],
       "test": "tests/architecture/test_capability_truth_preconditions.py"
+    },
+    "scripts/staging/decision_sor_live_closure_collector.py": {
+      "$why_ar": "S5 Decision live closure: a green receipt must prove the deployed platform is demoted and DB writes are effectively denied.",
+      "mutations": [
+        {
+          "expect": "test_collector_rejects_platform_writes_required_true_even_if_other_mode_fields_look_closed",
+          "find": "        and p_mode.get(\"platform_writes_required\") is False",
+          "replace": "        and p_mode.get(\"platform_writes_required\") is not None  # mutated: writable platform accepted",
+          "why": "قبول أي قيمة موجودة بدل False يسمح بإيصال أخضر بينما platform_writes_required=true وتبقى نافذة السلطة المزدوجة مفتوحة."
+        },
+        {
+          "expect": "test_collector_rejects_runtime_demotion_or_effective_privilege_drift",
+          "find": "            if privs.get(privilege) is not False:",
+          "replace": "            if False and privs.get(privilege) is not False:  # mutated: effective write tolerated",
+          "why": "تعطيل postcondition يسمح لصلاحية INSERT/UPDATE/DELETE فعالة بالبقاء مع receipt ناجح."
+        }
+      ],
+      "test": "tests_v9/test_s5_decision_live_closure_receipt.py"
+    },
+    "scripts/staging/kg_runtime_parity_collector.py": {
+      "$why_ar": "S4 KG live parity: equal-empty responses are not evidence and deployed source identity must match.",
+      "mutations": [
+        {
+          "expect": "test_kg_collector_requires_non_empty_governed_cases_and_live_source_identity",
+          "find": "        minimum_met = len(nrest) >= case[\"min_edges\"] and len(ngraph) >= case[\"min_edges\"]",
+          "replace": "        minimum_met = True  # mutated: REST=GraphQL=empty accepted as parity evidence",
+          "why": "التكافؤ 0=0 لا يثبت أن الحالة الحية تحتوي الحقائق المحكومة؛ يجب حد أدنى موجب لكل حالة."
+        },
+        {
+          "expect": "test_kg_collector_requires_non_empty_governed_cases_and_live_source_identity",
+          "find": "    if local_sha != subject_sha.lower():\n        raise ValueError(\"checkout_subject_sha_mismatch\")",
+          "replace": "    if False and local_sha != subject_sha.lower():  # mutated: operator-supplied SHA accepted without checkout binding\n        raise ValueError(\"checkout_subject_sha_mismatch\")",
+          "why": "بصمات المصدر الحي لا ترتبط بالـcommit إذا قُبل subject_sha كنص من المشغّل؛ يجب أن يكون checkout الذي حُسبت منه البصمات على الـSHA نفسه."
+        }
+      ],
+      "test": "tests_v9/test_s4_live_authority_receipt_guards.py"
     },
     "services/actuator-service/actuator_runtime.py": {
       "$gap_ar": "COMPENSATION-BYPASSES-KILLSWITCH-01 — التعويض كان المسار الوحيد الذي يتجاهل المفتاح، وهو المسار الذي يعمل **حين يُضغَط**.",
@@ -587,60 +714,6 @@
       ],
       "test": "tests_v9/test_actuation_killswitch_behaviour.py"
     },
-    "scripts/architecture/s5_exec_01_edge_freeze.py": {
-      "$why_ar": "S5-EXEC-01: بصمة التجميد السلطوية تخص سطح platform runtime فقط؛ نمو شهود الاختبار/خدمة القرار لا يجوز أن يُعاد تصنيفه كتضخم سلطة، لكن فقد الشهود دون أرضية أو نمو runtime يجب أن يُحجب.",
-      "mutations": [
-        {
-          "expect": "test_runtime_surface_growth_is_fail_closed_even_if_observed_graph_is_regenerated",
-          "find": "    if (\n        current.get(\"runtime_migration_surface_fingerprint_sha256\")\n        != FROZEN_RUNTIME_MIGRATION_FINGERPRINT\n    ):\n        findings.append(\"RUNTIME_MIGRATION_SURFACE_FINGERPRINT_DRIFT\")",
-          "replace": "    if False:  # mutated: runtime authority-surface growth tolerated\n        findings.append(\"RUNTIME_MIGRATION_SURFACE_FINGERPRINT_DRIFT\")",
-          "why": "إذا لم تُحجب بصمة runtime، يستطيع writer/read سلطوي جديد دخول منصة S5 مع بقاء artifact غير السلطوي قابلاً لإعادة التوليد."
-        },
-        {
-          "expect": "test_test_witnesses_are_not_migration_surface_and_cannot_fall_below_freeze_floor",
-          "find": "        if int(counts.get(key, 0)) < floor:\n            findings.append(\n                f\"NON_MIGRATION_WITNESS_FLOOR_BREACH {key} {counts.get(key, 0)}<{floor}\"\n            )",
-          "replace": "        if False:  # mutated: frozen witness floor may silently shrink\n            findings.append(\n                f\"NON_MIGRATION_WITNESS_FLOOR_BREACH {key} {counts.get(key, 0)}<{floor}\"\n            )",
-          "why": "الشهود ليست migration surface، لكن السماح بانخفاضها تحت إيصال التجميد يحذف حماية regression صامتاً."
-        }
-      ],
-      "test": "tests_v9/test_s5_exec_01_edge_freeze.py"
-    },
-    "scripts/staging/decision_sor_live_closure_collector.py": {
-      "$why_ar": "S5 Decision live closure: a green receipt must prove the deployed platform is demoted and DB writes are effectively denied.",
-      "mutations": [
-        {
-          "expect": "test_collector_rejects_platform_writes_required_true_even_if_other_mode_fields_look_closed",
-          "find": "        and p_mode.get(\"platform_writes_required\") is False",
-          "replace": "        and p_mode.get(\"platform_writes_required\") is not None  # mutated: writable platform accepted",
-          "why": "قبول أي قيمة موجودة بدل False يسمح بإيصال أخضر بينما platform_writes_required=true وتبقى نافذة السلطة المزدوجة مفتوحة."
-        },
-        {
-          "expect": "test_collector_rejects_runtime_demotion_or_effective_privilege_drift",
-          "find": "            if privs.get(privilege) is not False:",
-          "replace": "            if False and privs.get(privilege) is not False:  # mutated: effective write tolerated",
-          "why": "تعطيل postcondition يسمح لصلاحية INSERT/UPDATE/DELETE فعالة بالبقاء مع receipt ناجح."
-        }
-      ],
-      "test": "tests_v9/test_s5_decision_live_closure_receipt.py"
-    },
-    "scripts/staging/kg_runtime_parity_collector.py": {
-      "$why_ar": "S4 KG live parity: equal-empty responses are not evidence and deployed source identity must match.",
-      "mutations": [
-        {
-          "expect": "test_kg_collector_requires_non_empty_governed_cases_and_live_source_identity",
-          "find": "        minimum_met = len(nrest) >= case[\"min_edges\"] and len(ngraph) >= case[\"min_edges\"]",
-          "replace": "        minimum_met = True  # mutated: REST=GraphQL=empty accepted as parity evidence",
-          "why": "التكافؤ 0=0 لا يثبت أن الحالة الحية تحتوي الحقائق المحكومة؛ يجب حد أدنى موجب لكل حالة."
-        },
-        {
-          "expect": "test_kg_collector_requires_non_empty_governed_cases_and_live_source_identity",
-          "find": "    if local_sha != subject_sha.lower():\n        raise ValueError(\"checkout_subject_sha_mismatch\")",
-          "replace": "    if False and local_sha != subject_sha.lower():  # mutated: operator-supplied SHA accepted without checkout binding\n        raise ValueError(\"checkout_subject_sha_mismatch\")",
-          "why": "بصمات المصدر الحي لا ترتبط بالـcommit إذا قُبل subject_sha كنص من المشغّل؛ يجب أن يكون checkout الذي حُسبت منه البصمات على الـSHA نفسه."
-        }
-      ],
-      "test": "tests_v9/test_s4_live_authority_receipt_guards.py"
-    },
     "services/decision-service/decision_sor_role_certify.py": {
       "$why_ar": "S5 Decision role certification: transitive membership and empty closure are cutover prerequisites.",
       "mutations": [
@@ -671,6 +744,17 @@
       ],
       "test": "tests_v9/test_s5_decision_live_cutover_hardening.py"
     },
+    "services/rag-retrieval/main.py": {
+      "mutations": [
+        {
+          "expect": "test_readyz_does_not_claim_canonical_payload_parity",
+          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
+          "find": "        \"canonical_payload_parity\": False,\n",
+          "replace": "        \"canonical_payload_parity\": True,\n",
+          "why": "ادّعاءُ تكافؤ الـpayload في مسار الجاهزيّة ⇒ يقرؤه كلُّ مستهلكٍ أخضرَ بلا جردِ مجموعةٍ يُثبِته، فيعود الاسمُ الواسع بصيغةٍ أخرى."
+        }
+      ]
+    },
     "services/sahool-platform/api/machinery_export.py": {
       "$why_ar": "C3: artifact الآلة يجب أن يحتفظ بهوية مناطق الإدارة وبصمة الوصفة/lineage، لا أن يعيد ترقيمها بما يقطع السلسلة.",
       "mutations": [
@@ -682,108 +766,6 @@
         }
       ],
       "test": "services/sahool-platform/tests/test_precision_execution_loop_c3.py"
-    },
-    "services/sahool-platform/core/yield_map_processing.py": {
-      "$why_ar": "C3: تنظيف خرائط الغلة يبقى في core/yield_map_processing.py على main (#870)؛ زرع تعطيل رفض الشذوذ يجب أن يقتل الاختبار نفسه دون نقل الملكية خلفياً.",
-      "mutations": [
-        {
-          "expect": "test_yield_processing_is_non_destructive_deterministic_and_removes_extreme_outlier",
-          "find": "        if value < low or value > high:",
-          "replace": "        if False:  # mutated: robust outliers silently retained",
-          "why": "إسقاط مرشح الشذوذ يعيد قيمة حصاد متطرفة إلى evidence المستخدم لاحقاً في zoning."
-        }
-      ],
-      "test": "services/sahool-platform/tests/test_precision_execution_loop_c3.py"
-    },
-    "scripts/ci/s5_exec_01_writer_cutover_guard.py": {
-      "$why_ar": "S5-EXEC-01: وجود الكاتب القديم قبل القطع مقبول فقط إذا كان لكل writer عقد strict-mode قابل للتكذيب بالزرع.",
-      "test": "tests_v9/test_s5_exec_01_writer_cutover_guard.py",
-      "mutations": [
-        {
-          "expect": "test_removing_strict_mode_marker_is_blocked",
-          "find": "            if marker not in text:",
-          "replace": "            if False:  # mutated: missing cutover markers tolerated",
-          "why": "تعطيل فحص markers يجعل الكاتب القديم قابلاً للبقاء بلا strict cutover contract؛ زرع إزالة strict marker يجب أن يحمرّ."
-        }
-      ]
-    },
-    "scripts/ci/c10_field_authority_certification.py": {
-      "$why_ar": "C10 يحافظ Field BLOCKED حتى receipt RLS حيّ تحت دور مقيّد.",
-      "mutations": [
-        {
-          "expect": "test_offline_stages_fail_closed_without_promoting_authority",
-          "find": "        return emit(\"C10\", \"EVIDENCE_REQUIRED\", [\"field_rls_live_receipt_missing\"])",
-          "replace": "        return emit(\"C10\", \"PASS\", [])  # mutated: missing live evidence accepted",
-          "why": "C10 يحافظ Field BLOCKED حتى receipt RLS حيّ تحت دور مقيّد."
-        }
-      ],
-      "test": "tests_v9/test_c8_c13_certification_contracts.py"
-    },
-    "scripts/ci/c11_closed_loop_lineage_certification.py": {
-      "$why_ar": "C11 لا يعمل حيّاً بوجود DATABASE_URL عرضيّاً؛ يلزم opt-in صريح وSHA كامل مطابق للـcheckout قبل أي migration.",
-      "mutations": [
-        {
-          "expect": "test_c11_never_runs_live_from_database_url_alone",
-          "find": "    if not args.live:\n        return emit(\n            \"C11\",\n            \"EVIDENCE_REQUIRED\",",
-          "replace": "    if False:  # mutated: DATABASE_URL may trigger live certification without explicit opt-in\n        return emit(\n            \"C11\",\n            \"EVIDENCE_REQUIRED\",",
-          "why": "غياب --live يجب أن يبقي C11 غير تدخّلي حتى لو كان DATABASE_URL مضبوطاً."
-        },
-        {
-          "expect": "test_c11_live_mode_requires_subject_before_any_migration",
-          "find": "    if not _SHA_RE.fullmatch(subject):\n        return emit(\"C11\", \"FAILED\", [\"full_40_char_subject_sha_required\"], live_execution=True)",
-          "replace": "    if False:  # mutated: live lineage accepted without subject binding\n        return emit(\"C11\", \"FAILED\", [\"full_40_char_subject_sha_required\"], live_execution=True)",
-          "why": "التشغيل الحي لا يجوز أن يبدأ قبل ربطه بـ40-char subject SHA."
-        }
-      ],
-      "test": "tests_v9/test_c8_c13_certification_contracts.py"
-    },
-    "scripts/ci/c12_governed_learning_promotion_certification.py": {
-      "$why_ar": "C12 لا يحوّل سلامة حدود WX11 الساكنة إلى promotion certification حي.",
-      "mutations": [
-        {
-          "expect": "test_offline_stages_fail_closed_without_promoting_authority",
-          "find": "        \"EVIDENCE_REQUIRED\",\n        [\"live_model_activation_evidence_required\"],\n        promotion_permitted=False,",
-          "replace": "        \"PASS\",\n        [],\n        promotion_permitted=True,",
-          "why": "C12 لا يحوّل سلامة حدود WX11 الساكنة إلى promotion certification حي."
-        }
-      ],
-      "test": "tests_v9/test_c8_c13_certification_contracts.py"
-    },
-    "scripts/ci/c13_physical_shrink_certification.py": {
-      "$why_ar": "C13 إغلاق idempotent ولا يمنح إذن حذف جديداً.",
-      "mutations": [
-        {
-          "expect": "test_c13_is_idempotent_and_does_not_lower_a_numeric_baseline",
-          "find": "        physical_shrink_authorized=False,",
-          "replace": "        physical_shrink_authorized=True,  # mutated: evidence authorizes deletion",
-          "why": "C13 إغلاق idempotent ولا يمنح إذن حذف جديداً."
-        }
-      ],
-      "test": "tests_v9/test_c8_c13_certification_contracts.py"
-    },
-    "scripts/ci/c8_rag_production_certification.py": {
-      "$why_ar": "C8 يجب أن يبقى غياب الدليل الحي EVIDENCE_REQUIRED لا نجاحاً.",
-      "mutations": [
-        {
-          "expect": "test_offline_stages_fail_closed_without_promoting_authority",
-          "find": "        return emit(\"C8\", \"EVIDENCE_REQUIRED\", [\"live_rag_parity_receipt_missing\"])",
-          "replace": "        return emit(\"C8\", \"PASS\", [])  # mutated: missing live evidence accepted",
-          "why": "C8 يجب أن يبقى غياب الدليل الحي EVIDENCE_REQUIRED لا نجاحاً."
-        }
-      ],
-      "test": "tests_v9/test_c8_c13_certification_contracts.py"
-    },
-    "scripts/ci/c9_decision_authority_certification.py": {
-      "$why_ar": "C9 لا يخلق سلطة Decision من CI؛ receipt الحي subject-bound شرط.",
-      "mutations": [
-        {
-          "expect": "test_offline_stages_fail_closed_without_promoting_authority",
-          "find": "        return emit(\"C9\", \"EVIDENCE_REQUIRED\", [\"decision_live_closure_receipt_missing\"])",
-          "replace": "        return emit(\"C9\", \"PASS\", [])  # mutated: missing live evidence accepted",
-          "why": "C9 لا يخلق سلطة Decision من CI؛ receipt الحي subject-bound شرط."
-        }
-      ],
-      "test": "tests_v9/test_c8_c13_certification_contracts.py"
     },
     "services/sahool-platform/api/unified_decision.py": {
       "$why_ar": "AGRI-NEXT-1..5 حدود أمان تشغيلية: الإشارة الزراعية قد تُنتج مرشحاً/دليلاً لكنها لا تنفذ أو تروّج أو تدّعي سببية. تُزرع الطفرات في مصدر التركيب نفسه.",
@@ -814,6 +796,36 @@
         }
       ],
       "test": "services/sahool-platform/tests/test_agri_next_decision_support.py"
+    },
+    "services/sahool-platform/core/rag/production_qdrant.py": {
+      "mutations": [
+        {
+          "expect": "test_the_point_count_comes_from_the_exact_count_api",
+          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
+          "find": "            \"POST\", f\"/collections/{self.collection}/points/count\", {\"exact\": True}\n",
+          "replace": "            \"GET\", f\"/collections/{self.collection}\"\n",
+          "why": "عودةُ العدّ التقريبيّ سلطةً دقيقة ⇒ `points_count` تقريبيّ بالعقد، فينتج ٥٠٣ في مسارٍ حاجب بلا فقد نقطةٍ واحدة — عطلٌ يبقى بعد أن يصير skipped=0 وتُهاجَر كلّ نقطة."
+        },
+        {
+          "expect": "test_a_payload_the_parser_accepts_is_never_given_a_reason_code",
+          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
+          "find": "        KnowledgeChunk.from_payload(payload, fallback_id=fallback_id)\n        return None\n",
+          "replace": "        pass\n",
+          "why": "نزعُ نداء المحلّل الحقيقيّ من التصنيف ⇒ يصير التصنيفُ محاكاةً تنحرف عن القرار، فيُعطى رمزُ رفضٍ لِما قَبِله المحلّل."
+        }
+      ]
+    },
+    "services/sahool-platform/core/yield_map_processing.py": {
+      "$why_ar": "C3: تنظيف خرائط الغلة يبقى في core/yield_map_processing.py على main (#870)؛ زرع تعطيل رفض الشذوذ يجب أن يقتل الاختبار نفسه دون نقل الملكية خلفياً.",
+      "mutations": [
+        {
+          "expect": "test_yield_processing_is_non_destructive_deterministic_and_removes_extreme_outlier",
+          "find": "        if value < low or value > high:",
+          "replace": "        if False:  # mutated: robust outliers silently retained",
+          "why": "إسقاط مرشح الشذوذ يعيد قيمة حصاد متطرفة إلى evidence المستخدم لاحقاً في zoning."
+        }
+      ],
+      "test": "services/sahool-platform/tests/test_precision_execution_loop_c3.py"
     },
     "services/weather-signal-engine/worker_health_probe.py": {
       "test": "tests_v9/test_weather_worker_health_probe.py",
@@ -1403,6 +1415,76 @@
         }
       ],
       "test": "tests_v9/test_claim_base_guard.py"
+    },
+    "compose_auth_sink_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_the_guard_catches_every_form_that_does_not_prove_required_and_nonempty",
+          "find": "_ACCEPTED = re.compile(r\"^\\$\\{([A-Za-z_][A-Za-z0-9_]*):\\?[^}]*\\}$\")",
+          "replace": "_ACCEPTED = re.compile(r\"^\\$\\{([A-Za-z_][A-Za-z0-9_]*):?\\?[^}]*\\}$\")  # mutated",
+          "why": "الطفرةُ A وأهمُّها: جعلُ النقطتين اختياريّتين يقبل `${V?required}` — وهي تفرض **الوجود** وتقبل الفارغ (مقيسٌ بـcompose). حارسٌ يبحث عن `?` وحدها يجب أن يموت هنا."
+        },
+        {
+          "expect": "test_the_guard_catches_every_form_that_does_not_prove_required_and_nonempty",
+          "find": "        if _ACCEPTED.match(_unquote(value)):\n            continue",
+          "replace": "        if \"${QDRANT_API_KEY\" in _unquote(value):  # mutated\n            continue",
+          "why": "الطفرةُ B: قبولُ أيّ ذكرٍ للمتغيّر يمرّر `${QDRANT_API_KEY}` العاري — العطلُ الأصليّ بعينه."
+        },
+        {
+          "expect": "test_the_guard_catches_every_form_that_does_not_prove_required_and_nonempty",
+          "find": "_ACCEPTED = re.compile(r\"^\\$\\{([A-Za-z_][A-Za-z0-9_]*):\\?[^}]*\\}$\")",
+          "replace": "_ACCEPTED = re.compile(r\"^\\$\\{([A-Za-z_][A-Za-z0-9_]*):[?-][^}]*\\}$\")  # mutated",
+          "why": "الطفرةُ C: قبولُ `:-` مع `:?` يمرّر `${V:-}` الفارغة. **وتصحيح:** صياغتي الأولى استهدفت `min_expansion` فنجت — لأنّ تلك الدالّة صارت بعد إعادة الكتابة نموذجاً دلاليّاً موازياً **لا يقرّر شيئاً**، والقرارُ عند `_ACCEPTED` وحدها. فحُذفت الدالّة (اشتقاقان لا يُبنى على أحدهما حكمٌ ينحرفان) ووُجِّهت الطفرة إلى مسار الحكم."
+        },
+        {
+          "expect": "test_a_new_compose_file_carrying_the_sink_is_seen",
+          "find": "    sinks = _sinks()\n    out: list[tuple[str, str, int, str]] = []",
+          "replace": "    sinks = {}  # mutated\n    out: list[tuple[str, str, int, str]] = []",
+          "why": "الطفرةُ D: إخراجُ المصرف من سجلّ المصارف — حارسٌ لا يطابق شيئاً يمرّ أخضر على شجرةٍ منتهَكة، وهو «أخضرُ عن سؤالٍ لم يُطرَح»."
+        },
+        {
+          "expect": "test_the_guard_actually_scanned_the_stack_that_carried_the_defect",
+          "find": "    return list(compose_files())",
+          "replace": "    return [p for p in compose_files() if \"unified\" not in p.name]  # mutated",
+          "why": "الطفرةُ E: إخراجُ المكدّس الذي حمل العطل من سطح الحارس. **وحدُّ صدق:** لا تُسجَّل طفرةٌ على `compose_surface.py` نفسه — `GUARD_GLOBS` يكتشف `*_guard.py` و`*_guard.sh` فقط (مقيس)، والسطحُ وحدةٌ مشتركة. فهذه مكافئتها **داخل** الحارس، ويحرس السطحَ نفسَه `test_the_stack_that_carried_the_defect_is_on_the_surface`."
+        },
+        {
+          "expect": "test_a_registered_sink_that_vanishes_from_the_surface_blocks",
+          "find": "    live = {name for _, name, _, _ in _sink_assignments()}",
+          "replace": "    live = set(_sinks())  # mutated",
+          "why": "مصرفٌ مُسجَّل اختفى من السطح بلا تحديث العقد: الإبلاغُ وحده يُبقي حارساً بلا ما يفحص أخضرَ."
+        },
+        {
+          "expect": "test_an_exception_on_a_production_stack_is_refused",
+          "find": "        if key.split(\"::\", 1)[0] in production:",
+          "replace": "        if False:  # mutated",
+          "why": "إسقاطُ حدّ الإنتاج يجعل الاستثناء التجريبيّ قابلاً للمنح لمكدّسٍ إنتاجيّ — أي أنّ الإعفاء يصير الطريقَ إلى العطل بدل أن يكون حدّاً عليه."
+        },
+        {
+          "expect": "test_a_sink_surviving_only_inside_a_comment_is_not_counted_as_live",
+          "find": "            if stripped.startswith(\"#\"):\n                continue\n            match = _ASSIGN.match(stripped)\n            if not match or match.group(1) not in sinks:",
+          "replace": "            if False:  # mutated\n                continue\n            match = _ASSIGN.match(stripped.lstrip(\"# \"))\n            if not match or match.group(1) not in sinks:",
+          "why": "العودةُ إلى عدّ التعليق حياةً: اسمٌ باقٍ في تعليقٍ — أو سطرُ إسنادٍ مُعطَّل — يُخفي اختفاءَ مصرفٍ مُسجَّل، فتسقط الخاصّيّة الحاجبة صامتةً. رفعتها مراجعةٌ خارجيّة وأصابت، وقِستُ الحالتين قبل الإصلاح فمرّتا بلا إبلاغ."
+        }
+      ],
+      "test": "tests_v9/test_compose_auth_sink_guard.py"
+    },
+    "compose_no_default_secrets_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_the_live_tree_carries_no_default_secret",
+          "find": "                if _is_secret(name) and value and not value.startswith((\"$\", \"{\")):",
+          "replace": "                if False:",
+          "why": "القيمة الحرفيّة بلا استيفاء سرٌّ منشور لا يراه فحصُ الافتراضيّات — وإسقاطُ فحصها يدفع الكاتب إلى صيغةٍ لا يراها الحارس."
+        },
+        {
+          "expect": "test_a_stale_exception_is_reported_so_the_list_can_only_shrink",
+          "find": "    live = {key for key, _ in findings()}",
+          "replace": "    live = set(_exceptions())  # mutated",
+          "why": "استثناءٌ يُعَدّ حيّاً دائماً يصير إعفاءً أبديّاً بلا صاحب — والقائمة تتوقّف عن التقلّص."
+        }
+      ],
+      "test": "tests_v9/test_compose_no_default_secrets_guard.py"
     },
     "container_command_path_guard.py": {
       "mutations": [
@@ -2238,6 +2320,17 @@
       ],
       "test": "tests_v9/test_run_outcome_guard.py"
     },
+    "s5_exec_01_writer_cutover_guard.py": {
+      "test": "tests_v9/test_s5_exec_01_writer_cutover_guard.py",
+      "mutations": [
+        {
+          "expect": "test_removing_strict_mode_marker_is_blocked",
+          "find": "            if marker not in text:",
+          "replace": "            if False:  # mutated: missing cutover markers tolerated",
+          "why": "تعطيل فحص markers يجعل الكاتب القديم قابلاً للبقاء بلا strict cutover contract؛ زرع إزالة strict marker يجب أن يحمرّ."
+        }
+      ]
+    },
     "schema_validation_guard.py": {
       "mutations": [
         {
@@ -2260,6 +2353,143 @@
         }
       ],
       "test": "tests_v9/test_schema_validation_guard.py"
+    },
+    "scripts/architecture/authority_cutover_guard.py": {
+      "$why_ar": "ARCH-S4: حدود عدم الترقية المبكرة للسلطة والملكية الفيزيائية تُثبت بطفرات سلوكية؛ الأخضر بلا زرع لا يكفي.",
+      "test": "tests_v9/test_authority_cutover_guard.py",
+      "mutations": [
+        {
+          "expect": "test_decision_is_cutover_capable_but_not_yet_authoritative",
+          "find": "    if d.get(\"authority_state\") != \"NOT_YET_AUTHORITATIVE\":\n        out.append(\"decision prematurely authoritative\")",
+          "replace": "    if False:  # mutated: premature authority tolerated\n        out.append(\"decision prematurely authoritative\")",
+          "why": "تعطيل منع الترقية المبكرة يسمح بقراءة CUTOVER_CAPABLE كأنه AUTHORITATIVE."
+        },
+        {
+          "expect": "test_field_requires_restricted_application_role_live_proof",
+          "find": "    if (\n        \"NOBYPASSRLS\" not in field_test\n        or \"sahool_app\" not in field_test\n        or \"pytest.skip\" not in field_test\n    ):",
+          "replace": "    if False:  # mutated: owner/superuser or missing live role can pass",
+          "why": "Field لا يجوز قطعه اعتماداً على اختبار يعمل كمالك/BYPASSRLS أو لا يعمل فعلياً."
+        },
+        {
+          "expect": "test_kg_image_ships_the_module_its_entrypoint_imports",
+          "find": "        if f\"COPY services/knowledge-graph/{name}.py\" not in dockerfile:\n            out.append(f\"KG image does not ship an imported owned module: {name}.py\")",
+          "replace": "        if False:  # mutated: image need not ship what the entrypoint imports\n            out.append(f\"KG image does not ship an imported owned module: {name}.py\")",
+          "why": "الملكيّة الفيزيائيّة تشمل الشحن: وحدةٌ يستوردها المدخل ولا تنسخها الصورة تنهار عند الإقلاع، فيصير النقل إعلاناً."
+        },
+        {
+          "expect": "test_kg_legacy_store_path_reintroduction_is_blocked",
+          "find": "    if forbidden.exists():\n        out.append(\"legacy sahool-platform KG store path still exists\")",
+          "replace": "    if False:  # mutated: reintroduced legacy KG path tolerated\n        out.append(\"legacy sahool-platform KG store path still exists\")",
+          "why": "إعادة إنشاء مسار SQLite القديم داخل sahool-platform تعيد ملكية فيزيائية منافسة بعد S4/S5؛ يجب أن يحجبها الحارس مباشرةً."
+        }
+      ]
+    },
+    "scripts/architecture/platform_shrink_ratchet_guard.py": {
+      "$why_ar": "ARCH-S5: راتشِت انكماش المنصّة يقيس هُويّات لا أعداداً؛ نكوصه يعيد التضخّم الصامت والاستثناء الأبديّ.",
+      "test": "tests_v9/test_platform_shrink_ratchet_guard.py",
+      "mutations": [
+        {
+          "expect": "test_new_platform_owned_table_is_identity_blocked",
+          "find": "        for ident in new:\n            if (cat, ident) not in exceptions:\n                out.append(f\"NEW {cat}: {ident}\")",
+          "replace": "        for ident in new:\n            if False:  # mutated: new platform-owned identity tolerated\n                out.append(f\"NEW {cat}: {ident}\")",
+          "why": "بلا حجب الهُويّة الجديدة يعود تضخّم المنصّة صامتاً — والراتشِت يقيس هُويّات لا أعداداً."
+        },
+        {
+          "expect": "test_stale_identity_forces_baseline_lowering",
+          "find": "        for ident in stale:\n            out.append(f\"STALE {cat}: {ident} — lower baseline\")",
+          "replace": "        for ident in stale:\n            pass  # mutated: stale baseline entry need not be lowered",
+          "why": "أساسٌ لا ينزل عند اختفاء الهُويّة يترك رصيداً وهميّاً يُبتلَع به دخولٌ جديد بلا أثر."
+        },
+        {
+          "expect": "test_exception_requires_owner_reason_and_close_date",
+          "find": "        if missing:\n            f.append(f\"exception[{i}] missing fields: {','.join(missing)}\")\n            continue",
+          "replace": "        if False:  # mutated: exception without owner/reason/close-date accepted\n            f.append(f\"exception[{i}] missing fields: {','.join(missing)}\")\n            continue",
+          "why": "استثناءٌ بلا مالك وسبب وتاريخ إغلاق إعفاءٌ دائم بلا صاحب — وهو كيف يصير المؤقّت أبديّاً."
+        },
+        {
+          "expect": "test_tombstoned_imagery_provider_reintroduction_is_blocked",
+          "find": "        for ident in new:\n            if (cat, ident) not in exceptions:\n                out.append(f\"NEW {cat}: {ident}\")",
+          "replace": "        for ident in new:\n            if False:  # mutated: new platform-owned identity tolerated\n                out.append(f\"NEW {cat}: {ident}\")",
+          "why": "تعطيل حجب الهوية الجديدة يسمح بإحياء imagery_providers.py غير المستهلك ورفع S5 domain compute من 200 إلى 201."
+        },
+        {
+          "expect": "test_stale_or_unnecessary_exception_is_blocked",
+          "find": "    for (cat, ident), _e in exceptions.items():\n        if ident not in observed[cat] - base[cat]:\n            out.append(f\"stale/unnecessary exception: {cat}:{ident}\")",
+          "replace": "    for (cat, ident), _e in exceptions.items():\n        if False:  # mutated: expired exception may linger\n            out.append(f\"stale/unnecessary exception: {cat}:{ident}\")",
+          "why": "استثناءٌ بطل سببه يُقرأ حراسةً قائمة وهو أثرُ قرارٍ انتهى."
+        },
+        {
+          "expect": "test_inherited_authority_exception_requires_metadata",
+          "find": "    out.extend(_validate_baseline_authority_exception_metadata(policy, today))",
+          "replace": "    pass  # mutated: inherited baseline exception metadata is no longer enforced",
+          "why": "تعطيل عقد metadata للاستثناءات الموروثة يعيد إعفاءات Decision الخمسة بلا مالك/سبب/تاريخ إغلاق ملزم."
+        },
+        {
+          "expect": "test_inherited_authority_exception_expiry_is_blocking",
+          "find": "        if close < today:\n            out.append(f\"baseline authority exception expired: {ident}\")",
+          "replace": "        if False and close < today:  # mutated: expired inherited exception tolerated\n            out.append(f\"baseline authority exception expired: {ident}\")",
+          "why": "السماح بتاريخ إغلاق منتهٍ يحوّل استثناء Decision المؤقت إلى سلطة انتقالية بلا نهاية."
+        }
+      ]
+    },
+    "scripts/architecture/rag_authority_convergence_guard.py": {
+      "$why_ar": "ARCH-S3: التقارب Expand→Parity→Cutover→Revoke يفشل مغلقاً — القطع قبل اكتمال المتطلّبات، وانتهاء استثناء Qdrant المباشر، وملكيّته، كلّها تُثبَت بالتكذيب لا بالأخضر وحده.",
+      "test": "tests_v9/test_rag_authority_convergence_guard.py",
+      "mutations": [
+        {
+          "expect": "test_s3_cannot_cutover_before_all_requirements",
+          "find": "        if not all(bool(v) for v in reqs.values()):\n            out.append(\"cutover/revoked stage without all cutover requirements\")",
+          "replace": "        if False:  # mutated: cutover without requirements tolerated\n            out.append(\"cutover/revoked stage without all cutover requirements\")",
+          "why": "تعطيل شرط اكتمال متطلّبات القطع يسمح بإعلان cutover ناقص الأدلّة."
+        },
+        {
+          "expect": "test_s3_exception_expiry_fails_closed",
+          "find": "            if close < today:\n                out.append(\"direct Qdrant exception expired\")",
+          "replace": "            if False:  # mutated: expired exception tolerated\n                out.append(\"direct Qdrant exception expired\")",
+          "why": "استثناء Qdrant المباشر مؤقّت بعقد؛ تعطيل انتهائه يجعله دائماً بلا قرار."
+        },
+        {
+          "expect": "test_s3_direct_qdrant_exception_must_be_owned_and_dated",
+          "find": "        for k in (\"component_id\", \"owner\", \"reason\", \"target_close_by\"):\n            if not exc.get(k):\n                out.append(f\"direct Qdrant exception missing {k}\")",
+          "replace": "        for k in ():  # mutated: unowned exception tolerated\n            if not exc.get(k):\n                out.append(f\"direct Qdrant exception missing {k}\")",
+          "why": "استثناء بلا مالك وسبب وتاريخ إغلاق ليس استثناءً بل ثغرة."
+        }
+      ]
+    },
+    "scripts/architecture/rag_cutover_admission_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_payload_parity_is_not_raised_by_the_vector_receipt",
+          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
+          "find": "    requirements[\"canonical_payload_parity\"] = False\n",
+          "replace": "    requirements.setdefault(\"canonical_payload_parity\", False)\n",
+          "why": "عودةُ `setdefault` مكان الإسناد الصريح ⇒ تُورَث أيُّ `True` سابقة من وثيقة الحالة، وهذا الحارس لا يتحقّق من أيّ إيصال جرد. فعلامةٌ بائتة أو مكتوبةٌ يدويّاً تكفي لإخضار تكافؤ الـpayload بعد إيصال المتّجه وحده — وهو الاسمُ الواسع عائداً بصيغةٍ أخرى."
+        }
+      ]
+    },
+    "scripts/architecture/rag_live_parity_receipt_guard.py": {
+      "$why_ar": "ARCH-S3: إيصال التكافؤ الحيّ يُقبل فقط مربوطاً بالـSHA وغير مرقٍّ للسلطة وفوق عتبات التداخل — كلّ شرط يُثبَت بالتكذيب.",
+      "test": "tests_v9/test_rag_live_parity_receipt_guard.py",
+      "mutations": [
+        {
+          "expect": "test_receipt_rejects_wrong_subject",
+          "find": "    if receipt.get(\"subject_sha\") != subject_sha:\n        out.append(\"receipt subject SHA mismatch\")",
+          "replace": "    if False:  # mutated: unbound receipt accepted\n        out.append(\"receipt subject SHA mismatch\")",
+          "why": "إيصال غير مربوط بالـcommit يمكن إعادة تقديمه لأيّ شجرة."
+        },
+        {
+          "expect": "test_receipt_rejects_weak_overlap",
+          "find": "    if float(receipt.get(\"min_jaccard\", 0)) < float(p.get(\"min_jaccard\", 0.6)):\n        out.append(\"minimum jaccard below threshold\")",
+          "replace": "    if False:  # mutated: weak overlap accepted\n        out.append(\"minimum jaccard below threshold\")",
+          "why": "تكافؤ بلا عتبة دنيا يقبل استرجاعين متباعدين كأنّهما متكافئان."
+        },
+        {
+          "expect": "test_receipt_never_accepts_promoting_probe",
+          "find": "    if receipt.get(\"read_only\") is not True or receipt.get(\"authority_promotion\") is not False:\n        out.append(\"receipt must be read-only/non-promoting\")",
+          "replace": "    if False:  # mutated: promoting receipt accepted\n        out.append(\"receipt must be read-only/non-promoting\")",
+          "why": "الإيصال دليل قراءة فقط؛ قبول إيصال مرقٍّ يفتح ترقية سلطة صامتة."
+        }
+      ]
     },
     "shadow_source_of_truth_guard.py": {
       "mutations": [
@@ -2686,87 +2916,6 @@
         }
       ],
       "test": "tests_v9/test_visual_fixme_baseline_guard.py"
-    },
-    "s5_exec_01_writer_cutover_guard.py": {
-      "test": "tests_v9/test_s5_exec_01_writer_cutover_guard.py",
-      "mutations": [
-        {
-          "expect": "test_removing_strict_mode_marker_is_blocked",
-          "find": "            if marker not in text:",
-          "replace": "            if False:  # mutated: missing cutover markers tolerated",
-          "why": "تعطيل فحص markers يجعل الكاتب القديم قابلاً للبقاء بلا strict cutover contract؛ زرع إزالة strict marker يجب أن يحمرّ."
-        }
-      ]
-    },
-    "compose_no_default_secrets_guard.py": {
-      "mutations": [
-        {
-          "expect": "test_the_live_tree_carries_no_default_secret",
-          "find": "                if _is_secret(name) and value and not value.startswith((\"$\", \"{\")):",
-          "replace": "                if False:",
-          "why": "القيمة الحرفيّة بلا استيفاء سرٌّ منشور لا يراه فحصُ الافتراضيّات — وإسقاطُ فحصها يدفع الكاتب إلى صيغةٍ لا يراها الحارس."
-        },
-        {
-          "expect": "test_a_stale_exception_is_reported_so_the_list_can_only_shrink",
-          "find": "    live = {key for key, _ in findings()}",
-          "replace": "    live = set(_exceptions())  # mutated",
-          "why": "استثناءٌ يُعَدّ حيّاً دائماً يصير إعفاءً أبديّاً بلا صاحب — والقائمة تتوقّف عن التقلّص."
-        }
-      ],
-      "test": "tests_v9/test_compose_no_default_secrets_guard.py"
-    },
-    "compose_auth_sink_guard.py": {
-      "mutations": [
-        {
-          "expect": "test_the_guard_catches_every_form_that_does_not_prove_required_and_nonempty",
-          "find": "_ACCEPTED = re.compile(r\"^\\$\\{([A-Za-z_][A-Za-z0-9_]*):\\?[^}]*\\}$\")",
-          "replace": "_ACCEPTED = re.compile(r\"^\\$\\{([A-Za-z_][A-Za-z0-9_]*):?\\?[^}]*\\}$\")  # mutated",
-          "why": "الطفرةُ A وأهمُّها: جعلُ النقطتين اختياريّتين يقبل `${V?required}` — وهي تفرض **الوجود** وتقبل الفارغ (مقيسٌ بـcompose). حارسٌ يبحث عن `?` وحدها يجب أن يموت هنا."
-        },
-        {
-          "expect": "test_the_guard_catches_every_form_that_does_not_prove_required_and_nonempty",
-          "find": "        if _ACCEPTED.match(_unquote(value)):\n            continue",
-          "replace": "        if \"${QDRANT_API_KEY\" in _unquote(value):  # mutated\n            continue",
-          "why": "الطفرةُ B: قبولُ أيّ ذكرٍ للمتغيّر يمرّر `${QDRANT_API_KEY}` العاري — العطلُ الأصليّ بعينه."
-        },
-        {
-          "expect": "test_the_guard_catches_every_form_that_does_not_prove_required_and_nonempty",
-          "find": "_ACCEPTED = re.compile(r\"^\\$\\{([A-Za-z_][A-Za-z0-9_]*):\\?[^}]*\\}$\")",
-          "replace": "_ACCEPTED = re.compile(r\"^\\$\\{([A-Za-z_][A-Za-z0-9_]*):[?-][^}]*\\}$\")  # mutated",
-          "why": "الطفرةُ C: قبولُ `:-` مع `:?` يمرّر `${V:-}` الفارغة. **وتصحيح:** صياغتي الأولى استهدفت `min_expansion` فنجت — لأنّ تلك الدالّة صارت بعد إعادة الكتابة نموذجاً دلاليّاً موازياً **لا يقرّر شيئاً**، والقرارُ عند `_ACCEPTED` وحدها. فحُذفت الدالّة (اشتقاقان لا يُبنى على أحدهما حكمٌ ينحرفان) ووُجِّهت الطفرة إلى مسار الحكم."
-        },
-        {
-          "expect": "test_a_new_compose_file_carrying_the_sink_is_seen",
-          "find": "    sinks = _sinks()\n    out: list[tuple[str, str, int, str]] = []",
-          "replace": "    sinks = {}  # mutated\n    out: list[tuple[str, str, int, str]] = []",
-          "why": "الطفرةُ D: إخراجُ المصرف من سجلّ المصارف — حارسٌ لا يطابق شيئاً يمرّ أخضر على شجرةٍ منتهَكة، وهو «أخضرُ عن سؤالٍ لم يُطرَح»."
-        },
-        {
-          "expect": "test_the_guard_actually_scanned_the_stack_that_carried_the_defect",
-          "find": "    return list(compose_files())",
-          "replace": "    return [p for p in compose_files() if \"unified\" not in p.name]  # mutated",
-          "why": "الطفرةُ E: إخراجُ المكدّس الذي حمل العطل من سطح الحارس. **وحدُّ صدق:** لا تُسجَّل طفرةٌ على `compose_surface.py` نفسه — `GUARD_GLOBS` يكتشف `*_guard.py` و`*_guard.sh` فقط (مقيس)، والسطحُ وحدةٌ مشتركة. فهذه مكافئتها **داخل** الحارس، ويحرس السطحَ نفسَه `test_the_stack_that_carried_the_defect_is_on_the_surface`."
-        },
-        {
-          "expect": "test_a_registered_sink_that_vanishes_from_the_surface_blocks",
-          "find": "    live = {name for _, name, _, _ in _sink_assignments()}",
-          "replace": "    live = set(_sinks())  # mutated",
-          "why": "مصرفٌ مُسجَّل اختفى من السطح بلا تحديث العقد: الإبلاغُ وحده يُبقي حارساً بلا ما يفحص أخضرَ."
-        },
-        {
-          "expect": "test_an_exception_on_a_production_stack_is_refused",
-          "find": "        if key.split(\"::\", 1)[0] in production:",
-          "replace": "        if False:  # mutated",
-          "why": "إسقاطُ حدّ الإنتاج يجعل الاستثناء التجريبيّ قابلاً للمنح لمكدّسٍ إنتاجيّ — أي أنّ الإعفاء يصير الطريقَ إلى العطل بدل أن يكون حدّاً عليه."
-        },
-        {
-          "expect": "test_a_sink_surviving_only_inside_a_comment_is_not_counted_as_live",
-          "find": "            if stripped.startswith(\"#\"):\n                continue\n            match = _ASSIGN.match(stripped)\n            if not match or match.group(1) not in sinks:",
-          "replace": "            if False:  # mutated\n                continue\n            match = _ASSIGN.match(stripped.lstrip(\"# \"))\n            if not match or match.group(1) not in sinks:",
-          "why": "العودةُ إلى عدّ التعليق حياةً: اسمٌ باقٍ في تعليقٍ — أو سطرُ إسنادٍ مُعطَّل — يُخفي اختفاءَ مصرفٍ مُسجَّل، فتسقط الخاصّيّة الحاجبة صامتةً. رفعتها مراجعةٌ خارجيّة وأصابت، وقِستُ الحالتين قبل الإصلاح فمرّتا بلا إبلاغ."
-        }
-      ],
-      "test": "tests_v9/test_compose_auth_sink_guard.py"
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",
@@ -2888,71 +3037,5 @@
   },
   "unmutated_debt_ceiling": 113,
   "why_a_named_expect_and_not_just_red": "«سقط شيء ما» يمرّ على طفرة كسرت الاستيراد لا القاعدة — فالطفرة تُثبِت نفسها بسقوط الاختبار **المُسمّى**.",
-  "why_having_a_test_is_not_evidence": "أكثر من ثلثي حرّاس هذا المستودع لهم ملفّ اختبار، وكان أخضر طوال الوقت الذي كان فيه ثلاثة منهم عُمياً عمّا وُجِدوا له. اختبار الحارس المعتاد يقيس أنّه **يمرّ على شجرة سليمة** — وهي خاصّيّة يُحقّقها حارسٌ لا يفعل شيئاً على الإطلاق. فالوجود ليس قياساً، والقياس هو زرع العطل.",
-  "scripts/architecture/rag_authority_convergence_guard.py": {
-    "$why_ar": "ARCH-S3: التقارب Expand→Parity→Cutover→Revoke يفشل مغلقاً — القطع قبل اكتمال المتطلّبات، وانتهاء استثناء Qdrant المباشر، وملكيّته، كلّها تُثبَت بالتكذيب لا بالأخضر وحده.",
-    "test": "tests_v9/test_rag_authority_convergence_guard.py",
-    "mutations": [
-      {
-        "expect": "test_s3_cannot_cutover_before_all_requirements",
-        "find": "        if not all(bool(v) for v in reqs.values()):\n            out.append(\"cutover/revoked stage without all cutover requirements\")",
-        "replace": "        if False:  # mutated: cutover without requirements tolerated\n            out.append(\"cutover/revoked stage without all cutover requirements\")",
-        "why": "تعطيل شرط اكتمال متطلّبات القطع يسمح بإعلان cutover ناقص الأدلّة."
-      },
-      {
-        "expect": "test_s3_exception_expiry_fails_closed",
-        "find": "            if close < today:\n                out.append(\"direct Qdrant exception expired\")",
-        "replace": "            if False:  # mutated: expired exception tolerated\n                out.append(\"direct Qdrant exception expired\")",
-        "why": "استثناء Qdrant المباشر مؤقّت بعقد؛ تعطيل انتهائه يجعله دائماً بلا قرار."
-      },
-      {
-        "expect": "test_s3_direct_qdrant_exception_must_be_owned_and_dated",
-        "find": "        for k in (\"component_id\", \"owner\", \"reason\", \"target_close_by\"):\n            if not exc.get(k):\n                out.append(f\"direct Qdrant exception missing {k}\")",
-        "replace": "        for k in ():  # mutated: unowned exception tolerated\n            if not exc.get(k):\n                out.append(f\"direct Qdrant exception missing {k}\")",
-        "why": "استثناء بلا مالك وسبب وتاريخ إغلاق ليس استثناءً بل ثغرة."
-      }
-    ]
-  },
-  "scripts/architecture/rag_live_parity_receipt_guard.py": {
-    "$why_ar": "ARCH-S3: إيصال التكافؤ الحيّ يُقبل فقط مربوطاً بالـSHA وغير مرقٍّ للسلطة وفوق عتبات التداخل — كلّ شرط يُثبَت بالتكذيب.",
-    "test": "tests_v9/test_rag_live_parity_receipt_guard.py",
-    "mutations": [
-      {
-        "expect": "test_receipt_rejects_wrong_subject",
-        "find": "    if receipt.get(\"subject_sha\") != subject_sha:\n        out.append(\"receipt subject SHA mismatch\")",
-        "replace": "    if False:  # mutated: unbound receipt accepted\n        out.append(\"receipt subject SHA mismatch\")",
-        "why": "إيصال غير مربوط بالـcommit يمكن إعادة تقديمه لأيّ شجرة."
-      },
-      {
-        "expect": "test_receipt_rejects_weak_overlap",
-        "find": "    if float(receipt.get(\"min_jaccard\", 0)) < float(p.get(\"min_jaccard\", 0.6)):\n        out.append(\"minimum jaccard below threshold\")",
-        "replace": "    if False:  # mutated: weak overlap accepted\n        out.append(\"minimum jaccard below threshold\")",
-        "why": "تكافؤ بلا عتبة دنيا يقبل استرجاعين متباعدين كأنّهما متكافئان."
-      },
-      {
-        "expect": "test_receipt_never_accepts_promoting_probe",
-        "find": "    if receipt.get(\"read_only\") is not True or receipt.get(\"authority_promotion\") is not False:\n        out.append(\"receipt must be read-only/non-promoting\")",
-        "replace": "    if False:  # mutated: promoting receipt accepted\n        out.append(\"receipt must be read-only/non-promoting\")",
-        "why": "الإيصال دليل قراءة فقط؛ قبول إيصال مرقٍّ يفتح ترقية سلطة صامتة."
-      }
-    ]
-  },
-  "scripts/architecture/rag_live_parity_probe.py": {
-    "$why_ar": "ARCH-S3: المسبار الحيّ قراءة-فقط وبُعد التضمين مربوط بالمجموعة الحيّة — يُثبَت بالتكذيب.",
-    "test": "tests_v9/test_rag_live_parity_probe.py",
-    "mutations": [
-      {
-        "expect": "test_live_probe_rejects_vector_dimension_mismatch",
-        "find": "        if len(emb) != collection_dim:\n            raise ValueError(f\"embedding/Qdrant dimension mismatch: {len(emb)} != {collection_dim}\")",
-        "replace": "        if False:  # mutated: dimension drift tolerated\n            raise ValueError(f\"embedding/Qdrant dimension mismatch: {len(emb)} != {collection_dim}\")",
-        "why": "بُعد تضمين لا يطابق المجموعة الحيّة يجعل كلّ مقارنة تكافؤ بلا معنى."
-      },
-      {
-        "expect": "test_live_probe_is_read_only_and_dimension_bound",
-        "find": "        \"read_only\": True,\n        \"authority_promotion\": False,",
-        "replace": "        \"read_only\": True,\n        \"authority_promotion\": True,",
-        "why": "المسبار لا يرقّي السلطة أبداً؛ قلب العلم يكسر عقد الإيصال."
-      }
-    ]
-  }
+  "why_having_a_test_is_not_evidence": "أكثر من ثلثي حرّاس هذا المستودع لهم ملفّ اختبار، وكان أخضر طوال الوقت الذي كان فيه ثلاثة منهم عُمياً عمّا وُجِدوا له. اختبار الحارس المعتاد يقيس أنّه **يمرّ على شجرة سليمة** — وهي خاصّيّة يُحقّقها حارسٌ لا يفعل شيئاً على الإطلاق. فالوجود ليس قياساً، والقياس هو زرع العطل."
 }

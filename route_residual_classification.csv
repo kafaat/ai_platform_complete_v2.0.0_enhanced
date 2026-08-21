@@ -132,11 +132,11 @@ local-ai-rag,services/local-ai-rag/main.py,548,POST,/v1/ingest,ingest_endpoint,b
 local-ai-rag,services/local-ai-rag/main.py,603,GET,/healthz,healthz,health
 local-ai-rag,services/local-ai-rag/main.py,621,GET,/health,legacy_health,health
 local-ai-rag,services/local-ai-rag/main.py,626,GET,/readyz,readyz,readiness
-rag-retrieval,services/rag-retrieval/main.py,86,GET,/healthz,healthz,health
-rag-retrieval,services/rag-retrieval/main.py,91,GET,/metrics,metrics,metrics
-rag-retrieval,services/rag-retrieval/main.py,104,GET,/readyz,readyz,readiness
-rag-retrieval,services/rag-retrieval/main.py,134,POST,/v1/ingest,ingest,business_endpoint
-rag-retrieval,services/rag-retrieval/main.py,177,POST,/v1/search,search,business_endpoint
+rag-retrieval,services/rag-retrieval/main.py,95,GET,/healthz,healthz,health
+rag-retrieval,services/rag-retrieval/main.py,100,GET,/metrics,metrics,metrics
+rag-retrieval,services/rag-retrieval/main.py,113,GET,/readyz,readyz,readiness
+rag-retrieval,services/rag-retrieval/main.py,150,POST,/v1/ingest,ingest,business_endpoint
+rag-retrieval,services/rag-retrieval/main.py,193,POST,/v1/search,search,business_endpoint
 raster-service,services/raster-service/main.py,64,GET,/runtime-identity,runtime_evidence_identity,business_endpoint
 raster-tiler-service,services/raster-tiler-service/main.py,11,GET,/runtime-identity,runtime_identity,business_endpoint
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,33,GET,/healthz,healthz,health

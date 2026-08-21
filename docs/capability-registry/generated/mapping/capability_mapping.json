@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5146,
+    "files_scanned": 5150,
     "files_by_kind": {
       "backend": 1198,
       "database": 274,
       "governance": 60,
       "mobile": 51,
-      "other": 1408,
-      "tests": 1699,
+      "other": 1409,
+      "tests": 1702,
       "web": 456
     },
-    "unmapped_artifacts": 2096,
+    "unmapped_artifacts": 2099,
     "ambiguous_artifacts": 405
   },
   "capabilities": [
@@ -42015,6 +42015,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_guard_mutation_registry_schema_delta.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_guardrails.py",
       "kind": "tests"
     },
@@ -42464,6 +42468,14 @@
     },
     {
       "path": "tests_v9/test_rag_authority_convergence_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_rag_corpus_admissibility_probe.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_rag_corpus_measurement_integrity.py",
       "kind": "tests"
     },
     {

@@ -13065,7 +13065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "23e818b005bdddf5b60546e2cdff190a64a291925dc60519afb01dcb4e738e0e"
+          "content": "2b37336560f108fa6207098173a953efc045e6acf2acaecf3ed48523c8a4f8d9"
         }
       ],
       "name": "services/rag-retrieval/main.py",
@@ -21905,7 +21905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a98caa31659fdffb0a9113ea11cbe00b4ce08c5622d91625f4d23245f26ea9fe"
+          "content": "d0115a41057152b43642dbf1e375f3473ee5ca5fc586de0a601b57348d71bc56"
         }
       ],
       "name": "services/sahool-platform/core/rag/production_qdrant.py",
