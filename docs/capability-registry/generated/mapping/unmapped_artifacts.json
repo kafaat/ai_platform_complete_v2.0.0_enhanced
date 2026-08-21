@@ -7864,6 +7864,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_rag_live_corpus_audit.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_rag_live_parity_probe.py",
     "kind": "tests"
   },

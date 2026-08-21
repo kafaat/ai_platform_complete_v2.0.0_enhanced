@@ -1770,6 +1770,7 @@ SEC-005,test,tests_v9/test_calibration_audit_migration.py,3,applied
 SEC-005,test,tests_v9/test_compose_security_audit.py,3,applied
 SEC-005,test,tests_v9/test_persistence_truth_audit_v30_7.py,3,applied
 SEC-005,test,tests_v9/test_pip_audit_resolution_guard.py,3,applied
+SEC-005,test,tests_v9/test_rag_live_corpus_audit.py,3,applied
 SEC-005,test,tests_v9/test_tenant_query_audit.py,3,applied
 SEC-005,test,tests_v9/test_v87_audit_tenant.py,3,applied
 SEC-006,service,services/auth/main.py,10,applied
