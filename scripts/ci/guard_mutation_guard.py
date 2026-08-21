@@ -187,6 +187,40 @@ def _spec_failures(label: str, src: Path, spec: dict, root: Path, section: str) 
 def check(registry: dict, ci: Path = CI, root: Path = ROOT) -> list[str]:
     """أسباب الحجب. الفارغة تعني مروراً."""
     failures: list[str] = []
+
+    # ── الكونُ المُعلَن = الكونُ القابل للتنفيذ ──────────────────────────────
+    #
+    # المُشغِّل يقرأ ``mutated`` و``behavioural`` وحدهما. ومواصفةٌ تجلس مفتاحاً أعلى
+    # الجذر تبدو مُسجَّلةً في الملفّ وهي **لا تُشغَّل أبداً** — فيشهد
+    # ``guard_mutation_guard_ok`` لكونٍ أضيق ممّا يُعلِنه السجلّ نفسه.
+    #
+    # مقيسٌ لا مفترَض: ثلاثُ مواصفات RAG حملت **٨ طفرات** بهذا الوصف، ومرّت البوّابةُ
+    # خضراء وهي لا تعرفها. فالصمتُ هنا أسوأ من الحمرة: تغطيةٌ مُعلَنةٌ غيرُ مملوكة.
+    #
+    # ولا يُصلَح هذا بنقل الثلاث وحدها — الصنفُ يُغلَق بجعل أيّ مفتاحٍ بشكل مواصفةٍ
+    # خارج القسمين إخفاقاً صريحاً.
+    _READ_SECTIONS = ("mutated", "behavioural")
+    _META_KEYS = {
+        "$comment",
+        "adjudicated_on",
+        "gap",
+        "honesty_limit",
+        "schema_version",
+        "unmutated_debt",
+        "unmutated_debt_ceiling",
+        "why_a_named_expect_and_not_just_red",
+        "why_having_a_test_is_not_evidence",
+    }
+    for key, value in registry.items():
+        if key in _READ_SECTIONS or key in _META_KEYS:
+            continue
+        if isinstance(value, dict) and "mutations" in value:
+            failures.append(
+                f"مواصفةُ طفراتٍ خارج ما يقرؤه المُشغِّل: {key} "
+                f"({len(value['mutations'])} طفرة مُعلَنة لا تُنفَّذ). "
+                f"انقلها إلى أحد {' أو '.join(_READ_SECTIONS)}."
+            )
+
     mutated = registry["mutated"]
     debt = {k for k in registry["unmutated_debt"] if not k.startswith("$")}
     ceiling = registry["unmutated_debt_ceiling"]
