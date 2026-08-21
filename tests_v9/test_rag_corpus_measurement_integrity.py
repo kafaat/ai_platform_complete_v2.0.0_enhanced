@@ -288,3 +288,33 @@ def test_the_admission_verdict_is_still_not_ready() -> None:
     payload = json.loads(proc.stdout)
     assert payload.get("cutover_capable") is False
     assert payload.get("status") != "CUTOVER_ADMISSION_READY"
+
+
+# ── ④ `/readyz` لا يدّعي تكافؤ الـpayload ────────────────────────────────────
+
+
+def test_readyz_does_not_claim_canonical_payload_parity() -> None:
+    """الفصلُ يمرّ إلى المستهلك، لا يقف عند الحارس.
+
+    كان `readyz` يُعيد `collection_schema_parity: True` بلا شرط — فيقرأ كلُّ مستهلكٍ
+    تكافؤَ الـpayload أخضرَ لمجرّد نجاح إعادة البناء، ويبقى الادّعاءُ الواسع حيّاً في
+    المسار الذي يقرؤه التشغيل فعلاً. وفصلُ الاسمين في حارس القبول وحده لا يكفي.
+
+    أمسك هذا الحدَّ تنفيذٌ مستقلٌّ للشريحة نفسها؛ نُقِل ومعه شاهدُه.
+    """
+    source = (ROOT / "services/rag-retrieval/main.py").read_text(encoding="utf-8")
+    assert '"collection_vector_schema_parity": True' in source
+    assert '"canonical_payload_parity": False' in source
+    assert '"collection_schema_parity"' not in source, (
+        "الاسمُ الواسع عاد إلى مسار الجاهزيّة — فيقرأ المستهلكُ تكافؤَ الـpayload "
+        "أخضرَ بلا جردِ مجموعةٍ يُثبِته"
+    )
+
+
+def test_the_live_certification_reads_the_measured_name() -> None:
+    """الشهادةُ تشهد لِما قِيس: تكافؤَ مخطّط المتّجه لا تكافؤَ الـpayload."""
+    source = (ROOT / "scripts/ci/ai_rag_live_certification.py").read_text(encoding="utf-8")
+    assert 'r.get("collection_vector_schema_parity") is True' in source
+    assert 'r.get("collection_schema_parity")' not in source, (
+        "الشهادةُ تقرأ الاسم الواسع — فتشهد لتكافؤٍ لا يُثبِته أيُّ فحصٍ فيها"
+    )

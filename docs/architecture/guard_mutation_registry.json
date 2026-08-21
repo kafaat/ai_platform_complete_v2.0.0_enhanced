@@ -129,6 +129,38 @@
       ],
       "test": "tests_v9/test_component_registry_gate.py"
     },
+    "scripts/architecture/rag_corpus_admissibility_probe.py": {
+      "mutations": [
+        {
+          "expect": "test_the_root_only_tenant_detector_fires_on_a_planted_payload",
+          "test": "tests_v9/test_rag_corpus_admissibility_probe.py",
+          "find": "        \"present\": sparse_visible and not dense_visible,\n",
+          "replace": "        \"present\": False,\n",
+          "why": "تعميةُ كاشف الارتداد القديم ⇒ يصمت على نقطةٍ مرئيّةٍ للمتناثر عمياءَ عن الكثيف، فيُقرَأ صمتُه «لا دَين»."
+        },
+        {
+          "expect": "test_the_bm25_stat_detector_fires_and_reports_no_content_leak",
+          "test": "tests_v9/test_rag_corpus_admissibility_probe.py",
+          "find": "        \"present\": score_with_term != score_alone or score_without_term != score_alone,\n",
+          "replace": "        \"present\": False,\n",
+          "why": "تعميةُ كاشف الأثر العابر للمستأجِرين ⇒ يُخفي أخطر المُربِكات في أيّ قياس تكافؤ."
+        },
+        {
+          "expect": "test_the_neighbor_detector_fires_and_bounds_the_claim_to_scope_not_tenancy",
+          "test": "tests_v9/test_rag_corpus_admissibility_probe.py",
+          "find": "        \"present\": bool(off_scope),\n",
+          "replace": "        \"present\": False,\n",
+          "why": "تعميةُ كاشف تجاوز الجيران ⇒ يصمت على استعلامٍ يُعيد مقطعاً خارج نطاقه المطلوب."
+        },
+        {
+          "expect": "test_the_storage_id_detector_fires_when_the_logical_key_is_absent",
+          "test": "tests_v9/test_rag_corpus_admissibility_probe.py",
+          "find": "        \"present\": chunk.chunk_id == \"storage-uuid-42\",\n",
+          "replace": "        \"present\": False,\n",
+          "why": "تعميةُ كاشف الهويّة ⇒ يصمت على UUID تخزينٍ صار هويّةً منطقيّة."
+        }
+      ]
+    },
     "scripts/architecture/rag_live_parity_probe.py": {
       "$why_ar": "ARCH-S3: المسبار الحيّ قراءة-فقط وبُعد التضمين مربوط بالمجموعة الحيّة — يُثبَت بالتكذيب.",
       "test": "tests_v9/test_rag_live_parity_probe.py",
@@ -164,6 +196,17 @@
         }
       ],
       "test": "tests_v9/test_s5_exec_01_edge_freeze.py"
+    },
+    "scripts/ci/ai_rag_live_certification.py": {
+      "mutations": [
+        {
+          "expect": "test_the_live_certification_reads_the_measured_name",
+          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
+          "find": "        and r.get(\"collection_vector_schema_parity\") is True\n",
+          "replace": "        and r.get(\"collection_schema_parity\") is True\n",
+          "why": "عودةُ الشهادة إلى الاسم الواسع ⇒ تشهد لتكافؤ الـpayload الذي لا يُثبِته أيُّ فحصٍ فيها."
+        }
+      ]
     },
     "scripts/ci/c10_field_authority_certification.py": {
       "$why_ar": "C10 يحافظ Field BLOCKED حتى receipt RLS حيّ تحت دور مقيّد.",
@@ -700,6 +743,17 @@
         }
       ],
       "test": "tests_v9/test_s5_decision_live_cutover_hardening.py"
+    },
+    "services/rag-retrieval/main.py": {
+      "mutations": [
+        {
+          "expect": "test_readyz_does_not_claim_canonical_payload_parity",
+          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
+          "find": "        \"canonical_payload_parity\": False,\n",
+          "replace": "        \"canonical_payload_parity\": True,\n",
+          "why": "ادّعاءُ تكافؤ الـpayload في مسار الجاهزيّة ⇒ يقرؤه كلُّ مستهلكٍ أخضرَ بلا جردِ مجموعةٍ يُثبِته، فيعود الاسمُ الواسع بصيغةٍ أخرى."
+        }
+      ]
     },
     "services/sahool-platform/api/machinery_export.py": {
       "$why_ar": "C3: artifact الآلة يجب أن يحتفظ بهوية مناطق الإدارة وبصمة الوصفة/lineage، لا أن يعيد ترقيمها بما يقطع السلسلة.",
