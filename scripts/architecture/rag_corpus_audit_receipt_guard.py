@@ -55,9 +55,19 @@ def _expected_payload_parity(receipt: dict[str, Any]) -> bool:
 
 
 def findings(receipt: dict[str, Any], subject_sha: str, subject_tree: str) -> list[str]:
-    state = json.loads(STATE.read_text(encoding="utf-8"))
-    acceptance = state.get("corpus_audit_acceptance") or {}
+    # **حارسٌ يموت بـtraceback لا يُبلِغ.** كانت وثيقةُ الحالة تُقرأ بلا التقاط، فملفٌّ
+    # مفقودٌ أو تالف — وهو شائعٌ عند تشغيل السكربت خارج الشجرة — يُخرِج انهياراً بدل
+    # سطر فشلٍ مُنسَّق كبقيّة هذه الأداة. وهو صنفُ
+    # `GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01` من جهة أخرى: رمزُ خروجٍ
+    # بلا سببٍ مقروء. أمسكه مراجعٌ آليّ على #884.
+    #
+    # ويفشل **مغلقاً**: تعذُّرُ قراءة شروط القبول لا يُقرَأ قبولاً.
     out: list[str] = []
+    try:
+        state = json.loads(STATE.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        return [f"corpus audit acceptance contract unreadable: {exc}"]
+    acceptance = state.get("corpus_audit_acceptance") or {}
     if receipt.get("schema") != acceptance.get("receipt_schema", SCHEMA):
         out.append("receipt schema mismatch")
     if receipt.get("subject_sha") != subject_sha:

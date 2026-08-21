@@ -371,9 +371,12 @@ def build_receipt(
 
 
 def _validate_subject(value: str, label: str) -> str:
+    # الرسالةُ تصف **الشرط** لا تفصيلَ التنفيذ: الحالةُ تُطبَّع هنا قبل الفحص، فقولُ
+    # «lowercase» يُرسِل المشغِّلَ يبحث عن خطأٍ لا وجود له بينما العطلُ في الطول أو
+    # في محرفٍ غير سِتّعشريّ. أمسكه مراجعٌ آليّ على #884.
     value = value.lower()
     if not _HEX40.fullmatch(value):
-        raise ValueError(f"{label} must be a full 40-character lowercase hex id")
+        raise ValueError(f"{label} must be a full 40-character hex id")
     return value
 
 

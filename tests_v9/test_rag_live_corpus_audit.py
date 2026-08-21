@@ -200,6 +200,7 @@ def test_guard_accepts_valid_nonpromoting_receipt_and_rejects_tamper(tmp_path: P
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         check=False,
+        timeout=60,
     )
     assert proc.returncode == 0, proc.stdout
     assert "parity=true" in proc.stdout
@@ -223,6 +224,7 @@ def test_guard_accepts_valid_nonpromoting_receipt_and_rejects_tamper(tmp_path: P
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         check=False,
+        timeout=60,
     )
     assert proc.returncode == 1
     assert (
@@ -255,6 +257,7 @@ def test_guard_rejects_document_body_fields_even_if_digest_is_recomputed(tmp_pat
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         check=False,
+        timeout=60,
     )
     assert proc.returncode == 1
     assert "document content leaked" in proc.stdout
@@ -282,6 +285,7 @@ def test_guard_rejects_exact_scroll_mismatch(tmp_path: Path) -> None:
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         check=False,
+        timeout=60,
     )
     assert proc.returncode == 1
     assert "exact/scroll count mismatch" in proc.stdout
@@ -309,6 +313,7 @@ def test_guard_rejects_wrong_subject_tree(tmp_path: Path) -> None:
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         check=False,
+        timeout=60,
     )
     assert proc.returncode == 1
     assert "receipt subject tree mismatch" in proc.stdout
