@@ -855,6 +855,25 @@
           "why": "نبضةٌ موجودةٌ لا تُقرَأ (EIO مثلاً) تُقرَأ صحّةً. وأمسك أصلَ العطل مراجعٌ آليّ على #880: بلا التقاطٍ يخرج الفحص بـtraceback فيقرأ Docker رمزَ الخروج ولا يقرأ المشغّلُ سبباً — والأوسع أنّ `Path.exists()` نفسه يرمي على EIO، فوُحِّد النداء وأُلغيت النافذة بدل حراستها."
         }
       ]
+    },
+    ".github/workflows/ci.yml": {
+      "$why_a_workflow_belongs_here_ar": "المفتاحُ مسارُ ما يعمل فعلاً في CI، والسقفُ وموضعُ المكنسة بندان في ذلك الملفّ لا في حارسٍ يصفه. فتُزرَع الطفرةُ في الـYAML نفسه — وإلّا شهد الحارسُ لنسخةٍ من العقد لا للعقد.",
+      "mutations": [
+        {
+          "expect": "test_the_longest_job_has_the_decided_ceiling_not_a_six_hour_default",
+          "find": "    timeout-minutes: 90",
+          "replace": "    timeout-minutes: 60  # mutated: السقف يعود تحت أبطأ قياسٍ حقيقيّ",
+          "why": "MUT-SWEEP-TIMEOUT-01: على #882 أنهت *Unit Tests* عند ٥٩:٠٢ مقابل سقف ٦٠ — بفارق ٥٨ ثانية. وإعادةُ السقف إلى ٦٠ تُعيد الوظيفةَ إلى حافّة القتل بالمهلة، وأوّلُ طفرةٍ تُضاف تُسقِطها. والفشلُ بالمهلة يُقرَأ عطلاً في الاختبارات لا ضيقاً في السقف، فيُشخَّص في الاتّجاه الخطأ.",
+          "test": "tests_v9/test_ci_pipeline_settings.py"
+        },
+        {
+          "expect": "test_the_sweep_still_runs_inside_the_job_the_ruleset_actually_requires",
+          "find": "        run: python scripts/ci/guard_mutation_guard.py --run",
+          "replace": "        run: echo skipped  # mutated: المكنسة تخرج من الوظيفة الحاجبة",
+          "why": "نقلُ المكنسة خارج *Unit Tests* بلا إضافةِ اسمِ الوظيفة الجديدة إلى الفحوص المطلوبة في الـRuleset يجعلها إرشاديّةً **صامتاً**. و`branch_protection_contract_guard` يفرض حلَّ المحادثات وحده ولا يُعدّد الفحوصَ بالاسم، فلا شيءَ في الشجرة يمنع ذلك. وهو صنفُ «حارسٌ كفّ عن الحجب بلا أن يحمرّ» بعينه."
+        }
+      ],
+      "test": "tests_v9/test_mutation_sweep_headroom.py"
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
