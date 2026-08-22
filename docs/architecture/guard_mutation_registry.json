@@ -270,6 +270,46 @@
         }
       ]
     },
+    "scripts/architecture/rag_logical_identity_migration_plan.py": {
+      "test": "tests_v9/test_rag_logical_identity_migration_plan.py",
+      "mutations": [
+        {
+          "expect": "test_storage_uuid_fallback_is_held_instead_of_becoming_canonical_identity",
+          "find": "        elif fallback or explicit is None:\n            action = \"HOLD_IDENTITY_EVIDENCE\"\n",
+          "replace": "        elif False:  # mutated: المُعرِّفُ المستعار يصير هويّةً بالأمر\n            action = \"HOLD_IDENTITY_EVIDENCE\"\n",
+          "why": "الثابتُ المركزيّ لـD12: UUID التخزين ليس دليلاً على هويّةٍ منطقيّة. نزعُ الاحتجاز يجعل الخطّةَ تُهاجِر صفّاً إلى مُعرِّفٍ اختُلِق من موضع تخزينه — provenance من عدم، وهو ما تمنعه سياسةُ «لا تلفيق» صراحةً."
+        },
+        {
+          "expect": "test_duplicate_logical_identity_is_held_instead_of_overwriting_by_order",
+          "find": "                row[\"action\"] = \"HOLD_LOGICAL_ID_COLLISION\"\n",
+          "replace": "                pass  # mutated: التصادمُ يُحسَم بترتيب الجرد\n",
+          "why": "هويّةٌ منطقيّة يملكها صفٌّ آخر ليست وجهةً آمنة. نزعُ الاحتجاز يجعل الخطّةَ تختار أحد المتصادمَين **بحادثِ ترتيب**، فتكتب فوق المالك القانونيّ بلا قرار."
+        },
+        {
+          "expect": "test_a_canonical_row_without_an_explicit_identity_fails_the_plan_closed",
+          "find": "            raise ValueError(f\"canonical point {point_id} lacks explicit logical chunk identity\")\n",
+          "replace": "            explicit = point_id  # mutated: الصفُّ القانونيُّ يستعير هويّتَه\n",
+          "why": "صفٌّ قانونيٌّ بلا هويّةٍ صريحة تناقضٌ في الإيصال، والفشلُ المغلق هو الجواب. استبدالُه باستعارةِ مُعرِّف التخزين يُخفي عطلَ المُنتِج ويُنتِج خطّةً تبدو سليمة."
+        }
+      ]
+    },
+    "scripts/architecture/rag_logical_identity_migration_plan_guard.py": {
+      "test": "tests_v9/test_rag_logical_identity_migration_plan.py",
+      "mutations": [
+        {
+          "expect": "test_plan_guard_names_a_promoted_storage_fallback_even_on_an_inconsistent_receipt",
+          "find": "            if row.get(\"canonical_chunk_id\") is not None:\n                out.append(f\"storage fallback promoted to logical identity: {point_id}\")\n",
+          "replace": "            if False:  # mutated: الترقيةُ لا تُسمّى في مستوى الخطّة\n                pass\n",
+          "why": "ترقيةُ مُعرِّف التخزين إلى هويّةٍ منطقيّة تعبر إلى صفوف الخطّة، ويجب أن يسمّيها حارسُ D12 بلسانه لا أن يُترَك العطلُ لحارس الإيصال وحده. وقياسٌ سابق أثبت أنّ الصياغةَ الأولى للشرط كانت **تُدين خطّةً صحيحة** (`ORPHANED_UNATTRIBUTED` مستعارٌ يُحتجَز بـ`HOLD_UNATTRIBUTED` بحقّ)، فضُيِّقت إلى «لا تُرقَّى ولا يُهاجَر»."
+        },
+        {
+          "expect": "test_plan_guard_rederives_collisions_and_rejects_an_unheld_candidate",
+          "find": "        if exp_action == \"MIGRATION_CANDIDATE\" and exp_logical in collisions:\n",
+          "replace": "        if False:  # mutated: الحارسُ يعمى عن التصادم\n",
+          "why": "إن لم يُعِد الحارسُ حسابَ التصادم، اختلف حكمُه عن حكم المخطِّط فصار يُدين خططاً صحيحة أو يقبل خاطئة — حارسٌ يقيس عقداً غير الذي يُنفَّذ."
+        }
+      ]
+    },
     "scripts/architecture/s5_exec_01_edge_freeze.py": {
       "$why_ar": "S5-EXEC-01: بصمة التجميد السلطوية تخص سطح platform runtime فقط؛ نمو شهود الاختبار/خدمة القرار لا يجوز أن يُعاد تصنيفه كتضخم سلطة، لكن فقد الشهود دون أرضية أو نمو runtime يجب أن يُحجب.",
       "mutations": [

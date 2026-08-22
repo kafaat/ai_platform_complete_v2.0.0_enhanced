@@ -21905,7 +21905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "675b4340ebc95e584f4eac09dbcb104f03d43e25819add1f3b164aac8b3b03ab"
+          "content": "d16ba171b0880dac1e12a2819f8b188250a45de62012adb55747c3a560d4bd56"
         }
       ],
       "name": "services/sahool-platform/core/rag/production_qdrant.py",
