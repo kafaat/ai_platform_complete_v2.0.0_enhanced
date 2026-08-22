@@ -46,6 +46,15 @@ REQUIRED_PHENOLOGY_STAGE = {"stage", "name_ar", "day_start", "day_end"}
 # كسر امتصاص كلّ عنصر خلال المرحلة من الإجماليّ الموسميّ (وليس تراكميّاً)، بمصدر موثّق.
 REQUIRED_STAGE_NUTRIENT = {"n_fraction", "p_fraction", "k_fraction", "source"}
 NUTRIENT_SUM_TOLERANCE = 0.02  # كسور العنصر عبر المراحل يجب أن تجمع إلى 1.0 ± التفاوت
+# سلسلة اشتقاق الكسور (nutrient_demand_provenance على مستوى phenology) — إلزاميّة
+# متى وُجدت منحنيات طلب: مرجع أوّليّ + اشتقاق قابل لإعادة البناء + تعيين مراحل
+# V/R→مراحل البطاقة + تصريح تقريب صريح. تحقّق بنيويّ — لا يجمّد القيم العلميّة.
+REQUIRED_NUTRIENT_PROVENANCE = {
+    "primary_reference",
+    "derivation",
+    "stage_mapping",
+    "approximation",
+}
 # حقول ممنوعة (تكسر حياد الموقع)
 FORBIDDEN = {"zone_factor", "yield", "expected_yield", "calibration", "region", "farm", "tenant"}
 
@@ -96,6 +105,31 @@ def _validate_nutrient_demand(stages: list, errors: list) -> None:
             )
 
 
+def _validate_nutrient_provenance(ph: dict, stages: list, errors: list) -> None:
+    """يلزم سلسلة اشتقاق موثّقة (nutrient_demand_provenance) متى حملت المراحل منحنيات طلب.
+
+    «approximate» بلا سلسلة قابلة لإعادة البناء لا يكفي: كلّ كسور طلبٍ غذائيّ يلزمها
+    مرجع أوّليّ ومنهج اشتقاق وتعيين مراحل V/R→مراحل البطاقة وتصريح approximation
+    صريح — حتى تتبعها الذرة والقمح والذرة الرفيعة والطماطم والبطاطس بالمنهج نفسه.
+    تحقّق بنيويّ فحسب: لا يجمّد القيم العلميّة، بل يمنع كسراً بلا مصدر قابل للتتبّع.
+    """
+    if not any(isinstance(st, dict) and st.get("nutrient_demand") is not None for st in stages):
+        return
+    prov = ph.get("nutrient_demand_provenance")
+    if not isinstance(prov, dict):
+        errors.append("nutrient_demand بلا كتلة nutrient_demand_provenance على مستوى phenology")
+        return
+    miss = REQUIRED_NUTRIENT_PROVENANCE - set(prov.keys())
+    if miss:
+        errors.append(f"nutrient_demand_provenance ناقصة: {miss}")
+        return
+    for k in ("primary_reference", "derivation", "stage_mapping"):
+        if not isinstance(prov[k], str) or not prov[k].strip():
+            errors.append(f"nutrient_demand_provenance.{k} يجب أن يكون نصّاً غير فارغ")
+    if prov["approximation"] is not True:
+        errors.append("nutrient_demand_provenance.approximation يجب أن يكون true صراحةً")
+
+
 def _validate_phenology(card: dict, errors: list) -> None:
     """يتحقّق من كتلة مراحل النمو (إن وُجدت) — اختياريّة لكلّ البطاقات.
 
@@ -124,6 +158,7 @@ def _validate_phenology(card: dict, errors: list) -> None:
             errors.append(f"مرحلة '{st['stage']}': تتداخل مع السابقة (تسلسل متراجع)")
         prev_end = st["day_end"]
     _validate_nutrient_demand(stages, errors)  # منحنيات الطلب الغذائيّ (اختياريّة — كلّ أو لا شيء)
+    _validate_nutrient_provenance(ph, stages, errors)  # سلسلة الاشتقاق إلزاميّة متى وُجدت المنحنيات
 
 
 def load_crop_card(crop_id: str) -> dict | None:
@@ -179,9 +214,10 @@ def growth_stages(crop_id: str) -> list[dict]:
 def stage_nutrient_demand(crop_id: str) -> list[dict]:
     """يُرجع منحنى الطلب الغذائيّ لكلّ مرحلة: [{stage, day_start, day_end, n/p/k_fraction, source}].
 
-    الكسور **خلال المرحلة** من الإجماليّ الموسميّ (تجمع إلى 1.0 لكلّ عنصر) — تُحوَّل إلى
-    kg/ha بضربها في modifying.{nitrogen,phosphorus,potassium}_kg_ha_required، وتُغذّي
-    توقيت التسميد (متى يحتاج، لا فقط كم). قائمة فارغة إن لم تُعرَّف المنحنيات بعد.
+    الكسور **خلال المرحلة** من الإجماليّ الموسميّ (تجمع إلى 1.0 لكلّ عنصر) — كسورٌ بلا
+    وحدات فحسب. هذه الوحدة **لا** تُحوّلها إلى kg/ha: التحويل (بضرب الكسر في احتياجٍ
+    موسميّ موثّق) مسؤوليّة المُستدعي خارج loader، ولا حقل في البطاقة يُثبته هنا.
+    قائمة فارغة إن لم تُعرَّف المنحنيات بعد.
     """
     out = []
     for st in growth_stages(crop_id):
