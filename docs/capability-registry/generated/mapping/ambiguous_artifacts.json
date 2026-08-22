@@ -6750,6 +6750,28 @@
     ]
   },
   {
+    "path": "services/sahool-platform/core/crop_cards/_TEMPLATE.yaml",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 10,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "GIS-003",
+        "score": 8,
+        "signals": [
+          "content:dem",
+          "content:slope"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/core/crop_cards/maize.yaml",
     "kind": "backend",
     "candidates": [

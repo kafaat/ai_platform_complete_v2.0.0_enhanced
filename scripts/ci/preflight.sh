@@ -242,6 +242,21 @@ run "٢د) non_ascii_fixture_path" python3 -m pytest -q tests_v9/test_non_ascii_
 require_file scripts/ci/json_duplicate_key_guard.py "٢ﻫ) json_duplicate_key" \
   && run "٢ﻫ) json_duplicate_key" python3 scripts/ci/json_duplicate_key_guard.py
 
+# ── ٢و) فكُّ ترميز النصّ بلغة الآلة — الصنفُ نفسُه في الطبقة نفسها ─────────────
+# GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01. الحارس قائمٌ ويحجب، لكنّه
+# اختبارُ pytest فلا يعمل إلّا في ٨أ — جناحٌ مقيسُه **٣٦٢ث**. وهو حرفيّاً حُجّة ٢د
+# فوقه بسطرين، ومقيسٌ في هذه الجلسة لا مُفترَض: على #886 مرّ `--fast` **أخضر** على
+# شجرةٍ حمّرها الجناحُ الكامل — أربعةُ مواضع `subprocess(text=True)` بلا `encoding`
+# في ملفّ اختبارٍ متبنًّى. والأدهى أنّ الصنف نفسه كان قد أُصلِح على #884 **في هذه
+# الجلسة** ثمّ أُعيد بتبنّي شيفرةٍ واردة: القراءةُ لم تمسكه، والقياسُ أمسكه بعد ٦
+# دقائق كان يكفيها **٤٫٦ث** هنا.
+#
+# **وحدُّه مُعلَنٌ لا مُفترَض:** يُشغَّل الاختبارُ الحاجب وحده (٤٫٦ث) لا الملفّ كلُّه
+# (١٧٫٧ث). فحارسا التملّص — «الأساس لا ينمو» و«ملفٌّ مُؤسَّس لا يُضيف مخالفةً» —
+# يبقيان في ٨أ عن قصد: **المخالفةُ خفيّةٌ في المراجعة والمهربُ ظاهرٌ فيها**، فنموُّ
+# الأساس يُرى في الـdiff بينما قراءةٌ بلا ترميز في ملفٍّ جديد لا تُرى إلّا بالمسح.
+run "٢و) text_encoding_locale" python3 -m pytest -q tests_v9/test_text_encoding_locale.py::test_no_new_file_decodes_text_with_the_machines_locale
+
 # ── ٣) أساس الادّعاءات وحارس الطفرات ──────────────────────────────────────
 require_file scripts/ci/claim_base_guard.py "٣أ) claim_base_guard" && run "٣أ) claim_base_guard"        python3 scripts/ci/claim_base_guard.py
 run "٣ب) guard_mutation (ساكن)"   python3 scripts/ci/guard_mutation_guard.py
@@ -301,6 +316,8 @@ require_file scripts/ci/compose_no_default_secrets_guard.py "٤د) compose_no_de
   && run "٤د) compose_no_default_secrets" python3 scripts/ci/compose_no_default_secrets_guard.py
 require_file scripts/ci/compose_auth_sink_guard.py "٤ﻫ) compose_auth_sink" \
   && run "٤ﻫ) compose_auth_sink" python3 scripts/ci/compose_auth_sink_guard.py
+require_file scripts/ci/generated_write_targets.py "٤و) generated_write_targets" \
+  && run "٤و) generated_write_targets" python3 scripts/ci/generated_write_targets.py --check
 run "٤ب) env_compose_drift"       python3 scripts/ci/env_compose_drift_guard.py --check
 run "٤ج) compose_runtime_target"  python3 scripts/ci/compose_runtime_target_resolver.py --check
 

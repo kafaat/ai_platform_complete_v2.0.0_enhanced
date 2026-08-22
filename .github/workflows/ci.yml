@@ -380,6 +380,12 @@ jobs:
       - name: json-duplicate-key-guard
         run: python scripts/ci/json_duplicate_key_guard.py
 
+      # بيانُ أهداف الكتابة — يستهلكه `resolve_merge_conflicts.py` ليُصنِّف بمعيار
+      # «يكتبه مولّد» بدل قائمةٍ منتقاة ارتدّت مرّتين. و`--check` **يُعيد الاشتقاق**
+      # فعلاً (٢.٤ث) لا يصفه، فبيانٌ بائت يُحجَب لا يمرّ.
+      - name: generated-write-targets-check
+        run: python scripts/ci/generated_write_targets.py --check
+
       # env↔compose drift guard (operational-backlog #3): every env var read WITHOUT a default and
       # absent from BOTH compose and .env.example must be classified in the reviewed allowlist
       # (flag / prod-secret / per-env infra URL / perf-default). Catches "code reads env, compose

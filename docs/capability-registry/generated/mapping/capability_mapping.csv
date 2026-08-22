@@ -19,7 +19,7 @@ FM-007,farm_management,Inventory and procurement,True,7,8,24,8,1,1,1,5,3
 FM-008,farm_management,ERP integration,True,5,10,24,5,1,0,0,7,0
 GIS-001,gis,Field geometry validation,True,2,0,0,1,0,1,0,0,0
 GIS-002,gis,Map layers,True,4,2,3,0,0,2,0,2,0
-GIS-003,gis,Terrain and DEM,True,6,24,100,10,51,12,0,38,0
+GIS-003,gis,Terrain and DEM,True,6,25,100,10,51,12,0,38,0
 GIS-004,gis,Spatial analytics,True,3,1,0,1,0,0,0,1,0
 INT-001,farm_management,Public API and SDK,False,0,0,0,0,0,0,0,0,0
 INT-002,farm_management,Event bus integration,True,5,6,15,2,66,0,0,8,0

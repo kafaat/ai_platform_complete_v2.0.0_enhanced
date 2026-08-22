@@ -2508,6 +2508,7 @@
           "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
           "services/sahool-platform/tests/test_confidence_aggregation.py",
           "services/sahool-platform/tests/test_correlation_middleware.py",
+          "services/sahool-platform/tests/test_crop_cards.py",
           "services/sahool-platform/tests/test_crop_decision_bridge.py",
           "services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py",
           "services/sahool-platform/tests/test_crop_stress_facades_guard.py",

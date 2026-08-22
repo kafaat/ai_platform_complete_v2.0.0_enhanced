@@ -35,7 +35,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4083b93899e459ce7acbda5b037bd816739d332ea693888f837c2df52e85e303"
+          "content": "b1cbfe02cefd090f5aea9ccad992eaa56a5b240be103c662c221cf966946636e"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "858e52c1ccdbc41cc5597bfdf0bff501e969ea4c86c07ad1617ff89d364bdabb"
+          "content": "66244a305b76a5edd1159c997c57c4eda178481cfba06710e47d4ed04d773f8f"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -19515,7 +19515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a2637c0726e3cbf8e8cdbb5473121df28910a4db6a6da87d9a209b72ff073e19"
+          "content": "f3ae0b8d5b3c17a8c7dbeabbdff848348380aa5daa116d2da3da3fed884c013b"
         }
       ],
       "name": "services/sahool-platform/core/crop_cards/_TEMPLATE.yaml",
@@ -19725,7 +19725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c7a2e9da84ae0736fa1d4d9bad2c7fc70f3dc21e7180f4527ba58b9729e68ca6"
+          "content": "d9f736b32e7453f96601fd8aff70851709f6db8584c3c01d22ef1f3c470d4788"
         }
       ],
       "name": "services/sahool-platform/core/crop_cards/loader.py",
@@ -19735,7 +19735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "37570ad6d4503c91a425550aeaf9ee0100e8b783a64cc607427bbf3a8c4ef1c0"
+          "content": "76c3c14852d365f4e6f2bbf7bd009c71c3a66cd1cb5544223aa92abd9d4f082a"
         }
       ],
       "name": "services/sahool-platform/core/crop_cards/maize.yaml",
@@ -23535,7 +23535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b9694956cec486233b37ec11e95d32bbac0a6fd0941efb018fab436108fee766"
+          "content": "5006b0e49438b95bd82ebe98aab6da79ec8b8ad295be2c0e07756ad76c3b1dd9"
         }
       ],
       "name": "services/sahool-platform/tests/test_crop_cards.py",

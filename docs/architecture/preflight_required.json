@@ -14,7 +14,8 @@
     "tests_v9/test_db_ownership_source_integrity_guard.py",
     "tests_v9/test_local_preflight_contract.py",
     "tests_v9/test_non_ascii_fixture_path_guard.py",
-    "tests_v9/test_platform_catalog_gate.py"
+    "tests_v9/test_platform_catalog_gate.py",
+    "tests_v9/test_text_encoding_locale.py"
   ],
   "required_scripts": [
     "scripts/ci/arch_test_ci_coverage_guard.py",

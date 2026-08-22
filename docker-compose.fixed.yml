@@ -859,7 +859,7 @@ services:
     environment:
       QDRANT_HOST: sahool-qdrant
       QDRANT_PORT: 6333
-      QDRANT_API_KEY: ${QDRANT_API_KEY}
+      QDRANT_API_KEY: ${QDRANT_API_KEY:?QDRANT_API_KEY required}
       EMBEDDING_URL: http://sahool-ollama:11434/api/embeddings
       LLM_URL: http://sahool-ollama:11434/api/generate
       EMBEDDING_MODEL: nomic-embed-text
@@ -891,7 +891,7 @@ services:
     environment:
       QDRANT_HOST: sahool-qdrant
       QDRANT_PORT: 6333
-      QDRANT_API_KEY: ${QDRANT_API_KEY}
+      QDRANT_API_KEY: ${QDRANT_API_KEY:?QDRANT_API_KEY required}
       EMBEDDING_URL: http://sahool-ollama:11434/api/embeddings
       EMBEDDING_MODEL: nomic-embed-text
     depends_on:

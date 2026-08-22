@@ -273,6 +273,59 @@ def test_the_non_ascii_fixture_guard_runs_in_the_fast_tier_not_only_inside_the_s
     )
 
 
+def test_the_locale_decoding_guard_runs_in_the_fast_tier_not_only_inside_the_suite():
+    """نفسُ حُجّة ٢د، ومقيسةٌ على حادثةٍ بعينها لا على احتمال.
+
+    ``GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01``: الحارس قائمٌ ويحجب، وهو
+    اختبارُ pytest فلا يعمل إلّا في ٨أ — جناحٌ مقيسُه ٣٦٢ث.
+
+    والقياس على #886: مرّ ``--fast`` **أخضر** على شجرةٍ حمّرها الجناحُ الكامل — أربعةُ
+    مواضع ``subprocess(text=True)`` بلا ``encoding``. والأدهى أنّ الصنف نفسه أُصلِح على
+    #884 في الجلسة نفسها ثمّ أُعيد بتبنّي شيفرةٍ واردة: القراءةُ لم تمسكه، والمسحُ
+    أمسكه بعد ستّ دقائق كان يكفيها ٤٫٦ث في هذه الطبقة.
+
+    **والإرساء على الاستدعاء لا على المسار** — نفسُ درس ٢د: المسارُ يرد في هذا الشرح
+    وفي العقد، فالإرساءُ عليه قد يُطابِق نثراً فوق الخطوة بينما السطرُ المنفَّذ تحت
+    الخروج المبكر، فيصير التأكيدُ يقيس غيرَ ما يدّعي.
+
+    **ويُثبَّت الحدُّ المُعلَن أيضاً:** الاختبارُ الحاجب وحده في الطبقة السريعة، لا
+    الملفّ كلُّه — فلو استُبدِل بالملفّ لصار ١٧٫٧ث بدل ٤٫٦ث بلا قرارٍ معلَن.
+    """
+    text = _text()
+    node = "tests_v9/test_text_encoding_locale.py::test_no_new_file_decodes_text_with_the_machines_locale"
+    invocation = f"python3 -m pytest -q {node}"
+    assert invocation in text, "حارسٌ لا يعمل إلّا داخل جناح ٣٦٢ث لا يمكن أن يكون ما قاسه `--fast`"
+    assert text.count(invocation) == 1, "استدعاءان يجعلان فحصَ الموضع يقرأ أوّلَهما — اختر واحداً"
+    assert text.index(invocation) < text.index('if [ "$TIER" = fast ]'), (
+        "يجب أن يعمل في `--fast`: الطبقةُ التي يُشغّلها المطوّر قبل الدفع"
+    )
+    # الحدُّ مقصود: الملفُّ كلُّه ثلاثةُ أضعاف الكلفة، وحارسا التملّص يبقيان في ٨أ.
+    #
+    # **والفحصُ سطريٌّ لا مطابقةُ نصّ — وأوّلُ صياغةٍ لي هنا مرّت على العطل الذي كُتِبت
+    # لمنعه.** كانت `"-q …locale.py " not in f"{text} "` تشترط **مسافةً** بعد المسار،
+    # وسطرُ الاستدعاء ينتهي بسطرٍ جديد لا بمسافة. فزُرِع استدعاءُ الملفّ كلِّه **بجانب**
+    # العقديّ فمرّ التأكيدُ صامتاً — والذيلُ المضاف `f"{text} "` لا يُنقِذ إلّا لو كان
+    # الاستدعاءُ آخِرَ حرفٍ في الملفّ. أمسكها مراجعٌ آليّ على #888، وأُثبِتت بالزرع.
+    #
+    # والصياغةُ الحاليّة تقرأ **أسطرَ التنفيذ** (`run …`) وتشترط أن يحمل كلُّ ذكرٍ
+    # للملفّ عقدةً (`::`) — فلا تتعلّق بما يلي المسار، ولا يُخفيها سطرٌ جديد.
+    executed = [
+        line
+        for line in text.splitlines()
+        if line.lstrip().startswith("run ") and "tests_v9/test_text_encoding_locale.py" in line
+    ]
+    assert len(executed) == 1, (
+        f"استدعاءٌ منفَّذٌ واحدٌ لهذا الملفّ لا أكثر — وُجِد {len(executed)}: {executed}"
+    )
+    assert "tests_v9/test_text_encoding_locale.py::" in executed[0], (
+        "الطبقةُ السريعة تحمل الاختبارَ الحاجب وحده — الملفّ كلُّه قرارُ كلفةٍ آخر"
+    )
+    contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
+    assert "tests_v9/test_text_encoding_locale.py" in contract["required_tests"], (
+        "حذفُ الحارس يجب أن يُسمّى فقدَ تغطية، لا أن يُقرَأ بوّابةً مارّة"
+    )
+
+
 def test_the_commit_claim_step_says_it_reads_committed_messages_only():
     """Measured: its green ran before the commit it was read as clearing.
 
