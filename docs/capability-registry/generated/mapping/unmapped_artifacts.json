@@ -7520,6 +7520,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_json_duplicate_key_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_jwt_algorithm_parity_guard_v21.py",
     "kind": "tests"
   },
@@ -7849,6 +7853,10 @@
   },
   {
     "path": "tests_v9/test_rag_corpus_admissibility_probe.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_corpus_identity_readiness.py",
     "kind": "tests"
   },
   {

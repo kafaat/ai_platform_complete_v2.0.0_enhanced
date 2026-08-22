@@ -368,6 +368,18 @@ jobs:
       - name: compose-auth-sink-guard
         run: python scripts/ci/compose_auth_sink_guard.py
 
+      # MUT-REGISTRY-DUPLICATE-KEY-SHADOWS-A-BLOCK-01. وثيقةٌ صحيحةٌ نحويّاً تُحمَّل
+      # غيرَ ما كُتِب فيها: `json.load` آخِريُّ الترجيح، فمفتاحٌ مكرَّر يطرح ما قبله
+      # بلا رسالةٍ ولا رمزِ خروج. ومقيسٌ على `a1f5da7f`:
+      # `guard_mutation_registry.json` حمل مفتاحين مكرّرين تحت `behavioural` —
+      # فكتلةٌ ثانيةٌ *أصغر* من سابقتها كانت ستُعطِّل طفراتِ الأولى **صامتاً**.
+      #
+      # النطاقُ كلُّ ملفّ `.json` متعقَّب، بلا قائمة استثناءات وبلا أساسٍ مُجمَّد —
+      # مقيسٌ لا مُفترَض: ٢٣٣ ملفّاً، صفرُ تكرار. ومفتاحٌ مكرَّر لا حالةَ استعمالٍ
+      # مشروعةً له في وثيقة سياسة، فالاستثناءُ ثقبٌ لا مرونة.
+      - name: json-duplicate-key-guard
+        run: python scripts/ci/json_duplicate_key_guard.py
+
       # env↔compose drift guard (operational-backlog #3): every env var read WITHOUT a default and
       # absent from BOTH compose and .env.example must be classified in the reviewed allowlist
       # (flag / prod-secret / per-env infra URL / perf-default). Catches "code reads env, compose

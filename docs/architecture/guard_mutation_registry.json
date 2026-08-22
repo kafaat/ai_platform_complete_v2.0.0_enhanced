@@ -63,6 +63,13 @@
           "find": "    \"canonical_payload_parity\": false,",
           "replace": "    \"canonical_payload_parity\": true,",
           "why": "رفعُ تكافؤِ الـpayload بلا إيصالِ جردِ مجموعة تلفيق: يحتاج عدّاً دقيقاً مطابقاً للمسح، وكلَّ نقطةٍ مصنّفة، وصفرَ غيرِ مصنّف. والشاهدُ الحيّ قاطع — مخطّطُ المتّجه سليمٌ بينما ٥٤ نقطة غير قابلة لإعادة البناء القانونيّة."
+        },
+        {
+          "expect": "test_s3_exception_expiry_fails_closed",
+          "test": "tests_v9/test_rag_authority_convergence_guard.py",
+          "find": "  \"schema\": \"sahool.rag-authority-convergence/v2\",",
+          "replace": "  \"schema\": \"sahool.rag-authority-convergence/v1\",",
+          "why": "M0-C2 بعد مراجعة #883: مفرداتُ `cutover_requirements` جزءٌ من الشكل لا حاشيةٌ عليه، فوثيقةٌ بالمفردة القديمة تصف عقداً لم يعد قائماً. وأوّلُ صياغةٍ للهجرة رفعت `version` وحده وأبقت `schema` على `/v1` — والحارسُ **لا يقرأ `version` إطلاقاً**، فكان الإبطالُ مُعلَناً في نثرٍ ومفروضاً بلا شيء، ووثيقةٌ قديمة تمرّ. هذه الطفرة تُثبِت أنّ الرفض صار مفروضاً فعلاً."
         }
       ]
     },
@@ -880,6 +887,34 @@
           "find": "        KnowledgeChunk.from_payload(payload, fallback_id=fallback_id)\n        return None\n",
           "replace": "        pass\n",
           "why": "نزعُ نداء المحلّل الحقيقيّ من التصنيف ⇒ يصير التصنيفُ محاكاةً تنحرف عن القرار، فيُعطى رمزُ رفضٍ لِما قَبِله المحلّل."
+        },
+        {
+          "expect": "test_the_executed_retrieve_body_carries_no_eligibility_filter",
+          "test": "tests_v9/test_rag_corpus_identity_readiness.py",
+          "find": "        dense_map: dict[str, float] = {}\n        for point_id, score, payload in dense_rows:\n",
+          "replace": "        dense_map: dict[str, float] = {}\n        for point_id, score, payload in dense_rows:\n            if not canonical_storage_shape(payload):\n                continue\n",
+          "why": "D09: عودةُ مِصفاةِ الصفوف إلى الكثيف تُحوِّل انحرافَ المجموعة من `503` صريح إلى `200` بنتائجَ ناقصة لا يعرف المستهلكُ نقصَها — إجابةٌ مبتورة تُقرَأ كاملة، وهي أخفى وأسوأ في مسار RAG."
+        },
+        {
+          "expect": "test_same_count_same_ids_but_altered_content_still_drifts",
+          "test": "tests_v9/test_rag_corpus_identity_readiness.py",
+          "find": "        \"content_digest\": _digest(pairs),\n",
+          "replace": "        \"content_digest\": _digest(ids),  # mutated: content ignored\n",
+          "why": "D09-M: بصمةٌ تقرأ المُعرِّفات وحدها تمرّ على تبدُّلِ المحتوى كلِّه بعددٍ ومُعرِّفاتٍ ثابتة — فتصير هويّةُ المجموعة حارسَ عدد لا حارسَ سلامة."
+        },
+        {
+          "expect": "test_readiness_fails_closed_on_active_noncanonical_rows",
+          "test": "tests_v9/test_rag_corpus_identity_readiness.py",
+          "find": "    if noncanonical:\n",
+          "replace": "    if False and noncanonical:\n",
+          "why": "D09-E: تعطيلُ حكمِ الجاهزيّة يجعل الخدمةَ تُعلِن READY على مجموعةٍ تحوي صفوفاً نشطةً غيرَ قانونيّة. والحكمُ دالّةٌ نقيّة عمداً كي يُكذَّب بالسلوك — أوّلُ صياغةٍ فحصت النصَّ فمرّت على هذا التعطيل بعينه."
+        },
+        {
+          "expect": "test_readiness_refuses_an_unmeasured_identity",
+          "test": "tests_v9/test_rag_corpus_identity_readiness.py",
+          "find": "    if not isinstance(identity, dict) or not identity.get(\"id_set_digest\"):\n",
+          "replace": "    if False:\n",
+          "why": "D09-E: غيابُ البصمة يعني «لم تُقَس» لا «سليمة». قبولُه يُخضِر الجاهزيّةَ على مجموعةٍ لم يُقَس انحرافُها أصلاً — وهو «يفشل مفتوحاً» بعينه."
         }
       ]
     },
@@ -921,44 +956,6 @@
           "find": "        return False, f\"not ready: heartbeat unreadable ({exc.__class__.__name__})\"\n",
           "replace": "        return True, \"ready\"\n",
           "why": "نبضةٌ موجودةٌ لا تُقرَأ (EIO مثلاً) تُقرَأ صحّةً. وأمسك أصلَ العطل مراجعٌ آليّ على #880: بلا التقاطٍ يخرج الفحص بـtraceback فيقرأ Docker رمزَ الخروج ولا يقرأ المشغّلُ سبباً — والأوسع أنّ `Path.exists()` نفسه يرمي على EIO، فوُحِّد النداء وأُلغيت النافذة بدل حراستها."
-        }
-      ]
-    },
-    ".github/workflows/ci.yml": {
-      "$why_a_workflow_belongs_here_ar": "المفتاحُ مسارُ ما يعمل فعلاً في CI، والسقفُ وموضعُ المكنسة بندان في ذلك الملفّ لا في حارسٍ يصفه. فتُزرَع الطفرةُ في الـYAML نفسه — وإلّا شهد الحارسُ لنسخةٍ من العقد لا للعقد.",
-      "mutations": [
-        {
-          "expect": "test_the_longest_job_has_the_decided_ceiling_not_a_six_hour_default",
-          "find": "    timeout-minutes: 90",
-          "replace": "    timeout-minutes: 60  # mutated: السقف يعود تحت أبطأ قياسٍ حقيقيّ",
-          "why": "MUT-SWEEP-TIMEOUT-01: على #882 أنهت *Unit Tests* عند ٥٩:٠٢ مقابل سقف ٦٠ — بفارق ٥٨ ثانية. وإعادةُ السقف إلى ٦٠ تُعيد الوظيفةَ إلى حافّة القتل بالمهلة، وأوّلُ طفرةٍ تُضاف تُسقِطها. والفشلُ بالمهلة يُقرَأ عطلاً في الاختبارات لا ضيقاً في السقف، فيُشخَّص في الاتّجاه الخطأ.",
-          "test": "tests_v9/test_ci_pipeline_settings.py"
-        },
-        {
-          "expect": "test_the_sweep_still_runs_inside_the_job_the_ruleset_actually_requires",
-          "find": "        run: python scripts/ci/guard_mutation_guard.py --run",
-          "replace": "        run: echo skipped  # mutated: المكنسة تخرج من الوظيفة الحاجبة",
-          "why": "نقلُ المكنسة خارج *Unit Tests* بلا إضافةِ اسمِ الوظيفة الجديدة إلى الفحوص المطلوبة في الـRuleset يجعلها إرشاديّةً **صامتاً**. و`branch_protection_contract_guard` يفرض حلَّ المحادثات وحده ولا يُعدّد الفحوصَ بالاسم، فلا شيءَ في الشجرة يمنع ذلك. وهو صنفُ «حارسٌ كفّ عن الحجب بلا أن يحمرّ» بعينه."
-        }
-      ],
-      "test": "tests_v9/test_mutation_sweep_headroom.py"
-    },
-    "docs/architecture/rag_authority_convergence.json": {
-      "$why_ar": "المفردةُ المحفوظة هي ما يقرؤه **كلُّ** مُنتِج. وكانت الوثيقةُ بلا مفتاح `canonical_payload_parity` إطلاقاً — فمُنتِجٌ يكتب الاسمَ الواسع `True` كان يُسقِط شرطَ الـpayload من الحساب رأساً، لا يُخالِفه بل لا يراه.",
-      "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
-      "mutations": [
-        {
-          "expect": "test_no_producer_can_certify_cutover_on_a_vector_only_receipt",
-          "find": "    \"canonical_payload_parity\": false,",
-          "replace": "    \"canonical_payload_parity\": true,",
-          "why": "رفعُ تكافؤِ الـpayload بلا إيصالِ جردِ مجموعة تلفيق: يحتاج عدّاً دقيقاً مطابقاً للمسح، وكلَّ نقطةٍ مصنّفة، وصفرَ غيرِ مصنّف. والشاهدُ الحيّ قاطع — مخطّطُ المتّجه سليمٌ بينما ٥٤ نقطة غير قابلة لإعادة البناء القانونيّة."
-        },
-        {
-          "expect": "test_s3_exception_expiry_fails_closed",
-          "test": "tests_v9/test_rag_authority_convergence_guard.py",
-          "find": "  \"schema\": \"sahool.rag-authority-convergence/v2\",",
-          "replace": "  \"schema\": \"sahool.rag-authority-convergence/v1\",",
-          "why": "M0-C2 بعد مراجعة #883: مفرداتُ `cutover_requirements` جزءٌ من الشكل لا حاشيةٌ عليه، فوثيقةٌ بالمفردة القديمة تصف عقداً لم يعد قائماً. وأوّلُ صياغةٍ للهجرة رفعت `version` وحده وأبقت `schema` على `/v1` — والحارسُ **لا يقرأ `version` إطلاقاً**، فكان الإبطالُ مُعلَناً في نثرٍ ومفروضاً بلا شيء، ووثيقةٌ قديمة تمرّ. هذه الطفرة تُثبِت أنّ الرفض صار مفروضاً فعلاً."
         }
       ]
     }
@@ -1986,6 +1983,47 @@
         }
       ],
       "test": "tests_v9/test_guard_mutation_guard.py"
+    },
+    "json_duplicate_key_guard.py": {
+      "test": "tests_v9/test_json_duplicate_key_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_duplicate_inside_behavioural_is_detected",
+          "find": "    obj.duplicates = {k: n for k, n in counts.items() if n > 1}\n",
+          "replace": "    obj.duplicates = {}  # mutated: المحلّل يرى التكرار والحارس ينساه\n",
+          "why": "نزعُ تسجيلِ ما رآه المحلّل مكرَّراً يُعيد الحارسَ إلى عمى `json.load` الافتراضيّ بعينه — يقرأ الوثيقة، ويطوي التكرار، ويُعلِن نجاحاً. وهو العطلُ الأصليّ لا محاكاتُه."
+        },
+        {
+          "expect": "test_a_duplicate_nested_inside_a_list_is_detected",
+          "find": "    elif isinstance(node, list):\n        for index, value in enumerate(node):\n            _walk(value, f\"{path}[{index}]\", out)\n",
+          "replace": "    elif False:  # mutated: المشيُ لا يعبر القوائم\n        pass\n",
+          "why": "`mutations` مصفوفةٌ من كائنات، فتكرارٌ داخل عنصرٍ منها لا يُرى إن لم يعبر المشيُ القوائم. وحارسٌ يفحص الكائناتِ وحدها يمرّ على نصفِ الوثيقة وهو يظنّ أنّه مسحها."
+        },
+        {
+          "expect": "test_scanning_nothing_is_a_failure_not_a_pass",
+          "find": "    if not problems and scanned == 0:\n",
+          "replace": "    if False:  # mutated: «لم يُنظَر» يُقرَأ «سليم»\n",
+          "why": "جردٌ فارغ (نمطٌ لا يطابق، جذرٌ خطأ) يصير نجاحاً — الحارسُ يُخضِر لأنّه لم ينظر لا لأنّه لم يجد. وهو صنف «أخضرُ عن سؤالٍ لم يُطرَح»."
+        },
+        {
+          "expect": "test_invalid_json_fails_closed_with_a_named_reason",
+          "find": "            problems.append(f\"{path.relative_to(root)}: JSON غير صالح — {exc}\")\n",
+          "replace": "            pass  # mutated: وثيقةٌ لا تُحلَّل تُبتلَع\n",
+          "why": "وثيقةٌ تالفة تُقرَأ سليمةً: التكرارُ فيها غيرُ مقيسٍ أصلاً، فابتلاعُها يقول «لا تكرار» عن ملفٍّ لم يُفحَص."
+        },
+        {
+          "expect": "test_a_tracked_file_missing_from_disk_fails_closed",
+          "find": "            problems.append(f\"{path.relative_to(root)}: متعقَّبٌ ولا يُقرَأ من القرص\")\n",
+          "replace": "            pass  # mutated: ملفٌّ متعقَّبٌ غائبٌ يُبتلَع\n",
+          "why": "ملفٌّ في الجرد ولا يُقرَأ يُطرَح صامتاً، فينكمش المسحُ بلا أن يُعلَن — والخضرةُ تصير عن جردٍ أصغر ممّا يقوله اسمُها."
+        },
+        {
+          "expect": "test_an_unusable_inventory_source_fails_closed",
+          "find": "        return [f\"تعذّر جردُ ملفّات JSON: {exc}\"], 0\n",
+          "replace": "        return [], 0  # mutated: تعذُّرُ الجرد يُقرَأ شجرةً نظيفة\n",
+          "why": "تعذُّرُ الجرد يُقرَأ «لا تكرار» — أسوأُ صور الفشل المفتوح: الحارسُ يُعلِن سلامةَ ما لم يستطع النظر إليه."
+        }
+      ]
     },
     "knowledge_provenance_guard.py": {
       "mutations": [

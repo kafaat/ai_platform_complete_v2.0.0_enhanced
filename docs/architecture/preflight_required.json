@@ -28,6 +28,7 @@
     "scripts/ci/compose_runtime_target_resolver.py",
     "scripts/ci/env_compose_drift_guard.py",
     "scripts/ci/guard_mutation_guard.py",
+    "scripts/ci/json_duplicate_key_guard.py",
     "scripts/ci/no_merge_conflict_markers_guard.py",
     "scripts/ci/pr_capability_impact_gate.py",
     "scripts/ci/probe_leak_guard.py",
