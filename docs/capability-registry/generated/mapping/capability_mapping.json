@@ -25,8 +25,8 @@
       "tests": 1709,
       "web": 456
     },
-    "unmapped_artifacts": 2106,
-    "ambiguous_artifacts": 405
+    "unmapped_artifacts": 2105,
+    "ambiguous_artifacts": 408
   },
   "capabilities": [
     {
@@ -9314,11 +9314,35 @@
           ]
         },
         {
+          "path": "services/sahool-platform/core/crop_cards/loader.py",
+          "score": 9,
+          "signals": [
+            "content:dem",
+            "content:slope"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/core/crop_cards/maize.yaml",
+          "score": 9,
+          "signals": [
+            "content:dem",
+            "content:slope"
+          ]
+        },
+        {
           "path": "services/soil-service/routers/p2_products.py",
           "score": 9,
           "signals": [
             "content:dem",
             "content:terrain"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/core/crop_cards/_TEMPLATE.yaml",
+          "score": 8,
+          "signals": [
+            "content:dem",
+            "content:slope"
           ]
         }
       ],
@@ -10353,6 +10377,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_crop_cards.py",
+          "score": 10,
+          "signals": [
+            "content:dem",
+            "content:slope"
+          ]
+        },
+        {
           "path": "frontend/src/lib/evidenceGraph.test.ts",
           "score": 9,
           "signals": [
@@ -10760,13 +10792,13 @@
         "routes": 19
       },
       "evidence_counts": {
-        "backend": 22,
+        "backend": 25,
         "routes": 100,
         "database": 10,
         "events": 51,
         "web": 12,
         "mobile": 0,
-        "tests": 37,
+        "tests": 38,
         "governance": 0,
         "other_evidence": 34
       },
@@ -38875,10 +38907,6 @@
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/core/crop_cards/loader.py",
-      "kind": "backend"
-    },
-    {
       "path": "services/sahool-platform/core/crop_cards/varieties/barley_bakkur.yaml",
       "kind": "backend"
     },
@@ -49803,6 +49831,50 @@
       ]
     },
     {
+      "path": "services/sahool-platform/core/crop_cards/_TEMPLATE.yaml",
+      "kind": "backend",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 10,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "GIS-003",
+          "score": 8,
+          "signals": [
+            "content:dem",
+            "content:slope"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/sahool-platform/core/crop_cards/maize.yaml",
+      "kind": "backend",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 10,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "GIS-003",
+          "score": 9,
+          "signals": [
+            "content:dem",
+            "content:slope"
+          ]
+        }
+      ]
+    },
+    {
       "path": "services/sahool-platform/core/crop_intelligence/engine.py",
       "kind": "backend",
       "candidates": [
@@ -50780,6 +50852,28 @@
             "content:Weather forecast",
             "content:forecast",
             "content:weather forecast"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/sahool-platform/tests/test_crop_cards.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "GIS-003",
+          "score": 10,
+          "signals": [
+            "content:dem",
+            "content:slope"
           ]
         }
       ]
