@@ -58,6 +58,10 @@
       "kind": "governed"
     },
     {
+      "path": "docs/architecture/generated_write_targets.json",
+      "kind": "governed"
+    },
+    {
       "path": "docs/architecture/guard_mutation_registry.json",
       "kind": "legacy_schema_version"
     },

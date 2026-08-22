@@ -36,12 +36,16 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+
+#: بيانُ أهداف الكتابة — مشتقٌّ ساكناً بـ`generated_write_targets.py`.
+WRITE_TARGETS = ROOT / "docs" / "architecture" / "generated_write_targets.json"
 
 # سجلّات إلحاقيّة: الجانبان مدخلان مختلفان دائماً، لا نسختان من مدخل واحد.
 APPEND_ONLY = (
@@ -114,10 +118,36 @@ CONFLICT_RE = re.compile(
 MAIN_SIDE = {"merge": "theirs", "rebase": "ours"}
 
 
+def _measured_write_targets() -> set[str]:
+    """أهدافُ الكتابة المشتقّة ساكناً — «يكتبه مولّد» لا «يُذكَر في مولّد».
+
+    والفرقُ مقيس: مسحُ الذكر النصّيّ يعطي ٢١٩ مساراً، ومنها
+    `guard_mutation_registry.json` — وثيقةُ سياسةٍ بخطّ اليد يقرؤها المحرّك ولا
+    يكتبها. تصنيفُها مولَّدةً يعني «خُذ جانب main ثمّ أعِد التوليد»، أي إتلافُ
+    طفراتٍ مكتوبة.
+    """
+    if not WRITE_TARGETS.is_file():
+        return set()
+    try:
+        return set(json.loads(WRITE_TARGETS.read_text(encoding="utf-8")).get("targets", []))
+    except (OSError, ValueError):
+        return set()
+
+
 def classify(path: str) -> str:
-    """``append_only`` · ``generated`` · ``source``. المصدر يُوقِف السكربت."""
+    """``append_only`` · ``generated`` · ``source``. المصدر يُوقِف السكربت.
+
+    **الترتيب مقصود، والمنعُ يعلو البيان.** الاشتقاق ساكن، فمسارٌ يُبنى في وقت
+    التشغيل لا يُرى؛ ومسارٌ يتوقّف عن كونه مولَّداً قد يبقى معلَناً. فتبقى
+    `HAND_WRITTEN_POLICY` منعاً صريحاً فوق البيان — دفاعٌ في العمق لا تكرار،
+    ويفرض اختبارٌ أنّ المجموعتين منفصلتان.
+    """
     if path in APPEND_ONLY:
         return "append_only"
+    if path in HAND_WRITTEN_POLICY:
+        return "source"
+    if path in _measured_write_targets():
+        return "generated"
     if any(marker in path for marker in GENERATED_MARKERS):
         return "generated"
     return "source"
