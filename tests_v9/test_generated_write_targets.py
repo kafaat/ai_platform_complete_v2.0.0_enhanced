@@ -113,6 +113,50 @@ def test_the_check_re_derives_and_does_not_merely_describe():
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+def test_a_stale_manifest_is_caught_because_check_re_derives(monkeypatch, tmp_path):
+    """`--check` يقيس ولا يصف — ويُقاس ذلك على بيانٍ **بائت**، لا على مطابق.
+
+    اختبارٌ يُشغّل `--check` على شجرةٍ متّسقة يمرّ سواءٌ أعاد الاشتقاق أم اكتفى
+    بترديد ما في الملفّ. فالطفرة التي تجعله يصف بدل أن يقيس نجت منه — وهي أخطر
+    ما يمكن أن يُصيب هذا العقد: بيانٌ يبيت أبداً بلا إنذار.
+    """
+    stale = tmp_path / "stale.json"
+    stale.write_text(
+        json.dumps(
+            {
+                "schema": "sahool.generated_write_targets",
+                "version": 1,
+                "measured_by": "x",
+                "measured_on": "0" * 40,
+                "criterion": "x",
+                "honesty_limit": "x",
+                "count": 1,
+                "targets": ["docs/runbooks/GUARD_CATALOGUE.md"],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(tool, "MANIFEST", stale)
+    assert tool.check() == 1, "بيانٌ ناقصٌ بشدّة مرّ — `--check` يصف ولا يقيس"
+
+
+def test_the_deny_list_holds_even_when_the_manifest_is_wrong(monkeypatch):
+    """الطبقةُ الثانية تُقاس حيث تعمل: على بيانٍ **خاطئ**، لا على سليم.
+
+    ما دام الاشتقاق صحيحاً فوثيقةُ السياسة خارج البيان أصلاً، فيُرجِع التصنيف
+    «مصدر» بالمنع أو بدونه — والاختبار يمرّ في الحالتين. فقيمةُ المنع لا تظهر
+    إلّا حين يُخطئ البيان: وهنا يُزرَع الخطأ ويُقاس أنّ المنع أمسكه.
+    """
+    poisoned = set(resolver.HAND_WRITTEN_POLICY)
+    monkeypatch.setattr(resolver, "_measured_write_targets", lambda: poisoned)
+    for path in resolver.HAND_WRITTEN_POLICY:
+        assert resolver.classify(path) == "source", (
+            f"{path}: بيانٌ خاطئ صنّف وثيقةَ سياسةٍ مولَّدةً، والمنع لم يمسكه — "
+            "فحلُّ التعارض يأخذ جانب main ويمحو طفراتٍ مكتوبة"
+        )
+
+
 def test_a_missing_manifest_degrades_to_source_not_to_chaos(monkeypatch, tmp_path):
     """غيابُ البيان يفشل في **الاتّجاه الآمن**.
 
