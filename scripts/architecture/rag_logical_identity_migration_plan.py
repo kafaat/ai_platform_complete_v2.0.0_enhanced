@@ -9,6 +9,7 @@ Qdrant's point ID are held for evidence instead of being made canonical by fiat.
 from __future__ import annotations
 
 import argparse
+import functools
 import hashlib
 import importlib.util
 import json
@@ -32,6 +33,15 @@ def _sha256_json(value: Any) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
+# **مخزَّنٌ لأنّ الاستيراد تنفيذٌ لا بحث.** `exec_module` يُعيد تنفيذ الوحدة كاملةً في
+# كلّ نداء — ٣٫٥٥ms مقيسةً مقابل ٩٫٥µs للإسقاط نفسه، أي **٣٧٤×**. وكان النداء لكلّ
+# صفّ، فتصير الخطّةُ حلقةَ استيرادٍ بطول الجرد: ٣٥ث على ١٠٬٠٠٠ نقطة و٦ دقائق على
+# ١٠٠٬٠٠٠، مقابل أقلّ من ثانية. أمسكها مراجعٌ آليّ على #886.
+#
+# والأسوأ من البطء أنّ إعادةَ التنفيذ تُنشئ حالةَ وحدةٍ جديدة في كلّ مرّة — فأيّ أثرٍ
+# جانبيّ عند الاستيراد يتكرّر بعدد الصفوف. والتخزينُ يحفظ خاصّيّة «استورِد ولا تُعِد
+# الكتابة» كما هي: المصدرُ يبقى الكاتبَ وحده.
+@functools.lru_cache(maxsize=1)
 def _load_corpus_guard():
     spec = importlib.util.spec_from_file_location("rag_d12_corpus_guard", CORPUS_GUARD)
     if spec is None or spec.loader is None:
@@ -42,6 +52,7 @@ def _load_corpus_guard():
     return module
 
 
+@functools.lru_cache(maxsize=1)
 def _load_pq():
     spec = importlib.util.spec_from_file_location("rag_d12_plan_pq", PQ_PATH)
     if spec is None or spec.loader is None:

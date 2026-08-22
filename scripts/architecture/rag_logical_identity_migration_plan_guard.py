@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import functools
 import hashlib
 import importlib.util
 import json
@@ -28,17 +29,25 @@ def _sha256_json(value: Any) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
-def _writer_id(logical: str) -> str:
-    """يُستورَد من الكاتب لا يُعاد كتابته — نسخةٌ ثالثة للصيغة تنحرف عن الاثنتين."""
+# التحميلُ مفصولٌ عن النداء ومخزَّن — انظر التعليق المقابل في المخطِّط: ٣٫٥٥ms لكلّ
+# `exec_module` مقابل ٩٫٥µs للإسقاط، والنداءُ كان لكلّ صفّ.
+@functools.lru_cache(maxsize=1)
+def _load_pq():
     spec = importlib.util.spec_from_file_location("rag_d12_guard_pq", PQ_PATH)
     if spec is None or spec.loader is None:
         raise RuntimeError("cannot load canonical retrieval module")
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
-    return module.canonical_storage_point_id(logical)
+    return module
 
 
+def _writer_id(logical: str) -> str:
+    """يُستورَد من الكاتب لا يُعاد كتابته — نسخةٌ ثالثة للصيغة تنحرف عن الاثنتين."""
+    return _load_pq().canonical_storage_point_id(logical)
+
+
+@functools.lru_cache(maxsize=1)
 def _load_corpus_guard():
     spec = importlib.util.spec_from_file_location("rag_d12_guard_corpus", CORPUS_GUARD)
     if spec is None or spec.loader is None:
