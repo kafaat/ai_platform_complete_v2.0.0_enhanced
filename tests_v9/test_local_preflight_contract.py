@@ -20,7 +20,6 @@ invariants exist to prevent.
 from __future__ import annotations
 
 import json
-import os
 import re
 import subprocess
 import sys
@@ -552,12 +551,16 @@ def _seed_repo(tmp_path: Path) -> Path:
     ):
         (repo / f).parent.mkdir(parents=True, exist_ok=True)
         (repo / f).write_text("original\n", encoding="utf-8")
+    # بيئةُ git معزولةٌ بنمط المستودع المعتمد: HOME داخل الجذر المؤقّت
+    # وGIT_CONFIG_NOSYSTEM يقطعان إعدادات المضيف، وPATH ثابتٌ لا موروث.
     env = {
+        "PATH": "/usr/bin:/bin",
+        "HOME": str(repo),
+        "GIT_CONFIG_NOSYSTEM": "1",
         "GIT_AUTHOR_NAME": "t",
         "GIT_AUTHOR_EMAIL": "t@t",
         "GIT_COMMITTER_NAME": "t",
         "GIT_COMMITTER_EMAIL": "t@t",
-        "PATH": os.environ["PATH"],
     }
     for cmd in (["git", "init", "-q"], ["git", "add", "-A"], ["git", "commit", "-q", "-m", "seed"]):
         sp.run(cmd, cwd=repo, env=env, check=True, capture_output=True)
