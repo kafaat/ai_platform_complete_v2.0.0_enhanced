@@ -19515,7 +19515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e7a31f38034dcf309fde5b8e19a9f5f0d272147701208880b54b5f5cce7fb6ba"
+          "content": "a2637c0726e3cbf8e8cdbb5473121df28910a4db6a6da87d9a209b72ff073e19"
         }
       ],
       "name": "services/sahool-platform/core/crop_cards/_TEMPLATE.yaml",
@@ -19725,7 +19725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "42968a64022cb96167ec1402ec5356781817f6c97f5e0e39a07586439cc432c2"
+          "content": "c7a2e9da84ae0736fa1d4d9bad2c7fc70f3dc21e7180f4527ba58b9729e68ca6"
         }
       ],
       "name": "services/sahool-platform/core/crop_cards/loader.py",
@@ -19735,7 +19735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "38fa5d88a149c6beaf56f4dd07c1d77b2df13e58564182b82efb399f3b5ee75f"
+          "content": "37570ad6d4503c91a425550aeaf9ee0100e8b783a64cc607427bbf3a8c4ef1c0"
         }
       ],
       "name": "services/sahool-platform/core/crop_cards/maize.yaml",
@@ -23535,7 +23535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cbf3abe628c918482bb065bb5405c1a3d3929f95699931c4ccbdd2df09ae35a6"
+          "content": "b9694956cec486233b37ec11e95d32bbac0a6fd0941efb018fab436108fee766"
         }
       ],
       "name": "services/sahool-platform/tests/test_crop_cards.py",
