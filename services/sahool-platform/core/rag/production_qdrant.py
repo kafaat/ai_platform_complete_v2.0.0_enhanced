@@ -65,6 +65,24 @@ def _content_digest(text: str) -> str:
 # ── D09-C — عقدُ الشكل القانونيّ: سياسةٌ حتميّة، لا نتيجةُ قياسٍ حيّ ──────────
 
 
+def canonical_storage_point_id(chunk_id: str) -> str:
+    """إسقاطُ الهويّة المنطقيّة إلى مُعرِّف تخزينٍ حتميّ — **سلطةٌ واحدة**.
+
+    كانت الصيغةُ مضمَّنةً في `upsert` وحدها، فحملت حزمةُ D12 نسختين أخريين (مخطِّطاً
+    وحارساً). وثلاثُ نسخٍ لصيغةٍ واحدة تنحرف: تبديلُ الفضاء أو البادئة في الكاتب يجعل
+    المخطِّطَ يحسب وجهاتِ هجرةٍ **لا يُنتِجها الكاتبُ أبداً** — بلا رسالةٍ ولا حمرة.
+    فصارت هنا، ويستوردها كلُّ من يحتاجها.
+
+    **والاتّجاهُ واحدٌ بالقصد.** لا عكسَ لها ولن يُكتَب: الذهابُ من هويّةٍ منطقيّة إلى
+    UUID مشروعٌ لأنّه يبدأ من هويّةٍ مُعلَنة؛ والعكسُ يعني اختلاقَ هويّةٍ منطقيّة من
+    مُعرِّف تخزين، وهو ما يمنعه `HOLD_IDENTITY_EVIDENCE` في D12.
+    """
+    logical = str(chunk_id).strip()
+    if not logical:
+        raise ValueError("non-empty logical chunk_id is required")
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, f"sahool-rag:{logical}"))
+
+
 def canonical_storage_shape(payload: dict[str, Any]) -> bool:
     """هل يحمل ``payload`` شكلَ التخزين القانونيّ الذي يكتبه الكاتبُ القانونيّ؟
 
@@ -894,8 +912,9 @@ class QdrantHttpClient:
         for chunk, vector in zip(chunks, embeddings, strict=True):
             # Qdrant point IDs are uint64 or UUID.  External chunk identifiers may
             # be arbitrary strings, so derive a stable UUID while retaining the
-            # original chunk_id in metadata.
-            point_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"sahool-rag:{chunk.chunk_id}"))
+            # original chunk_id in metadata.  The projection lives in one place —
+            # every other reader imports it instead of restating the formula.
+            point_id = canonical_storage_point_id(chunk.chunk_id)
             points.append({"id": point_id, "vector": vector, "payload": chunk.payload})
         self._request("PUT", f"/collections/{self.collection}/points?wait=true", {"points": points})
 

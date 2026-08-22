@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5160,
+    "files_scanned": 5163,
     "files_by_kind": {
       "backend": 1198,
       "database": 274,
       "governance": 60,
       "mobile": 51,
-      "other": 1414,
-      "tests": 1707,
+      "other": 1416,
+      "tests": 1708,
       "web": 456
     },
-    "unmapped_artifacts": 2104,
+    "unmapped_artifacts": 2105,
     "ambiguous_artifacts": 405
   },
   "capabilities": [
@@ -42512,6 +42512,10 @@
     },
     {
       "path": "tests_v9/test_rag_live_parity_receipt_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_rag_logical_identity_migration_plan.py",
       "kind": "tests"
     },
     {

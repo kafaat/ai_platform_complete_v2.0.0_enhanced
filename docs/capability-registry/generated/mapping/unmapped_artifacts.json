@@ -7888,6 +7888,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_rag_logical_identity_migration_plan.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_rag_operational_boundary_guard.py",
     "kind": "tests"
   },
