@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5154,
+    "files_scanned": 5157,
     "files_by_kind": {
       "backend": 1198,
       "database": 274,
       "governance": 60,
       "mobile": 51,
-      "other": 1411,
-      "tests": 1704,
+      "other": 1412,
+      "tests": 1706,
       "web": 456
     },
-    "unmapped_artifacts": 2101,
+    "unmapped_artifacts": 2103,
     "ambiguous_artifacts": 405
   },
   "capabilities": [
@@ -554,7 +554,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:538",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:550",
           "score": 12
         },
         {
@@ -2261,7 +2261,7 @@
           "score": 28
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:538",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:550",
           "score": 12
         },
         {
@@ -14318,7 +14318,7 @@
           "score": 16
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:538",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:550",
           "score": 12
         }
       ],
@@ -27454,7 +27454,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:538",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:550",
           "score": 12
         },
         {
@@ -42147,6 +42147,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_json_duplicate_key_guard.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_jwt_algorithm_parity_guard_v21.py",
       "kind": "tests"
     },
@@ -42476,6 +42480,10 @@
     },
     {
       "path": "tests_v9/test_rag_corpus_admissibility_probe.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_rag_corpus_identity_readiness.py",
       "kind": "tests"
     },
     {

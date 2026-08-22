@@ -233,6 +233,15 @@ require_file scripts/ci/bidi_control_char_guard.py "٢ج) bidi_control_char" && 
 # **١٫٦ث**. وهو حرفيّاً صنف ٢ج فوقه بسطر: حارسٌ رخيص محبوسٌ في طبقةٍ غالية.
 run "٢د) non_ascii_fixture_path" python3 -m pytest -q tests_v9/test_non_ascii_fixture_path_guard.py
 
+# ── ٢ﻫ) مفتاحٌ مكرَّر في JSON — نصٌّ صحيحٌ يُحمَّل غيرَ ما كُتِب ────────────────
+# MUT-REGISTRY-DUPLICATE-KEY-SHADOWS-A-BLOCK-01: `json.load` آخِريُّ الترجيح، فكتلةٌ
+# ثانيةٌ لمفتاحٍ قائم تطرح الأولى بلا كلمة. ومقيسٌ على `a1f5da7f`: سجلُّ الطفرات نفسه
+# حمل مفتاحين مكرّرين تحت `behavioural`. وموضعُه هنا لا في طبقةٍ أغلى لأنّه يقرأ
+# ٢٣٣ ملفّاً في أقلّ من ثانية، ولأنّ الوثيقةَ التي أصابها العطلُ هي التي تُشغَّل بها
+# البوّابة نفسها — عمًى فيها يُسكِت حرّاساً أخرى قبل أن يُسكِت نفسه.
+require_file scripts/ci/json_duplicate_key_guard.py "٢ﻫ) json_duplicate_key" \
+  && run "٢ﻫ) json_duplicate_key" python3 scripts/ci/json_duplicate_key_guard.py
+
 # ── ٣) أساس الادّعاءات وحارس الطفرات ──────────────────────────────────────
 require_file scripts/ci/claim_base_guard.py "٣أ) claim_base_guard" && run "٣أ) claim_base_guard"        python3 scripts/ci/claim_base_guard.py
 run "٣ب) guard_mutation (ساكن)"   python3 scripts/ci/guard_mutation_guard.py
