@@ -4229,6 +4229,7 @@
         "tests/architecture/test_capability_evidence_maturity_engine.py",
         "tests/architecture/test_runtime_evidence_ingestion.py",
         "tests/architecture/test_runtime_evidence_trust_hardening.py",
+        "tests_v9/test_d09_live_evidence_receipt.py",
         "tests_v9/test_evidence_contract_v62_3.py",
         "tests_v9/test_evidence_graph_nodes_migration_v149.py",
         "tests_v9/test_evidence_lab_contract.py",
@@ -4236,15 +4237,15 @@
         "tests_v9/test_evidence_persistence.py",
         "tests_v9/test_evidence_registry.py",
         "tests_v9/test_evidence_snapshots_migration_v148.py",
-        "tests_v9/test_live_pg_evidence_guard.py",
-        "tests_v9/test_ndvi_evidence_policy.py"
+        "tests_v9/test_live_pg_evidence_guard.py"
       ],
       "runtime": {
         "metrics": [],
         "traces": [],
         "receipts": [
           "receipt:api:POST_/v1/activation/evidence-receipts",
-          "receipt:api:POST_/v1/activation/evidence-receipts/{evidence_id}/revoke"
+          "receipt:api:POST_/v1/activation/evidence-receipts/{evidence_id}/revoke",
+          "receipt:test:tests_v9/test_d09_live_evidence_receipt.py"
         ],
         "audit_events": []
       },
@@ -4279,7 +4280,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 3
+        "tests": 4
       }
     },
     {
