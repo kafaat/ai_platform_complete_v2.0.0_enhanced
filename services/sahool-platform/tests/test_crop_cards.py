@@ -168,19 +168,19 @@ class TestCommonBeanFromLegumesGuide:
         from core.crop_cards.loader import load_variety_card
 
         # يمن-1: مُنتخَب من سلالات محلّية ⇒ landrace.
-        assert load_crop_card("common_bean_yemen_1")["passport"]["origin_type"] == "landrace"
+        assert load_variety_card("common_bean_yemen_1")["passport"]["origin_type"] == "landrace"
         # لينا-24: مُدخَل من CIAT ⇒ introduced.
-        assert load_crop_card("common_bean_liena_24")["passport"]["origin_type"] == "introduced"
+        assert load_variety_card("common_bean_liena_24")["passport"]["origin_type"] == "introduced"
         # رجم-1: مُستنبَط حديثاً ⇒ improved.
-        assert load_crop_card("common_bean_rajm_1")["passport"]["origin_type"] == "improved"
+        assert load_variety_card("common_bean_rajm_1")["passport"]["origin_type"] == "improved"
 
     def test_rajm_1_is_earliest_maturity_class(self):
         from core.crop_cards.loader import load_variety_card
 
         # رجم-1 أبكر نضجاً (95 يوماً) ⇒ early؛ يمن-1/لينا-24 (~105) ⇒ medium.
-        assert load_crop_card("common_bean_rajm_1")["distinctness"]["maturity_class"] == "early"
+        assert load_variety_card("common_bean_rajm_1")["distinctness"]["maturity_class"] == "early"
         assert (
-            load_crop_card("common_bean_yemen_1")["distinctness"]["maturity_class"] == "medium"
+            load_variety_card("common_bean_yemen_1")["distinctness"]["maturity_class"] == "medium"
         )
 
     def test_liena_24_is_snap_bean_distinct_morphology(self):
@@ -203,7 +203,7 @@ class TestCommonBeanFromLegumesGuide:
         from core.crop_cards.loader import load_variety_card
 
         assert (
-            load_crop_card("common_bean_rajm_1")["variety_traits"]["disease_resistance_ar"] == []
+            load_variety_card("common_bean_rajm_1")["variety_traits"]["disease_resistance_ar"] == []
         )
 
 
