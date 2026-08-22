@@ -44,7 +44,7 @@ def main() -> None:
     p = d / "failed-sql-state.json"
     if p.exists():
         try:
-            sqlstate = json.loads(p.read_text())
+            sqlstate = json.loads(p.read_text(encoding="utf-8"))
         except Exception:
             sqlstate = {"parse_error": True}
     evidence = {

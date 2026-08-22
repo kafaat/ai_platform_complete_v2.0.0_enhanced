@@ -1,12 +1,12 @@
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[2]
-main = (root / "services/decision-service/main.py").read_text()
-persist = (root / "services/decision-service/persistence.py").read_text()
+main = (root / "services/decision-service/main.py").read_text(encoding="utf-8")
+persist = (root / "services/decision-service/persistence.py").read_text(encoding="utf-8")
 migration = (
     root / "services/decision-service/migrations/011_model_activation_request.sql"
-).read_text()
-router = (root / "services/sahool-platform/api/routers/decision_review.py").read_text()
+).read_text(encoding="utf-8")
+router = (root / "services/sahool-platform/api/routers/decision_review.py").read_text(encoding="utf-8")
 assert "/v1/learning/activation-requests" in main
 assert "/api/v1/learning/activation-requests" in router
 assert "MODEL_ACTIVATION_REQUEST_CREATED" in persist

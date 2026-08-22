@@ -9,11 +9,11 @@ mounted, and the supervisor must consume reconcile work (not skip it).
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-mig = (ROOT / "services/decision-service/migrations/017_wx12_runtime_schedules.sql").read_text()
-persist = (ROOT / "services/decision-service/persistence.py").read_text()
-main = (ROOT / "services/decision-service/main.py").read_text()
-service = (ROOT / "services/model-registry-adapter/service.py").read_text()
-runtime = (ROOT / "services/model-registry-adapter/runtime.py").read_text()
+mig = (ROOT / "services/decision-service/migrations/017_wx12_runtime_schedules.sql").read_text(encoding="utf-8")
+persist = (ROOT / "services/decision-service/persistence.py").read_text(encoding="utf-8")
+main = (ROOT / "services/decision-service/main.py").read_text(encoding="utf-8")
+service = (ROOT / "services/model-registry-adapter/service.py").read_text(encoding="utf-8")
+runtime = (ROOT / "services/model-registry-adapter/runtime.py").read_text(encoding="utf-8")
 
 for token in (
     "decision_model_runtime_schedules",

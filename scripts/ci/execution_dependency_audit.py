@@ -425,7 +425,7 @@ def main():
         import tempfile
 
         before = (
-            (OUT / ".audit.sha256").read_text().strip() if (OUT / ".audit.sha256").exists() else ""
+            (OUT / ".audit.sha256").read_text(encoding="utf-8").strip() if (OUT / ".audit.sha256").exists() else ""
         )
         with tempfile.TemporaryDirectory(prefix="sahool-execution-audit-check-") as tmp:
             import shutil

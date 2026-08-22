@@ -1,12 +1,12 @@
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[2]
-main = (root / "services/decision-service/main.py").read_text()
-persistence = (root / "services/decision-service/persistence.py").read_text()
+main = (root / "services/decision-service/main.py").read_text(encoding="utf-8")
+persistence = (root / "services/decision-service/persistence.py").read_text(encoding="utf-8")
 migration = (
     root / "services/decision-service/migrations/013_registry_adapter_receipt_rollback.sql"
-).read_text()
-router = (root / "services/sahool-platform/api/routers/decision_review.py").read_text()
+).read_text(encoding="utf-8")
+router = (root / "services/sahool-platform/api/routers/decision_review.py").read_text(encoding="utf-8")
 for needle in [
     "/v1/learning/activation-commands/{activation_command_id}/claim",
     "/v1/learning/activation-commands/{activation_command_id}/receipt",

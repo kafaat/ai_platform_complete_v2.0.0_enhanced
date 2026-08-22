@@ -11,7 +11,7 @@ missing = []
 if not migration.exists():
     missing.append(str(migration.relative_to(ROOT)))
 else:
-    text = migration.read_text()
+    text = migration.read_text(encoding="utf-8")
     for token in (
         "enforce_learning_agronomic_lineage",
         "agronomic_context_snapshot_id",
@@ -22,7 +22,7 @@ else:
     ):
         if token not in text:
             missing.append(f"migration token:{token}")
-text = persistence.read_text()
+text = persistence.read_text(encoding="utf-8")
 for token in (
     'source["agronomic_context_snapshot_id"]',
     'source["vegetation_snapshot_id"]',
