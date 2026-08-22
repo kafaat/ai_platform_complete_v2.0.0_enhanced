@@ -168,11 +168,11 @@ class TestCommonBeanFromLegumesGuide:
         from core.crop_cards.loader import load_variety_card
 
         # يمن-1: مُنتخَب من سلالات محلّية ⇒ landrace.
-        assert load_crop_card("common_bean_yemen_1")["passport"]["origin_type"] == "landrace"
+        assert load_variety_card("common_bean_yemen_1")["passport"]["origin_type"] == "landrace"
         # لينا-24: مُدخَل من CIAT ⇒ introduced.
-        assert load_crop_card("common_bean_liena_24")["passport"]["origin_type"] == "introduced"
+        assert load_variety_card("common_bean_liena_24")["passport"]["origin_type"] == "introduced"
         # رجم-1: مُستنبَط حديثاً ⇒ improved.
-        assert load_crop_card("common_bean_rajm_1")["passport"]["origin_type"] == "improved"
+        assert load_variety_card("common_bean_rajm_1")["passport"]["origin_type"] == "improved"
 
     def test_rajm_1_is_earliest_maturity_class(self):
         from core.crop_cards.loader import load_variety_card
@@ -203,7 +203,7 @@ class TestCommonBeanFromLegumesGuide:
         from core.crop_cards.loader import load_variety_card
 
         assert (
-            load_crop_card("common_bean_rajm_1")["variety_traits"]["disease_resistance_ar"] == []
+            load_variety_card("common_bean_rajm_1")["variety_traits"]["disease_resistance_ar"] == []
         )
 
 
