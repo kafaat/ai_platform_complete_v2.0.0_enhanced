@@ -168,19 +168,19 @@ class TestCommonBeanFromLegumesGuide:
         from core.crop_cards.loader import load_variety_card
 
         # يمن-1: مُنتخَب من سلالات محلّية ⇒ landrace.
-        assert load_variety_card("common_bean_yemen_1")["passport"]["origin_type"] == "landrace"
+        assert load_crop_card("common_bean_yemen_1")["passport"]["origin_type"] == "landrace"
         # لينا-24: مُدخَل من CIAT ⇒ introduced.
-        assert load_variety_card("common_bean_liena_24")["passport"]["origin_type"] == "introduced"
+        assert load_crop_card("common_bean_liena_24")["passport"]["origin_type"] == "introduced"
         # رجم-1: مُستنبَط حديثاً ⇒ improved.
-        assert load_variety_card("common_bean_rajm_1")["passport"]["origin_type"] == "improved"
+        assert load_crop_card("common_bean_rajm_1")["passport"]["origin_type"] == "improved"
 
     def test_rajm_1_is_earliest_maturity_class(self):
         from core.crop_cards.loader import load_variety_card
 
         # رجم-1 أبكر نضجاً (95 يوماً) ⇒ early؛ يمن-1/لينا-24 (~105) ⇒ medium.
-        assert load_variety_card("common_bean_rajm_1")["distinctness"]["maturity_class"] == "early"
+        assert load_crop_card("common_bean_rajm_1")["distinctness"]["maturity_class"] == "early"
         assert (
-            load_variety_card("common_bean_yemen_1")["distinctness"]["maturity_class"] == "medium"
+            load_crop_card("common_bean_yemen_1")["distinctness"]["maturity_class"] == "medium"
         )
 
     def test_liena_24_is_snap_bean_distinct_morphology(self):
@@ -203,7 +203,7 @@ class TestCommonBeanFromLegumesGuide:
         from core.crop_cards.loader import load_variety_card
 
         assert (
-            load_variety_card("common_bean_rajm_1")["variety_traits"]["disease_resistance_ar"] == []
+            load_crop_card("common_bean_rajm_1")["variety_traits"]["disease_resistance_ar"] == []
         )
 
 
@@ -774,3 +774,106 @@ class TestYemenVarietyCardsResearched:
         for vid in ("qat_shami", "qat_baladi"):
             note = load_variety_card(vid)["passport"]["collection_note_ar"]
             assert "ترويجيّ" in note, vid
+
+
+class TestStageNutrientDemand:
+    """منحنيات الطلب الغذائيّ لكلّ مرحلة (nutrient_demand) — كتلة اختياريّة بقاعدة الكلّ أو لا شيء."""
+
+    def _card(self, stages):
+        return {
+            "crop_id": "t",
+            "name_ar": "ت",
+            "name_en": "t",
+            "crop_family": "t",
+            "kc": {"initial": 0.3, "mid": 1.1, "end": 0.5, "stage_days": [10, 10, 10, 10], "source": "s"},
+            "salinity": {"threshold_ece_ds_m": 1.0, "slope_pct_per_ds_m": 5.0, "source": "s"},
+            "thermal": {},
+            "governing": {},
+            "modifying": {},
+            "phenology": {"source": "s", "total_cycle_days": 40, "stages": stages},
+        }
+
+    def _stage(self, name, start, end, nd=None):
+        st = {"stage": name, "name_ar": name, "day_start": start, "day_end": end}
+        if nd is not None:
+            st["nutrient_demand"] = nd
+        return st
+
+    def _nd(self, n, p, k, source="s"):
+        return {"n_fraction": n, "p_fraction": p, "k_fraction": k, "source": source}
+
+    def test_maize_curves_sum_to_one(self):
+        from core.crop_cards.loader import stage_nutrient_demand
+
+        curve = stage_nutrient_demand("maize")
+        assert len(curve) == 4
+        for key in ("n_fraction", "p_fraction", "k_fraction"):
+            assert abs(sum(s[key] for s in curve) - 1.0) <= 0.02, key
+
+    def test_maize_nitrogen_peak_after_emergence(self):
+        # N يجب أن تكون ذروته development+mid لا initial (فسيولوجيا الذرة)
+        from core.crop_cards.loader import stage_nutrient_demand
+
+        curve = {s["stage"]: s["n_fraction"] for s in stage_nutrient_demand("maize")}
+        assert curve["initial"] < curve["development"]
+        assert curve["late"] < curve["mid"]
+
+    def test_maize_potassium_front_loaded(self):
+        # K يتقدّم على N زمنيّاً (Bender et al. 2013)
+        from core.crop_cards.loader import stage_nutrient_demand
+
+        curve = {s["stage"]: s for s in stage_nutrient_demand("maize")}
+        assert curve["initial"]["k_fraction"] >= curve["initial"]["n_fraction"]
+        assert curve["late"]["k_fraction"] < curve["late"]["n_fraction"]
+
+    def test_absent_block_passes(self):
+        from core.crop_cards.loader import validate_crop_card
+
+        stages = [self._stage("a", 0, 20), self._stage("b", 20, 40)]
+        assert validate_crop_card(self._card(stages))["valid"]
+
+    def test_partial_block_fails(self):
+        from core.crop_cards.loader import validate_crop_card
+
+        stages = [self._stage("a", 0, 20, self._nd(0.5, 0.5, 0.5)), self._stage("b", 20, 40)]
+        v = validate_crop_card(self._card(stages))
+        assert not v["valid"]
+        assert any("الكلّ أو لا شيء" in e for e in v["errors"])
+
+    def test_sum_deviation_fails(self):
+        from core.crop_cards.loader import validate_crop_card
+
+        stages = [
+            self._stage("a", 0, 20, self._nd(0.5, 0.5, 0.5)),
+            self._stage("b", 20, 40, self._nd(0.3, 0.5, 0.5)),
+        ]
+        v = validate_crop_card(self._card(stages))
+        assert not v["valid"]
+        assert any("n_fraction" in e and "1.0" in e for e in v["errors"])
+
+    def test_fraction_out_of_range_fails(self):
+        from core.crop_cards.loader import validate_crop_card
+
+        stages = [
+            self._stage("a", 0, 20, self._nd(1.5, 0.5, 0.5)),
+            self._stage("b", 20, 40, self._nd(-0.5, 0.5, 0.5)),
+        ]
+        v = validate_crop_card(self._card(stages))
+        assert not v["valid"]
+        assert any("[0, 1]" in e for e in v["errors"])
+
+    def test_missing_source_fails(self):
+        from core.crop_cards.loader import validate_crop_card
+
+        stages = [
+            self._stage("a", 0, 20, self._nd(0.5, 0.5, 0.5)),
+            self._stage("b", 20, 40, {"n_fraction": 0.5, "p_fraction": 0.5, "k_fraction": 0.5}),
+        ]
+        v = validate_crop_card(self._card(stages))
+        assert not v["valid"]
+        assert any("nutrient_demand ناقص" in e for e in v["errors"])
+
+    def test_helper_empty_for_card_without_curves(self):
+        from core.crop_cards.loader import stage_nutrient_demand
+
+        assert stage_nutrient_demand("wheat") == []
