@@ -93,6 +93,29 @@ def test_canonical_shape_is_a_pure_local_predicate() -> None:
     assert all(pq.canonical_storage_shape(canonical) for _ in range(3))
 
 
+def test_the_second_parse_asks_a_different_question_and_is_not_redundant() -> None:
+    """التحليلُ الثاني ليس تكراراً، فلا يُلغى «توفيراً».
+
+    مراجعةٌ آليّة على #885 لاحظت أنّ كلّ صفٍّ يُحلَّل مرّتين في ``rebuild_sparse_index``:
+    مرّةً في الحلقة بـ``fallback_id=point_id``، ومرّةً داخل المُسنَد بـ``fallback_id=None``.
+    والملاحظةُ صحيحةٌ وصفاً، لكنّ علاجَها الضمنيّ — إعادةُ استعمال المقطع المُحلَّل —
+    **انحدارُ صحّةٍ لا تسريع**: المُعرِّفُ المُستعار يمرّ عندئذٍ قانونيّاً.
+
+    وهذا الاختبار يُثبِّت الفرق كي لا يُلغى التحليلُ الثاني في «تحسينٍ» لاحق.
+    """
+    pq = _pq("d09_fallback_semantics")
+    borrowed = _payload(pq, "c-borrowed")
+    # الهويّةُ المنطقيّة تُنزَع من الـpayload — كما في ارتدادٍ يعتمد على مُعرِّف التخزين.
+    borrowed["metadata"].pop("chunk_id")
+
+    # الحلقةُ تقبله: المُعرِّفُ يُستعار من نقطة التخزين.
+    assert pq.KnowledgeChunk.from_payload(borrowed, fallback_id="POINT-1") is not None
+    # والمُسنَدُ يرفضه: الشكلُ القانونيّ يحمل هويّتَه ولا يستعيرها.
+    with pytest.raises((TypeError, ValueError)):
+        pq.KnowledgeChunk.from_payload(borrowed, fallback_id=None)
+    assert pq.canonical_storage_shape(borrowed) is False
+
+
 def test_the_policy_predicate_reads_no_receipt_or_baseline() -> None:
     """اقترانُ «جردٌ حيّ ⇒ أهليّة ⇒ نتائج» ممنوعٌ بالبناء، ويُقاس هنا."""
     source = PQ.read_text(encoding="utf-8")

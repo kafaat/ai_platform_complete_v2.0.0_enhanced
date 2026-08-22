@@ -31,10 +31,10 @@ _qdrant = QdrantHttpClient(
 )
 _retriever = HybridQdrantRetriever(_qdrant, _embedding_provider)
 _sparse_ready = False
-_sparse_report: dict[str, int] = {"total_points": 0, "loaded_chunks": 0, "skipped_points": 0}
+_sparse_report: dict[str, Any] = {"total_points": 0, "loaded_chunks": 0, "skipped_points": 0}
 
 
-def _ensure_sparse_index(*, force: bool = False) -> dict[str, int]:
+def _ensure_sparse_index(*, force: bool = False) -> dict[str, Any]:
     """Hydrate deterministic BM25 from canonical Qdrant payloads exactly once per process.
 
     Readiness fails closed if any stored point cannot be reconstructed; otherwise a

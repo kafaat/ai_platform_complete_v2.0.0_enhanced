@@ -959,8 +959,16 @@ class HybridQdrantRetriever:
             self._chunks[chunk.chunk_id] = chunk
         return len(chunks)
 
-    def rebuild_sparse_index(self) -> dict[str, int]:
-        """Reconstruct BM25 and the logical chunk cache from Qdrant payloads."""
+    def rebuild_sparse_index(self) -> dict[str, Any]:
+        """Reconstruct BM25 and the logical chunk cache from Qdrant payloads.
+
+        **التوصيفُ `Any` لأنّ التقرير مركَّبٌ فعلاً، وكان `dict[str, int]` كاذباً
+        قبل D09 أصلاً:** `skipped_by_reason` و`skipped_samples` و`skipped_missing_fields`
+        كلُّها غيرُ أعداد على `a1f5da7f`. وD09 وسّع الكذبةَ بحقلين آخرين
+        (`noncanonical_serving_samples` قائمة، و`corpus_identity` كائن) — أمسكها
+        مراجعٌ آليّ على #885. وتوصيفٌ يَعِد بأعدادٍ فقط يُغري قارئاً لاحقاً بجمعٍ
+        أو مقارنةٍ على قيمةٍ ليست عدداً، ويُعطِّل الفحصَ الساكن حيث يلزم أكثر.
+        """
         payload_rows = self.qdrant.scroll_payloads()
         chunks: list[KnowledgeChunk] = []
         skipped = 0
