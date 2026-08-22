@@ -54,6 +54,14 @@ pest_susceptibility:
 phenology:
   source: "FAO-56 Table 11/12 (Maize, grain) stage lengths"
   total_cycle_days: 140
+  # ══ سلسلة اشتقاق كسور الطلب الغذائيّ — قابلة لإعادة البناء رقماً رقماً ══
+  nutrient_demand_provenance:
+    primary_reference: "Bender, Haegele, Ruffo & Below (2013), 'Nutrient Uptake, Partitioning, and Remobilization in Modern, Transgenic Insect-Protected Maize Hybrids', Agronomy Journal 105(1):161–170, DOI 10.2134/agronj2012.0352"
+    supporting_reference: "Ciampitti, Camberato, Murrell & Vyn (2013), 'Maize Nutrient Accumulation and Partitioning in Response to Plant Density and Nitrogen Rate: I. Macronutrients', Agronomy Journal 105(3):783–795, DOI 10.2134/agronj2012.0467"
+    derivation: "منحنيات الامتصاص التراكميّ V0–R6 في Bender 2013 (هجن حديثة؛ إجماليّ موسميّ ≈286 N / 114 P2O5 / 202 K2O kg/ha): نصيب كلّ نافذة V/R = قيمة المنحنى التراكميّ عند نهايتها − قيمته عند بدايتها، لكلّ عنصر. ضابطٌ من Ciampitti 2013: عند الحرير (R1) ≈47% من P و≈100% من K من المحتوى الموسميّ، وذروة محتوى K عند ≈R3"
+    stage_mapping: "initial(0–25d)≈VE–V4 · development(25–65d)≈V5–V12 · mid(65–110d)≈V13–R3 · late(110–140d)≈R4–R6"
+    normalization: "نصيب النافذة ÷ الإجماليّ الموسميّ لكلّ عنصر، ثمّ تقريب إلى شبكة 0.05 وتسوية مجموع كلّ عنصر إلى 1.00"
+    approximation: true
   stages:
     - stage: initial
       name_ar: "الإنبات والتأسيس"
@@ -66,7 +74,7 @@ phenology:
         n_fraction: 0.05
         p_fraction: 0.05
         k_fraction: 0.08
-        source: "Bender et al. 2013, Agron. J. 105:785–795 (modern maize nutrient accumulation); V/R→FAO-56 mapping, approximate"
+        source: "Bender et al. 2013, Agron. J. 105(1):161–170, DOI 10.2134/agronj2012.0352 (cumulative uptake curves); V/R→stage mapping, approximate"
     - stage: development
       name_ar: "النموّ الخضري السريع"
       day_start: 25
@@ -78,7 +86,7 @@ phenology:
         n_fraction: 0.40
         p_fraction: 0.35
         k_fraction: 0.50
-        source: "Bender et al. 2013, Agron. J. 105:785–795; K uptake front-loaded (≈50% by ~V12), approximate"
+        source: "Bender et al. 2013, Agron. J. 105(1):161–170, DOI 10.2134/agronj2012.0352; K uptake front-loaded (≈50% by ~V12), approximate"
     - stage: mid
       name_ar: "التزهير والحرير وامتلاء الحبّ"
       day_start: 65
@@ -90,7 +98,7 @@ phenology:
         n_fraction: 0.45
         p_fraction: 0.45
         k_fraction: 0.40
-        source: "Bender et al. 2013, Agron. J. 105:785–795; N peak uptake straddles R1, approximate"
+        source: "Bender et al. 2013, Agron. J. 105(1):161–170, DOI 10.2134/agronj2012.0352; N peak uptake straddles R1, approximate"
     - stage: late
       name_ar: "النضج الفسيولوجيّ والجفاف"
       day_start: 110
@@ -102,8 +110,9 @@ phenology:
         n_fraction: 0.10
         p_fraction: 0.15
         k_fraction: 0.02
-        source: "Bender et al. 2013, Agron. J. 105:785–795; late-season tails, approximate"
-# ملاحظة صدق: الكسور تقريبيّة مركَّبة من منحنيات V/R المنشورة على مراحل FAO-56 —
-# البنية ثابتة، والمعايرة الإقليميّة (كمعدّل تصحيح) من districts/ لا من هنا.
+        source: "Bender et al. 2013, Agron. J. 105(1):161–170, DOI 10.2134/agronj2012.0352; late-season tails, approximate"
+# ملاحظة صدق: الكسور تقريبيّة (approximation: true) مشتقّة من منحنيات V/R المنشورة
+# ومعيَّنة على مراحل البطاقة الأربع — سلسلة الاشتقاق الكاملة في nutrient_demand_provenance
+# أعلاه. البنية ثابتة، والمعايرة الإقليميّة (كمعدّل تصحيح) من districts/ لا من هنا.
 
 # NO calibration block. NO yield. NO zone_factor. Those are districts/tenant OUTPUTS.
