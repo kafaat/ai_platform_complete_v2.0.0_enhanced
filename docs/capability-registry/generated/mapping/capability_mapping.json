@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5165,
+    "files_scanned": 5166,
     "files_by_kind": {
       "backend": 1198,
       "database": 274,
       "governance": 60,
       "mobile": 51,
       "other": 1417,
-      "tests": 1709,
+      "tests": 1710,
       "web": 456
     },
-    "unmapped_artifacts": 2106,
+    "unmapped_artifacts": 2107,
     "ambiguous_artifacts": 405
   },
   "capabilities": [
@@ -41400,6 +41400,10 @@
     },
     {
       "path": "tests_v9/test_aljawf_seed_v31_5.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_ancestry_proof_discipline.py",
       "kind": "tests"
     },
     {
