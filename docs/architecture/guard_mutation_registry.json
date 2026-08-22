@@ -647,6 +647,17 @@
       ],
       "test": "tests_v9/test_certify_artifact_contract.py"
     },
+    "scripts/ci/preflight.sh": {
+      "mutations": [
+        {
+          "expect": "test_the_locale_decoding_guard_runs_in_the_fast_tier_not_only_inside_the_suite",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "find": "run \"٢و) text_encoding_locale\" python3 -m pytest -q tests_v9/test_text_encoding_locale.py::test_no_new_file_decodes_text_with_the_machines_locale\n",
+          "replace": "run \"٢و) text_encoding_locale\" echo skipped  # mutated: الحارس يخرج من الطبقة السريعة\n",
+          "why": "إخراجُ حارس الترميز من الطبقة السريعة يُعيد الحالةَ التي قِيست على #886: `--fast` أخضرُ على شجرةٍ يحمّرها الجناحُ الكامل بعد ٣٦٢ث. والصنفُ متكرّر — أُصلِح على #884 ثمّ أُعيد بتبنّي شيفرةٍ واردة في الجلسة نفسها. وهو حرفيّاً صنف ٢د: حارسٌ رخيص (٤٫٦ث) محبوسٌ في طبقةٍ غالية."
+        }
+      ]
+    },
     "scripts/ci/regenerate_all_generated.sh": {
       "$why_ar": "منسّق نقطة الثبات الوحيد — نكوصه إلى سلسلة جزئيّة يعيد صنف الجولات الثلاث الضائعة (خضرة عن سؤال ناقص).",
       "mutations": [
