@@ -79,6 +79,17 @@ def _sha256_file(path: pathlib.Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def result_fingerprint(row: Any) -> str:
+    """بصمةُ نتيجةِ بحثٍ بتسلسلٍ قانونيّ — لا بـ``str()``.
+
+    تمثيلُ ``str(dict)`` غيرُ مضمونِ الثبات عبر ترتيب المفاتيح والإصدارات،
+    وبصمةٌ تتبدّل على بياناتٍ واحدة تُسقِط قابليّةَ إعادة القياس — وهي علّةُ
+    وجود الإيصال. أمسكها مراجعٌ آليّ على #898 قبل أن تكلّف.
+    """
+    canonical = json.dumps(row, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode()).hexdigest()[:16]
+
+
 def _safe_host(url: str) -> str:
     parts = urlsplit(url)
     return parts.hostname or "<unknown>"
@@ -300,7 +311,10 @@ def main(argv: list[str] | None = None) -> int:
             subject_sha=subject_sha,
             subject_tree=subject_tree,
         )
-        time.sleep(max(args.settle_seconds, 0))
+        # قيمةٌ واحدة مُطبَّعة للنوم وللإيصال معاً: تسجيلُ الخام مع نومٍ مقصوصٍ
+        # يجعل الإيصالَ يوثّق مهلةً لم تحدث. أمسكها مراجعٌ آليّ على #898.
+        settle_seconds = max(args.settle_seconds, 0)
+        time.sleep(settle_seconds)
         m2 = _measure_once(
             audit,
             pq,
@@ -336,9 +350,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         results = search_body.get("results") if isinstance(search_body, dict) else None
         search_count = len(results) if isinstance(results, list) else None
-        fingerprints = [
-            hashlib.sha256(str(r).encode()).hexdigest()[:16] for r in (results or [])[:_SAMPLE_CAP]
-        ]
+        fingerprints = [result_fingerprint(r) for r in (results or [])[:_SAMPLE_CAP]]
 
         receipt = build_evidence_receipt(
             subject_sha=subject_sha,
@@ -361,7 +373,7 @@ def main(argv: list[str] | None = None) -> int:
             search_result_fingerprints=fingerprints,
             search_tenant=args.search_tenant,
             search_query_sha256=hashlib.sha256(args.search_query.encode()).hexdigest(),
-            settle_seconds=args.settle_seconds,
+            settle_seconds=settle_seconds,
         )
     except Exception as exc:  # noqa: BLE001 - أداةُ دليلٍ تفشل مغلقةً
         print(f"d09_live_evidence_receipt_fail {exc}", file=sys.stderr)

@@ -241,3 +241,13 @@ def test_a_diverged_count_fails_no_live_mutation_even_with_matching_digests(coll
     )
     assert not receipt["checklist"]["no_live_mutation"]
     assert "no_live_mutation" in receipt["verdict"]
+
+
+def test_the_fingerprint_is_canonical_not_representation_dependent(collector):
+    # صفّان متساويان بترتيب مفاتيح مختلف: str() كان يعطيهما بصمتين — والتسلسل
+    # القانونيّ يوحّدهما. والاتجاه الآخر: تغيّرُ قيمةٍ واحدة يغيّر البصمة.
+    a = {"chunk_id": "c1", "score": 0.9, "text_fp": "x"}
+    b = {"score": 0.9, "text_fp": "x", "chunk_id": "c1"}
+    assert str(a) != str(b)  # لو تساوى التمثيلان لما كان للاختبار موضوع
+    assert collector.result_fingerprint(a) == collector.result_fingerprint(b)
+    assert collector.result_fingerprint(a) != collector.result_fingerprint(dict(a, score=0.8))
