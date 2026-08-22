@@ -292,6 +292,7 @@ medium,sahool-platform,class,TestYemenCropsBatch2,services/sahool-platform/tests
 medium,sahool-platform,class,TestYemenVegetablesBatch3a,services/sahool-platform/tests/test_crop_cards.py,584,0,review_before_delete,False
 medium,sahool-platform,class,TestYemenFruitsAndQatBatch3b,services/sahool-platform/tests/test_crop_cards.py,627,0,review_before_delete,False
 medium,sahool-platform,class,TestYemenVarietyCardsResearched,services/sahool-platform/tests/test_crop_cards.py,684,0,review_before_delete,False
+medium,sahool-platform,class,TestStageNutrientDemand,services/sahool-platform/tests/test_crop_cards.py,779,0,review_before_delete,False
 medium,sahool-platform,class,TestInference,services/sahool-platform/tests/test_crop_inference.py,36,0,review_before_delete,False
 medium,sahool-platform,class,TestCropPortfolio,services/sahool-platform/tests/test_crop_portfolio.py,18,0,review_before_delete,False
 medium,sahool-platform,class,TestTenantIsolation,services/sahool-platform/tests/test_cross_reference_finder.py,49,0,review_before_delete,False
