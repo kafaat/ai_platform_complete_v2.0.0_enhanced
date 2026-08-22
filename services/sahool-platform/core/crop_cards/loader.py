@@ -58,14 +58,22 @@ def _validate_nutrient_demand(stages: list, errors: list) -> None:
     كسور كلّ عنصر عبر المراحل إلى 1.0 ± NUTRIENT_SUM_TOLERANCE. البطاقات
     القديمة (بلا nutrient_demand إطلاقاً) لا يتغيّر سلوكها.
     """
-    carrying = [(i, st["nutrient_demand"]) for i, st in enumerate(stages)
-                if isinstance(st, dict) and st.get("nutrient_demand") is not None]
+    carrying = [
+        (i, st["nutrient_demand"])
+        for i, st in enumerate(stages)
+        if isinstance(st, dict) and st.get("nutrient_demand") is not None
+    ]
     if not carrying:
         return
     if len(carrying) != len(stages):
-        missing = [st.get("stage", f"[{i}]") for i, st in enumerate(stages)
-                   if not (isinstance(st, dict) and st.get("nutrient_demand") is not None)]
-        errors.append(f"nutrient_demand جزئيّ: مراحل بلا منحنى طلب: {missing} (القاعدة: الكلّ أو لا شيء)")
+        missing = [
+            st.get("stage", f"[{i}]")
+            for i, st in enumerate(stages)
+            if not (isinstance(st, dict) and st.get("nutrient_demand") is not None)
+        ]
+        errors.append(
+            f"nutrient_demand جزئيّ: مراحل بلا منحنى طلب: {missing} (القاعدة: الكلّ أو لا شيء)"
+        )
     sums = {"n_fraction": 0.0, "p_fraction": 0.0, "k_fraction": 0.0}
     for i, nd in carrying:
         if not isinstance(nd, dict):
@@ -83,7 +91,9 @@ def _validate_nutrient_demand(stages: list, errors: list) -> None:
                 sums[k] += v
     for k, total in sums.items():
         if abs(total - 1.0) > NUTRIENT_SUM_TOLERANCE:
-            errors.append(f"مجموع {k} عبر المراحل = {total:.4f} (المطلوب 1.0 ± {NUTRIENT_SUM_TOLERANCE})")
+            errors.append(
+                f"مجموع {k} عبر المراحل = {total:.4f} (المطلوب 1.0 ± {NUTRIENT_SUM_TOLERANCE})"
+            )
 
 
 def _validate_phenology(card: dict, errors: list) -> None:
@@ -177,15 +187,17 @@ def stage_nutrient_demand(crop_id: str) -> list[dict]:
     for st in growth_stages(crop_id):
         nd = st.get("nutrient_demand")
         if nd:
-            out.append({
-                "stage": st["stage"],
-                "day_start": st["day_start"],
-                "day_end": st["day_end"],
-                "n_fraction": nd["n_fraction"],
-                "p_fraction": nd["p_fraction"],
-                "k_fraction": nd["k_fraction"],
-                "source": nd["source"],
-            })
+            out.append(
+                {
+                    "stage": st["stage"],
+                    "day_start": st["day_start"],
+                    "day_end": st["day_end"],
+                    "n_fraction": nd["n_fraction"],
+                    "p_fraction": nd["p_fraction"],
+                    "k_fraction": nd["k_fraction"],
+                    "source": nd["source"],
+                }
+            )
     return out
 
 
