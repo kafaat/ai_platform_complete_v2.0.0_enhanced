@@ -292,6 +292,8 @@ require_file scripts/ci/compose_no_default_secrets_guard.py "٤د) compose_no_de
   && run "٤د) compose_no_default_secrets" python3 scripts/ci/compose_no_default_secrets_guard.py
 require_file scripts/ci/compose_auth_sink_guard.py "٤ﻫ) compose_auth_sink" \
   && run "٤ﻫ) compose_auth_sink" python3 scripts/ci/compose_auth_sink_guard.py
+require_file scripts/ci/generated_write_targets.py "٤و) generated_write_targets" \
+  && run "٤و) generated_write_targets" python3 scripts/ci/generated_write_targets.py --check
 run "٤ب) env_compose_drift"       python3 scripts/ci/env_compose_drift_guard.py --check
 run "٤ج) compose_runtime_target"  python3 scripts/ci/compose_runtime_target_resolver.py --check
 
