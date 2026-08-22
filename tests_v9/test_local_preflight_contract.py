@@ -300,7 +300,24 @@ def test_the_locale_decoding_guard_runs_in_the_fast_tier_not_only_inside_the_sui
         "يجب أن يعمل في `--fast`: الطبقةُ التي يُشغّلها المطوّر قبل الدفع"
     )
     # الحدُّ مقصود: الملفُّ كلُّه ثلاثةُ أضعاف الكلفة، وحارسا التملّص يبقيان في ٨أ.
-    assert "-q tests_v9/test_text_encoding_locale.py " not in f"{text} ", (
+    #
+    # **والفحصُ سطريٌّ لا مطابقةُ نصّ — وأوّلُ صياغةٍ لي هنا مرّت على العطل الذي كُتِبت
+    # لمنعه.** كانت `"-q …locale.py " not in f"{text} "` تشترط **مسافةً** بعد المسار،
+    # وسطرُ الاستدعاء ينتهي بسطرٍ جديد لا بمسافة. فزُرِع استدعاءُ الملفّ كلِّه **بجانب**
+    # العقديّ فمرّ التأكيدُ صامتاً — والذيلُ المضاف `f"{text} "` لا يُنقِذ إلّا لو كان
+    # الاستدعاءُ آخِرَ حرفٍ في الملفّ. أمسكها مراجعٌ آليّ على #888، وأُثبِتت بالزرع.
+    #
+    # والصياغةُ الحاليّة تقرأ **أسطرَ التنفيذ** (`run …`) وتشترط أن يحمل كلُّ ذكرٍ
+    # للملفّ عقدةً (`::`) — فلا تتعلّق بما يلي المسار، ولا يُخفيها سطرٌ جديد.
+    executed = [
+        line
+        for line in text.splitlines()
+        if line.lstrip().startswith("run ") and "tests_v9/test_text_encoding_locale.py" in line
+    ]
+    assert len(executed) == 1, (
+        f"استدعاءٌ منفَّذٌ واحدٌ لهذا الملفّ لا أكثر — وُجِد {len(executed)}: {executed}"
+    )
+    assert "tests_v9/test_text_encoding_locale.py::" in executed[0], (
         "الطبقةُ السريعة تحمل الاختبارَ الحاجب وحده — الملفّ كلُّه قرارُ كلفةٍ آخر"
     )
     contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
