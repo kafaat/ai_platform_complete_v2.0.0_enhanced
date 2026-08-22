@@ -1571,7 +1571,7 @@
         },
         {
           "expect": "test_the_guard_catches_every_form_that_does_not_prove_required_and_nonempty",
-          "find": "        if _ACCEPTED.match(_unquote(value)):\n            continue",
+          "find": "        if _accepted_required_nonempty(value, spec[\"source_env\"]):\n            continue",
           "replace": "        if \"${QDRANT_API_KEY\" in _unquote(value):  # mutated\n            continue",
           "why": "الطفرةُ B: قبولُ أيّ ذكرٍ للمتغيّر يمرّر `${QDRANT_API_KEY}` العاري — العطلُ الأصليّ بعينه."
         },
@@ -1610,6 +1610,24 @@
           "find": "            if stripped.startswith(\"#\"):\n                continue\n            match = _ASSIGN.match(stripped)\n            if not match or match.group(1) not in sinks:",
           "replace": "            if False:  # mutated\n                continue\n            match = _ASSIGN.match(stripped.lstrip(\"# \"))\n            if not match or match.group(1) not in sinks:",
           "why": "العودةُ إلى عدّ التعليق حياةً: اسمٌ باقٍ في تعليقٍ — أو سطرُ إسنادٍ مُعطَّل — يُخفي اختفاءَ مصرفٍ مُسجَّل، فتسقط الخاصّيّة الحاجبة صامتةً. رفعتها مراجعةٌ خارجيّة وأصابت، وقِستُ الحالتين قبل الإصلاح فمرّتا بلا إبلاغ."
+        },
+        {
+          "expect": "test_sink_must_use_the_declared_source_env_not_any_required_variable",
+          "find": "    return bool(match and match.group(1) == source_env)",
+          "replace": "    return bool(match)  # mutated: يقبل أي متغيّر :? ولو لم يكن source_env المعلن",
+          "why": "D06-C1: شكل `:?` وحده لا يثبت ملكية السر؛ مصرف Qdrant يجب أن يستوفي QDRANT_API_KEY نفسه لا متغيراً آخر غير فارغ."
+        },
+        {
+          "expect": "test_bare_qdrant_client_binding_is_rejected",
+          "find": "        if not _accepted_required_nonempty(value, source_env):",
+          "replace": "        if False:  # mutated: رابط العميل لا يُفحص محلياً",
+          "why": "D06-C1: حذف فحص رابط العميل يعيد الاعتماد الضمني على وجود مصرف الخادم في الملف نفسه؛ `${QDRANT_API_KEY}` العاري يمرّ."
+        },
+        {
+          "expect": "test_new_qdrant_client_on_a_production_stack_must_be_registered",
+          "find": "    for key in sorted(set(live) - set(required)):",
+          "replace": "    for key in []:  # mutated: عميل إنتاجي جديد خارج السجل لا يحجب",
+          "why": "D06-C1: خدمة جديدة تستخدم QDRANT_API_KEY في production_stacks يجب أن تدخل سجل الروابط؛ وإلا يصير الحارس حارس ما يعرفه فقط."
         }
       ],
       "test": "tests_v9/test_compose_auth_sink_guard.py"
