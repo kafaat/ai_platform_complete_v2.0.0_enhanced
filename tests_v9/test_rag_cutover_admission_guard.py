@@ -66,6 +66,11 @@ def _corpus_receipt(tmp_path: Path, subject: str, tree: str, *, parity: bool = T
             "dense_sparse_divergent": False,
             "serving_candidate": True,
             "canonical_serving_eligible": parity,
+            # D12-PRE: مصدرُ الهويّة المنطقيّة صار جزءاً من عقد الإيصال، والحارسُ يرفض
+            # إيصالاً بدونه — فتجهيزةٌ يدويّةٌ ناقصةٌ تُدان بحقّ. وهذه نسخةٌ يدويّة من
+            # شكل المُنتِج، وذلك سببُ انحرافها حين تحرّك المُنتِج.
+            "explicit_logical_chunk_id": "c1",
+            "logical_identity_source": "metadata.chunk_id",
             "fallback_identity_used": False,
             "reject_reason": None,
             "missing_fields": [],

@@ -317,3 +317,104 @@ def test_guard_rejects_wrong_subject_tree(tmp_path: Path) -> None:
     )
     assert proc.returncode == 1
     assert "receipt subject tree mismatch" in proc.stdout
+
+
+# ── D12-PRE — مصدرُ الهويّة المنطقيّة: مُعلَنٌ، ومتّسق، ولا يُلفَّق ──────────────
+#
+# العطلُ الذي أوجب هذا: الإيصالُ كان يقول «هل استُعير مُعرِّفُ التخزين؟» ولا يقول «ما
+# الهويّةُ ومن أين جاءت». فمخطِّطُ D12 يقرأ الحقلين، وعلى إيصالٍ بلا `explicit_…`
+# يصير كلُّ صفٍّ عديمَ الهويّة ويسقط أوّلُ صفٍّ قانونيّ بـ`ValueError`.
+
+
+def test_the_receipt_names_where_a_logical_identity_came_from() -> None:
+    audit, pq = _modules()
+    row = audit.classify_point(pq, "p-canonical", _canonical_payload(chunk_id="c-explicit"))
+    assert row["logical_identity_source"] == "metadata.chunk_id"
+    assert row["explicit_logical_chunk_id"] == "c-explicit"
+    assert row["fallback_identity_used"] is False
+
+
+def test_a_borrowed_storage_id_is_declared_absent_not_reported_as_identity() -> None:
+    """الثابتُ الحاكم لـD12: UUID التخزين ليس هويّةً منطقيّة."""
+    audit, pq = _modules()
+    payload = _canonical_payload(chunk_id="c-drop")
+    payload["metadata"].pop("chunk_id")
+    point_id = "00000000-0000-0000-0000-0000000000ab"
+    row = audit.classify_point(pq, point_id, payload)
+    assert row["logical_identity_source"] == "storage_fallback"
+    assert row["fallback_identity_used"] is True
+    # ولا يُسرَّب مُعرِّفُ النقطة إلى خانة الهويّة المنطقيّة.
+    assert row["explicit_logical_chunk_id"] is None
+
+
+def test_a_root_level_identity_is_named_by_its_own_location() -> None:
+    audit, pq = _modules()
+    payload = _canonical_payload(chunk_id="c-root")
+    payload["chunk_id"] = payload["metadata"].pop("chunk_id")
+    row = audit.classify_point(pq, "p-root", payload)
+    assert row["logical_identity_source"] == "payload.chunk_id"
+    assert row["explicit_logical_chunk_id"] == "c-root"
+    assert row["fallback_identity_used"] is False
+
+
+def test_fallback_flag_is_read_from_the_source_not_derived_twice() -> None:
+    """سلطةٌ واحدة: الحقلان يصفان الحقيقةَ نفسها فلا يجوز أن ينحرفا.
+
+    يُقاس على الجداء الكامل — لا على حالةٍ مختارة.
+    """
+    audit, pq = _modules()
+    seen = set()
+    for nested, root in (
+        (None, None),
+        (None, "L-root"),
+        ("L-nested", None),
+        ("L-nested", "L-root"),
+    ):
+        payload = _canonical_payload(chunk_id="c-x")
+        payload["metadata"].pop("chunk_id")
+        if nested:
+            payload["metadata"]["chunk_id"] = nested
+        if root:
+            payload["chunk_id"] = root
+        row = audit.classify_point(pq, "00000000-0000-0000-0000-0000000000ab", payload)
+        source = row["logical_identity_source"]
+        seen.add(source)
+        assert row["fallback_identity_used"] is (source == "storage_fallback")
+    assert seen == {"storage_fallback", "payload.chunk_id", "metadata.chunk_id"}
+
+
+def test_guard_refuses_a_receipt_that_would_crash_the_migration_planner(tmp_path: Path) -> None:
+    """رفضٌ مُسمًّى هنا خيرٌ من انهيارٍ في المخطِّط."""
+    audit, pq = _modules()
+    receipt = _receipt(audit, pq, [("p1", _canonical_payload(chunk_id="c1"))])
+    for row in receipt["point_records"]:
+        row.pop("logical_identity_source")
+        row.pop("explicit_logical_chunk_id")
+    guard = _load(GUARD, "test_d12pre_guard")
+    receipt["point_inventory_sha256"] = guard._digest(receipt["point_records"])
+    problems = guard.findings(receipt, "a" * 40, "b" * 40)
+    assert any("unknown logical_identity_source" in p for p in problems), problems
+
+
+def test_guard_refuses_an_identity_that_contradicts_its_declared_source(tmp_path: Path) -> None:
+    audit, pq = _modules()
+    receipt = _receipt(audit, pq, [("p1", _canonical_payload(chunk_id="c1"))])
+    row = receipt["point_records"][0]
+    # ادّعاءُ الاستعارة مع بقاء الهويّة حاضرة — تلفيقٌ في الاتّجاه الخطر.
+    row["logical_identity_source"] = "storage_fallback"
+    guard = _load(GUARD, "test_d12pre_guard2")
+    receipt["point_inventory_sha256"] = guard._digest(receipt["point_records"])
+    problems = guard.findings(receipt, "a" * 40, "b" * 40)
+    assert any("logical identity present but declared absent" in p for p in problems), problems
+    assert any("fallback_identity_used disagrees with its source" in p for p in problems), problems
+
+
+def test_guard_refuses_a_declared_source_with_no_identity_behind_it(tmp_path: Path) -> None:
+    audit, pq = _modules()
+    receipt = _receipt(audit, pq, [("p1", _canonical_payload(chunk_id="c1"))])
+    row = receipt["point_records"][0]
+    row["explicit_logical_chunk_id"] = "   "
+    guard = _load(GUARD, "test_d12pre_guard3")
+    receipt["point_inventory_sha256"] = guard._digest(receipt["point_records"])
+    problems = guard.findings(receipt, "a" * 40, "b" * 40)
+    assert any("declared logical identity source without an identity" in p for p in problems)

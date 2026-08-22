@@ -26,6 +26,13 @@ _CLASSIFICATIONS = {
     "UNCLASSIFIED",
 }
 _FORBIDDEN_RECORD_KEYS = {"page_content", "text", "payload", "document_body", "content"}
+# المفرداتُ محصورة: مصدرٌ خارجها يعني مُنتِجاً لا يعرفه هذا العقد، فيُرفَض ولا يُخمَّن.
+_LOGICAL_IDENTITY_SOURCES = {
+    "metadata.chunk_id",
+    "payload.chunk_id",
+    "storage_fallback",
+    "missing",
+}
 
 
 def _digest(records: list[dict[str, Any]]) -> str:
@@ -117,6 +124,25 @@ def findings(receipt: dict[str, Any], subject_sha: str, subject_tree: str) -> li
             out.append(f"unknown classification: {classification}")
         else:
             class_counts[str(classification)] += 1
+        # ── D12-PRE — مصدرُ الهويّة المنطقيّة مُعلَنٌ ومتّسق ─────────────────────
+        #
+        # إيصالٌ بلا هذين الحقلين يمرّ من هنا ثمّ **ينهار** في مخطِّط D12 عند أوّل صفٍّ
+        # قانونيّ (`canonical point … lacks explicit logical chunk identity`). ورفضٌ
+        # مُسمًّى هنا خيرٌ من انهيارٍ هناك: الحارسُ يقول ما ينقص، والانهيارُ يقول أين وقع.
+        source = row.get("logical_identity_source")
+        if source not in _LOGICAL_IDENTITY_SOURCES:
+            out.append(f"unknown logical_identity_source: {source}")
+        else:
+            explicit = row.get("explicit_logical_chunk_id")
+            has_explicit = isinstance(explicit, str) and explicit.strip() != ""
+            if source in {"metadata.chunk_id", "payload.chunk_id"} and not has_explicit:
+                out.append(f"declared logical identity source without an identity: {point_id}")
+            if source in {"storage_fallback", "missing"} and has_explicit:
+                out.append(f"logical identity present but declared absent: {point_id}")
+            # **الاتّساق يُفرَض ولا يُفترَض:** الحقلان يصفان الحقيقةَ نفسها، فانحرافُهما
+            # يعني أنّ أحدهما كُتِب بيدٍ أو اشتُقّ بمنطقٍ ثانٍ.
+            if row.get("fallback_identity_used") is not (source == "storage_fallback"):
+                out.append(f"fallback_identity_used disagrees with its source: {point_id}")
         if row.get("scope") == "quarantine" and row.get("serving_candidate") is not False:
             out.append("quarantine point marked serving_candidate")
         if row.get("canonical_serving_eligible") is True and classification not in {
