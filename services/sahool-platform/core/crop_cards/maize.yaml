@@ -61,23 +61,49 @@ phenology:
       day_end: 25
       kc: 0.30
       key_action_ar: "ريّ تأسيس لضمان إنبات منتظم"
+      # ≈ VE–V4: امتصاص ضئيل — الجذور تتوسّع والطلب الحقيقيّ لم يبدأ
+      nutrient_demand:
+        n_fraction: 0.05
+        p_fraction: 0.05
+        k_fraction: 0.08
+        source: "Bender et al. 2013, Agron. J. 105:785–795 (modern maize nutrient accumulation); V/R→FAO-56 mapping, approximate"
     - stage: development
       name_ar: "النموّ الخضري السريع"
       day_start: 25
       day_end: 65
       kc_end: 1.20
       key_action_ar: "تسميد آزوتيّ تعلويّ عند 6–8 أوراق + مكافحة الحشائش"
+      # ≈ V5–V12: إقلاع الامتصاص — البوتاسيوم أسرع عنصر (نصف موسمه هنا)
+      nutrient_demand:
+        n_fraction: 0.40
+        p_fraction: 0.35
+        k_fraction: 0.50
+        source: "Bender et al. 2013, Agron. J. 105:785–795; K uptake front-loaded (≈50% by ~V12), approximate"
     - stage: mid
       name_ar: "التزهير والحرير وامتلاء الحبّ"
       day_start: 65
       day_end: 110
       kc: 1.20
       key_action_ar: "ذروة الاحتياج المائي عند الحرير — تجنّب الإجهاد المائي والحراري (>35°م)"
+      # ≈ V13–R3: ذروة النيتروجين حول الحرير (R1) — يتأخّر عن K ويتقدّم على P
+      nutrient_demand:
+        n_fraction: 0.45
+        p_fraction: 0.45
+        k_fraction: 0.40
+        source: "Bender et al. 2013, Agron. J. 105:785–795; N peak uptake straddles R1, approximate"
     - stage: late
       name_ar: "النضج الفسيولوجيّ والجفاف"
       day_start: 110
       day_end: 140
       kc: 0.60
       key_action_ar: "تقليل الريّ نحو النضج الأسود (black layer)"
+      # ≈ R4–R6: ذيول الامتصاص — البوتاسيوم شبه مكتمل، ونقلٌ داخليّ للحبّ
+      nutrient_demand:
+        n_fraction: 0.10
+        p_fraction: 0.15
+        k_fraction: 0.02
+        source: "Bender et al. 2013, Agron. J. 105:785–795; late-season tails, approximate"
+# ملاحظة صدق: الكسور تقريبيّة مركَّبة من منحنيات V/R المنشورة على مراحل FAO-56 —
+# البنية ثابتة، والمعايرة الإقليميّة (كمعدّل تصحيح) من districts/ لا من هنا.
 
 # NO calibration block. NO yield. NO zone_factor. Those are districts/tenant OUTPUTS.

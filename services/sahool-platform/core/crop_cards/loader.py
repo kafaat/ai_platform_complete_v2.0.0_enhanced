@@ -42,8 +42,48 @@ REQUIRED_KC = {"initial", "mid", "end", "stage_days", "source"}
 REQUIRED_SALINITY = {"threshold_ece_ds_m", "slope_pct_per_ds_m", "source"}
 # مراحل النمو (phenology) — كتلة اختياريّة محايدة الموقع. تُتحقَّق فقط إن وُجدت.
 REQUIRED_PHENOLOGY_STAGE = {"stage", "name_ar", "day_start", "day_end"}
+# الطلب الغذائيّ لكلّ مرحلة (nutrient_demand) — كتلة اختياريّة داخل كلّ مرحلة:
+# كسر امتصاص كلّ عنصر خلال المرحلة من الإجماليّ الموسميّ (وليس تراكميّاً)، بمصدر موثّق.
+REQUIRED_STAGE_NUTRIENT = {"n_fraction", "p_fraction", "k_fraction", "source"}
+NUTRIENT_SUM_TOLERANCE = 0.02  # كسور العنصر عبر المراحل يجب أن تجمع إلى 1.0 ± التفاوت
 # حقول ممنوعة (تكسر حياد الموقع)
 FORBIDDEN = {"zone_factor", "yield", "expected_yield", "calibration", "region", "farm", "tenant"}
+
+
+def _validate_nutrient_demand(stages: list, errors: list) -> None:
+    """يتحقّق من منحنيات الطلب الغذائيّ لكلّ مرحلة (إن وُجدت) — قاعدة الكلّ أو لا شيء.
+
+    إن حملت أيّ مرحلة `nutrient_demand` وجب أن تحمله كلّ المراحل (وإلاّ انحرفت
+    الجموع)، وكلّ كتلة تلزمها REQUIRED_STAGE_NUTRIENT وكسور في [0, 1]، وتجمع
+    كسور كلّ عنصر عبر المراحل إلى 1.0 ± NUTRIENT_SUM_TOLERANCE. البطاقات
+    القديمة (بلا nutrient_demand إطلاقاً) لا يتغيّر سلوكها.
+    """
+    carrying = [(i, st["nutrient_demand"]) for i, st in enumerate(stages)
+                if isinstance(st, dict) and st.get("nutrient_demand") is not None]
+    if not carrying:
+        return
+    if len(carrying) != len(stages):
+        missing = [st.get("stage", f"[{i}]") for i, st in enumerate(stages)
+                   if not (isinstance(st, dict) and st.get("nutrient_demand") is not None)]
+        errors.append(f"nutrient_demand جزئيّ: مراحل بلا منحنى طلب: {missing} (القاعدة: الكلّ أو لا شيء)")
+    sums = {"n_fraction": 0.0, "p_fraction": 0.0, "k_fraction": 0.0}
+    for i, nd in carrying:
+        if not isinstance(nd, dict):
+            errors.append(f"مرحلة[{i}]: nutrient_demand ليس كتلة")
+            continue
+        miss = REQUIRED_STAGE_NUTRIENT - set(nd.keys())
+        if miss:
+            errors.append(f"مرحلة[{i}]: nutrient_demand ناقص: {miss}")
+            continue
+        for k in sums:
+            v = nd[k]
+            if not isinstance(v, (int, float)) or not 0.0 <= v <= 1.0:
+                errors.append(f"مرحلة[{i}]: {k} خارج [0, 1]: {v!r}")
+            else:
+                sums[k] += v
+    for k, total in sums.items():
+        if abs(total - 1.0) > NUTRIENT_SUM_TOLERANCE:
+            errors.append(f"مجموع {k} عبر المراحل = {total:.4f} (المطلوب 1.0 ± {NUTRIENT_SUM_TOLERANCE})")
 
 
 def _validate_phenology(card: dict, errors: list) -> None:
@@ -73,6 +113,7 @@ def _validate_phenology(card: dict, errors: list) -> None:
         if prev_end is not None and st["day_start"] < prev_end:
             errors.append(f"مرحلة '{st['stage']}': تتداخل مع السابقة (تسلسل متراجع)")
         prev_end = st["day_end"]
+    _validate_nutrient_demand(stages, errors)  # منحنيات الطلب الغذائيّ (اختياريّة — كلّ أو لا شيء)
 
 
 def load_crop_card(crop_id: str) -> dict | None:
@@ -123,6 +164,29 @@ def growth_stages(crop_id: str) -> list[dict]:
     if card is None:
         return []
     return list(card.get("phenology", {}).get("stages", []))
+
+
+def stage_nutrient_demand(crop_id: str) -> list[dict]:
+    """يُرجع منحنى الطلب الغذائيّ لكلّ مرحلة: [{stage, day_start, day_end, n/p/k_fraction, source}].
+
+    الكسور **خلال المرحلة** من الإجماليّ الموسميّ (تجمع إلى 1.0 لكلّ عنصر) — تُحوَّل إلى
+    kg/ha بضربها في modifying.{nitrogen,phosphorus,potassium}_kg_ha_required، وتُغذّي
+    توقيت التسميد (متى يحتاج، لا فقط كم). قائمة فارغة إن لم تُعرَّف المنحنيات بعد.
+    """
+    out = []
+    for st in growth_stages(crop_id):
+        nd = st.get("nutrient_demand")
+        if nd:
+            out.append({
+                "stage": st["stage"],
+                "day_start": st["day_start"],
+                "day_end": st["day_end"],
+                "n_fraction": nd["n_fraction"],
+                "p_fraction": nd["p_fraction"],
+                "k_fraction": nd["k_fraction"],
+                "source": nd["source"],
+            })
+    return out
 
 
 # ════════════════════════════════════════════════════════════
