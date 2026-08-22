@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5163,
+    "files_scanned": 5165,
     "files_by_kind": {
       "backend": 1198,
       "database": 274,
       "governance": 60,
       "mobile": 51,
-      "other": 1416,
-      "tests": 1708,
+      "other": 1417,
+      "tests": 1709,
       "web": 456
     },
-    "unmapped_artifacts": 2104,
-    "ambiguous_artifacts": 408
+    "unmapped_artifacts": 2106,
+    "ambiguous_artifacts": 405
   },
   "capabilities": [
     {
@@ -9314,35 +9314,11 @@
           ]
         },
         {
-          "path": "services/sahool-platform/core/crop_cards/loader.py",
-          "score": 9,
-          "signals": [
-            "content:dem",
-            "content:slope"
-          ]
-        },
-        {
-          "path": "services/sahool-platform/core/crop_cards/maize.yaml",
-          "score": 9,
-          "signals": [
-            "content:dem",
-            "content:slope"
-          ]
-        },
-        {
           "path": "services/soil-service/routers/p2_products.py",
           "score": 9,
           "signals": [
             "content:dem",
             "content:terrain"
-          ]
-        },
-        {
-          "path": "services/sahool-platform/core/crop_cards/_TEMPLATE.yaml",
-          "score": 8,
-          "signals": [
-            "content:dem",
-            "content:slope"
           ]
         }
       ],
@@ -10377,14 +10353,6 @@
           ]
         },
         {
-          "path": "services/sahool-platform/tests/test_crop_cards.py",
-          "score": 10,
-          "signals": [
-            "content:dem",
-            "content:slope"
-          ]
-        },
-        {
           "path": "frontend/src/lib/evidenceGraph.test.ts",
           "score": 9,
           "signals": [
@@ -10792,13 +10760,13 @@
         "routes": 19
       },
       "evidence_counts": {
-        "backend": 25,
+        "backend": 22,
         "routes": 100,
         "database": 10,
         "events": 51,
         "web": 12,
         "mobile": 0,
-        "tests": 38,
+        "tests": 37,
         "governance": 0,
         "other_evidence": 34
       },
@@ -38907,6 +38875,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/sahool-platform/core/crop_cards/loader.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/sahool-platform/core/crop_cards/varieties/barley_bakkur.yaml",
       "kind": "backend"
     },
@@ -41724,6 +41696,10 @@
     },
     {
       "path": "tests_v9/test_crs_service_shared.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_d09_live_evidence_receipt.py",
       "kind": "tests"
     },
     {
@@ -49827,50 +49803,6 @@
       ]
     },
     {
-      "path": "services/sahool-platform/core/crop_cards/_TEMPLATE.yaml",
-      "kind": "backend",
-      "candidates": [
-        {
-          "capability_id": "WX-006",
-          "score": 10,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
-          "capability_id": "GIS-003",
-          "score": 8,
-          "signals": [
-            "content:dem",
-            "content:slope"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "services/sahool-platform/core/crop_cards/maize.yaml",
-      "kind": "backend",
-      "candidates": [
-        {
-          "capability_id": "WX-006",
-          "score": 10,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
-          "capability_id": "GIS-003",
-          "score": 9,
-          "signals": [
-            "content:dem",
-            "content:slope"
-          ]
-        }
-      ]
-    },
-    {
       "path": "services/sahool-platform/core/crop_intelligence/engine.py",
       "kind": "backend",
       "candidates": [
@@ -50848,28 +50780,6 @@
             "content:Weather forecast",
             "content:forecast",
             "content:weather forecast"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "services/sahool-platform/tests/test_crop_cards.py",
-      "kind": "tests",
-      "candidates": [
-        {
-          "capability_id": "WX-006",
-          "score": 12,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
-          "capability_id": "GIS-003",
-          "score": 10,
-          "signals": [
-            "content:dem",
-            "content:slope"
           ]
         }
       ]

@@ -58,7 +58,7 @@ OPS-005,Offline mobile,0,0,0,0,0,False
 OPS-006,Equipment registry,0,0,0,0,0,False
 OPS-007,Maintenance,0,0,0,0,0,False
 OPS-008,Workforce and worker identity,3,0,0,0,1,False
-DEC-001,Decision evidence,0,0,2,0,1,False
+DEC-001,Decision evidence,0,0,3,0,1,False
 DEC-002,Decision candidate,0,0,0,0,0,False
 DEC-003,Human approval,0,0,4,0,1,False
 DEC-004,Execution request,0,0,4,0,1,False
