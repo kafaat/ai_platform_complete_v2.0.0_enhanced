@@ -189,12 +189,27 @@ def classify_point(pq, point_id: str, payload: dict[str, Any]) -> dict[str, Any]
 
     parse_pass = parsed is not None
     canonical_shape = _canonical_shape(payload)
-    fallback_identity_used = bool(
-        parse_pass
-        and nested_chunk_id is None
-        and root_chunk_id is None
-        and parsed.chunk_id == point_id
-    )
+    # ── D12-PRE — مصدرُ الهويّة المنطقيّة يُعلَن، ولا يُستنتَج من غيابه ────────
+    #
+    # كان الإيصالُ يقول «هل استُعير مُعرِّفُ التخزين؟» ولا يقول «من أين جاءت الهويّة
+    # ولا ما هي». وتخطيطُ الهجرة يحتاج الاثنين: صفٌّ بلا هويّةٍ في حمولته لا يُهاجَر،
+    # وصفٌّ بهويّةٍ صريحة يُهاجَر إليها هي لا إلى UUID التخزين. فبلا `explicit_…`
+    # يصير كلُّ صفٍّ عديمَ الهويّة في نظر المخطِّط، ويسقط أوّلُ صفٍّ قانونيّ.
+    #
+    # **وسلطةٌ واحدة لا اشتقاقان:** `fallback_identity_used` كانت تُشتقّ بشرطٍ مستقلّ،
+    # فصارت تُقرأ من `logical_identity_source`. والقيمةُ لم تتغيّر — `"storage_fallback"`
+    # تُبلَغ حصراً بنفس الشروط الأربعة — لكنّ اشتقاقين لحقيقةٍ واحدة ينحرفان، وهو صنفٌ
+    # أسقط بناءً في هذا المستودع من قبل.
+    explicit_logical_chunk_id = nested_chunk_id or root_chunk_id
+    if nested_chunk_id is not None:
+        logical_identity_source = "metadata.chunk_id"
+    elif root_chunk_id is not None:
+        logical_identity_source = "payload.chunk_id"
+    elif parse_pass and parsed.chunk_id == point_id:
+        logical_identity_source = "storage_fallback"
+    else:
+        logical_identity_source = "missing"
+    fallback_identity_used = logical_identity_source == "storage_fallback"
     current_dense_eligible = bool(nested_tenant and scope in {"tenant", "global"})
     current_sparse_eligible = bool(parse_pass and scope in {"tenant", "global"})
     dense_sparse_divergent = current_dense_eligible != current_sparse_eligible
@@ -251,6 +266,8 @@ def classify_point(pq, point_id: str, payload: dict[str, Any]) -> dict[str, Any]
         "dense_sparse_divergent": dense_sparse_divergent,
         "serving_candidate": serving_candidate,
         "canonical_serving_eligible": canonical_serving_eligible,
+        "explicit_logical_chunk_id": explicit_logical_chunk_id,
+        "logical_identity_source": logical_identity_source,
         "fallback_identity_used": fallback_identity_used,
         "reject_reason": reject_reason,
         "missing_fields": sorted(missing_fields),

@@ -199,6 +199,23 @@
         }
       ]
     },
+    "scripts/architecture/rag_corpus_audit_receipt_guard.py": {
+      "test": "tests_v9/test_rag_live_corpus_audit.py",
+      "mutations": [
+        {
+          "expect": "test_guard_refuses_a_receipt_that_would_crash_the_migration_planner",
+          "find": "        if source not in _LOGICAL_IDENTITY_SOURCES:\n",
+          "replace": "        if False:  # mutated: إيصالٌ بلا مصدرِ هويّةٍ يمرّ\n",
+          "why": "D12-PRE: إيصالٌ من مُنتِجٍ قديم يمرّ من الحارس ثمّ **ينهار** في مخطِّط D12 عند أوّل صفٍّ قانونيّ. ورفضٌ مُسمًّى عند البوّابة خيرٌ من traceback في الأداة."
+        },
+        {
+          "expect": "test_guard_refuses_an_identity_that_contradicts_its_declared_source",
+          "find": "            if row.get(\"fallback_identity_used\") is not (source == \"storage_fallback\"):\n",
+          "replace": "            if False:  # mutated: التناقضُ بين الحقلين يُبتلَع\n",
+          "why": "D12-PRE: إيصالٌ يدّعي الاستعارة وهويّتُه حاضرة (أو العكس) يُقرَأ سليماً، فيبني المخطِّطُ على حقلٍ كُتِب بيدٍ لا على قياس."
+        }
+      ]
+    },
     "scripts/architecture/rag_live_corpus_audit.py": {
       "$why_ar": "D08-A: أداة الجرد نفسها جزء من السلوك الذي يصنع الدليل؛ تُزرع عيوب في اكتمال العد وعزل الحجر وكشف عدم تناظر dense/sparse.",
       "test": "tests_v9/test_rag_live_corpus_audit.py",
@@ -220,6 +237,18 @@
           "find": "    dense_sparse_divergent = current_dense_eligible != current_sparse_eligible\n",
           "replace": "    dense_sparse_divergent = False  # mutated: legacy path asymmetry hidden\n",
           "why": "النقطة المقبولة sparse وغير المرئية dense هي أحد أسباب فشل parity، ويجب ألا يصمت الجرد عنها."
+        },
+        {
+          "expect": "test_a_borrowed_storage_id_is_declared_absent_not_reported_as_identity",
+          "find": "    explicit_logical_chunk_id = nested_chunk_id or root_chunk_id\n",
+          "replace": "    explicit_logical_chunk_id = nested_chunk_id or root_chunk_id or point_id  # mutated\n",
+          "why": "D12-PRE: تسريبُ UUID التخزين إلى خانة الهويّة المنطقيّة يجعل مخطِّطَ D12 يُهاجِر إلى مُعرِّفٍ مُلفَّق — وهو بعينه ما بُني `HOLD_IDENTITY_EVIDENCE` لمنعه. أخطرُ طفرةٍ في الشريحة لأنّها تُنتِج provenance من عدم."
+        },
+        {
+          "expect": "test_fallback_flag_is_read_from_the_source_not_derived_twice",
+          "find": "    fallback_identity_used = logical_identity_source == \"storage_fallback\"\n",
+          "replace": "    fallback_identity_used = False  # mutated: اشتقاقٌ ثانٍ ينحرف عن مصدره\n",
+          "why": "D12-PRE: الحقلان يصفان الحقيقةَ نفسها، فاشتقاقُهما مرّتين يُنتِج انحرافاً صامتاً. وهذه الطفرة تُثبِت أنّ العَلَم يُقرَأ من مصدره لا يُحسَب ثانيةً."
         }
       ]
     },
