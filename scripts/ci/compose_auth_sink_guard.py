@@ -37,6 +37,8 @@ import re
 import sys
 from pathlib import Path
 
+import yaml
+
 for _stream in (sys.stdout, sys.stderr):
     if hasattr(_stream, "reconfigure"):
         _stream.reconfigure(encoding="utf-8")
@@ -68,6 +70,10 @@ def _exceptions() -> dict[str, dict]:
     return _doc().get("exceptions", {}).get("entries", {})
 
 
+def _required_clients() -> dict[str, dict]:
+    return _doc().get("required_clients", {}).get("entries", {})
+
+
 def _production_files() -> set[str]:
     return set(_doc().get("production_stacks", {}).get("files", []))
 
@@ -78,6 +84,17 @@ def _unquote(value: str) -> str:
         if len(text) >= 2 and text.startswith(quote) and text.endswith(quote):
             return text[1:-1]
     return text
+
+
+def _accepted_required_nonempty(value: str, source_env: str) -> bool:
+    """قبولُ ``:?`` مع **متغيّر المصدر المعلن نفسه** — لا أيّ متغيّر آخر.
+
+    مجرد شكل ``${SOMETHING:?…}`` لا يكفي: لو عُيِّن مصرف Qdrant من
+    ``${WRONG_SECRET:?…}`` فالقيمة غير فارغة حقاً لكنها ليست السرّ الذي يملكه
+    عقد Qdrant. هذه الدالة هي مصدر القرار الوحيد للمصرف ولروابط العملاء.
+    """
+    match = _ACCEPTED.fullmatch(_unquote(value))
+    return bool(match and match.group(1) == source_env)
 
 
 def _why_rejected(value: str) -> str:
@@ -150,9 +167,9 @@ def findings() -> list[tuple[str, str]]:
     sinks = _sinks()
     out: list[tuple[str, str]] = []
     for rel, name, number, value in _sink_assignments():
-        if _ACCEPTED.match(_unquote(value)):
-            continue
         spec = sinks[name]
+        if _accepted_required_nonempty(value, spec["source_env"]):
+            continue
         out.append(
             (
                 f"{rel}::{name}",
@@ -164,10 +181,91 @@ def findings() -> list[tuple[str, str]]:
     return out
 
 
+def _compose_env_map(service: dict) -> dict[str, str]:
+    env = service.get("environment") or {}
+    if isinstance(env, dict):
+        return {str(k): "" if v is None else str(v) for k, v in env.items()}
+    if isinstance(env, list):
+        out: dict[str, str] = {}
+        for item in env:
+            if not isinstance(item, str):
+                continue
+            if "=" in item:
+                key, value = item.split("=", 1)
+                out[key] = value
+            else:
+                out[item] = ""
+        return out
+    return {}
+
+
+def _production_client_assignments() -> dict[str, str]:
+    """روابطُ أسرار العملاء الحيّة في production_stacks، مشتقّةٌ من YAML.
+
+    مجموعةُ متغيّرات الاكتشاف تُشتق من السجل نفسه؛ فلا توجد قائمة Qdrant
+    موازية. خدمةٌ جديدة تستعمل ``QDRANT_API_KEY`` في مكدّس إنتاجي تظهر هنا
+    ولو لم تُسجَّل بعد، فيحجبها ``client_binding_defects``.
+    """
+    required = _required_clients()
+    source_envs = {str(spec.get("source_env") or "") for spec in required.values()} - {""}
+    found: dict[str, str] = {}
+    for rel in sorted(_production_files()):
+        path = ROOT / rel
+        if not path.exists():
+            continue
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        services = data.get("services") or {}
+        if not isinstance(services, dict):
+            continue
+        for service_name, service in services.items():
+            if not isinstance(service, dict):
+                continue
+            env = _compose_env_map(service)
+            for source_env in source_envs:
+                if source_env not in env:
+                    continue
+                key = f"{rel}::{service_name}::{source_env}"
+                found[key] = env[source_env]
+    return found
+
+
+def client_binding_defects() -> list[str]:
+    """كلُّ عميلٍ إنتاجيٍّ مسجّلٌ ومحلّيّاً fail-closed، ولا عميلَ غيرَ مسجّل."""
+    required = _required_clients()
+    live = _production_client_assignments()
+    problems: list[str] = []
+    if not required:
+        return ["سجلُّ required_clients فارغ — عقدُ عميل Qdrant بلا روابط يقيسها"]
+
+    for key in sorted(set(live) - set(required)):
+        problems.append(
+            f"عميل Qdrant إنتاجيّ غير مسجّل: {key} — أضِفه إلى required_clients قبل أن يبقى خارج العقد"
+        )
+    for key in sorted(set(required) - set(live)):
+        problems.append(
+            f"رابطُ عميل Qdrant مسجّل اختفى من production_stacks: {key} — احسم الإزالة أو أعِد الرابط"
+        )
+    for key in sorted(set(required) & set(live)):
+        spec = required[key]
+        value = live[key]
+        source_env = str(spec.get("source_env") or "")
+        if spec.get("policy") != "REQUIRED_NONEMPTY":
+            problems.append(f"سياسةُ عميل غير مدعومة: {key} -> {spec.get('policy')!r}")
+            continue
+        if not _accepted_required_nonempty(value, source_env):
+            problems.append(
+                f"{key} — {_why_rejected(value)}. العميل يتصل بخادمٍ مصادَق؛ "
+                f"المقبول `{spec.get('allowed_form')}` وحدها"
+            )
+    return problems
+
+
 def violations() -> list[str]:
-    """الانتهاكات بعد ترشيح الاستثناءات المقيَّدة بالملفّ والخدمة."""
+    """الانتهاكات بعد ترشيح استثناءات الخادم، ومعها عقود العملاء الإنتاجيّة."""
     allowed = _exceptions()
-    return [message for key, message in findings() if key not in allowed]
+    out = [message for key, message in findings() if key not in allowed]
+    out += client_binding_defects()
+    return out
 
 
 def exception_defects() -> list[str]:
@@ -225,8 +323,8 @@ def main() -> int:
     print(
         f"compose_auth_sink_guard: PASS "
         f"({len(witness['discovered_paths'])} ملفّاً على السطح · "
-        f"{len(_sinks())} مصرفاً مُعلَناً · {len(_exceptions())} استثناءً مقيَّداً · "
-        f"المصدر: {witness['universe_source']})"
+        f"{len(_sinks())} مصرفاً مُعلَناً · {len(_required_clients())} رابطَ عميلٍ إنتاجيّ · "
+        f"{len(_exceptions())} استثناءً مقيَّداً · المصدر: {witness['universe_source']})"
     )
     return 0
 

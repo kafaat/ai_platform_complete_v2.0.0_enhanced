@@ -10,17 +10,17 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **260**
+- حرّاس تحجب في CI: **261**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **42**
-- إجماليّ الطفرات المُسجَّلة: **310**
-- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **123** على 45 مصدراً
+- إجماليّ الطفرات المُسجَّلة: **313**
+- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **128** على 47 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
 أنّ المسار يستشير مفتاح الطوارئ مثلاً — ويمرّ أخضر على مسارٍ يستشيره ثمّ يتجاهل
 نتيجته، أو يستشيره بنطاقٍ أضيق فلا يُطابِق. فتلك تُزرَع في المصدر الفيزيائيّ
 ويجب أن يحمرّ اختبارُ **أثرها**.
 
-أي أنّ **218** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **219** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
@@ -281,6 +281,9 @@
 - مصرفٌ مُسجَّل اختفى من السطح بلا تحديث العقد: الإبلاغُ وحده يُبقي حارساً بلا ما يفحص أخضرَ. — يُسقِط `test_a_registered_sink_that_vanishes_from_the_surface_blocks`
 - إسقاطُ حدّ الإنتاج يجعل الاستثناء التجريبيّ قابلاً للمنح لمكدّسٍ إنتاجيّ — أي أنّ الإعفاء يصير الطريقَ إلى العطل بدل أن يكون حدّاً عليه. — يُسقِط `test_an_exception_on_a_production_stack_is_refused`
 - العودةُ إلى عدّ التعليق حياةً: اسمٌ باقٍ في تعليقٍ — أو سطرُ إسنادٍ مُعطَّل — يُخفي اختفاءَ مصرفٍ مُسجَّل، فتسقط الخاصّيّة الحاجبة صامتةً. رفعتها مراجعةٌ خارجيّة وأصابت، وقِستُ الحالتين قبل الإصلاح فمرّتا بلا إبلاغ. — يُسقِط `test_a_sink_surviving_only_inside_a_comment_is_not_counted_as_live`
+- D06-C1: شكل `:?` وحده لا يثبت ملكية السر؛ مصرف Qdrant يجب أن يستوفي QDRANT_API_KEY نفسه لا متغيراً آخر غير فارغ. — يُسقِط `test_sink_must_use_the_declared_source_env_not_any_required_variable`
+- D06-C1: حذف فحص رابط العميل يعيد الاعتماد الضمني على وجود مصرف الخادم في الملف نفسه؛ `${QDRANT_API_KEY}` العاري يمرّ. — يُسقِط `test_bare_qdrant_client_binding_is_rejected`
+- D06-C1: خدمة جديدة تستخدم QDRANT_API_KEY في production_stacks يجب أن تدخل سجل الروابط؛ وإلا يصير الحارس حارس ما يعرفه فقط. — يُسقِط `test_new_qdrant_client_on_a_production_stack_must_be_registered`
 
 ### `compose_no_default_secrets_guard.py`
 
@@ -777,7 +780,7 @@
 
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (218)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (219)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -863,6 +866,7 @@
 | `generate_indicator_artifacts.py` | — | `structural-lint` |
 | `generate_indicators_frontend_manifest.py` | مولّد مانيفست الواجهة (build-time) لسجلّ المؤشّرات — WS-B.2 (manifest-only). | `structural-lint` |
 | `generate_service_inventory.py` | Generate Sahool service and route inventory from source code. | `structural-lint` · `drift` |
+| `generated_write_targets.py` | أهدافُ الكتابة المولَّدة — `CLASSIFIER-BLIND-TO-GENERATORS-OUTSIDE-generated-DIRS-01`. | `structural-lint` |
 | `github_actions_policy_guard.py` | Enforce immutable third-party Actions and reject privileged workflow patterns. | `supply-chain-static-scan` |
 | `guard_catalogue.py` | What every guard enforces, what it catches, and where it runs — derived, never listed. | `structural-lint` |
 | `health_readiness_schema_guard.py` | Guard canonical health/readiness response envelopes. | `health-readiness-schema` |

@@ -2,7 +2,7 @@
   "$comment": "مصارفُ الاستيثاق: مواضعُ في Compose يحكم متغيّرُها تفعيلَ استيثاق خادم، فلا يجوز أن تصل قيمتُه فارغةً. سجلٌّ صريحٌ بالاسم — لا نمط `.*API_KEY`: بعض متغيّرات المفاتيح اعتمادُ عميلٍ اختياريّ لا مفتاحٌ يحمي خادماً، وإلزامُها عالميّاً يكسر مكدّساتٍ تعمل بلا مزوّدٍ خارجيّ بحقّ. يُوسَّع بمصرفٍ مقيسٍ واحدٍ في المرّة، بعد إثبات أنّ الخدمة تحمل الدلالة نفسها.",
   "schema": "sahool.compose_auth_sinks",
   "contract": "SERVER-AUTH-SECRET-MUST-BE-NONEMPTY-01",
-  "version": 2,
+  "version": 3,
   "adjudicated_on": "2026-08-20",
   "property": "إن كان السرُّ شرطَ تفعيل الاستيثاق في خدمةٍ خادميّة، فلا يجوز أن تصل قيمتُه إلى الخدمة فارغةً — ولا يكفي أنّ المتغيّر «موجود».",
   "not_this_property": "«لا سرَّ افتراضيّ منشور» — عقدٌ آخر يفرضه compose_no_default_secrets_guard.py. والعقدان يتقاطعان ولا يتطابقان: `${VAR:-}` الفارغة تُرضي ذاك وتنتهك هذا، والقيمةُ الحرفيّة تنتهك الاثنين لسببين مختلفين.",
@@ -49,6 +49,54 @@
         "reason": "مكدّسُ اختبارٍ عابر يُقلَع ويُهدَم داخل الجولة. القيمة الثابتة تجعل الاستيثاق **مُفعَّلاً** ومعلومَ المفتاح للمُدَّعي الاختباريّ، ولا تبلغ بيئةً حقيقيّة.",
         "owner": "منصّة/CI",
         "expires_on": "2027-01-31"
+      }
+    }
+  },
+  "client_contract": "AUTHENTICATED-QDRANT-CLIENT-CREDENTIAL-MUST-BE-NONEMPTY-01",
+  "client_property": "أيّ خدمةٍ في مكدّسٍ إنتاجيّ تتصل بخادم Qdrant الذي فُعِّل استيثاقه يجب أن تستقبل QDRANT_API_KEY من استيفاءٍ يثبت الوجود وعدم الفراغ محليّاً عند الخدمة؛ لا يُكتفى بأنّ خدمة الخادم في الملفّ نفسه تفرض المتغيّر بالصدفة.",
+  "client_scope_note": "هذا تقويةُ محليّة للعقد لا ادّعاءُ bypass جديد: المكدّسات الحالية كانت تفشل كلّها عند غياب المفتاح لأنّ مصرف الخادم نفسه `:?`. لكن إسناد العميل العاري كان يعتمد على بقاء ذلك المصرف في الملفّ نفسه؛ نقلُ الخادم إلى profile/override أو استخراجُ الخدمة كان سيحوّل الاعتماد الضمنيّ إلى إقلاعٍ بلا اعتماد صالح. لذلك يُفرض الشرط عند كلّ عميلٍ معلَن أيضاً.",
+  "required_clients": {
+    "$comment": "روابطُ عملاء Qdrant الإنتاجيّة. المفاتيحُ مقيّدة بالملفّ والخدمة ومتغيّر البيئة؛ ويكتشف الحارس أيّ خدمةٍ جديدة على production_stacks تستعمل QDRANT_API_KEY ولم تُسجَّل هنا.",
+    "entries": {
+      "docker-compose.v9.yml::sahool-local-ai-rag::QDRANT_API_KEY": {
+        "service": "sahool-local-ai-rag",
+        "source_env": "QDRANT_API_KEY",
+        "policy": "REQUIRED_NONEMPTY",
+        "allowed_form": "${QDRANT_API_KEY:?…}",
+        "why": "العميل يتصل بخادم Qdrant ذي مصادقة مفعّلة؛ اعتمادٌ فارغ/غائب لا يمكنه تنفيذ طلبٍ مصادَق ويجب أن يفشل عند حلّ Compose لا بعد الإقلاع.",
+        "measured_on": "2026-08-21"
+      },
+      "docker-compose.v9.yml::sahool-rag-retrieval::QDRANT_API_KEY": {
+        "service": "sahool-rag-retrieval",
+        "source_env": "QDRANT_API_KEY",
+        "policy": "REQUIRED_NONEMPTY",
+        "allowed_form": "${QDRANT_API_KEY:?…}",
+        "why": "العميل يتصل بخادم Qdrant ذي مصادقة مفعّلة؛ اعتمادٌ فارغ/غائب لا يمكنه تنفيذ طلبٍ مصادَق ويجب أن يفشل عند حلّ Compose لا بعد الإقلاع.",
+        "measured_on": "2026-08-21"
+      },
+      "docker-compose.v9.yml::sahool-qdrant-seed::QDRANT_API_KEY": {
+        "service": "sahool-qdrant-seed",
+        "source_env": "QDRANT_API_KEY",
+        "policy": "REQUIRED_NONEMPTY",
+        "allowed_form": "${QDRANT_API_KEY:?…}",
+        "why": "العميل يتصل بخادم Qdrant ذي مصادقة مفعّلة؛ اعتمادٌ فارغ/غائب لا يمكنه تنفيذ طلبٍ مصادَق ويجب أن يفشل عند حلّ Compose لا بعد الإقلاع.",
+        "measured_on": "2026-08-21"
+      },
+      "docker-compose.fixed.yml::sahool-local-ai-rag::QDRANT_API_KEY": {
+        "service": "sahool-local-ai-rag",
+        "source_env": "QDRANT_API_KEY",
+        "policy": "REQUIRED_NONEMPTY",
+        "allowed_form": "${QDRANT_API_KEY:?…}",
+        "why": "العميل يتصل بخادم Qdrant ذي مصادقة مفعّلة؛ اعتمادٌ فارغ/غائب لا يمكنه تنفيذ طلبٍ مصادَق ويجب أن يفشل عند حلّ Compose لا بعد الإقلاع.",
+        "measured_on": "2026-08-21"
+      },
+      "docker-compose.fixed.yml::sahool-qdrant-seed::QDRANT_API_KEY": {
+        "service": "sahool-qdrant-seed",
+        "source_env": "QDRANT_API_KEY",
+        "policy": "REQUIRED_NONEMPTY",
+        "allowed_form": "${QDRANT_API_KEY:?…}",
+        "why": "العميل يتصل بخادم Qdrant ذي مصادقة مفعّلة؛ اعتمادٌ فارغ/غائب لا يمكنه تنفيذ طلبٍ مصادَق ويجب أن يفشل عند حلّ Compose لا بعد الإقلاع.",
+        "measured_on": "2026-08-21"
       }
     }
   }

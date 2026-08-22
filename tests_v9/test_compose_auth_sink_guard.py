@@ -440,3 +440,98 @@ def test_every_declared_sink_is_named_sourced_and_measured():
         assert ":?" in spec["allowed_form"], (
             f"{name}: الصيغةُ المسموحة يجب أن تُثبِت غيرَ الفارغ — `?` وحدها تُثبِت الوجود"
         )
+
+
+# ── D06-C1: عميلُ Qdrant يثبت الاعتماد محليّاً لا بالصدفة من مصرف الخادم ─────────
+
+
+def test_sink_must_use_the_declared_source_env_not_any_required_variable(tmp_path, monkeypatch):
+    """`${WRONG_SECRET:?x}` غير فارغ، لكنه ليس QDRANT_API_KEY المملوك للعقد."""
+    probe = tmp_path / "docker-compose.probe.yml"
+    probe.write_text(
+        "services:\n  q:\n    image: qdrant/qdrant:v1.11.0\n    environment:\n"
+        f"      {SINK}: ${{WRONG_SECRET:?required}}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(guard, "compose_files", lambda: [probe])
+    monkeypatch.setattr(guard, "ROOT", tmp_path)
+    rows = guard.findings()
+    assert rows and rows[0][0] == f"docker-compose.probe.yml::{SINK}", (
+        "الحارس قبِل متغيّراً آخر لمجرّد أنّه `:?` — الشكل ثُبِّت بدل ملكيّة السرّ"
+    )
+
+
+def test_all_declared_qdrant_clients_are_locally_required_and_nonempty():
+    defects = guard.client_binding_defects()
+    assert defects == [], "\n".join(defects)
+
+
+def test_bare_qdrant_client_binding_is_rejected(monkeypatch):
+    key = "docker-compose.v9.yml::sahool-rag-retrieval::QDRANT_API_KEY"
+    monkeypatch.setattr(
+        guard,
+        "_required_clients",
+        lambda: {
+            key: {
+                "service": "sahool-rag-retrieval",
+                "source_env": "QDRANT_API_KEY",
+                "policy": "REQUIRED_NONEMPTY",
+                "allowed_form": "${QDRANT_API_KEY:?…}",
+            }
+        },
+    )
+    monkeypatch.setattr(guard, "_production_client_assignments", lambda: {key: "${QDRANT_API_KEY}"})
+    defects = guard.client_binding_defects()
+    assert any("استيفاءٌ عارٍ" in item for item in defects), (
+        "إسنادُ عميلٍ عارٍ مرّ — الرابطُ المحليّ عاد يعتمد على بقاء مصرف الخادم في الملف نفسه"
+    )
+
+
+def test_new_qdrant_client_on_a_production_stack_must_be_registered(tmp_path, monkeypatch):
+    rel = "docker-compose.v9.yml"
+    probe = tmp_path / rel
+    probe.write_text(
+        "services:\n"
+        "  registered:\n    image: alpine\n    environment:\n"
+        "      QDRANT_API_KEY: ${QDRANT_API_KEY:?required}\n"
+        "  newcomer:\n    image: alpine\n    environment:\n"
+        "      QDRANT_API_KEY: ${QDRANT_API_KEY:?required}\n",
+        encoding="utf-8",
+    )
+    registered_key = f"{rel}::registered::QDRANT_API_KEY"
+    monkeypatch.setattr(guard, "ROOT", tmp_path)
+    monkeypatch.setattr(guard, "_production_files", lambda: {rel})
+    monkeypatch.setattr(
+        guard,
+        "_required_clients",
+        lambda: {
+            registered_key: {
+                "service": "registered",
+                "source_env": "QDRANT_API_KEY",
+                "policy": "REQUIRED_NONEMPTY",
+                "allowed_form": "${QDRANT_API_KEY:?…}",
+            }
+        },
+    )
+    defects = guard.client_binding_defects()
+    assert any("غير مسجّل" in item and "newcomer" in item for item in defects), (
+        "خدمةُ Qdrant جديدة دخلت production_stacks خارج سجلّ روابط العملاء"
+    )
+
+
+def test_registered_qdrant_client_that_disappears_blocks(monkeypatch):
+    key = "docker-compose.v9.yml::ghost::QDRANT_API_KEY"
+    monkeypatch.setattr(
+        guard,
+        "_required_clients",
+        lambda: {
+            key: {
+                "service": "ghost",
+                "source_env": "QDRANT_API_KEY",
+                "policy": "REQUIRED_NONEMPTY",
+                "allowed_form": "${QDRANT_API_KEY:?…}",
+            }
+        },
+    )
+    monkeypatch.setattr(guard, "_production_client_assignments", lambda: {})
+    assert any("اختفى" in item for item in guard.client_binding_defects())
