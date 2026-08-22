@@ -228,9 +228,21 @@ def check() -> int:
 
 
 def main() -> int:
+    """وضعٌ **واحد** مطلوبٌ صراحةً — لا افتراضيّ صامت ولا جمعٌ يُرجَّح أحدُ طرفيه.
+
+    أوّل صياغةٍ عندي جعلت `--check` بلا أثر (الأداة تفحص بلا علمٍ أصلاً) وسمحت
+    بتمرير العلمين معاً فيُؤخَذ `--generate` صامتاً — فأمرٌ يقول «افحص» كان
+    **يكتب**. رفعتها مراجعةٌ خارجيّة وأصابت، واحتجّت بعُرف المستودع
+    (`route_conflict_guard.py:145`) وهو الحجّة الأقوى: أداتان تُقرآن معاً
+    بواجهتين مختلفتين تُنتِجان خطأ قارئ.
+
+    وكلُّ موضعِ استدعاءٍ يمرّر علماً صريحاً (`ci.yml` و`preflight` بـ`--check`،
+    و`_GENERATE_FLAG` بـ`--generate`) — فالإلزام لا يكسر شيئاً، مقيسٌ لا مفترَض.
+    """
     parser = argparse.ArgumentParser(description="أهدافُ الكتابة المولَّدة")
-    parser.add_argument("--generate", action="store_true")
-    parser.add_argument("--check", action="store_true")
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--generate", action="store_true", help="اشتقّ واكتب البيان")
+    mode.add_argument("--check", action="store_true", help="أعِد الاشتقاق وقارِنه بالبيان")
     args = parser.parse_args()
     return generate() if args.generate else check()
 

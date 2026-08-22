@@ -168,3 +168,26 @@ def test_a_missing_manifest_degrades_to_source_not_to_chaos(monkeypatch, tmp_pat
     assert resolver.classify("release/FILE_CHECKSUMS.sha256") == "generated"
     for path in resolver.HAND_WRITTEN_POLICY:
         assert resolver.classify(path) == "source"
+
+
+def test_the_cli_requires_exactly_one_mode():
+    """لا افتراضيّ صامت ولا جمعٌ يُرجَّح أحدُ طرفيه.
+
+    أوّل صياغةٍ عندي كانت تُنفّذ `check()` بلا علمٍ أصلاً، وتقبل العلمين معاً
+    فتأخذ `--generate` — أي أنّ أمراً يقول «افحص» كان **يكتب**. والعُرف في
+    المستودع (`route_conflict_guard.py`) يمنع الجمع بمجموعةٍ متنافية مطلوبة.
+    """
+    tool_path = str(ROOT / "scripts" / "ci" / "generated_write_targets.py")
+
+    def run(*flags):
+        return subprocess.run(
+            [sys.executable, tool_path, *flags],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            cwd=ROOT,
+        )
+
+    assert run().returncode == 2, "بلا علمٍ يجب أن يُرفَض — لا وضعَ افتراضيّ"
+    assert run("--generate", "--check").returncode == 2, "العلمان معاً مرّا — أمرٌ يقول «افحص» قد يكتب"
+    assert run("--check").returncode == 0
