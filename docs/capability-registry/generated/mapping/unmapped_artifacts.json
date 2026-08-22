@@ -7360,6 +7360,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_generated_write_targets.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_gis_enforce.py",
     "kind": "tests"
   },

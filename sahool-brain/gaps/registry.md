@@ -4952,3 +4952,12 @@ scripts/ci/capability_mapping_engine.py:270      ["git","ls-files","-z"]
   ③ **واكتشافٌ لا قائمة:** خدمةٌ جديدة على `production_stacks` تستعمل متغيّراً مُسجَّلاً ولم تدخل السجلّ ⇒ تحجب؛ ومُسجَّلٌ اختفى ⇒ يحجب. ومجموعةُ متغيّرات الاكتشاف تُشتقّ من السجلّ نفسه، فلا قائمة Qdrant موازية.
 - **مُكذَّب:** ١١/١١ طفرة بالزرع الفعليّ — منها ثلاثٌ جديدة: قبولُ أيّ متغيّر `:?` · حذفُ فحص رابط العميل · وعميلٌ إنتاجيّ جديد خارج السجلّ لا يحجب.
 - **حدُّ صدق:** لم تُقلَع Qdrant ولم يُسبَر منفذُها. المقيس دلالةُ الاستيفاء وانحرافُ الارتباطات، لا رفضٌ حيّ بـ401.
+
+
+## AUTHENTICATED-QDRANT-CLIENT-CREDENTIAL-MUST-BE-NONEMPTY-01 — ⛔ عقدُ حراسةٍ لا فجوة تنفيذيّة (2026-08-21)
+
+- **ما هو:** اسمُ **عقد** يفرضه `scripts/ci/compose_auth_sink_guard.py` عبر `client_binding_defects()`، لا عطلٌ مفتوح. سُجِّل هنا لأنّ شكله شكلُ مُعرِّف فجوة، فذكرُه في دفتر القرارات يقرؤه `brain_narrative_registry_consistency` ادّعاءَ وجود — وهي ثالثةُ مرّةٍ يقع فيها هذا الصنف في هذه الجلسة (`SERVER-AUTH-SECRET-MUST-BE-NONEMPTY-01` و`COMPOSE-DEFAULT-SECRET-IS-A-PUBLISHED-SECRET-01` قبله).
+- **المصدر:** `docs/architecture/compose_auth_sinks.json` (`client_contract` · `required_clients`) · `scripts/ci/compose_auth_sink_guard.py` · `tests_v9/test_compose_auth_sink_guard.py`.
+- **الخاصّيّة:** خدمةٌ في مكدّسٍ إنتاجيّ تتّصل بخادم Qdrant المُفعَّل استيثاقُه يجب أن تستقبل `QDRANT_API_KEY` من استيفاءٍ يُثبِت الوجود وعدم الفراغ **محلّيّاً عندها** — لا أن ترثه من مجاورةِ مصرف الخادم في الملفّ نفسه.
+- **وما ليست:** `SERVER-AUTH-SECRET-MUST-BE-NONEMPTY-01` (عقدُ الخادم). والعلاقة احتواءٌ لا ترادف: الخادمُ يُلزِم متغيّره، والعميلُ يُلزِم اعتمادَه — ونقلُ الخادم إلى profile يُسقِط الثاني ولا يمسّ الأوّل.
+- **العطل الذي أوجده:** `QDRANT-CLIENT-CREDENTIAL-LOCALITY-01` أعلاه.
