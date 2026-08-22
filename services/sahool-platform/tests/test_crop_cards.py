@@ -168,11 +168,11 @@ class TestCommonBeanFromLegumesGuide:
         from core.crop_cards.loader import load_variety_card
 
         # يمن-1: مُنتخَب من سلالات محلّية ⇒ landrace.
-        assert load_variety_card("common_bean_yemen_1")["passport"]["origin_type"] == "landrace"
+        assert load_crop_card("common_bean_yemen_1")["passport"]["origin_type"] == "landrace"
         # لينا-24: مُدخَل من CIAT ⇒ introduced.
-        assert load_variety_card("common_bean_liena_24")["passport"]["origin_type"] == "introduced"
+        assert load_crop_card("common_bean_liena_24")["passport"]["origin_type"] == "introduced"
         # رجم-1: مُستنبَط حديثاً ⇒ improved.
-        assert load_variety_card("common_bean_rajm_1")["passport"]["origin_type"] == "improved"
+        assert load_crop_card("common_bean_rajm_1")["passport"]["origin_type"] == "improved"
 
     def test_rajm_1_is_earliest_maturity_class(self):
         from core.crop_cards.loader import load_variety_card
@@ -203,7 +203,7 @@ class TestCommonBeanFromLegumesGuide:
         from core.crop_cards.loader import load_variety_card
 
         assert (
-            load_variety_card("common_bean_rajm_1")["variety_traits"]["disease_resistance_ar"] == []
+            load_crop_card("common_bean_rajm_1")["variety_traits"]["disease_resistance_ar"] == []
         )
 
 
@@ -831,6 +831,48 @@ class TestStageNutrientDemand:
         curve = {s["stage"]: s for s in stage_nutrient_demand("maize")}
         assert curve["initial"]["k_fraction"] >= curve["initial"]["n_fraction"]
         assert curve["late"]["k_fraction"] < curve["late"]["n_fraction"]
+
+    def test_maize_provenance_structure(self):
+        """سلسلة اشتقاق بنيويّة — تلزم البنية القابلة لإعادة البناء، ولا تجمّد قيماً علميّة."""
+        from core.crop_cards.loader import load_crop_card
+
+        card = load_crop_card("maize")
+        prov = card["phenology"].get("nutrient_demand_provenance")
+        assert isinstance(prov, dict)
+        for key in ("primary_reference", "derivation", "stage_mapping", "approximation"):
+            assert key in prov, key
+        for key in ("primary_reference", "derivation", "stage_mapping"):
+            assert isinstance(prov[key], str) and prov[key].strip(), key
+        assert prov["approximation"] is True  # تصريح تقريب صريح، لا ضمنيّ
+        # تعيين المراحل يذكر مراحل البطاقة الأربع كلّها
+        for stage in ("initial", "development", "mid", "late"):
+            assert stage in prov["stage_mapping"], stage
+
+    def test_provenance_required_when_curves_present(self):
+        """منحنيات طلب بلا كتلة nutrient_demand_provenance تُرفَض — لا كسراً بلا مصدر."""
+        from core.crop_cards.loader import validate_crop_card
+
+        nd = self._nd(0.5, 0.5, 0.5)
+        stages = [self._stage("a", 0, 20, nd), self._stage("b", 20, 40, nd)]
+        assert not validate_crop_card(self._card(stages))["valid"]
+
+    def test_provenance_approximation_must_be_explicit_true(self):
+        """approximation ليس true صراحةً (غائب/نصّ/False) ⇒ البطاقة مرفوضة."""
+        from core.crop_cards.loader import validate_crop_card
+
+        nd = self._nd(0.5, 0.5, 0.5)
+        stages = [self._stage("a", 0, 20, nd), self._stage("b", 20, 40, nd)]
+        card = self._card(stages)
+        prov = {
+            "primary_reference": "r",
+            "derivation": "d",
+            "stage_mapping": "m",
+            "approximation": "yes",
+        }
+        card["phenology"]["nutrient_demand_provenance"] = prov
+        assert not validate_crop_card(card)["valid"]
+        prov["approximation"] = True
+        assert validate_crop_card(card)["valid"]
 
     def test_absent_block_passes(self):
         from core.crop_cards.loader import validate_crop_card
