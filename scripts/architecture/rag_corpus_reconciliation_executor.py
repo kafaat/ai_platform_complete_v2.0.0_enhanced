@@ -35,8 +35,9 @@ import pathlib
 import re
 import subprocess
 import sys
+from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Any, Callable
+from typing import Any
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SCHEMA = "sahool.rag-corpus-reconciliation-receipt/v1"
