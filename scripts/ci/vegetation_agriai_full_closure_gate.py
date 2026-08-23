@@ -24,7 +24,9 @@ required = [
 missing = [p for p in required if not (ROOT / p).exists()]
 assert not missing, missing
 
-rt = (ROOT / "services/vegetation-analysis-service/vegetation_runtime.py").read_text(encoding="utf-8")
+rt = (ROOT / "services/vegetation-analysis-service/vegetation_runtime.py").read_text(
+    encoding="utf-8"
+)
 # runtime-truth (20260712): stronger than the old production-only guard — the synthetic
 # FIELD_REGISTRY is empty, legacy fallback defaults OFF in EVERY environment, and load_field
 # never fabricates (legacy path dead-ends to None). Real fields come from the platform catalog.

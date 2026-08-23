@@ -6,7 +6,9 @@ persist = (root / "services/decision-service/persistence.py").read_text(encoding
 migration = (
     root / "services/decision-service/migrations/012_model_activation_approval_command.sql"
 ).read_text(encoding="utf-8")
-router = (root / "services/sahool-platform/api/routers/decision_review.py").read_text(encoding="utf-8")
+router = (root / "services/sahool-platform/api/routers/decision_review.py").read_text(
+    encoding="utf-8"
+)
 auth = (root / "services/sahool-platform/core/authorization.py").read_text(encoding="utf-8")
 assert "/v1/learning/activation-requests/{activation_request_id}/review" in main
 assert "/api/v1/learning/activation-requests/{activation_request_id}/review" in router

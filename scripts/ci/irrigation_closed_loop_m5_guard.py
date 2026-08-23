@@ -4,7 +4,9 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-module = (ROOT / "services/sahool-platform/api/irrigation_closed_loop_learning.py").read_text(encoding="utf-8")
+module = (ROOT / "services/sahool-platform/api/irrigation_closed_loop_learning.py").read_text(
+    encoding="utf-8"
+)
 migration = (
     ROOT / "migrations/v181_irrigation_closed_loop_learning_production_certification.sql"
 ).read_text(encoding="utf-8")

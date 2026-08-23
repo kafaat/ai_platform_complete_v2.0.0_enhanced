@@ -4,7 +4,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-contract = json.loads((ROOT / "shared/contracts/intelligence_governance.json").read_text(encoding="utf-8"))
+contract = json.loads(
+    (ROOT / "shared/contracts/intelligence_governance.json").read_text(encoding="utf-8")
+)
 errors = []
 if contract["principles"].get("observed_spectral_truth") != "raster-service":
     errors.append("bad spectral owner")

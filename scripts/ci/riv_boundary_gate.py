@@ -11,7 +11,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 OWN = json.loads((ROOT / "shared/contracts/indicator_ownership.json").read_text(encoding="utf-8"))
-FLOW = json.loads((ROOT / "shared/contracts/indicator_product_flow.json").read_text(encoding="utf-8"))
+FLOW = json.loads(
+    (ROOT / "shared/contracts/indicator_product_flow.json").read_text(encoding="utf-8")
+)
 PATTERNS = [
     re.compile(r"\b(?:B0?8|NIR)\s*-\s*(?:B0?4|RED)\b", re.I),
     re.compile(r"compute_ndvi_from_bands"),

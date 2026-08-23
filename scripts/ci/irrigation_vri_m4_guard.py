@@ -4,7 +4,9 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-module = (ROOT / "services/sahool-platform/api/canonical_vri_prescription.py").read_text(encoding="utf-8")
+module = (ROOT / "services/sahool-platform/api/canonical_vri_prescription.py").read_text(
+    encoding="utf-8"
+)
 migration = (ROOT / "migrations/v180_governed_vri_prescription.sql").read_text(encoding="utf-8")
 for token in [
     "VRIPrescriptionZone",
