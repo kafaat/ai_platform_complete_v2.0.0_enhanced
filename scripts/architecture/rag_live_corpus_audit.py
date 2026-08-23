@@ -318,6 +318,47 @@ def _duplicate_digest_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _logical_identity_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
+    """Corpus-wide logical-identity uniqueness — quarantine included, by ruling.
+
+    ``production_qdrant.py`` enforces logical uniqueness **before** the quarantine
+    exemption is consulted, so the storage invariant is collection-wide; an audit
+    that filtered quarantine out would report uniqueness the writer never promised.
+    This axis is deliberately **wider** than the D12 plan's
+    ``logical_id_collision_*`` counts, which only cover rows still eligible for
+    migration actions: reconciliation must see every collision, including ones
+    parked in quarantine or held for evidence.  Points with no explicit logical
+    identity cannot collide — their debt is counted as identity absence, not as
+    duplication.
+    """
+    by_logical: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in records:
+        logical = row.get("explicit_logical_chunk_id")
+        if logical:
+            by_logical[str(logical)].append(row)
+    groups = {k: v for k, v in sorted(by_logical.items()) if len(v) >= 2}
+    samples: list[dict[str, Any]] = []
+    for logical, members in groups.items():
+        if len(samples) >= 5:
+            break
+        samples.append(
+            {
+                "logical_chunk_id": logical,
+                "point_ids": sorted(str(m["point_id"]) for m in members)[:10],
+                "point_count": len(members),
+                "tenant_scopes": sorted({str(m.get("tenant_id") or "<unknown>") for m in members}),
+            }
+        )
+    return {
+        "scope": "collection",
+        "quarantine_included": True,
+        "identity_bearing_point_count": sum(len(v) for v in by_logical.values()),
+        "collision_group_count": len(groups),
+        "collision_point_count": sum(len(v) for v in groups.values()),
+        "bounded_collision_samples": samples,
+    }
+
+
 def build_receipt(
     pq,
     rows: list[tuple[str, dict[str, Any]]],
@@ -361,8 +402,20 @@ def build_receipt(
         "read_only": True,
         "authority_promotion": False,
         "exact_count": exact_count,
+        # ``point_count`` restates the physical authority under the name the corpus
+        # invariants contract reads.  It is Exact Count, never the scroll length: when
+        # the scroll is incomplete the partition below sums to fewer points and the
+        # invariant fails loudly — an incomplete scan must not balance its own books.
+        "point_count": exact_count,
         "scroll_count": len(rows),
         "physical_count_complete": physical_complete,
+        # Physical partition by tenant scope only.  The 199=128+64+7 incident: a
+        # duplicate-count is a property of points that already live in these buckets,
+        # not a bucket of its own — summing a collision axis into the partition
+        # double-counts the physical corpus.  Keys carrying collision/duplicate/logical
+        # dimensions are rejected by the invariants contract.
+        "physical_partition": dict(sorted(Counter(str(r["scope"]) for r in records).items())),
+        "logical_identity": _logical_identity_summary(records),
         "classification_counts": dict(sorted(class_counts.items())),
         "rejection_reason_counts": dict(sorted(reason_counts.items())),
         "tenant_scope_counts": dict(sorted(tenant_counts.items())),
