@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1866,
     "route_handlers": 1049,
-    "call_edges": 75000,
+    "call_edges": 75019,
     "dead_code_candidates": 620,
     "duplicate_function_groups": 61,
     "route_owners": 27,
@@ -105569,121 +105569,121 @@
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
-      "source": "_load_provenance_manifest",
-      "target": "loads",
-      "line": 128
+      "source": "_load_excluded_chunk_ids",
+      "target": "frozenset",
+      "line": 63
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
-      "source": "_load_provenance_manifest",
-      "target": "RuntimeError",
-      "line": 130
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "_load_provenance_manifest",
+      "source": "_load_excluded_chunk_ids",
       "target": "Path",
-      "line": 132
+      "line": 64
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
-      "source": "_load_provenance_manifest",
-      "target": "is_file",
-      "line": 133
+      "source": "_load_excluded_chunk_ids",
+      "target": "loads",
+      "line": 64
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
-      "source": "_load_provenance_manifest",
+      "source": "_load_excluded_chunk_ids",
+      "target": "read_text",
+      "line": 64
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_load_excluded_chunk_ids",
+      "target": "get",
+      "line": 65
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_load_excluded_chunk_ids",
+      "target": "isinstance",
+      "line": 65
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_load_excluded_chunk_ids",
+      "target": "all",
+      "line": 66
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_load_excluded_chunk_ids",
+      "target": "isinstance",
+      "line": 66
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_load_excluded_chunk_ids",
+      "target": "isinstance",
+      "line": 66
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_load_excluded_chunk_ids",
+      "target": "strip",
+      "line": 66
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_load_excluded_chunk_ids",
       "target": "RuntimeError",
-      "line": 134
+      "line": 67
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_load_excluded_chunk_ids",
+      "target": "frozenset",
+      "line": 71
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_load_excluded_chunk_ids",
+      "target": "strip",
+      "line": 71
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "_load_provenance_manifest",
       "target": "loads",
-      "line": 136
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "_load_provenance_manifest",
-      "target": "read_text",
-      "line": 136
+      "line": 148
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "_load_provenance_manifest",
       "target": "RuntimeError",
-      "line": 138
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "_load_provenance_manifest",
-      "target": "RuntimeError",
-      "line": 141
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "_load_provenance_manifest",
-      "target": "isinstance",
-      "line": 145
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "_load_provenance_manifest",
-      "target": "RuntimeError",
-      "line": 146
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "_load_provenance_manifest",
-      "target": "items",
-      "line": 149
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "_load_provenance_manifest",
-      "target": "isinstance",
       "line": 150
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "_load_provenance_manifest",
-      "target": "RuntimeError",
-      "line": 151
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "_load_provenance_manifest",
-      "target": "get",
+      "target": "Path",
       "line": 152
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "_load_provenance_manifest",
-      "target": "str",
-      "line": 152
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "_load_provenance_manifest",
-      "target": "strip",
-      "line": 152
+      "target": "is_file",
+      "line": 153
     },
     {
       "owner": "qdrant-seed",
@@ -105696,246 +105696,267 @@
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "_load_provenance_manifest",
-      "target": "join",
-      "line": 154
+      "target": "loads",
+      "line": 156
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "_load_provenance_manifest",
-      "target": "str",
-      "line": 155
+      "target": "read_text",
+      "line": 156
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "_load_provenance_manifest",
-      "target": "str",
-      "line": 155
+      "target": "RuntimeError",
+      "line": 158
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "_load_provenance_manifest",
-      "target": "strip",
-      "line": 155
+      "target": "RuntimeError",
+      "line": 161
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
-      "source": "_collection_vector_size",
-      "target": "hasattr",
+      "source": "_load_provenance_manifest",
+      "target": "isinstance",
+      "line": 165
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_load_provenance_manifest",
+      "target": "RuntimeError",
       "line": 166
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
-      "source": "_collection_vector_size",
-      "target": "model_dump",
-      "line": 167
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "_collection_vector_size",
-      "target": "hasattr",
-      "line": 168
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "_collection_vector_size",
-      "target": "dict",
+      "source": "_load_provenance_manifest",
+      "target": "items",
       "line": 169
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
-      "source": "_collection_vector_size",
+      "source": "_load_provenance_manifest",
       "target": "isinstance",
       "line": 170
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
-      "source": "_collection_vector_size",
+      "source": "_load_provenance_manifest",
       "target": "RuntimeError",
-      "line": 173
+      "line": 171
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
-      "source": "_collection_vector_size",
+      "source": "_load_provenance_manifest",
       "target": "get",
+      "line": 172
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_load_provenance_manifest",
+      "target": "str",
+      "line": 172
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_load_provenance_manifest",
+      "target": "strip",
+      "line": 172
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_load_provenance_manifest",
+      "target": "RuntimeError",
       "line": 174
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
-      "source": "_collection_vector_size",
-      "target": "get",
+      "source": "_load_provenance_manifest",
+      "target": "join",
       "line": 174
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
-      "source": "_collection_vector_size",
-      "target": "get",
-      "line": 174
+      "source": "_load_provenance_manifest",
+      "target": "str",
+      "line": 175
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
-      "source": "_collection_vector_size",
-      "target": "isinstance",
+      "source": "_load_provenance_manifest",
+      "target": "str",
+      "line": 175
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_load_provenance_manifest",
+      "target": "strip",
       "line": 175
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "_collection_vector_size",
-      "target": "RuntimeError",
-      "line": 176
+      "target": "hasattr",
+      "line": 186
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "_collection_vector_size",
-      "target": "get",
-      "line": 177
+      "target": "model_dump",
+      "line": 187
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_collection_vector_size",
+      "target": "hasattr",
+      "line": 188
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_collection_vector_size",
+      "target": "dict",
+      "line": 189
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "_collection_vector_size",
       "target": "isinstance",
-      "line": 178
+      "line": 190
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "_collection_vector_size",
       "target": "RuntimeError",
-      "line": 179
+      "line": 193
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_collection_vector_size",
+      "target": "get",
+      "line": 194
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_collection_vector_size",
+      "target": "get",
+      "line": 194
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_collection_vector_size",
+      "target": "get",
+      "line": 194
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_collection_vector_size",
+      "target": "isinstance",
+      "line": 195
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_collection_vector_size",
+      "target": "RuntimeError",
+      "line": 196
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_collection_vector_size",
+      "target": "get",
+      "line": 197
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_collection_vector_size",
+      "target": "isinstance",
+      "line": 198
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "_collection_vector_size",
+      "target": "RuntimeError",
+      "line": 199
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "_embed",
       "target": "post",
-      "line": 213
+      "line": 233
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "_embed",
       "target": "raise_for_status",
-      "line": 218
+      "line": 238
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "_embed",
       "target": "get",
-      "line": 219
+      "line": 239
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "_embed",
       "target": "json",
-      "line": 219
+      "line": 239
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "_embed",
       "target": "ValueError",
-      "line": 221
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "_load_provenance_manifest",
-      "line": 226
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "sorted",
-      "line": 228
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "get",
-      "line": 229
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "set",
-      "line": 229
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "str",
-      "line": 229
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "RuntimeError",
-      "line": 232
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "join",
-      "line": 233
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "AsyncClient",
-      "line": 239
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "_embed",
       "line": 241
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "seed",
-      "target": "error",
-      "line": 243
+      "target": "_load_provenance_manifest",
+      "line": 246
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "seed",
-      "target": "RuntimeError",
-      "line": 249
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "len",
-      "line": 251
+      "target": "_load_excluded_chunk_ids",
+      "line": 247
     },
     {
       "owner": "qdrant-seed",
@@ -105949,259 +105970,371 @@
       "file": "services/qdrant-seed/seed.py",
       "source": "seed",
       "target": "len",
-      "line": 252
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "AsyncQdrantClient",
       "line": 254
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "seed",
-      "target": "collection_exists",
-      "line": 255
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "create_collection",
-      "line": 258
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "VectorParams",
-      "line": 260
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "info",
-      "line": 262
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "collection_exists",
-      "line": 273
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "error",
-      "line": 275
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "RuntimeError",
-      "line": 276
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "error",
-      "line": 281
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "get_collection",
-      "line": 283
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "_collection_vector_size",
-      "line": 284
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "RuntimeError",
-      "line": 286
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "info",
-      "line": 291
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "enumerate",
-      "line": 294
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "get",
-      "line": 296
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "get",
-      "line": 297
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "str",
-      "line": 297
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "get",
-      "line": 298
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "get",
-      "line": 308
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "get",
-      "line": 309
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "get",
-      "line": 310
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "get",
-      "line": 313
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "get",
-      "line": 316
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "encode",
-      "line": 319
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "hexdigest",
-      "line": 319
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "sha256",
-      "line": 319
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "str",
-      "line": 324
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "uuid5",
-      "line": 324
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "append",
-      "line": 325
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "PointStruct",
-      "line": 326
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "upsert",
-      "line": 333
-    },
-    {
-      "owner": "qdrant-seed",
-      "file": "services/qdrant-seed/seed.py",
-      "source": "seed",
-      "target": "info",
-      "line": 334
+      "target": "len",
+      "line": 254
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "seed",
       "target": "len",
-      "line": 334
+      "line": 255
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "seed",
-      "target": "get_collection",
-      "line": 336
+      "target": "len",
+      "line": 256
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "sorted",
+      "line": 259
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "get",
+      "line": 260
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "set",
+      "line": 260
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "str",
+      "line": 260
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "RuntimeError",
+      "line": 263
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "join",
+      "line": 264
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "AsyncClient",
+      "line": 270
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "_embed",
+      "line": 272
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "error",
+      "line": 274
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "RuntimeError",
+      "line": 280
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "len",
+      "line": 282
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "seed",
       "target": "info",
-      "line": 337
+      "line": 283
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "len",
+      "line": 283
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "AsyncQdrantClient",
+      "line": 285
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "collection_exists",
+      "line": 286
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "create_collection",
+      "line": 289
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "VectorParams",
+      "line": 291
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "info",
+      "line": 293
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "collection_exists",
+      "line": 304
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "error",
+      "line": 306
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "RuntimeError",
+      "line": 307
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "error",
+      "line": 312
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "get_collection",
+      "line": 314
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "_collection_vector_size",
+      "line": 315
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "RuntimeError",
+      "line": 317
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "info",
+      "line": 322
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "enumerate",
+      "line": 325
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "get",
+      "line": 327
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "get",
+      "line": 328
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "str",
+      "line": 328
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "get",
+      "line": 329
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "get",
+      "line": 339
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "get",
+      "line": 340
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "get",
+      "line": 341
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "get",
+      "line": 344
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "get",
+      "line": 347
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "encode",
+      "line": 350
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "hexdigest",
+      "line": 350
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "sha256",
+      "line": 350
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "str",
+      "line": 355
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "uuid5",
+      "line": 355
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "append",
+      "line": 356
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "PointStruct",
+      "line": 357
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "upsert",
+      "line": 364
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "info",
+      "line": 365
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "len",
+      "line": 365
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "get_collection",
+      "line": 367
+    },
+    {
+      "owner": "qdrant-seed",
+      "file": "services/qdrant-seed/seed.py",
+      "source": "seed",
+      "target": "info",
+      "line": 368
     },
     {
       "owner": "qdrant-seed",
       "file": "services/qdrant-seed/seed.py",
       "source": "seed",
       "target": "close",
-      "line": 339
+      "line": 370
     },
     {
       "owner": "qdrant-seed",
