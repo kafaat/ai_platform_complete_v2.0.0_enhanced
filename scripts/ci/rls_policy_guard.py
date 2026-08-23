@@ -27,7 +27,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true")
     ap.parse_args()
-    d = json.loads(P.read_text())
+    d = json.loads(P.read_text(encoding="utf-8"))
     f = findings(d)
     # Existing repository debt is inventoried, not made newly blocking. Hard fail only if generated inventory is internally inconsistent.
     if d["summary"]["tenant_rls_gaps"] != len(f):

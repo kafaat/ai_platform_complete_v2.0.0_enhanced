@@ -4,7 +4,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-contract = json.loads((ROOT / "shared/contracts/intelligence_governance.json").read_text())
+contract = json.loads(
+    (ROOT / "shared/contracts/intelligence_governance.json").read_text(encoding="utf-8")
+)
 errors = []
 if contract["principles"].get("observed_spectral_truth") != "raster-service":
     errors.append("bad spectral owner")
@@ -13,7 +15,7 @@ if contract["principles"].get("observed_spectral_truth") != "raster-service":
 for rel in [
     "services/supervisor-agent/skills/remote_sensing_skill.py",
 ]:
-    text = (ROOT / rel).read_text()
+    text = (ROOT / rel).read_text(encoding="utf-8")
     if '"compute_ndvi"' in text:
         errors.append(f"legacy compute_ndvi brain call: {rel}")
     if "read_indicator_observation" not in text:
@@ -28,11 +30,11 @@ for rel in [
 # واستيراد العميل والغلاف المُرحِّل مفتوحةً؛ والحارس الجديد يغطّي الأربعة ومنطقتين
 # إضافيّتين (mcp_servers · agents). تُركت نسخة هنا كانت تعني مصدرَي حقيقة لقاعدة واحدة.
 
-brain = (ROOT / "sahool-brain/decisions/engine-ownership.md").read_text()
+brain = (ROOT / "sahool-brain/decisions/engine-ownership.md").read_text(encoding="utf-8")
 for token in ["Raster-Service", "Decision-Service", "intelligence_governance.json"]:
     if token not in brain:
         errors.append(f"brain ownership drift: {token}")
-mcp = (ROOT / "services/mcp_servers/sentinel_hub_server.py").read_text()
+mcp = (ROOT / "services/mcp_servers/sentinel_hub_server.py").read_text(encoding="utf-8")
 if "RASTER_SERVICE_URL" not in mcp or "read_indicator_observation" not in mcp:
     errors.append("MCP not wired to Raster truth")
 if errors:

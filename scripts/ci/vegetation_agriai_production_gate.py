@@ -32,7 +32,7 @@ checks = {
 }
 failed = []
 for name, (path, needle) in checks.items():
-    if not path.exists() or needle not in path.read_text():
+    if not path.exists() or needle not in path.read_text(encoding="utf-8"):
         failed.append(name)
 if failed:
     raise SystemExit("FAIL: " + ", ".join(failed))

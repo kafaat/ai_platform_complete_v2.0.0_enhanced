@@ -28,7 +28,7 @@ checks = {
     ],
 }
 for f, need in checks.items():
-    s = (root / f).read_text()
+    s = (root / f).read_text(encoding="utf-8")
     for token in need:
         assert token in s, f"{f}: missing {token}"
 print("soil_p5_certification_guard_ok")

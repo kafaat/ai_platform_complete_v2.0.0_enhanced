@@ -16,7 +16,7 @@ REQUIRED = {"tenant_id", "field_id", "season_id"}
 
 
 def validate_manifest(path: Path) -> dict:
-    data = json.loads(path.read_text())
+    data = json.loads(path.read_text(encoding="utf-8"))
     fields = data.get("fields", [])
     errors = []
     if len(fields) < 5:

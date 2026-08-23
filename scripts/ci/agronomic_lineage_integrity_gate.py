@@ -12,8 +12,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 migration = (
     ROOT / "services/decision-service/migrations/019_agronomic_lineage_integrity.sql"
-).read_text()
-persistence = (ROOT / "services/decision-service/persistence.py").read_text()
+).read_text(encoding="utf-8")
+persistence = (ROOT / "services/decision-service/persistence.py").read_text(encoding="utf-8")
 
 required = [
     "FOREIGN KEY (tenant_id, agronomic_context_snapshot_id)",

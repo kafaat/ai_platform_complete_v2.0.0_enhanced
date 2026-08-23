@@ -5,11 +5,11 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-main = (ROOT / "services/decision-service/main.py").read_text()
-persistence = (ROOT / "services/decision-service/persistence.py").read_text()
+main = (ROOT / "services/decision-service/main.py").read_text(encoding="utf-8")
+persistence = (ROOT / "services/decision-service/persistence.py").read_text(encoding="utf-8")
 migration = (
     ROOT / "services/decision-service/migrations/007_execution_outcome_verification.sql"
-).read_text()
+).read_text(encoding="utf-8")
 required = [
     "verify-outcome",
     "verify_execution_outcome",

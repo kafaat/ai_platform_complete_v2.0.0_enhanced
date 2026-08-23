@@ -28,7 +28,7 @@ def main():
         print("invalid tested sha", file=sys.stderr)
         return 1
     try:
-        o = json.loads(Path(a.manifest).read_text())
+        o = json.loads(Path(a.manifest).read_text(encoding="utf-8"))
     except Exception as ex:
         print(f"image manifest invalid: {ex}", file=sys.stderr)
         return 1

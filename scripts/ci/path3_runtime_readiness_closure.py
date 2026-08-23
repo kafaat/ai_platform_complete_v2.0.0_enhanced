@@ -99,9 +99,9 @@ def main() -> int:
     if args.check:
         if (
             not OUT_JSON.exists()
-            or json.loads(OUT_JSON.read_text()) != payload
+            or json.loads(OUT_JSON.read_text(encoding="utf-8")) != payload
             or not OUT_MD.exists()
-            or OUT_MD.read_text() != report
+            or OUT_MD.read_text(encoding="utf-8") != report
         ):
             print("PATH-3 runtime readiness closure drift")
             return 1

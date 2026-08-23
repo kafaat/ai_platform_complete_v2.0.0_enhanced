@@ -1,8 +1,8 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-MAIN = (ROOT / "services/decision-service/main.py").read_text()
-PERSISTENCE = (ROOT / "services/decision-service/persistence.py").read_text()
+MAIN = (ROOT / "services/decision-service/main.py").read_text(encoding="utf-8")
+PERSISTENCE = (ROOT / "services/decision-service/persistence.py").read_text(encoding="utf-8")
 
 required = [
     "/v1/learning/calibration-dataset",

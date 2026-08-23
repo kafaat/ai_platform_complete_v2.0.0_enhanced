@@ -71,7 +71,7 @@ def main() -> int:
             "component": {
                 "type": "application",
                 "name": "sahool",
-                "version": (root / "VERSION").read_text().strip(),
+                "version": (root / "VERSION").read_text(encoding="utf-8").strip(),
             }
         },
         "components": components,

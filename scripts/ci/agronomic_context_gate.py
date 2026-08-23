@@ -9,11 +9,17 @@ supplied lineage. No source value may be synthesized inside the composer.
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-mig = (ROOT / "services/decision-service/migrations/018_ac1_agronomic_context.sql").read_text()
-persist = (ROOT / "services/decision-service/persistence.py").read_text()
-main = (ROOT / "services/decision-service/main.py").read_text()
-contracts = (ROOT / "services/decision-service/agronomic_context/contracts.py").read_text()
-pit = (ROOT / "services/decision-service/agronomic_context/point_in_time.py").read_text()
+mig = (ROOT / "services/decision-service/migrations/018_ac1_agronomic_context.sql").read_text(
+    encoding="utf-8"
+)
+persist = (ROOT / "services/decision-service/persistence.py").read_text(encoding="utf-8")
+main = (ROOT / "services/decision-service/main.py").read_text(encoding="utf-8")
+contracts = (ROOT / "services/decision-service/agronomic_context/contracts.py").read_text(
+    encoding="utf-8"
+)
+pit = (ROOT / "services/decision-service/agronomic_context/point_in_time.py").read_text(
+    encoding="utf-8"
+)
 
 for token in (
     "decision_agronomic_context_snapshots",

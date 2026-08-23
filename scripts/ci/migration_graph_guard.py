@@ -14,7 +14,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true")
     ap.parse_args()
-    d = json.loads(P.read_text())
+    d = json.loads(P.read_text(encoding="utf-8"))
     m = d["manifest"]
     if m["missing"]:
         print("Manifest references missing migrations: " + ", ".join(m["missing"]), file=sys.stderr)

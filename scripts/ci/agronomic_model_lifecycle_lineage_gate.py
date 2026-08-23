@@ -4,7 +4,7 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-PERSISTENCE = (ROOT / "services/decision-service/persistence.py").read_text()
+PERSISTENCE = (ROOT / "services/decision-service/persistence.py").read_text(encoding="utf-8")
 MIGRATION = ROOT / "services/decision-service/migrations/021_model_agronomic_cohort_lineage.sql"
 
 required_code = [
@@ -18,7 +18,7 @@ missing = [token for token in required_code if token not in PERSISTENCE]
 if not MIGRATION.exists():
     missing.append(str(MIGRATION.relative_to(ROOT)))
 else:
-    sql = MIGRATION.read_text()
+    sql = MIGRATION.read_text(encoding="utf-8")
     for token in (
         "enforce_model_promotion_cohort_lineage",
         "enforce_model_activation_cohort_lineage",

@@ -15,7 +15,7 @@ DATE=$(python - <<'PY'
 import json
 from pathlib import Path
 try:
-    data=json.loads(Path('/tmp/sahool_dates.json').read_text())
+    data=json.loads(Path('/tmp/sahool_dates.json').read_text(encoding="utf-8"))
     rows=data.get('dates') or data.get('items') or []
     print((rows[0].get('date') if isinstance(rows[0], dict) else rows[0]) if rows else 'latest')
 except Exception:
@@ -28,7 +28,7 @@ curl -fsS --max-time 20 "${AUTH[@]}" "${BASE_URL}/api/raster/v1/fields/${FIELD_I
 python - <<'PY'
 import json
 from pathlib import Path
-j=json.loads(Path('/tmp/sahool_tilejson.json').read_text())
+j=json.loads(Path('/tmp/sahool_tilejson.json').read_text(encoding="utf-8"))
 assert 'tiles' in j and j['tiles'], 'tilejson has no tiles'
 assert 'cache_version' in j or any('v=' in t for t in j['tiles']), 'tilejson missing cache version'
 print('tilejson ok')
@@ -41,7 +41,7 @@ curl -fsS --max-time 30 "${AUTH[@]}" -X POST "${BASE_URL}/api/ai-agronomist/chat
 python - <<'PY'
 import json
 from pathlib import Path
-j=json.loads(Path('/tmp/sahool_ai.json').read_text())
+j=json.loads(Path('/tmp/sahool_ai.json').read_text(encoding="utf-8"))
 assert j.get('mode') == 'evidence_only', 'AI must stay evidence_only'
 assert 'annotations' in j, 'AI missing evidence annotations'
 assert 'decision_authority' in j and j['decision_authority'] == 'field_intelligence_coordinator'

@@ -13,7 +13,7 @@ required = [
 missing = [p for p in required if not (ROOT / p).exists()]
 if missing:
     raise SystemExit(f"WX-12 gate missing: {missing}")
-text = (ROOT / "services/model-registry-adapter/adapter.py").read_text()
+text = (ROOT / "services/model-registry-adapter/adapter.py").read_text(encoding="utf-8")
 for token in ["compare_and_swap", "MODEL_REGISTRY_DRY_RUN", "SAHOOL_ENV", "MODEL_REGISTRY_TOKEN"]:
     if token not in text:
         raise SystemExit(f"WX-12 gate missing token: {token}")

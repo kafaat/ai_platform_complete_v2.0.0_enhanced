@@ -15,10 +15,10 @@ import json
 from pathlib import Path
 p=Path('/tmp/sahool_probe.json')
 try:
-    data=json.loads(p.read_text())
+    data=json.loads(p.read_text(encoding="utf-8"))
     print(data if len(str(data)) < 500 else str(data)[:500])
 except Exception:
-    print(p.read_text()[:500])
+    print(p.read_text(encoding="utf-8")[:500])
 PY
 }
 probe "nginx" "${BASE_URL}/healthz"
