@@ -249,6 +249,18 @@
           "find": "    fallback_identity_used = logical_identity_source == \"storage_fallback\"\n",
           "replace": "    fallback_identity_used = False  # mutated: اشتقاقٌ ثانٍ ينحرف عن مصدره\n",
           "why": "D12-PRE: الحقلان يصفان الحقيقةَ نفسها، فاشتقاقُهما مرّتين يُنتِج انحرافاً صامتاً. وهذه الطفرة تُثبِت أنّ العَلَم يُقرَأ من مصدره لا يُحسَب ثانيةً."
+        },
+        {
+          "expect": "test_logical_identity_collisions_count_the_quarantine_too",
+          "find": "        logical = row.get(\"explicit_logical_chunk_id\")\n        if logical:\n",
+          "replace": "        logical = row.get(\"explicit_logical_chunk_id\")\n        if logical and row.get(\"scope\") != \"quarantine\":  # mutated: الحجر يفلت من ميدان التفرد\n",
+          "why": "D08-EXT: إفلاتُ الحجر من ميدان التفرّد يُعيد بالضبط قراءةَ حادثة البذر المكرَّر التي حكم فيها المالك بأنّ التفرّد المنطقيّ على كامل المجموعة بما فيها __seed_quarantine__ — production_qdrant يفرضه قبل استثناء الحجر، فإيصالٌ يستثنيه يعد تفرّداً لم يَعِده الكاتب."
+        },
+        {
+          "expect": "test_physical_partition_is_scope_only_and_sums_to_the_scroll",
+          "find": "        \"physical_partition\": dict(sorted(Counter(str(r[\"scope\"]) for r in records).items())),\n",
+          "replace": "        \"physical_partition\": dict(sorted(Counter(str(r[\"scope\"]) for r in records if r[\"serving_candidate\"]).items())),  # mutated: التقسيم يسقط الحجر\n",
+          "why": "درس 199=128+64+7 من جهته الثانية: تقسيمٌ فيزيائيّ لا يجمع إلى العدّ الدقيق يوازن دفاتره بإسقاط شريحة، فيقرأ القارئ اكتمالاً لم يُقَس — الجمعُ الكامل هو ما يجعل العجز مرئيّاً."
         }
       ]
     },
