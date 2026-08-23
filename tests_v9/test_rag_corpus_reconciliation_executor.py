@@ -91,7 +91,8 @@ def _args(tmp_path: Path, *, execute: bool = False, identity_map: str | None = N
         qdrant_url="http://sahool-qdrant:6333",
         collection="sahool_agri_kb",
         identity_map=identity_map,
-        deployment_artifact="sha256:" + "c" * 64,
+        deployment_artifact="ghcr.io/example/rag:test",
+        deployment_artifact_digest="sha256:" + "c" * 64,
         seed_tenant="__global__",
         e2e_cmd="true",
         execute=execute,
@@ -261,3 +262,14 @@ def test_the_seeder_reads_the_exclusion_file_fail_closed() -> None:
     assert text.count("for doc in KNOWLEDGE_BASE]") == 0, (
         "حلقة البذر يجب أن تقرأ القائمة المُستثناة لا الأصل"
     )
+
+
+def test_the_live_d09_runner_carries_the_full_binding() -> None:
+    """أداة D09 تُلزم بالمصنوعة وبصمتها معاً — منفّذٌ يمرّر نصف الربط يفشل مغلقاً دائماً.
+
+    المنفّذون الحيّون subprocess فلا يغطّيهم زرع الوحدات؛ العقد يُثبَت على المصدر
+    نصّاً أسوة باختبارات البذّار: العلمان حاضران في استدعاء d09 الحيّ.
+    """
+    text = EXECUTOR.read_text(encoding="utf-8")
+    assert '"--deployment-artifact-digest",' in text
+    assert "args.deployment_artifact_digest," in text
