@@ -655,6 +655,20 @@
           "find": "run \"٢و) text_encoding_locale\" python3 -m pytest -q tests_v9/test_text_encoding_locale.py::test_no_new_file_decodes_text_with_the_machines_locale\n",
           "replace": "run \"٢و) text_encoding_locale\" echo skipped  # mutated: الحارس يخرج من الطبقة السريعة\n",
           "why": "إخراجُ حارس الترميز من الطبقة السريعة يُعيد الحالةَ التي قِيست على #886: `--fast` أخضرُ على شجرةٍ يحمّرها الجناحُ الكامل بعد ٣٦٢ث. والصنفُ متكرّر — أُصلِح على #884 ثمّ أُعيد بتبنّي شيفرةٍ واردة في الجلسة نفسها. وهو حرفيّاً صنف ٢د: حارسٌ رخيص (٤٫٦ث) محبوسٌ في طبقةٍ غالية."
+        },
+        {
+          "expect": "test_a_changed_behavioural_source_is_planted_even_when_the_registry_is_untouched",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "find": "        if path in behavioural:\n            touched.add(path)\n",
+          "replace": "        if False:  # mutated: القسم السلوكيّ يعود غير مستشار\n            touched.add(path)\n",
+          "why": "PREFLIGHT-3J-BLIND-TO-BEHAVIOURAL-SOURCES-01: إعادةُ العمى عن القسم السلوكيّ تعيد «لا حارسَ مسّه التغيير» الكاذبة على مصدرٍ سلوكيّ متغيّر — والصنفُ الذي كشف الفجوة قِيس على #886/#888: طفراتُ preflight.sh نفسِها سلوكيّة، فتغييرُه بلا هذا الالتقاط لا يُزرَع محلّيّاً أبداً."
+        },
+        {
+          "expect": "test_a_changed_witness_escalates_every_target_it_witnesses_for",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "find": "            touched.update(by_test[path])\n",
+          "replace": "            touched.add(sorted(by_test[path])[0])  # mutated: الشاهد المشترك يشهد لواحد\n",
+          "why": "قاموسُ شاهد→هدفٍ أخيرُ الترجيح كان يُظلِّل أهدافاً صامتاً حين يتشارك سلوكيّان ملفَّ اختبار — التصعيدُ الجزئيّ أخفى من التقنيع الكامل لأنّه يبدو عاملاً."
         }
       ]
     },
