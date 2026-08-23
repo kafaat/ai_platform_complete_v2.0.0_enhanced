@@ -4,8 +4,12 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-module = (ROOT / "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py").read_text()
-migration = (ROOT / "migrations/v179_hourly_energy_aware_irrigation_mpc.sql").read_text()
+module = (ROOT / "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py").read_text(
+    encoding="utf-8"
+)
+migration = (ROOT / "migrations/v179_hourly_energy_aware_irrigation_mpc.sql").read_text(
+    encoding="utf-8"
+)
 for token in [
     "HourlyMPCAction",
     "HourlyEnergyAwareMPCSchedule",

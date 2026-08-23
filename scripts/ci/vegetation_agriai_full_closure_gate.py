@@ -24,7 +24,9 @@ required = [
 missing = [p for p in required if not (ROOT / p).exists()]
 assert not missing, missing
 
-rt = (ROOT / "services/vegetation-analysis-service/vegetation_runtime.py").read_text()
+rt = (ROOT / "services/vegetation-analysis-service/vegetation_runtime.py").read_text(
+    encoding="utf-8"
+)
 # runtime-truth (20260712): stronger than the old production-only guard — the synthetic
 # FIELD_REGISTRY is empty, legacy fallback defaults OFF in EVERY environment, and load_field
 # never fabricates (legacy path dead-ends to None). Real fields come from the platform catalog.
@@ -38,12 +40,12 @@ assert "legacy_field_registry_forbidden" in rt, (
     "load_field must never fabricate synthetic field metadata (legacy path dead-ends to None)"
 )
 
-wo = (ROOT / "services/agriai-engine/wofost_adapter.py").read_text()
+wo = (ROOT / "services/agriai-engine/wofost_adapter.py").read_text(encoding="utf-8")
 assert "agriai_production_simulation_unavailable" in wo, (
     "production mode must fail closed when PCSE/inputs are unavailable"
 )
 
-ac = (ROOT / "services/agriai-engine/agronomic_context.py").read_text()
+ac = (ROOT / "services/agriai-engine/agronomic_context.py").read_text(encoding="utf-8")
 assert "import agronomic_adapters as adapters" in ac, (
     "context normalization must go through the governed adapters"
 )

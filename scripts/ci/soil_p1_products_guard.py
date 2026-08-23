@@ -12,7 +12,7 @@ required = [
 ]
 for f in required:
     assert (ROOT / f).is_file(), f"missing:{f}"
-text = (ROOT / "migrations/v161_soil_p1_products.sql").read_text()
+text = (ROOT / "migrations/v161_soil_p1_products.sql").read_text(encoding="utf-8")
 for table in [
     "soil_spatial_products",
     "soil_sampling_plans",
@@ -21,7 +21,7 @@ for table in [
     "irrigation_water_profiles",
 ]:
     assert table in text and "FORCE ROW LEVEL SECURITY" in text
-router = (ROOT / "services/soil-service/routers/p1_products.py").read_text()
+router = (ROOT / "services/soil-service/routers/p1_products.py").read_text(encoding="utf-8")
 for route in [
     "soilgrids-spatial",
     "soil/sampling-plans",

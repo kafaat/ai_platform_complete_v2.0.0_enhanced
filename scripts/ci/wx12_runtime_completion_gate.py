@@ -10,7 +10,7 @@ required = [
 missing = [p for p in required if not (R / p).is_file()]
 if missing:
     raise SystemExit("missing WX-12 runtime files: " + ", ".join(missing))
-text = (R / "services/model-registry-adapter/runtime.py").read_text()
+text = (R / "services/model-registry-adapter/runtime.py").read_text(encoding="utf-8")
 for token in [
     "compare-and-swap",
     "reconcile_active_state",

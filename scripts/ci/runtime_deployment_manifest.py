@@ -78,7 +78,7 @@ def main(argv=None):
     expected = {}
     if a.image_manifest:
         try:
-            im = json.loads(Path(a.image_manifest).read_text())
+            im = json.loads(Path(a.image_manifest).read_text(encoding="utf-8"))
             if im.get("source_sha") != a.tested_sha:
                 raise ValueError("attested image manifest SHA mismatch")
             expected = {k: v.get("image", "") for k, v in im.get("images", {}).items()}

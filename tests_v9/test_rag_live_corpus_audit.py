@@ -418,3 +418,94 @@ def test_guard_refuses_a_declared_source_with_no_identity_behind_it(tmp_path: Pa
     receipt["point_inventory_sha256"] = guard._digest(receipt["point_records"])
     problems = guard.findings(receipt, "a" * 40, "b" * 40)
     assert any("declared logical identity source without an identity" in p for p in problems)
+
+
+# ── D08-EXT — التقسيم الفيزيائيّ وعقد الهويّة المنطقيّة في الإيصال نفسه ──────────
+#
+# حادثة 199=128+64+7: بُعد التصادم جُمِع مرّةً كأنّه شريحة تقسيم، فحسب القارئ
+# الجسم مرّتين. التقسيم الفيزيائيّ محوره النطاق وحده، وعدّادات التصادم محور آخر
+# داخل `logical_identity` — والحَكم `production_qdrant.py` يفرض التفرّد المنطقيّ
+# **قبل** استثناء الحجر، فالقياس هنا على كامل المجموعة بما فيها `__seed_quarantine__`.
+
+
+def test_physical_partition_is_scope_only_and_sums_to_the_scroll() -> None:
+    audit, pq = _modules()
+    rows = [
+        ("p1", _canonical_payload("tenant-a", chunk_id="c1")),
+        ("p2", _canonical_payload("tenant-b", chunk_id="c2")),
+        ("p3", _global_payload("g1")),
+        ("p4", _canonical_payload("__seed_quarantine__", chunk_id="q1")),
+        ("p5", {"page_content": "no tenant at all"}),
+    ]
+    receipt = _receipt(audit, pq, rows)
+    part = receipt["physical_partition"]
+    assert receipt["point_count"] == receipt["exact_count"]
+    assert sum(part.values()) == receipt["scroll_count"] == 5
+    assert part == {"global": 1, "quarantine": 1, "tenant": 2, "unknown": 1}
+    banned = ("collision", "duplicate", "logical")
+    assert not [k for k in part if any(w in k.lower() for w in banned)], (
+        "بُعد التصادم ليس شريحة تقسيم — جمعه هنا يعدّ الجسم مرّتين"
+    )
+
+
+def test_logical_identity_collisions_count_the_quarantine_too() -> None:
+    audit, pq = _modules()
+    rows = [
+        ("p1", _canonical_payload("tenant-a", chunk_id="dup-1")),
+        ("p2", _canonical_payload("__seed_quarantine__", chunk_id="dup-1")),
+        ("p3", _canonical_payload("tenant-b", chunk_id="solo-1")),
+    ]
+    receipt = _receipt(audit, pq, rows)
+    li = receipt["logical_identity"]
+    assert li["scope"] == "collection"
+    assert li["quarantine_included"] is True
+    assert li["collision_group_count"] == 1
+    assert li["collision_point_count"] == 2
+    sample = li["bounded_collision_samples"][0]
+    assert sample["logical_chunk_id"] == "dup-1"
+    assert "__seed_quarantine__" in sample["tenant_scopes"], (
+        "العلَم وحده ليس سلوكاً: عضو الحجر يجب أن يظهر في مجموعة التصادم فعلاً"
+    )
+
+
+def test_points_without_identity_cannot_collide() -> None:
+    audit, pq = _modules()
+    rows = [
+        ("p1", {"page_content": "a", "metadata": {"tenant_id": "tenant-a"}}),
+        ("p2", {"page_content": "b", "metadata": {"tenant_id": "tenant-a"}}),
+        ("p3", _canonical_payload("tenant-a", chunk_id="c1")),
+    ]
+    receipt = _receipt(audit, pq, rows)
+    li = receipt["logical_identity"]
+    assert li["collision_group_count"] == 0
+    assert li["collision_point_count"] == 0
+    assert li["identity_bearing_point_count"] == 1, "غياب الهويّة دَين يُعدّ غياباً، لا تصادماً ولا حضوراً"
+
+
+def test_an_incomplete_scroll_does_not_balance_its_own_books() -> None:
+    audit, pq = _modules()
+    rows = [("p1", _canonical_payload("tenant-a", chunk_id="c1"))]
+    receipt = _receipt(audit, pq, rows, exact_count=3)
+    assert receipt["point_count"] == 3
+    assert sum(receipt["physical_partition"].values()) == 1, (
+        "مسحٌ ناقص يجب أن يظهر عجزُه في الجمع — لا أن يوازن دفاتره بنفسه"
+    )
+    assert receipt["physical_count_complete"] is False
+
+
+def test_collision_samples_are_bounded_not_exhaustive() -> None:
+    audit, pq = _modules()
+    rows = []
+    for g in range(7):
+        for member in range(2):
+            rows.append(
+                (
+                    f"p{g}-{member}",
+                    _canonical_payload(f"tenant-{member}", chunk_id=f"dup-{g}"),
+                )
+            )
+    receipt = _receipt(audit, pq, rows)
+    li = receipt["logical_identity"]
+    assert li["collision_group_count"] == 7
+    assert li["collision_point_count"] == 14
+    assert len(li["bounded_collision_samples"]) == 5, "عيّنات محدودة — الإيصال ليس مكبّ أدلّة"

@@ -21,7 +21,7 @@ req = {
     ],
 }
 for f, toks in req.items():
-    s = (ROOT / f).read_text()
+    s = (ROOT / f).read_text(encoding="utf-8")
     for x in toks:
         assert x in s, (f, x)
 print("irrigation controller/edge M2.9 guard: PASS")

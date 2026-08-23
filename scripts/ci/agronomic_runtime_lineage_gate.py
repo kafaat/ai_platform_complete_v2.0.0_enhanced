@@ -6,9 +6,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 M = (
     ROOT / "services/decision-service/migrations/022_runtime_agronomic_cohort_lineage.sql"
-).read_text()
-P = (ROOT / "services/decision-service/persistence.py").read_text()
-MAIN = (ROOT / "services/decision-service/main.py").read_text()
+).read_text(encoding="utf-8")
+P = (ROOT / "services/decision-service/persistence.py").read_text(encoding="utf-8")
+MAIN = (ROOT / "services/decision-service/main.py").read_text(encoding="utf-8")
 required = [
     "decision_model_monitoring_snapshots",
     "source_receipt_id",

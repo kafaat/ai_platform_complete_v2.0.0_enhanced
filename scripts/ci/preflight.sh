@@ -21,7 +21,8 @@
 #
 # ── ما لا يفعله هذا السكربت (اقرأه قبل أن تثق بأخضره) ──────────────────────
 # الأخضر هنا يعني «ما قِيس مرّ»، لا «CI ستخضرّ». §٣.١٧ تقيس أنّ workflows تستدعي
-# **٢٠٩** بوّابة و§٢ تغطّي **٧١** منها. الباقي عقود نطاق (raster · weather · edge ·
+# **٢٦١** بوّابة و§٢ تغطّي **٨٦** منها (تسميةً مباشرة أو عبر المكنسة). الباقي عقود
+# نطاق (raster · weather · edge ·
 # mobile · vegetation …) تُسقِطها تغييرات نطاقها وحدها، ولا يمكن لسكربت واحد أن
 # يخمّن نطاقك. اشتقّ بوّاباتك من مساراتك المُعدَّلة — والقسم الأخير هنا يطبع
 # القدرات المتأثّرة ليساعدك على ذلك.
@@ -280,8 +281,25 @@ import json, subprocess, sys
 base = sys.argv[1]
 registry = json.load(open("docs/architecture/guard_mutation_registry.json", encoding="utf-8"))
 spec = registry.get("mutated", {})
+# PREFLIGHT-3J-BLIND-TO-BEHAVIOURAL-SOURCES-01: القسمُ السلوكيّ مفاتيحُه مساراتٌ
+# كاملة ويحمل طفراتٍ تحجب في CI مثل `mutated` سواء — وكانت الكتلةُ تقرأ `mutated`
+# وحدَه، فمصدرٌ سلوكيّ متغيّر يطبع «لا حارسَ مسّه التغيير» زوراً ويمرّ بلا زرع.
+behavioural = registry.get("behavioural", {})
 # يُصعَّد من ملفّ الاختبار أيضاً: تعديلُ الشاهد وحده يكفي لتقنيع طفرة — وهو ما وقع.
-by_test = {v.get("test"): k for k, v in spec.items() if v.get("test")}
+# والاختبارُ الواحد قد يشهد لأكثر من هدفٍ (سلوكيّان يتشاركان ملفّاً) — فمجموعةٌ
+# لا مفتاحٌ أخير يُظلِّل ما قبله.
+by_test = {}
+for section in (spec, behavioural):
+    for key, entry in section.items():
+        # مفاتيحُ `$…` الوصفيّة قيمُها نصوصٌ لا مداخل — والقسمُ السلوكيّ يحملها فعلاً.
+        if not isinstance(entry, dict):
+            continue
+        # الشاهدُ يُعلَن على المدخل أو على الطفرة المفردة — والصيغتان مشحونتان
+        # في السجلّ فعلاً؛ التقاطُ إحداهما وحدها يُعمي التصعيدَ عن الأخرى.
+        tests = {entry.get("test")} | {m.get("test") for m in entry.get("mutations", [])}
+        for test in tests:
+            if test:
+                by_test.setdefault(test, set()).add(key)
 touched = set()
 for cmd in (
     ["git", "diff", "--name-only", f"{base}...HEAD"],
@@ -294,7 +312,9 @@ for cmd in (
         continue
     for path in out.splitlines():
         if path in by_test:
-            touched.add(by_test[path])
+            touched.update(by_test[path])
+        if path in behavioural:
+            touched.add(path)
         elif path.rsplit("/", 1)[-1] in spec:
             touched.add(path.rsplit("/", 1)[-1])
 print(" ".join(sorted(touched)))
@@ -351,7 +371,7 @@ if [ "$TIER" = fast ]; then
 fi
 
 # ── ٧) المصنوعات المولَّدة — بعد الفهرسة لا قبلها ─────────────────────────
-# مداها **٤٧ خطوة على ١٨ workflow**، والمولّدات تبصم مخرجات بعضها: إصلاح واحد
+# مداها **٧٤ خطوة على ١٩ workflow** (مقيس على `2bf8814f`)، والمولّدات تبصم مخرجات بعضها: إصلاح واحد
 # يكشف التالي. لذلك مكنسة واحدة تُكرِّر حتّى الثبات، لا مولّد مُنتقى باليد.
 if require_file scripts/ci/verify_all_generated.py "٧) verify_all_generated"; then
   if [ "$FIX" = 1 ]; then
@@ -432,9 +452,9 @@ if [ -n "$changed" ]; then
     | python3 -c 'import json,sys; d=json.load(sys.stdin); print("ALL" if d["governance_wide"] else ",".join(d["direct"]))' 2>/dev/null)
   if [ -n "$direct" ]; then
     echo "   Capability-Impact: $direct"
-    echo "   تذكير: البوّابة تعمل على pull_request بلا types ⇒ لا تستمع لـ edited."
-    echo "   تعديل المتن **لا** يُعيد تشغيلها، وrerun يعيد استخدام حمولة الحدث القديمة."
-    echo "   الطريق الوحيد لالتقاط متن جديد: دفعة تُطلِق synchronize."
+    echo "   تذكير: البوّابة لا تستمع لـ edited ⇒ تعديل المتن لا يُطلِقها. لكنّها"
+    echo "   منذ #907 تقرأ المتن حيّاً من الـAPI زمنَ التنفيذ: rerun يلتقط متناً"
+    echo "   محدَّثاً (وSHAs تبقى من الحدث عمداً — البوّابة تحكم على شيفرة الحدث)."
   else
     echo "   Capability-Impact: NONE  (لا مسار من مساراتك يمسّ قدرة مُسجَّلة)"
   fi
@@ -445,8 +465,8 @@ else
   # والفرع الآخر أعلاه يحمل التحذير كلّه؛ الصمت هنا كان الثقب.
   echo "   ⊘ متخطّاة: لا فرق مقابل $BASE — **لم يُشتقّ سطر Capability-Impact**"
   echo "     إن لم تكن قد التزمتَ بعد فهذا متوقَّع: التزِم ثمّ أعِد هذه الخطوة وحدها،"
-  echo "     ولا تدفع متناً بلا السطر. البوّابة تعمل على pull_request بلا types ⇒ لا"
-  echo "     تستمع لـ edited، فتعديل المتن بعد الدفع **لا** يُعيد تشغيلها."
+  echo "     ولا تدفع متناً بلا السطر. البوّابة لا تستمع لـ edited فالتحرير وحده لا"
+  echo "     يُطلِقها — لكنّها منذ #907 تقرأ المتن حيّاً: أضِف السطر ثمّ أعد تشغيلها."
   echo "     اشتقّه بـ: python3 scripts/ci/pr_capability_impact_gate.py --base $BASE --head HEAD"
   skipped=$((skipped + 1))
 fi
@@ -457,7 +477,7 @@ if [ "$skipped" -gt 0 ]; then
   echo "⚠ $skipped بوّابة لم تُقَس — «لم أنظر» ليس «لا يوجد»."
 fi
 if [ "$failures" -eq 0 ]; then
-  echo "أخضر على ما قِيس. §٣.١٧: workflows تستدعي ٢٠٩ بوّابة وهذا يغطّي ٧١."
+  echo "أخضر على ما قِيس. §٣.١٧: workflows تستدعي ٢٦١ بوّابة وهذا يغطّي ٨٦."
   echo "اشتقّ عقود نطاقك من مساراتك المُعدَّلة قبل الدفع."
 else
   echo "أصلِح ما فوق. كلّ فشل هنا كان سيكلّف جولة CI كاملة."

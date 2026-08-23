@@ -249,6 +249,18 @@
           "find": "    fallback_identity_used = logical_identity_source == \"storage_fallback\"\n",
           "replace": "    fallback_identity_used = False  # mutated: اشتقاقٌ ثانٍ ينحرف عن مصدره\n",
           "why": "D12-PRE: الحقلان يصفان الحقيقةَ نفسها، فاشتقاقُهما مرّتين يُنتِج انحرافاً صامتاً. وهذه الطفرة تُثبِت أنّ العَلَم يُقرَأ من مصدره لا يُحسَب ثانيةً."
+        },
+        {
+          "expect": "test_logical_identity_collisions_count_the_quarantine_too",
+          "find": "        logical = row.get(\"explicit_logical_chunk_id\")\n        if logical:\n",
+          "replace": "        logical = row.get(\"explicit_logical_chunk_id\")\n        if logical and row.get(\"scope\") != \"quarantine\":  # mutated: الحجر يفلت من ميدان التفرد\n",
+          "why": "D08-EXT: إفلاتُ الحجر من ميدان التفرّد يُعيد بالضبط قراءةَ حادثة البذر المكرَّر التي حكم فيها المالك بأنّ التفرّد المنطقيّ على كامل المجموعة بما فيها __seed_quarantine__ — production_qdrant يفرضه قبل استثناء الحجر، فإيصالٌ يستثنيه يعد تفرّداً لم يَعِده الكاتب."
+        },
+        {
+          "expect": "test_physical_partition_is_scope_only_and_sums_to_the_scroll",
+          "find": "        \"physical_partition\": dict(sorted(Counter(str(r[\"scope\"]) for r in records).items())),\n",
+          "replace": "        \"physical_partition\": dict(sorted(Counter(str(r[\"scope\"]) for r in records if r[\"serving_candidate\"]).items())),  # mutated: التقسيم يسقط الحجر\n",
+          "why": "درس 199=128+64+7 من جهته الثانية: تقسيمٌ فيزيائيّ لا يجمع إلى العدّ الدقيق يوازن دفاتره بإسقاط شريحة، فيقرأ القارئ اكتمالاً لم يُقَس — الجمعُ الكامل هو ما يجعل العجز مرئيّاً."
         }
       ]
     },
@@ -655,6 +667,20 @@
           "find": "run \"٢و) text_encoding_locale\" python3 -m pytest -q tests_v9/test_text_encoding_locale.py::test_no_new_file_decodes_text_with_the_machines_locale\n",
           "replace": "run \"٢و) text_encoding_locale\" echo skipped  # mutated: الحارس يخرج من الطبقة السريعة\n",
           "why": "إخراجُ حارس الترميز من الطبقة السريعة يُعيد الحالةَ التي قِيست على #886: `--fast` أخضرُ على شجرةٍ يحمّرها الجناحُ الكامل بعد ٣٦٢ث. والصنفُ متكرّر — أُصلِح على #884 ثمّ أُعيد بتبنّي شيفرةٍ واردة في الجلسة نفسها. وهو حرفيّاً صنف ٢د: حارسٌ رخيص (٤٫٦ث) محبوسٌ في طبقةٍ غالية."
+        },
+        {
+          "expect": "test_a_changed_behavioural_source_is_planted_even_when_the_registry_is_untouched",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "find": "        if path in behavioural:\n            touched.add(path)\n",
+          "replace": "        if False:  # mutated: القسم السلوكيّ يعود غير مستشار\n            touched.add(path)\n",
+          "why": "PREFLIGHT-3J-BLIND-TO-BEHAVIOURAL-SOURCES-01: إعادةُ العمى عن القسم السلوكيّ تعيد «لا حارسَ مسّه التغيير» الكاذبة على مصدرٍ سلوكيّ متغيّر — والصنفُ الذي كشف الفجوة قِيس على #886/#888: طفراتُ preflight.sh نفسِها سلوكيّة، فتغييرُه بلا هذا الالتقاط لا يُزرَع محلّيّاً أبداً."
+        },
+        {
+          "expect": "test_a_changed_witness_escalates_every_target_it_witnesses_for",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "find": "            touched.update(by_test[path])\n",
+          "replace": "            touched.add(sorted(by_test[path])[0])  # mutated: الشاهد المشترك يشهد لواحد\n",
+          "why": "قاموسُ شاهد→هدفٍ أخيرُ الترجيح كان يُظلِّل أهدافاً صامتاً حين يتشارك سلوكيّان ملفَّ اختبار — التصعيدُ الجزئيّ أخفى من التقنيع الكامل لأنّه يبدو عاملاً."
         }
       ]
     },
@@ -1080,6 +1106,43 @@
         }
       ],
       "test": "tests_v9/test_generated_write_targets.py"
+    },
+    ".github/workflows/capability-governance.yml": {
+      "$why_ar": "GATE-READS-A-FROZEN-EVENT-PAYLOAD-NOT-THE-LIVE-BODY-01: خطوةُ إنفاذ أثر القدرات كانت تقرأ المتنَ من حمولة الحدث المجمَّدة، فتصحيحُ المتن بعد الانطلاق غيرُ مرئيّ و«أعد التشغيل» يكرّر القديم (مقيس على #887). الإصلاح: جلبٌ حيّ يفشل مغلقاً.",
+      "mutations": [
+        {
+          "expect": "test_the_enforce_step_does_not_read_the_body_from_the_frozen_payload",
+          "test": "tests_v9/test_capability_gate_reads_live_body.py",
+          "find": "          jq -r '.body // \"\"' /tmp/pr-live.json > /tmp/pr-body.txt\n",
+          "replace": "          printf '%s' \"${PR_BODY:-}\" > /tmp/pr-body.txt  # mutated: عودة الحمولة المجمَّدة\n",
+          "why": "إرجاعُ قراءة المتن إلى الحمولة المجمَّدة يعيد الحادثة بعينها: بوّابةٌ تحجب على متنٍ صُحِّح قبل دقيقة."
+        },
+        {
+          "expect": "test_the_enforce_step_fetches_the_body_live_and_fails_closed",
+          "test": "tests_v9/test_capability_gate_reads_live_body.py",
+          "find": "          if [ \"$HTTP_STATUS\" != \"200\" ]; then\n            echo \"live PR body fetch failed: HTTP $HTTP_STATUS — فشل مغلق (الحمولة المجمّدة ليست بديلاً)\" >&2\n            exit 1\n          fi\n",
+          "replace": "          if [ \"$HTTP_STATUS\" != \"200\" ]; then\n            echo \"fetch failed — falling back\" >&2\n          fi\n",
+          "why": "السقوطُ الصامت عند فشل الجلب يعيد العطلَ بثوب احتياطٍ — فشلُ الشبكة يصير قراءةَ حمولةٍ بائتة بلا أثر."
+        }
+      ]
+    },
+    "scripts/architecture/rag_corpus_reconciliation_executor.py": {
+      "$why_ar": "CORPUS-RECONCILIATION-01: المنفّذ هو النقطة الوحيدة التي تتحوّل فيها أحكام المالك (HOLD يبقى HOLD · لا حذف · تفرّد على كامل المجموعة) إلى سلوك كتابيّ — عيوبه تُزرع في الاستثناء والحكم النهائيّ.",
+      "test": "tests_v9/test_rag_corpus_reconciliation_executor.py",
+      "mutations": [
+        {
+          "expect": "test_held_identities_are_excluded_from_seeding_and_residue_yields_hold",
+          "find": "        \"exclude_chunk_ids\": sorted(collision_ids),\n",
+          "replace": "        \"exclude_chunk_ids\": [],  # mutated: المحجور يدخل البذر\n",
+          "why": "إسقاطُ الاستثناء يجعل البذر القانونيّ يكتب — بالتقارب الحتميّ — فوق عضو مجموعةٍ محجورة، وهو نصّاً ما حرّمه حكم «لا يُنفَّذ ضدّ HOLD شيء»؛ الشاهد يقرأ ملفّ الاستثناء الفعليّ الذي استُدعي به البذّار لا نيّة الكاتب."
+        },
+        {
+          "expect": "test_dry_run_measures_reports_and_never_passes",
+          "find": "    if all(s == \"PASS\" for s in statuses):\n        return \"PASS\"\n    return \"INCOMPLETE\"\n",
+          "replace": "    return \"PASS\"  # mutated: الغياب يُقرأ نجاحاً\n",
+          "why": "قراءة NOT_MEASURED نجاحاً تعيد صنف «أخضر عن سؤالٍ لم يُطرَح»: تشغيلٌ جافّ بلا الخطوات ٦–١٣ يخرج PASS فيُقرأ اعتماداً حيّاً لم يُقَس — والحكم لا يكون PASS إلا بالثلاث عشرة كلّها."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

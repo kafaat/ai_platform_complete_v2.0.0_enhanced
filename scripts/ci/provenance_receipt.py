@@ -86,7 +86,7 @@ def main(argv=None):
         b = Path(a.bundle)
         att = Path(a.attestation_json)
         try:
-            data = json.loads(att.read_text())
+            data = json.loads(att.read_text(encoding="utf-8"))
         except Exception as ex:
             print(f"attestation verification JSON invalid: {ex}", file=sys.stderr)
             return 1
@@ -119,7 +119,7 @@ def main(argv=None):
         print(f"provenance_receipt_ok bundle_sha256={subject}")
         return 0
     try:
-        obj = json.loads(Path(a.receipt).read_text())
+        obj = json.loads(Path(a.receipt).read_text(encoding="utf-8"))
     except Exception as ex:
         print(f"receipt invalid: {ex}", file=sys.stderr)
         return 1

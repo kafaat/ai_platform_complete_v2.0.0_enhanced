@@ -119,7 +119,7 @@ def test_skips_are_counted_and_the_summary_refuses_to_overclaim():
     text = _text()
     assert "skipped=$((skipped + 1))" in text, "a skipped gate must be counted, not swallowed"
     assert "لم تُقَس" in text
-    assert "٢٠٩" in text and "٧١" in text, (
+    assert "٢٦١" in text and "٨٦" in text, (
         "the summary must state the measured coverage ratio, not imply completeness"
     )
     assert "ادفع بثقة" not in text
@@ -470,3 +470,131 @@ def test_the_runbook_carries_a_field_verification_date():
 
 if __name__ == "__main__":  # pragma: no cover
     sys.exit(pytest.main([__file__]))
+
+
+def _extract_mutpy() -> str:
+    """يستخرج كتلة تقصير ٣ج **المشحونة** من preflight.sh — لا نسخةً منها.
+
+    نسخةٌ في الاختبار تُقاس بدل الشيفرة الحقيقيّة تعود خضراء بعد أن تنحرف
+    الكتلةُ الأصليّة — فالاستخراجُ من النصّ المشحون هو ما يجعل التكذيب تكذيباً.
+    """
+    text = _text()
+    marker = text.index("<<'MUTPY'")
+    start = text.index("\n", marker) + 1
+    end = text.index("\nMUTPY", start)
+    return text[start:end]
+
+
+def _scoped_targets(repo: Path, base: str) -> set[str]:
+    import subprocess as sp
+
+    proc = sp.run(
+        [sys.executable, "-", base],
+        input=_extract_mutpy(),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        cwd=repo,
+        timeout=120,
+    )
+    assert proc.returncode == 0, proc.stderr
+    return set(proc.stdout.split())
+
+
+def _seed_repo(tmp_path: Path) -> Path:
+    """مستودعٌ مُختلَق بسجلٍّ يحمل القسمين — تجهيزةُ اختبارٍ لا دليلاً."""
+    import subprocess as sp
+
+    repo = tmp_path / "repo"
+    (repo / "docs/architecture").mkdir(parents=True)
+    (repo / "scripts/x").mkdir(parents=True)
+    (repo / "tests_v9").mkdir()
+    registry = {
+        "mutated": {
+            "foo_guard.py": {
+                "mutations": [{"expect": "t", "find": "a", "replace": "b", "why": "w"}],
+                "test": "tests_v9/test_foo_guard.py",
+            }
+        },
+        "behavioural": {
+            # مفتاحُ بياناتٍ وصفيّة قيمتُه نصّ — مشحونٌ في السجلّ الحقيقيّ، وقد
+            # أسقطَ الكتلةَ كاملةً بصمتٍ (stderr مبتلَع) قبل التحصين.
+            "$why_ar": "metadata string, not an entry",
+            "scripts/x/behave.py": {
+                "mutations": [{"expect": "t", "find": "a", "replace": "b", "why": "w"}],
+                "test": "tests_v9/test_behave.py",
+            },
+            # الشاهدُ هنا على الطفرة المفردة لا على المدخل — الصيغتان مشحونتان
+            # في السجلّ الحقيقيّ، والتصعيدُ يجب أن يلتقطهما معاً.
+            "scripts/x/behave_two.py": {
+                "mutations": [
+                    {
+                        "expect": "t",
+                        "find": "a",
+                        "replace": "b",
+                        "why": "w",
+                        "test": "tests_v9/test_behave.py",
+                    }
+                ],
+            },
+        },
+    }
+    (repo / "docs/architecture/guard_mutation_registry.json").write_text(
+        json.dumps(registry), encoding="utf-8"
+    )
+    for f in (
+        "scripts/x/behave.py",
+        "scripts/x/behave_two.py",
+        "scripts/ci_foo_guard_src.txt",
+        "tests_v9/test_behave.py",
+        "tests_v9/test_foo_guard.py",
+    ):
+        (repo / f).parent.mkdir(parents=True, exist_ok=True)
+        (repo / f).write_text("original\n", encoding="utf-8")
+    # بيئةُ git معزولةٌ بنمط المستودع المعتمد: HOME داخل الجذر المؤقّت
+    # وGIT_CONFIG_NOSYSTEM يقطعان إعدادات المضيف، وPATH ثابتٌ لا موروث.
+    env = {
+        "PATH": "/usr/bin:/bin",
+        "HOME": str(repo),
+        "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_AUTHOR_NAME": "t",
+        "GIT_AUTHOR_EMAIL": "t@t",
+        "GIT_COMMITTER_NAME": "t",
+        "GIT_COMMITTER_EMAIL": "t@t",
+    }
+    for cmd in (["git", "init", "-q"], ["git", "add", "-A"], ["git", "commit", "-q", "-m", "seed"]):
+        sp.run(cmd, cwd=repo, env=env, check=True, capture_output=True)
+    return repo
+
+
+def test_a_changed_behavioural_source_is_planted_even_when_the_registry_is_untouched(tmp_path):
+    """PREFLIGHT-3J-BLIND-TO-BEHAVIOURAL-SOURCES-01 — شكلُ العطل مُثبَّتٌ حرفيّاً.
+
+    القسمُ السلوكيّ يحمل طفراتٍ تحجب في CI مثل ``mutated`` سواء، وكانت كتلةُ
+    التقصير تقرأ ``mutated`` وحدَه: مصدرٌ سلوكيّ متغيّر — وسجلُّه **غيرُ متغيّر** —
+    كان يطبع «لا حارسَ مسّه التغيير» ويمرّ بلا زرع. هذا الاختبار يشغّل الكتلةَ
+    المشحونةَ نفسَها على مستودعٍ مُختلَق ويطالبها بالهدف.
+    """
+    repo = _seed_repo(tmp_path)
+    (repo / "scripts/x/behave.py").write_text("changed\n", encoding="utf-8")
+    targets = _scoped_targets(repo, "HEAD")
+    assert "scripts/x/behave.py" in targets, (
+        "مصدرٌ سلوكيّ متغيّر بلا تغيير في السجلّ يجب أن يُزرَع — «لا حارسَ مسّه التغيير» هنا ادّعاءٌ كاذب"
+    )
+    assert "foo_guard.py" not in targets, "التقصير يبقى تقصيراً — لا زرعَ لِما لم يُمَسّ"
+
+
+def test_a_changed_witness_escalates_every_target_it_witnesses_for(tmp_path):
+    """اختبارٌ يشهد لهدفين سلوكيّين: تعديلُه يُصعِّدهما معاً لا آخِرَهما ترجيحاً."""
+    repo = _seed_repo(tmp_path)
+    (repo / "tests_v9/test_behave.py").write_text("changed\n", encoding="utf-8")
+    targets = _scoped_targets(repo, "HEAD")
+    assert {"scripts/x/behave.py", "scripts/x/behave_two.py"} <= targets, (
+        "قاموسُ شاهد→هدفٍ أخيرُ الترجيح يُظلِّل هدفاً صامتاً — الشاهدُ المشترك يشهد للكلّ"
+    )
+
+
+def test_an_untouched_tree_still_plants_nothing(tmp_path):
+    """الاتجاه الآخر: التوسيع لا يُحوِّل التقصير إلى مسحٍ كامل."""
+    repo = _seed_repo(tmp_path)
+    assert _scoped_targets(repo, "HEAD") == set()
