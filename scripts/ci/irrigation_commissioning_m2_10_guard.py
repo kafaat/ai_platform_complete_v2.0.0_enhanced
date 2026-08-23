@@ -6,8 +6,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 module = (
     ROOT / "services/sahool-platform/api/irrigation_commissioning_certification.py"
-).read_text()
-migration = (ROOT / "migrations/v177_irrigation_commissioning_certification.sql").read_text()
+).read_text(encoding="utf-8")
+migration = (ROOT / "migrations/v177_irrigation_commissioning_certification.sql").read_text(
+    encoding="utf-8"
+)
 
 required_module_tokens = [
     "REQUIRED_EVIDENCE_TYPES",

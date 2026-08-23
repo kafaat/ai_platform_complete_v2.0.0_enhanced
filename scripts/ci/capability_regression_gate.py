@@ -94,8 +94,16 @@ def main(argv=None):
     p.add_argument("--output")
     a = p.parse_args(argv)
     try:
-        base = json.loads(Path(a.base_file).read_text()) if a.base_file else git_json(a.base, REG)
-        head = json.loads(Path(a.head_file).read_text()) if a.head_file else git_json(a.head, REG)
+        base = (
+            json.loads(Path(a.base_file).read_text(encoding="utf-8"))
+            if a.base_file
+            else git_json(a.base, REG)
+        )
+        head = (
+            json.loads(Path(a.head_file).read_text(encoding="utf-8"))
+            if a.head_file
+            else git_json(a.head, REG)
+        )
     except Exception as e:
         print(str(e), file=sys.stderr)
         return 2

@@ -40,7 +40,7 @@ checks = {
 missing = []
 for rel, tokens in checks.items():
     p = ROOT / rel
-    text = p.read_text() if p.exists() else ""
+    text = p.read_text(encoding="utf-8") if p.exists() else ""
     for token in tokens:
         if token not in text:
             missing.append(f"{rel}: {token}")

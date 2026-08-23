@@ -4,8 +4,12 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-module = (ROOT / "services/sahool-platform/api/canonical_as_applied_irrigation.py").read_text()
-migration = (ROOT / "migrations/v178_canonical_as_applied_irrigation_truth.sql").read_text()
+module = (ROOT / "services/sahool-platform/api/canonical_as_applied_irrigation.py").read_text(
+    encoding="utf-8"
+)
+migration = (ROOT / "migrations/v178_canonical_as_applied_irrigation_truth.sql").read_text(
+    encoding="utf-8"
+)
 for token in [
     "AuthorizedIrrigationPlan",
     "IrrigationExecutionReceipt",

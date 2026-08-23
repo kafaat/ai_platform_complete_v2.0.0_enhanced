@@ -10,7 +10,7 @@ files = [
     ROOT / "services/decision-service/persistence.py",
     ROOT / "services/decision-service/migrations/008_learning_attribution.sql",
 ]
-text = "\n".join(p.read_text() for p in files)
+text = "\n".join(p.read_text(encoding="utf-8") for p in files)
 required = [
     "decision_learning_attributions",
     "LEARNING_ATTRIBUTION_CREATED",

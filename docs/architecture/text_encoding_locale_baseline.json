@@ -8,41 +8,9 @@
       "reads": 0,
       "subprocess": 2
     },
-    "scripts/ci/agronomic_context_gate.py": {
-      "reads": 5,
-      "subprocess": 0
-    },
-    "scripts/ci/agronomic_decision_lineage_gate.py": {
-      "reads": 1,
-      "subprocess": 0
-    },
-    "scripts/ci/agronomic_learning_lineage_gate.py": {
-      "reads": 2,
-      "subprocess": 0
-    },
-    "scripts/ci/agronomic_lineage_integrity_gate.py": {
-      "reads": 2,
-      "subprocess": 0
-    },
-    "scripts/ci/agronomic_model_lifecycle_lineage_gate.py": {
-      "reads": 2,
-      "subprocess": 0
-    },
-    "scripts/ci/agronomic_runtime_lineage_gate.py": {
-      "reads": 3,
-      "subprocess": 0
-    },
-    "scripts/ci/agronomic_runtime_terminal_lineage_gate.py": {
-      "reads": 2,
-      "subprocess": 0
-    },
     "scripts/ci/brain_state_transition_guard.py": {
       "reads": 0,
       "subprocess": 2
-    },
-    "scripts/ci/calibration_dataset_boundary_gate.py": {
-      "reads": 2,
-      "subprocess": 0
     },
     "scripts/ci/capability_evidence_maturity_engine.py": {
       "reads": 1,
@@ -53,7 +21,7 @@
       "subprocess": 1
     },
     "scripts/ci/capability_regression_gate.py": {
-      "reads": 2,
+      "reads": 0,
       "subprocess": 1
     },
     "scripts/ci/docker_build_matrix_verifier.py": {
@@ -65,90 +33,14 @@
       "subprocess": 1
     },
     "scripts/ci/execution_dependency_audit.py": {
-      "reads": 5,
+      "reads": 4,
       "subprocess": 1
-    },
-    "scripts/ci/execution_outcome_boundary_gate.py": {
-      "reads": 3,
-      "subprocess": 0
     },
     "scripts/ci/functional_probe_runner.py": {
       "reads": 0,
       "subprocess": 1
     },
-    "scripts/ci/intelligence_governance_gate.py": {
-      "reads": 4,
-      "subprocess": 0
-    },
-    "scripts/ci/irrigation_as_applied_m2_11_guard.py": {
-      "reads": 2,
-      "subprocess": 0
-    },
-    "scripts/ci/irrigation_closed_loop_m5_guard.py": {
-      "reads": 2,
-      "subprocess": 0
-    },
-    "scripts/ci/irrigation_commissioning_m2_10_guard.py": {
-      "reads": 2,
-      "subprocess": 0
-    },
-    "scripts/ci/irrigation_controller_edge_m2_9_guard.py": {
-      "reads": 1,
-      "subprocess": 0
-    },
-    "scripts/ci/irrigation_energy_m2_7_guard.py": {
-      "reads": 1,
-      "subprocess": 0
-    },
-    "scripts/ci/irrigation_hourly_mpc_m3_guard.py": {
-      "reads": 2,
-      "subprocess": 0
-    },
-    "scripts/ci/irrigation_hydraulic_m2_4_guard.py": {
-      "reads": 1,
-      "subprocess": 0
-    },
-    "scripts/ci/irrigation_vri_m4_guard.py": {
-      "reads": 2,
-      "subprocess": 0
-    },
-    "scripts/ci/irrx1_manual_execution_guard.py": {
-      "reads": 2,
-      "subprocess": 0
-    },
-    "scripts/ci/learning_attribution_boundary_gate.py": {
-      "reads": 1,
-      "subprocess": 0
-    },
-    "scripts/ci/migration_graph_guard.py": {
-      "reads": 1,
-      "subprocess": 0
-    },
-    "scripts/ci/model_activation_approval_boundary_gate.py": {
-      "reads": 5,
-      "subprocess": 0
-    },
-    "scripts/ci/model_activation_request_boundary_gate.py": {
-      "reads": 4,
-      "subprocess": 0
-    },
-    "scripts/ci/model_evaluation_boundary_gate.py": {
-      "reads": 3,
-      "subprocess": 0
-    },
-    "scripts/ci/model_promotion_decision_boundary_gate.py": {
-      "reads": 4,
-      "subprocess": 0
-    },
-    "scripts/ci/model_registry_activation_boundary_gate.py": {
-      "reads": 4,
-      "subprocess": 0
-    },
     "scripts/ci/nginx_compose_dns_gate.py": {
-      "reads": 1,
-      "subprocess": 0
-    },
-    "scripts/ci/no_leakage_certification_gate.py": {
       "reads": 1,
       "subprocess": 0
     },
@@ -156,36 +48,24 @@
       "reads": 0,
       "subprocess": 1
     },
-    "scripts/ci/path3_runtime_readiness_closure.py": {
-      "reads": 2,
-      "subprocess": 0
-    },
     "scripts/ci/prepare_attested_runtime_images.py": {
-      "reads": 2,
-      "subprocess": 0
-    },
-    "scripts/ci/production_truth_readiness_gate.py": {
-      "reads": 6,
+      "reads": 1,
       "subprocess": 0
     },
     "scripts/ci/provenance_receipt.py": {
-      "reads": 3,
+      "reads": 1,
       "subprocess": 0
     },
     "scripts/ci/riv_boundary_gate.py": {
-      "reads": 2,
+      "reads": 0,
       "subprocess": 1
-    },
-    "scripts/ci/rls_policy_guard.py": {
-      "reads": 1,
-      "subprocess": 0
     },
     "scripts/ci/runtime_contract_gate.py": {
       "reads": 1,
       "subprocess": 0
     },
     "scripts/ci/runtime_deployment_manifest.py": {
-      "reads": 2,
+      "reads": 1,
       "subprocess": 1
     },
     "scripts/ci/runtime_environment_preflight.py": {
@@ -212,18 +92,6 @@
       "reads": 1,
       "subprocess": 0
     },
-    "scripts/ci/soil_p1_products_guard.py": {
-      "reads": 2,
-      "subprocess": 0
-    },
-    "scripts/ci/soil_p3_products_guard.py": {
-      "reads": 3,
-      "subprocess": 0
-    },
-    "scripts/ci/soil_p5_certification_guard.py": {
-      "reads": 1,
-      "subprocess": 0
-    },
     "scripts/ci/static_governance_closure.py": {
       "reads": 0,
       "subprocess": 2
@@ -240,44 +108,16 @@
       "reads": 0,
       "subprocess": 1
     },
-    "scripts/ci/vegetation_agriai_full_closure_gate.py": {
-      "reads": 3,
-      "subprocess": 0
-    },
-    "scripts/ci/vegetation_agriai_production_gate.py": {
-      "reads": 1,
-      "subprocess": 0
-    },
     "scripts/ci/verify_all_generated.py": {
       "reads": 0,
       "subprocess": 4
-    },
-    "scripts/ci/wx11_closed_loop_completion_gate.py": {
-      "reads": 3,
-      "subprocess": 0
-    },
-    "scripts/ci/wx12_runtime_certification_gate.py": {
-      "reads": 1,
-      "subprocess": 0
-    },
-    "scripts/ci/wx12_runtime_completion_gate.py": {
-      "reads": 1,
-      "subprocess": 0
-    },
-    "scripts/ci/wx12_runtime_multitenancy_gate.py": {
-      "reads": 1,
-      "subprocess": 0
-    },
-    "scripts/ci/wx12_runtime_scheduler_gate.py": {
-      "reads": 5,
-      "subprocess": 0
     },
     "scripts/e2e/gpu_runtime_smoke_gate.py": {
       "reads": 0,
       "subprocess": 1
     },
     "scripts/irr_f01/build_report.py": {
-      "reads": 3,
+      "reads": 2,
       "subprocess": 1
     },
     "scripts/ops/branch_funeral.py": {
@@ -288,12 +128,8 @@
       "reads": 2,
       "subprocess": 0
     },
-    "scripts/release/generate_dependency_sbom.py": {
-      "reads": 1,
-      "subprocess": 0
-    },
     "scripts/remote_sensing/rs10_technical_certification.py": {
-      "reads": 2,
+      "reads": 1,
       "subprocess": 0
     },
     "scripts/remote_sensing/test_rs10_technical_certification.py": {
@@ -305,7 +141,7 @@
       "subprocess": 1
     },
     "scripts/soil/run_production_certification.py": {
-      "reads": 2,
+      "reads": 1,
       "subprocess": 0
     },
     "tests/architecture/test_brain_commit_claim_guard.py": {
@@ -627,9 +463,10 @@
   },
   "gap": "TEXT-DECODED-WITH-THE-MACHINES-LOCALE-01",
   "how_it_was_measured": "لم يُصدَّق التقرير على علّاته ولم يُرفَض: أُعيد إنتاج العطل **على Linux** بفرض لغة C (`LC_ALL=C PYTHONUTF8=0` ⇒ الترميز الافتراضيّ ANSI_X3.4-1968). النتيجة **١٢ فشلاً** — نفس عدد التقرير بالضبط، وكلّها UnicodeDecodeError. فالعطل ليس خاصّيّة Windows بل اعتماداً على ترميز الآلة، وWindows يكشفه فقط لأنّ افتراضيّه ليس UTF-8.",
-  "measured_on": "249d94c1 (على 3b8352b5، 2026-08-01)",
+  "measured_on": "main 61387902 — after mechanical read_text(encoding) remediation of scripts/",
+  "second_sweep_2026_08_13": "لماذا لم يرَ الماسحُ الساكن ما رآه هذا: هو يقرأ **الشيفرة** ويقول «هذا السطر قد ينهار»، وذاك يُشغّل **العمليّة** ويقول «هذا انهار». والأساس كان يُقرّ بالفرق صراحةً — «المُدرَج هنا لم يُثبَت أنّه ينهار» — فجاء الإشعال ليُحوّل ٢٢ من الظنّ إلى قياس. ويفرضه الآن `scripts/ci/guard_locale_survival_guard.py` على كلّ حارس، فلا يعود الأمر إلى مسحٍ يدويّ.",
+  "third_sweep_2026_08_22": "إصلاحٌ آليّ بنمطٍ واحد: 112 موضع .read_text() بلا ترميز في 52 ملفّاً تحت scripts/ صارت encoding=\"utf-8\" — بندُ التقرير الخارجيّ ٩ (Windows CP1252). المداخلُ التي صفت حُذفت والعدّادات المتبقّية أُعيد قياسُها بماسح الاختبار نفسه؛ ما بقي في الأساس من scripts/ هو open() وsubprocess بلا ترميز — دينٌ لاحق مُسمًّى لا مُهمَل.",
   "three_vectors_not_one": "① قراءة مباشرة بلا `encoding`. ② `subprocess(..., text=True)` — الأب يفكّ بترميز اللغة. ③ **مخرَج الابن نفسه**: `encoding` على الأب لا يُملي على الابن بماذا يكتب، فرسالة تحوي عربيّة أو «—» تُسقِط الابن بـUnicodeEncodeError. يُغلَق بـ`PYTHONIOENCODING=utf-8` في بيئته. العلاج الذي وصفه التقرير (encoding على القراءة) يُغلق **٨ من ١٢** لا ١٢.",
   "two_vectors_not_one": "① قراءة مباشرة: `read_text()`/`open()` بلا `encoding`. ② فكّ ترميز مخرَج عمليّة: `subprocess.run(..., text=True)` يفكّ بترميز اللغة أيضاً — فاختبارٌ يُشغّل حارساً يطبع عربيّة ينهار في **الأب** لا في الابن. الثاني لا يظهر لأيّ فحص يبحث عن `open(` وحده.",
-  "what_this_baseline_does_not_claim": "المُدرَج هنا **لم يُثبَت أنّه ينهار**؛ أُثبِت انهيار ثمانية ملفّات فقط (أُصلِحت). البقيّة تقرأ ملفّات ASCII اليوم — وهذا حظّ لا تصميم: توثيق هذا المستودع عربيّ، فأوّل حرف عربيّ يدخل ملفّاً مقروءاً يحوّل المدخل إلى عطل. الأساس يمنع النموّ ولا يدّعي أنّ ما فيه سليم.",
-  "second_sweep_2026_08_13": "لماذا لم يرَ الماسحُ الساكن ما رآه هذا: هو يقرأ **الشيفرة** ويقول «هذا السطر قد ينهار»، وذاك يُشغّل **العمليّة** ويقول «هذا انهار». والأساس كان يُقرّ بالفرق صراحةً — «المُدرَج هنا لم يُثبَت أنّه ينهار» — فجاء الإشعال ليُحوّل ٢٢ من الظنّ إلى قياس. ويفرضه الآن `scripts/ci/guard_locale_survival_guard.py` على كلّ حارس، فلا يعود الأمر إلى مسحٍ يدويّ."
+  "what_this_baseline_does_not_claim": "المُدرَج هنا **لم يُثبَت أنّه ينهار**؛ أُثبِت انهيار ثمانية ملفّات فقط (أُصلِحت). البقيّة تقرأ ملفّات ASCII اليوم — وهذا حظّ لا تصميم: توثيق هذا المستودع عربيّ، فأوّل حرف عربيّ يدخل ملفّاً مقروءاً يحوّل المدخل إلى عطل. الأساس يمنع النموّ ولا يدّعي أنّ ما فيه سليم."
 }

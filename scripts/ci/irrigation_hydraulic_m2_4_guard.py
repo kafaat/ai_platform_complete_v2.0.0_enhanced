@@ -19,7 +19,7 @@ required = {
     ],
 }
 for file, tokens in required.items():
-    text = (ROOT / file).read_text()
+    text = (ROOT / file).read_text(encoding="utf-8")
     for token in tokens:
         assert token in text, (file, token)
 print("irrigation hydraulic M2.4 guard: PASS")

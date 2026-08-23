@@ -4,10 +4,10 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-persistence = (ROOT / "services/decision-service/persistence.py").read_text()
+persistence = (ROOT / "services/decision-service/persistence.py").read_text(encoding="utf-8")
 migration = (
     ROOT / "services/decision-service/migrations/023_runtime_terminal_agronomic_lineage.sql"
-).read_text()
+).read_text(encoding="utf-8")
 required = [
     "source_transition_type",
     "decision_assert_rollback_command_cohorts",

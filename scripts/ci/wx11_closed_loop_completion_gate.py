@@ -2,11 +2,11 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-main = (ROOT / "services/decision-service/main.py").read_text()
-persist = (ROOT / "services/decision-service/persistence.py").read_text()
-sql = (
-    ROOT / "services/decision-service/migrations/014_wx11_closed_loop_completion.sql"
-).read_text()
+main = (ROOT / "services/decision-service/main.py").read_text(encoding="utf-8")
+persist = (ROOT / "services/decision-service/persistence.py").read_text(encoding="utf-8")
+sql = (ROOT / "services/decision-service/migrations/014_wx11_closed_loop_completion.sql").read_text(
+    encoding="utf-8"
+)
 required = [
     "/v1/learning/rollback-commands/{rollback_command_id}/claim",
     "/v1/learning/rollback-commands/{rollback_command_id}/receipt",

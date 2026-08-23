@@ -124,14 +124,29 @@ jobs:
       - name: Enforce declared PR capability impact
         if: github.event_name == 'pull_request'
         env:
-          PR_BODY: ${{ github.event.pull_request.body }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           git cat-file -e "$BASE_SHA^{commit}" || git fetch --no-tags origin "$BASE_SHA"
           git cat-file -e "$HEAD_SHA^{commit}" || git fetch --no-tags origin "pull/$PR_NUMBER/head"
-          printf '%s' "$PR_BODY" > /tmp/pr-body.txt
+          # GATE-READS-A-FROZEN-EVENT-PAYLOAD-NOT-THE-LIVE-BODY-01: كان المتنُ
+          # يُقرأ من حمولة الحدث فيتجمّد لحظتَها، فتصحيحُ المتن بعد
+          # انطلاق التشغيل بدقيقةٍ غيرُ مرئيّ، و«أعد التشغيل» يكرّر الحمولةَ القديمة
+          # (مقيس على #887: المُشتقُّ الصحيح كان في المتن والبوّابةُ قرأت ما قبله).
+          # المتنُ يُقرأ حيّاً من الـAPI — بنمط قارئ قواعد الحماية أدناه بعينه،
+          # المقيس في 31417746270 — ويفشل مغلقاً: لا سقوطَ صامتاً إلى الحمولة
+          # المجمَّدة، فذلك يُعيد العطلَ بثوبِ احتياطٍ.
+          HTTP_STATUS=$(curl -sS -o /tmp/pr-live.json -w '%{http_code}' \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "${GITHUB_API_URL:-https://api.github.com}/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}")
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "live PR body fetch failed: HTTP $HTTP_STATUS — فشل مغلق (الحمولة المجمّدة ليست بديلاً)" >&2
+            exit 1
+          fi
+          jq -r '.body // ""' /tmp/pr-live.json > /tmp/pr-body.txt
           python scripts/ci/pr_capability_impact_gate.py \
             --base "$BASE_SHA" \
             --head "$HEAD_SHA" \

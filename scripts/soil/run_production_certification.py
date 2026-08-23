@@ -167,7 +167,7 @@ async def main():
             ]
         )
     for path in args.external_evidence:
-        data = json.loads(Path(path).read_text())
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
         ev = evidence(
             data["check_name"],
             data.get("evidence_type", "external"),

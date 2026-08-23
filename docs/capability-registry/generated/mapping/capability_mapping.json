@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5165,
+    "files_scanned": 5167,
     "files_by_kind": {
       "backend": 1198,
       "database": 274,
       "governance": 60,
       "mobile": 51,
       "other": 1417,
-      "tests": 1709,
+      "tests": 1711,
       "web": 456
     },
-    "unmapped_artifacts": 2105,
+    "unmapped_artifacts": 2107,
     "ambiguous_artifacts": 408
   },
   "capabilities": [
@@ -41431,6 +41431,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_ancestry_proof_discipline.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_apply_migration_manifest.py",
       "kind": "tests"
     },
@@ -41580,6 +41584,10 @@
     },
     {
       "path": "tests_v9/test_canonical_nutrient_ledger_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_capability_gate_reads_live_body.py",
       "kind": "tests"
     },
     {

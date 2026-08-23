@@ -6772,6 +6772,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ancestry_proof_discipline.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_apply_migration_manifest.py",
     "kind": "tests"
   },
@@ -6921,6 +6925,10 @@
   },
   {
     "path": "tests_v9/test_canonical_nutrient_ledger_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_capability_gate_reads_live_body.py",
     "kind": "tests"
   },
   {
