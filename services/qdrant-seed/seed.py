@@ -70,6 +70,7 @@ def _load_excluded_chunk_ids() -> frozenset[str]:
         )
     return frozenset(x.strip() for x in ids)
 
+
 # قاعدة معرفية زراعية لليمن (يُستبدل بـ embedding حقيقي في الإنتاج)
 KNOWLEDGE_BASE = [
     {
