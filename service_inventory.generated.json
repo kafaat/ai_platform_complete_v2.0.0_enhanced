@@ -195,7 +195,7 @@
     "service": "qdrant-seed",
     "domain": "Unclassified / Support",
     "python_files": 4,
-    "python_loc": 1026,
+    "python_loc": 1047,
     "tests": 1,
     "routes": 0,
     "main": "-",
