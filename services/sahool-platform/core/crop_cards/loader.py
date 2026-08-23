@@ -10,6 +10,7 @@ sahool_core.crop_cards.loader
 
 from __future__ import annotations
 
+import math
 import re
 from pathlib import Path
 
@@ -94,10 +95,21 @@ def _validate_nutrient_demand(stages: list, errors: list) -> None:
             continue
         for k in sums:
             v = nd[k]
-            if not isinstance(v, (int, float)) or not 0.0 <= v <= 1.0:
+            # `bool` وريثُ `int` في بايثون، فـ`True` يمرّ كـ1.0 ويُقاس صحيحاً متى
+            # بلغ المجموعُ 1.0 — مقيسٌ بالزرع. واستبعادُه صريحٌ لأنّ «صحيح/خطأ»
+            # ليس كسرَ امتصاص. و`isfinite` هنا احتياطٌ لا سدُّ ثغرة: المدى
+            # `0.0 <= v <= 1.0` يرفض NaN وInf أصلاً (مقيسٌ كذلك).
+            if (
+                isinstance(v, bool)
+                or not isinstance(v, (int, float))
+                or not math.isfinite(v)
+                or not 0.0 <= v <= 1.0
+            ):
                 errors.append(f"مرحلة[{i}]: {k} خارج [0, 1]: {v!r}")
             else:
                 sums[k] += v
+        if not isinstance(nd["source"], str) or not nd["source"].strip():
+            errors.append(f"مرحلة[{i}]: nutrient_demand.source يجب أن يكون نصّاً غير فارغ")
     for k, total in sums.items():
         if abs(total - 1.0) > NUTRIENT_SUM_TOLERANCE:
             errors.append(
@@ -140,6 +152,9 @@ def _validate_phenology(card: dict, errors: list) -> None:
     ph = card.get("phenology")
     if ph is None:
         return
+    if not isinstance(ph, dict):
+        errors.append("phenology ليست كتلة")
+        return
     if "source" not in ph:
         errors.append("phenology بلا مصدر موثّق")
     stages = ph.get("stages")
@@ -148,15 +163,32 @@ def _validate_phenology(card: dict, errors: list) -> None:
         return
     prev_end = None
     for i, st in enumerate(stages):
+        if not isinstance(st, dict):
+            errors.append(f"مرحلة[{i}] ليست كتلة")
+            continue
         miss = REQUIRED_PHENOLOGY_STAGE - set(st.keys())
         if miss:
             errors.append(f"مرحلة[{i}] ينقصها: {miss}")
             continue
-        if st["day_start"] >= st["day_end"]:
+        day_start, day_end = st["day_start"], st["day_end"]
+        # الترتيب عمدٌ: يُفحَص النوعُ **قبل** المقارنة. حدٌّ نصّيّ يرمي `TypeError`
+        # وحدٌّ `NaN` أخطر — كلّ مقارناته `False` فيمرّ **صحيحاً** بلا خطأ (مقيسٌ
+        # بالزرع: صفرُ أخطاء). وطبقةُ تحقّقٍ تنهار أو تُجيز المشوَّه ليست تحقّقاً.
+        if (
+            isinstance(day_start, bool)
+            or isinstance(day_end, bool)
+            or not isinstance(day_start, (int, float))
+            or not isinstance(day_end, (int, float))
+            or not math.isfinite(day_start)
+            or not math.isfinite(day_end)
+        ):
+            errors.append(f"مرحلة '{st['stage']}': حدود الأيام يجب أن تكون أرقاماً منتهية")
+            continue
+        if day_start >= day_end:
             errors.append(f"مرحلة '{st['stage']}': day_start ≥ day_end")
-        if prev_end is not None and st["day_start"] < prev_end:
+        if prev_end is not None and day_start < prev_end:
             errors.append(f"مرحلة '{st['stage']}': تتداخل مع السابقة (تسلسل متراجع)")
-        prev_end = st["day_end"]
+        prev_end = day_end
     _validate_nutrient_demand(stages, errors)  # منحنيات الطلب الغذائيّ (اختياريّة — كلّ أو لا شيء)
     _validate_nutrient_provenance(ph, stages, errors)  # سلسلة الاشتقاق إلزاميّة متى وُجدت المنحنيات
 
@@ -221,8 +253,15 @@ def stage_nutrient_demand(crop_id: str) -> list[dict]:
     """
     out = []
     for st in growth_stages(crop_id):
+        # المساعدُ يقرأ بطاقةً مُحمَّلة قد لا تكون مرّت بالتحقّق، فلا يفترض سلامةَ
+        # البنية: مرحلةٌ مشوَّهة أو كتلةٌ ناقصة تُتخطّى بدل أن تُسقِط المُستدعي بـ
+        # `AttributeError` أو `KeyError`.
+        if not isinstance(st, dict):
+            continue
         nd = st.get("nutrient_demand")
-        if nd:
+        if not isinstance(nd, dict) or not REQUIRED_STAGE_NUTRIENT <= set(nd.keys()):
+            continue
+        if REQUIRED_PHENOLOGY_STAGE <= set(st.keys()):
             out.append(
                 {
                     "stage": st["stage"],

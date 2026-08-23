@@ -19725,7 +19725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d9f736b32e7453f96601fd8aff70851709f6db8584c3c01d22ef1f3c470d4788"
+          "content": "151166d51a59d51e7462fcffa61c13f665e03e26903e96eadd48c5237618fc9a"
         }
       ],
       "name": "services/sahool-platform/core/crop_cards/loader.py",
@@ -23535,7 +23535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5006b0e49438b95bd82ebe98aab6da79ec8b8ad295be2c0e07756ad76c3b1dd9"
+          "content": "e29d4fbf7d5209e7b4771ce84e4f6b2b7efce6917b93ff46c75b5a67bdb1fe5f"
         }
       ],
       "name": "services/sahool-platform/tests/test_crop_cards.py",

@@ -925,3 +925,84 @@ class TestStageNutrientDemand:
         from core.crop_cards.loader import stage_nutrient_demand
 
         assert stage_nutrient_demand("wheat") == []
+
+    # ── تصليب fail-closed: بيانات YAML مشوّهة تُنتج valid=False لا استثناءً ──
+    # كلّ حالةٍ أدناه قِيست على الشيفرة قبل التصليب: الأولى والثانية والسادسة
+    # كانت **ترمي**، والثالثة والرابعة والخامسة كانت **تمرّ صحيحةً صامتةً** —
+    # وهي أخطر، لأنّ طبقة التحقّق تقول «سليم» عن مُدخَلٍ لا تفهمه.
+
+    def test_malformed_stage_fails_without_exception(self):
+        """مرحلةٌ ليست كتلة كانت ترمي AttributeError على `st.keys()`."""
+        from core.crop_cards.loader import validate_crop_card
+
+        stages = [self._stage("a", 0, 20), "not-a-stage"]
+        v = validate_crop_card(self._card(stages))
+        assert not v["valid"]
+        assert any("ليست كتلة" in e for e in v["errors"])
+
+    def test_non_numeric_stage_days_fail_without_exception(self):
+        """حدٌّ نصّيّ كان يرمي TypeError لأنّ المقارنة تسبق فحص النوع."""
+        from core.crop_cards.loader import validate_crop_card
+
+        stages = [self._stage("a", "0", 20), self._stage("b", 20, 40)]
+        v = validate_crop_card(self._card(stages))
+        assert not v["valid"]
+        assert any("أرقاماً منتهية" in e for e in v["errors"])
+
+    def test_non_finite_stage_days_fail(self):
+        """NaN في حدود الأيام كان **يمرّ صحيحاً**: كلّ مقارناته False."""
+        from core.crop_cards.loader import validate_crop_card
+
+        stages = [self._stage("a", 0, float("nan")), self._stage("b", 20, 40)]
+        v = validate_crop_card(self._card(stages))
+        assert not v["valid"]
+        assert any("أرقاماً منتهية" in e for e in v["errors"])
+
+    def test_boolean_fraction_is_rejected(self):
+        """`True` كسراً كان ينفذ متى بلغ المجموع 1.0 — bool وريثُ int."""
+        from core.crop_cards.loader import validate_crop_card
+
+        stages = [
+            self._stage("a", 0, 20, self._nd(True, 0.3, 0.3)),
+            self._stage("b", 20, 40, self._nd(0.0, 0.7, 0.7)),
+        ]
+        v = validate_crop_card(self._card(stages))
+        assert not v["valid"]
+        assert any("n_fraction" in e and "True" in e for e in v["errors"])
+
+    def test_empty_nutrient_source_fails(self):
+        """مصدرٌ فارغ كان يمرّ: الوجودُ كان مقيساً لا المحتوى."""
+        from core.crop_cards.loader import validate_crop_card
+
+        stages = [
+            self._stage("a", 0, 20, self._nd(0.5, 0.5, 0.5, source="")),
+            self._stage("b", 20, 40, self._nd(0.5, 0.5, 0.5)),
+        ]
+        v = validate_crop_card(self._card(stages))
+        assert not v["valid"]
+        assert any("source" in e for e in v["errors"])
+
+    def test_phenology_not_a_block_fails_without_exception(self):
+        """phenology غير كتلةٍ كانت ترمي AttributeError على `ph.get`."""
+        from core.crop_cards.loader import validate_crop_card
+
+        card = self._card([self._stage("a", 0, 20)])
+        card["phenology"] = "not-a-block"
+        v = validate_crop_card(card)
+        assert not v["valid"]
+        assert any("phenology ليست كتلة" in e for e in v["errors"])
+
+    def test_helper_survives_a_malformed_card(self, monkeypatch):
+        """المساعدُ يقرأ بطاقةً قد لا تكون مرّت بالتحقّق — يتخطّى ولا يُسقِط."""
+        from core.crop_cards import loader
+
+        monkeypatch.setattr(
+            loader,
+            "growth_stages",
+            lambda _crop: [
+                "not-a-stage",
+                {"stage": "a", "nutrient_demand": {"n_fraction": 0.5}},
+                self._stage("b", 20, 40, self._nd(0.5, 0.5, 0.5)),
+            ],
+        )
+        assert [s["stage"] for s in loader.stage_nutrient_demand("t")] == ["b"]
