@@ -50,6 +50,25 @@ if SAHOOL_ENV == "production" and SEED_PROVENANCE_JSON:
     )
 if not SEED_TENANT_ID:
     raise RuntimeError("QDRANT_SEED_TENANT_ID must not be empty")
+# ملفّ استثناء الهويّات المحجورة (CORPUS-RECONCILIATION-01): «أيّ
+# HOLD_LOGICAL_ID_COLLISION يبقى HOLD ولا يُنفَّذ ضدّه شيء» — والبذر القانونيّ
+# upsert على مُعرِّفات حتميّة، فقد يكتب فوق عضو مجموعةٍ محجورة لو صادف مُعرِّفَها.
+# الاستثناء صريحٌ ومغلق: ملفٌّ مذكورٌ يتعذّر قراءته يُفشل البذر كلّه، لا يُتخطّى —
+# بذرٌ «كاملٌ» فوق حجرٍ أسوأ من لا بذر.
+SEED_EXCLUDE_FILE = (os.getenv("QDRANT_SEED_EXCLUDE_CHUNK_IDS_FILE") or "").strip()
+
+
+def _load_excluded_chunk_ids() -> frozenset[str]:
+    if not SEED_EXCLUDE_FILE:
+        return frozenset()
+    data = json.loads(Path(SEED_EXCLUDE_FILE).read_text(encoding="utf-8"))
+    ids = data.get("exclude_chunk_ids") if isinstance(data, dict) else data
+    if not isinstance(ids, list) or not all(isinstance(x, str) and x.strip() for x in ids):
+        raise RuntimeError(
+            "QDRANT_SEED_EXCLUDE_CHUNK_IDS_FILE must hold a JSON list of chunk ids "
+            "(or an object with exclude_chunk_ids)"
+        )
+    return frozenset(x.strip() for x in ids)
 
 # قاعدة معرفية زراعية لليمن (يُستبدل بـ embedding حقيقي في الإنتاج)
 KNOWLEDGE_BASE = [
@@ -224,9 +243,20 @@ async def _embed(text: str, http: httpx.AsyncClient) -> list[float]:
 
 async def seed():
     provenance = _load_provenance_manifest()
+    excluded = _load_excluded_chunk_ids()
+    # الاستثناء قبل التضمين وقبل فحص الـprovenance: الوثيقة المستثناة خارج هذا
+    # البذر كلّه، لا وثيقةٌ ضُمِّنت ثم أُسقطت في آخر خطوة.
+    knowledge = [doc for doc in KNOWLEDGE_BASE if f"seed:{doc['id']}" not in excluded]
+    if excluded:
+        logger.info(
+            "⛔ استُثني %d هويّة محجورة من البذر (بقي %d من %d)",
+            len(KNOWLEDGE_BASE) - len(knowledge),
+            len(knowledge),
+            len(KNOWLEDGE_BASE),
+        )
     if SEED_TENANT_ID == "__global__":
         missing_sources = sorted(
-            {str(doc.get("source") or "") for doc in KNOWLEDGE_BASE} - set(provenance)
+            {str(doc.get("source") or "") for doc in knowledge} - set(provenance)
         )
         if missing_sources:
             raise RuntimeError(
@@ -238,7 +268,7 @@ async def seed():
     # البحث الدلاليّ — فهرس فارغ أصدق من نتائج عشوائية، وRAG يسقط على البحث الرمزيّ).
     async with httpx.AsyncClient(timeout=30.0) as http:
         try:
-            vectors = [await _embed(doc["text"], http) for doc in KNOWLEDGE_BASE]
+            vectors = [await _embed(doc["text"], http) for doc in knowledge]
         except Exception as e:
             logger.error(
                 "تعذّر توليد التضمين عبر Ollama (%s=%s): %s — البذر المطلوب يفشل صراحةً.",
@@ -291,7 +321,7 @@ async def seed():
     logger.info("✅ Collection '%s' vector schema matches embedding dim=%s", COLLECTION, dim)
 
     points = []
-    for i, doc in enumerate(KNOWLEDGE_BASE):
+    for i, doc in enumerate(knowledge):
         chunk_id = f"seed:{doc['id']}"
         document_id = f"reference:{doc.get('source', 'unknown')}:{doc['id']}"
         source = str(doc.get("source") or "")
