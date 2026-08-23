@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5167,
+    "files_scanned": 5169,
     "files_by_kind": {
       "backend": 1198,
       "database": 274,
       "governance": 60,
       "mobile": 51,
-      "other": 1417,
-      "tests": 1711,
+      "other": 1418,
+      "tests": 1712,
       "web": 456
     },
-    "unmapped_artifacts": 2107,
+    "unmapped_artifacts": 2108,
     "ambiguous_artifacts": 408
   },
   "capabilities": [
@@ -12230,11 +12230,11 @@
       ],
       "events": [
         {
-          "value": "decision_lineage_graph.py @ scripts/ci/verify_all_generated.py:85",
+          "value": "decision_lineage_graph.py @ scripts/ci/verify_all_generated.py:86",
           "score": 20
         },
         {
-          "value": "execution_dependency_audit.py @ scripts/ci/verify_all_generated.py:84",
+          "value": "execution_dependency_audit.py @ scripts/ci/verify_all_generated.py:85",
           "score": 20
         },
         {
@@ -42532,6 +42532,10 @@
     },
     {
       "path": "tests_v9/test_rag_corpus_measurement_integrity.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_rag_corpus_reconciliation_executor.py",
       "kind": "tests"
     },
     {
