@@ -6932,6 +6932,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_capability_gate_reads_live_body.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_capability_impact_parity.py",
     "kind": "tests"
   },

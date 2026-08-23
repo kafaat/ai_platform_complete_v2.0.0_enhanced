@@ -1080,6 +1080,25 @@
         }
       ],
       "test": "tests_v9/test_generated_write_targets.py"
+    },
+    ".github/workflows/capability-governance.yml": {
+      "$why_ar": "GATE-READS-A-FROZEN-EVENT-PAYLOAD-NOT-THE-LIVE-BODY-01: خطوةُ إنفاذ أثر القدرات كانت تقرأ المتنَ من حمولة الحدث المجمَّدة، فتصحيحُ المتن بعد الانطلاق غيرُ مرئيّ و«أعد التشغيل» يكرّر القديم (مقيس على #887). الإصلاح: جلبٌ حيّ يفشل مغلقاً.",
+      "mutations": [
+        {
+          "expect": "test_the_enforce_step_does_not_read_the_body_from_the_frozen_payload",
+          "test": "tests_v9/test_capability_gate_reads_live_body.py",
+          "find": "          jq -r '.body // \"\"' /tmp/pr-live.json > /tmp/pr-body.txt\n",
+          "replace": "          printf '%s' \"${PR_BODY:-}\" > /tmp/pr-body.txt  # mutated: عودة الحمولة المجمَّدة\n",
+          "why": "إرجاعُ قراءة المتن إلى الحمولة المجمَّدة يعيد الحادثة بعينها: بوّابةٌ تحجب على متنٍ صُحِّح قبل دقيقة."
+        },
+        {
+          "expect": "test_the_enforce_step_fetches_the_body_live_and_fails_closed",
+          "test": "tests_v9/test_capability_gate_reads_live_body.py",
+          "find": "          if [ \"$HTTP_STATUS\" != \"200\" ]; then\n            echo \"live PR body fetch failed: HTTP $HTTP_STATUS — فشل مغلق (الحمولة المجمّدة ليست بديلاً)\" >&2\n            exit 1\n          fi\n",
+          "replace": "          if [ \"$HTTP_STATUS\" != \"200\" ]; then\n            echo \"fetch failed — falling back\" >&2\n          fi\n",
+          "why": "السقوطُ الصامت عند فشل الجلب يعيد العطلَ بثوب احتياطٍ — فشلُ الشبكة يصير قراءةَ حمولةٍ بائتة بلا أثر."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
