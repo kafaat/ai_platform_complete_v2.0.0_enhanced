@@ -280,8 +280,25 @@ import json, subprocess, sys
 base = sys.argv[1]
 registry = json.load(open("docs/architecture/guard_mutation_registry.json", encoding="utf-8"))
 spec = registry.get("mutated", {})
+# PREFLIGHT-3J-BLIND-TO-BEHAVIOURAL-SOURCES-01: القسمُ السلوكيّ مفاتيحُه مساراتٌ
+# كاملة ويحمل طفراتٍ تحجب في CI مثل `mutated` سواء — وكانت الكتلةُ تقرأ `mutated`
+# وحدَه، فمصدرٌ سلوكيّ متغيّر يطبع «لا حارسَ مسّه التغيير» زوراً ويمرّ بلا زرع.
+behavioural = registry.get("behavioural", {})
 # يُصعَّد من ملفّ الاختبار أيضاً: تعديلُ الشاهد وحده يكفي لتقنيع طفرة — وهو ما وقع.
-by_test = {v.get("test"): k for k, v in spec.items() if v.get("test")}
+# والاختبارُ الواحد قد يشهد لأكثر من هدفٍ (سلوكيّان يتشاركان ملفّاً) — فمجموعةٌ
+# لا مفتاحٌ أخير يُظلِّل ما قبله.
+by_test = {}
+for section in (spec, behavioural):
+    for key, entry in section.items():
+        # مفاتيحُ `$…` الوصفيّة قيمُها نصوصٌ لا مداخل — والقسمُ السلوكيّ يحملها فعلاً.
+        if not isinstance(entry, dict):
+            continue
+        # الشاهدُ يُعلَن على المدخل أو على الطفرة المفردة — والصيغتان مشحونتان
+        # في السجلّ فعلاً؛ التقاطُ إحداهما وحدها يُعمي التصعيدَ عن الأخرى.
+        tests = {entry.get("test")} | {m.get("test") for m in entry.get("mutations", [])}
+        for test in tests:
+            if test:
+                by_test.setdefault(test, set()).add(key)
 touched = set()
 for cmd in (
     ["git", "diff", "--name-only", f"{base}...HEAD"],
@@ -294,7 +311,9 @@ for cmd in (
         continue
     for path in out.splitlines():
         if path in by_test:
-            touched.add(by_test[path])
+            touched.update(by_test[path])
+        if path in behavioural:
+            touched.add(path)
         elif path.rsplit("/", 1)[-1] in spec:
             touched.add(path.rsplit("/", 1)[-1])
 print(" ".join(sorted(touched)))
