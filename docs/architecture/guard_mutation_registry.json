@@ -2238,6 +2238,18 @@
           "find": "    return mutation.get(\"test\") or spec[\"test\"]",
           "replace": "    return spec[\"test\"]  # mutated: جناحُ الطفرة مُهمَل",
           "why": "إهمالُ جناح الطفرة يُشغّل جناحاً لا يمسّ المصدر، فيمرّ العطل المزروع أخضر — و«حارسٌ يُبلِّغ نتيجةً عن سؤال لم يطرحه» يصير هنا «طفرةٌ تُحاكَم بجناحٍ لا يخصّها»."
+        },
+        {
+          "expect": "test_a_narrow_kill_skips_the_full_file_run",
+          "find": "    if ran_at_all(out) and code != 0 and expected in failing_tests(out):",
+          "replace": "    if False:",
+          "why": "تحييد المسار السريع ⇒ كلّ زرعة تعود تشغّل الملفّ كاملاً — عودة صنف MUT-SWEEP-RUNS-THE-WHOLE-FILE-PER-PLANT-01 صامتةً (انحدار أداء لا صحّة، يُمسَك بعدّ الاستدعاءات)"
+        },
+        {
+          "expect": "test_a_passing_narrow_run_falls_back_to_the_full_file",
+          "find": "        return code, out\n    return _run_tests(test_file, root)",
+          "replace": "        return code, out\n    return code, out  # mutated: لا تراجُع",
+          "why": "إسقاط التراجع إلى الملفّ الكامل ⇒ مرورُ المتوقَّع وحده يُختَم unexpected_green/survived من مشهدٍ ناقص، وتصنيفا wrong_test/التشخيص يفقدان مصدرهما"
         }
       ],
       "test": "tests_v9/test_guard_mutation_guard.py"

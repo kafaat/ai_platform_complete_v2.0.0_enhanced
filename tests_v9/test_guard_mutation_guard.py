@@ -255,6 +255,83 @@ def test_a_runner_that_never_ran_is_not_evidence(tmp_path: Path, monkeypatch) ->
     assert any("لم يُشغّل اختباراً" in f for f in failures)
 
 
+# ─── MUT-SWEEP-RUNS-THE-WHOLE-FILE-PER-PLANT-01: «ضيّق ثم تراجَع» ───
+
+
+def _recording_runner(monkeypatch, outputs_by_node: dict):
+    calls: list[str] = []
+
+    def fake(node: str, _root) -> tuple[int, str]:
+        calls.append(node)
+        return outputs_by_node[node]
+
+    monkeypatch.setattr(gmg, "_run_tests", fake)
+    return calls
+
+
+def test_a_narrow_kill_skips_the_full_file_run(tmp_path: Path, monkeypatch) -> None:
+    """الحالة الغالبة (شجرة خضراء = كلّ الطفرات مقتولة): استدعاء واحد ضيّق يكفي."""
+    calls = _recording_runner(
+        monkeypatch,
+        {
+            "tests/test_fake.py::test_negative_is_rejected": (
+                1,
+                "FAILED tests/test_fake.py::test_negative_is_rejected\n1 failed",
+            ),
+        },
+    )
+    code, out = gmg._run_tests_for_mutation(
+        "tests/test_fake.py", "test_negative_is_rejected", tmp_path
+    )
+    assert calls == ["tests/test_fake.py::test_negative_is_rejected"]
+    assert gmg._outcome(code, out, "test_negative_is_rejected")[0] == "expected_red"
+
+
+def test_a_passing_narrow_run_falls_back_to_the_full_file(tmp_path: Path, monkeypatch) -> None:
+    """مرور المتوقَّع وحده لا يُعلَن `survived` — الحكم من مشهد الملفّ الكامل،
+    فتُحفَظ تصنيفات `wrong_test`/`unexpected_green` حرفيّاً كما قبل التضييق."""
+    calls = _recording_runner(
+        monkeypatch,
+        {
+            "tests/test_fake.py::test_negative_is_rejected": (0, "1 passed"),
+            "tests/test_fake.py": (
+                1,
+                "FAILED tests/test_fake.py::test_clean_input_passes\n1 failed",
+            ),
+        },
+    )
+    code, out = gmg._run_tests_for_mutation(
+        "tests/test_fake.py", "test_negative_is_rejected", tmp_path
+    )
+    assert calls == [
+        "tests/test_fake.py::test_negative_is_rejected",
+        "tests/test_fake.py",
+    ]
+    assert gmg._outcome(code, out, "test_negative_is_rejected")[0] == "wrong_test"
+
+
+def test_an_uncollected_narrow_node_falls_back_to_the_full_file(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """اسمٌ متوقَّع لا يُجمَع كعقدة (دالّة داخل صنف مثلاً) لا يُفشِل الزرعة —
+    يتراجع إلى الملفّ الكامل حيث يُقاس كما كان دائماً."""
+    calls = _recording_runner(
+        monkeypatch,
+        {
+            "tests/test_fake.py::test_negative_is_rejected": (4, "no tests ran in 0.01s"),
+            "tests/test_fake.py": (
+                1,
+                "FAILED tests/test_fake.py::test_negative_is_rejected\n1 failed",
+            ),
+        },
+    )
+    code, out = gmg._run_tests_for_mutation(
+        "tests/test_fake.py", "test_negative_is_rejected", tmp_path
+    )
+    assert len(calls) == 2
+    assert gmg._outcome(code, out, "test_negative_is_rejected")[0] == "expected_red"
+
+
 @pytest.mark.parametrize(
     "out,expected",
     [
@@ -501,7 +578,10 @@ def test_inconsistent_wrong_test_repeats_are_classified_non_deterministic(
             (1, "FAILED tests/test_fake.py::test_clean_input_passes\n1 failed"),
         ]
     )
-    monkeypatch.setattr(gmg, "_run_tests", lambda *a, **k: next(outputs))
+    # المقعد الصحيح للتلقيم هو قياس-الزرعة الواحد (`_run_tests_for_mutation`) لا
+    # `_run_tests` الخام: منذ «ضيّق ثم تراجَع» قد يستدعي الأخيرُ مرّتين لكلّ زرعة،
+    # فمؤشّرٌ محدود العدد عليه يقيس عدد الاستدعاءات لا سيناريو عدم الحتميّة.
+    monkeypatch.setattr(gmg, "_run_tests_for_mutation", lambda *a, **k: next(outputs))
     failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
     assert any("NON_DETERMINISTIC" in failure for failure in failures)
 
