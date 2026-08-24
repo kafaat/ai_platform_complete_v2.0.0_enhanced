@@ -1,0 +1,722 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sahool.dev/schemas/irrigation-contracts/v1.1-errata2/irrigation-state-snapshot.schema.json",
+  "title": "IrrigationStateSnapshot",
+  "description": "طبقة تجميع read-only لا مصدر حقيقة بديل — v1.1-errata2. salinity_gate_status مخرَج بوابة ولا يُشتق هنا (الشرط 4/E3): غياب salinity_gate_ref مرفوض بنيويًا. freshness_seconds قياس فقط؛ حكم الأهلية من سياسة القرار ولا يُشتق داخل هذه الطبقة (الشرط 3). البصمات وفق قواعد E1 الخارجية.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "contract_revision",
+    "snapshot_id",
+    "field_id",
+    "timestamp",
+    "canonical_state_refs",
+    "observation_metadata",
+    "weather",
+    "soil",
+    "water",
+    "crop",
+    "irrigation",
+    "decision_eligibility",
+    "confidence",
+    "provenance"
+  ],
+  "properties": {
+    "schema": {
+      "const": "sahool.irrigation-state-snapshot/v1.1"
+    },
+    "contract_revision": {
+      "const": "v1.1-errata2"
+    },
+    "snapshot_id": {
+      "$ref": "#/$defs/Ulid"
+    },
+    "field_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "timestamp": {
+      "$ref": "#/$defs/IsoDateTime"
+    },
+    "canonical_state_refs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "water_state_digest",
+        "weather_state_digest",
+        "soil_state_digest",
+        "crop_state_digest",
+        "irrigation_state_digest"
+      ],
+      "properties": {
+        "water_state_digest": {
+          "$ref": "#/$defs/Sha256Hex"
+        },
+        "weather_state_digest": {
+          "$ref": "#/$defs/Sha256Hex"
+        },
+        "soil_state_digest": {
+          "$ref": "#/$defs/Sha256Hex"
+        },
+        "crop_state_digest": {
+          "$ref": "#/$defs/Sha256Hex"
+        },
+        "irrigation_state_digest": {
+          "$ref": "#/$defs/Sha256Hex"
+        }
+      }
+    },
+    "observation_metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observed_at",
+        "ingested_at",
+        "freshness_seconds"
+      ],
+      "properties": {
+        "observed_at": {
+          "$ref": "#/$defs/IsoDateTime"
+        },
+        "ingested_at": {
+          "$ref": "#/$defs/IsoDateTime"
+        },
+        "freshness_seconds": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "weather": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "air_temperature_c",
+        "relative_humidity_pct",
+        "wind_speed_m_s",
+        "radiation_w_m2",
+        "vpd_kpa",
+        "et0_mm_day",
+        "forecast",
+        "quality",
+        "decision_eligible",
+        "reason_if_ineligible"
+      ],
+      "properties": {
+        "air_temperature_c": {
+          "type": "number"
+        },
+        "relative_humidity_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "wind_speed_m_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "radiation_w_m2": {
+          "type": "number",
+          "minimum": 0
+        },
+        "vpd_kpa": {
+          "type": "number",
+          "minimum": 0
+        },
+        "et0_mm_day": {
+          "type": "number",
+          "minimum": 0
+        },
+        "forecast": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source",
+            "issued_at",
+            "valid_from",
+            "valid_to",
+            "horizon_hours",
+            "temperature_c",
+            "radiation_w_m2",
+            "rain_mm",
+            "vpd_kpa",
+            "confidence"
+          ],
+          "properties": {
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "issued_at": {
+              "$ref": "#/$defs/IsoDateTime"
+            },
+            "valid_from": {
+              "$ref": "#/$defs/IsoDateTime"
+            },
+            "valid_to": {
+              "$ref": "#/$defs/IsoDateTime"
+            },
+            "horizon_hours": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "temperature_c": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "radiation_w_m2": {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "rain_mm": {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "vpd_kpa": {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "quality": {
+          "$ref": "#/$defs/Quality"
+        },
+        "decision_eligible": {
+          "type": "boolean"
+        },
+        "reason_if_ineligible": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      }
+    },
+    "soil": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "root_zone_profile_id",
+        "root_zone_depth_m",
+        "taw_mm",
+        "raw_mm",
+        "layers",
+        "field_capacity_m3_m3",
+        "wilting_point_m3_m3",
+        "provenance",
+        "decision_eligible",
+        "reason_if_ineligible"
+      ],
+      "properties": {
+        "root_zone_profile_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "root_zone_depth_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "taw_mm": {
+          "type": "number",
+          "minimum": 0
+        },
+        "raw_mm": {
+          "type": "number",
+          "minimum": 0
+        },
+        "layers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "depth_cm",
+              "value_m3_m3",
+              "sensor_id",
+              "quality",
+              "observed_at",
+              "freshness_seconds"
+            ],
+            "properties": {
+              "depth_cm": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "value_m3_m3": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "sensor_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "quality": {
+                "$ref": "#/$defs/Quality"
+              },
+              "observed_at": {
+                "$ref": "#/$defs/IsoDateTime"
+              },
+              "freshness_seconds": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "field_capacity_m3_m3": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "wilting_point_m3_m3": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "soil_digest",
+            "soil_profile_id",
+            "lab_evidence_id",
+            "quality",
+            "freshness_seconds"
+          ],
+          "properties": {
+            "soil_digest": {
+              "$ref": "#/$defs/Sha256Hex"
+            },
+            "soil_profile_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "lab_evidence_id": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "quality": {
+              "$ref": "#/$defs/Quality"
+            },
+            "freshness_seconds": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "decision_eligible": {
+          "type": "boolean"
+        },
+        "reason_if_ineligible": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      }
+    },
+    "water": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "depletion_mm",
+        "source",
+        "source_water_ec_ds_m",
+        "source_water_ph",
+        "salinity_gate_status",
+        "salinity_gate_ref",
+        "quality",
+        "decision_eligible",
+        "reason_if_ineligible",
+        "provenance"
+      ],
+      "properties": {
+        "depletion_mm": {
+          "type": "number",
+          "minimum": 0
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_water_ec_ds_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "source_water_ph": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 14
+        },
+        "salinity_gate_status": {
+          "enum": [
+            "PASS",
+            "WARN",
+            "REJECT"
+          ]
+        },
+        "salinity_gate_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "مرجع إلزامي لقرار البوابة (E3): غيابه = رفض بنيوي، لأن الحالة مخرَج بوابة لا مشتق داخل طبقة التجميع."
+        },
+        "quality": {
+          "$ref": "#/$defs/Quality"
+        },
+        "decision_eligible": {
+          "type": "boolean"
+        },
+        "reason_if_ineligible": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "water_digest",
+            "water_ledger_id",
+            "source_quality_evidence_id",
+            "freshness_seconds"
+          ],
+          "properties": {
+            "water_digest": {
+              "$ref": "#/$defs/Sha256Hex"
+            },
+            "water_ledger_id": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "source_quality_evidence_id": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "freshness_seconds": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "crop": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "crop",
+        "cultivar",
+        "growth_stage",
+        "kc",
+        "ks",
+        "stress_state",
+        "quality",
+        "decision_eligible",
+        "reason_if_ineligible",
+        "provenance"
+      ],
+      "properties": {
+        "crop": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cultivar": {
+          "type": "string",
+          "minLength": 1
+        },
+        "growth_stage": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kc": {
+          "type": "number",
+          "minimum": 0
+        },
+        "ks": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "stress_state": {
+          "enum": [
+            "none",
+            "mild",
+            "moderate",
+            "severe"
+          ]
+        },
+        "quality": {
+          "$ref": "#/$defs/Quality"
+        },
+        "decision_eligible": {
+          "type": "boolean"
+        },
+        "reason_if_ineligible": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "crop_digest",
+            "crop_intelligence_id",
+            "ndvi_source",
+            "freshness_seconds"
+          ],
+          "properties": {
+            "crop_digest": {
+              "$ref": "#/$defs/Sha256Hex"
+            },
+            "crop_intelligence_id": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "ndvi_source": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "freshness_seconds": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "irrigation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recent_volume_l",
+        "recent_duration_min",
+        "delivery_efficiency_pct",
+        "drainage_ratio",
+        "drain_ec_ds_m",
+        "drain_ph",
+        "quality",
+        "decision_eligible",
+        "reason_if_ineligible",
+        "provenance"
+      ],
+      "properties": {
+        "recent_volume_l": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "recent_duration_min": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "delivery_efficiency_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "drainage_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "drain_ec_ds_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "drain_ph": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 14
+        },
+        "quality": {
+          "$ref": "#/$defs/Quality"
+        },
+        "decision_eligible": {
+          "type": "boolean"
+        },
+        "reason_if_ineligible": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "irrigation_digest",
+            "execution_evidence_id",
+            "freshness_seconds"
+          ],
+          "properties": {
+            "irrigation_digest": {
+              "$ref": "#/$defs/Sha256Hex"
+            },
+            "execution_evidence_id": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "freshness_seconds": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "decision_eligibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "overall",
+        "blocking_reasons"
+      ],
+      "properties": {
+        "overall": {
+          "type": "boolean"
+        },
+        "blocking_reasons": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "description": "الاتساق overall=false ⇔ blocking_reasons غير فارغ يُفرض في طبقة التحقق الخارجية (if/then تكراري هنا متعمد تركه لتفادي غموض allOf)."
+    },
+    "confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "overall",
+        "weather",
+        "soil",
+        "water",
+        "crop",
+        "irrigation",
+        "calculation"
+      ],
+      "properties": {
+        "overall": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "weather": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "soil": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "water": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "crop": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "irrigation": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "calculation": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "snapshot_digest"
+      ],
+      "properties": {
+        "snapshot_digest": {
+          "$ref": "#/$defs/Sha256Hex"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "Ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "Sha256Hex": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "IsoDateTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "Quality": {
+      "enum": [
+        "verified",
+        "degraded",
+        "unknown"
+      ]
+    }
+  }
+}
