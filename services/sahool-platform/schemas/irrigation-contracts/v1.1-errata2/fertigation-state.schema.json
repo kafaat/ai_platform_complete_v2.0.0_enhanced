@@ -203,6 +203,41 @@
         "freshness_seconds": {
           "type": "integer",
           "minimum": 0
+        },
+        "oxygen_proxy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "value",
+            "method",
+            "observed_at",
+            "freshness_seconds"
+          ],
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "تقدير مؤكسج منطقة الجذور، يُقرأ كنسبة/وكيل، وليس قياس أكسجين مباشرًا إلا إذا كانت method=oxygen_sensor"
+            },
+            "method": {
+              "enum": [
+                "air_filled_porosity_proxy",
+                "redox_potential",
+                "oxygen_sensor",
+                "model_estimate"
+              ],
+              "description": "enum مغلق؛ أي طريقة جديدة تتطلب عقدًا جديدًا"
+            },
+            "observed_at": {
+              "$ref": "#/$defs/IsoDateTime"
+            },
+            "freshness_seconds": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "description": "حقل اختياري (الملحق A): مؤكسج منطقة الجذور — لا يُستخدم قاعدة ري مباشرة."
         }
       }
     },
@@ -301,7 +336,8 @@
   "$defs": {
     "Ulid": {
       "type": "string",
-      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+      "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$",
+      "description": "ULID بترميز Crockford Base32. المحرف الأول مقيَّد بـ[0-7]: خانة الزمن العليا في ULID ذي 128 بت لا تتجاوز 7 — النمط الأوسع كان يقبل معرّفات مستحيلة (رقعة مراجعة ما قبل الإيداع)."
     },
     "Sha256Hex": {
       "type": "string",
@@ -309,7 +345,9 @@
     },
     "IsoDateTime": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})$",
+      "description": "RFC3339 مفروض بالنمط لا بـformat وحده: في Draft 2020-12 الـformat تعليقي افتراضيًا، وقياس المراجعة أثبت مرور نص غير زمني حتى مع FormatChecker بلا rfc3339-validator. النمط هو الإنفاذ الذاتي الوحيد fail-closed؛ format يبقى للدلالة."
     }
   }
 }

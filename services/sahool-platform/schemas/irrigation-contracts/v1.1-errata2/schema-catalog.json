@@ -35,9 +35,9 @@
     }
   ],
   "checksums_sha256": {
-    "irrigation-state-snapshot.schema.json": "dc1c4ddb8a2b57e5bdad151b48908e194e7afab6f89c2aa4cc6cbc942a64cc67",
-    "evidence-chain.schema.json": "32cc31f768e415dec2d889ceaf5667676d4fb62e237aa7345f67550abf7ce4e0",
-    "fertigation-state.schema.json": "e47dc0c873cd46439e94d0c4c166dda97616df8c2053a8838a78a19ad6dc8be8",
-    "decision-evidence-envelope.schema.json": "36867fd76bc4aab3d3485b590ca65a6cf8350af68e2868b5ac9e4c7385d5a9b7"
+    "irrigation-state-snapshot.schema.json": "ec1a11317242eeae8b68c88be222fbf8669685519773f1837c3805d017489ccd",
+    "evidence-chain.schema.json": "d84a6fb6956c44956ccbc4efd93de6d4ca8b48439f3bddd2f749c1b77114af16",
+    "fertigation-state.schema.json": "43ee6ef47ac41fb515ad2ffee8bf3e1b6bec48b43d6fcc4b27afd8eb09d61912",
+    "decision-evidence-envelope.schema.json": "b50f79a32bd5445ba3b91fd8a7e2de0368b24517d18df32f0858fb6fb16f6b85"
   }
 }

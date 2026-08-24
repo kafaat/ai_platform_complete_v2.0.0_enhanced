@@ -36,8 +36,8 @@
   "$defs": {
     "Ulid": {
       "type": "string",
-      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
-      "description": "ULID بترميز Crockford Base32 (يستثني I وL وO وU)."
+      "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$",
+      "description": "ULID بترميز Crockford Base32 (يستثني I وL وO وU). المحرف الأول مقيَّد بـ[0-7]: خانة الزمن العليا في ULID ذي 128 بت لا تتجاوز 7 — النمط الأوسع كان يقبل معرّفات مستحيلة (رقعة مراجعة ما قبل الإيداع)."
     },
     "Sha256Hex": {
       "type": "string",
@@ -45,7 +45,9 @@
     },
     "IsoDateTime": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})$",
+      "description": "RFC3339 مفروض بالنمط لا بـformat وحده: في Draft 2020-12 الـformat تعليقي افتراضيًا، وقياس المراجعة أثبت مرور نص غير زمني حتى مع FormatChecker بلا rfc3339-validator. النمط هو الإنفاذ الذاتي الوحيد fail-closed؛ format يبقى للدلالة."
     },
     "CommonStageFields": {
       "type": "object",

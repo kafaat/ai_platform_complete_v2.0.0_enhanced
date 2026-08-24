@@ -80,7 +80,8 @@
   "$defs": {
     "Ulid": {
       "type": "string",
-      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+      "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$",
+      "description": "ULID بترميز Crockford Base32. المحرف الأول مقيَّد بـ[0-7]: خانة الزمن العليا في ULID ذي 128 بت لا تتجاوز 7 — النمط الأوسع كان يقبل معرّفات مستحيلة (رقعة مراجعة ما قبل الإيداع)."
     },
     "Sha256Hex": {
       "type": "string",

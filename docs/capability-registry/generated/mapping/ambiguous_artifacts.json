@@ -1418,6 +1418,50 @@
     ]
   },
   {
+    "path": "docs/contracts/IRRIGATION-CONTRACTS-v1.1-errata2.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "WX-005",
+        "score": 8,
+        "signals": [
+          "content:VPD",
+          "content:vpd"
+        ]
+      },
+      {
+        "capability_id": "WX-004",
+        "score": 8,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/contracts/IRRIGATION-DECISION-INTELLIGENCE-CORR1.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 8,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "IRR-004",
+        "score": 8,
+        "signals": [
+          "content:Water balance",
+          "content:water balance"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/history/COMPETITIVE_ANALYSIS.md",
     "kind": "other",
     "candidates": [
