@@ -1,0 +1,353 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sahool.dev/schemas/irrigation-contracts/v1.1-errata2/fertigation-state.schema.json",
+  "title": "FertigationState",
+  "description": "نموذج كيميائي لا عتبة EC — v1.1-errata2. التصنيف FOUNDATION/PARTIAL: decision_eligibility.overall مثبَّت بنيويًا على false مع FERTIGATION_MODEL_NOT_CALIBRATED حتى اكتمال C2 (نموذج اتزان كربونات مرجعي + mixing_order مغلق + تحقق وحدات + اختبارات مرجعية) — الشرط 5. لا تُمرَّر أي دالة جرعة إلى Decision Service.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "contract_revision",
+    "fertigation_state_id",
+    "field_id",
+    "timestamp",
+    "crop_stage",
+    "input_water",
+    "nutrient_recipe",
+    "rootzone",
+    "crop_uptake_estimate",
+    "provenance",
+    "decision_eligibility"
+  ],
+  "properties": {
+    "schema": {
+      "const": "sahool.fertigation-state/v1.1"
+    },
+    "contract_revision": {
+      "const": "v1.1-errata2"
+    },
+    "fertigation_state_id": {
+      "$ref": "#/$defs/Ulid"
+    },
+    "field_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "timestamp": {
+      "$ref": "#/$defs/IsoDateTime"
+    },
+    "crop_stage": {
+      "type": "string",
+      "minLength": 1
+    },
+    "input_water": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ec_ds_m",
+        "ph",
+        "alkalinity_mg_l_caco3",
+        "bicarbonate_mg_l",
+        "temperature_c",
+        "source_water_chemistry_id"
+      ],
+      "properties": {
+        "ec_ds_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "ph": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 14
+        },
+        "alkalinity_mg_l_caco3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "bicarbonate_mg_l": {
+          "type": "number",
+          "minimum": 0
+        },
+        "temperature_c": {
+          "type": "number"
+        },
+        "source_water_chemistry_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      },
+      "description": "alkalinity وbicarbonate إلزاميان: يُمنع ΔpH → acid volume بدونهما."
+    },
+    "nutrient_recipe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recipe_id",
+        "concentrations_mg_l",
+        "calibrated"
+      ],
+      "properties": {
+        "recipe_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "concentrations_mg_l": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "N",
+            "P",
+            "K",
+            "Ca",
+            "Mg",
+            "S",
+            "micronutrients"
+          ],
+          "properties": {
+            "N": {
+              "type": "number",
+              "minimum": 0
+            },
+            "P": {
+              "type": "number",
+              "minimum": 0
+            },
+            "K": {
+              "type": "number",
+              "minimum": 0
+            },
+            "Ca": {
+              "type": "number",
+              "minimum": 0
+            },
+            "Mg": {
+              "type": "number",
+              "minimum": 0
+            },
+            "S": {
+              "type": "number",
+              "minimum": 0
+            },
+            "micronutrients": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "calibrated": {
+          "const": false,
+          "description": "مثبَّت false حتى اكتمال المعايرة الحاكمة."
+        }
+      }
+    },
+    "rootzone": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "substrate_ec_ds_m",
+        "substrate_ph",
+        "drain_ec_ds_m",
+        "drain_ph",
+        "drainage_ratio",
+        "vwc_m3_m3",
+        "quality",
+        "observed_at",
+        "freshness_seconds"
+      ],
+      "properties": {
+        "substrate_ec_ds_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "substrate_ph": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 14
+        },
+        "drain_ec_ds_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "drain_ph": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 14
+        },
+        "drainage_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "vwc_m3_m3": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "quality": {
+          "enum": [
+            "verified",
+            "degraded",
+            "unknown"
+          ]
+        },
+        "observed_at": {
+          "$ref": "#/$defs/IsoDateTime"
+        },
+        "freshness_seconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "oxygen_proxy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "value",
+            "method",
+            "observed_at",
+            "freshness_seconds"
+          ],
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "تقدير مؤكسج منطقة الجذور، يُقرأ كنسبة/وكيل، وليس قياس أكسجين مباشرًا إلا إذا كانت method=oxygen_sensor"
+            },
+            "method": {
+              "enum": [
+                "air_filled_porosity_proxy",
+                "redox_potential",
+                "oxygen_sensor",
+                "model_estimate"
+              ],
+              "description": "enum مغلق؛ أي طريقة جديدة تتطلب عقدًا جديدًا"
+            },
+            "observed_at": {
+              "$ref": "#/$defs/IsoDateTime"
+            },
+            "freshness_seconds": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "description": "حقل اختياري (الملحق A): مؤكسج منطقة الجذور — لا يُستخدم قاعدة ري مباشرة."
+        }
+      }
+    },
+    "crop_uptake_estimate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "N_mg",
+        "P_mg",
+        "K_mg",
+        "model_version",
+        "calibrated"
+      ],
+      "properties": {
+        "N_mg": {
+          "type": "number",
+          "minimum": 0
+        },
+        "P_mg": {
+          "type": "number",
+          "minimum": 0
+        },
+        "K_mg": {
+          "type": "number",
+          "minimum": 0
+        },
+        "model_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "calibrated": {
+          "const": false
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fertigation_state_digest",
+        "source_ids",
+        "quality",
+        "freshness_seconds"
+      ],
+      "properties": {
+        "fertigation_state_digest": {
+          "$ref": "#/$defs/Sha256Hex"
+        },
+        "source_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "quality": {
+          "enum": [
+            "verified",
+            "degraded",
+            "unknown"
+          ]
+        },
+        "freshness_seconds": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "decision_eligibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "overall",
+        "blocking_reasons"
+      ],
+      "properties": {
+        "overall": {
+          "const": false
+        },
+        "blocking_reasons": {
+          "type": "array",
+          "contains": {
+            "const": "FERTIGATION_MODEL_NOT_CALIBRATED"
+          },
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "description": "رفع هذا التثبيت البنيوي (overall=true) يتطلب عقدًا جديدًا بعد اكتمال C1–C5 + C6-LIVE-DECISION — الشرط 6."
+    }
+  },
+  "$defs": {
+    "Ulid": {
+      "type": "string",
+      "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$",
+      "description": "ULID بترميز Crockford Base32. المحرف الأول مقيَّد بـ[0-7]: خانة الزمن العليا في ULID ذي 128 بت لا تتجاوز 7 — النمط الأوسع كان يقبل معرّفات مستحيلة (رقعة مراجعة ما قبل الإيداع)."
+    },
+    "Sha256Hex": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "IsoDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})$",
+      "description": "RFC3339 مفروض بالنمط لا بـformat وحده: في Draft 2020-12 الـformat تعليقي افتراضيًا، وقياس المراجعة أثبت مرور نص غير زمني حتى مع FormatChecker بلا rfc3339-validator. النمط هو الإنفاذ الذاتي الوحيد fail-closed؛ format يبقى للدلالة."
+    }
+  }
+}

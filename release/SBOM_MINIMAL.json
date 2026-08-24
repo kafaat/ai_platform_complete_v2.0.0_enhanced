@@ -22895,6 +22895,56 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "b50f79a32bd5445ba3b91fd8a7e2de0368b24517d18df32f0858fb6fb16f6b85"
+        }
+      ],
+      "name": "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/decision-evidence-envelope.schema.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d84a6fb6956c44956ccbc4efd93de6d4ca8b48439f3bddd2f749c1b77114af16"
+        }
+      ],
+      "name": "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/evidence-chain.schema.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "43ee6ef47ac41fb515ad2ffee8bf3e1b6bec48b43d6fcc4b27afd8eb09d61912"
+        }
+      ],
+      "name": "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/fertigation-state.schema.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ec1a11317242eeae8b68c88be222fbf8669685519773f1837c3805d017489ccd"
+        }
+      ],
+      "name": "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/irrigation-state-snapshot.schema.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d2a08e7f1965b26d05e67402e2e59f5018e14e04b923c51cde600bd8dd38a984"
+        }
+      ],
+      "name": "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/schema-catalog.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "17c769d16a28a26888e1faee5bc321503d949bcedb8d04e63aa1d15d001afd40"
         }
       ],
