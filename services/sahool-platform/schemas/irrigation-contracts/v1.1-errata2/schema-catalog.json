@@ -1,0 +1,43 @@
+{
+  "title": "IRRIGATION-CONTRACTS v1.1-errata2 — Schema Catalog",
+  "contract_revision": "v1.1-errata2",
+  "classification": "FOUNDATION",
+  "capability_hex_status": {
+    "C1_code": false,
+    "C2_model": false,
+    "C3_decision": false,
+    "C4_feedback": false,
+    "C5_e2e": false,
+    "C6_live": false,
+    "classification": "FOUNDATION",
+    "evidence": "نص مراجَع فقط، لا كود ولا اختبار ولا تشغيل حي"
+  },
+  "schemas": [
+    {
+      "contract": "IrrigationStateSnapshot",
+      "schema_id": "sahool.irrigation-state-snapshot/v1.1",
+      "path": "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/irrigation-state-snapshot.schema.json"
+    },
+    {
+      "contract": "EvidenceChainStage",
+      "schema_id": "sahool.evidence-chain-stage/v1.1",
+      "path": "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/evidence-chain.schema.json"
+    },
+    {
+      "contract": "FertigationState",
+      "schema_id": "sahool.fertigation-state/v1.1",
+      "path": "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/fertigation-state.schema.json"
+    },
+    {
+      "contract": "DecisionEvidenceEnvelope",
+      "schema_id": "sahool.decision-evidence-envelope/v1.1",
+      "path": "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/decision-evidence-envelope.schema.json"
+    }
+  ],
+  "checksums_sha256": {
+    "irrigation-state-snapshot.schema.json": "dc1c4ddb8a2b57e5bdad151b48908e194e7afab6f89c2aa4cc6cbc942a64cc67",
+    "evidence-chain.schema.json": "32cc31f768e415dec2d889ceaf5667676d4fb62e237aa7345f67550abf7ce4e0",
+    "fertigation-state.schema.json": "e47dc0c873cd46439e94d0c4c166dda97616df8c2053a8838a78a19ad6dc8be8",
+    "decision-evidence-envelope.schema.json": "36867fd76bc4aab3d3485b590ca65a6cf8350af68e2868b5ac9e4c7385d5a9b7"
+  }
+}
