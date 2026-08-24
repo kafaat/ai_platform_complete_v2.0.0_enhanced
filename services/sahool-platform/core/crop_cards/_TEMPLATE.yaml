@@ -73,11 +73,20 @@ pest_susceptibility:
 # ── مراحل النمو (Phenology) — اختياريّة، محايدة الموقع (FAO-56 stages) ──
 # تُتحقَّق فقط إن وُجدت: كل مرحلة بـ stage/name_ar/day_start/day_end (+ kc/إجراء).
 # الحدود اليوميّة متسلسلة غير متراجعة (day_start < day_end، لا تداخل بين المراحل).
+# ── nutrient_demand (اختياريّ، داخل كلّ مرحلة) — منحنى الطلب الغذائيّ ──
+# كسر امتصاص كلّ عنصر **خلال المرحلة** من الإجماليّ الموسميّ (يجمع إلى 1.0 ± 0.02
+# لكلّ عنصر عبر المراحل). القاعدة: الكلّ أو لا شيء — إن حملته مرحلة وجب على كلّ
+# المراحل. الكسور بلا وحدات؛ التحويل إلى kg/ha خارج loader (مسؤوليّة المُستدعي).
+# متى وُجدت المنحنيات لزمت كتلة nutrient_demand_provenance على مستوى phenology:
+#   primary_reference (مرجع أوّليّ بـDOI) + derivation (منهج اشتقاق قابل لإعادة
+#   البناء) + stage_mapping (تعيين مراحل المرجع→مراحل البطاقة) + approximation: true.
+# مصدر موثّق لكلّ كتلة مرحلة أيضاً (source).
 phenology:
   source: "FAO-56 stage lengths (<المحصول>)"
   total_cycle_days: 0
   stages:
     - { stage: initial,     name_ar: "الإنبات/التأسيس", day_start: 0, day_end: 0, kc: 0.0, key_action_ar: "" }
+    # nutrient_demand: { n_fraction: 0.0, p_fraction: 0.0, k_fraction: 0.0, source: "<مرجع>" }
     - { stage: development, name_ar: "النموّ الخضري",    day_start: 0, day_end: 0, key_action_ar: "" }
     - { stage: mid,         name_ar: "التزهير/الإثمار",  day_start: 0, day_end: 0, kc: 0.0, key_action_ar: "" }
     - { stage: late,        name_ar: "النضج",            day_start: 0, day_end: 0, kc: 0.0, key_action_ar: "" }

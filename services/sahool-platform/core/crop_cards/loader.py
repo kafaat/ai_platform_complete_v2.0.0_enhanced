@@ -10,6 +10,7 @@ sahool_core.crop_cards.loader
 
 from __future__ import annotations
 
+import math
 import re
 from pathlib import Path
 
@@ -42,8 +43,103 @@ REQUIRED_KC = {"initial", "mid", "end", "stage_days", "source"}
 REQUIRED_SALINITY = {"threshold_ece_ds_m", "slope_pct_per_ds_m", "source"}
 # مراحل النمو (phenology) — كتلة اختياريّة محايدة الموقع. تُتحقَّق فقط إن وُجدت.
 REQUIRED_PHENOLOGY_STAGE = {"stage", "name_ar", "day_start", "day_end"}
+# الطلب الغذائيّ لكلّ مرحلة (nutrient_demand) — كتلة اختياريّة داخل كلّ مرحلة:
+# كسر امتصاص كلّ عنصر خلال المرحلة من الإجماليّ الموسميّ (وليس تراكميّاً)، بمصدر موثّق.
+REQUIRED_STAGE_NUTRIENT = {"n_fraction", "p_fraction", "k_fraction", "source"}
+NUTRIENT_SUM_TOLERANCE = 0.02  # كسور العنصر عبر المراحل يجب أن تجمع إلى 1.0 ± التفاوت
+# سلسلة اشتقاق الكسور (nutrient_demand_provenance على مستوى phenology) — إلزاميّة
+# متى وُجدت منحنيات طلب: مرجع أوّليّ + اشتقاق قابل لإعادة البناء + تعيين مراحل
+# V/R→مراحل البطاقة + تصريح تقريب صريح. تحقّق بنيويّ — لا يجمّد القيم العلميّة.
+REQUIRED_NUTRIENT_PROVENANCE = {
+    "primary_reference",
+    "derivation",
+    "stage_mapping",
+    "approximation",
+}
 # حقول ممنوعة (تكسر حياد الموقع)
 FORBIDDEN = {"zone_factor", "yield", "expected_yield", "calibration", "region", "farm", "tenant"}
+
+
+def _validate_nutrient_demand(stages: list, errors: list) -> None:
+    """يتحقّق من منحنيات الطلب الغذائيّ لكلّ مرحلة (إن وُجدت) — قاعدة الكلّ أو لا شيء.
+
+    إن حملت أيّ مرحلة `nutrient_demand` وجب أن تحمله كلّ المراحل (وإلاّ انحرفت
+    الجموع)، وكلّ كتلة تلزمها REQUIRED_STAGE_NUTRIENT وكسور في [0, 1]، وتجمع
+    كسور كلّ عنصر عبر المراحل إلى 1.0 ± NUTRIENT_SUM_TOLERANCE. البطاقات
+    القديمة (بلا nutrient_demand إطلاقاً) لا يتغيّر سلوكها.
+    """
+    carrying = [
+        (i, st["nutrient_demand"])
+        for i, st in enumerate(stages)
+        if isinstance(st, dict) and st.get("nutrient_demand") is not None
+    ]
+    if not carrying:
+        return
+    if len(carrying) != len(stages):
+        missing = [
+            st.get("stage", f"[{i}]")
+            for i, st in enumerate(stages)
+            if not (isinstance(st, dict) and st.get("nutrient_demand") is not None)
+        ]
+        errors.append(
+            f"nutrient_demand جزئيّ: مراحل بلا منحنى طلب: {missing} (القاعدة: الكلّ أو لا شيء)"
+        )
+    sums = {"n_fraction": 0.0, "p_fraction": 0.0, "k_fraction": 0.0}
+    for i, nd in carrying:
+        if not isinstance(nd, dict):
+            errors.append(f"مرحلة[{i}]: nutrient_demand ليس كتلة")
+            continue
+        miss = REQUIRED_STAGE_NUTRIENT - set(nd.keys())
+        if miss:
+            errors.append(f"مرحلة[{i}]: nutrient_demand ناقص: {miss}")
+            continue
+        for k in sums:
+            v = nd[k]
+            # `bool` وريثُ `int` في بايثون، فـ`True` يمرّ كـ1.0 ويُقاس صحيحاً متى
+            # بلغ المجموعُ 1.0 — مقيسٌ بالزرع. واستبعادُه صريحٌ لأنّ «صحيح/خطأ»
+            # ليس كسرَ امتصاص. و`isfinite` هنا احتياطٌ لا سدُّ ثغرة: المدى
+            # `0.0 <= v <= 1.0` يرفض NaN وInf أصلاً (مقيسٌ كذلك).
+            if (
+                isinstance(v, bool)
+                or not isinstance(v, (int, float))
+                or not math.isfinite(v)
+                or not 0.0 <= v <= 1.0
+            ):
+                errors.append(f"مرحلة[{i}]: {k} خارج [0, 1]: {v!r}")
+            else:
+                sums[k] += v
+        if not isinstance(nd["source"], str) or not nd["source"].strip():
+            errors.append(f"مرحلة[{i}]: nutrient_demand.source يجب أن يكون نصّاً غير فارغ")
+    for k, total in sums.items():
+        if abs(total - 1.0) > NUTRIENT_SUM_TOLERANCE:
+            errors.append(
+                f"مجموع {k} عبر المراحل = {total:.4f} (المطلوب 1.0 ± {NUTRIENT_SUM_TOLERANCE})"
+            )
+
+
+def _validate_nutrient_provenance(ph: dict, stages: list, errors: list) -> None:
+    """يلزم سلسلة اشتقاق موثّقة (nutrient_demand_provenance) متى حملت المراحل منحنيات طلب.
+
+    «approximate» بلا سلسلة قابلة لإعادة البناء لا يكفي: كلّ كسور طلبٍ غذائيّ يلزمها
+    مرجع أوّليّ ومنهج اشتقاق وتعيين مراحل V/R→مراحل البطاقة وتصريح approximation
+    صريح — حتى تتبعها الذرة والقمح والذرة الرفيعة والطماطم والبطاطس بالمنهج نفسه.
+    تحقّق بنيويّ فحسب: لا يجمّد القيم العلميّة، بل يمنع كسراً بلا مصدر قابل للتتبّع.
+    """
+    if not any(isinstance(st, dict) and st.get("nutrient_demand") is not None for st in stages):
+        return
+    prov = ph.get("nutrient_demand_provenance")
+    if not isinstance(prov, dict):
+        errors.append("nutrient_demand بلا كتلة nutrient_demand_provenance على مستوى phenology")
+        return
+    miss = REQUIRED_NUTRIENT_PROVENANCE - set(prov.keys())
+    if miss:
+        errors.append(f"nutrient_demand_provenance ناقصة: {miss}")
+        return
+    for k in ("primary_reference", "derivation", "stage_mapping"):
+        if not isinstance(prov[k], str) or not prov[k].strip():
+            errors.append(f"nutrient_demand_provenance.{k} يجب أن يكون نصّاً غير فارغ")
+    if prov["approximation"] is not True:
+        errors.append("nutrient_demand_provenance.approximation يجب أن يكون true صراحةً")
 
 
 def _validate_phenology(card: dict, errors: list) -> None:
@@ -56,6 +152,9 @@ def _validate_phenology(card: dict, errors: list) -> None:
     ph = card.get("phenology")
     if ph is None:
         return
+    if not isinstance(ph, dict):
+        errors.append("phenology ليست كتلة")
+        return
     if "source" not in ph:
         errors.append("phenology بلا مصدر موثّق")
     stages = ph.get("stages")
@@ -64,15 +163,34 @@ def _validate_phenology(card: dict, errors: list) -> None:
         return
     prev_end = None
     for i, st in enumerate(stages):
+        if not isinstance(st, dict):
+            errors.append(f"مرحلة[{i}] ليست كتلة")
+            continue
         miss = REQUIRED_PHENOLOGY_STAGE - set(st.keys())
         if miss:
             errors.append(f"مرحلة[{i}] ينقصها: {miss}")
             continue
-        if st["day_start"] >= st["day_end"]:
+        day_start, day_end = st["day_start"], st["day_end"]
+        # الترتيب عمدٌ: يُفحَص النوعُ **قبل** المقارنة. حدٌّ نصّيّ يرمي `TypeError`
+        # وحدٌّ `NaN` أخطر — كلّ مقارناته `False` فيمرّ **صحيحاً** بلا خطأ (مقيسٌ
+        # بالزرع: صفرُ أخطاء). وطبقةُ تحقّقٍ تنهار أو تُجيز المشوَّه ليست تحقّقاً.
+        if (
+            isinstance(day_start, bool)
+            or isinstance(day_end, bool)
+            or not isinstance(day_start, (int, float))
+            or not isinstance(day_end, (int, float))
+            or not math.isfinite(day_start)
+            or not math.isfinite(day_end)
+        ):
+            errors.append(f"مرحلة '{st['stage']}': حدود الأيام يجب أن تكون أرقاماً منتهية")
+            continue
+        if day_start >= day_end:
             errors.append(f"مرحلة '{st['stage']}': day_start ≥ day_end")
-        if prev_end is not None and st["day_start"] < prev_end:
+        if prev_end is not None and day_start < prev_end:
             errors.append(f"مرحلة '{st['stage']}': تتداخل مع السابقة (تسلسل متراجع)")
-        prev_end = st["day_end"]
+        prev_end = day_end
+    _validate_nutrient_demand(stages, errors)  # منحنيات الطلب الغذائيّ (اختياريّة — كلّ أو لا شيء)
+    _validate_nutrient_provenance(ph, stages, errors)  # سلسلة الاشتقاق إلزاميّة متى وُجدت المنحنيات
 
 
 def load_crop_card(crop_id: str) -> dict | None:
@@ -123,6 +241,39 @@ def growth_stages(crop_id: str) -> list[dict]:
     if card is None:
         return []
     return list(card.get("phenology", {}).get("stages", []))
+
+
+def stage_nutrient_demand(crop_id: str) -> list[dict]:
+    """يُرجع منحنى الطلب الغذائيّ لكلّ مرحلة: [{stage, day_start, day_end, n/p/k_fraction, source}].
+
+    الكسور **خلال المرحلة** من الإجماليّ الموسميّ (تجمع إلى 1.0 لكلّ عنصر) — كسورٌ بلا
+    وحدات فحسب. هذه الوحدة **لا** تُحوّلها إلى kg/ha: التحويل (بضرب الكسر في احتياجٍ
+    موسميّ موثّق) مسؤوليّة المُستدعي خارج loader، ولا حقل في البطاقة يُثبته هنا.
+    قائمة فارغة إن لم تُعرَّف المنحنيات بعد.
+    """
+    out = []
+    for st in growth_stages(crop_id):
+        # المساعدُ يقرأ بطاقةً مُحمَّلة قد لا تكون مرّت بالتحقّق، فلا يفترض سلامةَ
+        # البنية: مرحلةٌ مشوَّهة أو كتلةٌ ناقصة تُتخطّى بدل أن تُسقِط المُستدعي بـ
+        # `AttributeError` أو `KeyError`.
+        if not isinstance(st, dict):
+            continue
+        nd = st.get("nutrient_demand")
+        if not isinstance(nd, dict) or not REQUIRED_STAGE_NUTRIENT <= set(nd.keys()):
+            continue
+        if REQUIRED_PHENOLOGY_STAGE <= set(st.keys()):
+            out.append(
+                {
+                    "stage": st["stage"],
+                    "day_start": st["day_start"],
+                    "day_end": st["day_end"],
+                    "n_fraction": nd["n_fraction"],
+                    "p_fraction": nd["p_fraction"],
+                    "k_fraction": nd["k_fraction"],
+                    "source": nd["source"],
+                }
+            )
+    return out
 
 
 # ════════════════════════════════════════════════════════════
