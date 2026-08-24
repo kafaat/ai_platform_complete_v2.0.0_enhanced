@@ -134,6 +134,18 @@ def _measured_write_targets() -> set[str]:
         return set()
 
 
+MANIFEST_REL = str(WRITE_TARGETS.relative_to(ROOT))
+
+
+def _manifest_is_conflicted(paths: list[str]) -> bool:
+    """هل بيانُ أهداف الكتابة نفسُه بين المتعارضات؟
+
+    مقارنةٌ بمسارٍ مُطبَّع لا بـ``in`` نصّيّ: ``substring`` يُطابِق أيَّ مسارٍ يحوي
+    الاسم، فيكذب على ملفٍّ آخر يشترك في الجزء الأخير.
+    """
+    return MANIFEST_REL in {str(Path(p).as_posix()) for p in paths}
+
+
 def classify(path: str) -> str:
     """``append_only`` · ``generated`` · ``source``. المصدر يُوقِف السكربت.
 
@@ -233,6 +245,21 @@ def resolve(root: Path = ROOT, dry_run: bool = False) -> int:
         print("resolve_merge_conflicts: تعارض في ملفّات مصدر — يلزم إنسان", file=sys.stderr)
         for p in buckets["source"]:
             print(f"  ✗ {p}", file=sys.stderr)
+        # CONFLICTED-MANIFEST-DISABLES-THE-LAYER-IT-FEEDS-01: بيانُ أهداف الكتابة قد
+        # يكون **هو نفسُه** بين المتعارضات، فيحمل مراسمَ تعارضٍ ولا يُحلَّل، فتُرجِع
+        # `_measured_write_targets()` مجموعةً فارغة ويتدهور كلُّ شيءٍ إلى «مصدر».
+        # التدهورُ آمنٌ بالتصميم لكنّه **صامت**: يقرأ المُشغِّلُ «مصادر» فيظنّها
+        # مصادرَ حقّاً. مقيسٌ على دمجٍ حقيقيّ: بالبيان المتعارض وقف عند ثلاثة
+        # ملفّات، وبحلّه وحدَه انحصر الوقوفُ في وثيقة السياسة. فالسببُ يُسمَّى ولا
+        # يُترَك للتخمين — وهذا إبانةٌ لا تغييرُ سلوك: القرارُ يبقى «قف».
+        if _manifest_is_conflicted(paths):
+            print(
+                f"\n⚠ وبيانُ أهداف الكتابة نفسُه بين المتعارضات: {MANIFEST_REL}"
+                "\n  فلا يُحلَّل، فتسقط طبقةُ البيان ويتدهور التصنيفُ إلى «مصدر» للجميع."
+                "\n  **حُلَّ هذا البيانَ أوّلاً ثمّ أعِد تشغيلي** — قد لا يبقى من القائمة"
+                "\n  أعلاه إلّا ما هو مصدرٌ بحقّ.",
+                file=sys.stderr,
+            )
         print(
             "\nهذه ليست مصنوعات ولا سجلّات إلحاقيّة. حُلَّها بقراءة الجانبين، ولا تُطبَّق"
             "\nعليها قاعدة آليّة — الدمج الخاطئ لكود يُغيّر سلوكاً ولا يُبلِّغ عن نفسه.",
