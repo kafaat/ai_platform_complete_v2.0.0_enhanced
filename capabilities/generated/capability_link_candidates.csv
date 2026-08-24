@@ -868,9 +868,11 @@ FM-005,test,services/sahool-platform/tests/test_crop_water_sensitivity.py,3,appl
 FM-005,test,services/sahool-platform/tests/test_variety_suitability.py,3,applied
 FM-005,test,services/weather-service/tests/test_crop_stress_products.py,3,applied
 FM-005,test,tests_v9/test_crop_model_uncertainty_v64.py,3,applied
+FM-005,test,tests_v9/test_crop_root_policy_rls_integration.py,3,applied
 FM-005,test,tests_v9/test_crop_twin.py,3,applied
 FM-005,test,tests_v9/test_crop_twin_verified_learning_c2.py,3,applied
 FM-005,test,tests_v9/test_variety_catalog_reference_only_barrier.py,3,applied
+FM-005,test,tests_v9/test_variety_policy_resolution.py,3,applied
 FM-006,api,GET /api/v1/decision/economics @ services/sahool-platform/api/routers/decision_impact.py:185,2,applied
 FM-006,api,GET /api/v1/economics/break-even @ services/sahool-platform/api/routers/economics.py:46,2,applied
 FM-006,api,GET /api/v1/economics/cost-categories @ services/sahool-platform/api/routers/economics.py:26,4,applied
@@ -1730,6 +1732,7 @@ SEC-001,test,tests/security/test_phase22_rls_with_check_backfill.py,3,applied
 SEC-001,test,tests/security/test_phase23_rls_preserve_using.py,3,applied
 SEC-001,test,tests_v9/test_auth_rls_and_routing.py,3,applied
 SEC-001,test,tests_v9/test_compose_rls_bypass_guard.py,3,applied
+SEC-001,test,tests_v9/test_crop_root_policy_rls_integration.py,3,applied
 SEC-001,test,tests_v9/test_fii_rls_write_fail_closed_postgres.py,3,applied
 SEC-001,test,tests_v9/test_notification_tenant_isolation.py,3,applied
 SEC-001,test,tests_v9/test_rls_fk_isolated_tables.py,3,applied

@@ -185,8 +185,13 @@ _ADAPTATION_FRAMEWORK = {
 
 
 def crop_model_type(crop: str) -> str:
-    """يصنّف نوع نموذج المحصول (يحدّد مدى التعديل عن القمح الأساسي)."""
-    return _CROP_MODEL_TYPE.get(crop.lower()) or _CROP_MODEL_TYPE.get(crop) or "perennial_tree"
+    """يصنّف نوع نموذج المحصول (يحدّد مدى التعديل عن القمح الأساسي).
+
+    فاشل-مغلق (WOFOST-UNKNOWN-FALLBACK-01): المحصول غير المصنَّف يُرجَع
+    ``unsupported`` صراحةً — لا يُعامَل شجرةً معمّرة افتراضاً، لأنّ تصنيفاً
+    ملفَّقاً يسرّب مدى تعديل وبارامترات لا أساس لها.
+    """
+    return _CROP_MODEL_TYPE.get(crop.lower()) or _CROP_MODEL_TYPE.get(crop) or "unsupported"
 
 
 def wofost_adaptation_guidance(crop: str) -> dict:
@@ -194,10 +199,25 @@ def wofost_adaptation_guidance(crop: str) -> dict:
 
     يُرجع نوع النموذج، نسبة التغيير المتوقّعة، البارامترات الرئيسيّة التي
     تحتاج تعديلاً (مع المدى والمصدر)، وتحذيرات الحدود — كلّها إرشاديّة
-    للمعايرة لا قيم نهائيّة.
+    للمعايرة لا قيم نهائيّة. المحصول غير المصنَّف يُحجَب بحمولة صريحة
+    بلا أيّ قيم إطار مستعارة.
     """
     known = crop.lower() in _CROP_MODEL_TYPE or crop in _CROP_MODEL_TYPE
     mtype = crop_model_type(crop)
+    if not known:
+        return {
+            "crop": crop,
+            "crop_recognized": False,
+            "model_type": "unsupported",
+            "status": "blocked",
+            "reason": "crop_model_type_unknown",
+            "disclaimer_ar": (
+                "هذا المحصول غير مصنّف في أنواع نماذج WOFOST المدعومة — لا يُعامَل "
+                "افتراضيّاً كأيّ نوع، ولا تُستعار له نسب تغيير أو بارامترات. اعتماده "
+                "يتطلّب تصنيفاً صريحاً في العقد ثم معايرة ميدانيّة ببيانات الصنف "
+                "والإقليم المحلّيّين."
+            ),
+        }
     fw = _ADAPTATION_FRAMEWORK[mtype]
 
     return {
@@ -215,12 +235,7 @@ def wofost_adaptation_guidance(crop: str) -> dict:
         "disclaimer_ar": (
             "هذه بارامترات إرشاديّة للمعايرة من حالات منشورة، لا قيم نهائيّة "
             "مُعايَرة لليمن. التحويل يحتاج معايرة ميدانيّة (هدف RMSE < 15%) "
-            "ببيانات الصنف والإقليم المحلّيّين. "
-            + (
-                ""
-                if known
-                else "هذا المحصول غير مصنّف صراحةً — عُومل افتراضيّاً كشجرة معمّرة، تحقّق يدويّاً."
-            )
+            "ببيانات الصنف والإقليم المحلّيّين."
         ),
         "limitations_ar": [
             "البارامترات الفيزيولوجيّة لبعض المحاصيل (الاستوائيّة التجاريّة) "

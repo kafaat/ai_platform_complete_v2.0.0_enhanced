@@ -6815,6 +6815,13 @@ no_third_value_registry نصّاً)، GATE-01 نظيف، 33 اختباراً، r
 - **وصنفٌ جديد سُجِّل `open`:** `COVERAGE-MASKED-BY-A-NEIGHBOURING-GUARD-01` — **مقيسٌ مرّتين في جلسةٍ واحدة بشيفرتين لا صلةَ بينهما** (سلسلةُ أدلّة الريّ · بطاقاتُ المحاصيل على #889). وهو ثغرةُ **إجراء** لا أداة: المِرقابُ القائم يكشفه، لكنّ الرقعَ تُتبنّى بادّعاء تغطيتها قبل تشغيله.
 - **وخطئي الرابع بالمحرف الخفيّ** — `U+200F` في تعليقٍ عربيّ، ثمّ `U+200E` في صفّ السجلّ. أمسكهما الحارسُ. أربعُ مرّاتٍ في جلسةٍ واحدة **نمطٌ لا صدفة**: خلطُ العربيّة برموزٍ لاتينيّة يُدخِله بلا قصد.
 
+## 2026-08-24 — شريحة RZ-VARIETY: حلّ سياسة الجذور بالصنف + إغلاق سقوط WOFOST المجهول
+
+- **المدخل:** رقعة المالك `RZVARIETYPOLICYRESOLUTION01.patch` ثم مراجعته الثانية (١١ بنداً بجدول حكم).
+- **تحقّق مضادّ مقيس:** بند P0 (ادّعاء SyntaxError في التوقيع) **مُكذَّب بالقياس** — معاملات ما بعد `*` كلمات-مفتاحيّة، والملفّ جُمِع والاختبارات مرّت قبل أيّ تعديل. بقيّة البنود الجوهريّة (٣–٨ و١١) **صحّت قياساً** ونُفِّذت: بيانات اختبار موجَّهة بالوسائط لا بالترتيب، اختبار بصمة حقيقيّ على `build` الفعليّة، `root_policy_variety` في اللقطة (ترقية 1.2.0)، مصدر الصنف متعاقد على `cultivar` وحده، اختبار RLS تكاملي، و`crop_model_type(مجهول)=unsupported` محجوباً.
+- **المقيس محليّاً:** 23 اختباراً مسّته الشريحة أخضر + 142 اختبار روادف WOFOST/phase23 أخضر + حارس M2.2 يمرّ.
+- **فجوتان سُجِّلتا** في `gaps/registry.md`: `RZ-VARIETY-POLICY-RESOLUTION-01` و`WOFOST-UNKNOWN-FALLBACK-01` — كلتاهما معالَجة في هذه الشريحة، والإغلاق النهائيّ بالدمج.
+- **المصدر:** `services/sahool-platform/api/canonical_root_zone_profile.py` · `api/canonical_water_state.py` · `api/wofost_crop_params.py` · `tests_v9/test_variety_policy_resolution.py` · `tests_v9/test_wofost_unknown_fallback.py` · `tests_v9/test_crop_root_policy_rls_integration.py` · فرع `rz-variety-01`.
 ## 2026-08-24 (د) — تسجيلُ الوحدة، وثلاثةُ أصنافٍ قِيست في أدواتِ القياس نفسِها
 
 - **الأساس `9953bc5`** (دمجُ #916). ثلاثةُ إخفاقاتٍ على الفرع سببُها واحد: `api/irrigation_decision_evidence_chain.py` وحدةٌ جديدة في سطح المنصّة غيرُ مُسجَّلة — `platform_shrink_ratchet` (C13) و`test_platform_python_module_budget_does_not_grow` و`test_no_new_untracked_platform_modules`.

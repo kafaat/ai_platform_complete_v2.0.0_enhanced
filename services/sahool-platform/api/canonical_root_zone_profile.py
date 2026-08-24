@@ -18,7 +18,7 @@ from core.crop_intelligence.roots import build_root_state
 from api.soil_hydraulic_client import get_soil_hydraulic_profile
 
 SCHEMA_VERSION = "canonical_root_zone_profile.v1"
-PRODUCT_VERSION = "root-zone-hydraulics/1.1.0"
+PRODUCT_VERSION = "root-zone-hydraulics/1.2.0"
 MAX_PROFILE_AGE_DAYS = 730.0
 
 
@@ -76,6 +76,10 @@ class CanonicalRootZoneProfile:
     operational_eligible: bool
     limitations: list[str]
     profile_digest: str
+    # Policy specificity provenance: the exact variety string of the selected
+    # crop_root_policies row ('' = generic crop policy). Without it the snapshot
+    # alone cannot prove whether policy_id was variety-specific or generic.
+    root_policy_variety: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -231,6 +235,9 @@ def build_canonical_root_zone_profile(
         "crop": crop,
         "root_policy_id": str(root_policy.get("policy_id") or ""),
         "root_policy_version": str(root_policy.get("policy_version") or ""),
+        "root_policy_variety": None
+        if root_policy.get("variety") is None
+        else str(root_policy.get("variety")),
         "soil_hydraulic_profile_id": str(soil_profile.get("profile_id") or ""),
         "source_soil_profile_hash": str(soil_profile.get("source_soil_profile_hash") or ""),
         "generated_at": now.isoformat(),
@@ -309,17 +316,46 @@ async def resolve_canonical_root_zone_profile(
     crop: str,
     phenology_progress: float | None,
     raw_fraction: float,
+    variety: str | None = None,
 ) -> CanonicalRootZoneProfile | dict[str, Any]:
-    """Resolve governed soil hydraulics and root policy for operational consumers."""
-    policy = await conn.fetchrow(
-        "SELECT policy_id, initial_depth_m, maximum_depth_m, effective_fraction, "
-        "policy_version, evidence_ids FROM crop_root_policies "
-        "WHERE tenant_id=$1::uuid AND crop_id=$2 AND status='validated' "
-        "AND valid_from <= now() AND (valid_to IS NULL OR valid_to > now()) "
-        "ORDER BY valid_from DESC LIMIT 1",
-        tenant_id,
-        crop,
-    )
+    """Resolve governed soil hydraulics and root policy for operational consumers.
+
+    Policy resolution is deliberately two-tiered and fail-closed:
+      1. validated, currently-effective policy for the exact requested variety;
+      2. validated, currently-effective generic crop policy (``variety=''``);
+      3. blocked when neither exists.
+
+    An exact variety policy always wins over the generic crop policy, independent of
+    ``valid_from`` recency between the two tiers.
+    """
+    requested_variety = (variety or "").strip()
+    policy = None
+
+    if requested_variety:
+        policy = await conn.fetchrow(
+            "SELECT policy_id, initial_depth_m, maximum_depth_m, effective_fraction, "
+            "policy_version, evidence_ids, variety FROM crop_root_policies "
+            "WHERE tenant_id=$1::uuid AND crop_id=$2 AND variety=$3 "
+            "AND status='validated' "
+            "AND valid_from <= now() AND (valid_to IS NULL OR valid_to > now()) "
+            "ORDER BY valid_from DESC LIMIT 1",
+            tenant_id,
+            crop,
+            requested_variety,
+        )
+
+    if policy is None:
+        policy = await conn.fetchrow(
+            "SELECT policy_id, initial_depth_m, maximum_depth_m, effective_fraction, "
+            "policy_version, evidence_ids, variety FROM crop_root_policies "
+            "WHERE tenant_id=$1::uuid AND crop_id=$2 AND variety='' "
+            "AND status='validated' "
+            "AND valid_from <= now() AND (valid_to IS NULL OR valid_to > now()) "
+            "ORDER BY valid_from DESC LIMIT 1",
+            tenant_id,
+            crop,
+        )
+
     if policy is None:
         return {"status": "blocked", "reason": "validated_crop_root_policy_missing"}
     soil_profile = await get_soil_hydraulic_profile(tenant_id=tenant_id, field_id=field_id)

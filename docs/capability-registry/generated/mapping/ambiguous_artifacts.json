@@ -9272,6 +9272,14 @@
           "content:forecast",
           "content:weather forecast"
         ]
+      },
+      {
+        "capability_id": "FM-005",
+        "score": 12,
+        "signals": [
+          "content:cultivar",
+          "content:variety"
+        ]
       }
     ]
   },
@@ -10218,6 +10226,28 @@
         "signals": [
           "content:rls",
           "content:row level security"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_variety_policy_resolution.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "FM-005",
+        "score": 14,
+        "signals": [
+          "path:variety",
+          "content:variety"
+        ]
+      },
+      {
+        "capability_id": "SOIL-001",
+        "score": 12,
+        "signals": [
+          "content:Soil profile",
+          "content:soil profile"
         ]
       }
     ]

@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5178,
+    "files_scanned": 5181,
     "files_by_kind": {
       "backend": 1204,
       "database": 274,
       "governance": 60,
       "mobile": 51,
       "other": 1420,
-      "tests": 1713,
+      "tests": 1716,
       "web": 456
     },
-    "unmapped_artifacts": 2109,
-    "ambiguous_artifacts": 410
+    "unmapped_artifacts": 2110,
+    "ambiguous_artifacts": 411
   },
   "capabilities": [
     {
@@ -8033,7 +8033,23 @@
           ]
         },
         {
+          "path": "tests_v9/test_variety_policy_resolution.py",
+          "score": 14,
+          "signals": [
+            "path:variety",
+            "content:variety"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_fields_endpoint.py",
+          "score": 12,
+          "signals": [
+            "content:cultivar",
+            "content:variety"
+          ]
+        },
+        {
+          "path": "tests_v9/test_canonical_water_state_mpc.py",
           "score": 12,
           "signals": [
             "content:cultivar",
@@ -8071,7 +8087,7 @@
         "events": 7,
         "web": 3,
         "mobile": 1,
-        "tests": 5,
+        "tests": 7,
         "governance": 0,
         "other_evidence": 1
       },
@@ -24309,6 +24325,15 @@
           ]
         },
         {
+          "path": "tests_v9/test_crop_root_policy_rls_integration.py",
+          "score": 17,
+          "signals": [
+            "path:rls",
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "tests_v9/test_execution_lineage_migrations.py",
           "score": 17,
           "signals": [
@@ -25343,7 +25368,7 @@
         "events": 45,
         "web": 0,
         "mobile": 0,
-        "tests": 60,
+        "tests": 61,
         "governance": 0,
         "other_evidence": 70
       },
@@ -27756,6 +27781,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_variety_policy_resolution.py",
+          "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
           "path": "tests_v9/test_canonical_root_zone_to_sprinkler_contract.py",
           "score": 10,
           "signals": [
@@ -27938,7 +27971,7 @@
         "events": 36,
         "web": 1,
         "mobile": 0,
-        "tests": 16,
+        "tests": 17,
         "governance": 1,
         "other_evidence": 14
       },
@@ -43150,6 +43183,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_wofost_unknown_fallback.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_worker_assertion_interop.py",
       "kind": "tests"
     },
@@ -52464,6 +52501,14 @@
             "content:forecast",
             "content:weather forecast"
           ]
+        },
+        {
+          "capability_id": "FM-005",
+          "score": 12,
+          "signals": [
+            "content:cultivar",
+            "content:variety"
+          ]
         }
       ]
     },
@@ -53410,6 +53455,28 @@
           "signals": [
             "content:rls",
             "content:row level security"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests_v9/test_variety_policy_resolution.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "FM-005",
+          "score": 14,
+          "signals": [
+            "path:variety",
+            "content:variety"
+          ]
+        },
+        {
+          "capability_id": "SOIL-001",
+          "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
           ]
         }
       ]
