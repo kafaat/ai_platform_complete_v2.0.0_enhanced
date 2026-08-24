@@ -86,6 +86,23 @@ ROW_RE = re.compile(
     r"^\|\s*(?P<gap_id>[A-Z][A-Z0-9_]*(?:-[A-Z0-9_]+)+)\s*\|",
 )
 
+# **وشبكةُ التلاصق وحدها لا تكفي للصفوف** — `BRAIN-DUP-ROW-ESCAPES-THE-ADJACENCY-NET-01`:
+# دمجُ union عبر PRs متتابعة أعاد صفَّ `GATE-READS-…-01` صفّاً مستقلّاً **غيرَ متلاصق**
+# (بينهما صفُّ #914)، فمرّ الحارسُ أخضرَ عليه. دلالةُ الجدول تفرُّدٌ عالميّ: كلُّ صفٍّ
+# إعلانُ الحالةِ الوحيدِ لفجوته — بخلاف العناوين، حيث السلاسلُ التاريخيّةُ المقصودة
+# **مقيسةٌ قائمة** (`SPECTRAL-…` في 1478/1489 و`SILENT-EXCEPTION-…` في 1582/1590/1601)
+# فالتفرُّدُ العالميّ عليها يُعيد العشرة إنذاراتٍ كاذبة التي رفضها التصميم الأوّل.
+#
+# وهويّةُ الفحص العالميّ **الخليّةُ الأولى كاملةً بالنقاط**: نمطُ ROW_RE يقف عند
+# النقطة، فيقرأ `WAIVER-WX10.6-001` و`WAIVER-WX10.7-001` — إعفاءان متمايزان
+# مشروعان — هويّةً واحدة `WAIVER-WX10` ويرفع إنذاراً كاذباً (مقيس على الشجرة).
+ROW_FULL_ID_RE = re.compile(
+    r"^\|\s*(?P<gap_id>[A-Z][A-Z0-9_.]*(?:-[A-Z0-9_.]+)+)\s*\|",
+)
+
+# الفحص العالميّ محصورٌ في الملفّ الذي صفوفُه إعلاناتُ حالةٍ وحيدة.
+GLOBAL_ROW_UNIQUENESS_TARGETS = frozenset({"sahool-brain/gaps/registry.md"})
+
 _FENCE_RE = re.compile(r"^\s*(```|~~~)")
 
 
@@ -129,6 +146,23 @@ def adjacent_duplicate_identities(text: str) -> list[tuple[str, int, int]]:
     return found
 
 
+def global_duplicate_row_identities(text: str) -> list[tuple[str, list[int]]]:
+    """صفوف جدولٍ تُعلِن نفس هويّة الفجوة أكثر من مرّة — أينما وقعت، لا تلاصقاً.
+
+    صفوفٌ فقط (العناوين تحمل سلاسل تاريخيّة مشروعة)، وبهويّة الخليّة الكاملة
+    بالنقاط (وإلّا قُرِئ إعفاءان متمايزان `WAIVER-WX10.6/.7` هويّةً واحدة).
+    """
+    lines = _strip_fenced_blocks(text.splitlines())
+    seen: dict[str, list[int]] = {}
+    for i, line in enumerate(lines):
+        if line is None:
+            continue
+        m = ROW_FULL_ID_RE.match(line)
+        if m:
+            seen.setdefault(m.group("gap_id"), []).append(i + 1)
+    return [(gap_id, at) for gap_id, at in seen.items() if len(at) > 1]
+
+
 def check(paths: list[Path]) -> list[str]:
     problems: list[str] = []
     for path in paths:
@@ -136,10 +170,13 @@ def check(paths: list[Path]) -> list[str]:
             problems.append(f"هدف مفقود: {path.relative_to(ROOT)}")
             continue
         rel = path.relative_to(ROOT).as_posix()
-        for gap_id, first, second in adjacent_duplicate_identities(
-            path.read_text(encoding="utf-8")
-        ):
+        text = path.read_text(encoding="utf-8")
+        for gap_id, first, second in adjacent_duplicate_identities(text):
             problems.append(f"duplicate gap identity: {gap_id}\n  {rel}:{first}\n  {rel}:{second}")
+        if rel in GLOBAL_ROW_UNIQUENESS_TARGETS:
+            for gap_id, at in global_duplicate_row_identities(text):
+                where = "\n".join(f"  {rel}:{n}" for n in at)
+                problems.append(f"duplicate gap ROW (global): {gap_id}\n{where}")
     return problems
 
 
@@ -165,7 +202,10 @@ def main() -> int:
         )
         return 1
 
-    print("brain_duplicate_gap_identity_guard: PASS (لا عناوين متلاصقة متطابقة الهويّة)")
+    print(
+        "brain_duplicate_gap_identity_guard: PASS "
+        "(لا عناوين متلاصقة متطابقة الهويّة، ولا صفّ سجلٍّ يُعلَن مرّتين)"
+    )
     return 0
 
 
