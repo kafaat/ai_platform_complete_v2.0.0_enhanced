@@ -1,5 +1,5 @@
 capability_id,domain,title,mapped,coverage_dimensions,backend,routes,database,events,web,mobile,tests,governance
-DEC-001,decision,Decision evidence,True,2,0,0,0,3,0,0,2,0
+DEC-001,decision,Decision evidence,True,3,2,0,0,5,0,0,2,0
 DEC-002,decision,Decision candidate,True,3,1,0,0,2,0,0,4,0
 DEC-003,decision,Human approval,True,1,2,0,0,0,0,0,0,0
 DEC-004,decision,Execution request,True,5,9,20,24,30,0,0,15,1
@@ -19,7 +19,7 @@ FM-007,farm_management,Inventory and procurement,True,7,8,24,8,1,1,1,5,3
 FM-008,farm_management,ERP integration,True,5,10,24,5,1,0,0,7,0
 GIS-001,gis,Field geometry validation,True,2,0,0,1,0,1,0,0,0
 GIS-002,gis,Map layers,True,4,2,3,0,0,2,0,2,0
-GIS-003,gis,Terrain and DEM,True,6,22,100,10,51,12,0,37,0
+GIS-003,gis,Terrain and DEM,True,6,25,100,10,51,12,0,38,0
 GIS-004,gis,Spatial analytics,True,3,1,0,1,0,0,0,1,0
 INT-001,farm_management,Public API and SDK,False,0,0,0,0,0,0,0,0,0
 INT-002,farm_management,Event bus integration,True,5,6,15,2,66,0,0,8,0
@@ -73,8 +73,8 @@ SOIL-005,soil,Soil water properties,True,3,5,0,0,2,0,0,2,0
 WX-001,weather,Current weather,True,4,1,4,0,3,0,0,1,0
 WX-002,weather,Weather forecast,True,6,22,51,8,55,9,0,21,0
 WX-003,weather,Weather history,True,4,4,6,4,0,0,0,4,0
-WX-004,weather,ET0,True,5,59,53,0,81,19,0,57,0
-WX-005,weather,VPD,True,5,8,29,0,6,2,0,6,0
+WX-004,weather,ET0,True,5,60,53,0,81,19,0,57,0
+WX-005,weather,VPD,True,5,9,29,0,6,2,0,6,0
 WX-006,weather,GDD,True,6,84,26,33,26,16,0,44,0
 WX-007,weather,Frost and heat risk,True,1,1,0,0,0,0,0,0,0
 WX-008,weather,Operation windows,True,4,2,6,0,1,0,0,2,0

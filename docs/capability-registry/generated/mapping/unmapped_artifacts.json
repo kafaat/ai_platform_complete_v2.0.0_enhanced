@@ -4248,10 +4248,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/sahool-platform/core/crop_cards/loader.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/sahool-platform/core/crop_cards/varieties/barley_bakkur.yaml",
     "kind": "backend"
   },
@@ -4973,6 +4969,10 @@
   },
   {
     "path": "services/sahool-platform/knowledge/conservative_rag.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/fertigation-state.schema.json",
     "kind": "backend"
   },
   {

@@ -345,6 +345,10 @@ def _default_runners(args: argparse.Namespace) -> dict[str, Callable[..., Any]]:
                 args.subject_tree,
                 "--deployment-artifact",
                 args.deployment_artifact,
+                # أداة D09 تُلزم بربطٍ كامل (المصنوعة + بصمتها) وإلا رفضت الإيصال —
+                # تمريرُ المصنوعة وحدها كان يُفشل الخطوة ٥ مغلقةً حتى في تشغيلٍ سليم.
+                "--deployment-artifact-digest",
+                args.deployment_artifact_digest,
                 "--output",
                 str(output),
             ]
@@ -527,6 +531,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--collection", default=os.getenv("QDRANT_COLLECTION", "sahool_agri_kb"))
     ap.add_argument("--identity-map")
     ap.add_argument("--deployment-artifact", default="")
+    ap.add_argument("--deployment-artifact-digest", default="")
     ap.add_argument("--seed-tenant", default="__global__")
     ap.add_argument("--e2e-cmd", default="")
     ap.add_argument(

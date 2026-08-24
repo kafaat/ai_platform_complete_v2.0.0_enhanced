@@ -15,25 +15,44 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5169,
+    "files_scanned": 5176,
     "files_by_kind": {
-      "backend": 1198,
+      "backend": 1203,
       "database": 274,
       "governance": 60,
       "mobile": 51,
-      "other": 1418,
+      "other": 1420,
       "tests": 1712,
       "web": 456
     },
     "unmapped_artifacts": 2109,
-    "ambiguous_artifacts": 405
+    "ambiguous_artifacts": 410
   },
   "capabilities": [
     {
       "capability_id": "DEC-001",
       "domain": "decision",
       "title": "Decision evidence",
-      "backend": [],
+      "backend": [
+        {
+          "path": "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/decision-evidence-envelope.schema.json",
+          "score": 24,
+          "signals": [
+            "path:Decision evidence",
+            "content:Decision evidence",
+            "path:decision evidence",
+            "content:decision evidence"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/schema-catalog.json",
+          "score": 10,
+          "signals": [
+            "content:Decision evidence",
+            "content:decision evidence"
+          ]
+        }
+      ],
       "routes": [],
       "database": [],
       "events": [
@@ -48,6 +67,14 @@
         {
           "value": "weather_service_client.py @ services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py:11",
           "score": 16
+        },
+        {
+          "value": "decision-evidence-envelope.schema.json @ services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/schema-catalog.json:41",
+          "score": 10
+        },
+        {
+          "value": "irrigation-state-snapshot.schema.json @ services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/schema-catalog.json:38",
+          "score": 10
         }
       ],
       "web": [],
@@ -77,17 +104,17 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 0,
+        "backend": 2,
         "routes": 0,
         "database": 0,
-        "events": 3,
+        "events": 5,
         "web": 0,
         "mobile": 0,
         "tests": 2,
         "governance": 0,
         "other_evidence": 0
       },
-      "coverage_dimensions": 2,
+      "coverage_dimensions": 3,
       "mapped": true
     },
     {
@@ -9314,11 +9341,35 @@
           ]
         },
         {
+          "path": "services/sahool-platform/core/crop_cards/loader.py",
+          "score": 9,
+          "signals": [
+            "content:dem",
+            "content:slope"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/core/crop_cards/maize.yaml",
+          "score": 9,
+          "signals": [
+            "content:dem",
+            "content:slope"
+          ]
+        },
+        {
           "path": "services/soil-service/routers/p2_products.py",
           "score": 9,
           "signals": [
             "content:dem",
             "content:terrain"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/core/crop_cards/_TEMPLATE.yaml",
+          "score": 8,
+          "signals": [
+            "content:dem",
+            "content:slope"
           ]
         }
       ],
@@ -10353,6 +10404,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_crop_cards.py",
+          "score": 10,
+          "signals": [
+            "content:dem",
+            "content:slope"
+          ]
+        },
+        {
           "path": "frontend/src/lib/evidenceGraph.test.ts",
           "score": 9,
           "signals": [
@@ -10760,13 +10819,13 @@
         "routes": 19
       },
       "evidence_counts": {
-        "backend": 22,
+        "backend": 25,
         "routes": 100,
         "database": 10,
         "events": 51,
         "web": 12,
         "mobile": 0,
-        "tests": 37,
+        "tests": 38,
         "governance": 0,
         "other_evidence": 34
       },
@@ -12316,6 +12375,14 @@
           ]
         },
         {
+          "path": "docs/contracts/IRRIGATION-DECISION-INTELLIGENCE-CORR1.md",
+          "score": 8,
+          "signals": [
+            "content:Water balance",
+            "content:water balance"
+          ]
+        },
+        {
           "path": "docs/history/DIGITAL_TWIN_PAPER_REVIEW.md",
           "score": 8,
           "signals": [
@@ -12337,7 +12404,7 @@
         "mobile": 0,
         "tests": 7,
         "governance": 0,
-        "other_evidence": 4
+        "other_evidence": 5
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -30737,6 +30804,14 @@
             "content:ET0",
             "content:et0"
           ]
+        },
+        {
+          "path": "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/evidence-chain.schema.json",
+          "score": 8,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
         }
       ],
       "routes": [
@@ -32054,6 +32129,14 @@
           ]
         },
         {
+          "path": "docs/contracts/IRRIGATION-CONTRACTS-v1.1-errata2.md",
+          "score": 8,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "docs/history/PRECISION_SPEC_REVIEW.md",
           "score": 8,
           "signals": [
@@ -32099,7 +32182,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 59,
+        "backend": 60,
         "routes": 53,
         "database": 0,
         "events": 81,
@@ -32107,7 +32190,7 @@
         "mobile": 0,
         "tests": 57,
         "governance": 0,
-        "other_evidence": 23
+        "other_evidence": 24
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -32142,6 +32225,14 @@
           "signals": [
             "content:VPD",
             "content:vapour pressure deficit",
+            "content:vpd"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/irrigation-state-snapshot.schema.json",
+          "score": 12,
+          "signals": [
+            "content:VPD",
             "content:vpd"
           ]
         },
@@ -32446,6 +32537,14 @@
             "content:VPD",
             "content:vpd"
           ]
+        },
+        {
+          "path": "docs/contracts/IRRIGATION-CONTRACTS-v1.1-errata2.md",
+          "score": 8,
+          "signals": [
+            "content:VPD",
+            "content:vpd"
+          ]
         }
       ],
       "ambiguous": [],
@@ -32453,7 +32552,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 8,
+        "backend": 9,
         "routes": 29,
         "database": 0,
         "events": 6,
@@ -32461,7 +32560,7 @@
         "mobile": 0,
         "tests": 6,
         "governance": 0,
-        "other_evidence": 4
+        "other_evidence": 5
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -34145,6 +34244,14 @@
           ]
         },
         {
+          "path": "docs/contracts/IRRIGATION-DECISION-INTELLIGENCE-CORR1.md",
+          "score": 8,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "docs/history/DIGITAL_TWIN_PAPER_REVIEW.md",
           "score": 8,
           "signals": [
@@ -34198,7 +34305,7 @@
         "mobile": 0,
         "tests": 44,
         "governance": 0,
-        "other_evidence": 20
+        "other_evidence": 21
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -38875,10 +38982,6 @@
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/core/crop_cards/loader.py",
-      "kind": "backend"
-    },
-    {
       "path": "services/sahool-platform/core/crop_cards/varieties/barley_bakkur.yaml",
       "kind": "backend"
     },
@@ -39600,6 +39703,10 @@
     },
     {
       "path": "services/sahool-platform/knowledge/conservative_rag.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/fertigation-state.schema.json",
       "kind": "backend"
     },
     {
@@ -44478,6 +44585,50 @@
           "signals": [
             "content:Dispatch authorization",
             "content:dispatch authorization"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/contracts/IRRIGATION-CONTRACTS-v1.1-errata2.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "WX-005",
+          "score": 8,
+          "signals": [
+            "content:VPD",
+            "content:vpd"
+          ]
+        },
+        {
+          "capability_id": "WX-004",
+          "score": 8,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/contracts/IRRIGATION-DECISION-INTELLIGENCE-CORR1.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 8,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "IRR-004",
+          "score": 8,
+          "signals": [
+            "content:Water balance",
+            "content:water balance"
           ]
         }
       ]
@@ -49815,6 +49966,50 @@
       ]
     },
     {
+      "path": "services/sahool-platform/core/crop_cards/_TEMPLATE.yaml",
+      "kind": "backend",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 10,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "GIS-003",
+          "score": 8,
+          "signals": [
+            "content:dem",
+            "content:slope"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/sahool-platform/core/crop_cards/maize.yaml",
+      "kind": "backend",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 10,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "GIS-003",
+          "score": 9,
+          "signals": [
+            "content:dem",
+            "content:slope"
+          ]
+        }
+      ]
+    },
+    {
       "path": "services/sahool-platform/core/crop_intelligence/engine.py",
       "kind": "backend",
       "candidates": [
@@ -50792,6 +50987,28 @@
             "content:Weather forecast",
             "content:forecast",
             "content:weather forecast"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/sahool-platform/tests/test_crop_cards.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "GIS-003",
+          "score": 10,
+          "signals": [
+            "content:dem",
+            "content:slope"
           ]
         }
       ]

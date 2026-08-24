@@ -12,15 +12,15 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **49**
-- Files scanned: **5169**
-- Ambiguous artifacts queued: **405**
+- Files scanned: **5176**
+- Ambiguous artifacts queued: **410**
 - Unmapped artifacts queued: **2109**
 
 ## Capability coverage
 
 | ID | Domain | Backend | Routes | DB | Events | Web | Mobile | Tests | Dimensions |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| DEC-001 | decision | 0 | 0 | 0 | 3 | 0 | 0 | 2 | 2 |
+| DEC-001 | decision | 2 | 0 | 0 | 5 | 0 | 0 | 2 | 3 |
 | DEC-002 | decision | 1 | 0 | 0 | 2 | 0 | 0 | 4 | 3 |
 | DEC-003 | decision | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | DEC-004 | decision | 9 | 20 | 24 | 30 | 0 | 0 | 15 | 5 |
@@ -40,7 +40,7 @@
 | FM-008 | farm_management | 10 | 24 | 5 | 1 | 0 | 0 | 7 | 5 |
 | GIS-001 | gis | 0 | 0 | 1 | 0 | 1 | 0 | 0 | 2 |
 | GIS-002 | gis | 2 | 3 | 0 | 0 | 2 | 0 | 2 | 4 |
-| GIS-003 | gis | 22 | 100 | 10 | 51 | 12 | 0 | 37 | 6 |
+| GIS-003 | gis | 25 | 100 | 10 | 51 | 12 | 0 | 38 | 6 |
 | GIS-004 | gis | 1 | 0 | 1 | 0 | 0 | 0 | 1 | 3 |
 | INT-001 | farm_management | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | INT-002 | farm_management | 6 | 15 | 2 | 66 | 0 | 0 | 8 | 5 |
@@ -94,8 +94,8 @@
 | WX-001 | weather | 1 | 4 | 0 | 3 | 0 | 0 | 1 | 4 |
 | WX-002 | weather | 22 | 51 | 8 | 55 | 9 | 0 | 21 | 6 |
 | WX-003 | weather | 4 | 6 | 4 | 0 | 0 | 0 | 4 | 4 |
-| WX-004 | weather | 59 | 53 | 0 | 81 | 19 | 0 | 57 | 5 |
-| WX-005 | weather | 8 | 29 | 0 | 6 | 2 | 0 | 6 | 5 |
+| WX-004 | weather | 60 | 53 | 0 | 81 | 19 | 0 | 57 | 5 |
+| WX-005 | weather | 9 | 29 | 0 | 6 | 2 | 0 | 6 | 5 |
 | WX-006 | weather | 84 | 26 | 33 | 26 | 16 | 0 | 44 | 6 |
 | WX-007 | weather | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | WX-008 | weather | 2 | 6 | 0 | 1 | 0 | 0 | 2 | 4 |

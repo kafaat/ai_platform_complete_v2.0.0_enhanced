@@ -5,8 +5,8 @@
     "runtime_verified": false,
     "python_files_parsed": 1866,
     "route_handlers": 1049,
-    "call_edges": 75019,
-    "dead_code_candidates": 620,
+    "call_edges": 75169,
+    "dead_code_candidates": 621,
     "duplicate_function_groups": 61,
     "route_owners": 27,
     "automatic_deletions": 0
@@ -310468,497 +310468,917 @@
       "file": "services/sahool-platform/core/crop_cards/loader.py",
       "source": "_safe_id",
       "target": "fullmatch",
-      "line": 24
+      "line": 25
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "_validate_phenology",
+      "source": "_validate_nutrient_demand",
+      "target": "enumerate",
+      "line": 73
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
       "target": "get",
-      "line": 56
+      "line": 74
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "_validate_phenology",
+      "source": "_validate_nutrient_demand",
+      "target": "isinstance",
+      "line": 74
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "len",
+      "line": 78
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "len",
+      "line": 78
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "get",
+      "line": 80
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "enumerate",
+      "line": 81
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "get",
+      "line": 82
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "isinstance",
+      "line": 82
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
       "target": "append",
-      "line": 60
+      "line": 84
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "isinstance",
+      "line": 89
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "append",
+      "line": 90
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "keys",
+      "line": 92
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "set",
+      "line": 92
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "append",
+      "line": 94
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "isinstance",
+      "line": 103
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "isinstance",
+      "line": 104
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "isfinite",
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "append",
+      "line": 108
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "isinstance",
+      "line": 111
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "strip",
+      "line": 111
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "append",
+      "line": 112
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "items",
+      "line": 113
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "abs",
+      "line": 114
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_demand",
+      "target": "append",
+      "line": 115
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_provenance",
+      "target": "any",
+      "line": 128
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_provenance",
+      "target": "get",
+      "line": 128
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_provenance",
+      "target": "isinstance",
+      "line": 128
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_provenance",
+      "target": "get",
+      "line": 130
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_provenance",
+      "target": "isinstance",
+      "line": 131
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_provenance",
+      "target": "append",
+      "line": 132
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_provenance",
+      "target": "keys",
+      "line": 134
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_provenance",
+      "target": "set",
+      "line": 134
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_provenance",
+      "target": "append",
+      "line": 136
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_provenance",
+      "target": "isinstance",
+      "line": 139
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_provenance",
+      "target": "strip",
+      "line": 139
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_provenance",
+      "target": "append",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_nutrient_provenance",
+      "target": "append",
+      "line": 142
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
       "source": "_validate_phenology",
       "target": "get",
-      "line": 61
+      "line": 152
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
       "source": "_validate_phenology",
       "target": "isinstance",
-      "line": 62
+      "line": 155
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
       "source": "_validate_phenology",
       "target": "append",
-      "line": 63
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_phenology",
+      "target": "append",
+      "line": 159
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_phenology",
+      "target": "get",
+      "line": 160
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_phenology",
+      "target": "isinstance",
+      "line": 161
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_phenology",
+      "target": "append",
+      "line": 162
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
       "source": "_validate_phenology",
       "target": "enumerate",
-      "line": 66
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "_validate_phenology",
-      "target": "keys",
-      "line": 67
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "_validate_phenology",
-      "target": "set",
-      "line": 67
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "_validate_phenology",
-      "target": "append",
-      "line": 69
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "_validate_phenology",
-      "target": "append",
-      "line": 72
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "_validate_phenology",
-      "target": "append",
-      "line": 74
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "load_crop_card",
-      "target": "_safe_id",
-      "line": 80
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "load_crop_card",
-      "target": "exists",
-      "line": 84
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "load_crop_card",
-      "target": "read_text",
-      "line": 86
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "load_crop_card",
-      "target": "safe_load",
-      "line": 86
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "list_crop_cards",
-      "target": "glob",
-      "line": 91
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "list_crop_cards",
-      "target": "sorted",
-      "line": 91
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "list_crop_cards",
-      "target": "startswith",
-      "line": 91
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_crop_card",
-      "target": "keys",
-      "line": 97
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_crop_card",
-      "target": "set",
-      "line": 97
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_crop_card",
-      "target": "append",
-      "line": 99
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_crop_card",
-      "target": "keys",
-      "line": 100
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_crop_card",
-      "target": "set",
-      "line": 100
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_crop_card",
-      "target": "append",
-      "line": 101
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_crop_card",
-      "target": "keys",
-      "line": 101
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_crop_card",
-      "target": "set",
-      "line": 101
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_crop_card",
-      "target": "keys",
-      "line": 102
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_crop_card",
-      "target": "set",
-      "line": 102
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_crop_card",
-      "target": "append",
-      "line": 103
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_crop_card",
-      "target": "keys",
-      "line": 103
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_crop_card",
-      "target": "set",
-      "line": 103
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_crop_card",
-      "target": "keys",
-      "line": 105
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_crop_card",
-      "target": "set",
-      "line": 105
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_crop_card",
-      "target": "append",
-      "line": 107
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_crop_card",
-      "target": "append",
-      "line": 111
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_crop_card",
-      "target": "_validate_phenology",
-      "line": 112
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_crop_card",
-      "target": "get",
-      "line": 113
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_crop_card",
-      "target": "len",
-      "line": 113
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "growth_stages",
-      "target": "load_crop_card",
-      "line": 122
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "growth_stages",
-      "target": "get",
-      "line": 125
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "growth_stages",
-      "target": "get",
-      "line": 125
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "growth_stages",
-      "target": "list",
-      "line": 125
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "load_variety_card",
-      "target": "_safe_id",
-      "line": 146
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "load_variety_card",
-      "target": "exists",
-      "line": 150
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "load_variety_card",
-      "target": "read_text",
-      "line": 152
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "load_variety_card",
-      "target": "safe_load",
-      "line": 152
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "list_variety_cards",
-      "target": "exists",
-      "line": 157
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "list_variety_cards",
-      "target": "glob",
-      "line": 159
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "list_variety_cards",
-      "target": "sorted",
-      "line": 159
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "list_variety_cards",
-      "target": "startswith",
-      "line": 159
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "varieties_of_crop",
-      "target": "list_variety_cards",
       "line": 165
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "varieties_of_crop",
-      "target": "load_variety_card",
+      "source": "_validate_phenology",
+      "target": "isinstance",
       "line": 166
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "varieties_of_crop",
-      "target": "get",
+      "source": "_validate_phenology",
+      "target": "append",
       "line": 167
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "varieties_of_crop",
-      "target": "append",
-      "line": 168
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_variety_card",
+      "source": "_validate_phenology",
       "target": "keys",
-      "line": 175
+      "line": 169
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_variety_card",
+      "source": "_validate_phenology",
       "target": "set",
-      "line": 175
+      "line": 169
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_variety_card",
+      "source": "_validate_phenology",
       "target": "append",
-      "line": 177
+      "line": 171
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_variety_card",
-      "target": "get",
+      "source": "_validate_phenology",
+      "target": "isinstance",
+      "line": 178
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_phenology",
+      "target": "isinstance",
       "line": 179
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_variety_card",
-      "target": "load_crop_card",
+      "source": "_validate_phenology",
+      "target": "isinstance",
       "line": 180
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_variety_card",
-      "target": "append",
+      "source": "_validate_phenology",
+      "target": "isinstance",
       "line": 181
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_variety_card",
+      "source": "_validate_phenology",
+      "target": "isfinite",
+      "line": 182
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_phenology",
+      "target": "isfinite",
+      "line": 183
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_phenology",
       "target": "append",
       "line": 185
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
-      "source": "validate_variety_card",
+      "source": "_validate_phenology",
       "target": "append",
-      "line": 187
+      "line": 188
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_phenology",
+      "target": "append",
+      "line": 190
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_phenology",
+      "target": "_validate_nutrient_demand",
+      "line": 192
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "_validate_phenology",
+      "target": "_validate_nutrient_provenance",
+      "line": 193
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "load_crop_card",
+      "target": "_safe_id",
+      "line": 198
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "load_crop_card",
+      "target": "exists",
+      "line": 202
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "load_crop_card",
+      "target": "read_text",
+      "line": 204
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "load_crop_card",
+      "target": "safe_load",
+      "line": 204
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "list_crop_cards",
+      "target": "glob",
+      "line": 209
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "list_crop_cards",
+      "target": "sorted",
+      "line": 209
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "list_crop_cards",
+      "target": "startswith",
+      "line": 209
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_crop_card",
+      "target": "keys",
+      "line": 215
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_crop_card",
+      "target": "set",
+      "line": 215
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_crop_card",
+      "target": "append",
+      "line": 217
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_crop_card",
+      "target": "keys",
+      "line": 218
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_crop_card",
+      "target": "set",
+      "line": 218
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_crop_card",
+      "target": "append",
+      "line": 219
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_crop_card",
+      "target": "keys",
+      "line": 219
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_crop_card",
+      "target": "set",
+      "line": 219
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_crop_card",
+      "target": "keys",
+      "line": 220
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_crop_card",
+      "target": "set",
+      "line": 220
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_crop_card",
+      "target": "append",
+      "line": 221
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_crop_card",
+      "target": "keys",
+      "line": 221
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_crop_card",
+      "target": "set",
+      "line": 221
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_crop_card",
+      "target": "keys",
+      "line": 223
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_crop_card",
+      "target": "set",
+      "line": 223
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_crop_card",
+      "target": "append",
+      "line": 225
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_crop_card",
+      "target": "append",
+      "line": 229
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_crop_card",
+      "target": "_validate_phenology",
+      "line": 230
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_crop_card",
+      "target": "get",
+      "line": 231
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_crop_card",
+      "target": "len",
+      "line": 231
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "growth_stages",
+      "target": "load_crop_card",
+      "line": 240
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "growth_stages",
+      "target": "get",
+      "line": 243
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "growth_stages",
+      "target": "get",
+      "line": 243
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "growth_stages",
+      "target": "list",
+      "line": 243
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "stage_nutrient_demand",
+      "target": "growth_stages",
+      "line": 255
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "stage_nutrient_demand",
+      "target": "isinstance",
+      "line": 259
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "stage_nutrient_demand",
+      "target": "get",
+      "line": 261
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "stage_nutrient_demand",
+      "target": "isinstance",
+      "line": 262
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "stage_nutrient_demand",
+      "target": "keys",
+      "line": 262
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "stage_nutrient_demand",
+      "target": "set",
+      "line": 262
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "stage_nutrient_demand",
+      "target": "keys",
+      "line": 264
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "stage_nutrient_demand",
+      "target": "set",
+      "line": 264
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "stage_nutrient_demand",
+      "target": "append",
+      "line": 265
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "load_variety_card",
+      "target": "_safe_id",
+      "line": 297
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "load_variety_card",
+      "target": "exists",
+      "line": 301
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "load_variety_card",
+      "target": "read_text",
+      "line": 303
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "load_variety_card",
+      "target": "safe_load",
+      "line": 303
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "list_variety_cards",
+      "target": "exists",
+      "line": 308
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "list_variety_cards",
+      "target": "glob",
+      "line": 310
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "list_variety_cards",
+      "target": "sorted",
+      "line": 310
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "list_variety_cards",
+      "target": "startswith",
+      "line": 310
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "varieties_of_crop",
+      "target": "list_variety_cards",
+      "line": 316
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "varieties_of_crop",
+      "target": "load_variety_card",
+      "line": 317
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "varieties_of_crop",
+      "target": "get",
+      "line": 318
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "varieties_of_crop",
+      "target": "append",
+      "line": 319
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
       "source": "validate_variety_card",
       "target": "keys",
-      "line": 189
+      "line": 326
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
       "source": "validate_variety_card",
       "target": "set",
-      "line": 189
+      "line": 326
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
       "source": "validate_variety_card",
       "target": "append",
-      "line": 191
+      "line": 328
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
       "source": "validate_variety_card",
       "target": "get",
-      "line": 193
+      "line": 330
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_variety_card",
+      "target": "load_crop_card",
+      "line": 331
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
       "source": "validate_variety_card",
       "target": "append",
-      "line": 196
+      "line": 332
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
       "source": "validate_variety_card",
       "target": "append",
-      "line": 198
+      "line": 336
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_variety_card",
+      "target": "append",
+      "line": 338
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_variety_card",
+      "target": "keys",
+      "line": 340
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_variety_card",
+      "target": "set",
+      "line": 340
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_variety_card",
+      "target": "append",
+      "line": 342
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
       "source": "validate_variety_card",
       "target": "get",
-      "line": 199
+      "line": 344
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_variety_card",
+      "target": "append",
+      "line": 347
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_variety_card",
+      "target": "append",
+      "line": 349
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_cards/loader.py",
+      "source": "validate_variety_card",
+      "target": "get",
+      "line": 350
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_cards/loader.py",
       "source": "validate_variety_card",
       "target": "len",
-      "line": 199
+      "line": 350
     },
     {
       "owner": "sahool-platform",
@@ -373588,6 +374008,636 @@
       "source": "test_qat_varieties_neutral_not_promotional",
       "target": "load_variety_card",
       "line": 775
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_maize_curves_sum_to_one",
+      "target": "stage_nutrient_demand",
+      "line": 814
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_maize_curves_sum_to_one",
+      "target": "len",
+      "line": 815
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_maize_curves_sum_to_one",
+      "target": "abs",
+      "line": 817
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_maize_curves_sum_to_one",
+      "target": "sum",
+      "line": 817
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_maize_nitrogen_peak_after_emergence",
+      "target": "stage_nutrient_demand",
+      "line": 823
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_maize_potassium_front_loaded",
+      "target": "stage_nutrient_demand",
+      "line": 831
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_maize_provenance_structure",
+      "target": "load_crop_card",
+      "line": 839
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_maize_provenance_structure",
+      "target": "get",
+      "line": 840
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_maize_provenance_structure",
+      "target": "isinstance",
+      "line": 841
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_maize_provenance_structure",
+      "target": "isinstance",
+      "line": 845
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_maize_provenance_structure",
+      "target": "strip",
+      "line": 845
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_provenance_required_when_curves_present",
+      "target": "_nd",
+      "line": 855
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_provenance_required_when_curves_present",
+      "target": "_stage",
+      "line": 856
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_provenance_required_when_curves_present",
+      "target": "_stage",
+      "line": 856
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_provenance_required_when_curves_present",
+      "target": "_card",
+      "line": 857
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_provenance_required_when_curves_present",
+      "target": "validate_crop_card",
+      "line": 857
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_provenance_approximation_must_be_explicit_true",
+      "target": "_nd",
+      "line": 863
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_provenance_approximation_must_be_explicit_true",
+      "target": "_stage",
+      "line": 864
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_provenance_approximation_must_be_explicit_true",
+      "target": "_stage",
+      "line": 864
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_provenance_approximation_must_be_explicit_true",
+      "target": "_card",
+      "line": 865
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_provenance_approximation_must_be_explicit_true",
+      "target": "validate_crop_card",
+      "line": 873
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_provenance_approximation_must_be_explicit_true",
+      "target": "validate_crop_card",
+      "line": 875
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_absent_block_passes",
+      "target": "_stage",
+      "line": 880
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_absent_block_passes",
+      "target": "_stage",
+      "line": 880
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_absent_block_passes",
+      "target": "_card",
+      "line": 881
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_absent_block_passes",
+      "target": "validate_crop_card",
+      "line": 881
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_partial_block_fails",
+      "target": "_nd",
+      "line": 886
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_partial_block_fails",
+      "target": "_stage",
+      "line": 886
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_partial_block_fails",
+      "target": "_stage",
+      "line": 886
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_partial_block_fails",
+      "target": "_card",
+      "line": 887
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_partial_block_fails",
+      "target": "validate_crop_card",
+      "line": 887
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_partial_block_fails",
+      "target": "any",
+      "line": 889
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_sum_deviation_fails",
+      "target": "_nd",
+      "line": 895
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_sum_deviation_fails",
+      "target": "_stage",
+      "line": 895
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_sum_deviation_fails",
+      "target": "_nd",
+      "line": 896
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_sum_deviation_fails",
+      "target": "_stage",
+      "line": 896
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_sum_deviation_fails",
+      "target": "_card",
+      "line": 898
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_sum_deviation_fails",
+      "target": "validate_crop_card",
+      "line": 898
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_sum_deviation_fails",
+      "target": "any",
+      "line": 900
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_fraction_out_of_range_fails",
+      "target": "_nd",
+      "line": 906
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_fraction_out_of_range_fails",
+      "target": "_stage",
+      "line": 906
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_fraction_out_of_range_fails",
+      "target": "_nd",
+      "line": 907
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_fraction_out_of_range_fails",
+      "target": "_stage",
+      "line": 907
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_fraction_out_of_range_fails",
+      "target": "_card",
+      "line": 909
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_fraction_out_of_range_fails",
+      "target": "validate_crop_card",
+      "line": 909
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_fraction_out_of_range_fails",
+      "target": "any",
+      "line": 911
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_missing_source_fails",
+      "target": "_nd",
+      "line": 917
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_missing_source_fails",
+      "target": "_stage",
+      "line": 917
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_missing_source_fails",
+      "target": "_stage",
+      "line": 918
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_missing_source_fails",
+      "target": "_card",
+      "line": 920
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_missing_source_fails",
+      "target": "validate_crop_card",
+      "line": 920
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_missing_source_fails",
+      "target": "any",
+      "line": 922
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_helper_empty_for_card_without_curves",
+      "target": "stage_nutrient_demand",
+      "line": 927
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_malformed_stage_fails_without_exception",
+      "target": "_stage",
+      "line": 938
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_malformed_stage_fails_without_exception",
+      "target": "_card",
+      "line": 939
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_malformed_stage_fails_without_exception",
+      "target": "validate_crop_card",
+      "line": 939
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_malformed_stage_fails_without_exception",
+      "target": "any",
+      "line": 941
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_non_numeric_stage_days_fail_without_exception",
+      "target": "_stage",
+      "line": 947
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_non_numeric_stage_days_fail_without_exception",
+      "target": "_stage",
+      "line": 947
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_non_numeric_stage_days_fail_without_exception",
+      "target": "_card",
+      "line": 948
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_non_numeric_stage_days_fail_without_exception",
+      "target": "validate_crop_card",
+      "line": 948
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_non_numeric_stage_days_fail_without_exception",
+      "target": "any",
+      "line": 950
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_non_finite_stage_days_fail",
+      "target": "_stage",
+      "line": 956
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_non_finite_stage_days_fail",
+      "target": "_stage",
+      "line": 956
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_non_finite_stage_days_fail",
+      "target": "float",
+      "line": 956
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_non_finite_stage_days_fail",
+      "target": "_card",
+      "line": 957
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_non_finite_stage_days_fail",
+      "target": "validate_crop_card",
+      "line": 957
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_non_finite_stage_days_fail",
+      "target": "any",
+      "line": 959
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_boolean_fraction_is_rejected",
+      "target": "_nd",
+      "line": 966
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_boolean_fraction_is_rejected",
+      "target": "_stage",
+      "line": 966
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_boolean_fraction_is_rejected",
+      "target": "_nd",
+      "line": 967
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_boolean_fraction_is_rejected",
+      "target": "_stage",
+      "line": 967
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_boolean_fraction_is_rejected",
+      "target": "_card",
+      "line": 969
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_boolean_fraction_is_rejected",
+      "target": "validate_crop_card",
+      "line": 969
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_boolean_fraction_is_rejected",
+      "target": "any",
+      "line": 971
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_empty_nutrient_source_fails",
+      "target": "_nd",
+      "line": 978
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_empty_nutrient_source_fails",
+      "target": "_stage",
+      "line": 978
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_empty_nutrient_source_fails",
+      "target": "_nd",
+      "line": 979
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_empty_nutrient_source_fails",
+      "target": "_stage",
+      "line": 979
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_empty_nutrient_source_fails",
+      "target": "_card",
+      "line": 981
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_empty_nutrient_source_fails",
+      "target": "validate_crop_card",
+      "line": 981
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_empty_nutrient_source_fails",
+      "target": "any",
+      "line": 983
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_phenology_not_a_block_fails_without_exception",
+      "target": "_card",
+      "line": 989
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_phenology_not_a_block_fails_without_exception",
+      "target": "_stage",
+      "line": 989
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_phenology_not_a_block_fails_without_exception",
+      "target": "validate_crop_card",
+      "line": 991
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_phenology_not_a_block_fails_without_exception",
+      "target": "any",
+      "line": 993
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_helper_survives_a_malformed_card",
+      "target": "setattr",
+      "line": 999
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_helper_survives_a_malformed_card",
+      "target": "_nd",
+      "line": 1005
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_helper_survives_a_malformed_card",
+      "target": "_stage",
+      "line": 1005
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "source": "test_helper_survives_a_malformed_card",
+      "target": "stage_nutrient_demand",
+      "line": 1008
     },
     {
       "owner": "sahool-platform",
@@ -536758,6 +537808,17 @@
       "kind": "class",
       "file": "services/sahool-platform/tests/test_crop_cards.py",
       "line": 684,
+      "owner": "sahool-platform",
+      "decorated_route": false,
+      "reference_count": 0,
+      "confidence": "medium",
+      "action": "review_before_delete"
+    },
+    {
+      "symbol": "TestStageNutrientDemand",
+      "kind": "class",
+      "file": "services/sahool-platform/tests/test_crop_cards.py",
+      "line": 779,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,

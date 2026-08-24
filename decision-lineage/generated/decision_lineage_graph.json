@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 557,
+      "evidence_count": 561,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -371,6 +371,10 @@
         "services/sahool-platform/core/time_series.py",
         "services/sahool-platform/core/wind_geometry.py",
         "services/sahool-platform/core/yield_map_processing.py",
+        "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/decision-evidence-envelope.schema.json",
+        "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/evidence-chain.schema.json",
+        "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/irrigation-state-snapshot.schema.json",
+        "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/schema-catalog.json",
         "services/sahool-platform/smoke_e2e_test.py",
         "services/sahool-platform/storage/lite_store.py",
         "services/sahool-platform/tests/test_adapt_apply_loop.py",
@@ -599,7 +603,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 480,
+      "evidence_count": 482,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -930,6 +934,8 @@
         "services/sahool-platform/core/yield_map_processing.py",
         "services/sahool-platform/examples/tenant_data/tenants_001-aljawf-142ha/calibration/sunaydar_soil_reference.yaml",
         "services/sahool-platform/knowledge/conservative_rag.py",
+        "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/decision-evidence-envelope.schema.json",
+        "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/evidence-chain.schema.json",
         "services/sahool-platform/storage/lite_store.py",
         "services/sahool-platform/tests/_public_read_allowlist.json",
         "services/sahool-platform/tests/_public_read_taxonomy.json",
@@ -1111,7 +1117,7 @@
       "kind": "lineage_stage",
       "stage": "decision",
       "order": 3,
-      "evidence_count": 168,
+      "evidence_count": 170,
       "owners": [
         "ai_agronomist",
         "database",
@@ -1243,6 +1249,8 @@
         "services/sahool-platform/core/offline_first.py",
         "services/sahool-platform/core/outcome_reconciler.py",
         "services/sahool-platform/core/salinity_policy.py",
+        "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/decision-evidence-envelope.schema.json",
+        "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/evidence-chain.schema.json",
         "services/sahool-platform/tests/test_auto_persist_decisions.py",
         "services/sahool-platform/tests/test_crop_decision_bridge.py",
         "services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py",
@@ -1299,7 +1307,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 238,
+      "evidence_count": 240,
       "owners": [
         "ai_agronomist",
         "auth",
@@ -1473,6 +1481,8 @@
         "services/sahool-platform/core/source_of_truth.py",
         "services/sahool-platform/core/yield_map_processing.py",
         "services/sahool-platform/knowledge/farmer_knowledge.py",
+        "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/decision-evidence-envelope.schema.json",
+        "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/evidence-chain.schema.json",
         "services/sahool-platform/storage/lite_store.py",
         "services/sahool-platform/tests/test_agro_intelligence_endpoints.py",
         "services/sahool-platform/tests/test_boundary_confidence.py",
@@ -1932,7 +1942,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 273,
+      "evidence_count": 274,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2148,6 +2158,7 @@
         "services/sahool-platform/examples/tenant_data/districts/tihama/climate.yaml",
         "services/sahool-platform/examples/tenant_data/tenants_001-aljawf-142ha/farm_map.yaml",
         "services/sahool-platform/learn_from_harvest.py",
+        "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/evidence-chain.schema.json",
         "services/sahool-platform/sensor_health.yaml",
         "services/sahool-platform/storage/lite_store.py",
         "services/sahool-platform/tests/test_adapt_apply_loop.py",
@@ -2338,8 +2349,8 @@
         "services/sahool-platform/core/ai_artifacts.py",
         "services/sahool-platform/core/authorization.py"
       ],
-      "source_evidence_count": 557,
-      "target_evidence_count": 480,
+      "source_evidence_count": 561,
+      "target_evidence_count": 482,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2418,6 +2429,8 @@
         "services/sahool-platform/core/loop_referential_integrity.py",
         "services/sahool-platform/core/offline_first.py",
         "services/sahool-platform/core/outcome_reconciler.py",
+        "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/decision-evidence-envelope.schema.json",
+        "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/evidence-chain.schema.json",
         "services/sahool-platform/tests/test_crop_decision_bridge.py",
         "services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py",
         "services/sahool-platform/tests/test_decision_dispatch_endpoint.py",
@@ -2443,8 +2456,8 @@
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py"
       ],
-      "source_evidence_count": 480,
-      "target_evidence_count": 168,
+      "source_evidence_count": 482,
+      "target_evidence_count": 170,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2499,6 +2512,8 @@
         "services/sahool-platform/api/routers/irrigation_recommendation.py",
         "services/sahool-platform/api/water_decision_bridge.py",
         "services/sahool-platform/core/learning_source_lineage.py",
+        "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/decision-evidence-envelope.schema.json",
+        "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/evidence-chain.schema.json",
         "services/sahool-platform/tests/test_crop_decision_bridge.py",
         "services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py",
         "services/sahool-platform/tests/test_decision_review_endpoint.py",
@@ -2510,8 +2525,8 @@
         "shared/contracts/soil/p4.py",
         "shared/federated_agent_runtime.py"
       ],
-      "source_evidence_count": 168,
-      "target_evidence_count": 238,
+      "source_evidence_count": 170,
+      "target_evidence_count": 240,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2542,7 +2557,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 238,
+      "source_evidence_count": 240,
       "target_evidence_count": 32,
       "static_supported": true,
       "runtime_verified": false
@@ -2689,7 +2704,7 @@
         "services/vegetation-analysis-service/post_execution_bridge.py"
       ],
       "source_evidence_count": 49,
-      "target_evidence_count": 273,
+      "target_evidence_count": 274,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -2699,5 +2714,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "ee22da19eb9a9069bd5992494b5d75518ad84087470f845905cf58141d870cfc"
+  "content_sha256": "5e209520959f8cd3136bef9442d3fbd37594c839631319be3ef14edccd0b0107"
 }

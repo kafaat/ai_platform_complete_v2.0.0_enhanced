@@ -1418,6 +1418,50 @@
     ]
   },
   {
+    "path": "docs/contracts/IRRIGATION-CONTRACTS-v1.1-errata2.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "WX-005",
+        "score": 8,
+        "signals": [
+          "content:VPD",
+          "content:vpd"
+        ]
+      },
+      {
+        "capability_id": "WX-004",
+        "score": 8,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/contracts/IRRIGATION-DECISION-INTELLIGENCE-CORR1.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 8,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "IRR-004",
+        "score": 8,
+        "signals": [
+          "content:Water balance",
+          "content:water balance"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/history/COMPETITIVE_ANALYSIS.md",
     "kind": "other",
     "candidates": [
@@ -6750,6 +6794,50 @@
     ]
   },
   {
+    "path": "services/sahool-platform/core/crop_cards/_TEMPLATE.yaml",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 10,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "GIS-003",
+        "score": 8,
+        "signals": [
+          "content:dem",
+          "content:slope"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/maize.yaml",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 10,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "GIS-003",
+        "score": 9,
+        "signals": [
+          "content:dem",
+          "content:slope"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/core/crop_intelligence/engine.py",
     "kind": "backend",
     "candidates": [
@@ -7727,6 +7815,28 @@
           "content:Weather forecast",
           "content:forecast",
           "content:weather forecast"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/tests/test_crop_cards.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 12,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "GIS-003",
+        "score": 10,
+        "signals": [
+          "content:dem",
+          "content:slope"
         ]
       }
     ]
