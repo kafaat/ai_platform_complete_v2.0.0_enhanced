@@ -4248,10 +4248,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/sahool-platform/core/crop_cards/loader.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/sahool-platform/core/crop_cards/varieties/barley_bakkur.yaml",
     "kind": "backend"
   },
@@ -7877,6 +7873,10 @@
   },
   {
     "path": "tests_v9/test_rag_corpus_measurement_integrity.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_corpus_reconciliation_executor.py",
     "kind": "tests"
   },
   {

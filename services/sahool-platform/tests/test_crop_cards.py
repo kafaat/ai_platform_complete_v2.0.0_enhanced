@@ -774,3 +774,235 @@ class TestYemenVarietyCardsResearched:
         for vid in ("qat_shami", "qat_baladi"):
             note = load_variety_card(vid)["passport"]["collection_note_ar"]
             assert "ترويجيّ" in note, vid
+
+
+class TestStageNutrientDemand:
+    """منحنيات الطلب الغذائيّ لكلّ مرحلة (nutrient_demand) — كتلة اختياريّة بقاعدة الكلّ أو لا شيء."""
+
+    def _card(self, stages):
+        return {
+            "crop_id": "t",
+            "name_ar": "ت",
+            "name_en": "t",
+            "crop_family": "t",
+            "kc": {
+                "initial": 0.3,
+                "mid": 1.1,
+                "end": 0.5,
+                "stage_days": [10, 10, 10, 10],
+                "source": "s",
+            },
+            "salinity": {"threshold_ece_ds_m": 1.0, "slope_pct_per_ds_m": 5.0, "source": "s"},
+            "thermal": {},
+            "governing": {},
+            "modifying": {},
+            "phenology": {"source": "s", "total_cycle_days": 40, "stages": stages},
+        }
+
+    def _stage(self, name, start, end, nd=None):
+        st = {"stage": name, "name_ar": name, "day_start": start, "day_end": end}
+        if nd is not None:
+            st["nutrient_demand"] = nd
+        return st
+
+    def _nd(self, n, p, k, source="s"):
+        return {"n_fraction": n, "p_fraction": p, "k_fraction": k, "source": source}
+
+    def test_maize_curves_sum_to_one(self):
+        from core.crop_cards.loader import stage_nutrient_demand
+
+        curve = stage_nutrient_demand("maize")
+        assert len(curve) == 4
+        for key in ("n_fraction", "p_fraction", "k_fraction"):
+            assert abs(sum(s[key] for s in curve) - 1.0) <= 0.02, key
+
+    def test_maize_nitrogen_peak_after_emergence(self):
+        # N يجب أن تكون ذروته development+mid لا initial (فسيولوجيا الذرة)
+        from core.crop_cards.loader import stage_nutrient_demand
+
+        curve = {s["stage"]: s["n_fraction"] for s in stage_nutrient_demand("maize")}
+        assert curve["initial"] < curve["development"]
+        assert curve["late"] < curve["mid"]
+
+    def test_maize_potassium_front_loaded(self):
+        # K يتقدّم على N زمنيّاً (Bender et al. 2013)
+        from core.crop_cards.loader import stage_nutrient_demand
+
+        curve = {s["stage"]: s for s in stage_nutrient_demand("maize")}
+        assert curve["initial"]["k_fraction"] >= curve["initial"]["n_fraction"]
+        assert curve["late"]["k_fraction"] < curve["late"]["n_fraction"]
+
+    def test_maize_provenance_structure(self):
+        """سلسلة اشتقاق بنيويّة — تلزم البنية القابلة لإعادة البناء، ولا تجمّد قيماً علميّة."""
+        from core.crop_cards.loader import load_crop_card
+
+        card = load_crop_card("maize")
+        prov = card["phenology"].get("nutrient_demand_provenance")
+        assert isinstance(prov, dict)
+        for key in ("primary_reference", "derivation", "stage_mapping", "approximation"):
+            assert key in prov, key
+        for key in ("primary_reference", "derivation", "stage_mapping"):
+            assert isinstance(prov[key], str) and prov[key].strip(), key
+        assert prov["approximation"] is True  # تصريح تقريب صريح، لا ضمنيّ
+        # تعيين المراحل يذكر مراحل البطاقة الأربع كلّها
+        for stage in ("initial", "development", "mid", "late"):
+            assert stage in prov["stage_mapping"], stage
+
+    def test_provenance_required_when_curves_present(self):
+        """منحنيات طلب بلا كتلة nutrient_demand_provenance تُرفَض — لا كسراً بلا مصدر."""
+        from core.crop_cards.loader import validate_crop_card
+
+        nd = self._nd(0.5, 0.5, 0.5)
+        stages = [self._stage("a", 0, 20, nd), self._stage("b", 20, 40, nd)]
+        assert not validate_crop_card(self._card(stages))["valid"]
+
+    def test_provenance_approximation_must_be_explicit_true(self):
+        """approximation ليس true صراحةً (غائب/نصّ/False) ⇒ البطاقة مرفوضة."""
+        from core.crop_cards.loader import validate_crop_card
+
+        nd = self._nd(0.5, 0.5, 0.5)
+        stages = [self._stage("a", 0, 20, nd), self._stage("b", 20, 40, nd)]
+        card = self._card(stages)
+        prov = {
+            "primary_reference": "r",
+            "derivation": "d",
+            "stage_mapping": "m",
+            "approximation": "yes",
+        }
+        card["phenology"]["nutrient_demand_provenance"] = prov
+        assert not validate_crop_card(card)["valid"]
+        prov["approximation"] = True
+        assert validate_crop_card(card)["valid"]
+
+    def test_absent_block_passes(self):
+        from core.crop_cards.loader import validate_crop_card
+
+        stages = [self._stage("a", 0, 20), self._stage("b", 20, 40)]
+        assert validate_crop_card(self._card(stages))["valid"]
+
+    def test_partial_block_fails(self):
+        from core.crop_cards.loader import validate_crop_card
+
+        stages = [self._stage("a", 0, 20, self._nd(0.5, 0.5, 0.5)), self._stage("b", 20, 40)]
+        v = validate_crop_card(self._card(stages))
+        assert not v["valid"]
+        assert any("الكلّ أو لا شيء" in e for e in v["errors"])
+
+    def test_sum_deviation_fails(self):
+        from core.crop_cards.loader import validate_crop_card
+
+        stages = [
+            self._stage("a", 0, 20, self._nd(0.5, 0.5, 0.5)),
+            self._stage("b", 20, 40, self._nd(0.3, 0.5, 0.5)),
+        ]
+        v = validate_crop_card(self._card(stages))
+        assert not v["valid"]
+        assert any("n_fraction" in e and "1.0" in e for e in v["errors"])
+
+    def test_fraction_out_of_range_fails(self):
+        from core.crop_cards.loader import validate_crop_card
+
+        stages = [
+            self._stage("a", 0, 20, self._nd(1.5, 0.5, 0.5)),
+            self._stage("b", 20, 40, self._nd(-0.5, 0.5, 0.5)),
+        ]
+        v = validate_crop_card(self._card(stages))
+        assert not v["valid"]
+        assert any("[0, 1]" in e for e in v["errors"])
+
+    def test_missing_source_fails(self):
+        from core.crop_cards.loader import validate_crop_card
+
+        stages = [
+            self._stage("a", 0, 20, self._nd(0.5, 0.5, 0.5)),
+            self._stage("b", 20, 40, {"n_fraction": 0.5, "p_fraction": 0.5, "k_fraction": 0.5}),
+        ]
+        v = validate_crop_card(self._card(stages))
+        assert not v["valid"]
+        assert any("nutrient_demand ناقص" in e for e in v["errors"])
+
+    def test_helper_empty_for_card_without_curves(self):
+        from core.crop_cards.loader import stage_nutrient_demand
+
+        assert stage_nutrient_demand("wheat") == []
+
+    # ── تصليب fail-closed: بيانات YAML مشوّهة تُنتج valid=False لا استثناءً ──
+    # كلّ حالةٍ أدناه قِيست على الشيفرة قبل التصليب: الأولى والثانية والسادسة
+    # كانت **ترمي**، والثالثة والرابعة والخامسة كانت **تمرّ صحيحةً صامتةً** —
+    # وهي أخطر، لأنّ طبقة التحقّق تقول «سليم» عن مُدخَلٍ لا تفهمه.
+
+    def test_malformed_stage_fails_without_exception(self):
+        """مرحلةٌ ليست كتلة كانت ترمي AttributeError على `st.keys()`."""
+        from core.crop_cards.loader import validate_crop_card
+
+        stages = [self._stage("a", 0, 20), "not-a-stage"]
+        v = validate_crop_card(self._card(stages))
+        assert not v["valid"]
+        assert any("ليست كتلة" in e for e in v["errors"])
+
+    def test_non_numeric_stage_days_fail_without_exception(self):
+        """حدٌّ نصّيّ كان يرمي TypeError لأنّ المقارنة تسبق فحص النوع."""
+        from core.crop_cards.loader import validate_crop_card
+
+        stages = [self._stage("a", "0", 20), self._stage("b", 20, 40)]
+        v = validate_crop_card(self._card(stages))
+        assert not v["valid"]
+        assert any("أرقاماً منتهية" in e for e in v["errors"])
+
+    def test_non_finite_stage_days_fail(self):
+        """NaN في حدود الأيام كان **يمرّ صحيحاً**: كلّ مقارناته False."""
+        from core.crop_cards.loader import validate_crop_card
+
+        stages = [self._stage("a", 0, float("nan")), self._stage("b", 20, 40)]
+        v = validate_crop_card(self._card(stages))
+        assert not v["valid"]
+        assert any("أرقاماً منتهية" in e for e in v["errors"])
+
+    def test_boolean_fraction_is_rejected(self):
+        """`True` كسراً كان ينفذ متى بلغ المجموع 1.0 — bool وريثُ int."""
+        from core.crop_cards.loader import validate_crop_card
+
+        stages = [
+            self._stage("a", 0, 20, self._nd(True, 0.3, 0.3)),
+            self._stage("b", 20, 40, self._nd(0.0, 0.7, 0.7)),
+        ]
+        v = validate_crop_card(self._card(stages))
+        assert not v["valid"]
+        assert any("n_fraction" in e and "True" in e for e in v["errors"])
+
+    def test_empty_nutrient_source_fails(self):
+        """مصدرٌ فارغ كان يمرّ: الوجودُ كان مقيساً لا المحتوى."""
+        from core.crop_cards.loader import validate_crop_card
+
+        stages = [
+            self._stage("a", 0, 20, self._nd(0.5, 0.5, 0.5, source="")),
+            self._stage("b", 20, 40, self._nd(0.5, 0.5, 0.5)),
+        ]
+        v = validate_crop_card(self._card(stages))
+        assert not v["valid"]
+        assert any("source" in e for e in v["errors"])
+
+    def test_phenology_not_a_block_fails_without_exception(self):
+        """phenology غير كتلةٍ كانت ترمي AttributeError على `ph.get`."""
+        from core.crop_cards.loader import validate_crop_card
+
+        card = self._card([self._stage("a", 0, 20)])
+        card["phenology"] = "not-a-block"
+        v = validate_crop_card(card)
+        assert not v["valid"]
+        assert any("phenology ليست كتلة" in e for e in v["errors"])
+
+    def test_helper_survives_a_malformed_card(self, monkeypatch):
+        """المساعدُ يقرأ بطاقةً قد لا تكون مرّت بالتحقّق — يتخطّى ولا يُسقِط."""
+        from core.crop_cards import loader
+
+        monkeypatch.setattr(
+            loader,
+            "growth_stages",
+            lambda _crop: [
+                "not-a-stage",
+                {"stage": "a", "nutrient_demand": {"n_fraction": 0.5}},
+                self._stage("b", 20, 40, self._nd(0.5, 0.5, 0.5)),
+            ],
+        )
+        assert [s["stage"] for s in loader.stage_nutrient_demand("t")] == ["b"]

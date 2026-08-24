@@ -6750,6 +6750,50 @@
     ]
   },
   {
+    "path": "services/sahool-platform/core/crop_cards/_TEMPLATE.yaml",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 10,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "GIS-003",
+        "score": 8,
+        "signals": [
+          "content:dem",
+          "content:slope"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/maize.yaml",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 10,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "GIS-003",
+        "score": 9,
+        "signals": [
+          "content:dem",
+          "content:slope"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/core/crop_intelligence/engine.py",
     "kind": "backend",
     "candidates": [
@@ -7727,6 +7771,28 @@
           "content:Weather forecast",
           "content:forecast",
           "content:weather forecast"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/tests/test_crop_cards.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 12,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "GIS-003",
+        "score": 10,
+        "signals": [
+          "content:dem",
+          "content:slope"
         ]
       }
     ]

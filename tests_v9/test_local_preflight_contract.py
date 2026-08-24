@@ -119,7 +119,7 @@ def test_skips_are_counted_and_the_summary_refuses_to_overclaim():
     text = _text()
     assert "skipped=$((skipped + 1))" in text, "a skipped gate must be counted, not swallowed"
     assert "لم تُقَس" in text
-    assert "٢٠٩" in text and "٧١" in text, (
+    assert "٢٦١" in text and "٨٦" in text, (
         "the summary must state the measured coverage ratio, not imply completeness"
     )
     assert "ادفع بثقة" not in text
