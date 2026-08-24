@@ -2773,6 +2773,7 @@
         "services/raster-service/test_router_query_direct_call.py",
         "services/raster-service/test_terrain_render.py",
         "services/sahool-platform/tests/test_agronomic_context_composer.py",
+        "services/sahool-platform/tests/test_crop_cards.py",
         "services/sahool-platform/tests/test_dem_enrichment.py",
         "services/sahool-platform/tests/test_field_intelligence_card.py",
         "services/sahool-platform/tests/test_field_workspace.py",
