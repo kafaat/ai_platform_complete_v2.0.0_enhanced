@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5176,
+    "files_scanned": 5178,
     "files_by_kind": {
-      "backend": 1203,
+      "backend": 1204,
       "database": 274,
       "governance": 60,
       "mobile": 51,
       "other": 1420,
-      "tests": 1712,
+      "tests": 1713,
       "web": 456
     },
     "unmapped_artifacts": 2109,
@@ -37,6 +37,16 @@
         {
           "path": "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/decision-evidence-envelope.schema.json",
           "score": 24,
+          "signals": [
+            "path:Decision evidence",
+            "content:Decision evidence",
+            "path:decision evidence",
+            "content:decision evidence"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+          "score": 22,
           "signals": [
             "path:Decision evidence",
             "content:Decision evidence",
@@ -81,6 +91,16 @@
       "mobile": [],
       "tests": [
         {
+          "path": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+          "score": 24,
+          "signals": [
+            "path:Decision evidence",
+            "content:Decision evidence",
+            "path:decision evidence",
+            "content:decision evidence"
+          ]
+        },
+        {
           "path": "services/decision-service/tests/test_decision_evidence_read.py",
           "score": 16,
           "signals": [
@@ -104,13 +124,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 2,
+        "backend": 3,
         "routes": 0,
         "database": 0,
         "events": 5,
         "web": 0,
         "mobile": 0,
-        "tests": 2,
+        "tests": 3,
         "governance": 0,
         "other_evidence": 0
       },

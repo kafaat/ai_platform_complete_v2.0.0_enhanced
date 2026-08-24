@@ -438,6 +438,13 @@
   "exceptions": [
     {
       "category": "platform_domain_compute",
+      "identity": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "owner": "IRR-CORR1-evidence-chain",
+      "reason": "مُتحقِّقُ عقد EvidenceChain v1.1-errata2 (E1/E2) — طبقةُ تحقّقٍ ونسبٍ فحسب، لا تُنشئ ريّاً ولا تسميداً ولا MPC ولا أمراً لمُشغِّل. ولا مستهلكَ إنتاجيّاً له اليوم بالقياس: المستورِدُ الوحيد ملفُّ اختباره. الإغلاق بمستهلكٍ حيٍّ في مسار أدلّة C6 أو بانتقالٍ إلى خدمته المالكة، لا بإعفاء عدّ.",
+      "target_close_by": "2026-12-31"
+    },
+    {
+      "category": "platform_domain_compute",
       "identity": "services/sahool-platform/core/yield_map_processing.py",
       "owner": "C3-precision-execution",
       "reason": "وحدة C3 مقصودة ملاصقة لحالة الحقل القانونيّة؛ الخروج إلى خدمة مالكة يتبع مسار S5-EXEC بدليل مستهلكين، لا إعفاء عدّ.",

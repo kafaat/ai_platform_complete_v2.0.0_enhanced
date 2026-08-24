@@ -3,9 +3,9 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1866,
+    "python_files_parsed": 1868,
     "route_handlers": 1049,
-    "call_edges": 75169,
+    "call_edges": 75343,
     "dead_code_candidates": 621,
     "duplicate_function_groups": 61,
     "route_owners": 27,
@@ -204198,6 +204198,692 @@
     },
     {
       "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_reject_nonfinite",
+      "target": "isinstance",
+      "line": 41
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_reject_nonfinite",
+      "target": "isfinite",
+      "line": 42
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_reject_nonfinite",
+      "target": "ValueError",
+      "line": 43
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_reject_nonfinite",
+      "target": "isinstance",
+      "line": 45
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_reject_nonfinite",
+      "target": "values",
+      "line": 46
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_reject_nonfinite",
+      "target": "isinstance",
+      "line": 48
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "canonical_json",
+      "target": "_reject_nonfinite",
+      "line": 55
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "canonical_json",
+      "target": "dumps",
+      "line": 56
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "canonical_json",
+      "target": "encode",
+      "line": 56
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "stage_digest",
+      "target": "dict",
+      "line": 67
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "stage_digest",
+      "target": "pop",
+      "line": 68
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "stage_digest",
+      "target": "pop",
+      "line": 69
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "stage_digest",
+      "target": "pop",
+      "line": 70
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "stage_digest",
+      "target": "canonical_json",
+      "line": 71
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "stage_digest",
+      "target": "hexdigest",
+      "line": 71
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "stage_digest",
+      "target": "sha256",
+      "line": 71
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_validator",
+      "target": "loads",
+      "line": 75
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_validator",
+      "target": "read_text",
+      "line": 75
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_validator",
+      "target": "Draft202012Validator",
+      "line": 76
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_validator",
+      "target": "FormatChecker",
+      "line": 76
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "validate_stage_schema",
+      "target": "_validator",
+      "line": 81
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "validate_stage_schema",
+      "target": "iter_errors",
+      "line": 81
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "validate_stage_schema",
+      "target": "list",
+      "line": 81
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "validate_stage_schema",
+      "target": "sorted",
+      "line": 81
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "validate_stage_schema",
+      "target": "join",
+      "line": 82
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "validate_stage_schema",
+      "target": "map",
+      "line": 82
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "verify_chain",
+      "target": "_verify_common",
+      "line": 91
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "verify_chain",
+      "target": "len",
+      "line": 93
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "verify_chain",
+      "target": "len",
+      "line": 93
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "verify_chain",
+      "target": "append",
+      "line": 94
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "verify_chain",
+      "target": "len",
+      "line": 94
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "verify_chain",
+      "target": "list",
+      "line": 96
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "verify_chain",
+      "target": "append",
+      "line": 99
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "verify_chain",
+      "target": "_result",
+      "line": 100
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "verify_prefix",
+      "target": "_verify_common",
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "verify_prefix",
+      "target": "len",
+      "line": 108
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "verify_prefix",
+      "target": "list",
+      "line": 108
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "verify_prefix",
+      "target": "append",
+      "line": 117
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "verify_prefix",
+      "target": "_result",
+      "line": 118
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 126
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 127
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "len",
+      "line": 128
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "append",
+      "line": 129
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "len",
+      "line": 130
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "append",
+      "line": 131
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "set",
+      "line": 133
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "enumerate",
+      "line": 134
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "extend",
+      "line": 135
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "validate_stage_schema",
+      "line": 135
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 136
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "append",
+      "line": 137
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 137
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "add",
+      "line": 138
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 138
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "append",
+      "line": 141
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 143
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 145
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 145
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "stage_digest",
+      "line": 145
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "append",
+      "line": 146
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 148
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "append",
+      "line": 149
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 151
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 155
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "append",
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 157
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 157
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "append",
+      "line": 158
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 161
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 161
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "append",
+      "line": 162
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 163
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 163
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "append",
+      "line": 164
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 167
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 168
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 169
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 170
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 171
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 171
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "append",
+      "line": 172
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 173
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 173
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 173
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "append",
+      "line": 176
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 178
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 180
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 181
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "append",
+      "line": 182
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 184
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 186
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "get",
+      "line": 187
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_verify_common",
+      "target": "append",
+      "line": 188
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_result",
+      "target": "get",
+      "line": 197
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_result",
+      "target": "get",
+      "line": 198
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_result",
+      "target": "len",
+      "line": 199
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "source": "_result",
+      "target": "get",
+      "line": 200
+    },
+    {
+      "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_dispatch_relay.py",
       "source": "build_reservation_dispatch_ingest",
       "target": "ValueError",
@@ -407223,6 +407909,538 @@
       "source": "test_digest_is_deterministic",
       "target": "datetime",
       "line": 167
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_base",
+      "target": "_ulid",
+      "line": 24
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_base",
+      "target": "_ulid",
+      "line": 25
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_base",
+      "target": "isoformat",
+      "line": 35
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_base",
+      "target": "now",
+      "line": 35
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_base",
+      "target": "replace",
+      "line": 35
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_base",
+      "target": "replace",
+      "line": 35
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "_ulid",
+      "line": 41
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "range",
+      "line": 41
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "str",
+      "line": 41
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "_base",
+      "line": 43
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "_ulid",
+      "line": 44
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "update",
+      "line": 44
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "append",
+      "line": 45
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "_base",
+      "line": 47
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "update",
+      "line": 48
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "_ulid",
+      "line": 50
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "append",
+      "line": 63
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "_base",
+      "line": 65
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "update",
+      "line": 66
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "_ulid",
+      "line": 68
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "append",
+      "line": 83
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "_base",
+      "line": 85
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "update",
+      "line": 86
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "append",
+      "line": 101
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "_base",
+      "line": 103
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "update",
+      "line": 104
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "_ulid",
+      "line": 107
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "append",
+      "line": 113
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "_base",
+      "line": 115
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "update",
+      "line": 116
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "append",
+      "line": 126
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "_base",
+      "line": 128
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "update",
+      "line": 129
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "append",
+      "line": 141
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "_base",
+      "line": 143
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "update",
+      "line": 144
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "append",
+      "line": 159
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "_base",
+      "line": 161
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "update",
+      "line": 162
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "_ulid",
+      "line": 176
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "append",
+      "line": 180
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "enumerate",
+      "line": 183
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_chain",
+      "target": "stage_digest",
+      "line": 186
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_full_chain_verifies",
+      "target": "_chain",
+      "line": 191
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_full_chain_verifies",
+      "target": "verify_chain",
+      "line": 191
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_parent_tamper_is_rejected",
+      "target": "_chain",
+      "line": 196
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_parent_tamper_is_rejected",
+      "target": "verify_chain",
+      "line": 198
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_content_tamper_is_rejected_even_when_digest_is_stale",
+      "target": "_chain",
+      "line": 202
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_content_tamper_is_rejected_even_when_digest_is_stale",
+      "target": "verify_chain",
+      "line": 204
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_prefix_is_valid_for_decision_c6",
+      "target": "_chain",
+      "line": 208
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_prefix_is_valid_for_decision_c6",
+      "target": "verify_prefix",
+      "line": 209
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_non_finite_json_is_rejected",
+      "target": "canonical_json",
+      "line": 216
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_non_finite_json_is_rejected",
+      "target": "float",
+      "line": 216
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_non_finite_json_is_rejected",
+      "target": "AssertionError",
+      "line": 220
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "_relink",
+      "target": "stage_digest",
+      "line": 236
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_parent_stage_id_link_is_checked_on_its_own",
+      "target": "_chain",
+      "line": 246
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_parent_stage_id_link_is_checked_on_its_own",
+      "target": "_relink",
+      "line": 246
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_parent_stage_id_link_is_checked_on_its_own",
+      "target": "_ulid",
+      "line": 247
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_parent_stage_id_link_is_checked_on_its_own",
+      "target": "_relink",
+      "line": 248
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_parent_stage_id_link_is_checked_on_its_own",
+      "target": "verify_chain",
+      "line": 249
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_parent_stage_id_link_is_checked_on_its_own",
+      "target": "any",
+      "line": 251
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_parent_digest_link_is_checked_on_its_own",
+      "target": "_chain",
+      "line": 258
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_parent_digest_link_is_checked_on_its_own",
+      "target": "_relink",
+      "line": 258
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_parent_digest_link_is_checked_on_its_own",
+      "target": "_relink",
+      "line": 260
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_parent_digest_link_is_checked_on_its_own",
+      "target": "verify_chain",
+      "line": 261
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_parent_digest_link_is_checked_on_its_own",
+      "target": "any",
+      "line": 263
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_an_invalid_prefix_is_rejected_not_only_a_valid_one_accepted",
+      "target": "_chain",
+      "line": 274
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_an_invalid_prefix_is_rejected_not_only_a_valid_one_accepted",
+      "target": "verify_prefix",
+      "line": 276
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_non_finite_rejection_carries_the_contract_reason_not_a_generic_one",
+      "target": "raises",
+      "line": 292
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_non_finite_rejection_carries_the_contract_reason_not_a_generic_one",
+      "target": "canonical_json",
+      "line": 293
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_non_finite_rejection_carries_the_contract_reason_not_a_generic_one",
+      "target": "float",
+      "line": 293
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_the_schema_pins_stage_to_sequence_which_is_why_prefix_mismatch_is_unreachable",
+      "target": "_chain",
+      "line": 312
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_the_schema_pins_stage_to_sequence_which_is_why_prefix_mismatch_is_unreachable",
+      "target": "enumerate",
+      "line": 312
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_the_schema_pins_stage_to_sequence_which_is_why_prefix_mismatch_is_unreachable",
+      "target": "len",
+      "line": 313
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_the_schema_pins_stage_to_sequence_which_is_why_prefix_mismatch_is_unreachable",
+      "target": "range",
+      "line": 313
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+      "source": "test_the_schema_pins_stage_to_sequence_which_is_why_prefix_mismatch_is_unreachable",
+      "target": "validate_stage_schema",
+      "line": 314
     },
     {
       "owner": "sahool-platform",

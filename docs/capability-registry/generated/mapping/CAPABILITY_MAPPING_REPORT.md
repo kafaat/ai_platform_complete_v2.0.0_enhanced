@@ -12,7 +12,7 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **49**
-- Files scanned: **5176**
+- Files scanned: **5178**
 - Ambiguous artifacts queued: **410**
 - Unmapped artifacts queued: **2109**
 
@@ -20,7 +20,7 @@
 
 | ID | Domain | Backend | Routes | DB | Events | Web | Mobile | Tests | Dimensions |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| DEC-001 | decision | 2 | 0 | 0 | 5 | 0 | 0 | 2 | 3 |
+| DEC-001 | decision | 3 | 0 | 0 | 5 | 0 | 0 | 3 | 3 |
 | DEC-002 | decision | 1 | 0 | 0 | 2 | 0 | 0 | 4 | 3 |
 | DEC-003 | decision | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | DEC-004 | decision | 9 | 20 | 24 | 30 | 0 | 0 | 15 | 5 |

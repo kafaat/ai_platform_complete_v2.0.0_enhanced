@@ -1157,6 +1157,47 @@
           "why": "قراءة NOT_MEASURED نجاحاً تعيد صنف «أخضر عن سؤالٍ لم يُطرَح»: تشغيلٌ جافّ بلا الخطوات ٦–١٣ يخرج PASS فيُقرأ اعتماداً حيّاً لم يُقَس — والحكم لا يكون PASS إلا بالثلاث عشرة كلّها."
         }
       ]
+    },
+    "services/sahool-platform/api/irrigation_decision_evidence_chain.py": {
+      "$why_ar": "مُتحقِّقُ سلسلة الأدلّة fail-closed. والخطرُ المقيس هنا **تغطيةٌ بالاسم لا بالأثر**: الرقعةُ الواردة أعلنت «٥ اختبارات تُغطّي parent tamper وC6 وNaN»، فنجت **٤ من ٥** طفرات — لأنّ العبثَ بالمحتوى يُغيّر بصمةَ المرحلة فيُمسَك بحارس E1 قبل أن يبلغ حارسَ E2. **ثغرةٌ يسترها حارسٌ مجاور.** فتُعاد البصماتُ بعد العبث في كلّ طفرةٍ أدناه، كي يُعزَل الحارسُ المقصودُ ويكون احمرارُه شهادةً له وحدَه.",
+      "mutations": [
+        {
+          "expect": "test_parent_stage_id_link_is_checked_on_its_own",
+          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+          "find": "            if stage.get(\"parent_stage_id\") != previous.get(\"stage_id\"):",
+          "replace": "            if False:  # mutated: رابطُ الأب لا يُفحَص",
+          "why": "الحقلُ كان **بلا اختبارٍ إطلاقاً**: `test_parent_tamper_is_rejected` يعبث بـ`parent_digest` لا به، والاسمُ يوحي بتغطيةٍ لا توجد."
+        },
+        {
+          "expect": "test_parent_digest_link_is_checked_on_its_own",
+          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+          "find": "            if stage.get(\"parent_digest\") != previous.get(\"stage_digest\"):",
+          "replace": "            if False:  # mutated: بصمةُ الأب لا تُفحَص",
+          "why": "كان مستوراً بحارس E1: العبثُ بالبصمة يُغيّر المحتوى فيُمسَك قبل بلوغ E2. العزلُ بإعادة حساب البصمات."
+        },
+        {
+          "expect": "test_content_tamper_is_rejected_even_when_digest_is_stale",
+          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+          "find": "        if stage.get(\"stage_digest\") and stage_digest(stage) != stage.get(\"stage_digest\"):",
+          "replace": "        if False:  # mutated: بصمةُ المرحلة لا تُفحَص",
+          "why": "E1: محتوًى مُعدَّلٌ ببصمةٍ بائتة يُقرأ صحيحاً — وهو الحارسُ الوحيد الذي كذّبته الرقعةُ الواردة."
+        },
+        {
+          "expect": "test_non_finite_rejection_carries_the_contract_reason_not_a_generic_one",
+          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+          "find": "        if not math.isfinite(value):",
+          "replace": "        if False:  # mutated: يُترَك الرفضُ لـjson",
+          "why": "`json.dumps(allow_nan=False)` يرفض NaN وحدَه، فكان `_reject_nonfinite` **زائداً غيرَ مُثبَت** (مقيسٌ بتعطيله في الذاكرة: بقي الرفض). فالمُثبَّت هو **الرسالة** لا الرفض: «E1» تقول أيَّ عقدٍ خُولِف، والعامّةُ تترك القارئ يخمّن."
+        },
+        {
+          "expect": "test_the_schema_pins_stage_to_sequence_which_is_why_prefix_mismatch_is_unreachable",
+          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+          "find": "def validate_stage_schema(stage: dict[str, Any]) -> list[str]:",
+          "replace": "def validate_stage_schema(stage: dict[str, Any]) -> list[str]:\n    return []  # mutated: المخطَّط يرتخي",
+          "why": "يحرس **البرهان** لا الفرع: فرعُ `prefix mismatch` غيرُ قابل للبلوغ ما دام المخطَّطُ يُثبِّت (المرحلة ⇄ التسلسل) — مُبرهَنٌ بجداءٍ كامل ٩×٩ بصفر موضعٍ حرّ. فإن ارتخى المخطَّطُ عاد الفرعُ حيّاً ووجب تكذيبٌ خاصّ به، وهذا الاختبارُ هو ما يكشف ذلك بدل أن يبقى «مُغطًّى» بادّعاءٍ قديم."
+        }
+      ],
+      "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py"
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
