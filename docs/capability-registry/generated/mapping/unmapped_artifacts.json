@@ -4972,6 +4972,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/fertigation-state.schema.json",
+    "kind": "backend"
+  },
+  {
     "path": "services/sahool-platform/sensor_health.yaml",
     "kind": "backend"
   },

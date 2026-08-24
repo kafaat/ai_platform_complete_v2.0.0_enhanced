@@ -32,7 +32,7 @@
       "domain": "decision",
       "evidence": {
         "api": true,
-        "backend": false,
+        "backend": true,
         "database": false,
         "documentation": true,
         "events": true,
@@ -51,7 +51,7 @@
           "type": "api"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "backend"
         },
@@ -106,7 +106,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 5,
+      "evidence_score": 6,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",

@@ -1,0 +1,854 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sahool.dev/schemas/irrigation-contracts/v1.1-errata2/evidence-chain.schema.json",
+  "title": "EvidenceChainStage",
+  "description": "سلسلة أدلة خطية سببية — EvidenceChain v1.1-errata2. schema_id في الحمولة ثابت (sahool.evidence-chain-stage/v1.1) وcontract_revision = v1.1-errata2. القيود غير القابلة للتمثيل داخل JSON Schema — E1 (canonicalization/digest الحتمي) وE2 (الاتصال الصارم عبر السلسلة كلها وربط parent_digest الفعلي) — تُطبَّق في طبقة تحقق خارجية؛ هذه السكيما تفرض ما هو قابل للتمثيل: البنية، الأنواع، الأنماط، ترتيب sequence الثابت لكل مرحلة، وجذر السلسلة. تشديد إضافي: المراحل غير الجذرية تفرض parent_stage_id وparent_digest غير فارغين بنيويًا (لا يغني عن E2 الخارجي).",
+  "type": "object",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/CanonicalStateStage"
+    },
+    {
+      "$ref": "#/$defs/PredictionStage"
+    },
+    {
+      "$ref": "#/$defs/DecisionCandidateStage"
+    },
+    {
+      "$ref": "#/$defs/HydraulicFeasibilityStage"
+    },
+    {
+      "$ref": "#/$defs/ExecutionStage"
+    },
+    {
+      "$ref": "#/$defs/AsAppliedStage"
+    },
+    {
+      "$ref": "#/$defs/ObservedOutcomeStage"
+    },
+    {
+      "$ref": "#/$defs/PredictionErrorStage"
+    },
+    {
+      "$ref": "#/$defs/ModelCalibrationCandidateStage"
+    }
+  ],
+  "$defs": {
+    "Ulid": {
+      "type": "string",
+      "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$",
+      "description": "ULID بترميز Crockford Base32 (يستثني I وL وO وU). المحرف الأول مقيَّد بـ[0-7]: خانة الزمن العليا في ULID ذي 128 بت لا تتجاوز 7 — النمط الأوسع كان يقبل معرّفات مستحيلة (رقعة مراجعة ما قبل الإيداع)."
+    },
+    "Sha256Hex": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "IsoDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})$",
+      "description": "RFC3339 مفروض بالنمط لا بـformat وحده: في Draft 2020-12 الـformat تعليقي افتراضيًا، وقياس المراجعة أثبت مرور نص غير زمني حتى مع FormatChecker بلا rfc3339-validator. النمط هو الإنفاذ الذاتي الوحيد fail-closed؛ format يبقى للدلالة."
+    },
+    "CommonStageFields": {
+      "type": "object",
+      "required": [
+        "schema",
+        "contract_revision",
+        "chain_id",
+        "correlation_id",
+        "stage_id",
+        "parent_stage_id",
+        "parent_digest",
+        "stage_digest",
+        "canonicalization_version",
+        "digest_algorithm",
+        "sequence",
+        "stage",
+        "related_stage_ids",
+        "timestamp",
+        "status"
+      ],
+      "properties": {
+        "schema": {
+          "const": "sahool.evidence-chain-stage/v1.1"
+        },
+        "contract_revision": {
+          "const": "v1.1-errata2"
+        },
+        "chain_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "correlation_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "stage_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "parent_stage_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ulid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parent_digest": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Sha256Hex"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "stage_digest": {
+          "$ref": "#/$defs/Sha256Hex"
+        },
+        "canonicalization_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "digest_algorithm": {
+          "const": "sha256"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8
+        },
+        "stage": {
+          "type": "string"
+        },
+        "related_stage_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/Ulid"
+          }
+        },
+        "timestamp": {
+          "$ref": "#/$defs/IsoDateTime"
+        },
+        "status": {
+          "enum": [
+            "created",
+            "processing",
+            "succeeded",
+            "failed",
+            "skipped"
+          ]
+        }
+      }
+    },
+    "CanonicalStateStage": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/CommonStageFields"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "required": [
+        "stage",
+        "sequence",
+        "parent_stage_id",
+        "parent_digest",
+        "state_snapshot_id",
+        "state_digest"
+      ],
+      "properties": {
+        "stage": {
+          "const": "CanonicalState"
+        },
+        "sequence": {
+          "const": 0
+        },
+        "parent_stage_id": {
+          "type": "null"
+        },
+        "parent_digest": {
+          "type": "null"
+        },
+        "state_snapshot_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "state_digest": {
+          "$ref": "#/$defs/Sha256Hex"
+        }
+      }
+    },
+    "PredictionStage": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/CommonStageFields"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "required": [
+        "stage",
+        "sequence",
+        "prediction_id",
+        "model_version",
+        "input_digest",
+        "predicted",
+        "parent_stage_id",
+        "parent_digest"
+      ],
+      "properties": {
+        "stage": {
+          "const": "Prediction"
+        },
+        "sequence": {
+          "const": 1
+        },
+        "prediction_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "model_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input_digest": {
+          "$ref": "#/$defs/Sha256Hex"
+        },
+        "predicted": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "required_volume_l",
+            "recommended_window_start",
+            "recommended_window_end",
+            "predicted_vwc_delta",
+            "confidence",
+            "explanation"
+          ],
+          "properties": {
+            "required_volume_l": {
+              "type": "number",
+              "minimum": 0
+            },
+            "recommended_window_start": {
+              "$ref": "#/$defs/IsoDateTime"
+            },
+            "recommended_window_end": {
+              "$ref": "#/$defs/IsoDateTime"
+            },
+            "predicted_vwc_delta": {
+              "type": "number"
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "explanation": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "parent_stage_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "parent_digest": {
+          "$ref": "#/$defs/Sha256Hex"
+        }
+      }
+    },
+    "DecisionCandidateStage": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/CommonStageFields"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "required": [
+        "stage",
+        "sequence",
+        "decision_id",
+        "prediction_id",
+        "decision_domains",
+        "candidate",
+        "policy_review",
+        "parent_stage_id",
+        "parent_digest"
+      ],
+      "properties": {
+        "stage": {
+          "const": "DecisionCandidate"
+        },
+        "sequence": {
+          "const": 2
+        },
+        "decision_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "prediction_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "decision_domains": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": {
+            "const": "irrigation"
+          },
+          "description": "enum مغلق بقيمة وحيدة حتى اكتمال FertigationState (C1–C5 + C6-LIVE-DECISION + قرار مالك) — الشرط 6."
+        },
+        "candidate": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "irrigation_volume_l",
+            "recommended_window_start",
+            "recommended_window_end"
+          ],
+          "properties": {
+            "irrigation_volume_l": {
+              "type": "number",
+              "minimum": 0
+            },
+            "recommended_window_start": {
+              "$ref": "#/$defs/IsoDateTime"
+            },
+            "recommended_window_end": {
+              "$ref": "#/$defs/IsoDateTime"
+            }
+          },
+          "description": "لا يحتوي nutrient_recipe في هذا الإصدار."
+        },
+        "policy_review": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "requires_human_review",
+            "execution_allowed",
+            "salinity_gate"
+          ],
+          "properties": {
+            "requires_human_review": {
+              "const": true
+            },
+            "execution_allowed": {
+              "const": false
+            },
+            "salinity_gate": {
+              "enum": [
+                "PASS",
+                "WARN",
+                "REJECT"
+              ]
+            }
+          },
+          "description": "قيم const متعمدة في مرحلة DecisionCandidate: هذه المرحلة سبقت الاعتماد دائمًا؛ الموافقة البشرية تُثبَت في ExecutionStage.policy_approval لا هنا."
+        },
+        "parent_stage_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "parent_digest": {
+          "$ref": "#/$defs/Sha256Hex"
+        }
+      }
+    },
+    "HydraulicFeasibilityStage": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/CommonStageFields"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "required": [
+        "stage",
+        "sequence",
+        "decision_id",
+        "feasibility",
+        "parent_stage_id",
+        "parent_digest"
+      ],
+      "properties": {
+        "stage": {
+          "const": "HydraulicFeasibility"
+        },
+        "sequence": {
+          "const": 3
+        },
+        "decision_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "feasibility": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "result",
+            "constraints",
+            "checked_network_model_version"
+          ],
+          "properties": {
+            "result": {
+              "enum": [
+                "feasible",
+                "infeasible",
+                "partially_feasible"
+              ]
+            },
+            "constraints": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "available_flow_l_s",
+                "required_flow_l_s",
+                "pressure_bar",
+                "reservations"
+              ],
+              "properties": {
+                "available_flow_l_s": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "required_flow_l_s": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "pressure_bar": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "reservations": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "checked_network_model_version": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "parent_stage_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "parent_digest": {
+          "$ref": "#/$defs/Sha256Hex"
+        }
+      }
+    },
+    "ExecutionStage": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/CommonStageFields"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "required": [
+        "stage",
+        "sequence",
+        "decision_id",
+        "execution_id",
+        "requested_volume_l",
+        "command",
+        "policy_approval",
+        "parent_stage_id",
+        "parent_digest"
+      ],
+      "properties": {
+        "stage": {
+          "const": "Execution"
+        },
+        "sequence": {
+          "const": 4
+        },
+        "decision_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "execution_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "requested_volume_l": {
+          "type": "number",
+          "minimum": 0
+        },
+        "command": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "valve_id",
+            "duration_s",
+            "flow_l_s"
+          ],
+          "properties": {
+            "valve_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "duration_s": {
+              "type": "number",
+              "minimum": 0
+            },
+            "flow_l_s": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "policy_approval": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "approved_by",
+            "approved_at"
+          ],
+          "properties": {
+            "approved_by": {
+              "type": "string",
+              "minLength": 1
+            },
+            "approved_at": {
+              "$ref": "#/$defs/IsoDateTime"
+            }
+          },
+          "description": "إثبات الموافقة البشرية الإلزامي — لا Execution بدونها."
+        },
+        "parent_stage_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "parent_digest": {
+          "$ref": "#/$defs/Sha256Hex"
+        }
+      }
+    },
+    "AsAppliedStage": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/CommonStageFields"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "required": [
+        "stage",
+        "sequence",
+        "decision_id",
+        "execution_id",
+        "measured_volume_l",
+        "measured_flow_l_s",
+        "measured_duration_s",
+        "evidence_ref",
+        "parent_stage_id",
+        "parent_digest"
+      ],
+      "properties": {
+        "stage": {
+          "const": "AsApplied"
+        },
+        "sequence": {
+          "const": 5
+        },
+        "decision_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "execution_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "measured_volume_l": {
+          "type": "number",
+          "minimum": 0
+        },
+        "measured_flow_l_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "measured_duration_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "evidence_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parent_stage_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "parent_digest": {
+          "$ref": "#/$defs/Sha256Hex"
+        }
+      }
+    },
+    "ObservedOutcomeStage": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/CommonStageFields"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "required": [
+        "stage",
+        "sequence",
+        "decision_id",
+        "execution_id",
+        "observed_vwc_delta",
+        "observed_drainage_ratio",
+        "observed_drain_ec_ds_m",
+        "observed_crop_stress_change",
+        "measured_at",
+        "evidence_ref",
+        "parent_stage_id",
+        "parent_digest"
+      ],
+      "properties": {
+        "stage": {
+          "const": "ObservedOutcome"
+        },
+        "sequence": {
+          "const": 6
+        },
+        "decision_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "execution_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "observed_vwc_delta": {
+          "type": "number"
+        },
+        "observed_drainage_ratio": {
+          "type": "number",
+          "minimum": 0
+        },
+        "observed_drain_ec_ds_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "observed_crop_stress_change": {
+          "enum": [
+            "increased",
+            "decreased",
+            "unchanged"
+          ]
+        },
+        "measured_at": {
+          "$ref": "#/$defs/IsoDateTime"
+        },
+        "evidence_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parent_stage_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "parent_digest": {
+          "$ref": "#/$defs/Sha256Hex"
+        }
+      }
+    },
+    "PredictionErrorStage": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/CommonStageFields"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "required": [
+        "stage",
+        "sequence",
+        "decision_id",
+        "execution_id",
+        "errors",
+        "calculation_note",
+        "parent_stage_id",
+        "parent_digest"
+      ],
+      "properties": {
+        "stage": {
+          "const": "PredictionError"
+        },
+        "sequence": {
+          "const": 7
+        },
+        "decision_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "execution_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "errors": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "volume_error_l",
+            "vwc_delta_error_pct",
+            "et0_error_mm_day",
+            "demand_error_l",
+            "mpc_error",
+            "hydraulic_model_error"
+          ],
+          "properties": {
+            "volume_error_l": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "vwc_delta_error_pct": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "et0_error_mm_day": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "demand_error_l": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "mpc_error": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "hydraulic_model_error": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          },
+          "description": "null مسموح عند غياب قناة القياس؛ الحذف غير مسموح."
+        },
+        "calculation_note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parent_stage_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "parent_digest": {
+          "$ref": "#/$defs/Sha256Hex"
+        }
+      }
+    },
+    "ModelCalibrationCandidateStage": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/CommonStageFields"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "required": [
+        "stage",
+        "sequence",
+        "decision_id",
+        "execution_id",
+        "target",
+        "candidate_parameters",
+        "governance",
+        "parent_stage_id",
+        "parent_digest"
+      ],
+      "properties": {
+        "stage": {
+          "const": "ModelCalibrationCandidate"
+        },
+        "sequence": {
+          "const": 8
+        },
+        "decision_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "execution_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "target": {
+          "enum": [
+            "root_zone_balance",
+            "demand_engine",
+            "mpc",
+            "hydraulic_model",
+            "fertigation_model"
+          ]
+        },
+        "candidate_parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "old_value",
+            "proposed_value",
+            "reason"
+          ],
+          "properties": {
+            "old_value": {
+              "type": [
+                "string",
+                "number",
+                "null"
+              ]
+            },
+            "proposed_value": {
+              "type": [
+                "string",
+                "number",
+                "null"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "governance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "auto_adjust",
+            "review_required",
+            "review_status",
+            "promotion_candidate_id"
+          ],
+          "properties": {
+            "auto_adjust": {
+              "const": false
+            },
+            "review_required": {
+              "const": true
+            },
+            "review_status": {
+              "const": "pending"
+            },
+            "promotion_candidate_id": {
+              "$ref": "#/$defs/Ulid"
+            }
+          },
+          "description": "قيم const متعمدة: أي auto_adjust=true أو ترقية دون مراجعة يجب أن يفشل تحقق السكيما بنيويًا."
+        },
+        "parent_stage_id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "parent_digest": {
+          "$ref": "#/$defs/Sha256Hex"
+        }
+      }
+    }
+  }
+}
