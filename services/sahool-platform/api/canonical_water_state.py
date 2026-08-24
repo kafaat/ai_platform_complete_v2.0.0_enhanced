@@ -74,13 +74,17 @@ async def resolve_canonical_water_state(
     lat, lon, crop, stage, days_since_sowing = await _field_weather_context(conn, field_id)
 
     season = await conn.fetchrow(
-        "SELECT season_id, sowing_date, crops FROM seasons "
+        "SELECT season_id, sowing_date, crops, cultivar FROM seasons "
         "WHERE field_id=$1 AND status='active' ORDER BY created_at DESC LIMIT 1",
         field_id,
     )
     if season is None:
         return {"status": "blocked", "reason": "no_active_season", "field_id": field_id}
     season_id = str(season["season_id"])
+    # Variety source contract: seasons.cultivar is the canonical variety identifier
+    # (v32: «الصنف / variety»). seasons.seed_variety_source is deliberately NOT a
+    # fallback — v42 defines it as the seed supplier/origin, not a variety name.
+    variety = str(season.get("cultivar") or "").strip() or None
     if not crop:
         return {
             "status": "blocked",
@@ -123,6 +127,7 @@ async def resolve_canonical_water_state(
         field_id=field_id,
         season_id=season_id,
         crop=crop_id or str(crop),
+        variety=variety,
         phenology_progress=phenology_progress,
         raw_fraction=0.5,
     )

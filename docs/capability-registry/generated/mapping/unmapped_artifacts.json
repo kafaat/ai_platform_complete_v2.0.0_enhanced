@@ -8396,6 +8396,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_wofost_unknown_fallback.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_worker_assertion_interop.py",
     "kind": "tests"
   },

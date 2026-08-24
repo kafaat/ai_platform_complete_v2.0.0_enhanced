@@ -20,8 +20,8 @@ class FakeConn:
             return Row(lat=15.5, lon=44.2, crop="maize")
         if "SELECT crops, sowing_date FROM seasons" in sql:
             return Row(crops=["maize"], sowing_date=date.today())
-        if "SELECT season_id, sowing_date, crops FROM seasons" in sql:
-            return Row(season_id="sea-1", sowing_date=date.today(), crops=["maize"])
+        if "SELECT season_id, sowing_date, crops, cultivar FROM seasons" in sql:
+            return Row(season_id="sea-1", sowing_date=date.today(), crops=["maize"], cultivar=None)
         if "FROM water_ledger" in sql:
             return (
                 Row(
@@ -211,6 +211,51 @@ def test_operational_route_carries_source_digests(monkeypatch):
     trace = out["decision"]["constraint_trace"]
     assert trace["source_digests"]["water_state_digest"] == "a" * 64
     assert out["mode"] == "operational"
+
+
+def test_variety_comes_from_cultivar_only_never_seed_variety_source(monkeypatch, canonical_patches):
+    """F1 contract: cultivar=NULL + seed_variety_source='XYZ' ⇒ variety=None (generic
+    tier), never 'XYZ'. seed_variety_source is the seed supplier (v42), not a variety."""
+    import inspect
+
+    import api.canonical_water_state as c
+    from api.canonical_water_state import resolve_canonical_water_state
+
+    captured = {}
+
+    async def root_zone(*args, **kwargs):
+        captured.update(kwargs)
+        return {"status": "blocked", "reason": "stop_here"}
+
+    monkeypatch.setattr(c, "resolve_canonical_root_zone_profile", root_zone)
+
+    class SupplierConn(FakeConn):
+        async def fetchrow(self, sql, *args):
+            if "FROM seasons" in sql and "season_id" in sql:
+                assert "seed_variety_source" not in sql, (
+                    "variety path must not read the supplier column"
+                )
+                # The row may still physically carry the column; it must be ignored.
+                return Row(
+                    season_id="sea-1",
+                    sowing_date=date.today(),
+                    crops=["maize"],
+                    cultivar=None,
+                    seed_variety_source="XYZ",
+                )
+            return await super().fetchrow(sql, *args)
+
+    asyncio.run(
+        resolve_canonical_water_state(
+            SupplierConn(), tenant_id="tenant-1", field_id="fld-1", horizon_days=1
+        )
+    )
+    assert "variety" in captured
+    assert captured["variety"] is None
+    # No CODE line (comments excluded — the source contract comment names the
+    # column deliberately) may reference the supplier column in this module.
+    code_lines = [ln for ln in inspect.getsource(c).splitlines() if not ln.lstrip().startswith("#")]
+    assert not any("seed_variety_source" in ln for ln in code_lines)
 
 
 # canonical_water_state transitively imports platform runtime modules (field_context /

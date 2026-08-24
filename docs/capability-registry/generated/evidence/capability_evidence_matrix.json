@@ -2002,7 +2002,9 @@
         "services/sahool-platform/tests/test_fields_endpoint.py",
         "services/sahool-platform/tests/test_variety_suitability.py",
         "services/sahool-platform/tests/test_yield_analysis.py",
-        "tests_v9/test_variety_catalog_reference_only_barrier.py"
+        "tests_v9/test_canonical_water_state_mpc.py",
+        "tests_v9/test_variety_catalog_reference_only_barrier.py",
+        "tests_v9/test_variety_policy_resolution.py"
       ]
     },
     {
@@ -7784,6 +7786,7 @@
       "integration_test_paths": [
         "services/field-management-service/tests/test_field_management_pg_isolation_integration.py",
         "tests/integration/irrigation/test_v195_postgres.py",
+        "tests_v9/test_crop_root_policy_rls_integration.py",
         "tests_v9/test_dispatch_decisions_integration.py",
         "tests_v9/test_field_aggregate_ports_integration.py",
         "tests_v9/test_rls_write_isolation_integration.py",
@@ -8901,7 +8904,8 @@
         "tests_v9/test_canonical_knowledge_to_hourly_mpc_runtime.py",
         "tests_v9/test_canonical_root_zone_profile.py",
         "tests_v9/test_hourly_energy_aware_irrigation_mpc.py",
-        "tests_v9/test_live_pg_fake_connection_debt.py"
+        "tests_v9/test_live_pg_fake_connection_debt.py",
+        "tests_v9/test_variety_policy_resolution.py"
       ]
     },
     {
