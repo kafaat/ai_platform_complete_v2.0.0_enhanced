@@ -123,6 +123,7 @@
       "title": "Decision evidence",
       "unit_test_paths": [
         "services/decision-service/tests/test_decision_evidence_read.py",
+        "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
         "services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py"
       ]
     },

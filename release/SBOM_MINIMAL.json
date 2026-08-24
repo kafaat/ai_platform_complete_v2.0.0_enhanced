@@ -16325,6 +16325,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c47c4e8aee357cf54a1650f757dd16abc7769acefd113b2172104162e6096596"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1918251a2b59244b8c2a630ad79282fa1de2dc55730db2ae428a8f96245a11b4"
         }
       ],
@@ -25209,6 +25219,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_irrigation_commissioning_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a17b0447f7c10d314957b566a91d4d1bf6930feb1d2391b0023de2ed9d5147eb"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
       "type": "file"
     },
     {

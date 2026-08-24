@@ -33,6 +33,7 @@ DEC-001,test,services/sahool-platform/tests/test_evidence_graph_analytics.py,3,a
 DEC-001,test,services/sahool-platform/tests/test_evidence_graph_analytics_endpoints_static.py,3,applied
 DEC-001,test,services/sahool-platform/tests/test_evidence_graph_normalize.py,3,applied
 DEC-001,test,services/sahool-platform/tests/test_evidence_snapshot.py,3,applied
+DEC-001,test,services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py,7,applied
 DEC-001,test,services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py,7,applied
 DEC-001,test,services/soil-service/test_soil_evidence_adapters_and_policy.py,3,applied
 DEC-001,test,services/vegetation-analysis-service/test_evidence_producer_contract.py,3,applied
