@@ -1103,6 +1103,20 @@
           "find": "    if not WRITE_TARGETS.is_file():\n        return set()",
           "replace": "    if not WRITE_TARGETS.is_file():\n        return {\"docs/runbooks/GUARD_CATALOGUE.md\"}  # mutated",
           "why": "غيابُ البيان يجب أن يفشل في الاتّجاه الآمن («مصدر» يُوقِف)، لا أن يخترع أهدافاً."
+        },
+        {
+          "expect": "test_a_conflicted_manifest_is_named_not_left_to_guesswork",
+          "test": "tests_v9/test_resolve_merge_conflicts.py",
+          "find": "    return MANIFEST_REL in {str(Path(p).as_posix()) for p in paths}",
+          "replace": "    return False  # mutated: البيانُ المتعارض لا يُكتشَف",
+          "why": "CONFLICTED-MANIFEST-DISABLES-THE-LAYER-IT-FEEDS-01: بيانٌ متعارضٌ لا يُحلَّل فتسقط طبقتُه ويتدهور كلُّ شيءٍ إلى «مصدر». التدهورُ آمنٌ لكنّه صامت، فالعطلُ عطلُ إبانةٍ لا صحّة — وإسقاطُ الاكتشاف يُعيد المُشغِّلَ إلى قراءة «مصادر» وظنِّها مصادرَ حقّاً."
+        },
+        {
+          "expect": "test_a_conflicted_manifest_is_named_not_left_to_guesswork",
+          "test": "tests_v9/test_resolve_merge_conflicts.py",
+          "find": "    return MANIFEST_REL in {str(Path(p).as_posix()) for p in paths}",
+          "replace": "    return any(MANIFEST_REL in p for p in paths)  # mutated: مرساة نصّيّة",
+          "why": "مطابقةُ `substring` تُطابِق أيَّ مسارٍ يشترك في الذيل (`vendor/docs/architecture/...`)، فتُنتِج رسالةً تقول «حُلَّ بياني أوّلاً» عن ملفٍّ ليس بياننا — رسالةٌ تكذب على قارئها أسوأ من صمت."
         }
       ],
       "test": "tests_v9/test_generated_write_targets.py"
