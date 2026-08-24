@@ -6822,3 +6822,17 @@ no_third_value_registry نصّاً)، GATE-01 نظيف، 33 اختباراً، r
 - **المقيس محليّاً:** 23 اختباراً مسّته الشريحة أخضر + 142 اختبار روادف WOFOST/phase23 أخضر + حارس M2.2 يمرّ.
 - **فجوتان سُجِّلتا** في `gaps/registry.md`: `RZ-VARIETY-POLICY-RESOLUTION-01` و`WOFOST-UNKNOWN-FALLBACK-01` — كلتاهما معالَجة في هذه الشريحة، والإغلاق النهائيّ بالدمج.
 - **المصدر:** `services/sahool-platform/api/canonical_root_zone_profile.py` · `api/canonical_water_state.py` · `api/wofost_crop_params.py` · `tests_v9/test_variety_policy_resolution.py` · `tests_v9/test_wofost_unknown_fallback.py` · `tests_v9/test_crop_root_policy_rls_integration.py` · فرع `rz-variety-01`.
+## 2026-08-24 (د) — تسجيلُ الوحدة، وثلاثةُ أصنافٍ قِيست في أدواتِ القياس نفسِها
+
+- **الأساس `9953bc5`** (دمجُ #916). ثلاثةُ إخفاقاتٍ على الفرع سببُها واحد: `api/irrigation_decision_evidence_chain.py` وحدةٌ جديدة في سطح المنصّة غيرُ مُسجَّلة — `platform_shrink_ratchet` (C13) و`test_platform_python_module_budget_does_not_grow` و`test_no_new_untracked_platform_modules`.
+- **وخطُّ الأساس وحدَه لا يُخضِر C13:** الراتشِتُ **لا يقرأ** `platform_python_module_baseline.json` إطلاقاً؛ مصدرُه `platform_shrink_ratchet.json` و`new_identity = BLOCK_UNLESS_EXPLICIT_EXCEPTION` مع `count_only_waivers_forbidden = true`. هُويّاتيٌّ لا عدديّ — رفعُ 679 إلى 680 لا يمسّه. عُدِّل الملفّان معاً.
+- **والأرضيّةُ قِيست قبل أن تُدَّعى:** المستورِدُ الوحيد للوحدة ملفُّ اختبارها. فلم تُسجَّل على أرضيّة «مستهلكٍ إنتاجيّ» كذباً، بل قبولاً مقيَّداً زمنيّاً على سابقة `c3_precision_execution_note` بشرط إغلاقٍ مسمّى (`target_close_by=2026-12-31`).
+- **وأثرٌ ثالثٌ لم يظهر في سجلّ CI:** انحرافُ بصمات حزمة الإصدار. وأخطرُ ما فيه أنّ المِكنسة أعلنت **ملفّاً واحداً** بينما كان المنحرفُ ملفّين — فتصحيحُ المُعلَن وحدَه كان سيُعيد الأحمرَ بملفٍّ لم يُذكَر قطّ. البناءُ الكامل عالجهما.
+- **وسطرُ `Capability-Impact` أبطلَه إيداعي:** اشتُقّ على `9abdc5d` فصحّ، ثمّ جرّت تعديلا السياسة **FM-003 · PA-003 · SEC-004** فصار الإعلانُ عشراً لا سبعاً — `DECLARATION-DERIVED-BEFORE-COMMIT-01` بعينه.
+- **وثلاثةُ أصنافٍ سُجِّلت `open`، وكلُّها في أدواتِ القياس لا في الشيفرة المقيسة:**
+  - `ADMISSION-GROUND-STATED-IN-PROSE-ENFORCED-BY-NOTHING-01` — النثرُ يشترط بلوغاً من مسارٍ مركَّب، والحاجبُ عدديٌّ وهُويّاتيٌّ فقط. مقيسٌ بالتعطيل: حارسُ البلوغ `rc=0` قبل التسجيل وبعده (138 ⇐ 139 «inherited, not blocking»).
+  - `RUNNER-CRASH-READS-AS-A-TEST-FAILURE-WHEN-ITS-MESSAGE-SAYS-FAILED-01` — `ran_at_all()` تُطابِق سلسلةً حرّة `" failed"`، وهي داخل `pyo3_runtime.PanicException: Python API call failed`. أبلغت **٢٩ من ٢٩** طفرة بالحكم الخطأ.
+  - `SWEEP-SELF-CHECK-CANNOT-TELL-A-GUARD-WRITE-FROM-MY-OWN-COMMIT-01` — ٧٤ خطوةَ `--check` ✓ ثمّ `rc=1` يتّهم حارساً، والفاعلُ إيداعي أثناء التشغيل.
+- **وخطأٌ منهجيٌّ منّي صُحِّح للمالك صراحةً:** أعلنتُ الطفرة [4] «عطلاً حقيقيّاً يحجب» بناءً على `rc` ونصّ رسالة، قبل أن أسأل «هل جمع المُشغِّل اختباراً أصلاً؟». الملفُّ يمرّ `10 passed` وحدَه، وCI أخضر. الشاهدُ هو المصنوعة لا رمزُ الخروج.
+- **وخطأٌ ثانٍ أمسكه الحارسُ لا أنا:** `str.replace` عامٌّ في أوّل صياغةٍ لهذه اللقطة عدّل **مداخلَ تاريخيّة** لم أكتبها — أي أعاد كتابة السجلّ. استُعيد الملفّان من main وأُلحِق الجديدُ وحدَه.
+- **يبقى صادقاً بلا تغيير:** `runtime_verified=0` و`production_certified=0` · C6 الحيُّ غيرُ مُدَّعى · لا مساسَ بـD09–D13.
