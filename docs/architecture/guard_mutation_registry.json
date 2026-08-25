@@ -1373,6 +1373,18 @@
           "find": "        if ids[i] is not None and ids[i] == ids[i + 1]:",
           "replace": "        if ids[i] is not None and ids[i] in ids[i + 1 :]:",
           "why": "التكرار بدل التلاصق ⇒ السلاسل التاريخيّة المقصودة تُرفَع إنذاراً (١٠ من ١١ على الشجرة)"
+        },
+        {
+          "expect": "test_a_non_adjacent_row_duplicate_is_caught_globally",
+          "find": "    return [(gap_id, at) for gap_id, at in seen.items() if len(at) > 1]",
+          "replace": "    return []",
+          "why": "تحييد الفحص العالميّ للصفوف ⇒ يعود صنف BRAIN-DUP-ROW-ESCAPES-THE-ADJACENCY-NET-01 (صفّ GATE-READS المكرّر غير المتلاصق) يمرّ صامتاً"
+        },
+        {
+          "expect": "test_a_dotted_row_id_duplicate_is_still_visible_to_the_global_net",
+          "find": "    r\"^\\|\\s*(?P<gap_id>[A-Z][A-Z0-9_.]*(?:-[A-Z0-9_.]+)+)\\s*\\|\",\n)\n\n# الفحص العالميّ محصورٌ",
+          "replace": "    r\"^\\|\\s*(?P<gap_id>[A-Z][A-Z0-9_]*(?:-[A-Z0-9_]+)+)\\s*\\|\",\n)\n\n# الفحص العالميّ محصورٌ",
+          "why": "إسقاط النقطة لا يدمج الهويّات بل يُعمي الشبكة عن الصفوف المنقوطة كلّها — مرساة \\s*\\| تُفشِل المطابقة عند النقطة (مقيس بالزرع، لا مفترَض)"
         }
       ],
       "test": "tests_v9/test_brain_duplicate_gap_identity_guard.py"
