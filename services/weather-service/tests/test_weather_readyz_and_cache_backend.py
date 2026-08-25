@@ -69,6 +69,7 @@ def test_cache_falls_back_to_memory_when_redis_is_configured_but_unavailable(mon
 def test_cache_uses_redis_backend_when_available(monkeypatch):
     class FakeRedisClient:
         store: dict[str, str] = {}
+        ttls: dict[str, int] = {}
 
         def ping(self):
             return True
@@ -76,9 +77,14 @@ def test_cache_uses_redis_backend_when_available(monkeypatch):
         def get(self, key: str):
             return self.store.get(key)
 
-        def setex(self, key: str, _ttl: int, value: str):
+        def setex(self, key: str, ttl: int, value: str):
             self.store[key] = value
+            self.ttls[key] = ttl
             return True
+
+        def ttl(self, key: str):
+            # عدّادُ الخادم: كامل المدّة فور الكتابة ⇒ عمرٌ صفر بحقّ لا بالتلفيق.
+            return self.ttls.get(key, -2)
 
     class FakeRedisFactory:
         @classmethod

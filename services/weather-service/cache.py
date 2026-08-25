@@ -43,6 +43,30 @@ def _stale_key(key: str) -> str:
     return f"sahool:weather:stale:{key}"
 
 
+def _age_from_ttl(client: Any, redis_key: str, ttl_total: float) -> int | None:
+    """عمرُ المدخلة من عدّاد الخادم: ``العمر = المدّة الكاملة − المتبقّي``.
+
+    **لماذا الخادم لا الساعة المحلّيّة:** ``time.monotonic()`` نقطةُ مرجعيّتها غير
+    معرَّفة بنصّ PEP 418، فلا تعني شيئاً خارج العمليّة التي قرأتها. وتخزينُها في
+    Redis مشترَك — وهو ما كان يقع — يجعل الطرحَ بين عمليّتين حسابَ فرقٍ بين مبدأَين
+    مختلفَين: على مُضيفٍ آخر أو بعد إقلاعٍ آخر يخرج عمرٌ سالب أو ضخم. و``TTL``
+    يُعَدّ كلُّه داخل Redis، فتسقط مسألةُ الساعات من أصلها.
+
+    و**المجهولُ يُقال مجهولاً**: ``None`` لا ``0``. الصفرُ المُلفَّق هو العطل نفسه —
+    لا يُميَّز من «كُتِبت للتوّ»، فيقرؤه المستهلِك طزاجةً كاملة وهي ساعات.
+    """
+    try:
+        remaining = int(client.ttl(redis_key))
+    except Exception:  # noqa: BLE001 - عدّادٌ غائب/عاطل ⇒ لا عمر، لا رقم مُختلَق
+        return None
+    if remaining < 0:
+        # ‑1 = بلا انتهاء · ‑2 = غير موجود (سباقُ انتهاءٍ بين القراءتين).
+        return None
+    age = int(ttl_total) - remaining
+    # سالبٌ يعني انحرافَ عدّادٍ أو ``TTL_S`` تغيّرت بعد الكتابة — لا يعني مستقبلاً.
+    return age if age > 0 else 0
+
+
 def get(key: str) -> tuple[dict[str, Any] | None, str, int | None]:
     client = _redis()
     if client is not None:
@@ -50,12 +74,18 @@ def get(key: str) -> tuple[dict[str, Any] | None, str, int | None]:
             raw = client.get(_fresh_key(key))
             if raw:
                 payload = json.loads(raw)
-                return payload.get("value"), "fresh", int(payload.get("age_hint_s", 0))
+                return payload.get("value"), "fresh", _age_from_ttl(client, _fresh_key(key), TTL_S)
             raw = client.get(_stale_key(key))
             if raw:
                 payload = json.loads(raw)
-                age = int(monotonic() - float(payload.get("stored_monotonic", monotonic())))
-                return payload.get("value"), "stale", max(age, int(TTL_S))
+                # لا ``max(age, TTL_S)`` هنا: كان يرفع رقماً بلا معنى إلى حدٍّ معقول
+                # المظهر فيُخفي فساده. وعدُّ الخادم يُخرِج العمر الحقيقيّ، وهو أصلاً
+                # أكبر من ``TTL_S`` لأنّ المفتاح الطازج انتهى قبل بلوغ هذا الفرع.
+                return (
+                    payload.get("value"),
+                    "stale",
+                    _age_from_ttl(client, _stale_key(key), STALE_TTL_S),
+                )
             return None, "miss", None
         except Exception as exc:  # noqa: BLE001 - fail open to memory cache
             global _REDIS_ERROR
@@ -75,9 +105,11 @@ def get(key: str) -> tuple[dict[str, Any] | None, str, int | None]:
 def set(key: str, value: dict[str, Any]) -> None:
     client = _redis()
     if client is not None:
-        payload = json.dumps(
-            {"stored_monotonic": monotonic(), "age_hint_s": 0, "value": value}, default=str
-        )
+        # لا ``stored_monotonic`` ولا ``age_hint_s`` بعد اليوم: الأولى ساعةٌ محلّيّة لا
+        # معنى لها عند قارئٍ آخر، والثانية كانت تُكتب ``0`` **حرفيّاً** وتُقرأ عمراً —
+        # فكلّ إصابةٍ طازجة على Redis تُبلِّغ «عمرها صفر» مهما بلغت. العمرُ يُشتقّ الآن
+        # من ``TTL`` عند القراءة، فلا حاجة إلى تخزين زمنٍ أصلاً.
+        payload = json.dumps({"value": value}, default=str)
         try:
             client.setex(_fresh_key(key), int(TTL_S), payload)
             client.setex(_stale_key(key), int(STALE_TTL_S), payload)

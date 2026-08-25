@@ -6408,6 +6408,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/weather-service/tests/test_cache_age_is_server_counted.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/weather-service/tests/test_p3_4_weather_service_runtime_coverage.py",
     "kind": "tests"
   },
