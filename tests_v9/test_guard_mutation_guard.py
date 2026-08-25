@@ -802,3 +802,91 @@ def test_a_filter_that_matches_nothing_is_not_reported_as_success(tmp_path: Path
 
     assert failures, "صفرُ طفرةٍ مزروعة يجب أن يُبلَّغ فشلاً لا نجاحاً"
     assert "صفر طفرة" in failures[0]
+
+
+# ─── MUT-SWEEP-SHARDING-01: التقسيم الحتميّ الموزون وحارسُ اتّحاده ───
+
+
+def test_the_union_of_all_shards_is_the_whole_universe() -> None:
+    """**حارسُ الاتّحاد على السجلّ الحيّ** — حزمةٌ تسقط صامتةً تترك طفراتٍ بلا زارع."""
+    registry = gmg.load_registry()
+    for total in (2, 3, 5, 7):
+        inventory = gmg.shard_inventory(registry, total)
+        assert inventory["union_complete"], inventory
+        assert gmg.shard_inventory_failures(inventory) == []
+        assert inventory["covered"] == inventory["universe"]
+
+
+def test_every_guard_lands_in_exactly_one_shard() -> None:
+    """لا ازدواج ولا سقوط: كلّ اسمٍ في حزمةٍ واحدة بالضبط."""
+    registry = gmg.load_registry()
+    names = {name for name, _ in gmg._plantable_weights(registry)}
+    for total in (3, 5):
+        assignment = gmg._shard_assignment(gmg._plantable_weights(registry), total)
+        assert set(assignment) == names, "اسمٌ بلا حزمة أو حزمةٌ لاسمٍ غريب"
+        assert all(0 <= index < total for index in assignment.values())
+        # ومجموعُ أحجام الحزم = الكون: لا ازدواج ولا سقوط.
+        sizes = [sum(1 for i in assignment.values() if i == index) for index in range(total)]
+        assert sum(sizes) == len(names)
+
+
+def test_the_assignment_is_deterministic_across_calls() -> None:
+    """حتميّةٌ مُثبَتة لا مفترَضة — لو استُعمل `hash()` لاختلف التوزيع بين العمليّات."""
+    registry = gmg.load_registry()
+    first = gmg._shard_assignment(gmg._plantable_weights(registry), 5)
+    second = gmg._shard_assignment(gmg._plantable_weights(registry), 5)
+    assert first == second
+
+
+def test_the_split_is_balanced_by_mutations_not_by_name() -> None:
+    """**الوزن طفراتٌ لا أسماء.**
+
+    تجزئةُ الاسم أعطت على السجلّ الحاليّ ٣٣←١٥٢ (٤٫٦×) والزمن الحائطيّ يحكمه
+    الأثقل. المقيس بعد التوزيع الموزون: أقصى/أدنى ≤ ١٫٥ — حدٌّ فضفاض عمداً كي
+    لا يحمرّ الاختبار على نموّ السجلّ الطبيعيّ، وضيّقٌ كفايةً ليمسك عودة التجزئة.
+    """
+    inventory = gmg.shard_inventory(gmg.load_registry(), 5)
+    counts = [s["mutations"] for s in inventory["shards"]]
+    assert min(counts) > 0
+    assert max(counts) / min(counts) <= 1.5, counts
+
+
+def test_an_empty_shard_is_reported_as_a_failure() -> None:
+    """وظيفةٌ تُشغَّل ولا تقيس شيئاً تُقرأ خضرتُها تغطيةً — فتُحجَب."""
+    inventory = {
+        "total": 3,
+        "universe": {"guards": 2, "mutations": 4},
+        "covered": {"guards": 2, "mutations": 4},
+        "shards": [{"shard": "2/3", "guards": 0, "mutations": 0}],
+        "empty_shards": ["2/3"],
+        "union_complete": True,
+    }
+    problems = gmg.shard_inventory_failures(inventory)
+    assert any("فارغة" in p for p in problems)
+
+
+def test_an_incomplete_union_is_reported_as_a_failure() -> None:
+    inventory = {
+        "total": 5,
+        "universe": {"guards": 102, "mutations": 464},
+        "covered": {"guards": 100, "mutations": 450},
+        "shards": [],
+        "empty_shards": [],
+        "union_complete": False,
+    }
+    problems = gmg.shard_inventory_failures(inventory)
+    assert any("اتّحادُ الحزم" in p for p in problems)
+
+
+@pytest.mark.parametrize(
+    "raw",
+    ["", "5", "1/0", "-1/5", "5/5", "a/5", "1/b", "1/2/3"],
+)
+def test_a_malformed_shard_argument_fails_closed(raw) -> None:
+    """`--shard` مشوّهةٌ لا تُقرأ «بلا تقسيم»: حزمةٌ تزرع الكون كلّه تُقرأ تغطيةً وهي تكرار."""
+    with pytest.raises(SystemExit):
+        gmg.parse_shard(raw)
+
+
+def test_no_shard_argument_means_the_whole_universe() -> None:
+    assert gmg.parse_shard(None) is None

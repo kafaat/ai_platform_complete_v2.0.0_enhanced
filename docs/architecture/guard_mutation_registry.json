@@ -2229,8 +2229,8 @@
         },
         {
           "expect": "test_isolated_runner_never_plants_in_the_legal_checkout",
-          "find": "        return _run_mutations_in_place(registry, only, mirror / ci_relative, mirror)",
-          "replace": "        return _run_mutations_in_place(registry, only, ci, mirror)",
+          "find": "        return _run_mutations_in_place(registry, only, mirror / ci_relative, mirror, shard)",
+          "replace": "        return _run_mutations_in_place(registry, only, ci, mirror, shard)",
           "why": "توجيه مصدر الطفرة إلى ci الأصليّ مع بقاء الاختبارات في المرآة ⇒ العزل اسميّ والشجرة القانونية تُمسّ"
         },
         {
