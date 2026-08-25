@@ -25,7 +25,7 @@
       "tests": 1717,
       "web": 456
     },
-    "unmapped_artifacts": 2111,
+    "unmapped_artifacts": 2110,
     "ambiguous_artifacts": 413
   },
   "capabilities": [
@@ -25839,6 +25839,10 @@
         {
           "value": "tasks_screen.dart @ mobile/sahool_app/lib/screens/more_screen.dart:19",
           "score": 10
+        },
+        {
+          "value": "test_soil_field_tenant_authz.py @ tests_v9/test_unit_environment_completeness.py:88",
+          "score": 10
         }
       ],
       "web": [
@@ -26062,6 +26066,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_unit_environment_completeness.py",
+          "score": 10,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
           "path": "frontend/src/sections/MapHubImageryTimelineUx.static.test.ts",
           "score": 8,
           "signals": [
@@ -26235,6 +26247,14 @@
             "content:MFA",
             "content:mfa"
           ]
+        },
+        {
+          "path": "tests_v9/service_module.py",
+          "score": 8,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
         }
       ],
       "ambiguous": [],
@@ -26245,12 +26265,12 @@
         "backend": 7,
         "routes": 21,
         "database": 23,
-        "events": 4,
+        "events": 5,
         "web": 5,
         "mobile": 4,
-        "tests": 16,
+        "tests": 17,
         "governance": 0,
-        "other_evidence": 18
+        "other_evidence": 19
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -43104,10 +43124,6 @@
     },
     {
       "path": "tests_v9/test_unit_dependency_dormancy_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_unit_environment_completeness.py",
       "kind": "tests"
     },
     {

@@ -16,28 +16,30 @@
 
 from __future__ import annotations
 
-import importlib
 import pathlib
 import re
-import sys
 
 import pytest
+
+from tests_v9.service_module import load_service_main
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 _AUTH_DIR = str(ROOT / "services" / "auth")
 
-
-def _load_auth_main():
-    """يُحمّل main.py الخاصّ بخدمة auth، ويتخطّى الاختبار إن غابت تبعيّاتها."""
-    if _AUTH_DIR not in sys.path:
-        sys.path.insert(0, _AUTH_DIR)
-    try:
-        return importlib.import_module("main")
-    except ImportError as e:
-        pytest.skip(f"auth main.py غير قابل للاستيراد (تبعيّة ناقصة): {e}", allow_module_level=True)
-
-
-main = _load_auth_main()
+# كان هذا الملفّ يستورد ``main`` عارياً ويتخطّى على ``ImportError`` وحده. والتخطّي
+# لا يقع أصلاً حين تكون وحدةُ خدمةٍ **أخرى** مخزَّنةً بالاسم نفسه: ٢٤ خدمة تحمل
+# ``main.py`` و``sys.modules`` مفتاحه الاسم لا المسار. فكانت صحّةُ هذا الملفّ تتوقّف
+# على ترتيب الاختبارات وعلى أيّ تبعيّاتٍ اختياريّة صادف وجودُها — لا على شيءٍ يملكه.
+#
+# مقيسٌ لا مفترَض (2026-08-25): بغياب ``pydantic[email]`` محلّيّاً تتخطّى ملفّات
+# ``test_auth_*`` فلا تخزّن وحدةَ auth، فتخزّن ملفّاتٌ لاحقة وحدةَ خدمتها، فيقرأ هذا
+# الملفّ الوحدةَ الخطأ ويسقط بـ``module 'main' has no attribute 'require_role'``.
+# وفي CI (حيث التبعيّة مُعلَنة) يصادف أن يقرأ الصحيحة — فيمرّ **بالحظّ لا بالعقد**.
+#
+# العلاج قائمٌ في الشجرة منذ نمط #570: ``load_service_main`` يُسقط المُخبّأ العامّ ثمّ
+# **يُثبِت هويّة الوحدة بمسارها** (``is_relative_to``) لا بسماتها — فالنجاح الكاذب
+# على وحدةٍ شقيقة يصير مستحيلاً بدل أن يكون غيرَ محتمَل.
+main = load_service_main(_AUTH_DIR, required_attrs=("TenantProvisionRequest", "require_role"))
 
 
 def _provision_src() -> str:
