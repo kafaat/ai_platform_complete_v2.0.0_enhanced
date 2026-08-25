@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 565,
+      "evidence_count": 566,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -542,6 +542,7 @@
         "services/weather-service/raw_weather_processing.py",
         "services/weather-service/tests/test_canonical_weather_state.py",
         "services/weather-service/tests/test_crop_stress_products.py",
+        "services/weather-service/tests/test_missing_temperature_is_not_zero.py",
         "services/weather-service/tests/test_raw_weather_processing.py",
         "services/weather-service/tests/test_thermal_stress.py",
         "services/weather-service/thermal_stress.py",
@@ -2366,7 +2367,7 @@
         "services/sahool-platform/core/activity_log.py",
         "services/sahool-platform/core/ai_artifacts.py"
       ],
-      "source_evidence_count": 565,
+      "source_evidence_count": 566,
       "target_evidence_count": 484,
       "static_supported": true,
       "runtime_verified": false
@@ -2734,5 +2735,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "a4126db45315c1b0ebad2553d2556942a21b0589572d698d7d237137a017bd05"
+  "content_sha256": "099b9a5ee605df5fa3a377374f9ac5aa77d4c87ad815e6ae631331981927356c"
 }

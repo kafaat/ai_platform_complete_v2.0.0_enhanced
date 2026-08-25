@@ -265,7 +265,12 @@ _DAILY_OPTIONAL_DAY_FIELDS = (
 )
 # نفس عائلة `_CURRENT_ZERO_COERCED_FIELDS`: `normalize_daily` يضع 0 عند الغياب
 # (`_at(..., idx, 0)`) لهذه الحقول ⇒ لا يُميَّز المرصود من المفقود.
-_DAILY_ZERO_COERCED_FIELDS = ("temp_max_c", "temp_min_c", "precipitation_mm", "wind_max_ms")
+#
+# **والحرارتان خرجتا من هذه القائمة بإصلاحٍ في المُطبِّع لا بإعلانٍ هنا** (H1):
+# `temp_max_c`/`temp_min_c` تبقيان `None` عند الغياب، فتُمسَكان أعلاه في
+# `missing_expected` ⇒ `degraded` + تسمية الحقل. وإبقاؤهما هنا كان سينشر قيداً
+# **كاذباً** يصف تصفيراً لم يعد يقع — والقيد الكاذب أسوأ من غيابه لأنّه يُقرأ عذراً.
+_DAILY_ZERO_COERCED_FIELDS = ("precipitation_mm", "wind_max_ms")
 
 _DAILY_ENVELOPE_KEYS = (
     "product",

@@ -12,7 +12,7 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **49**
-- Files scanned: **5184**
+- Files scanned: **5185**
 - Ambiguous artifacts queued: **413**
 - Unmapped artifacts queued: **2110**
 
@@ -96,7 +96,7 @@
 | WX-003 | weather | 4 | 6 | 4 | 0 | 0 | 0 | 4 | 4 |
 | WX-004 | weather | 60 | 53 | 0 | 81 | 19 | 0 | 57 | 5 |
 | WX-005 | weather | 9 | 29 | 0 | 6 | 2 | 0 | 6 | 5 |
-| WX-006 | weather | 84 | 26 | 33 | 26 | 16 | 0 | 44 | 6 |
+| WX-006 | weather | 84 | 26 | 33 | 26 | 16 | 0 | 45 | 6 |
 | WX-007 | weather | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | WX-008 | weather | 2 | 6 | 0 | 1 | 0 | 0 | 2 | 4 |
 | WX-009 | weather | 2 | 29 | 0 | 0 | 2 | 0 | 1 | 4 |

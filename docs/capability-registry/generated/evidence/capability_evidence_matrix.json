@@ -10284,6 +10284,7 @@
         "services/weather-service/tests/test_gdd.py",
         "services/weather-service/tests/test_gdd_agro_product.py",
         "services/weather-service/tests/test_gdd_view.py",
+        "services/weather-service/tests/test_missing_temperature_is_not_zero.py",
         "tests/test_real_data.py",
         "tests_v9/test_agriai_engine_features_20260702.py",
         "tests_v9/test_agronomic_state_production_consumers.py",
