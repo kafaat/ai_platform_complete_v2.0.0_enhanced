@@ -1951,7 +1951,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 280,
+      "evidence_count": 282,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2163,6 +2163,7 @@
         "services/sahool-platform/core/provenance.py",
         "services/sahool-platform/core/recommendation_bridge.py",
         "services/sahool-platform/core/recommendation_replay.py",
+        "services/sahool-platform/core/season_stage_risk.py",
         "services/sahool-platform/core/skills_registry.py",
         "services/sahool-platform/core/transfer_learning.py",
         "services/sahool-platform/core/yield_intelligence.py",
@@ -2214,6 +2215,7 @@
         "services/sahool-platform/tests/test_recommendation_log.py",
         "services/sahool-platform/tests/test_recommendation_replay.py",
         "services/sahool-platform/tests/test_remaining_engines.py",
+        "services/sahool-platform/tests/test_season_stage_risk.py",
         "services/sahool-platform/tests/test_skills_registry.py",
         "services/sahool-platform/tests/test_sync_delta.py",
         "services/sahool-platform/tests/test_ui2_advanced_degraded_state_guard.py",
@@ -2722,7 +2724,7 @@
         "services/vegetation-analysis-service/post_execution_bridge.py"
       ],
       "source_evidence_count": 49,
-      "target_evidence_count": 280,
+      "target_evidence_count": 282,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -2732,5 +2734,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "3b0c2a7ce8ac4e41fc6a9dd7294863245d73109d974052b926c1b35894042404"
+  "content_sha256": "a4126db45315c1b0ebad2553d2556942a21b0589572d698d7d237137a017bd05"
 }

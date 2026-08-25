@@ -7205,12 +7205,20 @@
           "score": 16
         },
         {
-          "value": "field_season_state.v1 @ services/sahool-platform/api/field_season_projection.py:192",
+          "value": "field_season_state.v1 @ services/sahool-platform/api/field_season_projection.py:215",
           "score": 14
         },
         {
           "value": "field_season_state.v1 @ services/sahool-platform/tests/test_field_season_projection.py:87",
           "score": 14
+        },
+        {
+          "value": "crop_card.thermal.flowering_safe_max_c @ services/sahool-platform/core/season_stage_risk.py:172",
+          "score": 11
+        },
+        {
+          "value": "crop_card.thermal.flowering_safe_max_c @ services/sahool-platform/tests/test_season_stage_risk.py:136",
+          "score": 11
         },
         {
           "value": "field_workspace_screen.dart @ mobile/sahool_app/lib/screens/field_create_wizard.dart:33",
@@ -7875,7 +7883,7 @@
         "backend": 30,
         "routes": 82,
         "database": 84,
-        "events": 54,
+        "events": 56,
         "web": 12,
         "mobile": 1,
         "tests": 34,
@@ -19063,7 +19071,7 @@
           "score": 12
         },
         {
-          "value": "field_season_state.v1 @ services/sahool-platform/api/field_season_projection.py:192",
+          "value": "field_season_state.v1 @ services/sahool-platform/api/field_season_projection.py:215",
           "score": 12
         },
         {
@@ -33633,7 +33641,7 @@
           "score": 12
         },
         {
-          "value": "field_season_state.v1 @ services/sahool-platform/api/field_season_projection.py:192",
+          "value": "field_season_state.v1 @ services/sahool-platform/api/field_season_projection.py:215",
           "score": 12
         },
         {
