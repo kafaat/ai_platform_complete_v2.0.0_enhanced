@@ -6844,3 +6844,12 @@ no_third_value_registry نصّاً)، GATE-01 نظيف، 33 اختباراً، r
 - **المقيس:** 49/49 جناح المُشغِّل · CPU الاختباري ~3× أسرع حيث تكثر الزرعات · الزمن الحائطي المحليّ محكوم بنسخ المرآة لكلّ `--only` فلا يُسقَط على CI — رقم CI هو الحكم.
 - **فجوة مسجَّلة:** `MUT-SWEEP-RUNS-THE-WHOLE-FILE-PER-PLANT-01` — معالَجة في الشريحة.
 - **المصدر:** `scripts/ci/guard_mutation_guard.py` · `tests_v9/test_guard_mutation_guard.py` · `docs/architecture/guard_mutation_registry.json` · فرع `mut-narrow-01`.
+
+## 2026-08-25 (ج) — شريحة AGRI-NUTRIENT: منحنيا القمح والذرة الرفيعة + عقد المعايرة الإقليميّة بطبقتين
+
+- **المدخل:** تفويض المالك «كلّ ما تستطيع في فرع واحد» — نُفِّذت P1+P2 من خطّة بطاقات المحاصيل (المجال الواحد المتماسك)، وأُرجئ عمداً: تثبيت الرنبوك (يغيّر أداة قبول جولةٍ حيّة معلّقة بيد المالك) وGraph-RAG/الإيصالات (تلزمها وثيقة FOUNDATION بقاعدة CORR1) ومهايئ CORR1-م2 (يستحقّ شريحته).
+- **P1:** منحنيات `nutrient_demand` للقمح (مرساة Waldren & Flowerday 1979، Agron. J. 71:391–397) والذرة الرفيعة (مرساة Vanderlip 1993 KSU S-3 + نمط KSU) — شبكة 0.05، مجاميع 1.00، `approximation: true`، سلسلة اشتقاق كاملة بالمنهج الذي رسمه المدقّق نصّاً «حتى تتبعها القمح والذرة الرفيعة». التغطية 1/40 ← 3/40.
+- **P2:** عقد `nutrient_calibration` في districts (البطاقة تحظر `calibration` نصّاً): مدخلة لكلّ (محصول، صنف) بحالة uncalibrated/validated — **غير المعايَرة خاملة بالعقد** (معاملات 1.0 حرفيّاً يفرضها المدقّق) والمصادَقة وحدها تُطبَّق؛ تفرّد (محصول، صنف) داخل المنطقة. ومُحلّ بطبقتين `resolve_stage_nutrient_demand` بنمط RZ-VARIETY حرفيّاً (صنف المنطقة > عامّها > البطاقة)، فاشل-مغلق على البطاقة بلا منحنيات والمنطقة المجهولة والفاسدة، و`locally_calibrated` لا يكون true إلا بمعايرة مصادَقة مطبَّقة فعلاً. المعاملات موسميّة للمستهلك المطلق ولا تمسّ الكسور (جمعها 1.00 محروس اختباراً).
+- **عنصران نائبان خاملان** في central_highlands (قمح) وtihama_coastal (ذرة رفيعة) يعلنان موضع هبوط بيانات الإرشاد.
+- **المقيس:** 19 اختبار معايرة جديد + 102 بطاقات (تصحيح واحد: مثال «بلا منحنيات» صار barley بعد أن حمل القمح منحنياته) = 121/121 · ruff نظيف · فشل cranberry بمسار نسبيّ قائم سلفاً خارج الشريحة (يمرّ من cwd المنصّة كما في CI).
+- **المصدر:** `core/crop_cards/{wheat,sorghum}.yaml` · `core/crop_cards/nutrient_resolution.py` · `core/districts/loader.py` · `core/districts/{central_highlands,tihama_coastal}.yaml` · `tests/test_nutrient_calibration.py` · فرع `agri-nutrient-01`.

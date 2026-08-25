@@ -51,6 +51,25 @@ REQUIRED_WINDOW = {
 }
 VALID_SEVERITY = {"low", "medium", "high"}
 
+# ── عقد المعايرة الغذائيّة الإقليميّة (اختياريّ لكلّ منطقة) ──
+# بطاقة المحصول محايدة الموقع بالعقد (`calibration` محظورة فيها نصّاً)، فالمعايرة
+# تعيش هنا. مدخلة لكلّ (محصول، صنف): variety='' تعني عامّ المحصول في المنطقة —
+# نفس دلالة crop_root_policies (migrations/v169). فاشل-مغلق من جهتين:
+#   · uncalibrated ⇒ المعاملات **يجب** أن تكون 1.0 حرفيّاً (مدخلة خاملة تعلن
+#     البنية بلا أن تسرّب أرقاماً غير معايَرة إلى أيّ مستهلك).
+#   · validated ⇒ مصدر غير فارغ ومعاملات في النطاق الفيزيائيّ (0, 5].
+REQUIRED_CALIBRATION = {
+    "crop",
+    "variety",
+    "status",
+    "n_factor",
+    "p_factor",
+    "k_factor",
+    "source",
+}
+VALID_CALIBRATION_STATUS = {"uncalibrated", "validated"}
+_CALIBRATION_FACTOR_MAX = 5.0
+
 
 def load_district(district_id: str) -> dict | None:
     """يحمّل منطقة بمعرّفها (مع حماية من path traversal)."""
@@ -90,6 +109,48 @@ def _validate_window(win: dict, idx: int, errors: list) -> None:
         errors.append(f"نافذة[{idx}] severity غير صالحة: {win['severity']}")
 
 
+def _validate_calibration_entry(entry: dict, idx: int, errors: list) -> None:
+    """يتحقّق من مدخلة معايرة واحدة — راجع عقد REQUIRED_CALIBRATION أعلاه."""
+    import math
+
+    if not isinstance(entry, dict):
+        errors.append(f"معايرة[{idx}] ليست قاموساً")
+        return
+    miss = REQUIRED_CALIBRATION - set(entry.keys())
+    if miss:
+        errors.append(f"معايرة[{idx}] ينقصها: {miss}")
+        return
+    if not isinstance(entry["crop"], str) or not entry["crop"].strip():
+        errors.append(f"معايرة[{idx}] crop يجب أن يكون نصّاً غير فارغ")
+    if not isinstance(entry["variety"], str):
+        errors.append(f"معايرة[{idx}] variety يجب أن يكون نصّاً (''=عامّ)")
+    status = entry["status"]
+    if status not in VALID_CALIBRATION_STATUS:
+        errors.append(f"معايرة[{idx}] status غير صالحة: {status!r}")
+        return
+    factors = {}
+    for k in ("n_factor", "p_factor", "k_factor"):
+        v = entry[k]
+        if (
+            isinstance(v, bool)
+            or not isinstance(v, (int, float))
+            or not math.isfinite(v)
+            or not 0.0 < v <= _CALIBRATION_FACTOR_MAX
+        ):
+            errors.append(f"معايرة[{idx}] {k} خارج (0, {_CALIBRATION_FACTOR_MAX}]: {v!r}")
+        else:
+            factors[k] = float(v)
+    if status == "uncalibrated":
+        off = {k: v for k, v in factors.items() if v != 1.0}
+        if off:
+            errors.append(
+                f"معايرة[{idx}] uncalibrated بمعاملات ≠ 1.0: {off} — "
+                "المدخلة غير المعايَرة خاملة بالعقد، لا تحمل أرقاماً"
+            )
+    if not isinstance(entry["source"], str) or not entry["source"].strip():
+        errors.append(f"معايرة[{idx}] source يجب أن يكون نصّاً غير فارغ")
+
+
 def validate_district(card: dict | None) -> dict:
     """يتحقّق أن المنطقة تتبع القالب المعياري (نوافذ خطر مُسنَدة بمصادر)."""
     errors: list[str] = []
@@ -104,6 +165,19 @@ def validate_district(card: dict | None) -> dict:
     else:
         for i, win in enumerate(windows):
             _validate_window(win, i, errors)
+    calibration = card.get("nutrient_calibration")
+    if calibration is not None:
+        if not isinstance(calibration, list):
+            errors.append("nutrient_calibration يجب أن تكون قائمة إن وُجدت")
+        else:
+            seen: set[tuple[str, str]] = set()
+            for i, entry in enumerate(calibration):
+                _validate_calibration_entry(entry, i, errors)
+                if isinstance(entry, dict):
+                    key = (str(entry.get("crop", "")), str(entry.get("variety", "")))
+                    if key in seen:
+                        errors.append(f"معايرة[{i}] مكرَّرة لنفس (المحصول، الصنف): {key}")
+                    seen.add(key)
     return {
         "valid": len(errors) == 0,
         "errors": errors,

@@ -35,3 +35,13 @@ pest_windows:
     severity: medium
     scouting_cue_ar: "اصفرار/تنقّط دقيق على الأوراق ونسيج عنكبوتي على السطح السفلي في الجوّ الحارّ"
     source: "قرينة زراعيّة عامّة: العنكبوت الأحمر يشتدّ في الحرارة الجافّة (FAO/ICARDA IPM)"
+
+# ── المعايرة الغذائيّة الإقليميّة (عقد البنية — لا أرقام معايَرة بعد) ──
+nutrient_calibration:
+  - crop: sorghum
+    variety: ""
+    status: uncalibrated
+    n_factor: 1.0
+    p_factor: 1.0
+    k_factor: 1.0
+    source: "عنصر نائب بنيويّ — لم تُجرَ معايرة محلّيّة لتهامة بعد؛ تُملأ من بيانات الإرشاد/المسح الميدانيّ وتتحوّل status=validated عند التصديق"

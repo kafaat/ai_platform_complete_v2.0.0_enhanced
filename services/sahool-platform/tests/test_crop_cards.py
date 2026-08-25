@@ -924,7 +924,8 @@ class TestStageNutrientDemand:
     def test_helper_empty_for_card_without_curves(self):
         from core.crop_cards.loader import stage_nutrient_demand
 
-        assert stage_nutrient_demand("wheat") == []
+        # barley لا يحمل منحنيات بعد — wheat صار يحملها منذ شريحة P1.
+        assert stage_nutrient_demand("barley") == []
 
     # ── تصليب fail-closed: بيانات YAML مشوّهة تُنتج valid=False لا استثناءً ──
     # كلّ حالةٍ أدناه قِيست على الشيفرة قبل التصليب: الأولى والثانية والسادسة
