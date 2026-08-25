@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 563,
+      "evidence_count": 565,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -341,6 +341,7 @@
         "services/sahool-platform/core/field_intelligence_card.py",
         "services/sahool-platform/core/field_intelligence_coordinator.py",
         "services/sahool-platform/core/field_state_replay_bridge.py",
+        "services/sahool-platform/core/gdd_phenology.py",
         "services/sahool-platform/core/guardrails.py",
         "services/sahool-platform/core/historical_onboarding.py",
         "services/sahool-platform/core/historical_season_context.py",
@@ -437,6 +438,7 @@
         "services/sahool-platform/tests/test_fii_chemical_lineage.py",
         "services/sahool-platform/tests/test_fii_chemical_lineage_hardened.py",
         "services/sahool-platform/tests/test_fii_chemical_lineage_p0_hardening.py",
+        "services/sahool-platform/tests/test_gdd_phenology.py",
         "services/sahool-platform/tests/test_governance_modules.py",
         "services/sahool-platform/tests/test_historical_season_context.py",
         "services/sahool-platform/tests/test_identity.py",
@@ -2362,7 +2364,7 @@
         "services/sahool-platform/core/activity_log.py",
         "services/sahool-platform/core/ai_artifacts.py"
       ],
-      "source_evidence_count": 563,
+      "source_evidence_count": 565,
       "target_evidence_count": 484,
       "static_supported": true,
       "runtime_verified": false
@@ -2730,5 +2732,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "ec521641396532d7bff75e8e8fd94f0062a92bc764adb8911ecb5a8ac31078db"
+  "content_sha256": "3b0c2a7ce8ac4e41fc6a9dd7294863245d73109d974052b926c1b35894042404"
 }

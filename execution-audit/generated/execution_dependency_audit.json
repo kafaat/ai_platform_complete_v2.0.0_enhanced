@@ -5,8 +5,8 @@
     "runtime_verified": false,
     "python_files_parsed": 1869,
     "route_handlers": 1049,
-    "call_edges": 75472,
-    "dead_code_candidates": 621,
+    "call_edges": 75532,
+    "dead_code_candidates": 622,
     "duplicate_function_groups": 61,
     "route_owners": 27,
     "automatic_deletions": 0
@@ -333092,231 +333092,469 @@
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "gdd_base_c",
       "target": "load_crop_card",
-      "line": 33
+      "line": 42
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "gdd_base_c",
       "target": "get",
-      "line": 36
+      "line": 45
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "gdd_base_c",
       "target": "get",
-      "line": 36
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/gdd_phenology.py",
-      "source": "gdd_stage_thresholds",
-      "target": "load_crop_card",
       "line": 45
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "gdd_stage_thresholds",
-      "target": "get",
-      "line": 48
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/gdd_phenology.py",
-      "source": "gdd_stage_thresholds",
-      "target": "get",
-      "line": 48
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/gdd_phenology.py",
-      "source": "gdd_stage_thresholds",
-      "target": "get",
-      "line": 49
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/gdd_phenology.py",
-      "source": "gdd_stage_thresholds",
-      "target": "get",
-      "line": 49
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/gdd_phenology.py",
-      "source": "gdd_stage_thresholds",
-      "target": "list",
-      "line": 49
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/gdd_phenology.py",
-      "source": "gdd_stage_thresholds",
-      "target": "get",
-      "line": 50
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/gdd_phenology.py",
-      "source": "gdd_stage_thresholds",
-      "target": "get",
-      "line": 50
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/gdd_phenology.py",
-      "source": "gdd_stage_thresholds",
-      "target": "sum",
-      "line": 53
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/gdd_phenology.py",
-      "source": "gdd_stage_thresholds",
-      "target": "len",
+      "target": "load_crop_card",
       "line": 54
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "gdd_stage_thresholds",
-      "target": "len",
-      "line": 54
+      "target": "get",
+      "line": 57
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "gdd_stage_thresholds",
-      "target": "enumerate",
+      "target": "get",
+      "line": 57
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "gdd_stage_thresholds",
+      "target": "get",
       "line": 58
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "gdd_stage_thresholds",
-      "target": "round",
+      "target": "get",
+      "line": 58
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "gdd_stage_thresholds",
+      "target": "list",
+      "line": 58
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "gdd_stage_thresholds",
+      "target": "get",
       "line": 59
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "gdd_stage_thresholds",
-      "target": "round",
-      "line": 61
+      "target": "get",
+      "line": 59
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "gdd_stage_thresholds",
-      "target": "append",
+      "target": "sum",
       "line": 62
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "gdd_stage_thresholds",
+      "target": "len",
+      "line": 63
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "gdd_stage_thresholds",
+      "target": "len",
+      "line": 63
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "gdd_stage_thresholds",
+      "target": "enumerate",
+      "line": 67
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "gdd_stage_thresholds",
+      "target": "round",
+      "line": 68
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "gdd_stage_thresholds",
+      "target": "round",
+      "line": 70
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "gdd_stage_thresholds",
+      "target": "append",
+      "line": 71
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "gdd_stage_thresholds",
       "target": "get",
-      "line": 65
+      "line": 74
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "stage_from_gdd",
       "target": "gdd_stage_thresholds",
-      "line": 77
+      "line": 86
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "phenology_progress",
       "target": "load_crop_card",
-      "line": 98
+      "line": 107
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "phenology_progress",
       "target": "get",
-      "line": 99
+      "line": 108
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "phenology_progress",
       "target": "get",
-      "line": 99
+      "line": 108
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "phenology_progress",
       "target": "bool",
-      "line": 100
+      "line": 109
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "phenology_progress",
       "target": "gdd_stage_thresholds",
-      "line": 100
+      "line": 109
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "phenology_progress",
       "target": "current_stage",
-      "line": 102
+      "line": 111
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "phenology_progress",
       "target": "stage_from_gdd",
-      "line": 103
+      "line": 112
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "phenology_progress",
       "target": "round",
-      "line": 110
+      "line": 119
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "phenology_progress",
       "target": "bool",
-      "line": 115
+      "line": 124
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "phenology_progress",
       "target": "get",
-      "line": 118
+      "line": 127
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "phenology_progress",
       "target": "get",
-      "line": 120
+      "line": 129
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "phenology_progress",
       "target": "index",
-      "line": 128
+      "line": 137
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/gdd_phenology.py",
       "source": "phenology_progress",
       "target": "index",
-      "line": 128
+      "line": 137
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "_critical_gdd_bounds",
+      "target": "gdd_stage_thresholds",
+      "line": 164
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "_usable_series",
+      "target": "isinstance",
+      "line": 181
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "_usable_series",
+      "target": "isinstance",
+      "line": 181
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "_usable_series",
+      "target": "float",
+      "line": 183
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "_usable_series",
+      "target": "isfinite",
+      "line": 184
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "_usable_series",
+      "target": "append",
+      "line": 186
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "_calendar_window",
+      "target": "season_timeline",
+      "line": 194
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "_window",
+      "target": "list",
+      "line": 223
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "today",
+      "line": 255
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "_critical_gdd_bounds",
+      "line": 256
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "_usable_series",
+      "line": 257
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "append",
+      "line": 260
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "get",
+      "line": 264
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "_window",
+      "line": 267
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "_project_day",
+      "line": 280
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "_window",
+      "line": 281
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "isoformat",
+      "line": 288
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "timedelta",
+      "line": 288
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "_project_day",
+      "line": 294
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "_project_day",
+      "line": 296
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "_window",
+      "line": 297
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "isoformat",
+      "line": 303
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "timedelta",
+      "line": 303
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "isoformat",
+      "line": 304
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "timedelta",
+      "line": 304
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "append",
+      "line": 312
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "append",
+      "line": 314
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "_calendar_window",
+      "line": 317
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "_window",
+      "line": 319
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "fromisoformat",
+      "line": 324
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "_window",
+      "line": 326
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "get",
+      "line": 331
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "project_next_critical_window",
+      "target": "max",
+      "line": 334
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/gdd_phenology.py",
+      "source": "_project_day",
+      "target": "enumerate",
+      "line": 350
     },
     {
       "owner": "sahool-platform",
@@ -403057,48 +403295,41 @@
       "file": "services/sahool-platform/tests/test_gdd_phenology.py",
       "source": "test_gdd_base_from_card",
       "target": "gdd_base_c",
-      "line": 18
+      "line": 23
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_gdd_phenology.py",
       "source": "test_gdd_base_from_card",
       "target": "gdd_base_c",
-      "line": 19
+      "line": 24
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_gdd_phenology.py",
       "source": "test_gdd_base_from_card",
       "target": "gdd_base_c",
-      "line": 20
+      "line": 25
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_gdd_phenology.py",
       "source": "test_wheat_thresholds_proportional_to_stage_days",
       "target": "gdd_stage_thresholds",
-      "line": 24
+      "line": 29
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_gdd_phenology.py",
       "source": "test_wheat_thresholds_proportional_to_stage_days",
       "target": "round",
-      "line": 28
+      "line": 33
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_gdd_phenology.py",
       "source": "test_perennial_has_no_gdd_thresholds",
       "target": "gdd_stage_thresholds",
-      "line": 33
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
-      "source": "test_maps_accumulated_gdd_to_stage",
-      "target": "stage_from_gdd",
       "line": 38
     },
     {
@@ -403106,70 +403337,259 @@
       "file": "services/sahool-platform/tests/test_gdd_phenology.py",
       "source": "test_maps_accumulated_gdd_to_stage",
       "target": "stage_from_gdd",
-      "line": 39
+      "line": 43
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_gdd_phenology.py",
       "source": "test_maps_accumulated_gdd_to_stage",
       "target": "stage_from_gdd",
-      "line": 40
+      "line": 44
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_maps_accumulated_gdd_to_stage",
+      "target": "stage_from_gdd",
+      "line": 45
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_gdd_phenology.py",
       "source": "test_past_maturity_returns_none",
       "target": "stage_from_gdd",
-      "line": 43
+      "line": 48
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_gdd_phenology.py",
       "source": "test_none_gdd_returns_none",
       "target": "stage_from_gdd",
-      "line": 46
+      "line": 51
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_gdd_phenology.py",
       "source": "test_aligned_days_and_gdd",
       "target": "phenology_progress",
-      "line": 52
+      "line": 57
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_gdd_phenology.py",
       "source": "test_thermally_ahead_when_hot",
       "target": "phenology_progress",
-      "line": 60
+      "line": 65
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_gdd_phenology.py",
       "source": "test_thermally_behind_when_cold",
       "target": "phenology_progress",
-      "line": 66
+      "line": 71
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_gdd_phenology.py",
       "source": "test_maturity_reached_by_gdd",
       "target": "phenology_progress",
-      "line": 71
+      "line": 76
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_gdd_phenology.py",
       "source": "test_perennial_gdd_not_applicable_honest",
       "target": "phenology_progress",
-      "line": 76
+      "line": 81
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_gdd_phenology.py",
       "source": "test_days_only_when_no_gdd_supplied",
       "target": "phenology_progress",
-      "line": 83
+      "line": 88
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_critical_stage_reuses_the_platforms_own_definition",
+      "target": "_stages",
+      "line": 107
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_critical_stage_reuses_the_platforms_own_definition",
+      "target": "is_reproductive_stage",
+      "line": 110
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_upcoming_window_carries_dates_and_lead_time",
+      "target": "gdd_stage_thresholds",
+      "line": 113
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_upcoming_window_carries_dates_and_lead_time",
+      "target": "next",
+      "line": 113
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_upcoming_window_carries_dates_and_lead_time",
+      "target": "project_next_critical_window",
+      "line": 114
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_upcoming_window_carries_dates_and_lead_time",
+      "target": "ceil",
+      "line": 117
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_upcoming_window_carries_dates_and_lead_time",
+      "target": "isoformat",
+      "line": 120
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_upcoming_window_carries_dates_and_lead_time",
+      "target": "timedelta",
+      "line": 120
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_a_horizon_shorter_than_the_window_end_is_declared_not_extrapolated",
+      "target": "project_next_critical_window",
+      "line": 125
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_inside_the_window_the_unobserved_start_stays_none",
+      "target": "project_next_critical_window",
+      "line": 132
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_a_passed_window_is_not_projected_again",
+      "target": "project_next_critical_window",
+      "line": 141
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_calendar_fallback_is_announced_with_lower_confidence",
+      "target": "project_next_critical_window",
+      "line": 147
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_calendar_fallback_is_announced_with_lower_confidence",
+      "target": "date",
+      "line": 151
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_missing_gdd_falls_back_to_the_calendar_and_says_why",
+      "target": "date",
+      "line": 160
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_missing_gdd_falls_back_to_the_calendar_and_says_why",
+      "target": "project_next_critical_window",
+      "line": 160
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_no_input_fabricates_no_window",
+      "target": "project_next_critical_window",
+      "line": 165
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_a_corrupt_series_is_invalidated_whole_never_silently_shortened",
+      "target": "float",
+      "line": 171
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_a_corrupt_series_is_invalidated_whole_never_silently_shortened",
+      "target": "project_next_critical_window",
+      "line": 172
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_a_corrupt_series_is_invalidated_whole_never_silently_shortened",
+      "target": "date",
+      "line": 176
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_a_perennial_without_gdd_thresholds_says_so",
+      "target": "next",
+      "line": 185
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_a_perennial_without_gdd_thresholds_says_so",
+      "target": "gdd_stage_thresholds",
+      "line": 186
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_a_perennial_without_gdd_thresholds_says_so",
+      "target": "project_next_critical_window",
+      "line": 189
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_a_projection_is_never_reported_as_an_observation",
+      "target": "date",
+      "line": 200
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_a_projection_is_never_reported_as_an_observation",
+      "target": "project_next_critical_window",
+      "line": 204
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_lead_days_is_never_negative",
+      "target": "project_next_critical_window",
+      "line": 211
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "source": "test_lead_days_is_never_negative",
+      "target": "timedelta",
+      "line": 212
     },
     {
       "owner": "sahool-platform",
@@ -540863,7 +541283,7 @@
       "symbol": "TestBaseAndThresholds",
       "kind": "class",
       "file": "services/sahool-platform/tests/test_gdd_phenology.py",
-      "line": 16,
+      "line": 21,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,
@@ -540874,7 +541294,7 @@
       "symbol": "TestStageFromGdd",
       "kind": "class",
       "file": "services/sahool-platform/tests/test_gdd_phenology.py",
-      "line": 36,
+      "line": 41,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,
@@ -540885,7 +541305,18 @@
       "symbol": "TestPhenologyProgress",
       "kind": "class",
       "file": "services/sahool-platform/tests/test_gdd_phenology.py",
-      "line": 49,
+      "line": 54,
+      "owner": "sahool-platform",
+      "decorated_route": false,
+      "reference_count": 0,
+      "confidence": "medium",
+      "action": "review_before_delete"
+    },
+    {
+      "symbol": "TestProjectNextCriticalWindow",
+      "kind": "class",
+      "file": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "line": 94,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,

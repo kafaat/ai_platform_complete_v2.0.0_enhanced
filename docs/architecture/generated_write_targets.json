@@ -4,7 +4,7 @@
   "version": 1,
   "adjudicated_on": "2026-08-21",
   "measured_by": "scripts/ci/generated_write_targets.py --generate",
-  "measured_on": "0712281274e6aa849cca20279d55d5c8b84a3df9",
+  "measured_on": "5bb84cb4c079cb8704181f4554b357de3465dfb6",
   "criterion": "استدعاءُ كتابة (write_text · open بوضع w/a/x) بمسارٍ ثابتٍ مشتقّ من AST",
   "not_the_criterion": "ورودُ المسار نصّاً في سكربت — يشمل ما يُقرأ ولا يُكتَب",
   "honesty_limit": "مسارٌ يُبنى في وقت التشغيل (حلقة، أو اسمٌ من وسيط) لا يُرى ساكناً. فالبيان **يُضيف** إلى علامات المُصنِّف ولا يستبدلها، وقائمةُ المنع تعلوه.",
