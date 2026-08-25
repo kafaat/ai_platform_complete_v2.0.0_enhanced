@@ -57,6 +57,14 @@ pest_susceptibility:
 phenology:
   source: "FAO-56 Table 12 (Winter/Spring Wheat) stage lengths"
   total_cycle_days: 120
+  # ══ سلسلة اشتقاق كسور الطلب الغذائيّ — قرينة معرفيّة مقرَّبة، لا معايرة محلّيّة ══
+  nutrient_demand_provenance:
+    primary_reference: "Waldren, R.P. & Flowerday, A.D. (1979), 'Growth Stages and Distribution of Dry Matter, N, P, and K in Winter Wheat', Agronomy Journal 71(3):391–397"
+    supporting_reference: "المراسي النوعيّة المستقرّة في أدبيّات القمح: ~90% من K و~75–80% من N مُمتصّ بحلول الإزهار (anthesis)، بينما يستمرّ امتصاص P فعليّاً في امتلاء الحبّ؛ ذروة معدّل الامتصاص الثلاثيّ في الاستطالة الساقيّة"
+    derivation: "نصيب كلّ نافذة FAO-56 = فرق المنحنى التراكميّ عند حدَّيها في مسار Waldren & Flowerday (إنبات→إشطاء→استطالة/إزهار→امتلاء)، مقيَّداً بالمراسي النوعيّة أعلاه: K مُقدَّم الثقل (نصفه في النموّ الخضري، شبه مكتمل عند الإزهار)، N ذروته الاستطالة مع ~20% في الامتلاء، P الأبطأ اكتمالاً (~30% في الامتلاء)"
+    stage_mapping: "initial(0–15d)≈الإنبات–بدء الإشطاء · development(15–40d)≈الإشطاء–بدء الاستطالة · mid(40–90d)≈الاستطالة–الإزهار–بدء الامتلاء · late(90–120d)≈الامتلاء–النضج"
+    normalization: "نصيب النافذة ÷ الإجماليّ الموسميّ لكلّ عنصر، ثمّ تقريب إلى شبكة 0.05 وتسوية مجموع كلّ عنصر إلى 1.00"
+    approximation: true
   stages:
     - stage: initial
       name_ar: "الإنبات والتأسيس"
@@ -64,21 +72,45 @@ phenology:
       day_end: 15
       kc: 0.30
       key_action_ar: "ريّ تأسيس لضمان إنبات منتظم"
+      # ≈ الإنبات–بدء الإشطاء: امتصاص ضئيل — التأسيس الجذريّ قبل الطلب الفعليّ
+      nutrient_demand:
+        n_fraction: 0.05
+        p_fraction: 0.05
+        k_fraction: 0.10
+        source: "Waldren & Flowerday 1979, Agron. J. 71(3):391–397 (cumulative N-P-K distribution); FAO-56 window mapping, approximate"
     - stage: development
       name_ar: "النموّ الخضري والإشطاء"
       day_start: 15
       day_end: 40
       kc_end: 1.15
       key_action_ar: "تسميد آزوتي + مكافحة الحشائش"
+      # ≈ الإشطاء–بدء الاستطالة: إقلاع الامتصاص — K الأسرع (~نصف موسمه هنا)
+      nutrient_demand:
+        n_fraction: 0.35
+        p_fraction: 0.25
+        k_fraction: 0.40
+        source: "Waldren & Flowerday 1979, Agron. J. 71(3):391–397; K front-loaded (≈half by stem elongation), approximate"
     - stage: mid
       name_ar: "الاستطالة والسنبلة والإزهار"
       day_start: 40
       day_end: 90
       kc: 1.15
       key_action_ar: "ذروة الاحتياج المائي عند الإزهار — تجنّب الإجهاد المائي والحراري"
+      # ≈ الاستطالة–الإزهار: ذروة معدّل الامتصاص الثلاثيّ؛ K شبه مكتمل بنهايتها
+      nutrient_demand:
+        n_fraction: 0.40
+        p_fraction: 0.40
+        k_fraction: 0.45
+        source: "Waldren & Flowerday 1979, Agron. J. 71(3):391–397; ≈90% K and ≈80% N absorbed by anthesis, approximate"
     - stage: late
       name_ar: "امتلاء الحبّ والنضج"
       day_start: 90
       day_end: 120
       kc: 0.40
       key_action_ar: "تقليل الريّ قبل الحصاد"
+      # ≈ الامتلاء–النضج: بقايا N (~20%) وP مستمرّ (~30%) وK شبه معدوم
+      nutrient_demand:
+        n_fraction: 0.20
+        p_fraction: 0.30
+        k_fraction: 0.05
+        source: "Waldren & Flowerday 1979, Agron. J. 71(3):391–397; P uptake continues into grain fill, K essentially complete, approximate"

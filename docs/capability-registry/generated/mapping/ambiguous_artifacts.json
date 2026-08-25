@@ -6838,6 +6838,50 @@
     ]
   },
   {
+    "path": "services/sahool-platform/core/crop_cards/sorghum.yaml",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 10,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "GIS-003",
+        "score": 9,
+        "signals": [
+          "content:dem",
+          "content:slope"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/wheat.yaml",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 10,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "GIS-003",
+        "score": 9,
+        "signals": [
+          "content:dem",
+          "content:slope"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/core/crop_intelligence/engine.py",
     "kind": "backend",
     "candidates": [

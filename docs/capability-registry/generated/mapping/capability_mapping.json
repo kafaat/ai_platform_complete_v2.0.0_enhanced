@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5181,
+    "files_scanned": 5182,
     "files_by_kind": {
       "backend": 1204,
       "database": 274,
       "governance": 60,
       "mobile": 51,
       "other": 1420,
-      "tests": 1716,
+      "tests": 1717,
       "web": 456
     },
-    "unmapped_artifacts": 2110,
-    "ambiguous_artifacts": 411
+    "unmapped_artifacts": 2111,
+    "ambiguous_artifacts": 413
   },
   "capabilities": [
     {
@@ -9393,6 +9393,22 @@
           ]
         },
         {
+          "path": "services/sahool-platform/core/crop_cards/sorghum.yaml",
+          "score": 9,
+          "signals": [
+            "content:dem",
+            "content:slope"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/core/crop_cards/wheat.yaml",
+          "score": 9,
+          "signals": [
+            "content:dem",
+            "content:slope"
+          ]
+        },
+        {
           "path": "services/soil-service/routers/p2_products.py",
           "score": 9,
           "signals": [
@@ -10855,7 +10871,7 @@
         "routes": 19
       },
       "evidence_counts": {
-        "backend": 25,
+        "backend": 27,
         "routes": 100,
         "database": 10,
         "events": 51,
@@ -40399,6 +40415,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_nutrient_calibration.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_offline_first.py",
       "kind": "tests"
     },
@@ -50046,6 +50066,50 @@
     },
     {
       "path": "services/sahool-platform/core/crop_cards/maize.yaml",
+      "kind": "backend",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 10,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "GIS-003",
+          "score": 9,
+          "signals": [
+            "content:dem",
+            "content:slope"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/sahool-platform/core/crop_cards/sorghum.yaml",
+      "kind": "backend",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 10,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "GIS-003",
+          "score": 9,
+          "signals": [
+            "content:dem",
+            "content:slope"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/sahool-platform/core/crop_cards/wheat.yaml",
       "kind": "backend",
       "candidates": [
         {
