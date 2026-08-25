@@ -130,3 +130,61 @@ def test_check_names_survive_the_slice_and_unit_tests_is_a_singleton() -> None:
     present = {j.get("name") for j in jobs.values()}
     missing = required - present
     assert not missing, f"أسماءٌ مطلوبة في حماية الفرع غابت عن ci.yml: {sorted(missing)}"
+
+
+def test_the_sharded_sweep_job_declares_literal_check_names() -> None:
+    """أسماءُ الفحوص المطلوبة تُطابَق حرفيّاً — واسمٌ يشتقّه التعبير يُيتَّم.
+
+    نفس درس `test_check_names_survive_the_slice…` فوقه: المصفوفة تشتقّ أسماءً،
+    فالاسمُ يُعلَن صريحاً في `include` ويُقرأ منه — لا `${{ matrix.shard }}`
+    مُركَّباً في نصّ الاسم.
+    """
+    job = _ci()["jobs"]["mutation-sweep"]
+    entries = job["strategy"]["matrix"]["include"]
+    names = [entry["check_name"] for entry in entries]
+
+    assert names == [f"Mutation Sweep {i}/5" for i in range(1, 6)], names
+    assert len({entry["shard"] for entry in entries}) == len(entries), "حزمةٌ مكرَّرة"
+    assert [entry["shard"] for entry in entries] == [f"{i}/5" for i in range(5)]
+    # `fail-fast` مُطفَأة: حزمةٌ تسقط لا تُلغي أخواتها فتُخفي أعطالها.
+    assert job["strategy"]["fail-fast"] is False
+
+
+def test_the_union_guard_runs_in_every_shard_before_planting() -> None:
+    """الفحصُ الذي يقع في أختها لا يشهد لها — فيُشغَّل في كلّ حزمة، وقبل الزرع."""
+    steps = _ci()["jobs"]["mutation-sweep"]["steps"]
+    runs = [str(step.get("run", "")) for step in steps]
+    union = next(i for i, r in enumerate(runs) if "--shard-inventory" in r)
+    plant = next(i for i, r in enumerate(runs) if "--run --shard" in r)
+    assert union < plant, "حارسُ الاتّحاد بعد الزرع يشهد على ما جرى لا على ما سيجري"
+
+
+def test_the_sweep_stays_in_unit_tests_until_the_ruleset_is_set() -> None:
+    """**بوّابةُ التسلسل نفسها.**
+
+    نقلُ المكنسة قبل إضافة أسماء الحزم إلى الفحوص المطلوبة يجعلها إرشاديّةً
+    **صامتاً** — تحمرّ ولا تحجب. فالحذف يقع في التزامٍ واحد مع إضافة الأسماء إلى
+    `required_status_checks_contract.json`، وهذا الاختبار يفرض اقترانهما:
+    إمّا الاثنان معاً وإمّا لا شيء.
+    """
+    contract = json.loads(
+        (ROOT / "docs/architecture/required_status_checks_contract.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    shard_names = {f"Mutation Sweep {i}/5" for i in range(1, 6)}
+    required = set(contract["required_contexts"])
+    sweep_in_unit_tests = any(
+        "guard_mutation_guard.py --run" in str(step.get("run", ""))
+        for step in _ci()["jobs"]["unit-tests"]["steps"]
+    )
+
+    if shard_names & required:
+        assert shard_names <= required, "بعضُ الحزم مطلوبةٌ وبعضُها لا — تغطيةٌ نصفيّة"
+        assert not sweep_in_unit_tests, (
+            "الحزم صارت مطلوبةً والمكنسة ما تزال في Unit Tests — ازدواجٌ يُبطئ بلا فائدة"
+        )
+    else:
+        assert sweep_in_unit_tests, (
+            "المكنسة خرجت من Unit Tests وأسماءُ الحزم ليست في العقد — نافذةُ صمت: تحمرّ ولا تحجب"
+        )
