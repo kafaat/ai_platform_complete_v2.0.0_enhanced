@@ -29255,7 +29255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "575832c518a4e128902d4d1b3849bd0e878bb6baa3180813511831b1ea6060f7"
+          "content": "ac5250629069b3bc473278616b7b570057b90691e259b2395a25e31abd6fad46"
         }
       ],
       "name": "services/weather-service/canonical_weather_state.py",
@@ -29335,7 +29335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "73ff2062d1c5aeebb75811e44e5cb0d2ef8a1951e86e8d41102af1490fe4e131"
+          "content": "9452b6fdbb60fa32ee5a9eaf92c5285f03961a2116ae17e1c0bab5ca21f0fb34"
         }
       ],
       "name": "services/weather-service/open_meteo.py",
@@ -29479,6 +29479,16 @@
         }
       ],
       "name": "services/weather-service/tests/test_hourly_etc_product.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e035bb2bb0a2512545748a18a9923a2c33265ce0aba7c89a1136dabc674b2d4b"
+        }
+      ],
+      "name": "services/weather-service/tests/test_missing_temperature_is_not_zero.py",
       "type": "file"
     },
     {

@@ -310,8 +310,14 @@ def normalize_daily(
         days.append(
             {
                 "date": day,
-                "temp_max_c": _at(_as_list(data, "daily", "temperature_2m_max"), idx, 0),
-                "temp_min_c": _at(_as_list(data, "daily", "temperature_2m_min"), idx, 0),
+                # قراءةٌ حراريّة غائبة تبقى ``None`` — لا تُصفَّر. صفرٌ مُقنَّع يمرّ
+                # ``_finite`` في نواة GDD فيُحتسَب يوماً صالحاً بمساهمة صفر: يبخس
+                # التراكم **ويُضخّم** عدد الأيّام المرصودة ونسبة التغطية معاً. و``0.0°C``
+                # قراءةٌ فيزيائيّة مشروعة، فلا سبيل لتمييزها من الغياب بعد التصفير.
+                # (المطر والرياح يبقيان مُصفَّرَين هنا — «لا مطر» قراءةٌ معقولة للصفر،
+                # وقيدُهما مُعلَنٌ في ``_DAILY_ZERO_COERCED_FIELDS``.)
+                "temp_max_c": _at(_as_list(data, "daily", "temperature_2m_max"), idx),
+                "temp_min_c": _at(_as_list(data, "daily", "temperature_2m_min"), idx),
                 "precipitation_mm": _at(_as_list(data, "daily", "precipitation_sum"), idx, 0),
                 "et0_mm": _at(_as_list(data, "daily", "et0_fao_evapotranspiration"), idx),
                 "sunshine_hours": round(float(sunshine_s) / 3600, 2)

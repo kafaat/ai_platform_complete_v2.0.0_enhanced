@@ -75,7 +75,7 @@ WX-002,weather,Weather forecast,True,6,22,51,8,55,9,0,21,0
 WX-003,weather,Weather history,True,4,4,6,4,0,0,0,4,0
 WX-004,weather,ET0,True,5,60,53,0,81,19,0,57,0
 WX-005,weather,VPD,True,5,9,29,0,6,2,0,6,0
-WX-006,weather,GDD,True,6,84,26,33,26,16,0,44,0
+WX-006,weather,GDD,True,6,84,26,33,26,16,0,45,0
 WX-007,weather,Frost and heat risk,True,1,1,0,0,0,0,0,0,0
 WX-008,weather,Operation windows,True,4,2,6,0,1,0,0,2,0
 WX-009,weather,Disease weather models,True,4,2,29,0,0,2,0,1,0

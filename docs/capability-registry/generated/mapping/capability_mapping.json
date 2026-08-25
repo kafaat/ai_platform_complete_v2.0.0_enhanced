@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5184,
+    "files_scanned": 5185,
     "files_by_kind": {
       "backend": 1204,
       "database": 274,
       "governance": 60,
       "mobile": 51,
       "other": 1421,
-      "tests": 1718,
+      "tests": 1719,
       "web": 456
     },
     "unmapped_artifacts": 2110,
@@ -34082,6 +34082,14 @@
           ]
         },
         {
+          "path": "services/weather-service/tests/test_missing_temperature_is_not_zero.py",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "tests/test_real_data.py",
           "score": 12,
           "signals": [
@@ -34408,7 +34416,7 @@
         "events": 26,
         "web": 16,
         "mobile": 0,
-        "tests": 44,
+        "tests": 45,
         "governance": 0,
         "other_evidence": 21
       },
