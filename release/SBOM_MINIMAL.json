@@ -15955,7 +15955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "eb40ce589000c6744b5d940850fd47efc52bbe2a17da110efafb6f0846791b68"
+          "content": "e98fdb2a4f1d3f0a6e8c572f4d0d70b4d15592fe1ddb20d1a5c274068759e2ff"
         }
       ],
       "name": "services/sahool-platform/api/field_season_projection.py",
@@ -22065,7 +22065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "740a267d2891a637a965904580406a41f25a6e0c337ae8902f4a36288bdaabab"
+          "content": "e1ff0e6fd4b16eb6f8720aa3437f3ff77e05c7adb67982ca9c7c6682de190bb7"
         }
       ],
       "name": "services/sahool-platform/core/season_stage_risk.py",
@@ -24755,7 +24755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "940eaba8ec41faee8100292e06dc402dba776b880b491bd1fd9fb98adade4e09"
+          "content": "556c1a360d0b344883709ca81133a232df818848956c49f8b9325224876b50fe"
         }
       ],
       "name": "services/sahool-platform/tests/test_field_season_projection.py",
@@ -26675,7 +26675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c77c97b3f9cbd5b000a419e79ccc0d169fb84a790d1d21b9f38526b07dc2078b"
+          "content": "093a8f371e88bbff424f009b82dcfc4c2b6d68a7c2e548deb087fdcf50df08a1"
         }
       ],
       "name": "services/sahool-platform/tests/test_season_stage_risk.py",

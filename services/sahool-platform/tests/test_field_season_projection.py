@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 
 from api.field_season_projection import assemble_field_season_state
 
@@ -88,3 +88,77 @@ class TestHonestyMissingData:
         assert s["current_stage"] is None
         assert s["current_kc"] is None
         assert s["season_confidence"] == "low"
+
+
+class TestCriticalWindowInTheUnifiedTruth:
+    """W2 — النافذة الحرجة داخل الحقيقة الموحّدة، لا بجانبها.
+
+    الموحِّد هو ما يقرؤه الذكاء/الواجهة/التقارير؛ فوضعُ الإسقاط خارجه يجعله نواةً
+    لا يراها أحد. وهذا يفحص الوصل نفسه لا حساب النافذة (مُختبَرٌ في موضعه).
+    """
+
+    TODAY = date(2026, 8, 1)
+
+    def _daily(self, hot=(), tmax_hot=38.0):
+        return [
+            {
+                "date": (self.TODAY + timedelta(days=i)).isoformat(),
+                "gdd": 15.0,
+                "tmax_c": tmax_hot if i in hot else 30.0,
+            }
+            for i in range(1, 41)
+        ]
+
+    def _state(self, **over):
+        kwargs = dict(
+            field_id="f1",
+            crop="maize",
+            sowing_date=date(2026, 6, 1),
+            today=self.TODAY,
+            accumulated_gdd=500.0,
+        )
+        kwargs.update(over)
+        return assemble_field_season_state(**kwargs)
+
+    def test_the_unifier_publishes_the_window_and_its_collisions(self):
+        state = self._state(forecast_daily=self._daily(hot=(12, 13)))
+        assert state["critical_window"]["status"] == "upcoming"
+        assert state["critical_window"]["lead_days"] == 10
+        assert state["critical_window"]["source"] == "gdd_forecast"
+        assert state["critical_window_collisions"]["status"] == "collisions"
+        assert [e["lead_days"] for e in state["critical_window_collisions"]["events"]] == [12, 13]
+
+    def test_a_collision_raises_requires_review(self):
+        assert self._state(forecast_daily=self._daily(hot=(12, 13)))["requires_review"] is True
+
+    def test_without_a_forecast_the_unifier_degrades_and_says_so(self):
+        state = self._state()
+        assert state["critical_window"]["source"] == "calendar_fallback"
+        assert state["critical_window_collisions"]["status"] == "insufficient_context"
+        assert state["critical_window_collisions"]["events"] == []
+
+    def test_the_daily_gdd_series_is_received_never_recomputed_here(self):
+        """WS-C.1c: حسابُ GDD اليوميّ مِلكُ محرّك الطقس. مُدخَلٌ بلا `gdd` لا يُلفَّق له.
+
+        السلسلة الناقصة تُبطَل كلّها فيهبط الحساب إلى التقويم مُعلِناً — ولا تُشتقّ
+        درجاتُ نموٍّ من الحرارة هنا (لكانت نواةً ثانية تنحرف عن الأولى بصمت).
+        """
+        no_gdd = [
+            {"date": (self.TODAY + timedelta(days=i)).isoformat(), "tmax_c": 30.0}
+            for i in range(1, 41)
+        ]
+        state = self._state(forecast_daily=no_gdd)
+        assert state["critical_window"]["source"] == "calendar_fallback"
+
+    def test_the_window_answers_when_while_stage_risk_answers_today(self):
+        """④ و⑦ سؤالان مختلفان — ولا يُغني أحدهما عن الآخر.
+
+        حرارةٌ اليوم دون العتبة، وحرارةٌ فوقها داخل النافذة بعد ١٢ يوماً:
+        ④ هادئ و⑦ يُنذر. لو كانا سؤالاً واحداً لتساويا.
+        """
+        state = self._state(
+            weather_signals={"tmax_c": 30.0},
+            forecast_daily=self._daily(hot=(12,), tmax_hot=40.0),
+        )
+        assert state["weather_stage_risks"]["overall_severity"] in ("none", "low")
+        assert state["critical_window_collisions"]["max_severity"] == "high"

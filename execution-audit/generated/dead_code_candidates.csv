@@ -369,6 +369,7 @@ medium,sahool-platform,class,TestSafetyCriticalRecommendations,services/sahool-p
 medium,sahool-platform,class,TestEnumIntegrity,services/sahool-platform/tests/test_field_lifecycle.py,82,0,review_before_delete,False
 medium,sahool-platform,class,TestFullProjection,services/sahool-platform/tests/test_field_season_projection.py,10,0,review_before_delete,False
 medium,sahool-platform,class,TestHonestyMissingData,services/sahool-platform/tests/test_field_season_projection.py,62,0,review_before_delete,False
+medium,sahool-platform,class,TestCriticalWindowInTheUnifiedTruth,services/sahool-platform/tests/test_field_season_projection.py,93,0,review_before_delete,False
 medium,sahool-platform,class,TestFieldState,services/sahool-platform/tests/test_field_state.py,17,0,review_before_delete,False
 medium,sahool-platform,class,TestDesign,services/sahool-platform/tests/test_field_trial_design.py,7,0,review_before_delete,False
 medium,sahool-platform,class,TestAnalysis,services/sahool-platform/tests/test_field_trial_design.py,27,0,review_before_delete,False
@@ -510,10 +511,11 @@ medium,sahool-platform,class,TestEstimationAssumptions,services/sahool-platform/
 medium,sahool-platform,class,TestObservedFapar,services/sahool-platform/tests/test_season_simulation.py,180,0,review_before_delete,False
 medium,sahool-platform,class,TestFaparFromNdvi,services/sahool-platform/tests/test_season_simulation.py,255,0,review_before_delete,False
 medium,sahool-platform,class,TestCropDifferences,services/sahool-platform/tests/test_season_simulation.py,278,0,review_before_delete,False
-medium,sahool-platform,class,TestFloweringStage,services/sahool-platform/tests/test_season_stage_risk.py,12,0,review_before_delete,False
-medium,sahool-platform,class,TestEstablishmentStage,services/sahool-platform/tests/test_season_stage_risk.py,35,0,review_before_delete,False
-medium,sahool-platform,class,TestHarvestStage,services/sahool-platform/tests/test_season_stage_risk.py,46,0,review_before_delete,False
-medium,sahool-platform,class,TestHonesty,services/sahool-platform/tests/test_season_stage_risk.py,61,0,review_before_delete,False
+medium,sahool-platform,class,TestFloweringStage,services/sahool-platform/tests/test_season_stage_risk.py,15,0,review_before_delete,False
+medium,sahool-platform,class,TestEstablishmentStage,services/sahool-platform/tests/test_season_stage_risk.py,38,0,review_before_delete,False
+medium,sahool-platform,class,TestHarvestStage,services/sahool-platform/tests/test_season_stage_risk.py,49,0,review_before_delete,False
+medium,sahool-platform,class,TestHonesty,services/sahool-platform/tests/test_season_stage_risk.py,64,0,review_before_delete,False
+medium,sahool-platform,class,TestCriticalWindowCollisions,services/sahool-platform/tests/test_season_stage_risk.py,97,0,review_before_delete,False
 medium,sahool-platform,class,TestSecurityV91,services/sahool-platform/tests/test_security_v91.py,18,0,review_before_delete,False
 medium,sahool-platform,class,TestValidation,services/sahool-platform/tests/test_sensor_intake.py,7,0,review_before_delete,False
 medium,sahool-platform,class,TestObservationOutput,services/sahool-platform/tests/test_sensor_intake.py,48,0,review_before_delete,False

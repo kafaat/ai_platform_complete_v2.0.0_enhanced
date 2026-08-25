@@ -8,11 +8,17 @@
   ③ Kc الطوريّ           ``core.season_phenology.stage_kc``                       (FAO-56)
   ④ مخاطر المرحلة        ``core.season_stage_risk.stage_weather_risks``           (طقس × مرحلة)
   ⑤ تعارض الاستشعار      ``core.eo_stage_mismatch.detect_eo_stage_mismatch``      (NDVI/NDMI × مرحلة)
+  ⑦ النافذة الحرجة       ``gdd_phenology.project_next_critical_window``           (متى يدخل الطور الأضعف)
+                        + ``season_stage_risk.critical_window_collisions``        (× التنبؤ ⇒ زمن قياديّ)
   + الماء (عجز 7/14 يوم) + المهام المفتوحة (تُمرَّر من القاعدة).
 
 يقع في ``api/`` لأنّه يعتمد ``api.season_calendar_guard`` (الذي يعتمد بيانات تقويم في api)؛ فاستيراد
 core منه سليم (api ← core)، عكسه ممنوع (core لا يستورد api). المرحلة الفعّالة = مرحلة GDD إن انطبقت،
 وإلّا مرحلة الأيّام — وتُغذّي ④ و⑤.
+
+و④ و⑦ يجيبان سؤالين مختلفين لا واحداً: ④ «هل الحقل في خطرٍ اليوم؟» بقيمٍ مجمَّعة على المرحلة
+الجارية · ⑦ «متى سيصادف طورُه الأضعف طقساً متطرّفاً؟» بنافذةٍ مؤرَّخة وزمنٍ قياديّ. والفرق بينهما
+هو ما يسمح بإجراءٍ تحضيريّ بدل إسعافيّ.
 
 **نقيّ (لا شبكة/قاعدة):** يستقبل المُدخَلات الخام ويُخرِج القاموس الموحّد. طبقة القراءة من القاعدة
 (تجمع المُدخَلات ثمّ تنادي هذه الدالّة) رقيقة وتُبنى لاحقاً مع بطاقة أدلّة الموسم.
@@ -26,9 +32,9 @@ from __future__ import annotations
 from datetime import date
 
 from core.eo_stage_mismatch import detect_eo_stage_mismatch
-from core.gdd_phenology import phenology_progress
+from core.gdd_phenology import phenology_progress, project_next_critical_window
 from core.season_phenology import resolve_crop_id, stage_kc
-from core.season_stage_risk import stage_weather_risks
+from core.season_stage_risk import critical_window_collisions, stage_weather_risks
 
 from api.season_calendar_guard import evaluate_season_calendar
 
@@ -117,6 +123,7 @@ def assemble_field_season_state(
     water_deficit_14d_mm: float | None = None,
     water_stress_factor: float | None = None,
     open_tasks_count: int | None = None,
+    forecast_daily: list[dict] | None = None,
     outcome_records: list[dict] | None = None,
     recommendation_outcomes: list[dict] | None = None,
     dispatch_links: dict | None = None,
@@ -167,6 +174,22 @@ def assemble_field_season_state(
         dispatch_links=dispatch_links,
     )
 
+    # ⑦ النافذة الحرجة القادمة × التنبؤ اليوميّ (W1+W2)
+    # يجيب «متى» لا «ما الطور»: ④ أعلاه يقيس خطرَ اليوم على المرحلة الجارية، وهذا
+    # يقيس هل سيصادف الطورُ الأضعف طقساً متطرّفاً — والفرق بينهما الزمن القياديّ.
+    # سلسلةُ GDD اليوميّة **مملوكةٌ للطقس** (WS-C.1c): تُستقبَل ولا تُحسَب هنا.
+    daily = list(forecast_daily or [])
+    critical_window = project_next_critical_window(
+        crop_id,
+        accumulated_gdd=accumulated_gdd,
+        forecast_daily_gdd=[d.get("gdd") for d in daily] if daily else None,
+        sowing_date=sowing_date,
+        today=ref,
+    )
+    window_collisions = critical_window_collisions(
+        crop_id, critical_window, daily or None, today=ref
+    )
+
     # ── تجميع الأدلّة (صدق: ما توفّر مقابل ما نقص من الإشارات الجوهريّة) ──
     core_signals = {
         "crop": crop_id is not None,
@@ -214,8 +237,11 @@ def assemble_field_season_state(
         "water_stress_factor": water_stress_factor,
         # الاستشعار × المرحلة
         "eo_stage_mismatch": eo,
-        # مخاطر المرحلة (طقس × مرحلة)
+        # مخاطر المرحلة (طقس × مرحلة) — خطرُ اليوم على المرحلة الجارية
         "weather_stage_risks": stage_risk,
+        # النافذة الحرجة القادمة × التنبؤ — «متى» بزمنٍ قياديّ (W1+W2)
+        "critical_window": critical_window,
+        "critical_window_collisions": window_collisions,
         # العمليّات
         "open_operations": open_tasks_count,
         # النتائج/التعلّم — لا ترفع الثقة وحدها؛ المعلّقة مُعلنة ولا تدخل success_rate.
@@ -227,6 +253,7 @@ def assemble_field_season_state(
             or stage_risk.get("requires_action")
             or eo.get("status") == "below_expected"
             or (pheno.get("divergence") or {}).get("diverged")
+            or window_collisions.get("requires_action")
         ),
         "evidence_used": evidence_used,
         "evidence_missing": evidence_missing,

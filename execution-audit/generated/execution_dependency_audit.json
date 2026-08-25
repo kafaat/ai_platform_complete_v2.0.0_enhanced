@@ -5,8 +5,8 @@
     "runtime_verified": false,
     "python_files_parsed": 1869,
     "route_handlers": 1049,
-    "call_edges": 75532,
-    "dead_code_candidates": 622,
+    "call_edges": 75638,
+    "dead_code_candidates": 624,
     "duplicate_function_groups": 61,
     "route_owners": 27,
     "automatic_deletions": 0
@@ -191384,245 +191384,231 @@
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "_safe_max_stamp",
       "target": "max",
-      "line": 42
+      "line": 48
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "_summarize_reconciled_outcomes_for_season",
       "target": "reconcile_outcomes",
-      "line": 65
+      "line": 71
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "_summarize_reconciled_outcomes_for_season",
       "target": "append",
-      "line": 73
+      "line": 79
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "_summarize_reconciled_outcomes_for_season",
       "target": "get",
-      "line": 73
+      "line": 79
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "_summarize_reconciled_outcomes_for_season",
       "target": "get",
-      "line": 74
+      "line": 80
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "_summarize_reconciled_outcomes_for_season",
       "target": "round",
-      "line": 91
+      "line": 97
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "_summarize_reconciled_outcomes_for_season",
       "target": "len",
-      "line": 95
+      "line": 101
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "_summarize_reconciled_outcomes_for_season",
       "target": "_safe_max_stamp",
-      "line": 96
+      "line": 102
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "assemble_field_season_state",
       "target": "resolve_crop_id",
-      "line": 130
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/field_season_projection.py",
-      "source": "assemble_field_season_state",
-      "target": "today",
-      "line": 131
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/field_season_projection.py",
-      "source": "assemble_field_season_state",
-      "target": "evaluate_season_calendar",
-      "line": 135
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/field_season_projection.py",
-      "source": "assemble_field_season_state",
-      "target": "phenology_progress",
       "line": 137
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "assemble_field_season_state",
-      "target": "get",
-      "line": 139
+      "target": "today",
+      "line": 138
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "assemble_field_season_state",
-      "target": "get",
-      "line": 139
+      "target": "evaluate_season_calendar",
+      "line": 142
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "assemble_field_season_state",
-      "target": "get",
-      "line": 141
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/field_season_projection.py",
-      "source": "assemble_field_season_state",
-      "target": "get",
-      "line": 141
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/field_season_projection.py",
-      "source": "assemble_field_season_state",
-      "target": "stage_kc",
+      "target": "phenology_progress",
       "line": 144
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "assemble_field_season_state",
-      "target": "dict",
-      "line": 147
+      "target": "get",
+      "line": 146
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "assemble_field_season_state",
-      "target": "setdefault",
-      "line": 149
+      "target": "get",
+      "line": 146
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "assemble_field_season_state",
-      "target": "setdefault",
+      "target": "get",
+      "line": 148
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/field_season_projection.py",
+      "source": "assemble_field_season_state",
+      "target": "get",
+      "line": 148
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/field_season_projection.py",
+      "source": "assemble_field_season_state",
+      "target": "stage_kc",
       "line": 151
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "assemble_field_season_state",
+      "target": "dict",
+      "line": 154
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/field_season_projection.py",
+      "source": "assemble_field_season_state",
+      "target": "setdefault",
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/field_season_projection.py",
+      "source": "assemble_field_season_state",
+      "target": "setdefault",
+      "line": 158
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/field_season_projection.py",
+      "source": "assemble_field_season_state",
       "target": "stage_weather_risks",
-      "line": 152
+      "line": 159
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "assemble_field_season_state",
       "target": "detect_eo_stage_mismatch",
-      "line": 155
+      "line": 162
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "assemble_field_season_state",
       "target": "_summarize_reconciled_outcomes_for_season",
-      "line": 164
+      "line": 171
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "assemble_field_season_state",
-      "target": "bool",
-      "line": 177
+      "target": "list",
+      "line": 181
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "assemble_field_season_state",
-      "target": "items",
-      "line": 184
+      "target": "project_next_critical_window",
+      "line": 182
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "assemble_field_season_state",
-      "target": "items",
+      "target": "get",
       "line": 185
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "assemble_field_season_state",
-      "target": "sum",
-      "line": 188
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/field_season_projection.py",
-      "source": "assemble_field_season_state",
-      "target": "get",
-      "line": 200
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/field_season_projection.py",
-      "source": "assemble_field_season_state",
-      "target": "get",
-      "line": 200
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/field_season_projection.py",
-      "source": "assemble_field_season_state",
-      "target": "get",
-      "line": 204
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/field_season_projection.py",
-      "source": "assemble_field_season_state",
-      "target": "get",
-      "line": 205
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/field_season_projection.py",
-      "source": "assemble_field_season_state",
-      "target": "get",
-      "line": 206
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/field_season_projection.py",
-      "source": "assemble_field_season_state",
-      "target": "get",
-      "line": 209
+      "target": "critical_window_collisions",
+      "line": 189
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "assemble_field_season_state",
       "target": "bool",
-      "line": 225
+      "line": 200
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/field_season_projection.py",
+      "source": "assemble_field_season_state",
+      "target": "items",
+      "line": 207
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/field_season_projection.py",
+      "source": "assemble_field_season_state",
+      "target": "items",
+      "line": 208
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/field_season_projection.py",
+      "source": "assemble_field_season_state",
+      "target": "sum",
+      "line": 211
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "assemble_field_season_state",
       "target": "get",
-      "line": 226
+      "line": 223
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/field_season_projection.py",
+      "source": "assemble_field_season_state",
+      "target": "get",
+      "line": 223
     },
     {
       "owner": "sahool-platform",
@@ -191650,7 +191636,56 @@
       "file": "services/sahool-platform/api/field_season_projection.py",
       "source": "assemble_field_season_state",
       "target": "get",
-      "line": 229
+      "line": 232
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/field_season_projection.py",
+      "source": "assemble_field_season_state",
+      "target": "bool",
+      "line": 251
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/field_season_projection.py",
+      "source": "assemble_field_season_state",
+      "target": "get",
+      "line": 252
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/field_season_projection.py",
+      "source": "assemble_field_season_state",
+      "target": "get",
+      "line": 253
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/field_season_projection.py",
+      "source": "assemble_field_season_state",
+      "target": "get",
+      "line": 254
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/field_season_projection.py",
+      "source": "assemble_field_season_state",
+      "target": "get",
+      "line": 255
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/field_season_projection.py",
+      "source": "assemble_field_season_state",
+      "target": "get",
+      "line": 255
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/field_season_projection.py",
+      "source": "assemble_field_season_state",
+      "target": "get",
+      "line": 256
     },
     {
       "owner": "sahool-platform",
@@ -350109,91 +350144,63 @@
       "file": "services/sahool-platform/core/season_stage_risk.py",
       "source": "_has",
       "target": "get",
-      "line": 40
+      "line": 42
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/season_stage_risk.py",
       "source": "_water_stressed",
       "target": "get",
-      "line": 45
+      "line": 47
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/season_stage_risk.py",
       "source": "_water_stressed",
       "target": "get",
-      "line": 48
+      "line": 50
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/season_stage_risk.py",
       "source": "stage_weather_risks",
       "target": "get",
-      "line": 67
+      "line": 69
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/season_stage_risk.py",
       "source": "stage_weather_risks",
       "target": "load_crop_card",
-      "line": 81
+      "line": 83
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/season_stage_risk.py",
       "source": "stage_weather_risks",
       "target": "get",
-      "line": 82
+      "line": 84
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/season_stage_risk.py",
       "source": "stage_weather_risks",
       "target": "get",
-      "line": 82
+      "line": 84
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/season_stage_risk.py",
       "source": "add",
       "target": "append",
-      "line": 87
+      "line": 89
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/season_stage_risk.py",
       "source": "stage_weather_risks",
       "target": "append",
-      "line": 87
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/season_stage_risk.py",
-      "source": "stage_weather_risks",
-      "target": "get",
       "line": 89
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/season_stage_risk.py",
-      "source": "stage_weather_risks",
-      "target": "get",
-      "line": 89
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/season_stage_risk.py",
-      "source": "stage_weather_risks",
-      "target": "get",
-      "line": 90
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/season_stage_risk.py",
-      "source": "stage_weather_risks",
-      "target": "get",
-      "line": 90
     },
     {
       "owner": "sahool-platform",
@@ -350206,22 +350213,36 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/season_stage_risk.py",
       "source": "stage_weather_risks",
-      "target": "_water_stressed",
+      "target": "get",
+      "line": 91
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "stage_weather_risks",
+      "target": "get",
       "line": 92
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/season_stage_risk.py",
       "source": "stage_weather_risks",
-      "target": "_has",
-      "line": 99
+      "target": "get",
+      "line": 92
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/season_stage_risk.py",
       "source": "stage_weather_risks",
-      "target": "add",
-      "line": 100
+      "target": "get",
+      "line": 93
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "stage_weather_risks",
+      "target": "_water_stressed",
+      "line": 94
     },
     {
       "owner": "sahool-platform",
@@ -350241,43 +350262,43 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/season_stage_risk.py",
       "source": "stage_weather_risks",
-      "target": "add",
-      "line": 106
+      "target": "_has",
+      "line": 103
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/season_stage_risk.py",
       "source": "stage_weather_risks",
       "target": "add",
-      "line": 111
+      "line": 104
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "stage_weather_risks",
+      "target": "add",
+      "line": 108
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "stage_weather_risks",
+      "target": "add",
+      "line": 113
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/season_stage_risk.py",
       "source": "stage_weather_risks",
       "target": "_has",
-      "line": 115
+      "line": 117
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/season_stage_risk.py",
       "source": "stage_weather_risks",
       "target": "add",
-      "line": 116
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/season_stage_risk.py",
-      "source": "stage_weather_risks",
-      "target": "add",
-      "line": 123
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/season_stage_risk.py",
-      "source": "stage_weather_risks",
-      "target": "_has",
-      "line": 124
+      "line": 118
     },
     {
       "owner": "sahool-platform",
@@ -350290,15 +350311,15 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/season_stage_risk.py",
       "source": "stage_weather_risks",
-      "target": "add",
-      "line": 132
+      "target": "_has",
+      "line": 126
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/season_stage_risk.py",
       "source": "stage_weather_risks",
-      "target": "_has",
-      "line": 133
+      "target": "add",
+      "line": 127
     },
     {
       "owner": "sahool-platform",
@@ -350326,14 +350347,273 @@
       "file": "services/sahool-platform/core/season_stage_risk.py",
       "source": "stage_weather_risks",
       "target": "_has",
+      "line": 137
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "stage_weather_risks",
+      "target": "add",
       "line": 138
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/season_stage_risk.py",
       "source": "stage_weather_risks",
+      "target": "_has",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "stage_weather_risks",
       "target": "max",
-      "line": 139
+      "line": 141
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "_window_day_bounds",
+      "target": "get",
+      "line": 179
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "_window_day_bounds",
+      "target": "int",
+      "line": 180
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "_window_day_bounds",
+      "target": "get",
+      "line": 181
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "_window_day_bounds",
+      "target": "append",
+      "line": 183
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "_window_day_bounds",
+      "target": "int",
+      "line": 186
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "_window_day_bounds",
+      "target": "append",
+      "line": 188
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "_window_day_bounds",
+      "target": "max",
+      "line": 190
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "_end_offset_from",
+      "target": "get",
+      "line": 199
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "_end_offset_from",
+      "target": "fromisoformat",
+      "line": 203
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "get",
+      "line": 241
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "get",
+      "line": 255
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "load_crop_card",
+      "line": 260
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "get",
+      "line": 261
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "get",
+      "line": 261
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "append",
+      "line": 265
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "dict",
+      "line": 267
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "_end_offset_from",
+      "line": 268
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "_window_day_bounds",
+      "line": 269
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "len",
+      "line": 269
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "len",
+      "line": 273
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "min",
+      "line": 273
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "range",
+      "line": 273
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "len",
+      "line": 274
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "get",
+      "line": 277
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "float",
+      "line": 281
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "float",
+      "line": 281
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "append",
+      "line": 283
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "get",
+      "line": 288
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "round",
+      "line": 291
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "any",
+      "line": 299
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "get",
+      "line": 299
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "max",
+      "line": 299
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "append",
+      "line": 300
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "max",
+      "line": 302
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/season_stage_risk.py",
+      "source": "critical_window_collisions",
+      "target": "get",
+      "line": 304
     },
     {
       "owner": "sahool-platform",
@@ -400464,6 +400744,132 @@
     },
     {
       "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_field_season_projection.py",
+      "source": "_daily",
+      "target": "isoformat",
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_field_season_projection.py",
+      "source": "_daily",
+      "target": "timedelta",
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_field_season_projection.py",
+      "source": "_daily",
+      "target": "range",
+      "line": 109
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_field_season_projection.py",
+      "source": "_state",
+      "target": "dict",
+      "line": 113
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_field_season_projection.py",
+      "source": "_state",
+      "target": "date",
+      "line": 116
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_field_season_projection.py",
+      "source": "_state",
+      "target": "update",
+      "line": 120
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_field_season_projection.py",
+      "source": "_state",
+      "target": "assemble_field_season_state",
+      "line": 121
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_field_season_projection.py",
+      "source": "test_the_unifier_publishes_the_window_and_its_collisions",
+      "target": "_daily",
+      "line": 124
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_field_season_projection.py",
+      "source": "test_the_unifier_publishes_the_window_and_its_collisions",
+      "target": "_state",
+      "line": 124
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_field_season_projection.py",
+      "source": "test_a_collision_raises_requires_review",
+      "target": "_daily",
+      "line": 132
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_field_season_projection.py",
+      "source": "test_a_collision_raises_requires_review",
+      "target": "_state",
+      "line": 132
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_field_season_projection.py",
+      "source": "test_without_a_forecast_the_unifier_degrades_and_says_so",
+      "target": "_state",
+      "line": 135
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_field_season_projection.py",
+      "source": "test_the_daily_gdd_series_is_received_never_recomputed_here",
+      "target": "isoformat",
+      "line": 147
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_field_season_projection.py",
+      "source": "test_the_daily_gdd_series_is_received_never_recomputed_here",
+      "target": "timedelta",
+      "line": 147
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_field_season_projection.py",
+      "source": "test_the_daily_gdd_series_is_received_never_recomputed_here",
+      "target": "range",
+      "line": 148
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_field_season_projection.py",
+      "source": "test_the_daily_gdd_series_is_received_never_recomputed_here",
+      "target": "_state",
+      "line": 150
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_field_season_projection.py",
+      "source": "test_the_window_answers_when_while_stage_risk_answers_today",
+      "target": "_state",
+      "line": 159
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_field_season_projection.py",
+      "source": "test_the_window_answers_when_while_stage_risk_answers_today",
+      "target": "_daily",
+      "line": 161
+    },
+    {
+      "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_field_season_projection_reconciled_outcomes.py",
       "source": "_ts",
       "target": "datetime",
@@ -437826,175 +438232,511 @@
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_flowering_heat_uses_crop_card_threshold",
       "target": "stage_weather_risks",
-      "line": 15
+      "line": 18
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_flowering_heat_uses_crop_card_threshold",
       "target": "_codes",
-      "line": 16
+      "line": 19
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_maize_higher_threshold_not_triggered_at_34",
       "target": "stage_weather_risks",
-      "line": 22
+      "line": 25
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_maize_higher_threshold_not_triggered_at_34",
       "target": "_codes",
-      "line": 23
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
-      "source": "test_flowering_water_stress_is_high",
-      "target": "stage_weather_risks",
       "line": 26
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_flowering_water_stress_is_high",
+      "target": "stage_weather_risks",
+      "line": 29
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_flowering_water_stress_is_high",
       "target": "_codes",
-      "line": 27
+      "line": 30
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_flowering_wind",
       "target": "stage_weather_risks",
-      "line": 31
+      "line": 34
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_flowering_wind",
       "target": "_codes",
-      "line": 32
+      "line": 35
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_frost_at_germination",
       "target": "stage_weather_risks",
-      "line": 37
+      "line": 40
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_frost_at_germination",
       "target": "_codes",
-      "line": 38
+      "line": 41
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_establishment_water_stress",
       "target": "stage_weather_risks",
-      "line": 42
+      "line": 45
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_establishment_water_stress",
       "target": "_codes",
-      "line": 43
+      "line": 46
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_harvest_rain_risk",
       "target": "stage_weather_risks",
-      "line": 48
+      "line": 51
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_harvest_rain_risk",
       "target": "_codes",
-      "line": 49
+      "line": 52
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_grainfill_water_deficit",
       "target": "stage_weather_risks",
-      "line": 53
+      "line": 56
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_grainfill_water_deficit",
       "target": "_codes",
-      "line": 54
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
-      "source": "test_harvest_humidity",
-      "target": "stage_weather_risks",
       "line": 57
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_harvest_humidity",
+      "target": "stage_weather_risks",
+      "line": 60
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_harvest_humidity",
       "target": "_codes",
-      "line": 58
+      "line": 61
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_no_stage_returns_low_confidence_no_risk",
       "target": "stage_weather_risks",
-      "line": 63
+      "line": 66
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_missing_signals_flagged_and_lower_confidence",
       "target": "stage_weather_risks",
-      "line": 69
+      "line": 72
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_missing_signals_flagged_and_lower_confidence",
       "target": "set",
-      "line": 71
+      "line": 74
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_confidence_never_high",
       "target": "stage_weather_risks",
-      "line": 75
+      "line": 78
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_no_risks_when_benign",
       "target": "stage_weather_risks",
-      "line": 82
+      "line": 85
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_unknown_crop_uses_conservative_default_threshold",
       "target": "stage_weather_risks",
-      "line": 90
+      "line": 93
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
       "source": "test_unknown_crop_uses_conservative_default_threshold",
       "target": "_codes",
-      "line": 91
+      "line": 94
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "_window",
+      "target": "update",
+      "line": 116
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "_forecast",
+      "target": "isoformat",
+      "line": 122
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "_forecast",
+      "target": "timedelta",
+      "line": 122
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "_forecast",
+      "target": "range",
+      "line": 125
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_a_collision_inside_the_window_carries_lead_time_and_the_card_threshold",
+      "target": "critical_window_collisions",
+      "line": 129
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_a_collision_inside_the_window_carries_lead_time_and_the_card_threshold",
+      "target": "_forecast",
+      "line": 130
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_a_collision_inside_the_window_carries_lead_time_and_the_card_threshold",
+      "target": "_window",
+      "line": 130
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_a_collision_inside_the_window_carries_lead_time_and_the_card_threshold",
+      "target": "load_crop_card",
+      "line": 134
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_a_collision_inside_the_window_carries_lead_time_and_the_card_threshold",
+      "target": "all",
+      "line": 135
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_heat_outside_the_window_is_not_an_event",
+      "target": "_forecast",
+      "line": 143
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_heat_outside_the_window_is_not_an_event",
+      "target": "range",
+      "line": 143
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_heat_outside_the_window_is_not_an_event",
+      "target": "tuple",
+      "line": 143
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_heat_outside_the_window_is_not_an_event",
+      "target": "_forecast",
+      "line": 144
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_heat_outside_the_window_is_not_an_event",
+      "target": "range",
+      "line": 144
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_heat_outside_the_window_is_not_an_event",
+      "target": "tuple",
+      "line": 144
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_heat_outside_the_window_is_not_an_event",
+      "target": "_window",
+      "line": 146
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_heat_outside_the_window_is_not_an_event",
+      "target": "critical_window_collisions",
+      "line": 146
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_heat_outside_the_window_is_not_an_event",
+      "target": "_window",
+      "line": 150
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_heat_outside_the_window_is_not_an_event",
+      "target": "critical_window_collisions",
+      "line": 150
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_a_passed_or_unknown_window_is_not_applicable",
+      "target": "_forecast",
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_a_passed_or_unknown_window_is_not_applicable",
+      "target": "critical_window_collisions",
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_no_forecast_is_insufficient_context_not_a_denial_of_risk",
+      "target": "_window",
+      "line": 161
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_no_forecast_is_insufficient_context_not_a_denial_of_risk",
+      "target": "critical_window_collisions",
+      "line": 161
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_severity_scales_with_exceedance_not_with_temperature_alone",
+      "target": "critical_window_collisions",
+      "line": 166
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_severity_scales_with_exceedance_not_with_temperature_alone",
+      "target": "_forecast",
+      "line": 167
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_severity_scales_with_exceedance_not_with_temperature_alone",
+      "target": "_window",
+      "line": 167
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_severity_scales_with_exceedance_not_with_temperature_alone",
+      "target": "critical_window_collisions",
+      "line": 169
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_severity_scales_with_exceedance_not_with_temperature_alone",
+      "target": "_forecast",
+      "line": 170
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_severity_scales_with_exceedance_not_with_temperature_alone",
+      "target": "_window",
+      "line": 170
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_the_threshold_follows_the_crop_not_a_hardcoded_number",
+      "target": "_forecast",
+      "line": 178
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_the_threshold_follows_the_crop_not_a_hardcoded_number",
+      "target": "_window",
+      "line": 179
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_the_threshold_follows_the_crop_not_a_hardcoded_number",
+      "target": "critical_window_collisions",
+      "line": 179
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_the_threshold_follows_the_crop_not_a_hardcoded_number",
+      "target": "_window",
+      "line": 180
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_the_threshold_follows_the_crop_not_a_hardcoded_number",
+      "target": "critical_window_collisions",
+      "line": 180
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_confidence_is_inherited_and_never_exceeds_its_window",
+      "target": "critical_window_collisions",
+      "line": 186
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_confidence_is_inherited_and_never_exceeds_its_window",
+      "target": "_window",
+      "line": 188
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_confidence_is_inherited_and_never_exceeds_its_window",
+      "target": "_forecast",
+      "line": 189
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_uncalibrated_thresholds_are_declared_in_the_output",
+      "target": "critical_window_collisions",
+      "line": 196
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_uncalibrated_thresholds_are_declared_in_the_output",
+      "target": "_forecast",
+      "line": 197
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_uncalibrated_thresholds_are_declared_in_the_output",
+      "target": "_window",
+      "line": 197
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_a_horizon_shorter_than_the_window_is_declared_not_extrapolated",
+      "target": "_forecast",
+      "line": 202
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_a_horizon_shorter_than_the_window_is_declared_not_extrapolated",
+      "target": "_window",
+      "line": 203
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_a_horizon_shorter_than_the_window_is_declared_not_extrapolated",
+      "target": "critical_window_collisions",
+      "line": 203
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_a_window_with_no_tmax_inside_it_says_so",
+      "target": "isoformat",
+      "line": 208
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_a_window_with_no_tmax_inside_it_says_so",
+      "target": "timedelta",
+      "line": 208
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_a_window_with_no_tmax_inside_it_says_so",
+      "target": "range",
+      "line": 209
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_a_window_with_no_tmax_inside_it_says_so",
+      "target": "_window",
+      "line": 211
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "source": "test_a_window_with_no_tmax_inside_it_says_so",
+      "target": "critical_window_collisions",
+      "line": 211
     },
     {
       "owner": "sahool-platform",
@@ -541203,6 +541945,17 @@
       "action": "review_before_delete"
     },
     {
+      "symbol": "TestCriticalWindowInTheUnifiedTruth",
+      "kind": "class",
+      "file": "services/sahool-platform/tests/test_field_season_projection.py",
+      "line": 93,
+      "owner": "sahool-platform",
+      "decorated_route": false,
+      "reference_count": 0,
+      "confidence": "medium",
+      "action": "review_before_delete"
+    },
+    {
       "symbol": "TestFieldState",
       "kind": "class",
       "file": "services/sahool-platform/tests/test_field_state.py",
@@ -542757,7 +543510,7 @@
       "symbol": "TestFloweringStage",
       "kind": "class",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
-      "line": 12,
+      "line": 15,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,
@@ -542768,7 +543521,7 @@
       "symbol": "TestEstablishmentStage",
       "kind": "class",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
-      "line": 35,
+      "line": 38,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,
@@ -542779,7 +543532,7 @@
       "symbol": "TestHarvestStage",
       "kind": "class",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
-      "line": 46,
+      "line": 49,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,
@@ -542790,7 +543543,18 @@
       "symbol": "TestHonesty",
       "kind": "class",
       "file": "services/sahool-platform/tests/test_season_stage_risk.py",
-      "line": 61,
+      "line": 64,
+      "owner": "sahool-platform",
+      "decorated_route": false,
+      "reference_count": 0,
+      "confidence": "medium",
+      "action": "review_before_delete"
+    },
+    {
+      "symbol": "TestCriticalWindowCollisions",
+      "kind": "class",
+      "file": "services/sahool-platform/tests/test_season_stage_risk.py",
+      "line": 97,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,
