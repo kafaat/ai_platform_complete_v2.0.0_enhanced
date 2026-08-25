@@ -376,9 +376,10 @@ medium,sahool-platform,class,TestCatalogShape,services/sahool-platform/tests/tes
 medium,sahool-platform,class,TestActivitiesGrounded,services/sahool-platform/tests/test_field_type_catalog.py,41,0,review_before_delete,False
 medium,sahool-platform,class,TestLookups,services/sahool-platform/tests/test_field_type_catalog.py,58,0,review_before_delete,False
 medium,sahool-platform,class,TestGapsV91,services/sahool-platform/tests/test_gaps_v91.py,18,0,review_before_delete,False
-medium,sahool-platform,class,TestBaseAndThresholds,services/sahool-platform/tests/test_gdd_phenology.py,16,0,review_before_delete,False
-medium,sahool-platform,class,TestStageFromGdd,services/sahool-platform/tests/test_gdd_phenology.py,36,0,review_before_delete,False
-medium,sahool-platform,class,TestPhenologyProgress,services/sahool-platform/tests/test_gdd_phenology.py,49,0,review_before_delete,False
+medium,sahool-platform,class,TestBaseAndThresholds,services/sahool-platform/tests/test_gdd_phenology.py,21,0,review_before_delete,False
+medium,sahool-platform,class,TestStageFromGdd,services/sahool-platform/tests/test_gdd_phenology.py,41,0,review_before_delete,False
+medium,sahool-platform,class,TestPhenologyProgress,services/sahool-platform/tests/test_gdd_phenology.py,54,0,review_before_delete,False
+medium,sahool-platform,class,TestProjectNextCriticalWindow,services/sahool-platform/tests/test_gdd_phenology.py,94,0,review_before_delete,False
 medium,sahool-platform,class,TestHaltConditions,services/sahool-platform/tests/test_guardrails.py,7,0,review_before_delete,False
 medium,sahool-platform,class,TestWarnConditions,services/sahool-platform/tests/test_guardrails.py,43,0,review_before_delete,False
 medium,sahool-platform,class,TestPassThrough,services/sahool-platform/tests/test_guardrails.py,64,0,review_before_delete,False

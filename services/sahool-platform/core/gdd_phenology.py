@@ -19,7 +19,16 @@
 
 from __future__ import annotations
 
+import math
+from collections.abc import Sequence
+from datetime import date, timedelta
+
 from core.crop_cards.loader import load_crop_card
+
+# المرحلة الحرجة = ``mid`` (التزهير/التلقيح) — **ليست مفردةً جديدة**: هي تعريف
+# ``core.season_phenology.is_reproductive_stage`` نفسه («الطور الأكثر حساسيّة للإجهاد
+# الحراريّ/المائيّ»). يُعاد استعماله ولا يُعاد اختراعه، وإلّا صار للمنصّة تعريفان للحرج.
+CRITICAL_STAGE = "mid"
 
 # WS-C.1c Zero-Legacy: نواة حساب GDD اليوميّة (daily_gdd/accumulate_gdd) أُزيلت من هنا —
 # مِلكيّتها الوحيدة الآن محرّك الطقس (services/weather-service/gdd.py: gdd_daily/accumulate_gdd،
@@ -148,3 +157,198 @@ def phenology_progress(
             )
 
     return result
+
+
+def _critical_gdd_bounds(crop_id: str | None) -> dict | None:
+    """حدّا GDD للمرحلة الحرجة، أو None إن تعذّرت العتبات (مُعمِّر/بطاقة ناقصة)."""
+    for th in gdd_stage_thresholds(crop_id):
+        if th["stage"] == CRITICAL_STAGE:
+            return th
+    return None
+
+
+def _usable_series(forecast_daily_gdd: Sequence[float] | None) -> list[float] | None:
+    """سلسلة GDD يوميّة صالحة، أو None إن غابت/فسدت.
+
+    الفساد **يُبطِل السلسلة كلّها** ولا يُصلَح بتخطّي القيمة: قيمةٌ ساقطة من منتصف
+    السلسلة تُزيح كلّ الأيّام التالية يوماً، فيخرج زمنٌ قياديّ أقصر من الحقيقة —
+    وهو الاتّجاه الخطر (إنذارٌ متأخّر يبدو مبكراً).
+    """
+    if forecast_daily_gdd is None:
+        return None
+    values: list[float] = []
+    for v in forecast_daily_gdd:
+        if isinstance(v, bool) or not isinstance(v, (int, float)):
+            return None
+        f = float(v)
+        if not math.isfinite(f) or f < 0:
+            return None
+        values.append(f)
+    return values or None
+
+
+def _calendar_window(crop_id: str | None, sowing_date: date | None, today: date) -> dict | None:
+    """صفّ المرحلة الحرجة من خطّ الزمن التقويميّ، أو None إن تعذّر."""
+    from core.season_phenology import season_timeline  # تفادي دور الاستيراد
+
+    for row in season_timeline(crop_id, sowing_date, today):
+        if row["stage"] == CRITICAL_STAGE:
+            return row
+    return None
+
+
+def _window(
+    *,
+    status: str,
+    source: str | None = None,
+    confidence: str | None = None,
+    stage: str | None = None,
+    name_ar: str | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    lead_days: int | None = None,
+    evidence_missing: list[str] | None = None,
+    note_ar: str | None = None,
+) -> dict:
+    """يبني القاموس بمفاتيح ثابتة — الغائب None صراحةً لا محذوفاً."""
+    return {
+        "status": status,
+        "stage": stage,
+        "name_ar": name_ar,
+        "start_date": start_date,
+        "end_date": end_date,
+        "lead_days": lead_days,
+        "source": source,
+        "confidence": confidence,
+        "evidence_missing": list(evidence_missing or []),
+        "note_ar": note_ar,
+    }
+
+
+def project_next_critical_window(
+    crop_id: str | None,
+    *,
+    accumulated_gdd: float | None = None,
+    forecast_daily_gdd: Sequence[float] | None = None,
+    sowing_date: date | None = None,
+    today: date | None = None,
+) -> dict:
+    """يُسقِط النافذة الحرجة القادمة (التزهير/التلقيح) بتاريخَين وزمنٍ قياديّ.
+
+    يجيب عن السؤال الذي لم تكن المنصّة تجيبه: **متى** يدخل هذا الحقل طورَه الأضعف —
+    لا ما طورُه اليوم. المسار الأدقّ حراريّ (GDD المتراكم المملوك للطقس + سلسلة GDD
+    اليوميّة المتوقَّعة)؛ وعند تعذّره يهبط إلى التقويم **مُعلِناً هبوطه** بثقة أدنى.
+
+    المفاتيح: ``status`` (upcoming | in_window | past | insufficient_context) ·
+    ``start_date``/``end_date`` (ISO) · ``lead_days`` (أيّام حتّى البداية، 0 داخلها) ·
+    ``source`` (gdd_forecast | gdd_accumulated | calendar_fallback) · ``confidence`` ·
+    ``evidence_missing`` · ``note_ar``.
+
+    صدق (مفروضٌ باختبارات، لا بالنيّة):
+      • **لا يُصدِر ``observed`` أبداً.** هذه الدالّة لا تملك ملاحظةً ميدانيّة ولا
+        استشعاراً؛ أقصى ما تملكه قياسُ زمنٍ حراريّ. تحويلُ إسقاطٍ إلى «مرصود» هو
+        بعينه ما يمنعه ``api.canonical_phenology_state`` — ولا يُنقَض من هنا.
+      • السقف الأعلى للثقة ``medium``: الطقس متوقَّع لا مضمون (عرف المنصّة).
+      • أفقُ التنبؤ الأقصر من النافذة **يُعلَن** ولا يُمَدّ بمعدّلٍ مُختلَق.
+      • لا مُدخَل ⇒ ``insufficient_context``، لا نافذةٌ مُلفَّقة.
+    """
+    ref = today or date.today()
+    bounds = _critical_gdd_bounds(crop_id)
+    series = _usable_series(forecast_daily_gdd)
+    missing: list[str] = []
+    if forecast_daily_gdd is not None and series is None:
+        missing.append("forecast_series_invalid")
+
+    if bounds is not None and accumulated_gdd is not None:
+        start_gdd, end_gdd = bounds["gdd_start"], bounds["gdd_end"]
+        name_ar = bounds.get("name_ar")
+
+        if accumulated_gdd >= end_gdd:
+            return _window(
+                status="past",
+                source="gdd_accumulated",
+                confidence="medium",
+                stage=CRITICAL_STAGE,
+                name_ar=name_ar,
+                evidence_missing=missing,
+                note_ar="النافذة الحرجة انقضت حراريّاً — لا إسقاط أماميّ لها هذا الموسم.",
+            )
+
+        if accumulated_gdd >= start_gdd:
+            # داخل النافذة الآن. بدايتُها وقعت في الماضي ولا تُشتقّ بلا تاريخ حراريّ،
+            # فتُترَك None مُعلَنة بدل أن تُقدَّر — والنهاية تُسقَط إن بلغها الأفق.
+            end_date, end_missing = _project_day(series, accumulated_gdd, end_gdd)
+            return _window(
+                status="in_window",
+                source="gdd_accumulated" if end_date is None else "gdd_forecast",
+                confidence="medium",
+                stage=CRITICAL_STAGE,
+                name_ar=name_ar,
+                start_date=None,
+                end_date=(ref + timedelta(days=end_date)).isoformat() if end_date else None,
+                lead_days=0,
+                evidence_missing=missing + ["window_start_unobserved"] + end_missing,
+                note_ar="الحقل داخل نافذته الحرجة الآن — الإجراء وقائيّ لا تحضيريّ.",
+            )
+
+        start_day, start_missing = _project_day(series, accumulated_gdd, start_gdd)
+        if start_day is not None:
+            end_day, end_missing = _project_day(series, accumulated_gdd, end_gdd)
+            return _window(
+                status="upcoming",
+                source="gdd_forecast",
+                confidence="medium",
+                stage=CRITICAL_STAGE,
+                name_ar=name_ar,
+                start_date=(ref + timedelta(days=start_day)).isoformat(),
+                end_date=(ref + timedelta(days=end_day)).isoformat() if end_day else None,
+                lead_days=start_day,
+                evidence_missing=missing + end_missing,
+                note_ar="نافذة حرجة متوقَّعة حراريّاً — الزمن القياديّ يسمح بإجراء تحضيريّ.",
+            )
+        missing += start_missing
+
+    elif bounds is None:
+        missing.append("gdd_thresholds_unavailable")
+    if accumulated_gdd is None:
+        missing.append("accumulated_gdd_missing")
+
+    # الهبوط التقويميّ — مُعلَنٌ بثقة أدنى، لا صامتاً.
+    row = _calendar_window(crop_id, sowing_date, ref)
+    if row is None:
+        return _window(
+            status="insufficient_context",
+            evidence_missing=missing + ["calendar_timeline_unavailable"],
+            note_ar="لا زمنَ حراريّاً ولا خطَّ زمنٍ تقويميّاً — لا نافذة تُعلَن.",
+        )
+    start = date.fromisoformat(row["start_date"])
+    status = {"upcoming": "upcoming", "current": "in_window", "past": "past"}[row["status"]]
+    return _window(
+        status=status,
+        source="calendar_fallback",
+        confidence="low",
+        stage=CRITICAL_STAGE,
+        name_ar=row.get("name_ar"),
+        start_date=row["start_date"],
+        end_date=row["end_date"],
+        lead_days=max(0, (start - ref).days) if status != "past" else None,
+        evidence_missing=missing,
+        note_ar=(
+            "نافذة تقويميّة لا حراريّة — تنحرف في المواسم الحارّة/الباردة، "
+            "والثقة أدنى بهذا السبب لا بالتحفّظ."
+        ),
+    )
+
+
+def _project_day(
+    series: list[float] | None, start_gdd: float, target_gdd: float
+) -> tuple[int | None, list[str]]:
+    """أوّل يومٍ يبلغ فيه التراكمُ الهدفَ ضمن الأفق — أو None مع سبب مُعلَن."""
+    if series is None:
+        return None, ["forecast_series_missing"]
+    cumulative = start_gdd
+    for day, increment in enumerate(series, start=1):
+        cumulative += increment
+        if cumulative >= target_gdd:
+            return day, []
+    return None, ["forecast_horizon_too_short"]

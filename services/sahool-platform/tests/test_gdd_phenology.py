@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+import math
+from datetime import date, timedelta
+
 from core.gdd_phenology import (
+    CRITICAL_STAGE,
     gdd_base_c,
     gdd_stage_thresholds,
     phenology_progress,
+    project_next_critical_window,
     stage_from_gdd,
 )
 
@@ -84,3 +89,126 @@ class TestPhenologyProgress:
         assert p["days_stage"] == "mid"
         assert p["gdd_stage"] is None
         assert p["divergence"]["diverged"] is False
+
+
+class TestProjectNextCriticalWindow:
+    """W1 — الإسقاط الأماميّ للنافذة الحرجة (متى يدخل الحقل طورَه الأضعف).
+
+    ذرة شاميّة: mid = 650→1100 GDD — مُشتقّة من البطاقة أدناه لا مُثبَّتة يدويّاً.
+    """
+
+    TODAY = date(2026, 8, 1)
+
+    def test_critical_stage_reuses_the_platforms_own_definition(self):
+        # لا تعريف ثانٍ للحرج: هو نفسه ما يفحصه is_reproductive_stage.
+        from core.season_phenology import _stages, is_reproductive_stage
+
+        assert CRITICAL_STAGE == "mid"
+        maize_mid = [s for s in _stages("maize") if s["stage"] == CRITICAL_STAGE]
+        assert maize_mid, "بطاقة الذرة يجب أن تحمل المرحلة الحرجة"
+        mid_day = (maize_mid[0]["day_start"] + maize_mid[0]["day_end"]) // 2
+        assert is_reproductive_stage("maize", mid_day) is True
+
+    def test_upcoming_window_carries_dates_and_lead_time(self):
+        bounds = next(t for t in gdd_stage_thresholds("maize") if t["stage"] == CRITICAL_STAGE)
+        out = project_next_critical_window(
+            "maize", accumulated_gdd=500.0, forecast_daily_gdd=[15.0] * 20, today=self.TODAY
+        )
+        expected_lead = math.ceil((bounds["gdd_start"] - 500.0) / 15.0)
+        assert out["status"] == "upcoming"
+        assert out["lead_days"] == expected_lead
+        assert out["start_date"] == (self.TODAY + timedelta(days=expected_lead)).isoformat()
+        assert out["source"] == "gdd_forecast"
+        assert out["confidence"] == "medium"
+
+    def test_a_horizon_shorter_than_the_window_end_is_declared_not_extrapolated(self):
+        out = project_next_critical_window(
+            "maize", accumulated_gdd=500.0, forecast_daily_gdd=[15.0] * 20, today=self.TODAY
+        )
+        assert out["end_date"] is None
+        assert "forecast_horizon_too_short" in out["evidence_missing"]
+
+    def test_inside_the_window_the_unobserved_start_stays_none(self):
+        out = project_next_critical_window(
+            "maize", accumulated_gdd=700.0, forecast_daily_gdd=[15.0] * 40, today=self.TODAY
+        )
+        assert out["status"] == "in_window"
+        assert out["lead_days"] == 0
+        assert out["start_date"] is None  # وقعت في الماضي ولا تُقدَّر بلا تاريخ حراريّ
+        assert "window_start_unobserved" in out["evidence_missing"]
+
+    def test_a_passed_window_is_not_projected_again(self):
+        out = project_next_critical_window("maize", accumulated_gdd=1200.0, today=self.TODAY)
+        assert out["status"] == "past"
+        assert out["lead_days"] is None
+        assert out["start_date"] is None and out["end_date"] is None
+
+    def test_calendar_fallback_is_announced_with_lower_confidence(self):
+        out = project_next_critical_window(
+            "maize",
+            accumulated_gdd=500.0,
+            forecast_daily_gdd=[1.0] * 3,  # أفق لا يبلغ بداية النافذة
+            sowing_date=date(2026, 6, 1),
+            today=self.TODAY,
+        )
+        assert out["source"] == "calendar_fallback"
+        assert out["confidence"] == "low"
+        assert "forecast_horizon_too_short" in out["evidence_missing"]
+        assert out["start_date"] is not None  # التقويم يعطي تاريخاً، بثقة أدنى
+
+    def test_missing_gdd_falls_back_to_the_calendar_and_says_why(self):
+        out = project_next_critical_window("maize", sowing_date=date(2026, 6, 1), today=self.TODAY)
+        assert out["source"] == "calendar_fallback"
+        assert "accumulated_gdd_missing" in out["evidence_missing"]
+
+    def test_no_input_fabricates_no_window(self):
+        out = project_next_critical_window("maize", today=self.TODAY)
+        assert out["status"] == "insufficient_context"
+        assert out["start_date"] is None and out["end_date"] is None
+        assert out["source"] is None and out["confidence"] is None
+
+    def test_a_corrupt_series_is_invalidated_whole_never_silently_shortened(self):
+        for bad in ([15.0, None, 15.0], [15.0, -3.0, 15.0], [15.0, float("nan")], [15.0, "x"]):
+            out = project_next_critical_window(
+                "maize",
+                accumulated_gdd=500.0,
+                forecast_daily_gdd=bad,
+                sowing_date=date(2026, 6, 1),
+                today=self.TODAY,
+            )
+            # الاتّجاه الخطر: قيمةٌ ساقطة تُزيح الأيّام فيقصر الزمن القياديّ،
+            # فيبدو الإنذار المتأخّر مبكراً. السلسلة تُبطَل كلّها ولا تُرقَّع.
+            assert "forecast_series_invalid" in out["evidence_missing"]
+            assert out["source"] != "gdd_forecast"
+
+    def test_a_perennial_without_gdd_thresholds_says_so(self):
+        perennial = next(
+            (c for c in ("date_palm", "coffee", "grape") if not gdd_stage_thresholds(c)), None
+        )
+        assert perennial is not None, "البطاقات يجب أن تحمل مُعمِّراً واحداً بلا عتبات GDD"
+        out = project_next_critical_window(perennial, accumulated_gdd=500.0, today=self.TODAY)
+        assert "gdd_thresholds_unavailable" in out["evidence_missing"]
+        assert out["source"] != "gdd_forecast"
+
+    def test_a_projection_is_never_reported_as_an_observation(self):
+        """قاعدة `canonical_phenology_state` لا تُنقَض من هنا: لا ملاحظة بلا راصد."""
+        cases = [
+            {"accumulated_gdd": 500.0, "forecast_daily_gdd": [15.0] * 20},
+            {"accumulated_gdd": 700.0, "forecast_daily_gdd": [15.0] * 40},
+            {"accumulated_gdd": 1200.0},
+            {"accumulated_gdd": 500.0, "forecast_daily_gdd": [1.0] * 3},
+            {"sowing_date": date(2026, 6, 1)},
+            {},
+        ]
+        for kwargs in cases:
+            out = project_next_critical_window("maize", today=self.TODAY, **kwargs)
+            assert out["status"] != "observed"
+            assert out["source"] != "observed"
+            assert out["confidence"] != "high"  # سقف الثقة medium: الطقس متوقَّع لا مضمون
+
+    def test_lead_days_is_never_negative(self):
+        for das in (0, 30, 60, 90, 200):
+            out = project_next_critical_window(
+                "maize", sowing_date=self.TODAY - timedelta(days=das), today=self.TODAY
+            )
+            assert out["lead_days"] is None or out["lead_days"] >= 0

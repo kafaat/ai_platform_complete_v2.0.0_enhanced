@@ -21355,7 +21355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c91609b74250c253e0565902bdfa4fd353728ad431931b602360fcae9374dd8a"
+          "content": "3468b3865e464446ae64af6106eefe58f1f5be97d7193570e361c67e8c8756b5"
         }
       ],
       "name": "services/sahool-platform/core/gdd_phenology.py",
@@ -24945,7 +24945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a7e2e35b25e6c513e2ff2eec262e1255be738465db89aa0622a8a2815347a261"
+          "content": "15a73bcb67ed225f02e203296a8a6a24079a80ef8524c108cbae1a94dd32ae9e"
         }
       ],
       "name": "services/sahool-platform/tests/test_gdd_phenology.py",
