@@ -8,8 +8,12 @@
 from __future__ import annotations
 
 import pytest
-from core.crop_cards.nutrient_resolution import resolve_stage_nutrient_demand
-from core.districts.loader import list_districts, load_district, validate_district
+from core.districts.loader import (
+    list_districts,
+    load_district,
+    resolve_stage_nutrient_demand,
+    validate_district,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -95,10 +99,10 @@ def test_calibration_block_is_optional():
 @pytest.fixture
 def fake_district(monkeypatch):
     def _install(entries):
-        import core.crop_cards.nutrient_resolution as nr
+        import core.districts.loader as dl
 
         card = _district(entries)
-        monkeypatch.setattr(nr, "load_district", lambda _id: card)
+        monkeypatch.setattr(dl, "load_district", lambda _id: card)
         return card
 
     return _install

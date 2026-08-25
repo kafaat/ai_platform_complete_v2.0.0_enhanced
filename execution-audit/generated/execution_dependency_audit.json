@@ -3,7 +3,7 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1870,
+    "python_files_parsed": 1869,
     "route_handlers": 1049,
     "call_edges": 75472,
     "dead_code_candidates": 621,
@@ -312124,181 +312124,6 @@
     },
     {
       "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "_calibration_entries",
-      "target": "isinstance",
-      "line": 28
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "_calibration_entries",
-      "target": "get",
-      "line": 30
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "_calibration_entries",
-      "target": "isinstance",
-      "line": 31
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "_calibration_entries",
-      "target": "isinstance",
-      "line": 31
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "_pick_tier",
-      "target": "get",
-      "line": 36
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "_pick_tier",
-      "target": "get",
-      "line": 36
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "_pick_tier",
-      "target": "get",
-      "line": 39
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "_pick_tier",
-      "target": "get",
-      "line": 42
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "resolve_stage_nutrient_demand",
-      "target": "load_crop_card",
-      "line": 58
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "resolve_stage_nutrient_demand",
-      "target": "stage_nutrient_demand",
-      "line": 61
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "resolve_stage_nutrient_demand",
-      "target": "strip",
-      "line": 65
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "resolve_stage_nutrient_demand",
-      "target": "load_district",
-      "line": 66
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "resolve_stage_nutrient_demand",
-      "target": "str",
-      "line": 71
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "resolve_stage_nutrient_demand",
-      "target": "get",
-      "line": 72
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "resolve_stage_nutrient_demand",
-      "target": "get",
-      "line": 72
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "resolve_stage_nutrient_demand",
-      "target": "get",
-      "line": 72
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "resolve_stage_nutrient_demand",
-      "target": "validate_district",
-      "line": 81
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "resolve_stage_nutrient_demand",
-      "target": "_calibration_entries",
-      "line": 90
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "resolve_stage_nutrient_demand",
-      "target": "_pick_tier",
-      "line": 91
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "resolve_stage_nutrient_demand",
-      "target": "float",
-      "line": 94
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "resolve_stage_nutrient_demand",
-      "target": "append",
-      "line": 95
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "resolve_stage_nutrient_demand",
-      "target": "get",
-      "line": 95
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "resolve_stage_nutrient_demand",
-      "target": "str",
-      "line": 95
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "resolve_stage_nutrient_demand",
-      "target": "any",
-      "line": 96
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "source": "resolve_stage_nutrient_demand",
-      "target": "get",
-      "line": 96
-    },
-    {
-      "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_inference.py",
       "source": "_min_conf",
       "target": "min",
@@ -319414,133 +319239,126 @@
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_safe_id",
       "target": "fullmatch",
-      "line": 29
+      "line": 31
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "load_district",
       "target": "_safe_id",
-      "line": 76
+      "line": 78
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "load_district",
       "target": "exists",
-      "line": 80
+      "line": 82
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "load_district",
       "target": "read_text",
-      "line": 82
+      "line": 84
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "load_district",
       "target": "safe_load",
-      "line": 82
+      "line": 84
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "list_districts",
       "target": "glob",
-      "line": 87
+      "line": 89
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "list_districts",
       "target": "sorted",
-      "line": 87
+      "line": 89
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "list_districts",
       "target": "startswith",
-      "line": 87
+      "line": 89
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_window",
       "target": "isinstance",
-      "line": 92
+      "line": 94
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_window",
       "target": "append",
-      "line": 93
+      "line": 95
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_window",
       "target": "keys",
-      "line": 95
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/districts/loader.py",
-      "source": "_validate_window",
-      "target": "set",
-      "line": 95
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/districts/loader.py",
-      "source": "_validate_window",
-      "target": "append",
       "line": 97
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_window",
-      "target": "isinstance",
+      "target": "set",
+      "line": 97
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "_validate_window",
+      "target": "append",
       "line": 99
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_window",
-      "target": "append",
-      "line": 100
+      "target": "isinstance",
+      "line": 101
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_window",
-      "target": "isinstance",
+      "target": "append",
       "line": 102
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_window",
+      "target": "isinstance",
+      "line": 104
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "_validate_window",
       "target": "append",
-      "line": 103
+      "line": 105
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_window",
       "target": "isinstance",
-      "line": 106
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/districts/loader.py",
-      "source": "_validate_window",
-      "target": "append",
-      "line": 107
+      "line": 108
     },
     {
       "owner": "sahool-platform",
@@ -319552,64 +319370,57 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "_validate_window",
+      "target": "append",
+      "line": 111
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_calibration_entry",
       "target": "isinstance",
-      "line": 116
+      "line": 118
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_calibration_entry",
       "target": "append",
-      "line": 117
+      "line": 119
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_calibration_entry",
       "target": "keys",
-      "line": 119
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/districts/loader.py",
-      "source": "_validate_calibration_entry",
-      "target": "set",
-      "line": 119
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/districts/loader.py",
-      "source": "_validate_calibration_entry",
-      "target": "append",
       "line": 121
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_calibration_entry",
-      "target": "isinstance",
-      "line": 123
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/districts/loader.py",
-      "source": "_validate_calibration_entry",
-      "target": "strip",
-      "line": 123
+      "target": "set",
+      "line": 121
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_calibration_entry",
       "target": "append",
-      "line": 124
+      "line": 123
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_calibration_entry",
       "target": "isinstance",
+      "line": 125
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "_validate_calibration_entry",
+      "target": "strip",
       "line": 125
     },
     {
@@ -319623,295 +319434,484 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_calibration_entry",
+      "target": "isinstance",
+      "line": 127
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "_validate_calibration_entry",
       "target": "append",
-      "line": 129
+      "line": 128
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "_validate_calibration_entry",
+      "target": "append",
+      "line": 131
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_calibration_entry",
       "target": "isinstance",
-      "line": 135
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/districts/loader.py",
-      "source": "_validate_calibration_entry",
-      "target": "isinstance",
-      "line": 136
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/districts/loader.py",
-      "source": "_validate_calibration_entry",
-      "target": "isfinite",
       "line": 137
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_calibration_entry",
-      "target": "append",
-      "line": 140
+      "target": "isinstance",
+      "line": 138
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_calibration_entry",
-      "target": "float",
+      "target": "isfinite",
+      "line": 139
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "_validate_calibration_entry",
+      "target": "append",
       "line": 142
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_calibration_entry",
-      "target": "items",
+      "target": "float",
       "line": 144
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_calibration_entry",
-      "target": "append",
+      "target": "items",
       "line": 146
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_calibration_entry",
+      "target": "append",
+      "line": 148
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "_validate_calibration_entry",
       "target": "isinstance",
-      "line": 150
+      "line": 152
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_calibration_entry",
       "target": "strip",
-      "line": 150
+      "line": 152
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "_validate_calibration_entry",
       "target": "append",
-      "line": 151
+      "line": 153
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "validate_district",
       "target": "isinstance",
-      "line": 157
+      "line": 159
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "validate_district",
       "target": "keys",
-      "line": 159
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/districts/loader.py",
-      "source": "validate_district",
-      "target": "set",
-      "line": 159
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/districts/loader.py",
-      "source": "validate_district",
-      "target": "append",
       "line": 161
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "validate_district",
-      "target": "get",
-      "line": 162
+      "target": "set",
+      "line": 161
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "validate_district",
-      "target": "isinstance",
+      "target": "append",
       "line": 163
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "validate_district",
-      "target": "append",
+      "target": "get",
       "line": 164
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "validate_district",
-      "target": "enumerate",
+      "target": "isinstance",
+      "line": 165
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "validate_district",
+      "target": "append",
       "line": 166
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "validate_district",
-      "target": "_validate_window",
-      "line": 167
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/districts/loader.py",
-      "source": "validate_district",
-      "target": "get",
+      "target": "enumerate",
       "line": 168
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "validate_district",
-      "target": "isinstance",
+      "target": "_validate_window",
+      "line": 169
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "validate_district",
+      "target": "get",
       "line": 170
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "validate_district",
-      "target": "append",
-      "line": 171
+      "target": "isinstance",
+      "line": 172
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "validate_district",
-      "target": "set",
+      "target": "append",
       "line": 173
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "validate_district",
-      "target": "enumerate",
-      "line": 174
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/districts/loader.py",
-      "source": "validate_district",
-      "target": "_validate_calibration_entry",
+      "target": "set",
       "line": 175
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "validate_district",
-      "target": "isinstance",
+      "target": "enumerate",
       "line": 176
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "validate_district",
-      "target": "get",
+      "target": "_validate_calibration_entry",
       "line": 177
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "validate_district",
+      "target": "isinstance",
+      "line": 178
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "validate_district",
       "target": "get",
-      "line": 177
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/districts/loader.py",
-      "source": "validate_district",
-      "target": "str",
-      "line": 177
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/districts/loader.py",
-      "source": "validate_district",
-      "target": "str",
-      "line": 177
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/districts/loader.py",
-      "source": "validate_district",
-      "target": "append",
       "line": 179
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "validate_district",
-      "target": "add",
-      "line": 180
+      "target": "get",
+      "line": 179
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "validate_district",
-      "target": "len",
+      "target": "str",
+      "line": 179
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "validate_district",
+      "target": "str",
+      "line": 179
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "validate_district",
+      "target": "append",
+      "line": 181
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "validate_district",
+      "target": "add",
       "line": 182
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "validate_district",
-      "target": "get",
+      "target": "len",
       "line": 184
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "validate_district",
+      "target": "get",
+      "line": 186
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "active_pests",
       "target": "isinstance",
-      "line": 194
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/districts/loader.py",
-      "source": "active_pests",
-      "target": "load_district",
       "line": 196
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "active_pests",
-      "target": "get",
-      "line": 199
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/districts/loader.py",
-      "source": "active_pests",
-      "target": "isinstance",
-      "line": 200
+      "target": "load_district",
+      "line": 198
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "active_pests",
       "target": "get",
-      "line": 204
+      "line": 201
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "active_pests",
       "target": "isinstance",
-      "line": 204
+      "line": 202
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "active_pests",
+      "target": "get",
+      "line": 206
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "active_pests",
+      "target": "isinstance",
+      "line": 206
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/districts/loader.py",
       "source": "active_pests",
       "target": "append",
-      "line": 205
+      "line": 207
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "_calibration_entries",
+      "target": "isinstance",
+      "line": 237
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "_calibration_entries",
+      "target": "get",
+      "line": 239
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "_calibration_entries",
+      "target": "isinstance",
+      "line": 240
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "_calibration_entries",
+      "target": "isinstance",
+      "line": 240
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "_pick_tier",
+      "target": "get",
+      "line": 245
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "_pick_tier",
+      "target": "get",
+      "line": 245
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "_pick_tier",
+      "target": "get",
+      "line": 248
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "_pick_tier",
+      "target": "get",
+      "line": 251
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "resolve_stage_nutrient_demand",
+      "target": "load_crop_card",
+      "line": 267
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "resolve_stage_nutrient_demand",
+      "target": "stage_nutrient_demand",
+      "line": 270
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "resolve_stage_nutrient_demand",
+      "target": "strip",
+      "line": 274
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "resolve_stage_nutrient_demand",
+      "target": "load_district",
+      "line": 275
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "resolve_stage_nutrient_demand",
+      "target": "str",
+      "line": 280
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "resolve_stage_nutrient_demand",
+      "target": "get",
+      "line": 281
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "resolve_stage_nutrient_demand",
+      "target": "get",
+      "line": 281
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "resolve_stage_nutrient_demand",
+      "target": "get",
+      "line": 281
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "resolve_stage_nutrient_demand",
+      "target": "validate_district",
+      "line": 290
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "resolve_stage_nutrient_demand",
+      "target": "_calibration_entries",
+      "line": 299
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "resolve_stage_nutrient_demand",
+      "target": "_pick_tier",
+      "line": 300
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "resolve_stage_nutrient_demand",
+      "target": "float",
+      "line": 303
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "resolve_stage_nutrient_demand",
+      "target": "append",
+      "line": 304
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "resolve_stage_nutrient_demand",
+      "target": "get",
+      "line": 304
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "resolve_stage_nutrient_demand",
+      "target": "str",
+      "line": 304
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "resolve_stage_nutrient_demand",
+      "target": "any",
+      "line": 305
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/districts/loader.py",
+      "source": "resolve_stage_nutrient_demand",
+      "target": "get",
+      "line": 305
     },
     {
       "owner": "sahool-platform",
@@ -415734,427 +415734,420 @@
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "_district",
       "target": "update",
-      "line": 27
+      "line": 31
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_valid_calibration_block_passes",
       "target": "_district",
-      "line": 49
+      "line": 53
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_valid_calibration_block_passes",
       "target": "_entry",
-      "line": 49
+      "line": 53
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_valid_calibration_block_passes",
       "target": "validate_district",
-      "line": 49
+      "line": 53
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_uncalibrated_entry_must_be_inert",
       "target": "_entry",
-      "line": 54
+      "line": 58
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_uncalibrated_entry_must_be_inert",
       "target": "_district",
-      "line": 55
+      "line": 59
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_uncalibrated_entry_must_be_inert",
       "target": "validate_district",
-      "line": 55
+      "line": 59
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_uncalibrated_entry_must_be_inert",
       "target": "any",
-      "line": 57
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
-      "source": "test_uncalibrated_inert_entry_passes",
-      "target": "_entry",
       "line": 61
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_uncalibrated_inert_entry_passes",
+      "target": "_entry",
+      "line": 65
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
+      "source": "test_uncalibrated_inert_entry_passes",
       "target": "_district",
-      "line": 62
+      "line": 66
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_uncalibrated_inert_entry_passes",
       "target": "validate_district",
-      "line": 62
+      "line": 66
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_missing_source_is_rejected",
       "target": "_district",
-      "line": 66
+      "line": 70
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_missing_source_is_rejected",
       "target": "_entry",
-      "line": 66
+      "line": 70
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_missing_source_is_rejected",
       "target": "validate_district",
-      "line": 66
+      "line": 70
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_factor_outside_physical_range_is_rejected",
       "target": "float",
-      "line": 71
+      "line": 75
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_factor_outside_physical_range_is_rejected",
       "target": "_district",
-      "line": 72
+      "line": 76
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_factor_outside_physical_range_is_rejected",
       "target": "_entry",
-      "line": 72
+      "line": 76
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_factor_outside_physical_range_is_rejected",
       "target": "validate_district",
-      "line": 72
+      "line": 76
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_unknown_status_is_rejected",
       "target": "_district",
-      "line": 77
+      "line": 81
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_unknown_status_is_rejected",
       "target": "_entry",
-      "line": 77
+      "line": 81
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_unknown_status_is_rejected",
       "target": "validate_district",
-      "line": 77
+      "line": 81
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_duplicate_crop_variety_entry_is_rejected",
       "target": "_district",
-      "line": 83
+      "line": 87
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_duplicate_crop_variety_entry_is_rejected",
       "target": "_entry",
-      "line": 83
+      "line": 87
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_duplicate_crop_variety_entry_is_rejected",
       "target": "_entry",
-      "line": 83
+      "line": 87
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_duplicate_crop_variety_entry_is_rejected",
       "target": "validate_district",
-      "line": 83
+      "line": 87
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_duplicate_crop_variety_entry_is_rejected",
       "target": "any",
-      "line": 85
+      "line": 89
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_calibration_block_is_optional",
       "target": "_district",
-      "line": 89
+      "line": 93
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_calibration_block_is_optional",
       "target": "validate_district",
-      "line": 89
+      "line": 93
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "_install",
       "target": "_district",
-      "line": 100
+      "line": 104
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "fake_district",
       "target": "_district",
-      "line": 100
+      "line": 104
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "_install",
       "target": "setattr",
-      "line": 101
+      "line": 105
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "fake_district",
       "target": "setattr",
-      "line": 101
+      "line": 105
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_variety_tier_wins_over_generic",
       "target": "fake_district",
-      "line": 108
+      "line": 112
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_variety_tier_wins_over_generic",
       "target": "_entry",
-      "line": 110
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
-      "source": "test_variety_tier_wins_over_generic",
-      "target": "_entry",
-      "line": 111
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
-      "source": "test_variety_tier_wins_over_generic",
-      "target": "resolve_stage_nutrient_demand",
       "line": 114
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
+      "source": "test_variety_tier_wins_over_generic",
+      "target": "_entry",
+      "line": 115
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
+      "source": "test_variety_tier_wins_over_generic",
+      "target": "resolve_stage_nutrient_demand",
+      "line": 118
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_unknown_variety_falls_back_to_generic_tier",
       "target": "_entry",
-      "line": 122
+      "line": 126
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_unknown_variety_falls_back_to_generic_tier",
       "target": "fake_district",
-      "line": 122
+      "line": 126
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_unknown_variety_falls_back_to_generic_tier",
       "target": "resolve_stage_nutrient_demand",
-      "line": 123
+      "line": 127
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_uncalibrated_entry_is_never_applied",
       "target": "_entry",
-      "line": 130
+      "line": 134
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_uncalibrated_entry_is_never_applied",
       "target": "fake_district",
-      "line": 130
+      "line": 134
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_uncalibrated_entry_is_never_applied",
       "target": "resolve_stage_nutrient_demand",
-      "line": 131
+      "line": 135
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_no_entries_for_crop_reads_absent",
       "target": "_entry",
-      "line": 139
+      "line": 143
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_no_entries_for_crop_reads_absent",
       "target": "fake_district",
-      "line": 139
+      "line": 143
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_no_entries_for_crop_reads_absent",
       "target": "resolve_stage_nutrient_demand",
-      "line": 140
+      "line": 144
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_card_without_curves_is_blocked",
       "target": "resolve_stage_nutrient_demand",
-      "line": 146
+      "line": 150
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_unknown_district_is_blocked_not_silently_baseline",
       "target": "resolve_stage_nutrient_demand",
-      "line": 155
+      "line": 159
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_invalid_district_card_is_blocked",
       "target": "_entry",
-      "line": 161
+      "line": 165
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_invalid_district_card_is_blocked",
       "target": "fake_district",
-      "line": 161
+      "line": 165
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_invalid_district_card_is_blocked",
       "target": "resolve_stage_nutrient_demand",
-      "line": 162
+      "line": 166
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_factors_never_touch_stage_fractions",
       "target": "_entry",
-      "line": 169
+      "line": 173
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_factors_never_touch_stage_fractions",
       "target": "fake_district",
-      "line": 169
+      "line": 173
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_factors_never_touch_stage_fractions",
       "target": "resolve_stage_nutrient_demand",
-      "line": 170
+      "line": 174
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_factors_never_touch_stage_fractions",
       "target": "abs",
-      "line": 172
+      "line": 176
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_factors_never_touch_stage_fractions",
       "target": "sum",
-      "line": 172
+      "line": 176
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_wheat_and_sorghum_curves_resolve_from_real_cards",
       "target": "resolve_stage_nutrient_demand",
-      "line": 180
+      "line": 184
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_wheat_and_sorghum_curves_resolve_from_real_cards",
       "target": "len",
-      "line": 182
+      "line": 186
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_all_real_districts_validate_including_calibration_blocks",
       "target": "list_districts",
-      "line": 188
+      "line": 192
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_all_real_districts_validate_including_calibration_blocks",
       "target": "load_district",
-      "line": 189
+      "line": 193
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "source": "test_all_real_districts_validate_including_calibration_blocks",
       "target": "validate_district",
-      "line": 189
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
-      "source": "test_real_placeholder_entries_stay_inert_end_to_end",
-      "target": "resolve_stage_nutrient_demand",
-      "line": 194
+      "line": 193
     },
     {
       "owner": "sahool-platform",
@@ -416162,6 +416155,13 @@
       "source": "test_real_placeholder_entries_stay_inert_end_to_end",
       "target": "resolve_stage_nutrient_demand",
       "line": 198
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_nutrient_calibration.py",
+      "source": "test_real_placeholder_entries_stay_inert_end_to_end",
+      "target": "resolve_stage_nutrient_demand",
+      "line": 202
     },
     {
       "owner": "sahool-platform",

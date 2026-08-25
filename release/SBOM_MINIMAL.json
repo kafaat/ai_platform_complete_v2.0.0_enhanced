@@ -19785,16 +19785,6 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fe94b979c6da23a270359d3c8062585fca0aaf9e50f35aada3f9302e0787f5e4"
-        }
-      ],
-      "name": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
           "content": "dbb6444d76fc2e4295ace27643fd90294818e2b7d7362bc2b009b36b561912d2"
         }
       ],
@@ -20735,7 +20725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4a69a254c91a0302d82cf27bb2346c2a3c6348a0137d4c7d525dac7545da1882"
+          "content": "511be5249110dd2bd3f86eaf29d0af57f3c7a06c9245ec0233db8ba7d7c5a9e6"
         }
       ],
       "name": "services/sahool-platform/core/districts/loader.py",
@@ -25635,7 +25625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "40856404cbed47e14d675dbb2e3259af534081fac562213ffd6e2957260a5afb"
+          "content": "c79589463d32c805f2ee0a4dd52107bad34be0391a3b799c210127b0da04b08d"
         }
       ],
       "name": "services/sahool-platform/tests/test_nutrient_calibration.py",

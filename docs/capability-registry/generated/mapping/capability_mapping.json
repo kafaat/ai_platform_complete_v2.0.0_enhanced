@@ -15,9 +15,9 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5183,
+    "files_scanned": 5182,
     "files_by_kind": {
-      "backend": 1205,
+      "backend": 1204,
       "database": 274,
       "governance": 60,
       "mobile": 51,
@@ -25,7 +25,7 @@
       "tests": 1717,
       "web": 456
     },
-    "unmapped_artifacts": 2112,
+    "unmapped_artifacts": 2111,
     "ambiguous_artifacts": 413
   },
   "capabilities": [
@@ -39048,10 +39048,6 @@
     },
     {
       "path": "services/sahool-platform/core/correlation.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
       "kind": "backend"
     },
     {

@@ -1949,7 +1949,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 281,
+      "evidence_count": 280,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2119,7 +2119,6 @@
         "services/sahool-platform/core/crop_cards/maize.yaml",
         "services/sahool-platform/core/crop_cards/mango.yaml",
         "services/sahool-platform/core/crop_cards/melon.yaml",
-        "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
         "services/sahool-platform/core/crop_cards/okra.yaml",
         "services/sahool-platform/core/crop_cards/onion.yaml",
         "services/sahool-platform/core/crop_cards/papaya.yaml",
@@ -2721,7 +2720,7 @@
         "services/vegetation-analysis-service/post_execution_bridge.py"
       ],
       "source_evidence_count": 49,
-      "target_evidence_count": 281,
+      "target_evidence_count": 280,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -2731,5 +2730,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "cc68f140f5a22fd73f06384513c33ee208c64be8090db6b192a0f350f4e408ae"
+  "content_sha256": "ec521641396532d7bff75e8e8fd94f0062a92bc764adb8911ecb5a8ac31078db"
 }

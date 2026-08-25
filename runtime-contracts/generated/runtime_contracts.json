@@ -2401,7 +2401,6 @@
           "services/sahool-platform/core/canonical_field_state.py",
           "services/sahool-platform/core/correlation.py",
           "services/sahool-platform/core/crop_cards/loader.py",
-          "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
           "services/sahool-platform/core/crop_inference.py",
           "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
           "services/sahool-platform/core/crop_intelligence/engine.py",
