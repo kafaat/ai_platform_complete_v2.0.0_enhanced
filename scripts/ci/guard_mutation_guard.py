@@ -364,6 +364,28 @@ def _run_tests(test_file: str, root: Path) -> tuple[int, str]:
     return res.returncode, res.stdout + res.stderr
 
 
+def _run_tests_for_mutation(test_file: str, expected: str, root: Path) -> tuple[int, str]:
+    """«ضيّق ثم تراجَع» — `MUT-SWEEP-RUNS-THE-WHOLE-FILE-PER-PLANT-01`.
+
+    المقيس قبل هذا: كلّ زرعة كانت تشغّل **ملفّ الاختبار كاملاً** (~9.7ث لملفّ
+    يبني مستودعات git) بينما الاختبار المتوقَّع وحده ~0.5ث — ومع مئات الزرعات
+    صارت المكنسة ~50 دقيقة في CI.
+
+    المسار السريع يحسم حكماً واحداً فقط: **مقتولة** (خرجٌ أحمر والمُتوقَّع مُسمًّى
+    بين الساقطين) — وهو نفس معيار `_outcome` حرفيّاً، على معرّف عقدة صريح
+    `file::name` لا `-k` (المطابقة الجزئيّة تجرّ اختباراتٍ لم تُقصَد). وكلّ ما عداه
+    — مرّ المُتوقَّع، أو سقط غيرُه، أو لم يُجمَع الاسم أصلاً (`no tests ran` لعقدةٍ
+    غير موجودة أو دالّةٍ داخل صنف)، أو انهار المُشغِّل — **يتراجع إلى الملفّ الكامل**
+    فتُحسَم التصنيفات (`unexpected_green` · `wrong_test` · `runner_did_not_run`)
+    من نفس المشهد الذي كانت تُحسَم منه دائماً. لا حكم يتغيّر؛ فقط الطريق إلى
+    «مقتولة» يقصر — وهي الحالة الغالبة قطعاً في شجرة خضراء (كلّ الطفرات مقتولة).
+    """
+    code, out = _run_tests(f"{test_file}::{expected}", root)
+    if ran_at_all(out) and code != 0 and expected in failing_tests(out):
+        return code, out
+    return _run_tests(test_file, root)
+
+
 def _outcome(code: int, out: str, expected: str) -> tuple[str, tuple[str, ...]]:
     if not ran_at_all(out):
         return "runner_did_not_run", tuple()
@@ -398,7 +420,7 @@ def _diagnose_repeat(
                 original.replace(mutation["find"], mutation["replace"], 1),
                 encoding="utf-8",
             )
-            code, out = _run_tests(test_file, root)
+            code, out = _run_tests_for_mutation(test_file, mutation["expect"], root)
             outcomes.append(_outcome(code, out, mutation["expect"]))
         finally:
             src.write_text(original, encoding="utf-8")
@@ -435,7 +457,7 @@ def _run_mutations_in_place(registry: dict, only: str | None, ci: Path, root: Pa
             try:
                 _ACTIVE_RESTORES[src] = original
                 src.write_text(original.replace(m["find"], m["replace"], 1), encoding="utf-8")
-                code, out = _run_tests(test_file, root)
+                code, out = _run_tests_for_mutation(test_file, m["expect"], root)
             finally:
                 src.write_text(original, encoding="utf-8")
                 _ACTIVE_RESTORES.pop(src, None)
