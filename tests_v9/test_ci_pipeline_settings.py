@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import json
 import pathlib
 
 import pytest
@@ -114,22 +115,18 @@ def test_check_names_survive_the_slice_and_unit_tests_is_a_singleton() -> None:
 
     assert jobs["unit-tests"]["name"] == "Unit Tests"
     assert "strategy" not in jobs["unit-tests"], "مصفوفةٌ هنا تُيتّم اسمَ الفحص المطلوب"
-    required = {
-        "Lint & Format",
-        "Repository Structural Lint",
-        "Platform Structure Inspector",
-        "Validate Docker Compose",
-        "Frontend Typecheck",
-        "Unit Tests",
-        "Platform Unit Tests",
-        "Live PG Proofs (fake-connection debt)",
-        "Repository Tests (tests/)",
-        "Weather Service Unit Tests",
-        "Decision Service Tests",
-        "Integration Tests",
-        "Security Scan",
-        "Flutter Analyze & Test",
-    }
+    # **مصدرٌ واحد** — `REQUIRED-CHECKS-DRIFT-IS-INVISIBLE-IN-BOTH-DIRECTIONS-01`:
+    # كانت القائمة مكتوبةً هنا بأربعة عشر اسماً، تُقارَن بأسماء وظائف `ci.yml` **ولا
+    # تُقارَن بالمُنفَذ فعلاً**. والمقيس على تشغيل 97630483312: الـRuleset يفرض **١٥**
+    # سياقاً — ينقصها هنا `Frontend E2E (Playwright · MapLibre/WebGL QA)`. فصار العقد
+    # ملفَّ بياناتٍ واحداً يقرؤه هذا الاختبار (مقابلَ الشجرة) و
+    # `branch_protection_contract_guard` (مقابلَ الإنفاذ الحيّ) معاً.
+    contract = json.loads(
+        (ROOT / "docs/architecture/required_status_checks_contract.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    required = set(contract["required_contexts"])
     present = {j.get("name") for j in jobs.values()}
     missing = required - present
     assert not missing, f"أسماءٌ مطلوبة في حماية الفرع غابت عن ci.yml: {sorted(missing)}"

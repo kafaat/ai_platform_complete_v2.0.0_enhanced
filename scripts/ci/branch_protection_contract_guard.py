@@ -113,6 +113,23 @@ CODE_OWNER_PARAMETER = "require_code_owner_review"
 #: المسار المحميّ — وهو نفسه ما يقرؤه `gate01_frozen_path_guard` تفويضاً.
 AUTHORIZATION_PATH = "docs/architecture/gates/adjudications/"
 
+#: **سطحُ الإنفاذ نفسه** — `REQUIRED-CHECKS-DRIFT-IS-INVISIBLE-IN-BOTH-DIRECTIONS-01`.
+#: وهذا ليس «الجردَ العامّ للحماية» الذي يرفضه التعليق أعلاه: ذاك يَبيت مع كلّ تغيير
+#: إعدادٍ مشروع فيُدرَّب قارئه على تجاهله. أمّا قائمةُ الفحوص المطلوبة فمُشتقّةٌ من
+#: **الشجرة** (أسماء وظائف `ci.yml`)، فلا تتحرّك إلّا حين تتحرّك مجموعةُ البوّابات —
+#: وهي اللحظةُ التي يجب أن يُجبَر فيها إنسانٌ على النظر.
+#:
+#: والانحرافُ كان غيرَ مرئيّ **في الاتّجاهين**، وكلاهما عطلٌ صامت:
+#:   · سياقٌ يسقط من الـRuleset ⇒ بوّابتُه تحمرّ ولا تحجب (إرشاديّةٌ صامتة).
+#:   · اسمٌ يبقى في الـRuleset بلا وظيفةٍ تُبلِّغه ⇒ كلّ PR يُعلَّق على فحصٍ لا يصل.
+#: مقيسٌ عند كتابة هذا العقد لا مفترَض: الـRuleset يفرض **١٥** سياقاً، والقائمة
+#: المكتوبة في `tests_v9/test_ci_pipeline_settings.py` كانت **١٤** — ينقصها
+#: `Frontend E2E (Playwright · MapLibre/WebGL QA)`. أي أنّ الشجرة كانت تحمل رقماً
+#: بائتاً عن سطح الإنفاذ، ولا شيء يقيس الفرق.
+REQUIRED_CHECKS_RULE_TYPE = "required_status_checks"
+REQUIRED_CHECKS_PARAMETER = "required_status_checks"
+REQUIRED_CHECKS_CONTRACT = "docs/architecture/required_status_checks_contract.json"
+
 #: نصّ العلاج — يُطبَع مع الفشل لأنّ من يقرأ الأحمر يجب أن يعرف أين يذهب.
 REMEDY = (
     "العلاج في إعدادات GitHub لا في هذا المستودع:\n"
@@ -257,6 +274,86 @@ def code_owner_violations(rules: list) -> list[str]:
     ]
 
 
+def canonical_required_contexts(root: Path | None = None) -> list[str]:
+    """يقرأ العقد من الشجرة — المصدر الواحد الذي يقرؤه الحارس والاختبار معاً.
+
+    فاشل-مغلق: عقدٌ غائبٌ أو غيرُ قابل للتحليل أو بقائمةٍ فارغة يرفع `SystemExit`،
+    فلا يُقرأ «لم أجد ما أقارن به» مساواةً.
+    """
+    path = (root or Path(__file__).resolve().parents[2]) / REQUIRED_CHECKS_CONTRACT
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise SystemExit(
+            f"✗ تعذّرت قراءة عقد الفحوص المطلوبة {REQUIRED_CHECKS_CONTRACT}: {exc}"
+        ) from None
+    contexts = data.get("required_contexts")
+    if not isinstance(contexts, list) or not contexts:
+        raise SystemExit(
+            f"✗ {REQUIRED_CHECKS_CONTRACT}: `required_contexts` ليست قائمةً غير فارغة — "
+            "وقائمةٌ فارغة تجعل المساواة صحيحةً بلا أن تقيس شيئاً."
+        )
+    if not all(isinstance(c, str) and c.strip() for c in contexts):
+        raise SystemExit(f"✗ {REQUIRED_CHECKS_CONTRACT}: كلّ سياقٍ يجب أن يكون نصّاً غير فارغ.")
+    return sorted(contexts)
+
+
+def required_checks_violations(rules: list, canonical: list[str]) -> list[str]:
+    """مساواةُ مجموعاتٍ في الاتّجاهين بين العقد وسياقات `required_status_checks` النافذة.
+
+    الاتّجاهان ليسا تناظراً شكليّاً بل عطلان مختلفان يُسمَّى كلٌّ منهما بأثره:
+    سياقٌ ناقصٌ من الإنفاذ يجعل بوّابته إرشاديّةً صامتة، وسياقٌ زائدٌ عليه يُعلّق
+    كلّ PR على فحصٍ لا تُبلِّغه وظيفة.
+    """
+    problems: list[str] = []
+    checks_rules = [
+        r for r in rules if isinstance(r, dict) and r.get("type") == REQUIRED_CHECKS_RULE_TYPE
+    ]
+    if not checks_rules:
+        seen = sorted({r.get("type") for r in rules if isinstance(r, dict) and r.get("type")})
+        return [
+            f"لا قاعدة `{REQUIRED_CHECKS_RULE_TYPE}` نافذة على {CONTRACT_BRANCH} — "
+            f"المرئيّ ({len(rules)}): {', '.join(seen) or '(لا شيء)'}. "
+            "أي أنّ **لا فحص** يحجب الدمج، وخضرةُ البوّابات كلّها إرشاديّة."
+        ]
+    enforced: set[str] = set()
+    for rule in checks_rules:
+        params = rule.get("parameters")
+        if not isinstance(params, dict):
+            problems.append(
+                f"قاعدة `{REQUIRED_CHECKS_RULE_TYPE}` بلا `parameters` قابلة للقراءة — "
+                "ولا تُقرأ قاعدةٌ غير مقروءة إنفاذاً."
+            )
+            continue
+        entries = params.get(REQUIRED_CHECKS_PARAMETER)
+        if not isinstance(entries, list):
+            problems.append(
+                f"`parameters.{REQUIRED_CHECKS_PARAMETER}` ليست مصفوفة — "
+                f"النوع: {type(entries).__name__}."
+            )
+            continue
+        for entry in entries:
+            if isinstance(entry, dict) and isinstance(entry.get("context"), str):
+                enforced.add(entry["context"])
+    if problems:
+        return problems
+
+    expected = set(canonical)
+    missing = sorted(expected - enforced)
+    extra = sorted(enforced - expected)
+    if missing:
+        problems.append(
+            f"سياقاتٌ في العقد وليست مفروضةً في الـRuleset: {missing} — "
+            "بوّابتُها تحمرّ ولا تحجب: إرشاديّةٌ صامتة."
+        )
+    if extra:
+        problems.append(
+            f"سياقاتٌ مفروضة وليست في العقد: {extra} — إمّا وظيفةٌ حاجبة لم تُسجَّل في "
+            f"`{REQUIRED_CHECKS_CONTRACT}`، وإمّا اسمٌ لا تُبلِّغه وظيفةٌ فيُعلَّق كلّ PR عليه."
+        )
+    return problems
+
+
 def violations(rules: list) -> list[str]:
     """المخالفات — والغياب مخالفةٌ لا سكوت.
 
@@ -353,8 +450,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     # القواعد لا تُقرأ ما لم يُثبَت مصدرها — وإلّا صار الحكم على قواعدَ لا يُعرَف لِمَن هي.
     rules = envelope.get("rules")
+    canonical: list[str] = []
     if not problems:
         problems = violations(rules)
+        # يُقرأ العقد **بعد** إثبات مصدر الدليل: مقارنةٌ بقواعدَ لا يُعرَف لِمَن هي
+        # تُنتِج حكماً عن سؤالٍ آخر — وهو الصنف الذي وُجِد هذا الملفّ ليطارده.
+        canonical = canonical_required_contexts()
+        problems += required_checks_violations(rules, canonical)
         if touches_authorization(changed):
             problems += code_owner_violations(rules)
 
@@ -371,7 +473,8 @@ def main(argv: list[str] | None = None) -> int:
     print(
         f"branch_protection_contract_guard: PASS ({CONTRACT_PARAMETER} نافذ على "
         f"{args.expect_repository}@{CONTRACT_BRANCH} عند {args.expect_sha[:8]} — "
-        f"فُحِصت {len(rules)} قاعدة نافذة، منها {len(pr_rules)} من نوع {CONTRACT_RULE_TYPE})"
+        f"فُحِصت {len(rules)} قاعدة نافذة، منها {len(pr_rules)} من نوع {CONTRACT_RULE_TYPE}، "
+        f"و{len(canonical)} سياقاً مطلوباً مطابقاً للعقد)"
     )
     return 0
 

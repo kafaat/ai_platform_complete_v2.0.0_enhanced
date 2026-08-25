@@ -6852,6 +6852,14 @@ no_third_value_registry نصّاً)، GATE-01 نظيف، 33 اختباراً، r
 - **فجوة مسجَّلة:** `MUT-SWEEP-RUNS-THE-WHOLE-FILE-PER-PLANT-01` — معالَجة في الشريحة.
 - **المصدر:** `scripts/ci/guard_mutation_guard.py` · `tests_v9/test_guard_mutation_guard.py` · `docs/architecture/guard_mutation_registry.json` · فرع `mut-narrow-01`.
 
+## 2026-08-25 (د) — شريحة REQUIRED-CHECKS: سطحُ الإنفاذ صار مقيساً، والقياس كشف انحرافاً قائماً
+
+- **المدخل:** سؤال المالك عن تقسيم المكنسة بعد نزول الوظيفة إلى ٢٨:٢١، وحكمه أنّ الشرط الحوكميّ يسبق.
+- **قياسٌ غيّر كلفة الشرط:** `branch_protection_contract_guard` يقرأ أصلاً **كلّ** القواعد النافذة (`rules/branches/main`)، ووظيفتُه تطبع `required_status_checks.parameters` كاملةً. فالخطوة الأولى ليست بناءً من الصفر بل تأكيداً ثانياً على ظرفٍ قائم.
+- **والانحراف كان قائماً:** ١٥ سياقاً مفروضاً مقابل ١٤ في الشجرة — `Frontend E2E` غائب عن القائمة المكتوبة.
+- **المنفَّذ:** عقد بيانات واحد + `required_checks_violations` بمساواة الاتّجاهين + توحيد مصدر اختبار خطّ الأنابيب + ٦ اختبارات جديدة + ٣ طفرات مسجَّلة وتحديث طفرةٍ أبَتها الشريحة. **65/65 أخضر، و4/4 مقتولة.**
+- **درسان مقيسان أثناء البناء:** اختبارٌ يُثبِت رمز الخروج لا السبب يترك طفرةً تنجو؛ ومِسبار زرعٍ بلا `PYTHONDONTWRITEBYTECODE` يُنتِج «ناجيةً» كاذبة لطفرتين متساويتَي الطول.
+- **المصدر:** `docs/architecture/required_status_checks_contract.json` · `scripts/ci/branch_protection_contract_guard.py` · `tests_v9/test_branch_protection_contract_guard.py` · `tests_v9/test_ci_pipeline_settings.py` · فرع `required-checks-contract-01`.
 ## 2026-08-25 (ج) — شريحة AGRI-NUTRIENT: منحنيا القمح والذرة الرفيعة + عقد المعايرة الإقليميّة بطبقتين
 
 - **المدخل:** تفويض المالك «كلّ ما تستطيع في فرع واحد» — نُفِّذت P1+P2 من خطّة بطاقات المحاصيل (المجال الواحد المتماسك)، وأُرجئ عمداً: تثبيت الرنبوك (يغيّر أداة قبول جولةٍ حيّة معلّقة بيد المالك) وGraph-RAG/الإيصالات (تلزمها وثيقة FOUNDATION بقاعدة CORR1) ومهايئ CORR1-م2 (يستحقّ شريحته).
