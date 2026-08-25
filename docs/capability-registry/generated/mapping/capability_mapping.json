@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5187,
+    "files_scanned": 5188,
     "files_by_kind": {
       "backend": 1204,
       "database": 274,
       "governance": 60,
       "mobile": 51,
       "other": 1421,
-      "tests": 1721,
+      "tests": 1722,
       "web": 456
     },
     "unmapped_artifacts": 2112,
@@ -34074,6 +34074,14 @@
           ]
         },
         {
+          "path": "services/weather-service/tests/test_archive_coverage_is_exposed.py",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "services/weather-service/tests/test_canonical_weather_state.py",
           "score": 12,
           "signals": [
@@ -34416,7 +34424,7 @@
         "events": 26,
         "web": 16,
         "mobile": 0,
-        "tests": 45,
+        "tests": 46,
         "governance": 0,
         "other_evidence": 21
       },

@@ -627,14 +627,69 @@ def forecast_view(state: dict) -> dict:
     return _slot_view(state, "forecast")
 
 
-def historical_view(state: dict) -> dict:
+def historical_view(
+    state: dict, *, requested_start: str | None = None, requested_end: str | None = None
+) -> dict:
     """WX-10.5 — السلسلة الأرشيفيّة كـ**View مُشتقّ من CanonicalWeatherState**.
 
     نفس عقد `forecast_view` بالضبط (المُنتِج واحد `normalize_daily`)؛ الحقول التي يطلبها
     مسار التوقّع وحده تُذكَر في `optional_missing_fields` **دون** إنزال الجودة — غيابها في
     الأرشيف مشروع لا عيب.
+
+    **والتغطية تُعرَض حين يُصرَّح بالمطلوب.** بلا `requested_*` لا تُقارَن السلسلةُ إلّا
+    بنفسها: `range` مُشتقٌّ من أوقات المزوّد، فسلسلةٌ مبتورة تصف مداها الخاصّ وتبدو كاملة.
+    مقيسٌ بالتنفيذ: عشرةُ أيّام مطلوبة · ثلاثةٌ مُعادة ⇒ `quality_status: validated` ولا
+    حقلَ تغطيةٍ إطلاقاً. المطلوبُ يعرفه المُعالِج ولم يكن يمرّره — فالفجوةُ في التمرير لا
+    في الحساب.
     """
-    return _slot_view(state, "historical")
+    view = _slot_view(state, "historical")
+    coverage = _coverage_against_request(view, requested_start, requested_end)
+    if coverage is None:
+        return view
+
+    view["coverage"] = coverage
+    if coverage["coverage_ratio"] < 1.0:
+        # نفس مفردة `gdd_view` لا مفردةٌ ثانية — التغطيةُ بُعدٌ مستقلّ عن جودة البيانات،
+        # وسلسلةٌ ذات فجوات لا تُعطى `validated` وإن كانت أيّامُها الموجودة صحيحة.
+        if view.get("quality_status") not in ("insufficient", "invalid"):
+            view["quality_status"] = "degraded_incomplete_coverage"
+        limitations = list(view.get("limitations") or [])
+        limitations.append(
+            f"historical: requested {coverage['expected_days']} day(s) "
+            f"[{coverage['period_start']}..{coverage['period_end']}] and observed "
+            f"{coverage['observed_days']} — {coverage['missing_days']} day(s) absent from the "
+            "provider response; the series range describes what returned, not what was asked"
+        )
+        view["limitations"] = limitations
+    return view
+
+
+def _coverage_against_request(
+    view: dict, requested_start: str | None, requested_end: str | None
+) -> dict | None:
+    """يقارن المطلوبَ بالمرصود — ولا يُقارِن حين لا يُصرَّح بالمطلوب.
+
+    المفردةُ والحسابُ مأخوذان من `canonical_daily_weather_series.gdd_view` بلا إعادة
+    تنفيذ: نفسُ المفاتيح ونفسُ `_expected_days_inclusive` (شاملُ الطرفين). فالتغطيةُ
+    مبنيّةٌ في الشجرة منذ WX-10.4 — الناقصُ كان **عرضَها هنا** لا حسابَها.
+    """
+    from canonical_daily_weather_series import _expected_days_inclusive
+
+    expected = _expected_days_inclusive(requested_start, requested_end)
+    if expected is None:
+        return None
+    days = view.get("days")
+    observed = len(days) if isinstance(days, list) else 0
+    return {
+        "period_start": requested_start,
+        "period_end": requested_end,
+        "expected_days": expected,
+        "observed_days": observed,
+        "missing_days": max(0, expected - observed),
+        "coverage_ratio": round(observed / expected, 4) if expected else 0.0,
+        "inclusive_dates": True,
+        "requested_by": "caller",
+    }
 
 
 def current_view(state: dict) -> dict:

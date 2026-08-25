@@ -283,7 +283,10 @@ async def historical_weather(
         valid_time=((series or {}).get("range") or {}).get("start"),
         historical_series=series,
     )
-    return historical_view(state)
+    # المطلوبُ يُمرَّر صراحةً: المُعالِج وحده يعرفه، و`range` في السلسلة مُشتقٌّ من أوقات
+    # المزوّد — فسلسلةٌ مبتورة تصف مداها الخاصّ وتبدو كاملة. بلا هذا التمرير تُقارَن
+    # السلسلةُ بنفسها ولا تُقارَن بما طُلِب.
+    return historical_view(state, requested_start=start_date, requested_end=end_date)
 
 
 async def _cached_sample(lat: float, lon: float, time: str, model: str, key_prefix: str = "sample"):
