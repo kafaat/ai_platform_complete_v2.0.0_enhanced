@@ -29395,6 +29395,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "bc2b02a10e76f9e3ddb9e470b17e1a48075a9beb1f2b82c3815602264abdc587"
+        }
+      ],
+      "name": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "6f5ecd6e013b74229b18a7c1115fe1205c46dfa2d3f15060b3011d4779f3551b"
         }
       ],
@@ -29615,7 +29625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "34d59645423821b85a20fe2881949b0677bc997828e6cf93fcc4d6e24b59c642"
+          "content": "784636a3c96d9ed0754367c384c9c4929a114f47bdfd464e5a80f78ce2bfde8c"
         }
       ],
       "name": "services/weather-service/weather_runtime.py",

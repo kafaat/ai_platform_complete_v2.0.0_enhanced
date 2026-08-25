@@ -61,7 +61,7 @@ qdrant-seed,service,0,2,False,services/qdrant-seed
 rag-retrieval,service,1,1,False,services/rag-retrieval
 raster-service,service,16,9,False,services/raster-service
 raster-tiler-service,service,0,0,True,services/raster-tiler-service
-redis,compose-service,33,0,False,
+redis,compose-service,34,0,False,
 remote-sensing-workspace-bff,service,0,2,False,services/remote-sensing-workspace-bff
 required,compose-service,1,0,False,
 reservations,compose-service,1,0,False,
@@ -148,7 +148,7 @@ video-processor,service,0,10,False,services/video-processor
 volumes,compose-service,2,0,False,
 weather-mcp,compose-service,2,0,False,
 weather-polygon-worker,service,0,0,True,services/weather-polygon-worker
-weather-service,service,17,3,False,services/weather-service
+weather-service,service,17,4,False,services/weather-service
 weather-signal-engine,service,0,0,True,services/weather-signal-engine
 wget,compose-service,1,0,False,
 wofost-mcp,compose-service,2,0,False,

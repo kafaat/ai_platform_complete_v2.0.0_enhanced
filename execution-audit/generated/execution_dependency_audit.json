@@ -3,10 +3,10 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1869,
+    "python_files_parsed": 1870,
     "route_handlers": 1049,
-    "call_edges": 75638,
-    "dead_code_candidates": 624,
+    "call_edges": 75673,
+    "dead_code_candidates": 625,
     "duplicate_function_groups": 61,
     "route_owners": 27,
     "automatic_deletions": 0
@@ -496861,6 +496861,251 @@
     },
     {
       "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "memory_cache_only",
+      "target": "fixture",
+      "line": 117
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "memory_cache_only",
+      "target": "setattr",
+      "line": 124
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "memory_cache_only",
+      "target": "setattr",
+      "line": 125
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "memory_cache_only",
+      "target": "clear",
+      "line": 126
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "memory_cache_only",
+      "target": "clear",
+      "line": 128
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "_stub_fetch",
+      "target": "len",
+      "line": 136
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "_stub_fetch",
+      "target": "min",
+      "line": 136
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "fake",
+      "target": "len",
+      "line": 136
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "fake",
+      "target": "min",
+      "line": 136
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "_stub_fetch",
+      "target": "dict",
+      "line": 138
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "fake",
+      "target": "dict",
+      "line": 138
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "_stub_fetch",
+      "target": "setattr",
+      "line": 140
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "_age_every_entry_past_ttl",
+      "target": "monotonic",
+      "line": 150
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "_age_every_entry_past_ttl",
+      "target": "items",
+      "line": 151
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "_age_every_entry_past_ttl",
+      "target": "list",
+      "line": 151
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "test_endpoint_answers_with_a_product_on_a_cold_cache",
+      "target": "parametrize",
+      "line": 155
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "test_endpoint_answers_with_a_product_on_a_cold_cache",
+      "target": "_stub_fetch",
+      "line": 160
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "test_endpoint_answers_with_a_product_on_a_cold_cache",
+      "target": "TestClient",
+      "line": 161
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "test_endpoint_answers_with_a_product_on_a_cold_cache",
+      "target": "get",
+      "line": 162
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "test_endpoint_answers_with_a_product_on_a_cold_cache",
+      "target": "json",
+      "line": 165
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "test_a_fresh_entry_is_served_without_a_second_fetch",
+      "target": "parametrize",
+      "line": 171
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "test_a_fresh_entry_is_served_without_a_second_fetch",
+      "target": "_stub_fetch",
+      "line": 176
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "test_a_fresh_entry_is_served_without_a_second_fetch",
+      "target": "TestClient",
+      "line": 177
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "test_a_fresh_entry_is_served_without_a_second_fetch",
+      "target": "get",
+      "line": 178
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "test_a_fresh_entry_is_served_without_a_second_fetch",
+      "target": "get",
+      "line": 179
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "test_a_fresh_entry_is_served_without_a_second_fetch",
+      "target": "json",
+      "line": 183
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "test_a_fresh_entry_is_served_without_a_second_fetch",
+      "target": "json",
+      "line": 183
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "test_a_stale_entry_is_refreshed_and_not_served",
+      "target": "parametrize",
+      "line": 186
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "test_a_stale_entry_is_refreshed_and_not_served",
+      "target": "_stub_fetch",
+      "line": 189
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "test_a_stale_entry_is_refreshed_and_not_served",
+      "target": "TestClient",
+      "line": 190
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "test_a_stale_entry_is_refreshed_and_not_served",
+      "target": "get",
+      "line": 191
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "test_a_stale_entry_is_refreshed_and_not_served",
+      "target": "_age_every_entry_past_ttl",
+      "line": 192
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "test_a_stale_entry_is_refreshed_and_not_served",
+      "target": "get",
+      "line": 193
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "test_a_stale_entry_is_refreshed_and_not_served",
+      "target": "json",
+      "line": 197
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "source": "test_a_stale_entry_is_refreshed_and_not_served",
+      "target": "json",
+      "line": 197
+    },
+    {
+      "owner": "weather-service",
       "file": "services/weather-service/tests/test_crop_stress_products.py",
       "source": "test_lodging_unknown_crop_fails_closed",
       "target": "compute_lodging_risk",
@@ -544216,6 +544461,17 @@
       "file": "services/soil-service/soil_store.py",
       "line": 143,
       "owner": "soil-service",
+      "decorated_route": false,
+      "reference_count": 0,
+      "confidence": "medium",
+      "action": "review_before_delete"
+    },
+    {
+      "symbol": "memory_cache_only",
+      "kind": "function",
+      "file": "services/weather-service/tests/test_crop_stress_endpoints.py",
+      "line": 118,
+      "owner": "weather-service",
       "decorated_route": false,
       "reference_count": 0,
       "confidence": "medium",

@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5183,
+    "files_scanned": 5184,
     "files_by_kind": {
       "backend": 1204,
       "database": 274,
       "governance": 60,
       "mobile": 51,
       "other": 1421,
-      "tests": 1717,
+      "tests": 1718,
       "web": 456
     },
     "unmapped_artifacts": 2110,
@@ -22457,6 +22457,14 @@
           ]
         },
         {
+          "path": "services/weather-service/tests/test_crop_stress_endpoints.py",
+          "score": 11,
+          "signals": [
+            "path:crop stress",
+            "content:crop stress"
+          ]
+        },
+        {
           "path": "services/weather-service/tests/test_crop_stress_products.py",
           "score": 8,
           "signals": [
@@ -22487,7 +22495,7 @@
         "events": 4,
         "web": 0,
         "mobile": 0,
-        "tests": 5,
+        "tests": 6,
         "governance": 0,
         "other_evidence": 1
       },

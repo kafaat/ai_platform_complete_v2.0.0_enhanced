@@ -867,6 +867,7 @@ FM-005,test,services/sahool-platform/tests/test_crop_twin_compose_endpoint.py,3,
 FM-005,test,services/sahool-platform/tests/test_crop_twin_server_spectral.py,3,applied
 FM-005,test,services/sahool-platform/tests/test_crop_water_sensitivity.py,3,applied
 FM-005,test,services/sahool-platform/tests/test_variety_suitability.py,3,applied
+FM-005,test,services/weather-service/tests/test_crop_stress_endpoints.py,3,applied
 FM-005,test,services/weather-service/tests/test_crop_stress_products.py,3,applied
 FM-005,test,tests_v9/test_crop_model_uncertainty_v64.py,3,applied
 FM-005,test,tests_v9/test_crop_root_policy_rls_integration.py,3,applied
@@ -1502,6 +1503,7 @@ SAT-008,test,services/sahool-platform/tests/test_crop_stress_memory_service.py,3
 SAT-008,test,services/sahool-platform/tests/test_crop_stress_store.py,3,applied
 SAT-008,test,services/sahool-platform/tests/test_spectral_stress_bridge.py,3,applied
 SAT-008,test,services/sahool-platform/tests/test_thermal_stress_facade_guard.py,3,applied
+SAT-008,test,services/weather-service/tests/test_crop_stress_endpoints.py,3,applied
 SAT-008,test,services/weather-service/tests/test_crop_stress_products.py,3,applied
 SAT-008,test,services/weather-service/tests/test_thermal_stress.py,3,applied
 SAT-008,test,tests_v9/test_canonical_water_stress.py,3,applied

@@ -576,6 +576,7 @@ medium,sahool-platform,class,TestCalibrated,services/sahool-platform/tests/test_
 medium,sahool-platform,class,TestPending,services/sahool-platform/tests/test_yield_interval_service.py,35,0,review_before_delete,False
 medium,sahool-platform,class,TestCoverageMonotonicity,services/sahool-platform/tests/test_yield_interval_service.py,61,0,review_before_delete,False
 medium,soil-service,function,persist_snapshot,services/soil-service/soil_store.py,143,0,review_before_delete,False
+medium,weather-service,function,memory_cache_only,services/weather-service/tests/test_crop_stress_endpoints.py,118,0,review_before_delete,False
 medium,weather-service,function,patch_openmeteo,services/weather-service/tests/test_p3_weather_service_runtime.py,43,0,review_before_delete,False
 medium,shared,function,has_capability,shared/ai/capabilities.py,77,0,review_before_delete,False
 medium,shared,function,build_audit_record,shared/ai/tool_audit.py,54,0,review_before_delete,False

@@ -944,5 +944,6 @@ video-processor,redis,code-reference,services/video-processor/main.py
 video-processor,redis,compose-depends-on,docker-compose.light.yml
 video-processor,redis,compose-depends-on,docker-compose.unified.yml
 weather-service,redis,code-reference,services/weather-service/cache.py
+weather-service,redis,code-reference,services/weather-service/tests/test_crop_stress_endpoints.py
 weather-service,redis,code-reference,services/weather-service/tests/test_weather_readyz_and_cache_backend.py
 weather-service,redis,code-reference,services/weather-service/tests/test_weather_redis_live_optional.py
