@@ -615,7 +615,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 16
+        "tests": 17
       }
     },
     {
@@ -1780,6 +1780,7 @@
         "services/sahool-platform/tests/test_crop_stress_store.py",
         "services/sahool-platform/tests/test_spectral_stress_bridge.py",
         "services/sahool-platform/tests/test_thermal_stress_facade_guard.py",
+        "services/weather-service/tests/test_crop_stress_endpoints.py",
         "services/weather-service/tests/test_crop_stress_products.py",
         "services/weather-service/tests/test_thermal_stress.py",
         "tests_v9/test_canonical_water_stress.py"
@@ -1812,7 +1813,7 @@
           "path": "services/sahool-platform/api/crop_stress_store.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=5, tests=9, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=5, tests=10, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

@@ -7520,6 +7520,7 @@
         "services/sahool-platform/tests/test_crop_stress_ingestion.py",
         "services/sahool-platform/tests/test_crop_stress_memory_service.py",
         "services/sahool-platform/tests/test_crop_stress_store.py",
+        "services/weather-service/tests/test_crop_stress_endpoints.py",
         "services/weather-service/tests/test_crop_stress_products.py"
       ]
     },

@@ -411,8 +411,8 @@ async def thermal_stress(
     fail-closed: غياب سياق المحصول/المرحلة ⇒ insufficient_context (لا مخاطرة مُختلَقة).
     """
     cache_key = f"thermal:{lat:.4f}:{lon:.4f}:{days}:{model}"
-    series = cache_get(cache_key)
-    if series is None:
+    series, state, _age = cache_get(cache_key)
+    if series is None or state != "fresh":
         try:
             series = await fetch_thermal_series(lat, lon, days=days, model=model)
         except Exception as exc:  # noqa: BLE001
@@ -479,8 +479,8 @@ async def lodging_risk(
 ):
     """خطر الرقود (انبطاح النبات) من رياح الأفق مشروطاً بقابليّة المحصول×المرحلة."""
     key = f"lwr:{lat:.4f}:{lon:.4f}:{days}:{model}"
-    series = cache_get(key)
-    if series is None:
+    series, state, _age = cache_get(key)
+    if series is None or state != "fresh":
         try:
             series = await fetch_daily_wind_temp_rain(lat, lon, days=days, model=model)
         except Exception as exc:  # noqa: BLE001
@@ -509,8 +509,8 @@ async def pollination_risk(
 ):
     """خطر الطقس على التلقيح أثناء الإزهار (fail-closed خارج مرحلة الإزهار)."""
     key = f"pwr:{lat:.4f}:{lon:.4f}:{days}:{model}"
-    series = cache_get(key)
-    if series is None:
+    series, state, _age = cache_get(key)
+    if series is None or state != "fresh":
         try:
             series = await fetch_daily_wind_temp_rain(lat, lon, days=days, model=model)
         except Exception as exc:  # noqa: BLE001
@@ -536,8 +536,8 @@ async def chill_accumulation(
 ):
     """تراكم البرودة الموسميّ (Chilling Hours + Utah) للأشجار المتساقطة من سلسلة تاريخيّة."""
     key = f"chill:{lat:.4f}:{lon:.4f}:{start_date}:{end_date}"
-    series = cache_get(key)
-    if series is None:
+    series, state, _age = cache_get(key)
+    if series is None or state != "fresh":
         try:
             series = await fetch_archive_hourly_temps(
                 lat, lon, start_date=start_date, end_date=end_date
