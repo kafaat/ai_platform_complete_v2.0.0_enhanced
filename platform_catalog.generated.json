@@ -17749,7 +17749,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "b424290c61a685818063e639374679c28eae51bd74335a4977b670b9d09a1ea7",
+  "fingerprint": "51c5e6d0f58a48b826e1ec4848cbb6a16110010c9afb17e33e925d6a30bc26e8",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17799,14 +17799,14 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 807,
+      "edge_count": 808,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 38,
         "CONSUMES": 1,
         "EMITS": 1,
-        "READS": 413,
+        "READS": 414,
         "ROUTES_TO": 70,
         "WRITES": 284
       }

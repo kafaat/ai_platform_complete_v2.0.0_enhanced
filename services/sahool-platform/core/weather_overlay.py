@@ -50,7 +50,19 @@ class FieldWeatherScores:
     trafficability_score: float  # [0,100] صلاحيّة مرور الآليّات
     heat_stress_hours: int
     frost_risk_hours: int
-    hours_evaluated: int
+    hours_evaluated: int  # ساعاتٌ **حاضرة** في السلسلة — لا تصلح مقاماً لثقّة حدث
+    # ── مقاماتٌ مخصوصة لكلّ حدث: الفرصُ التي كان الحدثُ قابلاً للرصد فيها ──
+    #
+    # `hours_evaluated` يعدّ كلّ ساعةٍ حاضرة، بينما `frost_risk_hours` يشترط
+    # `temp_min_c is not None`. فالساعةُ الحاضرة بلا `temp_min` تدخل المقامَ ولا
+    # يمكنها أن تدخل البسطَ **أبداً** — بسطٌ ومقامٌ من فضاءَي ملاحظةٍ مختلفَين.
+    #
+    # مقيس: ٢٤ ساعة حاضرة · ١٢ منها بلا `temp_min` · ٦ صقيع ⇒ الثقة تُبخَس
+    # الضعفَ (6/24 بدل 6/12). والاتّجاهُ معاكسٌ لعطلِ الاختراع الأصليّ ونفسُ الخطأ.
+    #
+    # حقلان صريحان لا تجريدٌ عامّ (`evaluated_hours_by_metric`): أوضحُ وأقلُّ خطراً.
+    frost_evaluable_hours: int = 0
+    heat_evaluable_hours: int = 0
 
 
 def _clamp(x: float, lo: float, hi: float) -> float:
@@ -83,6 +95,9 @@ def compute_scores(hours: list[HourlyWeather]) -> FieldWeatherScores:
 
     spray_ok = sum(1 for h in hours if _spray_ok(h))
     disease_h = sum(1 for h in hours if _disease_hour(h))
+    # الفرصُ أوّلاً ثمّ الوقوعُ داخلها — فالبسطُ مجموعةٌ جزئيّة من مقامه بالبناء.
+    heat_evaluable = sum(1 for h in hours if h.temp_max_c is not None)
+    frost_evaluable = sum(1 for h in hours if h.temp_min_c is not None)
     heat_h = sum(1 for h in hours if h.temp_max_c is not None and h.temp_max_c > _HEAT_C)
     frost_h = sum(1 for h in hours if h.temp_min_c is not None and h.temp_min_c < _FROST_C)
     precip_sum = sum(h.precip_mm or 0.0 for h in hours)
@@ -97,4 +112,6 @@ def compute_scores(hours: list[HourlyWeather]) -> FieldWeatherScores:
         heat_stress_hours=heat_h,
         frost_risk_hours=frost_h,
         hours_evaluated=n,
+        frost_evaluable_hours=frost_evaluable,
+        heat_evaluable_hours=heat_evaluable,
     )

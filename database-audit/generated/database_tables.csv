@@ -320,7 +320,7 @@ weather_automation_locations,v9_automation_persistence.sql,7,False,True,True,1,T
 weather_forecasts,v74_weather_intelligence.sql,79,False,False,False,0,False,False,1,0
 weather_grid,v74_weather_intelligence.sql,79,False,False,False,0,False,False,1,0
 weather_observations,init_v8.sql,0,True,True,False,0,False,True,0,0
-weather_signals,v74_weather_intelligence.sql,79,True,False,False,0,False,True,4,2
+weather_signals,v74_weather_intelligence.sql,79,True,False,False,0,False,True,5,2
 webhook_deliveries,v121_marketplace_ecosystem.sql,127,True,True,True,0,False,False,0,0
 webhook_subscriptions,v121_marketplace_ecosystem.sql,127,True,True,True,0,False,False,0,1
 wofost_seasons,init_v8.sql,0,True,True,False,0,False,True,0,0

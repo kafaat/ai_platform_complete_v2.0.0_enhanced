@@ -4227,6 +4227,7 @@
         "services/sahool-platform/tests/test_evidence_snapshot.py",
         "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
         "services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py",
+        "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
         "services/soil-service/test_soil_evidence_adapters_and_policy.py",
         "services/vegetation-analysis-service/test_evidence_producer_contract.py",
         "tests/architecture/test_capability_evidence_maturity_engine.py",
@@ -4238,8 +4239,7 @@
         "tests_v9/test_evidence_lab_contract.py",
         "tests_v9/test_evidence_map_shape.py",
         "tests_v9/test_evidence_persistence.py",
-        "tests_v9/test_evidence_registry.py",
-        "tests_v9/test_evidence_snapshots_migration_v148.py"
+        "tests_v9/test_evidence_registry.py"
       ],
       "runtime": {
         "metrics": [],
@@ -4282,7 +4282,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 5
+        "tests": 6
       }
     },
     {

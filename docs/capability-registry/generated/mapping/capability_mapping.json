@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5186,
+    "files_scanned": 5187,
     "files_by_kind": {
       "backend": 1204,
       "database": 274,
       "governance": 60,
       "mobile": 51,
       "other": 1421,
-      "tests": 1720,
+      "tests": 1721,
       "web": 456
     },
-    "unmapped_artifacts": 2111,
+    "unmapped_artifacts": 2112,
     "ambiguous_artifacts": 413
   },
   "capabilities": [
@@ -40836,6 +40836,10 @@
     },
     {
       "path": "services/sahool-platform/tests/test_weather_overlay_pipeline.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
       "kind": "tests"
     },
     {

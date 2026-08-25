@@ -4405,7 +4405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "48676e99d3089acf441cf3999fe7487fac9e549964262fa4b656c495f6d2b298"
+          "content": "7e348d3f9e6004a2e413f5c412a820e505f8deebeef79dbd274fe24bebb3a7b3"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -22325,7 +22325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9e5584ee1d5994c584eab022b7f04a9a6795dcb03cf939a2c59c42d36393dc3d"
+          "content": "363824654889f854e36e9618fa8f27299ad96c757a83f4c853f2490198c2ee7b"
         }
       ],
       "name": "services/sahool-platform/core/weather_overlay.py",
@@ -22335,7 +22335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "93bc97aba5b7ee765745d99444ed462d0c29b83ed2d19e6a355c0e1d8c6ea9cf"
+          "content": "d18377b80c1caf850ff7768ce1867a6828607595d6808ae81ad88242693c69c8"
         }
       ],
       "name": "services/sahool-platform/core/weather_overlay_pipeline.py",
@@ -22345,7 +22345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c53814ac6fea72b5f671f81bca8f1d382aa5a14a37d7bf220723903902a61612"
+          "content": "b3d084ae7979e0b1fb1dc91d0ca5174e99fecbb9fc504abeb8c5af5aed74b35f"
         }
       ],
       "name": "services/sahool-platform/core/weather_signals.py",
@@ -27395,7 +27395,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ae1766afd6c2c47e958131574233431358f71d3865e4be23141d59cf3b3083b6"
+          "content": "d813b0f89ccf677fdce549ed91897f65e7c22bdef694957e6d0a79d18b73f916"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "70e0915d5915845bec76cd62bbf69e41c85f2d35efc4501c997f5db531b66c4e"
         }
       ],
       "name": "services/sahool-platform/tests/test_weather_signals.py",

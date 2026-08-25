@@ -567,8 +567,8 @@ medium,sahool-platform,class,TestDiseaseRisk,services/sahool-platform/tests/test
 medium,sahool-platform,class,TestSpray,services/sahool-platform/tests/test_weather_overlay.py,15,0,review_before_delete,False
 medium,sahool-platform,class,TestDisease,services/sahool-platform/tests/test_weather_overlay.py,38,0,review_before_delete,False
 medium,sahool-platform,class,TestTrafficabilityAndStress,services/sahool-platform/tests/test_weather_overlay.py,52,0,review_before_delete,False
-medium,sahool-platform,class,TestSignals,services/sahool-platform/tests/test_weather_signals.py,25,0,review_before_delete,False
-medium,sahool-platform,class,TestAggregate,services/sahool-platform/tests/test_weather_signals.py,53,0,review_before_delete,False
+medium,sahool-platform,class,TestSignals,services/sahool-platform/tests/test_weather_signals.py,28,0,review_before_delete,False
+medium,sahool-platform,class,TestAggregate,services/sahool-platform/tests/test_weather_signals.py,58,0,review_before_delete,False
 medium,sahool-platform,class,TestPlantingVsHarvest,services/sahool-platform/tests/test_yield_analysis.py,57,0,review_before_delete,False
 medium,sahool-platform,class,TestHybridPerformance,services/sahool-platform/tests/test_yield_analysis.py,81,0,review_before_delete,False
 medium,sahool-platform,class,TestAssembleHonesty,services/sahool-platform/tests/test_yield_analysis.py,107,0,review_before_delete,False

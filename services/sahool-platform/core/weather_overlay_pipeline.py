@@ -63,6 +63,16 @@ def build_overlay_record(field_id: str, tenant_id: str, forecast_rows: list[dict
         "disease_risk_score": scores.disease_risk_score,
         "heat_stress_hours": scores.heat_stress_hours,
         "frost_risk_hours": scores.frost_risk_hours,
+        # **المقامات تُحمَل ولا تُشتقّ.** كان `build_signal_records` يخترعها
+        # `max(1, heat, frost)` — أي يُساويها بالبسط — فتخرج نسبةُ الثقة 1.0 دائماً.
+        # وهي متاحةٌ هنا مقيسة، فحملُها أسطرٌ ولا يحتاج هجرة: الإدراج يقرأ بالاسم
+        # عموداً عموداً، فمفتاحٌ زائد في القاموس لا يمسّه.
+        #
+        # و`hours_evaluated` يبقى للنَّسَب والتشخيص، **لا مقاماً**: هو الساعاتُ
+        # الحاضرة، ومقامُ كلّ حدثٍ هو فرصُه القابلة للرصد وحدها.
+        "hours_evaluated": scores.hours_evaluated,
+        "frost_evaluable_hours": scores.frost_evaluable_hours,
+        "heat_evaluable_hours": scores.heat_evaluable_hours,
         "trafficability_score": scores.trafficability_score,
         "grid_cells_count": len(cells),
         "spatial_coverage": 1.0 if cells else 0.0,
@@ -80,11 +90,13 @@ def build_signal_records(field_id: str, tenant_id: str, overlay: dict) -> list[d
         trafficability_score=overlay.get("trafficability_score", 100.0),
         heat_stress_hours=overlay.get("heat_stress_hours", 0),
         frost_risk_hours=overlay.get("frost_risk_hours", 0),
-        # عدد الساعات المُقيَّم لا يُخزَّن في التراكب؛ نشتقّه من ساعات الإجهاد كحدّ أدنى
-        # آمن (يكفي لتطبيع الثقة في generate_signals — لا يؤثّر على وجود الإشارة).
-        hours_evaluated=max(
-            1, overlay.get("heat_stress_hours", 0), overlay.get("frost_risk_hours", 0)
-        ),
+        # المقامات كما قِيست، لا كما تُشتقّ. الاشتقاقُ القديم `max(1, heat, frost)` كان
+        # **يُساوي المقامَ بالبسط**، فتخرج نسبةُ الثقة 1.0 حتماً في مسار الإنتاج كلِّه —
+        # لا في حالةٍ حدّيّة. وغيابُها ⇒ صفر ⇒ لا إشارة: بلا مقامٍ لا تُقاس نسبة،
+        # واختراعُه هو العطلُ بعينه.
+        hours_evaluated=overlay.get("hours_evaluated", 0),
+        frost_evaluable_hours=overlay.get("frost_evaluable_hours", 0),
+        heat_evaluable_hours=overlay.get("heat_evaluable_hours", 0),
     )
     return [
         {
