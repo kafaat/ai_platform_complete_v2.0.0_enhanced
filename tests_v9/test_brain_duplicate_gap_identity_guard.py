@@ -33,6 +33,7 @@ sys.path.insert(0, str(_ROOT / "scripts" / "ci"))
 
 from brain_duplicate_gap_identity_guard import (  # noqa: E402
     adjacent_duplicate_identities,
+    global_duplicate_row_identities,
 )
 
 
@@ -163,9 +164,50 @@ def test_a_missing_target_fails_rather_than_passing_vacuously():
 
 
 def test_the_real_registry_is_clean_today():
-    """إنفاذ على الشجرة الحيّة، لا على نموذج."""
+    """إنفاذ على الشجرة الحيّة، لا على نموذج — يشمل الفحص العالميّ للصفوف."""
     result = _run_guard()
     assert result.returncode == 0, result.stdout
+
+
+# ──────────── BRAIN-DUP-ROW-ESCAPES-THE-ADJACENCY-NET-01: صفوف الجدول ────────────
+
+
+def test_a_non_adjacent_row_duplicate_is_caught_globally():
+    """بصمة العودة المقيسة: نفس المعرّف صفَّين بينهما صفٌّ آخر — التلاصق أعمى عنه."""
+    text = "| GAP-AA-01 | حالة أولى |\n| GAP-BB-01 | صفٌّ فاصل |\n| GAP-AA-01 | حالة ثانية |\n"
+    assert adjacent_duplicate_identities(text) == []
+    assert global_duplicate_row_identities(text) == [("GAP-AA-01", [1, 3])]
+
+
+def test_distinct_dotted_waiver_ids_are_not_the_same_identity():
+    """`WAIVER-WX10.6-001` و`.7-001` إعفاءان متمايزان — هويّة الخليّة الكاملة بالنقاط."""
+    text = "| WAIVER-WX10.6-001 | أ |\n| WAIVER-WX10.7-001 | ب |\n"
+    assert global_duplicate_row_identities(text) == []
+
+
+def test_a_dotted_row_id_duplicate_is_still_visible_to_the_global_net():
+    """إسقاط النقطة من النمط لا يدمج الهويّتين بل **يُعمي** الشبكة عن الصفوف
+    المنقوطة كلّها (مرساة `\\s*\\|` تُفشِل المطابقة عند النقطة) — مقيس بالزرع."""
+    text = "| WAIVER-WX10.6-001 | أولى |\n| GAP-EE-01 | فاصل |\n| WAIVER-WX10.6-001 | ثانية |\n"
+    assert global_duplicate_row_identities(text) == [("WAIVER-WX10.6-001", [1, 3])]
+
+
+def test_heading_history_chains_are_exempt_from_the_global_row_check():
+    """السلاسل التاريخيّة عناوين `##` مقصودة — الفحص العالميّ صفوفٌ فقط."""
+    text = "## GAP-CC-01 — مفتوحة\nمتن\n## GAP-CC-01 — مُغلَقة بالقياس\n"
+    assert global_duplicate_row_identities(text) == []
+
+
+def test_a_row_id_inside_a_fenced_example_is_documentation_not_a_declaration():
+    text = "| GAP-DD-01 | حقيقيّ |\n```\n| GAP-DD-01 | مثال |\n```\n"
+    assert global_duplicate_row_identities(text) == []
+
+
+def test_the_global_check_is_scoped_to_the_registry_file(tmp_path):
+    """صفّ مكرّر بعيدٌ في ledger لا يُحمِّر — النطاق سجلّ الفجوات وحده."""
+    from brain_duplicate_gap_identity_guard import GLOBAL_ROW_UNIQUENESS_TARGETS
+
+    assert GLOBAL_ROW_UNIQUENESS_TARGETS == {"sahool-brain/gaps/registry.md"}
 
 
 # ───────────────── التكامل: git ينجح والحارس يفشل ─────────────────
