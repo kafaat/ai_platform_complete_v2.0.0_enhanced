@@ -8296,10 +8296,6 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/test_unit_environment_completeness.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests_v9/test_v05_certification_guards.py",
     "kind": "tests"
   },
