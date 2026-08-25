@@ -541,7 +541,7 @@
       "id": "redis",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 34,
+      "incoming": 35,
       "outgoing": 0,
       "orphan": false
     },
@@ -1258,7 +1258,7 @@
       ],
       "kind": "service",
       "incoming": 17,
-      "outgoing": 4,
+      "outgoing": 5,
       "orphan": false
     },
     {
@@ -6963,6 +6963,12 @@
       "source": "weather-service",
       "target": "redis",
       "kind": "code-reference",
+      "evidence": "services/weather-service/tests/test_cache_age_is_server_counted.py"
+    },
+    {
+      "source": "weather-service",
+      "target": "redis",
+      "kind": "code-reference",
       "evidence": "services/weather-service/tests/test_crop_stress_endpoints.py"
     },
     {
@@ -6981,11 +6987,11 @@
   "cycles": [],
   "summary": {
     "nodes": 153,
-    "edges": 948,
+    "edges": 949,
     "orphans": 6,
     "cycles": 0,
-    "code_edges": 113,
+    "code_edges": 114,
     "compose_edges": 835
   },
-  "content_sha256": "b30854d9141fd465cd6a429b58307bff4c4b644adcd5b8e258ce05e01488717a"
+  "content_sha256": "eb45eb18b075012e9a7306410dc651627b2a0020d8b7f378e1a0baa889817a84"
 }

@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5185,
+    "files_scanned": 5186,
     "files_by_kind": {
       "backend": 1204,
       "database": 274,
       "governance": 60,
       "mobile": 51,
       "other": 1421,
-      "tests": 1719,
+      "tests": 1720,
       "web": 456
     },
-    "unmapped_artifacts": 2110,
+    "unmapped_artifacts": 2111,
     "ambiguous_artifacts": 413
   },
   "capabilities": [
@@ -41253,6 +41253,10 @@
     {
       "path": "services/weather-service/raw_weather_processing.py",
       "kind": "backend"
+    },
+    {
+      "path": "services/weather-service/tests/test_cache_age_is_server_counted.py",
+      "kind": "tests"
     },
     {
       "path": "services/weather-service/tests/test_p3_4_weather_service_runtime_coverage.py",

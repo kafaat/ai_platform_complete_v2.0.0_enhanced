@@ -3374,6 +3374,7 @@
           "services/weather-service/open_meteo.py",
           "services/weather-service/operations.py",
           "services/weather-service/raw_weather_processing.py",
+          "services/weather-service/tests/test_cache_age_is_server_counted.py",
           "services/weather-service/tests/test_canonical_weather_state.py",
           "services/weather-service/tests/test_crop_stress_endpoints.py",
           "services/weather-service/tests/test_et0_agro_product.py",

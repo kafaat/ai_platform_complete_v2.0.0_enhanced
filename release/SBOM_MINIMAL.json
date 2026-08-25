@@ -29235,7 +29235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6bb0ba8705974db3b24f89e424023c415ea458ef5c0157fe6c0ef2a6b27e4cca"
+          "content": "e834502972efc46bdee51688ab0a7f409a260448840cdf79bf241120d28e6c58"
         }
       ],
       "name": "services/weather-service/cache.py",
@@ -29379,6 +29379,16 @@
         }
       ],
       "name": "services/weather-service/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6d0eb9f1a198912ea63b04cf2f3766d4ad32ce8786302d6829fcf70b946a53a1"
+        }
+      ],
+      "name": "services/weather-service/tests/test_cache_age_is_server_counted.py",
       "type": "file"
     },
     {
@@ -29575,7 +29585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "713e01f0e6d2f15944b2c0c3a5e01e4eda4bc428aea3cd18701fbafd63913c93"
+          "content": "ee48130493bd810cb1fe022ea11e2cf5b21d1b002d159b3c7e69d0e73149ec7c"
         }
       ],
       "name": "services/weather-service/tests/test_weather_readyz_and_cache_backend.py",
