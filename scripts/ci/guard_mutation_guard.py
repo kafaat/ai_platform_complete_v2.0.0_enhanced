@@ -428,7 +428,72 @@ def _diagnose_repeat(
     return outcomes
 
 
-def _run_mutations_in_place(registry: dict, only: str | None, ci: Path, root: Path) -> list[str]:
+def parse_shard(raw: str | None) -> tuple[int, int] | None:
+    """`i/N` — الفهرس صفريّ والمقام موجب، وأيّ شكلٍ آخر فشلٌ يُسمّي نفسه.
+
+    فاشل-مغلق عمداً: `--shard` مشوّهةٌ تُقرأ «بلا تقسيم» تعني حزمةً تزرع **كلّ**
+    الطفرات بينما أخواتها تزرع أنصبتها — فتُقرأ خضرتُها تغطيةً وهي تكرار.
+    """
+    if raw is None:
+        return None
+    if raw.count("/") != 1:
+        raise SystemExit(f"✗ --shard {raw!r}: الشكل `i/N` (مثال `0/5`).")
+    head, _, tail = raw.partition("/")
+    try:
+        index, total = int(head), int(tail)
+    except ValueError:
+        raise SystemExit(f"✗ --shard {raw!r}: الفهرس والمقام عددان صحيحان.") from None
+    if total < 1:
+        raise SystemExit(f"✗ --shard {raw!r}: المقام يجب أن يكون ≥ 1.")
+    if not 0 <= index < total:
+        raise SystemExit(f"✗ --shard {raw!r}: الفهرس خارج [0, {total - 1}].")
+    return index, total
+
+
+def _shard_assignment(weights: list[tuple[str, int]], total: int) -> dict[str, int]:
+    """توزيعٌ **حتميّ موزون** بالطفرات — لا بتجزئة الاسم.
+
+    الحتميّة شرطُ صحّةٍ لا تفضيل: حزمتان تحسبان القسمة بطريقتين مختلفتين تتركان
+    طفراتٍ لا تزرعها أيٌّ منهما، ولا شيء يُظهِر ذلك. ولذلك: ترتيبٌ ثابت (الأثقل
+    أوّلاً، وعند التساوي بالاسم) ثمّ إسنادٌ إلى أخفّ حزمة — بلا `hash()` الذي
+    يُبذَّر عشوائيّاً بين العمليّات فيُنتِج توزيعين مختلفين لنفس المدخل.
+
+    **والوزن طفراتٌ لا أسماء — مقيسٌ لا مفترَض:** تجزئةُ الاسم أعطت على السجلّ
+    الحاليّ توزيعاً من ٣٣ إلى ١٥٢ طفرة (٤٫٦×)، والزمن الحائطيّ يحكمه الأثقل —
+    فكان نصفُ مكسب التقسيم يضيع في حزمةٍ واحدة. والموزون يُقارِبها إلى ~٩٣.
+    """
+    order = sorted(weights, key=lambda item: (-item[1], item[0]))
+    loads = [0] * total
+    assignment: dict[str, int] = {}
+    for name, weight in order:
+        index = min(range(total), key=lambda i: (loads[i], i))
+        assignment[name] = index
+        loads[index] += weight
+    return assignment
+
+
+def _plantable_weights(registry: dict, root: Path = ROOT) -> list[tuple[str, int]]:
+    """(اسم، عدد طفراته) لكلّ ما يُزرَع — القسمان معاً بنفس القاعدة."""
+    weights = [(name, len(spec["mutations"])) for name, spec in registry["mutated"].items()]
+    weights += [
+        (name, len(spec["mutations"])) for name, _src, spec in behavioural_specs(registry, root)
+    ]
+    return weights
+
+
+def shard_of(name: str, total: int, registry: dict | None = None, root: Path = ROOT) -> int:
+    """حزمةُ حارسٍ بعينه وفق التوزيع الموزون الحتميّ."""
+    reg = registry if registry is not None else load_registry()
+    return _shard_assignment(_plantable_weights(reg, root), total)[name]
+
+
+def _run_mutations_in_place(
+    registry: dict,
+    only: str | None,
+    ci: Path,
+    root: Path,
+    shard: tuple[int, int] | None = None,
+) -> list[str]:
     """ازرع داخل workspace غير قانونيّ (نسخة مؤقتة أو fixture اختبار فقط)."""
     failures: list[str] = []
     plantable = [
@@ -436,6 +501,10 @@ def _run_mutations_in_place(registry: dict, only: str | None, ci: Path, root: Pa
         for name, spec in sorted(registry["mutated"].items())
     ]
     plantable += behavioural_specs(registry, root)
+    if shard is not None:
+        index, total = shard
+        assignment = _shard_assignment(_plantable_weights(registry, root), total)
+        plantable = [entry for entry in plantable if assignment.get(entry[0]) == index]
     # **مرشِّحٌ لا يُطابِق شيئاً كان يطبع `ok`.** المطابقة بالاسم **كاملاً**، ومفاتيح
     # القسم السلوكيّ مساراتٌ (`.github/workflows/certify-run.yml`) لا أسماءَ مختصرة —
     # فـ`--only certify-run` كان يزرع **صفر** طفرة ويخرج ناجحاً. ووقع ذلك عليّ مرّتين
@@ -536,6 +605,7 @@ def run_mutations(
     root: Path = ROOT,
     *,
     isolate: bool | None = None,
+    shard: tuple[int, int] | None = None,
 ) -> list[str]:
     """ازرع الطفرات خارج شجرة العمل القانونية ثم شغّل اختباراتها.
 
@@ -549,7 +619,7 @@ def run_mutations(
     if isolate is None:
         isolate = resolved_root == ROOT.resolve()
     if not isolate:
-        return _run_mutations_in_place(registry, only, ci, root)
+        return _run_mutations_in_place(registry, only, ci, root, shard)
 
     try:
         ci_relative = ci.resolve().relative_to(resolved_root)
@@ -564,16 +634,97 @@ def run_mutations(
             symlinks=True,
             ignore=_ignore_copy_entries,
         )
-        return _run_mutations_in_place(registry, only, mirror / ci_relative, mirror)
+        return _run_mutations_in_place(registry, only, mirror / ci_relative, mirror, shard)
+
+
+def shard_inventory(registry: dict, total: int, root: Path = ROOT) -> dict:
+    """جردُ الأنصبة — **حارسُ اتّحادٍ فاشل-مغلق للتقسيم**.
+
+    حزمةٌ تسقط صامتةً (وظيفةٌ أُلغيت، أو مقامٌ اختلف بين حزمتين، أو تجزئةٌ تغيّرت)
+    تترك طفراتٍ لا يزرعها أحد — وكلُّ الحزم الباقية خضراء. فالمجموع يُقاس صراحةً:
+    ``sum(نصيب كلّ حزمة) == الكون``، وأيّ نقصٍ فشلٌ يُسمّي الحزمة الفارغة.
+
+    ولا يكفي عدُّ الحرّاس: الكلفة طفراتٌ لا أسماء، فيُعَدّ الاثنان معاً — ويُطبَع
+    التوزيع كي يُرى الميل قبل أن يصير حزمةً تُهيمن على الزمن الحائطيّ.
+    """
+    plantable = [(name, spec) for name, spec in sorted(registry["mutated"].items())]
+    plantable += [(name, spec) for name, _src, spec in behavioural_specs(registry, root)]
+    universe_guards = len(plantable)
+    universe_mutations = sum(len(spec["mutations"]) for _name, spec in plantable)
+
+    assignment = _shard_assignment(_plantable_weights(registry, root), total)
+    shards = []
+    for index in range(total):
+        members = [(n, s) for n, s in plantable if assignment.get(n) == index]
+        shards.append(
+            {
+                "shard": f"{index}/{total}",
+                "guards": len(members),
+                "mutations": sum(len(s["mutations"]) for _n, s in members),
+            }
+        )
+    covered_guards = sum(s["guards"] for s in shards)
+    covered_mutations = sum(s["mutations"] for s in shards)
+    empty = [s["shard"] for s in shards if s["guards"] == 0]
+    return {
+        "total": total,
+        "universe": {"guards": universe_guards, "mutations": universe_mutations},
+        "covered": {"guards": covered_guards, "mutations": covered_mutations},
+        "shards": shards,
+        "empty_shards": empty,
+        "union_complete": covered_guards == universe_guards
+        and covered_mutations == universe_mutations,
+    }
+
+
+def shard_inventory_failures(inventory: dict) -> list[str]:
+    """أسبابُ حجب الجرد — الاتّحاد الناقص والحزمةُ الفارغة عطلان مختلفان."""
+    failures: list[str] = []
+    if not inventory["union_complete"]:
+        failures.append(
+            "اتّحادُ الحزم لا يساوي الكون: "
+            f"حرّاس {inventory['covered']['guards']}/{inventory['universe']['guards']} · "
+            f"طفرات {inventory['covered']['mutations']}/{inventory['universe']['mutations']} — "
+            "طفراتٌ لا تزرعها أيّ حزمة، وكلُّ الحزم خضراء."
+        )
+    if inventory["empty_shards"]:
+        failures.append(
+            f"حزمٌ فارغة: {inventory['empty_shards']} — وظيفةٌ تُشغَّل ولا تقيس شيئاً "
+            "تُقرأ خضرتُها تغطيةً. اخفض المقام أو أعِد النظر في التجزئة."
+        )
+    return failures
 
 
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--run", action="store_true", help="ازرع الطفرات وشغّل اختباراتها")
     p.add_argument("--only")
+    p.add_argument(
+        "--shard",
+        help="`i/N` — حزمةٌ حتميّة بتجزئة اسم الحارس. الاتّحاد مقيسٌ لا مفترَض: "
+        "شغّل `--shard-inventory N` لتقرأ الأنصبة، ومجموعُها يجب أن يساوي الكون.",
+    )
+    p.add_argument("--shard-inventory", type=int, metavar="N")
     args = p.parse_args()
 
     registry = load_registry()
+
+    if args.shard_inventory is not None:
+        inventory = shard_inventory(registry, args.shard_inventory)
+        for entry in inventory["shards"]:
+            print(f"  {entry['shard']}: {entry['guards']} حارساً · {entry['mutations']} طفرة")
+        problems = shard_inventory_failures(inventory)
+        if problems:
+            print("\nshard_inventory: FAIL", file=sys.stderr)
+            for line in problems:
+                print(f"  ✗ {line}", file=sys.stderr)
+            return 1
+        print(
+            f"\nshard_inventory_ok (الاتّحاد كامل: {inventory['universe']['guards']} حارساً · "
+            f"{inventory['universe']['mutations']} طفرة على {inventory['total']} حزم)"
+        )
+        return 0
+
     failures = check(registry)
     n_mut = sum(len(s["mutations"]) for s in registry["mutated"].values())
     behavioural = behavioural_specs(registry)
@@ -587,7 +738,7 @@ def main() -> int:
 
     if args.run and not failures:
         print("\nزرعٌ وتشغيل فعليّ:")
-        failures += run_mutations(registry, args.only)
+        failures += run_mutations(registry, args.only, shard=parse_shard(args.shard))
 
     if failures:
         print("\nguard_mutation_guard: FAIL", file=sys.stderr)
