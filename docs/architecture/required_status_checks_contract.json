@@ -1,5 +1,6 @@
 {
   "schema_version": "sahool.required-status-checks-contract.v1",
+  "adjudicated_on": "2026-08-25",
   "branch": "main",
   "why": "أسماءُ الفحوص المطلوبة في الـRuleset هي سطحُ الإنفاذ لكلّ البوّابات: اسمٌ يسقط منها يجعل بوّابتَه إرشاديّةً **صامتاً** (تحمرّ ولا تحجب)، واسمٌ فيها بلا وظيفةٍ تُبلِّغه يُعلِّق كلّ PR إلى الأبد. وكلا الاتّجاهين كان غيرَ مرئيّ: القائمة كانت مكتوبةً في اختبارٍ يقارنها بأسماء وظائف ci.yml ولا يقارنها بالمُنفَذ فعلاً. مقيسٌ عند إنشاء هذا العقد على تشغيل 97630483312: الـRuleset يفرض ١٥ سياقاً والقائمة في الشجرة تحمل ١٤ — انحرافٌ صامت قائم.",
   "source_of_measurement": "repos/kafaat/ai_platform_complete_v2.0.0_enhanced/rules/branches/main (ruleset main-protection · enforcement=active) — تشغيل 97630483312 على 77fc290e",

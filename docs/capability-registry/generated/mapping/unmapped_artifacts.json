@@ -5612,6 +5612,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_nutrient_calibration.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_offline_first.py",
     "kind": "tests"
   },
