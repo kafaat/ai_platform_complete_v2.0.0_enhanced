@@ -47,9 +47,9 @@
         },
         {
           "expect": "test_the_sweep_still_runs_inside_the_job_the_ruleset_actually_requires",
-          "find": "        run: python scripts/ci/guard_mutation_guard.py --run",
-          "replace": "        run: echo skipped  # mutated: المكنسة تخرج من الوظيفة الحاجبة",
-          "why": "نقلُ المكنسة خارج *Unit Tests* بلا إضافةِ اسمِ الوظيفة الجديدة إلى الفحوص المطلوبة في الـRuleset يجعلها إرشاديّةً **صامتاً**. و`branch_protection_contract_guard` يفرض حلَّ المحادثات وحده ولا يُعدّد الفحوصَ بالاسم، فلا شيءَ في الشجرة يمنع ذلك. وهو صنفُ «حارسٌ كفّ عن الحجب بلا أن يحمرّ» بعينه."
+          "find": "      - name: guard-mutation guard (plant the defects)\n        run: python scripts/ci/guard_mutation_guard.py --run\n",
+          "replace": "      - name: guard-mutation guard (plant the defects)\n        run: echo skipped  # mutated: المكنسة تخرج من الوظيفة الحاجبة\n",
+          "why": "نقلُ المكنسة خارج *Unit Tests* بلا إضافةِ اسمِ الوظيفة الجديدة إلى الفحوص المطلوبة في الـRuleset يجعلها إرشاديّةً **صامتاً**. و`branch_protection_contract_guard` يفرض حلَّ المحادثات وحده ولا يُعدّد الفحوصَ بالاسم، فلا شيءَ في الشجرة يمنع ذلك. وهو صنفُ «حارسٌ كفّ عن الحجب بلا أن يحمرّ» بعينه. والمَرسى يضمّ سطرَ اسمِ الخطوة لا سطرَ `run` وحده: بعد MUT-SHARD-JOB-01 صار `--run` يظهر مرّتين (المكنسة الكاملة وحزمة المصفوفة)، فالمَرسى القصير يزرع في موضعٍ غير محدَّد."
         }
       ],
       "test": "tests_v9/test_mutation_sweep_headroom.py"

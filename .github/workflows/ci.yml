@@ -895,6 +895,58 @@ jobs:
           --cov=api --cov=core --cov-config=.coveragerc
           --cov-report=term --cov-report=xml
 
+  # ── MUT-SWEEP-SHARDING-01: مكنسة الطفرات موزَّعةً على خمسة عمّال ──
+  # **والمكنسة ما تزال داخل *Unit Tests* عمداً في هذه المرحلة.** الازدواج ثمنُ
+  # تجنّب نافذة صمت: لو نُقِلت الآن وأسماءُ الحزم ليست في الفحوص المطلوبة بعد،
+  # صارت المكنسةُ إرشاديّةً — تحمرّ ولا تحجب. الحذف يقع في التزامٍ **واحد** مع
+  # إضافة الأسماء إلى `required_status_checks_contract.json`، بعد ضبط المالك
+  # للـRuleset. (MUT-SWEEP-TIMEOUT-01 · REQUIRED-CHECKS-DRIFT-…-01)
+  #
+  # والأسماء **ثابتةٌ حرفيّاً لا مشتقّةٌ من المصفوفة**: الفحص المطلوب يُطابَق
+  # بالاسم، واسمٌ يشتقّه `${{ matrix… }}` يُيتّمه أوّلُ تغييرٍ في شكل الاشتقاق —
+  # وهو نفس درس `test_check_names_survive_the_slice_and_unit_tests_is_a_singleton`.
+  # ولذلك: `name` صريحٌ لكلّ حزمة عبر `include`.
+  #
+  # والتوازي هنا **عبر عمّال منفصلين** لا داخل مساحة عمل واحدة: الزرع يكتب في
+  # ملفّات المصادر ويستعيدها، فحزمتان في نفس القرص تتلوّثان.
+  mutation-sweep:
+    name: ${{ matrix.check_name }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: "0/5"
+            check_name: "Mutation Sweep 1/5"
+          - shard: "1/5"
+            check_name: "Mutation Sweep 2/5"
+          - shard: "2/5"
+            check_name: "Mutation Sweep 3/5"
+          - shard: "3/5"
+            check_name: "Mutation Sweep 4/5"
+          - shard: "4/5"
+            check_name: "Mutation Sweep 5/5"
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          # `test_no_registry_entry_that_main_has_disappears_from_this_branch` وأخواته
+          # تحتاج `merge-base origin/main HEAD` — واستنساخٌ ضحل يجعلها تُتخطّى صامتاً.
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tests_v9/requirements-test.txt
+      - run: pip install -r tests_v9/requirements-test.txt
+      # حارسُ الاتّحاد **قبل** الزرع: حزمةٌ تسقط صامتةً تترك طفراتٍ بلا زارع وكلُّ
+      # الحزم خضراء. ويُشغَّل في كلّ حزمة لا في واحدة — فحزمةٌ لا تُشغَّل أصلاً لا
+      # تفحص شيئاً، والفحصُ الذي يقع في أختها لا يشهد لها.
+      - name: Shard union is complete before planting
+        run: python scripts/ci/guard_mutation_guard.py --shard-inventory 5
+      - name: Plant this shard's defects
+        run: python scripts/ci/guard_mutation_guard.py --run --shard ${{ matrix.shard }}
+
   weather-service-unit-tests:
     name: Weather Service Unit Tests
     runs-on: ubuntu-24.04
