@@ -144,7 +144,13 @@ def test_a_missing_key_is_not_read_as_enabled(tmp_path):
     رمزٌ رأى حقولاً جزئيّة. تُقرأ قبولاً إن كان الافتراضيّ متساهلاً، وهذا بعينه «نتيجةٌ
     عن سؤالٍ لم يُطرَح»: الصنف الذي عولج ستّ مرّات في الشريحة التي أنشأت هذه الفجوة.
     """
-    rules = [{"type": "pull_request", "parameters": {"required_approving_review_count": 1}}]
+    # قاعدةُ الفحوص سليمةٌ عمداً — `COVERAGE-MASKED-BY-A-NEIGHBOURING-GUARD-01`:
+    # بلاها يبتلع فحصُ سطح الإنفاذ الحالةَ قبل الحارس المقصود، فينجو زرعُ هذا البند
+    # ويبقى الرمز `1` عن سببٍ آخر. مقيسٌ بالزرع في preflight لا مفترَض.
+    rules = [
+        {"type": "pull_request", "parameters": {"required_approving_review_count": 1}},
+        _checks_rule(),
+    ]
     assert _run(_protection(tmp_path, _envelope(rules))) == 1
 
 
@@ -159,9 +165,11 @@ def test_no_pull_request_rule_is_a_failure(tmp_path, capsys):
     «`parameters` غائبة» التالي، فيبقى الرمز `1` وتمرّ الطفرة صامتةً. ورمزُ خروجٍ صحيح
     عن سببٍ خاطئ هو نفسه «نتيجةٌ صحيحة عن سؤالٍ لم يُطرَح».
     """
-    rules = [{"type": "deletion"}, {"type": "non_fast_forward"}]
+    # وقاعدةُ الفحوص سليمةٌ هنا للسبب نفسه: الحالة يجب أن تُحسَم بغياب قاعدة الـPR
+    # وحدَه، لا بغياب قاعدةِ فحوصٍ ثانية معه.
+    rules = [{"type": "deletion"}, {"type": "non_fast_forward"}, _checks_rule()]
     assert _run(_protection(tmp_path, _envelope(rules))) == 1
-    assert "لا قاعدة" in capsys.readouterr().out
+    assert f"لا قاعدة `{MOD.CONTRACT_RULE_TYPE}` نافذة" in capsys.readouterr().out
 
 
 def test_an_empty_rule_set_is_a_failure(tmp_path):

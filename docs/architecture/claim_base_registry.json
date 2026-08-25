@@ -31,6 +31,7 @@
     "rag_authority_convergence.json",
     "rag_embedding_contract.json",
     "raster_boundary_allowlist.json",
+    "required_status_checks_contract.json",
     "runtime_contract_nonsecret_keys.json",
     "schema_validation_policy.json",
     "sot_evidence_manifest.schema.json",

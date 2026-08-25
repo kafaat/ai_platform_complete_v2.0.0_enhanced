@@ -1949,7 +1949,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 276,
+      "evidence_count": 280,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2135,6 +2135,9 @@
         "services/sahool-platform/core/cross_reference_finder.py",
         "services/sahool-platform/core/data_inventory.yaml",
         "services/sahool-platform/core/data_quality.py",
+        "services/sahool-platform/core/districts/central_highlands.yaml",
+        "services/sahool-platform/core/districts/loader.py",
+        "services/sahool-platform/core/districts/tihama_coastal.yaml",
         "services/sahool-platform/core/engines/external_prior_blend.py",
         "services/sahool-platform/core/engines/yield_interval.py",
         "services/sahool-platform/core/evidence_class.py",
@@ -2196,6 +2199,7 @@
         "services/sahool-platform/tests/test_learn_from_harvest.py",
         "services/sahool-platform/tests/test_learning.py",
         "services/sahool-platform/tests/test_learning_source_lineage.py",
+        "services/sahool-platform/tests/test_nutrient_calibration.py",
         "services/sahool-platform/tests/test_p1_4_recommendation_to_learning_lineage_e2e.py",
         "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
         "services/sahool-platform/tests/test_p4_7_decision_direct_db_final_sweep.py",
@@ -2716,7 +2720,7 @@
         "services/vegetation-analysis-service/post_execution_bridge.py"
       ],
       "source_evidence_count": 49,
-      "target_evidence_count": 276,
+      "target_evidence_count": 280,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -2726,5 +2730,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "0c2b9598d90dbc2ae38c81e50dd52f45c325f4896db03d28384fc72b237176bb"
+  "content_sha256": "ec521641396532d7bff75e8e8fd94f0062a92bc764adb8911ecb5a8ac31078db"
 }

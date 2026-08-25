@@ -208,6 +208,7 @@ DEC-009,test,services/decision-service/tests/test_wx11_1_calibration_dataset.py,
 DEC-009,test,services/sahool-platform/tests/test_calibration_audit_endpoint.py,3,applied
 DEC-009,test,services/sahool-platform/tests/test_calibration_endpoint.py,3,applied
 DEC-009,test,services/sahool-platform/tests/test_calibration_override_endpoints.py,3,applied
+DEC-009,test,services/sahool-platform/tests/test_nutrient_calibration.py,3,applied
 DEC-009,test,services/sahool-platform/tests/test_prediction_calibration.py,3,applied
 DEC-009,test,tests_v9/test_adaptive_calibration.py,3,applied
 DEC-009,test,tests_v9/test_calibration.py,3,applied
@@ -1833,6 +1834,7 @@ SOIL-003,service,services/soil-service/main.py,10,applied
 SOIL-004,api,POST /api/v1/nutrients/4r-plan @ services/sahool-platform/api/routers/nutrients.py:31,2,applied
 SOIL-004,service,services/soil-service/main.py,10,applied
 SOIL-004,test,services/sahool-platform/tests/test_nutrient_4r.py,3,applied
+SOIL-004,test,services/sahool-platform/tests/test_nutrient_calibration.py,3,applied
 SOIL-004,test,tests_v9/test_canonical_nutrient_ledger.py,3,applied
 SOIL-004,test,tests_v9/test_canonical_nutrient_ledger_contract.py,3,applied
 SOIL-004,test,tests_v9/test_nutrient_uptake.py,3,applied

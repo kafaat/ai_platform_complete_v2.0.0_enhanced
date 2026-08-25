@@ -17,8 +17,10 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from typing import Any
 
 import yaml
+from core.crop_cards.loader import load_crop_card, stage_nutrient_demand
 
 DISTRICTS_DIR = Path(__file__).parent
 
@@ -50,6 +52,25 @@ REQUIRED_WINDOW = {
     "source",
 }
 VALID_SEVERITY = {"low", "medium", "high"}
+
+# ── عقد المعايرة الغذائيّة الإقليميّة (اختياريّ لكلّ منطقة) ──
+# بطاقة المحصول محايدة الموقع بالعقد (`calibration` محظورة فيها نصّاً)، فالمعايرة
+# تعيش هنا. مدخلة لكلّ (محصول، صنف): variety='' تعني عامّ المحصول في المنطقة —
+# نفس دلالة crop_root_policies (migrations/v169). فاشل-مغلق من جهتين:
+#   · uncalibrated ⇒ المعاملات **يجب** أن تكون 1.0 حرفيّاً (مدخلة خاملة تعلن
+#     البنية بلا أن تسرّب أرقاماً غير معايَرة إلى أيّ مستهلك).
+#   · validated ⇒ مصدر غير فارغ ومعاملات في النطاق الفيزيائيّ (0, 5].
+REQUIRED_CALIBRATION = {
+    "crop",
+    "variety",
+    "status",
+    "n_factor",
+    "p_factor",
+    "k_factor",
+    "source",
+}
+VALID_CALIBRATION_STATUS = {"uncalibrated", "validated"}
+_CALIBRATION_FACTOR_MAX = 5.0
 
 
 def load_district(district_id: str) -> dict | None:
@@ -90,6 +111,48 @@ def _validate_window(win: dict, idx: int, errors: list) -> None:
         errors.append(f"نافذة[{idx}] severity غير صالحة: {win['severity']}")
 
 
+def _validate_calibration_entry(entry: dict, idx: int, errors: list) -> None:
+    """يتحقّق من مدخلة معايرة واحدة — راجع عقد REQUIRED_CALIBRATION أعلاه."""
+    import math
+
+    if not isinstance(entry, dict):
+        errors.append(f"معايرة[{idx}] ليست قاموساً")
+        return
+    miss = REQUIRED_CALIBRATION - set(entry.keys())
+    if miss:
+        errors.append(f"معايرة[{idx}] ينقصها: {miss}")
+        return
+    if not isinstance(entry["crop"], str) or not entry["crop"].strip():
+        errors.append(f"معايرة[{idx}] crop يجب أن يكون نصّاً غير فارغ")
+    if not isinstance(entry["variety"], str):
+        errors.append(f"معايرة[{idx}] variety يجب أن يكون نصّاً (''=عامّ)")
+    status = entry["status"]
+    if status not in VALID_CALIBRATION_STATUS:
+        errors.append(f"معايرة[{idx}] status غير صالحة: {status!r}")
+        return
+    factors = {}
+    for k in ("n_factor", "p_factor", "k_factor"):
+        v = entry[k]
+        if (
+            isinstance(v, bool)
+            or not isinstance(v, (int, float))
+            or not math.isfinite(v)
+            or not 0.0 < v <= _CALIBRATION_FACTOR_MAX
+        ):
+            errors.append(f"معايرة[{idx}] {k} خارج (0, {_CALIBRATION_FACTOR_MAX}]: {v!r}")
+        else:
+            factors[k] = float(v)
+    if status == "uncalibrated":
+        off = {k: v for k, v in factors.items() if v != 1.0}
+        if off:
+            errors.append(
+                f"معايرة[{idx}] uncalibrated بمعاملات ≠ 1.0: {off} — "
+                "المدخلة غير المعايَرة خاملة بالعقد، لا تحمل أرقاماً"
+            )
+    if not isinstance(entry["source"], str) or not entry["source"].strip():
+        errors.append(f"معايرة[{idx}] source يجب أن يكون نصّاً غير فارغ")
+
+
 def validate_district(card: dict | None) -> dict:
     """يتحقّق أن المنطقة تتبع القالب المعياري (نوافذ خطر مُسنَدة بمصادر)."""
     errors: list[str] = []
@@ -104,6 +167,19 @@ def validate_district(card: dict | None) -> dict:
     else:
         for i, win in enumerate(windows):
             _validate_window(win, i, errors)
+    calibration = card.get("nutrient_calibration")
+    if calibration is not None:
+        if not isinstance(calibration, list):
+            errors.append("nutrient_calibration يجب أن تكون قائمة إن وُجدت")
+        else:
+            seen: set[tuple[str, str]] = set()
+            for i, entry in enumerate(calibration):
+                _validate_calibration_entry(entry, i, errors)
+                if isinstance(entry, dict):
+                    key = (str(entry.get("crop", "")), str(entry.get("variety", "")))
+                    if key in seen:
+                        errors.append(f"معايرة[{i}] مكرَّرة لنفس (المحصول، الصنف): {key}")
+                    seen.add(key)
     return {
         "valid": len(errors) == 0,
         "errors": errors,
@@ -130,3 +206,114 @@ def active_pests(district_id: str, month: int) -> list[dict]:
         if isinstance(win, dict) and month in (win.get("risk_months") or []):
             out.append(win)
     return out
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# حلّ الطلب الغذائيّ المرحليّ: بطاقة محايدة الموقع × معايرة إقليميّة بطبقتين
+# ────────────────────────────────────────────────────────────────────────────
+# **وموضعُه هنا لا في `crop_cards/` — لسببين، أحدُهما مقيسٌ على بوّابة:**
+#   ① اتّجاه التبعيّة: الطبقةُ الإقليميّة تعرف المحاصيل، والبطاقةُ لا تعرف المنطقة
+#     (محايدةٌ بالعقد، `calibration` محظورةٌ فيها نصّاً). فالجامعُ بينهما إقليميٌّ.
+#   ② وملفٌّ جديد داخل `sahool-platform` يخالف راتشِت التقليص: أوّل صياغةٍ وضعَته
+#     في `core/crop_cards/nutrient_resolution.py` فأحمرَّت بوّابتان معاً على #921
+#     (`platform_shrink_ratchet`: NEW platform_domain_compute · وعدّاد الوحدات
+#     680→681). والعلاجُ الصحيح ليس تسجيلَ استثناءٍ في الأساس بل احترامَ الاتّجاه.
+#
+# نفس نمط حلّ سياسات الجذور المدموج في `crop_root_policies` (الخصوصيّة تسبق كلّ
+# شيء): مدخلة (منطقة، محصول، صنف) المصادَقة > مدخلة (منطقة، محصول، '') المصادَقة
+# > بطاقة المحصول وحدها. فاشل-مغلق من ثلاث جهات:
+#   · بطاقة بلا منحنيات ⇒ `blocked` — لا اختلاق كسور.
+#   · مدخلة `uncalibrated` **لا تُطبَّق أبداً** (خاملة بالعقد، معاملاتها 1.0
+#     يفرضها المدقّق) — وجودها إعلان بنية لا ترخيص أرقام.
+#   · `locally_calibrated` لا تكون `True` إلّا حين تُطبَّق مدخلة `validated` فعلاً —
+#     البطاقة وحدها علمٌ عامّ مقرَّب (`approximation: true`) لا معايرة محلّيّة.
+#
+# والمعاملات موسميّة لكلّ عنصر تُحمَل للمستهلك المطلق (الذي يملك الكمّيّات) — **لا**
+# تُضرَب في الكسور المرحليّة: الكسور توزيعٌ زمنيّ مجموعه 1.00 لكلّ عنصر، وضربُها
+# بمعامل يكسر جمعها ويخلط «كم» بـ«متى».
+
+
+def _calibration_entries(district_card: dict | None) -> list[dict]:
+    if not isinstance(district_card, dict):
+        return []
+    entries = district_card.get("nutrient_calibration")
+    return [e for e in entries if isinstance(e, dict)] if isinstance(entries, list) else []
+
+
+def _pick_tier(entries: list[dict], crop: str, variety: str) -> tuple[dict | None, str]:
+    """الطبقتان بترتيب الخصوصيّة — مدخلات ``validated`` وحدها مؤهَّلة."""
+    validated = [e for e in entries if e.get("status") == "validated" and e.get("crop") == crop]
+    if variety:
+        for e in validated:
+            if e.get("variety") == variety:
+                return e, "district_variety"
+    for e in validated:
+        if e.get("variety") == "":
+            return e, "district_generic"
+    return None, "card_baseline"
+
+
+def resolve_stage_nutrient_demand(
+    crop: str,
+    *,
+    district_id: str | None = None,
+    variety: str | None = None,
+) -> dict[str, Any]:
+    """يحلّ التوزيع المرحليّ + معاملات المعايرة الإقليميّة إن وُجدت مصادَقةً.
+
+    الناتج يحمل دائماً: الطبقة المختارة، حالة المعايرة، والمصدرين — فالدليل
+    وحده يكفي لمعرفة أيّ خصوصيّة اختيرت (نفس درس ``root_policy_variety``).
+    """
+    card = load_crop_card(crop)
+    if card is None:
+        return {"status": "blocked", "reason": "crop_card_missing", "crop": crop}
+    stages = stage_nutrient_demand(crop)
+    if not stages:
+        return {"status": "blocked", "reason": "crop_card_nutrient_curves_missing", "crop": crop}
+
+    requested_variety = (variety or "").strip()
+    district_card = load_district(district_id) if district_id else None
+    calibration_status = "absent"
+    tier = "card_baseline"
+    factors = {"n_factor": 1.0, "p_factor": 1.0, "k_factor": 1.0}
+    sources: list[str] = [
+        str(
+            ((card.get("phenology") or {}).get("nutrient_demand_provenance") or {}).get(
+                "primary_reference", ""
+            )
+        )
+    ]
+
+    if district_id and district_card is None:
+        return {"status": "blocked", "reason": "district_unknown", "district_id": district_id}
+    if district_card is not None:
+        verdict = validate_district(district_card)
+        if not verdict["valid"]:
+            # منطقة فاسدة البنية لا تتدهور صامتةً إلى «بلا معايرة».
+            return {
+                "status": "blocked",
+                "reason": "district_card_invalid",
+                "district_id": district_id,
+                "errors": verdict["errors"],
+            }
+        entries = _calibration_entries(district_card)
+        chosen, tier = _pick_tier(entries, crop, requested_variety)
+        if chosen is not None:
+            calibration_status = "validated"
+            factors = {k: float(chosen[k]) for k in ("n_factor", "p_factor", "k_factor")}
+            sources.append(str(chosen.get("source", "")))
+        elif any(e.get("crop") == crop for e in entries):
+            calibration_status = "uncalibrated"
+
+    return {
+        "status": "resolved",
+        "crop": crop,
+        "district_id": district_id,
+        "variety_requested": requested_variety or None,
+        "tier": tier,
+        "calibration_status": calibration_status,
+        "locally_calibrated": calibration_status == "validated",
+        "element_factors": factors,
+        "stages": stages,
+        "sources": [s for s in sources if s],
+    }
