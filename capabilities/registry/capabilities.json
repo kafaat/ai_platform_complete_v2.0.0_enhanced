@@ -2652,10 +2652,6 @@
         {
           "type": "repository",
           "path": "services/sahool-platform/api/canonical_nutrient_ledger.py"
-        },
-        {
-          "type": "repository",
-          "path": "services/sahool-platform/core/crop_cards/nutrient_resolution.py"
         }
       ],
       "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=5, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
