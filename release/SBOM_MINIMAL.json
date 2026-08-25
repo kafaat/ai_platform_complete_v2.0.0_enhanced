@@ -19785,6 +19785,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "fe94b979c6da23a270359d3c8062585fca0aaf9e50f35aada3f9302e0787f5e4"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "dbb6444d76fc2e4295ace27643fd90294818e2b7d7362bc2b009b36b561912d2"
         }
       ],
@@ -19885,7 +19895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3491d9829242d319d8833208f94f4bfa1f3eaa7c3bceaa0a9e13507d48075476"
+          "content": "bbd113defc6800b6d9b0eb15a276d071febe04c09d6fc4a438a99c841938195d"
         }
       ],
       "name": "services/sahool-platform/core/crop_cards/sorghum.yaml",
@@ -20315,7 +20325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "99ca965a99bd8dfbe521c8b745725b84734c543552d11d64b039bdfaf28a5303"
+          "content": "3422f676229b08b6d17ad7d1c826a11b9632a54e23cf0c2fd433dc01aef47a65"
         }
       ],
       "name": "services/sahool-platform/core/crop_cards/wheat.yaml",
@@ -20705,7 +20715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5535c7abcebbe5eefe6f4f514bd81baacd08ea12f0257885477886d3c28cc359"
+          "content": "a90a99844b6c372413b9a796453d5e0ac628456bfca2b3802ff3f74dd86e184d"
         }
       ],
       "name": "services/sahool-platform/core/districts/central_highlands.yaml",
@@ -20725,7 +20735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2c7bfe5eb1717edae7fef803d9acd0f2032b48f7d32a5dd4ebe2513ffd8e0796"
+          "content": "4a69a254c91a0302d82cf27bb2346c2a3c6348a0137d4c7d525dac7545da1882"
         }
       ],
       "name": "services/sahool-platform/core/districts/loader.py",
@@ -20735,7 +20745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d9599a5cea7511a98077b4cdda14646d6f105d43a2b0bcd82d8b31c1787d6365"
+          "content": "25c6208ff714d993d516d8ff58fadb8d28702d857f5e85f4850dced1696e06c5"
         }
       ],
       "name": "services/sahool-platform/core/districts/tihama_coastal.yaml",
@@ -23595,7 +23605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e29d4fbf7d5209e7b4771ce84e4f6b2b7efce6917b93ff46c75b5a67bdb1fe5f"
+          "content": "5fa253f010825aee88a31a664c02a858108562f7b66eafec7ca1b04f2cedbd9e"
         }
       ],
       "name": "services/sahool-platform/tests/test_crop_cards.py",
@@ -25619,6 +25629,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_nutrient_4r.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "40856404cbed47e14d675dbb2e3259af534081fac562213ffd6e2957260a5afb"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_nutrient_calibration.py",
       "type": "file"
     },
     {

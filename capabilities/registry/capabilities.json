@@ -2629,6 +2629,7 @@
       "mobile_consumers": [],
       "tests": [
         "services/sahool-platform/tests/test_nutrient_4r.py",
+        "services/sahool-platform/tests/test_nutrient_calibration.py",
         "tests_v9/test_canonical_nutrient_ledger.py",
         "tests_v9/test_canonical_nutrient_ledger_contract.py",
         "tests_v9/test_nutrient_uptake.py"
@@ -2651,9 +2652,13 @@
         {
           "type": "repository",
           "path": "services/sahool-platform/api/canonical_nutrient_ledger.py"
+        },
+        {
+          "type": "repository",
+          "path": "services/sahool-platform/core/crop_cards/nutrient_resolution.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=4, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=5, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -4857,6 +4862,7 @@
         "services/sahool-platform/tests/test_calibration_audit_endpoint.py",
         "services/sahool-platform/tests/test_calibration_endpoint.py",
         "services/sahool-platform/tests/test_calibration_override_endpoints.py",
+        "services/sahool-platform/tests/test_nutrient_calibration.py",
         "services/sahool-platform/tests/test_prediction_calibration.py",
         "tests_v9/test_adaptive_calibration.py",
         "tests_v9/test_calibration.py",
@@ -4893,7 +4899,7 @@
           "path": "services/decision-service/migrations/009_model_evaluation_run.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=21, tests=11, ui=1, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=21, tests=12, ui=1, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

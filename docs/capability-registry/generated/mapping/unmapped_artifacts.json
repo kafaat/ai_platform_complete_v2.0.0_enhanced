@@ -4248,6 +4248,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/sahool-platform/core/crop_cards/nutrient_resolution.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/sahool-platform/core/crop_cards/varieties/barley_bakkur.yaml",
     "kind": "backend"
   },
@@ -5609,6 +5613,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_nutrient_4r.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_nutrient_calibration.py",
     "kind": "tests"
   },
   {
