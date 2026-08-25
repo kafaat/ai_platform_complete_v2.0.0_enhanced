@@ -6844,3 +6844,10 @@ no_third_value_registry نصّاً)، GATE-01 نظيف، 33 اختباراً، r
 - **المقيس:** الحارس يمرّ على الشجرة الحيّة · 23/23 اختبار الحارس · 12/12 اختبار الإلحاق · guard_mutation_guard_ok · علامة ماء الطفرات خضراء.
 - **فجوة جديدة مسجَّلة:** `BRAIN-DUP-ROW-ESCAPES-THE-ADJACENCY-NET-01` — معالَجة في الشريحة، الإغلاق بالدمج.
 - **المصدر:** `scripts/ci/brain_duplicate_gap_identity_guard.py` · `tests_v9/test_brain_duplicate_gap_identity_guard.py` · `sahool-brain/gaps/registry.md:115-117` · فرع `brain-row-uniqueness-01`.
+## 2026-08-25 (ب) — شريحة MUT-NARROW: «ضيّق ثم تراجَع» في مُشغِّل الطفرات
+
+- **المدخل:** سؤال المالك عن خفض زمن مكنسة الطفرات (~50 دقيقة) وقراره اعتماد المرحلة الأولى وحدها (الاختيار الانتقائي قبل أيّ توازٍ).
+- **المنفَّذ:** `_run_tests_for_mutation` — عقدة صريحة للاختبار المتوقَّع، قتلٌ سريع بنفس معيار الحكم، وتراجُع كامل لكلّ ما عداه؛ التصنيفات محفوظة بالبناء. 3 اختبارات + طفرتان (2/2 مقتولتان). اختبار «عدم الحتمية» نُقل مقعدُ تلقيمه إلى المقعد الجديد.
+- **المقيس:** 49/49 جناح المُشغِّل · CPU الاختباري ~3× أسرع حيث تكثر الزرعات · الزمن الحائطي المحليّ محكوم بنسخ المرآة لكلّ `--only` فلا يُسقَط على CI — رقم CI هو الحكم.
+- **فجوة مسجَّلة:** `MUT-SWEEP-RUNS-THE-WHOLE-FILE-PER-PLANT-01` — معالَجة في الشريحة.
+- **المصدر:** `scripts/ci/guard_mutation_guard.py` · `tests_v9/test_guard_mutation_guard.py` · `docs/architecture/guard_mutation_registry.json` · فرع `mut-narrow-01`.
