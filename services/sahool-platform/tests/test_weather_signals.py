@@ -17,6 +17,9 @@ def _scores(**kw):
         heat_stress_hours=0,
         frost_risk_hours=0,
         hours_evaluated=24,
+        # المقامان المخصوصان: الفرصُ القابلة لرصد كلّ حدث (P4).
+        frost_evaluable_hours=24,
+        heat_evaluable_hours=24,
     )
     base.update(kw)
     return FieldWeatherScores(**base)
@@ -44,10 +47,12 @@ class TestSignals:
         s = next(s for s in sig if s.signal_type == "trafficability_poor")
         assert s.confidence_score == 0.9  # 1 - 10/100
 
-    def test_confidence_clamped(self):
-        # frost_hours > hours_evaluated ⇒ ثقة تُقَصّ إلى 1.0
+    def test_an_incoherent_count_yields_no_signal_rather_than_full_confidence(self):
+        """كان هذا الاختبار يُثبِّت العطل: ``frost_hours=50, hours_evaluated=24`` تُقَصّ
+        إلى **1.0** — أي يُترجَم عدٌّ مستحيل (ساعاتُ صقيعٍ أكثرُ من الساعات المرصودة)
+        إلى **أقوى** جملةِ ثقة ممكنة. والصمتُ أصدق: مدخلٌ متناقض لا يُنتِج إشارة."""
         sig = generate_signals(_scores(frost_risk_hours=50, hours_evaluated=24))
-        assert next(s for s in sig if s.signal_type == "frost_imminent").confidence_score == 1.0
+        assert not [s for s in sig if s.signal_type == "frost_imminent"]
 
 
 class TestAggregate:

@@ -3,9 +3,9 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1872,
+    "python_files_parsed": 1873,
     "route_handlers": 1049,
-    "call_edges": 75743,
+    "call_edges": 75852,
     "dead_code_candidates": 625,
     "duplicate_function_groups": 61,
     "route_owners": 27,
@@ -356101,105 +356101,119 @@
       "file": "services/sahool-platform/core/weather_overlay.py",
       "source": "compute_scores",
       "target": "len",
-      "line": 80
+      "line": 92
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_overlay.py",
       "source": "compute_scores",
       "target": "FieldWeatherScores",
-      "line": 82
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/weather_overlay.py",
-      "source": "compute_scores",
-      "target": "_spray_ok",
-      "line": 84
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/weather_overlay.py",
-      "source": "compute_scores",
-      "target": "sum",
-      "line": 84
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/weather_overlay.py",
-      "source": "compute_scores",
-      "target": "_disease_hour",
-      "line": 85
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/weather_overlay.py",
-      "source": "compute_scores",
-      "target": "sum",
-      "line": 85
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/weather_overlay.py",
-      "source": "compute_scores",
-      "target": "sum",
-      "line": 86
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/weather_overlay.py",
-      "source": "compute_scores",
-      "target": "sum",
-      "line": 87
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/weather_overlay.py",
-      "source": "compute_scores",
-      "target": "sum",
-      "line": 88
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/weather_overlay.py",
-      "source": "compute_scores",
-      "target": "exp",
-      "line": 91
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/weather_overlay.py",
-      "source": "compute_scores",
-      "target": "FieldWeatherScores",
-      "line": 93
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/weather_overlay.py",
-      "source": "compute_scores",
-      "target": "round",
       "line": 94
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_overlay.py",
       "source": "compute_scores",
+      "target": "_spray_ok",
+      "line": 96
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/weather_overlay.py",
+      "source": "compute_scores",
+      "target": "sum",
+      "line": 96
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/weather_overlay.py",
+      "source": "compute_scores",
+      "target": "_disease_hour",
+      "line": 97
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/weather_overlay.py",
+      "source": "compute_scores",
+      "target": "sum",
+      "line": 97
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/weather_overlay.py",
+      "source": "compute_scores",
+      "target": "sum",
+      "line": 99
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/weather_overlay.py",
+      "source": "compute_scores",
+      "target": "sum",
+      "line": 100
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/weather_overlay.py",
+      "source": "compute_scores",
+      "target": "sum",
+      "line": 101
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/weather_overlay.py",
+      "source": "compute_scores",
+      "target": "sum",
+      "line": 102
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/weather_overlay.py",
+      "source": "compute_scores",
+      "target": "sum",
+      "line": 103
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/weather_overlay.py",
+      "source": "compute_scores",
+      "target": "exp",
+      "line": 106
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/weather_overlay.py",
+      "source": "compute_scores",
+      "target": "FieldWeatherScores",
+      "line": 108
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/weather_overlay.py",
+      "source": "compute_scores",
       "target": "round",
-      "line": 95
+      "line": 109
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/weather_overlay.py",
+      "source": "compute_scores",
+      "target": "round",
+      "line": 110
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_overlay.py",
       "source": "compute_scores",
       "target": "_clamp",
-      "line": 96
+      "line": 111
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_overlay.py",
       "source": "compute_scores",
       "target": "round",
-      "line": 96
+      "line": 111
     },
     {
       "owner": "sahool-platform",
@@ -356437,350 +356451,371 @@
       "file": "services/sahool-platform/core/weather_overlay_pipeline.py",
       "source": "build_overlay_record",
       "target": "len",
-      "line": 67
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/weather_overlay_pipeline.py",
-      "source": "build_signal_records",
-      "target": "FieldWeatherScores",
       "line": 77
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_overlay_pipeline.py",
       "source": "build_signal_records",
-      "target": "get",
-      "line": 78
+      "target": "FieldWeatherScores",
+      "line": 87
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_overlay_pipeline.py",
       "source": "build_signal_records",
       "target": "get",
-      "line": 79
+      "line": 88
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_overlay_pipeline.py",
       "source": "build_signal_records",
       "target": "get",
-      "line": 80
+      "line": 89
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_overlay_pipeline.py",
       "source": "build_signal_records",
       "target": "get",
-      "line": 81
+      "line": 90
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_overlay_pipeline.py",
       "source": "build_signal_records",
       "target": "get",
-      "line": 82
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/weather_overlay_pipeline.py",
-      "source": "build_signal_records",
-      "target": "max",
-      "line": 85
+      "line": 91
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_overlay_pipeline.py",
       "source": "build_signal_records",
       "target": "get",
-      "line": 86
+      "line": 92
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_overlay_pipeline.py",
       "source": "build_signal_records",
       "target": "get",
-      "line": 86
+      "line": 97
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/weather_overlay_pipeline.py",
+      "source": "build_signal_records",
+      "target": "get",
+      "line": 98
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/weather_overlay_pipeline.py",
+      "source": "build_signal_records",
+      "target": "get",
+      "line": 99
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_overlay_pipeline.py",
       "source": "build_signal_records",
       "target": "generate_signals",
-      "line": 97
+      "line": 109
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "_conf",
       "target": "round",
-      "line": 32
+      "line": 33
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
-      "source": "generate_signals",
+      "source": "_wilson_lower_bound",
+      "target": "sqrt",
+      "line": 61
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/weather_signals.py",
+      "source": "_wilson_lower_bound",
       "target": "max",
-      "line": 38
+      "line": 62
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "generate_signals",
       "target": "append",
-      "line": 41
+      "line": 80
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "generate_signals",
       "target": "WeatherSignal",
-      "line": 42
+      "line": 81
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "generate_signals",
       "target": "_conf",
-      "line": 44
+      "line": 83
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "generate_signals",
       "target": "append",
-      "line": 49
+      "line": 88
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "generate_signals",
       "target": "WeatherSignal",
-      "line": 50
+      "line": 89
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "generate_signals",
       "target": "_conf",
-      "line": 52
+      "line": 91
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/weather_signals.py",
+      "source": "generate_signals",
+      "target": "_wilson_lower_bound",
+      "line": 104
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "generate_signals",
       "target": "append",
-      "line": 57
+      "line": 106
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "generate_signals",
       "target": "WeatherSignal",
-      "line": 58
+      "line": 107
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "generate_signals",
       "target": "_conf",
-      "line": 60
+      "line": 109
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/weather_signals.py",
+      "source": "generate_signals",
+      "target": "_wilson_lower_bound",
+      "line": 119
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "generate_signals",
       "target": "append",
-      "line": 65
+      "line": 121
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "generate_signals",
       "target": "WeatherSignal",
-      "line": 66
+      "line": 122
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "generate_signals",
       "target": "_conf",
-      "line": 68
+      "line": 124
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "generate_signals",
       "target": "append",
-      "line": 73
+      "line": 134
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "generate_signals",
       "target": "WeatherSignal",
-      "line": 74
+      "line": 135
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "generate_signals",
       "target": "_conf",
-      "line": 76
+      "line": 137
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "_avg",
       "target": "len",
-      "line": 85
+      "line": 146
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "_avg",
       "target": "sum",
-      "line": 85
+      "line": 146
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "aggregate_cells_to_hourly",
       "target": "append",
-      "line": 94
+      "line": 155
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "aggregate_cells_to_hourly",
       "target": "get",
-      "line": 94
+      "line": 155
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "aggregate_cells_to_hourly",
       "target": "setdefault",
-      "line": 94
+      "line": 155
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "aggregate_cells_to_hourly",
       "target": "sorted",
-      "line": 97
+      "line": 158
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "aggregate_cells_to_hourly",
       "target": "append",
-      "line": 99
+      "line": 160
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "aggregate_cells_to_hourly",
       "target": "HourlyWeather",
-      "line": 100
+      "line": 161
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "aggregate_cells_to_hourly",
       "target": "_avg",
-      "line": 101
+      "line": 162
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "aggregate_cells_to_hourly",
       "target": "get",
-      "line": 101
+      "line": 162
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "aggregate_cells_to_hourly",
       "target": "min",
-      "line": 102
+      "line": 163
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "aggregate_cells_to_hourly",
       "target": "get",
-      "line": 103
+      "line": 164
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "aggregate_cells_to_hourly",
       "target": "max",
-      "line": 105
+      "line": 166
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "aggregate_cells_to_hourly",
       "target": "get",
-      "line": 106
+      "line": 167
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "aggregate_cells_to_hourly",
       "target": "_avg",
-      "line": 108
+      "line": 169
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "aggregate_cells_to_hourly",
       "target": "get",
-      "line": 108
+      "line": 169
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "aggregate_cells_to_hourly",
       "target": "_avg",
-      "line": 109
+      "line": 170
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "aggregate_cells_to_hourly",
       "target": "get",
-      "line": 109
+      "line": 170
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "aggregate_cells_to_hourly",
       "target": "_avg",
-      "line": 110
+      "line": 171
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "aggregate_cells_to_hourly",
       "target": "get",
-      "line": 110
+      "line": 171
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "aggregate_cells_to_hourly",
       "target": "_avg",
-      "line": 111
+      "line": 172
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/weather_signals.py",
       "source": "aggregate_cells_to_hourly",
       "target": "get",
-      "line": 111
+      "line": 172
     },
     {
       "owner": "sahool-platform",
@@ -448204,6 +448239,741 @@
     },
     {
       "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "_scores",
+      "target": "dict",
+      "line": 33
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "_scores",
+      "target": "update",
+      "line": 43
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "_scores",
+      "target": "FieldWeatherScores",
+      "line": 44
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_zero_evaluated_hours_yields_no_signals_at_all",
+      "target": "compute_scores",
+      "line": 57
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_zero_evaluated_hours_yields_no_signals_at_all",
+      "target": "generate_signals",
+      "line": 57
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_empty_overlay_no_longer_claims_impassable_soil",
+      "target": "compute_scores",
+      "line": 62
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_empty_overlay_no_longer_claims_impassable_soil",
+      "target": "generate_signals",
+      "line": 65
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_a_real_impassable_soil_still_signals",
+      "target": "_scores",
+      "line": 70
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_a_real_impassable_soil_still_signals",
+      "target": "generate_signals",
+      "line": 70
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_a_real_impassable_soil_still_signals",
+      "target": "_conf_of",
+      "line": 71
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_one_hour_of_frost_is_not_as_confident_as_a_full_day",
+      "target": "_conf_of",
+      "line": 77
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_one_hour_of_frost_is_not_as_confident_as_a_full_day",
+      "target": "_scores",
+      "line": 78
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_one_hour_of_frost_is_not_as_confident_as_a_full_day",
+      "target": "generate_signals",
+      "line": 78
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_one_hour_of_frost_is_not_as_confident_as_a_full_day",
+      "target": "_conf_of",
+      "line": 81
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_one_hour_of_frost_is_not_as_confident_as_a_full_day",
+      "target": "generate_signals",
+      "line": 82
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_one_hour_of_frost_is_not_as_confident_as_a_full_day",
+      "target": "_scores",
+      "line": 83
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_more_stress_hours_out_of_the_same_window_is_more_confident",
+      "target": "_conf_of",
+      "line": 96
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_more_stress_hours_out_of_the_same_window_is_more_confident",
+      "target": "_scores",
+      "line": 97
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_more_stress_hours_out_of_the_same_window_is_more_confident",
+      "target": "generate_signals",
+      "line": 97
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_more_stress_hours_out_of_the_same_window_is_more_confident",
+      "target": "_conf_of",
+      "line": 99
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_more_stress_hours_out_of_the_same_window_is_more_confident",
+      "target": "_scores",
+      "line": 100
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_more_stress_hours_out_of_the_same_window_is_more_confident",
+      "target": "generate_signals",
+      "line": 100
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_lower_bound_never_exceeds_the_raw_proportion",
+      "target": "parametrize",
+      "line": 106
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_lower_bound_never_exceeds_the_raw_proportion",
+      "target": "_wilson_lower_bound",
+      "line": 109
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_an_impossible_count_has_no_lower_bound",
+      "target": "parametrize",
+      "line": 114
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_an_impossible_count_has_no_lower_bound",
+      "target": "_wilson_lower_bound",
+      "line": 117
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_an_incoherent_score_emits_no_stress_signal",
+      "target": "_scores",
+      "line": 121
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_an_incoherent_score_emits_no_stress_signal",
+      "target": "generate_signals",
+      "line": 121
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "_frost_rows",
+      "target": "range",
+      "line": 135
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_overlay_record_carries_the_measured_denominator",
+      "target": "_frost_rows",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_overlay_record_carries_the_measured_denominator",
+      "target": "build_overlay_record",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_production_path_uses_the_measured_denominator_not_the_numerator",
+      "target": "_frost_rows",
+      "line": 153
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_production_path_uses_the_measured_denominator_not_the_numerator",
+      "target": "build_overlay_record",
+      "line": 153
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_production_path_uses_the_measured_denominator_not_the_numerator",
+      "target": "next",
+      "line": 154
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_production_path_uses_the_measured_denominator_not_the_numerator",
+      "target": "build_signal_records",
+      "line": 155
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_an_overlay_without_the_denominator_claims_nothing",
+      "target": "_frost_rows",
+      "line": 170
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_an_overlay_without_the_denominator_claims_nothing",
+      "target": "build_overlay_record",
+      "line": 170
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_an_overlay_without_the_denominator_claims_nothing",
+      "target": "pop",
+      "line": 171
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_an_overlay_without_the_denominator_claims_nothing",
+      "target": "build_signal_records",
+      "line": 173
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_payload_carries_the_numerator_denominator_and_basis",
+      "target": "_scores",
+      "line": 179
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_payload_carries_the_numerator_denominator_and_basis",
+      "target": "generate_signals",
+      "line": 179
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_payload_carries_the_numerator_denominator_and_basis",
+      "target": "next",
+      "line": 180
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "_mixed_rows",
+      "target": "range",
+      "line": 198
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "_mixed_rows",
+      "target": "append",
+      "line": 202
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_hours_without_a_reading_are_not_counted_as_frost_opportunities",
+      "target": "_mixed_rows",
+      "line": 211
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_hours_without_a_reading_are_not_counted_as_frost_opportunities",
+      "target": "aggregate_cells_to_hourly",
+      "line": 211
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_hours_without_a_reading_are_not_counted_as_frost_opportunities",
+      "target": "compute_scores",
+      "line": 211
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_adding_unreadable_hours_does_not_move_frost_confidence",
+      "target": "_mixed_rows",
+      "line": 225
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_adding_unreadable_hours_does_not_move_frost_confidence",
+      "target": "aggregate_cells_to_hourly",
+      "line": 225
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_adding_unreadable_hours_does_not_move_frost_confidence",
+      "target": "compute_scores",
+      "line": 225
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_adding_unreadable_hours_does_not_move_frost_confidence",
+      "target": "_mixed_rows",
+      "line": 226
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_adding_unreadable_hours_does_not_move_frost_confidence",
+      "target": "aggregate_cells_to_hourly",
+      "line": 226
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_adding_unreadable_hours_does_not_move_frost_confidence",
+      "target": "compute_scores",
+      "line": 226
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_adding_unreadable_hours_does_not_move_frost_confidence",
+      "target": "_conf_of",
+      "line": 228
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_adding_unreadable_hours_does_not_move_frost_confidence",
+      "target": "generate_signals",
+      "line": 228
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_adding_unreadable_hours_does_not_move_frost_confidence",
+      "target": "_conf_of",
+      "line": 229
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_adding_unreadable_hours_does_not_move_frost_confidence",
+      "target": "generate_signals",
+      "line": 229
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_each_event_uses_its_own_denominator_not_the_other_s",
+      "target": "_mixed_rows",
+      "line": 237
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_each_event_uses_its_own_denominator_not_the_other_s",
+      "target": "aggregate_cells_to_hourly",
+      "line": 237
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_each_event_uses_its_own_denominator_not_the_other_s",
+      "target": "compute_scores",
+      "line": 237
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_a_missing_max_reading_shrinks_only_the_heat_denominator",
+      "target": "range",
+      "line": 249
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_a_missing_max_reading_shrinks_only_the_heat_denominator",
+      "target": "aggregate_cells_to_hourly",
+      "line": 251
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_a_missing_max_reading_shrinks_only_the_heat_denominator",
+      "target": "compute_scores",
+      "line": 251
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_zero_events_out_of_a_full_window_is_zero_confidence",
+      "target": "_wilson_lower_bound",
+      "line": 260
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_zero_events_out_of_a_full_window_is_zero_confidence",
+      "target": "_scores",
+      "line": 263
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_zero_events_out_of_a_full_window_is_zero_confidence",
+      "target": "generate_signals",
+      "line": 263
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_every_opportunity_realised_is_the_highest_the_data_allows",
+      "target": "_wilson_lower_bound",
+      "line": 274
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_every_opportunity_realised_is_the_highest_the_data_allows",
+      "target": "_wilson_lower_bound",
+      "line": 275
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_every_opportunity_realised_is_the_highest_the_data_allows",
+      "target": "_conf_of",
+      "line": 279
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_every_opportunity_realised_is_the_highest_the_data_allows",
+      "target": "_scores",
+      "line": 280
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_every_opportunity_realised_is_the_highest_the_data_allows",
+      "target": "generate_signals",
+      "line": 280
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_every_opportunity_realised_is_the_highest_the_data_allows",
+      "target": "_wilson_lower_bound",
+      "line": 281
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_every_opportunity_realised_is_the_highest_the_data_allows",
+      "target": "approx",
+      "line": 281
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_more_events_than_opportunities_is_inconsistent_not_clamped",
+      "target": "_scores",
+      "line": 286
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_more_events_than_opportunities_is_inconsistent_not_clamped",
+      "target": "generate_signals",
+      "line": 286
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_no_opportunities_is_unknown_not_certain",
+      "target": "_wilson_lower_bound",
+      "line": 293
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_no_opportunities_is_unknown_not_certain",
+      "target": "_scores",
+      "line": 296
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_no_opportunities_is_unknown_not_certain",
+      "target": "generate_signals",
+      "line": 296
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_published_denominator_is_the_one_actually_divided_by",
+      "target": "_mixed_rows",
+      "line": 303
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_published_denominator_is_the_one_actually_divided_by",
+      "target": "aggregate_cells_to_hourly",
+      "line": 303
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_published_denominator_is_the_one_actually_divided_by",
+      "target": "compute_scores",
+      "line": 303
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_published_denominator_is_the_one_actually_divided_by",
+      "target": "generate_signals",
+      "line": 304
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_published_denominator_is_the_one_actually_divided_by",
+      "target": "next",
+      "line": 304
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_frost_confidence_is_computed_from_the_frost_denominator_itself",
+      "target": "_mixed_rows",
+      "line": 316
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_frost_confidence_is_computed_from_the_frost_denominator_itself",
+      "target": "aggregate_cells_to_hourly",
+      "line": 316
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_frost_confidence_is_computed_from_the_frost_denominator_itself",
+      "target": "compute_scores",
+      "line": 316
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_frost_confidence_is_computed_from_the_frost_denominator_itself",
+      "target": "_conf_of",
+      "line": 319
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_frost_confidence_is_computed_from_the_frost_denominator_itself",
+      "target": "generate_signals",
+      "line": 319
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_frost_confidence_is_computed_from_the_frost_denominator_itself",
+      "target": "_wilson_lower_bound",
+      "line": 321
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_frost_confidence_is_computed_from_the_frost_denominator_itself",
+      "target": "approx",
+      "line": 321
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_frost_confidence_is_computed_from_the_frost_denominator_itself",
+      "target": "_wilson_lower_bound",
+      "line": 322
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_frost_confidence_is_computed_from_the_frost_denominator_itself",
+      "target": "approx",
+      "line": 322
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_heat_confidence_is_computed_from_the_heat_denominator_itself",
+      "target": "range",
+      "line": 330
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_heat_confidence_is_computed_from_the_heat_denominator_itself",
+      "target": "aggregate_cells_to_hourly",
+      "line": 332
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_heat_confidence_is_computed_from_the_heat_denominator_itself",
+      "target": "compute_scores",
+      "line": 332
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_heat_confidence_is_computed_from_the_heat_denominator_itself",
+      "target": "_conf_of",
+      "line": 335
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_heat_confidence_is_computed_from_the_heat_denominator_itself",
+      "target": "generate_signals",
+      "line": 335
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_heat_confidence_is_computed_from_the_heat_denominator_itself",
+      "target": "_wilson_lower_bound",
+      "line": 337
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_heat_confidence_is_computed_from_the_heat_denominator_itself",
+      "target": "approx",
+      "line": 337
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_heat_confidence_is_computed_from_the_heat_denominator_itself",
+      "target": "_wilson_lower_bound",
+      "line": 338
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_the_heat_confidence_is_computed_from_the_heat_denominator_itself",
+      "target": "approx",
+      "line": 338
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_a_missing_present_hours_count_fails_closed_rather_than_being_invented",
+      "target": "_frost_rows",
+      "line": 351
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_a_missing_present_hours_count_fails_closed_rather_than_being_invented",
+      "target": "build_overlay_record",
+      "line": 351
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_a_missing_present_hours_count_fails_closed_rather_than_being_invented",
+      "target": "pop",
+      "line": 353
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "source": "test_a_missing_present_hours_count_fails_closed_rather_than_being_invented",
+      "target": "build_signal_records",
+      "line": 355
+    },
+    {
+      "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_weather_signals.py",
       "source": "_scores",
       "target": "dict",
@@ -448214,40 +448984,26 @@
       "file": "services/sahool-platform/tests/test_weather_signals.py",
       "source": "_scores",
       "target": "update",
-      "line": 21
+      "line": 24
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_weather_signals.py",
       "source": "_scores",
       "target": "FieldWeatherScores",
-      "line": 22
+      "line": 25
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_weather_signals.py",
       "source": "test_no_signals_when_benign",
-      "target": "_scores",
-      "line": 27
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_weather_signals.py",
-      "source": "test_no_signals_when_benign",
-      "target": "generate_signals",
-      "line": 27
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_weather_signals.py",
-      "source": "test_spray_window_open",
       "target": "_scores",
       "line": 30
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_weather_signals.py",
-      "source": "test_spray_window_open",
+      "source": "test_no_signals_when_benign",
       "target": "generate_signals",
       "line": 30
     },
@@ -448255,106 +449011,113 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_weather_signals.py",
       "source": "test_spray_window_open",
-      "target": "any",
-      "line": 31
+      "target": "_scores",
+      "line": 33
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_weather_signals.py",
-      "source": "test_disease_alert",
-      "target": "_scores",
+      "source": "test_spray_window_open",
+      "target": "generate_signals",
+      "line": 33
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signals.py",
+      "source": "test_spray_window_open",
+      "target": "any",
       "line": 34
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_weather_signals.py",
       "source": "test_disease_alert",
+      "target": "_scores",
+      "line": 37
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signals.py",
+      "source": "test_disease_alert",
       "target": "generate_signals",
-      "line": 34
+      "line": 37
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_weather_signals.py",
       "source": "test_disease_alert",
       "target": "any",
-      "line": 35
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_weather_signals.py",
-      "source": "test_frost_and_heat",
-      "target": "_scores",
       "line": 38
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_weather_signals.py",
       "source": "test_frost_and_heat",
+      "target": "_scores",
+      "line": 41
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_weather_signals.py",
+      "source": "test_frost_and_heat",
       "target": "generate_signals",
-      "line": 38
+      "line": 41
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_weather_signals.py",
       "source": "test_trafficability_poor",
       "target": "_scores",
-      "line": 43
+      "line": 46
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_weather_signals.py",
       "source": "test_trafficability_poor",
       "target": "generate_signals",
-      "line": 43
+      "line": 46
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_weather_signals.py",
       "source": "test_trafficability_poor",
       "target": "next",
-      "line": 44
+      "line": 47
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_weather_signals.py",
-      "source": "test_confidence_clamped",
+      "source": "test_an_incoherent_count_yields_no_signal_rather_than_full_confidence",
       "target": "_scores",
-      "line": 49
+      "line": 54
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_weather_signals.py",
-      "source": "test_confidence_clamped",
+      "source": "test_an_incoherent_count_yields_no_signal_rather_than_full_confidence",
       "target": "generate_signals",
-      "line": 49
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_weather_signals.py",
-      "source": "test_confidence_clamped",
-      "target": "next",
-      "line": 50
+      "line": 54
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_weather_signals.py",
       "source": "test_aggregates_cells_per_hour",
       "target": "aggregate_cells_to_hourly",
-      "line": 60
+      "line": 65
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_weather_signals.py",
       "source": "test_aggregates_cells_per_hour",
       "target": "len",
-      "line": 61
+      "line": 66
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_weather_signals.py",
       "source": "test_empty_rows",
       "target": "aggregate_cells_to_hourly",
-      "line": 68
+      "line": 73
     },
     {
       "owner": "sahool-platform",
@@ -544861,7 +545624,7 @@
       "symbol": "TestSignals",
       "kind": "class",
       "file": "services/sahool-platform/tests/test_weather_signals.py",
-      "line": 25,
+      "line": 28,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,
@@ -544872,7 +545635,7 @@
       "symbol": "TestAggregate",
       "kind": "class",
       "file": "services/sahool-platform/tests/test_weather_signals.py",
-      "line": 53,
+      "line": 58,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,

@@ -1,5 +1,5 @@
 {
-  "edge_count": 807,
+  "edge_count": 808,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -4122,6 +4122,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://weather_signals",
+      "to": "db://weather_signals",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/tests/test_weather_signals.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -8090,7 +8100,7 @@
     "CALLS": 38,
     "CONSUMES": 1,
     "EMITS": 1,
-    "READS": 413,
+    "READS": 414,
     "ROUTES_TO": 70,
     "WRITES": 284
   },
@@ -8107,8 +8117,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 698,
-      "resolved": 697,
+      "observed": 699,
+      "resolved": 698,
       "unresolved_component_paths": 0
     }
   }

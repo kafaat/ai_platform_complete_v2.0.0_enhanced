@@ -6806,6 +6806,7 @@
       "code_readers": [
         "services/sahool-platform/api/routers/agro_intelligence.py",
         "services/sahool-platform/tests/test_decision_playbook.py",
+        "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
         "services/sahool-platform/tests/test_weather_signals.py",
         "services/weather-signal-engine/src/main.py"
       ],

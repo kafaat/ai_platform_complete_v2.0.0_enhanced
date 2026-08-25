@@ -5992,6 +5992,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_weather_signal_confidence_reflects_evidence.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_weather_signals.py",
     "kind": "tests"
   },
