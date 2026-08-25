@@ -1518,7 +1518,7 @@
         },
         {
           "expect": "test_the_pass_line_states_what_was_examined",
-          "find": "        f\"فُحِصت {len(rules)} قاعدة نافذة، منها {len(pr_rules)} من نوع {CONTRACT_RULE_TYPE})\"",
+          "find": "        f\"فُحِصت {len(rules)} قاعدة نافذة، منها {len(pr_rules)} من نوع {CONTRACT_RULE_TYPE}، \"\n        f\"و{len(canonical)} سياقاً مطلوباً مطابقاً للعقد)\"",
           "replace": "        \"القفل نافذ)\"",
           "why": "خضرةٌ بلا عدّ لا يفرّق قارئُها بين «فُحِصت قاعدة فمرّت» و«لم يُفحَص شيء» — وهو بند «صفر checks منفَّذة» بصيغته القابلة للقياس"
         },
@@ -1539,6 +1539,24 @@
           "find": "    if any(value is True for value in observed):\n        return []",
           "replace": "    if not any(value is False for value in observed):\n        return []  # mutated: الغياب يُقرأ تفعيلاً",
           "why": "الغياب يعني أنّ الشرط **لم يُرَ**، وقراءتُه «مُفعَّل» هي بعينها «نتيجةٌ عن سؤالٍ لم يُطرَح» — وهو الصنف الذي وُجِد هذا الملفّ كلّه ليطارده."
+        },
+        {
+          "expect": "test_a_context_missing_from_enforcement_is_a_silent_advisory_gate",
+          "find": "    missing = sorted(expected - enforced)",
+          "replace": "    missing = []",
+          "why": "إسقاط اتّجاه «سياقٌ في العقد وليس مفروضاً» ⇒ بوّابةٌ تسقط من الـRuleset تصير إرشاديّةً صامتة بلا أن يحمرّ شيء — وهو العطل الأصليّ الذي فُتِح العقد لأجله"
+        },
+        {
+          "expect": "test_an_enforced_context_absent_from_the_contract_is_a_failure",
+          "find": "    extra = sorted(enforced - expected)",
+          "replace": "    extra = []",
+          "why": "إسقاط الاتّجاه الآخر ⇒ اسمٌ مفروضٌ لا تُبلِّغه وظيفة يُعلِّق كلّ PR إلى الأبد، أو وظيفةٌ حاجبة تبقى غير مُسجَّلة"
+        },
+        {
+          "expect": "test_no_required_status_checks_rule_means_nothing_blocks",
+          "find": "    if not checks_rules:",
+          "replace": "    if False:",
+          "why": "غيابُ قاعدة required_status_checks يُقرأ مساواةً فارغة صحيحة ⇒ «لا فحص يحجب» يمرّ أخضر: أخطر صور الخضرة الكاذبة"
         }
       ],
       "test": "tests_v9/test_branch_protection_contract_guard.py"

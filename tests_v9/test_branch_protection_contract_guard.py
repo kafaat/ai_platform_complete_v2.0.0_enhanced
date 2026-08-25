@@ -80,15 +80,44 @@ def _run(path: Path, *, repository: str = REPO, sha: str = SHA) -> int:
     )
 
 
-def _rules(resolution, *, with_params: bool = True) -> list:
-    """قواعد نافذة نموذجيّة: حذف + عدم-تقديم + قاعدة PR تحمل الشرط."""
+def _canonical() -> list[str]:
+    """السياقات القانونيّة من العقد نفسه — لا نسخةٌ ثانية تبيت عنه."""
+    return MOD.canonical_required_contexts()
+
+
+def _checks_rule(contexts=None) -> dict:
+    return {
+        "type": "required_status_checks",
+        "ruleset_source_type": "Repository",
+        "parameters": {
+            "strict_required_status_checks_policy": False,
+            "required_status_checks": [
+                {"context": c, "integration_id": 15368}
+                for c in (_canonical() if contexts is None else contexts)
+            ],
+        },
+    }
+
+
+def _rules(resolution, *, with_params: bool = True, checks: dict | None = None) -> list:
+    """قواعد نافذة نموذجيّة: حذف + عدم-تقديم + قاعدة PR تحمل الشرط + الفحوص المطلوبة.
+
+    قاعدةُ `required_status_checks` جزءٌ من النموذج منذ
+    `REQUIRED-CHECKS-DRIFT-IS-INVISIBLE-IN-BOTH-DIRECTIONS-01`: الحارس صار يفرض
+    مساواةَ سياقاتها للعقد، فنموذجٌ بلا هذه القاعدة يقيس عالماً لا يشبه main.
+    """
     pull_request: dict = {"type": "pull_request", "ruleset_source_type": "Repository"}
     if with_params:
         pull_request["parameters"] = {
             "required_approving_review_count": 0,
             "required_review_thread_resolution": resolution,
         }
-    return [{"type": "deletion"}, {"type": "non_fast_forward"}, pull_request]
+    return [
+        {"type": "deletion"},
+        {"type": "non_fast_forward"},
+        pull_request,
+        _checks_rule() if checks is None else checks,
+    ]
 
 
 _ENABLED = _envelope(_rules(True))
@@ -167,6 +196,7 @@ def test_one_enabling_rule_among_several_is_enough(tmp_path):
     rules = [
         {"type": "pull_request", "parameters": {"required_review_thread_resolution": False}},
         {"type": "pull_request", "parameters": {"required_review_thread_resolution": True}},
+        _checks_rule(),
     ]
     assert _run(_protection(tmp_path, _envelope(rules))) == 0
 
@@ -390,8 +420,10 @@ def test_the_pass_line_states_what_was_examined(tmp_path, capsys):
     assert _run(_protection(tmp_path, _ENABLED)) == 0
     out = capsys.readouterr().out
     assert "PASS" in out
-    assert "فُحِصت 3 قاعدة نافذة" in out
+    assert "فُحِصت 4 قاعدة نافذة" in out
     assert "منها 1 من نوع pull_request" in out
+    # الخضرة تُصرّح بعدد السياقات المطابقة أيضاً — وإلّا لم يُعرَف أنّ سطح الإنفاذ قِيس.
+    assert f"{len(_canonical())} سياقاً مطلوباً مطابقاً للعقد" in out
     assert REPO in out and "main" in out and SHA[:8] in out
 
 
@@ -466,8 +498,11 @@ ADJUDICATION = "docs/architecture/gates/adjudications/GATE01-ADJ-2026-08-13-001.
 
 
 def _rules_with_code_owner(value) -> list:
+    # بالنوع لا بالموضع: `_rules` صارت تُلحِق قاعدة `required_status_checks` بعد قاعدة
+    # الـPR، فمؤشّرٌ من الذيل كان يكتب البند في القاعدة الخطأ ويقيس عالماً آخر.
     rules = _rules(True)
-    rules[-1]["parameters"][MOD.CODE_OWNER_PARAMETER] = value
+    pull_request = next(r for r in rules if r.get("type") == MOD.CONTRACT_RULE_TYPE)
+    pull_request["parameters"][MOD.CODE_OWNER_PARAMETER] = value
     return rules
 
 
@@ -553,3 +588,62 @@ def test_codeowners_names_the_authorization_path() -> None:
     ]
 
     assert any("gates/adjudications" in line and "@" in line for line in owned)
+
+
+# ── REQUIRED-CHECKS-DRIFT-IS-INVISIBLE-IN-BOTH-DIRECTIONS-01: سطحُ الإنفاذ ──
+
+
+def test_the_contract_matches_the_live_enforcement_shape(tmp_path):
+    """المرساة المقابلة: نموذجٌ سياقاتُه = العقد يمرّ — وإلّا كان ما تحته يرفض دائماً."""
+    assert _run(_protection(tmp_path, _envelope(_rules(True)))) == 0
+
+
+def test_a_context_missing_from_enforcement_is_a_silent_advisory_gate(tmp_path, capsys):
+    """**العطل المخيف:** سياقٌ يسقط من الـRuleset ⇒ بوّابتُه تحمرّ ولا تحجب."""
+    contexts = [c for c in _canonical() if c != "Unit Tests"]
+    envelope = _envelope(_rules(True, checks=_checks_rule(contexts)))
+    assert _run(_protection(tmp_path, envelope)) == 1
+    out = capsys.readouterr().out
+    assert "Unit Tests" in out
+    assert "إرشاديّةٌ صامتة" in out
+
+
+def test_an_enforced_context_absent_from_the_contract_is_a_failure(tmp_path, capsys):
+    """الاتّجاه الآخر: اسمٌ مفروضٌ لا تُبلِّغه وظيفة يُعلِّق كلّ PR إلى الأبد."""
+    envelope = _envelope(_rules(True, checks=_checks_rule([*_canonical(), "Ghost Check"])))
+    assert _run(_protection(tmp_path, envelope)) == 1
+    assert "Ghost Check" in capsys.readouterr().out
+
+
+def test_no_required_status_checks_rule_means_nothing_blocks(tmp_path, capsys):
+    """قاعدةٌ غائبة = **لا فحص يحجب**، وخضرةُ البوّابات كلّها إرشاديّة.
+
+    **ويقيس السببَ لا رمزَ الخروج — مقيسٌ بالزرع لا مفترَض:** نزعُ الفرع المبكر
+    يُسقِط الحالة في فرع «سياقاتٌ ناقصة» فيبقى الرمز `1` وتمرّ الطفرة صامتةً (وقع
+    فعلاً في أوّل صياغة). فالمُثبَت هو **الرسالة المميِّزة** — نفس درس
+    `test_no_pull_request_rule_is_a_failure` المكتوب فوقه.
+    """
+    rules = [r for r in _rules(True) if r.get("type") != "required_status_checks"]
+    assert _run(_protection(tmp_path, _envelope(rules))) == 1
+    out = capsys.readouterr().out
+    assert "لا قاعدة `required_status_checks` نافذة" in out
+    assert "لا فحص" in out, "التشخيص يجب أن يقول «لا شيء يحجب» لا «سياقاتٌ ناقصة»"
+
+
+def test_unreadable_check_parameters_are_not_read_as_enforcement(tmp_path):
+    """قاعدةٌ بلا `parameters` مقروءة لا تُقرأ إنفاذاً — فاشل-مغلق لا تخطٍّ صامت."""
+    broken = {"type": "required_status_checks", "ruleset_source_type": "Repository"}
+    assert _run(_protection(tmp_path, _envelope(_rules(True, checks=broken)))) == 1
+    scalar = {"type": "required_status_checks", "parameters": {"required_status_checks": {}}}
+    assert _run(_protection(tmp_path, _envelope(_rules(True, checks=scalar)))) == 1
+
+
+def test_the_contract_file_is_the_single_source_read_by_both_readers():
+    """العقد ملفُّ بياناتٍ واحد — والاختبارُ الآخر يقرؤه هو نفسه (لا نسخة ثانية)."""
+    pipeline_test = (ROOT / "tests_v9/test_ci_pipeline_settings.py").read_text(encoding="utf-8")
+    assert "required_status_checks_contract.json" in pipeline_test
+    contexts = _canonical()
+    assert len(contexts) == len(set(contexts)), "تكرارٌ في العقد يجعل المساواة كاذبة"
+    assert "Frontend E2E (Playwright · MapLibre/WebGL QA)" in contexts, (
+        "الاسم الخامس عشر المقيس على الـRuleset — غيابُه هو الانحراف الذي فُتِح العقد لأجله"
+    )
