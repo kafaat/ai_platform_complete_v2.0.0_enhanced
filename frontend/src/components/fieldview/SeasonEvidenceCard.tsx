@@ -20,6 +20,22 @@ const SEV_COLOR: Record<string, string> = {
   none: 'bg-emerald-50 text-emerald-700 border-emerald-200',
 };
 
+// «متى» لا «ما الطور». و`insufficient_context` تُقال صراحةً: لا إسقاطَ يُختلَق
+// من سياقٍ ناقص، ولا يُقرأ غيابُ الإسقاط سلامةً.
+const WINDOW_LABEL: Record<string, string> = {
+  upcoming: 'قادمة',
+  in_window: 'الحقل داخلها الآن',
+  past: 'انقضت حراريّاً',
+  insufficient_context: 'لا إسقاط — سياق ناقص',
+};
+
+const COLLISION_LABEL: Record<string, string> = {
+  collisions: 'تجاوزٌ للعتبة ⚠',
+  clear: 'لا تجاوز ضمن الأفق المتاح',
+  insufficient_context: 'لا تنبّؤ يوميّ — لا يُقاس ولا يُنفى',
+  not_applicable: 'لا نافذة ⇒ لا تصادم',
+};
+
 const CAL_LABEL: Record<string, string> = {
   optimal: 'مثاليّ ✓',
   valid: 'داخل النافذة',
@@ -107,6 +123,81 @@ export default function SeasonEvidenceCard({ fieldId, seasonId, enabled = true }
               '— لا مخاطر بارزة'
             )}
           </Row>
+          <Row label="النافذة الحرجة القادمة">
+            {data.critical_window ? (
+              <span className="flex flex-col items-end gap-0.5">
+                <span className="flex items-center gap-1">
+                  <Chip
+                    text={WINDOW_LABEL[data.critical_window.status] ?? data.critical_window.status}
+                    cls={
+                      data.critical_window.status === 'in_window'
+                        ? SEV_COLOR.medium
+                        : data.critical_window.status === 'upcoming'
+                          ? SEV_COLOR.low
+                          : SEV_COLOR.none
+                    }
+                  />
+                  {data.critical_window.lead_days != null && (
+                    <span>بعد {data.critical_window.lead_days} يوماً</span>
+                  )}
+                </span>
+                {data.critical_window.name_ar && (
+                  <span className="text-xs text-stone-500">{data.critical_window.name_ar}</span>
+                )}
+                {data.critical_window.start_date && (
+                  <span className="text-xs text-stone-400">
+                    {data.critical_window.start_date}
+                    {data.critical_window.end_date && ` ← ${data.critical_window.end_date}`}
+                  </span>
+                )}
+              </span>
+            ) : (
+              '—'
+            )}
+          </Row>
+          {data.critical_window?.note_ar && (
+            <p className="text-[11px] leading-snug text-stone-500">{data.critical_window.note_ar}</p>
+          )}
+
+          {data.critical_window_collisions && (
+            <>
+              <Row label="تصادمٌ داخل النافذة">
+                <Chip
+                  text={
+                    COLLISION_LABEL[data.critical_window_collisions.status] ??
+                    data.critical_window_collisions.status
+                  }
+                  cls={SEV_COLOR[data.critical_window_collisions.max_severity] ?? SEV_COLOR.none}
+                />
+              </Row>
+              {data.critical_window_collisions.events.map((e) => (
+                <p
+                  key={`${e.code}-${e.lead_days}`}
+                  className="rounded-md bg-amber-50 px-2 py-1 text-[11px] leading-snug text-amber-800"
+                >
+                  {e.reason_ar}
+                </p>
+              ))}
+              {/* العتبةُ تُعرَض بمصدرها وحالة معايرتها — رقمٌ يحجب قراراً بلا أن يقول
+                  من أين جاء هو نفسُه ما نستأصله (D5-COVERAGE-CUTOFF-…-01). */}
+              <p className="text-[10px] leading-snug text-stone-400">
+                العتبة: {data.critical_window_collisions.threshold_source} ·{' '}
+                {data.critical_window_collisions.calibration === 'uncalibrated'
+                  ? 'غير مُعايَرة محلّيّاً'
+                  : data.critical_window_collisions.calibration}
+                {data.critical_window_collisions.confidence &&
+                  ` · ثقة: ${data.critical_window_collisions.confidence === 'medium' ? 'متوسّطة' : 'منخفضة'}`}
+              </p>
+              {data.critical_window_collisions.evidence_missing.length > 0 && (
+                <div className="flex flex-wrap justify-end gap-1">
+                  {data.critical_window_collisions.evidence_missing.map((m) => (
+                    <Chip key={m} text={m} cls="bg-stone-50 text-stone-500 border-stone-200" />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
           <Row label="الاستشعار × المرحلة">
             {data.eo_stage_mismatch ? (
               <Chip

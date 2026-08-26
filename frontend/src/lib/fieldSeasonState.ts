@@ -25,6 +25,47 @@ export interface EoStageMismatch {
   confidence: string;
 }
 
+// النافذة الحرجة — «متى» يدخل الحقلُ طورَه الأضعف، لا «ما طورُه اليوم».
+// مفاتيحُها ثابتة والغائبُ `null` صراحةً لا محذوفاً (core/gdd_phenology._window).
+export interface CriticalWindow {
+  status: string; // upcoming | in_window | past | insufficient_context
+  stage: string | null;
+  name_ar: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  lead_days: number | null;
+  source: string | null; // gdd_forecast | gdd_accumulated | calendar
+  confidence: string | null;
+  evidence_missing: string[];
+  note_ar: string | null;
+}
+
+export interface CriticalWindowCollision {
+  code: string;
+  severity: string; // medium | high
+  lead_days: number;
+  date: string | null;
+  measured_tmax_c: number;
+  threshold_c: number;
+  exceedance_c: number;
+  reason_ar: string;
+}
+
+// التصادمُ الموقوت: حرارةٌ متوقَّعة **داخل** النافذة. حرارةُ ٤٥°م قبلها أو بعدها
+// ليست حدثاً — وهذا ما يفصله عن «إنذار طقس».
+export interface CriticalWindowCollisions {
+  window: CriticalWindow;
+  status: string; // collisions | clear | insufficient_context | not_applicable
+  events: CriticalWindowCollision[];
+  max_severity: string; // none | low | medium | high
+  requires_action: boolean;
+  threshold_source: string;
+  calibration: string; // uncalibrated — يُعرَض ولا يُطوى
+  confidence: string | null;
+  evidence_missing: string[];
+  note_ar: string | null;
+}
+
 export interface FieldSeasonState {
   schema: string;
   field_id: string | null;
@@ -45,6 +86,8 @@ export interface FieldSeasonState {
   water_stress_factor: number | null;
   eo_stage_mismatch: EoStageMismatch | null;
   weather_stage_risks: WeatherStageRisks | null;
+  critical_window: CriticalWindow | null;
+  critical_window_collisions: CriticalWindowCollisions | null;
   open_operations: number | null;
   season_confidence: string; // low | medium
   requires_review: boolean;
