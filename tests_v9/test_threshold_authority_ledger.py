@@ -34,21 +34,48 @@ LEDGER_PATH = ROOT / "docs" / "architecture" / "threshold_authority_ledger.json"
 # الجردُ المُقِرّ لـA1. مكتوبٌ هنا لا مُشتقٌّ من السجلّ: سجلٌّ يُشتقّ منه جردُه
 # لا يستطيع أن يكشف إسقاطَ قيدٍ منه — وهو أوّلُ ما نهى عنه قرارُ A1.
 EXPECTED_CONSTANTS = frozenset(
-    {"_SEVERITY_CRITICAL", "_SEVERITY_INTERVENTION", "_LOW_SUCCESS", "_HIGH_SUCCESS"}
+    {
+        # A1 — السلطة والقرار
+        "_SEVERITY_CRITICAL",
+        "_SEVERITY_INTERVENTION",
+        "_LOW_SUCCESS",
+        "_HIGH_SUCCESS",
+        # A2 — محرّك التنبيهات
+        "_SALINITY_RISK",
+        "_VIGOR_LOW",
+        "_HEAT_HIGH",
+        "_DEGRADED_PCT",
+        "_SEVERE_PCT",
+        "_DESERT_PCT",
+        "_MIN_COVERAGE",
+    }
 )
 
-# دلالاتُ الصنفين — مفروضةٌ لا موصوفة. صنفٌ يحمل حالةَ سلطةٍ لا تُطابقه
+# دلالاتُ الأصناف — مفروضةٌ لا موصوفة. صنفٌ يحمل حالةَ سلطةٍ لا تُطابقه
 # يُحوّل السجلَّ إلى مفرداتٍ حرّة.
+#
+# و`cited_basis` هو ما يفصل الصنفين المحلّيّين: كلاهما `LOCAL_DESIGN_DECISION`
+# على الآليّة، والفرقُ في الحدّ العدديّ وحده. فلو بقي الفصلُ وصفاً في المتن
+# لأمكن نقلُ قيدٍ بين الصنفين بلا أثرٍ يُقاس — ولذلك يُفرَض في الاتّجاهين:
+# المستشهِدُ يلزمه أساسٌ وخطّة، وغيرُ المستشهِد يُمنَع من ادّعائهما.
 CLASS_SEMANTICS = {
     "INHERITED_NO_DECISION_RECORD": {
         "authority_status": "NONE",
         "calibration_status": "NOT_APPLICABLE_UNTIL_PROVENANCE_RECOVERED",
         "decision_record_is_null": True,
+        "requires_cited_basis": False,
     },
     "LOCALLY_DECIDED_BUT_UNCALIBRATED": {
         "authority_status": "LOCAL_DESIGN_DECISION",
         "calibration_status": "BLOCKED_MISSING_RUNTIME_EVIDENCE",
         "decision_record_is_null": False,
+        "requires_cited_basis": False,
+    },
+    "LOCALLY_DECIDED_WITH_CITED_BASIS": {
+        "authority_status": "LOCAL_DESIGN_DECISION",
+        "calibration_status": "DECLARED_PLAN_NOT_EXECUTED",
+        "decision_record_is_null": False,
+        "requires_cited_basis": True,
     },
 }
 
@@ -212,6 +239,38 @@ def test_no_entry_is_executable_and_the_class_semantics_hold(entries: list[dict]
         assert entry["recovery_condition"], "قيدٌ بلا شرطِ استعادة سجلُّ يأسٍ لا سجلُّ فجوة"
         assert "FINAL" not in entry["calibration_status"]
         assert "CALIBRATED" != entry["calibration_status"]
+
+
+def test_a_cited_basis_is_required_by_its_class_and_forbidden_outside_it(
+    entries: list[dict],
+) -> None:
+    """الفصلُ بين الصنفين المحلّيّين مقيسٌ لا موصوف.
+
+    `LOCALLY_DECIDED_WITH_CITED_BASIS` يلزمه **أساسٌ مستشهَد وخطّةُ معايرةٍ
+    مُعلَنة**، وشرطُ رفعه تنفيذُ تلك الخطّة بعينها. فإن سُمِح لقيدٍ أن يحمل
+    الصنفَ بلا أساس، صار الصنفُ ترقيةً مجّانيّة.
+
+    والاتّجاهُ المقابل ألزم: قيدٌ في `..._BUT_UNCALIBRATED` يحمل أساساً
+    مستشهَداً هو **قيدٌ مُصنَّفٌ دون حقّه** — يبقى شرطُ رفعه «شواهدُ تشغيل»
+    بينما الواقعُ أنّ له خطّةً مُعلَنة. فالمنعُ هنا يمنع سوءَ تصنيفٍ في
+    الاتّجاه الذي لا ينتبه له أحد.
+    """
+    for entry in entries:
+        rules = CLASS_SEMANTICS[entry["provenance_class"]]
+        record = entry["decision_record"] or {}
+        has_basis = bool(record.get("cited_basis_en"))
+        has_plan = bool(record.get("declared_calibration_plan_en"))
+
+        if rules["requires_cited_basis"]:
+            assert has_basis, f"{entry['constant']}: صنفٌ مستشهِد بلا أساسٍ مذكور"
+            assert has_plan, f"{entry['constant']}: استشهادٌ بلا خطّةِ معايرةٍ مُعلَنة"
+            assert entry["recovery_condition"], "خطّةٌ مُعلَنة بلا شرطِ رفعٍ يُحيل إليها"
+        else:
+            assert not has_basis, (
+                f"{entry['constant']}: يحمل أساساً مستشهَداً وصنفُه لا يعترف به — "
+                "إمّا الصنف خطأ أو الأساس مُقحَم"
+            )
+            assert not has_plan, f"{entry['constant']}: خطّةٌ مُعلَنة خارج صنفها"
 
 
 def test_the_closing_rule_is_recorded_verbatim(ledger: dict) -> None:

@@ -1,10 +1,10 @@
 {
   "schema": "sahool.threshold_authority_ledger",
-  "version": 1,
+  "version": 2,
   "adjudicated_on": "2026-08-26",
   "closing_rule_en": "Every threshold must have both an authority provenance and a calibration basis before it can become an executable registered policy.",
   "note_ar": "سجلُّ سلطةٍ مفقودة ومسارُ استعادتها — لا سجلُّ عتباتٍ مُحكَّمة. سُمّي «ledger» لا «registry» عن قصد: القيد هنا يوثّق أنّ العتبة تعمل في المسار الحرج **بلا** سلطةٍ مُثبَتة ولا أساسِ معايرة، ويصف الشرطَ الذي يرفعه. لا قيمةَ فيه نهائيّة ولا مُعايَرة، ولا واحدةَ منها `executable`. والتسجيلُ نفسُه ليس ترخيصاً: `executable=false` في كلّ قيدٍ حاليّاً هو الحالةُ المقيسة لا إعدادٌ مؤقّت.",
-  "scope_ar": "الدفعة A1 من P5-A: أربع عتباتٍ تُغيّر السلطة أو تُصعّد التدخّل. الباقي (A2 = ستّ عتبات في alert_engine، ثمّ P5-B وP5-C) خارج هذه الدفعة ولا يُقاس غيابُه هنا نفياً.",
+  "scope_ar": "الدفعتان A1 وA2 من P5-A: إحدى عشرة عتبةً تُغيّر السلطة أو تُصعّد التدخّل أو تكبحه. P5-B (الزراعيّة-الفيزيائيّة) وP5-C خارجهما ولا يُقاس غيابُهما هنا نفياً.",
   "anchor": {
     "chain": "ledger.constant → module import → symbol lookup → runtime constant value → ledger.value",
     "location_is_not_an_anchor_en": "file and line are human-readable location metadata only; not an integrity anchor.",
@@ -17,7 +17,8 @@
   "vocabulary": {
     "provenance_class": {
       "INHERITED_NO_DECISION_RECORD": "القيمة دخلت المستودعَ مع استيراد منصّةٍ قائمة؛ لا التزامَ سابقاً يمسّ المسار، فسلسلةُ السلطة تنتهي **خارج** هذا المستودع.",
-      "LOCALLY_DECIDED_BUT_UNCALIBRATED": "الآليّةُ أُقِرَّت هنا بالتزامٍ يوثّقها، لكنّ الحدَّ العدديّ نفسَه لم يُثبَت تجريبيّاً في أيّ موضع."
+      "LOCALLY_DECIDED_BUT_UNCALIBRATED": "الآليّةُ أُقِرَّت هنا بالتزامٍ يوثّقها، لكنّ الحدَّ العدديّ نفسَه لم يُثبَت تجريبيّاً في أيّ موضع.",
+      "LOCALLY_DECIDED_WITH_CITED_BASIS": "الآليّةُ أُقِرَّت هنا، **والحدُّ العدديُّ نفسُه يستشهد بصنفِ مصدرٍ مُعلَن** وتُصرَّح معه خطّةُ معايرةٍ لم تُنفَّذ. أقوى من `LOCALLY_DECIDED_BUT_UNCALIBRATED` بدرجةٍ واحدة: هناك ما يُراجَع، وهنا لا شيء يُراجَع."
     },
     "authority_status": {
       "NONE": "لا سلطةَ قابلةً للاستشهاد داخل المستودع.",
@@ -25,9 +26,11 @@
     },
     "calibration_status": {
       "NOT_APPLICABLE_UNTIL_PROVENANCE_RECOVERED": "المعايرةُ سؤالٌ سابقٌ لأوانه: لا يُعايَر حدٌّ لا يُعرَف مَن قرّره ولا على أيّ مجتمعٍ قِيس.",
-      "BLOCKED_MISSING_RUNTIME_EVIDENCE": "المعايرةُ ممكنةٌ منهجيّاً ومحجوبةٌ بغياب شواهد تشغيلٍ حيّ."
+      "BLOCKED_MISSING_RUNTIME_EVIDENCE": "المعايرةُ ممكنةٌ منهجيّاً ومحجوبةٌ بغياب شواهد تشغيلٍ حيّ.",
+      "DECLARED_PLAN_NOT_EXECUTED": "خطّةُ المعايرة مُعلَنةٌ نصّاً في سجلّ القرار ولم تُنفَّذ. شرطُ الرفع تنفيذُ **الخطّة المُعلَنة نفسِها** لا خطّةٍ تُخترَع الآن — وإلّا صار الإعلانُ بلا أثر ولا حساب."
     },
-    "executable": "false في كلّ قيد: العتبة تعمل في الكود، ولا تُعَدّ **سياسةً مسجَّلة** — التمييزُ مقصود، والسجلّ يقيس الفجوة لا يُغلِقها."
+    "executable": "false في كلّ قيد: العتبة تعمل في الكود، ولا تُعَدّ **سياسةً مسجَّلة** — التمييزُ مقصود، والسجلّ يقيس الفجوة لا يُغلِقها.",
+    "why_a_fourth_term_ar": "بيانٌ غير معاير ليس واحداً: مَن لم يذكر أساساً ومَن ذكره وأعلن أنّه لم يُعايِره ليسا في حالٍ واحدة، وإقحامُهما في `BLOCKED_MISSING_RUNTIME_EVIDENCE` يمحو تمييزاً حقيقيّاً — ويجعل شرطَ الرفع واحداً وهو ليس كذلك."
   },
   "entries": [
     {
@@ -119,6 +122,182 @@
       "recovery_condition": "شواهدُ تشغيلٍ حيّ كما في `_LOW_SUCCESS`، ومعها معدَّلُ الخطأ المقبول عند تخفيف الاحتكاك — فهذا الحدُّ يُسقِط مراجعةً بشريّة، وكلفةُ خطئه غيرُ متماثلة مع كلفة خطأ الحدّ الأدنى.",
       "decision_effect_ar": "نسبةُ نجاحٍ أعلى منها ⇒ ثقة (يمكن تخفيف الاحتكاك) — تغييرُ سلطةِ القرار.",
       "trace_ar": "نفسُ الالتزام ce27d331 ونفسُ الفجوة: الآليّةُ موثَّقة، والرقمُ لا."
+    },
+    {
+      "constant": "_SALINITY_RISK",
+      "module": "core.alert_engine",
+      "import_root": "services/sahool-platform",
+      "file": "services/sahool-platform/core/alert_engine.py",
+      "line": 31,
+      "location_role": "human_readable_only",
+      "value": 0.75,
+      "value_type": "float",
+      "origin_class": "post-import-local",
+      "origin_commit": "a254c4f7",
+      "origin_date": "2026-06-10",
+      "provenance_class": "LOCALLY_DECIDED_WITH_CITED_BASIS",
+      "authority_status": "LOCAL_DESIGN_DECISION",
+      "decision_record": {
+        "commit": "a254c4f7",
+        "statement_en": "mechanism authorized locally; numeric boundary cited to a source class but not empirically established here; declared calibration plan not executed",
+        "cited_basis_en": "general literature",
+        "declared_calibration_plan_en": "calibrate with Yemen field pairs"
+      },
+      "calibration_status": "DECLARED_PLAN_NOT_EXECUTED",
+      "executable": false,
+      "recovery_condition": "تنفيذُ الخطّة المُعلَنة: أزواجُ حقولٍ يمنيّة تُقارَن بها القيمةُ المستشهَدة بالأدبيّات العامّة. وحتّى تُنفَّذ، الاستشهادُ يصف مصدرَ الرقم ولا يُثبِته على هذا المجتمع.",
+      "decision_effect_ar": "عندها فأعلى: ملوحةٌ حرجة ⇒ تنبيهٌ حرج — تصعيدُ تدخّل.",
+      "trace_ar": "الملفُّ وُلِد في `a254c4f7` نفسِه — لا وراثة. والالتزامُ تصميمٌ محلّيّ لا استيراد: يشرح الآليّة ويذكر الاختبارات ويُعلِن حدوده («real RVI must be computed upstream»)."
+    },
+    {
+      "constant": "_VIGOR_LOW",
+      "module": "core.alert_engine",
+      "import_root": "services/sahool-platform",
+      "file": "services/sahool-platform/core/alert_engine.py",
+      "line": 32,
+      "location_role": "human_readable_only",
+      "value": 0.4,
+      "value_type": "float",
+      "origin_class": "post-import-local",
+      "origin_commit": "a254c4f7",
+      "origin_date": "2026-06-10",
+      "provenance_class": "LOCALLY_DECIDED_BUT_UNCALIBRATED",
+      "authority_status": "LOCAL_DESIGN_DECISION",
+      "decision_record": {
+        "commit": "a254c4f7",
+        "statement_en": "mechanism authorized locally; numeric boundary not empirically established; runtime evidence required"
+      },
+      "calibration_status": "BLOCKED_MISSING_RUNTIME_EVIDENCE",
+      "executable": false,
+      "recovery_condition": "شواهدُ تشغيلٍ حيّ: توزيعُ القيمة المرصودة على مجتمعٍ مُعرَّف ونافذةٍ مُعلَنة، ومعها معدَّلُ الإنذار الكاذب المقبول — يُشتقّ منها الحدُّ بدل اختياره. الالتزامُ يوثّق الآليّة ولا يذكر هذا الرقم إطلاقاً.",
+      "decision_effect_ar": "دونها: حيويّةٌ منخفضة ⇒ تنبيه.",
+      "trace_ar": "الملفُّ وُلِد في `a254c4f7` نفسِه — لا وراثة. والالتزامُ تصميمٌ محلّيّ لا استيراد: يشرح الآليّة ويذكر الاختبارات ويُعلِن حدوده («real RVI must be computed upstream»)."
+    },
+    {
+      "constant": "_HEAT_HIGH",
+      "module": "core.alert_engine",
+      "import_root": "services/sahool-platform",
+      "file": "services/sahool-platform/core/alert_engine.py",
+      "line": 33,
+      "location_role": "human_readable_only",
+      "value": 0.7,
+      "value_type": "float",
+      "origin_class": "post-import-local",
+      "origin_commit": "a254c4f7",
+      "origin_date": "2026-06-10",
+      "provenance_class": "LOCALLY_DECIDED_BUT_UNCALIBRATED",
+      "authority_status": "LOCAL_DESIGN_DECISION",
+      "decision_record": {
+        "commit": "a254c4f7",
+        "statement_en": "mechanism authorized locally; numeric boundary not empirically established; runtime evidence required"
+      },
+      "calibration_status": "BLOCKED_MISSING_RUNTIME_EVIDENCE",
+      "executable": false,
+      "recovery_condition": "شواهدُ تشغيلٍ حيّ: توزيعُ القيمة المرصودة على مجتمعٍ مُعرَّف ونافذةٍ مُعلَنة، ومعها معدَّلُ الإنذار الكاذب المقبول — يُشتقّ منها الحدُّ بدل اختياره. الالتزامُ يوثّق الآليّة ولا يذكر هذا الرقم إطلاقاً.",
+      "decision_effect_ar": "عندها فأعلى: إجهادٌ حراريّ ⇒ تنبيه.",
+      "trace_ar": "الملفُّ وُلِد في `a254c4f7` نفسِه — لا وراثة. والالتزامُ تصميمٌ محلّيّ لا استيراد: يشرح الآليّة ويذكر الاختبارات ويُعلِن حدوده («real RVI must be computed upstream»).",
+      "note_ar": "تساوي قيمتِه مع `_SEVERITY_CRITICAL` (0.7) **مصادفةٌ لا ازدواج**: متغيّرٌ دلاليٌّ آخر (إجهادٌ حراريّ لا خطورةُ آفة)، ومجتمعٌ آخر، وأثرُ قرارٍ آخر. المعيارُ هويّةٌ دلاليّة لا تساوي قيمة."
+    },
+    {
+      "constant": "_DEGRADED_PCT",
+      "module": "core.alert_engine",
+      "import_root": "services/sahool-platform",
+      "file": "services/sahool-platform/core/alert_engine.py",
+      "line": 34,
+      "location_role": "human_readable_only",
+      "value": 25.0,
+      "value_type": "float",
+      "origin_class": "post-import-local",
+      "origin_commit": "a254c4f7",
+      "origin_date": "2026-06-10",
+      "provenance_class": "LOCALLY_DECIDED_WITH_CITED_BASIS",
+      "authority_status": "LOCAL_DESIGN_DECISION",
+      "decision_record": {
+        "commit": "a254c4f7",
+        "statement_en": "mechanism authorized locally; numeric boundary cited to a source class but not empirically established here; declared calibration plan not executed",
+        "cited_basis_en": "general literature",
+        "declared_calibration_plan_en": "calibrate with Yemen field pairs"
+      },
+      "calibration_status": "DECLARED_PLAN_NOT_EXECUTED",
+      "executable": false,
+      "recovery_condition": "تنفيذُ الخطّة المُعلَنة: أزواجُ حقولٍ يمنيّة تُقارَن بها القيمةُ المستشهَدة بالأدبيّات العامّة. وحتّى تُنفَّذ، الاستشهادُ يصف مصدرَ الرقم ولا يُثبِته على هذا المجتمع.",
+      "decision_effect_ar": "نسبةُ مساحةٍ متدهورة عندها فأعلى ⇒ تنبيهُ تدهورٍ مكانيّ.",
+      "trace_ar": "الملفُّ وُلِد في `a254c4f7` نفسِه — لا وراثة. والالتزامُ تصميمٌ محلّيّ لا استيراد: يشرح الآليّة ويذكر الاختبارات ويُعلِن حدوده («real RVI must be computed upstream»)."
+    },
+    {
+      "constant": "_SEVERE_PCT",
+      "module": "core.alert_engine",
+      "import_root": "services/sahool-platform",
+      "file": "services/sahool-platform/core/alert_engine.py",
+      "line": 35,
+      "location_role": "human_readable_only",
+      "value": 10.0,
+      "value_type": "float",
+      "origin_class": "post-import-local",
+      "origin_commit": "a254c4f7",
+      "origin_date": "2026-06-10",
+      "provenance_class": "LOCALLY_DECIDED_BUT_UNCALIBRATED",
+      "authority_status": "LOCAL_DESIGN_DECISION",
+      "decision_record": {
+        "commit": "a254c4f7",
+        "statement_en": "mechanism authorized locally; numeric boundary not empirically established; runtime evidence required"
+      },
+      "calibration_status": "BLOCKED_MISSING_RUNTIME_EVIDENCE",
+      "executable": false,
+      "recovery_condition": "شواهدُ تشغيلٍ حيّ: توزيعُ القيمة المرصودة على مجتمعٍ مُعرَّف ونافذةٍ مُعلَنة، ومعها معدَّلُ الإنذار الكاذب المقبول — يُشتقّ منها الحدُّ بدل اختياره. الالتزامُ يوثّق الآليّة ولا يذكر هذا الرقم إطلاقاً.",
+      "decision_effect_ar": "يفصل CRITICAL عن WARNING داخل تنبيه التدهور — تصعيدُ شدّة.",
+      "trace_ar": "الملفُّ وُلِد في `a254c4f7` نفسِه — لا وراثة. والالتزامُ تصميمٌ محلّيّ لا استيراد: يشرح الآليّة ويذكر الاختبارات ويُعلِن حدوده («real RVI must be computed upstream»)."
+    },
+    {
+      "constant": "_DESERT_PCT",
+      "module": "core.alert_engine",
+      "import_root": "services/sahool-platform",
+      "file": "services/sahool-platform/core/alert_engine.py",
+      "line": 36,
+      "location_role": "human_readable_only",
+      "value": 40.0,
+      "value_type": "float",
+      "origin_class": "post-import-local",
+      "origin_commit": "a254c4f7",
+      "origin_date": "2026-06-10",
+      "provenance_class": "LOCALLY_DECIDED_WITH_CITED_BASIS",
+      "authority_status": "LOCAL_DESIGN_DECISION",
+      "decision_record": {
+        "commit": "a254c4f7",
+        "statement_en": "mechanism authorized locally; numeric boundary cited to a source class but not empirically established here; declared calibration plan not executed",
+        "cited_basis_en": "general literature",
+        "declared_calibration_plan_en": "calibrate with Yemen field pairs"
+      },
+      "calibration_status": "DECLARED_PLAN_NOT_EXECUTED",
+      "executable": false,
+      "recovery_condition": "تنفيذُ الخطّة المُعلَنة: أزواجُ حقولٍ يمنيّة تُقارَن بها القيمةُ المستشهَدة بالأدبيّات العامّة. وحتّى تُنفَّذ، الاستشهادُ يصف مصدرَ الرقم ولا يُثبِته على هذا المجتمع.",
+      "decision_effect_ar": "نسبةُ غطاءٍ نباتيّ دونها ⇒ تنبيهُ تصحّر.",
+      "trace_ar": "الملفُّ وُلِد في `a254c4f7` نفسِه — لا وراثة. والالتزامُ تصميمٌ محلّيّ لا استيراد: يشرح الآليّة ويذكر الاختبارات ويُعلِن حدوده («real RVI must be computed upstream»)."
+    },
+    {
+      "constant": "_MIN_COVERAGE",
+      "module": "core.alert_engine",
+      "import_root": "services/sahool-platform",
+      "file": "services/sahool-platform/core/alert_engine.py",
+      "line": 37,
+      "location_role": "human_readable_only",
+      "value": 50.0,
+      "value_type": "float",
+      "origin_class": "post-import-local",
+      "origin_commit": "a254c4f7",
+      "origin_date": "2026-06-10",
+      "provenance_class": "LOCALLY_DECIDED_BUT_UNCALIBRATED",
+      "authority_status": "LOCAL_DESIGN_DECISION",
+      "decision_record": {
+        "commit": "a254c4f7",
+        "statement_en": "mechanism authorized locally; numeric boundary not empirically established; runtime evidence required"
+      },
+      "calibration_status": "BLOCKED_MISSING_RUNTIME_EVIDENCE",
+      "executable": false,
+      "recovery_condition": "شواهدُ تشغيلٍ حيّ: توزيعُ القيمة المرصودة على مجتمعٍ مُعرَّف ونافذةٍ مُعلَنة، ومعها معدَّلُ الإنذار الكاذب المقبول — يُشتقّ منها الحدُّ بدل اختياره. الالتزامُ يوثّق الآليّة ولا يذكر هذا الرقم إطلاقاً.",
+      "decision_effect_ar": "تغطيةٌ صالحة دونها **تُكبَح** تنبيهاتُ التدهور/التصحّر — يحجب التنبيه لا يُطلِقه.",
+      "trace_ar": "الملفُّ وُلِد في `a254c4f7` نفسِه — لا وراثة. والالتزامُ تصميمٌ محلّيّ لا استيراد: يشرح الآليّة ويذكر الاختبارات ويُعلِن حدوده («real RVI must be computed upstream»).",
+      "note_ar": "الالتزامُ يذكر الرقمَ وسببَه («no degradation/desertification alert when valid coverage < 50% (clouds/gaps)») — لكنّ **ذكرَ الرقم ليس أساساً له**: لمَ ٥٠ لا ٤٠؟ لا جواب. فهو في صنف «بلا معايرة» رغم أنّه أوفرُ توثيقاً من إخوته — والتوثيقُ لا يرفع الصنف، شرطُ الرفعِ وحده يفعل."
     }
   ],
   "measured_on": {
@@ -128,7 +307,7 @@
     "correction_ar": "**رقمٌ سابق نُشِر خطأً: «10 موروثة = 19٪».** مصدرُه إرشادان لا فحص، وكلاهما سقط: (١) إرشادُ التاريخ — «كلُّ ما قبل 2026-06-10 استيراد» — ابتلع سبعَ عتبات في `alert_engine` من `a254c4f7`، وهو **تصميمٌ محلّيّ** لا استيراد: رسالتُه تشرح الآليّة والاختبارات والحدود، بل وتذكر أساسَ ثلاثٍ من عتباته. وحقبةُ الاستيراد وأوّلُ التزامِ ميزةٍ محلّيّة يتشاركان اليومَ نفسَه، فالتاريخُ وحده لا يفرزهما. (٢) إرشادُ القيمة — مِنقابُ `= 5` — أرجع `_SKIPPED_SAMPLE_CAP` إلى `e09ce273` (2026-06-27)، بينما الاسمُ نفسُه أُدخِل في `d12b7b87` (2026-08-21). والصامدُ وحده `0ce8b996`، ورسالتُه تقول «Hardened on top of **the snapshot**» ⇒ كودٌ أُدخِل لا صُمِّم. **والدرسُ الذي يحمله هذا السجلّ عن نفسه:** قيودُه الأربعة نجت لأنّها تُتُبِّعت بالالتزامات واحداً واحداً؛ الذي انكسر هو **الإحصاء الملخِّص** المُشتقّ بإرشاد. فالإرشادُ يُسرِّع الجرد ولا يُصلح للنشر."
   },
   "out_of_scope_ar": [
-    "A2: **سبعُ** عتباتٍ في `alert_engine` (لا ستّ) — كلُّها `post-import-local` من `a254c4f7`، **لا موروثة**. وهي ثلاثةُ أصنافٍ لا صنفٌ واحد: ثلاثٌ بأساسٍ مذكور وخطّةِ معايرةٍ مُعلَنة (`_SALINITY_RISK=0.75` · `_DEGRADED_PCT=25.0` · `_DESERT_PCT=40.0` — «من أدبيّاتٍ عامّة، تُعايَر بأزواج حقولٍ يمنيّة») · وواحدةٌ آليّتُها موثَّقة ورقمُها لا (`_MIN_COVERAGE=50.0`) · وثلاثٌ بلا توثيق (`_VIGOR_LOW=0.4` · `_HEAT_HIGH=0.7` · `_SEVERE_PCT=10.0`). والصنفُ الأوّل لا تسعه مفرداتُ هذا السجلّ بعد — يحتاج حُكماً قبل التسجيل، ولا يُقحَم في `BLOCKED_MISSING_RUNTIME_EVIDENCE` فيُمحى تمييزٌ حقيقيّ بين مَن لم يذكر أساساً ومَن ذكره وأعلن أنّه لم يُعايِره.",
+    "A2 نزلت هنا: سبعُ عتبات `alert_engine`، كلُّها `post-import-local` من `a254c4f7`. وانقسمت صنفين لا ثلاثة: ثلاثٌ بأساسٍ مستشهَد وخطّةٍ مُعلَنة، وأربعٌ بلا معايرة. والتدرّجُ الثالث الذي رصدتُه أوّلاً (رقمٌ مذكورٌ بلا أساس — `_MIN_COVERAGE`) **لم يُرقَّ إلى صنف**: شرطُ رفعه هو شرطُ الأربع نفسُه (شواهدُ تشغيل)، والصنفُ يُشتقّ من شرط الرفع لا من كثافة التوثيق. سُجِّل في `note_ar` الخاصّ به.",
     "التصادمُ الحقيقيّ الوحيد المقيس (0.12 على `PlantSoilFeedback.confidence`) مؤجَّلٌ إلى سلسلة Evidence→Authority؛ لا يُلمَس هنا.",
     "`_LOW_SUCCESS_THRESHOLD = 0.6` في `services/sahool-platform/api/learning_feedback.py:19` رمزٌ آخر بقيمةٍ متساوية — وتساوي القيمة ليس دليلَ ازدواج (المعيار: هويّةٌ دلاليّة بخمسة شروط). خارج A1، ولم يُفحَص هنا."
   ]
