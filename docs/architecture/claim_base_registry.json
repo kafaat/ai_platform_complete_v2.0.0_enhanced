@@ -37,6 +37,7 @@
     "sot_evidence_manifest.schema.json",
     "sot_provenance_policy.json",
     "test_impact_policy.json",
+    "threshold_authority_ledger.json",
     "weather_boundary_allowlist.json",
     "weather_direct_wiring_allowlist.json",
     "weather_engine_formula_allowlist.json"
