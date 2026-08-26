@@ -124,6 +124,10 @@
     {
       "path": "docs/architecture/test_impact_policy.json",
       "kind": "governed"
+    },
+    {
+      "path": "docs/architecture/threshold_authority_ledger.json",
+      "kind": "governed"
     }
   ]
 }

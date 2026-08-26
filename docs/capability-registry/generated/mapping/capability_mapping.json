@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5190,
+    "files_scanned": 5192,
     "files_by_kind": {
       "backend": 1204,
       "database": 274,
       "governance": 60,
       "mobile": 51,
-      "other": 1421,
-      "tests": 1723,
+      "other": 1422,
+      "tests": 1724,
       "web": 457
     },
-    "unmapped_artifacts": 2113,
+    "unmapped_artifacts": 2114,
     "ambiguous_artifacts": 414
   },
   "capabilities": [
@@ -43148,6 +43148,10 @@
     },
     {
       "path": "tests_v9/test_text_encoding_locale.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_threshold_authority_ledger.py",
       "kind": "tests"
     },
     {

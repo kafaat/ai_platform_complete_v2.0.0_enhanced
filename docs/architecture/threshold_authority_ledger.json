@@ -1,0 +1,135 @@
+{
+  "schema": "sahool.threshold_authority_ledger",
+  "version": 1,
+  "adjudicated_on": "2026-08-26",
+  "closing_rule_en": "Every threshold must have both an authority provenance and a calibration basis before it can become an executable registered policy.",
+  "note_ar": "سجلُّ سلطةٍ مفقودة ومسارُ استعادتها — لا سجلُّ عتباتٍ مُحكَّمة. سُمّي «ledger» لا «registry» عن قصد: القيد هنا يوثّق أنّ العتبة تعمل في المسار الحرج **بلا** سلطةٍ مُثبَتة ولا أساسِ معايرة، ويصف الشرطَ الذي يرفعه. لا قيمةَ فيه نهائيّة ولا مُعايَرة، ولا واحدةَ منها `executable`. والتسجيلُ نفسُه ليس ترخيصاً: `executable=false` في كلّ قيدٍ حاليّاً هو الحالةُ المقيسة لا إعدادٌ مؤقّت.",
+  "scope_ar": "الدفعة A1 من P5-A: أربع عتباتٍ تُغيّر السلطة أو تُصعّد التدخّل. الباقي (A2 = ستّ عتبات في alert_engine، ثمّ P5-B وP5-C) خارج هذه الدفعة ولا يُقاس غيابُه هنا نفياً.",
+  "anchor": {
+    "chain": "ledger.constant → module import → symbol lookup → runtime constant value → ledger.value",
+    "location_is_not_an_anchor_en": "file and line are human-readable location metadata only; not an integrity anchor.",
+    "note_ar": "الربطُ اسميّ: الاختبار يستورد الوحدة ويقرأ الرمز، ولا يقرأ سطراً من ملفّ. فتغييرُ القيمة في المصدر بلا تحديث السجلّ **يحمرّ**، وتحريكُ السطر وحده **يبقى أخضر** — لأنّ السطر بيانُ قارئٍ لا مِرساة. ولولا ذلك لكان أوّلُ إعادةِ ترتيبٍ في الملفّ يُفشِل الحارس ويُعلَّمُ الفريقُ تجاهُلَه.",
+    "extra_protections_ar": [
+      "الرمزُ مُعرَّفٌ في الوحدة المسمّاة نفسِها لا مُعاد تصديره منها — وإلّا رَسَت المِرساةُ على وسيطٍ يتغيّر أصلُه بلا أثر.",
+      "القيمةُ عدديّةٌ قياسيّة من النوع المُعلَن (لا `bool`، ولا حاوية) — رمزٌ صار قاموساً يمرّ على مقارنةٍ ساذجة."
+    ]
+  },
+  "vocabulary": {
+    "provenance_class": {
+      "INHERITED_NO_DECISION_RECORD": "القيمة دخلت المستودعَ مع استيراد منصّةٍ قائمة؛ لا التزامَ سابقاً يمسّ المسار، فسلسلةُ السلطة تنتهي **خارج** هذا المستودع.",
+      "LOCALLY_DECIDED_BUT_UNCALIBRATED": "الآليّةُ أُقِرَّت هنا بالتزامٍ يوثّقها، لكنّ الحدَّ العدديّ نفسَه لم يُثبَت تجريبيّاً في أيّ موضع."
+    },
+    "authority_status": {
+      "NONE": "لا سلطةَ قابلةً للاستشهاد داخل المستودع.",
+      "LOCAL_DESIGN_DECISION": "قرارُ تصميمٍ محلّيّ موثَّق للآليّة، لا للقيمة."
+    },
+    "calibration_status": {
+      "NOT_APPLICABLE_UNTIL_PROVENANCE_RECOVERED": "المعايرةُ سؤالٌ سابقٌ لأوانه: لا يُعايَر حدٌّ لا يُعرَف مَن قرّره ولا على أيّ مجتمعٍ قِيس.",
+      "BLOCKED_MISSING_RUNTIME_EVIDENCE": "المعايرةُ ممكنةٌ منهجيّاً ومحجوبةٌ بغياب شواهد تشغيلٍ حيّ."
+    },
+    "executable": "false في كلّ قيد: العتبة تعمل في الكود، ولا تُعَدّ **سياسةً مسجَّلة** — التمييزُ مقصود، والسجلّ يقيس الفجوة لا يُغلِقها."
+  },
+  "entries": [
+    {
+      "constant": "_SEVERITY_CRITICAL",
+      "module": "core.pest_escalation_flow",
+      "import_root": "services/sahool-platform",
+      "file": "services/sahool-platform/core/pest_escalation_flow.py",
+      "line": 40,
+      "location_role": "human_readable_only",
+      "value": 0.7,
+      "value_type": "float",
+      "origin_class": "import-origin",
+      "origin_commit": "0ce8b996",
+      "origin_date": "2026-06-10",
+      "provenance_class": "INHERITED_NO_DECISION_RECORD",
+      "authority_status": "NONE",
+      "decision_record": null,
+      "calibration_status": "NOT_APPLICABLE_UNTIL_PROVENANCE_RECOVERED",
+      "executable": false,
+      "recovery_condition": "استعادةُ سلسلة السلطة من مصدر الاستيراد الخارجيّ (مَن قرّر 0.7، على أيّ مجتمعِ آفاتٍ ومقياسِ خطورة)، أو إسقاطُ الوراثة واتّخاذُ قرارٍ محلّيّ صريح يُسجَّل هنا. قبل أحدهما لا معايرةَ ولا ترقيةَ إلى سياسةٍ قابلة للتنفيذ.",
+      "decision_effect_ar": "عندها فأعلى: خطورة حرجة + مكافحة عاجلة — تصعيدُ تدخّل.",
+      "trace_ar": "تُتُبِّعت عبر b9adc0ff (جدول تصريحيّ، حفظُ سلوك) → d9ac4984 → 0ce8b996، وهو أوّلُ التزامٍ يمسّ المسار وأضاف الملفَّ كاملاً (A، +151 سطراً) بعنوان «incorporate production modules». لا التزامَ أسبق."
+    },
+    {
+      "constant": "_SEVERITY_INTERVENTION",
+      "module": "core.pest_escalation_flow",
+      "import_root": "services/sahool-platform",
+      "file": "services/sahool-platform/core/pest_escalation_flow.py",
+      "line": 41,
+      "location_role": "human_readable_only",
+      "value": 0.4,
+      "value_type": "float",
+      "origin_class": "import-origin",
+      "origin_commit": "0ce8b996",
+      "origin_date": "2026-06-10",
+      "provenance_class": "INHERITED_NO_DECISION_RECORD",
+      "authority_status": "NONE",
+      "decision_record": null,
+      "calibration_status": "NOT_APPLICABLE_UNTIL_PROVENANCE_RECOVERED",
+      "executable": false,
+      "recovery_condition": "استعادةُ سلسلة السلطة من مصدر الاستيراد الخارجيّ (مَن قرّر 0.4، وعلى أيّ معدَّلِ إنذارٍ كاذبٍ مقبول)، أو إسقاطُ الوراثة واتّخاذُ قرارٍ محلّيّ صريح يُسجَّل هنا.",
+      "decision_effect_ar": "عتبةُ التدخّل: دونها لا تصعيد — تجنّبُ إنذارٍ كاذب. فهي تحجب التدخّلَ كما تأذن به.",
+      "trace_ar": "نفسُ سلسلة `_SEVERITY_CRITICAL`: b9adc0ff → d9ac4984 → 0ce8b996."
+    },
+    {
+      "constant": "_LOW_SUCCESS",
+      "module": "core.decision_learning",
+      "import_root": "services/sahool-platform",
+      "file": "services/sahool-platform/core/decision_learning.py",
+      "line": 21,
+      "location_role": "human_readable_only",
+      "value": 0.6,
+      "value_type": "float",
+      "origin_class": "post-import-local",
+      "origin_commit": "ce27d331",
+      "origin_date": "2026-06-17",
+      "provenance_class": "LOCALLY_DECIDED_BUT_UNCALIBRATED",
+      "authority_status": "LOCAL_DESIGN_DECISION",
+      "decision_record": {
+        "commit": "ce27d331",
+        "statement_en": "mechanism authorized locally; numeric boundary not empirically established; runtime evidence required"
+      },
+      "calibration_status": "BLOCKED_MISSING_RUNTIME_EVIDENCE",
+      "executable": false,
+      "recovery_condition": "شواهدُ تشغيلٍ حيّ: توزيعُ نسب النجاح المرصودة على مجتمعٍ مُعرَّف ونافذةٍ مُعلَنة، يُشتقّ منها الحدُّ بدل اختياره. الالتزامُ ce27d331 يوثّق الآليّة (نجاحٌ منخفض ⇒ اقتراحٌ حذر) ولا يوثّق الرقم.",
+      "decision_effect_ar": "نسبةُ نجاحٍ أدنى منها ⇒ اقتراحٌ حذر (رفعُ موافقات/مراجعة) — تغييرُ سلطةِ القرار.",
+      "trace_ar": "الملفُّ وُلِد في ce27d331 نفسِه؛ لا وراثة. راجعتُ نصَّ الالتزام: يشرح الحلقة والآليّة، ولا يذكر 0.6 ولا أساسَها."
+    },
+    {
+      "constant": "_HIGH_SUCCESS",
+      "module": "core.decision_learning",
+      "import_root": "services/sahool-platform",
+      "file": "services/sahool-platform/core/decision_learning.py",
+      "line": 22,
+      "location_role": "human_readable_only",
+      "value": 0.9,
+      "value_type": "float",
+      "origin_class": "post-import-local",
+      "origin_commit": "ce27d331",
+      "origin_date": "2026-06-17",
+      "provenance_class": "LOCALLY_DECIDED_BUT_UNCALIBRATED",
+      "authority_status": "LOCAL_DESIGN_DECISION",
+      "decision_record": {
+        "commit": "ce27d331",
+        "statement_en": "mechanism authorized locally; numeric boundary not empirically established; runtime evidence required"
+      },
+      "calibration_status": "BLOCKED_MISSING_RUNTIME_EVIDENCE",
+      "executable": false,
+      "recovery_condition": "شواهدُ تشغيلٍ حيّ كما في `_LOW_SUCCESS`، ومعها معدَّلُ الخطأ المقبول عند تخفيف الاحتكاك — فهذا الحدُّ يُسقِط مراجعةً بشريّة، وكلفةُ خطئه غيرُ متماثلة مع كلفة خطأ الحدّ الأدنى.",
+      "decision_effect_ar": "نسبةُ نجاحٍ أعلى منها ⇒ ثقة (يمكن تخفيف الاحتكاك) — تغييرُ سلطةِ القرار.",
+      "trace_ar": "نفسُ الالتزام ce27d331 ونفسُ الفجوة: الآليّةُ موثَّقة، والرقمُ لا."
+    }
+  ],
+  "measured_on": {
+    "commit": "0a2f06f4",
+    "date": "2026-08-26",
+    "method_ar": "الجردُ الأوسع: 85 ثابتاً عدديّاً مُصرَّحاً ⇒ 54 عتبةَ قرارٍ بالاستعمال المقارَن ⇒ **2 موروثة فعلاً = 3.7٪**، وهما بالضبط القيدان المُصنَّفان `INHERITED_NO_DECISION_RECORD` أدناه. هذه الدفعة تُسجّل أربعاً — الأربعَ التي تُغيّر السلطة أو تُصعّد التدخّل.",
+    "correction_ar": "**رقمٌ سابق نُشِر خطأً: «10 موروثة = 19٪».** مصدرُه إرشادان لا فحص، وكلاهما سقط: (١) إرشادُ التاريخ — «كلُّ ما قبل 2026-06-10 استيراد» — ابتلع سبعَ عتبات في `alert_engine` من `a254c4f7`، وهو **تصميمٌ محلّيّ** لا استيراد: رسالتُه تشرح الآليّة والاختبارات والحدود، بل وتذكر أساسَ ثلاثٍ من عتباته. وحقبةُ الاستيراد وأوّلُ التزامِ ميزةٍ محلّيّة يتشاركان اليومَ نفسَه، فالتاريخُ وحده لا يفرزهما. (٢) إرشادُ القيمة — مِنقابُ `= 5` — أرجع `_SKIPPED_SAMPLE_CAP` إلى `e09ce273` (2026-06-27)، بينما الاسمُ نفسُه أُدخِل في `d12b7b87` (2026-08-21). والصامدُ وحده `0ce8b996`، ورسالتُه تقول «Hardened on top of **the snapshot**» ⇒ كودٌ أُدخِل لا صُمِّم. **والدرسُ الذي يحمله هذا السجلّ عن نفسه:** قيودُه الأربعة نجت لأنّها تُتُبِّعت بالالتزامات واحداً واحداً؛ الذي انكسر هو **الإحصاء الملخِّص** المُشتقّ بإرشاد. فالإرشادُ يُسرِّع الجرد ولا يُصلح للنشر."
+  },
+  "out_of_scope_ar": [
+    "A2: **سبعُ** عتباتٍ في `alert_engine` (لا ستّ) — كلُّها `post-import-local` من `a254c4f7`، **لا موروثة**. وهي ثلاثةُ أصنافٍ لا صنفٌ واحد: ثلاثٌ بأساسٍ مذكور وخطّةِ معايرةٍ مُعلَنة (`_SALINITY_RISK=0.75` · `_DEGRADED_PCT=25.0` · `_DESERT_PCT=40.0` — «من أدبيّاتٍ عامّة، تُعايَر بأزواج حقولٍ يمنيّة») · وواحدةٌ آليّتُها موثَّقة ورقمُها لا (`_MIN_COVERAGE=50.0`) · وثلاثٌ بلا توثيق (`_VIGOR_LOW=0.4` · `_HEAT_HIGH=0.7` · `_SEVERE_PCT=10.0`). والصنفُ الأوّل لا تسعه مفرداتُ هذا السجلّ بعد — يحتاج حُكماً قبل التسجيل، ولا يُقحَم في `BLOCKED_MISSING_RUNTIME_EVIDENCE` فيُمحى تمييزٌ حقيقيّ بين مَن لم يذكر أساساً ومَن ذكره وأعلن أنّه لم يُعايِره.",
+    "التصادمُ الحقيقيّ الوحيد المقيس (0.12 على `PlantSoilFeedback.confidence`) مؤجَّلٌ إلى سلسلة Evidence→Authority؛ لا يُلمَس هنا.",
+    "`_LOW_SUCCESS_THRESHOLD = 0.6` في `services/sahool-platform/api/learning_feedback.py:19` رمزٌ آخر بقيمةٍ متساوية — وتساوي القيمة ليس دليلَ ازدواج (المعيار: هويّةٌ دلاليّة بخمسة شروط). خارج A1، ولم يُفحَص هنا."
+  ]
+}

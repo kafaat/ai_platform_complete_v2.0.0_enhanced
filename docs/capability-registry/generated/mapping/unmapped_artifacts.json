@@ -8264,6 +8264,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_threshold_authority_ledger.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_thresholds_unified.py",
     "kind": "tests"
   },
