@@ -1,10 +1,10 @@
 {
   "schema": "sahool.threshold_authority_ledger",
-  "version": 2,
+  "version": 3,
   "adjudicated_on": "2026-08-26",
   "closing_rule_en": "Every threshold must have both an authority provenance and a calibration basis before it can become an executable registered policy.",
   "note_ar": "سجلُّ سلطةٍ مفقودة ومسارُ استعادتها — لا سجلُّ عتباتٍ مُحكَّمة. سُمّي «ledger» لا «registry» عن قصد: القيد هنا يوثّق أنّ العتبة تعمل في المسار الحرج **بلا** سلطةٍ مُثبَتة ولا أساسِ معايرة، ويصف الشرطَ الذي يرفعه. لا قيمةَ فيه نهائيّة ولا مُعايَرة، ولا واحدةَ منها `executable`. والتسجيلُ نفسُه ليس ترخيصاً: `executable=false` في كلّ قيدٍ حاليّاً هو الحالةُ المقيسة لا إعدادٌ مؤقّت.",
-  "scope_ar": "الدفعتان A1 وA2 من P5-A: إحدى عشرة عتبةً تُغيّر السلطة أو تُصعّد التدخّل أو تكبحه. P5-B (الزراعيّة-الفيزيائيّة) وP5-C خارجهما ولا يُقاس غيابُهما هنا نفياً.",
+  "scope_ar": "P5-A (A1+A2) وP5-B وP5-C: إحدى وعشرون عتبةً مُسجَّلة، كلُّها `executable=false`. التسجيلُ لا يغيّر سلوكاً ولا يوحّد قيمةً.",
   "anchor": {
     "chain": "ledger.constant → module import → symbol lookup → runtime constant value → ledger.value",
     "location_is_not_an_anchor_en": "file and line are human-readable location metadata only; not an integrity anchor.",
@@ -12,13 +12,15 @@
     "extra_protections_ar": [
       "الرمزُ مُعرَّفٌ في الوحدة المسمّاة نفسِها لا مُعاد تصديره منها — وإلّا رَسَت المِرساةُ على وسيطٍ يتغيّر أصلُه بلا أثر.",
       "القيمةُ عدديّةٌ قياسيّة من النوع المُعلَن (لا `bool`، ولا حاوية) — رمزٌ صار قاموساً يمرّ على مقارنةٍ ساذجة."
-    ]
+    ],
+    "container_path_ar": "بعضُ العتبات أعضاءُ حاوية لا رموزٌ عليا (`THRESHOLDS['almond']['frost_c']`). لها حقلُ `path` اختياريّ يُمشى **بعد** `getattr`: المِرساةُ تبقى الرمزَ العلويّ، والمسارُ جزءٌ منها لا بديلٌ عنها. وبلا هذا الحقل كان السجلُّ يعجز عن تسجيل صنفٍ كاملٍ من العتبات — فيُقرأ غيابُها «لا يوجد» وهو «لا أستطيع»."
   },
   "vocabulary": {
     "provenance_class": {
       "INHERITED_NO_DECISION_RECORD": "القيمة دخلت المستودعَ مع استيراد منصّةٍ قائمة؛ لا التزامَ سابقاً يمسّ المسار، فسلسلةُ السلطة تنتهي **خارج** هذا المستودع.",
       "LOCALLY_DECIDED_BUT_UNCALIBRATED": "الآليّةُ أُقِرَّت هنا بالتزامٍ يوثّقها، لكنّ الحدَّ العدديّ نفسَه لم يُثبَت تجريبيّاً في أيّ موضع.",
-      "LOCALLY_DECIDED_WITH_CITED_BASIS": "الآليّةُ أُقِرَّت هنا، **والحدُّ العدديُّ نفسُه يستشهد بصنفِ مصدرٍ مُعلَن** وتُصرَّح معه خطّةُ معايرةٍ لم تُنفَّذ. أقوى من `LOCALLY_DECIDED_BUT_UNCALIBRATED` بدرجةٍ واحدة: هناك ما يُراجَع، وهنا لا شيء يُراجَع."
+      "LOCALLY_DECIDED_WITH_CITED_BASIS": "الآليّةُ أُقِرَّت هنا، **والحدُّ العدديُّ نفسُه يستشهد بصنفِ مصدرٍ مُعلَن** وتُصرَّح معه خطّةُ معايرةٍ لم تُنفَّذ. أقوى من `LOCALLY_DECIDED_BUT_UNCALIBRATED` بدرجةٍ واحدة: هناك ما يُراجَع، وهنا لا شيء يُراجَع.",
+      "NEAR_COLLISION_MEASURED_DISTINCT": "مفهومٌ يبدو مكرَّراً في موضعين، **وقِيس فوُجِد مختلفاً** بمعايير الهويّة الدلاليّة الخمسة (متغيّر · وحدة · تجميع/نافذة · مجتمع · أثرُ قرار). يُسجَّل الطرفان **منفصلين** مع قياس الاختلاف — لأنّ الصمتَ عنه يُغري بتوحيدٍ لاحقٍ يمحو فرقاً حقيقيّاً."
     },
     "authority_status": {
       "NONE": "لا سلطةَ قابلةً للاستشهاد داخل المستودع.",
@@ -30,7 +32,8 @@
       "DECLARED_PLAN_NOT_EXECUTED": "خطّةُ المعايرة مُعلَنةٌ نصّاً في سجلّ القرار ولم تُنفَّذ. شرطُ الرفع تنفيذُ **الخطّة المُعلَنة نفسِها** لا خطّةٍ تُخترَع الآن — وإلّا صار الإعلانُ بلا أثر ولا حساب."
     },
     "executable": "false في كلّ قيد: العتبة تعمل في الكود، ولا تُعَدّ **سياسةً مسجَّلة** — التمييزُ مقصود، والسجلّ يقيس الفجوة لا يُغلِقها.",
-    "why_a_fourth_term_ar": "بيانٌ غير معاير ليس واحداً: مَن لم يذكر أساساً ومَن ذكره وأعلن أنّه لم يُعايِره ليسا في حالٍ واحدة، وإقحامُهما في `BLOCKED_MISSING_RUNTIME_EVIDENCE` يمحو تمييزاً حقيقيّاً — ويجعل شرطَ الرفع واحداً وهو ليس كذلك."
+    "why_a_fourth_term_ar": "بيانٌ غير معاير ليس واحداً: مَن لم يذكر أساساً ومَن ذكره وأعلن أنّه لم يُعايِره ليسا في حالٍ واحدة، وإقحامُهما في `BLOCKED_MISSING_RUNTIME_EVIDENCE` يمحو تمييزاً حقيقيّاً — ويجعل شرطَ الرفع واحداً وهو ليس كذلك.",
+    "why_near_collision_is_recorded_ar": "التوحيدُ قرارُ سياسةٍ لا تنظيفُ كود: يأخذ قيمتين غيرَ مُعايَرتين ويجعل إحداهما نافذةً على مجتمعِ الأخرى. فما لم يُقَس الاختلافُ ويُكتَب، سيبدو الازدواجُ لكلّ قارئٍ لاحقٍ عيباً يستحقّ الإصلاح."
   },
   "entries": [
     {
@@ -298,6 +301,272 @@
       "decision_effect_ar": "تغطيةٌ صالحة دونها **تُكبَح** تنبيهاتُ التدهور/التصحّر — يحجب التنبيه لا يُطلِقه.",
       "trace_ar": "الملفُّ وُلِد في `a254c4f7` نفسِه — لا وراثة. والالتزامُ تصميمٌ محلّيّ لا استيراد: يشرح الآليّة ويذكر الاختبارات ويُعلِن حدوده («real RVI must be computed upstream»).",
       "note_ar": "الالتزامُ يذكر الرقمَ وسببَه («no degradation/desertification alert when valid coverage < 50% (clouds/gaps)») — لكنّ **ذكرَ الرقم ليس أساساً له**: لمَ ٥٠ لا ٤٠؟ لا جواب. فهو في صنف «بلا معايرة» رغم أنّه أوفرُ توثيقاً من إخوته — والتوثيقُ لا يرفع الصنف، شرطُ الرفعِ وحده يفعل."
+    },
+    {
+      "constant": "_HUMID_THRESHOLD",
+      "module": "api.weather_advice",
+      "import_root": "services/sahool-platform",
+      "file": "services/sahool-platform/api/weather_advice.py",
+      "line": 234,
+      "location_role": "human_readable_only",
+      "value": 80.0,
+      "value_type": "float",
+      "origin_class": "post-import-local",
+      "origin_commit": "5badb942",
+      "origin_date": "2026-06-12",
+      "provenance_class": "LOCALLY_DECIDED_WITH_CITED_BASIS",
+      "authority_status": "LOCAL_DESIGN_DECISION",
+      "decision_record": {
+        "commit": "5badb942",
+        "statement_en": "mechanism authorized locally; numeric boundary not empirically established; runtime evidence required",
+        "cited_basis_en": "Agrios, Plant Pathology (general literature)",
+        "declared_calibration_plan_en": "not declared — basis cited without a calibration plan"
+      },
+      "calibration_status": "DECLARED_PLAN_NOT_EXECUTED",
+      "executable": false,
+      "recovery_condition": "شواهدُ تشغيلٍ حيّ على مجتمعٍ مُعرَّف ونافذةٍ مُعلَنة، ومعها معدَّلُ الخطأ المقبول في اتّجاهَي الحدّ — يُشتقّ منها الحدُّ بدل اختياره.",
+      "decision_effect_ar": "رطوبةٌ عندها فأعلى ⇒ `+1` من ٣ في درجة خطر المرض الفطريّ.",
+      "trace_ar": "أوّلُ التزامٍ أدخل الرمزَ في هذا الملفّ: 5badb942 (2026-06-12).",
+      "note_ar": "**تصادمٌ ظاهريّ قِيس فسقط.** المفهومُ نفسُه («رطوبة+حرارة مواتيتان للفطر») محكومٌ هنا وفي `core.weather_overlay` بقيمتين مختلفتين. وبمعايير الهويّة الخمسة: الوحدةُ واحدة والمتغيّرُ واحد، لكنّ **التجميع** (قيمةٌ مفردة + مطر ٣ أيّام مقابل عدِّ ساعات) و**المجتمع** (نصيحةٌ نصّيّة مقابل درجةِ تراكب) و**أثرَ القرار** (`+1` من ٣ ⇒ ثلاثُ مراتب، مقابل نسبةٍ مستمرّة) تختلف ثلاثتُها ⇒ `NEAR_COLLISION_MEASURED_DISTINCT`. ونافذةُ المتوسّط الساعيّ الأوسع مبرَّرةٌ فيزيائيّاً: المتوسّطُ يطمس الأطراف."
+    },
+    {
+      "constant": "_MILD_TEMP_LOW",
+      "module": "api.weather_advice",
+      "import_root": "services/sahool-platform",
+      "file": "services/sahool-platform/api/weather_advice.py",
+      "line": 235,
+      "location_role": "human_readable_only",
+      "value": 15.0,
+      "value_type": "float",
+      "origin_class": "post-import-local",
+      "origin_commit": "5badb942",
+      "origin_date": "2026-06-12",
+      "provenance_class": "LOCALLY_DECIDED_WITH_CITED_BASIS",
+      "authority_status": "LOCAL_DESIGN_DECISION",
+      "decision_record": {
+        "commit": "5badb942",
+        "statement_en": "mechanism authorized locally; numeric boundary not empirically established; runtime evidence required",
+        "cited_basis_en": "Agrios, Plant Pathology (general literature)",
+        "declared_calibration_plan_en": "not declared — basis cited without a calibration plan"
+      },
+      "calibration_status": "DECLARED_PLAN_NOT_EXECUTED",
+      "executable": false,
+      "recovery_condition": "شواهدُ تشغيلٍ حيّ على مجتمعٍ مُعرَّف ونافذةٍ مُعلَنة، ومعها معدَّلُ الخطأ المقبول في اتّجاهَي الحدّ — يُشتقّ منها الحدُّ بدل اختياره.",
+      "decision_effect_ar": "الحدُّ الأدنى لنافذة الحرارة المواتية ⇒ `+1` من ٣.",
+      "trace_ar": "أوّلُ التزامٍ أدخل الرمزَ في هذا الملفّ: 5badb942 (2026-06-12).",
+      "note_ar": "**تصادمٌ ظاهريّ قِيس فسقط.** المفهومُ نفسُه («رطوبة+حرارة مواتيتان للفطر») محكومٌ هنا وفي `core.weather_overlay` بقيمتين مختلفتين. وبمعايير الهويّة الخمسة: الوحدةُ واحدة والمتغيّرُ واحد، لكنّ **التجميع** (قيمةٌ مفردة + مطر ٣ أيّام مقابل عدِّ ساعات) و**المجتمع** (نصيحةٌ نصّيّة مقابل درجةِ تراكب) و**أثرَ القرار** (`+1` من ٣ ⇒ ثلاثُ مراتب، مقابل نسبةٍ مستمرّة) تختلف ثلاثتُها ⇒ `NEAR_COLLISION_MEASURED_DISTINCT`. ونافذةُ المتوسّط الساعيّ الأوسع مبرَّرةٌ فيزيائيّاً: المتوسّطُ يطمس الأطراف."
+    },
+    {
+      "constant": "_MILD_TEMP_HIGH",
+      "module": "api.weather_advice",
+      "import_root": "services/sahool-platform",
+      "file": "services/sahool-platform/api/weather_advice.py",
+      "line": 236,
+      "location_role": "human_readable_only",
+      "value": 28.0,
+      "value_type": "float",
+      "origin_class": "post-import-local",
+      "origin_commit": "5badb942",
+      "origin_date": "2026-06-12",
+      "provenance_class": "LOCALLY_DECIDED_WITH_CITED_BASIS",
+      "authority_status": "LOCAL_DESIGN_DECISION",
+      "decision_record": {
+        "commit": "5badb942",
+        "statement_en": "mechanism authorized locally; numeric boundary not empirically established; runtime evidence required",
+        "cited_basis_en": "Agrios, Plant Pathology (general literature)",
+        "declared_calibration_plan_en": "not declared — basis cited without a calibration plan"
+      },
+      "calibration_status": "DECLARED_PLAN_NOT_EXECUTED",
+      "executable": false,
+      "recovery_condition": "شواهدُ تشغيلٍ حيّ على مجتمعٍ مُعرَّف ونافذةٍ مُعلَنة، ومعها معدَّلُ الخطأ المقبول في اتّجاهَي الحدّ — يُشتقّ منها الحدُّ بدل اختياره.",
+      "decision_effect_ar": "الحدُّ الأعلى لنافذة الحرارة المواتية ⇒ `+1` من ٣.",
+      "trace_ar": "أوّلُ التزامٍ أدخل الرمزَ في هذا الملفّ: 5badb942 (2026-06-12).",
+      "note_ar": "**تصادمٌ ظاهريّ قِيس فسقط.** المفهومُ نفسُه («رطوبة+حرارة مواتيتان للفطر») محكومٌ هنا وفي `core.weather_overlay` بقيمتين مختلفتين. وبمعايير الهويّة الخمسة: الوحدةُ واحدة والمتغيّرُ واحد، لكنّ **التجميع** (قيمةٌ مفردة + مطر ٣ أيّام مقابل عدِّ ساعات) و**المجتمع** (نصيحةٌ نصّيّة مقابل درجةِ تراكب) و**أثرَ القرار** (`+1` من ٣ ⇒ ثلاثُ مراتب، مقابل نسبةٍ مستمرّة) تختلف ثلاثتُها ⇒ `NEAR_COLLISION_MEASURED_DISTINCT`. ونافذةُ المتوسّط الساعيّ الأوسع مبرَّرةٌ فيزيائيّاً: المتوسّطُ يطمس الأطراف."
+    },
+    {
+      "constant": "_DISEASE_RH",
+      "module": "core.weather_overlay",
+      "import_root": "services/sahool-platform",
+      "file": "services/sahool-platform/core/weather_overlay.py",
+      "line": 24,
+      "location_role": "human_readable_only",
+      "value": 85.0,
+      "value_type": "float",
+      "origin_class": "post-import-local",
+      "origin_commit": "13a63f72",
+      "origin_date": "2026-06-19",
+      "provenance_class": "LOCALLY_DECIDED_BUT_UNCALIBRATED",
+      "authority_status": "LOCAL_DESIGN_DECISION",
+      "decision_record": {
+        "commit": "13a63f72",
+        "statement_en": "mechanism authorized locally; numeric boundary not empirically established; runtime evidence required"
+      },
+      "calibration_status": "BLOCKED_MISSING_RUNTIME_EVIDENCE",
+      "executable": false,
+      "recovery_condition": "شواهدُ تشغيلٍ حيّ على مجتمعٍ مُعرَّف ونافذةٍ مُعلَنة، ومعها معدَّلُ الخطأ المقبول في اتّجاهَي الحدّ — يُشتقّ منها الحدُّ بدل اختياره.",
+      "decision_effect_ar": "رطوبةٌ ساعيّة عندها فأعلى ⇒ تُعَدُّ الساعةُ ساعةَ خطرٍ فطريّ.",
+      "trace_ar": "أوّلُ التزامٍ أدخل الرمزَ في هذا الملفّ: 13a63f72 (2026-06-19).",
+      "note_ar": "الطرفُ الثاني للتصادم الظاهريّ أعلاه — يعمل على **متوسّطٍ ساعيّ** ويُنتِج **نسبةَ ساعات**. توحيدُه مع طرف `api.weather_advice` يُلغي فرقاً مقيساً ويُغيّر السلوك (`82٪ / 20°م` تنتقل من لا-خطر إلى خطر)."
+    },
+    {
+      "constant": "_DISEASE_T_MIN",
+      "module": "core.weather_overlay",
+      "import_root": "services/sahool-platform",
+      "file": "services/sahool-platform/core/weather_overlay.py",
+      "line": 25,
+      "location_role": "human_readable_only",
+      "value": 10.0,
+      "value_type": "float",
+      "origin_class": "post-import-local",
+      "origin_commit": "13a63f72",
+      "origin_date": "2026-06-19",
+      "provenance_class": "LOCALLY_DECIDED_BUT_UNCALIBRATED",
+      "authority_status": "LOCAL_DESIGN_DECISION",
+      "decision_record": {
+        "commit": "13a63f72",
+        "statement_en": "mechanism authorized locally; numeric boundary not empirically established; runtime evidence required"
+      },
+      "calibration_status": "BLOCKED_MISSING_RUNTIME_EVIDENCE",
+      "executable": false,
+      "recovery_condition": "شواهدُ تشغيلٍ حيّ على مجتمعٍ مُعرَّف ونافذةٍ مُعلَنة، ومعها معدَّلُ الخطأ المقبول في اتّجاهَي الحدّ — يُشتقّ منها الحدُّ بدل اختياره.",
+      "decision_effect_ar": "الحدُّ الأدنى لنافذة المتوسّط الساعيّ.",
+      "trace_ar": "أوّلُ التزامٍ أدخل الرمزَ في هذا الملفّ: 13a63f72 (2026-06-19).",
+      "note_ar": "الطرفُ الثاني للتصادم الظاهريّ أعلاه — يعمل على **متوسّطٍ ساعيّ** ويُنتِج **نسبةَ ساعات**. توحيدُه مع طرف `api.weather_advice` يُلغي فرقاً مقيساً ويُغيّر السلوك (`82٪ / 20°م` تنتقل من لا-خطر إلى خطر)."
+    },
+    {
+      "constant": "_DISEASE_T_MAX",
+      "module": "core.weather_overlay",
+      "import_root": "services/sahool-platform",
+      "file": "services/sahool-platform/core/weather_overlay.py",
+      "line": 25,
+      "location_role": "human_readable_only",
+      "value": 30.0,
+      "value_type": "float",
+      "origin_class": "post-import-local",
+      "origin_commit": "13a63f72",
+      "origin_date": "2026-06-19",
+      "provenance_class": "LOCALLY_DECIDED_BUT_UNCALIBRATED",
+      "authority_status": "LOCAL_DESIGN_DECISION",
+      "decision_record": {
+        "commit": "13a63f72",
+        "statement_en": "mechanism authorized locally; numeric boundary not empirically established; runtime evidence required"
+      },
+      "calibration_status": "BLOCKED_MISSING_RUNTIME_EVIDENCE",
+      "executable": false,
+      "recovery_condition": "شواهدُ تشغيلٍ حيّ على مجتمعٍ مُعرَّف ونافذةٍ مُعلَنة، ومعها معدَّلُ الخطأ المقبول في اتّجاهَي الحدّ — يُشتقّ منها الحدُّ بدل اختياره.",
+      "decision_effect_ar": "الحدُّ الأعلى لنافذة المتوسّط الساعيّ.",
+      "trace_ar": "أوّلُ التزامٍ أدخل الرمزَ في هذا الملفّ: 13a63f72 (2026-06-19).",
+      "note_ar": "الطرفُ الثاني للتصادم الظاهريّ أعلاه — يعمل على **متوسّطٍ ساعيّ** ويُنتِج **نسبةَ ساعات**. توحيدُه مع طرف `api.weather_advice` يُلغي فرقاً مقيساً ويُغيّر السلوك (`82٪ / 20°م` تنتقل من لا-خطر إلى خطر)."
+    },
+    {
+      "constant": "POLLINATION_THRESHOLDS_V1",
+      "module": "pollination_risk",
+      "import_root": "services/weather-service",
+      "file": "services/weather-service/pollination_risk.py",
+      "line": 24,
+      "location_role": "human_readable_only",
+      "value": -1.0,
+      "value_type": "float",
+      "origin_class": "post-import-local",
+      "origin_commit": "ca91905f",
+      "origin_date": "2026-07-10",
+      "provenance_class": "LOCALLY_DECIDED_BUT_UNCALIBRATED",
+      "authority_status": "LOCAL_DESIGN_DECISION",
+      "decision_record": {
+        "commit": "ca91905f",
+        "statement_en": "mechanism authorized locally; numeric boundary not empirically established; runtime evidence required"
+      },
+      "calibration_status": "BLOCKED_MISSING_RUNTIME_EVIDENCE",
+      "executable": false,
+      "recovery_condition": "شواهدُ تشغيلٍ حيّ على مجتمعٍ مُعرَّف ونافذةٍ مُعلَنة، ومعها معدَّلُ الخطأ المقبول في اتّجاهَي الحدّ — يُشتقّ منها الحدُّ بدل اختياره.",
+      "decision_effect_ar": "صغرى الليلة عندها فأدنى ⇒ `severity = 1.0` و`frost_flower_kill` — قتلٌ ثنائيّ.",
+      "trace_ar": "أوّلُ التزامٍ أدخل الرمزَ في هذا الملفّ: ca91905f (2026-07-10).",
+      "note_ar": "**تصادمٌ ظاهريّ قِيس فسقط.** «صقيعُ إزهار اللوز» هنا وفي `thermal_stress` بقيمتين (−1.0 و0.0). المتغيّرُ والوحدةُ واحدان، لكنّ **المجتمع** يختلف (هذا يغطّي ستَّ مراحل إزهار، وذاك مرحلةَ `bloom` وحدها) و**أثرَ القرار** يختلف (هنا `severity = 1.0` قتلٌ ثنائيّ، وهناك **عدُّ ليالٍ** إحصائيّ) و**التجميع** يختلف (ليلةٌ واحدة مقابل أفقٍ متعدّد الأيّام) ⇒ ثلاثةٌ من خمسة. و`cold_c` **متساوٍ في الموضعين (4.0)** — وتساوي القيمة لم يجعله تصادماً كما لم يجعل اختلافُها هنا فرقاً وهميّاً.",
+      "path": [
+        "almond",
+        "frost_c"
+      ]
+    },
+    {
+      "constant": "THERMAL_THRESHOLDS_V1",
+      "module": "thermal_stress",
+      "import_root": "services/weather-service",
+      "file": "services/weather-service/thermal_stress.py",
+      "line": 30,
+      "location_role": "human_readable_only",
+      "value": 0.0,
+      "value_type": "float",
+      "origin_class": "post-import-local",
+      "origin_commit": "b614b3ee",
+      "origin_date": "2026-07-10",
+      "provenance_class": "LOCALLY_DECIDED_BUT_UNCALIBRATED",
+      "authority_status": "LOCAL_DESIGN_DECISION",
+      "decision_record": {
+        "commit": "b614b3ee",
+        "statement_en": "mechanism authorized locally; numeric boundary not empirically established; runtime evidence required"
+      },
+      "calibration_status": "BLOCKED_MISSING_RUNTIME_EVIDENCE",
+      "executable": false,
+      "recovery_condition": "شواهدُ تشغيلٍ حيّ على مجتمعٍ مُعرَّف ونافذةٍ مُعلَنة، ومعها معدَّلُ الخطأ المقبول في اتّجاهَي الحدّ — يُشتقّ منها الحدُّ بدل اختياره.",
+      "decision_effect_ar": "يُعَدُّ به `frost_nights` على أفقٍ متعدّد الأيّام لمرحلة `bloom`.",
+      "trace_ar": "أوّلُ التزامٍ أدخل الرمزَ في هذا الملفّ: b614b3ee (2026-07-10).",
+      "note_ar": "الطرفُ الثاني — يُنتِج `frost_nights` عدّاً على أفقٍ متعدّد الأيّام لمرحلة `bloom` وحدها. القيمةُ 0.0 أشدُّ تحفّظاً من −1.0، لكنّ «الأشدَّ تحفّظاً» **قرارُ سياسةٍ لا اشتقاقُ حقيقة**: يوسّع الإنذار على مجتمعٍ لم يُقَس عليه.",
+      "path": [
+        "almond",
+        "stages",
+        "bloom",
+        "frost_c"
+      ]
+    },
+    {
+      "constant": "_WIND_MIN_MS",
+      "module": "core.weather_overlay",
+      "import_root": "services/sahool-platform",
+      "file": "services/sahool-platform/core/weather_overlay.py",
+      "line": 20,
+      "location_role": "human_readable_only",
+      "value": 0.8,
+      "value_type": "float",
+      "origin_class": "post-import-local",
+      "origin_commit": "13a63f72",
+      "origin_date": "2026-06-19",
+      "provenance_class": "LOCALLY_DECIDED_BUT_UNCALIBRATED",
+      "authority_status": "LOCAL_DESIGN_DECISION",
+      "decision_record": {
+        "commit": "13a63f72",
+        "statement_en": "mechanism authorized locally; numeric boundary not empirically established; runtime evidence required"
+      },
+      "calibration_status": "BLOCKED_MISSING_RUNTIME_EVIDENCE",
+      "executable": false,
+      "recovery_condition": "شواهدُ تشغيلٍ حيّ على مجتمعٍ مُعرَّف ونافذةٍ مُعلَنة، ومعها معدَّلُ الخطأ المقبول في اتّجاهَي الحدّ — يُشتقّ منها الحدُّ بدل اختياره.",
+      "decision_effect_ar": "دونها: سكونٌ ⇒ الساعةُ ليست صالحةً للرشّ (خطرُ انقلاب).",
+      "trace_ar": "أوّلُ التزامٍ أدخل الرمزَ في هذا الملفّ: 13a63f72 (2026-06-19).",
+      "note_ar": "نافذةُ رشٍّ بطرفين — دونها خطرُ انقلابٍ حراريّ وفوقها انجرافُ ريح. **وثمّة نظيرٌ سلوكيٌّ في خدمةٍ أخرى** (`weather-service/operations.py`: `wind > 18` كم/س) بلا استيرادٍ بينهما — قِيس: صفرُ استيراداتٍ من `sahool-platform` في `weather-service`. فالوحدةُ تختلف (م/ث مقابل كم/س) والتجميعُ يختلف (عدُّ ساعاتٍ مقابل عيّنةٍ مفردة) وأثرُ القرار يختلف (`spray_ok` مقابل وزنِ عقوبة) ⇒ لا تصادم. وربطُهما برقمٍ منسوخ يُنشئ اقتراناً بلا حارس: يتغيّر هنا فلا يشعر به هناك."
+    },
+    {
+      "constant": "_WIND_MAX_MS",
+      "module": "core.weather_overlay",
+      "import_root": "services/sahool-platform",
+      "file": "services/sahool-platform/core/weather_overlay.py",
+      "line": 20,
+      "location_role": "human_readable_only",
+      "value": 4.2,
+      "value_type": "float",
+      "origin_class": "post-import-local",
+      "origin_commit": "13a63f72",
+      "origin_date": "2026-06-19",
+      "provenance_class": "LOCALLY_DECIDED_BUT_UNCALIBRATED",
+      "authority_status": "LOCAL_DESIGN_DECISION",
+      "decision_record": {
+        "commit": "13a63f72",
+        "statement_en": "mechanism authorized locally; numeric boundary not empirically established; runtime evidence required"
+      },
+      "calibration_status": "BLOCKED_MISSING_RUNTIME_EVIDENCE",
+      "executable": false,
+      "recovery_condition": "شواهدُ تشغيلٍ حيّ على مجتمعٍ مُعرَّف ونافذةٍ مُعلَنة، ومعها معدَّلُ الخطأ المقبول في اتّجاهَي الحدّ — يُشتقّ منها الحدُّ بدل اختياره.",
+      "decision_effect_ar": "فوقها: انجرافُ ريح ⇒ الساعةُ ليست صالحةً للرشّ.",
+      "trace_ar": "أوّلُ التزامٍ أدخل الرمزَ في هذا الملفّ: 13a63f72 (2026-06-19).",
+      "note_ar": "نافذةُ رشٍّ بطرفين — دونها خطرُ انقلابٍ حراريّ وفوقها انجرافُ ريح. **وثمّة نظيرٌ سلوكيٌّ في خدمةٍ أخرى** (`weather-service/operations.py`: `wind > 18` كم/س) بلا استيرادٍ بينهما — قِيس: صفرُ استيراداتٍ من `sahool-platform` في `weather-service`. فالوحدةُ تختلف (م/ث مقابل كم/س) والتجميعُ يختلف (عدُّ ساعاتٍ مقابل عيّنةٍ مفردة) وأثرُ القرار يختلف (`spray_ok` مقابل وزنِ عقوبة) ⇒ لا تصادم. وربطُهما برقمٍ منسوخ يُنشئ اقتراناً بلا حارس: يتغيّر هنا فلا يشعر به هناك."
     }
   ],
   "measured_on": {
@@ -309,6 +578,7 @@
   "out_of_scope_ar": [
     "A2 نزلت هنا: سبعُ عتبات `alert_engine`، كلُّها `post-import-local` من `a254c4f7`. وانقسمت صنفين لا ثلاثة: ثلاثٌ بأساسٍ مستشهَد وخطّةٍ مُعلَنة، وأربعٌ بلا معايرة. والتدرّجُ الثالث الذي رصدتُه أوّلاً (رقمٌ مذكورٌ بلا أساس — `_MIN_COVERAGE`) **لم يُرقَّ إلى صنف**: شرطُ رفعه هو شرطُ الأربع نفسُه (شواهدُ تشغيل)، والصنفُ يُشتقّ من شرط الرفع لا من كثافة التوثيق. سُجِّل في `note_ar` الخاصّ به.",
     "التصادمُ الحقيقيّ الوحيد المقيس (0.12 على `PlantSoilFeedback.confidence`) مؤجَّلٌ إلى سلسلة Evidence→Authority؛ لا يُلمَس هنا.",
-    "`_LOW_SUCCESS_THRESHOLD = 0.6` في `services/sahool-platform/api/learning_feedback.py:19` رمزٌ آخر بقيمةٍ متساوية — وتساوي القيمة ليس دليلَ ازدواج (المعيار: هويّةٌ دلاليّة بخمسة شروط). خارج A1، ولم يُفحَص هنا."
+    "`_LOW_SUCCESS_THRESHOLD = 0.6` في `services/sahool-platform/api/learning_feedback.py:19` رمزٌ آخر بقيمةٍ متساوية — وتساوي القيمة ليس دليلَ ازدواج (المعيار: هويّةٌ دلاليّة بخمسة شروط). خارج A1، ولم يُفحَص هنا.",
+    "**حدٌّ بنيويٌّ مقيس — `weather-service/operations.py`:** ثلاثَ عشرةَ حرفيّةَ عتبةٍ مضمَّنةً في نداءات `penalize(...)` بلا أيّ اسم (`wind > 18` · `gust > 29` · `rh > 85` · `wind > 36` · `precip > 8` …). ومِرساةُ هذا السجلّ **رمزٌ في وحدة**، فما لا اسمَ له لا يُسجَّل ولا يُحرَس. وتسجيلُها يستلزم أوّلاً استخراجَها إلى ثوابتَ مُسمّاة — تغييرٌ حافظٌ للسلوك لكنّه تغييرُ كودٍ في خدمةٍ لم تُمَسّ في هذه الدفعة، فيُعلَن هنا ولا يُنفَّذ ضمناً. **وغيابُها من الجرد «لا أستطيع» لا «لا يوجد».**"
   ]
 }
