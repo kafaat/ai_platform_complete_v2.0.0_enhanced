@@ -1198,6 +1198,46 @@
         }
       ],
       "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py"
+    },
+    "scripts/architecture/s5_decision_live_closure_receipt.py": {
+      "$why_ar": "جامعُ إيصال S5 — الطرفُ المُنتِج من سلسلة C9. خطرُه أنّه يكتب دليلاً تقرؤه بوّابةٌ حاجبة: جامعٌ يحكم لنفسه، أو يفترض ادّعاءً بدل قياسه، أو يقرأ رمزَ الخروج حكماً، يُنتِج إيصالاً يبدو صالحاً ويشهد بما لم يُقَس. والطفراتُ الخمس تُثبِت أنّ كلَّ خاصّيّةٍ يدّعيها متنُ #944 مفروضةٌ باختبارٍ يحمرّ عند نزعها — لا موصوفةٌ في جدول.",
+      "mutations": [
+        {
+          "expect": "test_classification_agrees_with_the_guard_on_every_perturbation",
+          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
+          "find": "    receipt[\"classification\"] = \"PASSED\" if not findings else \"FAILED\"",
+          "replace": "    receipt[\"classification\"] = \"PASSED\"  # mutated: الجامعُ يحكم لنفسه",
+          "why": "جامعٌ يُصنّف PASSED دائماً يُنتِج إيصالاً يدّعي إغلاقاً لم يُقَس — وهو أخطرُ ما يفعله مُنتِجُ أدلّة، لأنّ البوّابة تثق بالجسم لا بنيّة كاتبه."
+        },
+        {
+          "expect": "test_the_write_enforcement_claim_is_measured_not_assumed",
+          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
+          "find": "    after = privilege.get(\"after\") or {}",
+          "replace": "    return True  # mutated: الادّعاءُ يصير مفترَضاً لا مقيساً\n    after = privilege.get(\"after\") or {}",
+          "why": "«منعُ كتابة المنصّة مُثبَت» ادّعاءٌ يُشتقّ من الامتيازات المقروءة. جعلُه ثابتاً يُمرّر جدولاً واحداً ما زال يقبل كتابةً — والحارسُ يقبل الإيصالَ لأنّ الكذبَ في مُدخَله لا في شرطه."
+        },
+        {
+          "expect": "test_a_local_script_exiting_nonzero_is_not_read_as_a_measurement_failure",
+          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
+          "find": "    if not (proc.stdout or \"\").strip():",
+          "replace": "    if proc.returncode != 0:  # mutated: الرمزُ يصير حكماً\n        raise MeasurementError(script.name)\n    if not (proc.stdout or \"\").strip():",
+          "why": "decision_sor_role_certify يُنهي بـ2 حين classification != PASSED، وذلك قياسٌ ناجحٌ لحالةٍ سالبة. فقراءةُ الرمز عجزاً تُنهي بـ1 بلا إيصال — فتضيع الحالةُ السالبة التي كان يجب أن تُوثَّق، ويُقرأ الصمتُ «لم يُقَس» بدل «قِيس ففشل»."
+        },
+        {
+          "expect": "test_the_collector_does_not_reimplement_the_guard_rules",
+          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
+          "find": "_PRIVILEGE_READ_ACTION = \"check\"",
+          "replace": "_PRIVILEGE_READ_ACTION = \"check\"\n_SOR_TABLE_HINT = \"decision_service_sor\"  # mutated: شرطُ الحارس يُعاد كتابته هنا",
+          "why": "مصدرُ الشروط واحد: findings_for تُستورَد من الحارس. وتسرّبُ مفردةٍ من مفرداته إلى الجامع بدايةُ نسخةٍ ثانية تنحرف عنه صامتاً — فيُنتِج إيصالاً يظنّه صاحبُه صالحاً وترفضه البوّابة، أو أسوأ: يقبله وقد تراخى."
+        },
+        {
+          "expect": "test_the_historical_overclaim_is_structurally_impossible",
+          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
+          "find": "            \"historical_zero_platform_writes_measured\": False,",
+          "replace": "            \"historical_zero_platform_writes_measured\": bool(evidence.get(\"hz\")),  # mutated: الادّعاءُ يُشتقّ من المُدخَل",
+          "why": "هذا الجامعُ لا يفحص سجلّاتٍ تاريخيّة، فالحقلُ مُثبَّتٌ false بنيويّاً. وجعلُه مُشتقّاً من المُدخَل يفتح بابَ المبالغة التي يرفضها الحارس بـhistorical_zero_writes_overclaim. **وهذه الطفرةُ بعينها نجت في أوّل جولةٍ لكاتب الشريحة** لأنّ مُدخَلاته لم تحمل المفتاح — فأثبتت القيمةَ لا الاستقلال. تسجيلُها يجعل ذلك التصحيحَ مفروضاً لا موصوفاً."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
