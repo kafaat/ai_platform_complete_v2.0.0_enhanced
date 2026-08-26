@@ -207,6 +207,14 @@ python scripts/release/validate_release_package.py     # يجب أن يقول: c
 | ٢ | `capability_management_engine.py --check` | `--generate` |
 | ٣ | `pr_capability_impact_gate.py --check-index` | `--generate-index` |
 
+> **وحلقةٌ رابعة كشفها أوّلُ استعمالٍ للكتلة أدناه:**
+> `capability_evidence_maturity_engine.py` — لم تظهر في شريحة A1 لأنّ تغييرها لم
+> يمسّ نضجَ الأدلّة، وظهرت في أوّل شريحةٍ تُضيف سكربتاً إلى `scripts/architecture/`.
+> فالكتلةُ التي كُتِبت لتُنهي الجولاتِ المتتالية **كانت هي نفسُها ناقصةً حلقة**،
+> وكلّفت جولةً إضافيّة. أُضيفت إلى ترتيبها أدناه. والدرسُ أعمّ من الحلقة: قائمةٌ
+> مُشتقّةٌ من **جولاتٍ وقعت** تصف ما وقع لا ما يقع — والاشتقاقُ من `_GENERATE_FLAG`
+> نفسِه أمتنُ من الاستقراء.
+
 **والسبب ليس أنّ المكنسة تقف عند أوّل فشل** — هذا قِيس ونُفِي: الحلقةُ في
 `verify_all_generated.py` تجمع كلّ الإخفاقات ولا تكسر، وجولةٌ واحدة أظهرت
 مولّداً فاشلاً وسط عشراتٍ خضراء بعده.
@@ -226,13 +234,15 @@ python scripts/release/validate_release_package.py     # يجب أن يقول: c
 
 ```bash
 git add -A                                                      # §٣.١: قبل التوليد لا بعده
-python scripts/ci/capability_mapping_engine.py --generate       # الأصل — يقرأه الاثنان بعده
+python scripts/ci/capability_mapping_engine.py --generate       # الأصل — تقرأه البقيّة
+git add -A
+python scripts/ci/capability_evidence_maturity_engine.py --generate
 git add -A
 python scripts/ci/capability_management_engine.py --generate
 git add -A
 python scripts/ci/pr_capability_impact_gate.py --generate-index
 git add -A
-python scripts/ci/verify_all_generated.py --check               # يجب أن تخضرّ هنا لا بعد ثلاث جولات
+python scripts/ci/verify_all_generated.py --check               # يجب أن تخضرّ هنا لا بعد جولات
 # ثمّ حزمة الإصدار **أخيراً** — كتلة §٣.١ حرفيّاً
 ```
 

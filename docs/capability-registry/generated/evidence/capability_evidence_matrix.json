@@ -8636,7 +8636,8 @@
         "services/sahool-platform/tests/test_p0_5_decision_sor_final_certification_guard.py",
         "services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py",
         "tests_v9/test_decision_sor_platform_revoke_static.py",
-        "tests_v9/test_s5_decision_live_closure_receipt.py"
+        "tests_v9/test_s5_decision_live_closure_receipt.py",
+        "tests_v9/test_s5_live_closure_receipt_collector.py"
       ]
     },
     {
