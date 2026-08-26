@@ -48,6 +48,18 @@ EXPECTED_CONSTANTS = frozenset(
         "_SEVERE_PCT",
         "_DESERT_PCT",
         "_MIN_COVERAGE",
+        # P5-B — المرض الفطريّ (طرفان مقيسان مختلفَين) وصقيع إزهار اللوز
+        "_HUMID_THRESHOLD",
+        "_MILD_TEMP_LOW",
+        "_MILD_TEMP_HIGH",
+        "_DISEASE_RH",
+        "_DISEASE_T_MIN",
+        "_DISEASE_T_MAX",
+        "POLLINATION_THRESHOLDS_V1",
+        "THERMAL_THRESHOLDS_V1",
+        # P5-C — نافذة الرشّ
+        "_WIND_MIN_MS",
+        "_WIND_MAX_MS",
     }
 )
 
@@ -115,7 +127,10 @@ def _resolve(entry: dict):
     التي يُثبِتها `test_moving_the_declaration_line_does_not_break_the_anchor`.
     """
     module = _import_module(entry)
-    return getattr(module, entry["constant"])
+    value = getattr(module, entry["constant"])
+    for step in entry.get("path", []):
+        value = value[step]
+    return value
 
 
 def test_the_ledger_is_a_governed_manifest(ledger: dict) -> None:
@@ -130,7 +145,8 @@ def test_the_ledger_is_a_governed_manifest(ledger: dict) -> None:
 def test_no_registered_threshold_is_dropped_from_the_inventory(entries: list[dict]) -> None:
     """«ولا تُسقطها من الجرد» — قيدٌ يختفي بلا أثر يُعيد الفجوةَ إلى الصمت."""
     assert {e["constant"] for e in entries} == EXPECTED_CONSTANTS
-    assert len(entries) == len(EXPECTED_CONSTANTS), "لا تكرارَ لاسمٍ واحد"
+    keys = [(e["constant"], tuple(e.get("path", ()))) for e in entries]
+    assert len(set(keys)) == len(keys), "قيدان بنفس الرمز والمسار — أحدهما يحجب الآخر"
 
 
 def test_every_recorded_value_matches_the_symbol_it_names(entries: list[dict]) -> None:
@@ -162,11 +178,21 @@ def test_the_symbol_is_defined_in_the_named_module_not_re_exported(entries: list
     رمزٌ مُعادُ تصديره (`from .other import _X`) يمرّ على `getattr` بينما
     القيمةُ الحقيقيّةُ تُغيَّر في وحدةٍ أخرى لا يذكرها السجلّ — فيبقى أخضر
     وهو يحرس السرابَ. الشرطُ: التصريحُ نفسُه في ملفّ الوحدة المسمّاة.
+
+    **والصياغةُ الأولى كانت تفترض إسناداً باسمٍ واحد** (`^NAME` ثمّ `=`)، فسقطت على
+    `_DISEASE_T_MIN, _DISEASE_T_MAX = 10.0, 30.0` — تفكيكُ صفٍّ مشروعٌ تماماً.
+    فالفحصُ الآن على **الطرف الأيسر كاملاً**: يقبل التفكيك ويظلّ يرفض
+    `from other import NAME` لأنّ الاستيرادَ بلا `=`.
     """
     for entry in entries:
         module = _import_module(entry)
         source = Path(module.__file__).read_text(encoding="utf-8")
-        assert re.search(rf"(?m)^{re.escape(entry['constant'])}\s*=", source), (
+        declared = any(
+            re.search(rf"(?<![\w.]){re.escape(entry['constant'])}(?![\w])", line.split("=", 1)[0])
+            for line in source.splitlines()
+            if "=" in line and line[:1] not in (" ", "\t", "#")
+        )
+        assert declared, (
             f"{entry['constant']} غيرُ مُصرَّحٍ في {entry['module']} — إعادةُ تصديرٍ أو استيراد"
         )
 
@@ -239,6 +265,31 @@ def test_no_entry_is_executable_and_the_class_semantics_hold(entries: list[dict]
         assert entry["recovery_condition"], "قيدٌ بلا شرطِ استعادة سجلُّ يأسٍ لا سجلُّ فجوة"
         assert "FINAL" not in entry["calibration_status"]
         assert "CALIBRATED" != entry["calibration_status"]
+
+
+def test_a_container_path_resolves_and_says_so_when_it_does_not(entries: list[dict]) -> None:
+    """عتبةٌ داخل حاوية: المسارُ جزءٌ من المِرساة، وانكسارُه يجب أن **يُسمّي** نفسه.
+
+    بلا هذا، مفتاحٌ يُعاد تسميته يُفجّر `KeyError` عارياً داخل مُحلِّلٍ مشترك،
+    فتحمرّ اختباراتٌ عدّة برسالةٍ لا تقول أيّ قيدٍ انكسر ولا عند أيّ خطوة —
+    وحارسٌ يموت بلا تشخيص يُعلَّم الفريقُ تجاهُلَه (§٣.٢٥).
+    """
+    for entry in entries:
+        path = entry.get("path")
+        if not path:
+            continue
+        node = getattr(_import_module(entry), entry["constant"])
+        walked: list[str] = []
+        for step in path:
+            assert isinstance(node, dict), (
+                f"{entry['constant']}{walked}: الخطوةُ {step!r} على قيمةٍ ليست قاموساً"
+            )
+            assert step in node, (
+                f"{entry['constant']}{walked}: المفتاح {step!r} غير موجود — "
+                f"المتاح: {sorted(node)[:8]}"
+            )
+            node = node[step]
+            walked.append(step)
 
 
 def test_a_cited_basis_is_required_by_its_class_and_forbidden_outside_it(
