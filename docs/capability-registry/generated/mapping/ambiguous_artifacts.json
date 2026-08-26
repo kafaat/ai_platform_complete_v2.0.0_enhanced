@@ -2086,6 +2086,28 @@
     ]
   },
   {
+    "path": "frontend/src/components/fieldview/SeasonEvidenceCard.criticalWindow.test.tsx",
+    "kind": "web",
+    "candidates": [
+      {
+        "capability_id": "FM-004",
+        "score": 14,
+        "signals": [
+          "path:season",
+          "content:season"
+        ]
+      },
+      {
+        "capability_id": "WX-006",
+        "score": 12,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      }
+    ]
+  },
+  {
     "path": "frontend/src/components/fieldview/SeasonEvidenceCard.tsx",
     "kind": "web",
     "candidates": [

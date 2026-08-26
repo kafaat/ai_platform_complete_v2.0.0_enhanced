@@ -1475,7 +1475,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e917d06857fc2d0747f0805a025ec919b29b28359241d6a7c53eb0183df66367"
+          "content": "8a1e81ef673924620693b75a7529aabbbc2fc23e1248904be9b300c3021c186e"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/SeasonEvidenceCard.criticalWindow.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f1803222d880d20b5e633a617efdb4b6de39cb477680e9bece48bf0ba1da1af4"
         }
       ],
       "name": "frontend/src/components/fieldview/SeasonEvidenceCard.tsx",
@@ -3875,7 +3885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6723552f0f61f7abb989f6a158af19fd613c19b498fb1483be514b8e14bfec2d"
+          "content": "3baa4b35ad7cc6475d9f3137dd70d5a2bb3db758848ce7e18f052f278a5df6fd"
         }
       ],
       "name": "frontend/src/lib/fieldSeasonState.ts",

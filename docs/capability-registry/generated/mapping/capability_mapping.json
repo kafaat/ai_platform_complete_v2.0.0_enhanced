@@ -15,7 +15,7 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5188,
+    "files_scanned": 5189,
     "files_by_kind": {
       "backend": 1204,
       "database": 274,
@@ -23,10 +23,10 @@
       "mobile": 51,
       "other": 1421,
       "tests": 1722,
-      "web": 456
+      "web": 457
     },
     "unmapped_artifacts": 2112,
-    "ambiguous_artifacts": 413
+    "ambiguous_artifacts": 414
   },
   "capabilities": [
     {
@@ -7205,6 +7205,14 @@
           "score": 16
         },
         {
+          "value": "crop_card.thermal.flowering_safe_max_c @ frontend/src/components/fieldview/SeasonEvidenceCard.criticalWindow.test.tsx:46",
+          "score": 14
+        },
+        {
+          "value": "field_season_state.v1 @ frontend/src/components/fieldview/SeasonEvidenceCard.criticalWindow.test.tsx:57",
+          "score": 14
+        },
+        {
           "value": "field_season_state.v1 @ services/sahool-platform/api/field_season_projection.py:215",
           "score": 14
         },
@@ -7373,6 +7381,14 @@
         },
         {
           "path": "frontend/src/components/fieldview/SeasonCommandCard.tsx",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
+          "path": "frontend/src/components/fieldview/SeasonEvidenceCard.criticalWindow.test.tsx",
           "score": 14,
           "signals": [
             "path:season",
@@ -7883,8 +7899,8 @@
         "backend": 30,
         "routes": 82,
         "database": 84,
-        "events": 56,
-        "web": 12,
+        "events": 58,
+        "web": 13,
         "mobile": 1,
         "tests": 34,
         "governance": 0,
@@ -33637,6 +33653,10 @@
           "score": 12
         },
         {
+          "value": "crop_card.thermal.flowering_safe_max_c @ frontend/src/components/fieldview/SeasonEvidenceCard.criticalWindow.test.tsx:46",
+          "score": 12
+        },
+        {
           "value": "crop_intelligence_state.v2 @ services/sahool-platform/core/crop_intelligence/engine.py:17",
           "score": 12
         },
@@ -33666,6 +33686,10 @@
         },
         {
           "value": "crop_recommendation_context.v1 @ services/sahool-platform/tests/test_crop_decision_bridge.py:31",
+          "score": 12
+        },
+        {
+          "value": "field_season_state.v1 @ frontend/src/components/fieldview/SeasonEvidenceCard.criticalWindow.test.tsx:57",
           "score": 12
         },
         {
@@ -33724,6 +33748,14 @@
       "web": [
         {
           "path": "frontend/src/components/fieldview/GisTemporalOpsCard.tsx",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "path": "frontend/src/components/fieldview/SeasonEvidenceCard.criticalWindow.test.tsx",
           "score": 12,
           "signals": [
             "content:GDD",
@@ -34421,8 +34453,8 @@
         "backend": 84,
         "routes": 26,
         "database": 33,
-        "events": 26,
-        "web": 16,
+        "events": 28,
+        "web": 17,
         "mobile": 0,
         "tests": 46,
         "governance": 0,
@@ -45386,6 +45418,28 @@
             "content:Weather forecast",
             "content:forecast",
             "content:weather forecast"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "frontend/src/components/fieldview/SeasonEvidenceCard.criticalWindow.test.tsx",
+      "kind": "web",
+      "candidates": [
+        {
+          "capability_id": "FM-004",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
+          "capability_id": "WX-006",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
           ]
         }
       ]
