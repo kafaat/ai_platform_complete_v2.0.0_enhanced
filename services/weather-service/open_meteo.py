@@ -49,6 +49,16 @@ def _as_list(payload: dict[str, Any], section: str, key: str) -> list[Any]:
     return value if isinstance(value, list) else []
 
 
+# الحقولُ اليوميّةُ الوحيدةُ التي يُقبَل تصفيرُها عند الغياب — قرارٌ قائمٌ يُحيل
+# إليه تعليقُ `normalize_daily_forecast` باسمه، **وكان الاسمُ بلا تعريف**: إحالةٌ
+# إلى قيدٍ غيرِ موجود تقرأ كأنّها ضمانة. عُرِّف هنا فصار القيدُ مُعلَناً ومحروساً.
+#
+# وأساسُ الاستثناء مكتوبٌ لا مُفترَض: «لا مطر» و«لا رياح» قراءتان معقولتان للصفر
+# في مجموعٍ يوميّ. وما عداهما — الحرارةُ والرطوبةُ والغيومُ والقراءاتُ الساعيّةُ
+# والآنيّة — يبقى `None` عند الغياب.
+_DAILY_ZERO_COERCED_FIELDS = ("precipitation_mm", "wind_max_kmh")
+
+
 def _at(values: list[Any], idx: int, default: Any = None) -> Any:
     if idx < 0 or idx >= len(values):
         return default
@@ -215,20 +225,25 @@ def normalize_current(
     current: dict[str, Any], *, lat: float, lon: float, source_payload: dict[str, Any] | None = None
 ) -> dict[str, Any]:
     source_payload = source_payload or {}
-    wind_kmh = float(current.get("wind_speed_10m") or 0.0)
+    # قراءةٌ غائبة ليست صفراً: رياحٌ مفقودةٌ تصير «هدوءاً» وهي أكثرُ الحالات
+    # إذناً بالرشّ، ومطرٌ مفقودٌ يصير «جفافاً». والقَسرُ إلى صفرٍ لا يُنتِج قيمةً
+    # محافظة بل قيمةً **متساهلة** — يُقرَأ غيابُ القياس إذناً. و`operation_suitability`
+    # مبنيٌّ على `None = مفقود` سلفاً، فالصدقُ هنا يبلغ آليّةَ الفشل المغلق القائمة.
+    wind_raw = current.get("wind_speed_10m")
+    wind_kmh = float(wind_raw) if wind_raw is not None else None
     gust_kmh = current.get("wind_gusts_10m")
     return {
         "location": {"lat": lat, "lon": lon},
         "temperature_c": current.get("temperature_2m"),
         "humidity_pct": current.get("relative_humidity_2m"),
-        "wind_speed_ms": round(wind_kmh / 3.6, 3),
+        "wind_speed_ms": round(wind_kmh / 3.6, 3) if wind_kmh is not None else None,
         "wind_speed_10m_kmh": wind_kmh,
         "wind_direction_deg": current.get("wind_direction_10m"),
         "wind_direction_10m_deg": current.get("wind_direction_10m"),
         "wind_direction_source": "open-meteo",
         "wind_gusts_ms": round(float(gust_kmh) / 3.6, 3) if gust_kmh is not None else None,
         "wind_gusts_10m_kmh": gust_kmh,
-        "precipitation_mm": current.get("precipitation") or 0,
+        "precipitation_mm": current.get("precipitation"),
         "cloud_cover_pct": current.get("cloud_cover"),
         "surface_pressure_hpa": current.get("surface_pressure"),
         "weather_code": current.get("weather_code"),
@@ -424,16 +439,18 @@ def normalize_tile_sample(
             }
         )
     else:
-        wind = _at(hourly.get("wind_speed_10m") or [], idx, 0)
+        # الافتراضيُّ `None` لا `0` — انظر التعليقَ في `normalize_current`. والفرعُ
+        # المقابلُ أعلاه يستعمل `None` للحقول المشتقّة، فهذا يُطابِقه لا يُخالفه.
+        wind = _at(hourly.get("wind_speed_10m") or [], idx)
         gust = _at(hourly.get("wind_gusts_10m") or [], idx, wind)
         sample = {
             "location": {"lat": lat, "lon": lon},
-            "temperature_c": _at(hourly.get("temperature_2m") or [], idx, 0),
-            "humidity_pct": _at(hourly.get("relative_humidity_2m") or [], idx, 0),
-            "precipitation_mm": _at(hourly.get("precipitation") or [], idx, 0),
-            "cloud_cover_pct": _at(hourly.get("cloud_cover") or [], idx, 0),
+            "temperature_c": _at(hourly.get("temperature_2m") or [], idx),
+            "humidity_pct": _at(hourly.get("relative_humidity_2m") or [], idx),
+            "precipitation_mm": _at(hourly.get("precipitation") or [], idx),
+            "cloud_cover_pct": _at(hourly.get("cloud_cover") or [], idx),
             "wind_speed_10m_kmh": wind,
-            "wind_speed_ms": round(float(wind or 0) / 3.6, 3),
+            "wind_speed_ms": round(float(wind) / 3.6, 3) if wind is not None else None,
             "wind_direction_10m_deg": _at(hourly.get("wind_direction_10m") or [], idx),
             "wind_direction_deg": _at(hourly.get("wind_direction_10m") or [], idx),
             "wind_direction_source": "open-meteo",
