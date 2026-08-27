@@ -36,6 +36,7 @@ high,sahool-platform,function,_reset_breaker,services/sahool-platform/tests/test
 high,sahool-platform,function,_patch_engine_gdd,services/sahool-platform/tests/test_profit_aware_decision_endpoint.py,25,0,review_before_delete,False
 high,sam2-inference,function,_startup,services/sam2-inference/main.py,19,0,review_before_delete,False
 high,soil-service,function,_tenant_context_mw,services/soil-service/main.py,107,0,review_before_delete,False
+high,weather-service,function,_reset_breaker,services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py,41,0,review_before_delete,False
 high,shared,function,_normalize_feature_vector,shared/precision_agriculture/phase6_intelligence.py,221,0,review_before_delete,False
 medium,agriai-engine,function,salt_engine_applies,services/agriai-engine/aquacrop_adapter.py,56,0,review_before_delete,False
 medium,agriai-engine,function,aquacrop_salt_capability_report,services/agriai-engine/aquacrop_adapter.py,267,0,review_before_delete,False

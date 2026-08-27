@@ -4730,7 +4730,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-    "line": 69,
+    "line": 103,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/weather/thermal-stress",
     "function": "field_weather_thermal_stress"
@@ -4738,7 +4738,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-    "line": 104,
+    "line": 138,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/weather/crop-stress",
     "function": "field_weather_crop_stress"
@@ -4746,7 +4746,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-    "line": 171,
+    "line": 205,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/weather/operation-windows",
     "function": "field_weather_operation_windows"
@@ -4754,7 +4754,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-    "line": 224,
+    "line": 256,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/weather/irrigation-advice",
     "function": "field_irrigation_advice_facade"
@@ -4762,7 +4762,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-    "line": 279,
+    "line": 311,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/weather/disease-risk",
     "function": "field_disease_risk_facade"
