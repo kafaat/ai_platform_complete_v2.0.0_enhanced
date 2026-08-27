@@ -498565,49 +498565,49 @@
       "file": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
       "source": "test_an_absent_sample_fails_closed_instead_of_raising",
       "target": "parametrize",
-      "line": 33
+      "line": 32
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
       "source": "test_an_absent_sample_fails_closed_instead_of_raising",
       "target": "operation_suitability",
-      "line": 36
+      "line": 35
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
       "source": "test_the_refusal_names_which_safety_input_was_missing",
       "target": "operation_suitability",
-      "line": 45
+      "line": 44
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
       "source": "test_the_refusal_names_which_safety_input_was_missing",
       "target": "any",
-      "line": 48
+      "line": 47
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
       "source": "test_the_refusal_names_which_safety_input_was_missing",
       "target": "str",
-      "line": 48
+      "line": 47
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
       "source": "test_a_complete_sample_still_scores_so_the_guard_is_not_a_blanket_refusal",
       "target": "operation_suitability",
-      "line": 54
+      "line": 53
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
       "source": "test_every_supported_operation_survives_an_absent_sample",
       "target": "operation_suitability",
-      "line": 66
+      "line": 65
     },
     {
       "owner": "weather-service",

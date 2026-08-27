@@ -29455,7 +29455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0742b3044f6a9476337c048d52583e7f7ae84e9bf7d63632d61be261b3b71f1d"
+          "content": "1ba630d360416fc111772f2fc56c93ad7f3469e7138095d7b1eb3a15fdc6e16f"
         }
       ],
       "name": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
