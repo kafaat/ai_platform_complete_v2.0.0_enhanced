@@ -14,6 +14,21 @@ Waivers without ``expiry`` and without ``temporary: true`` are ignored (permanen
 design, e.g. admin-ops routes with no user-facing screen). The guard uses the real
 current date at CI time, so an expired waiver forces a deliberate renewal or removal of
 the underlying gap.
+
+**And a fourth failure, added because it had already happened silently:** a waiver whose
+date lives under a *near-miss* key — ``expires``, ``expires_on``, ``valid_until`` — is
+invisible to a guard that reads ``expiry`` alone. It reads as time-boxed to every human
+who opens the file and is permanent to CI: the exact outcome this guard exists to
+prevent, wearing the guard's own vocabulary. Measured 2026-08-27 on ``e6b1dbaa``:
+**seven** entries in ``endpoint_ui_coverage_waivers.json`` carried ``expires``, the
+nearest four days out, and the guard had reported ``ok`` over them since they landed.
+
+So the near-miss keys are **rejected, not accepted as aliases**. Accepting them would
+close this instance and leave the class open — the next spelling nobody thought of
+(``expiration``? ``sunset``?) re-opens it in silence. Rejecting forces one spelling into
+the data, where a reader can see it. The repository does use ``expires_on`` elsewhere
+(``build_platform_catalog.py`` U4 decisions) with its own enforcement; this rule binds
+only the files listed in ``WAIVER_FILES``.
 """
 
 from __future__ import annotations
@@ -31,6 +46,13 @@ WAIVER_FILES = (
     ROOT / "config" / "endpoint_ui_coverage_waivers.json",
     ROOT / "config" / "security_exceptions.json",
 )
+
+
+# مرادفاتٌ قريبةٌ تُرفَض. القائمةُ صريحةٌ لا نمطيّة (`.*expir.*`) عمداً: نمطٌ واسع
+# يلتقط حقولاً مشروعةً لا علاقةَ لها بانقضاء الإعفاء، فيتحوّل الحارسُ إلى مصدر
+# إزعاجٍ يُلتَفّ عليه. وتُزاد هذه القائمةُ حين يظهر تهجٍّ جديد — وظهورُه نفسُه
+# يجب أن يكون فشلاً مرئيّاً لا اكتشافاً متأخّراً.
+EXPIRY_NEAR_MISS_KEYS = ("expires", "expires_on", "expire", "expiration", "valid_until")
 
 
 def _iter_waivers(data: object):
@@ -53,6 +75,14 @@ def check_waivers(entries: list, *, today: _dt.date) -> list[str]:
             for field in required_fields:
                 if not w.get(field):
                     problems.append(f"{label}: temporary waiver missing required field {field}")
+        # يُفحَص **قبل** قراءة `expiry`: مُدخَلٌ يحمل الاثنين ما زال مُلتبِساً على
+        # قارئه، ومُدخَلٌ يحمل المرادفَ وحدَه كان يمرّ صامتاً — وكلاهما يُبلَّغ.
+        for alias in EXPIRY_NEAR_MISS_KEYS:
+            if alias in w:
+                problems.append(
+                    f"{label}: expiry-like field {alias!r}={w[alias]!r} is not read by this "
+                    "guard — rename it to 'expiry' (a date CI cannot see is not a deadline)"
+                )
         expiry = w.get("expiry")
         if expiry in (None, ""):
             if w.get("temporary") is True:

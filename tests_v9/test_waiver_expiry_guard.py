@@ -96,3 +96,58 @@ def test_live_endpoint_coverage_waivers_are_wellformed():
         if w.get("temporary") is True:
             # a temporary waiver must carry a parseable expiry so CI can enforce it.
             _dt.date.fromisoformat(str(w["expiry"]))
+
+
+# ── مرادفاتُ الانقضاء القريبة ─────────────────────────────────────────────────
+#
+# العطلُ الذي وُجِدت هذه الاختباراتُ لأجله: سبعةُ إعفاءاتٍ في الملفّ الحيّ كانت
+# تحمل تاريخَها تحت `expires`، والحارسُ يقرأ `expiry` وحدَه — فمرّت صامتةً منذ
+# نزولها، وأقربُها كان على بعد أربعة أيّام. تاريخٌ لا تراه CI ليس موعداً نهائيّاً.
+
+
+def test_a_near_miss_expiry_key_is_flagged_not_ignored():
+    """`expires` وحدَه: كان يمرّ بلا ملاحظةٍ واحدة، فصار يُبلَّغ باسمه وقيمته."""
+    entries = [{"endpoint": "/x", "expires": "2026-08-31"}]
+    problems = guard.check_waivers(entries, today=TODAY)
+    assert len(problems) == 1
+    assert "'expires'" in problems[0] and "2026-08-31" in problems[0]
+    assert "rename it to 'expiry'" in problems[0]
+
+
+def test_every_near_miss_key_is_covered_not_just_the_one_that_bit_us():
+    """الصنفُ لا الحالة: كلُّ تهجٍّ في القائمة يُرفَض، لا `expires` وحدَه."""
+    for alias in guard.EXPIRY_NEAR_MISS_KEYS:
+        problems = guard.check_waivers([{"endpoint": "/x", alias: "2026-10-11"}], today=TODAY)
+        assert problems, f"المرادفُ {alias} يمرّ بلا ملاحظة"
+        assert repr(alias) in problems[0]
+
+
+def test_a_valid_expiry_alongside_an_alias_is_still_flagged():
+    """الالتباسُ نفسُه عطل: مُدخَلٌ بتاريخين يقرأ كلُّ ناظرٍ فيه واحداً."""
+    entries = [{"endpoint": "/x", "expiry": "2026-10-11", "expires": "2026-07-10"}]
+    problems = guard.check_waivers(entries, today=TODAY)
+    assert len(problems) == 1
+    assert "'expires'" in problems[0]
+
+
+def test_a_waiver_with_only_expiry_draws_no_alias_complaint():
+    """ولا إيجابيّاتٍ كاذبة: التهجّي القانونيُّ وحدَه يمرّ نظيفاً."""
+    assert guard.check_waivers([{"endpoint": "/x", "expiry": "2026-10-11"}], today=TODAY) == []
+
+
+def test_live_waiver_configs_carry_no_invisible_deadline():
+    """راتشِتٌ على البيانات: صفرُ مرادفٍ في أيّ ملفّ يفحصه الحارس.
+
+    الاختبارُ السابق (`..._are_wellformed`) لم يكن ليمسك هذا: كان يفحص المؤقّتةَ
+    وحدَها، والسبعةُ لم تُعلَن `temporary` — فمرّت من فتحتين لا واحدة.
+    """
+    for path in guard.WAIVER_FILES:
+        if not path.exists():
+            continue
+        data = json.loads(path.read_text(encoding="utf-8"))
+        for w in guard._iter_waivers(data):
+            present = [k for k in guard.EXPIRY_NEAR_MISS_KEYS if k in w]
+            assert not present, (
+                f"{path.name}: {w.get('endpoint') or w.get('id')} يحمل {present} — "
+                "تاريخٌ لا يقرؤه الحارس"
+            )
