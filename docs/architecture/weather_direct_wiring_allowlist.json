@@ -1,11 +1,14 @@
 {
   "purpose": "P3.5 final sweep — enumerate every sahool-platform file that still performs direct Open-Meteo wiring (imports api.connectors.openmeteo or calls fetch_current/fetch_daily_forecast/fetch_historical/fetch_weather_tile_data) and pin each to an honest reason. The guard test scans api/**/*.py and fails on any offender that is neither a legitimate home nor a documented residual.",
+  "marker_detection": "Structural (ast), not textual. A file is an offender when it IMPORTS the connector module in any spelling (import api.connectors.openmeteo / from api.connectors.openmeteo import … / from api.connectors import openmeteo) or NAMES one of its provider-touching fetchers in code. Prose and comments never make a file an offender — the textual scan used to keep a file listed for the comment that explained why it had stopped importing the connector. The alternate `from api.connectors import openmeteo` spelling matched none of the old string markers (measured: zero matches), and fetch_bundle/fetch_current_batch were absent from the list although both reach the provider.",
   "direct_wiring_markers": [
     "connectors.openmeteo",
     "fetch_weather_tile_data",
     "fetch_current",
+    "fetch_current_batch",
     "fetch_daily_forecast",
-    "fetch_historical"
+    "fetch_historical",
+    "fetch_bundle"
   ],
   "legitimate_homes": {
     "api/connectors/openmeteo.py": "The Open-Meteo provider adapter itself. The single sanctioned place that speaks to the Open-Meteo HTTP provider (with the circuit breaker). All other platform weather reads should flow through weather-service (via api/weather_service_client.py) or this adapter, not re-open provider transport.",
@@ -20,8 +23,12 @@
     "api/routers/field_ai_context.py": "Field AI-context builder reads historical weather to ground agronomy/LLM context; cross-domain composite pending P4.",
     "api/routers/season_workspace.py": "Season workspace composes forecast/current weather into the seasonal planning view; cross-domain aggregator pending P4.",
     "api/routers/seasons.py": "Seasons endpoint pulls historical weather for season retrospectives; cross-domain aggregator pending P4.",
-    "api/weather_automation.py": "Weather-driven automation/alerts worker polls current weather per configured location; cross-domain automation composite pending P4.",
-    "api/routers/field_workspace_weather.py": "Relocated from fields.py (UI27-30 workspace cleanup): irrigation-advice + disease-risk still call connectors.openmeteo (fetch_current/fetch_daily_forecast) directly — same pre-existing residual, pending P4 move behind weather-service."
+    "api/weather_automation.py": "Weather-driven automation/alerts worker polls current weather per configured location; cross-domain automation composite pending P4."
+  },
+  "composite_residuals_ceiling": 9,
+  "composite_residuals_ceiling_note": "A ratchet, enforced by test_the_documented_residuals_only_ever_shrink: the number of documented residuals may only go DOWN. The list previously carried 10 entries, every one of them marked 'pending P4' since the original sweep, with nothing in the tree that would turn red if they stayed forever — an exemption with no descending ceiling is not deferred debt, it is a silent write-off. Lowered 10 -> 9 when api/routers/field_workspace_weather.py moved behind api/weather_service_client.py (irrigation-advice + disease-risk now read the weather-service views instead of the provider adapter). Raising this number requires editing it here, in the open.",
+  "closed_residuals": {
+    "api/routers/field_workspace_weather.py": "Closed: irrigation-advice + disease-risk now call weather_service_client.get_current_weather / get_weather_forecast. The two routes had function-local `from api.connectors.openmeteo import fetch_current, fetch_daily_forecast` imports while the rest of the same file already used the weather-service client at module level. The circuit breaker was NOT bypassed (open_meteo._fetch_json guards it on every provider call); what was bypassed is the P3.4 facade contract and weather-service's shared cache. Conversion needed an adapter because the connector returns typed objects (CurrentWeather / list[DailyForecast]) while the client returns the CanonicalWeatherState views as dicts — same field names, but the forecast days sit under a `days` envelope key, and a missing reading arrives as None named in `missing_fields` (quality_status: degraded) instead of the connector's silent `.get(key, 0)` default. Two pre-existing defects closed with the move: an absent reading became 0 (0 degC + 0% humidity reads as LOW disease risk — a reassuring answer built from no data), and a null reading became float(None) -> TypeError -> 500. Both are now an explicit 503 naming the missing input. Witnessed by tests_v9/test_weather_views_survive_the_hop_to_the_platform.py, which runs the real weather-service producer into the real platform adapter rather than faking either end."
   },
   "neutral_tile_guarantee": "api/weather_service_client.py get_weather_tile_data/get_operation_tile_data catch a 502 (weather-service unreachable) and return a neutral tile (value=null, available=false, cache_state=service_unavailable) instead of propagating one Bad Gateway per tile. This preserves the pre-extraction 'don't flood the map with 502 per tile' guarantee across the platform->weather-service network hop.",
   "final_sweep_status": "P3.5 complete: direct Open-Meteo wiring is pinned to api/connectors/openmeteo.py (provider adapter) + api/weather_service_client.py (weather-service transport); all other referencing files are documented composite_residuals_pending_p4. New offenders are blocked by tests/test_p3_5_weather_direct_wiring_final_sweep.py."

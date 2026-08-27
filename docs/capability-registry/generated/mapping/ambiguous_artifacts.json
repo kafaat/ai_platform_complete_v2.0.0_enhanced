@@ -1117,6 +1117,29 @@
     ]
   },
   {
+    "path": "docs/architecture/weather_direct_wiring_allowlist.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "WX-002",
+        "score": 12,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
+        ]
+      },
+      {
+        "capability_id": "WX-001",
+        "score": 10,
+        "signals": [
+          "content:Current weather",
+          "content:current weather"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/audits/BRANCH_TRIAGE_REVIEW_20260718.md",
     "kind": "other",
     "candidates": [
@@ -6330,19 +6353,20 @@
     "kind": "backend",
     "candidates": [
       {
+        "capability_id": "WX-002",
+        "score": 16,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
+        ]
+      },
+      {
         "capability_id": "FM-003",
         "score": 13,
         "signals": [
           "path:field workspace",
           "content:field workspace"
-        ]
-      },
-      {
-        "capability_id": "WX-004",
-        "score": 12,
-        "signals": [
-          "content:ET0",
-          "content:et0"
         ]
       }
     ]
@@ -8400,6 +8424,29 @@
         "signals": [
           "content:farm",
           "content:farms"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-008",
+        "score": 10,
+        "signals": [
+          "content:Operation windows",
+          "content:operation window"
+        ]
+      },
+      {
+        "capability_id": "WX-002",
+        "score": 10,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
         ]
       }
     ]

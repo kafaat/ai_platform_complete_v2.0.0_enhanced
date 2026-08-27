@@ -17695,7 +17695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3e6d030585f5a58653bf2e68e66dbe7aa628748526f60a56345782b604a20995"
+          "content": "7180332f162e3839994e1ae2f03559264ce9ab828fd357dd0fe0993866282997"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_workspace_weather.py",
@@ -25965,7 +25965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "889dc3332eb39bc2e9efe019d923c1bf1981d79b7a1e9e33e15e04989927c2eb"
+          "content": "7ef33deab50b99e11a5e223182e944c186cd95b7868de9d53687883138bd4cb4"
         }
       ],
       "name": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
@@ -27025,7 +27025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f3f3ec13922361b8a534d17019b4d9cf48441ff45359e356e4fbc0dc8cae9c51"
+          "content": "00321fd7b49ac520cb759d43b95147cfaff5a08cadfd6dae8b13390e6015164a"
         }
       ],
       "name": "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",

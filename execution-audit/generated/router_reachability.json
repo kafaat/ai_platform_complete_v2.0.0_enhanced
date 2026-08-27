@@ -1189,7 +1189,7 @@
     },
     {
       "kind": "router",
-      "line": 31,
+      "line": 33,
       "module": "services.sahool-platform.api.routers.field_workspace_weather",
       "node_id": "services.sahool-platform.api.routers.field_workspace_weather:router",
       "route_count": 5,
@@ -2586,7 +2586,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "cf610e3302e0d9fb9961b9019097193bfd1ea8adae93f7f63b24bf886d84a172",
+  "inventory_sha256": "d90ba653d3d24f112a9a129b9897b29b1f111272c798a82241075c1f873fbbaf",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {
@@ -3662,7 +3662,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 31,
+      "line": 33,
       "module": "services.sahool-platform.api.routers.field_workspace_weather",
       "node_id": "services.sahool-platform.api.routers.field_workspace_weather:router",
       "route_count": 5,

@@ -9673,6 +9673,7 @@
         "services/sahool-platform/tests/test_p3_4_platform_weather_facade_guard.py",
         "services/sahool-platform/tests/test_p3_weather_service_realization_guard.py",
         "services/sahool-platform/tests/test_planting_window.py",
+        "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",
         "services/weather-service/tests/test_p3_weather_service_runtime.py",
         "services/weather-service/tests/test_raw_weather_processing.py",
         "tests_v9/test_canonical_water_state_mpc.py",
@@ -9993,6 +9994,7 @@
         "tests_v9/test_water_ledger.py",
         "tests_v9/test_weather_analytics_engine_delegation.py",
         "tests_v9/test_weather_engine_formula_guard.py",
+        "tests_v9/test_weather_views_survive_the_hop_to_the_platform.py",
         "tests_v9/test_wired_endpoints.py"
       ]
     },

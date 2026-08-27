@@ -3455,6 +3455,41 @@
         }
       ],
       "test": "tests_v9/test_visual_fixme_baseline_guard.py"
+    },
+    "no_manual_backup_files_guard.py": {
+      "test": "tests_v9/test_no_manual_backup_files_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_manual_backup_name_is_rejected",
+          "find": "    | (?:\\.before[_-][^/]*$)          # main.before_p2 وأخواتُه",
+          "replace": "    # mutated: مقطعُ .before_ لا يُطابَق — وهو الحادثةُ الأصليّةُ بعينها",
+          "why": "`main.before_p2` هو الملفُّ الذي وقع مرّتين في خدمتين. حارسٌ يفقد هذا البديل يبقى أخضرَ على الحادثة التي وُجِد لأجلها حرفيّاً — وهو الشكلُ الأدقّ لِـ«حارسٍ لا يفعل شيئاً»."
+        },
+        {
+          "expect": "test_a_manual_backup_name_is_rejected",
+          "find": "    (?:\\.(?:bak|orig|rej|save)$)      # لاحقةٌ صريحة",
+          "replace": "    (?:\\.(?:zzzz)$)      # mutated: اللواحقُ المعروفةُ لا تُطابَق",
+          "why": "`.bak`/`.orig`/`.rej` هي مخرجاتُ أدوات الدمج والنسخ نفسِها — أكثرُ الأشكال وروداً. إسقاطُها يُبقي الحارسَ يحرس صنفاً واحداً من ثلاثة ويُعلِن تغطيةَ الثلاثة."
+        },
+        {
+          "expect": "test_the_guard_exits_nonzero_when_it_finds_one",
+          "find": "        return 1\n    print(\"no_manual_backup_files_guard_ok\")",
+          "replace": "        return 0  # mutated: يشكو ثمّ يُنهي بنجاح\n    print(\"no_manual_backup_files_guard_ok\")",
+          "why": "فخُّ رمز الخروج: الحارسُ يطبع الشكوى كاملةً ثمّ يُنهي بصفر، فتقرأ CI نجاحاً ويقرأ الإنسانُ فشلاً. لا شيءَ يُحجَب، ولا شيءَ يبدو مكسوراً."
+        },
+        {
+          "expect": "test_the_guard_exits_nonzero_when_it_finds_one",
+          "find": "    return sorted(rel for rel in tracked_files() if is_manual_backup(rel))",
+          "replace": "    return sorted(rel for rel in tracked_files() if False)  # mutated: لا يُبلَّغ عن شيء",
+          "why": "مسحٌ يُعيد قائمةً فارغةً دائماً يمرّ أخضرَ على كلّ شجرة. وهي الخاصّيّةُ التي يُحقّقها حارسٌ محذوف — فوجودُه في CI يصير تأميناً على لا شيء."
+        },
+        {
+          "expect": "test_a_manual_backup_name_is_rejected",
+          "find": "    | (?:~$)                          # نسخةُ محرّر",
+          "replace": "    # mutated: نسخةُ المحرّر (`main.py~`) لا تُطابَق",
+          "why": "`main.py~` مخرَجُ محرّراتٍ شائعة (vim/emacs/gedit) ويُلتزَم سهواً لأنّه غيرُ مرئيٍّ في `ls`. إسقاطُ هذا البديل يترك أكثرَ الأشكال إفلاتاً من العين البشريّة بلا كاشف."
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

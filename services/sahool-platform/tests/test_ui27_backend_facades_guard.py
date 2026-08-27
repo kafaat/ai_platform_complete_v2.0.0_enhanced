@@ -39,14 +39,42 @@ def test_ui27_weather_backend_facade_adds_field_operation_windows_and_no_fronten
 
 
 def test_ui27_weather_facade_preserves_disease_and_irrigation_field_endpoints():
+    """المسارانِ باقيانِ ويحسبانِ حكمَهما خادميّاً — **لا أنّهما ينادِيان مزوّداً بعينه**.
+
+    كان هنا ثلاثةُ تأكيداتٍ تُثبِّت الموصّلَ نصّاً (``fetch_daily_forecast`` ·
+    ``fetch_current`` · ``Open-Meteo``). وقد أُضيفت مع نقل UI-27 لتمنع **ضياعَ
+    المسارين** في إعادة الترتيب، فثبّتت — بلا قصد — **أيَّ مزوّدٍ يناديانه**.
+    والاسمُ يقول ``preserves … endpoints``: فالخاصّيّةُ المقصودةُ أوسعُ ممّا قيس،
+    وتثبيتُ التنفيذ جعل الحارسَ يحجب **إصلاحاً** لا انحداراً.
+
+    وقد فعل ذلك بالضبط: نقلُ المسارين خلف ``weather_service_client``
+    (``PLATFORM-ROUTES-BYPASS-THE-BREAKER-BY-IMPORTING-THE-PROVIDER-01``) حمّر
+    هذا السطر — بينما ``test_p3_5_weather_direct_wiring_final_sweep`` يفرض
+    **عكسَه**: ألّا يستورد الملفُّ الموصّلَ إلّا بإعفاءٍ مُعلَن. حارسانِ يقولان
+    عن السطر نفسِه قولين متناقضين، وأحدُهما يقيس ما لم يُسَمّ.
+
+    فالمقيسُ هنا صار الخاصّيّةَ المُسمّاة، **مع تثبيت الوصلة الجديدة صراحةً** —
+    فالفحصُ أضيقُ على الانحدار الحقيقيّ (عودةُ الحساب إلى المتصفّح أو ضياعُ
+    المسار) وأحرصُ على ألّا يعود الموصّلُ. وموضعُ سؤال «أيُّ مزوّد» هو ذلك
+    الحارسُ وحدَه، بقائمةِ إعفاءٍ ذاتِ سقفٍ نازل.
+    """
     src = read("services/sahool-platform/api/routers/field_workspace_weather.py")
     assert '@router.get("/api/v1/fields/{field_id}/weather/irrigation-advice")' in src
     assert '@router.get("/api/v1/fields/{field_id}/weather/disease-risk")' in src
     assert "irrigation_advice" in src
     assert "disease_risk" in src
-    assert "fetch_daily_forecast" in src
-    assert "fetch_current" in src
-    assert "Open-Meteo" in src
+    # الحكمُ يُبنى على قراءةِ طقسٍ حقيقيّة لا على مُدخَلٍ من الواجهة.
+    assert "get_weather_forecast" in src
+    assert "get_current_weather" in src
+    # ولا يعود المزوّدُ مباشرةً — النصُّ هنا حدُّ صدقه؛ والفحصُ البنيويُّ في
+    # `test_p3_5_weather_direct_wiring_final_sweep` (يقرأ `ast` لا نثراً).
+    assert "from api.connectors.openmeteo import" not in src, (
+        "استيرادُ الموصّل داخل الدالّة يتخطّى عقدَ الواجهة P3.4 ومخبّأَ خدمة الطقس "
+        'المشترك، ويُعيد قسرَ القراءة المفقودة إلى صفر (`c.get("temperature_2m", 0)`) '
+        "فيُقرَأ `0°م` و`0٪` رطوبةً ⇒ خطرُ أمراضٍ `low` من لا-بيانات. "
+        "المسارُ القانونيّ `api/weather_service_client.py` — وموضعُ الإعفاء المُعلَن "
+        "هو `weather_direct_wiring_allowlist.json` وحدَه، بسقفٍ نازل."
+    )
 
 
 def test_ui27_irrigation_schedules_are_field_owner_checked_and_not_generated_in_frontend():
