@@ -72,8 +72,60 @@ def health():
     return healthz()
 
 
+# مِسبارُ الجهوزيّة يُنادى بإيقاع المُنسِّق (كلَّ ثوانٍ)، وكان كلُّ نداءٍ يُخرِج
+# طلباً حقيقيّاً إلى Open-Meteo عبر `readiness_probe` ⇒ `fetch_current`. فحصُ
+# «أأنا حيّ؟» كان يستهلك حصّةَ المزوّد ويُقيَّد بزمنه — والخدمةُ لها مخبّأٌ يعمل
+# بلا مزوّدٍ أصلاً.
+#
+# **والعلاجُ ليس تخبئةَ نتيجة المِسبار.** جُرِّب ذلك أوّلاً فأحمرّ
+# `test_readyz_reports_degraded_when_open_meteo_probe_fails`، والاختبارُ على حقّ:
+# نجاحٌ مخبّأٌ يُخفي عطلاً منبعيّاً حتّى ينقضي أجلُه، وذلك نقضُ الغرض الذي وُجِدت
+# النقطةُ له. تخفيفُ الحِمل لا يُشترى بإخفاء الأعطال.
+#
+# فالجهوزيّةُ تُبنى على ما **قاسته حركةُ المرور فعلاً**، ولا تُنادي المزوّدَ إلّا
+# حين لا يكون الجوابُ معروفاً:
+#
+#   القاطعُ مفتوح            ⇒ `degraded` بلا نداء — الجوابُ معروفٌ سلفاً.
+#   إخفاقاتٌ مُسجَّلة > 0     ⇒ يُقاس الآن — شيءٌ يتداعى، فلا يُؤجَّل القياس.
+#   نجاحٌ منبعيٌّ حديث        ⇒ `ready` بلا نداء — قِيس توّاً بحركةٍ حقيقيّة.
+#   وإلّا (خدمةٌ باردة)       ⇒ يُقاس.
+#
+# فتحت الحِمل الطبيعيّ صفرُ نداءٍ إضافيّ، وعند أوّل إخفاقٍ يُقاس فوراً — ولا
+# يُخفى شيء. والمصدرُ مُعلَنٌ في الردّ (`readiness_source`) فلا يُقرأ المُستنتَجُ
+# قياساً جديداً.
+_READYZ_OBSERVED_SUCCESS_TTL_S = 30.0
+
+
+async def _upstream_readiness() -> dict:
+    """جهوزيّةٌ منبعيّةٌ بلا نداءٍ زائد — ولا إخفاءَ عطلٍ مقابل ذلك."""
+    breaker = circuit_breaker_state()
+    if breaker.get("state") == "open":
+        return {
+            "ok": False,
+            "provider": "open-meteo",
+            "error": breaker.get("last_error") or "circuit breaker is open",
+            "circuit_breaker": breaker,
+            "readiness_source": "circuit-breaker-open",
+        }
+    age = breaker.get("last_success_age_s")
+    if (
+        not breaker.get("failure_count")
+        and age is not None
+        and age < _READYZ_OBSERVED_SUCCESS_TTL_S
+    ):
+        return {
+            "ok": True,
+            "provider": "open-meteo",
+            "circuit_breaker": breaker,
+            "readiness_source": "observed-traffic",
+            "last_success_age_s": age,
+        }
+    probed = await _facade_attr("readiness_probe")()
+    return {**probed, "readiness_source": "probe"}
+
+
 async def readyz():
-    upstream = await _facade_attr("readiness_probe")()
+    upstream = await _upstream_readiness()
     cache = cache_stats()
     status = "ready" if upstream.get("ok") else "degraded"
     return {

@@ -14,6 +14,9 @@ BREAKER_RESET_S = float(os.getenv("WEATHER_OPEN_METEO_BREAKER_RESET_S", "30"))
 _BREAKER_FAILURES = 0
 _BREAKER_OPEN_UNTIL = 0.0
 _LAST_ERROR: str | None = None
+# ختمُ آخرِ نجاحٍ منبعيٍّ **حقيقيّ** (من حركة مرورٍ فعليّة، لا من مِسبار).
+# تُبنى عليه جهوزيّةٌ لا تُنادي المزوّدَ لتسأله عمّا قاسته حركةُ المرور توّاً.
+_LAST_SUCCESS_S: float | None = None
 
 
 def circuit_breaker_state() -> dict[str, Any]:
@@ -26,14 +29,18 @@ def circuit_breaker_state() -> dict[str, Any]:
         "reset_after_s": int(BREAKER_RESET_S),
         "open_remaining_s": round(remaining, 3),
         "last_error": _LAST_ERROR,
+        "last_success_age_s": (
+            None if _LAST_SUCCESS_S is None else round(time.monotonic() - _LAST_SUCCESS_S, 3)
+        ),
     }
 
 
 def _record_success() -> None:
-    global _BREAKER_FAILURES, _BREAKER_OPEN_UNTIL, _LAST_ERROR
+    global _BREAKER_FAILURES, _BREAKER_OPEN_UNTIL, _LAST_ERROR, _LAST_SUCCESS_S
     _BREAKER_FAILURES = 0
     _BREAKER_OPEN_UNTIL = 0.0
     _LAST_ERROR = None
+    _LAST_SUCCESS_S = time.monotonic()
 
 
 def _record_failure(exc: Exception) -> None:
