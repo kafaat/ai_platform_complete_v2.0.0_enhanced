@@ -46,6 +46,18 @@ import re
 import sys
 from pathlib import Path
 
+# GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: مخرَجُ هذا الحارس عربيّ،
+# و`print` يُرمّز بلغة الآلة. فتحت `LC_ALL=C` كان **يحسب صحيحاً** (٨ عقود، صفرُ
+# انحراف) ثمّ يموت وهو يطبع نجاحَه — `UnicodeEncodeError` على `→` ⇒ خروجٌ بـ1
+# يُقرَأ «الحارسُ يحجب» وهو قد مرّ. مقيسٌ بالتنفيذ قبل الإصلاح:
+#   env -u PYTHONIOENCODING LC_ALL=C LANG=C PYTHONUTF8=0 … ⇒ exit=1
+# وحارسٌ يُبلِغ فشلاً لأنّه عجز عن طباعة نجاحه أسوأُ من صامت: الصامتُ يُرى
+# غيابُه، وهذا يُرى **ضدّ** ما قاس. **عند التحميل لا داخل `main()`** — فبعض
+# الحرّاس بلا `main` أصلاً وتطبع من جسدها.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 ROOT = Path(__file__).resolve().parents[2]
 CLIENT_DIR = ROOT / "services" / "sahool-platform" / "api"
 
