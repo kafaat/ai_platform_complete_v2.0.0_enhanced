@@ -1263,6 +1263,29 @@
           "why": "الملفُّ الحيُّ راتشِت: عودةُ تهجٍّ واحدٍ إلى البيانات تُخفي موعداً عن الحارس ولو بقي منطقُه سليماً. ومنطقٌ صحيحٌ فوق بياناتٍ لا يبلغها لا يحرس شيئاً."
         }
       ]
+    },
+    "shared/helpers.py": {
+      "test": "tests_v9/test_tenant_context_is_pinned_by_a_transaction.py",
+      "mutations": [
+        {
+          "expect": "test_tenant_context_sets_the_guc_inside_an_explicit_transaction",
+          "find": "    async with conn.transaction():\n        await conn.execute(\"SELECT set_config('app.current_tenant', $1, true)\", safe)\n        yield conn",
+          "replace": "    await conn.execute(\"SELECT set_config('app.current_tenant', $1, true)\", safe)  # mutated\n    yield conn",
+          "why": "نزعُ المعاملة يُعيد العطلَ الأصليّ بعينه، وهو مقيسٌ لا مُستنتَج: على PG16 تُعطي الكتلةُ بلا معاملة `current_setting('app.current_tenant') = ''` — فتُنفَّذ `query_with_tenant` و`execute_with_tenant` بلا مستأجرٍ أصلاً. عطلٌ صامتٌ تماماً: لا استثناءَ ولا سطرَ سجلّ، والاستعلامُ يمضي."
+        },
+        {
+          "expect": "test_the_session_wide_escape_hatch_stays_closed",
+          "find": "'app.current_tenant', $1, true",
+          "replace": "'app.current_tenant', $1, false",
+          "why": "`is_local=false` يُخضِر العطلَ الظاهر ويفتح أخطرَ منه: الضبطُ يبقى على الاتّصال بعد الكتلة، وفي بِركة اتّصالاتٍ يرثه المستعيرُ التالي — تسريبٌ عابرَ مستأجرين لا يحمرّ منه شيء. فيُمنع صراحةً بدل أن يُكتشَف بعد وقوعه."
+        },
+        {
+          "expect": "test_the_dead_enforcer_that_could_never_work_is_gone",
+          "find": "async def require_tenant(request: Request) -> str:",
+          "replace": "async def enforce_tenant(conn, tenant_id: str):  # mutated: عودةُ المُنفِّذ الميّت\n    await conn.execute(\"SELECT set_config('app.current_tenant', $1, true)\", tenant_id)\n\n\nasync def require_tenant(request: Request) -> str:",
+          "why": "دالّةٌ تَعِد بإنفاذِ مستأجرٍ ولا تستطيعه بحكم البناء — تضبط GUC محلّيَّ معاملةٍ بلا معاملةٍ ولا كتلة، فالعبارةُ التالية لا ترى الضبطَ أبداً. وأسوأُ من غيابها أنّ اسمَها يُقرَأ حراسةً. عودتُها يجب أن تُحمِّر فوراً."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

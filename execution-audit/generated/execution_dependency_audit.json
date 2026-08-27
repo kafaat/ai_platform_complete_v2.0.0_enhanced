@@ -5,8 +5,8 @@
     "runtime_verified": false,
     "python_files_parsed": 1879,
     "route_handlers": 1049,
-    "call_edges": 76052,
-    "dead_code_candidates": 626,
+    "call_edges": 76050,
+    "dead_code_candidates": 625,
     "duplicate_function_groups": 61,
     "route_owners": 27,
     "automatic_deletions": 0
@@ -524941,139 +524941,97 @@
       "file": "shared/helpers.py",
       "source": "tenant_context",
       "target": "_validate_tenant_id",
-      "line": 174
+      "line": 191
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "tenant_context",
+      "target": "transaction",
+      "line": 192
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "tenant_context",
       "target": "execute",
-      "line": 175
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "tenant_context",
-      "target": "execute",
-      "line": 179
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "enforce_tenant",
-      "target": "_validate_tenant_id",
-      "line": 183
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "enforce_tenant",
-      "target": "execute",
-      "line": 184
+      "line": 193
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "require_tenant",
       "target": "getattr",
-      "line": 188
+      "line": 198
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "require_tenant",
       "target": "get",
-      "line": 189
+      "line": 199
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "require_tenant",
       "target": "HTTPException",
-      "line": 191
+      "line": 201
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "require_tenant",
       "target": "_validate_tenant_id",
-      "line": 192
+      "line": 202
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "query_with_tenant",
       "target": "tenant_context",
-      "line": 196
+      "line": 206
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "query_with_tenant",
       "target": "fetch",
-      "line": 197
+      "line": 207
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "execute_with_tenant",
       "target": "tenant_context",
-      "line": 201
+      "line": 211
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "execute_with_tenant",
       "target": "execute",
-      "line": 202
+      "line": 212
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "validate_role",
       "target": "warning",
-      "line": 212
+      "line": 222
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "setup_prometheus",
       "target": "Counter",
-      "line": 224
+      "line": 234
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "setup_prometheus",
       "target": "Histogram",
-      "line": 227
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "_mw",
-      "target": "call_next",
-      "line": 236
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "metrics",
-      "target": "call_next",
-      "line": 236
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "_mw",
-      "target": "perf_counter",
-      "line": 237
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "metrics",
-      "target": "perf_counter",
       "line": 237
     },
     {
@@ -525081,1071 +525039,1092 @@
       "file": "shared/helpers.py",
       "source": "_mw",
       "target": "call_next",
-      "line": 238
+      "line": 246
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "metrics",
       "target": "call_next",
-      "line": 238
+      "line": 246
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "_mw",
       "target": "perf_counter",
-      "line": 239
+      "line": 247
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "metrics",
       "target": "perf_counter",
-      "line": 239
+      "line": 247
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "_mw",
+      "target": "call_next",
+      "line": 248
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "metrics",
+      "target": "call_next",
+      "line": 248
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "_mw",
+      "target": "perf_counter",
+      "line": 249
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "metrics",
+      "target": "perf_counter",
+      "line": 249
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "_mw",
       "target": "inc",
-      "line": 241
+      "line": 251
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "_mw",
       "target": "labels",
-      "line": 241
+      "line": 251
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "metrics",
       "target": "inc",
-      "line": 241
+      "line": 251
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "metrics",
       "target": "labels",
-      "line": 241
+      "line": 251
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "_mw",
       "target": "labels",
-      "line": 248
+      "line": 258
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "_mw",
       "target": "observe",
-      "line": 248
+      "line": 258
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "metrics",
       "target": "labels",
-      "line": 248
+      "line": 258
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "metrics",
       "target": "observe",
-      "line": 248
+      "line": 258
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "_health",
       "target": "get",
-      "line": 259
+      "line": 269
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "add_probes",
       "target": "get",
-      "line": 259
+      "line": 269
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "_health",
       "target": "get",
-      "line": 260
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "add_probes",
-      "target": "get",
-      "line": 260
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "_ready",
-      "target": "get",
-      "line": 264
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "add_probes",
-      "target": "get",
-      "line": 264
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "_ready",
-      "target": "pool_getter",
-      "line": 269
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "add_probes",
-      "target": "pool_getter",
-      "line": 269
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "_ready",
-      "target": "iscoroutinefunction",
       "line": 270
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "add_probes",
-      "target": "iscoroutinefunction",
+      "target": "get",
       "line": 270
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "_ready",
-      "target": "pool_getter",
-      "line": 271
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "add_probes",
-      "target": "pool_getter",
-      "line": 271
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "_ready",
-      "target": "acquire",
-      "line": 273
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "add_probes",
-      "target": "acquire",
-      "line": 273
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "_ready",
-      "target": "fetchval",
+      "target": "get",
       "line": 274
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "add_probes",
-      "target": "fetchval",
+      "target": "get",
       "line": 274
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "_ready",
-      "target": "HTTPException",
-      "line": 276
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "add_probes",
-      "target": "HTTPException",
-      "line": 276
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "_metrics",
-      "target": "get",
+      "target": "pool_getter",
       "line": 279
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "add_probes",
-      "target": "get",
+      "target": "pool_getter",
       "line": 279
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
-      "source": "_metrics",
-      "target": "Response",
-      "line": 281
+      "source": "_ready",
+      "target": "iscoroutinefunction",
+      "line": 280
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
-      "source": "_metrics",
-      "target": "generate_latest",
+      "source": "add_probes",
+      "target": "iscoroutinefunction",
+      "line": 280
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "_ready",
+      "target": "pool_getter",
       "line": 281
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "add_probes",
-      "target": "Response",
+      "target": "pool_getter",
       "line": 281
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "_ready",
+      "target": "acquire",
+      "line": 283
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "add_probes",
+      "target": "acquire",
+      "line": 283
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "_ready",
+      "target": "fetchval",
+      "line": 284
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "add_probes",
+      "target": "fetchval",
+      "line": 284
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "_ready",
+      "target": "HTTPException",
+      "line": 286
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "add_probes",
+      "target": "HTTPException",
+      "line": 286
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "_metrics",
+      "target": "get",
+      "line": 289
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "add_probes",
+      "target": "get",
+      "line": 289
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "_metrics",
+      "target": "Response",
+      "line": 291
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "_metrics",
+      "target": "generate_latest",
+      "line": 291
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "add_probes",
+      "target": "Response",
+      "line": 291
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "add_probes",
       "target": "generate_latest",
-      "line": 281
+      "line": 291
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "lifespan",
       "target": "init_db",
-      "line": 296
+      "line": 306
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "service_lifespan",
       "target": "init_db",
-      "line": 296
+      "line": 306
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "lifespan",
       "target": "init_redis",
-      "line": 298
+      "line": 308
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "service_lifespan",
       "target": "init_redis",
-      "line": 298
+      "line": 308
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "lifespan",
       "target": "init_nats",
-      "line": 300
+      "line": 310
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "service_lifespan",
       "target": "init_nats",
-      "line": 300
+      "line": 310
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "lifespan",
       "target": "close_pool",
-      "line": 303
+      "line": 313
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "service_lifespan",
       "target": "close_pool",
-      "line": 303
+      "line": 313
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "lifespan",
       "target": "close_redis",
-      "line": 305
+      "line": 315
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "service_lifespan",
       "target": "close_redis",
-      "line": 305
+      "line": 315
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "lifespan",
       "target": "close_nats",
-      "line": 307
+      "line": 317
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "service_lifespan",
       "target": "close_nats",
-      "line": 307
+      "line": 317
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "publish_event",
       "target": "get_nats",
-      "line": 314
+      "line": 324
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "publish_event",
       "target": "jetstream",
-      "line": 318
+      "line": 328
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "publish_event",
       "target": "dumps",
-      "line": 319
+      "line": 329
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "publish_event",
       "target": "encode",
-      "line": 319
+      "line": 329
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "publish_event",
       "target": "publish",
-      "line": 319
+      "line": 329
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "publish_event",
       "target": "warning",
-      "line": 322
+      "line": 332
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "dispatch",
       "target": "publish_event",
-      "line": 330
+      "line": 340
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "dispatch",
       "target": "isoformat",
-      "line": 336
+      "line": 346
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "dispatch",
       "target": "now",
-      "line": 336
+      "line": 346
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "wrapped_send",
       "target": "AsyncClient",
-      "line": 345
+      "line": 355
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "wrapped_send",
       "target": "getattr",
-      "line": 346
+      "line": 356
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "wrapped_send",
       "target": "lower",
-      "line": 346
+      "line": 356
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "wrapped_send",
       "target": "raise_for_status",
-      "line": 347
+      "line": 357
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "wrapped_send",
       "target": "json",
-      "line": 348
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "cached",
-      "target": "wraps",
-      "line": 354
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "decorator",
-      "target": "wraps",
-      "line": 354
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "wrapper",
-      "target": "wraps",
-      "line": 354
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "cached",
-      "target": "get_redis",
-      "line": 356
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "decorator",
-      "target": "get_redis",
-      "line": 356
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "wrapper",
-      "target": "get_redis",
-      "line": 356
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "cached",
-      "target": "func",
-      "line": 358
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "decorator",
-      "target": "func",
-      "line": 358
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "wrapper",
-      "target": "func",
       "line": 358
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "cached",
-      "target": "encode",
-      "line": 362
+      "target": "wraps",
+      "line": 364
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "decorator",
+      "target": "wraps",
+      "line": 364
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "wrapper",
+      "target": "wraps",
+      "line": 364
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "cached",
-      "target": "items",
-      "line": 362
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "cached",
-      "target": "sorted",
-      "line": 362
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "cached",
-      "target": "str",
-      "line": 362
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "cached",
-      "target": "str",
-      "line": 362
+      "target": "get_redis",
+      "line": 366
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "decorator",
-      "target": "encode",
-      "line": 362
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "decorator",
-      "target": "items",
-      "line": 362
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "decorator",
-      "target": "sorted",
-      "line": 362
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "decorator",
-      "target": "str",
-      "line": 362
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "decorator",
-      "target": "str",
-      "line": 362
+      "target": "get_redis",
+      "line": 366
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "wrapper",
-      "target": "encode",
-      "line": 362
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "wrapper",
-      "target": "items",
-      "line": 362
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "wrapper",
-      "target": "sorted",
-      "line": 362
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "wrapper",
-      "target": "str",
-      "line": 362
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "wrapper",
-      "target": "str",
-      "line": 362
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "cached",
-      "target": "hexdigest",
-      "line": 363
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "cached",
-      "target": "sha256",
-      "line": 363
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "decorator",
-      "target": "hexdigest",
-      "line": 363
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "decorator",
-      "target": "sha256",
-      "line": 363
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "wrapper",
-      "target": "hexdigest",
-      "line": 363
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "wrapper",
-      "target": "sha256",
-      "line": 363
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "cached",
-      "target": "get",
-      "line": 365
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "decorator",
-      "target": "get",
-      "line": 365
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "wrapper",
-      "target": "get",
-      "line": 365
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "cached",
-      "target": "loads",
-      "line": 367
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "decorator",
-      "target": "loads",
-      "line": 367
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "wrapper",
-      "target": "loads",
-      "line": 367
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "cached",
-      "target": "debug",
-      "line": 369
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "cached",
-      "target": "getLogger",
-      "line": 369
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "decorator",
-      "target": "debug",
-      "line": 369
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "decorator",
-      "target": "getLogger",
-      "line": 369
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "wrapper",
-      "target": "debug",
-      "line": 369
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "wrapper",
-      "target": "getLogger",
-      "line": 369
+      "target": "get_redis",
+      "line": 366
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "cached",
       "target": "func",
-      "line": 370
+      "line": 368
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "decorator",
       "target": "func",
-      "line": 370
+      "line": 368
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "wrapper",
       "target": "func",
-      "line": 370
+      "line": 368
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "cached",
-      "target": "dumps",
+      "target": "encode",
       "line": 372
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "cached",
-      "target": "setex",
+      "target": "items",
+      "line": 372
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "cached",
+      "target": "sorted",
+      "line": 372
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "cached",
+      "target": "str",
+      "line": 372
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "cached",
+      "target": "str",
       "line": 372
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "decorator",
-      "target": "dumps",
+      "target": "encode",
       "line": 372
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "decorator",
-      "target": "setex",
+      "target": "items",
+      "line": 372
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "decorator",
+      "target": "sorted",
+      "line": 372
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "decorator",
+      "target": "str",
+      "line": 372
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "decorator",
+      "target": "str",
       "line": 372
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "wrapper",
-      "target": "dumps",
+      "target": "encode",
       "line": 372
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "wrapper",
-      "target": "setex",
+      "target": "items",
       "line": 372
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "wrapper",
+      "target": "sorted",
+      "line": 372
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "wrapper",
+      "target": "str",
+      "line": 372
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "wrapper",
+      "target": "str",
+      "line": 372
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "cached",
+      "target": "hexdigest",
+      "line": 373
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "cached",
+      "target": "sha256",
+      "line": 373
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "decorator",
+      "target": "hexdigest",
+      "line": 373
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "decorator",
+      "target": "sha256",
+      "line": 373
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "wrapper",
+      "target": "hexdigest",
+      "line": 373
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "wrapper",
+      "target": "sha256",
+      "line": 373
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "cached",
+      "target": "get",
+      "line": 375
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "decorator",
+      "target": "get",
+      "line": 375
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "wrapper",
+      "target": "get",
+      "line": 375
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "cached",
+      "target": "loads",
+      "line": 377
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "decorator",
+      "target": "loads",
+      "line": 377
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "wrapper",
+      "target": "loads",
+      "line": 377
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "cached",
       "target": "debug",
-      "line": 374
+      "line": 379
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "cached",
       "target": "getLogger",
-      "line": 374
+      "line": 379
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "decorator",
       "target": "debug",
-      "line": 374
+      "line": 379
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "decorator",
       "target": "getLogger",
-      "line": 374
+      "line": 379
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "wrapper",
       "target": "debug",
-      "line": 374
+      "line": 379
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "wrapper",
       "target": "getLogger",
-      "line": 374
+      "line": 379
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "cached",
+      "target": "func",
+      "line": 380
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "decorator",
+      "target": "func",
+      "line": 380
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "wrapper",
+      "target": "func",
+      "line": 380
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "cached",
+      "target": "dumps",
+      "line": 382
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "cached",
+      "target": "setex",
+      "line": 382
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "decorator",
+      "target": "dumps",
+      "line": 382
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "decorator",
+      "target": "setex",
+      "line": 382
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "wrapper",
+      "target": "dumps",
+      "line": 382
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "wrapper",
+      "target": "setex",
+      "line": 382
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "cached",
+      "target": "debug",
+      "line": 384
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "cached",
+      "target": "getLogger",
+      "line": 384
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "decorator",
+      "target": "debug",
+      "line": 384
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "decorator",
+      "target": "getLogger",
+      "line": 384
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "wrapper",
+      "target": "debug",
+      "line": 384
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "wrapper",
+      "target": "getLogger",
+      "line": 384
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "get_data",
       "target": "get_redis",
-      "line": 383
+      "line": 393
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "get_data",
       "target": "get",
-      "line": 387
+      "line": 397
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "get_data",
       "target": "loads",
-      "line": 388
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "check_rate_limit",
-      "target": "now",
       "line": 398
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "check_rate_limit",
+      "target": "now",
+      "line": 408
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "check_rate_limit",
       "target": "timedelta",
-      "line": 399
+      "line": 409
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "check_rate_limit",
       "target": "len",
-      "line": 401
+      "line": 411
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "check_rate_limit",
       "target": "append",
-      "line": 403
+      "line": 413
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "create_app",
       "target": "getenv",
-      "line": 415
+      "line": 425
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "create_app",
       "target": "parse_cors_origins",
-      "line": 415
+      "line": 425
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "create_app",
       "target": "FastAPI",
-      "line": 416
+      "line": 426
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "create_app",
       "target": "service_lifespan",
-      "line": 419
+      "line": 429
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "create_app",
       "target": "add_middleware",
-      "line": 421
+      "line": 431
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "create_app",
       "target": "setup_prometheus",
-      "line": 428
+      "line": 438
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "create_app",
       "target": "add_middleware",
-      "line": 434
+      "line": 444
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "create_app",
       "target": "add_middleware",
-      "line": 435
+      "line": 445
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "create_app",
       "target": "add_middleware",
-      "line": 436
+      "line": 446
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "create_app",
       "target": "getenv",
-      "line": 438
+      "line": 448
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "create_app",
       "target": "split",
-      "line": 438
+      "line": 448
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "create_app",
       "target": "add_middleware",
-      "line": 440
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "create_app",
-      "target": "add_middleware",
-      "line": 442
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "create_app",
-      "target": "metrics",
-      "line": 442
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "create_app",
-      "target": "add_probes",
-      "line": 443
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "create_app",
-      "target": "instrument_app",
       "line": 450
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "create_app",
+      "target": "add_middleware",
+      "line": 452
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "create_app",
+      "target": "metrics",
+      "line": 452
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "create_app",
+      "target": "add_probes",
+      "line": 453
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "create_app",
+      "target": "instrument_app",
+      "line": 460
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "create_app",
       "target": "AsyncPGInstrumentor",
-      "line": 451
+      "line": 461
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "create_app",
       "target": "instrument",
-      "line": 451
+      "line": 461
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "retry_request",
       "target": "range",
-      "line": 472
+      "line": 482
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "retry_request",
       "target": "coro_fn",
-      "line": 474
+      "line": 484
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "retry_request",
       "target": "min",
-      "line": 479
+      "line": 489
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "retry_request",
       "target": "warning",
-      "line": 480
+      "line": 490
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "retry_request",
       "target": "sleep",
-      "line": 483
+      "line": 493
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "dispatch",
       "target": "get",
-      "line": 492
+      "line": 502
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "dispatch",
       "target": "str",
-      "line": 492
+      "line": 502
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "dispatch",
       "target": "uuid4",
-      "line": 492
-    },
-    {
-      "owner": "shared",
-      "file": "shared/helpers.py",
-      "source": "dispatch",
-      "target": "call_next",
-      "line": 494
+      "line": 502
     },
     {
       "owner": "shared",
@@ -526158,22 +526137,29 @@
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "dispatch",
+      "target": "call_next",
+      "line": 514
+    },
+    {
+      "owner": "shared",
+      "file": "shared/helpers.py",
+      "source": "dispatch",
       "target": "getattr",
-      "line": 506
+      "line": 516
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "dispatch",
       "target": "error",
-      "line": 507
+      "line": 517
     },
     {
       "owner": "shared",
       "file": "shared/helpers.py",
       "source": "dispatch",
       "target": "JSONResponse",
-      "line": 510
+      "line": 520
     },
     {
       "owner": "shared",
@@ -547329,21 +547315,10 @@
       "action": "review_before_delete"
     },
     {
-      "symbol": "enforce_tenant",
-      "kind": "function",
-      "file": "shared/helpers.py",
-      "line": 182,
-      "owner": "shared",
-      "decorated_route": false,
-      "reference_count": 0,
-      "confidence": "medium",
-      "action": "review_before_delete"
-    },
-    {
       "symbol": "require_tenant",
       "kind": "function",
       "file": "shared/helpers.py",
-      "line": 187,
+      "line": 197,
       "owner": "shared",
       "decorated_route": false,
       "reference_count": 0,
@@ -547354,7 +547329,7 @@
       "symbol": "query_with_tenant",
       "kind": "function",
       "file": "shared/helpers.py",
-      "line": 195,
+      "line": 205,
       "owner": "shared",
       "decorated_route": false,
       "reference_count": 0,
@@ -547365,7 +547340,7 @@
       "symbol": "execute_with_tenant",
       "kind": "function",
       "file": "shared/helpers.py",
-      "line": 200,
+      "line": 210,
       "owner": "shared",
       "decorated_route": false,
       "reference_count": 0,
@@ -547376,7 +547351,7 @@
       "symbol": "validate_role",
       "kind": "function",
       "file": "shared/helpers.py",
-      "line": 210,
+      "line": 220,
       "owner": "shared",
       "decorated_route": false,
       "reference_count": 0,
@@ -547387,7 +547362,7 @@
       "symbol": "wrapped_send",
       "kind": "function",
       "file": "shared/helpers.py",
-      "line": 342,
+      "line": 352,
       "owner": "shared",
       "decorated_route": false,
       "reference_count": 0,
@@ -547398,7 +547373,7 @@
       "symbol": "get_data",
       "kind": "function",
       "file": "shared/helpers.py",
-      "line": 382,
+      "line": 392,
       "owner": "shared",
       "decorated_route": false,
       "reference_count": 0,
