@@ -43,6 +43,28 @@ def _score_to_suitability(score: float | None) -> str:
     return "unsafe"
 
 
+# سُلَّمُ الإزاحات الذي تعمل به خدمةُ الطقس — كثيفٌ قريباً ومتباعدٌ بعيداً.
+_HORIZON_LADDER = (0, 1, 3, 6, 12, 24, 48, 72, 96, 120, 144, 168)
+
+
+def _series_for_horizon(horizon_hours: int) -> str:
+    """يبني سلسلةَ الإزاحات من الأفق المطلوب — **لا من عتبةٍ ثنائيّة**.
+
+    كان الأفقُ يُقبَل ويُتحقَّق منه (`ge=1, le=168`) ثمّ يُستعمَل قيمةً منطقيّةً
+    وحدها (`> 48`): **١٦٨ قيمةً مقبولة تُكرِم سلوكين**، فـ`49` و`168` يُنتِجان
+    الطلبَ نفسَه حرفيّاً. مُعامِلٌ يَعِد بأفقٍ ويُسلّم إحدى دلوَين يكذب على
+    مستهلكه بلا أن يُخطئ.
+
+    والتعميمُ **يحفظ السلوكين القائمين عند نقطتيهما بالضبط**: `48` يُعطي
+    `0,1,3,6,12,24,48` كما كان، و`168` يُعطي السلسلةَ الطويلةَ كما كانت. وما
+    بينهما — وما دونهما — صار له سلسلتُه: آخرُ نقطةٍ هي الأفقُ المطلوب نفسُه، فمن
+    طلب `49` ساعةً حصل على إطارٍ عندها لا عند `48`.
+    """
+    points = [h for h in _HORIZON_LADDER if h < horizon_hours]
+    points.append(horizon_hours)
+    return ",".join(str(h) for h in points)
+
+
 def _window_from_operation(item: dict[str, Any]) -> dict[str, Any]:
     best = item.get("best") if isinstance(item.get("best"), dict) else {}
     decision = best.get("operation") if isinstance(best.get("operation"), dict) else {}
@@ -52,9 +74,21 @@ def _window_from_operation(item: dict[str, Any]) -> dict[str, Any]:
     except Exception:  # noqa: BLE001 — upstream value malformed
         score = None
     limiting = decision.get("limiting_factors") if isinstance(decision, dict) else None
+    # `best` يحمل مفتاحين: `time` **رمزيّ** (`"now"` / `"+72h"` من
+    # `tiles.time_key_from_hour`) و`weather_time` **طابعٌ زمنيٌّ حقيقيّ** من
+    # المزوّد. وكانت الأولويّةُ للرمزيّ — فحقلٌ اسمُه `start_at` يحمل `"+72h"`،
+    # ويُصيَّر كما هو للمزارع في `FieldWorkspaceWeatherPanel.tsx` («`+72h` → —»).
+    # وأحدُهم لاحظ التناقضَ فعالج **تسميةَ العَرَض** («وقتُ البدء — أفقٌ ساعيّ»)
+    # بدل المصدر.
+    #
+    # فالأولويّةُ انعكست: `start_at` طابعٌ زمنيٌّ أو `None`، ولا يحمل رمزاً أبداً.
+    # والإزاحةُ لم تُفقَد — لها حقلُها المُسمّى `start_offset_hours`. حقلٌ يَعِد
+    # بوقتٍ ويُسلّم رمزاً يكذب على كلّ مَن يُحلّله.
+    start_at = best.get("weather_time")
     return {
         "operation": item.get("operation"),
-        "start_at": best.get("time") or best.get("weather_time"),
+        "start_at": start_at if isinstance(start_at, str) else None,
+        "start_offset_hours": best.get("hour_offset"),
         "end_at": None,
         "suitability": _score_to_suitability(score),
         "score": score,
@@ -187,9 +221,7 @@ async def field_weather_operation_windows(
     except Exception as exc:  # noqa: BLE001
         raise _db_unavailable("قراءة سياق طقس الحقل", exc) from exc
 
-    hours = "0,1,3,6,12,24,48"
-    if horizon_hours > 48:
-        hours = "0,1,3,6,12,24,48,72,96,120,144,168"
+    hours = _series_for_horizon(horizon_hours)
     try:
         plan = await get_operation_plan(
             lat,
