@@ -503,4 +503,16 @@ async def get_wind_grid(
 
 
 async def get_tile_cache_stats() -> dict[str, Any]:
-    return await weather_get_json("/v1/weather/tile-cache/stats")
+    """إحصاءات مخبّأ البلاطات من weather-service.
+
+    **المسار هو `cache-stats` لا `tile-cache/stats`:** الخدمة تُعلن
+    `app.get("/v1/weather/cache-stats")` وليس في سطحها كلِّه مسارٌ باسم
+    `tile-cache/stats` — فالطلب القديم كان يُنهي 404 حتماً على كلّ نداء.
+    والاسمان لدالّةٍ خلفيّةٍ واحدة (`rt.tile_cache_stats`)، فالانحراف كان في
+    السلسلة النصّيّة وحدها؛ ولذلك صُحِّح العميلُ ولم يُمَسّ مسارُ الخدمة —
+    تغييرُه كان سيكسر أيَّ مستهلكٍ آخر يناديه بالاسم القانونيّ.
+
+    ومسارُ المنصّة العامّ `/api/v1/weather/tile-cache/stats` يبقى كما هو:
+    هذه القفزةُ داخليّة بين المنصّة والخدمة، لا عقدٌ مع الواجهة.
+    """
+    return await weather_get_json("/v1/weather/cache-stats")

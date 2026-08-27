@@ -42,7 +42,17 @@ def _wind_kmh(sample: dict[str, Any]) -> float | None:
     return ms * 3.6 if ms is not None else None
 
 
-def operation_suitability(sample: dict[str, Any], operation: str) -> dict[str, Any]:
+def operation_suitability(sample: dict[str, Any] | None, operation: str) -> dict[str, Any]:
+    # عيّنةٌ غائبة ليست عيّنةً فاسدة: `tile_data` يُرجِع `"sample": None` عند تدهور
+    # المزوّد بلا مخبّأ — المفتاحُ حاضرٌ وقيمتُه `None`. و`_num` يحمي من **قيمةٍ**
+    # فاسدة (`except TypeError, ValueError`) لا من **عيّنةٍ** غائبة، فـ`None.get`
+    # كان يرفع `AttributeError` غيرَ ملتقَط ⇒ 500 على `operation-tile-data`.
+    # مقيسٌ بالتنفيذ: `operation_suitability(None, "spraying")` كان ينهار.
+    #
+    # والعلاجُ سطرٌ واحد هنا لا حراسةٌ في موضع النداء: آليّةُ الفشل المغلق قائمةٌ
+    # بعده بخطوة (`missing` ⇒ score 0.0 بأسبابها)، فالقاموسُ الفارغ يبلغها
+    # فتُنتِج الجوابَ الصادق «مُدخَلُ سلامةٍ مفقود» بدل انهيار.
+    sample = sample or {}
     op = (operation or "spraying").lower()
     if op not in SUPPORTED_OPERATIONS:
         op = "spraying"
