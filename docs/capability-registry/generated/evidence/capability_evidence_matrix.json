@@ -9654,6 +9654,7 @@
       },
       "integration_test_paths": [
         "services/sahool-platform/tests/test_p0_weather_service_real_contract_guard.py",
+        "tests_v9/test_cross_service_path_contract_guard.py",
         "tests_v9/test_mobile_backend_contract.py",
         "tests_v9/test_tool_contracts.py"
       ],

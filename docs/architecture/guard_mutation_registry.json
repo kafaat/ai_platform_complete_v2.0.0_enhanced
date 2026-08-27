@@ -3490,6 +3490,41 @@
           "why": "`main.py~` مخرَجُ محرّراتٍ شائعة (vim/emacs/gedit) ويُلتزَم سهواً لأنّه غيرُ مرئيٍّ في `ls`. إسقاطُ هذا البديل يترك أكثرَ الأشكال إفلاتاً من العين البشريّة بلا كاشف."
         }
       ]
+    },
+    "cross_service_path_contract_guard.py": {
+      "test": "tests_v9/test_cross_service_path_contract_guard.py",
+      "mutations": [
+        {
+          "expect": "test_no_requested_path_is_absent_from_the_target_service",
+          "find": "        \"undeclared\": sorted(requested - declared),",
+          "replace": "        \"undeclared\": sorted(requested & declared),  # mutated: يُبلَّغ عن المُعلَن لا المفقود",
+          "why": "قلبُ الطرح إلى تقاطعٍ يجعل الحارسَ يُبلِّغ عمّا **يعمل** ويصمت عمّا ينكسر. وهو أخبثُ من تعطيله: يطبع قائمةً طويلةً تُقرَأ عملاً، والمسارُ المنحرفُ وحدَه هو الغائبُ منها."
+        },
+        {
+          "expect": "test_a_client_that_reads_zero_is_actually_reported_blind",
+          "find": "    if not requested and client not in PATH_LESS_BY_DESIGN:\n        blind_reasons.append(client)",
+          "replace": "    if False:  # mutated: القراءةُ الصفريّة تمرّ صامتة\n        blind_reasons.append(client)",
+          "why": "القراءةُ الصفريّة هي **كيف يمرّ هذا الصنفُ نفسُه**: عميلٌ بشكل نداءٍ لا يعرفه المستخرِج يُقرأ منه صفرُ مسار، فيمرّ أخضرَ عن سؤالٍ لم يطرحه (مقيس: `soil_hydraulic_client` أعطى صفراً بأوّل قارئ). وهذه الطفرةُ **نجت أوّلَ مرّة** لأنّ شاهدَها كان تأكيدَ غيابٍ على شجرةٍ سليمة — والقائمةُ تبقى فارغةً إن عُطِّل الكشفُ رأساً. فأُخرِج التصنيفُ نقيّاً وصار له شاهدٌ موجب."
+        },
+        {
+          "expect": "test_both_call_shapes_and_the_module_constant_are_read",
+          "find": "            if _PATH_SHAPED.match(value.value):\n                found.add(normalise(value.value))",
+          "replace": "            if False:  # mutated: ثابتُ الوحدة لا يُقرأ\n                found.add(normalise(value.value))",
+          "why": "`irrigation_activation_gate` يحمل مسارَه في ثابتِ وحدةٍ ويبنيه داخل دالّة، فلا يُرى عند موضع النداء. إسقاطُ هذا الشكل يُعيد عقداً حقيقيّاً إلى خارج النطاق بلا أن يُعلَن."
+        },
+        {
+          "expect": "test_the_structural_reader_sees_everything_a_textual_one_sees",
+          "find": "        is_wrapper = bool(_JSON_WRAPPER.search(name))",
+          "replace": "        is_wrapper = name.endswith((\"_get_json\", \"_post_json\"))  # mutated: النهايةُ لا الاحتواء",
+          "why": "هذه هي الطفرةُ الوحيدةُ التي **وقعت فعلاً**: `endswith` أفلت `raster_get_json_sync` فضاع مسارانِ حقيقيّان، ولم يُكشَف إلّا بمقابلة قارئَين. إعادتُها تُعيد الثقبَ بعينه."
+        },
+        {
+          "expect": "test_the_guard_sees_exactly_the_modules_that_name_an_internal_service",
+          "find": "        if len(hosts) != 1:\n            continue",
+          "replace": "        if len(hosts) != 99:  # mutated: لا وحدةَ تُكتشَف\n            continue",
+          "why": "صفرُ عقدٍ مكتشَفٍ أخطرُ من عقدٍ منحرف: الحارسُ يعمل ويُنهي بنجاحٍ وهو لا يفحص شيئاً — تأمينٌ على لا شيء، وهو الصنفُ الذي سُجِّل في `MUT-REGISTRY-STRANDED-SPECS-01`."
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

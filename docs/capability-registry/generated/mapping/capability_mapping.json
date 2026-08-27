@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5204,
+    "files_scanned": 5206,
     "files_by_kind": {
       "backend": 1204,
       "database": 274,
       "governance": 60,
       "mobile": 51,
-      "other": 1423,
-      "tests": 1735,
+      "other": 1424,
+      "tests": 1736,
       "web": 457
     },
     "unmapped_artifacts": 2124,
@@ -601,7 +601,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:563",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:569",
           "score": 12
         },
         {
@@ -2308,7 +2308,7 @@
           "score": 28
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:563",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:569",
           "score": 12
         },
         {
@@ -14461,7 +14461,7 @@
           "score": 16
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:563",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:569",
           "score": 12
         }
       ],
@@ -27632,7 +27632,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:563",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:569",
           "score": 12
         },
         {
@@ -30134,6 +30134,15 @@
           ]
         },
         {
+          "path": "tests_v9/test_cross_service_path_contract_guard.py",
+          "score": 9,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
           "path": "tests_v9/test_endpoint_auth_coverage.py",
           "score": 9,
           "signals": [
@@ -30337,7 +30346,7 @@
         "events": 56,
         "web": 9,
         "mobile": 0,
-        "tests": 22,
+        "tests": 23,
         "governance": 0,
         "other_evidence": 19
       },

@@ -195,6 +195,12 @@ jobs:
       # إنّها بائتة. ولا `.gitignore` ولا حارسَ كان يرفضها (مقيس).
       - name: no manual backup files tracked (repo-wide)
         run: python scripts/ci/no_manual_backup_files_guard.py
+      # CONTRACT-WHOSE-TWO-ENDS-ARE-TESTED-APART-01: عقدٌ طرفاه في خدمتين، كلٌّ
+      # مختبَرٌ وحدَه، والقفزةُ بلا شاهد. أصاب ثلاثاً في أسبوع، وأوضحُها عميلُ
+      # الطقس يطلب `tile-cache/stats` والخدمةُ تُعلن `cache-stats` — ٤٠٤ حتميّ لا
+      # احتماليّ. النطاقُ مُشتقٌّ من الشجرة (٨ عقود) لا من قائمةٍ تبيت.
+      - name: cross-service path contracts (client ⇄ service)
+        run: python scripts/ci/cross_service_path_contract_guard.py
       # BIDI-CONTROL-CHAR-PASSED-THE-DEFAULT-PREFLIGHT-01: bandit يمسك RLM في نطاق
       # `services/ bots/ agents/` وحده، والمحارف مقيسة في ٩٣ ملفّاً عبر الشجرة —
       # json وmd وyml وsql وtsx وps1. وهو يحجب RLM ولا يحجب LRM، فاستبدال أحدهما

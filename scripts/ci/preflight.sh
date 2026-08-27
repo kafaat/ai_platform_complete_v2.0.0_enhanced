@@ -221,6 +221,12 @@ require_file scripts/ci/no_merge_conflict_markers_guard.py "٢ب) no_merge_confl
 # — وهي الخطوةُ التي يوصي بها هذا الملفُّ نفسُه قبل التوليد.
 require_file scripts/ci/no_manual_backup_files_guard.py "٢أ) no_manual_backup_files" && run "٢أ) no_manual_backup_files" python3 scripts/ci/no_manual_backup_files_guard.py
 
+# ── ٢ز) عقودُ المسارات العابرة — فحصٌ ساكنٌ في ثوانٍ ────────────────────────
+# CONTRACT-WHOSE-TWO-ENDS-ARE-TESTED-APART-01: يقابل ما يطلبه كلُّ عميلٍ في المنصّة
+# بما تُعلنه خدمتُه. لا يقيس أنّ الخدمة تستجيب — بل أنّ المسارَ مُعلَنٌ فيها،
+# وهو بالضبط الصنفُ الذي أفلت من اختبارَي الطرفين معاً.
+require_file scripts/ci/cross_service_path_contract_guard.py "٢ز) cross_service_path_contract" && run "٢ز) cross_service_path_contract" python3 scripts/ci/cross_service_path_contract_guard.py
+
 # ── ٢ج) محارف الاتّجاه الخفيّة — في الملفّ **الافتراضيّ** عمداً ─────────────
 # BIDI-CONTROL-CHAR-PASSED-THE-DEFAULT-PREFLIGHT-01: محرف RLM في docstring عربيّ أسقط
 # *Security Scan* بـB613، على رأسٍ أُعلِن أخضر — وفاتَ لأنّ bandit في `--full` وحده
