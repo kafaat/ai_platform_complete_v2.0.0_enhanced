@@ -19125,7 +19125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "843c6835a052fbb8f84b09cea3508d3e8d588699dddfaa0c50c9dd38dcd2fb9c"
+          "content": "f22c449935af7982cc167b83e6047a7f0aa09f4580ced9cec030c091e1d5a087"
         }
       ],
       "name": "services/sahool-platform/api/weather_service_client.py",
@@ -29365,7 +29365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aaf119768ddd762e331d258e32e28fe8f918634c395abc6f544da93b2b4408bb"
+          "content": "92aa18c691fd869e58a83ca7fed76dbb20a1dc9bce60668b29b31c290981e406"
         }
       ],
       "name": "services/weather-service/operations.py",
@@ -29449,6 +29449,16 @@
         }
       ],
       "name": "services/weather-service/tests/test_crop_stress_products.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1ba630d360416fc111772f2fc56c93ad7f3469e7138095d7b1eb3a15fdc6e16f"
+        }
+      ],
+      "name": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
       "type": "file"
     },
     {
