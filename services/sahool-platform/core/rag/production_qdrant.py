@@ -462,6 +462,24 @@ class KnowledgeChunk:
         total_chunks = meta.get("total_chunks", payload.get("total_chunks", 1))
         if not all(v is not None for v in (text, chunk_id, tenant, source_type, document_id)):
             raise ValueError("Qdrant payload is missing canonical RAG identity fields")
+        # RAG-LEGACY-DENSE-SPARSE-SCOPE-ASYMMETRY-01 — **تطبيعُ المستأجِر عند القراءة.**
+        #
+        # المستأجِرُ يُحَلّ من `metadata.tenant_id` **أو** من جذر الحمولة (صفوف
+        # EXPAND القديمة تضعه في الجذر)، بينما **البحثُ الكثيف يرشّح على
+        # `metadata.tenant_id` حصراً**. فصفٌّ قديم يدخل BM25 ويظهر للمستأجِر
+        # **متناثراً**، ولا يظهر له **كثيفاً أبداً**.
+        #
+        # وأثرُه أعمقُ من نتيجةٍ ناقصة: المسارانِ يريان **مجموعتين مختلفتين**،
+        # فلا تُعرَّف «مجموعةُ المستأجِر» تعريفاً واحداً. ولهذا سجّل مِسبارُ
+        # `RAG-CORPUS-MEASUREMENT-INTEGRITY-01` أنّ إصلاحَ الترتيب قبل هذا
+        # «يُصلِح رقماً لا يُعرَف مصدره» — فهذا التطبيعُ شرطُ ما بعده لا تحسينٌ
+        # مستقلّ.
+        #
+        # ويُكتَب عند القراءة لا بهجرةٍ للمخزَن: الصفُّ القديم يُشفى لحظةَ
+        # تحليله، فيتّفق المساران بلا انتظار إعادةِ فهرسةٍ كاملة. و`setdefault`
+        # لا يمسّ صفّاً يحمل المفتاحَ سلفاً — فالقيمةُ المُعلَنة في `metadata`
+        # تبقى هي المرجع.
+        meta.setdefault("tenant_id", tenant)
         meta.setdefault("evidence_level", payload.get("evidence_level") or "document")
         meta.setdefault("prescriptive_eligible", False)
         return cls(
