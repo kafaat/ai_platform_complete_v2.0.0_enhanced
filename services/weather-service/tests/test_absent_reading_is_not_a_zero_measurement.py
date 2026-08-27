@@ -74,15 +74,22 @@ def test_the_only_zero_coerced_fields_are_the_declared_daily_two():
     تصفيرٍ كان سيُخاصِم قراراً مُعلَناً — وذلك كيف يصير الحارسُ إزعاجاً يُلتَفّ عليه.
 
     ولذلك يُقاس **العدد** لا الغياب: مواضعُ التصفير تساوي الحقولَ المُعلَنة، فأيُّ
-    موضعٍ جديدٍ يفشل حتّى يُعلَن باسمه في `_DAILY_ZERO_COERCED_FIELDS`.
+    موضعٍ جديدٍ يفشل حتّى يُعلَن باسمه في `_DAILY_ZERO_COERCED_SOURCE_FIELDS`.
 
-    وتعليقُ المصدر كان يُحيل إلى هذا الثابت **وهو غيرُ مُعرَّف** — إحالةٌ إلى قيدٍ
-    لا وجودَ له تقرأ ضمانةً. عُرِّف، فصار المكتوبُ مفروضاً.
+    **وتصحيحٌ يُسجَّل:** قيل هنا أوّلاً إنّ التعليقَ في المصدر يُحيل إلى ثابتٍ «غيرِ
+    مُعرَّفٍ في الشجرة». والدعوى خطأ — `_DAILY_ZERO_COERCED_FIELDS` مُعرَّفٌ في
+    `canonical_weather_state.py:273` بقيمة الطبقة القانونيّة وله اختبارُه. وسببُ
+    الخطأ أنّ البحثَ جرى ودليلُ عملِ الصَّدَفة في خدمةٍ أخرى فلم يبلغ هذا الملفّ:
+    **صفرُ نتائجَ ليس دليلَ غياب، بل دليلَ أنّ البحثَ لم يبلغ**.
+
+    فأُعيدت تسميةُ ثابتِ هذه الطبقة إلى `_DAILY_ZERO_COERCED_SOURCE_FIELDS` —
+    اسمان متطابقان بقيمتين مختلفتين في خدمةٍ واحدة هما الالتباسُ الذي وُجِد الاسمُ
+    ليمنعه.
     """
     src = _SRC.read_text(encoding="utf-8")
-    assert om._DAILY_ZERO_COERCED_FIELDS == ("precipitation_mm", "wind_max_kmh")
+    assert om._DAILY_ZERO_COERCED_SOURCE_FIELDS == ("precipitation_mm", "wind_max_kmh")
     zero_sites = src.count("idx, 0)")
-    assert zero_sites == len(om._DAILY_ZERO_COERCED_FIELDS), (
+    assert zero_sites == len(om._DAILY_ZERO_COERCED_SOURCE_FIELDS), (
         f"مواضعُ التصفير {zero_sites} لا تساوي الحقولَ المُعلَنة "
-        f"{len(om._DAILY_ZERO_COERCED_FIELDS)} — أُضيف تصفيرٌ بلا إعلان، أو أُزيل مُعلَن"
+        f"{len(om._DAILY_ZERO_COERCED_SOURCE_FIELDS)} — أُضيف تصفيرٌ بلا إعلان، أو أُزيل مُعلَن"
     )
