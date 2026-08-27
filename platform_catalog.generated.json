@@ -17749,7 +17749,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "51c5e6d0f58a48b826e1ec4848cbb6a16110010c9afb17e33e925d6a30bc26e8",
+  "fingerprint": "4b0c063367ca743cc331f94f53dc4faeabd73d43f5a84555fee0336ed7e4de71",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17929,7 +17929,7 @@
     },
     {
       "endpoint": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
-      "expires_on": "2026-12-31",
+      "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-10.11",
       "waiver_id": "ui-waiver-016"
@@ -18013,35 +18013,35 @@
     },
     {
       "endpoint": "/api/v1/learning/activation-commands/{activation_command_id}/claim",
-      "expires_on": "2026-12-31",
+      "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-11.6",
       "waiver_id": "ui-waiver-028"
     },
     {
       "endpoint": "/api/v1/learning/activation-commands/{activation_command_id}/receipt",
-      "expires_on": "2026-12-31",
+      "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-11.6",
       "waiver_id": "ui-waiver-029"
     },
     {
       "endpoint": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
-      "expires_on": "2026-12-31",
+      "expires_on": "2026-11-30",
       "owner": "sahool-platform",
       "tracking": "WX-11.6",
       "waiver_id": "ui-waiver-030"
     },
     {
       "endpoint": "/api/v1/learning/activation-requests",
-      "expires_on": "2026-12-31",
+      "expires_on": "2026-09-30",
       "owner": "sahool-platform",
       "tracking": "WX-11.5",
       "waiver_id": "ui-waiver-031"
     },
     {
       "endpoint": "/api/v1/learning/activation-requests/{activation_request_id}/review",
-      "expires_on": "2026-12-31",
+      "expires_on": "2026-10-31",
       "owner": "sahool-platform",
       "tracking": "WX-11.6",
       "waiver_id": "ui-waiver-032"
@@ -18062,7 +18062,7 @@
     },
     {
       "endpoint": "/api/v1/learning/promotion-decisions",
-      "expires_on": "2026-12-31",
+      "expires_on": "2026-08-31",
       "owner": "sahool-platform",
       "tracking": "WX-11.4",
       "waiver_id": "ui-waiver-035"
