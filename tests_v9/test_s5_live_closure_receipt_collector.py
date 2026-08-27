@@ -201,6 +201,19 @@ def test_classification_agrees_with_the_guard_on_every_perturbation() -> None:
                 "after": {t: _perms(select=False) for t in guard.SOR_TABLES},
             },
         ),
+        (
+            "platform_ready",
+            {
+                "decision_sor": {
+                    "requested_mode": "decision_service_sor",
+                    "effective_mode": "decision_service_sor",
+                    "platform_writes_required": True,
+                    "strict_decision_service_required": True,
+                    "demotion_allowed": True,
+                    "missing_gates": [],
+                }
+            },
+        ),
     ]
     for key, bad in perturbations:
         ev = _closed_evidence()

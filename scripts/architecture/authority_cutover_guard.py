@@ -70,11 +70,15 @@ def findings() -> list[str]:
     ):
         if token not in revoke:
             out.append(f"decision DB revoke postcondition missing {token}")
-    decision_collector = _text("scripts/staging/decision_sor_live_closure_collector.py")
+    decision_collector = _text("scripts/architecture/s5_decision_live_closure_receipt.py")
     decision_receipt_guard = _text("scripts/architecture/s5_decision_live_closure_receipt_guard.py")
     platform_health = _text("services/sahool-platform/api/routers/platform_health.py")
+    # المُنتِجُ القانونيّ يشتقّ `SCHEMA` من الحارس (``guard.SCHEMA``) لا يُكرّر
+    # حرفيّتَها — تفادياً لانحرافٍ بين نسختين من الاسم نفسِه. فمرساةُ هذا الحارسِ
+    # على السلسلة الحرفيّة تُستبدَل بمرساةٍ على الاستيراد نفسِه؛ والحرفيّةُ تبقى
+    # مفروضةً على ملفّ الحارس أدناه، وهو مصدرُها الوحيد.
     for token in (
-        "sahool.s5-decision-live-closure/v1",
+        "guard.SCHEMA",
         "runtime-identity",
         "cutover/readiness",
         "platform_sor_revoke.py",

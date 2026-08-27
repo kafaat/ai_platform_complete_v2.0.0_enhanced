@@ -256,10 +256,19 @@ def collect(args: argparse.Namespace) -> dict[str, Any]:
     kg = out_dir / RECEIPTS["knowledge_graph"]["filename"]
     collector_results: dict[str, Any] = {}
 
+    # المُنتِجُ القانونيّ الوحيد لإيصال S5/C9. هذا المسار كان يستدعي
+    # `decision_sor_live_closure_collector.py`، وهو مُنتِجٌ مُقلَّد يُعيد كتابة شروط
+    # الحارس بمنطقٍ مستقلّ **ويكتب إيصالاً حتّى عند تعذّر الاتّصال**
+    # (`except Exception: receipt = {...classification: FAILED}`).
+    # قِيس ذلك تجريبيّاً: خدمةٌ مرفوضةُ الاتّصال تُنتِج ملفَّ إيصالٍ يدّعي «فشلاً
+    # مُثبَتاً» بدل «تعذّرِ قياس» — وهو بعينه الخلطُ الذي تفصله اتّفاقيّةُ الخروج في
+    # `s5_decision_live_closure_receipt.py` (عجزٌ عن القياس ⇒ رمز 1 ولا يُكتَب
+    # إيصال). فاستُبدِل بالمُنتِج القانونيّ الذي يحترم تلك الاتّفاقيّة، ويشتقّ حكمَه
+    # من `guard.findings_for` نفسِها لا من نسخةٍ موازية منها.
     collector_results["decision"] = _run(
         [
             sys.executable,
-            str(ROOT / "scripts/staging/decision_sor_live_closure_collector.py"),
+            str(ROOT / "scripts/architecture/s5_decision_live_closure_receipt.py"),
             "--subject-sha",
             subject_sha,
             "--decision-url",
