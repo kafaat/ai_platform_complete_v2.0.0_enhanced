@@ -7140,6 +7140,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_db_writer_ownership_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_decision_confidence_shape.py",
     "kind": "tests"
   },

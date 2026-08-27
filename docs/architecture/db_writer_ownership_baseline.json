@@ -1,0 +1,251 @@
+{
+  "$comment": "كتاباتٌ لم يأذن بها docs/architecture/db_ownership.yml — مَعدودةٌ لا محكومٌ عليها. لم يُثبَت أنّ كلّاً منها خطأ؛ بعضُها قد يكون العقدُ هو المخطئ فيه. الأساسُ راتشِتٌ ينزل ولا يصعد: يُخفَّض بنقل الكتابة إلى مالكها أو بتصحيح العقد بأساسٍ مُعلَن.",
+  "contract": "docs/architecture/db_ownership.yml",
+  "measured_on": "1ffeb13497f6fbb8e0527504d9ddcd6835dd414d",
+  "violation_count": 75,
+  "violations": {
+    "actuator_command_outbox::sahool-platform": [
+      "services/sahool-platform/api/phase_runtime_store.py"
+    ],
+    "audit_log::auth": [
+      "services/auth/main.py"
+    ],
+    "automation_rules::actuator-service": [
+      "services/actuator-service/actuator_runtime.py"
+    ],
+    "backfill_run_items::raster-service": [
+      "services/raster-service/backfill_scan_worker.py",
+      "services/raster-service/db_persist.py"
+    ],
+    "backfill_runs::raster-service": [
+      "services/raster-service/backfill_scan_worker.py",
+      "services/raster-service/db_persist.py"
+    ],
+    "canonical_projection_requests::scripts": [
+      "scripts/e2e/canonical_projection_jetstream_roundtrip.py"
+    ],
+    "decision_policies::sahool-platform": [
+      "services/sahool-platform/api/routers/decision_policies.py"
+    ],
+    "device_telemetry::sahool-platform": [
+      "services/sahool-platform/api/routers/devices.py"
+    ],
+    "documents::sahool-platform": [
+      "services/sahool-platform/api/routers/documents.py"
+    ],
+    "farm_energy_records::sahool-platform": [
+      "services/sahool-platform/api/routers/farm_operations_ledger.py"
+    ],
+    "farm_equipment_records::sahool-platform": [
+      "services/sahool-platform/api/routers/farm_operations_ledger.py"
+    ],
+    "farm_input_records::sahool-platform": [
+      "services/sahool-platform/api/routers/farm_operations_ledger.py"
+    ],
+    "farm_labor_records::sahool-platform": [
+      "services/sahool-platform/api/routers/farm_operations_ledger.py"
+    ],
+    "farm_operation_ledger::sahool-platform": [
+      "services/sahool-platform/api/routers/farm_operations_ledger.py"
+    ],
+    "farm_revenue_records::sahool-platform": [
+      "services/sahool-platform/api/routers/farm_operations_ledger.py"
+    ],
+    "farm_season_budget_lines::sahool-platform": [
+      "services/sahool-platform/api/routers/farm_operations_ledger.py"
+    ],
+    "farm_water_records::sahool-platform": [
+      "services/sahool-platform/api/routers/farm_operations_ledger.py"
+    ],
+    "farms::sahool-platform": [
+      "services/sahool-platform/api/routers/farms.py"
+    ],
+    "feature_set_specs::sahool-platform": [
+      "services/sahool-platform/api/phase_runtime_store.py"
+    ],
+    "feature_set_versions_runtime::sahool-platform": [
+      "services/sahool-platform/api/phase_runtime_store.py"
+    ],
+    "field_boundaries::sahool-platform": [
+      "services/sahool-platform/api/routers/boundaries.py"
+    ],
+    "field_boundary_graph::sahool-platform": [
+      "services/sahool-platform/api/field_boundary_graph.py"
+    ],
+    "field_evidence_snapshots::sahool-platform": [
+      "services/sahool-platform/api/routers/field_intelligence.py"
+    ],
+    "field_feature_store_candidate::sahool-platform": [
+      "services/sahool-platform/api/phase_runtime_store.py"
+    ],
+    "field_geometry_history::sahool-platform": [
+      "services/sahool-platform/api/spatial_sync.py"
+    ],
+    "field_geometry_versions::raster-service": [
+      "services/raster-service/db_persist.py"
+    ],
+    "field_lifecycle::sahool-platform": [
+      "services/sahool-platform/api/field_lifecycle.py"
+    ],
+    "field_lifecycle_transitions::sahool-platform": [
+      "services/sahool-platform/api/field_lifecycle.py"
+    ],
+    "field_state::sahool-platform": [
+      "services/sahool-platform/api/field_state_projection.py",
+      "services/sahool-platform/storage/lite_store.py"
+    ],
+    "field_state_snapshots::sahool-platform": [
+      "services/sahool-platform/api/event_replay.py"
+    ],
+    "field_tasks::sahool-platform": [
+      "services/sahool-platform/api/routers/tasks.py",
+      "services/sahool-platform/api/routers/weather.py"
+    ],
+    "field_weather_overlay::weather-polygon-worker": [
+      "services/weather-polygon-worker/src/main.py"
+    ],
+    "fields::sahool-platform": [
+      "services/sahool-platform/api/main.py",
+      "services/sahool-platform/api/routers/fields.py"
+    ],
+    "geometry_editing_sessions::sahool-platform": [
+      "services/sahool-platform/api/routers/gis_cloud_native.py"
+    ],
+    "geometry_locks::sahool-platform": [
+      "services/sahool-platform/api/routers/gis_cloud_native.py"
+    ],
+    "imagery_automation_fields::sahool-platform": [
+      "services/sahool-platform/api/imagery_automation.py"
+    ],
+    "invitations::auth": [
+      "services/auth/routers/invitations.py"
+    ],
+    "iot_command_dispatch::sahool-platform": [
+      "services/sahool-platform/api/phase_runtime_store.py",
+      "services/sahool-platform/api/phase_runtime_workers.py"
+    ],
+    "iot_devices::sahool-platform": [
+      "services/sahool-platform/api/routers/devices.py"
+    ],
+    "knowledge_snippets::sahool-platform": [
+      "services/sahool-platform/storage/lite_store.py"
+    ],
+    "market_sales_listings::mcp_servers": [
+      "services/mcp_servers/market_server.py"
+    ],
+    "marketplace_apps::sahool-platform": [
+      "services/sahool-platform/api/phase_runtime_store.py"
+    ],
+    "marketplace_installations::sahool-platform": [
+      "services/sahool-platform/api/phase_runtime_store.py"
+    ],
+    "marketplace_plugin_execution_runs::sahool-platform": [
+      "services/sahool-platform/api/phase_runtime_workers.py"
+    ],
+    "marketplace_plugin_runtime_events::sahool-platform": [
+      "services/sahool-platform/api/phase_runtime_workers.py"
+    ],
+    "mfa_audit_events::auth": [
+      "services/auth/mfa_runtime.py"
+    ],
+    "mfa_recovery_codes::auth": [
+      "services/auth/mfa_runtime.py",
+      "services/auth/routers/mfa.py"
+    ],
+    "model_lifecycle_decisions::sahool-platform": [
+      "services/sahool-platform/api/phase_runtime_store.py"
+    ],
+    "model_promotion_history_runtime::sahool-platform": [
+      "services/sahool-platform/api/phase_runtime_store.py"
+    ],
+    "model_registry_version::sahool-platform": [
+      "services/sahool-platform/api/phase_runtime_store.py"
+    ],
+    "model_rollback_history_runtime::sahool-platform": [
+      "services/sahool-platform/api/phase_runtime_store.py",
+      "services/sahool-platform/api/phase_runtime_workers.py"
+    ],
+    "model_serving_aliases_runtime::sahool-platform": [
+      "services/sahool-platform/api/phase_runtime_store.py",
+      "services/sahool-platform/api/phase_runtime_workers.py"
+    ],
+    "model_versions_runtime::sahool-platform": [
+      "services/sahool-platform/api/phase_runtime_store.py"
+    ],
+    "notification_delivery::agents": [
+      "agents/notification/agent.py"
+    ],
+    "odoo_sync_log::odoo-bridge": [
+      "services/odoo-bridge/erp_runtime.py"
+    ],
+    "odoo_sync_state::odoo-bridge": [
+      "services/odoo-bridge/erp_runtime.py"
+    ],
+    "point_in_time_snapshots_runtime::sahool-platform": [
+      "services/sahool-platform/api/phase_runtime_store.py"
+    ],
+    "raster_cache_invalidations::sahool-platform": [
+      "services/sahool-platform/api/spatial_sync.py"
+    ],
+    "raster_registry::sahool-platform": [
+      "services/sahool-platform/api/routers/gis_cloud_native.py"
+    ],
+    "recommendations::sahool-platform": [
+      "services/sahool-platform/api/routers/recommendations.py",
+      "services/sahool-platform/api/routers/weather.py"
+    ],
+    "scenario_runs::sahool-platform": [
+      "services/sahool-platform/api/phase_runtime_store.py"
+    ],
+    "soil_lab_tests::sahool-platform": [
+      "services/sahool-platform/api/routers/fields.py"
+    ],
+    "soil_observations::scripts": [
+      "scripts/soil/reconcile_historical.py"
+    ],
+    "soil_profile_projection_jobs::scripts": [
+      "scripts/soil/reconcile_historical.py"
+    ],
+    "soil_reconciliation_checkpoints::scripts": [
+      "scripts/soil/reconcile_historical.py"
+    ],
+    "stac_item_registry::raster-service": [
+      "services/raster-service/db_persist.py"
+    ],
+    "training_datasets::sahool-platform": [
+      "services/sahool-platform/api/phase_runtime_store.py"
+    ],
+    "usage_metering_records::sahool-platform": [
+      "services/sahool-platform/api/phase_runtime_store.py"
+    ],
+    "users::auth": [
+      "services/auth/main.py",
+      "services/auth/mfa_runtime.py",
+      "services/auth/routers/email_verify.py",
+      "services/auth/routers/invitations.py",
+      "services/auth/routers/mfa.py",
+      "services/auth/routers/password_reset.py",
+      "services/auth/routers/registration.py",
+      "services/auth/routers/tenants.py",
+      "services/auth/routers/users.py"
+    ],
+    "weather_automation_cache::sahool-platform": [
+      "services/sahool-platform/api/weather_automation.py"
+    ],
+    "weather_automation_locations::sahool-platform": [
+      "services/sahool-platform/api/weather_automation.py"
+    ],
+    "weather_signals::weather-polygon-worker": [
+      "services/weather-polygon-worker/src/main.py"
+    ],
+    "weather_signals::weather-signal-engine": [
+      "services/weather-signal-engine/src/main.py"
+    ],
+    "webhook_subscriptions::sahool-platform": [
+      "services/sahool-platform/api/phase_runtime_store.py"
+    ],
+    "workflow_state::sahool-platform": [
+      "services/sahool-platform/core/workflow_engine.py"
+    ]
+  }
+}

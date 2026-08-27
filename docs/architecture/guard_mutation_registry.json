@@ -5,6 +5,25 @@
     "$scope_ar": "المساران هنا هما بعينهما ما أذن به `GATE01-ADJ-2026-08-13-001` — يقيس التفويضُ ما مُنِح لأجله لا أكثر.",
     "$what_was_missing_ar": "أجنحةُ السلوك كانت **قائمةً** للتعويض وللمُصرِّح منذ إغلاق الدَّينين، والناقص أنّها لم تكن مُثبَتةً بالتكذيب: لا أحد زرع العطل وأثبت أنّها تحمرّ. فالجديد هنا تسجيلٌ وزرعٌ لا كتابةُ اختبارات من جديد — عدا الراوتر نفسه، فكان مقيساً بفحصٍ نصّيّ وحده (بإقرار وثيقته)، فأُضيف له جناحٌ سلوكيّ.",
     "$why_ar": "الحرّاس الساكنة تقيس **وقوع** استشارة مفتاح الطوارئ لا **أثرها**. وحدُّ ذلك مكتوبٌ حرفيّاً في `actuation_killswitch_coverage_guard.py` وفي `GATE01-ADJ-2026-08-13-001`: «يقيس وقوع الاستشارة لا أنّ نتيجتها تمنع الإرسال». وبينهما ثلاثة أعطال يمرّ عليها الحارس أخضر — تجاهلُ النتيجة، وضيقُ النطاق، والاستشارةُ بعد النشر. فهذا القسم يزرعها في منطق الإنتاج نفسه ويُلزِم اختبارَ سلوكٍ مُسمّى بالاحمرار. ومفاتيحه **مسارات مصادر** لا أسماء حرّاس.",
+    ".github/workflows/capability-governance.yml": {
+      "$why_ar": "GATE-READS-A-FROZEN-EVENT-PAYLOAD-NOT-THE-LIVE-BODY-01: خطوةُ إنفاذ أثر القدرات كانت تقرأ المتنَ من حمولة الحدث المجمَّدة، فتصحيحُ المتن بعد الانطلاق غيرُ مرئيّ و«أعد التشغيل» يكرّر القديم (مقيس على #887). الإصلاح: جلبٌ حيّ يفشل مغلقاً.",
+      "mutations": [
+        {
+          "expect": "test_the_enforce_step_does_not_read_the_body_from_the_frozen_payload",
+          "find": "          jq -r '.body // \"\"' /tmp/pr-live.json > /tmp/pr-body.txt\n",
+          "replace": "          printf '%s' \"${PR_BODY:-}\" > /tmp/pr-body.txt  # mutated: عودة الحمولة المجمَّدة\n",
+          "test": "tests_v9/test_capability_gate_reads_live_body.py",
+          "why": "إرجاعُ قراءة المتن إلى الحمولة المجمَّدة يعيد الحادثة بعينها: بوّابةٌ تحجب على متنٍ صُحِّح قبل دقيقة."
+        },
+        {
+          "expect": "test_the_enforce_step_fetches_the_body_live_and_fails_closed",
+          "find": "          if [ \"$HTTP_STATUS\" != \"200\" ]; then\n            echo \"live PR body fetch failed: HTTP $HTTP_STATUS — فشل مغلق (الحمولة المجمّدة ليست بديلاً)\" >&2\n            exit 1\n          fi\n",
+          "replace": "          if [ \"$HTTP_STATUS\" != \"200\" ]; then\n            echo \"fetch failed — falling back\" >&2\n          fi\n",
+          "test": "tests_v9/test_capability_gate_reads_live_body.py",
+          "why": "السقوطُ الصامت عند فشل الجلب يعيد العطلَ بثوب احتياطٍ — فشلُ الشبكة يصير قراءةَ حمولةٍ بائتة بلا أثر."
+        }
+      ]
+    },
     ".github/workflows/certify-run.yml": {
       "$why_a_workflow_belongs_here_ar": "مفاتيحُ هذا القسم مساراتُ ما **يعمل في الإنتاج**، والـworkflow منها: هي التي ترفع المصنوعة التي يقرأها المُدقِّق. والطفرة تُزرَع في الـYAML نفسه لا في حارسٍ يصفه.",
       "mutations": [
@@ -42,8 +61,8 @@
           "expect": "test_the_longest_job_has_the_decided_ceiling_not_a_six_hour_default",
           "find": "    timeout-minutes: 90",
           "replace": "    timeout-minutes: 60  # mutated: السقف يعود تحت أبطأ قياسٍ حقيقيّ",
-          "why": "MUT-SWEEP-TIMEOUT-01: على #882 أنهت *Unit Tests* عند ٥٩:٠٢ مقابل سقف ٦٠ — بفارق ٥٨ ثانية. وإعادةُ السقف إلى ٦٠ تُعيد الوظيفةَ إلى حافّة القتل بالمهلة، وأوّلُ طفرةٍ تُضاف تُسقِطها. والفشلُ بالمهلة يُقرَأ عطلاً في الاختبارات لا ضيقاً في السقف، فيُشخَّص في الاتّجاه الخطأ.",
-          "test": "tests_v9/test_ci_pipeline_settings.py"
+          "test": "tests_v9/test_ci_pipeline_settings.py",
+          "why": "MUT-SWEEP-TIMEOUT-01: على #882 أنهت *Unit Tests* عند ٥٩:٠٢ مقابل سقف ٦٠ — بفارق ٥٨ ثانية. وإعادةُ السقف إلى ٦٠ تُعيد الوظيفةَ إلى حافّة القتل بالمهلة، وأوّلُ طفرةٍ تُضاف تُسقِطها. والفشلُ بالمهلة يُقرَأ عطلاً في الاختبارات لا ضيقاً في السقف، فيُشخَّص في الاتّجاه الخطأ."
         },
         {
           "expect": "test_the_sweep_still_runs_inside_the_job_the_ruleset_actually_requires",
@@ -54,9 +73,20 @@
       ],
       "test": "tests_v9/test_mutation_sweep_headroom.py"
     },
+    "config/endpoint_ui_coverage_waivers.json": {
+      "$why_ar": "بياناتٌ تحرس نفسَها: منطقُ الحارس سليمٌ ولا يبلغ ما لا يُهجّى كما ينتظر. فعودةُ تهجٍّ واحدٍ إلى هذا الملفّ تُخفي موعداً عن CI ولو لم تُمَسّ سطرٌ من الحارس — ولذلك تُسجَّل الطفرةُ على الملفّ نفسِه، بسابقة `rag_authority_convergence.json`.",
+      "mutations": [
+        {
+          "expect": "test_live_waiver_configs_carry_no_invisible_deadline",
+          "find": "      \"expiry\": \"2026-08-31\",\n",
+          "replace": "      \"expires\": \"2026-08-31\",\n",
+          "test": "tests_v9/test_waiver_expiry_guard.py",
+          "why": "الملفُّ الحيُّ راتشِت: عودةُ تهجٍّ واحدٍ إلى البيانات تُخفي موعداً عن الحارس ولو بقي منطقُه سليماً. ومنطقٌ صحيحٌ فوق بياناتٍ لا يبلغها لا يحرس شيئاً."
+        }
+      ]
+    },
     "docs/architecture/rag_authority_convergence.json": {
       "$why_ar": "المفردةُ المحفوظة هي ما يقرؤه **كلُّ** مُنتِج. وكانت الوثيقةُ بلا مفتاح `canonical_payload_parity` إطلاقاً — فمُنتِجٌ يكتب الاسمَ الواسع `True` كان يُسقِط شرطَ الـpayload من الحساب رأساً، لا يُخالِفه بل لا يراه.",
-      "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
       "mutations": [
         {
           "expect": "test_no_producer_can_certify_cutover_on_a_vector_only_receipt",
@@ -66,12 +96,13 @@
         },
         {
           "expect": "test_s3_exception_expiry_fails_closed",
-          "test": "tests_v9/test_rag_authority_convergence_guard.py",
           "find": "  \"schema\": \"sahool.rag-authority-convergence/v2\",",
           "replace": "  \"schema\": \"sahool.rag-authority-convergence/v1\",",
+          "test": "tests_v9/test_rag_authority_convergence_guard.py",
           "why": "M0-C2 بعد مراجعة #883: مفرداتُ `cutover_requirements` جزءٌ من الشكل لا حاشيةٌ عليه، فوثيقةٌ بالمفردة القديمة تصف عقداً لم يعد قائماً. وأوّلُ صياغةٍ للهجرة رفعت `version` وحده وأبقت `schema` على `/v1` — والحارسُ **لا يقرأ `version` إطلاقاً**، فكان الإبطالُ مُعلَناً في نثرٍ ومفروضاً بلا شيء، ووثيقةٌ قديمة تمرّ. هذه الطفرة تُثبِت أنّ الرفض صار مفروضاً فعلاً."
         }
-      ]
+      ],
+      "test": "tests_v9/test_rag_corpus_measurement_integrity.py"
     },
     "scripts/architecture/build_platform_catalog.py": {
       "$why_ar": "ARCH-S1a+S2: بوّابتا التصنيف القانونيّ وحقيقة الاعتماد — نكوصهما يعيد السقوط الصامت إلى service والوحدات اليتيمة التي عاشت سنين بلا أن يراها أحد.",
@@ -171,36 +202,35 @@
       "mutations": [
         {
           "expect": "test_the_root_only_tenant_detector_fires_on_a_planted_payload",
-          "test": "tests_v9/test_rag_corpus_admissibility_probe.py",
           "find": "        \"present\": sparse_visible and not dense_visible,\n",
           "replace": "        \"present\": False,\n",
+          "test": "tests_v9/test_rag_corpus_admissibility_probe.py",
           "why": "تعميةُ كاشف الارتداد القديم ⇒ يصمت على نقطةٍ مرئيّةٍ للمتناثر عمياءَ عن الكثيف، فيُقرَأ صمتُه «لا دَين»."
         },
         {
           "expect": "test_the_bm25_stat_detector_fires_and_reports_no_content_leak",
-          "test": "tests_v9/test_rag_corpus_admissibility_probe.py",
           "find": "        \"present\": score_with_term != score_alone or score_without_term != score_alone,\n",
           "replace": "        \"present\": False,\n",
+          "test": "tests_v9/test_rag_corpus_admissibility_probe.py",
           "why": "تعميةُ كاشف الأثر العابر للمستأجِرين ⇒ يُخفي أخطر المُربِكات في أيّ قياس تكافؤ."
         },
         {
           "expect": "test_the_neighbor_detector_fires_and_bounds_the_claim_to_scope_not_tenancy",
-          "test": "tests_v9/test_rag_corpus_admissibility_probe.py",
           "find": "        \"present\": bool(off_scope),\n",
           "replace": "        \"present\": False,\n",
+          "test": "tests_v9/test_rag_corpus_admissibility_probe.py",
           "why": "تعميةُ كاشف تجاوز الجيران ⇒ يصمت على استعلامٍ يُعيد مقطعاً خارج نطاقه المطلوب."
         },
         {
           "expect": "test_the_storage_id_detector_fires_when_the_logical_key_is_absent",
-          "test": "tests_v9/test_rag_corpus_admissibility_probe.py",
           "find": "        \"present\": chunk.chunk_id == \"storage-uuid-42\",\n",
           "replace": "        \"present\": False,\n",
+          "test": "tests_v9/test_rag_corpus_admissibility_probe.py",
           "why": "تعميةُ كاشف الهويّة ⇒ يصمت على UUID تخزينٍ صار هويّةً منطقيّة."
         }
       ]
     },
     "scripts/architecture/rag_corpus_audit_receipt_guard.py": {
-      "test": "tests_v9/test_rag_live_corpus_audit.py",
       "mutations": [
         {
           "expect": "test_guard_refuses_a_receipt_that_would_crash_the_migration_planner",
@@ -214,11 +244,29 @@
           "replace": "            if False:  # mutated: التناقضُ بين الحقلين يُبتلَع\n",
           "why": "D12-PRE: إيصالٌ يدّعي الاستعارة وهويّتُه حاضرة (أو العكس) يُقرَأ سليماً، فيبني المخطِّطُ على حقلٍ كُتِب بيدٍ لا على قياس."
         }
-      ]
+      ],
+      "test": "tests_v9/test_rag_live_corpus_audit.py"
+    },
+    "scripts/architecture/rag_corpus_reconciliation_executor.py": {
+      "$why_ar": "CORPUS-RECONCILIATION-01: المنفّذ هو النقطة الوحيدة التي تتحوّل فيها أحكام المالك (HOLD يبقى HOLD · لا حذف · تفرّد على كامل المجموعة) إلى سلوك كتابيّ — عيوبه تُزرع في الاستثناء والحكم النهائيّ.",
+      "mutations": [
+        {
+          "expect": "test_held_identities_are_excluded_from_seeding_and_residue_yields_hold",
+          "find": "        \"exclude_chunk_ids\": sorted(collision_ids),\n",
+          "replace": "        \"exclude_chunk_ids\": [],  # mutated: المحجور يدخل البذر\n",
+          "why": "إسقاطُ الاستثناء يجعل البذر القانونيّ يكتب — بالتقارب الحتميّ — فوق عضو مجموعةٍ محجورة، وهو نصّاً ما حرّمه حكم «لا يُنفَّذ ضدّ HOLD شيء»؛ الشاهد يقرأ ملفّ الاستثناء الفعليّ الذي استُدعي به البذّار لا نيّة الكاتب."
+        },
+        {
+          "expect": "test_dry_run_measures_reports_and_never_passes",
+          "find": "    if all(s == \"PASS\" for s in statuses):\n        return \"PASS\"\n    return \"INCOMPLETE\"\n",
+          "replace": "    return \"PASS\"  # mutated: الغياب يُقرأ نجاحاً\n",
+          "why": "قراءة NOT_MEASURED نجاحاً تعيد صنف «أخضر عن سؤالٍ لم يُطرَح»: تشغيلٌ جافّ بلا الخطوات ٦–١٣ يخرج PASS فيُقرأ اعتماداً حيّاً لم يُقَس — والحكم لا يكون PASS إلا بالثلاث عشرة كلّها."
+        }
+      ],
+      "test": "tests_v9/test_rag_corpus_reconciliation_executor.py"
     },
     "scripts/architecture/rag_live_corpus_audit.py": {
       "$why_ar": "D08-A: أداة الجرد نفسها جزء من السلوك الذي يصنع الدليل؛ تُزرع عيوب في اكتمال العد وعزل الحجر وكشف عدم تناظر dense/sparse.",
-      "test": "tests_v9/test_rag_live_corpus_audit.py",
       "mutations": [
         {
           "expect": "test_exact_scroll_mismatch_can_never_claim_payload_parity",
@@ -262,11 +310,11 @@
           "replace": "        \"physical_partition\": dict(sorted(Counter(str(r[\"scope\"]) for r in records if r[\"serving_candidate\"]).items())),  # mutated: التقسيم يسقط الحجر\n",
           "why": "درس 199=128+64+7 من جهته الثانية: تقسيمٌ فيزيائيّ لا يجمع إلى العدّ الدقيق يوازن دفاتره بإسقاط شريحة، فيقرأ القارئ اكتمالاً لم يُقَس — الجمعُ الكامل هو ما يجعل العجز مرئيّاً."
         }
-      ]
+      ],
+      "test": "tests_v9/test_rag_live_corpus_audit.py"
     },
     "scripts/architecture/rag_live_parity_probe.py": {
       "$why_ar": "ARCH-S3: المسبار الحيّ قراءة-فقط وبُعد التضمين مربوط بالمجموعة الحيّة — يُثبَت بالتكذيب.",
-      "test": "tests_v9/test_rag_live_parity_probe.py",
       "mutations": [
         {
           "expect": "test_live_probe_rejects_vector_dimension_mismatch",
@@ -280,10 +328,10 @@
           "replace": "        \"read_only\": True,\n        \"authority_promotion\": True,",
           "why": "المسبار لا يرقّي السلطة أبداً؛ قلب العلم يكسر عقد الإيصال."
         }
-      ]
+      ],
+      "test": "tests_v9/test_rag_live_parity_probe.py"
     },
     "scripts/architecture/rag_logical_identity_migration_plan.py": {
-      "test": "tests_v9/test_rag_logical_identity_migration_plan.py",
       "mutations": [
         {
           "expect": "test_storage_uuid_fallback_is_held_instead_of_becoming_canonical_identity",
@@ -303,10 +351,10 @@
           "replace": "            explicit = point_id  # mutated: الصفُّ القانونيُّ يستعير هويّتَه\n",
           "why": "صفٌّ قانونيٌّ بلا هويّةٍ صريحة تناقضٌ في الإيصال، والفشلُ المغلق هو الجواب. استبدالُه باستعارةِ مُعرِّف التخزين يُخفي عطلَ المُنتِج ويُنتِج خطّةً تبدو سليمة."
         }
-      ]
+      ],
+      "test": "tests_v9/test_rag_logical_identity_migration_plan.py"
     },
     "scripts/architecture/rag_logical_identity_migration_plan_guard.py": {
-      "test": "tests_v9/test_rag_logical_identity_migration_plan.py",
       "mutations": [
         {
           "expect": "test_plan_guard_names_a_promoted_storage_fallback_even_on_an_inconsistent_receipt",
@@ -320,7 +368,67 @@
           "replace": "        if False:  # mutated: الحارسُ يعمى عن التصادم\n",
           "why": "إن لم يُعِد الحارسُ حسابَ التصادم، اختلف حكمُه عن حكم المخطِّط فصار يُدين خططاً صحيحة أو يقبل خاطئة — حارسٌ يقيس عقداً غير الذي يُنفَّذ."
         }
+      ],
+      "test": "tests_v9/test_rag_logical_identity_migration_plan.py"
+    },
+    "scripts/architecture/s5_decision_live_closure_receipt.py": {
+      "$why_ar": "جامعُ إيصال S5 — الطرفُ المُنتِج من سلسلة C9. خطرُه أنّه يكتب دليلاً تقرؤه بوّابةٌ حاجبة: جامعٌ يحكم لنفسه، أو يفترض ادّعاءً بدل قياسه، أو يقرأ رمزَ الخروج حكماً، أو يعلَق إلى ما لا نهاية بدل أن يعجز عن القياس بسرعة، يُنتِج إيصالاً يبدو صالحاً ويشهد بما لم يُقَس. والطفراتُ الستّ تُثبِت أنّ كلَّ خاصّيّةٍ يدّعيها متنُ #944 (والمُهلة الصريحة المضافة في PR #950 بعد مراجعةٍ جنائيّة) مفروضةٌ باختبارٍ يحمرّ عند نزعها — لا موصوفةٌ في جدول.",
+      "mutations": [
+        {
+          "expect": "test_classification_agrees_with_the_guard_on_every_perturbation",
+          "find": "    receipt[\"classification\"] = \"PASSED\" if not findings else \"FAILED\"",
+          "replace": "    receipt[\"classification\"] = \"PASSED\"  # mutated: الجامعُ يحكم لنفسه",
+          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
+          "why": "جامعٌ يُصنّف PASSED دائماً يُنتِج إيصالاً يدّعي إغلاقاً لم يُقَس — وهو أخطرُ ما يفعله مُنتِجُ أدلّة، لأنّ البوّابة تثق بالجسم لا بنيّة كاتبه."
+        },
+        {
+          "expect": "test_the_write_enforcement_claim_is_measured_not_assumed",
+          "find": "    after = privilege.get(\"after\") or {}",
+          "replace": "    return True  # mutated: الادّعاءُ يصير مفترَضاً لا مقيساً\n    after = privilege.get(\"after\") or {}",
+          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
+          "why": "«منعُ كتابة المنصّة مُثبَت» ادّعاءٌ يُشتقّ من الامتيازات المقروءة. جعلُه ثابتاً يُمرّر جدولاً واحداً ما زال يقبل كتابةً — والحارسُ يقبل الإيصالَ لأنّ الكذبَ في مُدخَله لا في شرطه."
+        },
+        {
+          "expect": "test_a_local_script_exiting_nonzero_is_not_read_as_a_measurement_failure",
+          "find": "    if not (proc.stdout or \"\").strip():",
+          "replace": "    if proc.returncode != 0:  # mutated: الرمزُ يصير حكماً\n        raise MeasurementError(script.name)\n    if not (proc.stdout or \"\").strip():",
+          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
+          "why": "decision_sor_role_certify يُنهي بـ2 حين classification != PASSED، وذلك قياسٌ ناجحٌ لحالةٍ سالبة. فقراءةُ الرمز عجزاً تُنهي بـ1 بلا إيصال — فتضيع الحالةُ السالبة التي كان يجب أن تُوثَّق، ويُقرأ الصمتُ «لم يُقَس» بدل «قِيس ففشل»."
+        },
+        {
+          "expect": "test_the_collector_does_not_reimplement_the_guard_rules",
+          "find": "_PRIVILEGE_READ_ACTION = \"check\"",
+          "replace": "_PRIVILEGE_READ_ACTION = \"check\"\n_SOR_TABLE_HINT = \"decision_service_sor\"  # mutated: شرطُ الحارس يُعاد كتابته هنا",
+          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
+          "why": "مصدرُ الشروط واحد: findings_for تُستورَد من الحارس. وتسرّبُ مفردةٍ من مفرداته إلى الجامع بدايةُ نسخةٍ ثانية تنحرف عنه صامتاً — فيُنتِج إيصالاً يظنّه صاحبُه صالحاً وترفضه البوّابة، أو أسوأ: يقبله وقد تراخى."
+        },
+        {
+          "expect": "test_the_historical_overclaim_is_structurally_impossible",
+          "find": "            \"historical_zero_platform_writes_measured\": False,",
+          "replace": "            \"historical_zero_platform_writes_measured\": bool(evidence.get(\"hz\")),  # mutated: الادّعاءُ يُشتقّ من المُدخَل",
+          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
+          "why": "هذا الجامعُ لا يفحص سجلّاتٍ تاريخيّة، فالحقلُ مُثبَّتٌ false بنيويّاً. وجعلُه مُشتقّاً من المُدخَل يفتح بابَ المبالغة التي يرفضها الحارس بـhistorical_zero_writes_overclaim. **وهذه الطفرةُ بعينها نجت في أوّل جولةٍ لكاتب الشريحة** لأنّ مُدخَلاته لم تحمل المفتاح — فأثبتت القيمةَ لا الاستقلال. تسجيلُها يجعل ذلك التصحيحَ مفروضاً لا موصوفاً."
+        },
+        {
+          "expect": "test_a_hanging_local_script_is_a_measurement_failure_not_an_indefinite_hang",
+          "find": "    try:\n        proc = subprocess.run(\n            [sys.executable, str(script), *args],\n            cwd=str(DECISION_SVC),\n            capture_output=True,\n            encoding=\"utf-8\",\n            check=False,\n            timeout=_LOCAL_SCRIPT_TIMEOUT_SECONDS,\n        )\n    except subprocess.TimeoutExpired as exc:\n        raise MeasurementError(\n            f\"{script.name} لم يستجب خلال {_LOCAL_SCRIPT_TIMEOUT_SECONDS} ثانية\"\n        ) from exc",
+          "replace": "    proc = subprocess.run(  # mutated: أُسقِطت المهلة المحلّيّة\n        [sys.executable, str(script), *args],\n        cwd=str(DECISION_SVC),\n        capture_output=True,\n        encoding=\"utf-8\",\n        check=False,\n    )",
+          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
+          "why": "مراجعةٌ جنائيّة على PR #950 كشفت أنّ `run_json` بلا `timeout` صريح يُبقي سكربتاً محلّيّاً عالقاً (اتّصال قاعدة بيانات مُعلَّق) معلَّقاً حتّى مهلة المنسِّق الخارجيّة الأكبر بكثير — لا بديلٌ عن مهلةٍ محلّيّة لبَدَاهة القياس نفسه."
+        }
       ]
+    },
+    "scripts/architecture/s5_decision_live_closure_receipt_guard.py": {
+      "$why_ar": "S5 Decision live closure (بعد توحيد PLATFORM-ROUTES-DUAL-S5-PRODUCER-01 على المُنتِج القانونيّ): إيصالٌ أخضر يجب أن يثبت أنّ المنصّة المنشورة مُخفَّضةٌ فعليّاً — لا مجرّد حقلٍ موجود.",
+      "mutations": [
+        {
+          "expect": "test_classification_agrees_with_the_guard_on_every_perturbation",
+          "find": "        and pm.get(\"platform_writes_required\") is False",
+          "replace": "        and pm.get(\"platform_writes_required\") is not None  # mutated: writable platform accepted",
+          "why": "قبول أي قيمة موجودة بدل False يسمح بإيصال أخضر بينما platform_writes_required=true وتبقى نافذة السلطة المزدوجة مفتوحة."
+        }
+      ],
+      "test": "tests_v9/test_s5_live_closure_receipt_collector.py"
     },
     "scripts/architecture/s5_exec_01_edge_freeze.py": {
       "$why_ar": "S5-EXEC-01: بصمة التجميد السلطوية تخص سطح platform runtime فقط؛ نمو شهود الاختبار/خدمة القرار لا يجوز أن يُعاد تصنيفه كتضخم سلطة، لكن فقد الشهود دون أرضية أو نمو runtime يجب أن يُحجب.",
@@ -344,9 +452,9 @@
       "mutations": [
         {
           "expect": "test_the_live_certification_reads_the_measured_name",
-          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
           "find": "        and r.get(\"collection_vector_schema_parity\") is True\n",
           "replace": "        and r.get(\"collection_schema_parity\") is True\n",
+          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
           "why": "عودةُ الشهادة إلى الاسم الواسع ⇒ تشهد لتكافؤ الـpayload الذي لا يُثبِته أيُّ فحصٍ فيها."
         }
       ]
@@ -416,9 +524,9 @@
         },
         {
           "expect": "test_the_wide_name_is_gone_from_every_producer_not_just_the_ones_named_above",
-          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
           "find": "    effective[\"collection_vector_schema_parity\"] = True",
           "replace": "    effective[\"collection_schema_parity\"] = True  # mutated: الاسمُ الواسع يعود",
+          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
           "why": "M0-C2: الاسمُ الواحد يحمل حقيقتين فيمنح تكافؤَ الـpayload خُضرةَ إيصالِ المتّجه. وقبل الهجرة كان حارسُ تكافؤِ الـpayload الوحيد هنا **مصادفةَ** بقاءِ `direct_qdrant_revocation_ready` كاذبةً — ويومَ تُقلَب، وهي غايةُ البرنامج نفسه، تُصدَر `CERTIFIED_CUTOVER_CAPABLE` على إيصالٍ أثبت تكافؤَ المتّجه وحده. وهذا مسارُ شهادةٍ ثانٍ محجوزٌ في `ci.yml`، أفلت من الشريحة الأولى لأنّ تثبيتَها كان على نصّ الإسناد في ملفٍّ سُمّي بعينه لا على الخاصّيّة. أمسكه مراجعٌ آليّ على #882."
         },
         {
@@ -659,27 +767,51 @@
       ],
       "test": "tests_v9/test_certify_artifact_contract.py"
     },
+    "scripts/ci/generated_write_targets.py": {
+      "$why_ar": "CLASSIFIER-BLIND-TO-GENERATORS-OUTSIDE-generated-DIRS-01: المعيار «يكتبه» لا «يذكره». نكوصُه يُدخِل وثائقَ السياسة بيانَ الكتابة، فيأخذ حلُّ التعارض جانب main ويُعيد التوليد — أي يمحو طفراتٍ مكتوبة. **وهذا القسم لا `mutated`** لأنّ المِرقاب يكتشف `*_guard.py` وحدها، وهذه أداةُ اشتقاق لا حارس؛ تسميتُها حارساً لتمرّ كانت ستكذب على قارئ الكتالوج.",
+      "mutations": [
+        {
+          "expect": "test_only_a_write_counts_not_a_mention",
+          "find": "WRITE_METHODS = {\"write_text\", \"write_bytes\"}",
+          "replace": "WRITE_METHODS = {\"write_text\", \"write_bytes\", \"read_text\"}  # mutated",
+          "why": "عدُّ القراءة كتابةً يُدخِل وثائقَ السياسة البيان — وهي تُقرأ في المحرّكات ولا تُكتَب. وهو العطل الذي وُجِد المعيار كلُّه لمنعه."
+        },
+        {
+          "expect": "test_only_a_write_counts_not_a_mention",
+          "find": "            if any(flag in mode for flag in (\"w\", \"a\", \"x\")):",
+          "replace": "            if True:  # mutated",
+          "why": "`open(P)` بلا وضعٍ فتحُ قراءة. إسقاطُ فحص الوضع يجعل كلّ فتحٍ كتابةً."
+        },
+        {
+          "expect": "test_a_stale_manifest_is_caught_because_check_re_derives",
+          "find": "    live = measure()\n    if sorted(declared) != live:",
+          "replace": "    live = sorted(declared)  # mutated\n    if sorted(declared) != live:",
+          "why": "`--check` الذي يصف بدل أن يقيس يمرّ أخضر على بيانٍ بائت أبداً."
+        }
+      ],
+      "test": "tests_v9/test_generated_write_targets.py"
+    },
     "scripts/ci/preflight.sh": {
       "mutations": [
         {
           "expect": "test_the_locale_decoding_guard_runs_in_the_fast_tier_not_only_inside_the_suite",
-          "test": "tests_v9/test_local_preflight_contract.py",
           "find": "run \"٢و) text_encoding_locale\" python3 -m pytest -q tests_v9/test_text_encoding_locale.py::test_no_new_file_decodes_text_with_the_machines_locale\n",
           "replace": "run \"٢و) text_encoding_locale\" echo skipped  # mutated: الحارس يخرج من الطبقة السريعة\n",
+          "test": "tests_v9/test_local_preflight_contract.py",
           "why": "إخراجُ حارس الترميز من الطبقة السريعة يُعيد الحالةَ التي قِيست على #886: `--fast` أخضرُ على شجرةٍ يحمّرها الجناحُ الكامل بعد ٣٦٢ث. والصنفُ متكرّر — أُصلِح على #884 ثمّ أُعيد بتبنّي شيفرةٍ واردة في الجلسة نفسها. وهو حرفيّاً صنف ٢د: حارسٌ رخيص (٤٫٦ث) محبوسٌ في طبقةٍ غالية."
         },
         {
           "expect": "test_a_changed_behavioural_source_is_planted_even_when_the_registry_is_untouched",
-          "test": "tests_v9/test_local_preflight_contract.py",
           "find": "        if path in behavioural:\n            touched.add(path)\n",
           "replace": "        if False:  # mutated: القسم السلوكيّ يعود غير مستشار\n            touched.add(path)\n",
+          "test": "tests_v9/test_local_preflight_contract.py",
           "why": "PREFLIGHT-3J-BLIND-TO-BEHAVIOURAL-SOURCES-01: إعادةُ العمى عن القسم السلوكيّ تعيد «لا حارسَ مسّه التغيير» الكاذبة على مصدرٍ سلوكيّ متغيّر — والصنفُ الذي كشف الفجوة قِيس على #886/#888: طفراتُ preflight.sh نفسِها سلوكيّة، فتغييرُه بلا هذا الالتقاط لا يُزرَع محلّيّاً أبداً."
         },
         {
           "expect": "test_a_changed_witness_escalates_every_target_it_witnesses_for",
-          "test": "tests_v9/test_local_preflight_contract.py",
           "find": "            touched.update(by_test[path])\n",
           "replace": "            touched.add(sorted(by_test[path])[0])  # mutated: الشاهد المشترك يشهد لواحد\n",
+          "test": "tests_v9/test_local_preflight_contract.py",
           "why": "قاموسُ شاهد→هدفٍ أخيرُ الترجيح كان يُظلِّل أهدافاً صامتاً حين يتشارك سلوكيّان ملفَّ اختبار — التصعيدُ الجزئيّ أخفى من التقنيع الكامل لأنّه يبدو عاملاً."
         }
       ]
@@ -701,6 +833,38 @@
         }
       ],
       "test": "tests/architecture/test_verify_all_generated.py"
+    },
+    "scripts/ci/resolve_merge_conflicts.py": {
+      "$why_ar": "قائمةُ المنع تعلو البيان دفاعاً في العمق: بيانٌ بائت أو اشتقاقٌ خاطئ قد يُدخِل وثيقةَ سياسة، فيبقى المنع وحده هو ما يمنع الإتلاف.",
+      "mutations": [
+        {
+          "expect": "test_the_deny_list_holds_even_when_the_manifest_is_wrong",
+          "find": "    if path in HAND_WRITTEN_POLICY:\n        return \"source\"",
+          "replace": "    if False:  # mutated\n        return \"source\"",
+          "why": "إسقاطُ الطبقة الثانية لا يُحمِّر شيئاً على شجرةٍ سليمة — ولذلك يُقاس بالزرع لا بالخضرة."
+        },
+        {
+          "expect": "test_a_missing_manifest_degrades_to_source_not_to_chaos",
+          "find": "    if not WRITE_TARGETS.is_file():\n        return set()",
+          "replace": "    if not WRITE_TARGETS.is_file():\n        return {\"docs/runbooks/GUARD_CATALOGUE.md\"}  # mutated",
+          "why": "غيابُ البيان يجب أن يفشل في الاتّجاه الآمن («مصدر» يُوقِف)، لا أن يخترع أهدافاً."
+        },
+        {
+          "expect": "test_a_conflicted_manifest_is_named_not_left_to_guesswork",
+          "find": "    return MANIFEST_REL in {str(Path(p).as_posix()) for p in paths}",
+          "replace": "    return False  # mutated: البيانُ المتعارض لا يُكتشَف",
+          "test": "tests_v9/test_resolve_merge_conflicts.py",
+          "why": "CONFLICTED-MANIFEST-DISABLES-THE-LAYER-IT-FEEDS-01: بيانٌ متعارضٌ لا يُحلَّل فتسقط طبقتُه ويتدهور كلُّ شيءٍ إلى «مصدر». التدهورُ آمنٌ لكنّه صامت، فالعطلُ عطلُ إبانةٍ لا صحّة — وإسقاطُ الاكتشاف يُعيد المُشغِّلَ إلى قراءة «مصادر» وظنِّها مصادرَ حقّاً."
+        },
+        {
+          "expect": "test_a_conflicted_manifest_is_named_not_left_to_guesswork",
+          "find": "    return MANIFEST_REL in {str(Path(p).as_posix()) for p in paths}",
+          "replace": "    return any(MANIFEST_REL in p for p in paths)  # mutated: مرساة نصّيّة",
+          "test": "tests_v9/test_resolve_merge_conflicts.py",
+          "why": "مطابقةُ `substring` تُطابِق أيَّ مسارٍ يشترك في الذيل (`vendor/docs/architecture/...`)، فتُنتِج رسالةً تقول «حُلَّ بياني أوّلاً» عن ملفٍّ ليس بياننا — رسالةٌ تكذب على قارئها أسوأ من صمت."
+        }
+      ],
+      "test": "tests_v9/test_generated_write_targets.py"
     },
     "scripts/ci/runtime_certification_gate.py": {
       "$gap_ar": "CAPABILITY-RUNTIME-PROMOTION-INVISIBLE-TO-EVIDENCE-01 — normalized runtime authority",
@@ -749,7 +913,6 @@
     },
     "scripts/ci/s5_exec_01_writer_cutover_guard.py": {
       "$why_ar": "S5-EXEC-01: وجود الكاتب القديم قبل القطع مقبول فقط إذا كان لكل writer عقد strict-mode قابل للتكذيب بالزرع.",
-      "test": "tests_v9/test_s5_exec_01_writer_cutover_guard.py",
       "mutations": [
         {
           "expect": "test_removing_strict_mode_marker_is_blocked",
@@ -757,7 +920,8 @@
           "replace": "            if False:  # mutated: missing cutover markers tolerated",
           "why": "تعطيل فحص markers يجعل الكاتب القديم قابلاً للبقاء بلا strict cutover contract؛ زرع إزالة strict marker يجب أن يحمرّ."
         }
-      ]
+      ],
+      "test": "tests_v9/test_s5_exec_01_writer_cutover_guard.py"
     },
     "scripts/ci/sot_evidence_manifest.py": {
       "$why_ar": "أداةُ إنتاج البيان الموقَّع — ليست حارساً بالاسم لكنّ ما تكتبه يدخل الموضوع الموقَّع نفسه، فطفراتُها تقيس أنّ هويّة المُنتِج لا تُوقَّع فارغةً ولا مكتوبةً بيد.",
@@ -789,17 +953,17 @@
       ],
       "test": "tests/architecture/test_capability_truth_preconditions.py"
     },
-    "scripts/architecture/s5_decision_live_closure_receipt_guard.py": {
-      "$why_ar": "S5 Decision live closure (بعد توحيد PLATFORM-ROUTES-DUAL-S5-PRODUCER-01 على المُنتِج القانونيّ): إيصالٌ أخضر يجب أن يثبت أنّ المنصّة المنشورة مُخفَّضةٌ فعليّاً — لا مجرّد حقلٍ موجود.",
+    "scripts/ci/waiver_expiry_guard.py": {
+      "$why_ar": "حارسٌ كامنُ العطل: نجح في ما يفحصه وعمي عمّا لا يفحصه. سبعةُ إعفاءاتٍ في الملفّ الحيّ حملت تاريخَها تحت `expires` والحارسُ يقرأ `expiry` وحدَه، فأبلغ `ok` فوقها منذ نزولها وأقربُها على بعد أربعة أيّام. والطفرتان تحرسان الشقّين معاً: منطقَ الرفض في الحارس، وتهجّيَ البيانات في الملفّ — لأنّ إصلاح أحدهما بلا الآخر يُعيد الصمت.",
       "mutations": [
         {
-          "expect": "test_classification_agrees_with_the_guard_on_every_perturbation",
-          "find": "        and pm.get(\"platform_writes_required\") is False",
-          "replace": "        and pm.get(\"platform_writes_required\") is not None  # mutated: writable platform accepted",
-          "why": "قبول أي قيمة موجودة بدل False يسمح بإيصال أخضر بينما platform_writes_required=true وتبقى نافذة السلطة المزدوجة مفتوحة."
+          "expect": "test_every_near_miss_key_is_covered_not_just_the_one_that_bit_us",
+          "find": "        for alias in EXPIRY_NEAR_MISS_KEYS:\n",
+          "replace": "        for alias in ():  # mutated: يعود الحارسُ أعمى عن المرادفات\n",
+          "test": "tests_v9/test_waiver_expiry_guard.py",
+          "why": "نزعُ الرفض يُعيد الحالةَ التي وُجِد الحارسُ لمنعها بعينها: إعفاءٌ يقرؤه الإنسانُ موقوتاً وتقرؤه CI دائماً. والأسوأُ أنّه يُبلِغ `ok` — فالصمتُ يُقرأ شهادةَ سلامة."
         }
-      ],
-      "test": "tests_v9/test_s5_live_closure_receipt_collector.py"
+      ]
     },
     "scripts/staging/kg_runtime_parity_collector.py": {
       "$why_ar": "S4 KG live parity: equal-empty responses are not evidence and deployed source identity must match.",
@@ -923,12 +1087,53 @@
       "mutations": [
         {
           "expect": "test_readyz_does_not_claim_canonical_payload_parity",
-          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
           "find": "        \"canonical_payload_parity\": False,\n",
           "replace": "        \"canonical_payload_parity\": True,\n",
+          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
           "why": "ادّعاءُ تكافؤ الـpayload في مسار الجاهزيّة ⇒ يقرؤه كلُّ مستهلكٍ أخضرَ بلا جردِ مجموعةٍ يُثبِته، فيعود الاسمُ الواسع بصيغةٍ أخرى."
         }
       ]
+    },
+    "services/sahool-platform/api/irrigation_decision_evidence_chain.py": {
+      "$why_ar": "مُتحقِّقُ سلسلة الأدلّة fail-closed. والخطرُ المقيس هنا **تغطيةٌ بالاسم لا بالأثر**: الرقعةُ الواردة أعلنت «٥ اختبارات تُغطّي parent tamper وC6 وNaN»، فنجت **٤ من ٥** طفرات — لأنّ العبثَ بالمحتوى يُغيّر بصمةَ المرحلة فيُمسَك بحارس E1 قبل أن يبلغ حارسَ E2. **ثغرةٌ يسترها حارسٌ مجاور.** فتُعاد البصماتُ بعد العبث في كلّ طفرةٍ أدناه، كي يُعزَل الحارسُ المقصودُ ويكون احمرارُه شهادةً له وحدَه.",
+      "mutations": [
+        {
+          "expect": "test_parent_stage_id_link_is_checked_on_its_own",
+          "find": "            if stage.get(\"parent_stage_id\") != previous.get(\"stage_id\"):",
+          "replace": "            if False:  # mutated: رابطُ الأب لا يُفحَص",
+          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+          "why": "الحقلُ كان **بلا اختبارٍ إطلاقاً**: `test_parent_tamper_is_rejected` يعبث بـ`parent_digest` لا به، والاسمُ يوحي بتغطيةٍ لا توجد."
+        },
+        {
+          "expect": "test_parent_digest_link_is_checked_on_its_own",
+          "find": "            if stage.get(\"parent_digest\") != previous.get(\"stage_digest\"):",
+          "replace": "            if False:  # mutated: بصمةُ الأب لا تُفحَص",
+          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+          "why": "كان مستوراً بحارس E1: العبثُ بالبصمة يُغيّر المحتوى فيُمسَك قبل بلوغ E2. العزلُ بإعادة حساب البصمات."
+        },
+        {
+          "expect": "test_content_tamper_is_rejected_even_when_digest_is_stale",
+          "find": "        if stage.get(\"stage_digest\") and stage_digest(stage) != stage.get(\"stage_digest\"):",
+          "replace": "        if False:  # mutated: بصمةُ المرحلة لا تُفحَص",
+          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+          "why": "E1: محتوًى مُعدَّلٌ ببصمةٍ بائتة يُقرأ صحيحاً — وهو الحارسُ الوحيد الذي كذّبته الرقعةُ الواردة."
+        },
+        {
+          "expect": "test_non_finite_rejection_carries_the_contract_reason_not_a_generic_one",
+          "find": "        if not math.isfinite(value):",
+          "replace": "        if False:  # mutated: يُترَك الرفضُ لـjson",
+          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+          "why": "`json.dumps(allow_nan=False)` يرفض NaN وحدَه، فكان `_reject_nonfinite` **زائداً غيرَ مُثبَت** (مقيسٌ بتعطيله في الذاكرة: بقي الرفض). فالمُثبَّت هو **الرسالة** لا الرفض: «E1» تقول أيَّ عقدٍ خُولِف، والعامّةُ تترك القارئ يخمّن."
+        },
+        {
+          "expect": "test_the_schema_pins_stage_to_sequence_which_is_why_prefix_mismatch_is_unreachable",
+          "find": "def validate_stage_schema(stage: dict[str, Any]) -> list[str]:",
+          "replace": "def validate_stage_schema(stage: dict[str, Any]) -> list[str]:\n    return []  # mutated: المخطَّط يرتخي",
+          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+          "why": "يحرس **البرهان** لا الفرع: فرعُ `prefix mismatch` غيرُ قابل للبلوغ ما دام المخطَّطُ يُثبِّت (المرحلة ⇄ التسلسل) — مُبرهَنٌ بجداءٍ كامل ٩×٩ بصفر موضعٍ حرّ. فإن ارتخى المخطَّطُ عاد الفرعُ حيّاً ووجب تكذيبٌ خاصّ به، وهذا الاختبارُ هو ما يكشف ذلك بدل أن يبقى «مُغطًّى» بادّعاءٍ قديم."
+        }
+      ],
+      "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py"
     },
     "services/sahool-platform/api/machinery_export.py": {
       "$why_ar": "C3: artifact الآلة يجب أن يحتفظ بهوية مناطق الإدارة وبصمة الوصفة/lineage، لا أن يعيد ترقيمها بما يقطع السلسلة.",
@@ -976,44 +1181,44 @@
       "mutations": [
         {
           "expect": "test_the_point_count_comes_from_the_exact_count_api",
-          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
           "find": "            \"POST\", f\"/collections/{self.collection}/points/count\", {\"exact\": True}\n",
           "replace": "            \"GET\", f\"/collections/{self.collection}\"\n",
+          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
           "why": "عودةُ العدّ التقريبيّ سلطةً دقيقة ⇒ `points_count` تقريبيّ بالعقد، فينتج ٥٠٣ في مسارٍ حاجب بلا فقد نقطةٍ واحدة — عطلٌ يبقى بعد أن يصير skipped=0 وتُهاجَر كلّ نقطة."
         },
         {
           "expect": "test_a_payload_the_parser_accepts_is_never_given_a_reason_code",
-          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
           "find": "        KnowledgeChunk.from_payload(payload, fallback_id=fallback_id)\n        return None\n",
           "replace": "        pass\n",
+          "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
           "why": "نزعُ نداء المحلّل الحقيقيّ من التصنيف ⇒ يصير التصنيفُ محاكاةً تنحرف عن القرار، فيُعطى رمزُ رفضٍ لِما قَبِله المحلّل."
         },
         {
           "expect": "test_the_executed_retrieve_body_carries_no_eligibility_filter",
-          "test": "tests_v9/test_rag_corpus_identity_readiness.py",
           "find": "        dense_map: dict[str, float] = {}\n        for point_id, score, payload in dense_rows:\n",
           "replace": "        dense_map: dict[str, float] = {}\n        for point_id, score, payload in dense_rows:\n            if not canonical_storage_shape(payload):\n                continue\n",
+          "test": "tests_v9/test_rag_corpus_identity_readiness.py",
           "why": "D09: عودةُ مِصفاةِ الصفوف إلى الكثيف تُحوِّل انحرافَ المجموعة من `503` صريح إلى `200` بنتائجَ ناقصة لا يعرف المستهلكُ نقصَها — إجابةٌ مبتورة تُقرَأ كاملة، وهي أخفى وأسوأ في مسار RAG."
         },
         {
           "expect": "test_same_count_same_ids_but_altered_content_still_drifts",
-          "test": "tests_v9/test_rag_corpus_identity_readiness.py",
           "find": "        \"content_digest\": _digest(pairs),\n",
           "replace": "        \"content_digest\": _digest(ids),  # mutated: content ignored\n",
+          "test": "tests_v9/test_rag_corpus_identity_readiness.py",
           "why": "D09-M: بصمةٌ تقرأ المُعرِّفات وحدها تمرّ على تبدُّلِ المحتوى كلِّه بعددٍ ومُعرِّفاتٍ ثابتة — فتصير هويّةُ المجموعة حارسَ عدد لا حارسَ سلامة."
         },
         {
           "expect": "test_readiness_fails_closed_on_active_noncanonical_rows",
-          "test": "tests_v9/test_rag_corpus_identity_readiness.py",
           "find": "    if noncanonical:\n",
           "replace": "    if False and noncanonical:\n",
+          "test": "tests_v9/test_rag_corpus_identity_readiness.py",
           "why": "D09-E: تعطيلُ حكمِ الجاهزيّة يجعل الخدمةَ تُعلِن READY على مجموعةٍ تحوي صفوفاً نشطةً غيرَ قانونيّة. والحكمُ دالّةٌ نقيّة عمداً كي يُكذَّب بالسلوك — أوّلُ صياغةٍ فحصت النصَّ فمرّت على هذا التعطيل بعينه."
         },
         {
           "expect": "test_readiness_refuses_an_unmeasured_identity",
-          "test": "tests_v9/test_rag_corpus_identity_readiness.py",
           "find": "    if not isinstance(identity, dict) or not identity.get(\"id_set_digest\"):\n",
           "replace": "    if False:\n",
+          "test": "tests_v9/test_rag_corpus_identity_readiness.py",
           "why": "D09-E: غيابُ البصمة يعني «لم تُقَس» لا «سليمة». قبولُه يُخضِر الجاهزيّةَ على مجموعةٍ لم يُقَس انحرافُها أصلاً — وهو «يفشل مفتوحاً» بعينه."
         }
       ]
@@ -1031,7 +1236,6 @@
       "test": "services/sahool-platform/tests/test_precision_execution_loop_c3.py"
     },
     "services/weather-signal-engine/worker_health_probe.py": {
-      "test": "tests_v9/test_weather_worker_health_probe.py",
       "mutations": [
         {
           "expect": "test_a_missing_heartbeat_is_not_ready",
@@ -1057,212 +1261,8 @@
           "replace": "        return True, \"ready\"\n",
           "why": "نبضةٌ موجودةٌ لا تُقرَأ (EIO مثلاً) تُقرَأ صحّةً. وأمسك أصلَ العطل مراجعٌ آليّ على #880: بلا التقاطٍ يخرج الفحص بـtraceback فيقرأ Docker رمزَ الخروج ولا يقرأ المشغّلُ سبباً — والأوسع أنّ `Path.exists()` نفسه يرمي على EIO، فوُحِّد النداء وأُلغيت النافذة بدل حراستها."
         }
-      ]
-    },
-    "scripts/ci/generated_write_targets.py": {
-      "$why_ar": "CLASSIFIER-BLIND-TO-GENERATORS-OUTSIDE-generated-DIRS-01: المعيار «يكتبه» لا «يذكره». نكوصُه يُدخِل وثائقَ السياسة بيانَ الكتابة، فيأخذ حلُّ التعارض جانب main ويُعيد التوليد — أي يمحو طفراتٍ مكتوبة. **وهذا القسم لا `mutated`** لأنّ المِرقاب يكتشف `*_guard.py` وحدها، وهذه أداةُ اشتقاق لا حارس؛ تسميتُها حارساً لتمرّ كانت ستكذب على قارئ الكتالوج.",
-      "mutations": [
-        {
-          "expect": "test_only_a_write_counts_not_a_mention",
-          "find": "WRITE_METHODS = {\"write_text\", \"write_bytes\"}",
-          "replace": "WRITE_METHODS = {\"write_text\", \"write_bytes\", \"read_text\"}  # mutated",
-          "why": "عدُّ القراءة كتابةً يُدخِل وثائقَ السياسة البيان — وهي تُقرأ في المحرّكات ولا تُكتَب. وهو العطل الذي وُجِد المعيار كلُّه لمنعه."
-        },
-        {
-          "expect": "test_only_a_write_counts_not_a_mention",
-          "find": "            if any(flag in mode for flag in (\"w\", \"a\", \"x\")):",
-          "replace": "            if True:  # mutated",
-          "why": "`open(P)` بلا وضعٍ فتحُ قراءة. إسقاطُ فحص الوضع يجعل كلّ فتحٍ كتابةً."
-        },
-        {
-          "expect": "test_a_stale_manifest_is_caught_because_check_re_derives",
-          "find": "    live = measure()\n    if sorted(declared) != live:",
-          "replace": "    live = sorted(declared)  # mutated\n    if sorted(declared) != live:",
-          "why": "`--check` الذي يصف بدل أن يقيس يمرّ أخضر على بيانٍ بائت أبداً."
-        }
       ],
-      "test": "tests_v9/test_generated_write_targets.py"
-    },
-    "scripts/ci/resolve_merge_conflicts.py": {
-      "$why_ar": "قائمةُ المنع تعلو البيان دفاعاً في العمق: بيانٌ بائت أو اشتقاقٌ خاطئ قد يُدخِل وثيقةَ سياسة، فيبقى المنع وحده هو ما يمنع الإتلاف.",
-      "mutations": [
-        {
-          "expect": "test_the_deny_list_holds_even_when_the_manifest_is_wrong",
-          "find": "    if path in HAND_WRITTEN_POLICY:\n        return \"source\"",
-          "replace": "    if False:  # mutated\n        return \"source\"",
-          "why": "إسقاطُ الطبقة الثانية لا يُحمِّر شيئاً على شجرةٍ سليمة — ولذلك يُقاس بالزرع لا بالخضرة."
-        },
-        {
-          "expect": "test_a_missing_manifest_degrades_to_source_not_to_chaos",
-          "find": "    if not WRITE_TARGETS.is_file():\n        return set()",
-          "replace": "    if not WRITE_TARGETS.is_file():\n        return {\"docs/runbooks/GUARD_CATALOGUE.md\"}  # mutated",
-          "why": "غيابُ البيان يجب أن يفشل في الاتّجاه الآمن («مصدر» يُوقِف)، لا أن يخترع أهدافاً."
-        },
-        {
-          "expect": "test_a_conflicted_manifest_is_named_not_left_to_guesswork",
-          "test": "tests_v9/test_resolve_merge_conflicts.py",
-          "find": "    return MANIFEST_REL in {str(Path(p).as_posix()) for p in paths}",
-          "replace": "    return False  # mutated: البيانُ المتعارض لا يُكتشَف",
-          "why": "CONFLICTED-MANIFEST-DISABLES-THE-LAYER-IT-FEEDS-01: بيانٌ متعارضٌ لا يُحلَّل فتسقط طبقتُه ويتدهور كلُّ شيءٍ إلى «مصدر». التدهورُ آمنٌ لكنّه صامت، فالعطلُ عطلُ إبانةٍ لا صحّة — وإسقاطُ الاكتشاف يُعيد المُشغِّلَ إلى قراءة «مصادر» وظنِّها مصادرَ حقّاً."
-        },
-        {
-          "expect": "test_a_conflicted_manifest_is_named_not_left_to_guesswork",
-          "test": "tests_v9/test_resolve_merge_conflicts.py",
-          "find": "    return MANIFEST_REL in {str(Path(p).as_posix()) for p in paths}",
-          "replace": "    return any(MANIFEST_REL in p for p in paths)  # mutated: مرساة نصّيّة",
-          "why": "مطابقةُ `substring` تُطابِق أيَّ مسارٍ يشترك في الذيل (`vendor/docs/architecture/...`)، فتُنتِج رسالةً تقول «حُلَّ بياني أوّلاً» عن ملفٍّ ليس بياننا — رسالةٌ تكذب على قارئها أسوأ من صمت."
-        }
-      ],
-      "test": "tests_v9/test_generated_write_targets.py"
-    },
-    ".github/workflows/capability-governance.yml": {
-      "$why_ar": "GATE-READS-A-FROZEN-EVENT-PAYLOAD-NOT-THE-LIVE-BODY-01: خطوةُ إنفاذ أثر القدرات كانت تقرأ المتنَ من حمولة الحدث المجمَّدة، فتصحيحُ المتن بعد الانطلاق غيرُ مرئيّ و«أعد التشغيل» يكرّر القديم (مقيس على #887). الإصلاح: جلبٌ حيّ يفشل مغلقاً.",
-      "mutations": [
-        {
-          "expect": "test_the_enforce_step_does_not_read_the_body_from_the_frozen_payload",
-          "test": "tests_v9/test_capability_gate_reads_live_body.py",
-          "find": "          jq -r '.body // \"\"' /tmp/pr-live.json > /tmp/pr-body.txt\n",
-          "replace": "          printf '%s' \"${PR_BODY:-}\" > /tmp/pr-body.txt  # mutated: عودة الحمولة المجمَّدة\n",
-          "why": "إرجاعُ قراءة المتن إلى الحمولة المجمَّدة يعيد الحادثة بعينها: بوّابةٌ تحجب على متنٍ صُحِّح قبل دقيقة."
-        },
-        {
-          "expect": "test_the_enforce_step_fetches_the_body_live_and_fails_closed",
-          "test": "tests_v9/test_capability_gate_reads_live_body.py",
-          "find": "          if [ \"$HTTP_STATUS\" != \"200\" ]; then\n            echo \"live PR body fetch failed: HTTP $HTTP_STATUS — فشل مغلق (الحمولة المجمّدة ليست بديلاً)\" >&2\n            exit 1\n          fi\n",
-          "replace": "          if [ \"$HTTP_STATUS\" != \"200\" ]; then\n            echo \"fetch failed — falling back\" >&2\n          fi\n",
-          "why": "السقوطُ الصامت عند فشل الجلب يعيد العطلَ بثوب احتياطٍ — فشلُ الشبكة يصير قراءةَ حمولةٍ بائتة بلا أثر."
-        }
-      ]
-    },
-    "scripts/architecture/rag_corpus_reconciliation_executor.py": {
-      "$why_ar": "CORPUS-RECONCILIATION-01: المنفّذ هو النقطة الوحيدة التي تتحوّل فيها أحكام المالك (HOLD يبقى HOLD · لا حذف · تفرّد على كامل المجموعة) إلى سلوك كتابيّ — عيوبه تُزرع في الاستثناء والحكم النهائيّ.",
-      "test": "tests_v9/test_rag_corpus_reconciliation_executor.py",
-      "mutations": [
-        {
-          "expect": "test_held_identities_are_excluded_from_seeding_and_residue_yields_hold",
-          "find": "        \"exclude_chunk_ids\": sorted(collision_ids),\n",
-          "replace": "        \"exclude_chunk_ids\": [],  # mutated: المحجور يدخل البذر\n",
-          "why": "إسقاطُ الاستثناء يجعل البذر القانونيّ يكتب — بالتقارب الحتميّ — فوق عضو مجموعةٍ محجورة، وهو نصّاً ما حرّمه حكم «لا يُنفَّذ ضدّ HOLD شيء»؛ الشاهد يقرأ ملفّ الاستثناء الفعليّ الذي استُدعي به البذّار لا نيّة الكاتب."
-        },
-        {
-          "expect": "test_dry_run_measures_reports_and_never_passes",
-          "find": "    if all(s == \"PASS\" for s in statuses):\n        return \"PASS\"\n    return \"INCOMPLETE\"\n",
-          "replace": "    return \"PASS\"  # mutated: الغياب يُقرأ نجاحاً\n",
-          "why": "قراءة NOT_MEASURED نجاحاً تعيد صنف «أخضر عن سؤالٍ لم يُطرَح»: تشغيلٌ جافّ بلا الخطوات ٦–١٣ يخرج PASS فيُقرأ اعتماداً حيّاً لم يُقَس — والحكم لا يكون PASS إلا بالثلاث عشرة كلّها."
-        }
-      ]
-    },
-    "services/sahool-platform/api/irrigation_decision_evidence_chain.py": {
-      "$why_ar": "مُتحقِّقُ سلسلة الأدلّة fail-closed. والخطرُ المقيس هنا **تغطيةٌ بالاسم لا بالأثر**: الرقعةُ الواردة أعلنت «٥ اختبارات تُغطّي parent tamper وC6 وNaN»، فنجت **٤ من ٥** طفرات — لأنّ العبثَ بالمحتوى يُغيّر بصمةَ المرحلة فيُمسَك بحارس E1 قبل أن يبلغ حارسَ E2. **ثغرةٌ يسترها حارسٌ مجاور.** فتُعاد البصماتُ بعد العبث في كلّ طفرةٍ أدناه، كي يُعزَل الحارسُ المقصودُ ويكون احمرارُه شهادةً له وحدَه.",
-      "mutations": [
-        {
-          "expect": "test_parent_stage_id_link_is_checked_on_its_own",
-          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
-          "find": "            if stage.get(\"parent_stage_id\") != previous.get(\"stage_id\"):",
-          "replace": "            if False:  # mutated: رابطُ الأب لا يُفحَص",
-          "why": "الحقلُ كان **بلا اختبارٍ إطلاقاً**: `test_parent_tamper_is_rejected` يعبث بـ`parent_digest` لا به، والاسمُ يوحي بتغطيةٍ لا توجد."
-        },
-        {
-          "expect": "test_parent_digest_link_is_checked_on_its_own",
-          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
-          "find": "            if stage.get(\"parent_digest\") != previous.get(\"stage_digest\"):",
-          "replace": "            if False:  # mutated: بصمةُ الأب لا تُفحَص",
-          "why": "كان مستوراً بحارس E1: العبثُ بالبصمة يُغيّر المحتوى فيُمسَك قبل بلوغ E2. العزلُ بإعادة حساب البصمات."
-        },
-        {
-          "expect": "test_content_tamper_is_rejected_even_when_digest_is_stale",
-          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
-          "find": "        if stage.get(\"stage_digest\") and stage_digest(stage) != stage.get(\"stage_digest\"):",
-          "replace": "        if False:  # mutated: بصمةُ المرحلة لا تُفحَص",
-          "why": "E1: محتوًى مُعدَّلٌ ببصمةٍ بائتة يُقرأ صحيحاً — وهو الحارسُ الوحيد الذي كذّبته الرقعةُ الواردة."
-        },
-        {
-          "expect": "test_non_finite_rejection_carries_the_contract_reason_not_a_generic_one",
-          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
-          "find": "        if not math.isfinite(value):",
-          "replace": "        if False:  # mutated: يُترَك الرفضُ لـjson",
-          "why": "`json.dumps(allow_nan=False)` يرفض NaN وحدَه، فكان `_reject_nonfinite` **زائداً غيرَ مُثبَت** (مقيسٌ بتعطيله في الذاكرة: بقي الرفض). فالمُثبَّت هو **الرسالة** لا الرفض: «E1» تقول أيَّ عقدٍ خُولِف، والعامّةُ تترك القارئ يخمّن."
-        },
-        {
-          "expect": "test_the_schema_pins_stage_to_sequence_which_is_why_prefix_mismatch_is_unreachable",
-          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
-          "find": "def validate_stage_schema(stage: dict[str, Any]) -> list[str]:",
-          "replace": "def validate_stage_schema(stage: dict[str, Any]) -> list[str]:\n    return []  # mutated: المخطَّط يرتخي",
-          "why": "يحرس **البرهان** لا الفرع: فرعُ `prefix mismatch` غيرُ قابل للبلوغ ما دام المخطَّطُ يُثبِّت (المرحلة ⇄ التسلسل) — مُبرهَنٌ بجداءٍ كامل ٩×٩ بصفر موضعٍ حرّ. فإن ارتخى المخطَّطُ عاد الفرعُ حيّاً ووجب تكذيبٌ خاصّ به، وهذا الاختبارُ هو ما يكشف ذلك بدل أن يبقى «مُغطًّى» بادّعاءٍ قديم."
-        }
-      ],
-      "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py"
-    },
-    "scripts/architecture/s5_decision_live_closure_receipt.py": {
-      "$why_ar": "جامعُ إيصال S5 — الطرفُ المُنتِج من سلسلة C9. خطرُه أنّه يكتب دليلاً تقرؤه بوّابةٌ حاجبة: جامعٌ يحكم لنفسه، أو يفترض ادّعاءً بدل قياسه، أو يقرأ رمزَ الخروج حكماً، أو يعلَق إلى ما لا نهاية بدل أن يعجز عن القياس بسرعة، يُنتِج إيصالاً يبدو صالحاً ويشهد بما لم يُقَس. والطفراتُ الستّ تُثبِت أنّ كلَّ خاصّيّةٍ يدّعيها متنُ #944 (والمُهلة الصريحة المضافة في PR #950 بعد مراجعةٍ جنائيّة) مفروضةٌ باختبارٍ يحمرّ عند نزعها — لا موصوفةٌ في جدول.",
-      "mutations": [
-        {
-          "expect": "test_classification_agrees_with_the_guard_on_every_perturbation",
-          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
-          "find": "    receipt[\"classification\"] = \"PASSED\" if not findings else \"FAILED\"",
-          "replace": "    receipt[\"classification\"] = \"PASSED\"  # mutated: الجامعُ يحكم لنفسه",
-          "why": "جامعٌ يُصنّف PASSED دائماً يُنتِج إيصالاً يدّعي إغلاقاً لم يُقَس — وهو أخطرُ ما يفعله مُنتِجُ أدلّة، لأنّ البوّابة تثق بالجسم لا بنيّة كاتبه."
-        },
-        {
-          "expect": "test_the_write_enforcement_claim_is_measured_not_assumed",
-          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
-          "find": "    after = privilege.get(\"after\") or {}",
-          "replace": "    return True  # mutated: الادّعاءُ يصير مفترَضاً لا مقيساً\n    after = privilege.get(\"after\") or {}",
-          "why": "«منعُ كتابة المنصّة مُثبَت» ادّعاءٌ يُشتقّ من الامتيازات المقروءة. جعلُه ثابتاً يُمرّر جدولاً واحداً ما زال يقبل كتابةً — والحارسُ يقبل الإيصالَ لأنّ الكذبَ في مُدخَله لا في شرطه."
-        },
-        {
-          "expect": "test_a_local_script_exiting_nonzero_is_not_read_as_a_measurement_failure",
-          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
-          "find": "    if not (proc.stdout or \"\").strip():",
-          "replace": "    if proc.returncode != 0:  # mutated: الرمزُ يصير حكماً\n        raise MeasurementError(script.name)\n    if not (proc.stdout or \"\").strip():",
-          "why": "decision_sor_role_certify يُنهي بـ2 حين classification != PASSED، وذلك قياسٌ ناجحٌ لحالةٍ سالبة. فقراءةُ الرمز عجزاً تُنهي بـ1 بلا إيصال — فتضيع الحالةُ السالبة التي كان يجب أن تُوثَّق، ويُقرأ الصمتُ «لم يُقَس» بدل «قِيس ففشل»."
-        },
-        {
-          "expect": "test_the_collector_does_not_reimplement_the_guard_rules",
-          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
-          "find": "_PRIVILEGE_READ_ACTION = \"check\"",
-          "replace": "_PRIVILEGE_READ_ACTION = \"check\"\n_SOR_TABLE_HINT = \"decision_service_sor\"  # mutated: شرطُ الحارس يُعاد كتابته هنا",
-          "why": "مصدرُ الشروط واحد: findings_for تُستورَد من الحارس. وتسرّبُ مفردةٍ من مفرداته إلى الجامع بدايةُ نسخةٍ ثانية تنحرف عنه صامتاً — فيُنتِج إيصالاً يظنّه صاحبُه صالحاً وترفضه البوّابة، أو أسوأ: يقبله وقد تراخى."
-        },
-        {
-          "expect": "test_the_historical_overclaim_is_structurally_impossible",
-          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
-          "find": "            \"historical_zero_platform_writes_measured\": False,",
-          "replace": "            \"historical_zero_platform_writes_measured\": bool(evidence.get(\"hz\")),  # mutated: الادّعاءُ يُشتقّ من المُدخَل",
-          "why": "هذا الجامعُ لا يفحص سجلّاتٍ تاريخيّة، فالحقلُ مُثبَّتٌ false بنيويّاً. وجعلُه مُشتقّاً من المُدخَل يفتح بابَ المبالغة التي يرفضها الحارس بـhistorical_zero_writes_overclaim. **وهذه الطفرةُ بعينها نجت في أوّل جولةٍ لكاتب الشريحة** لأنّ مُدخَلاته لم تحمل المفتاح — فأثبتت القيمةَ لا الاستقلال. تسجيلُها يجعل ذلك التصحيحَ مفروضاً لا موصوفاً."
-        },
-        {
-          "expect": "test_a_hanging_local_script_is_a_measurement_failure_not_an_indefinite_hang",
-          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
-          "find": "    try:\n        proc = subprocess.run(\n            [sys.executable, str(script), *args],\n            cwd=str(DECISION_SVC),\n            capture_output=True,\n            encoding=\"utf-8\",\n            check=False,\n            timeout=_LOCAL_SCRIPT_TIMEOUT_SECONDS,\n        )\n    except subprocess.TimeoutExpired as exc:\n        raise MeasurementError(\n            f\"{script.name} لم يستجب خلال {_LOCAL_SCRIPT_TIMEOUT_SECONDS} ثانية\"\n        ) from exc",
-          "replace": "    proc = subprocess.run(  # mutated: أُسقِطت المهلة المحلّيّة\n        [sys.executable, str(script), *args],\n        cwd=str(DECISION_SVC),\n        capture_output=True,\n        encoding=\"utf-8\",\n        check=False,\n    )",
-          "why": "مراجعةٌ جنائيّة على PR #950 كشفت أنّ `run_json` بلا `timeout` صريح يُبقي سكربتاً محلّيّاً عالقاً (اتّصال قاعدة بيانات مُعلَّق) معلَّقاً حتّى مهلة المنسِّق الخارجيّة الأكبر بكثير — لا بديلٌ عن مهلةٍ محلّيّة لبَدَاهة القياس نفسه."
-        }
-      ]
-    },
-    "scripts/ci/waiver_expiry_guard.py": {
-      "$why_ar": "حارسٌ كامنُ العطل: نجح في ما يفحصه وعمي عمّا لا يفحصه. سبعةُ إعفاءاتٍ في الملفّ الحيّ حملت تاريخَها تحت `expires` والحارسُ يقرأ `expiry` وحدَه، فأبلغ `ok` فوقها منذ نزولها وأقربُها على بعد أربعة أيّام. والطفرتان تحرسان الشقّين معاً: منطقَ الرفض في الحارس، وتهجّيَ البيانات في الملفّ — لأنّ إصلاح أحدهما بلا الآخر يُعيد الصمت.",
-      "mutations": [
-        {
-          "expect": "test_every_near_miss_key_is_covered_not_just_the_one_that_bit_us",
-          "test": "tests_v9/test_waiver_expiry_guard.py",
-          "find": "        for alias in EXPIRY_NEAR_MISS_KEYS:\n",
-          "replace": "        for alias in ():  # mutated: يعود الحارسُ أعمى عن المرادفات\n",
-          "why": "نزعُ الرفض يُعيد الحالةَ التي وُجِد الحارسُ لمنعها بعينها: إعفاءٌ يقرؤه الإنسانُ موقوتاً وتقرؤه CI دائماً. والأسوأُ أنّه يُبلِغ `ok` — فالصمتُ يُقرأ شهادةَ سلامة."
-        }
-      ]
-    },
-    "config/endpoint_ui_coverage_waivers.json": {
-      "$why_ar": "بياناتٌ تحرس نفسَها: منطقُ الحارس سليمٌ ولا يبلغ ما لا يُهجّى كما ينتظر. فعودةُ تهجٍّ واحدٍ إلى هذا الملفّ تُخفي موعداً عن CI ولو لم تُمَسّ سطرٌ من الحارس — ولذلك تُسجَّل الطفرةُ على الملفّ نفسِه، بسابقة `rag_authority_convergence.json`.",
-      "mutations": [
-        {
-          "expect": "test_live_waiver_configs_carry_no_invisible_deadline",
-          "test": "tests_v9/test_waiver_expiry_guard.py",
-          "find": "      \"expiry\": \"2026-08-31\",\n",
-          "replace": "      \"expires\": \"2026-08-31\",\n",
-          "why": "الملفُّ الحيُّ راتشِت: عودةُ تهجٍّ واحدٍ إلى البيانات تُخفي موعداً عن الحارس ولو بقي منطقُه سليماً. ومنطقٌ صحيحٌ فوق بياناتٍ لا يبلغها لا يحرس شيئاً."
-        }
-      ]
+      "test": "tests_v9/test_weather_worker_health_probe.py"
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
@@ -1767,7 +1767,6 @@
     },
     "ci_unbounded_wait_guard.py": {
       "$why_ar": "CI-UNBOUNDED-PROVISIONING-WAIT-01: المواضع أُصلحت في #868؛ هذا يمنع عودة الصنف — وحارسٌ يتّهم الصحيح يُنزَع، فالذِّكر مُميَّز عن الاستدعاء. وثقبٌ ثالث كشفه تعليقٌ حيّ: الحدّ على اسم الأمر يفوته من يستدعي APT من جوفه، والسقف كان مقصوراً على حاويات القواعد.",
-      "test": "tests_v9/test_ci_unbounded_wait_guard.py",
       "mutations": [
         {
           "expect": "test_an_unbounded_apt_get_is_blocked",
@@ -1799,7 +1798,8 @@
           "replace": "    return True  # mutated: a tool that shells out to apt needs no bound",
           "why": "حدٌّ يُفرَض على **اسم الأمر** يفوته كلُّ من يستدعيه من جوفه: `playwright install --with-deps` عَلِق ٨٠+ دقيقة بينما نجح على الرأس نفسه بالبايت في تشغيلٍ شقيق في 2م55ث."
         }
-      ]
+      ],
+      "test": "tests_v9/test_ci_unbounded_wait_guard.py"
     },
     "claim_base_guard.py": {
       "mutations": [
@@ -1970,6 +1970,46 @@
         }
       ],
       "test": "tests_v9/test_container_command_path_guard.py"
+    },
+    "db_writer_ownership_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_a_write_the_contract_does_not_permit_is_caught",
+          "find": "    if service in (meta.get(\"writers\") or []):\n        return True",
+          "replace": "    return True  # mutated: كلُّ كتابةٍ مأذونة\n    if service in (meta.get(\"writers\") or []):\n        return True",
+          "test": "tests_v9/test_db_writer_ownership_guard.py",
+          "why": "حارسٌ يأذن للجميع يُبلِغ صفراً على شجرةٍ تحمل 75 مخالفة — ويُقرَأ ضماناً ويُسجَّل تغطية. وهو بعينه الصنفُ الذي جعل M-03 يبيت حتّى كشفه فحصٌ يدويّ."
+        },
+        {
+          "expect": "test_a_documented_interim_bridge_is_not_a_violation",
+          "find": "    return meta.get(\"mirror\") == service",
+          "replace": "    return False  # mutated: الجسرُ الانتقاليُّ الموثَّق يصير انحرافاً",
+          "test": "tests_v9/test_db_writer_ownership_guard.py",
+          "why": "إدانةُ خمسةِ جسورٍ موثَّقة (status: interim-bridge) إنذارٌ كاذب — ويُدرَّب الناسُ على تجاهل الحارس، فيموت وهو أخضر بينما الانحرافُ الحقيقيّ يمرّ معه."
+        },
+        {
+          "expect": "test_the_detection_is_structural_so_a_comment_is_never_accused",
+          "find": "        for sql in _sql_literals(tree):",
+          "replace": "        for sql in [path.read_text(encoding=\"utf-8\")]:  # mutated: يعود الكشفُ نصّيّاً على كامل الملفّ",
+          "test": "tests_v9/test_db_writer_ownership_guard.py",
+          "why": "بحثٌ نصّيّ على كامل الملفّ يتّهم التعليقَ الذي يشرح لماذا هُجِر مسار — فيصير توثيقُ الإصلاح مُبطِلاً له. وهو A-GUARD-THAT-SEARCHES-TEXT-ACCUSES-ITS-OWN-DOCUMENTATION-01 بعينه، وقد أسقط إصلاحاً حقيقيّاً في #951."
+        },
+        {
+          "expect": "test_the_ratchet_fails_in_both_directions",
+          "find": "    for key in sorted(set(base) - set(current)):\n        out.append(f\"مدخلٌ بائتٌ في الأساس لم يعد منحرفاً — احذفه: {key}\")",
+          "replace": "    # mutated: أُسقِط السقفُ النازل",
+          "test": "tests_v9/test_db_writer_ownership_guard.py",
+          "why": "راتشِتٌ يفشل في اتّجاهٍ واحد يُبقي مداخلَ سُدِّدت تُقرأ ديناً قائماً — إعفاءٌ بلا سقفٍ نازل ليس ديناً مؤجَّلاً بل شطبٌ صامت (AN-EXEMPTION-LIST-WITH-NO-DESCENDING-CEILING-01)."
+        },
+        {
+          "expect": "test_an_unreadable_contract_fails_loudly_instead_of_passing_zero",
+          "find": "    if not isinstance(tables, dict) or len(tables) < 100:",
+          "replace": "    if False:  # mutated: عقدٌ فارغ يمرّ صفراً كاذباً",
+          "test": "tests_v9/test_db_writer_ownership_guard.py",
+          "why": "هذه الطفرةُ تُعيد عطلاً وقع فعلاً أثناء كتابة الحارس: قراءةُ جذر YAML بدل tables جعلت كلَّ جدولٍ «غيرَ مُصرَّحٍ عنه» فأبلغ صفرَ مخالفات على شجرةٍ تحمل 75. صفرٌ كاذبٌ أسوأُ من غياب الحارس."
+        }
+      ],
+      "test": "tests_v9/test_db_writer_ownership_guard.py"
     },
     "env_compose_default_override_guard.py": {
       "mutations": [
@@ -2350,7 +2390,6 @@
       "test": "tests_v9/test_guard_mutation_guard.py"
     },
     "json_duplicate_key_guard.py": {
-      "test": "tests_v9/test_json_duplicate_key_guard.py",
       "mutations": [
         {
           "expect": "test_a_duplicate_inside_behavioural_is_detected",
@@ -2388,7 +2427,8 @@
           "replace": "        return [], 0  # mutated: تعذُّرُ الجرد يُقرَأ شجرةً نظيفة\n",
           "why": "تعذُّرُ الجرد يُقرَأ «لا تكرار» — أسوأُ صور الفشل المفتوح: الحارسُ يُعلِن سلامةَ ما لم يستطع النظر إليه."
         }
-      ]
+      ],
+      "test": "tests_v9/test_json_duplicate_key_guard.py"
     },
     "knowledge_provenance_guard.py": {
       "mutations": [
@@ -2830,7 +2870,6 @@
       "test": "tests_v9/test_run_outcome_guard.py"
     },
     "s5_exec_01_writer_cutover_guard.py": {
-      "test": "tests_v9/test_s5_exec_01_writer_cutover_guard.py",
       "mutations": [
         {
           "expect": "test_removing_strict_mode_marker_is_blocked",
@@ -2838,7 +2877,8 @@
           "replace": "            if False:  # mutated: missing cutover markers tolerated",
           "why": "تعطيل فحص markers يجعل الكاتب القديم قابلاً للبقاء بلا strict cutover contract؛ زرع إزالة strict marker يجب أن يحمرّ."
         }
-      ]
+      ],
+      "test": "tests_v9/test_s5_exec_01_writer_cutover_guard.py"
     },
     "schema_validation_guard.py": {
       "mutations": [
@@ -2865,7 +2905,6 @@
     },
     "scripts/architecture/authority_cutover_guard.py": {
       "$why_ar": "ARCH-S4: حدود عدم الترقية المبكرة للسلطة والملكية الفيزيائية تُثبت بطفرات سلوكية؛ الأخضر بلا زرع لا يكفي.",
-      "test": "tests_v9/test_authority_cutover_guard.py",
       "mutations": [
         {
           "expect": "test_decision_is_cutover_capable_but_not_yet_authoritative",
@@ -2891,11 +2930,11 @@
           "replace": "    if False:  # mutated: reintroduced legacy KG path tolerated\n        out.append(\"legacy sahool-platform KG store path still exists\")",
           "why": "إعادة إنشاء مسار SQLite القديم داخل sahool-platform تعيد ملكية فيزيائية منافسة بعد S4/S5؛ يجب أن يحجبها الحارس مباشرةً."
         }
-      ]
+      ],
+      "test": "tests_v9/test_authority_cutover_guard.py"
     },
     "scripts/architecture/platform_shrink_ratchet_guard.py": {
       "$why_ar": "ARCH-S5: راتشِت انكماش المنصّة يقيس هُويّات لا أعداداً؛ نكوصه يعيد التضخّم الصامت والاستثناء الأبديّ.",
-      "test": "tests_v9/test_platform_shrink_ratchet_guard.py",
       "mutations": [
         {
           "expect": "test_new_platform_owned_table_is_identity_blocked",
@@ -2939,11 +2978,11 @@
           "replace": "        if False and close < today:  # mutated: expired inherited exception tolerated\n            out.append(f\"baseline authority exception expired: {ident}\")",
           "why": "السماح بتاريخ إغلاق منتهٍ يحوّل استثناء Decision المؤقت إلى سلطة انتقالية بلا نهاية."
         }
-      ]
+      ],
+      "test": "tests_v9/test_platform_shrink_ratchet_guard.py"
     },
     "scripts/architecture/rag_authority_convergence_guard.py": {
       "$why_ar": "ARCH-S3: التقارب Expand→Parity→Cutover→Revoke يفشل مغلقاً — القطع قبل اكتمال المتطلّبات، وانتهاء استثناء Qdrant المباشر، وملكيّته، كلّها تُثبَت بالتكذيب لا بالأخضر وحده.",
-      "test": "tests_v9/test_rag_authority_convergence_guard.py",
       "mutations": [
         {
           "expect": "test_s3_cannot_cutover_before_all_requirements",
@@ -2969,11 +3008,11 @@
           "replace": "    if False:  # mutated: parallel corpus guard tolerated\n        out.append(\"unexpected corpus audit receipt guard\")",
           "why": "D08-B يملك حارس إيصالٍ قانونياً واحداً؛ قبول حارس موازٍ يعيد طبقة حقيقة ثانية لا تخضع لنفس العقد."
         }
-      ]
+      ],
+      "test": "tests_v9/test_rag_authority_convergence_guard.py"
     },
     "scripts/architecture/rag_corpus_audit_receipt_guard.py": {
       "$why_ar": "D08-B/C: إيصال جرد المجموعة لا قيمة له إن أمكنه تجاوز ربط الشجرة أو مطابقة العد أو تسريب نص الوثيقة. كل شرط مثبت بطفرة مسماة.",
-      "test": "tests_v9/test_rag_live_corpus_audit.py",
       "mutations": [
         {
           "expect": "test_guard_rejects_exact_scroll_mismatch",
@@ -2993,22 +3032,22 @@
           "replace": "    if False:  # mutated: receipt from another tree accepted\n        out.append(\"receipt subject tree mismatch\")",
           "why": "الـSHA وحده لا يكفي لإيصال جرد خارج checkout؛ ربط الشجرة يمنع إعادة تقديم قياس على مادة مختلفة."
         }
-      ]
+      ],
+      "test": "tests_v9/test_rag_live_corpus_audit.py"
     },
     "scripts/architecture/rag_cutover_admission_guard.py": {
       "mutations": [
         {
           "expect": "test_live_receipt_does_not_claim_canonical_payload_parity",
-          "test": "tests_v9/test_rag_cutover_admission_guard.py",
           "find": "    requirements[\"canonical_payload_parity\"] = payload_parity_observed\n",
           "replace": "    requirements[\"canonical_payload_parity\"] = True  # mutated: corpus receipt bypassed\n",
+          "test": "tests_v9/test_rag_cutover_admission_guard.py",
           "why": "إيصال المتجه وحده لا يثبت payload parity؛ رفعها بلا إيصال جرد يعيد العطل الذي فصل M0 الاسمين لأجله."
         }
       ]
     },
     "scripts/architecture/rag_live_parity_receipt_guard.py": {
       "$why_ar": "ARCH-S3: إيصال التكافؤ الحيّ يُقبل فقط مربوطاً بالـSHA وغير مرقٍّ للسلطة وفوق عتبات التداخل — كلّ شرط يُثبَت بالتكذيب.",
-      "test": "tests_v9/test_rag_live_parity_receipt_guard.py",
       "mutations": [
         {
           "expect": "test_receipt_rejects_wrong_subject",
@@ -3028,7 +3067,8 @@
           "replace": "    if False:  # mutated: promoting receipt accepted\n        out.append(\"receipt must be read-only/non-promoting\")",
           "why": "الإيصال دليل قراءة فقط؛ قبول إيصال مرقٍّ يفتح ترقية سلطة صامتة."
         }
-      ]
+      ],
+      "test": "tests_v9/test_rag_live_parity_receipt_guard.py"
     },
     "shadow_source_of_truth_guard.py": {
       "mutations": [
@@ -3307,51 +3347,51 @@
         },
         {
           "expect": "test_a_stale_stamp_passes_when_re_derivation_still_matches",
-          "test": "tests_v9/test_claim_base_guard.py",
           "find": "    base = _load_baseline()\n    known = set(base.get(\"offenders\", []))\n",
           "replace": "    base = _load_baseline()\n    known = set(base.get(\"offenders\", []))\n    if base.get(\"measured_on\") != _head_sha():\n        print(\"ختمٌ بائت\")\n        return 1\n",
+          "test": "tests_v9/test_claim_base_guard.py",
           "why": "ترقيةُ بياتِ `measured_on` إلى حجب ⇒ كلّ دمجٍ بـsquash يُحمِّر الحارس بلا تغيّرٍ دلاليّ واحد. الختمُ إشارةُ إسناد لا شهادةُ تطابق — GOV-01."
         },
         {
           "expect": "test_a_stale_stamp_fails_when_re_derivation_diverges",
-          "test": "tests_v9/test_claim_base_guard.py",
           "find": "    base = _load_baseline()\n    known = set(base.get(\"offenders\", []))\n",
           "replace": "    base = _load_baseline()\n    known = set(base.get(\"offenders\", []))\n    found = set(known)\n",
+          "test": "tests_v9/test_claim_base_guard.py",
           "why": "إلغاءُ أثر إعادة الاشتقاق ⇒ يُقارَن الأساس بنفسه فيمرّ أبداً، ولا يبقى للقارئ إلّا `measured_on` — وهو ما يجعل الختم يُقرأ سلطةَ طزاجةٍ وهو ليس كذلك."
         },
         {
           "expect": "test_a_changed_basis_with_an_identical_result_is_provenance_only",
-          "test": "tests_v9/test_measurement_basis_freshness.py",
           "find": "    if stored != derived:\n",
           "replace": "    if False:\n",
+          "test": "tests_v9/test_measurement_basis_freshness.py",
           "why": "نزعُ حجب بيات الإسناد ⇒ يبقى provenance قديم إلى الأبد بحجّة أنّ النتيجة نفسها. وإعادةُ الاشتقاق لا تسدّ هذا: هي تُجيب عن **النتيجة** لا عن **الأساس** الذي أنتجها."
         },
         {
           "expect": "test_a_missing_digest_is_an_explicit_migration_state_not_implicit_freshness",
-          "test": "tests_v9/test_measurement_basis_freshness.py",
           "find": "    if not stored:\n",
           "replace": "    if False:\n",
+          "test": "tests_v9/test_measurement_basis_freshness.py",
           "why": "غيابُ البصمة يُقرأ تطابقاً ⇒ مصنوعةٌ سابقة للعقد تُصادِق نفسها. وهو صنفُ «يفشل مفتوحاً» بعينه: غيابُ الدليل ليس دليلاً."
         },
         {
           "expect": "test_the_basis_binds_all_three_components",
-          "test": "tests_v9/test_measurement_basis_freshness.py",
           "find": "        _algorithm_digest() if algorithm_digest is None else algorithm_digest,\n",
           "replace": "        \"\",\n",
+          "test": "tests_v9/test_measurement_basis_freshness.py",
           "why": "نزعُ مكوّن الخوارزميّة ⇒ يعود الأساس بصمةَ مدخلاتٍ وحدها، فيعمى عن تغيُّر منطق المولّد بمدخلاتٍ ثابتة — وهو أخطر الانحرافين لأنّه يبدّل معنى الرقم بلا أثرٍ في مدخلاته."
         },
         {
           "expect": "test_the_generator_is_not_counted_as_its_own_input",
-          "test": "tests_v9/test_measurement_basis_freshness.py",
           "find": "        if path.resolve() == me:\n",
           "replace": "        if False:\n",
+          "test": "tests_v9/test_measurement_basis_freshness.py",
           "why": "عدُّ المولّد مُدخَلاً لنفسه ⇒ يُبصَم مرّتين بقاعدتَي حسّاسيّة مختلفتين (بايتات · AST)، فيُبطِل تطبيعَ التوثيق: تعديلُ تعليقٍ فيه يصير انحرافَ مدخلات، وهو الـchurn الذي وُجِد العقد ليمنعه."
         },
         {
           "expect": "test_a_measured_on_only_change_leaves_the_check_verdict_identical",
-          "test": "tests_v9/test_measurement_basis_freshness.py",
           "find": "    stored = base.get(\"measurement_basis_digest\")\n",
           "replace": "    if base.get(\"measured_on\") != _head_sha():\n        print(\"ختمٌ بائت\")\n        return 1\n    stored = base.get(\"measurement_basis_digest\")\n",
+          "test": "tests_v9/test_measurement_basis_freshness.py",
           "why": "عودةُ `measured_on` سلطةَ طزاجةٍ من الباب الخلفيّ — لا في حساب الأساس بل **فرعاً في مسار القرار**. وثباتُ الأساس وحده لا يمسك هذا: الختمُ يبقى خارج الحساب ويدخل الحكم. مقيسٌ أثرُه: كلّ squash وكلّ التزامٍ توثيقيّ يصير عندئذٍ generated churn."
         }
       ],

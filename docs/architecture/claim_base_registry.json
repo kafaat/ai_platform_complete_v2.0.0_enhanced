@@ -52,6 +52,7 @@
     "assertion_presence_baseline.json",
     "bidi_control_char_baseline.json",
     "brain_deferral_baseline.json",
+    "db_writer_ownership_baseline.json",
     "fake_connection_debt.json",
     "generated_chain_known_drift.json",
     "generated_sweep_unmapped_generators.json",
