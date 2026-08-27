@@ -3,9 +3,9 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1874,
+    "python_files_parsed": 1875,
     "route_handlers": 1049,
-    "call_edges": 75889,
+    "call_edges": 75896,
     "dead_code_candidates": 625,
     "duplicate_function_groups": 61,
     "route_owners": 27,
@@ -302978,7 +302978,7 @@
       "file": "services/sahool-platform/api/weather_service_client.py",
       "source": "get_tile_cache_stats",
       "target": "weather_get_json",
-      "line": 506
+      "line": 518
     },
     {
       "owner": "sahool-platform",
@@ -495716,56 +495716,14 @@
       "file": "services/weather-service/operations.py",
       "source": "operation_suitability",
       "target": "lower",
-      "line": 46
+      "line": 56
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/operations.py",
       "source": "operation_suitability",
       "target": "_num",
-      "line": 51
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/operations.py",
-      "source": "operation_suitability",
-      "target": "_num",
-      "line": 52
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/operations.py",
-      "source": "operation_suitability",
-      "target": "_wind_kmh",
-      "line": 53
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/operations.py",
-      "source": "operation_suitability",
-      "target": "_num",
-      "line": 54
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/operations.py",
-      "source": "operation_suitability",
-      "target": "_num",
-      "line": 57
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/operations.py",
-      "source": "operation_suitability",
-      "target": "_num",
-      "line": 58
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/operations.py",
-      "source": "operation_suitability",
-      "target": "_num",
-      "line": 59
+      "line": 61
     },
     {
       "owner": "weather-service",
@@ -495778,78 +495736,78 @@
       "owner": "weather-service",
       "file": "services/weather-service/operations.py",
       "source": "operation_suitability",
+      "target": "_wind_kmh",
+      "line": 63
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/operations.py",
+      "source": "operation_suitability",
+      "target": "_num",
+      "line": 64
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/operations.py",
+      "source": "operation_suitability",
+      "target": "_num",
+      "line": 67
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/operations.py",
+      "source": "operation_suitability",
+      "target": "_num",
+      "line": 68
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/operations.py",
+      "source": "operation_suitability",
+      "target": "_num",
+      "line": 69
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/operations.py",
+      "source": "operation_suitability",
+      "target": "_num",
+      "line": 72
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/operations.py",
+      "source": "operation_suitability",
       "target": "get",
-      "line": 66
+      "line": 76
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/operations.py",
       "source": "operation_suitability",
       "target": "max",
-      "line": 84
+      "line": 94
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/operations.py",
       "source": "penalize",
       "target": "max",
-      "line": 84
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/operations.py",
-      "source": "operation_suitability",
-      "target": "append",
-      "line": 85
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/operations.py",
-      "source": "penalize",
-      "target": "append",
-      "line": 85
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/operations.py",
-      "source": "operation_suitability",
-      "target": "penalize",
-      "line": 88
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/operations.py",
-      "source": "operation_suitability",
-      "target": "penalize",
-      "line": 89
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/operations.py",
-      "source": "operation_suitability",
-      "target": "penalize",
-      "line": 90
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/operations.py",
-      "source": "operation_suitability",
-      "target": "penalize",
-      "line": 93
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/operations.py",
-      "source": "operation_suitability",
-      "target": "penalize",
       "line": 94
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/operations.py",
       "source": "operation_suitability",
-      "target": "penalize",
-      "line": 96
+      "target": "append",
+      "line": 95
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/operations.py",
+      "source": "penalize",
+      "target": "append",
+      "line": 95
     },
     {
       "owner": "weather-service",
@@ -495877,14 +495835,21 @@
       "file": "services/weather-service/operations.py",
       "source": "operation_suitability",
       "target": "penalize",
-      "line": 101
+      "line": 103
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/operations.py",
       "source": "operation_suitability",
       "target": "penalize",
-      "line": 103
+      "line": 104
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/operations.py",
+      "source": "operation_suitability",
+      "target": "penalize",
+      "line": 106
     },
     {
       "owner": "weather-service",
@@ -495898,6 +495863,13 @@
       "file": "services/weather-service/operations.py",
       "source": "operation_suitability",
       "target": "penalize",
+      "line": 109
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/operations.py",
+      "source": "operation_suitability",
+      "target": "penalize",
       "line": 110
     },
     {
@@ -495905,7 +495877,7 @@
       "file": "services/weather-service/operations.py",
       "source": "operation_suitability",
       "target": "penalize",
-      "line": 112
+      "line": 111
     },
     {
       "owner": "weather-service",
@@ -495919,105 +495891,133 @@
       "file": "services/weather-service/operations.py",
       "source": "operation_suitability",
       "target": "penalize",
-      "line": 114
+      "line": 118
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/operations.py",
       "source": "operation_suitability",
       "target": "penalize",
-      "line": 116
+      "line": 120
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/operations.py",
       "source": "operation_suitability",
       "target": "penalize",
-      "line": 117
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/operations.py",
-      "source": "operation_suitability",
-      "target": "penalize",
-      "line": 119
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/operations.py",
-      "source": "operation_suitability",
-      "target": "append",
-      "line": 121
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/operations.py",
-      "source": "operation_suitability",
-      "target": "min",
       "line": 122
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/operations.py",
       "source": "operation_suitability",
-      "target": "_status",
+      "target": "penalize",
+      "line": 123
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/operations.py",
+      "source": "operation_suitability",
+      "target": "penalize",
       "line": 124
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/operations.py",
       "source": "operation_suitability",
-      "target": "max",
+      "target": "penalize",
+      "line": 126
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/operations.py",
+      "source": "operation_suitability",
+      "target": "penalize",
       "line": 127
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/operations.py",
+      "source": "operation_suitability",
+      "target": "penalize",
+      "line": 129
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/operations.py",
+      "source": "operation_suitability",
+      "target": "append",
+      "line": 131
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/operations.py",
       "source": "operation_suitability",
       "target": "min",
-      "line": 127
+      "line": 132
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/operations.py",
+      "source": "operation_suitability",
+      "target": "_status",
+      "line": 134
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/operations.py",
+      "source": "operation_suitability",
+      "target": "max",
+      "line": 137
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/operations.py",
+      "source": "operation_suitability",
+      "target": "min",
+      "line": 137
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/operations.py",
       "source": "operation_suitability",
       "target": "round",
-      "line": 127
+      "line": 137
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/operations.py",
       "source": "best_operation_frame",
       "target": "get",
-      "line": 138
+      "line": 148
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/operations.py",
       "source": "best_operation_frame",
       "target": "get",
-      "line": 138
+      "line": 148
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/operations.py",
       "source": "best_operation_frame",
       "target": "max",
-      "line": 138
+      "line": 148
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/operations.py",
       "source": "advice_ar",
       "target": "get",
-      "line": 144
+      "line": 154
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/operations.py",
       "source": "advice_ar",
       "target": "get",
-      "line": 145
+      "line": 155
     },
     {
       "owner": "weather-service",
@@ -498559,6 +498559,55 @@
       "source": "test_chill_warm_hours_do_not_accumulate",
       "target": "compute_chill_accumulation",
       "line": 98
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
+      "source": "test_an_absent_sample_fails_closed_instead_of_raising",
+      "target": "parametrize",
+      "line": 33
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
+      "source": "test_an_absent_sample_fails_closed_instead_of_raising",
+      "target": "operation_suitability",
+      "line": 36
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
+      "source": "test_the_refusal_names_which_safety_input_was_missing",
+      "target": "operation_suitability",
+      "line": 45
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
+      "source": "test_the_refusal_names_which_safety_input_was_missing",
+      "target": "any",
+      "line": 48
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
+      "source": "test_the_refusal_names_which_safety_input_was_missing",
+      "target": "str",
+      "line": 48
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
+      "source": "test_a_complete_sample_still_scores_so_the_guard_is_not_a_blanket_refusal",
+      "target": "operation_suitability",
+      "line": 54
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
+      "source": "test_every_supported_operation_survives_an_absent_sample",
+      "target": "operation_suitability",
+      "line": 66
     },
     {
       "owner": "weather-service",

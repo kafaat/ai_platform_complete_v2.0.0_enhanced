@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5194,
+    "files_scanned": 5196,
     "files_by_kind": {
       "backend": 1204,
       "database": 274,
       "governance": 60,
       "mobile": 51,
       "other": 1423,
-      "tests": 1725,
+      "tests": 1727,
       "web": 457
     },
-    "unmapped_artifacts": 2114,
+    "unmapped_artifacts": 2116,
     "ambiguous_artifacts": 414
   },
   "capabilities": [
@@ -41331,6 +41331,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/weather-service/tests/test_p3_4_weather_service_runtime_coverage.py",
       "kind": "tests"
     },
@@ -43308,6 +43312,10 @@
     },
     {
       "path": "tests_v9/test_water_twin_seed.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_weather_client_paths_exist_on_the_service.py",
       "kind": "tests"
     },
     {

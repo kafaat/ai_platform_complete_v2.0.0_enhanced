@@ -6416,6 +6416,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/weather-service/tests/test_degraded_sample_is_not_a_crash.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/weather-service/tests/test_p3_4_weather_service_runtime_coverage.py",
     "kind": "tests"
   },
@@ -8393,6 +8397,10 @@
   },
   {
     "path": "tests_v9/test_water_twin_seed.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_weather_client_paths_exist_on_the_service.py",
     "kind": "tests"
   },
   {
