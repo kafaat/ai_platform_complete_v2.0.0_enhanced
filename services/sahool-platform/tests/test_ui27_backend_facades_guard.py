@@ -68,7 +68,13 @@ def test_ui27_weather_facade_preserves_disease_and_irrigation_field_endpoints():
     assert "get_current_weather" in src
     # ولا يعود المزوّدُ مباشرةً — النصُّ هنا حدُّ صدقه؛ والفحصُ البنيويُّ في
     # `test_p3_5_weather_direct_wiring_final_sweep` (يقرأ `ast` لا نثراً).
-    assert "from api.connectors.openmeteo import" not in src
+    assert "from api.connectors.openmeteo import" not in src, (
+        "استيرادُ الموصّل داخل الدالّة يتخطّى عقدَ الواجهة P3.4 ومخبّأَ خدمة الطقس "
+        'المشترك، ويُعيد قسرَ القراءة المفقودة إلى صفر (`c.get("temperature_2m", 0)`) '
+        "فيُقرَأ `0°م` و`0٪` رطوبةً ⇒ خطرُ أمراضٍ `low` من لا-بيانات. "
+        "المسارُ القانونيّ `api/weather_service_client.py` — وموضعُ الإعفاء المُعلَن "
+        "هو `weather_direct_wiring_allowlist.json` وحدَه، بسقفٍ نازل."
+    )
 
 
 def test_ui27_irrigation_schedules_are_field_owner_checked_and_not_generated_in_frontend():

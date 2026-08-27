@@ -19,7 +19,7 @@
         "tests_v9/test_decision_sor_platform_revoke_static.py",
         "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
         "services/decision-service/decision_sor_role_certify.py",
-        "scripts/staging/decision_sor_live_closure_collector.py",
+        "scripts/architecture/s5_decision_live_closure_receipt.py",
         "scripts/architecture/s5_decision_live_closure_receipt_guard.py"
       ],
       "cutover_rule": "explicit production approval + subject-bound live runtime identities + role certification + effective DB revoke proof; no dual-authoritative recommendation_outcomes writes",

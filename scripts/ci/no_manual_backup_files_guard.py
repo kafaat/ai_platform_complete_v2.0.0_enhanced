@@ -49,7 +49,17 @@ _BACKUP_NAME = re.compile(
 
 
 def tracked_files() -> list[str]:
-    out = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, check=True)
+    # `text=True` وحدَه يفكّ الترميزَ **بلغة الآلة** لا بـUTF-8. وتحت `LC_ALL=C`
+    # يتشوّه كلُّ مسارٍ غيرِ ASCII في مخرَج `git ls-files` — فحارسُ النظافة نفسُه
+    # يصير مصدرَ قراءةٍ فاسدة، ويُبرِّئ ملفّاً أو يُدين آخرَ بحسب لغة المُشغِّل.
+    out = subprocess.run(
+        ["git", "ls-files"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+    )
     return [line for line in out.stdout.splitlines() if line]
 
 

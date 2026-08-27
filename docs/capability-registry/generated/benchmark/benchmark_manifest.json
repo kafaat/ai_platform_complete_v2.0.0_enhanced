@@ -9,15 +9,15 @@
     "docs/capability-registry/benchmark/source/legacy/competitor_official_evidence_precanonical.csv": "02092f5f58013751d521e0acef5d4433c6f539bb4580ffbdfa23d858f6733c06",
     "docs/capability-registry/benchmark/source/sahool_capability_assessments.csv": "5052821cb29665e0b707a0ed42b4528caebb92caed7d2d413d390908cb37885e",
     "docs/capability-registry/generated/capability_registry.json": "77e54ac680a3f75b7637c73436ab4ca82491bf7e3a655d916bc6785235e34e04",
-    "docs/capability-registry/generated/evidence/capability_maturity_baseline.json": "36879fbae191c5c3f57c1f9b14fca020973c742280e1820f77c423b69e4df548"
+    "docs/capability-registry/generated/evidence/capability_maturity_baseline.json": "81d40abac744754d6fbdff31573f903503391e1b5759445c423e4728179dbedd"
   },
   "outputs": {
-    "CAPABILITY_PARITY_INVESTMENT_REPORT.md": "b1d02175c8803f8a34f18f9298110bd05ecf5bbfe7ed4001e59f8b3a9062df01",
+    "CAPABILITY_PARITY_INVESTMENT_REPORT.md": "2eb80414cb8b9971add145629c7917ff9be6fc4c63f5beb06fdadda7af4c987f",
     "capability_investment_matrix.csv": "ff14dbf53a5f2206b3f1617034c28fa6a656909982c0c20e6c07b172c6ad6444",
     "capability_investment_matrix.json": "bb15a8ccad4ad6ca6ccf794179c2a539599d7649e8d5b5c5b2efab3505e3e034",
-    "capability_parity_matrix.csv": "f2af71919b59b836be6902bbc97d51c49ade9f7c69cd4fbfd2db75a9ad217286",
-    "capability_parity_matrix.json": "102bbf72e73f23ee205bbdd08acf05f8b785cf6eb2ac337e6cfa6612eed68c9f",
-    "domain_heat_map.json": "0601fb12ffd046c792dc1b7349d1ad8f91eb826adff9b8bace11398f8877a91e"
+    "capability_parity_matrix.csv": "462b0119ee006f998fec47d5284ce04f20ca026a83f8f40c36214a1ae663d3cd",
+    "capability_parity_matrix.json": "bad4c3c0c3675cfd7ed214909c7373394e13df1e22e87cd4dca460521d38315d",
+    "domain_heat_map.json": "25f4e62147b5c509002e25b2198a4ef2366145d039acfedc6fb4e66f707502fa"
   },
   "schema_version": "2.0.0"
 }

@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5205,
+    "files_scanned": 5204,
     "files_by_kind": {
       "backend": 1204,
       "database": 274,
       "governance": 60,
       "mobile": 51,
-      "other": 1424,
+      "other": 1423,
       "tests": 1735,
       "web": 457
     },
-    "unmapped_artifacts": 2123,
+    "unmapped_artifacts": 2124,
     "ambiguous_artifacts": 416
   },
   "capabilities": [
@@ -26549,12 +26549,7 @@
           ]
         }
       ],
-      "routes": [
-        {
-          "value": "/healthz @ tests_v9/test_s5_decision_live_closure_receipt.py:205",
-          "score": 9
-        }
-      ],
+      "routes": [],
       "database": [
         {
           "value": "decision_outbox_events @ services/decision-service/migrations/001_decision_sor.sql:94",
@@ -26590,10 +26585,6 @@
         }
       ],
       "events": [
-        {
-          "value": "decision_sor_role_certify.py @ scripts/staging/decision_sor_live_closure_collector.py:211",
-          "score": 18
-        },
         {
           "value": "DECISION_SERVICE_SOR_CUTOVER_READINESS.md @ services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py:16",
           "score": 14
@@ -26783,28 +26774,24 @@
           "score": 12
         },
         {
-          "value": "s5_decision_live_closure_receipt.py @ tests_v9/test_s5_live_closure_receipt_collector.py:238",
-          "score": 10
+          "value": "s5_decision_live_closure_receipt.py @ tests_v9/test_s5_live_closure_receipt_collector.py:251",
+          "score": 11
         },
         {
-          "value": "s5_decision_live_closure_receipt.py @ tests_v9/test_s5_live_closure_receipt_collector.py:315",
-          "score": 10
+          "value": "s5_decision_live_closure_receipt.py @ tests_v9/test_s5_live_closure_receipt_collector.py:328",
+          "score": 11
         },
         {
-          "value": "s5_decision_live_closure_receipt.py @ tests_v9/test_s5_live_closure_receipt_collector.py:329",
-          "score": 10
+          "value": "s5_decision_live_closure_receipt.py @ tests_v9/test_s5_live_closure_receipt_collector.py:370",
+          "score": 11
         },
         {
           "value": "s5_decision_live_closure_receipt.py @ tests_v9/test_s5_live_closure_receipt_collector.py:40",
-          "score": 10
+          "score": 11
         },
         {
           "value": "s5_decision_live_closure_receipt_guard.py @ tests_v9/test_s5_live_closure_receipt_collector.py:41",
-          "score": 10
-        },
-        {
-          "value": "decision_sor_role_certify.py @ tests_v9/test_s5_decision_live_closure_receipt.py:194",
-          "score": 9
+          "score": 11
         }
       ],
       "web": [],
@@ -26884,15 +26871,7 @@
         },
         {
           "path": "tests_v9/test_s5_live_closure_receipt_collector.py",
-          "score": 10,
-          "signals": [
-            "content:decision sor",
-            "content:system of record"
-          ]
-        },
-        {
-          "path": "tests_v9/test_s5_decision_live_closure_receipt.py",
-          "score": 9,
+          "score": 11,
           "signals": [
             "content:decision sor",
             "content:system of record"
@@ -26901,15 +26880,6 @@
       ],
       "governance": [],
       "other_evidence": [
-        {
-          "path": "scripts/staging/decision_sor_live_closure_collector.py",
-          "score": 18,
-          "signals": [
-            "path:decision sor",
-            "content:decision sor",
-            "content:system of record"
-          ]
-        },
         {
           "path": "docs/runbooks/DECISION_SOR_CUTOVER.md",
           "score": 14,
@@ -26989,16 +26959,16 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 2,
-        "routes": 1,
+        "routes": 0,
         "database": 7,
-        "events": 54,
+        "events": 52,
         "web": 0,
         "mobile": 0,
-        "tests": 11,
+        "tests": 10,
         "governance": 0,
-        "other_evidence": 10
+        "other_evidence": 9
       },
-      "coverage_dimensions": 5,
+      "coverage_dimensions": 4,
       "mapped": true
     },
     {
@@ -29601,7 +29571,7 @@
           "score": 10
         },
         {
-          "value": "/api/v1/irrigation/schedules @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:77",
+          "value": "/api/v1/irrigation/schedules @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:83",
           "score": 10
         },
         {
@@ -34634,7 +34604,7 @@
           "score": 10
         },
         {
-          "value": "/api/v1/irrigation/schedules @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:77",
+          "value": "/api/v1/irrigation/schedules @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:83",
           "score": 10
         }
       ],
@@ -42799,6 +42769,10 @@
     },
     {
       "path": "tests_v9/test_pip_audit_resolution_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_platform_health_identity_readyz_separation.py",
       "kind": "tests"
     },
     {

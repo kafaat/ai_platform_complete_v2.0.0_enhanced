@@ -789,23 +789,17 @@
       ],
       "test": "tests/architecture/test_capability_truth_preconditions.py"
     },
-    "scripts/staging/decision_sor_live_closure_collector.py": {
-      "$why_ar": "S5 Decision live closure: a green receipt must prove the deployed platform is demoted and DB writes are effectively denied.",
+    "scripts/architecture/s5_decision_live_closure_receipt_guard.py": {
+      "$why_ar": "S5 Decision live closure (بعد توحيد PLATFORM-ROUTES-DUAL-S5-PRODUCER-01 على المُنتِج القانونيّ): إيصالٌ أخضر يجب أن يثبت أنّ المنصّة المنشورة مُخفَّضةٌ فعليّاً — لا مجرّد حقلٍ موجود.",
       "mutations": [
         {
-          "expect": "test_collector_rejects_platform_writes_required_true_even_if_other_mode_fields_look_closed",
-          "find": "        and p_mode.get(\"platform_writes_required\") is False",
-          "replace": "        and p_mode.get(\"platform_writes_required\") is not None  # mutated: writable platform accepted",
+          "expect": "test_classification_agrees_with_the_guard_on_every_perturbation",
+          "find": "        and pm.get(\"platform_writes_required\") is False",
+          "replace": "        and pm.get(\"platform_writes_required\") is not None  # mutated: writable platform accepted",
           "why": "قبول أي قيمة موجودة بدل False يسمح بإيصال أخضر بينما platform_writes_required=true وتبقى نافذة السلطة المزدوجة مفتوحة."
-        },
-        {
-          "expect": "test_collector_rejects_runtime_demotion_or_effective_privilege_drift",
-          "find": "            if privs.get(privilege) is not False:",
-          "replace": "            if False and privs.get(privilege) is not False:  # mutated: effective write tolerated",
-          "why": "تعطيل postcondition يسمح لصلاحية INSERT/UPDATE/DELETE فعالة بالبقاء مع receipt ناجح."
         }
       ],
-      "test": "tests_v9/test_s5_decision_live_closure_receipt.py"
+      "test": "tests_v9/test_s5_live_closure_receipt_collector.py"
     },
     "scripts/staging/kg_runtime_parity_collector.py": {
       "$why_ar": "S4 KG live parity: equal-empty responses are not evidence and deployed source identity must match.",
@@ -1200,7 +1194,7 @@
       "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py"
     },
     "scripts/architecture/s5_decision_live_closure_receipt.py": {
-      "$why_ar": "جامعُ إيصال S5 — الطرفُ المُنتِج من سلسلة C9. خطرُه أنّه يكتب دليلاً تقرؤه بوّابةٌ حاجبة: جامعٌ يحكم لنفسه، أو يفترض ادّعاءً بدل قياسه، أو يقرأ رمزَ الخروج حكماً، يُنتِج إيصالاً يبدو صالحاً ويشهد بما لم يُقَس. والطفراتُ الخمس تُثبِت أنّ كلَّ خاصّيّةٍ يدّعيها متنُ #944 مفروضةٌ باختبارٍ يحمرّ عند نزعها — لا موصوفةٌ في جدول.",
+      "$why_ar": "جامعُ إيصال S5 — الطرفُ المُنتِج من سلسلة C9. خطرُه أنّه يكتب دليلاً تقرؤه بوّابةٌ حاجبة: جامعٌ يحكم لنفسه، أو يفترض ادّعاءً بدل قياسه، أو يقرأ رمزَ الخروج حكماً، أو يعلَق إلى ما لا نهاية بدل أن يعجز عن القياس بسرعة، يُنتِج إيصالاً يبدو صالحاً ويشهد بما لم يُقَس. والطفراتُ الستّ تُثبِت أنّ كلَّ خاصّيّةٍ يدّعيها متنُ #944 (والمُهلة الصريحة المضافة في PR #950 بعد مراجعةٍ جنائيّة) مفروضةٌ باختبارٍ يحمرّ عند نزعها — لا موصوفةٌ في جدول.",
       "mutations": [
         {
           "expect": "test_classification_agrees_with_the_guard_on_every_perturbation",
@@ -1236,6 +1230,13 @@
           "find": "            \"historical_zero_platform_writes_measured\": False,",
           "replace": "            \"historical_zero_platform_writes_measured\": bool(evidence.get(\"hz\")),  # mutated: الادّعاءُ يُشتقّ من المُدخَل",
           "why": "هذا الجامعُ لا يفحص سجلّاتٍ تاريخيّة، فالحقلُ مُثبَّتٌ false بنيويّاً. وجعلُه مُشتقّاً من المُدخَل يفتح بابَ المبالغة التي يرفضها الحارس بـhistorical_zero_writes_overclaim. **وهذه الطفرةُ بعينها نجت في أوّل جولةٍ لكاتب الشريحة** لأنّ مُدخَلاته لم تحمل المفتاح — فأثبتت القيمةَ لا الاستقلال. تسجيلُها يجعل ذلك التصحيحَ مفروضاً لا موصوفاً."
+        },
+        {
+          "expect": "test_a_hanging_local_script_is_a_measurement_failure_not_an_indefinite_hang",
+          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
+          "find": "    try:\n        proc = subprocess.run(\n            [sys.executable, str(script), *args],\n            cwd=str(DECISION_SVC),\n            capture_output=True,\n            encoding=\"utf-8\",\n            check=False,\n            timeout=_LOCAL_SCRIPT_TIMEOUT_SECONDS,\n        )\n    except subprocess.TimeoutExpired as exc:\n        raise MeasurementError(\n            f\"{script.name} لم يستجب خلال {_LOCAL_SCRIPT_TIMEOUT_SECONDS} ثانية\"\n        ) from exc",
+          "replace": "    proc = subprocess.run(  # mutated: أُسقِطت المهلة المحلّيّة\n        [sys.executable, str(script), *args],\n        cwd=str(DECISION_SVC),\n        capture_output=True,\n        encoding=\"utf-8\",\n        check=False,\n    )",
+          "why": "مراجعةٌ جنائيّة على PR #950 كشفت أنّ `run_json` بلا `timeout` صريح يُبقي سكربتاً محلّيّاً عالقاً (اتّصال قاعدة بيانات مُعلَّق) معلَّقاً حتّى مهلة المنسِّق الخارجيّة الأكبر بكثير — لا بديلٌ عن مهلةٍ محلّيّة لبَدَاهة القياس نفسه."
         }
       ]
     },

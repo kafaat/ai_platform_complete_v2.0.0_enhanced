@@ -16,8 +16,8 @@ cd "$ROOT"
 
 MODE="${1:-preflight}"
 case "$MODE" in
-  preflight|rag|s5|c11|verify|all) ;;
-  *) echo "usage: $0 {preflight|rag|s5|c11|verify|all}" >&2; exit 2 ;;
+  doctor|preflight|rag|s5|c11|verify|all) ;;
+  *) echo "usage: $0 {doctor|preflight|rag|s5|c11|verify|all}" >&2; exit 2 ;;
 esac
 
 PYTHON="${PYTHON:-python}"
@@ -65,6 +65,20 @@ static_guards() {
   "$PYTHON" scripts/ci/rag_operational_boundary_guard.py
   "$PYTHON" scripts/architecture/rag_authority_convergence_guard.py
   "$PYTHON" scripts/architecture/rag_direct_qdrant_boundary_guard.py
+}
+
+# رخيصٌ ومستقلٌّ عن البيئة الحيّة عمداً: لا يحتاج Decision/Field/KG ولا psql ولا
+# قواعد بيانات. يقيس هُويّة مُنتِج S5/C9 (القانونيّ حاضرٌ، والقديم المحظور غائب)
+# قبل أن يُنفَق أيّ وقتٍ على تجهيز بيئةٍ حيّة كاملة (PLATFORM-ROUTES-DUAL-S5-PRODUCER-01).
+doctor() {
+  echo "== Subject =="
+  echo "HEAD=$SUBJECT_SHA"
+  echo "BASELINE=$BASELINE_SHA"
+
+  static_guards
+
+  echo "== S5/C9 producer identity =="
+  "$PYTHON" scripts/staging/s5_live_authority_closure.py doctor
 }
 
 preflight() {
@@ -253,12 +267,14 @@ PY
 }
 
 case "$MODE" in
+  doctor) doctor ;;
   preflight) preflight ;;
   rag) preflight; rag_collect ;;
   s5) preflight; s5_collect ;;
   c11) preflight; c11_collect ;;
   verify) verify_all ;;
   all)
+    doctor
     preflight
     rag_collect
     s5_collect

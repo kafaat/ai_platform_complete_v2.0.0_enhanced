@@ -1,12 +1,12 @@
 {
   "$comment": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01 — المسح الأوّل لسطح التأكيدات الساكنة على نصّ المصدر. `prohibitions_without_a_stated_reason` **مَعدودة لا محكومٌ عليها**: لم يُثبَت أنّ أيّاً منها خاطئ، بل أنّ سببه غير مكتوب. الأساس يمنع النموّ، وسدادُه بكتابة السبب الحقيقيّ لا بنسخ عبارة. و`positive_pinning_a_call` **يُنشَر ولا يُحرَس**: معيار الفجوة (هل يبقى التأكيد صحيحاً بعد إعادة صياغة صحيحة؟) غير قابل للحسم آليّاً، ومُصنِّفٌ استدلاليّ يُنتِج قائمةً تُقرأ ديناً وهي ما طابق نمطاً.",
   "gap": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01",
-  "measured_on": "f114efcd6390f0b752149f5a3f525b40bf5b2800",
+  "measured_on": "be2741f6915609d4d7a364ddae9953b577b459a4",
   "scope": "assert على نصّ مصدر فقط — متغيّر أُسنِد من read_text/read/getsource في الاختبار نفسه، مُشتقٌّ بالبنية لا بالاسم. ما يُؤكَّد على جسم استجابة أو حمولة JSON خارج النطاق: هناك التأكيد هو العقد.",
   "totals": {
-    "source_text_assertions": 2244,
-    "positive_pinning_a_call": 315,
-    "prohibitions": 185
+    "source_text_assertions": 2239,
+    "positive_pinning_a_call": 316,
+    "prohibitions": 184
   },
   "prohibitions_without_a_stated_reason": {
     "services/agriai-engine/tests/test_production_readiness_truth.py": {
@@ -33,9 +33,6 @@
     "services/sahool-platform/tests/test_ui24_ui26_workspace_imagery_weather_irrigation_guard.py": {
       "function PlaceholderPanel": 1,
       "يعرض NDVI/NDMI/TrueColor حسب COG/available-dates الفعلية فقط": 1
-    },
-    "services/sahool-platform/tests/test_ui27_backend_facades_guard.py": {
-      "from api.connectors.openmeteo import": 1
     },
     "services/sahool-platform/tests/test_ui28_ui30_workspace_route_cleanup_guard.py": {
       "@router.get(\"/api/v1/fields/{field_id}/unified-timeline\")": 1
