@@ -22,13 +22,61 @@ from api.main import (
 )
 from api.weather_service_client import (
     get_chill_accumulation,
+    get_current_weather,
     get_lodging_risk,
     get_operation_plan,
     get_pollination_risk,
     get_thermal_stress,
+    get_weather_forecast,
 )
 
 router = APIRouter()
+
+
+# ─── مُحوِّلُ غلافِ خدمة الطقس ──────────────────────────────────────
+#
+# **لمَ مُحوِّلٌ أصلاً:** موصّلُ المزوّد (`api.connectors.openmeteo`) يُعيد **كائناتٍ
+# مُصنَّفة** (`CurrentWeather` · `list[DailyForecast]`) فيقرأ منها المستدعي بالنقطة،
+# بينما `weather_service_client` يُعيد **قاموساً** هو مشاهدةٌ من
+# `CanonicalWeatherState`: الآنُ مُسطَّحٌ في المستوى الأعلى، والتوقّعُ تحت المفتاح
+# `days`. فالفرقُ ليس في المفاتيح — **هي متطابقة حرفيّاً** (`temperature_c` ·
+# `humidity_pct` · `precipitation_mm` · `et0_mm` · `date`) — بل في **شكل الوصول**
+# وفي أنّ المفتاحَ قد يغيب رأساً.
+#
+# **والناقصُ يصل `None` مُسمّى، لا صفراً:** مقيسٌ بالتنفيذ على المسار الحقيقيّ —
+# رطوبةٌ غائبةٌ عن المزوّد ⇒ `humidity_pct: None` في المشاهدة، واسمُها في
+# `missing_fields`، و`quality_status: degraded`. فالخدمةُ **تُصرِّح** بما غاب بدل
+# أن تُصفّره؛ والخطرُ كلُّه في المستهلك: `sum(... or 0.0)` بلا فحصٍ يُعيد الكذبَ
+# الذي أزالته الخدمة. ولذلك يُعيد `_reading` قيمةً أو `None` ويقرّر كلُّ مسارٍ
+# صراحةً — لا يُخفي القسرَ داخل المُحوِّل.
+
+
+def _forecast_days(payload: dict[str, Any]) -> list[dict[str, Any]]:
+    """أيّامُ التوقّع من غلاف `forecast_view` — لا من جذر الردّ.
+
+    `forecast_view` مجموعةٌ فائقة: `days`/`range`/`model`/`timezone`/`location`
+    مع غلافِ الجودة (`quality_status`/`day_count`/`days_missing_fields`). فالقائمةُ
+    تحت `days`، وقراءتُها من الجذر تُعطي فراغاً صامتاً.
+    """
+    days = payload.get("days") if isinstance(payload, dict) else None
+    if not isinstance(days, list):
+        return []
+    return [day for day in days if isinstance(day, dict)]
+
+
+def _reading(source: dict[str, Any] | None, key: str) -> float | None:
+    """قراءةٌ رقميّة أو `None` — **ولا افتراضَ صفريّ هنا**.
+
+    الصفرُ قراءةٌ فيزيائيّة مشروعة (`0.0 mm` = لا مطر)، فلا يُميَّز من الغياب
+    بعد القسر. يُعيدُها المُحوِّلُ صادقةً ويقرّر كلُّ مسارٍ ما يفعله بالمفقود.
+    """
+    if not isinstance(source, dict):
+        return None
+    value = source.get(key)
+    try:
+        return float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return None
 
 
 def _score_to_suitability(score: float | None) -> str:
@@ -258,7 +306,6 @@ async def field_irrigation_advice_facade(
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
     """توصية ريّ خادمية من ET0/Kc/المطر ورطوبة التربة إن توفرت."""
-    from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
     from api.weather_advice import irrigation_advice
 
     try:
@@ -271,24 +318,30 @@ async def field_irrigation_advice_facade(
         raise _db_unavailable("قراءة سياق الحقل", exc) from exc
 
     try:
-        forecast = await fetch_daily_forecast(lat, lon, days=3)
-        current = await fetch_current(lat, lon)
+        forecast = await get_weather_forecast(lat, lon, days=3)
+        current = await get_current_weather(lat, lon)
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
-        raise HTTPException(status_code=503, detail="تعذّر جلب الطقس من Open-Meteo.") from exc
+        raise HTTPException(status_code=503, detail="تعذّر جلب الطقس من خدمة الطقس.") from exc
 
-    today = forecast[0] if forecast else None
-    et0 = today.et0_mm if today and today.et0_mm is not None else None
+    days = _forecast_days(forecast)
+    et0 = _reading(days[0], "et0_mm") if days else None
     if et0 is None:
         raise HTTPException(status_code=503, detail="بيانات ET₀ غير متوفّرة حالياً.")
-    forecast_rain = sum(f.precipitation_mm or 0.0 for f in forecast[1:3])
+    forecast_rain = sum(_reading(day, "precipitation_mm") or 0.0 for day in days[1:3])
     soil_pct = soil_reading.value_pct if soil_reading is not None else None
+    # قسرُ مطرِ «الآن» المفقودِ إلى صفر **سلوكٌ محفوظٌ كما كان** عبر الموصّل، لا
+    # اختيارٌ جديد: `irrigation_advice` يُعلن `rain_recent_mm: float` فلا يقبل
+    # `None`. والقيدُ مُعلَنٌ لا مطويّ — مطرٌ مفقودٌ يُقرَأ «لا مطر» فيرفع الكمّيّةَ
+    # الموصى بها، وهو انحيازٌ نحو الإسراف لا نحو الحفظ. مُسجَّلٌ فجوةً قائمة
+    # (`IRRIGATION-READS-MISSING-RAIN-AS-NO-RAIN-01`) ولا يُصلَح هنا: تغييرُه يُحوِّل
+    # ردّاً قائماً إلى ٥٠٣، وذلك قرارُ منتَجٍ لا أثرٌ جانبيٌّ لنقلِ واجهة.
     advice = irrigation_advice(
         et0_mm=et0,
         crop=crop,
         stage=stage,
-        rain_recent_mm=current.precipitation_mm or 0.0,
+        rain_recent_mm=_reading(current, "precipitation_mm") or 0.0,
         forecast_rain_mm=forecast_rain,
         soil_moisture_pct=soil_pct,
     )
@@ -297,7 +350,7 @@ async def field_irrigation_advice_facade(
             "field_id": field_id,
             "crop": crop,
             "stage": stage,
-            "source": "open-meteo",
+            "source": "weather-service",
             "soil_moisture_pct": soil_pct,
             "soil_moisture_at": soil_reading.recorded_at.isoformat()
             if soil_reading is not None
@@ -313,7 +366,6 @@ async def field_disease_risk_facade(
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
     """مخاطر أمراض فطرية من بيانات الطقس فقط، بدون تخمين من الواجهة."""
-    from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
     from api.weather_advice import disease_risk
 
     try:
@@ -325,17 +377,38 @@ async def field_disease_risk_facade(
         raise _db_unavailable("قراءة سياق الحقل", exc) from exc
 
     try:
-        current = await fetch_current(lat, lon)
-        forecast = await fetch_daily_forecast(lat, lon, days=3)
+        current = await get_current_weather(lat, lon)
+        forecast = await get_weather_forecast(lat, lon, days=3)
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
-        raise HTTPException(status_code=503, detail="تعذّر جلب الطقس من Open-Meteo.") from exc
+        raise HTTPException(status_code=503, detail="تعذّر جلب الطقس من خدمة الطقس.") from exc
 
-    rain_3d = sum(f.precipitation_mm or 0.0 for f in forecast[:3])
+    # مُدخَلا الخطر إلزاميّان، والفحصُ هنا يُغلِق **عطلين سابقين** للموصّل معاً
+    # (`openmeteo.py:279-280`: `c.get("temperature_2m", 0)`):
+    #   • مفتاحٌ **غائب** ⇒ `0` صامت. و`0°م` مع `0٪` رطوبةً ليسا خطأً واضحاً بل
+    #     قراءةً تخفض خطرَ الأمراض إلى `low` — **جوابٌ مطمئنٌّ من لا-بيانات**.
+    #   • مفتاحٌ **حاضرٌ بقيمة null** ⇒ `None` ⇒ `float(None)` في `disease_risk`
+    #     ⇒ `TypeError` غيرَ ملتقَط ⇒ ٥٠٠.
+    # فالمُدخَلُ الواحدُ كان يُنتِج كذبةً أو انهياراً حسب شكلِ نقصِه. وخدمةُ الطقس
+    # تُصرِّح بالناقص (`missing_fields`)، فيصير الجوابُ الصادقُ ٥٠٣ يُسمّيه.
+    temp_c = _reading(current, "temperature_c")
+    humidity_pct = _reading(current, "humidity_pct")
+    if temp_c is None or humidity_pct is None:
+        missing = [
+            name
+            for name, value in (("الحرارة", temp_c), ("الرطوبة", humidity_pct))
+            if value is None
+        ]
+        raise HTTPException(
+            status_code=503,
+            detail=f"قياسات الطقس ناقصة ({' و'.join(missing)}) — لا يمكن تقدير مخاطر الأمراض.",
+        )
+
+    rain_3d = sum(_reading(day, "precipitation_mm") or 0.0 for day in _forecast_days(forecast)[:3])
     risk = disease_risk(
-        temp_c=current.temperature_c,
-        humidity_pct=current.humidity_pct,
+        temp_c=temp_c,
+        humidity_pct=humidity_pct,
         rain_mm_3d=rain_3d,
         crop=crop,
     )
@@ -343,10 +416,10 @@ async def field_disease_risk_facade(
         {
             "field_id": field_id,
             "crop": crop,
-            "temperature_c": round(current.temperature_c, 1),
-            "humidity_pct": round(current.humidity_pct, 1),
+            "temperature_c": round(temp_c, 1),
+            "humidity_pct": round(humidity_pct, 1),
             "rain_mm_3d": round(rain_3d, 1),
-            "source": "open-meteo",
+            "source": "weather-service",
         }
     )
     return risk

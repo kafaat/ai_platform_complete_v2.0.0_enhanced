@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1879,
     "route_handlers": 1049,
-    "call_edges": 76002,
+    "call_edges": 76051,
     "dead_code_candidates": 626,
     "duplicate_function_groups": 61,
     "route_owners": 27,
@@ -4511,7 +4511,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "line": 103,
+      "line": 151,
       "handler": "field_weather_thermal_stress",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/thermal-stress"
@@ -4519,7 +4519,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "line": 138,
+      "line": 186,
       "handler": "field_weather_crop_stress",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/crop-stress"
@@ -4527,7 +4527,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "line": 205,
+      "line": 253,
       "handler": "field_weather_operation_windows",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/operation-windows"
@@ -4535,7 +4535,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "line": 256,
+      "line": 304,
       "handler": "field_irrigation_advice_facade",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/irrigation-advice"
@@ -4543,7 +4543,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "line": 311,
+      "line": 364,
       "handler": "field_disease_risk_facade",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/disease-risk"
@@ -253206,511 +253206,448 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "_forecast_days",
+      "target": "get",
+      "line": 61
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "_forecast_days",
+      "target": "isinstance",
+      "line": 61
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "_forecast_days",
+      "target": "isinstance",
+      "line": 62
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "_forecast_days",
+      "target": "isinstance",
+      "line": 64
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "_reading",
+      "target": "isinstance",
+      "line": 73
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "_reading",
+      "target": "get",
+      "line": 75
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "_reading",
+      "target": "float",
+      "line": 77
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_series_for_horizon",
       "target": "append",
-      "line": 64
+      "line": 112
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_series_for_horizon",
       "target": "join",
-      "line": 65
+      "line": 113
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_series_for_horizon",
       "target": "str",
-      "line": 65
+      "line": 113
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "get",
-      "line": 69
+      "line": 117
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "get",
-      "line": 69
+      "line": 117
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "isinstance",
-      "line": 69
+      "line": 117
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "get",
-      "line": 70
+      "line": 118
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "get",
-      "line": 70
+      "line": 118
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "isinstance",
-      "line": 70
+      "line": 118
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "get",
-      "line": 71
+      "line": 119
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "isinstance",
-      "line": 71
+      "line": 119
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "float",
-      "line": 73
+      "line": 121
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "get",
-      "line": 76
+      "line": 124
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "isinstance",
-      "line": 76
+      "line": 124
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "get",
-      "line": 87
+      "line": 135
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
-      "target": "get",
-      "line": 89
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "_window_from_operation",
-      "target": "isinstance",
-      "line": 90
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "_window_from_operation",
-      "target": "get",
-      "line": 91
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "_window_from_operation",
-      "target": "_score_to_suitability",
-      "line": 93
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "_window_from_operation",
-      "target": "isinstance",
-      "line": 95
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "_window_from_operation",
-      "target": "get",
-      "line": 97
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "_window_from_operation",
-      "target": "bool",
-      "line": 98
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "_window_from_operation",
-      "target": "get",
-      "line": 98
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_thermal_stress",
-      "target": "get",
-      "line": 102
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_thermal_stress",
-      "target": "Query",
-      "line": 105
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_thermal_stress",
-      "target": "Depends",
-      "line": 106
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_thermal_stress",
-      "target": "require_permission",
-      "line": 106
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_thermal_stress",
-      "target": "tenant_connection",
-      "line": 115
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_thermal_stress",
-      "target": "_field_weather_context",
-      "line": 116
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_thermal_stress",
-      "target": "_db_unavailable",
-      "line": 120
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_thermal_stress",
-      "target": "get_thermal_stress",
-      "line": 123
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_thermal_stress",
-      "target": "HTTPException",
-      "line": 129
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
       "target": "get",
       "line": 137
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "Query",
-      "line": 140
+      "source": "_window_from_operation",
+      "target": "isinstance",
+      "line": 138
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "Query",
+      "source": "_window_from_operation",
+      "target": "get",
+      "line": 139
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "_window_from_operation",
+      "target": "_score_to_suitability",
       "line": 141
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
+      "source": "_window_from_operation",
+      "target": "isinstance",
+      "line": 143
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "_window_from_operation",
+      "target": "get",
+      "line": 145
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "_window_from_operation",
+      "target": "bool",
+      "line": 146
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "_window_from_operation",
+      "target": "get",
+      "line": 146
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_thermal_stress",
+      "target": "get",
+      "line": 150
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_thermal_stress",
       "target": "Query",
-      "line": 142
+      "line": 153
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
+      "source": "field_weather_thermal_stress",
       "target": "Depends",
-      "line": 143
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "require_permission",
-      "line": 143
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "tenant_connection",
       "line": 154
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
+      "source": "field_weather_thermal_stress",
+      "target": "require_permission",
+      "line": 154
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_thermal_stress",
+      "target": "tenant_connection",
+      "line": 163
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_thermal_stress",
       "target": "_field_weather_context",
-      "line": 155
+      "line": 164
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
+      "source": "field_weather_thermal_stress",
       "target": "_db_unavailable",
-      "line": 159
+      "line": 168
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "date",
-      "line": 162
+      "source": "field_weather_thermal_stress",
+      "target": "get_thermal_stress",
+      "line": 171
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "now",
-      "line": 162
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "isoformat",
-      "line": 163
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "timedelta",
-      "line": 163
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "isoformat",
-      "line": 164
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "timedelta",
-      "line": 164
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "_collect",
-      "target": "str",
-      "line": 173
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "str",
-      "line": 173
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "_collect",
-      "line": 175
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "get_lodging_risk",
+      "source": "field_weather_thermal_stress",
+      "target": "HTTPException",
       "line": 177
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_crop_stress",
-      "target": "_collect",
-      "line": 181
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "get_pollination_risk",
-      "line": 183
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "_collect",
+      "target": "get",
       "line": 185
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_crop_stress",
-      "target": "get_chill_accumulation",
-      "line": 187
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "HTTPException",
-      "line": 193
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "bool",
-      "line": 199
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "get",
-      "line": 204
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
       "target": "Query",
+      "line": 188
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "Query",
+      "line": 189
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "Query",
+      "line": 190
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "Depends",
+      "line": 191
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "require_permission",
+      "line": 191
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "tenant_connection",
+      "line": 202
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "_field_weather_context",
+      "line": 203
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "_db_unavailable",
       "line": 207
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "Query",
-      "line": 208
+      "source": "field_weather_crop_stress",
+      "target": "date",
+      "line": 210
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "Depends",
-      "line": 209
+      "source": "field_weather_crop_stress",
+      "target": "now",
+      "line": 210
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "require_permission",
-      "line": 209
+      "source": "field_weather_crop_stress",
+      "target": "isoformat",
+      "line": 211
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "tenant_connection",
-      "line": 217
+      "source": "field_weather_crop_stress",
+      "target": "timedelta",
+      "line": 211
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "_field_weather_context",
-      "line": 218
+      "source": "field_weather_crop_stress",
+      "target": "isoformat",
+      "line": 212
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "_db_unavailable",
-      "line": 222
+      "source": "field_weather_crop_stress",
+      "target": "timedelta",
+      "line": 212
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "_series_for_horizon",
-      "line": 224
+      "source": "_collect",
+      "target": "str",
+      "line": 221
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "get_operation_plan",
-      "line": 226
+      "source": "field_weather_crop_stress",
+      "target": "str",
+      "line": 221
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
+      "source": "field_weather_crop_stress",
+      "target": "_collect",
+      "line": 223
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "get_lodging_risk",
+      "line": 225
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "_collect",
+      "line": 229
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "get_pollination_risk",
+      "line": 231
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "_collect",
+      "line": 233
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "get_chill_accumulation",
+      "line": 235
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
       "target": "HTTPException",
-      "line": 236
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "get",
       "line": 241
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "isinstance",
-      "line": 241
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "_window_from_operation",
-      "line": 242
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "isinstance",
-      "line": 242
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
+      "source": "field_weather_crop_stress",
       "target": "bool",
       "line": 247
     },
@@ -253719,252 +253656,434 @@
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_operation_windows",
       "target": "get",
-      "line": 247
+      "line": 252
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_operation_windows",
-      "target": "isinstance",
-      "line": 247
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "get",
-      "line": 249
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "isinstance",
-      "line": 249
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "get",
-      "line": 251
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "isinstance",
-      "line": 251
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
-      "target": "get",
+      "target": "Query",
       "line": 255
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
+      "source": "field_weather_operation_windows",
+      "target": "Query",
+      "line": 256
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
       "target": "Depends",
-      "line": 258
+      "line": 257
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
+      "source": "field_weather_operation_windows",
       "target": "require_permission",
-      "line": 258
+      "line": 257
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
+      "source": "field_weather_operation_windows",
       "target": "tenant_connection",
       "line": 265
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
+      "source": "field_weather_operation_windows",
       "target": "_field_weather_context",
       "line": 266
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
-      "target": "_latest_soil_moisture",
-      "line": 267
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
+      "source": "field_weather_operation_windows",
       "target": "_db_unavailable",
-      "line": 271
+      "line": 270
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
-      "target": "fetch_daily_forecast",
+      "source": "field_weather_operation_windows",
+      "target": "_series_for_horizon",
+      "line": 272
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "get_operation_plan",
       "line": 274
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
-      "target": "fetch_current",
-      "line": 275
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
-      "target": "HTTPException",
-      "line": 279
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
+      "source": "field_weather_operation_windows",
       "target": "HTTPException",
       "line": 284
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "get",
+      "line": 289
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "isinstance",
+      "line": 289
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "_window_from_operation",
+      "line": 290
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "isinstance",
+      "line": 290
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "bool",
+      "line": 295
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "get",
+      "line": 295
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "isinstance",
+      "line": 295
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "get",
+      "line": 297
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "isinstance",
+      "line": 297
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "get",
+      "line": 299
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "isinstance",
+      "line": 299
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "get",
+      "line": 303
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "Depends",
+      "line": 306
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "require_permission",
+      "line": 306
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "tenant_connection",
+      "line": 312
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "_field_weather_context",
+      "line": 313
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "_latest_soil_moisture",
+      "line": 314
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "_db_unavailable",
+      "line": 318
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "get_weather_forecast",
+      "line": 321
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "get_current_weather",
+      "line": 322
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "HTTPException",
+      "line": 326
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "_forecast_days",
+      "line": 328
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "_reading",
+      "line": 329
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "HTTPException",
+      "line": 331
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "_reading",
+      "line": 332
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_irrigation_advice_facade",
       "target": "sum",
-      "line": 285
+      "line": 332
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_irrigation_advice_facade",
       "target": "irrigation_advice",
-      "line": 287
+      "line": 340
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "_reading",
+      "line": 344
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_irrigation_advice_facade",
       "target": "update",
-      "line": 295
+      "line": 348
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_irrigation_advice_facade",
       "target": "isoformat",
-      "line": 302
+      "line": 355
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_disease_risk_facade",
       "target": "get",
-      "line": 310
+      "line": 363
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_disease_risk_facade",
       "target": "Depends",
-      "line": 313
+      "line": 366
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_disease_risk_facade",
       "target": "require_permission",
-      "line": 313
+      "line": 366
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_disease_risk_facade",
       "target": "tenant_connection",
-      "line": 320
+      "line": 372
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_disease_risk_facade",
       "target": "_field_weather_context",
-      "line": 321
+      "line": 373
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_disease_risk_facade",
       "target": "_db_unavailable",
-      "line": 325
+      "line": 377
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_disease_risk_facade",
-      "target": "fetch_current",
-      "line": 328
+      "target": "get_current_weather",
+      "line": 380
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_disease_risk_facade",
-      "target": "fetch_daily_forecast",
-      "line": 329
+      "target": "get_weather_forecast",
+      "line": 381
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_disease_risk_facade",
       "target": "HTTPException",
-      "line": 333
+      "line": 385
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_disease_risk_facade",
+      "target": "_reading",
+      "line": 395
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_disease_risk_facade",
+      "target": "_reading",
+      "line": 396
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_disease_risk_facade",
+      "target": "HTTPException",
+      "line": 403
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_disease_risk_facade",
+      "target": "join",
+      "line": 405
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_disease_risk_facade",
+      "target": "_forecast_days",
+      "line": 408
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_disease_risk_facade",
+      "target": "_reading",
+      "line": 408
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_disease_risk_facade",
       "target": "sum",
-      "line": 335
+      "line": 408
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_disease_risk_facade",
       "target": "disease_risk",
-      "line": 336
+      "line": 409
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_disease_risk_facade",
       "target": "update",
-      "line": 342
+      "line": 415
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_disease_risk_facade",
       "target": "round",
-      "line": 346
+      "line": 419
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_disease_risk_facade",
       "target": "round",
-      "line": 347
+      "line": 420
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_disease_risk_facade",
       "target": "round",
-      "line": 348
+      "line": 421
     },
     {
       "owner": "sahool-platform",
@@ -424393,266 +424512,490 @@
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "_load_allowlist",
       "target": "loads",
-      "line": 38
+      "line": 66
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "_load_allowlist",
       "target": "read_text",
-      "line": 38
+      "line": 66
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "_rel",
       "target": "as_posix",
-      "line": 42
+      "line": 70
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "_rel",
       "target": "relative_to",
-      "line": 42
+      "line": 70
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "_api_py_files",
       "target": "sorted",
-      "line": 46
+      "line": 74
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "_api_py_files",
       "target": "rglob",
-      "line": 48
+      "line": 76
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "_api_py_files",
       "target": "as_posix",
-      "line": 49
+      "line": 77
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "_api_py_files",
       "target": "as_posix",
-      "line": 49
+      "line": 77
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
-      "source": "test_allowlist_markers_match_the_guard",
-      "target": "_load_allowlist",
-      "line": 54
+      "source": "_imports_the_connector",
+      "target": "isinstance",
+      "line": 84
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
-      "source": "test_allowlist_markers_match_the_guard",
+      "source": "_imports_the_connector",
+      "target": "any",
+      "line": 85
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "_imports_the_connector",
+      "target": "startswith",
+      "line": 86
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "_imports_the_connector",
+      "target": "isinstance",
+      "line": 89
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "_imports_the_connector",
+      "target": "startswith",
+      "line": 91
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "_imports_the_connector",
+      "target": "endswith",
+      "line": 93
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "_imports_the_connector",
+      "target": "endswith",
+      "line": 93
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "_imports_the_connector",
+      "target": "any",
+      "line": 94
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "markers_in_source",
+      "target": "parse",
+      "line": 104
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "markers_in_source",
       "target": "set",
-      "line": 55
+      "line": 105
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
-      "source": "test_allowlist_markers_match_the_guard",
-      "target": "set",
-      "line": 55
+      "source": "markers_in_source",
+      "target": "walk",
+      "line": 106
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
-      "source": "test_every_direct_openmeteo_reference_is_a_home_or_documented_residual",
-      "target": "_load_allowlist",
-      "line": 59
+      "source": "markers_in_source",
+      "target": "_imports_the_connector",
+      "line": 107
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
-      "source": "test_every_direct_openmeteo_reference_is_a_home_or_documented_residual",
-      "target": "get",
-      "line": 60
+      "source": "markers_in_source",
+      "target": "add",
+      "line": 108
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
-      "source": "test_every_direct_openmeteo_reference_is_a_home_or_documented_residual",
-      "target": "set",
-      "line": 60
+      "source": "markers_in_source",
+      "target": "isinstance",
+      "line": 109
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
-      "source": "test_every_direct_openmeteo_reference_is_a_home_or_documented_residual",
-      "target": "set",
-      "line": 60
+      "source": "markers_in_source",
+      "target": "add",
+      "line": 110
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
-      "source": "test_every_direct_openmeteo_reference_is_a_home_or_documented_residual",
-      "target": "get",
-      "line": 61
+      "source": "markers_in_source",
+      "target": "isinstance",
+      "line": 111
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
-      "source": "test_every_direct_openmeteo_reference_is_a_home_or_documented_residual",
-      "target": "_api_py_files",
-      "line": 65
+      "source": "markers_in_source",
+      "target": "add",
+      "line": 112
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
-      "source": "test_every_direct_openmeteo_reference_is_a_home_or_documented_residual",
+      "source": "markers_in_source",
+      "target": "isinstance",
+      "line": 113
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "markers_in_source",
+      "target": "add",
+      "line": 116
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "markers_in_source",
+      "target": "isinstance",
+      "line": 117
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "markers_in_source",
+      "target": "add",
+      "line": 121
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "_offending_files",
       "target": "_rel",
-      "line": 66
+      "line": 129
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
-      "source": "test_every_direct_openmeteo_reference_is_a_home_or_documented_residual",
+      "source": "_offending_files",
+      "target": "markers_in_source",
+      "line": 129
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "_offending_files",
       "target": "read_text",
-      "line": 67
+      "line": 129
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "_offending_files",
+      "target": "_api_py_files",
+      "line": 130
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "test_allowlist_markers_match_the_guard",
+      "target": "_load_allowlist",
+      "line": 137
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "test_allowlist_markers_match_the_guard",
+      "target": "set",
+      "line": 138
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "test_allowlist_markers_match_the_guard",
+      "target": "set",
+      "line": 138
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "test_the_detector_reads_code_not_prose",
+      "target": "markers_in_source",
+      "line": 148
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "test_the_detector_reads_code_not_prose",
+      "target": "markers_in_source",
+      "line": 151
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "test_every_direct_openmeteo_reference_is_a_home_or_documented_residual",
-      "target": "append",
-      "line": 70
+      "target": "_load_allowlist",
+      "line": 155
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "test_every_direct_openmeteo_reference_is_a_home_or_documented_residual",
+      "target": "get",
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "test_every_direct_openmeteo_reference_is_a_home_or_documented_residual",
+      "target": "set",
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "test_every_direct_openmeteo_reference_is_a_home_or_documented_residual",
+      "target": "set",
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "test_every_direct_openmeteo_reference_is_a_home_or_documented_residual",
+      "target": "get",
+      "line": 157
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "test_every_direct_openmeteo_reference_is_a_home_or_documented_residual",
+      "target": "_offending_files",
+      "line": 161
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "test_every_direct_openmeteo_reference_is_a_home_or_documented_residual",
+      "target": "items",
+      "line": 161
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "test_every_direct_openmeteo_reference_is_a_home_or_documented_residual",
       "target": "repr",
-      "line": 75
+      "line": 167
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "test_allowlist_residuals_and_homes_are_not_stale",
       "target": "_load_allowlist",
-      "line": 82
+      "line": 174
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "test_allowlist_residuals_and_homes_are_not_stale",
       "target": "get",
-      "line": 83
+      "line": 175
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "test_allowlist_residuals_and_homes_are_not_stale",
       "target": "set",
-      "line": 83
+      "line": 175
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "test_allowlist_residuals_and_homes_are_not_stale",
       "target": "set",
-      "line": 83
+      "line": 175
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "test_allowlist_residuals_and_homes_are_not_stale",
       "target": "get",
-      "line": 84
+      "line": 176
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "test_allowlist_residuals_and_homes_are_not_stale",
       "target": "exists",
-      "line": 89
+      "line": 181
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "test_allowlist_residuals_and_homes_are_not_stale",
       "target": "append",
-      "line": 90
+      "line": 182
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "test_allowlist_residuals_and_homes_are_not_stale",
+      "target": "markers_in_source",
+      "line": 189
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "test_allowlist_residuals_and_homes_are_not_stale",
       "target": "read_text",
-      "line": 97
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
-      "source": "test_allowlist_residuals_and_homes_are_not_stale",
-      "target": "any",
-      "line": 98
+      "line": 189
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "test_allowlist_residuals_and_homes_are_not_stale",
       "target": "append",
-      "line": 99
+      "line": 190
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "test_allowlist_residuals_and_homes_are_not_stale",
       "target": "repr",
-      "line": 100
+      "line": 191
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "test_legitimate_homes_are_exactly_the_two_sanctioned_files",
       "target": "_load_allowlist",
-      "line": 104
+      "line": 195
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "test_legitimate_homes_are_exactly_the_two_sanctioned_files",
       "target": "get",
-      "line": 105
+      "line": 196
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "test_legitimate_homes_are_exactly_the_two_sanctioned_files",
       "target": "set",
-      "line": 105
+      "line": 196
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "test_the_documented_residuals_only_ever_shrink",
+      "target": "_load_allowlist",
+      "line": 214
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "test_the_documented_residuals_only_ever_shrink",
+      "target": "get",
+      "line": 216
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "test_the_documented_residuals_only_ever_shrink",
+      "target": "len",
+      "line": 217
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "test_the_documented_residuals_only_ever_shrink",
+      "target": "len",
+      "line": 218
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "test_the_documented_residuals_only_ever_shrink",
+      "target": "sorted",
+      "line": 219
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "test_the_documented_residuals_only_ever_shrink",
+      "target": "len",
+      "line": 221
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "source": "test_the_documented_residuals_only_ever_shrink",
+      "target": "len",
+      "line": 222
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "test_final_sweep_contract_is_documented",
       "target": "read_text",
-      "line": 112
+      "line": 228
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "test_final_sweep_contract_is_documented",
       "target": "_load_allowlist",
-      "line": 117
+      "line": 233
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
       "source": "test_final_sweep_contract_is_documented",
       "target": "get",
-      "line": 117
+      "line": 233
     },
     {
       "owner": "sahool-platform",

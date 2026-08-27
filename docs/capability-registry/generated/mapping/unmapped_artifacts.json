@@ -7728,6 +7728,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_no_manual_backup_files_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_no_merge_conflict_markers_guard.py",
     "kind": "tests"
   },

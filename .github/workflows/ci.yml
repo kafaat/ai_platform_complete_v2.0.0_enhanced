@@ -188,6 +188,13 @@ jobs:
         run: python scripts/ci/soil_p6_runtime_certification_guard.py
       - name: no unresolved merge-conflict markers (repo-wide)
         run: python scripts/ci/no_merge_conflict_markers_guard.py
+      # DEAD-FILES-TRACKED-AS-IF-THEY-WERE-SOURCE-01: ملفّان باسم `main.before_p2`
+      # كانا متعقَّبَين في خدمتين (`weather-service` · `sam2-inference`) وحُذِفا في
+      # #948. والحذفُ يُغلِق الحادثة ولا يمنع الصنف: النسخةُ الميّتة **تُقرَأ مصدراً**
+      # — تدخل الجردَ وبصماتِ الحزمة، ويجدها من يبحث عن `main` بلا علامةٍ تقول
+      # إنّها بائتة. ولا `.gitignore` ولا حارسَ كان يرفضها (مقيس).
+      - name: no manual backup files tracked (repo-wide)
+        run: python scripts/ci/no_manual_backup_files_guard.py
       # BIDI-CONTROL-CHAR-PASSED-THE-DEFAULT-PREFLIGHT-01: bandit يمسك RLM في نطاق
       # `services/ bots/ agents/` وحده، والمحارف مقيسة في ٩٣ ملفّاً عبر الشجرة —
       # json وmd وyml وsql وtsx وps1. وهو يحجب RLM ولا يحجب LRM، فاستبدال أحدهما

@@ -215,6 +215,12 @@ fi
 # ── ٢) حارسا تعارض الدمج — لا يغني أحدهما عن الآخر ────────────────────────
 require_file scripts/ci/no_merge_conflict_markers_guard.py "٢ب) no_merge_conflict_markers" && run "٢ب) no_merge_conflict_markers" python3 scripts/ci/no_merge_conflict_markers_guard.py
 
+# ── ٢أ) نسخٌ احتياطيّةٌ يدويّةٌ متعقَّبة — في الطبقة الأرخص عمداً ────────────
+# DEAD-FILES-TRACKED-AS-IF-THEY-WERE-SOURCE-01: `git ls-files` + مطابقةُ لواحق، أقلّ
+# من ثانية. وموضعُه هنا لا في `--full` لأنّ الصنفَ يدخل الشجرةَ لحظةَ `git add -A`
+# — وهي الخطوةُ التي يوصي بها هذا الملفُّ نفسُه قبل التوليد.
+require_file scripts/ci/no_manual_backup_files_guard.py "٢أ) no_manual_backup_files" && run "٢أ) no_manual_backup_files" python3 scripts/ci/no_manual_backup_files_guard.py
+
 # ── ٢ج) محارف الاتّجاه الخفيّة — في الملفّ **الافتراضيّ** عمداً ─────────────
 # BIDI-CONTROL-CHAR-PASSED-THE-DEFAULT-PREFLIGHT-01: محرف RLM في docstring عربيّ أسقط
 # *Security Scan* بـB613، على رأسٍ أُعلِن أخضر — وفاتَ لأنّ bandit في `--full` وحده

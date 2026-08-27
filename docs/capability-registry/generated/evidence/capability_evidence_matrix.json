@@ -9995,6 +9995,7 @@
         "tests_v9/test_water_ledger.py",
         "tests_v9/test_weather_analytics_engine_delegation.py",
         "tests_v9/test_weather_engine_formula_guard.py",
+        "tests_v9/test_weather_views_survive_the_hop_to_the_platform.py",
         "tests_v9/test_wired_endpoints.py"
       ]
     },

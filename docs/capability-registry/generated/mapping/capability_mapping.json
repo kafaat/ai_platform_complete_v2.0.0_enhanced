@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5202,
+    "files_scanned": 5205,
     "files_by_kind": {
       "backend": 1204,
       "database": 274,
       "governance": 60,
       "mobile": 51,
-      "other": 1423,
-      "tests": 1733,
+      "other": 1424,
+      "tests": 1735,
       "web": 457
     },
-    "unmapped_artifacts": 2122,
-    "ambiguous_artifacts": 414
+    "unmapped_artifacts": 2123,
+    "ambiguous_artifacts": 415
   },
   "capabilities": [
     {
@@ -601,7 +601,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:556",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:563",
           "score": 12
         },
         {
@@ -2308,7 +2308,7 @@
           "score": 28
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:556",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:563",
           "score": 12
         },
         {
@@ -5575,23 +5575,23 @@
           "score": 13
         },
         {
-          "value": "/api/v1/fields/{field_id}/weather/crop-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:137",
+          "value": "/api/v1/fields/{field_id}/weather/crop-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:185",
           "score": 13
         },
         {
-          "value": "/api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:310",
+          "value": "/api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:363",
           "score": 13
         },
         {
-          "value": "/api/v1/fields/{field_id}/weather/irrigation-advice @ services/sahool-platform/api/routers/field_workspace_weather.py:255",
+          "value": "/api/v1/fields/{field_id}/weather/irrigation-advice @ services/sahool-platform/api/routers/field_workspace_weather.py:303",
           "score": 13
         },
         {
-          "value": "/api/v1/fields/{field_id}/weather/operation-windows @ services/sahool-platform/api/routers/field_workspace_weather.py:204",
+          "value": "/api/v1/fields/{field_id}/weather/operation-windows @ services/sahool-platform/api/routers/field_workspace_weather.py:252",
           "score": 13
         },
         {
-          "value": "/api/v1/fields/{field_id}/weather/thermal-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:102",
+          "value": "/api/v1/fields/{field_id}/weather/thermal-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:150",
           "score": 13
         }
       ],
@@ -14461,7 +14461,7 @@
           "score": 16
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:556",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:563",
           "score": 12
         }
       ],
@@ -27662,7 +27662,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:556",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:563",
           "score": 12
         },
         {
@@ -29132,15 +29132,15 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "P3_5_WEATHER_DIRECT_WIRING_FINAL_SWEEP_REPORT.md",
-          "score": 8,
+          "path": "docs/architecture/weather_direct_wiring_allowlist.json",
+          "score": 10,
           "signals": [
             "content:Current weather",
             "content:current weather"
           ]
         },
         {
-          "path": "docs/architecture/weather_direct_wiring_allowlist.json",
+          "path": "P3_5_WEATHER_DIRECT_WIRING_FINAL_SWEEP_REPORT.md",
           "score": 8,
           "signals": [
             "content:Current weather",
@@ -29209,6 +29209,15 @@
         },
         {
           "path": "services/sahool-platform/api/irrigation_engineering_workspace.py",
+          "score": 16,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/api/routers/field_workspace_weather.py",
           "score": 16,
           "signals": [
             "content:Weather forecast",
@@ -29486,6 +29495,26 @@
         {
           "value": "/api/v1/weather/wind-source-selftest @ services/sahool-platform/api/routers/weather.py:1988",
           "score": 18
+        },
+        {
+          "value": "/api/v1/fields/{field_id}/weather/crop-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:185",
+          "score": 16
+        },
+        {
+          "value": "/api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:363",
+          "score": 16
+        },
+        {
+          "value": "/api/v1/fields/{field_id}/weather/irrigation-advice @ services/sahool-platform/api/routers/field_workspace_weather.py:303",
+          "score": 16
+        },
+        {
+          "value": "/api/v1/fields/{field_id}/weather/operation-windows @ services/sahool-platform/api/routers/field_workspace_weather.py:252",
+          "score": 16
+        },
+        {
+          "value": "/api/v1/fields/{field_id}/weather/thermal-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:150",
+          "score": 16
         },
         {
           "value": "/api/v1/weather/current @ scripts/ci/public_weather_route_governance_gate.py:49",
@@ -30191,6 +30220,15 @@
           ]
         },
         {
+          "path": "docs/architecture/weather_direct_wiring_allowlist.json",
+          "score": 12,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
           "path": "P3_1_WEATHER_SERVICE_CORE_REPORT.md",
           "score": 11,
           "signals": [
@@ -30286,15 +30324,15 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 22,
-        "routes": 51,
+        "backend": 23,
+        "routes": 56,
         "database": 8,
         "events": 55,
         "web": 9,
         "mobile": 0,
         "tests": 21,
         "governance": 0,
-        "other_evidence": 18
+        "other_evidence": 19
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -30588,14 +30626,6 @@
         },
         {
           "path": "services/sahool-platform/api/routers/field_ai_context.py",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
-          "path": "services/sahool-platform/api/routers/field_workspace_weather.py",
           "score": 12,
           "signals": [
             "content:ET0",
@@ -31013,26 +31043,6 @@
           "score": 12
         },
         {
-          "value": "/api/v1/fields/{field_id}/weather/crop-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:137",
-          "score": 12
-        },
-        {
-          "value": "/api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:310",
-          "score": 12
-        },
-        {
-          "value": "/api/v1/fields/{field_id}/weather/irrigation-advice @ services/sahool-platform/api/routers/field_workspace_weather.py:255",
-          "score": 12
-        },
-        {
-          "value": "/api/v1/fields/{field_id}/weather/operation-windows @ services/sahool-platform/api/routers/field_workspace_weather.py:204",
-          "score": 12
-        },
-        {
-          "value": "/api/v1/fields/{field_id}/weather/thermal-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:102",
-          "score": 12
-        },
-        {
           "value": "/api/v1/irrigation/executions/reconcile @ services/sahool-platform/api/routers/irrigation_mpc.py:540",
           "score": 12
         },
@@ -31414,6 +31424,10 @@
         {
           "value": "weather.read @ docs/history/REVIEW_RESPONSE_10_11.md:166",
           "score": 10
+        },
+        {
+          "value": "field_workspace_weather.py @ tests_v9/test_weather_views_survive_the_hop_to_the_platform.py:39",
+          "score": 8
         },
         {
           "value": "irrigation.execute @ services/sahool-platform/api/workflow_definitions.py:193",
@@ -32128,6 +32142,14 @@
             "content:ET0",
             "content:et0"
           ]
+        },
+        {
+          "path": "tests_v9/test_weather_views_survive_the_hop_to_the_platform.py",
+          "score": 8,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
         }
       ],
       "governance": [],
@@ -32331,13 +32353,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 60,
-        "routes": 53,
+        "backend": 59,
+        "routes": 48,
         "database": 0,
-        "events": 81,
+        "events": 82,
         "web": 19,
         "mobile": 0,
-        "tests": 57,
+        "tests": 58,
         "governance": 0,
         "other_evidence": 24
       },
@@ -42643,6 +42665,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_no_manual_backup_files_guard.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_no_merge_conflict_markers_guard.py",
       "kind": "tests"
     },
@@ -44517,6 +44543,29 @@
           "signals": [
             "content:cog",
             "content:tilejson"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/architecture/weather_direct_wiring_allowlist.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "WX-002",
+          "score": 12,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
+          "capability_id": "WX-001",
+          "score": 10,
+          "signals": [
+            "content:Current weather",
+            "content:current weather"
           ]
         }
       ]
@@ -49735,19 +49784,20 @@
       "kind": "backend",
       "candidates": [
         {
+          "capability_id": "WX-002",
+          "score": 16,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
           "capability_id": "FM-003",
           "score": 13,
           "signals": [
             "path:field workspace",
             "content:field workspace"
-          ]
-        },
-        {
-          "capability_id": "WX-004",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
           ]
         }
       ]

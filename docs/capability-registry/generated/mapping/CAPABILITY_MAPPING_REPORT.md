@@ -12,9 +12,9 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **49**
-- Files scanned: **5202**
-- Ambiguous artifacts queued: **414**
-- Unmapped artifacts queued: **2122**
+- Files scanned: **5205**
+- Ambiguous artifacts queued: **415**
+- Unmapped artifacts queued: **2123**
 
 ## Capability coverage
 
@@ -92,9 +92,9 @@
 | SOIL-004 | soil | 1 | 0 | 7 | 3 | 0 | 0 | 1 | 4 |
 | SOIL-005 | soil | 5 | 0 | 0 | 2 | 0 | 0 | 2 | 3 |
 | WX-001 | weather | 1 | 4 | 0 | 3 | 0 | 0 | 1 | 4 |
-| WX-002 | weather | 22 | 51 | 8 | 55 | 9 | 0 | 21 | 6 |
+| WX-002 | weather | 23 | 56 | 8 | 55 | 9 | 0 | 21 | 6 |
 | WX-003 | weather | 4 | 6 | 4 | 0 | 0 | 0 | 4 | 4 |
-| WX-004 | weather | 60 | 53 | 0 | 81 | 19 | 0 | 57 | 5 |
+| WX-004 | weather | 59 | 48 | 0 | 82 | 19 | 0 | 58 | 5 |
 | WX-005 | weather | 9 | 29 | 0 | 6 | 2 | 0 | 6 | 5 |
 | WX-006 | weather | 84 | 26 | 33 | 28 | 17 | 0 | 46 | 6 |
 | WX-007 | weather | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
