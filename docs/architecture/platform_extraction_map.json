@@ -2833,7 +2833,7 @@
       "function": "field_weather_crop_stress",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/crop-stress",
-      "line": 103,
+      "line": 137,
       "target_owner": "weather-service",
       "owner_type": "bff-facade-to-weather",
       "route_key": "api/routers/field_workspace_weather.py::GET /api/v1/fields/{field_id}/weather/crop-stress::field_weather_crop_stress"
@@ -2843,7 +2843,7 @@
       "function": "field_disease_risk_facade",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/disease-risk",
-      "line": 278,
+      "line": 310,
       "target_owner": "weather-service",
       "owner_type": "bff-facade-to-weather",
       "route_key": "api/routers/field_workspace_weather.py::GET /api/v1/fields/{field_id}/weather/disease-risk::field_disease_risk_facade"
@@ -2853,7 +2853,7 @@
       "function": "field_irrigation_advice_facade",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/irrigation-advice",
-      "line": 223,
+      "line": 255,
       "target_owner": "weather-service",
       "owner_type": "bff-facade-to-weather",
       "route_key": "api/routers/field_workspace_weather.py::GET /api/v1/fields/{field_id}/weather/irrigation-advice::field_irrigation_advice_facade"
@@ -2863,7 +2863,7 @@
       "function": "field_weather_operation_windows",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/operation-windows",
-      "line": 170,
+      "line": 204,
       "target_owner": "weather-service",
       "owner_type": "bff-facade-to-weather",
       "route_key": "api/routers/field_workspace_weather.py::GET /api/v1/fields/{field_id}/weather/operation-windows::field_weather_operation_windows"
@@ -2873,7 +2873,7 @@
       "function": "field_weather_thermal_stress",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/thermal-stress",
-      "line": 68,
+      "line": 102,
       "target_owner": "weather-service",
       "owner_type": "bff-facade-to-weather",
       "route_key": "api/routers/field_workspace_weather.py::GET /api/v1/fields/{field_id}/weather/thermal-stress::field_weather_thermal_stress"

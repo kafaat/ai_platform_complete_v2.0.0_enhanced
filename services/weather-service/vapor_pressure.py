@@ -32,13 +32,31 @@ def mean_saturation_vapor_pressure_kpa(t_max_c: float, t_min_c: float) -> float:
     return (saturation_vapor_pressure_kpa(t_max_c) + saturation_vapor_pressure_kpa(t_min_c)) / 2.0
 
 
+# ضجيجُ مستشعرٍ مقبولٌ حول الحدّين: مقاييسُ الرطوبة تُبلِّغ 100.4٪ أو -0.3٪ عند
+# التشبّع أو الصفر. أمّا 350٪ أو -40٪ فليست ضجيجاً بل قراءةٌ مكسورة — وقصُّها
+# يُنتِج `ea` صالحَ الشكل من مُدخَلٍ لا معنى له، فيمضي إلى ET0 ومنه إلى قرار ريّ.
+_RH_SENSOR_TOLERANCE_PCT = 5.0
+
+
 def actual_vapor_pressure_from_rh_kpa(es_kpa: float, rh_pct: float) -> float:
     """ضغط البخار الفعليّ ea من الرطوبة النسبيّة (FAO-56 Eq. 19، مبسّطة):
 
         ea = es · RH/100
 
-    RH يُقصّ إلى [0, 100] (قيَم المستشعر قد تتجاوز قليلاً) — المُستدعِي يعلن ذلك قيداً.
+    **القصُّ محدودٌ بنطاق ضجيج المستشعر** ``[-5, 105]``، وما خرج عنه يُرفَض
+    بـ``ValueError`` ولا يُقصّ.
+
+    والفرقُ ليس تجميلاً: القصُّ غيرُ المحدود يحوّل **غيابَ قياسٍ** إلى **قياسٍ
+    واثق**. قراءةُ 350٪ تصير 100٪، فيخرج ``ea`` سليمَ الشكل ويمضي إلى ET0 ثمّ إلى
+    قرار ريّ — بلا أثرٍ واحدٍ يقول إنّ المُدخَل كان مكسوراً. والرفضُ يُبقي العطلَ
+    مرئيّاً حيث وقع، وهو ما تفعله بقيّةُ هذه الطبقة (`None` = مفقود، لا افتراض).
     """
+    if not -_RH_SENSOR_TOLERANCE_PCT <= rh_pct <= 100.0 + _RH_SENSOR_TOLERANCE_PCT:
+        raise ValueError(
+            f"rh_pct={rh_pct!r} خارج نطاق ضجيج المستشعر "
+            f"[{-_RH_SENSOR_TOLERANCE_PCT}, {100.0 + _RH_SENSOR_TOLERANCE_PCT}] — "
+            "قراءةٌ مكسورة لا تُقصّ إلى قيمةٍ صالحة"
+        )
     rh = max(0.0, min(100.0, rh_pct))
     return es_kpa * rh / 100.0
 

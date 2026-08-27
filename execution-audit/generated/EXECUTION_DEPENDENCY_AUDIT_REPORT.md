@@ -4,10 +4,10 @@
 
 ## Summary
 
-- Python files parsed: **1875**
+- Python files parsed: **1879**
 - FastAPI-style route handlers: **1049**
-- Static function-call edges: **75896**
-- Dead-code candidates: **625**
+- Static function-call edges: **75999**
+- Dead-code candidates: **626**
 - Duplicate function groups: **61**
 - Automatic deletions: **0**
 
@@ -52,6 +52,7 @@
 | `sahool-platform` | `_patch_engine_gdd` | function | `services/sahool-platform/tests/test_profit_aware_decision_endpoint.py` | 25 |
 | `sam2-inference` | `_startup` | function | `services/sam2-inference/main.py` | 19 |
 | `soil-service` | `_tenant_context_mw` | function | `services/soil-service/main.py` | 107 |
+| `weather-service` | `_reset_breaker` | function | `services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py` | 41 |
 | `shared` | `_normalize_feature_vector` | function | `shared/precision_agriculture/phase6_intelligence.py` | 221 |
 
 ## Duplicate implementation groups

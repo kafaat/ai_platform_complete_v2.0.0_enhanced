@@ -5,7 +5,11 @@ import { kongApi } from './client';
 
 export interface FieldWeatherOperationWindow {
   operation: 'spraying' | 'harvesting' | 'sowing' | 'fertilizing' | 'irrigation' | string;
+  /** طابعٌ زمنيٌّ حقيقيّ من المزوّد، أو `null`. كان يحمل رمزاً (`"+72h"`) فيُصيَّر
+   *  كما هو للمزارع؛ والإزاحةُ صارت في `start_offset_hours` باسمها. */
   start_at?: string | null;
+  /** إزاحةُ الإطار بالساعات من لحظة الطلب (`0` = الآن). */
+  start_offset_hours?: number | null;
   end_at?: string | null;
   suitability?: 'optimal' | 'acceptable' | 'poor' | 'unsafe' | string;
   score?: number | null;

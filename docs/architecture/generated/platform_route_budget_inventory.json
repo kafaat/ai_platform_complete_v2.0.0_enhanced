@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 631
   },
-  "inventory_sha256": "af813dc972b49c14e1f5df6bdccd7236761d9b63ea59561b4c319996dd8e6888",
+  "inventory_sha256": "b24f2a1533f965fba026bb258e9796737b87b15920687f9bc823e07476049d3e",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "5e874815cea3ad8d01eb441c6166622daf48b343dbeb9f6bbb2177af00677247"
+    "policy_sha256": "4ff765b449a594811a413a7ce7a5df626cb78c71665a4a15bc303c9477db251f"
   },
   "routes": [
     {
@@ -1370,7 +1370,7 @@
     {
       "classification": "domain",
       "function": "field_weather_crop_stress",
-      "line": 103,
+      "line": 137,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/crop-stress",
       "source": "api/routers/field_workspace_weather.py"
@@ -1378,7 +1378,7 @@
     {
       "classification": "domain",
       "function": "field_disease_risk_facade",
-      "line": 278,
+      "line": 310,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/disease-risk",
       "source": "api/routers/field_workspace_weather.py"
@@ -1386,7 +1386,7 @@
     {
       "classification": "domain",
       "function": "field_irrigation_advice_facade",
-      "line": 223,
+      "line": 255,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/irrigation-advice",
       "source": "api/routers/field_workspace_weather.py"
@@ -1394,7 +1394,7 @@
     {
       "classification": "domain",
       "function": "field_weather_operation_windows",
-      "line": 170,
+      "line": 204,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/operation-windows",
       "source": "api/routers/field_workspace_weather.py"
@@ -1402,7 +1402,7 @@
     {
       "classification": "domain",
       "function": "field_weather_thermal_stress",
-      "line": 68,
+      "line": 102,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/thermal-stress",
       "source": "api/routers/field_workspace_weather.py"

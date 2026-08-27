@@ -3,10 +3,10 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1875,
+    "python_files_parsed": 1879,
     "route_handlers": 1049,
-    "call_edges": 75896,
-    "dead_code_candidates": 625,
+    "call_edges": 75999,
+    "dead_code_candidates": 626,
     "duplicate_function_groups": 61,
     "route_owners": 27,
     "automatic_deletions": 0
@@ -4511,7 +4511,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "line": 69,
+      "line": 103,
       "handler": "field_weather_thermal_stress",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/thermal-stress"
@@ -4519,7 +4519,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "line": 104,
+      "line": 138,
       "handler": "field_weather_crop_stress",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/crop-stress"
@@ -4527,7 +4527,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "line": 171,
+      "line": 205,
       "handler": "field_weather_operation_windows",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/operation-windows"
@@ -4535,7 +4535,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "line": 224,
+      "line": 256,
       "handler": "field_irrigation_advice_facade",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/irrigation-advice"
@@ -4543,7 +4543,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "line": 279,
+      "line": 311,
       "handler": "field_disease_risk_facade",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/disease-risk"
@@ -253206,730 +253206,765 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "_window_from_operation",
-      "target": "get",
-      "line": 47
+      "source": "_series_for_horizon",
+      "target": "append",
+      "line": 64
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "_series_for_horizon",
+      "target": "join",
+      "line": 65
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "_series_for_horizon",
+      "target": "str",
+      "line": 65
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "get",
-      "line": 47
+      "line": 69
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "_window_from_operation",
+      "target": "get",
+      "line": 69
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "isinstance",
-      "line": 47
+      "line": 69
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "get",
-      "line": 48
+      "line": 70
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "get",
-      "line": 48
+      "line": 70
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "isinstance",
-      "line": 48
+      "line": 70
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "get",
-      "line": 49
+      "line": 71
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "isinstance",
-      "line": 49
+      "line": 71
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "float",
-      "line": 51
+      "line": 73
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "get",
-      "line": 54
+      "line": 76
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "isinstance",
-      "line": 54
+      "line": 76
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "get",
-      "line": 56
+      "line": 87
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "get",
-      "line": 57
+      "line": 89
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "_window_from_operation",
+      "target": "isinstance",
+      "line": 90
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "get",
-      "line": 57
+      "line": 91
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "_score_to_suitability",
-      "line": 59
+      "line": 93
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "isinstance",
-      "line": 61
+      "line": 95
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "get",
-      "line": 63
+      "line": 97
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "bool",
-      "line": 64
+      "line": 98
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "_window_from_operation",
       "target": "get",
-      "line": 64
+      "line": 98
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_thermal_stress",
       "target": "get",
-      "line": 68
+      "line": 102
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_thermal_stress",
       "target": "Query",
-      "line": 71
+      "line": 105
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_thermal_stress",
       "target": "Depends",
-      "line": 72
+      "line": 106
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_thermal_stress",
       "target": "require_permission",
-      "line": 72
+      "line": 106
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_thermal_stress",
       "target": "tenant_connection",
-      "line": 81
+      "line": 115
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_thermal_stress",
       "target": "_field_weather_context",
-      "line": 82
+      "line": 116
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_thermal_stress",
       "target": "_db_unavailable",
-      "line": 86
+      "line": 120
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_thermal_stress",
       "target": "get_thermal_stress",
-      "line": 89
+      "line": 123
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_thermal_stress",
       "target": "HTTPException",
-      "line": 95
+      "line": 129
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_crop_stress",
       "target": "get",
-      "line": 103
+      "line": 137
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_crop_stress",
       "target": "Query",
-      "line": 106
+      "line": 140
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_crop_stress",
       "target": "Query",
-      "line": 107
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "Query",
-      "line": 108
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "Depends",
-      "line": 109
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "require_permission",
-      "line": 109
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "tenant_connection",
-      "line": 120
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "_field_weather_context",
-      "line": 121
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "_db_unavailable",
-      "line": 125
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "date",
-      "line": 128
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "now",
-      "line": 128
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "isoformat",
-      "line": 129
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "timedelta",
-      "line": 129
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "isoformat",
-      "line": 130
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "timedelta",
-      "line": 130
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "_collect",
-      "target": "str",
-      "line": 139
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "str",
-      "line": 139
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "_collect",
       "line": 141
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_crop_stress",
-      "target": "get_lodging_risk",
+      "target": "Query",
+      "line": 142
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "Depends",
       "line": 143
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_crop_stress",
-      "target": "_collect",
-      "line": 147
+      "target": "require_permission",
+      "line": 143
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_crop_stress",
-      "target": "get_pollination_risk",
-      "line": 149
+      "target": "tenant_connection",
+      "line": 154
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_crop_stress",
-      "target": "_collect",
-      "line": 151
+      "target": "_field_weather_context",
+      "line": 155
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_crop_stress",
-      "target": "get_chill_accumulation",
-      "line": 153
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_crop_stress",
-      "target": "HTTPException",
+      "target": "_db_unavailable",
       "line": 159
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_crop_stress",
+      "target": "date",
+      "line": 162
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "now",
+      "line": 162
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "isoformat",
+      "line": 163
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "timedelta",
+      "line": 163
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "isoformat",
+      "line": 164
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "timedelta",
+      "line": 164
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "_collect",
+      "target": "str",
+      "line": 173
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "str",
+      "line": 173
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "_collect",
+      "line": 175
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "get_lodging_risk",
+      "line": 177
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "_collect",
+      "line": 181
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "get_pollination_risk",
+      "line": 183
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "_collect",
+      "line": 185
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "get_chill_accumulation",
+      "line": 187
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
+      "target": "HTTPException",
+      "line": 193
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_crop_stress",
       "target": "bool",
-      "line": 165
+      "line": 199
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_operation_windows",
       "target": "get",
-      "line": 170
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "Query",
-      "line": 173
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "Query",
-      "line": 174
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "Depends",
-      "line": 175
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "require_permission",
-      "line": 175
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "tenant_connection",
-      "line": 183
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "_field_weather_context",
-      "line": 184
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "_db_unavailable",
-      "line": 188
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "get_operation_plan",
-      "line": 194
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "HTTPException",
       "line": 204
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_operation_windows",
-      "target": "get",
+      "target": "Query",
+      "line": 207
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "Query",
+      "line": 208
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "Depends",
       "line": 209
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_operation_windows",
-      "target": "isinstance",
+      "target": "require_permission",
       "line": 209
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "tenant_connection",
+      "line": 217
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "_field_weather_context",
+      "line": 218
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "_db_unavailable",
+      "line": 222
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "_series_for_horizon",
+      "line": 224
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "get_operation_plan",
+      "line": 226
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "HTTPException",
+      "line": 236
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "get",
+      "line": 241
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "isinstance",
+      "line": 241
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_operation_windows",
       "target": "_window_from_operation",
-      "line": 210
+      "line": 242
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_operation_windows",
       "target": "isinstance",
-      "line": 210
+      "line": 242
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_weather_operation_windows",
       "target": "bool",
-      "line": 215
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "get",
-      "line": 215
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "isinstance",
-      "line": 215
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "get",
-      "line": 217
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "isinstance",
-      "line": 217
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "get",
-      "line": 219
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_weather_operation_windows",
-      "target": "isinstance",
-      "line": 219
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
-      "target": "get",
-      "line": 223
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
-      "target": "Depends",
-      "line": 226
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
-      "target": "require_permission",
-      "line": 226
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
-      "target": "tenant_connection",
-      "line": 233
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
-      "target": "_field_weather_context",
-      "line": 234
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
-      "target": "_latest_soil_moisture",
-      "line": 235
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
-      "target": "_db_unavailable",
-      "line": 239
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
-      "target": "fetch_daily_forecast",
-      "line": 242
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
-      "target": "fetch_current",
-      "line": 243
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
-      "target": "HTTPException",
       "line": 247
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
-      "target": "HTTPException",
-      "line": 252
+      "source": "field_weather_operation_windows",
+      "target": "get",
+      "line": 247
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "isinstance",
+      "line": 247
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "get",
+      "line": 249
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "isinstance",
+      "line": 249
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "get",
+      "line": 251
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_weather_operation_windows",
+      "target": "isinstance",
+      "line": 251
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_irrigation_advice_facade",
-      "target": "sum",
-      "line": 253
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_irrigation_advice_facade",
-      "target": "irrigation_advice",
+      "target": "get",
       "line": 255
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_irrigation_advice_facade",
+      "target": "Depends",
+      "line": 258
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "require_permission",
+      "line": 258
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "tenant_connection",
+      "line": 265
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "_field_weather_context",
+      "line": 266
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "_latest_soil_moisture",
+      "line": 267
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "_db_unavailable",
+      "line": 271
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "fetch_daily_forecast",
+      "line": 274
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "fetch_current",
+      "line": 275
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "HTTPException",
+      "line": 279
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "HTTPException",
+      "line": 284
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "sum",
+      "line": 285
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
+      "target": "irrigation_advice",
+      "line": 287
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_irrigation_advice_facade",
       "target": "update",
-      "line": 263
+      "line": 295
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_irrigation_advice_facade",
       "target": "isoformat",
-      "line": 270
+      "line": 302
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_disease_risk_facade",
       "target": "get",
-      "line": 278
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_disease_risk_facade",
-      "target": "Depends",
-      "line": 281
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_disease_risk_facade",
-      "target": "require_permission",
-      "line": 281
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_disease_risk_facade",
-      "target": "tenant_connection",
-      "line": 288
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_disease_risk_facade",
-      "target": "_field_weather_context",
-      "line": 289
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_disease_risk_facade",
-      "target": "_db_unavailable",
-      "line": 293
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_disease_risk_facade",
-      "target": "fetch_current",
-      "line": 296
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_disease_risk_facade",
-      "target": "fetch_daily_forecast",
-      "line": 297
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_disease_risk_facade",
-      "target": "HTTPException",
-      "line": 301
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_disease_risk_facade",
-      "target": "sum",
-      "line": 303
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_disease_risk_facade",
-      "target": "disease_risk",
-      "line": 304
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-      "source": "field_disease_risk_facade",
-      "target": "update",
       "line": 310
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_disease_risk_facade",
-      "target": "round",
-      "line": 314
+      "target": "Depends",
+      "line": 313
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_disease_risk_facade",
+      "target": "require_permission",
+      "line": 313
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_disease_risk_facade",
+      "target": "tenant_connection",
+      "line": 320
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_disease_risk_facade",
+      "target": "_field_weather_context",
+      "line": 321
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_disease_risk_facade",
+      "target": "_db_unavailable",
+      "line": 325
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_disease_risk_facade",
+      "target": "fetch_current",
+      "line": 328
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_disease_risk_facade",
+      "target": "fetch_daily_forecast",
+      "line": 329
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_disease_risk_facade",
+      "target": "HTTPException",
+      "line": 333
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_disease_risk_facade",
+      "target": "sum",
+      "line": 335
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_disease_risk_facade",
+      "target": "disease_risk",
+      "line": 336
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_disease_risk_facade",
+      "target": "update",
+      "line": 342
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_disease_risk_facade",
       "target": "round",
-      "line": 315
+      "line": 346
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "source": "field_disease_risk_facade",
       "target": "round",
-      "line": 316
+      "line": 347
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+      "source": "field_disease_risk_facade",
+      "target": "round",
+      "line": 348
     },
     {
       "owner": "sahool-platform",
@@ -406841,6 +406876,181 @@
     },
     {
       "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "_fns",
+      "target": "parse",
+      "line": 35
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "_fns",
+      "target": "read_text",
+      "line": 35
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "_fns",
+      "target": "isinstance",
+      "line": 40
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "_fns",
+      "target": "getattr",
+      "line": 41
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "_fns",
+      "target": "isinstance",
+      "line": 41
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "_fns",
+      "target": "Module",
+      "line": 43
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "_fns",
+      "target": "compile",
+      "line": 45
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "_fns",
+      "target": "exec",
+      "line": 45
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "_fns",
+      "target": "fix_missing_locations",
+      "line": 45
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "_fns",
+      "target": "str",
+      "line": 45
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "test_the_two_historical_behaviours_are_preserved_exactly",
+      "target": "series",
+      "line": 59
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "test_the_two_historical_behaviours_are_preserved_exactly",
+      "target": "series",
+      "line": 60
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "test_distinct_horizons_no_longer_collapse_to_one_request",
+      "target": "parametrize",
+      "line": 63
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "test_distinct_horizons_no_longer_collapse_to_one_request",
+      "target": "series",
+      "line": 66
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "test_distinct_horizons_no_longer_collapse_to_one_request",
+      "target": "series",
+      "line": 66
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "test_the_requested_horizon_is_always_the_last_frame",
+      "target": "parametrize",
+      "line": 69
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "test_the_requested_horizon_is_always_the_last_frame",
+      "target": "int",
+      "line": 72
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "test_the_requested_horizon_is_always_the_last_frame",
+      "target": "series",
+      "line": 72
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "test_the_requested_horizon_is_always_the_last_frame",
+      "target": "split",
+      "line": 72
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "test_the_requested_horizon_is_always_the_last_frame",
+      "target": "set",
+      "line": 74
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "test_the_requested_horizon_is_always_the_last_frame",
+      "target": "sorted",
+      "line": 74
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "test_the_requested_horizon_is_always_the_last_frame",
+      "target": "all",
+      "line": 75
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "test_start_at_carries_the_real_timestamp_not_the_symbolic_key",
+      "target": "window",
+      "line": 84
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "test_a_missing_timestamp_is_none_not_a_symbol",
+      "target": "window",
+      "line": 91
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "source": "test_no_symbolic_offset_can_reach_start_at",
+      "target": "window",
+      "line": 99
+    },
+    {
+      "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_human_escalation.py",
       "source": "test_high_confidence_no_escalation",
       "target": "assess_escalation",
@@ -494421,208 +494631,173 @@
       "file": "services/weather-service/open_meteo.py",
       "source": "circuit_breaker_state",
       "target": "max",
-      "line": 20
+      "line": 23
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "circuit_breaker_state",
       "target": "monotonic",
-      "line": 20
+      "line": 23
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "circuit_breaker_state",
       "target": "int",
-      "line": 26
+      "line": 29
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "circuit_breaker_state",
       "target": "round",
-      "line": 27
+      "line": 30
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "circuit_breaker_state",
+      "target": "monotonic",
+      "line": 33
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "circuit_breaker_state",
+      "target": "round",
+      "line": 33
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "_record_success",
+      "target": "monotonic",
+      "line": 43
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "_record_failure",
       "target": "str",
-      "line": 42
+      "line": 49
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "_record_failure",
       "target": "monotonic",
-      "line": 44
+      "line": 51
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "_as_list",
       "target": "get",
-      "line": 48
+      "line": 55
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "_as_list",
       "target": "get",
-      "line": 48
+      "line": 55
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "_as_list",
       "target": "isinstance",
-      "line": 49
+      "line": 56
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "_at",
       "target": "len",
-      "line": 53
+      "line": 80
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_thermal_series",
       "target": "int",
-      "line": 66
+      "line": 93
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_thermal_series",
       "target": "max",
-      "line": 66
+      "line": 93
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_thermal_series",
       "target": "min",
-      "line": 66
+      "line": 93
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_thermal_series",
       "target": "_fetch_json",
-      "line": 77
+      "line": 104
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_thermal_series",
       "target": "get",
-      "line": 78
+      "line": 105
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_thermal_series",
       "target": "get",
-      "line": 79
+      "line": 106
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_thermal_series",
       "target": "get",
-      "line": 81
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_thermal_series",
-      "target": "get",
-      "line": 82
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_thermal_series",
-      "target": "get",
-      "line": 83
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_thermal_series",
-      "target": "get",
-      "line": 84
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_thermal_series",
-      "target": "get",
-      "line": 85
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_thermal_series",
-      "target": "get",
-      "line": 86
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_daily_wind_temp_rain",
-      "target": "int",
-      "line": 94
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_daily_wind_temp_rain",
-      "target": "max",
-      "line": 94
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_daily_wind_temp_rain",
-      "target": "min",
-      "line": 94
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_daily_wind_temp_rain",
-      "target": "_fetch_json",
       "line": 108
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_daily_wind_temp_rain",
+      "source": "fetch_thermal_series",
       "target": "get",
       "line": 109
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_daily_wind_temp_rain",
+      "source": "fetch_thermal_series",
+      "target": "get",
+      "line": 110
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "fetch_thermal_series",
       "target": "get",
       "line": 111
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_daily_wind_temp_rain",
+      "source": "fetch_thermal_series",
       "target": "get",
       "line": 112
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_daily_wind_temp_rain",
+      "source": "fetch_thermal_series",
       "target": "get",
       "line": 113
     },
@@ -494630,616 +494805,441 @@
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_daily_wind_temp_rain",
-      "target": "get",
-      "line": 114
+      "target": "int",
+      "line": 121
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "fetch_daily_wind_temp_rain",
+      "target": "max",
+      "line": 121
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "fetch_daily_wind_temp_rain",
+      "target": "min",
+      "line": 121
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "fetch_daily_wind_temp_rain",
+      "target": "_fetch_json",
+      "line": 135
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_daily_wind_temp_rain",
       "target": "get",
-      "line": 115
+      "line": 136
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_archive_hourly_temps",
-      "target": "_fetch_json",
-      "line": 131
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_archive_hourly_temps",
+      "source": "fetch_daily_wind_temp_rain",
       "target": "get",
-      "line": 132
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_archive_hourly_temps",
-      "target": "get",
-      "line": 133
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_archive_hourly_temps",
-      "target": "get",
-      "line": 133
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "_fetch_json",
-      "target": "monotonic",
-      "line": 137
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "_fetch_json",
-      "target": "RuntimeError",
       "line": 138
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
-      "source": "_fetch_json",
-      "target": "AsyncClient",
+      "source": "fetch_daily_wind_temp_rain",
+      "target": "get",
+      "line": 139
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "fetch_daily_wind_temp_rain",
+      "target": "get",
       "line": 140
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
-      "source": "_fetch_json",
+      "source": "fetch_daily_wind_temp_rain",
       "target": "get",
       "line": 141
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
+      "source": "fetch_daily_wind_temp_rain",
+      "target": "get",
+      "line": 142
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "fetch_archive_hourly_temps",
+      "target": "_fetch_json",
+      "line": 158
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "fetch_archive_hourly_temps",
+      "target": "get",
+      "line": 159
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "fetch_archive_hourly_temps",
+      "target": "get",
+      "line": 160
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "fetch_archive_hourly_temps",
+      "target": "get",
+      "line": 160
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "_fetch_json",
+      "target": "monotonic",
+      "line": 164
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "_fetch_json",
+      "target": "RuntimeError",
+      "line": 165
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "_fetch_json",
+      "target": "AsyncClient",
+      "line": 167
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "_fetch_json",
+      "target": "get",
+      "line": 168
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
       "source": "_fetch_json",
       "target": "raise_for_status",
-      "line": 142
+      "line": 169
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "_fetch_json",
       "target": "json",
-      "line": 143
+      "line": 170
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "_fetch_json",
       "target": "_record_success",
-      "line": 144
+      "line": 171
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "_fetch_json",
       "target": "_record_failure",
-      "line": 147
+      "line": 174
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_hourly_fao_et0_precipitation",
       "target": "int",
-      "line": 155
+      "line": 182
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_hourly_fao_et0_precipitation",
       "target": "max",
-      "line": 155
+      "line": 182
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_hourly_fao_et0_precipitation",
       "target": "min",
-      "line": 155
+      "line": 182
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_hourly_fao_et0_precipitation",
       "target": "max",
-      "line": 156
+      "line": 183
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_hourly_fao_et0_precipitation",
       "target": "min",
-      "line": 156
+      "line": 183
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_hourly_fao_et0_precipitation",
       "target": "_fetch_json",
-      "line": 166
+      "line": 193
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_current",
       "target": "join",
-      "line": 173
+      "line": 200
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_current",
       "target": "join",
-      "line": 187
+      "line": 214
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_current",
       "target": "_fetch_json",
-      "line": 209
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_current",
-      "target": "get",
-      "line": 210
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_current",
-      "target": "normalize_current",
-      "line": 211
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_current",
-      "target": "float",
-      "line": 218
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_current",
-      "target": "get",
-      "line": 218
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_current",
-      "target": "get",
-      "line": 219
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_current",
-      "target": "get",
-      "line": 222
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_current",
-      "target": "get",
-      "line": 223
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_current",
-      "target": "round",
-      "line": 224
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_current",
-      "target": "get",
-      "line": 226
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_current",
-      "target": "get",
-      "line": 227
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_current",
-      "target": "float",
-      "line": 229
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_current",
-      "target": "round",
-      "line": 229
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_current",
-      "target": "get",
-      "line": 231
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_current",
-      "target": "get",
-      "line": 232
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_current",
-      "target": "get",
-      "line": 233
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_current",
-      "target": "get",
-      "line": 234
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_current",
-      "target": "bool",
-      "line": 235
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_current",
-      "target": "get",
-      "line": 235
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_current",
-      "target": "get",
-      "line": 235
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_current",
-      "target": "get",
       "line": 236
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_current",
+      "source": "fetch_current",
       "target": "get",
       "line": 237
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
+      "source": "fetch_current",
+      "target": "normalize_current",
+      "line": 238
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
       "source": "normalize_current",
       "target": "get",
-      "line": 239
+      "line": 249
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_forecast",
-      "target": "int",
-      "line": 246
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_forecast",
-      "target": "max",
-      "line": 246
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_forecast",
-      "target": "min",
-      "line": 246
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_forecast",
-      "target": "join",
+      "source": "normalize_current",
+      "target": "float",
       "line": 250
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
-      "source": "fetch_forecast",
-      "target": "_fetch_json",
+      "source": "normalize_current",
+      "target": "get",
+      "line": 251
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_current",
+      "target": "get",
+      "line": 254
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_current",
+      "target": "get",
+      "line": 255
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_current",
+      "target": "round",
+      "line": 256
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_current",
+      "target": "get",
+      "line": 258
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_current",
+      "target": "get",
+      "line": 259
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_current",
+      "target": "float",
+      "line": 261
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_current",
+      "target": "round",
+      "line": 261
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_current",
+      "target": "get",
+      "line": 263
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_current",
+      "target": "get",
+      "line": 264
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_current",
+      "target": "get",
+      "line": 265
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_current",
+      "target": "get",
+      "line": 266
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_current",
+      "target": "bool",
+      "line": 267
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_current",
+      "target": "get",
+      "line": 267
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_current",
+      "target": "get",
+      "line": 267
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_current",
+      "target": "get",
+      "line": 268
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_current",
+      "target": "get",
+      "line": 269
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_current",
+      "target": "get",
       "line": 271
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_forecast",
+      "target": "int",
+      "line": 278
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "fetch_forecast",
+      "target": "max",
+      "line": 278
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "fetch_forecast",
+      "target": "min",
+      "line": 278
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "fetch_forecast",
+      "target": "join",
+      "line": 282
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "fetch_forecast",
+      "target": "_fetch_json",
+      "line": 303
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "fetch_forecast",
       "target": "normalize_daily",
-      "line": 272
+      "line": 304
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_historical",
       "target": "join",
-      "line": 283
+      "line": 315
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_historical",
       "target": "_fetch_json",
-      "line": 296
+      "line": 328
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_historical",
       "target": "normalize_daily",
-      "line": 297
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "get",
-      "line": 303
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "get",
-      "line": 304
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "get",
-      "line": 304
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "isinstance",
-      "line": 304
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "enumerate",
-      "line": 306
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_as_list",
-      "line": 307
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_at",
-      "line": 307
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_as_list",
-      "line": 308
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_at",
-      "line": 308
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_as_list",
-      "line": 309
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_at",
-      "line": 309
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "append",
-      "line": 310
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_as_list",
-      "line": 319
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_at",
-      "line": 319
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_as_list",
-      "line": 320
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_at",
-      "line": 320
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_as_list",
-      "line": 321
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_at",
-      "line": 321
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_as_list",
-      "line": 322
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_at",
-      "line": 322
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "float",
-      "line": 323
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "round",
-      "line": 323
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "float",
-      "line": 326
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "round",
-      "line": 326
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_as_list",
-      "line": 328
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_at",
-      "line": 328
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_as_list",
       "line": 329
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "normalize_daily",
-      "target": "_at",
-      "line": 329
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_as_list",
-      "line": 330
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_at",
-      "line": 330
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "float",
-      "line": 331
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "round",
-      "line": 331
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_at",
-      "line": 334
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_daily",
-      "target": "_as_list",
+      "target": "get",
       "line": 335
     },
     {
@@ -495247,398 +495247,370 @@
       "file": "services/weather-service/open_meteo.py",
       "source": "normalize_daily",
       "target": "get",
-      "line": 345
+      "line": 336
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "get",
+      "line": 336
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "isinstance",
+      "line": 336
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "enumerate",
+      "line": 338
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_as_list",
+      "line": 339
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_at",
+      "line": 339
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_as_list",
+      "line": 340
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_at",
+      "line": 340
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_as_list",
+      "line": 341
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_at",
+      "line": 341
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "append",
+      "line": 342
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_as_list",
+      "line": 351
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_at",
+      "line": 351
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_as_list",
+      "line": 352
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_at",
+      "line": 352
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_as_list",
+      "line": 353
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_at",
+      "line": 353
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_as_list",
+      "line": 354
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_at",
+      "line": 354
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "float",
+      "line": 355
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "round",
+      "line": 355
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "float",
+      "line": 358
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "round",
+      "line": 358
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_as_list",
+      "line": 360
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_at",
+      "line": 360
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_as_list",
+      "line": 361
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_at",
+      "line": 361
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_as_list",
+      "line": 362
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_at",
+      "line": 362
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "float",
+      "line": 363
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "round",
+      "line": 363
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_at",
+      "line": 366
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "_as_list",
+      "line": 367
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_daily",
+      "target": "get",
+      "line": 377
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_tile_sample",
       "target": "join",
-      "line": 356
+      "line": 388
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_tile_sample",
       "target": "join",
-      "line": 368
+      "line": 400
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_tile_sample",
       "target": "_fetch_json",
-      "line": 393
+      "line": 425
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "fetch_tile_sample",
       "target": "normalize_tile_sample",
-      "line": 394
+      "line": 426
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "_hour_offset",
       "target": "endswith",
-      "line": 400
+      "line": 432
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "_hour_offset",
       "target": "startswith",
-      "line": 400
+      "line": 432
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "_hour_offset",
       "target": "int",
-      "line": 402
+      "line": 434
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "_hour_offset",
       "target": "max",
-      "line": 402
+      "line": 434
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "normalize_tile_sample",
       "target": "_hour_offset",
-      "line": 411
+      "line": 443
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "normalize_tile_sample",
       "target": "get",
-      "line": 412
+      "line": 444
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "normalize_tile_sample",
       "target": "get",
-      "line": 413
+      "line": 445
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "normalize_tile_sample",
       "target": "get",
-      "line": 414
+      "line": 446
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "normalize_tile_sample",
       "target": "get",
-      "line": 414
+      "line": 446
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "normalize_tile_sample",
       "target": "isinstance",
-      "line": 414
+      "line": 446
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "normalize_tile_sample",
       "target": "len",
-      "line": 415
+      "line": 447
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "normalize_tile_sample",
       "target": "max",
-      "line": 415
+      "line": 447
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "normalize_tile_sample",
       "target": "min",
-      "line": 415
+      "line": 447
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "normalize_tile_sample",
       "target": "normalize_current",
-      "line": 417
+      "line": 449
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "normalize_tile_sample",
       "target": "update",
-      "line": 418
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "_at",
-      "line": 427
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "get",
-      "line": 427
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "_at",
-      "line": 428
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "get",
-      "line": 428
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "_at",
-      "line": 431
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "get",
-      "line": 431
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "_at",
-      "line": 432
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "get",
-      "line": 432
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "_at",
-      "line": 433
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "get",
-      "line": 433
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "_at",
-      "line": 434
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "get",
-      "line": 434
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "float",
-      "line": 436
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "round",
-      "line": 436
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "_at",
-      "line": 437
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "get",
-      "line": 437
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "_at",
-      "line": 438
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "get",
-      "line": 438
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "float",
-      "line": 441
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "round",
-      "line": 441
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "_at",
-      "line": 442
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "get",
-      "line": 442
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "_at",
-      "line": 443
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "get",
-      "line": 443
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "_at",
-      "line": 444
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "get",
-      "line": 444
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "_at",
-      "line": 445
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "get",
-      "line": 445
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "_at",
-      "line": 446
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "get",
-      "line": 446
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "_at",
-      "line": 447
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "get",
-      "line": 447
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "_at",
-      "line": 448
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "get",
-      "line": 448
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "_at",
-      "line": 449
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "get",
-      "line": 449
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/open_meteo.py",
-      "source": "normalize_tile_sample",
-      "target": "_at",
       "line": 450
     },
     {
@@ -495646,42 +495618,301 @@
       "file": "services/weather-service/open_meteo.py",
       "source": "normalize_tile_sample",
       "target": "_at",
-      "line": 451
+      "line": 461
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
-      "source": "readiness_probe",
-      "target": "fetch_current",
+      "source": "normalize_tile_sample",
+      "target": "get",
+      "line": 461
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "_at",
+      "line": 462
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "get",
+      "line": 462
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "_at",
+      "line": 465
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "get",
+      "line": 465
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "_at",
+      "line": 466
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "get",
+      "line": 466
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "_at",
       "line": 467
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
-      "source": "readiness_probe",
+      "source": "normalize_tile_sample",
+      "target": "get",
+      "line": 467
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "_at",
+      "line": 468
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "get",
+      "line": 468
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "float",
+      "line": 470
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "round",
+      "line": 470
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "_at",
+      "line": 471
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
       "target": "get",
       "line": 471
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "_at",
+      "line": 472
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "get",
+      "line": 472
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "float",
+      "line": 475
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "round",
+      "line": 475
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "_at",
+      "line": 476
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "get",
+      "line": 476
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "_at",
+      "line": 477
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "get",
+      "line": 477
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "_at",
+      "line": 478
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "get",
+      "line": 478
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "_at",
+      "line": 479
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "get",
+      "line": 479
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "_at",
+      "line": 480
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "get",
+      "line": 480
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "_at",
+      "line": 481
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "get",
+      "line": 481
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "_at",
+      "line": 482
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "get",
+      "line": 482
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "_at",
+      "line": 483
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "get",
+      "line": 483
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "_at",
+      "line": 484
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "normalize_tile_sample",
+      "target": "_at",
+      "line": 485
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "readiness_probe",
+      "target": "fetch_current",
+      "line": 501
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
+      "source": "readiness_probe",
+      "target": "get",
+      "line": 505
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/open_meteo.py",
       "source": "readiness_probe",
       "target": "circuit_breaker_state",
-      "line": 472
+      "line": 506
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "readiness_probe",
       "target": "str",
-      "line": 478
+      "line": 512
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/open_meteo.py",
       "source": "readiness_probe",
       "target": "circuit_breaker_state",
-      "line": 479
+      "line": 513
     },
     {
       "owner": "weather-service",
@@ -496662,6 +496893,90 @@
       "source": "build_raw_weather_response",
       "target": "bool",
       "line": 170
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
+      "source": "_mod",
+      "target": "spec_from_file_location",
+      "line": 30
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
+      "source": "_mod",
+      "target": "module_from_spec",
+      "line": 31
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
+      "source": "_mod",
+      "target": "exec_module",
+      "line": 32
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
+      "source": "test_a_missing_wind_reading_is_none_not_calm",
+      "target": "normalize_current",
+      "line": 41
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
+      "source": "test_a_missing_precipitation_reading_is_none_not_dry",
+      "target": "normalize_current",
+      "line": 47
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
+      "source": "test_present_readings_are_untouched",
+      "target": "normalize_current",
+      "line": 53
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
+      "source": "test_present_readings_are_untouched",
+      "target": "approx",
+      "line": 57
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
+      "source": "test_a_real_zero_stays_a_zero",
+      "target": "normalize_current",
+      "line": 63
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
+      "source": "test_the_only_zero_coerced_fields_are_the_declared_daily_two",
+      "target": "read_text",
+      "line": 89
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
+      "source": "test_the_only_zero_coerced_fields_are_the_declared_daily_two",
+      "target": "count",
+      "line": 91
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
+      "source": "test_the_only_zero_coerced_fields_are_the_declared_daily_two",
+      "target": "len",
+      "line": 92
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
+      "source": "test_the_only_zero_coerced_fields_are_the_declared_daily_two",
+      "target": "len",
+      "line": 94
     },
     {
       "owner": "weather-service",
@@ -501117,6 +501432,342 @@
     },
     {
       "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "_reset_breaker",
+      "target": "fixture",
+      "line": 40
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "_reset_breaker",
+      "target": "reload",
+      "line": 49
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "_reset_breaker",
+      "target": "_clear_breaker_state",
+      "line": 50
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "_reset_breaker",
+      "target": "_clear_breaker_state",
+      "line": 52
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "_count_probes",
+      "target": "setattr",
+      "line": 62
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "_count_probes",
+      "target": "setitem",
+      "line": 63
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "_readyz",
+      "target": "readyz",
+      "line": 68
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_a_recent_real_success_is_not_re_measured",
+      "target": "_count_probes",
+      "line": 75
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_a_recent_real_success_is_not_re_measured",
+      "target": "_record_success",
+      "line": 76
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_a_recent_real_success_is_not_re_measured",
+      "target": "setattr",
+      "line": 77
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_a_recent_real_success_is_not_re_measured",
+      "target": "_readyz",
+      "line": 78
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_a_recent_real_success_is_not_re_measured",
+      "target": "run",
+      "line": 78
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_a_cold_service_still_measures",
+      "target": "_count_probes",
+      "line": 88
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_a_cold_service_still_measures",
+      "target": "setattr",
+      "line": 89
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_a_cold_service_still_measures",
+      "target": "_readyz",
+      "line": 90
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_a_cold_service_still_measures",
+      "target": "run",
+      "line": 90
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_a_recorded_failure_forces_a_fresh_measurement",
+      "target": "_count_probes",
+      "line": 103
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_a_recorded_failure_forces_a_fresh_measurement",
+      "target": "_record_success",
+      "line": 104
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_a_recorded_failure_forces_a_fresh_measurement",
+      "target": "RuntimeError",
+      "line": 105
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_a_recorded_failure_forces_a_fresh_measurement",
+      "target": "_record_failure",
+      "line": 105
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_a_recorded_failure_forces_a_fresh_measurement",
+      "target": "setattr",
+      "line": 106
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_a_recorded_failure_forces_a_fresh_measurement",
+      "target": "_readyz",
+      "line": 107
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_a_recorded_failure_forces_a_fresh_measurement",
+      "target": "run",
+      "line": 107
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_an_open_breaker_reports_degraded_without_touching_the_provider",
+      "target": "_count_probes",
+      "line": 115
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_an_open_breaker_reports_degraded_without_touching_the_provider",
+      "target": "range",
+      "line": 116
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_an_open_breaker_reports_degraded_without_touching_the_provider",
+      "target": "RuntimeError",
+      "line": 117
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_an_open_breaker_reports_degraded_without_touching_the_provider",
+      "target": "_record_failure",
+      "line": 117
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_an_open_breaker_reports_degraded_without_touching_the_provider",
+      "target": "setattr",
+      "line": 118
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_an_open_breaker_reports_degraded_without_touching_the_provider",
+      "target": "_readyz",
+      "line": 119
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_an_open_breaker_reports_degraded_without_touching_the_provider",
+      "target": "run",
+      "line": 119
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_the_breaker_stamps_real_successes_only",
+      "target": "circuit_breaker_state",
+      "line": 127
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_the_breaker_stamps_real_successes_only",
+      "target": "_record_success",
+      "line": 128
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "source": "test_the_breaker_stamps_real_successes_only",
+      "target": "circuit_breaker_state",
+      "line": 129
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_rh_out_of_range_is_refused_not_clamped.py",
+      "source": "_mod",
+      "target": "spec_from_file_location",
+      "line": 28
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_rh_out_of_range_is_refused_not_clamped.py",
+      "source": "_mod",
+      "target": "module_from_spec",
+      "line": 29
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_rh_out_of_range_is_refused_not_clamped.py",
+      "source": "_mod",
+      "target": "exec_module",
+      "line": 30
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_rh_out_of_range_is_refused_not_clamped.py",
+      "source": "test_readings_in_range_are_unchanged",
+      "target": "parametrize",
+      "line": 38
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_rh_out_of_range_is_refused_not_clamped.py",
+      "source": "test_readings_in_range_are_unchanged",
+      "target": "actual_vapor_pressure_from_rh_kpa",
+      "line": 41
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_rh_out_of_range_is_refused_not_clamped.py",
+      "source": "test_readings_in_range_are_unchanged",
+      "target": "approx",
+      "line": 41
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_rh_out_of_range_is_refused_not_clamped.py",
+      "source": "test_sensor_noise_at_the_boundaries_is_still_clamped",
+      "target": "parametrize",
+      "line": 44
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_rh_out_of_range_is_refused_not_clamped.py",
+      "source": "test_sensor_noise_at_the_boundaries_is_still_clamped",
+      "target": "actual_vapor_pressure_from_rh_kpa",
+      "line": 50
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_rh_out_of_range_is_refused_not_clamped.py",
+      "source": "test_a_broken_reading_is_refused_not_turned_into_a_valid_number",
+      "target": "parametrize",
+      "line": 54
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_rh_out_of_range_is_refused_not_clamped.py",
+      "source": "test_a_broken_reading_is_refused_not_turned_into_a_valid_number",
+      "target": "raises",
+      "line": 57
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_rh_out_of_range_is_refused_not_clamped.py",
+      "source": "test_a_broken_reading_is_refused_not_turned_into_a_valid_number",
+      "target": "actual_vapor_pressure_from_rh_kpa",
+      "line": 58
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_rh_out_of_range_is_refused_not_clamped.py",
+      "source": "test_a_broken_reading_is_refused_not_turned_into_a_valid_number",
+      "target": "str",
+      "line": 59
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_rh_out_of_range_is_refused_not_clamped.py",
+      "source": "test_a_broken_reading_is_refused_not_turned_into_a_valid_number",
+      "target": "repr",
+      "line": 60
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_rh_out_of_range_is_refused_not_clamped.py",
+      "source": "test_a_broken_reading_is_refused_not_turned_into_a_valid_number",
+      "target": "str",
+      "line": 60
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_rh_out_of_range_is_refused_not_clamped.py",
+      "source": "test_the_tolerance_is_a_named_constant_not_a_literal_in_the_condition",
+      "target": "read_text",
+      "line": 69
+    },
+    {
+      "owner": "weather-service",
       "file": "services/weather-service/tests/test_thermal_stress.py",
       "source": "test_unknown_crop_fails_closed_no_fabricated_risk",
       "target": "compute_compound_thermal_stress",
@@ -502617,29 +503268,36 @@
       "owner": "weather-service",
       "file": "services/weather-service/vapor_pressure.py",
       "source": "actual_vapor_pressure_from_rh_kpa",
+      "target": "ValueError",
+      "line": 55
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/vapor_pressure.py",
+      "source": "actual_vapor_pressure_from_rh_kpa",
       "target": "max",
-      "line": 42
+      "line": 60
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/vapor_pressure.py",
       "source": "actual_vapor_pressure_from_rh_kpa",
       "target": "min",
-      "line": 42
+      "line": 60
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/vapor_pressure.py",
       "source": "actual_vapor_pressure_from_dewpoint_kpa",
       "target": "saturation_vapor_pressure_kpa",
-      "line": 48
+      "line": 66
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/vapor_pressure.py",
       "source": "svp_slope_kpa_per_c",
       "target": "saturation_vapor_pressure_kpa",
-      "line": 58
+      "line": 76
     },
     {
       "owner": "weather-service",
@@ -502973,1675 +503631,1717 @@
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
-      "source": "readyz",
+      "source": "_upstream_readiness",
+      "target": "circuit_breaker_state",
+      "line": 101
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "_upstream_readiness",
+      "target": "get",
+      "line": 102
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "_upstream_readiness",
+      "target": "get",
+      "line": 106
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "_upstream_readiness",
+      "target": "get",
+      "line": 110
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "_upstream_readiness",
+      "target": "get",
+      "line": 112
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "_upstream_readiness",
       "target": "_facade_attr",
-      "line": 76
+      "line": 123
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "readyz",
+      "target": "_upstream_readiness",
+      "line": 128
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "readyz",
       "target": "cache_stats",
-      "line": 77
+      "line": 129
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "readyz",
       "target": "get",
-      "line": 78
+      "line": 130
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "readyz",
       "target": "circuit_breaker_state",
-      "line": 86
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "agro_hourly_etc",
-      "target": "Body",
-      "line": 131
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "agro_hourly_etc",
-      "target": "HTTPException",
-      "line": 134
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "agro_hourly_etc",
-      "target": "int",
-      "line": 135
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "agro_hourly_etc",
-      "target": "max",
-      "line": 135
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "agro_hourly_etc",
-      "target": "min",
-      "line": 135
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "agro_hourly_etc",
-      "target": "round",
-      "line": 137
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "agro_hourly_etc",
-      "target": "round",
       "line": 138
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_hourly_etc",
+      "target": "Body",
+      "line": 183
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "agro_hourly_etc",
+      "target": "HTTPException",
+      "line": 186
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "agro_hourly_etc",
+      "target": "int",
+      "line": 187
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "agro_hourly_etc",
+      "target": "max",
+      "line": 187
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "agro_hourly_etc",
+      "target": "min",
+      "line": 187
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "agro_hourly_etc",
+      "target": "round",
+      "line": 189
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "agro_hourly_etc",
+      "target": "round",
+      "line": 190
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "agro_hourly_etc",
       "target": "hexdigest",
-      "line": 149
+      "line": 201
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_hourly_etc",
       "target": "sha256",
-      "line": 149
+      "line": 201
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_hourly_etc",
       "target": "dumps",
-      "line": 150
+      "line": 202
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_hourly_etc",
       "target": "encode",
-      "line": 150
+      "line": 202
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_hourly_etc",
       "target": "cache_get",
-      "line": 153
+      "line": 205
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_hourly_etc",
       "target": "dict",
-      "line": 155
+      "line": 207
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_hourly_etc",
       "target": "fetch_hourly_fao_et0_precipitation",
-      "line": 160
+      "line": 212
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_hourly_etc",
       "target": "HTTPException",
-      "line": 164
+      "line": 216
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_hourly_etc",
       "target": "build_hourly_etc_product",
-      "line": 167
+      "line": 219
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_hourly_etc",
       "target": "get",
-      "line": 176
+      "line": 228
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_hourly_etc",
       "target": "HTTPException",
-      "line": 177
+      "line": 229
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_hourly_etc",
       "target": "cache_set",
-      "line": 180
+      "line": 232
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "raw_weather_process",
       "target": "Body",
-      "line": 184
+      "line": 236
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "raw_weather_process",
       "target": "_facade_attr",
-      "line": 193
+      "line": 245
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "raw_weather_process",
       "target": "_facade_attr",
-      "line": 197
+      "line": 249
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "raw_weather_process",
       "target": "_facade_attr",
-      "line": 201
+      "line": 253
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "raw_weather_process",
       "target": "validate_time_model",
-      "line": 208
+      "line": 260
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "raw_weather_process",
       "target": "_facade_attr",
-      "line": 209
+      "line": 261
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "raw_weather_process",
       "target": "HTTPException",
-      "line": 213
+      "line": 265
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "raw_weather_process",
       "target": "str",
-      "line": 213
+      "line": 265
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "raw_weather_process",
       "target": "HTTPException",
-      "line": 215
+      "line": 267
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "raw_weather_process",
       "target": "build_raw_weather_response",
-      "line": 216
+      "line": 268
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "current_weather",
       "target": "Query",
-      "line": 220
+      "line": 272
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "current_weather",
       "target": "Query",
-      "line": 221
+      "line": 273
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "current_weather",
       "target": "_facade_attr",
-      "line": 231
+      "line": 283
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "current_weather",
       "target": "HTTPException",
-      "line": 233
+      "line": 285
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "current_weather",
       "target": "build_canonical_weather_state",
-      "line": 234
+      "line": 286
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "current_weather",
       "target": "get",
-      "line": 236
+      "line": 288
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "current_weather",
       "target": "get",
-      "line": 236
+      "line": 288
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "current_weather",
       "target": "current_view",
-      "line": 239
+      "line": 291
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "forecast_weather",
       "target": "Query",
-      "line": 243
+      "line": 295
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "forecast_weather",
       "target": "Query",
-      "line": 244
+      "line": 296
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "forecast_weather",
       "target": "_facade_attr",
-      "line": 254
+      "line": 306
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "forecast_weather",
       "target": "HTTPException",
-      "line": 256
+      "line": 308
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "forecast_weather",
       "target": "build_canonical_weather_state",
-      "line": 257
+      "line": 309
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "forecast_weather",
       "target": "get",
-      "line": 259
+      "line": 311
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "forecast_weather",
       "target": "get",
-      "line": 259
+      "line": 311
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "forecast_weather",
       "target": "forecast_view",
-      "line": 262
+      "line": 314
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "historical_weather",
       "target": "Query",
-      "line": 266
+      "line": 318
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "historical_weather",
       "target": "Query",
-      "line": 267
+      "line": 319
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "historical_weather",
       "target": "Query",
-      "line": 268
+      "line": 320
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "historical_weather",
       "target": "Query",
-      "line": 269
+      "line": 321
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "historical_weather",
       "target": "_facade_attr",
-      "line": 276
+      "line": 328
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "historical_weather",
       "target": "HTTPException",
-      "line": 280
+      "line": 332
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "historical_weather",
       "target": "build_canonical_weather_state",
-      "line": 281
+      "line": 333
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "historical_weather",
       "target": "get",
-      "line": 283
+      "line": 335
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "historical_weather",
       "target": "get",
-      "line": 283
+      "line": 335
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "historical_weather",
       "target": "historical_view",
-      "line": 289
+      "line": 341
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_cached_sample",
       "target": "validate_time_model",
-      "line": 293
+      "line": 345
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_cached_sample",
       "target": "round",
-      "line": 294
+      "line": 346
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_cached_sample",
       "target": "round",
-      "line": 294
+      "line": 346
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_cached_sample",
       "target": "cache_get",
-      "line": 295
+      "line": 347
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_cached_sample",
       "target": "_facade_attr",
-      "line": 299
+      "line": 351
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_cached_sample",
       "target": "cache_set",
-      "line": 300
+      "line": 352
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_cached_sample",
       "target": "str",
-      "line": 303
+      "line": 355
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_window",
       "target": "Query",
-      "line": 311
+      "line": 363
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_window",
       "target": "Query",
-      "line": 312
+      "line": 364
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_window",
       "target": "validate_time_model",
-      "line": 321
+      "line": 373
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_window",
       "target": "parse_series_hours",
-      "line": 322
+      "line": 374
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_window",
       "target": "time_key_from_hour",
-      "line": 323
+      "line": 375
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_window",
       "target": "_cached_sample",
-      "line": 325
+      "line": 377
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_window",
       "target": "operation_suitability",
-      "line": 328
+      "line": 380
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_window",
       "target": "append",
-      "line": 329
+      "line": 381
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_window",
       "target": "get",
-      "line": 333
+      "line": 385
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_window",
       "target": "append",
-      "line": 342
+      "line": 394
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_window",
       "target": "HTTPException",
-      "line": 344
+      "line": 396
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_window",
       "target": "best_operation_frame",
-      "line": 345
+      "line": 397
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_window",
       "target": "advice_ar",
-      "line": 352
+      "line": 404
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_window",
       "target": "get",
-      "line": 352
+      "line": 404
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_window",
       "target": "bool",
-      "line": 354
+      "line": 406
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_plan",
       "target": "Query",
-      "line": 360
+      "line": 412
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_plan",
       "target": "Query",
-      "line": 361
+      "line": 413
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_plan",
       "target": "split",
-      "line": 368
+      "line": 420
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_plan",
       "target": "strip",
-      "line": 368
+      "line": 420
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_plan",
       "target": "strip",
-      "line": 368
+      "line": 420
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_plan",
       "target": "operation_window",
-      "line": 370
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "operation_plan",
-      "target": "get",
-      "line": 373
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "operation_plan",
-      "target": "append",
-      "line": 374
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "operation_plan",
-      "target": "get",
-      "line": 378
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "operation_plan",
-      "target": "bool",
-      "line": 379
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "operation_plan",
-      "target": "get",
-      "line": 380
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "operation_plan",
-      "target": "get",
-      "line": 380
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "operation_plan",
-      "target": "get",
-      "line": 382
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "operation_plan",
-      "target": "get",
-      "line": 382
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "operation_plan",
-      "target": "get",
-      "line": 383
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "operation_plan",
-      "target": "append",
-      "line": 387
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "operation_plan",
-      "target": "get",
-      "line": 388
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "operation_plan",
-      "target": "sort",
-      "line": 388
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "operation_plan",
-      "target": "HTTPException",
-      "line": 390
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "operation_plan",
-      "target": "get",
-      "line": 395
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "operation_plan",
-      "target": "bool",
-      "line": 398
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "thermal_stress",
-      "target": "Query",
-      "line": 404
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "thermal_stress",
-      "target": "Query",
-      "line": 405
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "thermal_stress",
-      "target": "Query",
-      "line": 406
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "thermal_stress",
-      "target": "Query",
-      "line": 407
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "thermal_stress",
-      "target": "Query",
-      "line": 408
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "thermal_stress",
-      "target": "cache_get",
-      "line": 417
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "thermal_stress",
-      "target": "fetch_thermal_series",
-      "line": 420
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "thermal_stress",
-      "target": "HTTPException",
       "line": 422
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
-      "source": "thermal_stress",
-      "target": "cache_set",
+      "source": "operation_plan",
+      "target": "get",
       "line": 425
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
-      "source": "thermal_stress",
-      "target": "compute_compound_thermal_stress",
+      "source": "operation_plan",
+      "target": "append",
       "line": 426
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
-      "source": "thermal_stress",
-      "target": "get",
-      "line": 429
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/weather_runtime.py",
-      "source": "thermal_stress",
+      "source": "operation_plan",
       "target": "get",
       "line": 430
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
-      "source": "thermal_stress",
-      "target": "get",
+      "source": "operation_plan",
+      "target": "bool",
       "line": 431
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
-      "source": "thermal_stress",
+      "source": "operation_plan",
       "target": "get",
       "line": 432
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
+      "source": "operation_plan",
+      "target": "get",
+      "line": 432
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "operation_plan",
+      "target": "get",
+      "line": 434
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "operation_plan",
+      "target": "get",
+      "line": 434
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "operation_plan",
+      "target": "get",
+      "line": 435
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "operation_plan",
+      "target": "append",
+      "line": 439
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "operation_plan",
+      "target": "get",
+      "line": 440
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "operation_plan",
+      "target": "sort",
+      "line": 440
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "operation_plan",
+      "target": "HTTPException",
+      "line": 442
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "operation_plan",
+      "target": "get",
+      "line": 447
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "operation_plan",
+      "target": "bool",
+      "line": 450
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "thermal_stress",
+      "target": "Query",
+      "line": 456
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "thermal_stress",
+      "target": "Query",
+      "line": 457
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "thermal_stress",
+      "target": "Query",
+      "line": 458
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "thermal_stress",
+      "target": "Query",
+      "line": 459
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "thermal_stress",
+      "target": "Query",
+      "line": 460
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "thermal_stress",
+      "target": "cache_get",
+      "line": 469
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "thermal_stress",
+      "target": "fetch_thermal_series",
+      "line": 472
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "thermal_stress",
+      "target": "HTTPException",
+      "line": 474
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "thermal_stress",
+      "target": "cache_set",
+      "line": 477
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "thermal_stress",
+      "target": "compute_compound_thermal_stress",
+      "line": 478
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
       "source": "thermal_stress",
       "target": "get",
-      "line": 433
+      "line": 481
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "thermal_stress",
+      "target": "get",
+      "line": 482
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "thermal_stress",
+      "target": "get",
+      "line": 483
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "thermal_stress",
+      "target": "get",
+      "line": 484
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/weather_runtime.py",
+      "source": "thermal_stress",
+      "target": "get",
+      "line": 485
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_finite_max",
       "target": "float",
-      "line": 442
+      "line": 494
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_finite_max",
       "target": "append",
-      "line": 446
+      "line": 498
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_finite_max",
       "target": "max",
-      "line": 447
+      "line": 499
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_finite_min",
       "target": "float",
-      "line": 454
+      "line": 506
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_finite_min",
       "target": "append",
-      "line": 458
+      "line": 510
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_finite_min",
       "target": "min",
-      "line": 459
+      "line": 511
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_finite_sum",
       "target": "float",
-      "line": 466
+      "line": 518
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "lodging_risk",
       "target": "Query",
-      "line": 475
+      "line": 527
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "lodging_risk",
       "target": "Query",
-      "line": 476
+      "line": 528
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "lodging_risk",
       "target": "Query",
-      "line": 477
+      "line": 529
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "lodging_risk",
       "target": "Query",
-      "line": 478
+      "line": 530
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "lodging_risk",
       "target": "Query",
-      "line": 479
+      "line": 531
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "lodging_risk",
       "target": "Query",
-      "line": 480
+      "line": 532
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "lodging_risk",
       "target": "cache_get",
-      "line": 485
+      "line": 537
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "lodging_risk",
       "target": "fetch_daily_wind_temp_rain",
-      "line": 488
+      "line": 540
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "lodging_risk",
       "target": "HTTPException",
-      "line": 490
+      "line": 542
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "lodging_risk",
       "target": "cache_set",
-      "line": 493
+      "line": 545
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "lodging_risk",
       "target": "compute_lodging_risk",
-      "line": 494
+      "line": 546
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "lodging_risk",
       "target": "_finite_max",
-      "line": 497
+      "line": 549
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "lodging_risk",
       "target": "get",
-      "line": 497
+      "line": 549
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "lodging_risk",
       "target": "_finite_max",
-      "line": 498
+      "line": 550
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "lodging_risk",
       "target": "get",
-      "line": 498
+      "line": 550
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "lodging_risk",
       "target": "_finite_sum",
-      "line": 499
+      "line": 551
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "lodging_risk",
       "target": "get",
-      "line": 499
+      "line": 551
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "pollination_risk",
       "target": "Query",
-      "line": 506
+      "line": 558
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "pollination_risk",
       "target": "Query",
-      "line": 507
+      "line": 559
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "pollination_risk",
       "target": "Query",
-      "line": 508
+      "line": 560
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "pollination_risk",
       "target": "Query",
-      "line": 509
+      "line": 561
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "pollination_risk",
       "target": "Query",
-      "line": 510
+      "line": 562
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "pollination_risk",
       "target": "cache_get",
-      "line": 515
+      "line": 567
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "pollination_risk",
       "target": "fetch_daily_wind_temp_rain",
-      "line": 518
+      "line": 570
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "pollination_risk",
       "target": "HTTPException",
-      "line": 520
+      "line": 572
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "pollination_risk",
       "target": "cache_set",
-      "line": 521
+      "line": 573
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "pollination_risk",
       "target": "compute_pollination_risk",
-      "line": 522
+      "line": 574
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "pollination_risk",
       "target": "_finite_max",
-      "line": 525
+      "line": 577
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "pollination_risk",
       "target": "get",
-      "line": 525
+      "line": 577
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "pollination_risk",
       "target": "_finite_min",
-      "line": 526
+      "line": 578
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "pollination_risk",
       "target": "get",
-      "line": 526
+      "line": 578
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "pollination_risk",
       "target": "_finite_max",
-      "line": 527
+      "line": 579
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "pollination_risk",
       "target": "get",
-      "line": 527
+      "line": 579
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "pollination_risk",
       "target": "_finite_sum",
-      "line": 528
+      "line": 580
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "pollination_risk",
       "target": "get",
-      "line": 528
+      "line": 580
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "chill_accumulation",
       "target": "Query",
-      "line": 534
+      "line": 586
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "chill_accumulation",
       "target": "Query",
-      "line": 535
+      "line": 587
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "chill_accumulation",
       "target": "Query",
-      "line": 536
+      "line": 588
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "chill_accumulation",
       "target": "Query",
-      "line": 537
+      "line": 589
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "chill_accumulation",
       "target": "Query",
-      "line": 538
+      "line": 590
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "chill_accumulation",
       "target": "cache_get",
-      "line": 542
+      "line": 594
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "chill_accumulation",
       "target": "fetch_archive_hourly_temps",
-      "line": 545
+      "line": 597
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "chill_accumulation",
       "target": "HTTPException",
-      "line": 549
+      "line": 601
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "chill_accumulation",
       "target": "cache_set",
-      "line": 552
+      "line": 604
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "chill_accumulation",
       "target": "compute_chill_accumulation",
-      "line": 553
+      "line": 605
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "chill_accumulation",
       "target": "get",
-      "line": 553
+      "line": 605
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_et0",
       "target": "Body",
-      "line": 581
+      "line": 633
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_et0",
       "target": "build_canonical_weather_state",
-      "line": 590
+      "line": 642
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_et0",
       "target": "et0_view",
-      "line": 603
+      "line": 655
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_vpd",
       "target": "Body",
-      "line": 621
+      "line": 673
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_vpd",
       "target": "build_canonical_weather_state",
-      "line": 631
+      "line": 683
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_vpd",
       "target": "vpd_view",
-      "line": 639
+      "line": 691
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_et0_series",
       "target": "Body",
-      "line": 659
+      "line": 711
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_et0_series",
       "target": "et0_series_product",
-      "line": 665
+      "line": 717
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_gdd_daily_records",
       "target": "len",
-      "line": 715
+      "line": 767
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_gdd_daily_records",
       "target": "len",
-      "line": 715
+      "line": 767
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_gdd_daily_records",
       "target": "min",
-      "line": 715
+      "line": 767
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_gdd_daily_records",
       "target": "fromisoformat",
-      "line": 719
+      "line": 771
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_gdd_daily_records",
       "target": "_d",
-      "line": 723
+      "line": 775
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_gdd_daily_records",
       "target": "range",
-      "line": 726
+      "line": 778
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_gdd_daily_records",
       "target": "len",
-      "line": 727
+      "line": 779
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_gdd_daily_records",
       "target": "_td",
-      "line": 730
+      "line": 782
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_gdd_daily_records",
       "target": "isoformat",
-      "line": 730
+      "line": 782
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_gdd_daily_records",
       "target": "len",
-      "line": 734
+      "line": 786
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_gdd_daily_records",
       "target": "append",
-      "line": 736
+      "line": 788
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_gdd_daily_records",
       "target": "len",
-      "line": 745
+      "line": 797
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_gdd_daily_records",
       "target": "len",
-      "line": 746
+      "line": 798
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_gdd_daily_records",
       "target": "len",
-      "line": 747
+      "line": 799
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_gdd_daily_records",
       "target": "len",
-      "line": 749
+      "line": 801
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_gdd",
       "target": "Body",
-      "line": 754
+      "line": 806
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_gdd",
       "target": "_gdd_daily_records",
-      "line": 768
+      "line": 820
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_gdd",
       "target": "build_canonical_daily_series",
-      "line": 769
+      "line": 821
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_gdd",
       "target": "gdd_view",
-      "line": 776
+      "line": 828
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "_build_state",
       "target": "build_canonical_weather_state",
-      "line": 818
+      "line": 870
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_canonical_state",
       "target": "Body",
-      "line": 840
+      "line": 892
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_canonical_state",
       "target": "_build_state",
-      "line": 848
+      "line": 900
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_weather_state_report",
       "target": "Body",
-      "line": 851
+      "line": 903
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_weather_state_report",
       "target": "_build_state",
-      "line": 858
+      "line": 910
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "agro_weather_state_report",
       "target": "weather_state_report",
-      "line": 858
+      "line": 910
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_data",
       "target": "HTTPException",
-      "line": 871
+      "line": 923
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_data",
       "target": "HTTPException",
-      "line": 873
+      "line": 925
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_data",
       "target": "HTTPException",
-      "line": 875
+      "line": 927
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_data",
       "target": "validate_time_model",
-      "line": 876
+      "line": 928
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_data",
       "target": "tile_center",
-      "line": 877
+      "line": 929
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_data",
       "target": "_cached_sample",
-      "line": 884
+      "line": 936
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_data",
       "target": "str",
-      "line": 888
+      "line": 940
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_data",
       "target": "tile_interpolation_points",
-      "line": 891
+      "line": 943
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_data",
       "target": "_cached_sample",
-      "line": 893
+      "line": 945
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_data",
       "target": "append",
-      "line": 896
+      "line": 948
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_data",
       "target": "derived_layer_value",
-      "line": 899
+      "line": 951
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_data",
       "target": "append",
-      "line": 907
+      "line": 959
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_data",
       "target": "str",
-      "line": 907
+      "line": 959
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_data",
       "target": "derived_layer_value",
-      "line": 913
+      "line": 965
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_data",
       "target": "unit_for_layer",
-      "line": 914
+      "line": 966
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_tile_data",
       "target": "tile_data",
-      "line": 938
+      "line": 990
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_tile_data",
       "target": "operation_suitability",
-      "line": 941
+      "line": 993
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "operation_tile_data",
       "target": "update",
-      "line": 942
+      "line": 994
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_series",
       "target": "parse_series_hours",
-      "line": 964
+      "line": 1016
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_series",
       "target": "time_key_from_hour",
-      "line": 965
+      "line": 1017
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_series",
       "target": "tile_data",
-      "line": 967
+      "line": 1019
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_series",
       "target": "append",
-      "line": 968
+      "line": 1020
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_series",
       "target": "get",
-      "line": 972
+      "line": 1024
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_series",
       "target": "get",
-      "line": 972
+      "line": 1024
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_series",
       "target": "get",
-      "line": 973
+      "line": 1025
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_series",
       "target": "get",
-      "line": 974
+      "line": 1026
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_series",
       "target": "get",
-      "line": 975
+      "line": 1027
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_series",
       "target": "get",
-      "line": 976
+      "line": 1028
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_series",
       "target": "get",
-      "line": 977
+      "line": 1029
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_series",
       "target": "append",
-      "line": 981
+      "line": 1033
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_series",
       "target": "HTTPException",
-      "line": 983
+      "line": 1035
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_series",
       "target": "tile_center",
-      "line": 984
+      "line": 1036
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_series",
       "target": "bool",
-      "line": 993
+      "line": 1045
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "wind_grid",
       "target": "tile_data",
-      "line": 999
+      "line": 1051
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "wind_grid",
       "target": "get",
-      "line": 1002
+      "line": 1054
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/weather_runtime.py",
       "source": "tile_cache_stats",
       "target": "cache_stats",
-      "line": 1006
+      "line": 1058
     },
     {
       "owner": "weather-signal-engine",
@@ -504739,98 +505439,119 @@
       "file": "services/weather-signal-engine/src/main.py",
       "source": "run_cycle",
       "target": "acquire",
-      "line": 96
+      "line": 106
     },
     {
       "owner": "weather-signal-engine",
       "file": "services/weather-signal-engine/src/main.py",
       "source": "run_cycle",
       "target": "fetch",
-      "line": 97
+      "line": 107
     },
     {
       "owner": "weather-signal-engine",
       "file": "services/weather-signal-engine/src/main.py",
       "source": "run_cycle",
       "target": "process_overlay",
-      "line": 99
+      "line": 110
+    },
+    {
+      "owner": "weather-signal-engine",
+      "file": "services/weather-signal-engine/src/main.py",
+      "source": "run_cycle",
+      "target": "warning",
+      "line": 113
+    },
+    {
+      "owner": "weather-signal-engine",
+      "file": "services/weather-signal-engine/src/main.py",
+      "source": "run_cycle",
+      "target": "len",
+      "line": 120
+    },
+    {
+      "owner": "weather-signal-engine",
+      "file": "services/weather-signal-engine/src/main.py",
+      "source": "run_cycle",
+      "target": "warning",
+      "line": 120
     },
     {
       "owner": "weather-signal-engine",
       "file": "services/weather-signal-engine/src/main.py",
       "source": "run",
       "target": "error",
-      "line": 105
+      "line": 126
     },
     {
       "owner": "weather-signal-engine",
       "file": "services/weather-signal-engine/src/main.py",
       "source": "run",
       "target": "create_pool",
-      "line": 107
+      "line": 128
     },
     {
       "owner": "weather-signal-engine",
       "file": "services/weather-signal-engine/src/main.py",
       "source": "run",
       "target": "_touch_worker_file",
-      "line": 108
+      "line": 129
     },
     {
       "owner": "weather-signal-engine",
       "file": "services/weather-signal-engine/src/main.py",
       "source": "run",
       "target": "_touch_worker_file",
-      "line": 109
+      "line": 130
     },
     {
       "owner": "weather-signal-engine",
       "file": "services/weather-signal-engine/src/main.py",
       "source": "run",
       "target": "info",
-      "line": 110
+      "line": 131
     },
     {
       "owner": "weather-signal-engine",
       "file": "services/weather-signal-engine/src/main.py",
       "source": "run",
       "target": "run_cycle",
-      "line": 114
+      "line": 135
     },
     {
       "owner": "weather-signal-engine",
       "file": "services/weather-signal-engine/src/main.py",
       "source": "run",
       "target": "_touch_worker_file",
-      "line": 115
+      "line": 136
     },
     {
       "owner": "weather-signal-engine",
       "file": "services/weather-signal-engine/src/main.py",
       "source": "run",
       "target": "info",
-      "line": 116
+      "line": 137
     },
     {
       "owner": "weather-signal-engine",
       "file": "services/weather-signal-engine/src/main.py",
       "source": "run",
       "target": "warning",
-      "line": 118
+      "line": 139
     },
     {
       "owner": "weather-signal-engine",
       "file": "services/weather-signal-engine/src/main.py",
       "source": "run",
       "target": "sleep",
-      "line": 119
+      "line": 140
     },
     {
       "owner": "weather-signal-engine",
       "file": "services/weather-signal-engine/src/main.py",
       "source": "run",
       "target": "close",
-      "line": 121
+      "line": 142
     },
     {
       "owner": "weather-signal-engine",
@@ -540082,6 +540803,17 @@
       "file": "services/soil-service/main.py",
       "line": 107,
       "owner": "soil-service",
+      "decorated_route": false,
+      "reference_count": 0,
+      "confidence": "high",
+      "action": "review_before_delete"
+    },
+    {
+      "symbol": "_reset_breaker",
+      "kind": "function",
+      "file": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "line": 41,
+      "owner": "weather-service",
       "decorated_route": false,
       "reference_count": 0,
       "confidence": "high",

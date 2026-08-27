@@ -5425,7 +5425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "868c89d422b27ef5f2f563987f2f504915d15bc83d1542cb52876d00e01bbc68"
+          "content": "4ade37cbd0f0fc0acacba9f931ffd84baba6475f88a7b90db5a6ddb019192219"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceWeatherPanel.tsx",
@@ -6465,7 +6465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "79df573de6aaf57339d166afa9b13f87367da5957345f0f8dca7550ac1758044"
+          "content": "e4d31118787ce54d76f30dc4433a0c99f0c1470df2c486a507fcd04a5c62eecd"
         }
       ],
       "name": "frontend/src/services/api/fieldWeather.ts",
@@ -17695,7 +17695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "976240545ade9a3cdd05cd2c1c23b0482aed46413dde3c2e3bd8ddbb51a43fef"
+          "content": "3e6d030585f5a58653bf2e68e66dbe7aa628748526f60a56345782b604a20995"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_workspace_weather.py",
@@ -25095,6 +25095,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "047c1db7f8af041e2b087bcf9e47617727c95d1f7ec3ac2b1d54cc7820d5a7d0"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_horizon_is_honoured_and_start_at_is_a_time.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1f0f08aff68517d25dda2146b47b5d451ef85e2fb1f03309b82881b2ce2cc43f"
         }
       ],
@@ -27625,16 +27635,6 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "87d95d0b57508703c2eb4b7bd0dfb067894b810b4d55e63bd366d560331346aa"
-        }
-      ],
-      "name": "services/sam2-inference/main.before_p2",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
           "content": "592984153fecc606582e066b0e5a7bedb3047ab2e380306b2108b16dd3e721dd"
         }
       ],
@@ -29335,16 +29335,6 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7f28a925a5ce5efac7b6ac67d5c615ca6fd65e62485871ab0c564636bd7ad8f4"
-        }
-      ],
-      "name": "services/weather-service/main.before_p2",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
           "content": "a9695e6e5eee68ce8d0d18f25ba245c369c683b31b967ea6eab437b7d5678119"
         }
       ],
@@ -29355,7 +29345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9452b6fdbb60fa32ee5a9eaf92c5285f03961a2116ae17e1c0bab5ca21f0fb34"
+          "content": "f8d9a9b45d7bec7f456d8c9cacc7468102fd72634158b4956600f09193a1eb85"
         }
       ],
       "name": "services/weather-service/open_meteo.py",
@@ -29399,6 +29389,16 @@
         }
       ],
       "name": "services/weather-service/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "109af041a515bdfd7650f29f8f6fe484eaa0c12273c644f7d63f72141513807b"
+        }
+      ],
+      "name": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
       "type": "file"
     },
     {
@@ -29595,6 +29595,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "3245f4b235a25fa3e4cbe6bd6b66db7427845e2b1574fad4477df2668492a91b"
+        }
+      ],
+      "name": "services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9245c7d6a1d66d4e709b0ce0340b461f65e44f554572b38867586fc31bab43f1"
+        }
+      ],
+      "name": "services/weather-service/tests/test_rh_out_of_range_is_refused_not_clamped.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "202b9409866b7c2fb097c7fafc4ac4acd4cd7015dd20f73b445c681e97b7dd75"
         }
       ],
@@ -29665,7 +29685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0a249b8ea55bf24feede4a973e6633d67780d23c0718bf62e1d63cd4cd73656a"
+          "content": "765c41e9b71e1318e1b1f08c427da8e0065b8521f3aa04e282c35b3dba4a4749"
         }
       ],
       "name": "services/weather-service/vapor_pressure.py",
@@ -29685,7 +29705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d7cf4f5925bfcd2c4e21a44a594678c518aa3a3ab296a972899b2dddf8c05b6a"
+          "content": "eb10bcee090fb8799212e6451033e94d97b6a1172310a495475a77a9917ba65c"
         }
       ],
       "name": "services/weather-service/weather_runtime.py",
@@ -29715,7 +29735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f409feedffd0c061175365bac5727830ef8383a7a746595c662fd47413ae938f"
+          "content": "d0286759ae244f4a3a6c69370b5c631a57d44a2a2114fe8111cb5c91a9e8ff74"
         }
       ],
       "name": "services/weather-signal-engine/src/main.py",

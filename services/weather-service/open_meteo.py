@@ -14,6 +14,9 @@ BREAKER_RESET_S = float(os.getenv("WEATHER_OPEN_METEO_BREAKER_RESET_S", "30"))
 _BREAKER_FAILURES = 0
 _BREAKER_OPEN_UNTIL = 0.0
 _LAST_ERROR: str | None = None
+# ختمُ آخرِ نجاحٍ منبعيٍّ **حقيقيّ** (من حركة مرورٍ فعليّة، لا من مِسبار).
+# تُبنى عليه جهوزيّةٌ لا تُنادي المزوّدَ لتسأله عمّا قاسته حركةُ المرور توّاً.
+_LAST_SUCCESS_S: float | None = None
 
 
 def circuit_breaker_state() -> dict[str, Any]:
@@ -26,14 +29,18 @@ def circuit_breaker_state() -> dict[str, Any]:
         "reset_after_s": int(BREAKER_RESET_S),
         "open_remaining_s": round(remaining, 3),
         "last_error": _LAST_ERROR,
+        "last_success_age_s": (
+            None if _LAST_SUCCESS_S is None else round(time.monotonic() - _LAST_SUCCESS_S, 3)
+        ),
     }
 
 
 def _record_success() -> None:
-    global _BREAKER_FAILURES, _BREAKER_OPEN_UNTIL, _LAST_ERROR
+    global _BREAKER_FAILURES, _BREAKER_OPEN_UNTIL, _LAST_ERROR, _LAST_SUCCESS_S
     _BREAKER_FAILURES = 0
     _BREAKER_OPEN_UNTIL = 0.0
     _LAST_ERROR = None
+    _LAST_SUCCESS_S = time.monotonic()
 
 
 def _record_failure(exc: Exception) -> None:
@@ -47,6 +54,26 @@ def _record_failure(exc: Exception) -> None:
 def _as_list(payload: dict[str, Any], section: str, key: str) -> list[Any]:
     value = (payload.get(section) or {}).get(key)
     return value if isinstance(value, list) else []
+
+
+# حقولُ **هذه الطبقة** (تطبيعُ المزوّد) التي يُقبَل تصفيرُها عند الغياب.
+#
+# **وتصحيحٌ يُسجَّل:** أُعلِن هذا الثابتُ أوّلاً باسم `_DAILY_ZERO_COERCED_FIELDS`
+# بدعوى أنّ التعليقَ أدناه يُحيل إلى اسمٍ «بلا تعريفٍ في الشجرة». والدعوى خطأ:
+# الاسمُ مُعرَّفٌ في `canonical_weather_state.py:273` بقيمةٍ أخرى
+# (`wind_max_ms` — أسماءُ الطبقة القانونيّة) وله اختبارُه. وسببُ الخطأ أنّ بحثي
+# جرى ودليلُ عملِ الصَّدَفة في خدمةٍ أخرى، فلم يبلغ هذا الملفَّ أصلاً —
+# **صفرُ نتائجَ ليس دليلَ غياب، بل دليلَ أنّ بحثي لم يبلغ**.
+#
+# فأُعيدت التسميةُ إلى اسمٍ يخصّ الطبقة: اسمان متطابقان بقيمتين مختلفتين في
+# خدمةٍ واحدة هما بعينهما الالتباسُ الذي وُجِد الاسمُ ليمنعه. والقائمتان
+# تصفان طبقتين لا تناقضاً: هنا أسماءُ حقول المزوّد المُطبَّعة
+# (`wind_max_kmh`)، وهناك أسماءُ الحالة القانونيّة (`wind_max_ms`).
+#
+# وأساسُ الاستثناء مكتوبٌ لا مُفترَض: «لا مطر» و«لا رياح» قراءتان معقولتان للصفر
+# في مجموعٍ يوميّ. وما عداهما — الحرارةُ والرطوبةُ والغيومُ والقراءاتُ الساعيّةُ
+# والآنيّة — يبقى `None` عند الغياب.
+_DAILY_ZERO_COERCED_SOURCE_FIELDS = ("precipitation_mm", "wind_max_kmh")
 
 
 def _at(values: list[Any], idx: int, default: Any = None) -> Any:
@@ -215,20 +242,25 @@ def normalize_current(
     current: dict[str, Any], *, lat: float, lon: float, source_payload: dict[str, Any] | None = None
 ) -> dict[str, Any]:
     source_payload = source_payload or {}
-    wind_kmh = float(current.get("wind_speed_10m") or 0.0)
+    # قراءةٌ غائبة ليست صفراً: رياحٌ مفقودةٌ تصير «هدوءاً» وهي أكثرُ الحالات
+    # إذناً بالرشّ، ومطرٌ مفقودٌ يصير «جفافاً». والقَسرُ إلى صفرٍ لا يُنتِج قيمةً
+    # محافظة بل قيمةً **متساهلة** — يُقرَأ غيابُ القياس إذناً. و`operation_suitability`
+    # مبنيٌّ على `None = مفقود` سلفاً، فالصدقُ هنا يبلغ آليّةَ الفشل المغلق القائمة.
+    wind_raw = current.get("wind_speed_10m")
+    wind_kmh = float(wind_raw) if wind_raw is not None else None
     gust_kmh = current.get("wind_gusts_10m")
     return {
         "location": {"lat": lat, "lon": lon},
         "temperature_c": current.get("temperature_2m"),
         "humidity_pct": current.get("relative_humidity_2m"),
-        "wind_speed_ms": round(wind_kmh / 3.6, 3),
+        "wind_speed_ms": round(wind_kmh / 3.6, 3) if wind_kmh is not None else None,
         "wind_speed_10m_kmh": wind_kmh,
         "wind_direction_deg": current.get("wind_direction_10m"),
         "wind_direction_10m_deg": current.get("wind_direction_10m"),
         "wind_direction_source": "open-meteo",
         "wind_gusts_ms": round(float(gust_kmh) / 3.6, 3) if gust_kmh is not None else None,
         "wind_gusts_10m_kmh": gust_kmh,
-        "precipitation_mm": current.get("precipitation") or 0,
+        "precipitation_mm": current.get("precipitation"),
         "cloud_cover_pct": current.get("cloud_cover"),
         "surface_pressure_hpa": current.get("surface_pressure"),
         "weather_code": current.get("weather_code"),
@@ -315,7 +347,7 @@ def normalize_daily(
                 # التراكم **ويُضخّم** عدد الأيّام المرصودة ونسبة التغطية معاً. و``0.0°C``
                 # قراءةٌ فيزيائيّة مشروعة، فلا سبيل لتمييزها من الغياب بعد التصفير.
                 # (المطر والرياح يبقيان مُصفَّرَين هنا — «لا مطر» قراءةٌ معقولة للصفر،
-                # وقيدُهما مُعلَنٌ في ``_DAILY_ZERO_COERCED_FIELDS``.)
+                # وقيدُهما مُعلَنٌ في ``_DAILY_ZERO_COERCED_SOURCE_FIELDS``.)
                 "temp_max_c": _at(_as_list(data, "daily", "temperature_2m_max"), idx),
                 "temp_min_c": _at(_as_list(data, "daily", "temperature_2m_min"), idx),
                 "precipitation_mm": _at(_as_list(data, "daily", "precipitation_sum"), idx, 0),
@@ -424,16 +456,18 @@ def normalize_tile_sample(
             }
         )
     else:
-        wind = _at(hourly.get("wind_speed_10m") or [], idx, 0)
+        # الافتراضيُّ `None` لا `0` — انظر التعليقَ في `normalize_current`. والفرعُ
+        # المقابلُ أعلاه يستعمل `None` للحقول المشتقّة، فهذا يُطابِقه لا يُخالفه.
+        wind = _at(hourly.get("wind_speed_10m") or [], idx)
         gust = _at(hourly.get("wind_gusts_10m") or [], idx, wind)
         sample = {
             "location": {"lat": lat, "lon": lon},
-            "temperature_c": _at(hourly.get("temperature_2m") or [], idx, 0),
-            "humidity_pct": _at(hourly.get("relative_humidity_2m") or [], idx, 0),
-            "precipitation_mm": _at(hourly.get("precipitation") or [], idx, 0),
-            "cloud_cover_pct": _at(hourly.get("cloud_cover") or [], idx, 0),
+            "temperature_c": _at(hourly.get("temperature_2m") or [], idx),
+            "humidity_pct": _at(hourly.get("relative_humidity_2m") or [], idx),
+            "precipitation_mm": _at(hourly.get("precipitation") or [], idx),
+            "cloud_cover_pct": _at(hourly.get("cloud_cover") or [], idx),
             "wind_speed_10m_kmh": wind,
-            "wind_speed_ms": round(float(wind or 0) / 3.6, 3),
+            "wind_speed_ms": round(float(wind) / 3.6, 3) if wind is not None else None,
             "wind_direction_10m_deg": _at(hourly.get("wind_direction_10m") or [], idx),
             "wind_direction_deg": _at(hourly.get("wind_direction_10m") or [], idx),
             "wind_direction_source": "open-meteo",

@@ -50,7 +50,10 @@ export default function FieldWorkspaceWeatherPanel({ fieldId, seasonId }: { fiel
             {windowsQ.data.windows?.length ? <ol className="space-y-2">{windowsQ.data.windows.map((w, index) => (
               <li key={`${w.operation}-${w.start_at ?? index}`} className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-slate-100">{w.operation}</p>{w.suitability && <span className="rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-400">{w.suitability}</span>}</div>
-                <p className="mt-1 text-xs text-slate-500">{w.start_at ?? '—'} → {w.end_at ?? '—'}{typeof w.score === 'number' ? ` · score: ${w.score}` : ''}</p>
+                {/* `start_at` صار طابعاً زمنيّاً أو `null` — وكان يحمل رمزاً (`"+72h"`)
+                    فيُصيَّر «+72h → —». فحين يغيب الطابعُ تُعرَض الإزاحةُ **بوصفها إزاحة**،
+                    ولا يُرسَم سهمُ مدىً لا نهايةَ له. */}
+                <p className="mt-1 text-xs text-slate-500">{w.start_at ?? (typeof w.start_offset_hours === 'number' ? `بعد ${w.start_offset_hours} ساعة` : '—')}{w.end_at ? ` → ${w.end_at}` : ''}{typeof w.score === 'number' ? ` · score: ${w.score}` : ''}</p>
                 {w.limiting_factors?.length ? <p className="mt-1 text-xs text-amber-200">العوامل المحددة: {w.limiting_factors.join(' · ')}</p> : null}
               </li>
             ))}</ol> : <EmptyState title="لا توجد نوافذ تشغيل" hint="الخادم لم يرجع windows؛ لا يتم تكوين نافذة من الواجهة." />}
