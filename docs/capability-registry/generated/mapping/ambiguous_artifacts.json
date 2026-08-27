@@ -8429,6 +8429,29 @@
     ]
   },
   {
+    "path": "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-008",
+        "score": 10,
+        "signals": [
+          "content:Operation windows",
+          "content:operation window"
+        ]
+      },
+      {
+        "capability_id": "WX-002",
+        "score": 10,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/tests/test_weather_tile_engine_v10.py",
     "kind": "tests",
     "candidates": [

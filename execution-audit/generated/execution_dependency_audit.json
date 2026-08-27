@@ -444903,21 +444903,21 @@
       "file": "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",
       "source": "test_ui27_weather_facade_preserves_disease_and_irrigation_field_endpoints",
       "target": "read",
-      "line": 42
+      "line": 61
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",
       "source": "test_ui27_irrigation_schedules_are_field_owner_checked_and_not_generated_in_frontend",
       "target": "read",
-      "line": 53
+      "line": 75
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",
       "source": "test_ui27_irrigation_schedules_are_field_owner_checked_and_not_generated_in_frontend",
       "target": "read",
-      "line": 54
+      "line": 76
     },
     {
       "owner": "sahool-platform",

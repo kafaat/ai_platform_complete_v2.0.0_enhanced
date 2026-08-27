@@ -26,7 +26,7 @@
       "web": 457
     },
     "unmapped_artifacts": 2123,
-    "ambiguous_artifacts": 415
+    "ambiguous_artifacts": 416
   },
   "capabilities": [
     {
@@ -29581,6 +29581,30 @@
           "score": 12
         },
         {
+          "value": "/api/v1/fields/{field_id}/available-dates @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:14",
+          "score": 10
+        },
+        {
+          "value": "/api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:15",
+          "score": 10
+        },
+        {
+          "value": "/api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:63",
+          "score": 10
+        },
+        {
+          "value": "/api/v1/fields/{field_id}/weather/irrigation-advice @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:62",
+          "score": 10
+        },
+        {
+          "value": "/api/v1/fields/{field_id}/weather/operation-windows @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:27",
+          "score": 10
+        },
+        {
+          "value": "/api/v1/irrigation/schedules @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:77",
+          "score": 10
+        },
+        {
           "value": "/api/v1/confidence/irrigation @ services/sahool-platform/api/routers/confidence.py:53",
           "score": 9
         },
@@ -29805,6 +29829,10 @@
         {
           "value": "weather.forecast.updated @ tests_v9/test_weather_polygon_worker.py:39",
           "score": 12
+        },
+        {
+          "value": "field_workspace_imagery.py @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:13",
+          "score": 10
         },
         {
           "value": "sahool.public_read_taxonomy.v1 @ services/sahool-platform/tests/_public_read_taxonomy.json:2",
@@ -30091,6 +30119,15 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",
+          "score": 10,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/_public_read_allowlist.json",
           "score": 9,
           "signals": [
@@ -30325,12 +30362,12 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 23,
-        "routes": 56,
+        "routes": 62,
         "database": 8,
-        "events": 55,
+        "events": 56,
         "web": 9,
         "mobile": 0,
-        "tests": 21,
+        "tests": 22,
         "governance": 0,
         "other_evidence": 19
       },
@@ -34585,11 +34622,11 @@
           "score": 10
         },
         {
-          "value": "/api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:44",
+          "value": "/api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:63",
           "score": 10
         },
         {
-          "value": "/api/v1/fields/{field_id}/weather/irrigation-advice @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:43",
+          "value": "/api/v1/fields/{field_id}/weather/irrigation-advice @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:62",
           "score": 10
         },
         {
@@ -34597,7 +34634,7 @@
           "score": 10
         },
         {
-          "value": "/api/v1/irrigation/schedules @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:55",
+          "value": "/api/v1/irrigation/schedules @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:77",
           "score": 10
         }
       ],
@@ -51855,6 +51892,29 @@
           "signals": [
             "content:farm",
             "content:farms"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "WX-008",
+          "score": 10,
+          "signals": [
+            "content:Operation windows",
+            "content:operation window"
+          ]
+        },
+        {
+          "capability_id": "WX-002",
+          "score": 10,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
           ]
         }
       ]

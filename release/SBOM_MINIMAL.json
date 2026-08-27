@@ -27025,7 +27025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f3f3ec13922361b8a534d17019b4d9cf48441ff45359e356e4fbc0dc8cae9c51"
+          "content": "374aff923ffa07ba24a1ac4921293afe62e276ec7cfcda5886d62e3627771229"
         }
       ],
       "name": "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",
