@@ -353,6 +353,12 @@ require_file scripts/ci/generated_write_targets.py "٤و) generated_write_target
 run "٤ب) env_compose_drift"       python3 scripts/ci/env_compose_drift_guard.py --check
 run "٤ج) compose_runtime_target"  python3 scripts/ci/compose_runtime_target_resolver.py --check
 
+# ── ٤ز) ملكيّة الكتابة مقابل العقد المُعلَن ────────────────────────────────
+# OWNERSHIP-CONTRACT-DECLARED-BUT-NEVER-MEASURED-01: عقدُ الملكيّة يعلن مالكاً
+# وكُتّاباً لـ٣٨٣ جدولاً ولم يكن شيءٌ يقارنه بالواقع. ٢٫٦ث — رخيصٌ بما يكفي
+# للطبقة السريعة، وأثرُ فواته غالٍ: عطلا M-03 باتا حتّى كشفهما فحصٌ يدويّ.
+run "٤ز) db_writer_ownership"     python3 scripts/ci/db_writer_ownership_guard.py --check
+
 # ── ٥) تسجيل الاختبارات وعلاماتها ─────────────────────────────────────────
 run "٥أ) arch_test_ci_coverage"   python3 scripts/ci/arch_test_ci_coverage_guard.py
 run "٥ب) marker_coverage"         python3 scripts/ci/test_marker_coverage_guard.py --check

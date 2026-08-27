@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5206,
+    "files_scanned": 5210,
     "files_by_kind": {
       "backend": 1204,
       "database": 274,
       "governance": 60,
       "mobile": 51,
-      "other": 1424,
-      "tests": 1736,
+      "other": 1427,
+      "tests": 1737,
       "web": 457
     },
-    "unmapped_artifacts": 2124,
+    "unmapped_artifacts": 2125,
     "ambiguous_artifacts": 416
   },
   "capabilities": [
@@ -601,7 +601,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:569",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:577",
           "score": 12
         },
         {
@@ -2308,7 +2308,7 @@
           "score": 28
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:569",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:577",
           "score": 12
         },
         {
@@ -14461,7 +14461,7 @@
           "score": 16
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:569",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:577",
           "score": 12
         }
       ],
@@ -26175,6 +26175,15 @@
           ]
         },
         {
+          "path": "docs/architecture/db_writer_ownership_baseline.json",
+          "score": 15,
+          "signals": [
+            "content:MFA",
+            "content:mfa",
+            "content:recovery code"
+          ]
+        },
+        {
           "path": "docs/runbooks/DOCKER_BUILD_CHECKLIST_CRITICAL_AND_EXTENDED_SERVICES_20260710.md",
           "score": 15,
           "signals": [
@@ -26294,7 +26303,7 @@
         "mobile": 4,
         "tests": 17,
         "governance": 0,
-        "other_evidence": 19
+        "other_evidence": 20
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -27632,7 +27641,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:569",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:577",
           "score": 12
         },
         {
@@ -42090,6 +42099,10 @@
     },
     {
       "path": "tests_v9/test_db_wiring.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_db_writer_ownership_guard.py",
       "kind": "tests"
     },
     {

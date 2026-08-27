@@ -3525,6 +3525,46 @@
           "why": "صفرُ عقدٍ مكتشَفٍ أخطرُ من عقدٍ منحرف: الحارسُ يعمل ويُنهي بنجاحٍ وهو لا يفحص شيئاً — تأمينٌ على لا شيء، وهو الصنفُ الذي سُجِّل في `MUT-REGISTRY-STRANDED-SPECS-01`."
         }
       ]
+    },
+    "db_writer_ownership_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_a_write_the_contract_does_not_permit_is_caught",
+          "find": "    if service in (meta.get(\"writers\") or []):\n        return True",
+          "replace": "    return True  # mutated: كلُّ كتابةٍ مأذونة\n    if service in (meta.get(\"writers\") or []):\n        return True",
+          "test": "tests_v9/test_db_writer_ownership_guard.py",
+          "why": "حارسٌ يأذن للجميع يُبلِغ صفراً على شجرةٍ تحمل 75 مخالفة — ويُقرَأ ضماناً ويُسجَّل تغطية. وهو بعينه الصنفُ الذي جعل M-03 يبيت حتّى كشفه فحصٌ يدويّ."
+        },
+        {
+          "expect": "test_a_documented_interim_bridge_is_not_a_violation",
+          "find": "    return meta.get(\"mirror\") == service",
+          "replace": "    return False  # mutated: الجسرُ الانتقاليُّ الموثَّق يصير انحرافاً",
+          "test": "tests_v9/test_db_writer_ownership_guard.py",
+          "why": "إدانةُ خمسةِ جسورٍ موثَّقة (status: interim-bridge) إنذارٌ كاذب — ويُدرَّب الناسُ على تجاهل الحارس، فيموت وهو أخضر بينما الانحرافُ الحقيقيّ يمرّ معه."
+        },
+        {
+          "expect": "test_the_detection_is_structural_so_a_comment_is_never_accused",
+          "find": "        for sql in _sql_literals(tree):",
+          "replace": "        for sql in [path.read_text(encoding=\"utf-8\")]:  # mutated: يعود الكشفُ نصّيّاً على كامل الملفّ",
+          "test": "tests_v9/test_db_writer_ownership_guard.py",
+          "why": "بحثٌ نصّيّ على كامل الملفّ يتّهم التعليقَ الذي يشرح لماذا هُجِر مسار — فيصير توثيقُ الإصلاح مُبطِلاً له. وهو A-GUARD-THAT-SEARCHES-TEXT-ACCUSES-ITS-OWN-DOCUMENTATION-01 بعينه، وقد أسقط إصلاحاً حقيقيّاً في #951."
+        },
+        {
+          "expect": "test_the_ratchet_fails_in_both_directions",
+          "find": "    for key in sorted(set(base) - set(current)):\n        out.append(f\"مدخلٌ بائتٌ في الأساس لم يعد منحرفاً — احذفه: {key}\")",
+          "replace": "    # mutated: أُسقِط السقفُ النازل",
+          "test": "tests_v9/test_db_writer_ownership_guard.py",
+          "why": "راتشِتٌ يفشل في اتّجاهٍ واحد يُبقي مداخلَ سُدِّدت تُقرأ ديناً قائماً — إعفاءٌ بلا سقفٍ نازل ليس ديناً مؤجَّلاً بل شطبٌ صامت (AN-EXEMPTION-LIST-WITH-NO-DESCENDING-CEILING-01)."
+        },
+        {
+          "expect": "test_an_unreadable_contract_fails_loudly_instead_of_passing_zero",
+          "find": "    if not isinstance(tables, dict) or len(tables) < 100:",
+          "replace": "    if False:  # mutated: عقدٌ فارغ يمرّ صفراً كاذباً",
+          "test": "tests_v9/test_db_writer_ownership_guard.py",
+          "why": "هذه الطفرةُ تُعيد عطلاً وقع فعلاً أثناء كتابة الحارس: قراءةُ جذر YAML بدل tables جعلت كلَّ جدولٍ «غيرَ مُصرَّحٍ عنه» فأبلغ صفرَ مخالفات على شجرةٍ تحمل 75. صفرٌ كاذبٌ أسوأُ من غياب الحارس."
+        }
+      ],
+      "test": "tests_v9/test_db_writer_ownership_guard.py"
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",
