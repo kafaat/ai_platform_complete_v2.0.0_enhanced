@@ -91,12 +91,33 @@ async def process_overlay(conn, overlay: dict) -> int:
 
 
 async def run_cycle(pool) -> int:
-    """دورة واحدة: يجلب أحدث التراكبات الطازجة ويولّد إشاراتها. يُرجِع عدد الإشارات."""
+    """دورة واحدة: يجلب أحدث التراكبات الطازجة ويولّد إشاراتها. يُرجِع عدد الإشارات.
+
+    **الحراسةُ لكلّ صفٍّ لا للدورة:** حقلٌ واحدٌ ببياناتٍ فاسدة كان يرفع استثناءً
+    يخرج من الحلقة كلِّها، فتبقى **بقيّةُ الحقول بلا إشارات** حتّى الدورة التالية —
+    وعقوبةُ صفٍّ واحدٍ تقع على كلّ مستأجرٍ في الدفعة. والسجلُّ كان يقول «تعذّرت
+    دورة توليد الإشارات» بلا اسم الحقل الجاني، فيتكرّر العطلُ كلَّ دورةٍ بلا مَقود.
+
+    ولا يُبتلَع الفشل: كلُّ إخفاقٍ يُسجَّل باسم مستأجره وحقله، والعددُ يُرفَع في
+    نهاية الدورة — فصمتُ السجلّ يعني نجاحاً لا ابتلاعاً.
+    """
     total = 0
+    failed = 0
     async with pool.acquire() as conn:
         overlays = await conn.fetch(_RECENT_OVERLAYS_SQL)
         for ov in overlays:
-            total += await process_overlay(conn, ov)
+            try:
+                total += await process_overlay(conn, ov)
+            except Exception as exc:  # noqa: BLE001 — صفٌّ واحدٌ لا يُسقِط الدفعة
+                failed += 1
+                log.warning(
+                    "تعذّرت إشاراتُ الحقل tenant=%s field=%s: %s",
+                    ov["tenant_id"],
+                    ov["field_id"],
+                    exc,
+                )
+    if failed:
+        log.warning("دورة الإشارات: %s حقلاً أخفق من %s", failed, len(overlays))
     return total
 
 
