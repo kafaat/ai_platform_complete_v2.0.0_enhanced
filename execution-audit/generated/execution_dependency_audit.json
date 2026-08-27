@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1879,
     "route_handlers": 1049,
-    "call_edges": 75999,
+    "call_edges": 76002,
     "dead_code_candidates": 626,
     "duplicate_function_groups": 61,
     "route_owners": 27,
@@ -502905,343 +502905,364 @@
       "file": "services/weather-service/tiles.py",
       "source": "parse_series_hours",
       "target": "split",
-      "line": 41
+      "line": 66
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "parse_series_hours",
       "target": "int",
-      "line": 43
+      "line": 68
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "parse_series_hours",
       "target": "strip",
-      "line": 43
+      "line": 68
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "parse_series_hours",
       "target": "append",
-      "line": 47
+      "line": 72
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "parse_series_hours",
+      "target": "list",
+      "line": 74
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "parse_series_hours",
+      "target": "fromkeys",
+      "line": 76
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "parse_series_hours",
+      "target": "list",
+      "line": 76
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "tile_lat",
       "target": "atan",
-      "line": 57
+      "line": 85
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "tile_lat",
       "target": "degrees",
-      "line": 57
+      "line": 85
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "tile_lat",
       "target": "sinh",
-      "line": 57
+      "line": 85
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "tile_center",
       "target": "tile_lon",
-      "line": 61
+      "line": 89
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "tile_center",
       "target": "tile_lon",
-      "line": 62
+      "line": 90
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "tile_center",
       "target": "tile_lat",
-      "line": 63
+      "line": 91
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "tile_center",
       "target": "tile_lat",
-      "line": 64
+      "line": 92
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "tile_interpolation_points",
       "target": "tile_lon",
-      "line": 69
+      "line": 97
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "tile_interpolation_points",
       "target": "tile_lon",
-      "line": 70
+      "line": 98
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "tile_interpolation_points",
       "target": "tile_lat",
-      "line": 71
+      "line": 99
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "tile_interpolation_points",
       "target": "tile_lat",
-      "line": 72
+      "line": 100
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "_num",
       "target": "float",
-      "line": 90
+      "line": 118
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "_num",
       "target": "get",
-      "line": 90
+      "line": 118
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "derived_layer_value",
       "target": "get",
-      "line": 107
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "get",
-      "line": 109
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "get",
-      "line": 111
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "get",
-      "line": 113
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "get",
-      "line": 115
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "get",
-      "line": 117
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "_num",
-      "line": 120
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "_num",
-      "line": 121
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "get",
-      "line": 124
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "len",
-      "line": 124
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "round",
-      "line": 124
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "sum",
-      "line": 124
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "get",
-      "line": 126
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "get",
-      "line": 128
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "get",
-      "line": 130
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "_num",
-      "line": 132
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "_num",
-      "line": 133
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "_num",
-      "line": 134
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "round",
       "line": 135
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "derived_layer_value",
-      "target": "_ramp",
-      "line": 136
+      "target": "get",
+      "line": 137
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "derived_layer_value",
-      "target": "_ramp",
-      "line": 136
+      "target": "get",
+      "line": 139
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "derived_layer_value",
-      "target": "_ramp",
-      "line": 136
+      "target": "get",
+      "line": 141
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "derived_layer_value",
-      "target": "min",
-      "line": 136
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "_num",
-      "line": 140
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "_ramp",
+      "target": "get",
       "line": 143
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "derived_layer_value",
-      "target": "max",
-      "line": 143
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "min",
-      "line": 143
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "round",
-      "line": 143
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tiles.py",
-      "source": "derived_layer_value",
-      "target": "_num",
+      "target": "get",
       "line": 145
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "derived_layer_value",
-      "target": "_ramp",
-      "line": 146
+      "target": "_num",
+      "line": 148
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "_num",
+      "line": 149
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "get",
+      "line": 152
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "len",
+      "line": 152
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "derived_layer_value",
       "target": "round",
-      "line": 146
+      "line": 152
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "sum",
+      "line": 152
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "get",
+      "line": 154
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "get",
+      "line": 156
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "get",
+      "line": 158
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "_num",
+      "line": 160
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "_num",
+      "line": 161
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "_num",
+      "line": 162
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "round",
+      "line": 163
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "_ramp",
+      "line": 164
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "_ramp",
+      "line": 164
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "_ramp",
+      "line": 164
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "min",
+      "line": 164
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "_num",
+      "line": 168
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "_ramp",
+      "line": 171
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "max",
+      "line": 171
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "min",
+      "line": 171
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "round",
+      "line": 171
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "_num",
+      "line": 173
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "_ramp",
+      "line": 174
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tiles.py",
+      "source": "derived_layer_value",
+      "target": "round",
+      "line": 174
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tiles.py",
       "source": "unit_for_layer",
       "target": "get",
-      "line": 151
+      "line": 179
     },
     {
       "owner": "weather-service",

@@ -7468,6 +7468,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_horizon_survives_the_hop_to_the_service.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_imagery_quality_metadata_v57_5.py",
     "kind": "tests"
   },
