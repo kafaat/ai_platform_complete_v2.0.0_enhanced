@@ -1286,6 +1286,40 @@
           "why": "دالّةٌ تَعِد بإنفاذِ مستأجرٍ ولا تستطيعه بحكم البناء — تضبط GUC محلّيَّ معاملةٍ بلا معاملةٍ ولا كتلة، فالعبارةُ التالية لا ترى الضبطَ أبداً. وأسوأُ من غيابها أنّ اسمَها يُقرَأ حراسةً. عودتُها يجب أن تُحمِّر فوراً."
         }
       ]
+    },
+    "services/sahool-platform/api/phase_runtime_workers.py": {
+      "$gap_ar": "WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01 — ستّةُ مواضع `FOR UPDATE SKIP LOCKED` في اتّصالٍ بوضع autocommit وصفرُ معاملاتٍ صريحة. القفلُ يُحرَّر فور انتهاء SELECT فالمطالبةُ غيرُ مثبَتة. وأخطرُها run_actuator_once: يطالِب ثمّ ينشر طلبَ إرسالٍ فيزيائيّ — فعاملان متزامنان قد يطلبان حركةَ صمّامٍ مرّتين.",
+      "mutations": [
+        {
+          "expect": "test_the_physical_dispatch_is_gated_on_owning_the_claim",
+          "find": "            if owned and action[\"action\"] == \"request_adapter_dispatch\":",
+          "replace": "            if action[\"action\"] == \"request_adapter_dispatch\":  # mutated: النشرُ الفيزيائيّ بلا بوّابة ملكيّة",
+          "test": "tests_v9/test_worker_claim_lease.py",
+          "why": "بلا بوّابة CAS يَنشُر عاملٌ انتهت إجارتُه طلبَ إرسالٍ فيزيائيٍّ ثانياً للأمر نفسه — حركةُ صمّامٍ أو مضخّةٍ تُطلَب مرّتين. وهي الخاصّيّةُ الوحيدةُ التي تفصل خطأً في المحاسبة عن أثرٍ ماديٍّ مكرَّر."
+        },
+        {
+          "expect": "test_the_claim_is_pinned_by_an_explicit_transaction",
+          "find": "            WHERE ({where}) AND claim_token IS NULL",
+          "replace": "            WHERE ({where})  # mutated: المُطالَبُ يعود إلى بِركة الالتقاط",
+          "test": "tests_v9/test_worker_claim_lease.py",
+          "why": "شرطُ الالتقاط هو ما يُخرِج الصفَّ من البِركة بعد المطالبة. نزعُه يُعيد العطلَ الأصليّ بعينه: عاملٌ ثانٍ يلتقط الصفوفَ نفسَها رغم أنّها مُطالَبة."
+        },
+        {
+          "expect": "test_the_network_publish_is_never_inside_a_transaction",
+          "find": "            if owned and action[\"action\"] == \"request_adapter_dispatch\":\n                await _publish_nats(",
+          "replace": "            if owned and action[\"action\"] == \"request_adapter_dispatch\":\n              async with conn.transaction():  # mutated: الأقفالُ تُحبَس أثناء I/O\n                await _publish_nats(",
+          "test": "tests_v9/test_worker_claim_lease.py",
+          "why": "العلاجُ ليس نقلَ العطل من «مطالبةٌ غيرُ مثبَتة» إلى «أقفالٌ محبوسةٌ أثناء الشبكة» — وهو نمطُ event_bus.py المقيس. **وصياغةُ هذا الاختبار الأولى نجت من هذه الطفرة**: كانت تجمع ast.Attribute وحدَه و_publish_nats نداءٌ بـast.Name، فمرّ أخضرَ على نشرٍ مزروعٍ داخل معاملة."
+        },
+        {
+          "expect": "test_every_worker_reclaims_expired_leases",
+          "find": "            await reclaim_expired(conn, table=\"iot_command_dispatch\")",
+          "replace": "            pass  # mutated: لا استرداد — المطالبةُ تصير قبراً",
+          "test": "tests_v9/test_worker_claim_lease.py",
+          "why": "بلا استرداد يبقى صفٌّ مُطالَبٌ من عاملٍ انهار مُطالَباً إلى الأبد. عطلٌ أهدأُ من التكرار وأطولُ عمراً: الطابورُ يتوقّف بلا خطأٍ ظاهر."
+        }
+      ],
+      "test": "tests_v9/test_worker_claim_lease.py"
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

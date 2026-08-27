@@ -4415,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4a0428d84e1b69596948abf337e9745084568fc7547041682624156d1ca0decc"
+          "content": "35aa8c988ef8453ceaacb9bd432a5cbde5e2a8dc900170c679316936d41046a2"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6705,7 +6705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "edf6b47a90ca5913ccff345a432b96f7951bde3c0eeaba87a812dbf947352548"
+          "content": "96becf5b211bd66610e3990fe92140602d0841b86d94187cbf6b528fce3f411e"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -8069,6 +8069,16 @@
         }
       ],
       "name": "migrations/v227_decision_learning_runtime.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "143ae137a8757b3db9ef0ecf7e083604ab1408be7db852eaec534eb087d68af2"
+        }
+      ],
+      "name": "migrations/v228_worker_claim_lease.sql",
       "type": "file"
     },
     {
@@ -16815,7 +16825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "82611365002a966c62c9cedb4081c477aef574ba5ea56e685741ac52e7ab4471"
+          "content": "2d626a6e3c843ea1746a3ff6934528912311fa458e6e476fbabbb838cf42048d"
         }
       ],
       "name": "services/sahool-platform/api/phase_runtime_workers.py",

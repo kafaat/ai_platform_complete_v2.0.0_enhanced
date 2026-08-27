@@ -1065,6 +1065,9 @@ jobs:
           TEST_DATABASE_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_REDIS_URL: redis://localhost:6380/0
           JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
+          # البرهانُ الحيّ لـ§6-11 يُتخطّى بلا DSN. وبلا هذا العَلَم يصير نزعُ
+          # `TEST_DATABASE_URL` يوماً ما تحويلاً صامتاً للشهادة إلى تخطٍّ أخضر.
+          CLAIM_LEASE_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration --tb=short
       # ── IRR-F01 live certification ─────────────────────────────────────────────────
       # The shared run above connects as the superuser sahool_test, so the live reservation

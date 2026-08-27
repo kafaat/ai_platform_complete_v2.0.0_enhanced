@@ -743,4 +743,9 @@ v224_canonical_phenology_state.sql
 v225_canonical_salinity_state.sql
 v226_canonical_nutrient_ledger.sql
 v227_decision_learning_runtime.sql
+# v228 (§6-11، WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01): أعمدةُ المطالبة
+#   (claim_token/claimed_by/lease_until) على ستّة طوابيرَ يقرؤها العاملون بـSKIP LOCKED،
+#   وفهارسُ جزئيّةٌ على claim_token لعاملِ استرجاع العقود المنتهية. ALTER فقط، idempotent،
+#   بلا RLS جديد. يُدرَج قبل v206 كي يبقى v206 آخِر مدخل.
+v228_worker_claim_lease.sql
 v206_rls_final_hardening.sql

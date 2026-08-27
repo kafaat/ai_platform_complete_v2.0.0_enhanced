@@ -139,7 +139,7 @@ imagery_automation_fields,v9_automation_persistence.sql,7,True,False,False,0,Fal
 inventory_batches,v22_inventory.sql,26,True,False,False,0,False,True,2,1
 inventory_items,v22_inventory.sql,26,True,False,False,0,False,True,1,1
 invitations,v89_invitations.sql,94,True,True,True,1,True,False,1,1
-iot_command_dispatch,v109_phase9_iot_execution_adapters.sql,115,True,True,True,2,True,False,1,2
+iot_command_dispatch,v109_phase9_iot_execution_adapters.sql,115,True,True,True,2,True,False,0,1
 iot_devices,v24_iot_devices.sql,28,True,False,False,0,False,True,6,1
 irrigation_battery_systems,v174_energy_agricultural_microgrid_capability.sql,179,True,False,False,0,False,True,0,0
 irrigation_capability_graph_edges,v175_unified_irrigation_capability_graph.sql,180,True,False,False,0,False,True,0,0
@@ -207,10 +207,10 @@ management_zones,v14_imagery_storage.sql,17,True,True,False,1,False,True,0,0
 market_sales_listings,v9_market.sql,5,True,False,False,0,False,True,1,1
 marketplace_apps,v121_marketplace_ecosystem.sql,127,False,True,True,1,True,False,1,1
 marketplace_installations,v121_marketplace_ecosystem.sql,127,True,True,True,0,False,False,0,1
-marketplace_plugin_execution_runs,v110_phase12_plugin_sandbox_runtime.sql,116,True,True,True,2,True,False,1,1
+marketplace_plugin_execution_runs,v110_phase12_plugin_sandbox_runtime.sql,116,True,True,True,2,True,False,0,0
 marketplace_plugin_output_validations,v110_phase12_plugin_sandbox_runtime.sql,116,True,True,True,1,True,False,0,0
 marketplace_plugin_quota_ledger,v110_phase12_plugin_sandbox_runtime.sql,116,True,True,True,1,True,False,0,0
-marketplace_plugin_runtime_events,v110_phase12_plugin_sandbox_runtime.sql,116,True,True,True,2,True,False,1,1
+marketplace_plugin_runtime_events,v110_phase12_plugin_sandbox_runtime.sql,116,True,True,True,2,True,False,0,0
 master_data,v26_master_data.sql,30,True,False,False,0,False,True,1,1
 mfa_audit_events,v128_mfa_hardening.sql,134,True,True,True,2,True,False,0,1
 mfa_recovery_codes,v128_mfa_hardening.sql,134,True,True,True,2,True,False,2,2
@@ -218,9 +218,9 @@ mobile_sync_clients,v112_mobile_offline_sync_runtime.sql,118,True,True,True,1,Tr
 mobile_sync_conflicts,v112_mobile_offline_sync_runtime.sql,118,True,True,True,1,True,False,0,0
 model_experiment_assignment,v118_phase9_autonomous_farm_os.sql,124,True,True,True,1,False,False,0,0
 model_lifecycle_decisions,v119_phase10_continuous_learning.sql,125,True,True,True,1,False,False,0,1
-model_promotion_history_runtime,v108_phase10_feature_store_model_registry_runtime.sql,114,True,True,True,1,True,False,1,1
+model_promotion_history_runtime,v108_phase10_feature_store_model_registry_runtime.sql,114,True,True,True,1,True,False,0,1
 model_registry_version,v118_phase9_autonomous_farm_os.sql,124,False,False,False,0,False,False,0,1
-model_rollback_history_runtime,v108_phase10_feature_store_model_registry_runtime.sql,114,True,True,True,2,True,False,1,2
+model_rollback_history_runtime,v108_phase10_feature_store_model_registry_runtime.sql,114,True,True,True,2,True,False,0,1
 model_serving_aliases_runtime,v108_phase10_feature_store_model_registry_runtime.sql,114,True,True,True,1,True,False,0,2
 model_versions_runtime,v108_phase10_feature_store_model_registry_runtime.sql,114,True,True,True,1,True,False,1,1
 ndvi_timeseries,init_v8.sql,0,True,True,False,0,False,True,2,0
@@ -256,7 +256,7 @@ recommendation_reviews,v_ai_recommendation_runtime.sql,111,True,True,True,1,True
 recommendations,v77_recommendations.sql,82,True,True,True,1,True,False,2,2
 retraining_jobs,v107_phase9_10_event_drift_hardening.sql,113,True,True,True,1,True,False,0,0
 review_decisions,v_ai_recommendation_runtime.sql,111,False,True,True,1,True,False,0,0
-runtime_event_outbox,v106_phase9_10_runtime_strengthening.sql,112,True,True,True,2,True,False,1,2
+runtime_event_outbox,v106_phase9_10_runtime_strengthening.sql,112,True,True,True,2,True,False,0,1
 salinity_evidence_observations,v225_canonical_salinity_state.sql,222,True,True,True,1,True,False,0,1
 scenario_runs,v119_phase10_continuous_learning.sql,125,True,True,True,1,False,False,0,1
 scouting_pins,v94_scouting_pins.sql,99,True,True,True,2,True,False,1,1
