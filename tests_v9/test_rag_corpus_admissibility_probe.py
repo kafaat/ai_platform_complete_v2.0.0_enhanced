@@ -66,10 +66,29 @@ def _canonical_payload(**extra):
 # ── ① المستأجِرُ في الجذر وحده ───────────────────────────────────────────────
 
 
-def test_the_root_only_tenant_detector_fires_on_a_planted_payload():
+def test_a_root_only_tenant_payload_is_healed_so_both_paths_see_it():
+    """**مرساةٌ قُلِبت حين أُغلِق العطل — لا حُذِفت.**
+
+    كانت تؤكّد أنّ الكاشفَ **يُطلِق** على حمولةٍ مزروعة، وهو الصواب ما دام العطلُ
+    قائماً. وقد أُغلِق في `from_payload` (`RAG-LEGACY-DENSE-SPARSE-SCOPE-ASYMMETRY-01`):
+    المستأجِرُ المُحَلُّ من الجذر يُكتَب في `metadata` عند القراءة، فيتّفق ما يراه
+    البحثُ المتناثر وما يرشّح عليه الكثيف.
+
+    **والكاشفُ لم يمت بذلك بل صار كاشفَ انحدار:** نزعُ سطر التطبيع يُعيد
+    `present=True` ويُحمِّر هذا السطر. فالخاصّيّةُ المحروسة هي **اتّفاقُ المسارين
+    على مجموعةٍ واحدة** — لا «العطلُ ما يزال هنا».
+
+    وتركُ المرساة على صيغتها الأولى كان سيجعل **الإصلاحَ هو ما يكسر الجناح**، وهو
+    بعينه ما حذّر منه متنُ المِسبار: «اختبارٌ يؤكّد أنّ العطل قائم يُثبِّت السلوكَ
+    الخاطئ عقداً».
+    """
     probe = _probe()
     module = probe.load_module()
-    assert probe.detect_legacy_tenant_root_only(module)["present"] is True
+    row = probe.detect_legacy_tenant_root_only(module)
+
+    assert row["present"] is False, "عاد الصفُّ القديم مرئيّاً متناثراً وغائباً كثيفاً"
+    assert row["sparse_visible"] is True
+    assert row["dense_visible"] is True, "المستأجِرُ لا يصل `metadata` — الكثيفُ لا يراه"
 
 
 def test_the_root_only_tenant_detector_stays_quiet_on_a_canonical_payload():
