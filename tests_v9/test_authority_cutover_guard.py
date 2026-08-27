@@ -69,7 +69,7 @@ def _sandbox(tmp_path, monkeypatch):
         "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
         "services/decision-service/decision_sor_role_certify.py",
         "services/decision-service/platform_sor_revoke.py",
-        "scripts/staging/decision_sor_live_closure_collector.py",
+        "scripts/architecture/s5_decision_live_closure_receipt.py",
         "scripts/architecture/s5_decision_live_closure_receipt_guard.py",
         "services/sahool-platform/api/routers/platform_health.py",
         "services/field-management-service/tests/test_field_management_pg_isolation_integration.py",
@@ -157,7 +157,7 @@ def test_decision_live_receipt_contract_is_mandatory_before_authority_promotion(
     c = json.loads((ROOT / "docs/architecture/authority_cutovers.json").read_text(encoding="utf-8"))
     d = c["authorities"]["decision"]
     assert "SUBJECT_BOUND_LIVE_DECISION_CLOSURE_RECEIPT_REQUIRED" in d["blocking_reasons"]
-    assert "scripts/staging/decision_sor_live_closure_collector.py" in d["required_evidence"]
+    assert "scripts/architecture/s5_decision_live_closure_receipt.py" in d["required_evidence"]
     assert (
         "scripts/architecture/s5_decision_live_closure_receipt_guard.py" in d["required_evidence"]
     )

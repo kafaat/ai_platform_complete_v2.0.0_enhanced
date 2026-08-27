@@ -96,19 +96,33 @@ def http_json(url: str, timeout: int = 30) -> Any:
         raise MeasurementError(f"{url} أعاد جسماً غير JSON") from exc
 
 
+_LOCAL_SCRIPT_TIMEOUT_SECONDS = 90
+
+
 def run_json(script: Path, *args: str) -> Any:
     """سكربتٌ محلّيّ يطبع JSON. رمزُ خروجه **ليس** الحكم — الحكمُ في جسمه.
 
     `decision_sor_role_certify` يُنهي بـ2 حين `classification != PASSED`، وذلك
     **قياسٌ ناجح لحالةٍ سالبة** لا عجزٌ عن القياس. فلا يُقرأ رمزُ الخروج فشلاً.
+
+    **وعجزُ الاستجابة عجزٌ عن القياس أيضاً**: بلا `timeout` صريح هنا، سكربتٌ محلّيّ
+    عالقٌ (اتّصال قاعدة بيانات مُعلَّق) يُبقي هذا القياسَ مُعلَّقاً حتّى المهلة
+    الخارجيّة الأكبر للمنسِّق — وهي ليست بديلاً عن مهلةٍ محلّيّة لبَدَاهة القياس
+    نفسه.
     """
-    proc = subprocess.run(
-        [sys.executable, str(script), *args],
-        cwd=str(DECISION_SVC),
-        capture_output=True,
-        encoding="utf-8",
-        check=False,
-    )
+    try:
+        proc = subprocess.run(
+            [sys.executable, str(script), *args],
+            cwd=str(DECISION_SVC),
+            capture_output=True,
+            encoding="utf-8",
+            check=False,
+            timeout=_LOCAL_SCRIPT_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise MeasurementError(
+            f"{script.name} لم يستجب خلال {_LOCAL_SCRIPT_TIMEOUT_SECONDS} ثانية"
+        ) from exc
     if not (proc.stdout or "").strip():
         raise MeasurementError(
             f"{script.name} لم يطبع شيئاً (rc={proc.returncode}): {(proc.stderr or '')[-300:]}"

@@ -8506,10 +8506,9 @@
       ]
     },
     {
-      "assessed_maturity": 2,
+      "assessed_maturity": 1,
       "assessment_reasons": [
         "repository_implementation_present",
-        "exposed_surface_and_test_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -8536,7 +8535,7 @@
       "declared_maturity": 3,
       "domain": "security",
       "evidence": {
-        "api": true,
+        "api": false,
         "backend": true,
         "database": true,
         "documentation": true,
@@ -8551,7 +8550,7 @@
       },
       "evidence_records": [
         {
-          "present": true,
+          "present": false,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "api"
         },
@@ -8611,7 +8610,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 6,
+      "evidence_score": 5,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -8621,7 +8620,7 @@
       "integration_test_paths": [],
       "learning_linked": false,
       "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -1,
+      "maturity_delta": -2,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
@@ -8636,7 +8635,6 @@
         "services/sahool-platform/tests/test_p0_5_decision_sor_final_certification_guard.py",
         "services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py",
         "tests_v9/test_decision_sor_platform_revoke_static.py",
-        "tests_v9/test_s5_decision_live_closure_receipt.py",
         "tests_v9/test_s5_live_closure_receipt_collector.py"
       ]
     },
@@ -10813,7 +10811,7 @@
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
     "aligned": 28,
-    "average_assessed_maturity": 2.05,
+    "average_assessed_maturity": 2.04,
     "capability_count": 81,
     "declared_above_evidence": 50,
     "evidence_above_declared": 3,
