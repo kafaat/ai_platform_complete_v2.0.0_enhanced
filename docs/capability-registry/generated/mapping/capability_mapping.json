@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5211,
+    "files_scanned": 5212,
     "files_by_kind": {
       "backend": 1204,
       "database": 274,
       "governance": 60,
       "mobile": 51,
       "other": 1427,
-      "tests": 1738,
+      "tests": 1739,
       "web": 457
     },
     "unmapped_artifacts": 2125,
@@ -24293,6 +24293,17 @@
           ]
         },
         {
+          "path": "tests_v9/test_rls_tenant_isolation_live_pg.py",
+          "score": 29,
+          "signals": [
+            "path:rls",
+            "content:rls",
+            "content:row level security",
+            "path:tenant isolation",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "tests_v9/test_rls_fk_isolated_tables.py",
           "score": 23,
           "signals": [
@@ -25424,7 +25435,7 @@
         "events": 45,
         "web": 0,
         "mobile": 0,
-        "tests": 61,
+        "tests": 62,
         "governance": 0,
         "other_evidence": 70
       },

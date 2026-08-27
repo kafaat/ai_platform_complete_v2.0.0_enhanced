@@ -12,7 +12,7 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **49**
-- Files scanned: **5211**
+- Files scanned: **5212**
 - Ambiguous artifacts queued: **416**
 - Unmapped artifacts queued: **2125**
 
@@ -78,7 +78,7 @@
 | SAT-007 | satellite | 2 | 1 | 0 | 0 | 0 | 0 | 3 | 3 |
 | SAT-008 | satellite | 3 | 1 | 7 | 4 | 0 | 0 | 6 | 5 |
 | SAT-009 | satellite | 12 | 68 | 0 | 12 | 1 | 0 | 22 | 5 |
-| SEC-001 | security | 13 | 29 | 100 | 45 | 0 | 0 | 61 | 5 |
+| SEC-001 | security | 13 | 29 | 100 | 45 | 0 | 0 | 62 | 5 |
 | SEC-002 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-003 | security | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 2 |
 | SEC-004 | security | 7 | 21 | 23 | 5 | 5 | 4 | 17 | 7 |

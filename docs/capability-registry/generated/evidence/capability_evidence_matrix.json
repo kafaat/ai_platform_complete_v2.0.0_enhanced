@@ -7844,6 +7844,7 @@
         "tests_v9/test_rls_isolation_negative.py",
         "tests_v9/test_rls_role_hardening_v66.py",
         "tests_v9/test_rls_tenant_coverage.py",
+        "tests_v9/test_rls_tenant_isolation_live_pg.py",
         "tests_v9/test_roadmap_phase23.py",
         "tests_v9/test_rs_anomaly_postgres_store_static.py",
         "tests_v9/test_s4_live_authority_receipt_guards.py",

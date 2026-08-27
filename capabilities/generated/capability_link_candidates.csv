@@ -311,6 +311,7 @@ FM-001,test,tests_v9/test_operation_report_tenant_authz.py,3,applied
 FM-001,test,tests_v9/test_raster_endpoint_auth_coverage.py,3,applied
 FM-001,test,tests_v9/test_raster_field_tenant_authz.py,3,applied
 FM-001,test,tests_v9/test_rls_tenant_coverage.py,3,applied
+FM-001,test,tests_v9/test_rls_tenant_isolation_live_pg.py,3,applied
 FM-001,test,tests_v9/test_service_tenant_assertion.py,3,applied
 FM-001,test,tests_v9/test_soil_field_tenant_authz.py,3,applied
 FM-001,test,tests_v9/test_tenant_ai_policy_store_v52.py,3,applied
@@ -1746,6 +1747,7 @@ SEC-001,test,tests_v9/test_rls_isolation.py,3,applied
 SEC-001,test,tests_v9/test_rls_isolation_negative.py,3,applied
 SEC-001,test,tests_v9/test_rls_role_hardening_v66.py,3,applied
 SEC-001,test,tests_v9/test_rls_tenant_coverage.py,3,applied
+SEC-001,test,tests_v9/test_rls_tenant_isolation_live_pg.py,5,applied
 SEC-001,test,tests_v9/test_rls_write_isolation_integration.py,3,applied
 SEC-001,test,tests_v9/test_v197_external_submissions_rls_live.py,3,applied
 SEC-001,test,tests_v9/test_v9_odoo_rls_hardening_static.py,3,applied
