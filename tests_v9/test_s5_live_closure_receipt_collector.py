@@ -333,6 +333,34 @@ def test_a_local_script_exiting_nonzero_is_not_read_as_a_measurement_failure() -
     assert "proc.stdout" in body
 
 
+def test_a_hanging_local_script_is_a_measurement_failure_not_an_indefinite_hang(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """سكربتٌ محلّيٌّ عالقٌ عجزٌ عن القياس — لا انتظارٌ بلا نهاية.
+
+    بلا مهلةٍ محلّيّة صريحة، سكربتٌ حقيقيٌّ عالقٌ (اتّصال قاعدة بيانات مُعلَّق)
+    كان سيُبقي هذا القياسَ مُعلَّقاً حتّى مهلة المنسِّق الخارجيّة الأكبر بكثير.
+
+    **الخاصّيّةُ المحروسة هي السرعةُ لا مجرّدَ نوع الاستثناء:** `run_json` على
+    سكربتٍ صامتٍ عالقٍ يرفع `MeasurementError` **بأيّ حال** — إمّا فوراً عبر
+    المهلة، أو بعد اكتمال السكربت لأنّه لم يطبع شيئاً. فتأكيدٌ يفحص نوعَ
+    الاستثناء وحده يمرّ حتى لو أُسقِطت المهلةُ تماماً؛ ولذا يُقاس الزمنُ المنقضي
+    صريحاً: أقلُّ من مهلةِ الاختبار بكثير، لا مجرّد "رُفِع استثناءٌ ما أخيراً".
+    """
+    import time
+
+    monkeypatch.setattr(collector, "_LOCAL_SCRIPT_TIMEOUT_SECONDS", 1)
+    hanging = tmp_path / "hangs.py"
+    hanging.write_text("import time\ntime.sleep(10)\n", encoding="utf-8")
+    started = time.monotonic()
+    with pytest.raises(collector.MeasurementError):
+        collector.run_json(hanging)
+    elapsed = time.monotonic() - started
+    assert elapsed < 5, (
+        f"استغرق {elapsed:.1f}ث — المهلةُ المحلّيّة لم تُطبَّق فعليّاً، والقياسُ انتظر اكتمال السكربت"
+    )
+
+
 def test_the_collector_does_not_reimplement_the_guard_rules() -> None:
     """مصدرُ الشروط واحد.
 

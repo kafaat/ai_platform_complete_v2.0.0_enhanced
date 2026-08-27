@@ -1194,7 +1194,7 @@
       "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py"
     },
     "scripts/architecture/s5_decision_live_closure_receipt.py": {
-      "$why_ar": "جامعُ إيصال S5 — الطرفُ المُنتِج من سلسلة C9. خطرُه أنّه يكتب دليلاً تقرؤه بوّابةٌ حاجبة: جامعٌ يحكم لنفسه، أو يفترض ادّعاءً بدل قياسه، أو يقرأ رمزَ الخروج حكماً، يُنتِج إيصالاً يبدو صالحاً ويشهد بما لم يُقَس. والطفراتُ الخمس تُثبِت أنّ كلَّ خاصّيّةٍ يدّعيها متنُ #944 مفروضةٌ باختبارٍ يحمرّ عند نزعها — لا موصوفةٌ في جدول.",
+      "$why_ar": "جامعُ إيصال S5 — الطرفُ المُنتِج من سلسلة C9. خطرُه أنّه يكتب دليلاً تقرؤه بوّابةٌ حاجبة: جامعٌ يحكم لنفسه، أو يفترض ادّعاءً بدل قياسه، أو يقرأ رمزَ الخروج حكماً، أو يعلَق إلى ما لا نهاية بدل أن يعجز عن القياس بسرعة، يُنتِج إيصالاً يبدو صالحاً ويشهد بما لم يُقَس. والطفراتُ الستّ تُثبِت أنّ كلَّ خاصّيّةٍ يدّعيها متنُ #944 (والمُهلة الصريحة المضافة في PR #950 بعد مراجعةٍ جنائيّة) مفروضةٌ باختبارٍ يحمرّ عند نزعها — لا موصوفةٌ في جدول.",
       "mutations": [
         {
           "expect": "test_classification_agrees_with_the_guard_on_every_perturbation",
@@ -1230,6 +1230,13 @@
           "find": "            \"historical_zero_platform_writes_measured\": False,",
           "replace": "            \"historical_zero_platform_writes_measured\": bool(evidence.get(\"hz\")),  # mutated: الادّعاءُ يُشتقّ من المُدخَل",
           "why": "هذا الجامعُ لا يفحص سجلّاتٍ تاريخيّة، فالحقلُ مُثبَّتٌ false بنيويّاً. وجعلُه مُشتقّاً من المُدخَل يفتح بابَ المبالغة التي يرفضها الحارس بـhistorical_zero_writes_overclaim. **وهذه الطفرةُ بعينها نجت في أوّل جولةٍ لكاتب الشريحة** لأنّ مُدخَلاته لم تحمل المفتاح — فأثبتت القيمةَ لا الاستقلال. تسجيلُها يجعل ذلك التصحيحَ مفروضاً لا موصوفاً."
+        },
+        {
+          "expect": "test_a_hanging_local_script_is_a_measurement_failure_not_an_indefinite_hang",
+          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
+          "find": "    try:\n        proc = subprocess.run(\n            [sys.executable, str(script), *args],\n            cwd=str(DECISION_SVC),\n            capture_output=True,\n            encoding=\"utf-8\",\n            check=False,\n            timeout=_LOCAL_SCRIPT_TIMEOUT_SECONDS,\n        )\n    except subprocess.TimeoutExpired as exc:\n        raise MeasurementError(\n            f\"{script.name} لم يستجب خلال {_LOCAL_SCRIPT_TIMEOUT_SECONDS} ثانية\"\n        ) from exc",
+          "replace": "    proc = subprocess.run(  # mutated: أُسقِطت المهلة المحلّيّة\n        [sys.executable, str(script), *args],\n        cwd=str(DECISION_SVC),\n        capture_output=True,\n        encoding=\"utf-8\",\n        check=False,\n    )",
+          "why": "مراجعةٌ جنائيّة على PR #950 كشفت أنّ `run_json` بلا `timeout` صريح يُبقي سكربتاً محلّيّاً عالقاً (اتّصال قاعدة بيانات مُعلَّق) معلَّقاً حتّى مهلة المنسِّق الخارجيّة الأكبر بكثير — لا بديلٌ عن مهلةٍ محلّيّة لبَدَاهة القياس نفسه."
         }
       ]
     },
