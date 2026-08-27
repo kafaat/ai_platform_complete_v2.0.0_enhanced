@@ -174,15 +174,42 @@ def test_preflight_binds_collection_checkout_to_exact_subject(monkeypatch):
 def test_the_orchestrator_calls_the_canonical_producer_not_the_duplicated_one():
     """المُنتِجُ القديم مُقصًى من السلك التشغيليّ، ولا يعود إليه بصمت.
 
-    والمرساةُ **مسارٌ كاملٌ** لا مجرّدَ الاسم: الاسمُ المجرّد قد يبقى في تعليقٍ
-    تاريخيٍّ يشرح سببَ التغيير — وذلك مقصودٌ لا انحراف. المرساةُ تمنع تحديداً
-    عودةَ **سطر النداء** الذي كان يُشغِّل الملفَّ القديم.
+    والمرساةُ **سطرُ الاستدعاء الفعليّ** لا مجرّدَ الاسم: الاسمُ المجرّد يبقى
+    مشروعاً في تعليقٍ تاريخيّ، وفي ثابتٍ يحرس عودته (`_FORBIDDEN_DECISION_PRODUCER`
+    في `_decision_producer_identity_findings`) — وكلاهما مقصودٌ لا انحراف. المرساةُ
+    تمنع تحديداً عودةَ نمط `str(ROOT / "<المسار>")` الذي كان يبني سطر النداء.
     """
     src = PATH.read_text(encoding="utf-8")
-    assert "scripts/architecture/s5_decision_live_closure_receipt.py" in src
-    assert "scripts/staging/decision_sor_live_closure_collector.py" not in src, (
+    assert 'str(ROOT / "scripts/architecture/s5_decision_live_closure_receipt.py")' in src
+    assert 'str(ROOT / "scripts/staging/decision_sor_live_closure_collector.py")' not in src, (
         "المُنتِج القديم عاد إلى سلك النداء الفعليّ — ممنوعٌ نهائياً (PLATFORM-ROUTES-DUAL-S5-PRODUCER-01)"
     )
+
+
+def test_preflight_rejects_the_forbidden_producer_reintroduction(tmp_path, monkeypatch):
+    """PLATFORM-ROUTES-DUAL-S5-PRODUCER-01: `preflight()` يفحص هُويّة المُنتِج فعليّاً.
+
+    **لا يُكتَب شيءٌ في الشجرة الحيّة** (درس `probe_leak_guard`): الفحص على شجرةٍ
+    اصطناعيّة في `tmp_path` عبر `monkeypatch.setattr(mod, "ROOT", ...)`، لا على
+    المستودع الفعليّ — كتابةُ المُنتِج المحظور حقيقةً هي بعينها العطل المَحروس.
+    """
+    sandbox_root = tmp_path / "repo"
+    canonical = sandbox_root / mod._CANONICAL_DECISION_PRODUCER
+    canonical_guard = sandbox_root / mod._CANONICAL_DECISION_GUARD
+    forbidden = sandbox_root / mod._FORBIDDEN_DECISION_PRODUCER
+    for p in (canonical, canonical_guard):
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("# ok\n", encoding="utf-8")
+    forbidden.parent.mkdir(parents=True, exist_ok=True)
+    forbidden.write_text("# طفرة اختبار: إعادة إدخال المُنتِج المحظور\n", encoding="utf-8")
+
+    monkeypatch.setattr(mod, "ROOT", sandbox_root)
+    findings = mod._decision_producer_identity_findings()
+    assert any(f.startswith("forbidden_producer_reintroduced:") for f in findings)
+
+    forbidden.unlink()
+    findings_clean = mod._decision_producer_identity_findings()
+    assert not any(f.startswith("forbidden_producer_reintroduced:") for f in findings_clean)
 
 
 def test_the_duplicated_producer_file_is_gone_not_merely_unwired():
@@ -222,3 +249,63 @@ def test_an_unreachable_decision_service_writes_no_receipt_via_the_wired_produce
     )
     assert proc.returncode == 1, "عجزُ القياس يجب أن يُنهي برمز 1 — لا 0 ولا 2"
     assert not out.is_file(), "إيصالٌ كُتِب رغم تعذّر الاتّصال — تعذّرُ الوصول صار «فشلاً مُثبَتاً» على القرص"
+
+
+def test_doctor_is_independent_of_the_live_environment(monkeypatch):
+    """`doctor` رخيصٌ عمداً: لا يحتاج متغيّرات البيئة الحيّة ولا `psql`.
+
+    فحصُ هُويّة المُنتِج لا علاقة له بجاهزيّة Decision/Field/KG، فلا يجوز أن يتأثّر
+    بغيابها — وإلّا عاد الفحصُ محجوباً خلف نفس ما يحاول تجنّب الحاجة إليه.
+    """
+    for name in (
+        "DECISION_SOR_PLATFORM_URL",
+        "DECISION_SOR_SERVICE_URL",
+        "DECISION_SOR_ADMIN_DATABASE_URL",
+        "DECISION_SOR_PLATFORM_ROLE",
+        "DATABASE_URL",
+        "SAHOOL_AGENT_TOKEN",
+        "FIELD_SERVICE_URL",
+        "TENANT_A",
+        "TENANT_B",
+        "FIELD_A",
+        "KG_SERVICE_URL",
+        "KG_TENANT_ID",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setattr(mod.shutil, "which", lambda name: None)
+    body = mod.doctor()
+    assert body["classification"] == "PASSED"
+    assert body["findings"] == []
+
+
+def test_doctor_fails_when_the_forbidden_producer_is_reintroduced(tmp_path, monkeypatch):
+    sandbox_root = tmp_path / "repo"
+    canonical = sandbox_root / mod._CANONICAL_DECISION_PRODUCER
+    canonical_guard = sandbox_root / mod._CANONICAL_DECISION_GUARD
+    forbidden = sandbox_root / mod._FORBIDDEN_DECISION_PRODUCER
+    for p in (canonical, canonical_guard):
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("# ok\n", encoding="utf-8")
+    forbidden.parent.mkdir(parents=True, exist_ok=True)
+    forbidden.write_text("# طفرة اختبار\n", encoding="utf-8")
+
+    monkeypatch.setattr(mod, "ROOT", sandbox_root)
+    body = mod.doctor()
+    assert body["classification"] == "FAILED"
+    assert any(f.startswith("forbidden_producer_reintroduced:") for f in body["findings"])
+
+
+def test_cli_doctor_subcommand_exits_zero_on_a_clean_tree():
+    import subprocess
+    import sys
+
+    proc = subprocess.run(
+        [sys.executable, str(PATH), "doctor"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=30,
+    )
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    body = json.loads(proc.stdout)
+    assert body["classification"] == "PASSED"

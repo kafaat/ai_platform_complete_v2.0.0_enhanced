@@ -186,6 +186,32 @@ def _required_env(names: tuple[str, ...]) -> list[str]:
     return [name for name in names if not os.getenv(name, "").strip()]
 
 
+_CANONICAL_DECISION_PRODUCER = "scripts/architecture/s5_decision_live_closure_receipt.py"
+_CANONICAL_DECISION_GUARD = "scripts/architecture/s5_decision_live_closure_receipt_guard.py"
+_FORBIDDEN_DECISION_PRODUCER = "scripts/staging/decision_sor_live_closure_collector.py"
+
+
+def _decision_producer_identity_findings() -> list[str]:
+    """PLATFORM-ROUTES-DUAL-S5-PRODUCER-01: منع عودة الازدواج بصمت قبل أيّ جمعٍ حيّ.
+
+    لا يكفي أن يكون السطر الحاليّ صحيحاً؛ يجب أن يبقى كذلك. فُحص هنا لا في اختبارٍ
+    وحده لأنّ هذا هو ما يُشغَّل فعلاً قبل كلّ جولةٍ حيّة عبر `preflight()` — لا
+    وضعٌ منفصلٌ يمكن نسيان استدعائه.
+    """
+    findings: list[str] = []
+    if not (ROOT / _CANONICAL_DECISION_PRODUCER).is_file():
+        findings.append(f"missing_canonical_producer:{_CANONICAL_DECISION_PRODUCER}")
+    if not (ROOT / _CANONICAL_DECISION_GUARD).is_file():
+        findings.append(f"missing_canonical_guard:{_CANONICAL_DECISION_GUARD}")
+    if (ROOT / _FORBIDDEN_DECISION_PRODUCER).exists():
+        findings.append(f"forbidden_producer_reintroduced:{_FORBIDDEN_DECISION_PRODUCER}")
+    self_src = Path(__file__).read_text(encoding="utf-8")
+    call_line = f'ROOT / "{_FORBIDDEN_DECISION_PRODUCER}"'
+    if call_line in self_src:
+        findings.append("orchestrator_rewired_to_forbidden_producer")
+    return findings
+
+
 def preflight(subject_sha: str) -> dict[str, Any]:
     subject_sha = subject_sha.strip().lower()
     missing_env = _required_env(
@@ -220,6 +246,7 @@ def preflight(subject_sha: str) -> dict[str, Any]:
             findings.append(f"checkout_subject_sha_mismatch:{actual}")
     findings.extend(f"missing_env:{name}" for name in missing_env)
     findings.extend(f"missing_tool:{name}" for name in missing_tools)
+    findings.extend(_decision_producer_identity_findings())
     return {
         "schema": "sahool.s5-live-authority-preflight/v1",
         "subject_sha": subject_sha,
@@ -326,9 +353,27 @@ def collect(args: argparse.Namespace) -> dict[str, Any]:
     return bundle
 
 
+def doctor() -> dict[str, Any]:
+    """فحصٌ رخيصٌ ومستقلٌّ عن البيئة الحيّة: هُويّة المُنتِج فقط.
+
+    لا يحتاج متغيّرات Decision/Field/KG ولا `psql` — لذا يمكن تشغيله في أيّ وقت
+    (قبل تجهيز البيئة الحيّة) للتأكّد من أنّ السلك لا يزال موصولاً بالمُنتِج
+    القانونيّ وأنّ القديم المحظور لم يعُد. `preflight()` يفرض النتيجة نفسها، لكنّه
+    محجوبٌ خلف متغيّرات لا علاقة لها بهُويّة المُنتِج.
+    """
+    findings = _decision_producer_identity_findings()
+    return {
+        "schema": "sahool.s5-live-authority-doctor/v1",
+        "classification": "PASSED" if not findings else "FAILED",
+        "findings": findings,
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="command", required=True)
+
+    sub.add_parser("doctor")
 
     p_pre = sub.add_parser("preflight")
     p_pre.add_argument("--subject-sha", required=True)
@@ -353,7 +398,9 @@ def main(argv: list[str] | None = None) -> int:
     p_collect.add_argument("--bundle-output", type=Path)
 
     args = parser.parse_args(argv)
-    if args.command == "preflight":
+    if args.command == "doctor":
+        body = doctor()
+    elif args.command == "preflight":
         body = preflight(args.subject_sha)
         if args.output:
             _write(args.output, body)
