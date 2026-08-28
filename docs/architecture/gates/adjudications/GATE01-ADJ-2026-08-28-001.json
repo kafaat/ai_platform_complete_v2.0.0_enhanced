@@ -1,0 +1,48 @@
+{
+  "schema": "sahool.gate01_adjudication/v1",
+  "version": 1,
+  "adjudication_id": "GATE01-ADJ-2026-08-28-001",
+  "gate_id": "GATE-01",
+  "status": "ISSUED",
+  "approved_by": "owner",
+  "adjudicated_on": "2026-08-28",
+  "pr": 954,
+  "one_time": true,
+  "$what_this_is_ar": "نسخةُ تفويضٍ واحدة، لا تغييرُ سياسة. البوّابة تبقى **CLOSED عالميّاً**، وهذا يأذن بمجموعةِ بايتاتٍ بعينها في مسارَين بعينهما. والمالكُ اختار هذه الأداةَ بعد أن عُرِض عليه البديلُ (نقلُ الحالة إلى OPEN) وعُرِض معه نصّ `why_open_is_not_a_pr_exception_ar` من السياسة نفسِها: «لا transition من CLOSED إلى OPEN لمجرّد أنّ رقعةً تحتاج لمسَ ملفّ». فالاختيارُ موافقٌ لما يوصي به الملفّ لا مخالفٌ له.",
+  "phase0_baseline_ref": {
+    "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
+    "must_match_policy": true,
+    "$why_ar": "تفويضٌ يشير إلى أساسٍ غير الذي جُمِّد لا يُقرأ إذناً — يُقرأ تناقضاً، فيُرفض."
+  },
+  "allowed_paths": [
+    "migrations/MANIFEST.txt",
+    "services/sahool-platform/api/phase_runtime_workers.py"
+  ],
+  "allowed_gap_closures": [
+    "WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01"
+  ],
+  "authorized_patch_sha256": "02c29958a7eb9538f4b85241992ecb156af44cd59c5cd616b0f6c739d5eae51f",
+  "authorized_blobs": {
+    "migrations/MANIFEST.txt": "f7c7a7e3d0bf38670b7f2e1a49e99110e35ea7be",
+    "services/sahool-platform/api/phase_runtime_workers.py": "f4a72fdeb3c66ff20a26e152efb2b7df064cfdfc"
+  },
+  "$patch_digest_recipe_ar": "sha256 على نصٍّ قانونيّ: أسطرٌ مرتّبة بالمسار، كلٌّ `path\\0blob_sha\\n`. blob_sha هو `git hash-object` للمحتوى — فالربط **بالبايتات** لا بالاسم: «أوافق على هذه البايتات» لا «أوافق على PR رقم ٩٥٤». وتغيُّر محرفٍ واحد يُبطِله. وحُسِبت البصمةُ هنا بدالّة الحارس نفسِها (`canonical_patch_digest`) لا بإعادة تنفيذٍ موازٍ.",
+  "bindings": {
+    "require_patch_digest": true,
+    "require_paths_subset": true,
+    "require_baseline_match": true,
+    "require_exact_head_sha": false,
+    "observed_head_sha_at_issue": "f18835fe",
+    "$why_head_binding_off_ar": "للسبب المقيس نفسِه الذي وُثِّق في GATE01-ADJ-2026-08-13-001، وقد تكرّر هنا أشدّ: تحرّكت `main` **خمسَ مرّات** أثناء حياة هذه الـPR (157a9cb4 ⇒ … ⇒ 3e585d1f ⇒ 90df6145)، وأُعيد أساسُ الفرع مرّتين. فربطُ الرأس كان سيسقط قبل أن يُستهلَك. وبصمةُ البايتات تنجو من إعادة الأساس وتسقط على تغيُّر محرفٍ في المأذون — وهي الضمانةُ المقصودة."
+  },
+  "consumption": {
+    "status_values": [
+      "ISSUED",
+      "CONSUMED",
+      "REVOKED"
+    ],
+    "$must_be_stamped_after_merge_ar": "**لا شيء يُحوِّل `ISSUED` إلى `CONSUMED` آليّاً.** فبعد دمج #954 يجب ختمُ هذا الملفّ بـ`status: CONSUMED` و`merge_sha` و`consumed_on`، وإلّا أحمرَّ `stale_authorization_errors` على `main` نفسِها — وهي الفجوة GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01 التي وُضِع ذلك الفحص لأجلها. والختمُ خطوةٌ لازمةٌ لا تحسينيّة."
+  },
+  "$scope_limit_measured_ar": "المأذونُ **مساران فقط**، وهما ما يُبلِّغ عنه الحارس. والهجرةُ `migrations/v228_worker_claim_lease.sql` ليست فيهما — لا لأنّها خارج نيّة التجميد، بل لأنّ `frozen_paths` تُسمّي `migrations/v228_phase_runtime_claim_leases.sql`، وهو الملفُّ نفسُه باسمٍ آخر، فلا يلتقطه الحارسُ أصلاً. ولم تُدرَج هنا لأنّ الآليّة لا تسمح: `blobs` تُبنى من `frozen_paths` وحدَها، فإدراجُ مسارٍ غيرِ مجمَّد في `allowed_paths` يُفشِل التفويضَ برسالة «مسارٌ مأذون غير موجود في الشجرة». فالحدُّ مُعلَنٌ لا مستور: **هذا التفويض لا يُغطّي الهجرة، والحارسُ لا يحجبها، والثغرةُ في الحارس لا في هذا السجلّ.**",
+  "$honesty_limit_ar": "هذا يأذن بالمسّ ولا يشهد بالصحّة. صوابُ إصلاح المطالبة يُثبَت ببرهانه الحيّ (تقاطعُ ٢٠ صفّاً ⇒ ٠ على PostgreSQL 16) وباختباراته وطفراته الأربع، لا بهذا الملفّ. ولا يُقرأ هذا التفويضُ إقراراً بأنّ المرحلة ٠ اكتملت: `runtime_verified=0` و`production_certified=0` كما هي، والبوّابةُ تبقى CLOSED بعد استهلاكه."
+}

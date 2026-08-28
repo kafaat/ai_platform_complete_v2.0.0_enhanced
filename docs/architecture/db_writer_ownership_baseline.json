@@ -1,8 +1,8 @@
 {
   "$comment": "كتاباتٌ لم يأذن بها docs/architecture/db_ownership.yml — مَعدودةٌ لا محكومٌ عليها. لم يُثبَت أنّ كلّاً منها خطأ؛ بعضُها قد يكون العقدُ هو المخطئ فيه. الأساسُ راتشِتٌ ينزل ولا يصعد: يُخفَّض بنقل الكتابة إلى مالكها أو بتصحيح العقد بأساسٍ مُعلَن.",
   "contract": "docs/architecture/db_ownership.yml",
-  "measured_on": "b5871259a5c2e361bc047f4542652e19d4dccc35",
-  "violation_count": 75,
+  "measured_on": "953e75691e700dea19664cb762abbc56daadb299",
+  "violation_count": 73,
   "violations": {
     "actuator_command_outbox::sahool-platform": [
       "services/sahool-platform/api/phase_runtime_store.py"
@@ -121,8 +121,7 @@
       "services/auth/routers/invitations.py"
     ],
     "iot_command_dispatch::sahool-platform": [
-      "services/sahool-platform/api/phase_runtime_store.py",
-      "services/sahool-platform/api/phase_runtime_workers.py"
+      "services/sahool-platform/api/phase_runtime_store.py"
     ],
     "iot_devices::sahool-platform": [
       "services/sahool-platform/api/routers/devices.py"
@@ -138,12 +137,6 @@
     ],
     "marketplace_installations::sahool-platform": [
       "services/sahool-platform/api/phase_runtime_store.py"
-    ],
-    "marketplace_plugin_execution_runs::sahool-platform": [
-      "services/sahool-platform/api/phase_runtime_workers.py"
-    ],
-    "marketplace_plugin_runtime_events::sahool-platform": [
-      "services/sahool-platform/api/phase_runtime_workers.py"
     ],
     "mfa_audit_events::auth": [
       "services/auth/mfa_runtime.py"
@@ -162,8 +155,7 @@
       "services/sahool-platform/api/phase_runtime_store.py"
     ],
     "model_rollback_history_runtime::sahool-platform": [
-      "services/sahool-platform/api/phase_runtime_store.py",
-      "services/sahool-platform/api/phase_runtime_workers.py"
+      "services/sahool-platform/api/phase_runtime_store.py"
     ],
     "model_serving_aliases_runtime::sahool-platform": [
       "services/sahool-platform/api/phase_runtime_store.py",

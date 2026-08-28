@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1879,
     "route_handlers": 1049,
-    "call_edges": 76050,
+    "call_edges": 76090,
     "dead_code_candidates": 625,
     "duplicate_function_groups": 61,
     "route_owners": 27,
@@ -225227,1178 +225227,1458 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
-      "source": "_publish_nats",
+      "source": "_worker_identity",
       "target": "getenv",
-      "line": 54
+      "line": 75
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "_worker_identity",
+      "target": "getpid",
+      "line": 75
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "claim_batch",
+      "target": "list",
+      "line": 95
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "claim_batch",
+      "target": "len",
+      "line": 96
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "claim_batch",
+      "target": "len",
+      "line": 97
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "claim_batch",
+      "target": "len",
+      "line": 98
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "claim_batch",
+      "target": "fetch",
+      "line": 99
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "claim_batch",
+      "target": "float",
+      "line": 117
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "claim_batch",
+      "target": "_worker_identity",
+      "line": 118
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "claim_batch",
+      "target": "list",
+      "line": 121
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "finalize_claim",
+      "target": "list",
+      "line": 132
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "finalize_claim",
+      "target": "len",
+      "line": 133
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "finalize_claim",
+      "target": "len",
+      "line": 134
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "finalize_claim",
+      "target": "execute",
+      "line": 135
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "finalize_claim",
+      "target": "endswith",
+      "line": 145
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "finalize_claim",
+      "target": "str",
+      "line": 145
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "reclaim_expired",
+      "target": "execute",
+      "line": 155
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "reclaim_expired",
+      "target": "int",
+      "line": 162
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "reclaim_expired",
+      "target": "rsplit",
+      "line": 162
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "reclaim_expired",
+      "target": "str",
+      "line": 162
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "_publish_nats",
       "target": "getenv",
-      "line": 54
+      "line": 166
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "_publish_nats",
+      "target": "getenv",
+      "line": 166
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "_publish_nats",
       "target": "build_outbox_action",
-      "line": 55
+      "line": 167
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "_publish_nats",
       "target": "replace",
-      "line": 56
+      "line": 168
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "_publish_nats",
       "target": "RuntimeError",
-      "line": 59
+      "line": 171
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "_publish_nats",
       "target": "RuntimeError",
-      "line": 63
+      "line": 175
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "_publish_nats",
       "target": "connect",
-      "line": 64
+      "line": 176
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "_publish_nats",
       "target": "dumps",
-      "line": 66
+      "line": 178
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "_publish_nats",
       "target": "encode",
-      "line": 66
+      "line": 178
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "_publish_nats",
       "target": "publish",
-      "line": 66
+      "line": 178
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "_publish_nats",
       "target": "flush",
-      "line": 67
+      "line": 179
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "_publish_nats",
       "target": "close",
-      "line": 69
+      "line": 181
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_outbox_once",
       "target": "getenv",
-      "line": 73
+      "line": 185
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_outbox_once",
       "target": "int",
-      "line": 73
+      "line": 185
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_outbox_once",
       "target": "getenv",
-      "line": 74
+      "line": 186
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_outbox_once",
       "target": "getenv",
-      "line": 74
+      "line": 186
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_outbox_once",
       "target": "acquire",
-      "line": 75
+      "line": 187
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_outbox_once",
-      "target": "fetch",
-      "line": 76
+      "target": "transaction",
+      "line": 189
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_outbox_once",
-      "target": "_set_tenant",
-      "line": 90
+      "target": "reclaim_expired",
+      "line": 190
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_outbox_once",
+      "target": "claim_batch",
+      "line": 191
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_outbox_once",
       "target": "build_outbox_action",
-      "line": 91
+      "line": 202
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_outbox_once",
       "target": "int",
-      "line": 94
+      "line": 205
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_outbox_once",
       "target": "RuntimeError",
-      "line": 99
+      "line": 211
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_outbox_once",
       "target": "get",
-      "line": 99
+      "line": 211
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_outbox_once",
       "target": "_publish_nats",
-      "line": 101
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/phase_runtime_workers.py",
-      "source": "run_outbox_once",
-      "target": "execute",
-      "line": 109
+      "line": 213
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_outbox_once",
       "target": "int",
-      "line": 115
+      "line": 225
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_outbox_once",
-      "target": "execute",
-      "line": 117
+      "target": "transaction",
+      "line": 230
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_outbox_once",
+      "target": "_set_tenant",
+      "line": 231
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_outbox_once",
+      "target": "finalize_claim",
+      "line": 232
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_plugin_once",
       "target": "env_bool",
-      "line": 127
+      "line": 245
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_plugin_once",
       "target": "getenv",
-      "line": 128
+      "line": 246
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_plugin_once",
       "target": "acquire",
-      "line": 129
+      "line": 247
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_plugin_once",
-      "target": "fetch",
-      "line": 130
+      "target": "transaction",
+      "line": 248
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_plugin_once",
-      "target": "_set_tenant",
-      "line": 142
+      "target": "reclaim_expired",
+      "line": 249
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_plugin_once",
+      "target": "claim_batch",
+      "line": 250
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_plugin_once",
       "target": "build_plugin_worker_action",
-      "line": 143
+      "line": 261
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_plugin_once",
       "target": "str",
-      "line": 144
+      "line": 262
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_plugin_once",
       "target": "bool",
-      "line": 147
+      "line": 265
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_plugin_once",
-      "target": "execute",
-      "line": 149
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/phase_runtime_workers.py",
-      "source": "run_plugin_once",
-      "target": "_publish_nats",
-      "line": 155
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/phase_runtime_workers.py",
-      "source": "run_plugin_once",
-      "target": "str",
-      "line": 159
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/phase_runtime_workers.py",
-      "source": "run_plugin_once",
-      "target": "fetch",
-      "line": 164
+      "target": "transaction",
+      "line": 268
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_plugin_once",
       "target": "_set_tenant",
-      "line": 176
+      "line": 269
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_plugin_once",
+      "target": "finalize_claim",
+      "line": 270
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_plugin_once",
       "target": "_publish_nats",
-      "line": 178
+      "line": 279
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_plugin_once",
+      "target": "str",
+      "line": 283
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_plugin_once",
+      "target": "transaction",
+      "line": 288
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_plugin_once",
+      "target": "reclaim_expired",
+      "line": 289
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_plugin_once",
+      "target": "claim_batch",
+      "line": 290
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_plugin_once",
+      "target": "_publish_nats",
+      "line": 300
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_plugin_once",
       "target": "replace",
-      "line": 179
+      "line": 301
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_plugin_once",
       "target": "str",
-      "line": 179
+      "line": 301
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_plugin_once",
-      "target": "execute",
-      "line": 182
+      "target": "transaction",
+      "line": 307
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_plugin_once",
-      "target": "execute",
-      "line": 187
+      "target": "_set_tenant",
+      "line": 308
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_plugin_once",
+      "target": "finalize_claim",
+      "line": 309
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_plugin_once",
       "target": "len",
-      "line": 191
+      "line": 317
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_plugin_once",
       "target": "len",
-      "line": 191
+      "line": 317
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "_model_metadata",
       "target": "fetchrow",
-      "line": 197
+      "line": 323
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "_model_metadata",
       "target": "dict",
-      "line": 202
+      "line": 328
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_model_registry_once",
       "target": "env_bool",
-      "line": 206
+      "line": 332
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_model_registry_once",
       "target": "env_bool",
-      "line": 207
+      "line": 333
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_model_registry_once",
       "target": "getenv",
-      "line": 208
+      "line": 334
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_model_registry_once",
       "target": "acquire",
-      "line": 209
+      "line": 335
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_model_registry_once",
-      "target": "fetch",
-      "line": 211
+      "target": "transaction",
+      "line": 343
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_model_registry_once",
+      "target": "reclaim_expired",
+      "line": 344
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_model_registry_once",
+      "target": "claim_batch",
+      "line": 345
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_model_registry_once",
+      "target": "transaction",
+      "line": 357
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_model_registry_once",
       "target": "_set_tenant",
-      "line": 223
+      "line": 358
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_model_registry_once",
       "target": "_model_metadata",
-      "line": 224
+      "line": 359
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_model_registry_once",
       "target": "build_model_promotion_action",
-      "line": 225
+      "line": 360
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_model_registry_once",
       "target": "str",
-      "line": 226
+      "line": 361
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_model_registry_once",
       "target": "get",
-      "line": 228
+      "line": 363
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_model_registry_once",
       "target": "get",
-      "line": 229
+      "line": 364
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_model_registry_once",
-      "target": "execute",
-      "line": 234
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/phase_runtime_workers.py",
-      "source": "run_model_registry_once",
-      "target": "_publish_nats",
-      "line": 248
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/phase_runtime_workers.py",
-      "source": "run_model_registry_once",
-      "target": "fetch",
-      "line": 258
+      "target": "transaction",
+      "line": 370
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_model_registry_once",
       "target": "_set_tenant",
-      "line": 270
+      "line": 371
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_model_registry_once",
+      "target": "execute",
+      "line": 372
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_model_registry_once",
+      "target": "finalize_claim",
+      "line": 386
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_model_registry_once",
+      "target": "_publish_nats",
+      "line": 397
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_model_registry_once",
+      "target": "transaction",
+      "line": 406
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_model_registry_once",
+      "target": "finalize_claim",
+      "line": 407
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_model_registry_once",
+      "target": "transaction",
+      "line": 417
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_model_registry_once",
+      "target": "reclaim_expired",
+      "line": 418
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_model_registry_once",
+      "target": "claim_batch",
+      "line": 419
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_model_registry_once",
       "target": "build_model_rollback_action",
-      "line": 271
+      "line": 428
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_model_registry_once",
-      "target": "execute",
-      "line": 277
+      "target": "transaction",
+      "line": 434
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_model_registry_once",
+      "target": "_set_tenant",
+      "line": 435
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_model_registry_once",
+      "target": "finalize_claim",
+      "line": 436
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_model_registry_once",
       "target": "_publish_nats",
-      "line": 281
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/phase_runtime_workers.py",
-      "source": "run_model_registry_once",
-      "target": "execute",
-      "line": 290
+      "line": 445
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_actuator_once",
       "target": "env_bool",
-      "line": 299
+      "line": 458
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_actuator_once",
       "target": "parse_json_env",
-      "line": 300
+      "line": 459
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_actuator_once",
       "target": "acquire",
-      "line": 301
+      "line": 460
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_actuator_once",
-      "target": "fetch",
-      "line": 302
+      "target": "transaction",
+      "line": 461
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_actuator_once",
-      "target": "_set_tenant",
-      "line": 314
+      "target": "reclaim_expired",
+      "line": 462
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_actuator_once",
+      "target": "claim_batch",
+      "line": 463
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_actuator_once",
       "target": "build_actuator_worker_action",
-      "line": 315
+      "line": 474
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_actuator_once",
       "target": "str",
-      "line": 317
+      "line": 476
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_actuator_once",
       "target": "str",
-      "line": 318
+      "line": 477
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_actuator_once",
-      "target": "execute",
-      "line": 321
+      "target": "transaction",
+      "line": 485
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_actuator_once",
+      "target": "_set_tenant",
+      "line": 486
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "source": "run_actuator_once",
+      "target": "finalize_claim",
+      "line": 487
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_actuator_once",
       "target": "bool",
-      "line": 329
+      "line": 498
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_actuator_once",
       "target": "get",
-      "line": 330
+      "line": 499
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_actuator_once",
       "target": "_json",
-      "line": 331
+      "line": 500
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_actuator_once",
       "target": "get",
-      "line": 331
+      "line": 500
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_actuator_once",
       "target": "_publish_nats",
-      "line": 334
+      "line": 506
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_actuator_once",
       "target": "len",
-      "line": 342
+      "line": 514
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "env_bool",
-      "line": 357
+      "line": 529
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "today",
-      "line": 371
+      "line": 543
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "acquire",
-      "line": 373
+      "line": 545
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "fetch",
-      "line": 374
+      "line": 546
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "_set_tenant",
-      "line": 387
+      "line": 559
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "fetchrow",
-      "line": 388
+      "line": 560
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "manual_entry_takes_precedence",
-      "line": 393
+      "line": 565
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "fetchrow",
-      "line": 395
+      "line": 567
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "fetchrow",
-      "line": 403
+      "line": 575
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "extract_texture",
-      "line": 409
+      "line": 581
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "soil_water_params",
-      "line": 410
+      "line": 582
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "fetchrow",
-      "line": 411
+      "line": 583
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "float",
-      "line": 423
+      "line": 595
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "float",
-      "line": 423
+      "line": 595
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "get_weather_forecast",
-      "line": 423
+      "line": 595
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "get",
-      "line": 424
+      "line": 596
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "get",
-      "line": 425
+      "line": 597
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "get",
-      "line": 425
+      "line": 597
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "get",
-      "line": 427
+      "line": 599
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "float",
-      "line": 429
+      "line": 601
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "get_et0_product",
-      "line": 432
+      "line": 604
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "float",
-      "line": 433
+      "line": 605
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "float",
-      "line": 434
+      "line": 606
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "get",
-      "line": 435
+      "line": 607
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "get",
-      "line": 436
+      "line": 608
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "float",
-      "line": 437
+      "line": 609
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "timetuple",
-      "line": 438
+      "line": 610
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "str",
-      "line": 439
+      "line": 611
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "get",
-      "line": 441
+      "line": 613
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "lower",
-      "line": 445
+      "line": 617
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "strip",
-      "line": 445
+      "line": 617
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "get",
-      "line": 446
+      "line": 618
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "get",
-      "line": 446
+      "line": 618
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "kc_from_ndvi",
-      "line": 447
+      "line": 619
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "compute_daily_ledger_entry",
-      "line": 448
+      "line": 620
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "float",
-      "line": 450
+      "line": 622
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "float",
-      "line": 454
+      "line": 626
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "float",
-      "line": 455
+      "line": 627
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "float",
-      "line": 455
+      "line": 627
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "float",
-      "line": 456
+      "line": 628
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "float",
-      "line": 459
+      "line": 631
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "bool",
-      "line": 460
+      "line": 632
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "execute",
-      "line": 463
+      "line": 635
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "str",
-      "line": 478
+      "line": 650
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "float",
-      "line": 481
+      "line": 653
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "float",
-      "line": 485
+      "line": 657
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "process_water_deficit",
-      "line": 497
+      "line": 669
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "str",
-      "line": 498
+      "line": 670
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "str",
-      "line": 500
+      "line": 672
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "float",
-      "line": 504
+      "line": 676
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "float",
-      "line": 505
+      "line": 677
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "float",
-      "line": 505
+      "line": 677
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "get",
-      "line": 508
+      "line": 680
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "execute",
-      "line": 509
+      "line": 681
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "str",
-      "line": 517
+      "line": 689
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "dumps",
-      "line": 519
+      "line": 691
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "str",
-      "line": 523
+      "line": 695
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "isoformat",
-      "line": 524
+      "line": 696
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "print",
-      "line": 532
+      "line": 704
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "dumps",
-      "line": 533
+      "line": 705
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "run_water_ledger_once",
       "target": "str",
-      "line": 534
+      "line": 706
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "loop_worker",
       "target": "water_ledger_identity_startup_error",
-      "line": 549
+      "line": 721
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "loop_worker",
       "target": "RuntimeError",
-      "line": 551
+      "line": 723
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "loop_worker",
       "target": "_connect",
-      "line": 552
+      "line": 724
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "loop_worker",
       "target": "float",
-      "line": 553
+      "line": 725
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "loop_worker",
       "target": "getenv",
-      "line": 553
+      "line": 725
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "loop_worker",
       "target": "SystemExit",
-      "line": 562
+      "line": 734
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "loop_worker",
       "target": "join",
-      "line": 562
+      "line": 734
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "loop_worker",
       "target": "HeartbeatState",
-      "line": 568
+      "line": 740
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "loop_worker",
       "target": "write",
-      "line": 569
+      "line": 741
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "loop_worker",
       "target": "mark_error",
-      "line": 575
+      "line": 747
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "loop_worker",
       "target": "str",
-      "line": 575
+      "line": 747
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "loop_worker",
       "target": "write",
-      "line": 576
+      "line": 748
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "loop_worker",
       "target": "mark_poll",
-      "line": 578
+      "line": 750
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "loop_worker",
       "target": "write",
-      "line": 579
+      "line": 751
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "loop_worker",
       "target": "dumps",
-      "line": 580
+      "line": 752
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "loop_worker",
       "target": "print",
-      "line": 580
+      "line": 752
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "loop_worker",
       "target": "sleep",
-      "line": 581
+      "line": 753
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "loop_worker",
       "target": "close",
-      "line": 583
+      "line": 755
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "main",
       "target": "ArgumentParser",
-      "line": 587
+      "line": 759
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "main",
       "target": "add_argument",
-      "line": 588
+      "line": 760
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "main",
       "target": "list",
-      "line": 589
+      "line": 761
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "main",
       "target": "parse_args",
-      "line": 589
+      "line": 761
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "main",
       "target": "loop_worker",
-      "line": 590
+      "line": 762
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/phase_runtime_workers.py",
       "source": "main",
       "target": "run",
-      "line": 590
+      "line": 762
     },
     {
       "owner": "sahool-platform",

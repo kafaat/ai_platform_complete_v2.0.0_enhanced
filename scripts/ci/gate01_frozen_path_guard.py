@@ -51,6 +51,24 @@ import subprocess
 import sys
 from pathlib import Path
 
+# ── ترميزُ الخرج عند التحميل — `GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01`
+#
+# **العطلُ مقيسٌ لا متوقَّع:** تحت `LC_ALL=C` يحسب هذا الحارسُ حكمَه صحيحاً ثمّ يموت
+# بـ`UnicodeEncodeError` **وهو يطبعه** — فيخرج برمزٍ غيرِ رمزه، ويُقرأ حجباً وهو قد
+# مرّ (أو العكس). والرسالةُ التي تشرح السبب هي نفسُها ما يقتله.
+#
+# **ولماذا ظهر الآن ولم يظهر قبل:** الاستدعاءُ العاري (بلا `--stdin`) كان يطبع
+# `gate01_frozen_path_guard_ok` وحدَه — ASCII خالص. ومع أوّل تفويضٍ `ISSUED` حيٍّ في
+# الشجرة صار `stale_authorization_errors` يُخرِج عربيّةً على الاستدعاء العاري
+# (لأنّ `touched` فارغةٌ فيه)، فانكشفت هشاشةٌ **كانت قائمةً دائماً** ولم تجد ما
+# تطبعه. أي أنّ الشريحة لم تُحدِث العطل بل أزالت الصمتَ عنه.
+#
+# **والموضعُ عند التحميل لا داخل `main()`:** الحارسُ يُستورَد في الاختبارات وتُستدعى
+# دوالُّه مباشرةً، فعلاجٌ داخل `main()` يترك المسارَ المُستورَد مكشوفاً.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 ROOT = Path(__file__).resolve().parents[2]
 POLICY = ROOT / "docs" / "architecture" / "gate01_policy.json"
 ADJUDICATIONS = ROOT / "docs" / "architecture" / "gates" / "adjudications"

@@ -226,6 +226,7 @@
       "v225_canonical_salinity_state.sql",
       "v226_canonical_nutrient_ledger.sql",
       "v227_decision_learning_runtime.sql",
+      "v228_worker_claim_lease.sql",
       "v206_rls_final_hardening.sql"
     ],
     "missing": [],
@@ -1586,14 +1587,14 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 226,
+    "manifest_entries": 227,
     "manifest_missing_count": 0,
     "policies": 193,
     "production_certified": false,
     "rls_enabled": 206,
     "rls_forced": 187,
     "runtime_verified": false,
-    "sql_files": 228,
+    "sql_files": 229,
     "tables": 333,
     "tenant_rls_gaps": 135,
     "tenant_tables": 313,
@@ -3951,12 +3952,9 @@
       "write_policy_with_check": true
     },
     {
-      "code_readers": [
-        "services/sahool-platform/api/phase_runtime_workers.py"
-      ],
+      "code_readers": [],
       "code_writers": [
-        "services/sahool-platform/api/phase_runtime_store.py",
-        "services/sahool-platform/api/phase_runtime_workers.py"
+        "services/sahool-platform/api/phase_runtime_store.py"
       ],
       "created_in": "v109_phase9_iot_execution_adapters.sql",
       "has_tenant_id": true,
@@ -4952,12 +4950,8 @@
       "write_policy_with_check": false
     },
     {
-      "code_readers": [
-        "services/sahool-platform/api/phase_runtime_workers.py"
-      ],
-      "code_writers": [
-        "services/sahool-platform/api/phase_runtime_workers.py"
-      ],
+      "code_readers": [],
+      "code_writers": [],
       "created_in": "v110_phase12_plugin_sandbox_runtime.sql",
       "has_tenant_id": true,
       "manifest_position": 116,
@@ -4995,12 +4989,8 @@
       "write_policy_with_check": true
     },
     {
-      "code_readers": [
-        "services/sahool-platform/api/phase_runtime_workers.py"
-      ],
-      "code_writers": [
-        "services/sahool-platform/api/phase_runtime_workers.py"
-      ],
+      "code_readers": [],
+      "code_writers": [],
       "created_in": "v110_phase12_plugin_sandbox_runtime.sql",
       "has_tenant_id": true,
       "manifest_position": 116,
@@ -5117,9 +5107,7 @@
       "write_policy_with_check": false
     },
     {
-      "code_readers": [
-        "services/sahool-platform/api/phase_runtime_workers.py"
-      ],
+      "code_readers": [],
       "code_writers": [
         "services/sahool-platform/api/phase_runtime_store.py"
       ],
@@ -5149,12 +5137,9 @@
       "write_policy_with_check": false
     },
     {
-      "code_readers": [
-        "services/sahool-platform/api/phase_runtime_workers.py"
-      ],
+      "code_readers": [],
       "code_writers": [
-        "services/sahool-platform/api/phase_runtime_store.py",
-        "services/sahool-platform/api/phase_runtime_workers.py"
+        "services/sahool-platform/api/phase_runtime_store.py"
       ],
       "created_in": "v108_phase10_feature_store_model_registry_runtime.sql",
       "has_tenant_id": true,
@@ -5749,12 +5734,9 @@
       "write_policy_with_check": true
     },
     {
-      "code_readers": [
-        "services/sahool-platform/api/phase_runtime_workers.py"
-      ],
+      "code_readers": [],
       "code_writers": [
-        "services/sahool-platform/api/phase_runtime_store.py",
-        "services/sahool-platform/api/phase_runtime_workers.py"
+        "services/sahool-platform/api/phase_runtime_store.py"
       ],
       "created_in": "v106_phase9_10_runtime_strengthening.sql",
       "has_tenant_id": true,

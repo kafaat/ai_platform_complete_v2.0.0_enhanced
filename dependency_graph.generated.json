@@ -1,5 +1,5 @@
 {
-  "edge_count": 808,
+  "edge_count": 797,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -2642,16 +2642,6 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/phase_runtime_workers.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://iot_command_dispatch",
-      "to": "db://iot_command_dispatch",
-      "to_kind": "resource"
-    },
-    {
       "evidence": "services/sahool-platform/api/routers/decision_confidence.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -3022,26 +3012,6 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/phase_runtime_workers.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://marketplace_plugin_execution_runs",
-      "to": "db://marketplace_plugin_execution_runs",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/phase_runtime_workers.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://marketplace_plugin_runtime_events",
-      "to": "db://marketplace_plugin_runtime_events",
-      "to_kind": "resource"
-    },
-    {
       "evidence": "services/sahool-platform/api/routers/master_data.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -3049,26 +3019,6 @@
       "relation": "READS",
       "resource": "db://master_data",
       "to": "db://master_data",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/phase_runtime_workers.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://model_promotion_history_runtime",
-      "to": "db://model_promotion_history_runtime",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/phase_runtime_workers.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://model_rollback_history_runtime",
-      "to": "db://model_rollback_history_runtime",
       "to_kind": "resource"
     },
     {
@@ -3349,16 +3299,6 @@
       "relation": "READS",
       "resource": "db://recommendations",
       "to": "db://recommendations",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/phase_runtime_workers.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://runtime_event_outbox",
-      "to": "db://runtime_event_outbox",
       "to_kind": "resource"
     },
     {
@@ -6712,16 +6652,6 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/phase_runtime_workers.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "WRITES",
-      "resource": "db://iot_command_dispatch",
-      "to": "db://iot_command_dispatch",
-      "to_kind": "resource"
-    },
-    {
       "evidence": "services/sahool-platform/api/routers/devices.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -6942,26 +6872,6 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/phase_runtime_workers.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "WRITES",
-      "resource": "db://marketplace_plugin_execution_runs",
-      "to": "db://marketplace_plugin_execution_runs",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/phase_runtime_workers.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "WRITES",
-      "resource": "db://marketplace_plugin_runtime_events",
-      "to": "db://marketplace_plugin_runtime_events",
-      "to_kind": "resource"
-    },
-    {
       "evidence": "services/sahool-platform/api/routers/master_data.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -7003,16 +6913,6 @@
     },
     {
       "evidence": "services/sahool-platform/api/phase_runtime_store.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "WRITES",
-      "resource": "db://model_rollback_history_runtime",
-      "to": "db://model_rollback_history_runtime",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/phase_runtime_workers.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -7383,16 +7283,6 @@
     },
     {
       "evidence": "services/sahool-platform/api/phase_runtime_store.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "WRITES",
-      "resource": "db://runtime_event_outbox",
-      "to": "db://runtime_event_outbox",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/phase_runtime_workers.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -8100,9 +7990,9 @@
     "CALLS": 38,
     "CONSUMES": 1,
     "EMITS": 1,
-    "READS": 414,
+    "READS": 408,
     "ROUTES_TO": 70,
-    "WRITES": 284
+    "WRITES": 279
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -8117,8 +8007,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 699,
-      "resolved": 698,
+      "observed": 688,
+      "resolved": 687,
       "unresolved_component_paths": 0
     }
   }

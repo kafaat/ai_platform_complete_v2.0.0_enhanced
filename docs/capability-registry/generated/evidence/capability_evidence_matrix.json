@@ -3176,7 +3176,8 @@
         "tests_v9/test_outbox_delivery_attempts_v19_5.py",
         "tests_v9/test_outbox_idempotent_consumption.py",
         "tests_v9/test_runtime_behavioral_guards_v66.py",
-        "tests_v9/test_tts_notification_service_auth.py"
+        "tests_v9/test_tts_notification_service_auth.py",
+        "tests_v9/test_worker_claim_lease.py"
       ]
     },
     {

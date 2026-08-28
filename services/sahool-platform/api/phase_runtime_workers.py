@@ -50,6 +50,118 @@ async def _set_tenant(conn: Any, tenant_id: Any) -> None:
         await conn.execute("SELECT set_config('app.tenant_id', $1, true)", str(tenant_id))
 
 
+# ── WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01 ─────────────────────────────
+#
+# `FOR UPDATE SKIP LOCKED` في اتّصالٍ بوضع autocommit **لا يُثبِّت مطالبة**: القفلُ
+# يُحرَّر فور انتهاء عبارة `SELECT`، فيلتقط عاملٌ ثانٍ الصفوفَ نفسَها. والمقيس أنّ
+# هذا الملفّ يحمل ستّةَ مواضع `SKIP LOCKED` و**صفرَ** `conn.transaction()`.
+#
+# وأخطرُها `run_actuator_once`: يطالِب ثمّ ينشر `sahool.actuator.dispatch.requested`
+# — فالعطلُ ليس مجرّداً، بل **طلبُ إرسالٍ فيزيائيٍّ مرّتين للأمر نفسه**.
+#
+# والعلاجُ ليس إطالةَ المعاملة حتّى تشمل النشر: ذلك يُعيد نمطَ `event_bus.py` الذي
+# يحبس الأقفالَ أثناء I/O شبكيّ. بل فصلٌ ثلاثيّ — TX-1 مطالبةٌ تُثبَّت بـcommit ·
+# الشبكةُ خارج أيّ معاملة · TX-2 إنهاءٌ بـCAS على `claim_token`.
+#
+# **ولمَ رمزٌ ولا تكفي الحالة:** عند انتهاء الإجارة يُعيد عاملٌ ثانٍ المطالبة. فلو
+# كان شرطُ الإنهاء `status='claimed'` وحدَه لأنهى الأوّلُ **مطالبةَ الثاني** ظانّاً
+# أنّها مطالبتُه. الرمزُ يجعل الشرطَ هويّةً لا حالة.
+
+_LEASE_SECONDS = int(os.getenv("WORKER_CLAIM_LEASE_SECONDS", "300"))
+
+
+def _worker_identity() -> str:
+    """هويّةٌ تُميّز العاملَ في السجلّ — للتشخيص لا للصحّة."""
+    return f"{os.getenv('HOSTNAME', 'worker')}:{os.getpid()}"
+
+
+async def claim_batch(
+    conn: Any,
+    *,
+    table: str,
+    columns: str,
+    where: str,
+    order_by: str = "created_at",
+    batch_size: int,
+    params: Iterable[Any] = (),
+) -> list[Any]:
+    """TX-1: يُطالِب دفعةً ويُثبِّتها بـcommit، ثمّ يُعيدها بـ``claim_token``.
+
+    المطالبةُ والالتقاطُ في عبارةٍ واحدة داخل معاملةٍ صريحة: الصفوفُ المُختارة
+    تُقفَل، تُوسَم، ثمّ يُغلَق كلُّ ذلك بـcommit **قبل أيّ عملٍ شبكيّ**. فما إن
+    ينتهي هذا حتّى تكون الصفوفُ خارج نطاق `where` — لأنّ `claim_token` صار غيرَ
+    فارغ — فلا يلتقطها عاملٌ ثانٍ.
+    """
+    extra = list(params)
+    lease_arg = len(extra) + 1
+    by_arg = len(extra) + 2
+    limit_arg = len(extra) + 3
+    rows = await conn.fetch(
+        f"""
+        WITH claimed AS (
+            SELECT id FROM {table}
+            WHERE ({where}) AND claim_token IS NULL
+            ORDER BY {order_by}
+            LIMIT ${limit_arg}
+            FOR UPDATE SKIP LOCKED
+        )
+        UPDATE {table} AS t
+        SET claim_token = gen_random_uuid(),
+            claimed_by  = ${by_arg},
+            lease_until = now() + make_interval(secs => ${lease_arg})
+        FROM claimed
+        WHERE t.id = claimed.id
+        RETURNING {columns}, t.claim_token
+        """,  # noqa: S608 - أسماءُ الجداول والأعمدة ثوابتُ نداءٍ داخليّة لا مُدخَلُ مستخدِم
+        *extra,
+        float(_LEASE_SECONDS),
+        _worker_identity(),
+        batch_size,
+    )
+    return list(rows)
+
+
+async def finalize_claim(
+    conn: Any, *, table: str, row_id: Any, claim_token: Any, assignments: str, params: Iterable[Any]
+) -> bool:
+    """TX-2: إنهاءٌ بـCAS على ``claim_token`` — يُرجِع هل كان الإنهاءُ لنا.
+
+    ``False`` تعني أنّ إجارتَنا انتهت وأعاد عاملٌ آخرُ المطالبة، فلا نكتب فوق
+    عمله. وهي حالةٌ متوقَّعة لا خطأ: العملُ سيُنجَز مرّةً واحدة — بيد الآخر.
+    """
+    extra = list(params)
+    id_arg = len(extra) + 1
+    token_arg = len(extra) + 2
+    result = await conn.execute(
+        f"""
+        UPDATE {table}
+        SET {assignments}, claim_token = NULL, claimed_by = NULL, lease_until = NULL
+        WHERE id = ${id_arg} AND claim_token = ${token_arg}
+        """,  # noqa: S608 - كما أعلاه
+        *extra,
+        row_id,
+        claim_token,
+    )
+    return not str(result).endswith(" 0")
+
+
+async def reclaim_expired(conn: Any, *, table: str) -> int:
+    """يُعيد الصفوفَ التي انتهت إجارتُها إلى بِركة الالتقاط.
+
+    بلا هذا يبقى صفٌّ مُطالَبٌ من عاملٍ انهار **مُطالَباً إلى الأبد** — فالمطالبةُ
+    تصير قبراً لا إجارة. ولا يُلمَس ``status``: قد يكون العاملُ أتمّ عملَه ولم
+    يُنهِ، فإعادةُ الحالة تُلغي ما وقع.
+    """
+    result = await conn.execute(
+        f"""
+        UPDATE {table}
+        SET claim_token = NULL, claimed_by = NULL, lease_until = NULL
+        WHERE claim_token IS NOT NULL AND lease_until < now()
+        """  # noqa: S608 - كما أعلاه
+    )
+    return int(str(result).rsplit(" ", 1)[-1] or 0)
+
+
 async def _publish_nats(subject: str, payload: Json) -> None:
     nats_url = os.getenv("NATS_URL") or os.getenv("SAHOOL_NATS_URL")
     action = build_outbox_action(
@@ -73,21 +185,20 @@ async def run_outbox_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
     max_attempts = int(os.getenv("OUTBOX_MAX_ATTEMPTS", "5"))
     nats_url = os.getenv("NATS_URL") or os.getenv("SAHOOL_NATS_URL")
     async with pool.acquire() as conn:
-        rows = await conn.fetch(
-            """
-            SELECT id, tenant_id, event_id, event_type, payload, attempts
-            FROM runtime_event_outbox
-            WHERE status IN ('pending','failed') AND attempts < $1
-            ORDER BY created_at
-            LIMIT $2
-            FOR UPDATE SKIP LOCKED
-            """,
-            max_attempts,
-            batch_size,
-        )
+        # TX-1: مطالبةٌ تُثبَّت بـcommit قبل أيّ نشرٍ شبكيّ.
+        async with conn.transaction():
+            await reclaim_expired(conn, table="runtime_event_outbox")
+            rows = await claim_batch(
+                conn,
+                table="runtime_event_outbox",
+                columns="t.id, t.tenant_id, t.event_id, t.event_type, t.payload, t.attempts",
+                where="status IN ('pending','failed') AND attempts < $1",
+                batch_size=batch_size,
+                params=(max_attempts,),
+            )
+
         processed = 0
         for row in rows:
-            await _set_tenant(conn, row["tenant_id"])
             action = build_outbox_action(
                 nats_url=nats_url,
                 event_type=row["event_type"],
@@ -95,6 +206,7 @@ async def run_outbox_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
                 max_attempts=max_attempts,
             )
             try:
+                # الشبكةُ خارج أيّ معاملة — لا أقفالَ محبوسةٌ أثناء I/O.
                 if action["action"] != "publish_nats":
                     raise RuntimeError(action.get("reason") or "outbox_not_publishable")
                 subject = action["receipt"]["subject"]
@@ -106,18 +218,24 @@ async def run_outbox_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
                         "payload": row["payload"],
                     },
                 )
-                await conn.execute(
-                    "UPDATE runtime_event_outbox SET status='published', attempts=attempts+1, published_at=now() WHERE id=$1",
-                    row["id"],
-                )
+                assignments = "status='published', attempts=attempts+1, published_at=now()"
+                params: tuple[Any, ...] = ()
             except Exception:
                 next_status = (
                     "dead_letter" if int(row["attempts"] or 0) + 1 >= max_attempts else "failed"
                 )
-                await conn.execute(
-                    "UPDATE runtime_event_outbox SET status=$2, attempts=attempts+1 WHERE id=$1",
-                    row["id"],
-                    next_status,
+                assignments = "status=$1, attempts=attempts+1"
+                params = (next_status,)
+            # TX-2: إنهاءٌ بـCAS — إن انتهت إجارتُنا فالصفُّ لغيرنا ولا نكتب فوقه.
+            async with conn.transaction():
+                await _set_tenant(conn, row["tenant_id"])
+                await finalize_claim(
+                    conn,
+                    table="runtime_event_outbox",
+                    row_id=row["id"],
+                    claim_token=row["claim_token"],
+                    assignments=assignments,
+                    params=params,
                 )
             processed += 1
         return processed
@@ -127,31 +245,37 @@ async def run_plugin_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
     plugin_enabled = env_bool("PLUGIN_EXECUTION_ENABLED", False)
     executor_url = os.getenv("PLUGIN_EXECUTOR_URL")
     async with pool.acquire() as conn:
-        rows = await conn.fetch(
-            """
-            SELECT id, tenant_id, execution_id, decision, status, sandbox_policy
-            FROM marketplace_plugin_execution_runs
-            WHERE status IN ('planned','pending')
-            ORDER BY created_at
-            LIMIT $1
-            FOR UPDATE SKIP LOCKED
-            """,
-            batch_size,
-        )
+        async with conn.transaction():
+            await reclaim_expired(conn, table="marketplace_plugin_execution_runs")
+            rows = await claim_batch(
+                conn,
+                table="marketplace_plugin_execution_runs",
+                columns=(
+                    "t.id, t.tenant_id, t.execution_id, t.decision, t.status, t.sandbox_policy"
+                ),
+                where="status IN ('planned','pending')",
+                batch_size=batch_size,
+            )
+
         for row in rows:
-            await _set_tenant(conn, row["tenant_id"])
             action = build_plugin_worker_action(
                 decision=str(row["decision"]),
                 plugin_enabled=plugin_enabled,
                 executor_url=executor_url,
                 has_sandbox_policy=bool(row["sandbox_policy"]),
             )
-            await conn.execute(
-                "UPDATE marketplace_plugin_execution_runs SET status=$2 WHERE id=$1",
-                row["id"],
-                action["status"],
-            )
-            if action["action"] == "enqueue_external_executor":
+            # كما في المُشغِّل: الإنهاءُ يسبق النشر، وCAS بوّابةٌ تمنع إرسالاً ثانياً.
+            async with conn.transaction():
+                await _set_tenant(conn, row["tenant_id"])
+                owned = await finalize_claim(
+                    conn,
+                    table="marketplace_plugin_execution_runs",
+                    row_id=row["id"],
+                    claim_token=row["claim_token"],
+                    assignments="status=$1",
+                    params=(action["status"],),
+                )
+            if owned and action["action"] == "enqueue_external_executor":
                 await _publish_nats(
                     "sahool.plugin.execution.requested",
                     {
@@ -161,32 +285,34 @@ async def run_plugin_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
                     },
                 )
 
-        event_rows = await conn.fetch(
-            """
-            SELECT id, tenant_id, event_id, event_type, payload
-            FROM marketplace_plugin_runtime_events
-            WHERE status IN ('pending','failed')
-            ORDER BY created_at
-            LIMIT $1
-            FOR UPDATE SKIP LOCKED
-            """,
-            batch_size,
-        )
+        async with conn.transaction():
+            await reclaim_expired(conn, table="marketplace_plugin_runtime_events")
+            event_rows = await claim_batch(
+                conn,
+                table="marketplace_plugin_runtime_events",
+                columns="t.id, t.tenant_id, t.event_id, t.event_type, t.payload",
+                where="status IN ('pending','failed')",
+                batch_size=batch_size,
+            )
+
         for row in event_rows:
-            await _set_tenant(conn, row["tenant_id"])
             try:
                 await _publish_nats(
                     f"sahool.{str(row['event_type']).replace('_', '.')}",
                     {"event_id": row["event_id"], "payload": row["payload"]},
                 )
-                await conn.execute(
-                    "UPDATE marketplace_plugin_runtime_events SET status='published' WHERE id=$1",
-                    row["id"],
-                )
+                assignments = "status='published'"
             except Exception:
-                await conn.execute(
-                    "UPDATE marketplace_plugin_runtime_events SET status='failed' WHERE id=$1",
-                    row["id"],
+                assignments = "status='failed'"
+            async with conn.transaction():
+                await _set_tenant(conn, row["tenant_id"])
+                await finalize_claim(
+                    conn,
+                    table="marketplace_plugin_runtime_events",
+                    row_id=row["id"],
+                    claim_token=row["claim_token"],
+                    assignments=assignments,
+                    params=(),
                 )
         return len(rows) + len(event_rows)
 
@@ -208,20 +334,29 @@ async def run_model_registry_once(pool: asyncpg.Pool, *, batch_size: int = 25) -
     serving_backend_url = os.getenv("MODEL_SERVING_BACKEND_URL")
     async with pool.acquire() as conn:
         processed = 0
-        promotions = await conn.fetch(
-            """
-            SELECT id, tenant_id, promotion_id, alias, decision, target_model_id, previous_model_id
-            FROM model_promotion_history_runtime
-            WHERE decision='promote'
-            ORDER BY created_at
-            LIMIT $1
-            FOR UPDATE SKIP LOCKED
-            """,
-            batch_size,
-        )
+        # **حدُّ صدقٍ مُعلَن:** شرطُ الالتقاط هنا `decision='promote'` بلا أيّ انتقالِ
+        # حالةٍ نهائيّة، فالصفُّ يُلتقَط ثانيةً في كلّ دورة. المطالبةُ تمنع **عاملَين
+        # متزامنَين** من نشرِ الصفّ نفسِه، ولا تمنع إعادةَ النشر عبر الدورات — وذلك
+        # عطلٌ سابقٌ لهذا التغيير مُسجَّلٌ باسمه (`A-QUEUE-WITH-NO-TERMINAL-STATE-
+        # REPUBLISHES-FOREVER-01`)، وعلاجُه انتقالُ حالةٍ يخصّ عقدَ الترقية لا هذا
+        # الإصلاح.
+        async with conn.transaction():
+            await reclaim_expired(conn, table="model_promotion_history_runtime")
+            promotions = await claim_batch(
+                conn,
+                table="model_promotion_history_runtime",
+                columns=(
+                    "t.id, t.tenant_id, t.promotion_id, t.alias, t.decision, "
+                    "t.target_model_id, t.previous_model_id"
+                ),
+                where="decision='promote'",
+                batch_size=batch_size,
+            )
+
         for row in promotions:
-            await _set_tenant(conn, row["tenant_id"])
-            metadata = await _model_metadata(conn, row["tenant_id"], row["target_model_id"])
+            async with conn.transaction():
+                await _set_tenant(conn, row["tenant_id"])
+                metadata = await _model_metadata(conn, row["tenant_id"], row["target_model_id"])
             action = build_model_promotion_action(
                 decision=str(row["decision"]),
                 target_model_id=row["target_model_id"],
@@ -230,54 +365,83 @@ async def run_model_registry_once(pool: asyncpg.Pool, *, batch_size: int = 25) -
                 serving_enabled=serving_enabled,
                 serving_backend_url=serving_backend_url,
             )
+            owned = True
             if action["action"] == "request_serving_promotion":
-                await conn.execute(
-                    """
-                    INSERT INTO model_serving_aliases_runtime (tenant_id, alias, model_id, previous_model_id, promotion_id, status)
-                    VALUES ($1,$2,$3,$4,$5,'pending_external_ack')
-                    ON CONFLICT (tenant_id, alias) DO UPDATE SET
-                        model_id=EXCLUDED.model_id, previous_model_id=EXCLUDED.previous_model_id,
-                        promotion_id=EXCLUDED.promotion_id, status='pending_external_ack', updated_at=now()
-                    """,
-                    row["tenant_id"],
-                    row["alias"],
-                    row["target_model_id"],
-                    row["previous_model_id"],
-                    row["promotion_id"],
-                )
-                await _publish_nats(
-                    "sahool.model.promotion.requested",
-                    {
-                        "promotion_id": row["promotion_id"],
-                        "alias": row["alias"],
-                        "target_model_id": row["target_model_id"],
-                    },
-                )
+                async with conn.transaction():
+                    await _set_tenant(conn, row["tenant_id"])
+                    await conn.execute(
+                        """
+                        INSERT INTO model_serving_aliases_runtime (tenant_id, alias, model_id, previous_model_id, promotion_id, status)
+                        VALUES ($1,$2,$3,$4,$5,'pending_external_ack')
+                        ON CONFLICT (tenant_id, alias) DO UPDATE SET
+                            model_id=EXCLUDED.model_id, previous_model_id=EXCLUDED.previous_model_id,
+                            promotion_id=EXCLUDED.promotion_id, status='pending_external_ack', updated_at=now()
+                        """,
+                        row["tenant_id"],
+                        row["alias"],
+                        row["target_model_id"],
+                        row["previous_model_id"],
+                        row["promotion_id"],
+                    )
+                    owned = await finalize_claim(
+                        conn,
+                        table="model_promotion_history_runtime",
+                        row_id=row["id"],
+                        claim_token=row["claim_token"],
+                        # لا حالةَ نهائيّةً لهذا الجدول (انظر حدَّ الصدق أعلاه)،
+                        # فالإسنادُ لا يُغيّر عموداً — غرضُه تحريرُ المطالبة بـCAS.
+                        assignments="decision=decision",
+                        params=(),
+                    )
+                if owned:
+                    await _publish_nats(
+                        "sahool.model.promotion.requested",
+                        {
+                            "promotion_id": row["promotion_id"],
+                            "alias": row["alias"],
+                            "target_model_id": row["target_model_id"],
+                        },
+                    )
+            else:
+                async with conn.transaction():
+                    await finalize_claim(
+                        conn,
+                        table="model_promotion_history_runtime",
+                        row_id=row["id"],
+                        claim_token=row["claim_token"],
+                        assignments="decision=decision",
+                        params=(),
+                    )
             processed += 1
 
-        rollbacks = await conn.fetch(
-            """
-            SELECT id, tenant_id, rollback_id, alias, to_model_id
-            FROM model_rollback_history_runtime
-            WHERE status IN ('planned','pending')
-            ORDER BY created_at
-            LIMIT $1
-            FOR UPDATE SKIP LOCKED
-            """,
-            batch_size,
-        )
+        async with conn.transaction():
+            await reclaim_expired(conn, table="model_rollback_history_runtime")
+            rollbacks = await claim_batch(
+                conn,
+                table="model_rollback_history_runtime",
+                columns="t.id, t.tenant_id, t.rollback_id, t.alias, t.to_model_id",
+                where="status IN ('planned','pending')",
+                batch_size=batch_size,
+            )
+
         for row in rollbacks:
-            await _set_tenant(conn, row["tenant_id"])
             action = build_model_rollback_action(
                 rollback_enabled=rollback_enabled,
                 serving_backend_url=serving_backend_url,
                 to_model_id=row["to_model_id"],
             )
-            if action["action"] == "request_serving_rollback":
-                await conn.execute(
-                    "UPDATE model_rollback_history_runtime SET status='queued' WHERE id=$1",
-                    row["id"],
+            requested = action["action"] == "request_serving_rollback"
+            async with conn.transaction():
+                await _set_tenant(conn, row["tenant_id"])
+                owned = await finalize_claim(
+                    conn,
+                    table="model_rollback_history_runtime",
+                    row_id=row["id"],
+                    claim_token=row["claim_token"],
+                    assignments="status=$1",
+                    params=("queued" if requested else "blocked",),
                 )
+            if owned and requested:
                 await _publish_nats(
                     "sahool.model.rollback.requested",
                     {
@@ -285,11 +449,6 @@ async def run_model_registry_once(pool: asyncpg.Pool, *, batch_size: int = 25) -
                         "alias": row["alias"],
                         "to_model_id": row["to_model_id"],
                     },
-                )
-            else:
-                await conn.execute(
-                    "UPDATE model_rollback_history_runtime SET status='blocked' WHERE id=$1",
-                    row["id"],
                 )
             processed += 1
         return processed
@@ -299,38 +458,51 @@ async def run_actuator_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
     physical_enabled = env_bool("PHYSICAL_ACTUATION_ENABLED", False)
     adapter_config = parse_json_env("ACTUATOR_ADAPTER_CONFIG_JSON")
     async with pool.acquire() as conn:
-        rows = await conn.fetch(
-            """
-            SELECT id, tenant_id, field_id, command_id, protocol, target_id, status
-            FROM iot_command_dispatch
-            WHERE status IN ('pending','planned','queued','simulated','adapter_required')
-            ORDER BY created_at
-            LIMIT $1
-            FOR UPDATE SKIP LOCKED
-            """,
-            batch_size,
-        )
+        async with conn.transaction():
+            await reclaim_expired(conn, table="iot_command_dispatch")
+            rows = await claim_batch(
+                conn,
+                table="iot_command_dispatch",
+                columns=(
+                    "t.id, t.tenant_id, t.field_id, t.command_id, t.protocol, t.target_id, t.status"
+                ),
+                where="status IN ('pending','planned','queued','simulated','adapter_required')",
+                batch_size=batch_size,
+            )
+
         for row in rows:
-            await _set_tenant(conn, row["tenant_id"])
             action = build_actuator_worker_action(
                 physical_enabled=physical_enabled,
                 protocol=str(row["protocol"]),
                 target_id=str(row["target_id"]),
                 adapter_config=adapter_config,
             )
-            await conn.execute(
-                """
-                UPDATE iot_command_dispatch
-                SET status=$2, physical_effect=$3, reason=$4, adapter_receipt=$5::jsonb, updated_at=now()
-                WHERE id=$1
-                """,
-                row["id"],
-                action["status"],
-                bool(action["physical_effect"]),
-                action.get("reason"),
-                _json(action.get("receipt", {})),
-            )
-            if action["action"] == "request_adapter_dispatch":
+            # **الإنهاءُ قبل النشر عمداً** — والترتيبُ هنا قرارُ سلامةٍ لا أسلوب:
+            # لو نُشِر أوّلاً ثمّ سقط الإنهاء، لعادت الإجارةُ المنتهيةُ بالصفّ إلى
+            # البِركة فيُنشَر **طلبُ إرسالٍ فيزيائيٍّ ثانٍ للأمر نفسه**. وبهذا
+            # الترتيب يكون أسوأُ ما يقع فقدَ طلبٍ — وفقدُ طلبٍ أهونُ من تكراره
+            # حين يكون الطلبُ حركةَ صمّامٍ أو مضخّة (fail-closed).
+            async with conn.transaction():
+                await _set_tenant(conn, row["tenant_id"])
+                owned = await finalize_claim(
+                    conn,
+                    table="iot_command_dispatch",
+                    row_id=row["id"],
+                    claim_token=row["claim_token"],
+                    assignments=(
+                        "status=$1, physical_effect=$2, reason=$3, "
+                        "adapter_receipt=$4::jsonb, updated_at=now()"
+                    ),
+                    params=(
+                        action["status"],
+                        bool(action["physical_effect"]),
+                        action.get("reason"),
+                        _json(action.get("receipt", {})),
+                    ),
+                )
+            # CAS بوّابةٌ تسبق النشر: إن لم يكن الصفُّ لنا فالعملُ لغيرنا، ولا
+            # نُطلِق أثراً فيزيائيّاً باسمِ مطالبةٍ انتهت.
+            if owned and action["action"] == "request_adapter_dispatch":
                 await _publish_nats(
                     "sahool.actuator.dispatch.requested",
                     {

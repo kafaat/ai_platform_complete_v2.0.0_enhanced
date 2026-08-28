@@ -247,6 +247,20 @@ def test_the_live_authorization_is_spent_and_no_longer_grants():
 
     والصحيح بعد هبوط الرقعة: لا شيء يُمَسّ، فلا إذن يُطلَب؛ ومن أراد إعادة مسِّهما
     يحتاج تفويضاً **جديداً**.
+
+    **ونُزِع من هنا تأكيدٌ كان يُثبِّت لقطةً تاريخيّةً بوصفها ثابتاً أمنيّاً:**
+    ``stale_authorization_errors(adjs, set(), blobs) == []`` — يُمرَّر فيه
+    ``touched=set()`` على الشجرة الحيّة، فيقرأ **كلّ** تفويضٍ `ISSUED` بايتاتُه
+    حاضرةٌ «مُستهلَكاً لم يُختَم». وذلك مع ``test_..._matches_the_tree_it_authorises``
+    (الذي يشترط أن تكون بايتاتُ `ISSUED` **حاضرةً**) يُنتج تناقضاً:
+    ``ISSUED ⇒ بايتاتٌ حاضرة ⇒ يُرصَد بائتاً`` — أي أنّ الحالة `ISSUED` تصير
+    **مستحيلةً في أيّ شجرة**، بينما السياسة تُعرِّفها بوصفها آليّةَ التفويض المقيَّد
+    نفسَها (`CLOSED → تفويضٌ مقيَّد → ISSUED → استعمالٌ واحد → CONSUMED`).
+
+    والفرقُ مقيس: بالمسّ الحقيقيّ (``touched`` = مسارا التفويض) يُرجِع الحارسُ
+    **صفرَ أخطاء** — فالخللُ في ``set()`` المُصمَتة لا في الآليّة. وقد كان التأكيدُ
+    صادقاً حين كُتِب لأنّ الشجرة لم تكن تحمل إلّا سجلّاً `CONSUMED` واحداً، فثُبِّتت
+    **حالةُ المستودع** مكانَ **ثابت السياسة**. بديلُه أدناه يقيس العلاقة لا اللقطة.
     """
     policy = guard.load_policy(_POLICY)
     blobs = {p: guard.blob_sha(p) for p in policy["frozen_paths"]}
@@ -257,8 +271,55 @@ def test_the_live_authorization_is_spent_and_no_longer_grants():
     assert errors, "مسُّ مسارٍ مجمَّد مرّ بلا إذنٍ صالح"
     assert any("CONSUMED" in e for e in errors), errors
 
-    # ولا شيء بائتٌ في الشجرة: كلّ تفويضٍ هبطت بايتاتُه صار مختوماً.
-    assert guard.stale_authorization_errors(adjs, set(), blobs) == []
+
+def test_every_live_record_is_consistent_across_state_bytes_scope_and_lifecycle():
+    """ثابتُ الشجرة الحيّة: **العلاقة** بين الحالة والبايتات والنطاق ودورة الحياة.
+
+    يحلّ محلّ ``issued == ∅`` المنزوع أعلاه. والفرق جوهريّ: ذاك يسأل «كم سجلّاً
+    `ISSUED` في الشجرة؟» وهو سؤالٌ عن **تاريخ المستودع**؛ وهذا يسأل «هل كلُّ سجلٍّ
+    متّسقٌ مع حالته؟» وهو سؤالٌ عن **البروتوكول**. فيبقى `ISSUED` ممكناً حين تسمح
+    السياسة، ويصير `CONSUMED` بعد هبوط أثره، بلا أن يمنع الاختبارُ الآليّةَ التي
+    وُضِع ليحرسها.
+
+    **وليس دائريّاً — والمصادر ثلاثةٌ مستقلّة:** التوقّعُ يُشتقّ من
+    ``gate01_policy.json`` (المسارات المجمَّدة · أساسُ المرحلة ٠) ومن **إعلان السجلّ
+    نفسِه** (المكتوب بيد)، ويُقابَلان بـ``git hash-object`` على الشجرة. فلا
+    ``expected = discover_actual_tree()``: لو كُتِب هكذا لصار تحصيلَ حاصلٍ يمرّ على
+    أيّ شجرة. والفشلُ ممكنٌ في كلّ ضلع، وهو ما تُثبته الطفراتُ المسجَّلة.
+    """
+    policy = guard.load_policy(_POLICY)
+    frozen = set(policy["frozen_paths"])
+    baseline = policy["phase0_baseline"]["commit_sha"]
+
+    for adj in guard.load_adjudications(_ADJ_DIR):
+        ident = adj["adjudication_id"]
+        status = adj["status"]
+        assert status in {"ISSUED", "CONSUMED", "REVOKED"}, f"{ident}: حالةٌ خارج المفردات"
+
+        # النطاق ← من السياسة، لا من السجلّ
+        assert set(adj["allowed_paths"]) <= frozen, f"{ident}: يأذن بما ليس مجمَّداً"
+        assert adj["phase0_baseline_ref"]["commit_sha"] == baseline, f"{ident}: أساسٌ مخالف"
+
+        # البايتات ← من الشجرة، مقابلَ إعلان السجلّ
+        for path, declared in adj["authorized_blobs"].items():
+            assert guard.blob_sha(path) == declared, f"{ident}/{path}: بايتاتٌ تخالف المُعلَن"
+
+        # دورةُ الحياة: الختمُ يلزم المُستهلَك ويُمنَع على الحيّ
+        merge_sha = (adj.get("consumption") or {}).get("merge_sha")
+        if status == "CONSUMED":
+            assert merge_sha, f"{ident}: مُستهلَكٌ بلا `merge_sha` — أثرٌ لا يُراجَع"
+        else:
+            assert not merge_sha, f"{ident}: حالته {status} ويحمل `merge_sha` — تناقضٌ"
+
+        # وسجلٌّ حيٌّ يجب أن يكون **صالحاً للاستعمال** على نطاقه، لا حبراً مهجوراً
+        if status == "ISSUED":
+            errs, used = guard.evaluate(
+                sorted(adj["allowed_paths"]),
+                policy,
+                [adj],
+                {p: guard.blob_sha(p) for p in frozen},
+            )
+            assert used == ident and not errs, f"{ident}: `ISSUED` ولا يمنح نطاقَه: {errs}"
 
 
 # ── دورة حياة التفويض (GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01) ──────────────
