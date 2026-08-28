@@ -1320,6 +1320,39 @@
         }
       ],
       "test": "tests_v9/test_worker_claim_lease.py"
+    },
+    "docs/architecture/gates/adjudications/GATE01-ADJ-2026-08-13-001.json": {
+      "$why_the_consumed_record_and_not_the_live_one_ar": "الطفراتُ تُزرَع في السجلّ **المختوم** لا في التفويض الحيّ، والسببُ مقيسٌ لا تفضيليّ: التفويضُ الحيّ يُختَم `CONSUMED` بـ`merge_sha` فورَ الدمج — فأيُّ `find` يُثبَّت على نصّه اليوم يصير بائتاً غداً، وتصير الطفرةُ صمتاً لا تكذيباً (`STABLE_WRONG_TEST`). والسجلُّ المختوم لا يتغيّر بعد ختمه، فيصلح مرساةً دائمة. وذراعان من ستّةٍ تخصّان `ISSUED` وحدَه (حملُ `merge_sha` وهو حيّ · و«حيٌّ لا يمنح نطاقَه») **غيرُ مسجَّلتين عمداً** للسبب نفسه، وقد كُذِّبتا يدويّاً وسُجِّل ذلك في رسالة الالتزام.",
+      "mutations": [
+        {
+          "expect": "test_every_live_record_is_consistent_across_state_bytes_scope_and_lifecycle",
+          "test": "tests_v9/test_gate01_frozen_path_guard.py",
+          "find": "    \"services/actuator-service/routers/commands.py\"\n  ],",
+          "replace": "    \"services/actuator-service/routers/commands.py\",\n    \"README.md\"\n  ],",
+          "why": "نطاقٌ يأذن بما ليس مجمَّداً. لولا فحصُ `allowed_paths ⊆ frozen_paths` لصار السجلّ يوسّع نفسَه: يكفي إضافةُ سطرٍ ليصير الإذنُ أوسعَ من البوّابة."
+        },
+        {
+          "expect": "test_every_live_record_is_consistent_across_state_bytes_scope_and_lifecycle",
+          "test": "tests_v9/test_gate01_frozen_path_guard.py",
+          "find": "\"commit_sha\": \"6ba0bef56f47926ce657515fe1717019522f868b\",\n    \"must_match_policy\"",
+          "replace": "\"commit_sha\": \"0000000000000000000000000000000000000000\",\n    \"must_match_policy\"",
+          "why": "أساسُ المرحلة ٠ مخالفٌ لِما جُمِّد في السياسة. تفويضٌ يشير إلى أساسٍ آخر لا يُقرأ إذناً بل تناقضاً — والفحصُ يأخذ التوقّعَ من `gate01_policy.json` لا من السجلّ، فلا يكون تحصيلَ حاصل."
+        },
+        {
+          "expect": "test_every_live_record_is_consistent_across_state_bytes_scope_and_lifecycle",
+          "test": "tests_v9/test_gate01_frozen_path_guard.py",
+          "find": "\"merge_sha\": \"09dbaeb75b77a7f0137b2df5d6ad4b5dfe214b47\",",
+          "replace": "\"$merge_sha_removed_by_mutation\": \"\",",
+          "why": "مُستهلَكٌ بلا `merge_sha`. دورةُ الحياة تصير غيرَ قابلةٍ للمراجعة: يُقال «استُهلِك» ولا يُقال أين — وهو أثرٌ لا يُراجَع، وصنفُ `GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01` نفسُه."
+        },
+        {
+          "expect": "test_every_live_record_is_consistent_across_state_bytes_scope_and_lifecycle",
+          "test": "tests_v9/test_gate01_frozen_path_guard.py",
+          "find": "\"services/actuator-service/actuator_runtime.py\": \"3583eb102d39a047bc5b8fd2de918b19307ed120\"",
+          "replace": "\"services/actuator-service/actuator_runtime.py\": \"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"",
+          "why": "البايتاتُ المُعلَنة تخالف الشجرة ⇒ ما دخل ليس ما أُذِن به. المقابلةُ بين إعلانِ السجلّ و`git hash-object` على الشجرة — مصدران مستقلّان، فالفشلُ ممكنٌ فعلاً لا صوريّاً."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
