@@ -1353,6 +1353,32 @@
           "why": "البايتاتُ المُعلَنة تخالف الشجرة ⇒ ما دخل ليس ما أُذِن به. المقابلةُ بين إعلانِ السجلّ و`git hash-object` على الشجرة — مصدران مستقلّان، فالفشلُ ممكنٌ فعلاً لا صوريّاً."
         }
       ]
+    },
+    "docs/architecture/gates/adjudications/GATE01-ADJ-2026-08-28-001.json": {
+      "$why_ar": "سجلٌّ **مختوم** (`CONSUMED` بـ`merge_sha`) فلا يتغيّر بعد ختمه — يصلح مرساةَ طفرات. والمقيسُ هنا **هويّةُ الاستهلاك**: ما يبقى للمراجعة بعد أن يُغلَق الباب.",
+      "mutations": [
+        {
+          "expect": "test_a_consumed_record_carries_a_wellformed_merge_identity",
+          "test": "tests_v9/test_gate01_frozen_path_guard.py",
+          "find": "\"merge_sha\": \"990004872acf66bd6c8324b49dd12ae262edcdbe\"",
+          "replace": "\"merge_sha\": \"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz\"",
+          "why": "أربعون محرفاً غيرَ ستّ‑عشريّة. **والثغرةُ مقيسةٌ لا مفترَضة:** الاختبارُ القائم `..._names_the_merge_that_consumed_it` يؤكّد الطولَ والنوعَ فقط، فيمرّ على هذا بالضبط (شُغِّل عليه فأعطى `1 passed`). فيُقرَأ السجلُّ «استُهلِك في الدمج الفلانيّ» وهو لا يشير إلى شيء."
+        },
+        {
+          "expect": "test_a_consumed_record_carries_a_wellformed_merge_identity",
+          "test": "tests_v9/test_gate01_frozen_path_guard.py",
+          "find": "\"consumed_on\": \"2026-08-28\"",
+          "replace": "\"$consumed_on_removed_by_mutation\": \"\"",
+          "why": "«متى استُهلِك» سؤالُ تدقيقٍ لا زينة: بلا تاريخٍ لا يُعرَف أكان الختمُ عقب الدمج أم بعد شهرٍ من إذنٍ ظلّ حيّاً."
+        },
+        {
+          "expect": "test_a_consumed_records_merge_actually_carries_the_bytes_it_authorised",
+          "test": "tests_v9/test_gate01_frozen_path_guard.py",
+          "find": "\"merge_sha\": \"990004872acf66bd6c8324b49dd12ae262edcdbe\"",
+          "replace": "\"merge_sha\": \"90df6145e8314b1d3e9c38f1c3205927c667d075\"",
+          "why": "بصمةٌ صحيحةُ الشكل لالتزامٍ **حقيقيٍّ آخر** (أساسُ الفرع قبل الدمج). تمرّ من كلّ فحوص الشكل، ويكشفها وحدَه مقابلةُ الهويّة بالتاريخ: التزامُ الأساس لا يحمل البايتات المأذونة. وهذا هو صنفُ «ختمٌ يشير إلى دمجٍ آخر»."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

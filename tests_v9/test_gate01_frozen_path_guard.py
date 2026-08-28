@@ -19,6 +19,8 @@ from __future__ import annotations
 import copy
 import importlib.util
 import json
+import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -443,4 +445,81 @@ def test_a_consumed_record_still_describes_what_actually_landed():
         for path, declared in adj["authorized_blobs"].items():
             assert guard.blob_sha(path) == declared, (
                 f"{adj['adjudication_id']}/{path}: ما دخل يخالف ما أُذِن به"
+            )
+
+
+def _commit_is_present(sha: str) -> bool:
+    """هل يملك هذا الاستنساخُ الالتزامَ؟ الاستنساخُ الضحل قد لا يملكه."""
+    return (
+        subprocess.run(
+            ["git", "-C", str(_ROOT), "cat-file", "-e", f"{sha}^{{commit}}"],
+            capture_output=True,
+            check=False,
+        ).returncode
+        == 0
+    )
+
+
+def test_a_consumed_record_carries_a_wellformed_merge_identity():
+    """`len(sha) == 40` وحدَه يقبل أربعين حرفاً أيّاً كانت — و`"z"*40` منها.
+
+    **الثغرةُ مقيسةٌ في الاختبار القائم لا مفترَضة:**
+    ``test_every_consumed_authorization_names_the_merge_that_consumed_it`` يؤكّد
+    الطولَ والنوعَ فقط. فسجلٌّ يُختَم بـSHA مُختلَقٍ غيرِ ستّ‑عشريّ يمرّ، ويُقرَأ
+    «استُهلِك في الدمج الفلانيّ» وهو لا يشير إلى شيء. وهويّةُ الاستهلاك هي كلُّ ما
+    يبقى للمراجعة بعد أن يُغلَق البابُ — فضعفُها ضعفُ السجلّ كلِّه.
+    """
+    for adj in guard.load_adjudications(_ADJ_DIR):
+        if adj.get("status") != "CONSUMED":
+            continue
+        ident = adj["adjudication_id"]
+        consumption = adj.get("consumption") or {}
+        merge_sha = consumption.get("merge_sha", "")
+        assert re.fullmatch(r"[0-9a-f]{40}", merge_sha), (
+            f"{ident}: `merge_sha` ليس بصمةً ستّ‑عشريّةً صغيرةً من ٤٠ محرفاً: {merge_sha!r}"
+        )
+        assert set(merge_sha) != {"0"}, f"{ident}: `merge_sha` أصفارٌ — حاجبُ مكانٍ لا هويّة"
+        assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(consumption.get("consumed_on", ""))), (
+            f"{ident}: `consumed_on` مفقودٌ أو ليس تاريخاً — متى استُهلِك سؤالُ تدقيقٍ لا زينة"
+        )
+
+
+def test_a_consumed_records_merge_actually_carries_the_bytes_it_authorised():
+    """الهويّةُ تُقابَل بالتاريخ: الالتزامُ المُسمّى يحمل البايتات المأذونة فعلاً.
+
+    **وتعذُّرُ القياس لا يُقرأ قياساً سالباً:** في استنساخٍ ضحل قد يغيب الالتزام،
+    فلا يُقال «مطابق» ولا «مخالف». ولا يُترَك ذلك صمتاً أيضاً — يُؤكَّد أنّ الغياب
+    **مُفسَّرٌ بالضحالة** لا بسجلٍّ يشير إلى لا شيء. فإن كان الاستنساخُ كاملاً
+    والالتزامُ غائباً، فذلك فشلٌ لا تخطٍّ.
+    """
+    shallow = (
+        subprocess.run(
+            ["git", "-C", str(_ROOT), "rev-parse", "--is-shallow-repository"],
+            capture_output=True,
+            text=True,
+            check=False,
+        ).stdout.strip()
+        == "true"
+    )
+    for adj in guard.load_adjudications(_ADJ_DIR):
+        if adj.get("status") != "CONSUMED":
+            continue
+        ident = adj["adjudication_id"]
+        merge_sha = (adj.get("consumption") or {}).get("merge_sha", "")
+        if not _commit_is_present(merge_sha):
+            assert shallow, (
+                f"{ident}: الاستنساخُ كاملٌ والالتزامُ {merge_sha[:8]} غائب — "
+                "هويّةُ استهلاكٍ تشير إلى لا شيء"
+            )
+            continue
+        for path, declared in adj["authorized_blobs"].items():
+            got = subprocess.run(
+                ["git", "-C", str(_ROOT), "rev-parse", f"{merge_sha}:{path}"],
+                capture_output=True,
+                text=True,
+                check=False,
+            ).stdout.strip()
+            assert got == declared, (
+                f"{ident}/{path}: الالتزامُ المُسمّى يحمل {got[:8] or '<لا شيء>'} "
+                f"والمأذونُ {declared[:8]} — الختمُ يشير إلى دمجٍ آخر"
             )
