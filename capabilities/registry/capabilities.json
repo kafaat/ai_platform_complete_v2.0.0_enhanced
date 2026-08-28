@@ -130,7 +130,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 22
+        "tests": 23
       }
     },
     {
@@ -5024,6 +5024,7 @@
         "tests_v9/test_rls_isolation_negative.py",
         "tests_v9/test_rls_role_hardening_v66.py",
         "tests_v9/test_rls_tenant_coverage.py",
+        "tests_v9/test_rls_tenant_isolation_live_pg.py",
         "tests_v9/test_rls_write_isolation_integration.py",
         "tests_v9/test_v197_external_submissions_rls_live.py",
         "tests_v9/test_v9_odoo_rls_hardening_static.py",
@@ -5057,7 +5058,7 @@
           "path": "migrations/v206_rls_final_hardening.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=22, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=23, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
