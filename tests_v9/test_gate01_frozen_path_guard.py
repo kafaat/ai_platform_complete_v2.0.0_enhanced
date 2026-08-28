@@ -497,6 +497,7 @@ def test_a_consumed_records_merge_actually_carries_the_bytes_it_authorised():
             ["git", "-C", str(_ROOT), "rev-parse", "--is-shallow-repository"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
             check=False,
         ).stdout.strip()
         == "true"
@@ -517,6 +518,7 @@ def test_a_consumed_records_merge_actually_carries_the_bytes_it_authorised():
                 ["git", "-C", str(_ROOT), "rev-parse", f"{merge_sha}:{path}"],
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
                 check=False,
             ).stdout.strip()
             assert got == declared, (
