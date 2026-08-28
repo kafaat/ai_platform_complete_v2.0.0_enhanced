@@ -26,14 +26,14 @@
     "migrations/MANIFEST.txt": "f7c7a7e3d0bf38670b7f2e1a49e99110e35ea7be",
     "services/sahool-platform/api/phase_runtime_workers.py": "f4a72fdeb3c66ff20a26e152efb2b7df064cfdfc"
   },
-  "$patch_digest_recipe_ar": "‏sha256 على نصٍّ قانونيّ: أسطرٌ مرتّبة بالمسار، كلٌّ `path\\0blob_sha\\n`. ‏blob_sha هو `git hash-object` للمحتوى — فالربط **بالبايتات** لا بالاسم: «أوافق على هذه البايتات» لا «أوافق على PR رقم ٩٥٤». وتغيُّر محرفٍ واحد يُبطِله. وحُسِبت البصمةُ هنا بدالّة الحارس نفسِها (`canonical_patch_digest`) لا بإعادة تنفيذٍ موازٍ.",
+  "$patch_digest_recipe_ar": "sha256 على نصٍّ قانونيّ: أسطرٌ مرتّبة بالمسار، كلٌّ `path\\0blob_sha\\n`. blob_sha هو `git hash-object` للمحتوى — فالربط **بالبايتات** لا بالاسم: «أوافق على هذه البايتات» لا «أوافق على PR رقم ٩٥٤». وتغيُّر محرفٍ واحد يُبطِله. وحُسِبت البصمةُ هنا بدالّة الحارس نفسِها (`canonical_patch_digest`) لا بإعادة تنفيذٍ موازٍ.",
   "bindings": {
     "require_patch_digest": true,
     "require_paths_subset": true,
     "require_baseline_match": true,
     "require_exact_head_sha": false,
     "observed_head_sha_at_issue": "f18835fe",
-    "$why_head_binding_off_ar": "للسبب المقيس نفسِه الذي وُثِّق في GATE01-ADJ-2026-08-13-001، وقد تكرّر هنا أشدّ: تحرّكت `main` **خمسَ مرّات** أثناء حياة هذه الـPR (‏157a9cb4 ⇒ … ⇒ 3e585d1f ⇒ 90df6145)، وأُعيد أساسُ الفرع مرّتين. فربطُ الرأس كان سيسقط قبل أن يُستهلَك. وبصمةُ البايتات تنجو من إعادة الأساس وتسقط على تغيُّر محرفٍ في المأذون — وهي الضمانةُ المقصودة."
+    "$why_head_binding_off_ar": "للسبب المقيس نفسِه الذي وُثِّق في GATE01-ADJ-2026-08-13-001، وقد تكرّر هنا أشدّ: تحرّكت `main` **خمسَ مرّات** أثناء حياة هذه الـPR (157a9cb4 ⇒ … ⇒ 3e585d1f ⇒ 90df6145)، وأُعيد أساسُ الفرع مرّتين. فربطُ الرأس كان سيسقط قبل أن يُستهلَك. وبصمةُ البايتات تنجو من إعادة الأساس وتسقط على تغيُّر محرفٍ في المأذون — وهي الضمانةُ المقصودة."
   },
   "consumption": {
     "status_values": [
