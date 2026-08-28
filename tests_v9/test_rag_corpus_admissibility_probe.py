@@ -108,28 +108,36 @@ def test_the_root_only_tenant_detector_stays_quiet_on_a_canonical_payload():
 # ── ② إحصاءاتُ BM25 ─────────────────────────────────────────────────────────
 
 
-def test_the_bm25_stat_detector_fires_and_reports_no_content_leak():
-    """الخاصّيّتان معاً: الترتيبُ يتحرّك، **ولا** يظهر محتوى مستأجِرٍ آخر.
+def test_the_bm25_stat_detector_is_quiet_and_still_reports_no_content_leak():
+    """**مرساةٌ قُلِبت حين أُغلِق العطل — لا حُذِفت.**
 
-    وخلطُهما كان سيرفع التصنيف إلى إفشاءِ محتوًى، وهو ادّعاءٌ أوسع من الدليل.
+    كانت تؤكّد أنّ الكاشفَ **يُطلِق**، وهو الصواب ما دام العطلُ قائماً. وقد أُغلِق
+    بـ`corpus_stats` المقصورة على `visible_scope` (`RAG-BM25-CROSS-TENANT-CORPUS-STATS-01`).
+    **والكاشفُ صار كاشفَ انحدار:** إعادةُ الإحصاء العالميّ تُعيد `present=True`.
+
+    وتبقى الخاصّيّةُ الثانية مؤكَّدةً كما كانت: **لا إفشاءَ محتوًى** — وهي التي
+    منعت رفعَ التصنيف إلى خرقِ عزلٍ ادّعاءً أوسعَ من الدليل.
     """
     probe = _probe()
     row = probe.detect_bm25_cross_tenant_stats(probe.load_module())
-    assert row["present"] is True
+    assert row["present"] is False
     assert row["content_leaked_across_tenants"] == []
 
 
-def test_the_bm25_detector_reports_both_directions_of_the_shift():
-    """الانحرافُ ليس اتّجاهاً واحداً: مستنداتٌ تحمل المصطلح تخفض، وطويلةٌ لا تحمله ترفع.
+def test_the_bm25_score_is_stable_in_both_directions_the_drift_used_to_take():
+    """الانحرافُ كان ذا اتّجاهين، وتأكيدُ واحدٍ منهما كان سيُخفي الآخر: مستنداتٌ
+    تحمل المصطلح كانت تخفض عبر `df`، وطويلةٌ لا تحمله ترفع عبر `avg_len`.
 
-    ولا تُثبَّت هنا نِسَبٌ بعينها — تعتمد على نصّ العيّنة، فتثبيتُها ادّعاءُ ثباتٍ
-    لا يملكه النظام.
+    **والثباتُ هنا لا يقوم وحدَه شاهداً** — يبقى صادقاً لو صارت `score` تُعيد
+    صفراً أبداً. فشاهدُ الحركة الموجب في
+    `test_rag_bm25_corpus_scope.py::test_the_scoped_and_the_global_statistics_actually_differ_on_this_sample`.
     """
     probe = _probe()
     row = probe.detect_bm25_cross_tenant_stats(probe.load_module())
     alone = row["score_tenant_a_alone"]
-    assert row["score_after_other_tenant_shares_term"] < alone
-    assert row["score_after_other_tenant_unrelated_long_docs"] > alone
+    assert alone > 0, "درجةٌ صفريّة تُخضِر كلَّ تأكيدِ ثبات"
+    assert row["score_after_other_tenant_shares_term"] == alone
+    assert row["score_after_other_tenant_unrelated_long_docs"] == alone
 
 
 def test_the_bm25_detector_is_quiet_on_a_single_tenant_corpus():

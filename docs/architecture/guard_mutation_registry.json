@@ -177,11 +177,11 @@
           "why": "**أُعيد توجيهُها حين أُغلِق العطل، ولم تُترَك مُعمِيةً غيرَ قابلةٍ للقتل.** كانت تُثبِّت `present: False` لتُثبِت أنّ الكاشفَ لا يعمى. وبعد إغلاق `RAG-LEGACY-DENSE-SPARSE-SCOPE-ASYMMETRY-01` صار `present` **صادقاً** بـ`False` على كلّ حمولة، فلا يستطيع أيُّ اختبارٍ تمييزَ «كاشفٌ يعمل والعطلُ مُغلَق» من «كاشفٌ أُعمِي» — طفرةٌ غيرُ قابلةٍ للقتل تُعلِن تغطيةً لا تملكها (`MUT-REGISTRY-STRANDED-SPECS-01`). فصارت تُصيب النصفَ الآخر من نزاهة الكاشف: **الإنذارَ الكاذب**. تعميةُ `dense_visible` تجعله يُبلِّغ عن العطل على حمولةٍ **مُعالَجة**، وحارسٌ يُنذِر كذباً يُدرَّب القارئُ على تجاهله فيموت وهو أخضر. ويقتلها الاختبارُ بتأكيدَيه معاً (`present is False` و`dense_visible is True`)."
         },
         {
-          "expect": "test_the_bm25_stat_detector_fires_and_reports_no_content_leak",
+          "expect": "test_the_bm25_stat_detector_is_quiet_and_still_reports_no_content_leak",
           "test": "tests_v9/test_rag_corpus_admissibility_probe.py",
-          "find": "        \"present\": score_with_term != score_alone or score_without_term != score_alone,\n",
-          "replace": "        \"present\": False,\n",
-          "why": "تعميةُ كاشف الأثر العابر للمستأجِرين ⇒ يُخفي أخطر المُربِكات في أيّ قياس تكافؤ."
+          "find": "    score_with_term = with_term.score(\"wheat\", \"a1\", tenant_id=\"tenant-a\")\n",
+          "replace": "    score_with_term = score_alone + 1  # mutated: درجةٌ مُختلَقة لا مقيسة\n",
+          "why": "**أُعيد توجيهُها حين أُغلِق العطل، ولم يُحدَّث اسمُها وحدَه.** كانت تُعمي الكاشفَ بـ`present: False` لتُثبِت أنّه يُطلِق. وبعد إغلاق `RAG-BM25-CROSS-TENANT-CORPUS-STATS-01` صار `present` **صادقاً** بـ`False` على كلّ مجموعة، فصارت الطفرةُ غيرَ قابلةٍ للقتل: تحديثُ `expect` إلى الاختبار الجديد كان سيُسجّل تغطيةً لا تملكها (`MUT-REGISTRY-STRANDED-SPECS-01`) — الاختبارُ يؤكّد `present is False` والطفرةُ تُعطيه إيّاه. فصارت تُصيب النصفَ الآخر من نزاهة الكاشف: **الإنذارَ الكاذب**. واستبدالُ درجةٍ مقيسة برقمٍ مُختلَق يُثبِت أنّ المُبلَّغ ناتجُ قياسٍ فعليّ لا ثابتٌ يُصادِف الصواب — ويقتلها الاختبارُ بتأكيدَيه معاً: `present is False` والثباتُ في الاتّجاهين."
         },
         {
           "expect": "test_the_neighbor_detector_fires_and_bounds_the_claim_to_scope_not_tenancy",
@@ -1015,6 +1015,27 @@
           "find": "    if not isinstance(identity, dict) or not identity.get(\"id_set_digest\"):\n",
           "replace": "    if False:\n",
           "why": "D09-E: غيابُ البصمة يعني «لم تُقَس» لا «سليمة». قبولُه يُخضِر الجاهزيّةَ على مجموعةٍ لم يُقَس انحرافُها أصلاً — وهو «يفشل مفتوحاً» بعينه."
+        },
+        {
+          "expect": "test_another_tenants_corpus_never_moves_a_score",
+          "test": "tests_v9/test_rag_bm25_corpus_scope.py",
+          "find": "        for tenant in self.visible_scope(tenant_id):\n",
+          "replace": "        for tenant in set(self._tenant_doc_ids) | set(self._tenant_doc_freq):  # mutated: الإحصاءُ يعود عالميّاً\n",
+          "why": "`RAG-BM25-CROSS-TENANT-CORPUS-STATS-01`: إعادةُ الإحصاء إلى كلّ الدلاء تُعيد العطلَ بحرفه — وثائقُ مستأجِرٍ آخر تحمل المصطلح تخفض الدرجة عبر `df`، وطويلتُه التي لا تحمله ترفعها عبر `avg_len`. والعطلُ من صنفٍ لا يمسكه حارسٌ ساكن: لا اسمَ محظورٌ يظهر ولا مسارَ ينقص، والفرقُ **رقمٌ** لا يُرى إلّا بتشغيل الطرفين."
+        },
+        {
+          "expect": "test_a_document_outside_the_visible_corpus_scores_zero",
+          "test": "tests_v9/test_rag_bm25_corpus_scope.py",
+          "find": "        if chunk is None or chunk.tenant_id not in self.visible_scope(tenant_id):\n",
+          "replace": "        if chunk is None:  # mutated: تُرتَّب وثيقةٌ خارج مجموعة السائل\n",
+          "why": "نزعُ شرط العضويّة يجعل `tf` و`length` تُقرآن من وثيقةٍ بينما `idf` و`avg_len` من مجموعةٍ لا تضمّها — رقمٌ يبدو سليماً ولا معنى له، ووثيقةُ مستأجِرٍ آخر تعود قابلةً للترتيب من خارج `search`."
+        },
+        {
+          "expect": "test_re_ingesting_a_chunk_under_a_new_tenant_moves_its_whole_contribution",
+          "test": "tests_v9/test_rag_bm25_corpus_scope.py",
+          "find": "            self._retract(previous.tenant_id, chunk.chunk_id)\n",
+          "replace": "            self._retract(chunk.tenant_id, chunk.chunk_id)  # mutated: النزعُ من دلوِ الوارد\n",
+          "why": "النزعُ من دلو الحمولة الجديدة بدل الدلو المسجَّل يُبقي مساهمةَ الصفّ في دلو مستأجِرِه القديم أبداً، فيرى مستأجِرٌ في إحصائه وثيقةً غادرته — العطلُ نفسُه بثوبٍ آخر، ولا يُحمِّره أيُّ تأكيدٍ على الدرجة وحدها."
         }
       ]
     },
