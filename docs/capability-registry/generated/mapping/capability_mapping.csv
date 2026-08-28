@@ -8,7 +8,7 @@ DEC-006,decision,Execution receipt,True,3,2,0,0,8,0,0,3,0
 DEC-007,decision,Outcome recording,True,6,3,8,4,3,1,0,4,0
 DEC-008,decision,Learning attribution,True,5,5,94,14,4,0,0,2,1
 DEC-009,decision,Model calibration,True,1,0,0,2,0,0,0,0,0
-DEC-010,decision,Model lifecycle and activation,True,5,4,89,42,7,0,0,5,0
+DEC-010,decision,Model lifecycle and activation,True,5,4,89,49,7,0,0,5,0
 FM-001,farm_management,Tenant and organization management,True,6,15,2,20,4,1,0,25,0
 FM-002,farm_management,Farm registry,True,7,33,44,98,22,14,2,25,0
 FM-003,farm_management,Field registry and boundaries,True,7,13,56,5,61,2,2,12,1
@@ -22,7 +22,7 @@ GIS-002,gis,Map layers,True,4,2,3,0,0,2,0,2,0
 GIS-003,gis,Terrain and DEM,True,6,27,100,10,51,12,0,38,0
 GIS-004,gis,Spatial analytics,True,3,1,0,1,0,0,0,1,0
 INT-001,farm_management,Public API and SDK,False,0,0,0,0,0,0,0,0,0
-INT-002,farm_management,Event bus integration,True,5,6,15,2,66,0,0,8,0
+INT-002,farm_management,Event bus integration,True,5,6,15,2,67,0,0,9,0
 INT-003,irrigation,IoT and sensors,True,1,0,0,0,0,0,0,1,0
 INT-004,precision,External machinery integrations,True,5,5,9,8,11,0,0,3,0
 IRR-001,irrigation,Water source registry,True,2,0,0,8,0,0,0,1,0
