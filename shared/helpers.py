@@ -5,7 +5,7 @@ v8 foundation + v9 security improvements:
   - init_db, get_pool, close_pool
   - init_redis, get_redis, close_redis
   - init_nats, get_nats, close_nats
-  - enforce_tenant, query_with_tenant, execute_with_tenant (FIXED: no SQL injection)
+  - tenant_context, query_with_tenant, execute_with_tenant (FIXED: no SQL injection)
   - service_lifespan, add_probes, setup_prometheus
   - cached, publish_event, dispatch, wrapped_send, get_data
   - validate_role (Literal), check_rate_limit, create_app
@@ -171,17 +171,27 @@ def _validate_tenant_id(tenant_id: str) -> str:
 
 @asynccontextmanager
 async def tenant_context(conn: asyncpg.Connection, tenant_id: str):
+    """يضبط مستأجرَ الجلسة لمدّة الكتلة — **داخل معاملةٍ صريحة**.
+
+    `set_config(..., true)` تعني «محلّيٌّ للمعاملة». وبلا معاملةٍ محيطة يُلغى الضبطُ
+    فورَ انتهاء العبارة، فيعمل ما بعده بلا مستأجرٍ أصلاً. وذلك مقيسٌ لا مُستنتَج —
+    على PostgreSQL 16 داخل هذه الكتلة بعينها:
+
+        الصياغةُ السابقة  ⇒ current_setting('app.current_tenant') = ''
+        هذه الصياغة       ⇒ current_setting('app.current_tenant') = 'tenant-A'
+
+    وأثرُه ليس تجميليّاً: `query_with_tenant` و`execute_with_tenant` تُنفّذان
+    استعلامَهما **بعد** ضياع الضبط، فكانتا تعملان بلا مستأجر.
+
+    **ولمَ معاملةٌ لا `is_local=false`:** الضبطُ على مستوى الجلسة يبقى على الاتّصال
+    بعد انتهاء الكتلة، وفي بِركة اتّصالاتٍ يرثه المستعيرُ التالي — فيصير تسريباً
+    عابرَ مستأجرين أسوأَ من العطل الأصليّ. والمعاملةُ تُعيد الضبطَ بنهايتها حتماً،
+    فلا حاجةَ إلى استرجاعٍ صريحٍ في `finally` (مقيس: القيمةُ بعد الخروج `''`).
+    """
     safe = _validate_tenant_id(tenant_id)
-    await conn.execute("SELECT set_config('app.current_tenant', $1, true)", safe)
-    try:
+    async with conn.transaction():
+        await conn.execute("SELECT set_config('app.current_tenant', $1, true)", safe)
         yield conn
-    finally:
-        await conn.execute("SELECT set_config('app.current_tenant', '', true)")
-
-
-async def enforce_tenant(conn: asyncpg.Connection, tenant_id: str):
-    safe = _validate_tenant_id(tenant_id)
-    await conn.execute("SELECT set_config('app.current_tenant', $1, true)", safe)
 
 
 async def require_tenant(request: Request) -> str:

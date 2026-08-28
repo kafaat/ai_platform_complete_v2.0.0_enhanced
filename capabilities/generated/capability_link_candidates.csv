@@ -314,6 +314,7 @@ FM-001,test,tests_v9/test_rls_tenant_coverage.py,3,applied
 FM-001,test,tests_v9/test_service_tenant_assertion.py,3,applied
 FM-001,test,tests_v9/test_soil_field_tenant_authz.py,3,applied
 FM-001,test,tests_v9/test_tenant_ai_policy_store_v52.py,3,applied
+FM-001,test,tests_v9/test_tenant_context_is_pinned_by_a_transaction.py,3,applied
 FM-001,test,tests_v9/test_tenant_guc_scope_guard.py,3,applied
 FM-001,test,tests_v9/test_tenant_provisioning.py,3,applied
 FM-001,test,tests_v9/test_tenant_query_audit.py,3,applied

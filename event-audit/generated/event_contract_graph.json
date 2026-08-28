@@ -172,7 +172,7 @@
       "dynamic_expr": "subject",
       "file": "shared/helpers.py",
       "kind": "producer",
-      "line": 319,
+      "line": 329,
       "queue": null,
       "subject": null
     }

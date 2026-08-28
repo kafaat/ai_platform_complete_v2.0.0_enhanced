@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5210,
+    "files_scanned": 5211,
     "files_by_kind": {
       "backend": 1204,
       "database": 274,
       "governance": 60,
       "mobile": 51,
       "other": 1427,
-      "tests": 1737,
+      "tests": 1738,
       "web": 457
     },
     "unmapped_artifacts": 2125,
@@ -3656,6 +3656,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_tenant_context_is_pinned_by_a_transaction.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "tests_v9/test_tenant_guc_scope_guard.py",
           "score": 14,
           "signals": [
@@ -3790,7 +3798,7 @@
         "events": 4,
         "web": 1,
         "mobile": 0,
-        "tests": 24,
+        "tests": 25,
         "governance": 0,
         "other_evidence": 10
       },
@@ -11147,19 +11155,19 @@
           "score": 9
         },
         {
-          "value": "/health @ shared/helpers.py:260",
+          "value": "/health @ shared/helpers.py:270",
           "score": 9
         },
         {
-          "value": "/healthz @ shared/helpers.py:259",
+          "value": "/healthz @ shared/helpers.py:269",
           "score": 9
         },
         {
-          "value": "/metrics @ shared/helpers.py:279",
+          "value": "/metrics @ shared/helpers.py:289",
           "score": 9
         },
         {
-          "value": "/readyz @ shared/helpers.py:264",
+          "value": "/readyz @ shared/helpers.py:274",
           "score": 9
         }
       ],
@@ -11419,11 +11427,11 @@
           "score": 9
         },
         {
-          "value": "sahool.cache @ shared/helpers.py:369",
+          "value": "sahool.cache @ shared/helpers.py:379",
           "score": 9
         },
         {
-          "value": "sahool.cache @ shared/helpers.py:374",
+          "value": "sahool.cache @ shared/helpers.py:384",
           "score": 9
         },
         {
