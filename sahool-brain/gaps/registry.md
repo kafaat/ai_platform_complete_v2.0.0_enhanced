@@ -5502,7 +5502,7 @@ scripts/ci/capability_mapping_engine.py:270      ["git","ls-files","-z"]
 
 ## AN-ABSTRACTION-THAT-HIDES-THE-TABLE-SHRINKS-A-BLOCKING-RATCHET-01 — تجريدٌ يُعمي الجردَ فيهبط الأساس (فُتحت 2026-08-28 · **open** · **P0 حوكميّ**)
 
-- **المصدر:** `services/sahool-platform/api/phase_runtime_workers.py:78,124,148,462-489` (‏`claim_batch` · `finalize_claim` · `reclaim_expired`) · `docs/architecture/db_writer_ownership_baseline.json` · `database-audit/generated/database_contract_graph.json` · الدمج `99000487` (#954).
+- **المصدر:** `services/sahool-platform/api/phase_runtime_workers.py:78,124,148,462-489` (`claim_batch` · `finalize_claim` · `reclaim_expired`) · `docs/architecture/db_writer_ownership_baseline.json` · `database-audit/generated/database_contract_graph.json` · الدمج `99000487` (#954).
 - **سؤالُ المالك الجنائيّ:** أهبطت الحوافُّ لأنّ الكودَ كفّ عن العلاقة، أم لأنّ الماسحَ كفّ عن رؤيتها؟ **والجوابُ المقيس: الثاني.**
 - **المقيس — الكودُ لا يزال يمسّها، وأكثرَ من قبل:**
   ```
