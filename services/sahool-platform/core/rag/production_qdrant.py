@@ -660,6 +660,28 @@ class HttpEmbeddingProvider:
         raise ValueError("Embedding response missing embedding vector")
 
 
+def matches_scope_filters(chunk: KnowledgeChunk, filters: dict[str, Any] | None) -> bool:
+    """هل يجتاز المقطعُ مرشِّحاتِ النطاق؟ — **تعريفٌ واحد يُشتقّ منه كلُّ من يرشّح**.
+
+    ``RAG-NEIGHBOR-FILTER-SCOPE-BYPASS-01``: كان هذا الشرط مكتوباً داخل
+    ``BM25Index.search`` وحدَه، و``_expand_neighbors`` لا يعرفه أصلاً — فيدخل الجارُ
+    بالمستند والترتيب **بلا نطاق**، ويُعيد استعلامُ ``field_id=F1`` مقطعاً من ``F2``.
+
+    **ووضعُ نسخةٍ ثانية في موضع الجيران كان يُصلِح الحادثة ويُبقي الصنف:** شرطانِ
+    متطابقانِ يُكتَبان مرّتين ينحرفان عند أوّل تعديلٍ لأحدهما، ولا يُحمِّر ذلك شيئاً.
+    وهو الدرسُ المقيس في ``RAG-BM25-CROSS-TENANT-CORPUS-STATS-01``: مجموعةٌ واحدة
+    يُشتقّ منها الطرفان، لا شرطان يتّفقان اليوم.
+
+    **و``None`` ليست مُرشِّحاً:** مفتاحٌ قيمتُه ``None`` يعني «لا تُقيّد بهذا البُعد»،
+    فلا يُقصي مقطعاً يفتقد المفتاح — وهي دلالةٌ قائمة يحفظها هذا الاستخراج بحرفها.
+    """
+    if not filters:
+        return True
+    return not any(
+        value is not None and chunk.metadata.get(key) != value for key, value in filters.items()
+    )
+
+
 class BM25Index:
     """فهرسٌ متناثر **إحصاءاتُه مقصورةٌ على المجموعة المرئيّة للسائل**.
 
@@ -840,10 +862,7 @@ class BM25Index:
         for cid, chunk in self.docs.items():
             if chunk.tenant_id not in self.visible_scope(tenant_id):
                 continue
-            if any(
-                value is not None and chunk.metadata.get(key) != value
-                for key, value in filters.items()
-            ):
+            if not matches_scope_filters(chunk, filters):
                 continue
             s = self.score(query, cid, tenant_id=tenant_id)
             if s > 0:
@@ -1205,25 +1224,43 @@ class HybridQdrantRetriever:
             fused_score = 0.7 * dense + 0.3 * sparse
             fused.append(RetrievedAnnotation(chunk, dense, sparse, fused_score))
         expanded = self._expand_neighbors(
-            sorted(fused, key=lambda r: r.fused_score, reverse=True)[:top_k_initial]
+            sorted(fused, key=lambda r: r.fused_score, reverse=True)[:top_k_initial],
+            filters=filters,
         )
         reranked = self._rerank(query, expanded)
         return reranked[:final_k]
 
-    def _expand_neighbors(self, hits: list[RetrievedAnnotation]) -> list[RetrievedAnnotation]:
+    def _expand_neighbors(
+        self, hits: list[RetrievedAnnotation], *, filters: dict[str, Any] | None = None
+    ) -> list[RetrievedAnnotation]:
+        """يُدخِل الجارَ المتاخم — **بعد إعادة تطبيق مرشِّحات النطاق عليه**.
+
+        ``RAG-NEIGHBOR-FILTER-SCOPE-BYPASS-01``: كان الجارُ يدخل بالمستند والترتيب
+        وحدَهما، فيُعيد استعلامُ ``field_id=F1`` مقطعاً من ``F2``. والمرشِّحُ يُطبَّق
+        على الكثيف والمتناثر ثمّ **يُتجاوَز في آخر خطوةٍ تُضيف صفوفاً**.
+
+        **وحدُّه مقيسٌ ولا يُوسَّع فوقه:** ``by_doc_idx`` مفتاحُه يحمل ``tenant_id``،
+        **فعزلُ المستأجِر كان محفوظاً ولا يزال**. المتجاوَزُ مرشِّحاتُ النطاق وحدها
+        — عطلُ دقّةٍ لا خرقُ عزل، وتصنيفُه خرقاً كان سيرفعه فوق أولويّته.
+
+        **و``filters`` كلمةٌ مفتاحيّةٌ بلا افتراضٍ صامت:** الافتراضيُّ ``None`` يعني
+        «بلا تقييد» وهو الصواب لمن يستدعيه بلا نطاق (المِسبار، والاختبارات)، بينما
+        ``retrieve`` يُمرِّر نطاقَه صراحةً — فلا يُخفي التوقيعُ أنّ للنطاق معنًى هنا.
+        """
         out = list(hits)
         seen = {h.chunk.chunk_id for h in out}
         by_doc_idx = {(c.tenant_id, c.document_id, c.chunk_index): c for c in self._chunks.values()}
         for hit in hits:
             for idx in (hit.chunk.chunk_index - 1, hit.chunk.chunk_index + 1):
                 neighbor = by_doc_idx.get((hit.chunk.tenant_id, hit.chunk.document_id, idx))
-                if neighbor and neighbor.chunk_id not in seen:
-                    seen.add(neighbor.chunk_id)
-                    out.append(
-                        RetrievedAnnotation(
-                            neighbor, 0.0, 0.0, hit.fused_score * 0.65, role="neighbor"
-                        )
-                    )
+                if neighbor is None or neighbor.chunk_id in seen:
+                    continue
+                if not matches_scope_filters(neighbor, filters):
+                    continue
+                seen.add(neighbor.chunk_id)
+                out.append(
+                    RetrievedAnnotation(neighbor, 0.0, 0.0, hit.fused_score * 0.65, role="neighbor")
+                )
         return out
 
     def _rerank(self, query: str, rows: list[RetrievedAnnotation]) -> list[RetrievedAnnotation]:

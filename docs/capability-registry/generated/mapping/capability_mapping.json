@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5220,
+    "files_scanned": 5221,
     "files_by_kind": {
       "backend": 1204,
       "database": 275,
       "governance": 60,
       "mobile": 51,
       "other": 1429,
-      "tests": 1744,
+      "tests": 1745,
       "web": 457
     },
-    "unmapped_artifacts": 2128,
+    "unmapped_artifacts": 2129,
     "ambiguous_artifacts": 417
   },
   "capabilities": [
@@ -43023,6 +43023,10 @@
     },
     {
       "path": "tests_v9/test_rag_logical_identity_migration_plan.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_rag_neighbor_scope_filters.py",
       "kind": "tests"
     },
     {
