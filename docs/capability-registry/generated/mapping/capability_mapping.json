@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5217,
+    "files_scanned": 5219,
     "files_by_kind": {
       "backend": 1204,
       "database": 275,
       "governance": 60,
       "mobile": 51,
-      "other": 1428,
-      "tests": 1742,
+      "other": 1429,
+      "tests": 1743,
       "web": 457
     },
     "unmapped_artifacts": 2127,
-    "ambiguous_artifacts": 416
+    "ambiguous_artifacts": 417
   },
   "capabilities": [
     {
@@ -601,7 +601,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:577",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:587",
           "score": 12
         },
         {
@@ -2308,7 +2308,7 @@
           "score": 28
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:577",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:587",
           "score": 12
         },
         {
@@ -3519,6 +3519,10 @@
           "score": 14
         },
         {
+          "value": "v161_soil_p1_products.sql @ tests_v9/test_tenant_guc_name_convergence_guard.py:69",
+          "score": 14
+        },
+        {
           "value": "v88_field_owner_function.sql @ tests_v9/test_raster_field_tenant_authz.py:277",
           "score": 14
         }
@@ -3696,6 +3700,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_tenant_guc_name_convergence_guard.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "tests_v9/test_tenant_guc_scope_guard.py",
           "score": 14,
           "signals": [
@@ -3771,6 +3783,14 @@
           ]
         },
         {
+          "path": "scripts/ci/tenant_guc_name_convergence_guard.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "scripts/ci/tenant_guc_scope_guard.py",
           "score": 14,
           "signals": [
@@ -3827,12 +3847,12 @@
         "backend": 15,
         "routes": 2,
         "database": 20,
-        "events": 4,
+        "events": 5,
         "web": 1,
         "mobile": 0,
-        "tests": 25,
+        "tests": 26,
         "governance": 0,
-        "other_evidence": 10
+        "other_evidence": 11
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -14513,7 +14533,7 @@
           "score": 16
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:577",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:587",
           "score": 12
         }
       ],
@@ -24254,6 +24274,10 @@
           "score": 12
         },
         {
+          "value": "v161_soil_p1_products.sql @ tests_v9/test_tenant_guc_name_convergence_guard.py:69",
+          "score": 12
+        },
+        {
           "value": "v74_weather_intelligence.sql @ tests_v9/test_weather_intelligence_migration.py:17",
           "score": 12
         },
@@ -24654,6 +24678,15 @@
           "signals": [
             "content:rls",
             "content:row level security",
+            "content:tenant isolation"
+          ]
+        },
+        {
+          "path": "tests_v9/test_tenant_guc_name_convergence_guard.py",
+          "score": 12,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls",
             "content:tenant isolation"
           ]
         },
@@ -25476,10 +25509,10 @@
         "backend": 13,
         "routes": 29,
         "database": 100,
-        "events": 45,
+        "events": 46,
         "web": 0,
         "mobile": 0,
-        "tests": 62,
+        "tests": 63,
         "governance": 0,
         "other_evidence": 70
       },
@@ -27704,7 +27737,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:577",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:587",
           "score": 12
         },
         {
@@ -53775,6 +53808,29 @@
           "capability_id": "SEC-001",
           "score": 9,
           "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests_v9/test_tenant_guc_name_convergence_guard.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "FM-001",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 12,
+          "signals": [
+            "content:Tenant RLS",
             "content:rls",
             "content:tenant isolation"
           ]

@@ -3676,6 +3676,30 @@
         }
       ],
       "test": "tests_v9/test_db_writer_ownership_guard.py"
+    },
+    "tenant_guc_name_convergence_guard.py": {
+      "$why_ar": "`TENANT-GUC-NAME-DIVERGES-ACROSS-POLICY-FAMILIES-01`: ثلاثةُ أسماءٍ لمُتغيّر المستأجِر في سياسات RLS، **وشكلُ فشلها صامت** — اسمٌ خاطئ ⇒ `NULL` ⇒ `USING` تُصفّي كلَّ شيء ⇒ صفرُ صفوفٍ بلا خطأ ولا سجلّ. فكلُّ تأكيدٍ على شجرةٍ سليمة هنا تأكيدُ **غياب** يبقى صادقاً لو عُطِّل الكشفُ رأساً — ولذلك كلُّ طفرةٍ هنا تُعمي كاشفاً بعينه ويقتلها **شاهدٌ موجب** على مُدخَلٍ مُصطنَع لا تأكيدٌ على الشجرة.",
+      "test": "tests_v9/test_tenant_guc_name_convergence_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_fourth_name_is_actually_reported",
+          "find": "    if report[\"new\"]:\n",
+          "replace": "    if False:  # mutated: الاسمُ الرابع يمرّ صامتاً\n",
+          "why": "تعميةُ كاشف الاسم الجديد تُعيد الصنفَ بحرفه: عائلةُ سياساتٍ رابعة تدخل الشجرة باسمٍ لا يضبطه أحد، فتُعيد جداولُها صفرَ صفوفٍ في كلّ مسارٍ حيّ — والبوّابةُ خضراء."
+        },
+        {
+          "expect": "test_a_name_no_path_sets_is_actually_reported",
+          "find": "    if report[\"unset\"]:\n",
+          "replace": "    if False:  # mutated: اسمٌ بلا ضابطٍ يمرّ\n",
+          "why": "اسمٌ تقرؤه سياسةٌ ولا يضبطه مسارٌ يعني عزلاً يفشل مغلقاً **دائماً**: الجدولُ لا يُقرَأ منه شيءٌ أبداً. وتعميةُ هذا الكاشف تُبقي الحالةَ غيرَ مرئيّة، وهي أخبثُ من انحرافٍ مُبلَّغ لأنّ ناتجَها إجابةٌ ناقصةٌ تُقرَأ كاملة."
+        },
+        {
+          "expect": "test_a_zero_discovery_run_fails_instead_of_passing_green",
+          "find": "    if not report[\"names\"]:\n",
+          "replace": "    if False:  # mutated: صفرُ اكتشافٍ يمرّ أخضر\n",
+          "why": "انكسارُ المُستخرِج (تبدّلُ صياغةِ `current_setting` أو نقلُ الهجرات) يجعل النطاق صفراً، فيمرّ الحارسُ أخضرَ عن سؤالٍ لم يطرحه — وهو `GUARDS-WITHOUT-A-PLANTED-DEFECT-01` بعينه: «لم يجد» تُقرَأ «لا يوجد»."
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

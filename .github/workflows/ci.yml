@@ -201,6 +201,16 @@ jobs:
       # احتماليّ. النطاقُ مُشتقٌّ من الشجرة (٨ عقود) لا من قائمةٍ تبيت.
       - name: cross-service path contracts (client ⇄ service)
         run: python scripts/ci/cross_service_path_contract_guard.py
+      # TENANT-GUC-NAME-DIVERGES-ACROSS-POLICY-FAMILIES-01: عزلُ المستأجِر يقوم على
+      # `current_setting('app.<اسم>')`، والاسمُ ثلاثةٌ لا واحد — `app.current_tenant`
+      # (١٠٢ هجرة · ١٨٦ ضابط) · `app.tenant_id` (١٢ · ٧) · `app.current_tenant_id`
+      # (٣ · ٤). **وشكلُ الفشل صامت**: مَن يضبط الاسمَ الشائع ويقرأ جدولاً بالاسم
+      # الآخر يحصل على `NULL` ⇒ `USING` تُصفّي كلَّ شيء ⇒ صفرُ صفوفٍ بلا خطأ ولا
+      # سجلّ — إجابةٌ ناقصةٌ تُقرَأ كاملة. والثمنُ يُدفَع الآن بترقيعٍ صامت:
+      # `phase_runtime_workers.py::_set_tenant` يضبط اسمين معاً بلا سطرٍ يقول لماذا.
+      # هذا يحرس الصنف: اسمٌ رابع يُحمِّر، واسمٌ بلا ضابطٍ يُحمِّر، والسقفُ ينزل ولا يصعد.
+      - name: tenant GUC name convergence (RLS policy families)
+        run: python scripts/ci/tenant_guc_name_convergence_guard.py
       # BIDI-CONTROL-CHAR-PASSED-THE-DEFAULT-PREFLIGHT-01: bandit يمسك RLM في نطاق
       # `services/ bots/ agents/` وحده، والمحارف مقيسة في ٩٣ ملفّاً عبر الشجرة —
       # json وmd وyml وsql وtsx وps1. وهو يحجب RLM ولا يحجب LRM، فاستبدال أحدهما
