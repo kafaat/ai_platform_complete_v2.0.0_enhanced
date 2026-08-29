@@ -75,6 +75,32 @@ def test_brain_maintenance_is_docs_not_report_only():
     assert result.returncode == 0, result.stderr
 
 
+def test_a_gate01_adjudication_seal_is_substantive_not_a_report():
+    # Sealing a spent one-time GATE-01 grant `CONSUMED` after its merge is a step the
+    # adjudication file itself calls mandatory — yet it touches only that JSON plus the
+    # brain and regenerated artifacts. Without this prefix EVERY seal is report-only by
+    # classification and therefore unlandable, which is how the one-shot lifecycle gap
+    # stays open forever. Measured on #959.
+    result = _run(
+        "docs/architecture/gates/adjudications/GATE01-ADJ-2026-08-28-001.json",
+        "sahool-brain/log.md",
+        "docs/architecture/source_text_assertion_inventory.json",
+        "release/FILE_CHECKSUMS.sha256",
+    )
+    assert result.returncode == 0, result.stderr
+
+
+def test_the_gate01_prefix_does_not_launder_an_unrelated_report():
+    # The prefix is scoped to docs/architecture/gates/ — it must not turn a generated
+    # capability report into a substantive change just because some other governance
+    # file rode along. A report-only diff stays blocked.
+    result = _run(
+        "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "docs/architecture/source_text_assertion_inventory.json",
+    )
+    assert result.returncode != 0, "لُوندِر تقريرٌ مولَّد عبر البادئة الجديدة"
+
+
 def test_capabilities_registry_report_still_blocked():
     # The exemption is scoped to sahool-brain/: the capabilities/ certification registry
     # and generated mapping reports remain report-like and blocked without substantive code.
