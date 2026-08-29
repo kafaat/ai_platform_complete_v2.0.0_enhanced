@@ -48,9 +48,7 @@ def test_the_card_exists_and_still_carries_the_measured_section():
 def test_every_source_file_the_card_cites_still_exists():
     """ملفٌّ مذكورٌ ولا وجود له يجعل السطرَ الذي يستشهد به غيرَ قابلٍ للمراجعة."""
     cited = {
-        m
-        for m in re.findall(r"`([a-zA-Z0-9_\-/]+\.(?:py|sql|json|yml))`", _card())
-        if "/" in m
+        m for m in re.findall(r"`([a-zA-Z0-9_\-/]+\.(?:py|sql|json|yml))`", _card()) if "/" in m
     }
     missing = sorted(p for p in cited if not (_ROOT / p).exists())
     assert not missing, f"البطاقةُ تستشهد بملفّاتٍ معدومة: {missing}"
@@ -83,6 +81,6 @@ def test_the_live_dispatch_table_still_lacks_the_retry_key_column():
     )
     if "idempotency_key" in v109:
         pytest.fail(
-            "‏v109 صار يحمل `idempotency_key` — وهو العلاجُ الذي تصفه البطاقةُ محجوباً. "
+            "v109 صار يحمل `idempotency_key` — وهو العلاجُ الذي تصفه البطاقةُ محجوباً. "
             "حدِّث §٣أ و§٣ب: الحُجّةُ كلُّها مبنيّةٌ على غيابه."
         )
