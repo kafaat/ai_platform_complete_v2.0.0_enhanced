@@ -10247,6 +10247,29 @@
     ]
   },
   {
+    "path": "tests_v9/test_tenant_guc_name_convergence_guard.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "FM-001",
+        "score": 14,
+        "signals": [
+          "path:tenant",
+          "content:tenant"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 12,
+        "signals": [
+          "content:Tenant RLS",
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests_v9/test_tool_governance_v58_2.py",
     "kind": "tests",
     "candidates": [
