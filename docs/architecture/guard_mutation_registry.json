@@ -1498,6 +1498,25 @@
           "why": "دالّةٌ تَعِد بإنفاذِ مستأجرٍ ولا تستطيعه بحكم البناء — تضبط GUC محلّيَّ معاملةٍ بلا معاملةٍ ولا كتلة، فالعبارةُ التالية لا ترى الضبطَ أبداً. وأسوأُ من غيابها أنّ اسمَها يُقرَأ حراسةً. عودتُها يجب أن تُحمِّر فوراً."
         }
       ]
+    },
+    "docs/architecture/gate01_policy.json": {
+      "$why_ar": "السياسةُ **بيانٌ حاجب**: أسماءُ المسارات المجمَّدة هي ما يحرسه الحارس فعلاً. وطفراتُها تقيس أنّ الحراسةَ على الملفّ لا على الاسم.",
+      "mutations": [
+        {
+          "expect": "test_a_frozen_path_absent_from_the_tree_is_declared_absent",
+          "test": "tests_v9/test_gate01_frozen_path_guard.py",
+          "find": "\"migrations/v228_worker_claim_lease.sql\"",
+          "replace": "\"migrations/v228_phase_runtime_claim_leases.sql\"",
+          "why": "إعادةُ الاسم المجمَّد إلى ما لا يطابق الملفَّ المُنشأ — وهو العطلُ الذي أفلت في #954. **والاختبارُ الذي يقتلها قِيس لا افتُرِض:** التبديلُ سلسلةٌ واحدة، فيبقى المسارُ القديم مجمَّداً وغيرَ مُعلَنِ الغياب، فيمسكه عقدُ «الغائبُ يُعلَن» قبل أن يبلغ فحصَ النظائر (الذي لا يعمل إلّا على مُعلَنِ الغياب). سُمِّي المُمسِكُ الحقيقيّ بدل المتوقَّع — وتغطيةُ فحصِ النظائر نفسِه في الطفرة التالية وفي حالات `tmp_path` المُصطنَعة."
+        },
+        {
+          "expect": "test_the_live_policy_has_no_unacknowledged_alias_escape",
+          "test": "tests_v9/test_gate01_frozen_path_guard.py",
+          "find": "\"live_alias\": \"scripts_v9/run_migrations.sql\"",
+          "replace": "\"live_alias\": \"migrations/some_other_file.sql\"",
+          "why": "إقرارٌ يُسمّي نظيراً خاطئاً. لولا اشتراطُ التطابق لصار الحقلُ إعفاءً مفتوحاً: يكفي وجودُ المفتاح ليصمت الحارسُ عن أيّ نظير."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

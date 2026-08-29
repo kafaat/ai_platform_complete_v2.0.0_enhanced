@@ -444,3 +444,78 @@ def test_a_consumed_record_still_describes_what_actually_landed():
             assert guard.blob_sha(path) == declared, (
                 f"{adj['adjudication_id']}/{path}: ما دخل يخالف ما أُذِن به"
             )
+
+
+# ── نظائرُ الأسماء (FROZEN-PATH-LIST-NAMES-A-FILE-THAT-DOES-NOT-EXIST-01) ────
+#
+# مسارٌ مجمَّدٌ يُسمّي ملفّاً غيرَ موجودٍ **بينما نظيرُه حيٌّ باسمٍ آخر** يجعل التجميدَ
+# يحرس اسماً لا ملفّاً. وقع بصنفين: `v228` أُنشئ باسمٍ آخر ودُمِج والحارسُ صامت؛
+# و`run_migrations.sql` لم يوجد قطّ والمُشغِّلُ الحقيقيُّ خارج التجميد منذ #837.
+def test_a_version_renamed_migration_is_seen_as_the_frozen_file(tmp_path):
+    """رقمُ الإصدار هويّةُ الهجرة، والاسمُ وصفٌ — فالنظيرُ يُرصَد بالرقم."""
+    (tmp_path / "migrations").mkdir()
+    (tmp_path / "migrations" / "v228_renamed.sql").write_text("-- x", encoding="utf-8")
+    found = guard.alias_candidates("migrations/v228_original_name.sql", root=tmp_path)
+    assert found == ["migrations/v228_renamed.sql"]
+
+
+def test_a_same_named_file_in_another_directory_is_seen(tmp_path):
+    """صنفُ `run_migrations.sql`: الاسمُ نفسُه في مجلّدٍ آخر."""
+    (tmp_path / "scripts_v9").mkdir()
+    (tmp_path / "scripts_v9" / "run_migrations.sql").write_text("-- x", encoding="utf-8")
+    found = guard.alias_candidates("migrations/run_migrations.sql", root=tmp_path)
+    assert found == ["scripts_v9/run_migrations.sql"]
+
+
+def _alias_policy(**over):
+    pol = {
+        "schema": "sahool.gate01_policy/v2",
+        "gate": {"id": "GATE-01", "gap_id": "GAP-X", "state": "CLOSED"},
+        "phase0_baseline": {"commit_sha": "b" * 40},
+        "frozen_paths": ["migrations/v9_absent.sql"],
+        "not_yet_in_tree": ["migrations/v9_absent.sql"],
+    }
+    pol.update(over)
+    return pol
+
+
+def _tree_with_alias(tmp_path):
+    (tmp_path / "migrations").mkdir()
+    (tmp_path / "migrations" / "v9_live.sql").write_text("-- x", encoding="utf-8")
+    return tmp_path
+
+
+def test_an_unacknowledged_live_alias_blocks(tmp_path):
+    errs = guard.alias_escape_errors(_alias_policy(), root=_tree_with_alias(tmp_path))
+    assert len(errs) == 1 and "v9_live.sql" in errs[0]
+
+
+def test_an_acknowledgement_naming_the_exact_alias_is_accepted(tmp_path):
+    pol = _alias_policy(
+        alias_mismatch_acknowledged={
+            "migrations/v9_absent.sql": {"live_alias": "migrations/v9_live.sql"}
+        }
+    )
+    assert guard.alias_escape_errors(pol, root=_tree_with_alias(tmp_path)) == []
+
+
+@pytest.mark.parametrize(
+    "ack, ident",
+    [
+        ({"live_alias": "migrations/other.sql"}, "wrong-alias"),
+        ({}, "blanket-no-alias"),
+    ],
+    ids=["wrong-alias", "blanket-no-alias"],
+)
+def test_an_acknowledgement_that_does_not_name_this_alias_still_blocks(tmp_path, ack, ident):
+    """الإقرارُ **ضيّقٌ بالبناء** — وإلّا صار الحقلُ بابَ تجاوزٍ دائماً.
+
+    وهذا هو الفرقُ بين «تسجيلِ حالةٍ معروفةٍ تنتظر حكماً» و«إعفاءٍ مفتوح».
+    """
+    pol = _alias_policy(alias_mismatch_acknowledged={"migrations/v9_absent.sql": ack})
+    assert guard.alias_escape_errors(pol, root=_tree_with_alias(tmp_path))
+
+
+def test_the_live_policy_has_no_unacknowledged_alias_escape():
+    """الشجرةُ الحيّة: كلُّ نظيرٍ إمّا مُصحَّحُ المسار أو مُقَرٌّ باسمه."""
+    assert guard.alias_escape_errors(guard.load_policy(_POLICY)) == []
