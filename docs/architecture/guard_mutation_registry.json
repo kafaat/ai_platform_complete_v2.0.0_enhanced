@@ -184,11 +184,11 @@
           "why": "**أُعيد توجيهُها حين أُغلِق العطل، ولم يُحدَّث اسمُها وحدَه.** كانت تُعمي الكاشفَ بـ`present: False` لتُثبِت أنّه يُطلِق. وبعد إغلاق `RAG-BM25-CROSS-TENANT-CORPUS-STATS-01` صار `present` **صادقاً** بـ`False` على كلّ مجموعة، فصارت الطفرةُ غيرَ قابلةٍ للقتل: تحديثُ `expect` إلى الاختبار الجديد كان سيُسجّل تغطيةً لا تملكها (`MUT-REGISTRY-STRANDED-SPECS-01`) — الاختبارُ يؤكّد `present is False` والطفرةُ تُعطيه إيّاه. فصارت تُصيب النصفَ الآخر من نزاهة الكاشف: **الإنذارَ الكاذب**. واستبدالُ درجةٍ مقيسة برقمٍ مُختلَق يُثبِت أنّ المُبلَّغ ناتجُ قياسٍ فعليّ لا ثابتٌ يُصادِف الصواب — ويقتلها الاختبارُ بتأكيدَيه معاً: `present is False` والثباتُ في الاتّجاهين."
         },
         {
-          "expect": "test_the_neighbor_detector_fires_and_bounds_the_claim_to_scope_not_tenancy",
+          "expect": "test_the_neighbor_detector_is_quiet_and_still_bounds_the_claim_to_scope",
           "test": "tests_v9/test_rag_corpus_admissibility_probe.py",
-          "find": "        \"present\": bool(off_scope),\n",
-          "replace": "        \"present\": False,\n",
-          "why": "تعميةُ كاشف تجاوز الجيران ⇒ يصمت على استعلامٍ يُعيد مقطعاً خارج نطاقه المطلوب."
+          "find": "        [m.RetrievedAnnotation(hit, 1.0, 0.0, 1.0)], filters={\"field_id\": \"F1\"}\n",
+          "replace": "        [m.RetrievedAnnotation(hit, 1.0, 0.0, 1.0)], filters=None  # mutated: النطاقُ لا يُمرَّر\n",
+          "why": "**أُعيد توجيهُها حين أُغلِق العطل، ولم يُحدَّث اسمُها — الثالثةُ في هذا العنقود.** كانت تُعمي الكاشفَ بـ`present: False` لتُثبِت أنّه يُطلِق؛ وبعد إغلاق `RAG-NEIGHBOR-FILTER-SCOPE-BYPASS-01` صار `present` **صادقاً** بـ`False`، فتحديثُ `expect` كان يُسجّل تغطيةً لا تملكها (`MUT-REGISTRY-STRANDED-SPECS-01`). فصارت تُصيب **الإنذار الكاذب**: نزعُ تمرير النطاق يجعل الكاشفَ يُبلِّغ عن عطلٍ على آليّةٍ **مُعالَجة** — ويقتلها الاختبارُ بتأكيداته الثلاثة."
         },
         {
           "expect": "test_the_storage_id_detector_fires_when_the_logical_key_is_absent",
@@ -1036,6 +1036,27 @@
           "find": "            self._retract(previous.tenant_id, chunk.chunk_id)\n",
           "replace": "            self._retract(chunk.tenant_id, chunk.chunk_id)  # mutated: النزعُ من دلوِ الوارد\n",
           "why": "النزعُ من دلو الحمولة الجديدة بدل الدلو المسجَّل يُبقي مساهمةَ الصفّ في دلو مستأجِرِه القديم أبداً، فيرى مستأجِرٌ في إحصائه وثيقةً غادرته — العطلُ نفسُه بثوبٍ آخر، ولا يُحمِّره أيُّ تأكيدٍ على الدرجة وحدها."
+        },
+        {
+          "expect": "test_a_neighbour_outside_the_requested_scope_is_not_admitted",
+          "test": "tests_v9/test_rag_neighbor_scope_filters.py",
+          "find": "                if not matches_scope_filters(neighbor, filters):\n",
+          "replace": "                if False:  # mutated: الجارُ يدخل بلا نطاق\n",
+          "why": "نزعُ الترشيح عن الجار يُعيد `RAG-NEIGHBOR-FILTER-SCOPE-BYPASS-01` بحرفه: استعلامُ `field_id=F1` يُعيد مقطعاً من `F2`. والعطلُ في **آخر خطوةٍ تُضيف صفوفاً**، فيمرّ على كلّ اختبارٍ يقيس البحثَ الكثيف أو المتناثر وحدَه."
+        },
+        {
+          "expect": "test_the_predicate_is_measured_directly_in_both_directions",
+          "test": "tests_v9/test_rag_neighbor_scope_filters.py",
+          "find": "        value is not None and chunk.metadata.get(key) != value for key, value in filters.items()\n",
+          "replace": "        False for key, value in filters.items()  # mutated: كلُّ مقطعٍ يجتاز\n",
+          "why": "مُسنَدٌ يقول «اجتاز» أبداً يُفرِّغ الترشيحَ في **الموضعين معاً** — المتناثر والجيران — لأنّ التعريفَ واحد. وهو ثمنُ التوحيد المقصود: عطلٌ واحدٌ بدل اثنين ينحرفان، ويقتله شاهدٌ يقيس المُسنَد مباشرةً لا عبر مستعمِليه."
+        },
+        {
+          "expect": "test_retrieve_passes_its_filters_through_to_the_expansion",
+          "test": "tests_v9/test_rag_neighbor_scope_filters.py",
+          "find": "            filters=filters,\n",
+          "replace": "            filters=None,  # mutated: النطاقُ لا يبلغ التوسيع\n",
+          "why": "التوسيعُ يصير صحيحاً **وغيرَ مستعمَل**: `retrieve` يرشّح الكثيفَ والمتناثر ثمّ يوسّع بلا نطاق. وهو الصنفُ الذي يمرّ على كلّ اختبارِ وحدةٍ للتوسيع نفسِه — فيُقاس بـ`ast` على موضع النداء لا على الدالّة."
         }
       ]
     },

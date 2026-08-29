@@ -157,11 +157,15 @@ def detect_bm25_cross_tenant_stats(m) -> dict:
 
 # ── ③ توسيعُ الجيران يتجاوز المرشِّحات ────────────────────────────────────────
 def detect_neighbor_filter_bypass(m) -> dict:
-    """الجارُ يدخل بالمستند والترتيب، بلا إعادة تطبيق ``crop``/``field_id``/… .
+    """الجارُ كان يدخل بالمستند والترتيب — **والآن يمرّ بمرشِّحات النطاق**.
 
-    وحدُّه مقيس: ``by_doc_idx`` مفتاحُه يحمل ``tenant_id``، **فعزلُ المستأجِر محفوظ**.
-    المتجاوَزُ هو مرشِّحاتُ النطاق وحدها — عطلُ دقّةِ نطاقٍ لا خرقُ عزل، وتصنيفُه
-    خرقاً كان سيرفعه فوق أولويّته الحقيقيّة.
+    وحدُّه مقيسٌ ولم يتبدّل: ``by_doc_idx`` مفتاحُه يحمل ``tenant_id``، **فعزلُ
+    المستأجِر كان محفوظاً ولا يزال**. المتجاوَزُ كان مرشِّحاتِ النطاق وحدها — عطلَ
+    دقّةٍ لا خرقَ عزل، وتصنيفُه خرقاً كان سيرفعه فوق أولويّته.
+
+    وأُغلِق بتمرير ``filters`` إلى ``_expand_neighbors`` وتطبيقِها بـ
+    ``matches_scope_filters`` — **التعريفُ نفسُه** الذي يرشّح به المتناثر، لا نسخةٌ
+    ثانية تنحرف. **والكاشفُ صار كاشفَ انحدار:** نزعُ التمرير يُعيد ``present=True``.
     """
     hit = _chunk(
         m, "h", "tenant-a", "wheat text", document_id="doc-1", chunk_index=0, field_id="F1"
@@ -171,7 +175,9 @@ def detect_neighbor_filter_bypass(m) -> dict:
     )
     retriever = m.HybridQdrantRetriever.__new__(m.HybridQdrantRetriever)
     retriever._chunks = {"h": hit, "n": neighbor}
-    rows = retriever._expand_neighbors([m.RetrievedAnnotation(hit, 1.0, 0.0, 1.0)])
+    rows = retriever._expand_neighbors(
+        [m.RetrievedAnnotation(hit, 1.0, 0.0, 1.0)], filters={"field_id": "F1"}
+    )
     off_scope = [r.chunk.chunk_id for r in rows if r.chunk.metadata.get("field_id") != "F1"]
     cross_tenant = [r.chunk.chunk_id for r in rows if r.chunk.tenant_id != "tenant-a"]
     return {
@@ -179,7 +185,7 @@ def detect_neighbor_filter_bypass(m) -> dict:
         "present": bool(off_scope),
         "off_scope_chunks": off_scope,
         "cross_tenant_chunks": cross_tenant,
-        "note": "استعلامُ field_id=F1 يُعيد جاراً من F2؛ وعزلُ المستأجِر محفوظ",
+        "note": "الجارُ يمرّ بمرشِّحات النطاق؛ وعزلُ المستأجِر محفوظ",
     }
 
 
@@ -270,8 +276,10 @@ def detect_bm25_cross_tenant_stats_on(m, corpus: list) -> dict:
 def detect_neighbor_filter_bypass_on(m, hit, neighbour, scope_key: str) -> dict:
     retriever = m.HybridQdrantRetriever.__new__(m.HybridQdrantRetriever)
     retriever._chunks = {hit.chunk_id: hit, neighbour.chunk_id: neighbour}
-    rows = retriever._expand_neighbors([m.RetrievedAnnotation(hit, 1.0, 0.0, 1.0)])
     want = hit.metadata.get(scope_key)
+    rows = retriever._expand_neighbors(
+        [m.RetrievedAnnotation(hit, 1.0, 0.0, 1.0)], filters={scope_key: want}
+    )
     off = [r.chunk.chunk_id for r in rows if r.chunk.metadata.get(scope_key) != want]
     return {"finding": "NEIGHBOR_FILTER_BYPASS", "present": bool(off), "off_scope_chunks": off}
 

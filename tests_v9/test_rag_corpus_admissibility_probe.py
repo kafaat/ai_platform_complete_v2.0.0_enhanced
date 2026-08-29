@@ -159,12 +159,21 @@ def test_the_bm25_detector_is_quiet_on_a_single_tenant_corpus():
 # ── ③ توسيعُ الجيران ────────────────────────────────────────────────────────
 
 
-def test_the_neighbor_detector_fires_and_bounds_the_claim_to_scope_not_tenancy():
-    """الحدُّ مقيسٌ لا مفترَض: المتجاوَزُ مرشِّحُ النطاق، وعزلُ المستأجِر محفوظ."""
+def test_the_neighbor_detector_is_quiet_and_still_bounds_the_claim_to_scope():
+    """**مرساةٌ قُلِبت حين أُغلِق العطل — لا حُذِفت.** (الثالثةُ في هذا العنقود.)
+
+    كانت تؤكّد أنّ الكاشفَ **يُطلِق**، وهو الصواب ما دام العطلُ قائماً. وقد أُغلِق
+    بتمرير `filters` إلى `_expand_neighbors` وتطبيقِها بـ`matches_scope_filters`
+    (`RAG-NEIGHBOR-FILTER-SCOPE-BYPASS-01`).
+
+    **والحدُّ يبقى مؤكَّداً كما كان:** `cross_tenant_chunks` فارغةٌ قبل الإصلاح
+    وبعده — لأنّ عزلَ المستأجِر **لم يكن مخروقاً أصلاً**. وتأكيدُه هنا يمنع قراءةَ
+    هذه الشريحة «إغلاقَ خرقِ عزل»، وهو ادّعاءٌ أوسعُ من الدليل.
+    """
     probe = _probe()
     row = probe.detect_neighbor_filter_bypass(probe.load_module())
-    assert row["present"] is True
-    assert row["off_scope_chunks"] == ["n"]
+    assert row["present"] is False
+    assert row["off_scope_chunks"] == []
     assert row["cross_tenant_chunks"] == []
 
 
