@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5216,
+    "files_scanned": 5217,
     "files_by_kind": {
       "backend": 1204,
       "database": 275,
       "governance": 60,
       "mobile": 51,
       "other": 1428,
-      "tests": 1741,
+      "tests": 1742,
       "web": 457
     },
-    "unmapped_artifacts": 2126,
+    "unmapped_artifacts": 2127,
     "ambiguous_artifacts": 416
   },
   "capabilities": [
@@ -42942,6 +42942,10 @@
     },
     {
       "path": "tests_v9/test_rag_authority_convergence_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_rag_bm25_corpus_scope.py",
       "kind": "tests"
     },
     {

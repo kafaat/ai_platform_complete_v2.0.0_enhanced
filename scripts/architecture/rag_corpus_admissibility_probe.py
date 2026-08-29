@@ -111,32 +111,35 @@ def detect_legacy_tenant_root_only(m) -> dict:
 
 # ── ② إحصاءاتُ BM25 عابرةٌ للمستأجِرين ───────────────────────────────────────
 def detect_bm25_cross_tenant_stats(m) -> dict:
-    """مستندُ مستأجِرٍ آخر لا يظهر، لكنّه يحرّك ``idf`` لمن لا يراه.
+    """مستندُ مستأجِرٍ آخر لا يظهر — **ولم يعد يحرّك ``idf``** لمن لا يراه.
 
-    ``search`` يرشّح بالمستأجِر، لكنّ ``score`` يقرأ ``n_docs`` و``doc_freq``
-    و``avg_len`` **العالميّة** قبل أيّ عزل. فليس إفشاءَ محتوًى، لكنّه تأثيرٌ عابرٌ
-    للمستأجِرين في الترتيب — ومُربِكٌ مباشر لأيّ قياس تكافؤ.
+    كان ``search`` يرشّح بالمستأجِر بينما ``score`` يقرأ ``n_docs`` و``doc_freq``
+    و``avg_len`` **العالميّة** قبل أيّ عزل. لم يكن إفشاءَ محتوًى، لكنّه كان تأثيراً
+    عابراً للمستأجِرين في الترتيب — ومُربِكاً مباشراً لأيّ قياس تكافؤ.
 
-    ويُقاس الاتّجاهان معاً: مستنداتٌ تحمل المصطلح تخفض الدرجة، ومستنداتٌ **لا
-    تحمله** ترفعها عبر ``avg_len``. والنِّسَب تعتمد على نصّ العيّنة، فالمُبلَّغ هو
-    **الخاصّيّة** لا رقمٌ بعينه.
+    وأُغلِق بـ``corpus_stats`` المقصورة على ``visible_scope``. **والكاشفُ لم يمت
+    بذلك بل صار كاشفَ انحدار:** إعادةُ الإحصاء العالميّ تُعيد ``present=True``.
+
+    ويُقاس الاتّجاهان معاً لأنّ الانحراف كان ذا اتّجاهين: مستنداتٌ تحمل المصطلح
+    كانت تخفض الدرجة، ومستنداتٌ **لا تحمله** ترفعها عبر ``avg_len``. فالثباتُ
+    المُبلَّغ يجب أن يصمد للاتّجاهين، لا لواحدٍ يُخفي الآخر.
     """
     base = _chunk(m, "a1", "tenant-a", "wheat irrigation schedule for wheat fields")
 
     alone = m.BM25Index()
     alone.rebuild([base])
-    score_alone = alone.score("wheat", "a1")
+    score_alone = alone.score("wheat", "a1", tenant_id="tenant-a")
 
     with_term = m.BM25Index()
     with_term.rebuild([base] + [_chunk(m, f"b{i}", "tenant-b", "wheat barley") for i in range(50)])
-    score_with_term = with_term.score("wheat", "a1")
+    score_with_term = with_term.score("wheat", "a1", tenant_id="tenant-a")
 
     without_term = m.BM25Index()
     without_term.rebuild(
         [base]
         + [_chunk(m, f"c{i}", "tenant-b", " ".join(["barley millet"] * 40)) for i in range(50)]
     )
-    score_without_term = without_term.score("wheat", "a1")
+    score_without_term = without_term.score("wheat", "a1", tenant_id="tenant-a")
 
     visible = without_term.search("wheat", tenant_id="tenant-a", limit=10)
     leaked = [c.chunk_id for c, _ in visible if c.tenant_id != "tenant-a"]
@@ -148,7 +151,7 @@ def detect_bm25_cross_tenant_stats(m) -> dict:
         "score_after_other_tenant_shares_term": round(score_with_term, 6),
         "score_after_other_tenant_unrelated_long_docs": round(score_without_term, 6),
         "content_leaked_across_tenants": leaked,
-        "note": "الدرجةُ تتحرّك بمحتوًى لا يراه المستأجِر؛ ولا إفشاءَ محتوًى",
+        "note": "إحصاءُ الترتيب مقصورٌ على المجموعة المرئيّة؛ ولا إفشاءَ محتوًى",
     }
 
 
@@ -259,7 +262,8 @@ def detect_bm25_cross_tenant_stats_on(m, corpus: list) -> dict:
     target = own[0].chunk_id
     return {
         "finding": "BM25_CROSS_TENANT_STAT_INFLUENCE",
-        "present": isolated.score("wheat", target) != mixed.score("wheat", target),
+        "present": isolated.score("wheat", target, tenant_id="tenant-a")
+        != mixed.score("wheat", target, tenant_id="tenant-a"),
     }
 
 

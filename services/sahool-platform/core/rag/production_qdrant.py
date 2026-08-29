@@ -661,27 +661,91 @@ class HttpEmbeddingProvider:
 
 
 class BM25Index:
+    """فهرسٌ متناثر **إحصاءاتُه مقصورةٌ على المجموعة المرئيّة للسائل**.
+
+    ``RAG-BM25-CROSS-TENANT-CORPUS-STATS-01``: كان ``score`` يقرأ ``n_docs``
+    و``doc_freq`` و``avg_len`` **العالميّة**، و``search`` يرشّح بالمستأجِر
+    **بعدها** — فترتيبُ مستأجِرٍ دالّةٌ في محتوًى لا يراه ولا يظهر له. ولا إفشاءَ
+    محتوًى في ذلك، لكنّه يُبطِل أيّ قياسِ تكافؤ: الدرجةُ نفسُها تختلف بابتلاعِ
+    مستأجِرٍ آخر لوثائقَ لا صلةَ لها.
+
+    **والمجموعةُ المرئيّة صار لها تعريفٌ واحد** بعد
+    ``RAG-LEGACY-DENSE-SPARSE-SCOPE-ASYMMETRY-01``: ``{tenant_id,
+    GLOBAL_REFERENCE_TENANT}`` — وهي بعينها ما يرشّح عليه البحثُ الكثيف. ولهذا
+    أُخِّر هذا الإصلاح خلفَ ذاك: إصلاحُ الترتيب قبل معرفة المجموعة التي يُقاس
+    عليها **يُصلِح رقماً لا يُعرَف مصدره**.
+
+    **والمرشِّحاتُ (``filters``) لا تُضيِّق الإحصاء، عمداً:** هي انتقاءٌ **داخل**
+    المجموعة لا إعادةُ تعريفٍ لها. ولو حُسِب ``idf`` على المُرشَّح لصارت «ندرةُ
+    المصطلح» دالّةً في مرشِّح الاستعلام نفسِه، فتتبدّل بتبدّل سؤالٍ واحد — وذلك
+    أسوأُ من العطل الذي يُغلَق هنا.
+    """
+
     def __init__(self, k1: float = 1.5, b: float = 0.75) -> None:
         self.k1 = k1
         self.b = b
         self.docs: dict[str, KnowledgeChunk] = {}
         self.term_freqs: dict[str, dict[str, int]] = {}
-        self.doc_freq: dict[str, int] = {}
         self.doc_len: dict[str, int] = {}
-        self.avg_len = 0.0
+        # الإحصاءُ يُمسَك **مُبوَّباً بالمستأجِر**، والمجاميعُ تُشتقّ منه ولا
+        # تُمسَك بجانبه: نسختانِ تُحدَّثان بيدَين تنحرفان، والانحرافُ صامت.
+        self._tenant_doc_freq: dict[str, dict[str, int]] = {}
+        self._tenant_doc_ids: dict[str, set[str]] = {}
+        self._tenant_len_sum: dict[str, int] = {}
+
+    @property
+    def doc_freq(self) -> dict[str, int]:
+        """جردٌ عالميٌّ **مُشتَقّ** — ولم يعد مُدخَلاً في ``score``.
+
+        يبقى معروضاً لأنّه جردُ ابتلاعٍ مفيد (سلامةُ الرفع المُكرَّر تُقاس به)،
+        لكنّه لا يدخل الترتيب: هناك ``corpus_stats`` وحدَها.
+        """
+        merged: dict[str, int] = {}
+        for bucket in self._tenant_doc_freq.values():
+            for term, df in bucket.items():
+                merged[term] = merged.get(term, 0) + df
+        return merged
+
+    @property
+    def avg_len(self) -> float:
+        """متوسّطٌ عالميٌّ مُشتَقّ — تشخيصيٌّ لا يُرتَّب به."""
+        return sum(self._tenant_len_sum.values()) / max(len(self.doc_len), 1)
+
+    def _retract(self, tenant_id: str, chunk_id: str) -> None:
+        """نزعُ مساهمةِ صفٍّ من **دلوِ مستأجِرِه المسجَّل**، لا من دلوِ الوارد.
+
+        صفٌّ يُعاد ابتلاعُه بمستأجِرٍ مختلف كان سيترك مساهمتَه في الدلو القديم
+        أبداً لو نُزِعت من دلو الحمولة الجديدة.
+        """
+        previous_tf = self.term_freqs.get(chunk_id) or {}
+        bucket = self._tenant_doc_freq.get(tenant_id)
+        if bucket is not None:
+            for term in previous_tf:
+                remaining = bucket.get(term, 0) - 1
+                if remaining <= 0:
+                    bucket.pop(term, None)
+                else:
+                    bucket[term] = remaining
+            if not bucket:
+                self._tenant_doc_freq.pop(tenant_id, None)
+        ids = self._tenant_doc_ids.get(tenant_id)
+        if ids is not None:
+            ids.discard(chunk_id)
+            if not ids:
+                self._tenant_doc_ids.pop(tenant_id, None)
+        remaining_len = self._tenant_len_sum.get(tenant_id, 0) - self.doc_len.get(chunk_id, 0)
+        if remaining_len > 0:
+            self._tenant_len_sum[tenant_id] = remaining_len
+        else:
+            self._tenant_len_sum.pop(tenant_id, None)
 
     def add(self, chunk: KnowledgeChunk) -> None:
         # Upserts must be idempotent for sparse document frequencies.  Re-ingesting
         # an existing canonical chunk replaces its previous sparse contribution
         # instead of counting the same logical document twice.
-        previous_tf = self.term_freqs.get(chunk.chunk_id)
-        if previous_tf is not None:
-            for term in previous_tf:
-                previous_df = self.doc_freq.get(term, 0)
-                if previous_df <= 1:
-                    self.doc_freq.pop(term, None)
-                else:
-                    self.doc_freq[term] = previous_df - 1
+        previous = self.docs.get(chunk.chunk_id)
+        if previous is not None:
+            self._retract(previous.tenant_id, chunk.chunk_id)
 
         terms = tokenize(chunk.text)
         tf: dict[str, int] = {}
@@ -690,16 +754,22 @@ class BM25Index:
         self.docs[chunk.chunk_id] = chunk
         self.term_freqs[chunk.chunk_id] = tf
         self.doc_len[chunk.chunk_id] = len(terms)
+
+        bucket = self._tenant_doc_freq.setdefault(chunk.tenant_id, {})
         for term in tf:
-            self.doc_freq[term] = self.doc_freq.get(term, 0) + 1
-        self.avg_len = sum(self.doc_len.values()) / max(len(self.doc_len), 1)
+            bucket[term] = bucket.get(term, 0) + 1
+        self._tenant_doc_ids.setdefault(chunk.tenant_id, set()).add(chunk.chunk_id)
+        self._tenant_len_sum[chunk.tenant_id] = self._tenant_len_sum.get(chunk.tenant_id, 0) + len(
+            terms
+        )
 
     def clear(self) -> None:
         self.docs.clear()
         self.term_freqs.clear()
-        self.doc_freq.clear()
         self.doc_len.clear()
-        self.avg_len = 0.0
+        self._tenant_doc_freq.clear()
+        self._tenant_doc_ids.clear()
+        self._tenant_len_sum.clear()
 
     def rebuild(self, chunks: list[KnowledgeChunk]) -> int:
         self.clear()
@@ -710,19 +780,55 @@ class BM25Index:
     def __len__(self) -> int:
         return len(self.docs)
 
-    def score(self, query: str, chunk_id: str) -> float:
-        if chunk_id not in self.docs:
+    def visible_scope(self, tenant_id: str) -> set[str]:
+        """المجموعةُ المرئيّة للسائل — **مجموعةٌ واحدة يُشتقّ منها الطرفان**.
+
+        نفسُ الشرط المكتوب في ``search`` وفي مُرشِّح البحث الكثيف. ووجودُه دالّةً
+        يمنع تكرارَ ثلاثةِ تعبيراتٍ تنحرف واحدةً واحدة.
+        """
+        return {tenant_id, GLOBAL_REFERENCE_TENANT}
+
+    def corpus_stats(self, tenant_id: str) -> tuple[int, dict[str, int], float]:
+        """``(عددُ الوثائق، ترددُ الوثائق، متوسّطُ الطول)`` **داخل المرئيّ وحدَه**.
+
+        و``visible_scope`` مجموعةٌ لا قائمة: سؤالُ المرجعِ العامّ عن نفسه لا
+        يَعُدّ وثائقَه مرّتين.
+        """
+        n_docs = 0
+        length_sum = 0
+        doc_freq: dict[str, int] = {}
+        for tenant in self.visible_scope(tenant_id):
+            n_docs += len(self._tenant_doc_ids.get(tenant, ()))
+            length_sum += self._tenant_len_sum.get(tenant, 0)
+            for term, df in self._tenant_doc_freq.get(tenant, {}).items():
+                doc_freq[term] = doc_freq.get(term, 0) + df
+        return n_docs, doc_freq, (length_sum / n_docs if n_docs else 0.0)
+
+    def score(self, query: str, chunk_id: str, *, tenant_id: str) -> float:
+        """``tenant_id`` **مطلوبٌ بلا افتراض**: لا تُرتَّب وثيقةٌ دون قولِ مجموعةِ مَن.
+
+        وافتراضُ «مستأجِرِ الوثيقة» كان سيبدو مقبولاً ويكون خاطئاً: وثيقةُ المرجع
+        العامّ تُقاس داخل مجموعةِ **السائل**، فتختلف درجتُها باختلافه — وافتراضٌ
+        صامتٌ كان سيُعيد العطلَ نفسَه من بابٍ آخر.
+
+        ووثيقةٌ خارج المرئيّ تُعيد صفراً لا رقماً: خلطُ ``tf`` و``length`` من
+        وثيقةٍ مع ``idf`` و``avg_len`` من مجموعةٍ لا تضمّها حسابٌ لا معنى له.
+        """
+        chunk = self.docs.get(chunk_id)
+        if chunk is None or chunk.tenant_id not in self.visible_scope(tenant_id):
             return 0.0
-        n_docs = len(self.docs)
+        n_docs, doc_freq, avg_len = self.corpus_stats(tenant_id)
+        if n_docs == 0:
+            return 0.0
         length = self.doc_len.get(chunk_id, 0) or 1
         score = 0.0
         for term in tokenize(query):
             tf = self.term_freqs.get(chunk_id, {}).get(term, 0)
             if tf == 0:
                 continue
-            df = self.doc_freq.get(term, 0)
+            df = doc_freq.get(term, 0)
             idf = math.log(1 + (n_docs - df + 0.5) / (df + 0.5))
-            denom = tf + self.k1 * (1 - self.b + self.b * length / (self.avg_len or 1))
+            denom = tf + self.k1 * (1 - self.b + self.b * length / (avg_len or 1))
             score += idf * (tf * (self.k1 + 1) / denom)
         return round(score, 6)
 
@@ -732,14 +838,14 @@ class BM25Index:
         filters = filters or {}
         rows: list[tuple[KnowledgeChunk, float]] = []
         for cid, chunk in self.docs.items():
-            if chunk.tenant_id not in {tenant_id, GLOBAL_REFERENCE_TENANT}:
+            if chunk.tenant_id not in self.visible_scope(tenant_id):
                 continue
             if any(
                 value is not None and chunk.metadata.get(key) != value
                 for key, value in filters.items()
             ):
                 continue
-            s = self.score(query, cid)
+            s = self.score(query, cid, tenant_id=tenant_id)
             if s > 0:
                 rows.append((chunk, s))
         return sorted(rows, key=lambda x: x[1], reverse=True)[:limit]
