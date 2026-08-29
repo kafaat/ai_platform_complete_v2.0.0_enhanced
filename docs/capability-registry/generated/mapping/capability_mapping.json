@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5219,
+    "files_scanned": 5220,
     "files_by_kind": {
       "backend": 1204,
       "database": 275,
       "governance": 60,
       "mobile": 51,
       "other": 1429,
-      "tests": 1743,
+      "tests": 1744,
       "web": 457
     },
-    "unmapped_artifacts": 2127,
+    "unmapped_artifacts": 2128,
     "ambiguous_artifacts": 417
   },
   "capabilities": [
@@ -42683,6 +42683,10 @@
     },
     {
       "path": "tests_v9/test_local_preflight_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_m03_card_citations_are_live.py",
       "kind": "tests"
     },
     {

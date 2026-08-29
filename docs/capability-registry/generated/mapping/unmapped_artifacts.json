@@ -7628,6 +7628,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_m03_card_citations_are_live.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_manifest_completeness.py",
     "kind": "tests"
   },
