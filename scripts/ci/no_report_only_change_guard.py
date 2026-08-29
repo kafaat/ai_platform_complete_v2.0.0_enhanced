@@ -54,6 +54,22 @@ SUBSTANTIVE_PREFIXES = (
     # PR that only touches migrations/ + regenerates the release bundle would be
     # wrongly blocked as "report-only".
     "migrations/",
+    # GATE-01 adjudications and policy are AUTHORIZATION INSTRUMENTS, not progress
+    # reports: `gate01_frozen_path_guard` reads them to decide PASS/BLOCK on
+    # physical-actuation code, so editing one changes what CI permits. This is the
+    # same category as runtime-verification/ above — behavioural governance, not a
+    # report — and the same reasoning the sahool-brain/ exemption already applies:
+    # a MANDATED step must be landable without contriving an unrelated code change.
+    #
+    # Measured on #959: sealing a spent one-time grant `CONSUMED` after its merge is
+    # a step the adjudication file itself calls "لازمة لا تحسينيّة", yet it touches
+    # only that JSON + the brain + regenerated artifacts — so every seal was
+    # report-only by classification and therefore unlandable. An unlandable mandated
+    # step is how `GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01` stays open forever.
+    #
+    # This does NOT weaken the control that matters: `branch_protection_contract_guard`
+    # still demands code-owner review on this exact path, and it is a separate gate.
+    "docs/architecture/gates/",
 )
 SUBSTANTIVE_EXACT = {"requirements.services.direct.lock", "REPORT_INDEX.md"}
 
