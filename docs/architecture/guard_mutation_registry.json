@@ -191,11 +191,11 @@
           "why": "**أُعيد توجيهُها حين أُغلِق العطل، ولم يُحدَّث اسمُها — الثالثةُ في هذا العنقود.** كانت تُعمي الكاشفَ بـ`present: False` لتُثبِت أنّه يُطلِق؛ وبعد إغلاق `RAG-NEIGHBOR-FILTER-SCOPE-BYPASS-01` صار `present` **صادقاً** بـ`False`، فتحديثُ `expect` كان يُسجّل تغطيةً لا تملكها (`MUT-REGISTRY-STRANDED-SPECS-01`). فصارت تُصيب **الإنذار الكاذب**: نزعُ تمرير النطاق يجعل الكاشفَ يُبلِّغ عن عطلٍ على آليّةٍ **مُعالَجة** — ويقتلها الاختبارُ بتأكيداته الثلاثة."
         },
         {
-          "expect": "test_the_storage_id_detector_fires_when_the_logical_key_is_absent",
+          "expect": "test_the_storage_id_detector_is_quiet_once_the_borrowing_is_declared",
           "test": "tests_v9/test_rag_corpus_admissibility_probe.py",
-          "find": "        \"present\": chunk.chunk_id == \"storage-uuid-42\",\n",
-          "replace": "        \"present\": False,\n",
-          "why": "تعميةُ كاشف الهويّة ⇒ يصمت على UUID تخزينٍ صار هويّةً منطقيّة."
+          "find": "    borrowed = chunk.chunk_id == \"storage-uuid-42\"\n",
+          "replace": "    borrowed = False  # mutated: الكاشفُ لا يرى الاستعارة\n",
+          "why": "**أُعيد توجيهُها حين أُغلِق العطل — الرابعةُ في هذا العنقود.** كانت تُعمي الكاشفَ بـ`present: False`؛ وبعد الإغلاق صار `present` **صادقاً** بـ`False` لأنّ الاستعارةَ باقيةٌ بالقصد ومُعلَنة، فتحديثُ `expect` كان يُسجّل تغطيةً لا تملكها. فصارت تُصيب **عمى الكاشف عن الاستعارة نفسِها**: `borrowed=False` يجعله يُبلِّغ أنّ لا استعارةَ أصلاً على صفٍّ يستعير — ويقتلها الاختبارُ بتأكيده `borrowed is True`."
         }
       ]
     },
@@ -1057,6 +1057,27 @@
           "find": "            filters=filters,\n",
           "replace": "            filters=None,  # mutated: النطاقُ لا يبلغ التوسيع\n",
           "why": "التوسيعُ يصير صحيحاً **وغيرَ مستعمَل**: `retrieve` يرشّح الكثيفَ والمتناثر ثمّ يوسّع بلا نطاق. وهو الصنفُ الذي يمرّ على كلّ اختبارِ وحدةٍ للتوسيع نفسِه — فيُقاس بـ`ast` على موضع النداء لا على الدالّة."
+        },
+        {
+          "expect": "test_a_borrowed_storage_id_is_declared_not_silent",
+          "test": "tests_v9/test_rag_storage_id_declaration.py",
+          "find": "        meta[\"chunk_id_source\"] = \"declared\" if declared_id is not None else \"storage_fallback\"\n",
+          "replace": "        meta[\"chunk_id_source\"] = \"declared\"  # mutated: الاستعارةُ تُخفى\n",
+          "why": "`RAG-STORAGE-ID-AS-LOGICAL-IDENTITY-01`: رايةٌ ثابتةٌ تقول «مُعلَن» أبداً تُعيد **الصمتَ** الذي كان العطل — مستهلِكٌ يقرأ `chunk_id` لا يميّز هويّةً مُعلَنة من مُستعارة، فيبني إحالاتٍ تنكسر عند أوّل إعادةِ كتابةٍ تُنتِج المفتاحَ الحقيقيّ."
+        },
+        {
+          "expect": "test_a_declared_logical_id_is_marked_declared_not_borrowed",
+          "test": "tests_v9/test_rag_storage_id_declaration.py",
+          "find": "        chunk_id = declared_id if declared_id is not None else fallback_id\n",
+          "replace": "        chunk_id = fallback_id or declared_id  # mutated: الارتدادُ يسبق المُعلَن\n",
+          "why": "تقديمُ الارتداد على المفتاح المُعلَن يُرقّي مُعرِّفَ التخزين **حتّى حين يوجد مفتاحٌ منطقيّ** — وهو العطلُ في صورته القصوى: هويّتان لنقطةٍ واحدة بلا خريطة. ويقتله الشاهدُ الموجب الذي يقيس الطرفَ المُعلَن لا المُستعار وحدَه."
+        },
+        {
+          "expect": "test_the_flag_is_never_written_back_to_storage",
+          "test": "tests_v9/test_rag_storage_id_declaration.py",
+          "find": "        metadata.pop(\"chunk_id_source\", None)\n",
+          "replace": "        pass  # mutated: رايةُ التحليل تُكتَب في المخزَن\n",
+          "why": "كتابةُ الراية في المخزَن تجعلها **تكذب على صفٍّ أُعيدت كتابتُه** بمفتاحٍ منطقيٍّ صحيح: الهويّةُ صارت مُعلَنةً والرايةُ تقول `storage_fallback` أبداً. فهي خاصّيّةُ تحليلٍ لا خاصّيّةُ صفّ، ونقلُها إلى الصفّ يُحوِّل إعلاناً صادقاً إلى ادّعاءٍ بائت."
         }
       ]
     },

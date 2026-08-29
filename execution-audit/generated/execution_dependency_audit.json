@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1879,
     "route_handlers": 1049,
-    "call_edges": 76120,
+    "call_edges": 76121,
     "dead_code_candidates": 625,
     "duplicate_function_groups": 61,
     "route_owners": 27,
@@ -346056,2030 +346056,2037 @@
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
       "target": "get",
-      "line": 449
+      "line": 471
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
       "target": "get",
-      "line": 449
+      "line": 471
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
       "target": "isinstance",
-      "line": 449
+      "line": 471
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
       "target": "dict",
-      "line": 450
+      "line": 472
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
       "target": "get",
-      "line": 451
+      "line": 473
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
       "target": "get",
-      "line": 451
+      "line": 473
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
       "target": "get",
-      "line": 452
+      "line": 474
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
       "target": "get",
-      "line": 452
+      "line": 474
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
       "target": "get",
-      "line": 453
+      "line": 476
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
       "target": "get",
-      "line": 453
+      "line": 476
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
       "target": "get",
-      "line": 454
+      "line": 477
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
       "target": "get",
-      "line": 455
+      "line": 478
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
       "target": "get",
-      "line": 455
+      "line": 478
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
       "target": "get",
-      "line": 458
+      "line": 481
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
       "target": "get",
-      "line": 458
+      "line": 481
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
       "target": "encode",
-      "line": 460
+      "line": 483
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
       "target": "hexdigest",
-      "line": 460
+      "line": 483
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
       "target": "sha256",
-      "line": 460
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "from_payload",
-      "target": "get",
-      "line": 461
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "from_payload",
-      "target": "get",
-      "line": 461
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "from_payload",
-      "target": "get",
-      "line": 462
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "from_payload",
-      "target": "get",
-      "line": 462
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "from_payload",
-      "target": "all",
-      "line": 463
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "from_payload",
-      "target": "ValueError",
-      "line": 464
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "from_payload",
-      "target": "setdefault",
-      "line": 482
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "from_payload",
-      "target": "get",
       "line": 483
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
-      "target": "setdefault",
-      "line": 483
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "from_payload",
-      "target": "setdefault",
+      "target": "get",
       "line": 484
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
-      "target": "cls",
+      "target": "get",
+      "line": 484
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "from_payload",
+      "target": "get",
       "line": 485
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
-      "target": "str",
+      "target": "get",
+      "line": 485
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "from_payload",
+      "target": "all",
       "line": 486
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
-      "target": "str",
+      "target": "ValueError",
       "line": 487
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "from_payload",
-      "target": "str",
-      "line": 488
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "from_payload",
-      "target": "str",
-      "line": 489
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "from_payload",
-      "target": "str",
-      "line": 490
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "from_payload",
-      "target": "int",
-      "line": 491
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "from_payload",
-      "target": "int",
-      "line": 492
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "payload",
-      "target": "dict",
-      "line": 504
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "payload",
       "target": "setdefault",
       "line": 505
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "from_payload",
+      "target": "get",
+      "line": 508
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "from_payload",
+      "target": "setdefault",
+      "line": 508
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "from_payload",
+      "target": "setdefault",
+      "line": 509
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "from_payload",
+      "target": "cls",
+      "line": 510
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "from_payload",
+      "target": "str",
+      "line": 511
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "from_payload",
+      "target": "str",
+      "line": 512
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "from_payload",
+      "target": "str",
+      "line": 513
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "from_payload",
+      "target": "str",
+      "line": 514
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "from_payload",
+      "target": "str",
+      "line": 515
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "from_payload",
+      "target": "int",
+      "line": 516
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "from_payload",
+      "target": "int",
+      "line": 517
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "payload",
-      "target": "_content_digest",
-      "line": 506
+      "target": "dict",
+      "line": 529
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "payload",
+      "target": "pop",
+      "line": 532
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "payload",
       "target": "setdefault",
-      "line": 506
+      "line": 533
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "payload",
+      "target": "_content_digest",
+      "line": 534
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "payload",
+      "target": "setdefault",
+      "line": 534
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "payload",
       "target": "_normalized_source_class",
-      "line": 507
+      "line": 535
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "payload",
       "target": "setdefault",
-      "line": 507
+      "line": 535
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "payload",
       "target": "update",
-      "line": 508
+      "line": 536
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "as_annotation",
       "target": "get",
-      "line": 538
+      "line": 566
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "as_annotation",
       "target": "get",
-      "line": 539
+      "line": 567
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "as_annotation",
       "target": "get",
-      "line": 540
+      "line": 568
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "as_annotation",
       "target": "get",
-      "line": 541
+      "line": 569
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "as_annotation",
       "target": "get",
-      "line": 542
+      "line": 570
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "as_annotation",
       "target": "get",
-      "line": 543
+      "line": 571
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "as_annotation",
       "target": "get",
-      "line": 544
+      "line": 572
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "as_annotation",
       "target": "get",
-      "line": 545
+      "line": 573
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "as_annotation",
       "target": "get",
-      "line": 546
+      "line": 574
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "as_annotation",
       "target": "get",
-      "line": 547
+      "line": 575
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "as_annotation",
       "target": "get",
-      "line": 548
+      "line": 576
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "tokenize",
       "target": "findall",
-      "line": 565
+      "line": 593
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "tokenize",
       "target": "lower",
-      "line": 565
+      "line": 593
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "tokenize",
       "target": "strip",
-      "line": 565
+      "line": 593
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "tokenize",
-      "line": 585
+      "line": 613
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "blake2b",
-      "line": 586
+      "line": 614
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "encode",
-      "line": 586
+      "line": 614
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "hexdigest",
-      "line": 586
+      "line": 614
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "int",
-      "line": 586
+      "line": 614
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "sqrt",
-      "line": 590
+      "line": 618
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "sum",
-      "line": 590
+      "line": 618
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "round",
-      "line": 591
+      "line": 619
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "__init__",
       "target": "rstrip",
-      "line": 604
+      "line": 632
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "dumps",
-      "line": 614
+      "line": 642
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "encode",
-      "line": 614
+      "line": 642
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "Request",
-      "line": 615
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "urlopen",
-      "line": 621
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "decode",
-      "line": 622
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "loads",
-      "line": 622
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "read",
-      "line": 622
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "get",
-      "line": 623
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "isinstance",
-      "line": 624
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "ValueError",
-      "line": 625
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "float",
-      "line": 626
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "len",
-      "line": 628
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "len",
-      "line": 629
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "ValueError",
-      "line": 630
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "len",
-      "line": 631
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "__init__",
-      "target": "rstrip",
       "line": 643
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
-      "target": "dumps",
-      "line": 647
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "encode",
-      "line": 647
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "Request",
-      "line": 648
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
       "target": "urlopen",
+      "line": 649
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "decode",
+      "line": 650
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "loads",
+      "line": 650
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "read",
+      "line": 650
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "get",
+      "line": 651
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "isinstance",
+      "line": 652
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "ValueError",
+      "line": 653
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "float",
       "line": 654
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
-      "target": "decode",
-      "line": 655
+      "target": "len",
+      "line": 656
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
-      "target": "loads",
-      "line": 655
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "read",
-      "line": 655
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "float",
+      "target": "len",
       "line": 657
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
-      "target": "get",
+      "target": "ValueError",
       "line": 658
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
-      "target": "float",
+      "target": "len",
       "line": 659
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "ValueError",
-      "line": 660
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "matches_scope_filters",
-      "target": "any",
-      "line": 680
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "matches_scope_filters",
-      "target": "get",
-      "line": 681
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "matches_scope_filters",
-      "target": "items",
-      "line": 681
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "doc_freq",
-      "target": "values",
-      "line": 726
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "doc_freq",
-      "target": "items",
-      "line": 727
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "doc_freq",
-      "target": "get",
-      "line": 728
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "avg_len",
-      "target": "len",
-      "line": 734
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "avg_len",
-      "target": "max",
-      "line": 734
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "avg_len",
-      "target": "sum",
-      "line": 734
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "avg_len",
-      "target": "values",
-      "line": 734
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "_retract",
-      "target": "get",
-      "line": 742
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "_retract",
-      "target": "get",
-      "line": 743
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "_retract",
-      "target": "get",
-      "line": 746
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "_retract",
-      "target": "pop",
-      "line": 748
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "_retract",
-      "target": "pop",
-      "line": 752
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "_retract",
-      "target": "get",
-      "line": 753
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "_retract",
-      "target": "discard",
-      "line": 755
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "_retract",
-      "target": "pop",
-      "line": 757
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "_retract",
-      "target": "get",
-      "line": 758
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "_retract",
-      "target": "get",
-      "line": 758
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "_retract",
-      "target": "pop",
-      "line": 762
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "add",
-      "target": "get",
-      "line": 768
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "add",
-      "target": "_retract",
-      "line": 770
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "add",
-      "target": "tokenize",
-      "line": 772
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "add",
-      "target": "get",
-      "line": 775
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "add",
-      "target": "len",
-      "line": 778
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "add",
-      "target": "setdefault",
-      "line": 780
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "add",
-      "target": "get",
-      "line": 782
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "add",
-      "target": "set",
-      "line": 783
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "add",
-      "target": "setdefault",
-      "line": 783
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "add",
-      "target": "get",
-      "line": 784
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "add",
-      "target": "len",
-      "line": 784
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "rebuild",
-      "target": "clear",
-      "line": 797
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "rebuild",
-      "target": "add",
-      "line": 799
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "rebuild",
-      "target": "len",
-      "line": 800
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "__len__",
-      "target": "len",
-      "line": 803
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "corpus_stats",
-      "target": "visible_scope",
-      "line": 822
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "corpus_stats",
-      "target": "get",
-      "line": 823
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "corpus_stats",
-      "target": "len",
-      "line": 823
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "corpus_stats",
-      "target": "get",
-      "line": 824
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "corpus_stats",
-      "target": "get",
-      "line": 825
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "corpus_stats",
-      "target": "items",
-      "line": 825
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "corpus_stats",
-      "target": "get",
-      "line": 826
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "score",
-      "target": "get",
-      "line": 839
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "score",
-      "target": "visible_scope",
-      "line": 840
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "score",
-      "target": "corpus_stats",
-      "line": 842
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "score",
-      "target": "get",
-      "line": 845
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "score",
-      "target": "tokenize",
-      "line": 847
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "score",
-      "target": "get",
-      "line": 848
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "score",
-      "target": "get",
-      "line": 848
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "score",
-      "target": "get",
-      "line": 851
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "score",
-      "target": "log",
-      "line": 852
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "score",
-      "target": "round",
-      "line": 855
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "items",
-      "line": 862
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "visible_scope",
-      "line": 863
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "matches_scope_filters",
-      "line": 865
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "score",
-      "line": 867
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "append",
-      "line": 869
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "sorted",
-      "line": 870
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "__init__",
-      "target": "super",
-      "line": 881
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "__init__",
       "target": "rstrip",
-      "line": 911
+      "line": 671
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "dumps",
+      "line": 675
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "encode",
+      "line": 675
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "Request",
+      "line": 676
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "urlopen",
+      "line": 682
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "decode",
+      "line": 683
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "loads",
+      "line": 683
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "read",
+      "line": 683
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "float",
+      "line": 685
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "get",
+      "line": 686
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "float",
+      "line": 687
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "ValueError",
+      "line": 688
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "matches_scope_filters",
+      "target": "any",
+      "line": 708
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "matches_scope_filters",
+      "target": "get",
+      "line": 709
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "matches_scope_filters",
+      "target": "items",
+      "line": 709
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "doc_freq",
+      "target": "values",
+      "line": 754
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "doc_freq",
+      "target": "items",
+      "line": 755
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "doc_freq",
+      "target": "get",
+      "line": 756
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "avg_len",
+      "target": "len",
+      "line": 762
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "avg_len",
+      "target": "max",
+      "line": 762
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "avg_len",
+      "target": "sum",
+      "line": 762
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "avg_len",
+      "target": "values",
+      "line": 762
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "_retract",
+      "target": "get",
+      "line": 770
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "_retract",
+      "target": "get",
+      "line": 771
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "_retract",
+      "target": "get",
+      "line": 774
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "_retract",
+      "target": "pop",
+      "line": 776
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "_retract",
+      "target": "pop",
+      "line": 780
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "_retract",
+      "target": "get",
+      "line": 781
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "_retract",
+      "target": "discard",
+      "line": 783
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "_retract",
+      "target": "pop",
+      "line": 785
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "_retract",
+      "target": "get",
+      "line": 786
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "_retract",
+      "target": "get",
+      "line": 786
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "_retract",
+      "target": "pop",
+      "line": 790
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "add",
+      "target": "get",
+      "line": 796
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "add",
+      "target": "_retract",
+      "line": 798
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "add",
+      "target": "tokenize",
+      "line": 800
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "add",
+      "target": "get",
+      "line": 803
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "add",
+      "target": "len",
+      "line": 806
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "add",
+      "target": "setdefault",
+      "line": 808
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "add",
+      "target": "get",
+      "line": 810
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "add",
+      "target": "set",
+      "line": 811
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "add",
+      "target": "setdefault",
+      "line": 811
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "add",
+      "target": "get",
+      "line": 812
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "add",
+      "target": "len",
+      "line": 812
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "rebuild",
+      "target": "clear",
+      "line": 825
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "rebuild",
+      "target": "add",
+      "line": 827
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "rebuild",
+      "target": "len",
+      "line": 828
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "__len__",
+      "target": "len",
+      "line": 831
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "corpus_stats",
+      "target": "visible_scope",
+      "line": 850
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "corpus_stats",
+      "target": "get",
+      "line": 851
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "corpus_stats",
+      "target": "len",
+      "line": 851
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "corpus_stats",
+      "target": "get",
+      "line": 852
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "corpus_stats",
+      "target": "get",
+      "line": 853
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "corpus_stats",
+      "target": "items",
+      "line": 853
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "corpus_stats",
+      "target": "get",
+      "line": 854
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "score",
+      "target": "get",
+      "line": 867
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "score",
+      "target": "visible_scope",
+      "line": 868
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "score",
+      "target": "corpus_stats",
+      "line": 870
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "score",
+      "target": "get",
+      "line": 873
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "score",
+      "target": "tokenize",
+      "line": 875
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "score",
+      "target": "get",
+      "line": 876
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "score",
+      "target": "get",
+      "line": 876
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "score",
+      "target": "get",
+      "line": 879
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "score",
+      "target": "log",
+      "line": 880
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "score",
+      "target": "round",
+      "line": 883
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "search",
+      "target": "items",
+      "line": 890
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "search",
+      "target": "visible_scope",
+      "line": 891
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "search",
+      "target": "matches_scope_filters",
+      "line": 893
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "search",
+      "target": "score",
+      "line": 895
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "search",
+      "target": "append",
+      "line": 897
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "search",
+      "target": "sorted",
+      "line": 898
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "__init__",
+      "target": "super",
+      "line": 909
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "__init__",
+      "target": "rstrip",
+      "line": 939
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "dumps",
-      "line": 920
+      "line": 948
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "encode",
-      "line": 920
+      "line": 948
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "Request",
-      "line": 924
+      "line": 952
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "urlopen",
-      "line": 928
+      "line": 956
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "decode",
-      "line": 929
+      "line": 957
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "read",
-      "line": 929
+      "line": 957
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "loads",
-      "line": 930
+      "line": 958
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "decode",
-      "line": 932
+      "line": 960
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "read",
-      "line": 932
+      "line": 960
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "QdrantHTTPError",
-      "line": 933
+      "line": 961
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "probe_collection",
       "target": "_request",
-      "line": 938
+      "line": 966
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "collection_vector_size",
       "target": "_request",
-      "line": 956
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "collection_vector_size",
-      "target": "get",
-      "line": 957
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "collection_vector_size",
-      "target": "get",
-      "line": 957
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "collection_vector_size",
-      "target": "get",
-      "line": 957
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "collection_vector_size",
-      "target": "get",
-      "line": 957
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "collection_vector_size",
-      "target": "isinstance",
-      "line": 958
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "collection_vector_size",
-      "target": "ValueError",
-      "line": 959
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "collection_vector_size",
-      "target": "get",
-      "line": 960
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "collection_vector_size",
-      "target": "isinstance",
-      "line": 961
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "collection_vector_size",
-      "target": "ValueError",
-      "line": 962
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "collection_point_count",
-      "target": "_request",
-      "line": 979
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "collection_point_count",
-      "target": "get",
-      "line": 982
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "collection_point_count",
-      "target": "get",
-      "line": 982
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "collection_point_count",
-      "target": "isinstance",
-      "line": 983
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "collection_point_count",
-      "target": "ValueError",
       "line": 984
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "scroll_payloads",
+      "source": "collection_vector_size",
+      "target": "get",
+      "line": 985
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "collection_vector_size",
+      "target": "get",
+      "line": 985
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "collection_vector_size",
+      "target": "get",
+      "line": 985
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "collection_vector_size",
+      "target": "get",
+      "line": 985
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "collection_vector_size",
+      "target": "isinstance",
+      "line": 986
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "collection_vector_size",
       "target": "ValueError",
-      "line": 996
+      "line": 987
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "scroll_payloads",
-      "target": "range",
-      "line": 999
+      "source": "collection_vector_size",
+      "target": "get",
+      "line": 988
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "scroll_payloads",
+      "source": "collection_vector_size",
+      "target": "isinstance",
+      "line": 989
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "collection_vector_size",
+      "target": "ValueError",
+      "line": 990
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "collection_point_count",
       "target": "_request",
       "line": 1007
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "scroll_payloads",
+      "source": "collection_point_count",
       "target": "get",
-      "line": 1008
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "scroll_payloads",
-      "target": "get",
-      "line": 1009
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "scroll_payloads",
-      "target": "isinstance",
       "line": 1010
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "scroll_payloads",
-      "target": "ValueError",
+      "source": "collection_point_count",
+      "target": "get",
+      "line": 1010
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "collection_point_count",
+      "target": "isinstance",
       "line": 1011
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "scroll_payloads",
-      "target": "isinstance",
-      "line": 1013
+      "source": "collection_point_count",
+      "target": "ValueError",
+      "line": 1012
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "scroll_payloads",
       "target": "ValueError",
-      "line": 1014
+      "line": 1024
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "scroll_payloads",
+      "target": "range",
+      "line": 1027
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "scroll_payloads",
+      "target": "_request",
+      "line": 1035
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "scroll_payloads",
       "target": "get",
-      "line": 1015
+      "line": 1036
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "scroll_payloads",
+      "target": "get",
+      "line": 1037
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "scroll_payloads",
       "target": "isinstance",
-      "line": 1016
+      "line": 1038
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "scroll_payloads",
       "target": "ValueError",
-      "line": 1017
+      "line": 1039
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "scroll_payloads",
+      "target": "isinstance",
+      "line": 1041
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "scroll_payloads",
+      "target": "ValueError",
+      "line": 1042
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "scroll_payloads",
+      "target": "get",
+      "line": 1043
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "scroll_payloads",
+      "target": "isinstance",
+      "line": 1044
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "scroll_payloads",
+      "target": "ValueError",
+      "line": 1045
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "scroll_payloads",
       "target": "append",
-      "line": 1018
+      "line": 1046
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "scroll_payloads",
       "target": "str",
-      "line": 1018
+      "line": 1046
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "scroll_payloads",
       "target": "get",
-      "line": 1019
+      "line": 1047
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "scroll_payloads",
       "target": "RuntimeError",
-      "line": 1022
+      "line": 1050
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ensure_collection",
       "target": "int",
-      "line": 1026
+      "line": 1054
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ensure_collection",
       "target": "ValueError",
-      "line": 1028
+      "line": 1056
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ensure_collection",
       "target": "probe_collection",
-      "line": 1029
+      "line": 1057
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ensure_collection",
       "target": "collection_vector_size",
-      "line": 1031
+      "line": 1059
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ensure_collection",
       "target": "ValueError",
-      "line": 1033
+      "line": 1061
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ensure_collection",
       "target": "RuntimeError",
-      "line": 1039
+      "line": 1067
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ensure_collection",
       "target": "_request",
-      "line": 1044
+      "line": 1072
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "upsert",
       "target": "zip",
-      "line": 1055
+      "line": 1083
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "upsert",
       "target": "canonical_storage_point_id",
-      "line": 1060
+      "line": 1088
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "upsert",
       "target": "append",
-      "line": 1061
+      "line": 1089
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "upsert",
       "target": "_request",
-      "line": 1062
+      "line": 1090
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
       "target": "items",
-      "line": 1073
+      "line": 1101
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
       "target": "append",
-      "line": 1075
+      "line": 1103
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
       "target": "_request",
-      "line": 1080
+      "line": 1108
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
       "target": "float",
-      "line": 1091
+      "line": 1119
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
       "target": "get",
-      "line": 1091
+      "line": 1119
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
       "target": "get",
-      "line": 1091
+      "line": 1119
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
       "target": "str",
-      "line": 1091
+      "line": 1119
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
       "target": "get",
-      "line": 1092
+      "line": 1120
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "__init__",
       "target": "HashEmbeddingProvider",
-      "line": 1104
+      "line": 1132
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "__init__",
       "target": "BM25Index",
-      "line": 1105
+      "line": 1133
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ingest",
       "target": "embed",
-      "line": 1109
+      "line": 1137
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ingest",
       "target": "len",
-      "line": 1112
+      "line": 1140
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ingest",
       "target": "len",
-      "line": 1113
+      "line": 1141
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ingest",
       "target": "ValueError",
-      "line": 1114
+      "line": 1142
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ingest",
       "target": "sorted",
-      "line": 1114
+      "line": 1142
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ingest",
       "target": "ensure_collection",
-      "line": 1117
+      "line": 1145
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ingest",
       "target": "iter",
-      "line": 1117
+      "line": 1145
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ingest",
       "target": "next",
-      "line": 1117
+      "line": 1145
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ingest",
       "target": "upsert",
-      "line": 1118
+      "line": 1146
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ingest",
       "target": "add",
-      "line": 1120
+      "line": 1148
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ingest",
       "target": "len",
-      "line": 1122
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "rebuild_sparse_index",
-      "target": "scroll_payloads",
-      "line": 1134
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "rebuild_sparse_index",
-      "target": "set",
-      "line": 1144
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "rebuild_sparse_index",
-      "target": "from_payload",
-      "line": 1147
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "rebuild_sparse_index",
-      "target": "classify_rejection",
       "line": 1150
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "rebuild_sparse_index",
-      "target": "get",
-      "line": 1152
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "rebuild_sparse_index",
-      "target": "setdefault",
-      "line": 1153
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "rebuild_sparse_index",
-      "target": "len",
-      "line": 1156
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "rebuild_sparse_index",
-      "target": "append",
-      "line": 1157
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "rebuild_sparse_index",
-      "target": "str",
-      "line": 1157
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "rebuild_sparse_index",
-      "target": "get",
-      "line": 1159
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "rebuild_sparse_index",
-      "target": "ValueError",
+      "target": "scroll_payloads",
       "line": 1162
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "rebuild_sparse_index",
-      "target": "add",
-      "line": 1163
+      "target": "set",
+      "line": 1172
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "rebuild_sparse_index",
-      "target": "append",
-      "line": 1164
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "rebuild_sparse_index",
-      "target": "canonical_storage_shape",
-      "line": 1168
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "rebuild_sparse_index",
-      "target": "len",
-      "line": 1170
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "rebuild_sparse_index",
-      "target": "append",
-      "line": 1171
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "rebuild_sparse_index",
-      "target": "str",
-      "line": 1171
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "rebuild_sparse_index",
-      "target": "rebuild",
-      "line": 1173
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "rebuild_sparse_index",
-      "target": "len",
+      "target": "from_payload",
       "line": 1175
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "rebuild_sparse_index",
+      "target": "classify_rejection",
+      "line": 1178
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "rebuild_sparse_index",
+      "target": "get",
+      "line": 1180
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "rebuild_sparse_index",
+      "target": "setdefault",
+      "line": 1181
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "rebuild_sparse_index",
+      "target": "len",
+      "line": 1184
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "rebuild_sparse_index",
+      "target": "append",
+      "line": 1185
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "rebuild_sparse_index",
+      "target": "str",
+      "line": 1185
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "rebuild_sparse_index",
+      "target": "get",
+      "line": 1187
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "rebuild_sparse_index",
+      "target": "ValueError",
+      "line": 1190
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "rebuild_sparse_index",
+      "target": "add",
+      "line": 1191
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "rebuild_sparse_index",
+      "target": "append",
+      "line": 1192
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "rebuild_sparse_index",
+      "target": "canonical_storage_shape",
+      "line": 1196
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "rebuild_sparse_index",
+      "target": "len",
+      "line": 1198
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "rebuild_sparse_index",
+      "target": "append",
+      "line": 1199
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "rebuild_sparse_index",
+      "target": "str",
+      "line": 1199
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "rebuild_sparse_index",
+      "target": "rebuild",
+      "line": 1201
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "rebuild_sparse_index",
+      "target": "len",
+      "line": 1203
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "rebuild_sparse_index",
       "target": "dict",
-      "line": 1178
+      "line": 1206
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "rebuild_sparse_index",
       "target": "items",
-      "line": 1178
+      "line": 1206
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "rebuild_sparse_index",
       "target": "sorted",
-      "line": 1178
+      "line": 1206
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "rebuild_sparse_index",
       "target": "items",
-      "line": 1179
+      "line": 1207
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "rebuild_sparse_index",
       "target": "sorted",
-      "line": 1179
+      "line": 1207
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "rebuild_sparse_index",
       "target": "sorted",
-      "line": 1179
+      "line": 1207
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "rebuild_sparse_index",
       "target": "dict",
-      "line": 1180
+      "line": 1208
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "rebuild_sparse_index",
       "target": "items",
-      "line": 1180
+      "line": 1208
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "rebuild_sparse_index",
       "target": "sorted",
-      "line": 1180
+      "line": 1208
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "rebuild_sparse_index",
       "target": "sorted",
-      "line": 1182
+      "line": 1210
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "rebuild_sparse_index",
       "target": "corpus_identity",
-      "line": 1183
+      "line": 1211
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "embed",
-      "line": 1195
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "search",
-      "line": 1196
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "from_payload",
-      "line": 1205
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "float",
-      "line": 1211
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "get",
-      "line": 1211
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "max",
-      "line": 1211
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "search",
-      "line": 1212
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "set",
-      "line": 1216
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "set",
-      "line": 1216
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "get",
-      "line": 1219
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "get",
-      "line": 1222
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "get",
       "line": 1223
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
+      "target": "search",
+      "line": 1224
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "from_payload",
+      "line": 1233
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "float",
+      "line": 1239
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 1239
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "max",
+      "line": 1239
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "search",
+      "line": 1240
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "set",
+      "line": 1244
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "set",
+      "line": 1244
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 1247
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 1250
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 1251
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
       "target": "RetrievedAnnotation",
-      "line": 1225
+      "line": 1253
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "append",
-      "line": 1225
+      "line": 1253
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "_expand_neighbors",
-      "line": 1226
+      "line": 1254
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "sorted",
-      "line": 1227
+      "line": 1255
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "_rerank",
-      "line": 1230
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "_expand_neighbors",
-      "target": "list",
-      "line": 1250
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "_expand_neighbors",
-      "target": "values",
-      "line": 1252
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "_expand_neighbors",
-      "target": "get",
-      "line": 1255
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "_expand_neighbors",
-      "target": "matches_scope_filters",
       "line": 1258
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_expand_neighbors",
+      "target": "list",
+      "line": 1278
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "_expand_neighbors",
+      "target": "values",
+      "line": 1280
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "_expand_neighbors",
+      "target": "get",
+      "line": 1283
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "_expand_neighbors",
+      "target": "matches_scope_filters",
+      "line": 1286
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "_expand_neighbors",
       "target": "add",
-      "line": 1260
+      "line": 1288
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_expand_neighbors",
       "target": "append",
-      "line": 1261
+      "line": 1289
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_expand_neighbors",
       "target": "RetrievedAnnotation",
-      "line": 1262
+      "line": 1290
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "set",
-      "line": 1267
+      "line": 1295
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "tokenize",
-      "line": 1267
+      "line": 1295
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "lower",
-      "line": 1270
+      "line": 1298
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "sum",
-      "line": 1270
+      "line": 1298
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "append",
-      "line": 1272
+      "line": 1300
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "RetrievedAnnotation",
-      "line": 1273
+      "line": 1301
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "round",
-      "line": 1278
+      "line": 1306
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "sorted",
-      "line": 1282
+      "line": 1310
     },
     {
       "owner": "sahool-platform",
@@ -543606,7 +543613,7 @@
       "symbol": "HttpEmbeddingProvider",
       "kind": "class",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "line": 636,
+      "line": 664,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,

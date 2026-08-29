@@ -191,12 +191,16 @@ def detect_neighbor_filter_bypass(m) -> dict:
 
 # ── ④ مُعرِّفُ التخزين يصير هويّةً منطقيّة ───────────────────────────────────
 def detect_storage_id_as_logical_id(m) -> dict:
-    """التوثيقُ يقول إنّ الهويّة المنطقيّة دائماً ``metadata.chunk_id`` — والكود يخالفه.
+    """الاستعارةُ قائمةٌ بالقصد — **والمقيسُ هنا أنّها مُعلَنة لا صامتة**.
 
-    عند غياب المفتاح المنطقيّ يصير UUID التخزين هو ``chunk_id``. وهو ارتدادُ هجرةٍ
-    عمليّ، لكنّه ليس هويّةً قانونيّة: إعادةُ كتابةٍ لاحقة تُنتِج ``chunk_id`` حقيقيّاً
-    ومُعرِّفَ تخزينٍ جديداً مشتقّاً منه، فتصير النقطةُ القديمة والجديدة هويّتين ما لم
-    تُصاحِب الهجرةَ خريطةٌ صريحة.
+    كان التوثيقُ يقول إنّ مُعرِّفَ التخزين «لا يُسمَح» أن يصير هويّةَ استرجاع
+    والكودُ يسمح — **وثيقةٌ تصف ما لا يفعله الكود**. وأُغلِق العطلُ بإعلان
+    الاستعارة في ``metadata["chunk_id_source"]`` لا بنزعِ الارتداد:
+    ``canonical_storage_shape`` يرفض الصفَّ المستعير أصلاً (يمرّر ``fallback_id=None``)،
+    والسِّعةُ هنا للهجرة والتدقيق.
+
+    **فالكاشفُ يقيس الصمتَ لا الاستعارة:** هويّةٌ مُستعارةٌ **بلا إعلان** ⇒ ``present``.
+    ونزعُ سطر الإعلان يُعيدها ``True`` — كاشفُ انحدارٍ لا شاهدُ عطلٍ قائم.
     """
     payload = {
         "page_content": "wheat guidance",
@@ -214,11 +218,16 @@ def detect_storage_id_as_logical_id(m) -> dict:
         },
     }
     chunk = m.KnowledgeChunk.from_payload(payload, fallback_id="storage-uuid-42")
+    borrowed = chunk.chunk_id == "storage-uuid-42"
+    declared = chunk.metadata.get("chunk_id_source") == "storage_fallback"
     return {
         "finding": "STORAGE_ID_USED_AS_LOGICAL_ID",
-        "present": chunk.chunk_id == "storage-uuid-42",
+        "present": borrowed and not declared,
         "resolved_chunk_id": chunk.chunk_id,
-        "note": "غيابُ metadata.chunk_id يُرقّي مُعرِّفَ التخزين هويّةً منطقيّة",
+        "chunk_id_source": chunk.metadata.get("chunk_id_source"),
+        "borrowed": borrowed,
+        "declared": declared,
+        "note": "الاستعارةُ مُعلَنةٌ في chunk_id_source؛ والشكلُ القانونيّ يرفضها",
     }
 
 
@@ -286,10 +295,14 @@ def detect_neighbor_filter_bypass_on(m, hit, neighbour, scope_key: str) -> dict:
 
 def detect_storage_id_as_logical_id_on(m, payload: dict, fallback_id: str) -> dict:
     chunk = m.KnowledgeChunk.from_payload(payload, fallback_id=fallback_id)
+    borrowed = chunk.chunk_id == fallback_id
+    declared = chunk.metadata.get("chunk_id_source") == "storage_fallback"
     return {
         "finding": "STORAGE_ID_USED_AS_LOGICAL_ID",
-        "present": chunk.chunk_id == fallback_id,
+        "present": borrowed and not declared,
         "resolved_chunk_id": chunk.chunk_id,
+        "chunk_id_source": chunk.metadata.get("chunk_id_source"),
+        "borrowed": borrowed,
     }
 
 
