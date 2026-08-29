@@ -194,10 +194,20 @@ def test_the_neighbor_detector_is_quiet_when_the_neighbour_shares_the_scope():
 # ── ④ مُعرِّفُ التخزين هويّةً منطقيّة ────────────────────────────────────────
 
 
-def test_the_storage_id_detector_fires_when_the_logical_key_is_absent():
+def test_the_storage_id_detector_is_quiet_once_the_borrowing_is_declared():
+    """**مرساةٌ قُلِبت حين أُغلِق العطل — الرابعةُ والأخيرة في هذا العنقود.**
+
+    والاستعارةُ **باقيةٌ بالقصد**: `resolved_chunk_id` ما يزال مُعرِّفَ التخزين.
+    المُغلَقُ هو **الصمت** — `chunk_id_source` يُعلِنها الآن، و`canonical_storage_shape`
+    يرفض الصفَّ المستعير كما كان.
+
+    فالكاشفُ يقيس `borrowed and not declared`: نزعُ سطر الإعلان يُعيد `present=True`.
+    """
     probe = _probe()
     row = probe.detect_storage_id_as_logical_id(probe.load_module())
-    assert row["present"] is True
+    assert row["present"] is False
+    assert row["borrowed"] is True, "نُزِع الارتدادُ — والهجرةُ والتدقيقُ يحتاجانه"
+    assert row["chunk_id_source"] == "storage_fallback"
     assert row["resolved_chunk_id"] == "storage-uuid-42"
 
 

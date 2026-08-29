@@ -443,13 +443,36 @@ class KnowledgeChunk:
     ) -> KnowledgeChunk:
         """Parse the canonical LangChain-compatible payload and tolerate legacy EXPAND rows.
 
-        The logical identity is always ``metadata.chunk_id`` when present. Qdrant's
-        storage UUID is deliberately not allowed to become the retrieval identity.
+        الهويّةُ المنطقيّة ``metadata.chunk_id`` متى وُجِدت. **وعند غيابها يُستعار
+        ``fallback_id`` — مُعرِّفُ تخزين Qdrant — ويُعلَن ذلك في
+        ``metadata["chunk_id_source"]``.**
+
+        ``RAG-STORAGE-ID-AS-LOGICAL-IDENTITY-01``: كان متنُ هذه الدالّة يقول إنّ
+        مُعرِّفَ التخزين **«لا يُسمَح»** أن يصير هويّةَ استرجاع، والكودُ يسمح به في
+        السطر التالي — **وثيقةٌ تصف ما لا يفعله الكود**، وهو الصنفُ الذي أمسكَته
+        المراجعةُ على #837.
+
+        **والعلاجُ إعلانُ الاستعارة لا نزعُها**، وثلاثةُ أسبابٍ مقيسة:
+
+        * **الارتدادُ مشروعٌ بالقصد.** ``canonical_storage_shape`` يستدعي هذه الدالّة
+          بـ``fallback_id=None`` فيرفض الصفَّ المستعير أصلاً — فالخدمةُ القانونيّة
+          **لا تقبله اليوم**. والسِّعةُ هنا للهجرة والتدقيق على مادّةٍ قديمة، ونزعُها
+          يُعمي التدقيق عن الصفوف التي وُجِد لأجلها.
+        * **الصمتُ هو العطل لا الاستعارة.** مستهلِكٌ يقرأ ``chunk_id`` لا يستطيع
+          تمييزَ هويّةٍ مُعلَنة من مُستعارة، فتُبنى عليها إحالاتٌ تنكسر عند أوّل
+          إعادةِ كتابةٍ تُنتِج المفتاحَ المنطقيّ الحقيقيّ.
+        * **وهو نمطُ ``CAPABILITY-EVIDENCE-LISTS-TRUNCATE-SILENTLY-01`` بعينه:**
+          أُعلِن الاقتطاعُ ولم يُرفَع السقف. هنا تُعلَن الاستعارةُ ولا يُنزَع الارتداد.
+
+        **ولا تُكتَب هذه الراية في المخزَن:** ``payload()`` تنزعها، لأنّها خاصّيّةُ
+        **هذا التحليل** لا خاصّيّةُ الصفّ — وإبقاؤها كان يكذب على صفٍّ أُعيدت كتابتُه
+        بمفتاحٍ منطقيٍّ صحيح.
         """
         nested = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
         meta = dict(nested)
         text = payload.get("page_content", payload.get("text"))
-        chunk_id = meta.get("chunk_id", payload.get("chunk_id", fallback_id))
+        declared_id = meta.get("chunk_id", payload.get("chunk_id"))
+        chunk_id = declared_id if declared_id is not None else fallback_id
         tenant = meta.get("tenant_id", payload.get("tenant_id"))
         source_file = meta.get("source_file")
         source_type = meta.get("source_type", payload.get("source_type"))
@@ -480,6 +503,8 @@ class KnowledgeChunk:
         # لا يمسّ صفّاً يحمل المفتاحَ سلفاً — فالقيمةُ المُعلَنة في `metadata`
         # تبقى هي المرجع.
         meta.setdefault("tenant_id", tenant)
+        # الاستعارةُ تُعلَن لا تُخفى — راجع متنَ الدالّة.
+        meta["chunk_id_source"] = "declared" if declared_id is not None else "storage_fallback"
         meta.setdefault("evidence_level", payload.get("evidence_level") or "document")
         meta.setdefault("prescriptive_eligible", False)
         return cls(
@@ -502,6 +527,9 @@ class KnowledgeChunk:
         consume canonical writes without a second collection or payload migration.
         """
         metadata = dict(self.metadata)
+        # `chunk_id_source` خاصّيّةُ تحليلٍ لا خاصّيّةُ صفّ: إبقاؤها يكذب على
+        # صفٍّ أُعيدت كتابتُه بمفتاحٍ منطقيٍّ صحيح (`RAG-STORAGE-ID-AS-LOGICAL-IDENTITY-01`).
+        metadata.pop("chunk_id_source", None)
         metadata.setdefault("prescriptive_eligible", False)
         metadata.setdefault("content_digest", _content_digest(self.text))
         metadata.setdefault("source_class", _normalized_source_class(self.source_type, metadata))
