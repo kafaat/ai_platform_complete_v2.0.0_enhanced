@@ -171,8 +171,14 @@ def test_abort_transition_updates_pointer_and_round_atomically(tmp_path):
         timeout=30,
     )
     assert result.returncode == 0, result.stderr
-    assert json.loads((round_dir / "ROUND.json").read_text(encoding="utf-8"))["round_state"] == "ABORTED"
-    assert json.loads((evidence / "ROUND.json").read_text(encoding="utf-8"))["round_state"] == "ABORTED"
+    assert (
+        json.loads((round_dir / "ROUND.json").read_text(encoding="utf-8"))["round_state"]
+        == "ABORTED"
+    )
+    assert (
+        json.loads((evidence / "ROUND.json").read_text(encoding="utf-8"))["round_state"]
+        == "ABORTED"
+    )
 
 
 def test_live_acceptance_summary_is_written_before_the_checksum_manifest():

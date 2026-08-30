@@ -49,12 +49,12 @@ def evidence_digest(evidence: dict[str, Any]) -> str:
 def signing_payload(evidence: dict[str, Any]) -> bytes:
     unsigned = dict(evidence)
     unsigned.pop("attestation", None)
-    return json.dumps(
-        unsigned, ensure_ascii=False, sort_keys=True, separators=(",", ":")
-    ).encode()
+    return json.dumps(unsigned, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
 
 
-def trust_policy(environment_id: object, attestation: object) -> tuple[dict[str, Any] | None, list[str]]:
+def trust_policy(
+    environment_id: object, attestation: object
+) -> tuple[dict[str, Any] | None, list[str]]:
     errors: list[str] = []
     if not isinstance(environment_id, str) or not ENVIRONMENT_ID_RE.fullmatch(environment_id):
         return None, ["invalid_environment_id"]
@@ -90,7 +90,10 @@ def trust_policy(environment_id: object, attestation: object) -> tuple[dict[str,
     if not issuer_policy:
         errors.append("unknown_attestation_issuer")
         return None, errors
-    if issuer_policy.get("algorithm") != "hmac-sha256" or attestation.get("algorithm") != "hmac-sha256":
+    if (
+        issuer_policy.get("algorithm") != "hmac-sha256"
+        or attestation.get("algorithm") != "hmac-sha256"
+    ):
         errors.append("unsupported_attestation_algorithm")
     return issuer_policy, errors
 

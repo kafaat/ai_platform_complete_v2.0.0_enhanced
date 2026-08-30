@@ -73,9 +73,7 @@ def evidence_digest(evidence: dict[str, Any]) -> str:
 def signing_payload(evidence: dict[str, Any]) -> bytes:
     unsigned = dict(evidence)
     unsigned.pop("attestation", None)
-    return json.dumps(
-        unsigned, ensure_ascii=False, sort_keys=True, separators=(",", ":")
-    ).encode()
+    return json.dumps(unsigned, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -255,7 +253,9 @@ def main() -> int:
     key_env = issuer_row.get("verification_key_env")
     key = os.getenv(key_env, "") if isinstance(key_env, str) else ""
     if not key:
-        raise SystemExit(f"{key_env or 'HMAC verification key'} is required; unsigned evidence is forbidden")
+        raise SystemExit(
+            f"{key_env or 'HMAC verification key'} is required; unsigned evidence is forbidden"
+        )
 
     started_at = now()
     results = []
