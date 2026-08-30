@@ -1,0 +1,60 @@
+name: GitHub Actions Security
+
+on:
+  pull_request:
+    paths:
+      - ".github/**"
+      - "scripts/ci/github_actions_security_guard.py"
+      - "scripts/ci/install_pinned_actions_security_tools.sh"
+      - "scripts/ci/install_pinned_trivy.sh"
+      - "scripts/ci/runtime_image_supply_chain_guard.py"
+      - "tests_v9/test_github_actions_security_guard.py"
+      - "tests_v9/test_runtime_image_supply_chain_guard.py"
+  push:
+    branches: [main]
+    paths:
+      - ".github/**"
+      - "scripts/ci/github_actions_security_guard.py"
+      - "scripts/ci/install_pinned_actions_security_tools.sh"
+      - "scripts/ci/install_pinned_trivy.sh"
+      - "scripts/ci/runtime_image_supply_chain_guard.py"
+      - "tests_v9/test_github_actions_security_guard.py"
+      - "tests_v9/test_runtime_image_supply_chain_guard.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Install gate dependencies
+        run: python -m pip install --disable-pip-version-check PyYAML pytest
+      - name: Install pinned security analyzers
+        run: scripts/ci/install_pinned_actions_security_tools.sh
+      - name: Run structural guards and mutation tests
+        run: |
+          set -euo pipefail
+          python scripts/ci/runtime_image_supply_chain_guard.py
+          python scripts/ci/github_actions_security_guard.py
+          # These are pure source-contract tests; do not import the application-wide
+          # tests_v9/conftest.py or its unrelated HTTP/JWT runtime dependencies.
+          python -m pytest -q --noconftest \
+            tests_v9/test_github_actions_security_guard.py \
+            tests_v9/test_runtime_image_supply_chain_guard.py
+      - name: Validate workflow syntax and immutable action pins
+        run: |
+          set -euo pipefail
+          actionlint -config-file .github/actionlint.yaml
+          pinact run --fix=false --no-api
+      - name: Block new high-confidence, high-severity workflow findings
+        run: zizmor --offline --strict-collection --min-severity high --min-confidence high .github
+      - name: Block workflow input injection
+        run: poutine --allowed-rules injection --fail-on-violation --disable-version-check analyze_local .

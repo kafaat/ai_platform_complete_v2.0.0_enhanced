@@ -9,9 +9,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
-  id-token: write
-  attestations: write
 
 concurrency:
   group: runtime-image-provenance-${{ inputs.source_sha }}
@@ -20,6 +17,11 @@ concurrency:
 jobs:
   build-and-attest:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
     strategy:
       fail-fast: false
       matrix:
@@ -60,16 +62,25 @@ jobs:
             dockerfile: services/agriai-engine/Dockerfile
             image_name: sahool-agriai-engine
     steps:
+      - name: Validate requested source SHA
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           ref: ${{ inputs.source_sha }}
           fetch-depth: 1
+          persist-credentials: false
       - name: Validate exact checkout
         shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "${{ inputs.source_sha }}"
-          [[ "${{ inputs.source_sha }}" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
       - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v3
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v3
         with:
@@ -83,48 +94,121 @@ jobs:
           context: .
           file: ${{ matrix.dockerfile }}
           push: true
-          provenance: false
+          provenance: mode=max
+          sbom: true
           tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ inputs.source_sha }}
           build-args: |
             SAHOOL_GIT_SHA=${{ inputs.source_sha }}
             SAHOOL_BUILD_ID=gha-image-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.service }}
             SAHOOL_SOURCE_REPOSITORY=${{ github.repository }}
             SAHOOL_SOURCE_REF=${{ github.ref }}
-      - name: Attest OCI image digest
+      - name: Install pinned Trivy
+        run: scripts/ci/install_pinned_trivy.sh
+      - name: Scan immutable image and produce CycloneDX SBOM
+        shell: bash
+        env:
+          IMAGE_REF: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}@${{ steps.build.outputs.digest }}
+          SERVICE: ${{ matrix.service }}
+          TRIVY_CACHE_DIR: ${{ runner.temp }}/trivy-cache
+        run: |
+          set -euo pipefail
+          mkdir -p image-evidence
+          trivy image --cache-dir "$TRIVY_CACHE_DIR" --scanners vuln \
+            --severity HIGH,CRITICAL --exit-code 1 --format json \
+            --output "image-evidence/${SERVICE}.vulnerability-scan.json" "$IMAGE_REF"
+          trivy image --cache-dir "$TRIVY_CACHE_DIR" --scanners vuln \
+            --format cyclonedx --output "image-evidence/${SERVICE}.sbom.cdx.json" \
+            "$IMAGE_REF"
+          test -s "image-evidence/${SERVICE}.vulnerability-scan.json"
+          test -s "image-evidence/${SERVICE}.sbom.cdx.json"
+      - name: Attest OCI image provenance
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-name: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
+      - name: Attest OCI image CycloneDX SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-name: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          sbom-path: image-evidence/${{ matrix.service }}.sbom.cdx.json
+          push-to-registry: true
+      - name: Install pinned GitHub attestation verifier
+        run: scripts/ci/install_pinned_gh_attestation_cli.sh
+      - name: Verify provenance and SBOM attestations by digest
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMAGE_REF: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}@${{ steps.build.outputs.digest }}
+          SERVICE: ${{ matrix.service }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+          gh attestation verify "oci://${IMAGE_REF}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/runtime-image-provenance.yml" \
+            --source-digest "$SOURCE_SHA" \
+            --predicate-type https://slsa.dev/provenance/v1 \
+            --format json > "image-evidence/${SERVICE}.provenance-verification.json"
+          gh attestation verify "oci://${IMAGE_REF}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/runtime-image-provenance.yml" \
+            --source-digest "$SOURCE_SHA" \
+            --predicate-type https://cyclonedx.org/bom \
+            --format json > "image-evidence/${SERVICE}.sbom-verification.json"
+          test -s "image-evidence/${SERVICE}.provenance-verification.json"
+          test -s "image-evidence/${SERVICE}.sbom-verification.json"
       - name: Write image manifest fragment
         shell: bash
+        env:
+          SERVICE: ${{ matrix.service }}
+          IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          BUILDER_WORKFLOW: ${{ github.repository }}/.github/workflows/runtime-image-provenance.yml
+          BUILDER_RUN_ID: ${{ github.run_id }}
+          BUILDER_RUN_ATTEMPT: ${{ github.run_attempt }}
         run: |
           set -euo pipefail
           mkdir -p image-manifest-fragments
-          cat > "image-manifest-fragments/${{ matrix.service }}.json" <<EOF
-          {
-            "service": "${{ matrix.service }}",
-            "image": "ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}@${{ steps.build.outputs.digest }}",
-            "source_sha": "${{ inputs.source_sha }}",
-            "builder_workflow": "${{ github.repository }}/.github/workflows/runtime-image-provenance.yml",
-            "builder_run_id": "${{ github.run_id }}",
-            "builder_run_attempt": "${{ github.run_attempt }}"
-          }
-          EOF
+          python - <<'PY'
+          import hashlib, json, os, re
+          from pathlib import Path
+          service=os.environ['SERVICE']; digest=os.environ['IMAGE_DIGEST']; source=os.environ['SOURCE_SHA']
+          if not re.fullmatch(r'[a-z0-9-]+', service): raise SystemExit('invalid service')
+          if not re.fullmatch(r'sha256:[0-9a-f]{64}', digest): raise SystemExit('invalid image digest')
+          if not re.fullmatch(r'[0-9a-f]{40}', source): raise SystemExit('invalid source sha')
+          evidence={}
+          evidence_files={'vulnerability_scan_sha256':'vulnerability-scan',
+                          'sbom_cdx_sha256':'sbom.cdx',
+                          'provenance_verification_sha256':'provenance-verification',
+                          'sbom_verification_sha256':'sbom-verification'}
+          for field,kind in evidence_files.items():
+              path=Path('image-evidence')/f'{service}.{kind}.json'
+              if not path.is_file() or path.stat().st_size == 0: raise SystemExit(f'missing evidence: {path}')
+              evidence[field]=hashlib.sha256(path.read_bytes()).hexdigest()
+          row={'service':service,'image':os.environ['IMAGE_NAME']+'@'+digest,'source_sha':source,
+               'builder_workflow':os.environ['BUILDER_WORKFLOW'],'builder_run_id':os.environ['BUILDER_RUN_ID'],
+               'builder_run_attempt':os.environ['BUILDER_RUN_ATTEMPT'],'evidence':evidence}
+          Path(f'image-manifest-fragments/{service}.json').write_text(json.dumps(row,sort_keys=True,indent=2)+'\n')
+          PY
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: runtime-image-fragment-${{ matrix.service }}
-          path: image-manifest-fragments/${{ matrix.service }}.json
+          path: |
+            image-manifest-fragments/${{ matrix.service }}.json
+            image-evidence/${{ matrix.service }}.*.json
           if-no-files-found: error
           retention-days: 30
 
   publish-manifest:
     needs: build-and-attest
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        with:
-          ref: ${{ inputs.source_sha }}
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: runtime-image-fragment-*

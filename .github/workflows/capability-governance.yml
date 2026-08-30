@@ -2,6 +2,7 @@ name: Capability Governance
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, edited]
   push:
     branches: [main, develop]
 
@@ -146,10 +147,16 @@ jobs:
             echo "live PR body fetch failed: HTTP $HTTP_STATUS — فشل مغلق (الحمولة المجمّدة ليست بديلاً)" >&2
             exit 1
           fi
+          LIVE_HEAD_SHA=$(jq -er '.head.sha | select(type == "string" and length == 40)' /tmp/pr-live.json)
+          if [ "$LIVE_HEAD_SHA" != "$HEAD_SHA" ]; then
+            echo "live PR head changed during governance run: event=$HEAD_SHA live=$LIVE_HEAD_SHA — أعد التشغيل على الزوج المتطابق" >&2
+            exit 1
+          fi
           jq -r '.body // ""' /tmp/pr-live.json > /tmp/pr-body.txt
           python scripts/ci/pr_capability_impact_gate.py \
             --base "$BASE_SHA" \
             --head "$HEAD_SHA" \
+            --pr-number "$PR_NUMBER" \
             --pr-body-file /tmp/pr-body.txt \
             --output /tmp/capability-impact.json
       - name: Validate PATH-1 static governance closure

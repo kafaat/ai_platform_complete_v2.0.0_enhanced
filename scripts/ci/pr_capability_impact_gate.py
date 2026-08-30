@@ -545,6 +545,12 @@ def parse_pr_body(body: str, known: set[str]) -> dict[str, Any]:
     return parse_declaration_value(matches[0] if matches else "", known)
 
 
+def read_pr_body(path: str | Path) -> tuple[str, str]:
+    """Read the exact declaration subject and return its auditable digest."""
+    raw = Path(path).read_bytes()
+    return raw.decode("utf-8"), sha256_bytes(raw)
+
+
 def apply_declaration(
     data: dict[str, Any], declaration: dict[str, Any], known: set[str]
 ) -> dict[str, Any]:
@@ -631,6 +637,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--head", "--head-ref", dest="head")
     parser.add_argument("--declared")
     parser.add_argument("--pr-body-file")
+    parser.add_argument("--pr-number", type=int)
     parser.add_argument("--output")
     parser.add_argument(
         "--allow-dirty-tree",
@@ -667,6 +674,8 @@ def main(argv: list[str] | None = None) -> int:
             raise ValueError("--base and --head must be provided together")
         if args.declared is not None and args.pr_body_file:
             raise ValueError("use either --declared or --pr-body-file, not both")
+        if args.pr_number is not None and not args.pr_body_file:
+            raise ValueError("--pr-number requires --pr-body-file")
 
         paths = list(args.paths)
         if args.paths_file:
@@ -703,16 +712,22 @@ def main(argv: list[str] | None = None) -> int:
             "merge_base": base_commit,
         }
 
+        declaration_subject: dict[str, Any] | None = None
         if args.pr_body_file:
-            declaration = parse_pr_body(
-                Path(args.pr_body_file).read_text(encoding="utf-8"),
-                active_snapshot.known_capabilities,
-            )
+            pr_body, pr_body_sha256 = read_pr_body(args.pr_body_file)
+            declaration = parse_pr_body(pr_body, active_snapshot.known_capabilities)
+            declaration_subject = {
+                "kind": "live_pr_body",
+                "pr_number": args.pr_number,
+                "sha256": pr_body_sha256,
+            }
         elif args.declared is not None:
             declaration = parse_declaration_value(args.declared, active_snapshot.known_capabilities)
         else:
             declaration = parse_declaration_value("", active_snapshot.known_capabilities)
         apply_declaration(data, declaration, active_snapshot.known_capabilities)
+        if declaration_subject is not None:
+            data["declaration"]["subject"] = declaration_subject
 
         content = (json.dumps(data, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
         write_output(args.output, content)

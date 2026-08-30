@@ -37,9 +37,15 @@ concurrency:
 jobs:
   report:
     runs-on: ubuntu-24.04
+    env:
+      EXPECTED_SHA: ${{ inputs.expected_sha }}
+      FULL_UNIT: ${{ inputs.full_unit }}
+      REPOSITORY_TESTS: ${{ inputs.repository_tests }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        with: {fetch-depth: 0}
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.11"
@@ -49,12 +55,14 @@ jobs:
       # فتُتخطّى وتظهر في `critical_skipped` صراحةً — لا تُبتلَع في «صفر إخفاقات».
       - name: Collect readiness evidence (static gates only)
         run: |
+          set -euo pipefail
+          [[ -z "$EXPECTED_SHA" || "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
+          args=(--project-dir . --output artifacts/production-readiness/report.json)
+          [[ -n "$EXPECTED_SHA" ]] && args+=(--expected-sha "$EXPECTED_SHA")
+          case "$FULL_UNIT" in true) args+=(--full-unit) ;; false) ;; *) exit 2 ;; esac
+          case "$REPOSITORY_TESTS" in true) args+=(--repository-tests) ;; false) ;; *) exit 2 ;; esac
           python scripts/release/production_readiness_orchestrator.py \
-            --project-dir . \
-            --output artifacts/production-readiness/report.json \
-            --expected-sha "${{ inputs.expected_sha }}" \
-            ${{ inputs.full_unit && '--full-unit' || '' }} \
-            ${{ inputs.repository_tests && '--repository-tests' || '' }}
+            "${args[@]}"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: production-readiness-report-${{ github.sha }}

@@ -930,6 +930,18 @@
         }
       ]
     },
+    "services/sahool-platform/api/routers/field_workspace_weather.py": {
+      "$why_ar": "غيابُ المطر لا يجوز أن يُصنَع صفراً في مساري الريّ وخطر المرض؛ الصفرُ الصريح وحده قياسٌ كامل.",
+      "mutations": [
+        {
+          "expect": "test_missing_precipitation_never_becomes_a_zero_total",
+          "find": "        if value is None:\n            missing.append(index)",
+          "replace": "        if value is None:\n            values.append(0.0)  # mutated: missing rain becomes no rain",
+          "why": "إدخال صفر عند غياب interval يُعيد انحياز الإسراف في الريّ والطمأنة الكاذبة في خطر المرض."
+        }
+      ],
+      "test": "tests_v9/test_weather_views_survive_the_hop_to_the_platform.py"
+    },
     "services/sahool-platform/api/machinery_export.py": {
       "$why_ar": "C3: artifact الآلة يجب أن يحتفظ بهوية مناطق الإدارة وبصمة الوصفة/lineage، لا أن يعيد ترقيمها بما يقطع السلسلة.",
       "mutations": [
@@ -974,6 +986,20 @@
     },
     "services/sahool-platform/core/rag/production_qdrant.py": {
       "mutations": [
+        {
+          "expect": "test_weighted_rrf_is_invariant_to_score_scale",
+          "test": "tests_v9/test_rag_weighted_rrf_fusion.py",
+          "find": "            score += dense_weight / (rank_constant + dense_ranks[chunk_id])",
+          "replace": "            score += dense_weight * dense_scores[chunk_id]  # mutated: raw magnitude returns",
+          "why": "إعادة مقدار الدرجة الخام إلى fusion تجعل ترتيب البحث تابعاً لمقياس المزوّد؛ تغيير وحدة BM25 أو cosine يحرّك النتيجة بلا تغيير الرتب."
+        },
+        {
+          "expect": "test_retriever_preserves_an_absent_sparse_leg_as_absent",
+          "test": "tests_v9/test_rag_weighted_rrf_fusion.py",
+          "find": "            sparse = sparse_map.get(cid)\n",
+          "replace": "            sparse = sparse_map.get(cid, 0.0)  # mutated: absence becomes measured zero\n",
+          "why": "تحويل رجل استرجاع غائبة إلى درجة صفرية يزوّر تشخيص الهجين: الصفر نتيجة مقاسة، أما الغياب فيعني أن المزود لم يُرجع المرشح."
+        },
         {
           "expect": "test_the_point_count_comes_from_the_exact_count_api",
           "test": "tests_v9/test_rag_corpus_measurement_integrity.py",
@@ -1194,6 +1220,32 @@
           "find": "          if [ \"$HTTP_STATUS\" != \"200\" ]; then\n            echo \"live PR body fetch failed: HTTP $HTTP_STATUS — فشل مغلق (الحمولة المجمّدة ليست بديلاً)\" >&2\n            exit 1\n          fi\n",
           "replace": "          if [ \"$HTTP_STATUS\" != \"200\" ]; then\n            echo \"fetch failed — falling back\" >&2\n          fi\n",
           "why": "السقوطُ الصامت عند فشل الجلب يعيد العطلَ بثوب احتياطٍ — فشلُ الشبكة يصير قراءةَ حمولةٍ بائتة بلا أثر."
+        },
+        {
+          "expect": "test_editing_the_pr_body_starts_a_fresh_governance_run",
+          "test": "tests_v9/test_capability_gate_reads_live_body.py",
+          "find": "    types: [opened, synchronize, reopened, edited]\n",
+          "replace": "    types: [opened, synchronize, reopened]\n",
+          "why": "من دون حدث edited لا يبدأ تصحيح الإعلان فحصاً جديداً، وإعادة تشغيل الفحص القديم تبقى مرتبطة بحمولة الحدث السابقة."
+        },
+        {
+          "expect": "test_the_live_body_is_bound_to_the_same_head_as_the_judged_code",
+          "test": "tests_v9/test_capability_gate_reads_live_body.py",
+          "find": "          if [ \"$LIVE_HEAD_SHA\" != \"$HEAD_SHA\" ]; then\n            echo \"live PR head changed during governance run: event=$HEAD_SHA live=$LIVE_HEAD_SHA — أعد التشغيل على الزوج المتطابق\" >&2\n            exit 1\n          fi\n",
+          "replace": "          if false; then\n            echo \"mutated: ignore live head drift\" >&2\n            exit 1\n          fi\n",
+          "why": "قبول متن حيّ من رأس أحدث مع تحليل نسخة حدث أقدم يفصل الإعلان عن الشيفرة التي يحكم عليها؛ يجب فشل التشغيل عند اختلاف الزوج."
+        }
+      ]
+    },
+    "scripts/ci/pr_capability_impact_gate.py": {
+      "$why_ar": "إيصال قرار أثر القدرات إلى ملف خرج قابل للتدقيق يتطلب بصمة البايتات نفسها التي حُلّل منها الإعلان، لا نصاً معاد البناء لاحقاً.",
+      "test": "tests_v9/test_capability_gate_reads_live_body.py",
+      "mutations": [
+        {
+          "expect": "test_the_exact_live_body_has_an_auditable_digest",
+          "find": "    return raw.decode(\"utf-8\"), sha256_bytes(raw)\n",
+          "replace": "    return raw.decode(\"utf-8\"), \"\"  # mutated: subject is no longer auditable\n",
+          "why": "إسقاط البصمة يجعل خرج البوابة غير قادر على إثبات أي نسخة من متن الـPR قُرئت مع زوج SHA المحكوم."
         }
       ]
     },
@@ -1421,6 +1473,46 @@
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
   "honesty_limit": "الفحص الثابت يحجب على **وجود** المواصفة وحداثتها؛ والتنفيذ الفعليّ (`--run`) هو الدليل، ويجري على المُواصَفين وحدهم. فالخضرة هنا تعني «ما قِيس يُطلِق»، لا «كلّ حارس يُطلِق».",
   "mutated": {
+    "github_actions_security_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_security_lane_mutations_are_killed",
+          "find": "        if command not in run_text:",
+          "replace": "        if False:",
+          "why": "نزع التحقق من أوامر مسار التحليل المستقل يجعل خفض عتبة Zizmor أو تغيير قاعدة Poutine يمرّ بينما يبدو المسار الأمني قائماً."
+        },
+        {
+          "expect": "test_security_lane_mutations_are_killed",
+          "find": "        if version not in installer_text or digest not in installer_text:",
+          "replace": "        if False:",
+          "why": "قبول أداة بلا نسخة وبصمة أصل مثبتتين يحول مُثبّت أدوات الحراسة نفسه إلى مدخل سلسلة توريد غير محروس."
+        },
+        {
+          "expect": "test_security_lane_mutations_are_killed",
+          "find": "        if command not in ci_text:",
+          "replace": "        if False:",
+          "why": "المسار المستقل غير مطلوب في Ruleset؛ إسقاط نفس الأوامر من وظيفة Security Scan المطلوبة يجعل الحراس إرشادية بصمت."
+        }
+      ],
+      "test": "tests_v9/test_github_actions_security_guard.py"
+    },
+    "runtime_image_supply_chain_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_security_mutations_are_killed",
+          "find": "        if token not in runtime_text and token not in runtime_runs:",
+          "replace": "        if False:",
+          "why": "إسقاط فحص الرموز الإلزامية يسمح بتعطيل فشل Trivy أو حذف تحقق CycloneDX مع بقاء workflow صالحاً نحوياً."
+        },
+        {
+          "expect": "test_security_mutations_are_killed",
+          "find": "    if \"${{ inputs.\" in matrix_runs or \"${{ github.event.inputs.\" in matrix_runs:",
+          "replace": "    if False:",
+          "why": "إعادة توسعة مدخل workflow_dispatch مباشرة داخل shell تعيد حقن الأوامر الذي أثبته Poutine وZizmor في المسار الأصلي."
+        }
+      ],
+      "test": "tests_v9/test_runtime_image_supply_chain_guard.py"
+    },
     "action_pin_agreement_guard.py": {
       "mutations": [
         {

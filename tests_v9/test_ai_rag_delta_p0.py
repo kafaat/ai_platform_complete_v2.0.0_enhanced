@@ -206,6 +206,10 @@ def test_reference_provenance_is_carried_to_annotation_without_authority():
         "bm25_score": 0.4,
         "fused_score": 0.68,
         "rerank_score": None,
+        "dense_rank": None,
+        "bm25_rank": None,
+        "fusion_method": "weighted_rrf",
+        "fusion_version": "weighted_rrf_v1",
     }
     assert chunk.payload["metadata"]["prescriptive_eligible"] is False
     assert chunk.payload["metadata"]["agrovoc_concept_ids"] == ["c_7951"]

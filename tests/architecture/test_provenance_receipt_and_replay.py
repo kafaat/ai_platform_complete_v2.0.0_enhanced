@@ -39,6 +39,17 @@ def test_attested_image_manifest_rejects_tag_only_reference(tmp_path):
     assert m.REF.fullmatch("ghcr.io/org/image@sha256:" + "a" * 64)
 
 
+def test_attested_image_manifest_requires_complete_supply_chain_evidence():
+    m = load("scripts/ci/prepare_attested_runtime_images.py", "image_evidence_test")
+    evidence = {key: "a" * 64 for key in m.EVIDENCE_DIGESTS}
+    assert m.valid_evidence_digests(evidence)
+    missing = dict(evidence)
+    missing.pop("sbom_verification_sha256")
+    assert not m.valid_evidence_digests(missing)
+    malformed = dict(evidence, vulnerability_scan_sha256="not-a-digest")
+    assert not m.valid_evidence_digests(malformed)
+
+
 def test_trusted_environment_binds_runner_builder_and_signer():
     o = json.loads((ROOT / "runtime-verification/trusted_environments.json").read_text())
     e = next(x for x in o["environments"] if x["environment_id"] == "staging-pg16")

@@ -23,7 +23,8 @@ jobs:
       - name: Evaluate held-out real harvest seasons
         env:
           SIM_GOLDEN_EVIDENCE_KEY: ${{ secrets.SIM_GOLDEN_EVIDENCE_KEY }}
-        run: python3 scripts/simulation/sim_golden.py "${{ inputs.dataset_path }}" --require-promotion-eligible
+          DATASET_PATH: ${{ inputs.dataset_path }}
+        run: python3 scripts/simulation/sim_golden.py "$DATASET_PATH" --require-promotion-eligible
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:

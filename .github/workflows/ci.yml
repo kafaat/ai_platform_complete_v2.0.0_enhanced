@@ -1677,7 +1677,7 @@ jobs:
             exit 1
           fi
           tested_commit="$(git rev-parse HEAD)"
-          tested_tree="$(git rev-parse HEAD^{tree})"
+          tested_tree="$(git rev-parse "HEAD^{tree}")"
           if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
             binding_args=(--binding-mode pending_final_rerun)
           else
@@ -1847,6 +1847,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
@@ -1871,7 +1873,19 @@ jobs:
             services/vegetation-analysis-service/requirements.txt
             services/video-processor/requirements.txt
             services/weather-service/requirements.txt
-      - run: pip install bandit pip-audit pytest python-jose httpx pytest-asyncio "pydantic[email]" bcrypt redis asyncpg PyJWT
+      - run: pip install bandit pip-audit pytest PyYAML python-jose httpx pytest-asyncio "pydantic[email]" bcrypt redis asyncpg PyJWT
+      - name: Install pinned GitHub Actions security analyzers
+        run: scripts/ci/install_pinned_actions_security_tools.sh
+      - name: GitHub Actions security contracts
+        run: |
+          set -euo pipefail
+          python scripts/ci/runtime_image_supply_chain_guard.py
+          python scripts/ci/github_actions_security_guard.py
+          pytest -q tests_v9/test_github_actions_security_guard.py tests_v9/test_runtime_image_supply_chain_guard.py
+          actionlint -config-file .github/actionlint.yaml
+          pinact run --fix=false --no-api
+          zizmor --offline --strict-collection --min-severity high --min-confidence high .github
+          poutine --allowed-rules injection --fail-on-violation --disable-version-check analyze_local .
       # بوّابة أمان: تفشل على HIGH severity (تنفيذ كود/تشفير ضعيف/حقن) — صُحّحت إلى 0.
       - run: bandit -r services/ bots/ agents/ --severity-level high
       # فحص MEDIUM إرشادي (يُعرَض للمراجعة، لا يحجب): timeouts/bind-all/random… غالباً مقبولة بالسياق.
@@ -1919,9 +1933,9 @@ jobs:
       # إصلاحها خارج سقوف توافق langchain، يحتاج ترقية متعمّدة) دون حجب الدمج.
       - name: pip-audit (advisory — all services)
         run: |
-          for f in $(find services bots agents -name 'requirements*.txt'); do
+          while IFS= read -r -d '' f; do
             echo "── $f ──"; pip-audit -r "$f" --progress-spinner off || true
-          done
+          done < <(find services bots agents -name 'requirements*.txt' -print0)
         continue-on-error: true
       # M12 FIX: الملف اسمه requirements_real.txt — السابق (requirements.txt)
       # غير موجود فكان || true يبتلعه دائماً وتبقى تبعيّات وقت التشغيل ناقصة.
@@ -1964,4 +1978,3 @@ jobs:
         working-directory: mobile/sahool_app
       - run: flutter test
         working-directory: mobile/sahool_app
-

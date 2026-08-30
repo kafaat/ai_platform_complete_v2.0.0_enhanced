@@ -10,10 +10,10 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **265**
-- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **46**
-- إجماليّ الطفرات المُسجَّلة: **338**
-- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **171** على 57 مصدراً
+- حرّاس تحجب في CI: **267**
+- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **48**
+- إجماليّ الطفرات المُسجَّلة: **343**
+- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **177** على 59 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
 أنّ المسار يستشير مفتاح الطوارئ مثلاً — ويمرّ أخضر على مسارٍ يستشيره ثمّ يتجاهل
@@ -27,7 +27,7 @@
 
 ---
 
-## الحرّاس المُثبَتة بالتكذيب (46)
+## الحرّاس المُثبَتة بالتكذيب (48)
 
 لكلٍّ منها عطلٌ يُزرَع في مصدرها فعليّاً (`guard_mutation_guard --run`) واختبارٌ
 **مُسمّى** يجب أن يحمرّ عندها. حمرةٌ باختبار آخر ليست دليلاً.
@@ -426,6 +426,20 @@
 - دالّةٌ صحيحة غير مُستدعاة من نقطة الدخول خضرةٌ عن سؤالٍ لم يُطرَح — كلّ اختبارات الوحدة تبقى خضراء وCI لا تفحص شيئاً. — يُسقِط `test_the_lifecycle_check_is_wired_into_the_entry_point`
 - `one_time: false` يُقرأ ترخيصاً بإعادة الاستعمال بدل وضعٍ غير منفَّذ ⇒ حقلٌ إعلانيّ يُسكِت فحص دورة الحياة بلا أن يمنحه أحد ذلك، فيُعيد GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01 من حيث أُغلِقت. — يُسقِط `test_a_reusable_authorization_is_refused_as_an_unimplemented_mode`
 
+### `github_actions_security_guard.py`
+
+**يفرض:** Guard the pinned GitHub Actions static-analysis lane and its blocking thresholds.
+
+**يحجب في:** `ci.yml` → `security-scan` · `github-actions-security.yml` → `analyze`
+
+**الاختبار الشاهد:** `tests_v9/test_github_actions_security_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- نزع التحقق من أوامر مسار التحليل المستقل يجعل خفض عتبة Zizmor أو تغيير قاعدة Poutine يمرّ بينما يبدو المسار الأمني قائماً. — يُسقِط `test_security_lane_mutations_are_killed`
+- قبول أداة بلا نسخة وبصمة أصل مثبتتين يحول مُثبّت أدوات الحراسة نفسه إلى مدخل سلسلة توريد غير محروس. — يُسقِط `test_security_lane_mutations_are_killed`
+- المسار المستقل غير مطلوب في Ruleset؛ إسقاط نفس الأوامر من وظيفة Security Scan المطلوبة يجعل الحراس إرشادية بصمت. — يُسقِط `test_security_lane_mutations_are_killed`
+
 ### `guard_locale_survival_guard.py`
 
 **يفرض:** حارسٌ يموت وهو يطبع نجاحه — GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01.
@@ -679,6 +693,19 @@
 - وظيفةٌ لم تكتمل خلاصتُها `null`، وقراءتُها نجاحاً تُحوِّل «لم تنتهِ» إلى «نجحت» — وهو أخطر أشكال الفشل المفتوح: يُبلِغ اعتماداً عن عملٍ لم يقع. — يُسقِط `test_an_incomplete_job_is_recorded_by_its_status_not_as_blank`
 - قاموسٌ يبتلع الاسم المكرَّر يجعل «كلّ مطلوبةٍ حاضرة مرّةً واحدة» غير قابلٍ للقياس: آخرُ قيمةٍ تفوز صامتةً، وقد تكون success فوق failure — فيُعتمَد على جردٍ فاسد. — يُسقِط `test_a_duplicate_job_name_is_refused_as_inventory_corruption`
 - إغلاق هويّة التشغيل يطابق الـtuple الكاملة ومنها المستودع؛ وثيقةٌ بلا مستودعٍ مُسمّى تجعل طرفَ المطابقة فراغاً — والإغلاق على فراغٍ ليس إغلاقاً. — يُسقِط `test_the_outcome_document_names_its_repository`
+
+### `runtime_image_supply_chain_guard.py`
+
+**يفرض:** Fail closed when runtime-image build, scan, SBOM, or attestation controls drift.
+
+**يحجب في:** `ci.yml` → `security-scan` · `docker-build-matrix-verifier.yml` → `static` · `github-actions-security.yml` → `analyze`
+
+**الاختبار الشاهد:** `tests_v9/test_runtime_image_supply_chain_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- إسقاط فحص الرموز الإلزامية يسمح بتعطيل فشل Trivy أو حذف تحقق CycloneDX مع بقاء workflow صالحاً نحوياً. — يُسقِط `test_security_mutations_are_killed`
+- إعادة توسعة مدخل workflow_dispatch مباشرة داخل shell تعيد حقن الأوامر الذي أثبته Poutine وZizmor في المسار الأصلي. — يُسقِط `test_security_mutations_are_killed`
 
 ### `schema_validation_guard.py`
 

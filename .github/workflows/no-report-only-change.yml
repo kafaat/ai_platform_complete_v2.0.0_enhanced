@@ -4,25 +4,28 @@ on:
 jobs:
   no-report-only-change:
     runs-on: ubuntu-latest
+    env:
+      BASE_REF: ${{ github.base_ref }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
       - name: Check changed files
         run: |
-          git diff --name-only origin/${{ github.base_ref }}...HEAD | python scripts/ci/no_report_only_change_guard.py --stdin
+          git diff --name-only "origin/${BASE_REF}...HEAD" | python scripts/ci/no_report_only_change_guard.py --stdin
       - name: Prevent brain-only certification state transitions
-        run: python scripts/ci/brain_state_transition_guard.py --base "origin/${{ github.base_ref }}" --head HEAD
+        run: python scripts/ci/brain_state_transition_guard.py --base "origin/${BASE_REF}" --head HEAD
       # BRAIN-DEFERRAL-LEAK-01: كلّ تأجيل في hot.md يحتاج معرّف فجوة مسجَّلاً.
       # القاعدة كانت عُرفاً في CLAUDE.md؛ هنا تصير إنفاذاً.
       - name: Deferrals in hot.md must be registered as gaps
         run: python scripts/ci/brain_deferral_registry_guard.py
       # BRAIN-CLAIM-UNVERIFIED-01: رسالة الالتزام تذكر معرّف فجوة ⇒ ادّعاء وجودها.
       - name: Gap IDs claimed in commit messages must exist in the registry
-        run: python scripts/ci/brain_commit_claim_guard.py --base "origin/${{ github.base_ref }}" --head HEAD
+        run: python scripts/ci/brain_commit_claim_guard.py --base "origin/${BASE_REF}" --head HEAD
       # DETERMINISTIC-GENERATION-AND-MERGE-SAFETY-01 (L2): `merge=union` — المُفعَّل على
       # هذه الملفّات الأربعة في `.gitattributes` — يحلّ التعارض بضمّ سطور الجانبين.
       # وحين يُحرّر الجانبان **نفس السطر** (تحديث حالة فجوة من جلستين) يُبقي النسختين
@@ -42,7 +45,7 @@ jobs:
       # مقابل **أحد** الوالدَين يمرّ؛ ومقابل **كليهما** يُمسِك. مُثبَت بالتكذيب على
       # `32efdc90..cb6598fe` (يسقط) وعلى دمج اصطناعيّ يأخذ الجانب الفارغ.
       - name: An append-only journal may not shrink, on any parent
-        run: python scripts/ci/brain_append_only_guard.py --base "origin/${{ github.base_ref }}" --head HEAD
+        run: python scripts/ci/brain_append_only_guard.py --base "origin/${BASE_REF}" --head HEAD
 
   # ── وظيفةٌ مستقلّة عمداً ────────────────────────────────────────────────────
   # GATE01-DIAGNOSIS-HIDDEN-BY-THE-JOB-NAME-01: كان هذا الفحص خطوةً داخل وظيفة
@@ -52,10 +55,13 @@ jobs:
   # وفصلُها يُتيح كذلك إعادة تشغيل البوّابة وحدها بدل الجناح كلّه.
   gate01-physical-effect-freeze:
     runs-on: ubuntu-latest
+    env:
+      BASE_REF: ${{ github.base_ref }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
@@ -67,4 +73,4 @@ jobs:
       # يُردّ إصلاحٌ صحيح.
       - name: GATE-01 physical-effect freeze (scoped authorization)
         run: |
-          git diff --name-only origin/${{ github.base_ref }}...HEAD | python scripts/ci/gate01_frozen_path_guard.py --stdin
+          git diff --name-only "origin/${BASE_REF}...HEAD" | python scripts/ci/gate01_frozen_path_guard.py --stdin

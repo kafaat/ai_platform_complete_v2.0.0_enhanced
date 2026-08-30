@@ -79,6 +79,41 @@ def _reading(source: dict[str, Any] | None, key: str) -> float | None:
         return None
 
 
+def _complete_precipitation_total(
+    sources: list[dict[str, Any]], *, expected_count: int
+) -> tuple[float | None, list[int]]:
+    """Return a rain total only when every expected interval is observed.
+
+    The index list names missing intervals, including intervals absent from a
+    short forecast.  An explicit ``0.0`` remains an observation; only ``None``
+    or an absent interval makes the aggregate incomplete.
+    """
+    missing: list[int] = []
+    values: list[float] = []
+    for index in range(expected_count):
+        value = _reading(sources[index], "precipitation_mm") if index < len(sources) else None
+        if value is None:
+            missing.append(index)
+        else:
+            values.append(value)
+    if missing:
+        return None, missing
+    return sum(values), []
+
+
+def _precipitation_incomplete(*, context: str, missing_intervals: list[int]) -> HTTPException:
+    """Stable fail-closed API error for safety-relevant missing rain."""
+    return HTTPException(
+        status_code=503,
+        detail={
+            "code": "WEATHER_PRECIPITATION_INCOMPLETE",
+            "message_ar": "بيانات المطر غير مكتملة؛ لا يمكن إصدار تقدير زراعي آمن.",
+            "context": context,
+            "missing_intervals": missing_intervals,
+        },
+    )
+
+
 def _score_to_suitability(score: float | None) -> str:
     if score is None:
         return "unknown"
@@ -329,19 +364,21 @@ async def field_irrigation_advice_facade(
     et0 = _reading(days[0], "et0_mm") if days else None
     if et0 is None:
         raise HTTPException(status_code=503, detail="بيانات ET₀ غير متوفّرة حالياً.")
-    forecast_rain = sum(_reading(day, "precipitation_mm") or 0.0 for day in days[1:3])
+    current_rain = _reading(current, "precipitation_mm")
+    forecast_rain, missing_forecast = _complete_precipitation_total(days[1:3], expected_count=2)
+    missing_rain = ([0] if current_rain is None else []) + [index + 1 for index in missing_forecast]
+    if missing_rain:
+        raise _precipitation_incomplete(
+            context="irrigation_advice",
+            missing_intervals=missing_rain,
+        )
+    assert current_rain is not None and forecast_rain is not None
     soil_pct = soil_reading.value_pct if soil_reading is not None else None
-    # قسرُ مطرِ «الآن» المفقودِ إلى صفر **سلوكٌ محفوظٌ كما كان** عبر الموصّل، لا
-    # اختيارٌ جديد: `irrigation_advice` يُعلن `rain_recent_mm: float` فلا يقبل
-    # `None`. والقيدُ مُعلَنٌ لا مطويّ — مطرٌ مفقودٌ يُقرَأ «لا مطر» فيرفع الكمّيّةَ
-    # الموصى بها، وهو انحيازٌ نحو الإسراف لا نحو الحفظ. مُسجَّلٌ فجوةً قائمة
-    # (`IRRIGATION-READS-MISSING-RAIN-AS-NO-RAIN-01`) ولا يُصلَح هنا: تغييرُه يُحوِّل
-    # ردّاً قائماً إلى ٥٠٣، وذلك قرارُ منتَجٍ لا أثرٌ جانبيٌّ لنقلِ واجهة.
     advice = irrigation_advice(
         et0_mm=et0,
         crop=crop,
         stage=stage,
-        rain_recent_mm=_reading(current, "precipitation_mm") or 0.0,
+        rain_recent_mm=current_rain,
         forecast_rain_mm=forecast_rain,
         soil_moisture_pct=soil_pct,
     )
@@ -405,7 +442,15 @@ async def field_disease_risk_facade(
             detail=f"قياسات الطقس ناقصة ({' و'.join(missing)}) — لا يمكن تقدير مخاطر الأمراض.",
         )
 
-    rain_3d = sum(_reading(day, "precipitation_mm") or 0.0 for day in _forecast_days(forecast)[:3])
+    rain_3d, missing_rain = _complete_precipitation_total(
+        _forecast_days(forecast)[:3], expected_count=3
+    )
+    if missing_rain:
+        raise _precipitation_incomplete(
+            context="disease_risk",
+            missing_intervals=missing_rain,
+        )
+    assert rain_3d is not None
     risk = disease_risk(
         temp_c=temp_c,
         humidity_pct=humidity_pct,

@@ -26,9 +26,14 @@ on:
       - "services/auth/**"
       - "services/sahool-platform/**"
       - "services/odoo-bridge/**"
+      - ".github/workflows/docker-build-matrix-verifier.yml"
+      - ".github/workflows/runtime-image-provenance.yml"
+      - "scripts/ci/install_pinned_trivy.sh"
+      - "scripts/ci/runtime_image_supply_chain_guard.py"
       - "scripts/ci/docker_build_matrix_verifier.py"
       - "docs/runbooks/DOCKER_BUILD_CHECKLIST_CRITICAL_AND_EXTENDED_SERVICES_20260710.md"
       - "tests_v9/test_docker_build_matrix_verifier_static.py"
+      - "tests_v9/test_runtime_image_supply_chain_guard.py"
 
 jobs:
   static:
@@ -44,7 +49,10 @@ jobs:
       - name: Static verifier tests
         run: |
           python -m py_compile scripts/ci/docker_build_matrix_verifier.py
-          python -m pytest -q tests_v9/test_docker_build_matrix_verifier_static.py
+          python scripts/ci/runtime_image_supply_chain_guard.py
+          python -m pytest -q \
+            tests_v9/test_docker_build_matrix_verifier_static.py \
+            tests_v9/test_runtime_image_supply_chain_guard.py
 
   docker-build:
     if: github.event_name == 'workflow_dispatch'
@@ -56,23 +64,35 @@ jobs:
           python-version: "3.12"
       - name: Select mode
         id: mode
+        env:
+          INPUT_MODE: ${{ inputs.mode }}
         run: |
-          if [ "${{ github.event.inputs.mode }}" = "all" ]; then
-            echo "args=--all" >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.event.inputs.mode }}" = "extended" ]; then
-            echo "args=--extended" >> "$GITHUB_OUTPUT"
-          else
-            echo "args=--critical" >> "$GITHUB_OUTPUT"
-          fi
+          set -euo pipefail
+          case "$INPUT_MODE" in
+            all) args=--all ;;
+            extended) args=--extended ;;
+            critical) args=--critical ;;
+            *) echo "::error::invalid mode"; exit 2 ;;
+          esac
+          echo "args=$args" >> "$GITHUB_OUTPUT"
       - name: Docker build matrix verifier
+        env:
+          MODE_ARG: ${{ steps.mode.outputs.args }}
+          SKIP_SECURITY: ${{ inputs.skip_security }}
         run: |
-          SECURITY_ARGS=""
-          if [ "${{ github.event.inputs.skip_security }}" = "true" ]; then
-            SECURITY_ARGS="--skip-security"
-          fi
+          set -euo pipefail
+          case "$MODE_ARG" in
+            --all|--extended|--critical) ;;
+            *) echo "::error::invalid mode argument"; exit 2 ;;
+          esac
+          case "$SKIP_SECURITY" in
+            true) security_args=(--skip-security) ;;
+            false) security_args=() ;;
+            *) echo "::error::invalid skip_security value"; exit 2 ;;
+          esac
           python scripts/ci/docker_build_matrix_verifier.py \
-            ${{ steps.mode.outputs.args }} \
-            $SECURITY_ARGS \
+            "$MODE_ARG" \
+            "${security_args[@]}" \
             --write
       - name: Upload evidence
         if: always()

@@ -14,6 +14,10 @@
 ## ٠) المتطلّبات
 
 - Docker Engine + Docker Compose v2 (`docker compose version`).
+- Python **3.12** لاختبارات المضيف. لا تستعمل Python 3.13 مع
+  `tests_v9/requirements-test.txt`: الحزمة المثبّتة `scipy==1.13.1` لها عجلة
+  Windows لـ3.12 ولا تملك عجلة لـ3.13، فيحاول `pip` البناء عبر Meson ويفشل إن لم
+  توجد سلسلة C/C++؛ هذا عدم توافق إصدار، لا عطل PostgreSQL.
 - ≥ 8 GB RAM للنواة (المراحل أ+ب)، و≥ 16 GB لجناح RAG والأجنحة الاختياريّة.
 - منافذ حرّة محليّاً: `80` و`443` (nginx) و`127.0.0.1:5432` (postgres)
   و`127.0.0.1:9000/9001` (MinIO).
@@ -22,6 +26,53 @@
 docker compose version
 git rev-parse --short HEAD   # وثّق الشجرة التي تشغّلها
 ```
+
+### Windows/PowerShell — تثبيت Python الصحيح جنباً إلى جنب
+
+PostgreSQL المثبّت على Windows **ليس** قاعدة هذا التشغيل. الصورة القانونية في
+`docker-compose.v9.yml` هي `postgis/postgis:15-3.4`، وكل الخدمات تتصل باسم
+`sahool-postgres:5432` داخل شبكة Compose. لا تحدّث PostgreSQL المضيف ولا تمرّر
+مساره إلى الاختبارات؛ تحقّق فقط أنه لا يحتجز المنفذ المضيف `5432`.
+
+نفّذ الكتلة التالية من PowerShell في جذر المستودع. هي تُبقي Python 3.13 كما هو
+وتنشئ بيئة مستقلة بـ3.12، ولا تعتمد على `py` launcher:
+
+```powershell
+$ErrorActionPreference = 'Stop'
+
+winget install --exact --id Python.Python.3.12 --scope user
+
+$Py312 = Join-Path $env:LOCALAPPDATA 'Programs\Python\Python312\python.exe'
+if (-not (Test-Path $Py312)) {
+  throw "Python 3.12 was not found at $Py312. Reopen PowerShell after winget finishes."
+}
+
+& $Py312 -c "import sys; assert sys.version_info[:2] == (3,12), sys.version; print(sys.executable, sys.version)"
+& $Py312 -m venv .venv-py312
+$VenvPython = Join-Path $PWD '.venv-py312\Scripts\python.exe'
+
+& $VenvPython -m pip install --upgrade pip setuptools wheel
+# حاجب مبكر: يجب تنزيل wheel، ولا يجوز السقوط إلى Meson/source build.
+& $VenvPython -m pip install --only-binary=:all: scipy==1.13.1
+& $VenvPython -m pip install -r requirements-dev.txt -r tests_v9/requirements-test.txt
+& $VenvPython -c "import sys, scipy; assert sys.version_info[:2] == (3,12); assert scipy.__version__ == '1.13.1'; print('host-test-runtime=OK', sys.version, scipy.__version__)"
+```
+
+تحقّق من ملكيّة المنفذ قبل تشغيل الحاوية:
+
+```powershell
+Get-NetTCPConnection -LocalPort 5432 -State Listen -ErrorAction SilentlyContinue |
+  Select-Object LocalAddress,LocalPort,OwningProcess
+docker compose -f docker-compose.v9.yml config --quiet
+docker compose -f docker-compose.v9.yml up -d sahool-postgres
+docker compose -f docker-compose.v9.yml ps sahool-postgres
+docker compose -f docker-compose.v9.yml exec -T sahool-postgres `
+  psql -U sahool_user -d sahool -c "SELECT version(), postgis_version();"
+```
+
+إذا كشف الأمر الأول خدمة PostgreSQL مضيفة على `5432`، أوقف **تلك الخدمة مؤقتاً**
+أو حرّر المنفذ قبل `compose up`. لا تغيّر صورة PostgreSQL ولا تثبّت خادماً جديداً
+على Windows لمعالجة هذا التعارض.
 
 ## ١) تهيئة البيئة
 
@@ -56,7 +107,7 @@ docker compose -f docker-compose.v9.yml up sahool-migrate   # يخرج 0 عند 
 ```bash
 docker compose -f docker-compose.v9.yml ps --format 'table {{.Name}}\t{{.Status}}'
 docker compose -f docker-compose.v9.yml exec sahool-postgres \
-  psql -U "${POSTGRES_USER:-sahool}" -d "${POSTGRES_DB:-sahool}" -c 'SELECT postgis_version();'
+  psql -U sahool_user -d sahool -c 'SELECT postgis_version();'
 ```
 
 ## ٣) المرحلة ب — المنصّة والبوّابة
@@ -124,12 +175,28 @@ docker compose -f docker-compose.v9.yml up -d \
 
 ## ٦) الاختبارات محليّاً
 
+Linux/macOS مع Python 3.12:
+
 ```bash
-python -m pip install -r requirements.txt
-python -m pip install -r requirements-dev.txt
-pytest -m unit                      # الافتراضيّ السريع — بلا خدمات
-pytest -m integration               # فقط بعد المرحلتين أ+ب (يتطلّب Postgres+PostGIS وRedis)
-bash scripts/ci/preflight.sh --fast # ~٣٠ث · 14 حارساً قبل أيّ دفع
+python3.12 -m venv .venv-py312
+. .venv-py312/bin/activate
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install --only-binary=:all: scipy==1.13.1
+python -m pip install -r requirements-dev.txt -r tests_v9/requirements-test.txt
+python -m pytest -m unit             # الافتراضيّ السريع — بلا خدمات
+python -m pytest -m integration      # فقط بعد المرحلتين أ+ب (يتطلّب Postgres+PostGIS وRedis)
+PATH="$PWD/.venv-py312/bin:$PATH" bash scripts/ci/preflight.sh --fast
+```
+
+Windows/PowerShell بعد كتلة 3.12 أعلاه:
+
+```powershell
+$VenvPython = Join-Path $PWD '.venv-py312\Scripts\python.exe'
+& $VenvPython -m pytest -m unit
+& $VenvPython -m pytest -m integration
+# preflight.sh يحتاج Git Bash؛ مرّر venv في PATH ولا تدعه يعود إلى Python 3.13.
+$env:PATH = "$(Join-Path $PWD '.venv-py312\Scripts');$env:PATH"
+bash scripts/ci/preflight.sh --fast
 ```
 
 ## ٧) الإيقاف والتنظيف
