@@ -44,7 +44,9 @@ jobs:
           set -euo pipefail
           python scripts/ci/runtime_image_supply_chain_guard.py
           python scripts/ci/github_actions_security_guard.py
-          python -m pytest -q \
+          # These are pure source-contract tests; do not import the application-wide
+          # tests_v9/conftest.py or its unrelated HTTP/JWT runtime dependencies.
+          python -m pytest -q --noconftest \
             tests_v9/test_github_actions_security_guard.py \
             tests_v9/test_runtime_image_supply_chain_guard.py
       - name: Validate workflow syntax and immutable action pins
