@@ -7,11 +7,12 @@ on:
         description: Full commit SHA to build
         required: true
 
+# **الصلاحياتُ على مستوى الملفّ تُورَّث إلى كلّ وظيفة، ومَن لا يحتاجها يحملها.**
+# `publish-manifest` أدناه لا يدفع صورةً ولا يُصدِر شهادةً — يجمّع شظايا JSON —
+# وكان يعمل ومعه `packages:write` و`id-token:write` و`attestations:write`.
+# فالحدُّ الأدنى هنا، والامتيازُ في الوظيفة التي تستعمله وحدَها.
 permissions:
   contents: read
-  packages: write
-  id-token: write
-  attestations: write
 
 concurrency:
   group: runtime-image-provenance-${{ inputs.source_sha }}
@@ -20,6 +21,12 @@ concurrency:
 jobs:
   build-and-attest:
     runs-on: ubuntu-24.04
+    # الوظيفةُ الوحيدةُ التي تدفع صورةً وتُصدِر شهادةَ منشأ — فهي وحدَها تحمل الامتياز.
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
     strategy:
       fail-fast: false
       matrix:
@@ -64,12 +71,22 @@ jobs:
         with:
           ref: ${{ inputs.source_sha }}
           fetch-depth: 1
+      # **الفحصُ كان يقع بعد أن صار المدخلُ شيفرة، فلا يفحص شيئاً.**
+      # `source_sha` مدخلُ `workflow_dispatch` **حرُّ النصّ** (بلا `type:`)، وكان
+      # يُحقَن في متن `run` بـ`${{ }}`: القالبُ يُصيّره نصَّ السكربت **قبل** أن
+      # يبدأ bash، فسطرُ `[[ … =~ ^[0-9a-f]{40}$ ]]` يُنفَّذ في سكربتٍ حُقِن أصلاً.
+      # وهذه الوظيفةُ بعينها تحمل `attestations:write` و`id-token:write` —
+      # فالحقنُ فيها يُصدِر شهادةَ منشأٍ مُوقَّعة، وهو **نقضُ فصلِ السلطة نفسِه**
+      # الذي تقوم عليه هذه السلسلة، لا مجرّد تنفيذِ أمرٍ في عدّاء.
+      # فالقيمةُ تُمرَّر عبر `env` (بيانات لا شيفرة)، **والشكلُ يُفحَص أوّلاً**.
       - name: Validate exact checkout
         shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "${{ inputs.source_sha }}"
-          [[ "${{ inputs.source_sha }}" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
       - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v3
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v3
         with:
@@ -96,19 +113,28 @@ jobs:
           subject-name: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
+      # الموضعُ الثاني للحقن نفسِه: مستندٌ هنا (heredoc) يحمل `${{ inputs.source_sha }}`.
+      # يُمرَّر عبر `env` كسابقه — والتوسيعُ هنا توسيعُ **متغيّر صَدَفة**، لا إقحامَ قالب.
       - name: Write image manifest fragment
         shell: bash
+        env:
+          SERVICE: ${{ matrix.service }}
+          IMAGE_REF: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}@${{ steps.build.outputs.digest }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          BUILDER_REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
         run: |
           set -euo pipefail
           mkdir -p image-manifest-fragments
-          cat > "image-manifest-fragments/${{ matrix.service }}.json" <<EOF
+          cat > "image-manifest-fragments/${SERVICE}.json" <<EOF
           {
-            "service": "${{ matrix.service }}",
-            "image": "ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}@${{ steps.build.outputs.digest }}",
-            "source_sha": "${{ inputs.source_sha }}",
-            "builder_workflow": "${{ github.repository }}/.github/workflows/runtime-image-provenance.yml",
-            "builder_run_id": "${{ github.run_id }}",
-            "builder_run_attempt": "${{ github.run_attempt }}"
+            "service": "${SERVICE}",
+            "image": "${IMAGE_REF}",
+            "source_sha": "${SOURCE_SHA}",
+            "builder_workflow": "${BUILDER_REPO}/.github/workflows/runtime-image-provenance.yml",
+            "builder_run_id": "${RUN_ID}",
+            "builder_run_attempt": "${RUN_ATTEMPT}"
           }
           EOF
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

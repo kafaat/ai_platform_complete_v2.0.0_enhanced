@@ -1416,6 +1416,30 @@
           "why": "البايتاتُ المُعلَنة تخالف الشجرة ⇒ ما دخل ليس ما أُذِن به. المقابلةُ بين إعلانِ السجلّ و`git hash-object` على الشجرة — مصدران مستقلّان، فالفشلُ ممكنٌ فعلاً لا صوريّاً."
         }
       ]
+    },
+    ".github/workflows/runtime-verification-promotion.yml": {
+      "$why_a_workflow_belongs_here_ar": "المفتاحُ مسارُ ما يعمل في الإنتاج، والـworkflow منه: هذا هو مسارُ الترقية الذي يُصدِر شهادةَ الموافقة ويرفع `runtime_verified`. والطفرةُ تُزرَع في الـYAML نفسه لا في حارسٍ يصفه.",
+      "mutations": [
+        {
+          "expect": "test_no_template_expression_runs_inside_a_job_that_holds_a_write_scope",
+          "find": "      - name: Bind approval code to exact tested SHA\n        env:\n          TARGET_SHA: ${{ inputs.target_sha }}\n        run: |\n          set -euo pipefail\n          [[ \"$TARGET_SHA\" =~ ^[0-9a-f]{40}$ ]]\n          test \"$(git rev-parse HEAD)\" = \"$TARGET_SHA\"",
+          "replace": "      - name: Bind approval code to exact tested SHA\n        run: test \"$(git rev-parse HEAD)\" = \"${{ inputs.target_sha }}\"  # mutated: القالبُ يعود إلى متن الوظيفة الموقِّعة",
+          "why": "`${{ }}` داخل `run` يُصيَّر نصَّ السكربت قبل أن يبدأ bash، و`target_sha` مدخلُ إطلاقٍ حرُّ النصّ — فيصير شيفرةً في وظيفة `approval-receipt` التي تحمل `attestations: write` و`id-token: write`، فتُصدِر الحمولةُ **شهادةَ الموافقة** التي يقوم عليها هذا المسار. والبيئةُ المحميّة تحرس مَن يوافق لا ما يُنفَّذ بعد الموافقة: الحمولةُ تعمل بعد إجازة المُراجِع وبصلاحياتها، والمُراجِعُ رأى المُدخَل وسيطاً لا شيفرة. وهذه الطفرةُ تُعيد الموضعَ الأخطر من الستّة المقيسة. **والمَرسى يضمّ سطرَ اسم الخطوة عمداً:** الصيغةُ الأولى ارتكزت على الأسطر الثلاثة وحدَها، وهي **مكرَّرةٌ حرفيّاً** في خطوة الربط الثانية — فرفض الحارسُ الزرعَ غيرَ محدَّد الموضع. وهو الفخُّ الموصوف في الـrunbook، وقع ومُسِك."
+        }
+      ],
+      "test": "tests_v9/test_privileged_workflow_injection_guard.py"
+    },
+    ".github/workflows/runtime-image-provenance.yml": {
+      "$why_a_workflow_belongs_here_ar": "مسارُ بناء صور التشغيل وإصدار شهادات منشئها — والطفرةُ في الـYAML نفسه.",
+      "mutations": [
+        {
+          "expect": "test_the_image_provenance_privilege_is_declared_where_it_is_used",
+          "find": "permissions:\n  contents: read\n\nconcurrency:",
+          "replace": "permissions:\n  contents: read\n  packages: write\n  id-token: write\n  attestations: write  # mutated: الامتيازُ يعود إلى مستوى الملفّ\n\nconcurrency:",
+          "why": "الصلاحيةُ على مستوى الملفّ تُورَث إلى كلّ وظيفة: `publish-manifest` يجمّع شظايا JSON ولا يدفع صورةً ولا يُصدِر شهادة، وكان يحمل `packages`/`id-token`/`attestations` بالكتابة بلا مستهلك. وصلاحيةٌ لا مستهلك لها ليست احتياطاً بل سطحُ هجومٍ بلا مقابل — والوراثةُ هي الطريقُ الصامت الذي حملها إليه."
+        }
+      ],
+      "test": "tests_v9/test_privileged_workflow_injection_guard.py"
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5222,
+    "files_scanned": 5223,
     "files_by_kind": {
       "backend": 1204,
       "database": 275,
       "governance": 60,
       "mobile": 51,
       "other": 1429,
-      "tests": 1746,
+      "tests": 1747,
       "web": 457
     },
-    "unmapped_artifacts": 2130,
+    "unmapped_artifacts": 2131,
     "ambiguous_artifacts": 417
   },
   "capabilities": [
@@ -42927,6 +42927,10 @@
     },
     {
       "path": "tests_v9/test_prescription_shapefile.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_privileged_workflow_injection_guard.py",
       "kind": "tests"
     },
     {
