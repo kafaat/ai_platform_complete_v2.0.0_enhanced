@@ -8,6 +8,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.unit
+
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts/staging/c12_live_activation_receipt.py"
 CERTIFICATION = ROOT / "scripts/ci/c12_governed_learning_promotion_certification.py"
@@ -87,8 +89,14 @@ def test_valid_subject_bound_live_chain_passes():
     [
         (lambda r: r.update(subject_sha="c" * 40), "subject_sha_mismatch"),
         (lambda r: r["chain"].update(reviewed_by="requester"), "activation_self_approval"),
-        (lambda r: r["chain"].update(active_artifact_digest="c" * 64), "artifact_digest_chain_mismatch"),
-        (lambda r: r["chain"].update(verification_state="verified_degraded"), "invalid_chain_state:verification_state"),
+        (
+            lambda r: r["chain"].update(active_artifact_digest="c" * 64),
+            "artifact_digest_chain_mismatch",
+        ),
+        (
+            lambda r: r["chain"].update(verification_state="verified_degraded"),
+            "invalid_chain_state:verification_state",
+        ),
         (lambda r: r["chain"].update(sample_count=0), "monitoring_sample_count_not_positive"),
         (lambda r: r["chain"].update(rollout_mode="shadow"), "non_serving_rollout_mode"),
     ],
@@ -104,6 +112,13 @@ def test_tampering_without_resealing_is_rejected():
     body = receipt()
     body["chain"]["sample_count"] = 101
     assert "evidence_digest_mismatch" in check(body)
+
+
+def test_receipt_may_not_claim_that_it_changed_authority():
+    body = receipt()
+    body["authority_changed"] = True
+    refinalize(body)
+    assert "receipt_claims_authority_change" in check(body)
 
 
 def test_stale_receipt_is_not_live_evidence():
