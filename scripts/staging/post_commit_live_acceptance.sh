@@ -16,8 +16,8 @@ cd "$ROOT"
 
 MODE="${1:-preflight}"
 case "$MODE" in
-  doctor|preflight|rag|s5|c11|verify|all) ;;
-  *) echo "usage: $0 {doctor|preflight|rag|s5|c11|verify|all}" >&2; exit 2 ;;
+  doctor|preflight|rag|s5|c11|c12|verify|all) ;;
+  *) echo "usage: $0 {doctor|preflight|rag|s5|c11|c12|verify|all}" >&2; exit 2 ;;
 esac
 
 PYTHON="${PYTHON:-python}"
@@ -25,7 +25,8 @@ ARTIFACT_ROOT="${LIVE_ACCEPTANCE_ARTIFACT_DIR:-artifacts/final-live-acceptance}"
 RAG_DIR="$ARTIFACT_ROOT/rag"
 S5_DIR="$ARTIFACT_ROOT/s5-authority"
 C11_DIR="$ARTIFACT_ROOT/c11-lineage"
-mkdir -p "$RAG_DIR" "$S5_DIR" "$C11_DIR"
+C12_DIR="$ARTIFACT_ROOT/c12-model-activation"
+mkdir -p "$RAG_DIR" "$S5_DIR" "$C11_DIR" "$C12_DIR"
 
 fail() { echo "FATAL: $*" >&2; exit 2; }
 need_cmd() { command -v "$1" >/dev/null 2>&1 || fail "missing required tool: $1"; }
@@ -192,6 +193,43 @@ print('c11_live_verified')
 PY
 }
 
+
+c12_collect() {
+  echo "== C12 governed model activation live evidence =="
+  need_env DATABASE_URL
+  need_env DECISION_SERVICE_SOR_ENABLED
+  need_env C12_TENANT_ID
+  need_env C12_MODEL_ID
+  need_env C12_TARGET_ENVIRONMENT
+  local args=(
+    collect
+    --subject-sha "$SUBJECT_SHA"
+    --tenant-id "$C12_TENANT_ID"
+    --model-id "$C12_MODEL_ID"
+    --target-environment "$C12_TARGET_ENVIRONMENT"
+    --output "$C12_DIR/c12-live-activation-receipt.json"
+  )
+  if [[ -n "${C12_FEATURE_SET_ID:-}" ]]; then
+    args+=(--feature-set-id "$C12_FEATURE_SET_ID")
+  fi
+  "$PYTHON" scripts/staging/c12_live_activation_receipt.py "${args[@]}"
+  "$PYTHON" scripts/ci/c12_governed_learning_promotion_certification.py \
+    --receipt "$C12_DIR/c12-live-activation-receipt.json" \
+    --subject-sha "$SUBJECT_SHA" \
+    | tee "$C12_DIR/c12_result.json"
+  "$PYTHON" - "$C12_DIR/c12_result.json" <<'PY'
+import json,sys
+body=json.load(open(sys.argv[1],encoding="utf-8"))
+if body.get("status") != "LIVE_EVIDENCE_VERIFIED":
+    raise SystemExit(f"C12 live evidence not verified: {body}")
+if body.get("promotion_permitted") is not False or body.get("automatic_promotion") is not False:
+    raise SystemExit(f"UNSAFE: C12 attempted authority promotion: {body}")
+if body.get("ready_for_authority_adjudication") is not True:
+    raise SystemExit(f"C12 is not ready for independent adjudication: {body}")
+print("c12_live_evidence_verified_without_promotion")
+PY
+}
+
 verify_all() {
   echo "== Canonical receipt re-verification =="
   "$PYTHON" scripts/architecture/rag_live_parity_receipt_guard.py \
@@ -211,20 +249,19 @@ verify_all() {
   "$PYTHON" scripts/ci/c10_field_authority_certification.py \
     --receipt "$S5_DIR/field-rls-live-evidence.json" --subject-sha "$SUBJECT_SHA"
 
-  echo "== C12 safety boundary =="
-  # This source tree has NO canonical C12 live activation receipt collector/guard.
-  # Therefore C12 MUST remain EVIDENCE_REQUIRED. Treat any PASS here as a regression.
+  echo "== C12 subject-bound live evidence re-verification =="
   "$PYTHON" scripts/ci/c12_governed_learning_promotion_certification.py \
-    | tee "$ARTIFACT_ROOT/c12_result.json"
-  "$PYTHON" - "$ARTIFACT_ROOT/c12_result.json" <<'PY'
+    --receipt "$C12_DIR/c12-live-activation-receipt.json" \
+    --subject-sha "$SUBJECT_SHA" \
+    | tee "$C12_DIR/c12_result.reverified.json"
+  "$PYTHON" - "$C12_DIR/c12_result.reverified.json" <<'PY'
 import json,sys
-p=sys.argv[1]
-d=json.load(open(p,encoding='utf-8'))
-if d.get('status') != 'EVIDENCE_REQUIRED':
-    raise SystemExit(f"UNSAFE: C12 unexpectedly left EVIDENCE_REQUIRED: {d}")
-if d.get('promotion_permitted') is not False or d.get('automatic_promotion') is not False:
-    raise SystemExit(f"UNSAFE: C12 promotion flag changed: {d}")
-print('c12_fail_closed_ok')
+body=json.load(open(sys.argv[1],encoding="utf-8"))
+if body.get("status") != "LIVE_EVIDENCE_VERIFIED":
+    raise SystemExit(f"C12 live evidence re-verification failed: {body}")
+if body.get("promotion_permitted") is not False or body.get("automatic_promotion") is not False:
+    raise SystemExit(f"UNSAFE: C12 attempted authority promotion: {body}")
+print("c12_live_evidence_reverified_without_promotion")
 PY
 
   echo "== C13 safety boundary =="
@@ -258,8 +295,8 @@ summary={
   'subject_sha':subject,
   'authority_promotion':False,
   'physical_shrink_authorized':False,
-  'c12_live_activation_receipt_supported':False,
-  'next_action':'explicit human adjudication only after reviewing canonical receipts; C12 remains blocked pending its own canonical live receipt contract',
+  'c12_live_activation_receipt_supported':True,
+  'next_action':'independent human adjudication only after reviewing every canonical receipt; no automatic authority promotion',
 }
 (root/'SUMMARY.json').write_text(json.dumps(summary,indent=2,sort_keys=True)+'\n',encoding='utf-8')
 print(json.dumps(summary,sort_keys=True))
@@ -272,6 +309,7 @@ case "$MODE" in
   rag) preflight; rag_collect ;;
   s5) preflight; s5_collect ;;
   c11) preflight; c11_collect ;;
+  c12) preflight; c12_collect ;;
   verify) verify_all ;;
   all)
     doctor
@@ -279,6 +317,7 @@ case "$MODE" in
     rag_collect
     s5_collect
     c11_collect
+    c12_collect
     verify_all
     ;;
 esac
