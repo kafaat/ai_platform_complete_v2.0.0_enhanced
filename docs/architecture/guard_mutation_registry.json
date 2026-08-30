@@ -1498,6 +1498,18 @@
           "why": "دالّةٌ تَعِد بإنفاذِ مستأجرٍ ولا تستطيعه بحكم البناء — تضبط GUC محلّيَّ معاملةٍ بلا معاملةٍ ولا كتلة، فالعبارةُ التالية لا ترى الضبطَ أبداً. وأسوأُ من غيابها أنّ اسمَها يُقرَأ حراسةً. عودتُها يجب أن تُحمِّر فوراً."
         }
       ]
+    },
+    ".github/workflows/runtime-image-provenance.yml": {
+      "$why_a_workflow_belongs_here_ar": "الطفرةُ تُزرَع في الـYAML نفسه لا في حارسٍ يصفه: هذه الوظيفةُ تحمل `id-token: write` و`attestations: write` — فحقنُ الصدَفة فيها يُنتِج برهاناً مزوَّراً، والعطلُ يعيش في الملفّ لا في وصفه.",
+      "mutations": [
+        {
+          "expect": "test_no_workflow_interpolates_a_foreign_owned_value_into_a_shell_body",
+          "find": "      - name: Validate exact checkout\n        shell: bash\n        env:\n          SOURCE_SHA: ${{ inputs.source_sha }}\n        run: |\n          set -euo pipefail\n          test \"$(git rev-parse HEAD)\" = \"$SOURCE_SHA\"",
+          "replace": "      - name: Validate exact checkout\n        shell: bash\n        run: |  # mutated: عودةُ الاستبدال النصّيّ إلى جسم الصدَفة\n          set -euo pipefail\n          test \"$(git rev-parse HEAD)\" = \"${{ inputs.source_sha }}\"",
+          "why": "هذا هو العطلُ الذي شُحِن فعلاً: حتّى `5112a613` كانت **٢٣** قيمةً يملكها طرفٌ خارجيّ تُستبدَل نصّاً داخل أجسام `run:`، منها ثلاثةٌ في هذا الملفّ — والوظيفةُ تحمل `id-token: write` و`attestations: write` و`packages: write`، فمن يملك write يحقن صدَفةً في الوظيفة الموقِّعة ويُخرِج برهاناً مزوَّراً. أغلقه #964 بنقل القيمة إلى `env:`. وما بقي يحرس الإغلاق **ليس محلّيّاً**: `github_actions_security_guard.py` حارسٌ فوقيّ لا يحلّل الحقن، والكشفُ مُفوَّضٌ إلى `zizmor --min-severity high --min-confidence high` — ثنائيّةٌ تُنزَّل زمنَ التشغيل لم تُكذَّب عتبتُها هنا. فهذه الطفرةُ تُثبِت أنّ الشرطَ مقيسٌ بلا أداةٍ ولا شبكة."
+        }
+      ],
+      "test": "tests_v9/test_workflow_run_body_interpolation.py"
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
