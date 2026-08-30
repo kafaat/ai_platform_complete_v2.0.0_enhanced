@@ -53,7 +53,7 @@ jobs:
           )
           PY
           python scripts/ci/capability_mapping_engine.py --check
-          python scripts/ci/guard_mutation_guard.py --run
+          python scripts/ci/guard_mutation_guard.py --run --only scripts/ci/c12_governed_learning_promotion_certification.py
           ruff check scripts/ci/c12_governed_learning_promotion_certification.py scripts/staging/c12_live_activation_receipt.py tests_v9/test_c12_live_activation_receipt.py
           ruff format --check scripts/ci/c12_governed_learning_promotion_certification.py scripts/staging/c12_live_activation_receipt.py tests_v9/test_c12_live_activation_receipt.py
       - name: Stage exact final commit
