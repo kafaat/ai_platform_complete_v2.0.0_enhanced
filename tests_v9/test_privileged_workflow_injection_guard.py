@@ -4,18 +4,23 @@
 قبل أن يبدأ bash. فمُدخَلٌ حرُّ النصّ يصير **شيفرة**، وأيُّ فحصٍ لشكله مكتوبٍ في
 السكربت نفسِه يُنفَّذ في سكربتٍ حُقِن أصلاً — **الحارسُ داخل ما يحرسه**.
 
-**والحدُّ ليس «كلّ workflow» بل «كلُّ وظيفةٍ تملك صلاحيةَ كتابة»** — ونطاقٌ مُشتقٌّ
-لا قائمةٌ مكتوبة. حُقِنَ في وظيفةٍ بلا امتياز يُتلِف جولةً؛ حُقِنَ في وظيفةٍ تحمل
-`attestations: write` **يُصدِر شهادةَ منشأٍ موقّعة** — أي يُنتِج بالضبط الدليلَ الذي
-تقوم عليه سلسلةُ التوريد، فيصير الحقنُ **نقضاً لفصل السلطة** لا مجرّد تنفيذِ أمر.
+**والنطاقُ مُشتقٌّ لا قائمةٌ مكتوبة، ووُسِّع مرّةً بدليل.** أوّلُ صياغةٍ حدّته
+بـ«كلِّ وظيفةٍ تملك صلاحيةَ كتابة»، لأنّ الحقنَ في وظيفةٍ بلا امتياز يُتلِف جولةً
+بينما الحقنَ في وظيفةٍ تحمل `attestations: write` **يُصدِر شهادةَ منشأٍ موقّعة**.
+**وذلك الحدُّ كان ضيّقاً، وأثبته دليلٌ خارجيّ:** `verify-candidate` في مسار الترقية
+**بلا صلاحيةِ كتابة**، لكنّه يُنتِج المصنوعةَ التي تُنزّلها `approval-receipt`
+وتُوقّعها. فالحقنُ في غير المُمتاز يُلوّث ما يوقّعه المُمتاز — **سلسلةُ تصعيدٍ داخل
+الملفّ الواحد**. فصار النطاق: **كلُّ وظيفةٍ في workflow يحوي وظيفةً ذاتَ صلاحيةِ
+كتابة** — لأنّ المصنوعاتِ والمخرجاتِ تجري بين وظائف الملفّ الواحد، فهي حدُّ الثقة.
 
-**والمواضعُ التي وُجِدت مقيسةٌ لا مفترَضة، وأخطرُها في مسار الترقية نفسِه:**
-`runtime-verification-promotion.yml` كان يُقحِم `inputs.target_sha` في أربعة مواضع،
-أحدُها في `approval-receipt` — الوظيفةِ المحميّة بـ`environment` والحاملةِ
+**والمواضعُ مقيسةٌ لا مفترَضة — ثلاثةَ عشرَ موضعاً**، وأخطرُها في مسار الترقية
+نفسِه: `runtime-verification-promotion.yml` كان يُقحِم `inputs.target_sha` في سبعة
+مواضع، أحدُها في `approval-receipt` — الوظيفةِ المحميّة بـ`environment` والحاملةِ
 `attestations: write`. **والبيئةُ المحميّة تحرس مَن يوافق لا ما يُنفَّذ بعد الموافقة:**
 الحمولةُ تعمل بعد إجازة المُراجِع وبصلاحياتها، والمُراجِعُ رأى المُدخَل وسيطاً لا شيفرة.
-واثنان في `runtime-image-provenance.yml` (`inputs.source_sha`) حيث كان فحصُ الشكل
-يقع **بعد** أن صار المُدخَل سطراً في السكربت — ستّةٌ مقروءةٌ بالجارِد لا بالذاكرة.
+واثنان في `runtime-image-provenance.yml`، وثلاثةٌ في `path3-runtime-verification.yml`
+(مُنتِجِ شهادةِ المرشَّح)، وواحدٌ في `ci.yml`. **وفحصُ الشكل كان يقع بعد الاستعمال**،
+أو طولاً بلا شكل (`test "${#TARGET_SHA}" = 40` يقبل أربعين محرفاً أيّاً كانت).
 
 **وحدُّ صدقٍ يُقال صراحةً:** هذا يقيس **الشكل** — قالبٌ في متنِ وظيفةٍ ذاتِ صلاحية.
 لا يقيس أنّ القيمة المُمرَّرة عبر `env` مُتحقَّقٌ منها، ولا يبلغ `uses:` ولا
@@ -44,22 +49,32 @@ def _write_scopes(permissions: object) -> set[str]:
 
 
 def _privileged_run_steps() -> list[tuple[str, str, tuple[str, ...], str]]:
-    """كلُّ خطوةِ ``run`` في وظيفةٍ تملك صلاحيةَ كتابة — مع نصّها."""
+    """كلُّ خطوةِ ``run`` في workflow يحوي وظيفةً ذاتَ صلاحيةِ كتابة — مع نصّها."""
     found: list[tuple[str, str, tuple[str, ...], str]] = []
     for path in sorted(WORKFLOWS.glob("*.yml")):
         document = yaml.safe_load(path.read_text(encoding="utf-8"))
         if not isinstance(document, dict):
             continue
         file_scopes = _write_scopes(document.get("permissions"))
-        for job_name, job in (document.get("jobs") or {}).items():
-            if not isinstance(job, dict):
-                continue
-            # الوظيفةُ بلا `permissions:` ترث صلاحياتِ الملفّ — والوراثةُ هي
-            # الطريقُ الذي حمل `attestations: write` إلى وظيفةٍ لا تُصدِر شهادة.
-            declared = job.get("permissions")
-            scopes = _write_scopes(declared) if declared is not None else file_scopes
-            if not scopes:
-                continue
+        jobs = {
+            name: job for name, job in (document.get("jobs") or {}).items() if isinstance(job, dict)
+        }
+        # الوظيفةُ بلا `permissions:` ترث صلاحياتِ الملفّ — والوراثةُ هي الطريقُ
+        # الذي حمل `attestations: write` إلى وظيفةٍ لا تُصدِر شهادة.
+        effective = {
+            name: (
+                _write_scopes(job["permissions"])
+                if job.get("permissions") is not None
+                else file_scopes
+            )
+            for name, job in jobs.items()
+        }
+        # **حدُّ الثقة الملفُّ لا الوظيفة:** مصنوعةٌ يرفعها غيرُ المُمتاز يُنزّلها
+        # المُمتازُ ويوقّعها، فالحقنُ في الأولى يُلوّث ما توقّعه الثانية.
+        if not any(effective.values()):
+            continue
+        for job_name, job in jobs.items():
+            scopes = effective[job_name] or {"(عبر ملفٍّ ذي وظيفةٍ مُمتازة)"}
             for step in job.get("steps") or []:
                 if isinstance(step, dict) and isinstance(step.get("run"), str):
                     found.append((path.name, job_name, tuple(sorted(scopes)), step["run"]))
@@ -67,7 +82,7 @@ def _privileged_run_steps() -> list[tuple[str, str, tuple[str, ...], str]]:
 
 
 def test_no_template_expression_runs_inside_a_job_that_holds_a_write_scope():
-    """المرساةُ المسمّاة — والمواضعُ الستّة التي أطلقتها كانت في مسارَي الترقية والصور."""
+    """المرساةُ المسمّاة — وثلاثةَ عشرَ موضعاً أطلقتها، سبعةٌ منها في مسار الترقية."""
     offenders = [
         f"{workflow} · {job} · صلاحيات {list(scopes)}"
         for workflow, job, scopes, script in _privileged_run_steps()

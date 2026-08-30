@@ -54,25 +54,35 @@ jobs:
         with:
           ref: ${{ inputs.target_sha }}
       - name: Bind checkout to exact tested SHA
-        run: test "$(git rev-parse HEAD)" = "${{ inputs.target_sha }}"
+        env:
+          TARGET_SHA: ${{ inputs.target_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
       - name: Download candidate from PATH-3
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ inputs.target_sha }}
+          PATH3_RUN_ID: ${{ inputs.path3_run_id }}
+        run: |
+          set -euo pipefail
+          # **الطولُ وحدَه ليس شكلاً:** `test "${#TARGET_SHA}" = 40` يقبل أربعين
+          # محرفاً أيّاً كانت. والمُعرِّفُ رقمٌ صرف، وكان يُحقَن قالباً بلا فحصٍ أصلاً.
+          [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$PATH3_RUN_ID" =~ ^[0-9]+$ ]]
+          gh run download "$PATH3_RUN_ID" --repo "$GITHUB_REPOSITORY" \
+            --name "path3-runtime-candidate-${TARGET_SHA}" --dir candidate
+      - name: Verify candidate attestation and contract
         env:
           GH_TOKEN: ${{ github.token }}
           TARGET_SHA: ${{ inputs.target_sha }}
         run: |
           set -euo pipefail
-          test "${#TARGET_SHA}" = 40
-          gh run download "${{ inputs.path3_run_id }}" --repo "$GITHUB_REPOSITORY" \
-            --name "path3-runtime-candidate-${TARGET_SHA}" --dir candidate
-      - name: Verify candidate attestation and contract
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
           gh attestation verify candidate/runtime-verification-candidate.json \
             --repo "$GITHUB_REPOSITORY" \
             --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/path3-runtime-verification.yml" \
-            --source-digest "${{ inputs.target_sha }}" --format json > candidate/candidate-attestation.json
+            --source-digest "$TARGET_SHA" --format json > candidate/candidate-attestation.json
           python scripts/ci/runtime_verification_apply.py validate-candidate --candidate candidate/runtime-verification-candidate.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

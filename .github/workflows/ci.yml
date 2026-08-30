@@ -975,8 +975,13 @@ jobs:
       # تفحص شيئاً، والفحصُ الذي يقع في أختها لا يشهد لها.
       - name: Shard union is complete before planting
         run: python scripts/ci/guard_mutation_guard.py --shard-inventory 5
+      # `matrix.shard` من مصفوفة هذا الملفّ لا من مُدخَل — فلا يُسيطَر عليه.
+      # ويُمرَّر عبر `env` رغم ذلك: **الاستثناءُ الموصوف أغلى من الإصلاح**، وقائمةُ
+      # إعفاءٍ من صنفٍ أمنيّ تبيت وتُقرَأ ترخيصاً. والقاعدةُ بلا ثقوب أرخصُ صيانةً.
       - name: Plant this shard's defects
-        run: python scripts/ci/guard_mutation_guard.py --run --shard ${{ matrix.shard }}
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: python scripts/ci/guard_mutation_guard.py --run --shard "$SHARD"
 
   weather-service-unit-tests:
     name: Weather Service Unit Tests

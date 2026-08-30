@@ -44,9 +44,11 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          IMAGE_BUILD_RUN_ID: ${{ inputs.image_build_run_id }}
         run: |
           set -euo pipefail
-          gh run download "${{ inputs.image_build_run_id }}" \
+          [[ "$IMAGE_BUILD_RUN_ID" =~ ^[0-9]+$ ]]
+          gh run download "$IMAGE_BUILD_RUN_ID" \
             --repo "$GITHUB_REPOSITORY" \
             --name "runtime-image-manifest-${GITHUB_SHA}" \
             --dir verified-images
@@ -115,9 +117,12 @@ jobs:
         run: python -m pip install --disable-pip-version-check PyYAML pytest
       - name: Assert protected runner and immutable image policy
         shell: bash
+        env:
+          ENVIRONMENT_ID: ${{ inputs.environment_id }}
         run: |
           set -euo pipefail
-          test "${{ inputs.environment_id }}" = "staging-pg16"
+          [[ "$ENVIRONMENT_ID" =~ ^[a-z0-9-]+$ ]]
+          test "$ENVIRONMENT_ID" = "staging-pg16"
           python scripts/ci/prepare_attested_runtime_images.py \
             --manifest verified-images/runtime-image-manifest.json \
             --tested-sha "$GITHUB_SHA" \
@@ -130,11 +135,15 @@ jobs:
             sahool-weather-service sahool-soil-service sahool-platform
       - name: Activate exact images and produce unsigned transport bundle
         shell: bash
+        env:
+          ENVIRONMENT_ID: ${{ inputs.environment_id }}
+          ALLOW_PARTIAL: ${{ inputs.allow_partial }}
+          KEEP_STACK: ${{ inputs.keep_stack }}
         run: |
           set -euo pipefail
-          args=(--compose-file docker-compose.v9.yml --compose-file verified-images/docker-compose.attested-images.yml --image-manifest verified-images/runtime-image-manifest.json --environment-id "${{ inputs.environment_id }}")
-          [[ "${{ inputs.allow_partial }}" == "true" ]] && args+=(--allow-partial)
-          [[ "${{ inputs.keep_stack }}" == "true" ]] && args+=(--keep-stack)
+          args=(--compose-file docker-compose.v9.yml --compose-file verified-images/docker-compose.attested-images.yml --image-manifest verified-images/runtime-image-manifest.json --environment-id "$ENVIRONMENT_ID")
+          [[ "$ALLOW_PARTIAL" == "true" ]] && args+=(--allow-partial)
+          [[ "$KEEP_STACK" == "true" ]] && args+=(--keep-stack)
           python scripts/ci/path3_runtime_activation.py "${args[@]}"
           mkdir -p runtime-verification/transport
           find runtime-verification/functional_evidence -maxdepth 1 -type f -name '*.json' -print0 | sort -z | xargs -0 sha256sum > runtime-verification/transport/FUNCTIONAL_EVIDENCE_CHECKSUMS.sha256
