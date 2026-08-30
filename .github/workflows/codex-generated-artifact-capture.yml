@@ -1,0 +1,24 @@
+name: Codex generated artifact capture
+
+on:
+  push:
+    branches:
+      - codex/c12-live-evidence-closure
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python scripts/ci/capability_mapping_engine.py --generate
+      - uses: actions/upload-artifact@v4
+        with:
+          name: generated-artifact-capture
+          path: docs/capability-registry/generated/mapping
+          if-no-files-found: error
