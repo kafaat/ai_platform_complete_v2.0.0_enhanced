@@ -52,6 +52,7 @@ DEC-001,test,tests_v9/test_evidence_snapshots_migration_v148.py,3,applied
 DEC-001,test,tests_v9/test_live_pg_evidence_guard.py,3,applied
 DEC-001,test,tests_v9/test_ndvi_evidence_policy.py,3,applied
 DEC-001,test,tests_v9/test_production_evidence_pack_guard.py,3,applied
+DEC-001,test,tests_v9/test_runtime_evidence_subject_binding.py,3,applied
 DEC-001,test,tests_v9/test_runtime_evidence_wiring_v62_2.py,3,applied
 DEC-001,test,tests_v9/test_soil_lab_evidence_hardening_v57_5.py,3,applied
 DEC-002,api,POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:302,2,applied

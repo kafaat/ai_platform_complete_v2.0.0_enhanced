@@ -75,7 +75,7 @@ def validate_evidence(
     item: dict[str, Any],
     plan_hash: str,
     *,
-    expected_subject_sha: str | None,
+    expected_subject_sha: str | None = None,
     now: datetime | None = None,
 ) -> dict[str, Any]:
     errors: list[str] = []
@@ -302,4 +302,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

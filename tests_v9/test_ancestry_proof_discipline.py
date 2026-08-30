@@ -23,6 +23,7 @@ import pytest
 pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
+LIVE_RUNBOOK = ROOT / "scripts/staging/post_commit_live_acceptance.sh"
 
 # قائمةُ السماح **مسبَّبة**: الموضعُ بلا سببٍ مكتوب ليس مُدقَّقاً بل مُهرَّباً.
 # إضافةُ موضعٍ جديد هنا تعني أنّ كاتبه أجاب: لماذا لا يكذب هذا الاستعمال تحت squash؟
@@ -79,6 +80,24 @@ def test_every_is_ancestor_site_in_executable_code_is_audited():
         f"مواضعُ في قائمة السماح لم تعد موجودة: {sorted(vanished)} — "
         "قائمةٌ تذكر ما زال تُقرأ تغطيةً لما كان"
     )
+
+
+def test_live_acceptance_agent_is_exactly_subject_bound_and_non_authoritative():
+    text = LIVE_RUNBOOK.read_text(encoding="utf-8")
+    assert "doctor|preflight|rag|s5|c11|c12|verify|all|agent" in text
+    assert "agent mode requires EXPECTED_SUBJECT_SHA=<40-hex>" in text
+    assert "agent mode requires EXPECTED_SUBJECT_TREE=<40-hex>" in text
+    assert "AGENT_CONFIRM_EVIDENCE_ONLY=1" in text
+    assert 'EXECUTION_ACTOR_KIND="ai-agent"' in text
+    assert "'authority_promotion':False" in text
+    assert "'physical_shrink_authorized':False" in text
+
+
+def test_live_acceptance_summary_is_written_before_the_checksum_manifest():
+    text = LIVE_RUNBOOK.read_text(encoding="utf-8")
+    summary_write = text.index("(root/'SUMMARY.json').write_text")
+    manifest_write = text.index("(root/'SHA256SUMS.txt').write_text")
+    assert summary_write < manifest_write
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess:

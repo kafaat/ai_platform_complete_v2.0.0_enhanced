@@ -3,7 +3,10 @@ set -Eeuo pipefail
 IFS=$'\n\t'
 
 # SAHOOL post-commit live acceptance runbook
-# Baseline family: 9d58b0dc + accepted C1..C13 + qdrant-seed compatibility hardening
+# Agent execution contract: exact commit + tree pins, clean tracked checkout,
+# evidence-only acknowledgement, and a non-authoritative execution identity.
+# Baseline: main@fc36d081324dacd97a38abb2e43f101ad1469c42 (PR #965 merged)
+# plus exact runtime commit/tree pins supplied to agent mode.
 # IMPORTANT: this script MUST run from a real Git checkout after the forward-port is committed.
 # It never edits authority_cutovers.json and never promotes authority automatically.
 
@@ -16,8 +19,8 @@ cd "$ROOT"
 
 MODE="${1:-preflight}"
 case "$MODE" in
-  doctor|preflight|rag|s5|c11|c12|verify|all) ;;
-  *) echo "usage: $0 {doctor|preflight|rag|s5|c11|c12|verify|all}" >&2; exit 2 ;;
+  doctor|preflight|rag|s5|c11|c12|verify|all|agent) ;;
+  *) echo "usage: $0 {doctor|preflight|rag|s5|c11|c12|verify|all|agent}" >&2; exit 2 ;;
 esac
 
 PYTHON="${PYTHON:-python}"
@@ -39,6 +42,8 @@ need_cmd "$PYTHON"
 
 SUBJECT_SHA="$(git rev-parse HEAD | tr '[:upper:]' '[:lower:]')"
 sha40 "$SUBJECT_SHA" || fail "HEAD is not a full 40-char commit SHA: $SUBJECT_SHA"
+SUBJECT_TREE="$(git rev-parse 'HEAD^{tree}' | tr '[:upper:]' '[:lower:]')"
+sha40 "$SUBJECT_TREE" || fail "HEAD tree is not a full 40-char object ID: $SUBJECT_TREE"
 
 # Optional operator pin. If supplied, it MUST equal HEAD.
 if [[ -n "${EXPECTED_SUBJECT_SHA:-}" ]]; then
@@ -46,12 +51,32 @@ if [[ -n "${EXPECTED_SUBJECT_SHA:-}" ]]; then
   sha40 "$EXPECTED_SUBJECT_SHA" || fail "EXPECTED_SUBJECT_SHA must be 40 lowercase hex"
   [[ "$EXPECTED_SUBJECT_SHA" == "$SUBJECT_SHA" ]] || fail "subject mismatch: HEAD=$SUBJECT_SHA expected=$EXPECTED_SUBJECT_SHA"
 fi
+if [[ -n "${EXPECTED_SUBJECT_TREE:-}" ]]; then
+  EXPECTED_SUBJECT_TREE="$(printf '%s' "$EXPECTED_SUBJECT_TREE" | tr '[:upper:]' '[:lower:]')"
+  sha40 "$EXPECTED_SUBJECT_TREE" || fail "EXPECTED_SUBJECT_TREE must be 40 lowercase hex"
+  [[ "$EXPECTED_SUBJECT_TREE" == "$SUBJECT_TREE" ]] \
+    || fail "tree mismatch: HEAD tree=$SUBJECT_TREE expected=$EXPECTED_SUBJECT_TREE"
+fi
 export GITHUB_SHA="$SUBJECT_SHA"
 
-# Baseline ancestry check: the new forward-port commit must descend from 9d58b0dc.
-BASELINE_PREFIX="${EXPECTED_BASELINE_PREFIX:-9d58b0dc}"
-BASELINE_SHA="$(git rev-list --all | grep -m1 "^${BASELINE_PREFIX}" || true)"
-[[ -n "$BASELINE_SHA" ]] || fail "cannot resolve expected baseline prefix ${BASELINE_PREFIX} in this checkout"
+assert_subject_unchanged() {
+  local current_sha current_tree
+  current_sha="$(git rev-parse HEAD | tr '[:upper:]' '[:lower:]')"
+  current_tree="$(git rev-parse 'HEAD^{tree}' | tr '[:upper:]' '[:lower:]')"
+  [[ "$current_sha" == "$SUBJECT_SHA" && "$current_tree" == "$SUBJECT_TREE" ]] \
+    || fail "checkout changed during acceptance: start=$SUBJECT_SHA/$SUBJECT_TREE current=$current_sha/$current_tree"
+}
+
+EXECUTION_ACTOR_KIND="operator"
+EXECUTION_ACTOR_ID="${USER:-unknown}"
+
+# Baseline ancestry check: require the full post-PR-965 main commit, never an
+# ambiguous abbreviated SHA. A shallow checkout must fetch enough history to
+# contain this commit before it can produce live provenance.
+BASELINE_SHA="${EXPECTED_BASELINE_SHA:-fc36d081324dacd97a38abb2e43f101ad1469c42}"
+sha40 "$BASELINE_SHA" || fail "EXPECTED_BASELINE_SHA must be 40 lowercase hex"
+git cat-file -e "${BASELINE_SHA}^{commit}" 2>/dev/null \
+  || fail "baseline commit $BASELINE_SHA is absent; fetch sufficient main history before live acceptance"
 git merge-base --is-ancestor "$BASELINE_SHA" "$SUBJECT_SHA" || fail "HEAD does not descend from baseline $BASELINE_SHA"
 
 printf '%s\n' "$SUBJECT_SHA" > "$ARTIFACT_ROOT/SUBJECT_SHA.txt"
@@ -74,6 +99,7 @@ static_guards() {
 doctor() {
   echo "== Subject =="
   echo "HEAD=$SUBJECT_SHA"
+  echo "TREE=$SUBJECT_TREE"
   echo "BASELINE=$BASELINE_SHA"
 
   static_guards
@@ -85,6 +111,7 @@ doctor() {
 preflight() {
   echo "== Subject =="
   echo "HEAD=$SUBJECT_SHA"
+  echo "TREE=$SUBJECT_TREE"
   echo "BASELINE=$BASELINE_SHA"
 
   static_guards
@@ -231,6 +258,7 @@ PY
 }
 
 verify_all() {
+  assert_subject_unchanged
   echo "== Canonical receipt re-verification =="
   "$PYTHON" scripts/architecture/rag_live_parity_receipt_guard.py \
     --receipt "$RAG_DIR/rag_live_parity_receipt.json" --subject-sha "$SUBJECT_SHA"
@@ -282,25 +310,62 @@ PY
   "$PYTHON" scripts/architecture/s5_exec_01_edge_freeze.py --check | tee "$ARTIFACT_ROOT/s5_edge_freeze_guard.txt"
   "$PYTHON" scripts/ci/s5_exec_01_writer_cutover_guard.py | tee "$ARTIFACT_ROOT/s5_writer_cutover_guard.txt"
 
-  "$PYTHON" - "$ARTIFACT_ROOT" "$SUBJECT_SHA" <<'PY'
+  "$PYTHON" - "$ARTIFACT_ROOT" "$SUBJECT_SHA" "$SUBJECT_TREE" \
+    "$EXECUTION_ACTOR_KIND" "$EXECUTION_ACTOR_ID" <<'PY'
 import hashlib,json,pathlib,sys
-root=pathlib.Path(sys.argv[1]); subject=sys.argv[2]
-files=[]
-for p in sorted(root.rglob('*')):
-    if p.is_file() and p.name != 'SHA256SUMS.txt':
-        files.append(f"{hashlib.sha256(p.read_bytes()).hexdigest()}  {p.relative_to(root).as_posix()}")
-(root/'SHA256SUMS.txt').write_text('\n'.join(files)+'\n',encoding='utf-8')
+root=pathlib.Path(sys.argv[1]); subject,tree,actor_kind,actor_id=sys.argv[2:6]
 summary={
   'schema':'sahool.post-commit-live-acceptance-summary/v1',
   'subject_sha':subject,
+  'subject_tree':tree,
+  'execution_actor':{'kind':actor_kind,'id':actor_id},
   'authority_promotion':False,
   'physical_shrink_authorized':False,
   'c12_live_activation_receipt_supported':True,
   'next_action':'independent human adjudication only after reviewing every canonical receipt; no automatic authority promotion',
 }
 (root/'SUMMARY.json').write_text(json.dumps(summary,indent=2,sort_keys=True)+'\n',encoding='utf-8')
+files=[]
+for p in sorted(root.rglob('*')):
+    if p.is_file() and p.name != 'SHA256SUMS.txt':
+        files.append(f"{hashlib.sha256(p.read_bytes()).hexdigest()}  {p.relative_to(root).as_posix()}")
+(root/'SHA256SUMS.txt').write_text('\n'.join(files)+'\n',encoding='utf-8')
+for line in files:
+    digest,rel=line.split(None,1)
+    if hashlib.sha256((root/rel).read_bytes()).hexdigest()!=digest:
+        raise SystemExit(f"artifact changed while sealing: {rel}")
 print(json.dumps(summary,sort_keys=True))
 PY
+}
+
+agent_all() {
+  # An AI agent may collect and seal evidence, but cannot grant authority.
+  # Both pins are mandatory: the agent must be told exactly which commit and
+  # tree the operator intends to measure; deriving its own target is not an
+  # independent provenance check.
+  [[ -n "${EXPECTED_SUBJECT_SHA:-}" ]] \
+    || fail "agent mode requires EXPECTED_SUBJECT_SHA=<40-hex>"
+  [[ -n "${EXPECTED_SUBJECT_TREE:-}" ]] \
+    || fail "agent mode requires EXPECTED_SUBJECT_TREE=<40-hex>"
+  [[ "${AGENT_CONFIRM_EVIDENCE_ONLY:-0}" == "1" ]] \
+    || fail "agent mode requires AGENT_CONFIRM_EVIDENCE_ONLY=1"
+  [[ "${AGENT_EXECUTOR_ID:-}" =~ ^[A-Za-z0-9._:@/-]{3,128}$ ]] \
+    || fail "AGENT_EXECUTOR_ID is required and must be a safe 3..128 character identifier"
+  [[ -z "$(git status --porcelain --untracked-files=no)" ]] \
+    || fail "agent mode requires a clean tracked worktree"
+  assert_subject_unchanged
+  EXECUTION_ACTOR_KIND="ai-agent"
+  EXECUTION_ACTOR_ID="$AGENT_EXECUTOR_ID"
+  export EXECUTION_ACTOR_KIND EXECUTION_ACTOR_ID
+  doctor
+  preflight
+  assert_subject_unchanged
+  rag_collect
+  s5_collect
+  c11_collect
+  c12_collect
+  assert_subject_unchanged
+  verify_all
 }
 
 case "$MODE" in
@@ -320,4 +385,5 @@ case "$MODE" in
     c12_collect
     verify_all
     ;;
+  agent) agent_all ;;
 esac
