@@ -31,7 +31,10 @@ from canonical_weather_state import (  # noqa: E402
     build_canonical_weather_state,
 )
 from gdd import accumulate_gdd  # noqa: E402
-from open_meteo import normalize_daily  # noqa: E402
+from open_meteo import (  # noqa: E402
+    _DAILY_ZERO_COERCED_PUBLISHED_FIELDS,
+    normalize_daily,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -118,6 +121,39 @@ def test_the_envelope_no_longer_publishes_a_zero_coercion_caveat_for_temperature
     caveat = [lim for lim in slot["limitations"] if "indistinguishable" in lim]
     assert caveat, "قيد التصفير اختفى كلّيّاً — والمطر والرياح ما زالا مُصفَّرَين"
     assert "temp_max_c" not in caveat[0] and "temp_min_c" not in caveat[0]
+
+
+def test_the_published_caveat_names_every_field_the_edge_actually_coerces():
+    """يربط الطبقتين — **بعد أن قِيس أنّ لا شيء يربطهما.**
+
+    كانت الحقيقةُ الواحدة مُعلَنةً مرّتين: `_DAILY_ZERO_COERCED_SOURCE_FIELDS` عند
+    الحافّة و`_DAILY_ZERO_COERCED_FIELDS` في الطبقة القانونيّة — **شرطان يتّفقان
+    اليوم**، مُثبَّتٌ كلٌّ منهما بحرفيّته في ملفٍّ لا يذكر الآخر.
+
+    **والزرعُ أثبت الثغرة بدل أن يفترضها:** أُضيف حقلٌ ثالثٌ مُصفَّرٌ عند الحافّة
+    ومُعلَنٌ باسمه، وحُدِّثت حرفيّةُ اختبار الحافّة كما يفعل مَن يتبع رسالةَ الفشل —
+    فمرّت **١٦٨ حالة** خضراء بينما `limitations` المنشورةُ للمستهلك تسمّي اثنين من
+    ثلاثة. ولا يقرأ المستهلكُ ذلك نقصاً بل حَصراً: «التصفيرُ محصورٌ فيما سُمّي».
+
+    **والاتّجاهُ المقيسُ هنا هو اتّجاهُ الخداع وحدَه** — احتواءٌ لا تساوٍ. فالقيدُ
+    الأضيقُ من الواقع يكذب، أمّا الأوسعُ فيصف تصفيراً لم يقع وذلك عطلٌ آخر يحرسه
+    `test_the_envelope_no_longer_publishes_a_zero_coercion_caveat_for_temperature`
+    أعلاه بتثبيتِ التساوي. فالاثنان معاً يُغلقان الطرفين، ومُزوّدٌ ثانٍ يُصفّر حقلاً
+    آخر يستطيع أن **يُوسّع** القائمةَ القانونيّة دون أن يكسر هذا الحارس.
+
+    ويُقاس النصُّ المنشورُ نفسُه لا الثابتُ فقط: ثابتٌ صحيحٌ وسلسلةٌ منحرفةٌ عطلٌ
+    قائمٌ بذاته، والمستهلكُ يقرأ السلسلة.
+    """
+    missing = set(_DAILY_ZERO_COERCED_PUBLISHED_FIELDS) - set(_DAILY_ZERO_COERCED_FIELDS)
+    assert not missing, (
+        f"الحافّة تُصفّر {sorted(missing)} ولا تسمّيها الطبقةُ القانونيّة — "
+        "قيدٌ منشورٌ أضيقُ من التصفير الواقع"
+    )
+
+    slot = _daily_slot(_normalized([30.0, 31.0, 32.0], [18.0, 17.0, 19.0]))
+    caveat = next(lim for lim in slot["limitations"] if "indistinguishable" in lim)
+    for field in _DAILY_ZERO_COERCED_PUBLISHED_FIELDS:
+        assert field in caveat, f"`{field}` مُصفَّرٌ عند الحافّة ولا يبلغ المستهلكَ في `limitations`"
 
 
 # ── ③ النواة: اليوم المفقود لا يُجمَع ولا يُعَدّ ──────────────────────

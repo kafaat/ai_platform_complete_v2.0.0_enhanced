@@ -29355,7 +29355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f8d9a9b45d7bec7f456d8c9cacc7468102fd72634158b4956600f09193a1eb85"
+          "content": "3d6ab6fa9bb138ecede13df2e610de7fd6fff37889cabde79438c26b4f09cabc"
         }
       ],
       "name": "services/weather-service/open_meteo.py",
@@ -29545,7 +29545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e035bb2bb0a2512545748a18a9923a2c33265ce0aba7c89a1136dabc674b2d4b"
+          "content": "be9b4c1726a49f7697128beda3d927e4c973bef2f04770fe5645b9c0617c8b82"
         }
       ],
       "name": "services/weather-service/tests/test_missing_temperature_is_not_zero.py",
