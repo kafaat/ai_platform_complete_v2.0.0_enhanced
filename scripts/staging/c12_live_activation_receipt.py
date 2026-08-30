@@ -77,6 +77,8 @@ def problems(
             out.append("source_not_authoritative")
     if body.get("classification") != "PASSED" or body.get("live_evidence_complete") is not True:
         out.append("live_evidence_not_complete")
+    if body.get("authority_changed") is not False:
+        out.append("receipt_claims_authority_change")
     chain = body.get("chain")
     if not isinstance(chain, dict):
         out.append("missing_activation_chain")
@@ -185,14 +187,22 @@ SELECT json_build_object(
  'sample_count', ms.sample_count, 'drift_state', ms.drift_state, 'captured_by', ms.captured_by
 )::text
 FROM decision_model_registry_activation_commands c
-JOIN decision_model_activation_reviews v ON v.tenant_id=c.tenant_id AND v.activation_review_id=c.activation_review_id
-JOIN decision_model_activation_requests q ON q.tenant_id=c.tenant_id AND q.activation_request_id=c.activation_request_id
-JOIN decision_model_promotion_decisions p ON p.tenant_id=c.tenant_id AND p.promotion_decision_id=q.promotion_decision_id
-JOIN decision_model_registry_activation_claims cl ON cl.tenant_id=c.tenant_id AND cl.activation_command_id=c.activation_command_id
-JOIN decision_model_registry_activation_receipts ar ON ar.tenant_id=c.tenant_id AND ar.activation_command_id=c.activation_command_id
-JOIN decision_model_post_activation_verifications pv ON pv.tenant_id=c.tenant_id AND pv.activation_receipt_id=ar.activation_receipt_id
-JOIN decision_model_rollout_plans rp ON rp.tenant_id=c.tenant_id AND rp.activation_receipt_id=ar.activation_receipt_id
-JOIN decision_model_rollout_receipts rr ON rr.tenant_id=c.tenant_id AND rr.rollout_plan_id=rp.rollout_plan_id
+JOIN decision_model_activation_reviews v
+  ON v.tenant_id=c.tenant_id AND v.activation_review_id=c.activation_review_id
+JOIN decision_model_activation_requests q
+  ON q.tenant_id=c.tenant_id AND q.activation_request_id=c.activation_request_id
+JOIN decision_model_promotion_decisions p
+  ON p.tenant_id=c.tenant_id AND p.promotion_decision_id=q.promotion_decision_id
+JOIN decision_model_registry_activation_claims cl
+  ON cl.tenant_id=c.tenant_id AND cl.activation_command_id=c.activation_command_id
+JOIN decision_model_registry_activation_receipts ar
+  ON ar.tenant_id=c.tenant_id AND ar.activation_command_id=c.activation_command_id
+JOIN decision_model_post_activation_verifications pv
+  ON pv.tenant_id=c.tenant_id AND pv.activation_receipt_id=ar.activation_receipt_id
+JOIN decision_model_rollout_plans rp
+  ON rp.tenant_id=c.tenant_id AND rp.activation_receipt_id=ar.activation_receipt_id
+JOIN decision_model_rollout_receipts rr
+  ON rr.tenant_id=c.tenant_id AND rr.rollout_plan_id=rp.rollout_plan_id
 JOIN LATERAL (
  SELECT m.* FROM decision_model_monitoring_snapshots m
  WHERE m.tenant_id=c.tenant_id AND m.model_id=c.model_id
@@ -285,7 +295,9 @@ def main(argv: list[str] | None = None) -> int:
         try:
             body = collect(args)
             args.output.parent.mkdir(parents=True, exist_ok=True)
-            args.output.write_text(json.dumps(body, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            args.output.write_text(
+                json.dumps(body, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+            )
         except (OSError, ValueError, RuntimeError, json.JSONDecodeError) as exc:
             print(json.dumps({"classification": "FAILED", "findings": [str(exc)]}, sort_keys=True))
             return 2
@@ -293,7 +305,12 @@ def main(argv: list[str] | None = None) -> int:
         try:
             body = json.loads(args.receipt.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
-            print(json.dumps({"classification": "FAILED", "findings": [f"receipt_unreadable:{exc}"]}, sort_keys=True))
+            print(
+                json.dumps(
+                    {"classification": "FAILED", "findings": [f"receipt_unreadable:{exc}"]},
+                    sort_keys=True,
+                )
+            )
             return 2
         found = problems(body, expected_subject_sha=args.subject_sha)
         if found:
