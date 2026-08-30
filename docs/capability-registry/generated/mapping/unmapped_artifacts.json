@@ -6896,6 +6896,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_c12_live_activation_receipt.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_c4_economics_erp_payment_boundary_guard.py",
     "kind": "tests"
   },

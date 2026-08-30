@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5231,
+    "files_scanned": 5233,
     "files_by_kind": {
       "backend": 1204,
       "database": 275,
       "governance": 62,
       "mobile": 51,
-      "other": 1432,
-      "tests": 1750,
+      "other": 1433,
+      "tests": 1751,
       "web": 457
     },
-    "unmapped_artifacts": 2133,
+    "unmapped_artifacts": 2134,
     "ambiguous_artifacts": 417
   },
   "capabilities": [
@@ -41970,6 +41970,10 @@
     },
     {
       "path": "tests_v9/test_branch_protection_contract_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_c12_live_activation_receipt.py",
       "kind": "tests"
     },
     {

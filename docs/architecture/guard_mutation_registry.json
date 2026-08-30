@@ -382,16 +382,16 @@
       "test": "tests_v9/test_c8_c13_certification_contracts.py"
     },
     "scripts/ci/c12_governed_learning_promotion_certification.py": {
-      "$why_ar": "C12 لا يحوّل سلامة حدود WX11 الساكنة إلى promotion certification حي.",
+      "$why_ar": "C12 يفصل التحقق من الدليل الحي عن صلاحية promotion ويظل خاضعاً لمراجعة GATE-01 مستقلة.",
       "mutations": [
         {
-          "expect": "test_offline_stages_fail_closed_without_promoting_authority",
-          "find": "        \"EVIDENCE_REQUIRED\",\n        [\"live_model_activation_evidence_required\"],\n        promotion_permitted=False,",
-          "replace": "        \"PASS\",\n        [],\n        promotion_permitted=True,",
-          "why": "C12 لا يحوّل سلامة حدود WX11 الساكنة إلى promotion certification حي."
+          "expect": "test_verified_receipt_only_reaches_independent_adjudication",
+          "find": "        promotion_permitted=False,\n        automatic_promotion=False,\n        ready_for_authority_adjudication=True,",
+          "replace": "        promotion_permitted=True,  # mutated: live evidence bypasses independent adjudication\n        automatic_promotion=False,\n        ready_for_authority_adjudication=True,",
+          "why": "الدليل الحي المتحقق يجهّز القرار لمراجعة GATE-01 مستقلة ولا يمنح صلاحية promotion."
         }
       ],
-      "test": "tests_v9/test_c8_c13_certification_contracts.py"
+      "test": "tests_v9/test_c12_live_activation_receipt.py"
     },
     "scripts/ci/c13_physical_shrink_certification.py": {
       "$why_ar": "C13 إغلاق idempotent ولا يمنح إذن حذف جديداً.",
