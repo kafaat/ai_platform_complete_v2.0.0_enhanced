@@ -389,9 +389,9 @@ def calculate_acid_dose(
     acid_density_g_ml: float,
     temperature_c: float,
     mixing_volume_l: float,
-    mixing_order: str,          # يجب أن يصبح enum مغلقًا
+    mixing_order: str,  # يجب أن يصبح enum مغلقًا
     max_injection_rate_ml_s: float,
-    max_single_step_delta_ph: float
+    max_single_step_delta_ph: float,
 ) -> dict:
     # 1) حساب تقديري للجرعة
     # 2) محاكاة predicted_pH_after_injection   ← يتطلب نموذج اتزان كربونات/معايرة قلوية مرجعيًا محددًا

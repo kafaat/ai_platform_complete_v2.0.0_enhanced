@@ -260,6 +260,9 @@ def test_path3_uses_external_attested_images_and_protected_boundaries():
         in text
     )
     assert 'gh attestation verify "oci://${image}"' in text
+    assert "--predicate-type https://slsa.dev/provenance/v1" in text
+    assert "--predicate-type https://cyclonedx.org/bom" in text
+    assert "scripts/ci/install_pinned_gh_attestation_cli.sh" in text
 
 
 def test_bridge_requires_external_provenance_receipt_and_replay_guard():

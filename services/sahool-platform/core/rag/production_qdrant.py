@@ -549,11 +549,15 @@ class KnowledgeChunk:
 @dataclass(frozen=True)
 class RetrievedAnnotation:
     chunk: KnowledgeChunk
-    dense_score: float
-    bm25_score: float
+    dense_score: float | None
+    bm25_score: float | None
     fused_score: float
     rerank_score: float | None = None
     role: str = "hit"
+    dense_rank: int | None = None
+    bm25_rank: int | None = None
+    fusion_method: str = "weighted_rrf"
+    fusion_version: str = "weighted_rrf_v1"
 
     def as_annotation(self) -> dict[str, Any]:
         return {
@@ -585,8 +589,53 @@ class RetrievedAnnotation:
                 "bm25_score": self.bm25_score,
                 "fused_score": self.fused_score,
                 "rerank_score": self.rerank_score,
+                "dense_rank": self.dense_rank,
+                "bm25_rank": self.bm25_rank,
+                "fusion_method": self.fusion_method,
+                "fusion_version": self.fusion_version,
             },
         }
+
+
+def weighted_rrf_scores(
+    dense_scores: dict[str, float],
+    sparse_scores: dict[str, float],
+    *,
+    dense_weight: float = 0.7,
+    sparse_weight: float = 0.3,
+    rank_constant: int = 60,
+) -> tuple[dict[str, float], dict[str, int], dict[str, int]]:
+    """Fuse incomparable dense and BM25 results by rank.
+
+    Raw scores remain diagnostics only.  Ties are broken by logical chunk ID so
+    process restarts and provider ordering cannot move an otherwise tied result.
+    """
+    if rank_constant < 1:
+        raise ValueError("rank_constant must be positive")
+    if dense_weight < 0 or sparse_weight < 0 or dense_weight + sparse_weight <= 0:
+        raise ValueError("fusion weights must be non-negative with a positive sum")
+
+    dense_ranks = {
+        chunk_id: rank
+        for rank, (chunk_id, _score) in enumerate(
+            sorted(dense_scores.items(), key=lambda item: (-item[1], item[0])), start=1
+        )
+    }
+    sparse_ranks = {
+        chunk_id: rank
+        for rank, (chunk_id, _score) in enumerate(
+            sorted(sparse_scores.items(), key=lambda item: (-item[1], item[0])), start=1
+        )
+    }
+    fused: dict[str, float] = {}
+    for chunk_id in set(dense_ranks) | set(sparse_ranks):
+        score = 0.0
+        if chunk_id in dense_ranks:
+            score += dense_weight / (rank_constant + dense_ranks[chunk_id])
+        if chunk_id in sparse_ranks:
+            score += sparse_weight / (rank_constant + sparse_ranks[chunk_id])
+        fused[chunk_id] = score
+    return fused, dense_ranks, sparse_ranks
 
 
 def tokenize(text: str) -> list[str]:
@@ -1241,18 +1290,27 @@ class HybridQdrantRetriever:
             query, tenant_id=tenant_id, filters=filters, limit=top_k_initial
         )
         sparse_map: dict[str, float] = {chunk.chunk_id: score for chunk, score in sparse_rows}
-        candidates = set(dense_map) | set(sparse_map)
+        fused_scores, dense_ranks, sparse_ranks = weighted_rrf_scores(dense_map, sparse_map)
+        candidates = set(fused_scores)
         fused: list[RetrievedAnnotation] = []
         for cid in candidates:
             chunk = self._chunks.get(cid)
             if chunk is None:
                 continue
-            dense = dense_map.get(cid, 0.0)
-            sparse = sparse_map.get(cid, 0.0)
-            fused_score = 0.7 * dense + 0.3 * sparse
-            fused.append(RetrievedAnnotation(chunk, dense, sparse, fused_score))
+            dense = dense_map.get(cid)
+            sparse = sparse_map.get(cid)
+            fused.append(
+                RetrievedAnnotation(
+                    chunk,
+                    dense,
+                    sparse,
+                    fused_scores[cid],
+                    dense_rank=dense_ranks.get(cid),
+                    bm25_rank=sparse_ranks.get(cid),
+                )
+            )
         expanded = self._expand_neighbors(
-            sorted(fused, key=lambda r: r.fused_score, reverse=True)[:top_k_initial],
+            sorted(fused, key=lambda r: (-r.fused_score, r.chunk.chunk_id))[:top_k_initial],
             filters=filters,
         )
         reranked = self._rerank(query, expanded)
@@ -1299,12 +1357,22 @@ class HybridQdrantRetriever:
             score = row.fused_score + overlap * 0.05
             reranked.append(
                 RetrievedAnnotation(
-                    row.chunk,
-                    row.dense_score,
-                    row.bm25_score,
-                    row.fused_score,
-                    round(score, 6),
-                    row.role,
+                    chunk=row.chunk,
+                    dense_score=row.dense_score,
+                    bm25_score=row.bm25_score,
+                    fused_score=row.fused_score,
+                    rerank_score=round(score, 6),
+                    role=row.role,
+                    dense_rank=row.dense_rank,
+                    bm25_rank=row.bm25_rank,
+                    fusion_method=row.fusion_method,
+                    fusion_version=row.fusion_version,
                 )
             )
-        return sorted(reranked, key=lambda r: r.rerank_score or r.fused_score, reverse=True)
+        return sorted(
+            reranked,
+            key=lambda row: (
+                -(row.rerank_score if row.rerank_score is not None else row.fused_score),
+                row.chunk.chunk_id,
+            ),
+        )

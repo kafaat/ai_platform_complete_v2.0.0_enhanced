@@ -532,7 +532,7 @@
         "GET /api/v1/crops/drought-resilience @ services/sahool-platform/api/routers/crops.py:26",
         "GET /api/v1/crops/{crop_id}/operations-calendar @ services/sahool-platform/api/routers/crop_operations.py:24",
         "GET /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3474",
-        "GET /api/v1/fields/{field_id}/weather/crop-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:186",
+        "GET /api/v1/fields/{field_id}/weather/crop-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:221",
         "GET /api/v1/ipm/crop-pests @ services/sahool-platform/api/routers/ipm.py:37",
         "GET /api/v1/market/crop-classification-readiness @ services/sahool-platform/api/routers/market.py:101",
         "GET /api/v1/market/crop-gap @ services/sahool-platform/api/routers/market.py:30",
@@ -1766,8 +1766,8 @@
       ],
       "apis": [
         "GET /api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:3958",
-        "GET /api/v1/fields/{field_id}/weather/crop-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:186",
-        "GET /api/v1/fields/{field_id}/weather/thermal-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:151",
+        "GET /api/v1/fields/{field_id}/weather/crop-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:221",
+        "GET /api/v1/fields/{field_id}/weather/thermal-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:186",
         "GET /v1/weather/thermal-stress @ services/weather-service/main.py:34",
         "POST /api/v1/water-sensitivity/stress-risk @ services/sahool-platform/api/routers/water_sensitivity.py:59"
       ],
@@ -2309,7 +2309,7 @@
         "services/weather-service/main.py"
       ],
       "apis": [
-        "GET /api/v1/fields/{field_id}/weather/operation-windows @ services/sahool-platform/api/routers/field_workspace_weather.py:253",
+        "GET /api/v1/fields/{field_id}/weather/operation-windows @ services/sahool-platform/api/routers/field_workspace_weather.py:288",
         "GET /api/v1/weather/operation-window @ services/sahool-platform/api/routers/weather.py:2511",
         "GET /v1/weather/operation-window @ services/weather-service/main.py:32"
       ],
@@ -2351,7 +2351,7 @@
       ],
       "apis": [
         "GET /api/v1/crop-cards/variety/{variety_id}/disease-watch @ services/sahool-platform/api/routers/crop_cards.py:113",
-        "GET /api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:364"
+        "GET /api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:401"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],

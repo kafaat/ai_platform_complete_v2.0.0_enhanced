@@ -32,6 +32,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from fastapi import HTTPException
 
 pytestmark = pytest.mark.unit
 
@@ -64,12 +65,17 @@ _PROVIDER_DAILY = {
 def platform_adapter() -> dict[str, Any]:
     """مُحوِّلا المنصّة مُستخرَجان من الراوتر — بلا `fastapi` ولا `api.main`."""
     tree = ast.parse(_ROUTER.read_text(encoding="utf-8"))
-    wanted = ("_forecast_days", "_reading")
+    wanted = (
+        "_forecast_days",
+        "_reading",
+        "_complete_precipitation_total",
+        "_precipitation_incomplete",
+    )
     body = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name in wanted]
     assert len(body) == len(wanted), (
         f"لم يُعثَر على مُحوِّلَي المنصّة {wanted} في الراوتر — تغيّر شكلُهما والفحصُ صار أعمى"
     )
-    ns: dict[str, Any] = {"Any": Any}
+    ns: dict[str, Any] = {"Any": Any, "HTTPException": HTTPException}
     exec(compile(ast.Module(body=body, type_ignores=[]), "<router>", "exec"), ns)  # noqa: S102
     return ns
 
@@ -129,7 +135,10 @@ def test_the_irrigation_inputs_arrive_with_their_values(platform_adapter, servic
 
     assert reading(days[0], "et0_mm") == pytest.approx(6.4)
     # نفسُ الشريحة التي يجمعها المسار: `days[1:3]`.
-    forecast_rain = sum(reading(day, "precipitation_mm") or 0.0 for day in days[1:3])
+    forecast_rain, missing = platform_adapter["_complete_precipitation_total"](
+        days[1:3], expected_count=2
+    )
+    assert missing == []
     assert forecast_rain == pytest.approx(4.0)
 
     current = service_views["current"](_PROVIDER_CURRENT)
@@ -192,6 +201,47 @@ def test_a_real_zero_is_not_confused_with_absence(platform_adapter, service_view
 
     assert reading(days[0], "precipitation_mm") == 0.0
     assert reading(days[0], "precipitation_mm") is not None
+
+
+def test_missing_precipitation_never_becomes_a_zero_total(platform_adapter) -> None:
+    total, missing = platform_adapter["_complete_precipitation_total"](
+        [{"precipitation_mm": 0.0}, {"precipitation_mm": None}], expected_count=2
+    )
+
+    assert total is None
+    assert missing == [1]
+
+
+def test_a_short_forecast_is_incomplete_not_a_shorter_valid_window(platform_adapter) -> None:
+    total, missing = platform_adapter["_complete_precipitation_total"](
+        [{"precipitation_mm": 0.0}], expected_count=3
+    )
+
+    assert total is None
+    assert missing == [1, 2]
+
+
+def test_explicit_zeroes_are_complete_measurements(platform_adapter) -> None:
+    total, missing = platform_adapter["_complete_precipitation_total"](
+        [{"precipitation_mm": 0.0}, {"precipitation_mm": 0}], expected_count=2
+    )
+
+    assert total == 0.0
+    assert missing == []
+
+
+def test_incomplete_rain_has_a_stable_machine_readable_503(platform_adapter) -> None:
+    error = platform_adapter["_precipitation_incomplete"](
+        context="irrigation_advice", missing_intervals=[0, 2]
+    )
+
+    assert error.status_code == 503
+    assert error.detail == {
+        "code": "WEATHER_PRECIPITATION_INCOMPLETE",
+        "message_ar": "بيانات المطر غير مكتملة؛ لا يمكن إصدار تقدير زراعي آمن.",
+        "context": "irrigation_advice",
+        "missing_intervals": [0, 2],
+    }
 
 
 def test_a_malformed_envelope_yields_no_days_rather_than_raising(platform_adapter) -> None:

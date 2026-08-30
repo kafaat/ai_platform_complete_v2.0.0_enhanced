@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5222,
+    "files_scanned": 5231,
     "files_by_kind": {
       "backend": 1204,
       "database": 275,
-      "governance": 60,
+      "governance": 62,
       "mobile": 51,
-      "other": 1429,
-      "tests": 1746,
+      "other": 1432,
+      "tests": 1750,
       "web": 457
     },
-    "unmapped_artifacts": 2130,
+    "unmapped_artifacts": 2133,
     "ambiguous_artifacts": 417
   },
   "capabilities": [
@@ -5635,23 +5635,23 @@
           "score": 13
         },
         {
-          "value": "/api/v1/fields/{field_id}/weather/crop-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:185",
+          "value": "/api/v1/fields/{field_id}/weather/crop-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:220",
           "score": 13
         },
         {
-          "value": "/api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:363",
+          "value": "/api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:400",
           "score": 13
         },
         {
-          "value": "/api/v1/fields/{field_id}/weather/irrigation-advice @ services/sahool-platform/api/routers/field_workspace_weather.py:303",
+          "value": "/api/v1/fields/{field_id}/weather/irrigation-advice @ services/sahool-platform/api/routers/field_workspace_weather.py:338",
           "score": 13
         },
         {
-          "value": "/api/v1/fields/{field_id}/weather/operation-windows @ services/sahool-platform/api/routers/field_workspace_weather.py:252",
+          "value": "/api/v1/fields/{field_id}/weather/operation-windows @ services/sahool-platform/api/routers/field_workspace_weather.py:287",
           "score": 13
         },
         {
-          "value": "/api/v1/fields/{field_id}/weather/thermal-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:150",
+          "value": "/api/v1/fields/{field_id}/weather/thermal-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:185",
           "score": 13
         }
       ],
@@ -8380,11 +8380,15 @@
           "score": 14
         },
         {
-          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1319",
+          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1359",
           "score": 12
         },
         {
-          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:88",
+          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:129",
+          "score": 12
+        },
+        {
+          "value": "/api/v1/example @ tests_v9/test_api_versioning_policy_guard.py:86",
           "score": 12
         },
         {
@@ -8392,7 +8396,7 @@
           "score": 12
         },
         {
-          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:189",
+          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:230",
           "score": 12
         },
         {
@@ -8400,11 +8404,11 @@
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:174",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:215",
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:185",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:226",
           "score": 12
         },
         {
@@ -8502,7 +8506,7 @@
       ],
       "events": [
         {
-          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:887",
+          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:927",
           "score": 12
         }
       ],
@@ -8701,7 +8705,7 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 8,
-        "routes": 24,
+        "routes": 25,
         "database": 8,
         "events": 1,
         "web": 1,
@@ -9907,7 +9911,7 @@
           "score": 16
         },
         {
-          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1319",
+          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1359",
           "score": 14
         }
       ],
@@ -10139,7 +10143,7 @@
           "score": 14
         },
         {
-          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:887",
+          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:927",
           "score": 14
         },
         {
@@ -10952,7 +10956,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "routes": 19
+        "routes": 20
       },
       "evidence_counts": {
         "backend": 27,
@@ -25774,23 +25778,27 @@
           "score": 16
         },
         {
-          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1319",
+          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1359",
           "score": 12
         },
         {
-          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:88",
+          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:129",
           "score": 12
         },
         {
-          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:189",
+          "value": "/api/v1/example @ tests_v9/test_api_versioning_policy_guard.py:86",
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:174",
+          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:230",
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:185",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:215",
+          "score": 12
+        },
+        {
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:226",
           "score": 12
         },
         {
@@ -25949,7 +25957,7 @@
           "score": 17
         },
         {
-          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:887",
+          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:927",
           "score": 12
         },
         {
@@ -26392,7 +26400,7 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 7,
-        "routes": 21,
+        "routes": 22,
         "database": 23,
         "events": 5,
         "web": 5,
@@ -27281,11 +27289,15 @@
           "score": 22
         },
         {
-          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1319",
+          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1359",
           "score": 12
         },
         {
-          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:88",
+          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:129",
+          "score": 12
+        },
+        {
+          "value": "/api/v1/example @ tests_v9/test_api_versioning_policy_guard.py:86",
           "score": 12
         },
         {
@@ -27293,7 +27305,7 @@
           "score": 12
         },
         {
-          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:189",
+          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:230",
           "score": 12
         },
         {
@@ -27301,11 +27313,11 @@
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:174",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:215",
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:185",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:226",
           "score": 12
         },
         {
@@ -27741,7 +27753,7 @@
           "score": 12
         },
         {
-          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:887",
+          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:927",
           "score": 12
         },
         {
@@ -28137,7 +28149,7 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 13,
-        "routes": 91,
+        "routes": 92,
         "database": 14,
         "events": 36,
         "web": 1,
@@ -29196,6 +29208,13 @@
       "mobile": [],
       "tests": [
         {
+          "path": "tests_v9/test_capability_gate_reads_live_body.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "tests_v9/test_crop_twin_verified_learning_c2.py",
           "score": 8,
           "signals": [
@@ -29234,7 +29253,7 @@
         "events": 3,
         "web": 0,
         "mobile": 0,
-        "tests": 1,
+        "tests": 2,
         "governance": 0,
         "other_evidence": 2
       },
@@ -29572,23 +29591,23 @@
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/weather/crop-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:185",
+          "value": "/api/v1/fields/{field_id}/weather/crop-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:220",
           "score": 16
         },
         {
-          "value": "/api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:363",
+          "value": "/api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:400",
           "score": 16
         },
         {
-          "value": "/api/v1/fields/{field_id}/weather/irrigation-advice @ services/sahool-platform/api/routers/field_workspace_weather.py:303",
+          "value": "/api/v1/fields/{field_id}/weather/irrigation-advice @ services/sahool-platform/api/routers/field_workspace_weather.py:338",
           "score": 16
         },
         {
-          "value": "/api/v1/fields/{field_id}/weather/operation-windows @ services/sahool-platform/api/routers/field_workspace_weather.py:252",
+          "value": "/api/v1/fields/{field_id}/weather/operation-windows @ services/sahool-platform/api/routers/field_workspace_weather.py:287",
           "score": 16
         },
         {
-          "value": "/api/v1/fields/{field_id}/weather/thermal-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:150",
+          "value": "/api/v1/fields/{field_id}/weather/thermal-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:185",
           "score": 16
         },
         {
@@ -31547,7 +31566,7 @@
           "score": 10
         },
         {
-          "value": "field_workspace_weather.py @ tests_v9/test_weather_views_survive_the_hop_to_the_platform.py:39",
+          "value": "field_workspace_weather.py @ tests_v9/test_weather_views_survive_the_hop_to_the_platform.py:40",
           "score": 8
         },
         {
@@ -42026,10 +42045,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_capability_gate_reads_live_body.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_capability_impact_parity.py",
       "kind": "tests"
     },
@@ -42458,6 +42473,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_gate01_independent_authority_runbook.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_gateway_operational_endpoints_contract.py",
       "kind": "tests"
     },
@@ -42487,6 +42506,10 @@
     },
     {
       "path": "tests_v9/test_gis_web_mercator_crs.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_github_actions_security_guard.py",
       "kind": "tests"
     },
     {
@@ -43038,6 +43061,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_rag_weighted_rrf_fusion.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_raster_asset_date_binding.py",
       "kind": "tests"
     },
@@ -43159,6 +43186,10 @@
     },
     {
       "path": "tests_v9/test_runtime_container_deep_contract_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_runtime_image_supply_chain_guard.py",
       "kind": "tests"
     },
     {

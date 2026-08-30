@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -59,10 +60,50 @@ def _write_probe(root: Path, body: str) -> None:
 
 
 def _remove_probe(root: Path) -> None:
-    _probe_path(root).unlink(missing_ok=True)
+    probe = _probe_path(root)
+    probe.unlink(missing_ok=True)
+    assert not probe.exists(), f"temporary API-versioning probe was not removed: {probe}"
 
 
-def test_baseline_check_rejects_legacy_route_swap_not_just_count():
+def _isolated_policy_root(tmp_path: Path) -> Path:
+    """Create the smallest repository on which the CLI policy can run end-to-end.
+
+    Mutation tests must never write probes or candidate inventories into the checkout
+    under test.  Apart from surviving SIGKILL, this also avoids races with parallel CI
+    jobs and workspace synchronizers that may observe or resurrect an intermediate file.
+    """
+    source_root = Path(__file__).resolve().parents[1]
+    root = tmp_path / "policy-repo"
+    script = root / "scripts" / "ci" / "api_versioning_policy_guard.py"
+    script.parent.mkdir(parents=True)
+    shutil.copy2(source_root / "scripts" / "ci" / script.name, script)
+
+    routers = root / "services" / "sahool-platform" / "api" / "routers"
+    routers.mkdir(parents=True)
+    (routers / "versioned.py").write_text(
+        "from fastapi import APIRouter\n"
+        "router = APIRouter()\n\n"
+        '@router.get("/api/v1/example")\n'
+        "async def example():\n"
+        "    return {}\n",
+        encoding="utf-8",
+    )
+
+    architecture = root / "docs" / "architecture"
+    architecture.mkdir(parents=True)
+    (architecture / "api_versioning_legacy_baseline.json").write_text(
+        json.dumps({"ceiling": 0, "routes": []}, indent=2) + "\n", encoding="utf-8"
+    )
+    (architecture / "permanent_compatibility_contract.json").write_text(
+        json.dumps({"categories": {"permanent_health_compat_alias": {"routes": []}}}, indent=2)
+        + "\n",
+        encoding="utf-8",
+    )
+    subprocess.run([sys.executable, str(script)], cwd=root, check=True, capture_output=True)
+    return root
+
+
+def test_baseline_check_rejects_legacy_route_swap_not_just_count(tmp_path: Path):
     """The ratchet in --check enforced only len(current) <= ceiling (a bare count),
     not that the *same* set is shrinking — closing 2 routes and opening 2 different
     ones would pass silently as long as the total stayed <= ceiling. Fixed by adding
@@ -80,9 +121,9 @@ def test_baseline_check_rejects_legacy_route_swap_not_just_count():
     Falsified by construction: the probe route is added to the code and the baseline is
     given a decoy frozen entry, so a count-only ratchet would pass; the run must fail
     naming the escaped route, and both the code and the baseline are then restored."""
-    root = Path(__file__).resolve().parents[1]
+    root = _isolated_policy_root(tmp_path)
     baseline_path = root / "docs" / "architecture" / "api_versioning_legacy_baseline.json"
-    baseline_original = baseline_path.read_text(encoding="utf-8")
+    baseline_original = baseline_path.read_bytes()
     escaped = "GET /api/probe-swapped-in/status"
     probe = (
         '\n\n@router.get("/api/probe-swapped-in/status")\n'
@@ -99,7 +140,7 @@ def test_baseline_check_rejects_legacy_route_swap_not_just_count():
 
     try:
         _write_probe(root, probe)
-        data = json.loads(baseline_original)
+        data = json.loads(baseline_original.decode("utf-8"))
         # Count admits it (1 <= 1); the frozen set deliberately holds a different route.
         data["ceiling"] = 1
         data["routes"] = ["GET /api/decoy-already-adjudicated/status"]
@@ -123,7 +164,7 @@ def test_baseline_check_rejects_legacy_route_swap_not_just_count():
         )
     finally:
         _remove_probe(root)
-        baseline_path.write_text(baseline_original, encoding="utf-8")
+        baseline_path.write_bytes(baseline_original)
         _regenerate()
 
     restored = subprocess.run(
@@ -169,7 +210,7 @@ def test_runtime_identity_is_infra_not_legacy_business():
     assert leaked == [], f"/runtime-identity leaked into a non-infra classification: {leaked}"
 
 
-def test_router_prefix_is_composed_with_route_path():
+def test_router_prefix_is_composed_with_route_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """API-VERSIONING-GUARD-IS-A-MIRROR-01: collect() read only the literal decorator
     string (``@router.get("/plan")``), never composing it with the router's own
     ``APIRouter(prefix="/v1/phase9/autonomy")`` declared in the same file -- so a route
@@ -193,14 +234,13 @@ def test_router_prefix_is_composed_with_route_path():
     prefixes = guard._router_prefixes(ast.parse(src))
     assert prefixes == {"router": "/v1/phase9/autonomy"}
 
-    # _routes() requires a real path under ROOT (_service_for does path.relative_to(ROOT)),
-    # so exercise it against a throwaway fixture file rather than a bare AST.
-    real_file = guard.ROOT / "services" / "_fixture_router_prefix_test.py"
+    # _routes() requires a real path under ROOT (_service_for does path.relative_to(ROOT)).
+    # Keep the fixture outside the checkout so interruption cannot leak a source module.
+    monkeypatch.setattr(guard, "ROOT", tmp_path)
+    real_file = tmp_path / "services" / "_fixture_router_prefix_test.py"
+    real_file.parent.mkdir(parents=True)
     real_file.write_text(src, encoding="utf-8")
-    try:
-        rows = guard._routes(real_file)
-    finally:
-        real_file.unlink()
+    rows = guard._routes(real_file)
     by_path = {(r["method"], r["path"]) for r in rows}
     assert ("POST", "/v1/phase9/autonomy/plan") in by_path, (
         f"prefix not composed into route path: {by_path}"
@@ -1305,7 +1345,7 @@ def test_permanent_compatibility_contract_classifies_by_method_and_normalized_pa
     assert guard._classify("/api/agent/health", "GET") == "permanent_health_compat_alias"
 
 
-def test_new_unversioned_route_is_rejected_without_adjudication():
+def test_new_unversioned_route_is_rejected_without_adjudication(tmp_path: Path):
     """Adding an unversioned route that is not in the contract must fail CI — including
     one shaped like a health alias. A permanent alias may only be added by editing the
     contract file, which makes the adjudication visible in review.
@@ -1314,7 +1354,7 @@ def test_new_unversioned_route_is_rejected_without_adjudication():
     fires first, but its *documented remedy* is "just regenerate" — so the test also
     regenerates and asserts --check STILL fails, now on the ceiling (0 => 1). That proves
     regenerating cannot launder a new unversioned route into the baseline."""
-    root = Path(__file__).resolve().parents[1]
+    root = _isolated_policy_root(tmp_path)
     probe = (
         '\n\n@router.get("/api/probe-newservice/readyz")\n'
         "async def _probe_unadjudicated_alias():\n"
@@ -1347,7 +1387,7 @@ def test_new_unversioned_route_is_rejected_without_adjudication():
     assert _run_check(root).returncode == 0, "restoring must return --check to green"
 
 
-def test_stale_permanent_contract_entry_is_rejected():
+def test_stale_permanent_contract_entry_is_rejected(tmp_path: Path):
     """Reverse enforcement: a contract entry with no live matching route must fail.
     The forward direction is structural (classification comes *from* the contract, so no
     permanent route can exist outside it), but the reverse is not — a dead entry would
@@ -1355,7 +1395,7 @@ def test_stale_permanent_contract_entry_is_rejected():
     a fresh adjudication.
 
     Falsified by construction: add a ghost entry, confirm --check names it, restore."""
-    root = Path(__file__).resolve().parents[1]
+    root = _isolated_policy_root(tmp_path)
     contract_path = root / "docs" / "architecture" / "permanent_compatibility_contract.json"
     original = contract_path.read_text(encoding="utf-8")
     try:

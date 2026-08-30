@@ -63,8 +63,8 @@ ALTER TABLE seasons
 التطبيق والتسجيل **نداءان منفصلان** لـ`psql`:
 
 ```python
-_psql(url, file=path)                                  # ← الـDDL
-_psql(url, "INSERT INTO schema_migrations(...) ...")   # ← التسجيل
+_psql(url, file=path)  # ← الـDDL
+_psql(url, "INSERT INTO schema_migrations(...) ...")  # ← التسجيل
 ```
 
 فانقطاعٌ بينهما يترك العمود مُضافاً و`schema_migrations` لا تعرفه. والأثر عند

@@ -11,11 +11,26 @@ from pathlib import Path
 
 SHA = re.compile(r"^[0-9a-f]{40}$")
 REF = re.compile(r"^ghcr\.io/[a-z0-9_.-]+/[a-z0-9_.-]+@sha256:[0-9a-f]{64}$")
+DIGEST = re.compile(r"^[0-9a-f]{64}$")
+EVIDENCE_DIGESTS = {
+    "vulnerability_scan_sha256",
+    "sbom_cdx_sha256",
+    "provenance_verification_sha256",
+    "sbom_verification_sha256",
+}
 MAP = {
     "weather-service": "sahool-weather-service",
     "soil-service": "sahool-soil-service",
     "sahool-platform": "sahool-platform",
 }
+
+
+def valid_evidence_digests(value: object) -> bool:
+    return (
+        isinstance(value, dict)
+        and set(value) == EVIDENCE_DIGESTS
+        and all(isinstance(item, str) and DIGEST.fullmatch(item) for item in value.values())
+    )
 
 
 def main():
@@ -48,6 +63,11 @@ def main():
             return 1
         if row.get("source_sha") != a.tested_sha:
             print(f"{svc}: source sha mismatch", file=sys.stderr)
+            return 1
+        if not valid_evidence_digests(row.get("evidence")):
+            print(
+                f"{svc}: scan/SBOM/attestation evidence digests missing or invalid", file=sys.stderr
+            )
             return 1
         lines += [f"  {compose}:", f"    image: {ref}", "    build: null"]
     out = Path(a.output)

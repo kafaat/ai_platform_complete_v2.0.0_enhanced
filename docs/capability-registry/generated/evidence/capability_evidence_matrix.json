@@ -9540,6 +9540,7 @@
       "runtime_verified": false,
       "title": "Current weather",
       "unit_test_paths": [
+        "tests_v9/test_capability_gate_reads_live_body.py",
         "tests_v9/test_crop_twin_verified_learning_c2.py"
       ]
     },

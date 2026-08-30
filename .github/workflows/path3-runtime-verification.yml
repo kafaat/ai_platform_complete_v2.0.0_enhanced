@@ -40,16 +40,22 @@ jobs:
       attestations: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - name: Download externally built image manifest
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          IMAGE_BUILD_RUN_ID: ${{ inputs.image_build_run_id }}
         run: |
           set -euo pipefail
-          gh run download "${{ inputs.image_build_run_id }}" \
+          [[ "$IMAGE_BUILD_RUN_ID" =~ ^[0-9]+$ ]]
+          gh run download "$IMAGE_BUILD_RUN_ID" \
             --repo "$GITHUB_REPOSITORY" \
             --name "runtime-image-manifest-${GITHUB_SHA}" \
             --dir verified-images
+      - name: Install pinned GitHub attestation verifier
+        run: scripts/ci/install_pinned_gh_attestation_cli.sh
       - name: Verify every OCI image attestation
         shell: bash
         env:
@@ -70,7 +76,14 @@ jobs:
               --repo "$GITHUB_REPOSITORY" \
               --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/runtime-image-provenance.yml" \
               --source-digest "$GITHUB_SHA" \
-              --format json > "verified-images/${service}.image-attestation.json"
+              --predicate-type https://slsa.dev/provenance/v1 \
+              --format json > "verified-images/${service}.image-provenance-attestation.json"
+            gh attestation verify "oci://${image}" \
+              --repo "$GITHUB_REPOSITORY" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/runtime-image-provenance.yml" \
+              --source-digest "$GITHUB_SHA" \
+              --predicate-type https://cyclonedx.org/bom \
+              --format json > "verified-images/${service}.image-sbom-attestation.json"
           done < verified-images/image-refs.txt
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -90,6 +103,9 @@ jobs:
       packages: read
     env:
       TESTED_SHA: ${{ github.sha }}
+      ENVIRONMENT_ID: ${{ inputs.environment_id }}
+      ALLOW_PARTIAL: ${{ inputs.allow_partial }}
+      KEEP_STACK: ${{ inputs.keep_stack }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
       NATS_USER: ${{ secrets.NATS_USER }}
@@ -104,6 +120,8 @@ jobs:
       SAHOOL_BUILD_ID: gha-path3-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: path3-verified-images-${{ github.sha }}
@@ -117,7 +135,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "${{ inputs.environment_id }}" = "staging-pg16"
+          test "$ENVIRONMENT_ID" = "staging-pg16"
           python scripts/ci/prepare_attested_runtime_images.py \
             --manifest verified-images/runtime-image-manifest.json \
             --tested-sha "$GITHUB_SHA" \
@@ -132,9 +150,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          args=(--compose-file docker-compose.v9.yml --compose-file verified-images/docker-compose.attested-images.yml --image-manifest verified-images/runtime-image-manifest.json --environment-id "${{ inputs.environment_id }}")
-          [[ "${{ inputs.allow_partial }}" == "true" ]] && args+=(--allow-partial)
-          [[ "${{ inputs.keep_stack }}" == "true" ]] && args+=(--keep-stack)
+          args=(--compose-file docker-compose.v9.yml --compose-file verified-images/docker-compose.attested-images.yml --image-manifest verified-images/runtime-image-manifest.json --environment-id "$ENVIRONMENT_ID")
+          [[ "$ALLOW_PARTIAL" == "true" ]] && args+=(--allow-partial)
+          [[ "$KEEP_STACK" == "true" ]] && args+=(--keep-stack)
           python scripts/ci/path3_runtime_activation.py "${args[@]}"
           mkdir -p runtime-verification/transport
           find runtime-verification/functional_evidence -maxdepth 1 -type f -name '*.json' -print0 | sort -z | xargs -0 sha256sum > runtime-verification/transport/FUNCTIONAL_EVIDENCE_CHECKSUMS.sha256
@@ -142,7 +160,7 @@ jobs:
           cp runtime-verification/generated/functional_deployment_manifest.json runtime-verification/transport/
           cp runtime-verification/transport/FUNCTIONAL_EVIDENCE_CHECKSUMS.sha256 runtime-verification/functional_evidence/
           tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner \
-            -czf runtime-verification/transport/functional-evidence-${GITHUB_SHA}.tar.gz \
+            -czf "runtime-verification/transport/functional-evidence-${GITHUB_SHA}.tar.gz" \
             runtime-verification/functional_evidence \
             runtime-verification/generated/functional_deployment_manifest.json \
             runtime-verification/transport/runtime-image-manifest.json

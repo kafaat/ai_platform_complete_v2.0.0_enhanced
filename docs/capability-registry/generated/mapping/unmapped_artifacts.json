@@ -6968,10 +6968,6 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/test_capability_gate_reads_live_body.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests_v9/test_capability_impact_parity.py",
     "kind": "tests"
   },
@@ -7400,6 +7396,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_gate01_independent_authority_runbook.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_gateway_operational_endpoints_contract.py",
     "kind": "tests"
   },
@@ -7429,6 +7429,10 @@
   },
   {
     "path": "tests_v9/test_gis_web_mercator_crs.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_github_actions_security_guard.py",
     "kind": "tests"
   },
   {
@@ -7980,6 +7984,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_rag_weighted_rrf_fusion.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_raster_asset_date_binding.py",
     "kind": "tests"
   },
@@ -8101,6 +8109,10 @@
   },
   {
     "path": "tests_v9/test_runtime_container_deep_contract_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_runtime_image_supply_chain_guard.py",
     "kind": "tests"
   },
   {
