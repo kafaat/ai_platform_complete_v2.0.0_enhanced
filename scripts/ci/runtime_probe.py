@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
 import time
 import urllib.error
@@ -18,22 +19,49 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[2]
 PLAN = ROOT / "runtime-verification" / "generated" / "runtime_probe_plan.json"
 EVIDENCE_DIR = ROOT / "runtime-verification" / "evidence"
+SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+ENVIRONMENT_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 
 
 def now() -> str:
     return datetime.now(UTC).isoformat()
 
 
-def git_sha() -> str:
-    explicit = os.getenv("TESTED_SHA")
-    if explicit:
-        return explicit
+def checkout_sha() -> str:
     try:
-        return subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True, stderr=subprocess.DEVNULL
-        ).strip()
-    except Exception:
-        return ""
+        proc = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=ROOT,
+            text=True,
+            encoding="utf-8",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            check=False,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise RuntimeError("unable to resolve checkout SHA") from exc
+    value = (proc.stdout or "").strip().lower()
+    if proc.returncode or not SHA_RE.fullmatch(value):
+        raise RuntimeError("checkout HEAD is not a full lowercase Git SHA")
+    return value
+
+
+def git_sha() -> str:
+    actual = checkout_sha()
+    explicit = os.getenv("TESTED_SHA", "").strip()
+    if explicit and not SHA_RE.fullmatch(explicit):
+        raise ValueError("TESTED_SHA must be 40 lowercase hex")
+    if explicit and explicit != actual:
+        raise ValueError("TESTED_SHA does not match the real checkout HEAD")
+    return actual
+
+
+def evidence_digest(evidence: dict[str, Any]) -> str:
+    unsigned = dict(evidence)
+    unsigned.pop("evidence_sha256", None)
+    payload = json.dumps(unsigned, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(payload.encode()).hexdigest()
 
 
 def request(url: str, timeout: float) -> dict[str, Any]:
@@ -71,6 +99,8 @@ def main() -> int:
     parser.add_argument("--environment-id", required=True)
     parser.add_argument("--timeout", type=float, default=10.0)
     args = parser.parse_args()
+    if not ENVIRONMENT_ID_RE.fullmatch(args.environment_id):
+        raise SystemExit("invalid environment identifier")
 
     plan = json.loads(PLAN.read_text(encoding="utf-8"))
     item = next((s for s in plan["services"] if s["service"] == args.service), None)
@@ -80,8 +110,6 @@ def main() -> int:
     if not base_url:
         raise SystemExit(f"missing --base-url or {item['base_url_env']}")
     sha = git_sha()
-    if not sha:
-        raise SystemExit("unable to determine tested SHA; set TESTED_SHA")
 
     started_at = now()
     results = []
@@ -99,6 +127,7 @@ def main() -> int:
         "plan_sha256": plan["plan_sha256"],
         "probe_results": results,
     }
+    evidence["evidence_sha256"] = evidence_digest(evidence)
     EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
     output = EVIDENCE_DIR / f"{args.service}.json"
     output.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -109,3 +138,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
