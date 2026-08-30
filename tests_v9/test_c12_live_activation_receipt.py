@@ -19,6 +19,13 @@ c12 = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = c12
 spec.loader.exec_module(c12)
 
+cert_spec = importlib.util.spec_from_file_location(
+    "c12_governed_learning_promotion_certification", CERTIFICATION
+)
+assert cert_spec and cert_spec.loader
+certification = importlib.util.module_from_spec(cert_spec)
+cert_spec.loader.exec_module(certification)
+
 SHA = "a" * 40
 NOW = datetime(2026, 8, 30, 10, 0, tzinfo=UTC)
 
@@ -159,3 +166,24 @@ def test_collector_requires_real_subject_and_authoritative_sor():
     assert 'DECISION_SERVICE_SOR_ENABLED' in source
     assert '["git", "rev-parse", "HEAD"]' in source
     assert 'local_subject != args.subject_sha' in source
+
+
+def test_verified_receipt_only_reaches_independent_adjudication(
+    monkeypatch, capsys, tmp_path
+):
+    monkeypatch.setattr(certification, "run", lambda *_args: (0, "{}"))
+    receipt_path = tmp_path / "receipt.json"
+    receipt_path.write_text("{}", encoding="utf-8")
+
+    assert (
+        certification.main(
+            ["--receipt", str(receipt_path), "--subject-sha", SHA]
+        )
+        == 0
+    )
+    result = json.loads(capsys.readouterr().out)
+    assert result["status"] == "LIVE_EVIDENCE_VERIFIED"
+    assert result["promotion_permitted"] is False
+    assert result["automatic_promotion"] is False
+    assert result["authority_changed"] is False
+    assert result["ready_for_authority_adjudication"] is True
