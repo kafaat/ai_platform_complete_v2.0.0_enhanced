@@ -6,7 +6,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-from datetime import UTC, datetime
+import re
+import subprocess
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +19,10 @@ OUT_DIR = ROOT / "runtime-verification/generated"
 LEDGER = OUT_DIR / "runtime_evidence_ledger.json"
 REPORT = OUT_DIR / "RUNTIME_EVIDENCE_LEDGER.md"
 SCHEMA_VERSION = "1.0"
+SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+ENVIRONMENT_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
+MAX_EVIDENCE_AGE = timedelta(hours=24)
+MAX_FUTURE_SKEW = timedelta(minutes=5)
 
 
 def canonical(value: Any) -> str:
@@ -25,6 +31,31 @@ def canonical(value: Any) -> str:
 
 def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def evidence_digest(evidence: dict[str, Any]) -> str:
+    unsigned = dict(evidence)
+    unsigned.pop("evidence_sha256", None)
+    payload = json.dumps(unsigned, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return sha256_bytes(payload.encode())
+
+
+def checkout_sha() -> str | None:
+    try:
+        proc = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=ROOT,
+            text=True,
+            encoding="utf-8",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            check=False,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    value = (proc.stdout or "").strip().lower()
+    return value if proc.returncode == 0 and SHA_RE.fullmatch(value) else None
 
 
 def parse_time(value: object) -> datetime | None:
@@ -39,7 +70,14 @@ def parse_time(value: object) -> datetime | None:
     return parsed.astimezone(UTC)
 
 
-def validate_evidence(path: Path, item: dict[str, Any], plan_hash: str) -> dict[str, Any]:
+def validate_evidence(
+    path: Path,
+    item: dict[str, Any],
+    plan_hash: str,
+    *,
+    expected_subject_sha: str | None,
+    now: datetime | None = None,
+) -> dict[str, Any]:
     errors: list[str] = []
     try:
         raw = path.read_bytes()
@@ -56,6 +94,7 @@ def validate_evidence(path: Path, item: dict[str, Any], plan_hash: str) -> dict[
         "completed_at",
         "probe_results",
         "plan_sha256",
+        "evidence_sha256",
     }
     missing = sorted(required.difference(evidence))
     if missing:
@@ -67,10 +106,18 @@ def validate_evidence(path: Path, item: dict[str, Any], plan_hash: str) -> dict[
     if evidence.get("plan_sha256") != plan_hash:
         errors.append("plan_hash_mismatch")
     tested_sha = evidence.get("tested_sha")
-    if not isinstance(tested_sha, str) or len(tested_sha) < 7:
+    if not isinstance(tested_sha, str) or not SHA_RE.fullmatch(tested_sha):
         errors.append("invalid_tested_sha")
-    if not isinstance(evidence.get("environment_id"), str) or not evidence.get("environment_id"):
+    if expected_subject_sha is None:
+        errors.append("subject_sha_unavailable")
+    elif tested_sha != expected_subject_sha:
+        errors.append("tested_sha_mismatch")
+    environment_id = evidence.get("environment_id")
+    if not isinstance(environment_id, str) or not ENVIRONMENT_ID_RE.fullmatch(environment_id):
         errors.append("invalid_environment_id")
+    sealed_digest = evidence.get("evidence_sha256")
+    if not isinstance(sealed_digest, str) or sealed_digest != evidence_digest(evidence):
+        errors.append("evidence_digest_mismatch")
 
     started = parse_time(evidence.get("started_at"))
     completed = parse_time(evidence.get("completed_at"))
@@ -78,6 +125,12 @@ def validate_evidence(path: Path, item: dict[str, Any], plan_hash: str) -> dict[
         errors.append("invalid_timestamps")
     elif completed < started:
         errors.append("completed_before_started")
+    else:
+        observed_at = now or datetime.now(UTC)
+        if completed > observed_at + MAX_FUTURE_SKEW:
+            errors.append("evidence_from_future")
+        elif observed_at - completed > MAX_EVIDENCE_AGE:
+            errors.append("stale_evidence")
 
     expected = {(p["kind"], p["method"], p["path"]) for p in item["probes"]}
     results = evidence.get("probe_results")
@@ -134,10 +187,16 @@ def build() -> tuple[dict[str, Any], str]:
             continue
         files_by_service.setdefault(service, []).append(path)
 
+    expected_subject_sha = checkout_sha()
     services: list[dict[str, Any]] = []
     for name, item in sorted(service_by_name.items()):
         validations = [
-            validate_evidence(path, item, plan["plan_sha256"])
+            validate_evidence(
+                path,
+                item,
+                plan["plan_sha256"],
+                expected_subject_sha=expected_subject_sha,
+            )
             for path in files_by_service.get(name, [])
         ]
         valid = [entry for entry in validations if entry["valid"]]
@@ -243,3 +302,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
