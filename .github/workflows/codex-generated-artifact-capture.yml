@@ -1,4 +1,4 @@
-name: Codex generated artifact capture
+name: Codex deterministic closure
 
 on:
   push:
@@ -6,19 +6,60 @@ on:
       - codex/c12-live-evidence-closure
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  capture:
+  finalize:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: codex/c12-live-evidence-closure
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: "3.12"
-      - run: python scripts/ci/capability_mapping_engine.py --generate
-      - uses: actions/upload-artifact@v4
-        with:
-          name: generated-artifact-capture
-          path: docs/capability-registry/generated/mapping
-          if-no-files-found: error
+      - run: python -m pip install ruff==0.15.8
+      - name: Generate exact final tree
+        run: |
+          git rm -- .github/workflows/codex-generated-artifact-capture.yml
+          ruff format tests_v9/test_c12_live_activation_receipt.py
+          python scripts/ci/capability_mapping_engine.py --generate
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          checksums_path = Path("release/FILE_CHECKSUMS.sha256")
+          rows = []
+          total = 0
+          for line in checksums_path.read_text(encoding="utf-8").splitlines():
+              _, rel = line.split(None, 1)
+              path = Path(rel)
+              if not path.is_file():
+                  raise SystemExit(f"signed file missing: {rel}")
+              payload = path.read_bytes()
+              rows.append(f"{hashlib.sha256(payload).hexdigest()}  {rel}")
+              total += len(payload)
+          checksums_path.write_text("\n".join(rows) + "\n", encoding="utf-8")
+
+          manifest_path = Path("release/SAHOOL_RELEASE_MANIFEST_20260626.json")
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          manifest["file_count"] = len(rows)
+          manifest["total_size_bytes"] = total
+          manifest_path.write_text(
+              json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          PY
+          python scripts/ci/capability_mapping_engine.py --check
+          python scripts/ci/guard_mutation_guard.py --run
+          ruff check scripts/ci/c12_governed_learning_promotion_certification.py scripts/staging/c12_live_activation_receipt.py tests_v9/test_c12_live_activation_receipt.py
+          ruff format --check scripts/ci/c12_governed_learning_promotion_certification.py scripts/staging/c12_live_activation_receipt.py tests_v9/test_c12_live_activation_receipt.py
+      - name: Stage exact final commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: finalize deterministic C12 closure artifacts"
+          git push origin HEAD:refs/heads/codex/c12-generated-output-staging --force
