@@ -8,6 +8,7 @@ def test_batch_runner_exists_and_is_fail_closed_on_missing_urls():
     assert "missing:" in text
     assert "return 1" in text
     assert "--environment-id" in text
+    assert "--deployment-manifest" in text
 
 
 def test_runtime_overlay_mounts_repository_and_uses_profile():

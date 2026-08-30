@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import hmac
 import json
+import os
 import re
 import subprocess
 from datetime import UTC, datetime, timedelta
@@ -18,8 +20,11 @@ EVIDENCE_DIR = ROOT / "runtime-verification/evidence"
 OUT_DIR = ROOT / "runtime-verification/generated"
 LEDGER = OUT_DIR / "runtime_evidence_ledger.json"
 REPORT = OUT_DIR / "RUNTIME_EVIDENCE_LEDGER.md"
-SCHEMA_VERSION = "1.0"
+TRUST_REGISTRY = ROOT / "runtime-verification/trusted_environments.json"
+SCHEMA_VERSION = "2.0"
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
+IMAGE_DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 ENVIRONMENT_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 MAX_EVIDENCE_AGE = timedelta(hours=24)
 MAX_FUTURE_SKEW = timedelta(minutes=5)
@@ -36,8 +41,58 @@ def sha256_bytes(data: bytes) -> str:
 def evidence_digest(evidence: dict[str, Any]) -> str:
     unsigned = dict(evidence)
     unsigned.pop("evidence_sha256", None)
+    unsigned.pop("attestation", None)
     payload = json.dumps(unsigned, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return sha256_bytes(payload.encode())
+
+
+def signing_payload(evidence: dict[str, Any]) -> bytes:
+    unsigned = dict(evidence)
+    unsigned.pop("attestation", None)
+    return json.dumps(
+        unsigned, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode()
+
+
+def trust_policy(environment_id: object, attestation: object) -> tuple[dict[str, Any] | None, list[str]]:
+    errors: list[str] = []
+    if not isinstance(environment_id, str) or not ENVIRONMENT_ID_RE.fullmatch(environment_id):
+        return None, ["invalid_environment_id"]
+    try:
+        registry = json.loads(TRUST_REGISTRY.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError):
+        return None, ["trusted_environment_registry_unavailable"]
+    environment = next(
+        (
+            row
+            for row in registry.get("environments", [])
+            if isinstance(row, dict) and row.get("environment_id") == environment_id
+        ),
+        None,
+    )
+    if not environment:
+        return None, ["untrusted_environment"]
+    if not environment.get("eligible_for_runtime_verified"):
+        errors.append("environment_not_runtime_eligible")
+    if not isinstance(attestation, dict):
+        return None, errors + ["missing_attestation"]
+    issuer = attestation.get("issuer")
+    if issuer not in environment.get("trusted_issuers", []):
+        errors.append("issuer_not_trusted_for_environment")
+    issuer_policy = next(
+        (
+            row
+            for row in registry.get("issuers", [])
+            if isinstance(row, dict) and row.get("issuer") == issuer
+        ),
+        None,
+    )
+    if not issuer_policy:
+        errors.append("unknown_attestation_issuer")
+        return None, errors
+    if issuer_policy.get("algorithm") != "hmac-sha256" or attestation.get("algorithm") != "hmac-sha256":
+        errors.append("unsupported_attestation_algorithm")
+    return issuer_policy, errors
 
 
 def checkout_sha() -> str | None:
@@ -84,17 +139,22 @@ def validate_evidence(
         evidence = json.loads(raw)
     except (OSError, ValueError, TypeError) as exc:
         return {"file": path.name, "valid": False, "errors": [f"unreadable:{type(exc).__name__}"]}
+    if not isinstance(evidence, dict):
+        return {"file": path.name, "valid": False, "errors": ["evidence_not_object"]}
 
     required = {
         "schema_version",
         "service",
         "tested_sha",
         "environment_id",
+        "base_url_sha256",
         "started_at",
         "completed_at",
         "probe_results",
         "plan_sha256",
         "evidence_sha256",
+        "runtime_identity",
+        "attestation",
     }
     missing = sorted(required.difference(evidence))
     if missing:
@@ -113,11 +173,50 @@ def validate_evidence(
     elif tested_sha != expected_subject_sha:
         errors.append("tested_sha_mismatch")
     environment_id = evidence.get("environment_id")
-    if not isinstance(environment_id, str) or not ENVIRONMENT_ID_RE.fullmatch(environment_id):
-        errors.append("invalid_environment_id")
+    issuer_policy, trust_errors = trust_policy(environment_id, evidence.get("attestation"))
+    errors.extend(trust_errors)
+    base_url_sha256 = evidence.get("base_url_sha256")
+    if not isinstance(base_url_sha256, str) or not DIGEST_RE.fullmatch(base_url_sha256):
+        errors.append("invalid_base_url_sha256")
     sealed_digest = evidence.get("evidence_sha256")
-    if not isinstance(sealed_digest, str) or sealed_digest != evidence_digest(evidence):
+    if (
+        not isinstance(sealed_digest, str)
+        or not DIGEST_RE.fullmatch(sealed_digest)
+        or sealed_digest != evidence_digest(evidence)
+    ):
         errors.append("evidence_digest_mismatch")
+    attestation = evidence.get("attestation")
+    if isinstance(attestation, dict) and issuer_policy is not None:
+        signature = attestation.get("signature")
+        key_env = issuer_policy.get("verification_key_env")
+        key = os.getenv(key_env, "") if isinstance(key_env, str) else ""
+        if not key:
+            errors.append("attestation_verification_key_unavailable")
+        elif not isinstance(signature, str) or not DIGEST_RE.fullmatch(signature):
+            errors.append("invalid_attestation_signature")
+        else:
+            expected_signature = hmac.new(
+                key.encode(), signing_payload(evidence), hashlib.sha256
+            ).hexdigest()
+            if not hmac.compare_digest(signature, expected_signature):
+                errors.append("invalid_attestation_signature")
+
+    identity = evidence.get("runtime_identity")
+    if not isinstance(identity, dict):
+        errors.append("missing_runtime_identity")
+        identity = {}
+    if identity.get("service") != item["service"]:
+        errors.append("runtime_identity_service_mismatch")
+    if identity.get("git_sha") != tested_sha:
+        errors.append("runtime_identity_sha_mismatch")
+    if identity.get("metadata_source") != "immutable-image-file":
+        errors.append("runtime_identity_not_immutable")
+    if not isinstance(identity.get("build_id"), str) or not identity.get("build_id"):
+        errors.append("runtime_identity_build_id_missing")
+    if not isinstance(identity.get("image_digest"), str) or not IMAGE_DIGEST_RE.fullmatch(
+        identity.get("image_digest", "")
+    ):
+        errors.append("runtime_identity_image_digest_invalid")
 
     started = parse_time(evidence.get("started_at"))
     completed = parse_time(evidence.get("completed_at"))
@@ -138,6 +237,7 @@ def validate_evidence(
         errors.append("missing_probe_results")
         results = []
     observed: set[tuple[str, str, str]] = set()
+    observed_count = 0
     for index, result in enumerate(results):
         if not isinstance(result, dict):
             errors.append(f"probe_{index}:not_object")
@@ -145,6 +245,7 @@ def validate_evidence(
         key = (result.get("kind"), result.get("method"), result.get("path"))
         if all(isinstance(v, str) for v in key):
             observed.add(key)  # type: ignore[arg-type]
+            observed_count += 1
         if result.get("status") != "passed":
             errors.append(f"probe_{index}:not_passed")
         if not isinstance(result.get("http_status"), int) or not 200 <= result["http_status"] < 300:
@@ -152,8 +253,10 @@ def validate_evidence(
         if not isinstance(result.get("latency_ms"), (int, float)) or result["latency_ms"] < 0:
             errors.append(f"probe_{index}:invalid_latency")
         digest = result.get("response_sha256")
-        if not isinstance(digest, str) or len(digest) != 64:
+        if not isinstance(digest, str) or not DIGEST_RE.fullmatch(digest):
             errors.append(f"probe_{index}:invalid_response_sha256")
+    if observed_count != len(observed):
+        errors.append("duplicate_probe_results")
     if observed != expected:
         errors.append("probe_set_mismatch")
 
@@ -163,6 +266,8 @@ def validate_evidence(
         "service": evidence.get("service"),
         "tested_sha": evidence.get("tested_sha"),
         "environment_id": evidence.get("environment_id"),
+        "attestation_issuer": attestation.get("issuer") if isinstance(attestation, dict) else None,
+        "runtime_image_digest": identity.get("image_digest"),
         "started_at": evidence.get("started_at"),
         "completed_at": evidence.get("completed_at"),
         "probe_count": len(results),

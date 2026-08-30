@@ -1,8 +1,8 @@
 {
   "fail_closed": true,
-  "ledger_sha256": "b9c727e9bd90d43c1aeae73c5da9c23173b3067576b0ea52acdb7d148ebfcf27",
+  "ledger_sha256": "49648ef5ffc0c28b088b16d7c621c1ec4eecf2f5cc8b72e462cbc299493db7b4",
   "plan_sha256": "ad299409b040321e74ebc13b4da2fcb8078cb6c8df715522078c9d5633c98ff6",
-  "schema_version": "1.0",
+  "schema_version": "2.0",
   "services": [
     {
       "evidence_files": [],

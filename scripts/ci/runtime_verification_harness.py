@@ -3,14 +3,16 @@
 
 The generated plan is derived from runtime contracts. Evidence is never marked
 verified by repository discovery alone. Live evidence must be produced by
-runtime_probe.py and pass schema/integrity checks.
+runtime_probe.py and pass the shared trust, identity, and attestation validator.
 """
 
 from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +23,7 @@ PLAN = OUT_DIR / "runtime_probe_plan.json"
 SUMMARY = OUT_DIR / "runtime_verification_summary.json"
 REPORT = OUT_DIR / "RUNTIME_VERIFICATION_HARNESS.md"
 EVIDENCE_DIR = ROOT / "runtime-verification" / "evidence"
+EVIDENCE_VALIDATOR = ROOT / "scripts" / "ci" / "runtime_evidence_ingestion.py"
 SCHEMA_VERSION = "1.0"
 
 
@@ -30,6 +33,41 @@ def canonical(obj: Any) -> str:
 
 def digest(obj: Any) -> str:
     return hashlib.sha256(canonical(obj).encode()).hexdigest()
+
+
+def evidence_validation(plan: dict[str, Any]) -> tuple[int, list[str]]:
+    spec = importlib.util.spec_from_file_location(
+        "runtime_evidence_ingestion_for_harness", EVIDENCE_VALIDATOR
+    )
+    if spec is None or spec.loader is None:
+        return 0, ["runtime_evidence_ingestion.py"]
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    by_service = {item["service"]: item for item in plan["services"]}
+    subject = module.checkout_sha()
+    valid = 0
+    invalid: list[str] = []
+    for path in sorted(EVIDENCE_DIR.glob("*.json")) if EVIDENCE_DIR.exists() else []:
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+            item = by_service.get(raw.get("service")) if isinstance(raw, dict) else None
+        except (OSError, ValueError, TypeError):
+            item = None
+        if item is None:
+            invalid.append(path.name)
+            continue
+        result = module.validate_evidence(
+            path,
+            item,
+            plan["plan_sha256"],
+            expected_subject_sha=subject,
+        )
+        if result["valid"]:
+            valid += 1
+        else:
+            invalid.append(path.name)
+    return valid, invalid
 
 
 def build() -> tuple[dict[str, Any], dict[str, Any], str]:
@@ -71,36 +109,7 @@ def build() -> tuple[dict[str, Any], dict[str, Any], str]:
     plan["plan_sha256"] = digest(plan_core)
 
     evidence_files = sorted(EVIDENCE_DIR.glob("*.json")) if EVIDENCE_DIR.exists() else []
-    valid_evidence = 0
-    invalid: list[str] = []
-    for path in evidence_files:
-        try:
-            evidence = json.loads(path.read_text(encoding="utf-8"))
-            required = {
-                "schema_version",
-                "service",
-                "tested_sha",
-                "environment_id",
-                "started_at",
-                "completed_at",
-                "probe_results",
-                "plan_sha256",
-            }
-            ok = required.issubset(evidence) and evidence["plan_sha256"] == plan["plan_sha256"]
-            ok = ok and bool(evidence["tested_sha"]) and bool(evidence["environment_id"])
-            ok = ok and bool(evidence["probe_results"])
-            ok = ok and all(
-                r.get("status") == "passed"
-                and isinstance(r.get("latency_ms"), (int, float))
-                and r.get("response_sha256")
-                for r in evidence["probe_results"]
-            )
-            if ok:
-                valid_evidence += 1
-            else:
-                invalid.append(path.name)
-        except (OSError, ValueError, TypeError):
-            invalid.append(path.name)
+    valid_evidence, invalid = evidence_validation(plan)
 
     services_with_probes = sum(1 for s in probes if s["probes"])
     summary = {
@@ -132,7 +141,7 @@ def build() -> tuple[dict[str, Any], dict[str, Any], str]:
         "",
         "## Evidence contract",
         "",
-        "Each evidence file must bind the tested Git SHA, environment identifier, exact plan hash, timestamps, status, latency, and response SHA-256. Any stale or incomplete evidence is rejected.",
+        "Each evidence file must bind the tested Git SHA, immutable live runtime identity, deployment image digest, trusted environment, exact plan hash, timestamps, probe results, and a trusted attestation signature. The harness delegates validation to runtime_evidence_ingestion.py so no weaker parallel acceptance path exists.",
         "",
         "## Service probe coverage",
         "",

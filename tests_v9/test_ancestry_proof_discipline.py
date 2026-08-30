@@ -15,6 +15,7 @@ FOUND») لأنّ مرساتيهما ``7fecea3d`` و``3635dfb8`` التزاما 
 
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
 
@@ -84,13 +85,94 @@ def test_every_is_ancestor_site_in_executable_code_is_audited():
 
 def test_live_acceptance_agent_is_exactly_subject_bound_and_non_authoritative():
     text = LIVE_RUNBOOK.read_text(encoding="utf-8")
-    assert "doctor|preflight|rag|s5|c11|c12|verify|all|agent" in text
+    assert "doctor|preflight|rag|s5|c11|c12|verify|check-seal|abort|recover|all|agent" in text
     assert "agent mode requires EXPECTED_SUBJECT_SHA=<40-hex>" in text
     assert "agent mode requires EXPECTED_SUBJECT_TREE=<40-hex>" in text
     assert "AGENT_CONFIRM_EVIDENCE_ONLY=1" in text
     assert 'EXECUTION_ACTOR_KIND="ai-agent"' in text
     assert "'authority_promotion':False" in text
     assert "'physical_shrink_authorized':False" in text
+    assert "'runtime_verified':False" in text
+    assert "'production_certified':False" in text
+    assert "flock -n 9" in text
+    assert "timeout --kill-after=30s" in text
+    assert "round_doc['round_state']='SEALED'" in text
+
+
+def test_refused_agent_mode_creates_no_evidence_namespace(tmp_path):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-q")
+    _git(repo, "checkout", "-q", "-B", "main")
+    (repo / "tracked.txt").write_text("subject\n", encoding="utf-8")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "subject")
+    sha = _git(repo, "rev-parse", "HEAD").stdout.strip()
+    evidence = tmp_path / "must-not-exist"
+    result = subprocess.run(
+        ["bash", str(LIVE_RUNBOOK), "agent"],
+        cwd=repo,
+        env={
+            "PATH": "/usr/bin:/bin",
+            "HOME": str(repo),
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "PYTHON": "python3",
+            "EXPECTED_BASELINE_SHA": sha,
+            "LIVE_ACCEPTANCE_ARTIFACT_DIR": str(evidence),
+        },
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=30,
+    )
+    assert result.returncode == 2
+    assert "agent mode requires EXPECTED_SUBJECT_SHA" in result.stderr
+    assert not evidence.exists()
+
+
+def test_abort_transition_updates_pointer_and_round_atomically(tmp_path):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-q")
+    _git(repo, "checkout", "-q", "-B", "main")
+    (repo / "tracked.txt").write_text("subject\n", encoding="utf-8")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "subject")
+    sha = _git(repo, "rev-parse", "HEAD").stdout.strip()
+    tree = _git(repo, "rev-parse", "HEAD^{tree}").stdout.strip()
+    evidence = tmp_path / "evidence"
+    round_dir = evidence / "rounds" / "round-001"
+    round_dir.mkdir(parents=True)
+    body = {
+        "schema": "sahool.live-acceptance-round/v1",
+        "round_id": "round-001",
+        "round_state": "OPEN",
+        "subject_sha": sha,
+        "subject_tree": tree,
+        "baseline_sha": sha,
+        "opened_at_epoch": 1,
+    }
+    (round_dir / "ROUND.json").write_text(json.dumps(body), encoding="utf-8")
+    (evidence / "ROUND.json").write_text(json.dumps(body), encoding="utf-8")
+    result = subprocess.run(
+        ["bash", str(LIVE_RUNBOOK), "abort"],
+        cwd=repo,
+        env={
+            "PATH": "/usr/bin:/bin",
+            "HOME": str(repo),
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "PYTHON": "python3",
+            "EXPECTED_BASELINE_SHA": sha,
+            "LIVE_ACCEPTANCE_ARTIFACT_DIR": str(evidence),
+        },
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=30,
+    )
+    assert result.returncode == 0, result.stderr
+    assert json.loads((round_dir / "ROUND.json").read_text(encoding="utf-8"))["round_state"] == "ABORTED"
+    assert json.loads((evidence / "ROUND.json").read_text(encoding="utf-8"))["round_state"] == "ABORTED"
 
 
 def test_live_acceptance_summary_is_written_before_the_checksum_manifest():

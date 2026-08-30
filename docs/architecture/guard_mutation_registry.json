@@ -702,6 +702,36 @@
       ],
       "test": "tests/architecture/test_verify_all_generated.py"
     },
+    "scripts/ci/runtime_evidence_ingestion.py": {
+      "$why_ar": "PR-966: لا ترفع أدلة الفحص الصحي runtime_verified إلا من بيئة مؤهلة، بهوية صورة حيّة وتوقيع لا يستطيع مُعدِّل الملف إعادة حسابه.",
+      "mutations": [
+        {
+          "expect": "test_untrusted_environment_cannot_set_runtime_verified",
+          "find": "    if not environment:\n        return None, [\"untrusted_environment\"]",
+          "replace": "    if not environment:\n        environment = {\"eligible_for_runtime_verified\": True, \"trusted_issuers\": [\"sahool-staging-hmac\"]}  # mutated: arbitrary environment trusted",
+          "why": "قبول اسم بيئة حسن الشكل بلا سجل الثقة يعيد الإثبات العدائي الذي رفع arbitrary-untrusted إلى runtime_verified."
+        },
+        {
+          "expect": "test_recomputed_self_hash_without_signing_key_is_rejected",
+          "find": "            if not hmac.compare_digest(signature, expected_signature):",
+          "replace": "            if False:  # mutated: self-hash is treated as an attestation",
+          "why": "البصمة الذاتية قابلة لإعادة الحساب بعد التزوير؛ HMAC المستقل هو حد الثقة الفعلي."
+        },
+        {
+          "expect": "test_runtime_identity_must_match_subject",
+          "find": "    if identity.get(\"git_sha\") != tested_sha:",
+          "replace": "    if False:  # mutated: deployed runtime may be an older commit",
+          "why": "ربط checkout وحده لا يثبت أن الحاوية المقاسة بُنيت من الـsubject نفسه."
+        },
+        {
+          "expect": "test_duplicate_probe_records_are_rejected",
+          "find": "    if observed_count != len(observed):",
+          "replace": "    if False:  # mutated: one result may be replayed to fill the plan",
+          "why": "تحويل النتائج إلى set بلا فحص العدد يسمح لسجل مكرر أن يبدو مجموعة probes كاملة."
+        }
+      ],
+      "test": "tests_v9/test_runtime_evidence_subject_binding.py"
+    },
     "scripts/ci/runtime_certification_gate.py": {
       "$gap_ar": "CAPABILITY-RUNTIME-PROMOTION-INVISIBLE-TO-EVIDENCE-01 — normalized runtime authority",
       "mutations": [
