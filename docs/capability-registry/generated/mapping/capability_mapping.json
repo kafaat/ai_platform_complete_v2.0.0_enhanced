@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5223,
+    "files_scanned": 5225,
     "files_by_kind": {
       "backend": 1204,
       "database": 275,
       "governance": 60,
       "mobile": 51,
-      "other": 1429,
-      "tests": 1747,
+      "other": 1430,
+      "tests": 1748,
       "web": 457
     },
-    "unmapped_artifacts": 2131,
+    "unmapped_artifacts": 2132,
     "ambiguous_artifacts": 417
   },
   "capabilities": [
@@ -42531,6 +42531,10 @@
     },
     {
       "path": "tests_v9/test_horizon_survives_the_hop_to_the_service.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_image_supply_chain_contract.py",
       "kind": "tests"
     },
     {

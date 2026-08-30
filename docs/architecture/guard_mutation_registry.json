@@ -1437,9 +1437,62 @@
           "find": "permissions:\n  contents: read\n\nconcurrency:",
           "replace": "permissions:\n  contents: read\n  packages: write\n  id-token: write\n  attestations: write  # mutated: الامتيازُ يعود إلى مستوى الملفّ\n\nconcurrency:",
           "why": "الصلاحيةُ على مستوى الملفّ تُورَث إلى كلّ وظيفة: `publish-manifest` يجمّع شظايا JSON ولا يدفع صورةً ولا يُصدِر شهادة، وكان يحمل `packages`/`id-token`/`attestations` بالكتابة بلا مستهلك. وصلاحيةٌ لا مستهلك لها ليست احتياطاً بل سطحُ هجومٍ بلا مقابل — والوراثةُ هي الطريقُ الصامت الذي حملها إليه."
+        },
+        {
+          "expect": "test_the_build_emits_full_provenance_and_an_sbom",
+          "find": "          provenance: mode=max\n          sbom: true\n",
+          "replace": "          provenance: false\n          sbom: false  # mutated: البناءُ يعود بلا منشأٍ ولا جرد\n",
+          "why": "`provenance: false` كان **ينقض اسمَ الـworkflow نفسِه**: الملفُّ اسمُه «Runtime Image Provenance» ويوقّع بصمةً بـ`actions/attest`، لكنّ BuildKit لا يُنتِج مُسنَدَ منشأٍ أصلاً — فالشهادةُ تربط البايتات بالتشغيل ولا تقول **كيف** بُنِيت. و`sbom` مُعطَّلٌ يجعل الفحصَ الحاجب بلا جردٍ يقول **ما الذي فُحِص**.",
+          "test": "tests_v9/test_image_supply_chain_contract.py"
+        },
+        {
+          "expect": "test_the_scan_blocks_on_high_and_critical_and_reads_the_digest",
+          "find": "--severity HIGH,CRITICAL --exit-code 1 --format json",
+          "replace": "--severity HIGH,CRITICAL --exit-code 0 --format json  # mutated: يُنتِج تقريراً ويمضي",
+          "why": "فحصٌ بلا `--exit-code 1` يكتب تقريراً وينجح، فيُقرأ التقريرُ الأحمرُ خضرةً. والبوّابةُ الحاجبةُ هي الفرقُ بين «فُحِصت» و«فُحِصت ومرّت».",
+          "test": "tests_v9/test_image_supply_chain_contract.py"
+        },
+        {
+          "expect": "test_trivy_is_installed_from_a_digest_pinned_release",
+          "find": "          echo \"${TRIVY_SHA256}  ${asset}\" | sha256sum -c -\n",
+          "replace": "          # mutated: تُشغَّل الأداةُ بلا مطابقةِ بصمة\n",
+          "why": "تنزيلٌ بلا مطابقةِ بصمةٍ يجعل الفاحصَ نفسَه بابَ دخول. و`--version` ليس مرجعَ ثقة — أداةٌ رسميّةٌ واحدةٌ على الأقلّ تطبع حالةَ بناءٍ فيها `dirty`.",
+          "test": "tests_v9/test_image_supply_chain_contract.py"
+        },
+        {
+          "expect": "test_issuing_an_attestation_is_not_verifying_it",
+          "find": "            --predicate-type https://cyclonedx.org/bom \\\n            --format json > \"image-evidence/${SERVICE}.sbom-verification.json\"",
+          "replace": "            --format json > \"image-evidence/${SERVICE}.sbom-verification.json\"  # mutated: نوعُ الجرد لا يُطلَب",
+          "why": "تحقّقٌ بلا تسميةِ النوع يقبل أيَّ مُسنَدٍ موجود، فصورةٌ تحمل منشأً بلا جردٍ تمرّ وتبدو موثَّقة. و`ATTESTED-IS-NOT-CERTIFIED-01` في هذا المستودع نصُّه أنّ حزمةً صحيحةً تشفيريّاً بالكامل خرجت من تشغيلٍ فاشل.",
+          "test": "tests_v9/test_image_supply_chain_contract.py"
+        },
+        {
+          "expect": "test_the_four_evidence_digests_are_bound_into_the_manifest",
+          "find": "              \"scan_sha256\": \"${scan_digest}\",\n",
+          "replace": "\n",
+          "why": "مصنوعةٌ مرفوعةٌ بجانب البيان تُستبدَل أو تُسقَط بلا أن يتغيّر البيان؛ وبصمةٌ **داخله** تجعل كلَّ استبدالٍ يُحمِّر عند المستهلك. ونزعُها يُعيد البيانَ الأعمى الذي يَعِد بما لا يحمل.",
+          "test": "tests_v9/test_image_supply_chain_contract.py"
         }
       ],
       "test": "tests_v9/test_privileged_workflow_injection_guard.py"
+    },
+    ".github/workflows/path3-runtime-verification.yml": {
+      "$why_a_workflow_belongs_here_ar": "مسارُ التحقّق الحيّ — وهو **مستهلِكُ** بيان الصور ومُنتِجُ شهادة المرشَّح. والطفرةُ في الـYAML نفسِه.",
+      "test": "tests_v9/test_image_supply_chain_contract.py",
+      "mutations": [
+        {
+          "expect": "test_path3_rejects_a_manifest_that_lacks_its_evidence_digests",
+          "find": "          python scripts/ci/path3_image_evidence_guard.py \\\n            --manifest verified-images/runtime-image-manifest.json \\\n            --tested-sha \"$GITHUB_SHA\"\n",
+          "replace": "          true  # mutated: يُستهلَك البيانُ بلا فحصِ بصماته\n",
+          "why": "بيانٌ تنقصه بصمةُ فحصٍ أو جردٍ أو تحقّقٍ يعني أنّ خطوةً **لم تُشغَّل** — لا أنّها مرّت. وقراءةُ الناقص خُلوّاً هي تحويلُ غيابِ البيانات إلى نجاح، والرفضُ هنا مبكّرٌ ورخيص."
+        },
+        {
+          "expect": "test_path3_verifies_both_predicate_types_independently",
+          "find": "              --predicate-type https://cyclonedx.org/bom \\\n",
+          "replace": "",
+          "why": "**مُنتِجٌ يشهد لنفسه ليس شاهداً:** مسارُ البناء تحقّق من النوعين، وPATH-3 يعيد التحقّقَ من غير سياقه. ونزعُ نوعِ الجرد يُبقي تحقّقاً واحداً لنوعين."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
@@ -3764,6 +3817,23 @@
           "find": "    if not report[\"names\"]:\n",
           "replace": "    if False:  # mutated: صفرُ اكتشافٍ يمرّ أخضر\n",
           "why": "انكسارُ المُستخرِج (تبدّلُ صياغةِ `current_setting` أو نقلُ الهجرات) يجعل النطاق صفراً، فيمرّ الحارسُ أخضرَ عن سؤالٍ لم يطرحه — وهو `GUARDS-WITHOUT-A-PLANTED-DEFECT-01` بعينه: «لم يجد» تُقرَأ «لا يوجد»."
+        }
+      ]
+    },
+    "path3_image_evidence_guard.py": {
+      "test": "tests_v9/test_image_supply_chain_contract.py",
+      "mutations": [
+        {
+          "expect": "test_the_evidence_guard_is_falsifiable_without_a_workflow",
+          "find": "    return isinstance(value, str) and len(value) == 64 and all(c in HEX for c in value)",
+          "replace": "    return isinstance(value, str) and len(value) == 64  # mutated: الطولُ وحدَه",
+          "why": "**طولٌ ليس شكلاً.** أربعةٌ وستّون محرفاً أيّاً كانت تمرّ، فيقبل الحارسُ بصمةً مُختلَقة ويُعلِن البيانَ سليماً. وهذا وقع حرفيّاً في مسار الترقية قبل إصلاحه: `test \"${#TARGET_SHA}\" = 40` كان يقبل أربعين محرفاً غيرَ ستّ عشريّة — **فحصٌ يبدو تحقّقاً ولا يقيّد المجموعة أسوأُ من غيابه، لأنّه يُطمئن القارئ فيكفّ عن النظر**."
+        },
+        {
+          "expect": "test_the_evidence_guard_is_falsifiable_without_a_workflow",
+          "find": "        if not isinstance(evidence, dict):\n            problems.append(f\"{service}: لا كتلةَ `evidence` — لم يُشغَّل الفحصُ ولا الجردُ ولا التحقّق\")\n            continue",
+          "replace": "        if not isinstance(evidence, dict):\n            continue  # mutated: صفٌّ بلا أدلّةٍ يُتخطّى صامتاً",
+          "why": "تخطّي الصفِّ بلا كتلةِ أدلّةٍ يجعل «لا مخالف» يعني «لم يُنظَر»: بيانٌ خالٍ من الأدلّة كلّيّاً يمرّ أخضرَ، وهو **أسوأُ من التجاوز لأنّ التجاوزَ يُرى**."
         }
       ]
     }

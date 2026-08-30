@@ -93,6 +93,15 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      # **`provenance: false` كان ينقض اسمَ هذا الـworkflow.** الملفُّ اسمُه
+      # «Runtime Image Provenance» ويُوقّع بصمةً بـ`actions/attest`، لكنّ BuildKit
+      # لم يكن يُنتِج مُسنَدَ منشأٍ أصلاً — فالشهادةُ تربط البايتات بالتشغيل **ولا
+      # تقول كيف بُنِيت**. و`mode=max` يُدرِج المصدرَ وخطواتِ البناء والمواد.
+      #
+      # **و`sbom: true` ليس زينةً:** الفحصُ أدناه يحجب على HIGH/CRITICAL، وبلا
+      # جردِ مكوّناتٍ لا يُعرَف **ما الذي فُحِص**. والاثنان يُدفَعان مع الصورة،
+      # ولذلك `push: true` ولا `load: true`: مُصدِّرُ docker المحلّيّ **يُسقِط
+      # المُسنَدات**، فتُبنى صورةٌ تبدو موثَّقةً ولا تحمل توثيقاً في السجلّ.
       - name: Build and push immutable image
         id: build
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v6
@@ -100,19 +109,106 @@ jobs:
           context: .
           file: ${{ matrix.dockerfile }}
           push: true
-          provenance: false
+          provenance: mode=max
+          sbom: true
           tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ inputs.source_sha }}
           build-args: |
             SAHOOL_GIT_SHA=${{ inputs.source_sha }}
             SAHOOL_BUILD_ID=gha-image-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.service }}
             SAHOOL_SOURCE_REPOSITORY=${{ github.repository }}
             SAHOOL_SOURCE_REF=${{ github.ref }}
-      - name: Attest OCI image digest
-        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+      # ── الفحصُ يسبق الشهادة، والأداةُ مثبَّتةٌ بالبصمة ──────────────────────
+      # **`--version` ليس مرجعَ ثقة** — أداةٌ رسميّةٌ واحدة على الأقلّ تطبع حالةَ
+      # بناءٍ فيها `dirty`. المرجعُ رابطُ الإصدار المُثبَّت وبصمتُه، ويُطابَقان
+      # **قبل** فكِّ الأرشيف لا بعده.
+      - name: Install pinned Trivy
+        shell: bash
+        env:
+          TRIVY_VERSION: "0.74.0"
+          TRIVY_SHA256: 2ae6fe3ee734b7fdf11335663e18c75ea12dccc76062f09f164a3b0f8be4371a
+        run: |
+          set -euo pipefail
+          asset="trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
+          curl -fsSL --retry 3 --max-time 300 -o "$asset" \
+            "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/${asset}"
+          echo "${TRIVY_SHA256}  ${asset}" | sha256sum -c -
+          mkdir -p "${RUNNER_TEMP}/trivy" && tar xzf "$asset" -C "${RUNNER_TEMP}/trivy" trivy
+          echo "${RUNNER_TEMP}/trivy" >> "$GITHUB_PATH"
+
+      # **قاعدةٌ غائبةٌ ليست صفرَ ثغرات.** بلا `--exit-code 1` على خطأِ التحديث
+      # يُخرِج Trivy تقريراً فارغاً وينجح، فيُقرأ الفراغُ سلامةً — وهو تحويلُ
+      # غيابِ البيانات إلى نجاح. فتُحمَّل القاعدةُ في خطوةٍ **تفشل** إن تعذّرت.
+      - name: Warm Trivy database (fail closed)
+        shell: bash
+        run: |
+          set -euo pipefail
+          trivy image --download-db-only --timeout 10m
+
+      # **يُفحَص بالبصمة لا بالوسم:** الوسمُ قد يُعاد توجيهه بين الفحص والترقية،
+      # والبصمةُ لا. والفشلُ على HIGH/CRITICAL حاجبٌ بالقصد.
+      - name: Scan image by digest (blocking on HIGH/CRITICAL)
+        shell: bash
+        env:
+          IMAGE_REF: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}@${{ steps.build.outputs.digest }}
+          SERVICE: ${{ matrix.service }}
+        run: |
+          set -euo pipefail
+          mkdir -p image-evidence
+          trivy image --quiet --scanners vuln --ignore-unfixed=false \
+            --severity HIGH,CRITICAL --exit-code 1 --format json \
+            --output "image-evidence/${SERVICE}.trivy.json" "$IMAGE_REF"
+
+      # **جردُ مكوّناتٍ مستقلٌّ عن جردِ BuildKit** — قارئان لحقيقةٍ واحدة يكشفان
+      # انحرافَ أحدهما. وصيغةُ CycloneDX هي ما يتحقّق منه PATH-3 لاحقاً بالنوع.
+      - name: Generate CycloneDX image SBOM
+        shell: bash
+        env:
+          IMAGE_REF: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}@${{ steps.build.outputs.digest }}
+          SERVICE: ${{ matrix.service }}
+        run: |
+          set -euo pipefail
+          trivy image --quiet --format cyclonedx \
+            --output "image-evidence/${SERVICE}.sbom.cdx.json" "$IMAGE_REF"
+          test -s "image-evidence/${SERVICE}.sbom.cdx.json"
+
+      - name: Attest build provenance for the image digest
+        uses: actions/attest-build-provenance@977bb373b6ba1878c4dc1e1e2ce09ee8e3a9a6ec # v3.0.0
         with:
           subject-name: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
+
+      - name: Attest the CycloneDX SBOM for the same digest
+        uses: actions/attest-sbom@bd218ad0dbcb3e146bd073d1d9c6d78e08aa8a0b # v3.0.0
+        with:
+          subject-name: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          sbom-path: image-evidence/${{ matrix.service }}.sbom.cdx.json
+          push-to-registry: true
+
+      # **إصدارُ شهادةٍ ليس التحقّقَ منها.** `ATTESTED-IS-NOT-CERTIFIED-01` في هذا
+      # المستودع نصُّه أنّ حزمةً صحيحةً تشفيريّاً بالكامل خرجت من تشغيلٍ فاشل.
+      # فيُتحقَّق هنا من **نوعَي المُسنَد** صراحةً وبهويّة الـworkflow المتوقَّعة،
+      # ولا يُقبَل وجودُ الوسم دليلَ منشأ.
+      - name: Verify both predicate types against the digest
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMAGE_REF: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}@${{ steps.build.outputs.digest }}
+          SERVICE: ${{ matrix.service }}
+          SIGNER: ${{ github.repository }}/.github/workflows/runtime-image-provenance.yml
+        run: |
+          set -euo pipefail
+          gh attestation verify "oci://${IMAGE_REF}" --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$SIGNER" \
+            --predicate-type https://slsa.dev/provenance/v1 \
+            --format json > "image-evidence/${SERVICE}.provenance-verification.json"
+          gh attestation verify "oci://${IMAGE_REF}" --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$SIGNER" \
+            --predicate-type https://cyclonedx.org/bom \
+            --format json > "image-evidence/${SERVICE}.sbom-verification.json"
+          test -s "image-evidence/${SERVICE}.provenance-verification.json"
+          test -s "image-evidence/${SERVICE}.sbom-verification.json"
       # الموضعُ الثاني للحقن نفسِه: مستندٌ هنا (heredoc) يحمل `${{ inputs.source_sha }}`.
       # يُمرَّر عبر `env` كسابقه — والتوسيعُ هنا توسيعُ **متغيّر صَدَفة**، لا إقحامَ قالب.
       - name: Write image manifest fragment
@@ -127,6 +223,13 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p image-manifest-fragments
+          # **البصماتُ الأربعُ تُربَط بالبيان لا تُرفَق به.** مصنوعةٌ مرفوعةٌ بجانب
+          # البيان تُستبدَل أو تُسقَط بلا أن يتغيّر البيان؛ وبصمةٌ **داخله** تجعل
+          # كلَّ استبدالٍ يُحمِّر عند المستهلك. وPATH-3 يرفض الناقصَ منها.
+          scan_digest="$(sha256sum "image-evidence/${SERVICE}.trivy.json" | cut -d' ' -f1)"
+          sbom_digest="$(sha256sum "image-evidence/${SERVICE}.sbom.cdx.json" | cut -d' ' -f1)"
+          prov_digest="$(sha256sum "image-evidence/${SERVICE}.provenance-verification.json" | cut -d' ' -f1)"
+          sbomv_digest="$(sha256sum "image-evidence/${SERVICE}.sbom-verification.json" | cut -d' ' -f1)"
           cat > "image-manifest-fragments/${SERVICE}.json" <<EOF
           {
             "service": "${SERVICE}",
@@ -134,13 +237,25 @@ jobs:
             "source_sha": "${SOURCE_SHA}",
             "builder_workflow": "${BUILDER_REPO}/.github/workflows/runtime-image-provenance.yml",
             "builder_run_id": "${RUN_ID}",
-            "builder_run_attempt": "${RUN_ATTEMPT}"
+            "builder_run_attempt": "${RUN_ATTEMPT}",
+            "evidence": {
+              "scan_sha256": "${scan_digest}",
+              "sbom_sha256": "${sbom_digest}",
+              "provenance_verification_sha256": "${prov_digest}",
+              "sbom_verification_sha256": "${sbomv_digest}"
+            }
           }
           EOF
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: runtime-image-fragment-${{ matrix.service }}
           path: image-manifest-fragments/${{ matrix.service }}.json
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: runtime-image-evidence-${{ matrix.service }}
+          path: image-evidence/
           if-no-files-found: error
           retention-days: 30
 
@@ -170,6 +285,17 @@ jobs:
           expected={'weather-service','soil-service','raster-service','sahool-platform','auth-service','decision-service','guardrails-engine','supervisor-agent','raster-tiler-service','agriai-engine'}
           if set(fragments)!=expected:
               raise SystemExit(f'image manifest incomplete: {sorted(set(fragments)^expected)}')
+          # **شظيّةٌ بلا بصماتها الأربع تُرفَض هنا، لا عند المستهلك.** فالبيانُ
+          # المُجمَّع هو العقد، وقبولُ شظيّةٍ ناقصةٍ يجعله يَعِد بما لا يحمل.
+          REQUIRED_EVIDENCE={'scan_sha256','sbom_sha256','provenance_verification_sha256','sbom_verification_sha256'}
+          for service,row in sorted(fragments.items()):
+              evidence=row.get('evidence') or {}
+              missing=REQUIRED_EVIDENCE-set(evidence)
+              if missing:
+                  raise SystemExit(f'{service}: evidence digests missing: {sorted(missing)}')
+              bad=[k for k,v in evidence.items() if not (isinstance(v,str) and len(v)==64 and all(c in "0123456789abcdef" for c in v))]
+              if bad:
+                  raise SystemExit(f'{service}: evidence digests malformed: {sorted(bad)}')
           out={'schema_version':'1.0','source_sha':os.environ['SOURCE_SHA'],'repository':os.environ['GITHUB_REPOSITORY'],'source_ref':os.environ['GITHUB_REF'],'builder_workflow':f"{os.environ['GITHUB_REPOSITORY']}/.github/workflows/runtime-image-provenance.yml",'builder_run_id':os.environ['GITHUB_RUN_ID'],'images':fragments}
           Path('runtime-image-manifest.json').write_text(json.dumps(out,sort_keys=True,indent=2)+'\n')
           PY

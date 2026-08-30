@@ -7476,6 +7476,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_image_supply_chain_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_imagery_quality_metadata_v57_5.py",
     "kind": "tests"
   },

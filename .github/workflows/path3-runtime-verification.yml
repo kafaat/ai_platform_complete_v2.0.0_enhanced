@@ -52,6 +52,17 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --name "runtime-image-manifest-${GITHUB_SHA}" \
             --dir verified-images
+      # **بصماتُ الأدلّة تُفحَص قبل أيّ نداءِ شبكة.** بيانٌ ينقصه أحدُها يعني أنّ
+      # مسارَ البناء لم يُشغّل الفحصَ أو الجردَ أو التحقّق — **وقراءةُ ذلك «لا
+      # ثغرات» هي تحويلُ غيابِ البيانات إلى نجاح**. فيُرفَض هنا، مبكّراً ورخيصاً.
+      - name: Reject a manifest that lacks its four evidence digests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/ci/path3_image_evidence_guard.py \
+            --manifest verified-images/runtime-image-manifest.json \
+            --tested-sha "$GITHUB_SHA"
+
       - name: Verify every OCI image attestation
         shell: bash
         env:
@@ -67,12 +78,27 @@ jobs:
           o=json.load(open('verified-images/runtime-image-manifest.json'))
           for service,row in sorted(o['images'].items()): print(service, row['image'])
           PY
+          # **التحقّقُ مستقلٌّ ومُكرَّرٌ بالقصد.** مسارُ البناء تحقّق من النوعين،
+          # وهذا يعيد التحقّقَ **من غير سياقه** — فمُنتِجٌ يشهد لنفسه ليس شاهداً.
+          # ويُطلَب كلا النوعين صراحةً: صورةٌ تحمل منشأً بلا جردِ مكوّنات تمرّ
+          # بفحصٍ واحدٍ وتبدو موثَّقة.
           while read -r service image; do
             gh attestation verify "oci://${image}" \
               --repo "$GITHUB_REPOSITORY" \
               --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/runtime-image-provenance.yml" \
               --source-digest "$GITHUB_SHA" \
-              --format json > "verified-images/${service}.image-attestation.json"
+              --predicate-type https://slsa.dev/provenance/v1 \
+              --format json > "verified-images/${service}.provenance-attestation.json"
+            gh attestation verify "oci://${image}" \
+              --repo "$GITHUB_REPOSITORY" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/runtime-image-provenance.yml" \
+              --source-digest "$GITHUB_SHA" \
+              --predicate-type https://cyclonedx.org/bom \
+              --format json > "verified-images/${service}.sbom-attestation.json"
+            test -s "verified-images/${service}.provenance-attestation.json"
+            test -s "verified-images/${service}.sbom-attestation.json"
+            cp "verified-images/${service}.provenance-attestation.json" \
+               "verified-images/${service}.image-attestation.json"
           done < verified-images/image-refs.txt
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
