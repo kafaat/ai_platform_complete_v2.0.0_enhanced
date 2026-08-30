@@ -76,10 +76,6 @@
       "reads": 0,
       "subprocess": 1
     },
-    "scripts/ci/runtime_probe.py": {
-      "reads": 0,
-      "subprocess": 1
-    },
     "scripts/ci/runtime_replay_guard.py": {
       "reads": 0,
       "subprocess": 1

@@ -13,7 +13,7 @@
 
 ## Evidence contract
 
-Each evidence file must bind the tested Git SHA, environment identifier, exact plan hash, timestamps, status, latency, and response SHA-256. Any stale or incomplete evidence is rejected.
+Each evidence file must bind the tested Git SHA, immutable live runtime identity, deployment image digest, trusted environment, exact plan hash, timestamps, probe results, and a trusted attestation signature. The harness delegates validation to runtime_evidence_ingestion.py so no weaker parallel acceptance path exists.
 
 ## Service probe coverage
 

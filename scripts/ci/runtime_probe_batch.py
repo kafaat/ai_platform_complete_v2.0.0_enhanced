@@ -19,6 +19,7 @@ TARGETS = ROOT / "runtime-verification/generated/compose_runtime_targets.json"
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--environment-id", required=True)
+    parser.add_argument("--deployment-manifest", required=True)
     parser.add_argument("--service", action="append", dest="services")
     parser.add_argument("--evidence-dir", default="runtime-verification/evidence")
     parser.add_argument("--plan", default=str(PLAN))
@@ -54,23 +55,29 @@ def main() -> int:
         if not base_urls:
             failures.append(f"{item['service']}:missing:{item['base_url_env']}")
             continue
-        command = [
-            sys.executable,
-            str(PROBE),
-            "--service",
-            item["service"],
-            "--environment-id",
-            args.environment_id,
-            "--plan",
-            str(plan_path),
-            "--evidence-dir",
-            args.evidence_dir,
-        ]
-        for base_url in base_urls:
-            command.extend(["--base-url", base_url])
-        completed = subprocess.run(command, cwd=ROOT, check=False)
-        if completed.returncode:
-            failures.append(f"{item['service']}:probe_failed")
+        for index, base_url in enumerate(base_urls, start=1):
+            suffix = f"-{index}" if len(base_urls) > 1 else ""
+            command = [
+                sys.executable,
+                str(PROBE),
+                "--service",
+                item["service"],
+                "--environment-id",
+                args.environment_id,
+                "--deployment-manifest",
+                args.deployment_manifest,
+                "--plan",
+                str(plan_path),
+                "--evidence-dir",
+                args.evidence_dir,
+                "--output-name",
+                f"{item['service']}{suffix}.json",
+                "--base-url",
+                base_url,
+            ]
+            completed = subprocess.run(command, cwd=ROOT, check=False)
+            if completed.returncode:
+                failures.append(f"{item['service']}:{index}:probe_failed")
 
     print(f"Runtime probe batch: attempted={attempted}, failed={len(failures)}")
     if failures:
