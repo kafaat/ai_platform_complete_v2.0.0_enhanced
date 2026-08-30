@@ -155,32 +155,25 @@ def test_receipt_round_trip_is_stable(tmp_path):
 def test_certification_never_promotes_automatically():
     source = CERTIFICATION.read_text(encoding="utf-8")
     assert '"LIVE_EVIDENCE_VERIFIED"' in source
-    assert 'promotion_permitted=False' in source
-    assert 'automatic_promotion=False' in source
-    assert 'ready_for_authority_adjudication=True' in source
-    assert 'independent human adjudication under GATE-01' in source
+    assert "promotion_permitted=False" in source
+    assert "automatic_promotion=False" in source
+    assert "ready_for_authority_adjudication=True" in source
+    assert "independent human adjudication under GATE-01" in source
 
 
 def test_collector_requires_real_subject_and_authoritative_sor():
     source = SCRIPT.read_text(encoding="utf-8")
-    assert 'DECISION_SERVICE_SOR_ENABLED' in source
+    assert "DECISION_SERVICE_SOR_ENABLED" in source
     assert '["git", "rev-parse", "HEAD"]' in source
-    assert 'local_subject != args.subject_sha' in source
+    assert "local_subject != args.subject_sha" in source
 
 
-def test_verified_receipt_only_reaches_independent_adjudication(
-    monkeypatch, capsys, tmp_path
-):
+def test_verified_receipt_only_reaches_independent_adjudication(monkeypatch, capsys, tmp_path):
     monkeypatch.setattr(certification, "run", lambda *_args: (0, "{}"))
     receipt_path = tmp_path / "receipt.json"
     receipt_path.write_text("{}", encoding="utf-8")
 
-    assert (
-        certification.main(
-            ["--receipt", str(receipt_path), "--subject-sha", SHA]
-        )
-        == 0
-    )
+    assert certification.main(["--receipt", str(receipt_path), "--subject-sha", SHA]) == 0
     result = json.loads(capsys.readouterr().out)
     assert result["status"] == "LIVE_EVIDENCE_VERIFIED"
     assert result["promotion_permitted"] is False

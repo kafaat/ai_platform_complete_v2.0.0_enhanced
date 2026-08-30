@@ -67,15 +67,15 @@
       "database": [],
       "events": [
         {
+          "value": "weather.py @ services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py:12",
+          "score": 16
+        },
+        {
           "value": "weather_runtime.py @ services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py:9",
           "score": 16
         },
         {
           "value": "weather_service_client.py @ services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py:11",
-          "score": 16
-        },
-        {
-          "value": "weather.py @ services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py:12",
           "score": 16
         },
         {
@@ -379,6 +379,10 @@
       ],
       "routes": [
         {
+          "value": "/api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:44",
+          "score": 12
+        },
+        {
           "value": "/api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:70",
           "score": 12
         },
@@ -388,10 +392,6 @@
         },
         {
           "value": "/api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:106",
-          "score": 12
-        },
-        {
-          "value": "/api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:44",
           "score": 12
         },
         {
@@ -605,10 +605,6 @@
           "score": 12
         },
         {
-          "value": "irrigation_dispatch_relay_worker.py @ tests/irrigation/test_gate_b_dispatch_relay_worker.py:112",
-          "score": 12
-        },
-        {
           "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1178",
           "score": 12
         },
@@ -674,6 +670,10 @@
         },
         {
           "value": "irrigation.something.else @ tests/irrigation/test_gate_b_dispatch_relay_worker.py:76",
+          "score": 12
+        },
+        {
+          "value": "irrigation_dispatch_relay_worker.py @ tests/irrigation/test_gate_b_dispatch_relay_worker.py:112",
           "score": 12
         },
         {
@@ -779,14 +779,6 @@
           ]
         },
         {
-          "path": "tests_v9/test_wx10_11b_execution_delivery_receipt_contract.py",
-          "score": 12,
-          "signals": [
-            "content:Execution request",
-            "content:execution request"
-          ]
-        },
-        {
           "path": "tests/irrigation/test_gate_b_dispatch_relay_and_contract.py",
           "score": 12,
           "signals": [
@@ -804,6 +796,14 @@
         },
         {
           "path": "tests/irrigation/test_irrigation_reservation_adapter.py",
+          "score": 12,
+          "signals": [
+            "content:Execution request",
+            "content:execution request"
+          ]
+        },
+        {
+          "path": "tests_v9/test_wx10_11b_execution_delivery_receipt_contract.py",
           "score": 12,
           "signals": [
             "content:Execution request",
@@ -859,14 +859,6 @@
           ]
         },
         {
-          "path": "scripts/ci/execution_delivery_receipt_boundary_gate.py",
-          "score": 12,
-          "signals": [
-            "content:Execution request",
-            "content:execution request"
-          ]
-        },
-        {
           "path": "WX10_11B_EXECUTION_DELIVERY_RECEIPT_REPORT_20260711.md",
           "score": 12,
           "signals": [
@@ -876,6 +868,14 @@
         },
         {
           "path": "WX10_12_EXECUTION_OUTCOME_VERIFICATION_REPORT_20260711.md",
+          "score": 12,
+          "signals": [
+            "content:Execution request",
+            "content:execution request"
+          ]
+        },
+        {
+          "path": "scripts/ci/execution_delivery_receipt_boundary_gate.py",
           "score": 12,
           "signals": [
             "content:Execution request",
@@ -899,6 +899,14 @@
           ]
         },
         {
+          "path": "REMOTE_SENSING_RS10_IMPLEMENTATION_REPORT_20260715.md",
+          "score": 8,
+          "signals": [
+            "content:Execution request",
+            "content:execution request"
+          ]
+        },
+        {
           "path": "config/service_feature_ui_contracts.json",
           "score": 8,
           "signals": [
@@ -908,14 +916,6 @@
         },
         {
           "path": "docs/audits/ACTUATOR_DEVICE_SAFETY_CERTIFICATION_CONTINUATION_20260712.md",
-          "score": 8,
-          "signals": [
-            "content:Execution request",
-            "content:execution request"
-          ]
-        },
-        {
-          "path": "REMOTE_SENSING_RS10_IMPLEMENTATION_REPORT_20260715.md",
           "score": 8,
           "signals": [
             "content:Execution request",
@@ -997,6 +997,10 @@
       ],
       "routes": [
         {
+          "value": "/api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:44",
+          "score": 12
+        },
+        {
           "value": "/api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:70",
           "score": 12
         },
@@ -1006,10 +1010,6 @@
         },
         {
           "value": "/api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:106",
-          "score": 12
-        },
-        {
-          "value": "/api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:44",
           "score": 12
         },
         {
@@ -1157,6 +1157,14 @@
           "score": 12
         },
         {
+          "value": "/v1/decisions/record @ services/decision-service/main.py:618",
+          "score": 12
+        },
+        {
+          "value": "/v1/decisions/review-queue @ services/decision-service/main.py:684",
+          "score": 12
+        },
+        {
           "value": "/v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1106",
           "score": 12
         },
@@ -1170,14 +1178,6 @@
         },
         {
           "value": "/v1/decisions/{decision_id}/review @ services/decision-service/main.py:720",
-          "score": 12
-        },
-        {
-          "value": "/v1/decisions/record @ services/decision-service/main.py:618",
-          "score": 12
-        },
-        {
-          "value": "/v1/decisions/review-queue @ services/decision-service/main.py:684",
           "score": 12
         },
         {
@@ -1205,6 +1205,10 @@
           "score": 12
         },
         {
+          "value": "/v1/execution-requests/recovery @ services/decision-service/main.py:1779",
+          "score": 12
+        },
+        {
           "value": "/v1/execution-requests/{execution_request_id}/claim @ services/decision-service/main.py:1801",
           "score": 12
         },
@@ -1214,10 +1218,6 @@
         },
         {
           "value": "/v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:1879",
-          "score": 12
-        },
-        {
-          "value": "/v1/execution-requests/recovery @ services/decision-service/main.py:1779",
           "score": 12
         },
         {
@@ -1321,15 +1321,15 @@
           "score": 12
         },
         {
-          "value": "/v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:1937",
-          "score": 12
-        },
-        {
           "value": "/v1/outcomes/reconciled @ services/decision-service/main.py:1070",
           "score": 12
         },
         {
           "value": "/v1/outcomes/record @ services/decision-service/main.py:926",
+          "score": 12
+        },
+        {
+          "value": "/v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:1937",
           "score": 12
         },
         {
@@ -1498,6 +1498,10 @@
           "score": 12
         },
         {
+          "value": "DECISION_LINEAGE_REPORT.md @ scripts/ci/decision_lineage_graph.py:25",
+          "score": 8
+        },
+        {
           "value": "decision_lineage_edges.csv @ scripts/ci/decision_lineage_graph.py:23",
           "score": 8
         },
@@ -1507,10 +1511,6 @@
         },
         {
           "value": "decision_lineage_nodes.csv @ scripts/ci/decision_lineage_graph.py:22",
-          "score": 8
-        },
-        {
-          "value": "DECISION_LINEAGE_REPORT.md @ scripts/ci/decision_lineage_graph.py:25",
           "score": 8
         },
         {
@@ -1619,15 +1619,15 @@
           "score": 14
         },
         {
-          "value": "/api/v1/decision/{decision_id}/lineage @ services/sahool-platform/api/routers/decision_record.py:584",
-          "score": 10
-        },
-        {
           "value": "/api/v1/decision/record @ services/sahool-platform/api/routers/decision_record.py:329",
           "score": 10
         },
         {
           "value": "/api/v1/decision/records @ services/sahool-platform/api/routers/decision_record.py:624",
+          "score": 10
+        },
+        {
+          "value": "/api/v1/decision/{decision_id}/lineage @ services/sahool-platform/api/routers/decision_record.py:584",
           "score": 10
         },
         {
@@ -1668,11 +1668,11 @@
       ],
       "events": [
         {
-          "value": "decision_outcome_learning_bridge_allowlist.json @ services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py:10",
+          "value": "DECISION_OUTCOME_LEARNING_BRIDGE_CONTRACT.md @ services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py:9",
           "score": 20
         },
         {
-          "value": "DECISION_OUTCOME_LEARNING_BRIDGE_CONTRACT.md @ services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py:9",
+          "value": "decision_outcome_learning_bridge_allowlist.json @ services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py:10",
           "score": 20
         },
         {
@@ -1738,15 +1738,6 @@
           ]
         },
         {
-          "path": "docs/architecture/decision_outcome_learning_bridge_allowlist.json",
-          "score": 14,
-          "signals": [
-            "path:decision outcome",
-            "content:decision outcome",
-            "content:outcome record"
-          ]
-        },
-        {
           "path": "P1_DECISION_OUTCOME_LEARNING_BRIDGE_REPORT.md",
           "score": 14,
           "signals": [
@@ -1756,6 +1747,15 @@
         },
         {
           "path": "P4_DECISION_OUTCOME_LEARNING_BOUNDARY_EXTRACTION_REPORT.md",
+          "score": 14,
+          "signals": [
+            "path:decision outcome",
+            "content:decision outcome",
+            "content:outcome record"
+          ]
+        },
+        {
+          "path": "docs/architecture/decision_outcome_learning_bridge_allowlist.json",
           "score": 14,
           "signals": [
             "path:decision outcome",
@@ -1858,6 +1858,10 @@
           "score": 28
         },
         {
+          "value": "/api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:44",
+          "score": 12
+        },
+        {
           "value": "/api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:70",
           "score": 12
         },
@@ -1867,10 +1871,6 @@
         },
         {
           "value": "/api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:106",
-          "score": 12
-        },
-        {
-          "value": "/api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:44",
           "score": 12
         },
         {
@@ -2018,6 +2018,14 @@
           "score": 12
         },
         {
+          "value": "/v1/decisions/record @ services/decision-service/main.py:618",
+          "score": 12
+        },
+        {
+          "value": "/v1/decisions/review-queue @ services/decision-service/main.py:684",
+          "score": 12
+        },
+        {
           "value": "/v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1106",
           "score": 12
         },
@@ -2031,14 +2039,6 @@
         },
         {
           "value": "/v1/decisions/{decision_id}/review @ services/decision-service/main.py:720",
-          "score": 12
-        },
-        {
-          "value": "/v1/decisions/record @ services/decision-service/main.py:618",
-          "score": 12
-        },
-        {
-          "value": "/v1/decisions/review-queue @ services/decision-service/main.py:684",
           "score": 12
         },
         {
@@ -2066,6 +2066,10 @@
           "score": 12
         },
         {
+          "value": "/v1/execution-requests/recovery @ services/decision-service/main.py:1779",
+          "score": 12
+        },
+        {
           "value": "/v1/execution-requests/{execution_request_id}/claim @ services/decision-service/main.py:1801",
           "score": 12
         },
@@ -2075,10 +2079,6 @@
         },
         {
           "value": "/v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:1879",
-          "score": 12
-        },
-        {
-          "value": "/v1/execution-requests/recovery @ services/decision-service/main.py:1779",
           "score": 12
         },
         {
@@ -2182,15 +2182,15 @@
           "score": 12
         },
         {
-          "value": "/v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:1937",
-          "score": 12
-        },
-        {
           "value": "/v1/outcomes/reconciled @ services/decision-service/main.py:1070",
           "score": 12
         },
         {
           "value": "/v1/outcomes/record @ services/decision-service/main.py:926",
+          "score": 12
+        },
+        {
+          "value": "/v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:1937",
           "score": 12
         },
         {
@@ -2383,7 +2383,7 @@
           ]
         },
         {
-          "path": "docs/audits/AGRONOMIC_MODEL_LIFECYCLE_LINEAGE_CONTINUATION_20260712.md",
+          "path": "REMOTE_SENSING_RS10_IMPLEMENTATION_REPORT_20260715.md",
           "score": 8,
           "signals": [
             "content:Learning attribution",
@@ -2391,7 +2391,7 @@
           ]
         },
         {
-          "path": "REMOTE_SENSING_RS10_IMPLEMENTATION_REPORT_20260715.md",
+          "path": "docs/audits/AGRONOMIC_MODEL_LIFECYCLE_LINEAGE_CONTINUATION_20260712.md",
           "score": 8,
           "signals": [
             "content:Learning attribution",
@@ -2529,6 +2529,10 @@
           "score": 14
         },
         {
+          "value": "/api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:44",
+          "score": 12
+        },
+        {
           "value": "/api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:70",
           "score": 12
         },
@@ -2538,10 +2542,6 @@
         },
         {
           "value": "/api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:106",
-          "score": 12
-        },
-        {
-          "value": "/api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:44",
           "score": 12
         },
         {
@@ -2689,6 +2689,14 @@
           "score": 12
         },
         {
+          "value": "/v1/decisions/record @ services/decision-service/main.py:618",
+          "score": 12
+        },
+        {
+          "value": "/v1/decisions/review-queue @ services/decision-service/main.py:684",
+          "score": 12
+        },
+        {
           "value": "/v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1106",
           "score": 12
         },
@@ -2702,14 +2710,6 @@
         },
         {
           "value": "/v1/decisions/{decision_id}/review @ services/decision-service/main.py:720",
-          "score": 12
-        },
-        {
-          "value": "/v1/decisions/record @ services/decision-service/main.py:618",
-          "score": 12
-        },
-        {
-          "value": "/v1/decisions/review-queue @ services/decision-service/main.py:684",
           "score": 12
         },
         {
@@ -2737,6 +2737,10 @@
           "score": 12
         },
         {
+          "value": "/v1/execution-requests/recovery @ services/decision-service/main.py:1779",
+          "score": 12
+        },
+        {
           "value": "/v1/execution-requests/{execution_request_id}/claim @ services/decision-service/main.py:1801",
           "score": 12
         },
@@ -2746,10 +2750,6 @@
         },
         {
           "value": "/v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:1879",
-          "score": 12
-        },
-        {
-          "value": "/v1/execution-requests/recovery @ services/decision-service/main.py:1779",
           "score": 12
         },
         {
@@ -2861,15 +2861,15 @@
           "score": 12
         },
         {
-          "value": "/v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:1937",
-          "score": 12
-        },
-        {
           "value": "/v1/outcomes/reconciled @ services/decision-service/main.py:1070",
           "score": 12
         },
         {
           "value": "/v1/outcomes/record @ services/decision-service/main.py:926",
+          "score": 12
+        },
+        {
+          "value": "/v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:1937",
           "score": 12
         },
         {
@@ -3197,14 +3197,6 @@
           ]
         },
         {
-          "path": "scripts/ci/model_activation_approval_boundary_gate.py",
-          "score": 14,
-          "signals": [
-            "path:model activation",
-            "content:model activation"
-          ]
-        },
-        {
           "path": "WX11_4_MODEL_ACTIVATION_REQUEST_REPORT_20260711.md",
           "score": 14,
           "signals": [
@@ -3214,6 +3206,14 @@
         },
         {
           "path": "WX11_5_MODEL_ACTIVATION_APPROVAL_COMMAND_REPORT_20260711.md",
+          "score": 14,
+          "signals": [
+            "path:model activation",
+            "content:model activation"
+          ]
+        },
+        {
+          "path": "scripts/ci/model_activation_approval_boundary_gate.py",
           "score": 14,
           "signals": [
             "path:model activation",
@@ -4770,6 +4770,34 @@
           "score": 12
         },
         {
+          "value": "SAHOOL_Activities_By_Status.csv @ frontend/src/sections/ReportsPage.tsx:174",
+          "score": 11
+        },
+        {
+          "value": "SAHOOL_Application_Summary.csv @ frontend/src/sections/ReportsPage.tsx:716",
+          "score": 11
+        },
+        {
+          "value": "SAHOOL_Area_By_Crop.csv @ frontend/src/sections/ReportsPage.tsx:189",
+          "score": 11
+        },
+        {
+          "value": "SAHOOL_Cost_By_Source.csv @ frontend/src/sections/ReportsPage.tsx:384",
+          "score": 11
+        },
+        {
+          "value": "SAHOOL_Harvest_Summary.csv @ frontend/src/sections/ReportsPage.tsx:641",
+          "score": 11
+        },
+        {
+          "value": "SAHOOL_Planting_Summary.csv @ frontend/src/sections/ReportsPage.tsx:559",
+          "score": 11
+        },
+        {
+          "value": "fieldOperating.ts @ services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py:44",
+          "score": 11
+        },
+        {
           "value": "field_completeness.py @ services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py:49",
           "score": 11
         },
@@ -4802,35 +4830,7 @@
           "score": 11
         },
         {
-          "value": "fieldOperating.ts @ services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py:44",
-          "score": 11
-        },
-        {
           "value": "fields.py @ services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py:50",
-          "score": 11
-        },
-        {
-          "value": "SAHOOL_Activities_By_Status.csv @ frontend/src/sections/ReportsPage.tsx:174",
-          "score": 11
-        },
-        {
-          "value": "SAHOOL_Application_Summary.csv @ frontend/src/sections/ReportsPage.tsx:716",
-          "score": 11
-        },
-        {
-          "value": "SAHOOL_Area_By_Crop.csv @ frontend/src/sections/ReportsPage.tsx:189",
-          "score": 11
-        },
-        {
-          "value": "SAHOOL_Cost_By_Source.csv @ frontend/src/sections/ReportsPage.tsx:384",
-          "score": 11
-        },
-        {
-          "value": "SAHOOL_Harvest_Summary.csv @ frontend/src/sections/ReportsPage.tsx:641",
-          "score": 11
-        },
-        {
-          "value": "SAHOOL_Planting_Summary.csv @ frontend/src/sections/ReportsPage.tsx:559",
           "score": 11
         },
         {
@@ -5194,6 +5194,14 @@
           ]
         },
         {
+          "path": "GIS_PHASE9_AUTONOMOUS_FARM_OS_20260626.md",
+          "score": 14,
+          "signals": [
+            "path:farm",
+            "content:farm"
+          ]
+        },
+        {
           "path": "docs/adr/ADR-0003-farm-ledger-budget-cost-intelligence.md",
           "score": 14,
           "signals": [
@@ -5211,14 +5219,6 @@
         },
         {
           "path": "docs/architecture/ai/JAIS_NATURAL_FARMER_VLLM.md",
-          "score": 14,
-          "signals": [
-            "path:farm",
-            "content:farm"
-          ]
-        },
-        {
-          "path": "GIS_PHASE9_AUTONOMOUS_FARM_OS_20260626.md",
           "score": 14,
           "signals": [
             "path:farm",
@@ -5274,7 +5274,7 @@
           ]
         },
         {
-          "path": "docs/API_WIRING_AUDIT.md",
+          "path": "FINAL_PRODUCTION_READINESS_REPORT.md",
           "score": 10,
           "signals": [
             "content:farm",
@@ -5282,7 +5282,7 @@
           ]
         },
         {
-          "path": "FINAL_PRODUCTION_READINESS_REPORT.md",
+          "path": "docs/API_WIRING_AUDIT.md",
           "score": 10,
           "signals": [
             "content:farm",
@@ -5436,6 +5436,22 @@
         },
         {
           "value": "/api/v1/fields @ services/sahool-platform/api/routers/fields.py:593",
+          "score": 18
+        },
+        {
+          "value": "/api/v1/fields/import @ services/sahool-platform/api/routers/fields.py:617",
+          "score": 18
+        },
+        {
+          "value": "/api/v1/fields/merge @ services/sahool-platform/api/routers/fields.py:1828",
+          "score": 18
+        },
+        {
+          "value": "/api/v1/fields/split @ services/sahool-platform/api/routers/fields.py:1953",
+          "score": 18
+        },
+        {
+          "value": "/api/v1/fields/validate-geometry @ services/sahool-platform/api/routers/fields.py:3559",
           "score": 18
         },
         {
@@ -5607,22 +5623,6 @@
           "score": 18
         },
         {
-          "value": "/api/v1/fields/import @ services/sahool-platform/api/routers/fields.py:617",
-          "score": 18
-        },
-        {
-          "value": "/api/v1/fields/merge @ services/sahool-platform/api/routers/fields.py:1828",
-          "score": 18
-        },
-        {
-          "value": "/api/v1/fields/split @ services/sahool-platform/api/routers/fields.py:1953",
-          "score": 18
-        },
-        {
-          "value": "/api/v1/fields/validate-geometry @ services/sahool-platform/api/routers/fields.py:3559",
-          "score": 18
-        },
-        {
           "value": "/api/v1/fields/{field_id}/available-dates @ services/sahool-platform/api/routers/field_workspace_imagery.py:50",
           "score": 13
         },
@@ -5767,6 +5767,38 @@
           "score": 18
         },
         {
+          "value": "FieldWorkspaceIrrigationPanel.tsx @ scripts/ci/field_workspace_production_closure_gate.py:66",
+          "score": 14
+        },
+        {
+          "value": "FieldWorkspaceRecommendationsPanel.tsx @ scripts/ci/field_workspace_production_closure_gate.py:64",
+          "score": 14
+        },
+        {
+          "value": "FieldWorkspaceReportsPanel.tsx @ scripts/ci/field_workspace_production_closure_gate.py:65",
+          "score": 14
+        },
+        {
+          "value": "FieldWorkspaceRouteShell.tsx @ services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py:12",
+          "score": 14
+        },
+        {
+          "value": "FieldWorkspaceRouteShell.tsx @ services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py:48",
+          "score": 14
+        },
+        {
+          "value": "FieldWorkspaceRouteShell.tsx @ services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py:64",
+          "score": 14
+        },
+        {
+          "value": "FieldWorkspaceTabs.tsx @ services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py:57",
+          "score": 14
+        },
+        {
+          "value": "FieldWorkspaceTimelinePanel.tsx @ scripts/ci/field_workspace_production_closure_gate.py:63",
+          "score": 14
+        },
+        {
           "value": "api.routers.field_completeness @ services/sahool-platform/api/field_workspace_route_contract.py:13",
           "score": 14
         },
@@ -5827,38 +5859,6 @@
           "score": 14
         },
         {
-          "value": "FieldWorkspaceIrrigationPanel.tsx @ scripts/ci/field_workspace_production_closure_gate.py:66",
-          "score": 14
-        },
-        {
-          "value": "FieldWorkspaceRecommendationsPanel.tsx @ scripts/ci/field_workspace_production_closure_gate.py:64",
-          "score": 14
-        },
-        {
-          "value": "FieldWorkspaceReportsPanel.tsx @ scripts/ci/field_workspace_production_closure_gate.py:65",
-          "score": 14
-        },
-        {
-          "value": "FieldWorkspaceRouteShell.tsx @ services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py:12",
-          "score": 14
-        },
-        {
-          "value": "FieldWorkspaceRouteShell.tsx @ services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py:48",
-          "score": 14
-        },
-        {
-          "value": "FieldWorkspaceRouteShell.tsx @ services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py:64",
-          "score": 14
-        },
-        {
-          "value": "FieldWorkspaceTabs.tsx @ services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py:57",
-          "score": 14
-        },
-        {
-          "value": "FieldWorkspaceTimelinePanel.tsx @ scripts/ci/field_workspace_production_closure_gate.py:63",
-          "score": 14
-        },
-        {
           "value": "v139_field_geometry_history_append_only.sql @ tests_v9/test_field_geometry_history_append_only_v39_5.py:26",
           "score": 14
         },
@@ -5879,16 +5879,20 @@
           "score": 13
         },
         {
-          "value": "field_workspace_production_closure_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:85",
+          "value": "field-workspace-production-closure.yml @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:32",
           "score": 13
         },
         {
-          "value": "field-workspace-production-closure.yml @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:32",
+          "value": "field_workspace_production_closure_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:85",
           "score": 13
         },
         {
           "value": "weather_service_real_contract_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:87",
           "score": 13
+        },
+        {
+          "value": "fieldOperating.ts @ services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py:44",
+          "score": 12
         },
         {
           "value": "field_completeness.py @ services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py:49",
@@ -5920,10 +5924,6 @@
         },
         {
           "value": "field_workspace_timeline.py @ services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py:53",
-          "score": 12
-        },
-        {
-          "value": "fieldOperating.ts @ services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py:44",
           "score": 12
         },
         {
@@ -6085,6 +6085,14 @@
           ]
         },
         {
+          "path": "V59_5_FTW_FIELD_BOUNDARY_BACKEND_SCAFFOLD_REPORT_20260701.md",
+          "score": 14,
+          "signals": [
+            "path:field boundary",
+            "content:field boundary"
+          ]
+        },
+        {
           "path": "docs/architecture/platform_shrink_ratchet.json",
           "score": 14,
           "signals": [
@@ -6115,14 +6123,6 @@
           "signals": [
             "path:field geometry",
             "content:field geometry"
-          ]
-        },
-        {
-          "path": "V59_5_FTW_FIELD_BOUNDARY_BACKEND_SCAFFOLD_REPORT_20260701.md",
-          "score": 14,
-          "signals": [
-            "path:field boundary",
-            "content:field boundary"
           ]
         },
         {
@@ -6456,6 +6456,22 @@
           "score": 19
         },
         {
+          "value": "/api/v1/fields/import @ services/sahool-platform/api/routers/fields.py:617",
+          "score": 19
+        },
+        {
+          "value": "/api/v1/fields/merge @ services/sahool-platform/api/routers/fields.py:1828",
+          "score": 19
+        },
+        {
+          "value": "/api/v1/fields/split @ services/sahool-platform/api/routers/fields.py:1953",
+          "score": 19
+        },
+        {
+          "value": "/api/v1/fields/validate-geometry @ services/sahool-platform/api/routers/fields.py:3559",
+          "score": 19
+        },
+        {
           "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1064",
           "score": 19
         },
@@ -6621,22 +6637,6 @@
         },
         {
           "value": "/api/v1/fields/{field_id}/zones @ services/sahool-platform/api/routers/fields.py:3943",
-          "score": 19
-        },
-        {
-          "value": "/api/v1/fields/import @ services/sahool-platform/api/routers/fields.py:617",
-          "score": 19
-        },
-        {
-          "value": "/api/v1/fields/merge @ services/sahool-platform/api/routers/fields.py:1828",
-          "score": 19
-        },
-        {
-          "value": "/api/v1/fields/split @ services/sahool-platform/api/routers/fields.py:1953",
-          "score": 19
-        },
-        {
-          "value": "/api/v1/fields/validate-geometry @ services/sahool-platform/api/routers/fields.py:3559",
           "score": 19
         },
         {
@@ -7605,7 +7605,7 @@
           ]
         },
         {
-          "path": "services/sahool-platform/tests/test_field_season_projection_reconciled_outcomes.py",
+          "path": "services/sahool-platform/tests/test_field_season_projection.py",
           "score": 14,
           "signals": [
             "path:season",
@@ -7613,7 +7613,7 @@
           ]
         },
         {
-          "path": "services/sahool-platform/tests/test_field_season_projection.py",
+          "path": "services/sahool-platform/tests/test_field_season_projection_reconciled_outcomes.py",
           "score": 14,
           "signals": [
             "path:season",
@@ -7846,6 +7846,22 @@
           ]
         },
         {
+          "path": "P1_3_FIELD_SEASON_OUTCOME_RECONCILIATION_REPORT.md",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
+          "path": "SEASON_WORKSPACE_IMPLEMENTATION_REPORT_20260629.md",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
           "path": "docs/audits/full_season_forensic_report.md",
           "score": 14,
           "signals": [
@@ -7870,14 +7886,6 @@
           ]
         },
         {
-          "path": "P1_3_FIELD_SEASON_OUTCOME_RECONCILIATION_REPORT.md",
-          "score": 14,
-          "signals": [
-            "path:season",
-            "content:season"
-          ]
-        },
-        {
           "path": "scripts/e2e/season_gateway_live_gate.py",
           "score": 14,
           "signals": [
@@ -7887,14 +7895,6 @@
         },
         {
           "path": "scripts/simulation/export_season_runs_for_golden.py",
-          "score": 14,
-          "signals": [
-            "path:season",
-            "content:season"
-          ]
-        },
-        {
-          "path": "SEASON_WORKSPACE_IMPLEMENTATION_REPORT_20260629.md",
           "score": 14,
           "signals": [
             "path:season",
@@ -8043,11 +8043,11 @@
           "score": 14
         },
         {
-          "value": "field_workspace_screen.dart @ mobile/sahool_app/lib/screens/field_create_wizard.dart:33",
+          "value": "field.deleted @ services/sahool-platform/tests/test_fields_endpoint.py:328",
           "score": 12
         },
         {
-          "value": "field.deleted @ services/sahool-platform/tests/test_fields_endpoint.py:328",
+          "value": "field_workspace_screen.dart @ mobile/sahool_app/lib/screens/field_create_wizard.dart:33",
           "score": 12
         },
         {
@@ -9038,14 +9038,6 @@
           ]
         },
         {
-          "path": "config/platform_catalog_overrides.yml",
-          "score": 10,
-          "signals": [
-            "content:erp bridge",
-            "content:odoo bridge"
-          ]
-        },
-        {
           "path": "SERVICE_REGISTRY.md",
           "score": 10,
           "signals": [
@@ -9054,8 +9046,8 @@
           ]
         },
         {
-          "path": "config/service_feature_ui_contracts.json",
-          "score": 9,
+          "path": "config/platform_catalog_overrides.yml",
+          "score": 10,
           "signals": [
             "content:erp bridge",
             "content:odoo bridge"
@@ -9066,6 +9058,14 @@
           "score": 9,
           "signals": [
             "content:accounting integration",
+            "content:erp bridge",
+            "content:odoo bridge"
+          ]
+        },
+        {
+          "path": "config/service_feature_ui_contracts.json",
+          "score": 9,
+          "signals": [
             "content:erp bridge",
             "content:odoo bridge"
           ]
@@ -9587,6 +9587,22 @@
           "score": 18
         },
         {
+          "value": "/api/v1/fields/import @ services/sahool-platform/api/routers/fields.py:617",
+          "score": 18
+        },
+        {
+          "value": "/api/v1/fields/merge @ services/sahool-platform/api/routers/fields.py:1828",
+          "score": 18
+        },
+        {
+          "value": "/api/v1/fields/split @ services/sahool-platform/api/routers/fields.py:1953",
+          "score": 18
+        },
+        {
+          "value": "/api/v1/fields/validate-geometry @ services/sahool-platform/api/routers/fields.py:3559",
+          "score": 18
+        },
+        {
           "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1064",
           "score": 18
         },
@@ -9755,22 +9771,6 @@
           "score": 18
         },
         {
-          "value": "/api/v1/fields/import @ services/sahool-platform/api/routers/fields.py:617",
-          "score": 18
-        },
-        {
-          "value": "/api/v1/fields/merge @ services/sahool-platform/api/routers/fields.py:1828",
-          "score": 18
-        },
-        {
-          "value": "/api/v1/fields/split @ services/sahool-platform/api/routers/fields.py:1953",
-          "score": 18
-        },
-        {
-          "value": "/api/v1/fields/validate-geometry @ services/sahool-platform/api/routers/fields.py:3559",
-          "score": 18
-        },
-        {
           "value": "/v1/change/detect @ services/raster-service/routers/analysis.py:47",
           "score": 18
         },
@@ -9839,6 +9839,10 @@
           "score": 17
         },
         {
+          "value": "/v1/fields/analytics/geoparquet/export @ services/raster-service/routers/fields.py:723",
+          "score": 16
+        },
+        {
           "value": "/v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1350",
           "score": 16
         },
@@ -9900,10 +9904,6 @@
         },
         {
           "value": "/v1/fields/{field_id}/timeseries @ services/raster-service/routers/fields.py:1185",
-          "score": 16
-        },
-        {
-          "value": "/v1/fields/analytics/geoparquet/export @ services/raster-service/routers/fields.py:723",
           "score": 16
         },
         {
@@ -10135,15 +10135,15 @@
           "score": 15
         },
         {
-          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:927",
-          "score": 14
-        },
-        {
           "value": "field.create @ tests_v9/test_idempotency_mobile.py:241",
           "score": 14
         },
         {
           "value": "field.update @ tests_v9/test_idempotency_mobile.py:171",
+          "score": 14
+        },
+        {
+          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:927",
           "score": 14
         },
         {
@@ -10778,10 +10778,9 @@
           ]
         },
         {
-          "path": "docs/research/SATELLITE_IMAGERY_DOWNLOAD_CHANNELS_REVIEW_20260707.md",
+          "path": "TOPOGRAPHIC_QA_TEST_COVERAGE_VERIFICATION_20260710.md",
           "score": 18,
           "signals": [
-            "content:contour",
             "content:dem",
             "content:hillshade",
             "content:slope",
@@ -10789,9 +10788,10 @@
           ]
         },
         {
-          "path": "TOPOGRAPHIC_QA_TEST_COVERAGE_VERIFICATION_20260710.md",
+          "path": "docs/research/SATELLITE_IMAGERY_DOWNLOAD_CHANNELS_REVIEW_20260707.md",
           "score": 18,
           "signals": [
+            "content:contour",
             "content:dem",
             "content:hillshade",
             "content:slope",
@@ -10804,6 +10804,15 @@
           "signals": [
             "path:dem",
             "content:dem"
+          ]
+        },
+        {
+          "path": "docs/POST_DEPLOYMENT_ROADMAP.md",
+          "score": 13,
+          "signals": [
+            "content:dem",
+            "content:slope",
+            "content:terrain"
           ]
         },
         {
@@ -10821,15 +10830,6 @@
           "signals": [
             "path:dem",
             "content:dem"
-          ]
-        },
-        {
-          "path": "docs/POST_DEPLOYMENT_ROADMAP.md",
-          "score": 13,
-          "signals": [
-            "content:dem",
-            "content:slope",
-            "content:terrain"
           ]
         },
         {
@@ -10868,18 +10868,18 @@
           ]
         },
         {
-          "path": "docs/runbooks/OPERATOR_DISPATCH_BACKLOG_LIVE_EXECUTION.md",
-          "score": 11,
-          "signals": [
-            "content:dem",
-            "content:terrain"
-          ]
-        },
-        {
           "path": "RASTER_MAIN_DECOMPOSITION_PHASE15_ROUTER_OBS_ANALYSIS_TERRAIN_SOIL_20260706.md",
           "score": 11,
           "signals": [
             "path:terrain",
+            "content:terrain"
+          ]
+        },
+        {
+          "path": "docs/runbooks/OPERATOR_DISPATCH_BACKLOG_LIVE_EXECUTION.md",
+          "score": 11,
+          "signals": [
+            "content:dem",
             "content:terrain"
           ]
         },
@@ -10890,6 +10890,14 @@
             "content:dem",
             "content:hillshade",
             "content:terrain"
+          ]
+        },
+        {
+          "path": "TOPOGRAPHIC_QA_TEST_COVERAGE_REVIEW_20260710.md",
+          "score": 9,
+          "signals": [
+            "content:dem",
+            "content:slope"
           ]
         },
         {
@@ -10919,15 +10927,7 @@
           ]
         },
         {
-          "path": "TOPOGRAPHIC_QA_TEST_COVERAGE_REVIEW_20260710.md",
-          "score": 9,
-          "signals": [
-            "content:dem",
-            "content:slope"
-          ]
-        },
-        {
-          "path": "docs/audits/M4_GOVERNED_VARIABLE_RATE_IRRIGATION_REPORT_20260713.md",
+          "path": "P2_RASTER_FACADE_CLEANUP_REPORT.md",
           "score": 8,
           "signals": [
             "content:dem",
@@ -10935,7 +10935,7 @@
           ]
         },
         {
-          "path": "P2_RASTER_FACADE_CLEANUP_REPORT.md",
+          "path": "docs/audits/M4_GOVERNED_VARIABLE_RATE_IRRIGATION_REPORT_20260713.md",
           "score": 8,
           "signals": [
             "content:dem",
@@ -10955,6 +10955,9 @@
       "static_evidence_only": true,
       "runtime_verified": false,
       "production_certified": false,
+      "evidence_truncated": {
+        "routes": 20
+      },
       "evidence_counts": {
         "backend": 27,
         "routes": 100,
@@ -11192,11 +11195,11 @@
           "score": 9
         },
         {
-          "value": "/api/v1/admin/events/dead-letter/{outbox_id}/requeue @ services/sahool-platform/api/routers/admin.py:82",
+          "value": "/api/v1/admin/events/dead-letter/requeue-all @ services/sahool-platform/api/routers/admin.py:100",
           "score": 9
         },
         {
-          "value": "/api/v1/admin/events/dead-letter/requeue-all @ services/sahool-platform/api/routers/admin.py:100",
+          "value": "/api/v1/admin/events/dead-letter/{outbox_id}/requeue @ services/sahool-platform/api/routers/admin.py:82",
           "score": 9
         },
         {
@@ -11917,6 +11920,22 @@
           "score": 25
         },
         {
+          "value": "TASKDATA.XML @ services/sahool-platform/api/machinery_export.py:48",
+          "score": 20
+        },
+        {
+          "value": "TASKDATA.xml @ services/sahool-platform/api/routers/prescriptions.py:595",
+          "score": 20
+        },
+        {
+          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:441",
+          "score": 20
+        },
+        {
+          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:549",
+          "score": 20
+        },
+        {
           "value": "api.canonical_soil_state @ services/sahool-platform/tests/test_canonical_field_state_wiring.py:144",
           "score": 20
         },
@@ -11934,22 +11953,6 @@
         },
         {
           "value": "core.canonical_field_state @ services/sahool-platform/tests/test_canonical_field_state_wiring.py:84",
-          "score": 20
-        },
-        {
-          "value": "TASKDATA.XML @ services/sahool-platform/api/machinery_export.py:48",
-          "score": 20
-        },
-        {
-          "value": "TASKDATA.xml @ services/sahool-platform/api/routers/prescriptions.py:595",
-          "score": 20
-        },
-        {
-          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:441",
-          "score": 20
-        },
-        {
-          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:549",
           "score": 20
         }
       ],
@@ -12607,10 +12610,6 @@
           "score": 28
         },
         {
-          "value": "irrigation_runtime_orchestrator.py @ tests_v9/test_knowledge_providers_and_adoption.py:151",
-          "score": 12
-        },
-        {
           "value": "irrigation.maximum_safe_depth_mm_event @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:323",
           "score": 12
         },
@@ -12631,15 +12630,19 @@
           "score": 12
         },
         {
+          "value": "irrigation_runtime_orchestrator.py @ tests_v9/test_knowledge_providers_and_adoption.py:151",
+          "score": 12
+        },
+        {
           "value": "irrigation.maximum_safe_depth_mm_event @ shared/knowledge/irrigation_context.py:34",
           "score": 10
         },
         {
-          "value": "irrigation_recommendation.py @ services/sahool-platform/tests/test_irrigation_depletion_wiring_guard.py:13",
+          "value": "IrrigationDecisionCard.tsx @ frontend/src/hooks/useFieldIrrigationRecommendation.static.test.ts:11",
           "score": 8
         },
         {
-          "value": "IrrigationDecisionCard.tsx @ frontend/src/hooks/useFieldIrrigationRecommendation.static.test.ts:11",
+          "value": "irrigation_recommendation.py @ services/sahool-platform/tests/test_irrigation_depletion_wiring_guard.py:13",
           "score": 8
         },
         {
@@ -13188,7 +13191,7 @@
           ]
         },
         {
-          "path": "tests_v9/test_canonical_salinity_state.py",
+          "path": "tests_v9/test_canonical_salinity.py",
           "score": 14,
           "signals": [
             "path:salinity",
@@ -13196,7 +13199,7 @@
           ]
         },
         {
-          "path": "tests_v9/test_canonical_salinity.py",
+          "path": "tests_v9/test_canonical_salinity_state.py",
           "score": 14,
           "signals": [
             "path:salinity",
@@ -14051,7 +14054,7 @@
           ]
         },
         {
-          "path": "frontend/src/sections/maphub/RoleAwareMapSurface.tsx",
+          "path": "frontend/src/sections/TasksPage.tsx",
           "score": 8,
           "signals": [
             "content:Scouting",
@@ -14059,7 +14062,7 @@
           ]
         },
         {
-          "path": "frontend/src/sections/TasksPage.tsx",
+          "path": "frontend/src/sections/maphub/RoleAwareMapSurface.tsx",
           "score": 8,
           "signals": [
             "content:Scouting",
@@ -14288,6 +14291,14 @@
           ]
         },
         {
+          "path": "FIELDVIEW_SMART_DECK_PROFESSIONAL_INSPIRATION_20260704.md",
+          "score": 10,
+          "signals": [
+            "content:Scouting",
+            "content:scouting"
+          ]
+        },
+        {
           "path": "docs/audits/BRANCH_TRIAGE_REVIEW_20260718.md",
           "score": 10,
           "signals": [
@@ -14304,22 +14315,6 @@
           ]
         },
         {
-          "path": "FIELDVIEW_SMART_DECK_PROFESSIONAL_INSPIRATION_20260704.md",
-          "score": 10,
-          "signals": [
-            "content:Scouting",
-            "content:scouting"
-          ]
-        },
-        {
-          "path": "docs/history/UPLOADED_ZIPS_REVIEW.md",
-          "score": 8,
-          "signals": [
-            "content:Scouting",
-            "content:scouting"
-          ]
-        },
-        {
           "path": "FIELDVIEW_UI_WIDE_COMPLETION_20260704.md",
           "score": 8,
           "signals": [
@@ -14329,6 +14324,14 @@
         },
         {
           "path": "REMOTE_SENSING_RS6_RS7_IMPLEMENTATION_REPORT_20260715.md",
+          "score": 8,
+          "signals": [
+            "content:Scouting",
+            "content:scouting"
+          ]
+        },
+        {
+          "path": "docs/history/UPLOADED_ZIPS_REVIEW.md",
           "score": 8,
           "signals": [
             "content:Scouting",
@@ -16459,6 +16462,10 @@
           "score": 18
         },
         {
+          "value": "/v1/fields/analytics/geoparquet/export @ services/raster-service/routers/fields.py:723",
+          "score": 18
+        },
+        {
           "value": "/v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1350",
           "score": 18
         },
@@ -16520,10 +16527,6 @@
         },
         {
           "value": "/v1/fields/{field_id}/timeseries @ services/raster-service/routers/fields.py:1185",
-          "score": 18
-        },
-        {
-          "value": "/v1/fields/analytics/geoparquet/export @ services/raster-service/routers/fields.py:723",
           "score": 18
         },
         {
@@ -16815,6 +16818,10 @@
           "score": 9
         },
         {
+          "value": "P2_1_IMAGERY_AUTOMATION_RASTER_FACADE_REPORT.md @ services/sahool-platform/tests/test_p2_1_imagery_automation_raster_facade_guard.py:10",
+          "score": 8
+        },
+        {
           "value": "fields.py @ tests_v9/test_raster_assets_lifecycle_lineage_v29_9.py:29",
           "score": 8
         },
@@ -16824,10 +16831,6 @@
         },
         {
           "value": "imagery_automation.py @ tests_v9/test_raster_assets_lifecycle_lineage_v29_9.py:28",
-          "score": 8
-        },
-        {
-          "value": "P2_1_IMAGERY_AUTOMATION_RASTER_FACADE_REPORT.md @ services/sahool-platform/tests/test_p2_1_imagery_automation_raster_facade_guard.py:10",
           "score": 8
         }
       ],
@@ -16987,6 +16990,15 @@
           ]
         },
         {
+          "path": "tests/fixtures/evidence_lab/wiremock/mappings/earth_search_stac.json",
+          "score": 15,
+          "signals": [
+            "content:sentinel",
+            "path:stac",
+            "content:stac"
+          ]
+        },
+        {
           "path": "tests_v9/test_deferred_satellite_integration_v30_4.py",
           "score": 15,
           "signals": [
@@ -17001,15 +17013,6 @@
           "signals": [
             "content:cdse",
             "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
-          "path": "tests/fixtures/evidence_lab/wiremock/mappings/earth_search_stac.json",
-          "score": 15,
-          "signals": [
-            "content:sentinel",
-            "path:stac",
             "content:stac"
           ]
         },
@@ -17296,7 +17299,7 @@
           ]
         },
         {
-          "path": "docs/architecture/brain_deferral_baseline.json",
+          "path": "docs/architecture/LIVE_ACTIVATION_ENVIRONMENTS.md",
           "score": 16,
           "signals": [
             "content:cdse",
@@ -17305,7 +17308,7 @@
           ]
         },
         {
-          "path": "docs/architecture/LIVE_ACTIVATION_ENVIRONMENTS.md",
+          "path": "docs/architecture/brain_deferral_baseline.json",
           "score": 16,
           "signals": [
             "content:cdse",
@@ -17355,14 +17358,6 @@
           ]
         },
         {
-          "path": "docs/audits/RIV_THREE_CONTAINERS_FINAL_BOUNDARY_COMPLETION_20260712.md",
-          "score": 12,
-          "signals": [
-            "content:cdse",
-            "content:sentinel"
-          ]
-        },
-        {
           "path": "RASTER_MAIN_DECOMPOSITION_PHASE2_20260706.md",
           "score": 12,
           "signals": [
@@ -17371,8 +17366,24 @@
           ]
         },
         {
+          "path": "docs/audits/RIV_THREE_CONTAINERS_FINAL_BOUNDARY_COMPLETION_20260712.md",
+          "score": 12,
+          "signals": [
+            "content:cdse",
+            "content:sentinel"
+          ]
+        },
+        {
           "path": "scripts/ci/raster_main_decomposition_gate.py",
           "score": 12,
+          "signals": [
+            "content:cdse",
+            "content:stac"
+          ]
+        },
+        {
+          "path": "RASTER_MAIN_DECOMPOSITION_PHASE15_ROUTER_OBS_ANALYSIS_TERRAIN_SOIL_20260706.md",
+          "score": 10,
           "signals": [
             "content:cdse",
             "content:stac"
@@ -17396,8 +17407,8 @@
           ]
         },
         {
-          "path": "RASTER_MAIN_DECOMPOSITION_PHASE15_ROUTER_OBS_ANALYSIS_TERRAIN_SOIL_20260706.md",
-          "score": 10,
+          "path": "RASTER_MAIN_DECOMPOSITION_PHASE13_ROUTER_DIRECT_IMPORTS_20260706.md",
+          "score": 9,
           "signals": [
             "content:cdse",
             "content:stac"
@@ -17452,10 +17463,18 @@
           ]
         },
         {
-          "path": "RASTER_MAIN_DECOMPOSITION_PHASE13_ROUTER_DIRECT_IMPORTS_20260706.md",
-          "score": 9,
+          "path": "P2_1_IMAGERY_AUTOMATION_RASTER_FACADE_REPORT.md",
+          "score": 8,
           "signals": [
             "content:cdse",
+            "content:stac"
+          ]
+        },
+        {
+          "path": "docs/SAM2_DEPLOYMENT.md",
+          "score": 8,
+          "signals": [
+            "content:sentinel",
             "content:stac"
           ]
         },
@@ -17480,22 +17499,6 @@
           "score": 8,
           "signals": [
             "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
-          "path": "docs/SAM2_DEPLOYMENT.md",
-          "score": 8,
-          "signals": [
-            "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
-          "path": "P2_1_IMAGERY_AUTOMATION_RASTER_FACADE_REPORT.md",
-          "score": 8,
-          "signals": [
-            "content:cdse",
             "content:stac"
           ]
         },
@@ -18562,15 +18565,15 @@
           "score": 12
         },
         {
+          "value": "/v1/all-fields @ vegetation_real/indicators_real.py:485",
+          "score": 12
+        },
+        {
           "value": "/v1/all_fields @ services/vegetation-analysis-service/routers/analysis.py:144",
           "score": 12
         },
         {
           "value": "/v1/all_fields @ services/vegetation-analysis-service/test_production_truth_closure.py:25",
-          "score": 12
-        },
-        {
-          "value": "/v1/all-fields @ vegetation_real/indicators_real.py:485",
           "score": 12
         },
         {
@@ -18582,15 +18585,15 @@
           "score": 12
         },
         {
-          "value": "/v1/indicators/{field_id} @ vegetation_real/indicators_real.py:480",
-          "score": 12
-        },
-        {
           "value": "/v1/indicators/registry @ services/vegetation-analysis-service/routers/analysis.py:195",
           "score": 12
         },
         {
           "value": "/v1/indicators/registry/{name} @ services/vegetation-analysis-service/routers/analysis.py:202",
+          "score": 12
+        },
+        {
+          "value": "/v1/indicators/{field_id} @ vegetation_real/indicators_real.py:480",
           "score": 12
         },
         {
@@ -18988,6 +18991,14 @@
           "score": 24
         },
         {
+          "value": "MyFieldsPage.tsx @ frontend/src/sections/MapHubSatelliteDefault.static.test.ts:10",
+          "score": 12
+        },
+        {
+          "value": "SAHOOL-v8.0 @ migrations/init_v8.sql:64",
+          "score": 12
+        },
+        {
           "value": "canonical_field_state.v1 @ services/sahool-platform/core/field_digital_twin.py:69",
           "score": 12
         },
@@ -19057,46 +19068,6 @@
         },
         {
           "value": "crop_rotation.added @ services/sahool-platform/tests/test_event_replay.py:494",
-          "score": 12
-        },
-        {
-          "value": "field_create_wizard.dart @ mobile/sahool_app/lib/screens/fields_screen.dart:11",
-          "score": 12
-        },
-        {
-          "value": "field_season_state.v1 @ services/sahool-platform/api/field_season_projection.py:215",
-          "score": 12
-        },
-        {
-          "value": "field_season_state.v1 @ services/sahool-platform/tests/test_field_season_projection.py:87",
-          "score": 12
-        },
-        {
-          "value": "field_state.canonical @ services/sahool-platform/api/field_readiness.py:152",
-          "score": 12
-        },
-        {
-          "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:376",
-          "score": 12
-        },
-        {
-          "value": "field_state.canonical @ tests_v9/test_field_readiness.py:44",
-          "score": 12
-        },
-        {
-          "value": "field_state.canonical @ tests_v9/test_field_state_unification.py:152",
-          "score": 12
-        },
-        {
-          "value": "field_state.canonical @ tests_v9/test_field_state_unification.py:196",
-          "score": 12
-        },
-        {
-          "value": "field_state.canonical @ tests_v9/test_field_state_unification.py:223",
-          "score": 12
-        },
-        {
-          "value": "field_workspace_screen.dart @ mobile/sahool_app/lib/screens/field_create_wizard.dart:33",
           "score": 12
         },
         {
@@ -19185,6 +19156,46 @@
         },
         {
           "value": "field.updated @ services/sahool-platform/api/event_replay.py:332",
+          "score": 12
+        },
+        {
+          "value": "field_create_wizard.dart @ mobile/sahool_app/lib/screens/fields_screen.dart:11",
+          "score": 12
+        },
+        {
+          "value": "field_season_state.v1 @ services/sahool-platform/api/field_season_projection.py:215",
+          "score": 12
+        },
+        {
+          "value": "field_season_state.v1 @ services/sahool-platform/tests/test_field_season_projection.py:87",
+          "score": 12
+        },
+        {
+          "value": "field_state.canonical @ services/sahool-platform/api/field_readiness.py:152",
+          "score": 12
+        },
+        {
+          "value": "field_state.canonical @ services/sahool-platform/api/field_state_projection.py:376",
+          "score": 12
+        },
+        {
+          "value": "field_state.canonical @ tests_v9/test_field_readiness.py:44",
+          "score": 12
+        },
+        {
+          "value": "field_state.canonical @ tests_v9/test_field_state_unification.py:152",
+          "score": 12
+        },
+        {
+          "value": "field_state.canonical @ tests_v9/test_field_state_unification.py:196",
+          "score": 12
+        },
+        {
+          "value": "field_state.canonical @ tests_v9/test_field_state_unification.py:223",
+          "score": 12
+        },
+        {
+          "value": "field_workspace_screen.dart @ mobile/sahool_app/lib/screens/field_create_wizard.dart:33",
           "score": 12
         },
         {
@@ -19280,10 +19291,6 @@
           "score": 12
         },
         {
-          "value": "MyFieldsPage.tsx @ frontend/src/sections/MapHubSatelliteDefault.static.test.ts:10",
-          "score": 12
-        },
-        {
           "value": "operation.irrigation @ services/sahool-platform/api/yield_heuristics.py:190",
           "score": 12
         },
@@ -19366,13 +19373,19 @@
         {
           "value": "operation.irrigation.start @ services/sahool-platform/tests/test_yield_heuristics.py:134",
           "score": 12
-        },
-        {
-          "value": "SAHOOL-v8.0 @ migrations/init_v8.sql:64",
-          "score": 12
         }
       ],
       "web": [
+        {
+          "path": "frontend/src/components/NDVIGauge.tsx",
+          "score": 28,
+          "signals": [
+            "path:NDVI",
+            "content:NDVI",
+            "path:ndvi",
+            "content:ndvi"
+          ]
+        },
         {
           "path": "frontend/src/components/fieldview/NdviUnavailableNotice.test.tsx",
           "score": 28,
@@ -19385,16 +19398,6 @@
         },
         {
           "path": "frontend/src/components/fieldview/NdviUnavailableNotice.tsx",
-          "score": 28,
-          "signals": [
-            "path:NDVI",
-            "content:NDVI",
-            "path:ndvi",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "frontend/src/components/NDVIGauge.tsx",
           "score": 28,
           "signals": [
             "path:NDVI",
@@ -20388,7 +20391,7 @@
           ]
         },
         {
-          "path": "services/sahool-platform/tests/test_regional_bulletin_route.py",
+          "path": "services/sahool-platform/tests/test_regional_bulletin.py",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -20396,7 +20399,7 @@
           ]
         },
         {
-          "path": "services/sahool-platform/tests/test_regional_bulletin.py",
+          "path": "services/sahool-platform/tests/test_regional_bulletin_route.py",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -20524,6 +20527,22 @@
           ]
         },
         {
+          "path": "tests/runtime/test_phase9_10_event_drift_hardening.py",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "tests/test_real_data.py",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "tests_v9/test_advisor_context_binding.py",
           "score": 12,
           "signals": [
@@ -20626,22 +20645,6 @@
             "content:NDVI",
             "content:ndvi"
           ]
-        },
-        {
-          "path": "tests/runtime/test_phase9_10_event_drift_hardening.py",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "tests/test_real_data.py",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
         }
       ],
       "governance": [],
@@ -20697,6 +20700,54 @@
           ]
         },
         {
+          "path": "FIELD_MANAGEMENT_CLIKCTHROUGH_CDSE_FIX_REPORT_20260629.md",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "FORENSIC_REVIEW_FIX_REPORT_20260626.md",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "P2_2_FIELD_AI_CONTEXT_RASTER_FACADE_REPORT.md",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "README.md",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "V59_1_TO_V62_1_AGRONOMY_ADAPTERS_REPORT_20260701.md",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "WEATHER_WIND_TILE_OVERLAY_ACTIVATION_REPORT_20260629.md",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "bots/telegram/main.py",
           "score": 12,
           "signals": [
@@ -20737,7 +20788,23 @@
           ]
         },
         {
-          "path": "docs/architecture/raster_boundary_allowlist.json",
+          "path": "docs/GROWTH_NARRATIVE.md",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "docs/UI_DESIGN_SPEC_FIELDAPP.md",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "docs/UI_DESIGN_SPEC_UNIFIED.md",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -20746,6 +20813,14 @@
         },
         {
           "path": "docs/architecture/RASTER_FACADE_CLEANUP_CONTRACT.md",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "docs/architecture/raster_boundary_allowlist.json",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -20833,14 +20908,6 @@
           ]
         },
         {
-          "path": "docs/GROWTH_NARRATIVE.md",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
           "path": "docs/history/COMPETITIVE_ANALYSIS.md",
           "score": 12,
           "signals": [
@@ -20905,55 +20972,7 @@
           ]
         },
         {
-          "path": "docs/UI_DESIGN_SPEC_FIELDAPP.md",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "docs/UI_DESIGN_SPEC_UNIFIED.md",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "FIELD_MANAGEMENT_CLIKCTHROUGH_CDSE_FIX_REPORT_20260629.md",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "FORENSIC_REVIEW_FIX_REPORT_20260626.md",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "P2_2_FIELD_AI_CONTEXT_RASTER_FACADE_REPORT.md",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
           "path": "random_forest/agb_model.py",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "README.md",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -21041,14 +21060,6 @@
           ]
         },
         {
-          "path": "V59_1_TO_V62_1_AGRONOMY_ADAPTERS_REPORT_20260701.md",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
           "path": "vegetation_real/indicators_real.py",
           "score": 12,
           "signals": [
@@ -21065,8 +21076,32 @@
           ]
         },
         {
-          "path": "WEATHER_WIND_TILE_OVERLAY_ACTIVATION_REPORT_20260629.md",
-          "score": 12,
+          "path": "MAPHUB_SATELLITE_DEFAULT_SCALE_LEGEND_FIX_8BF142A_20260630.md",
+          "score": 10,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "WEATHER_WIND_GRID_TILE_LAYER_FINAL_REPORT_20260629.md",
+          "score": 10,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "docs/CRITICAL_REVIEW_ROUND3_2026-06.md",
+          "score": 10,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "docs/FIELD_WORKSPACE.md",
+          "score": 10,
           "signals": [
             "content:NDVI",
             "content:ndvi"
@@ -21090,22 +21125,6 @@
         },
         {
           "path": "docs/audits/GOVERNANCE_EXPLAINABILITY_RESPONSE.md",
-          "score": 10,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "docs/CRITICAL_REVIEW_ROUND3_2026-06.md",
-          "score": 10,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "docs/FIELD_WORKSPACE.md",
           "score": 10,
           "signals": [
             "content:NDVI",
@@ -21145,14 +21164,6 @@
           ]
         },
         {
-          "path": "MAPHUB_SATELLITE_DEFAULT_SCALE_LEGEND_FIX_8BF142A_20260630.md",
-          "score": 10,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
           "path": "skills/sahool-gis/PIVOT_SEGMENTATION.md",
           "score": 10,
           "signals": [
@@ -21161,8 +21172,40 @@
           ]
         },
         {
-          "path": "WEATHER_WIND_GRID_TILE_LAYER_FINAL_REPORT_20260629.md",
-          "score": 10,
+          "path": "P2_RASTER_FACADE_CLEANUP_REPORT.md",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "RASTER_PIXEL_EDGE_CASE_FIX_REPORT_20260710.md",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "VEGETATION_CONTAINER_REVIEW_AND_FIX_REPORT_20260709.md",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "WEATHER_WIND_METEOBLUE_STYLE_TILE_REPORT_20260629.md",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "docs/UNIFIED_SETUP.md",
+          "score": 8,
           "signals": [
             "content:NDVI",
             "content:ndvi"
@@ -21241,30 +21284,6 @@
           ]
         },
         {
-          "path": "docs/UNIFIED_SETUP.md",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "P2_RASTER_FACADE_CLEANUP_REPORT.md",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "RASTER_PIXEL_EDGE_CASE_FIX_REPORT_20260710.md",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
           "path": "sahool_ai/research/README.md",
           "score": 8,
           "signals": [
@@ -21311,28 +21330,17 @@
             "content:NDVI",
             "content:ndvi"
           ]
-        },
-        {
-          "path": "VEGETATION_CONTAINER_REVIEW_AND_FIX_REPORT_20260709.md",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "WEATHER_WIND_METEOBLUE_STYLE_TILE_REPORT_20260629.md",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
         }
       ],
       "ambiguous": [],
       "static_evidence_only": true,
       "runtime_verified": false,
       "production_certified": false,
+      "evidence_truncated": {
+        "backend": 23,
+        "events": 38,
+        "tests": 72
+      },
       "evidence_counts": {
         "backend": 100,
         "routes": 87,
@@ -21591,10 +21599,6 @@
           "score": 12
         },
         {
-          "value": "field_state_projection.py @ tests_v9/test_spectral_decision_link_is_bound_to_the_chain.py:33",
-          "score": 12
-        },
-        {
           "value": "field_state.canonical @ services/sahool-platform/api/canonical_water_stress.py:174",
           "score": 12
         },
@@ -21616,6 +21620,10 @@
         },
         {
           "value": "field_state.canonical @ tests_v9/test_field_state_unification.py:223",
+          "score": 12
+        },
+        {
+          "value": "field_state_projection.py @ tests_v9/test_spectral_decision_link_is_bound_to_the_chain.py:33",
           "score": 12
         },
         {
@@ -21993,6 +22001,10 @@
       ],
       "routes": [
         {
+          "value": "/v1/fields/analytics/geoparquet/export @ services/raster-service/routers/fields.py:723",
+          "score": 18
+        },
+        {
           "value": "/v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1350",
           "score": 18
         },
@@ -22054,10 +22066,6 @@
         },
         {
           "value": "/v1/fields/{field_id}/timeseries @ services/raster-service/routers/fields.py:1185",
-          "score": 18
-        },
-        {
-          "value": "/v1/fields/analytics/geoparquet/export @ services/raster-service/routers/fields.py:723",
           "score": 18
         },
         {
@@ -22860,6 +22868,10 @@
           "score": 15
         },
         {
+          "value": "/v1/fields/analytics/geoparquet/export @ services/raster-service/routers/fields.py:723",
+          "score": 15
+        },
+        {
           "value": "/v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1350",
           "score": 15
         },
@@ -22924,10 +22936,6 @@
           "score": 15
         },
         {
-          "value": "/v1/fields/analytics/geoparquet/export @ services/raster-service/routers/fields.py:723",
-          "score": 15
-        },
-        {
           "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:91",
           "score": 15
         },
@@ -22979,11 +22987,11 @@
           "score": 15
         },
         {
-          "value": "availableImageryDates.some @ frontend/src/components/maphub/PersistedCogTiles.static.test.ts:18",
+          "value": "FieldIndicatorMap.tsx @ tests_v9/test_frontend_tilejson_date_contract_guard.py:23",
           "score": 14
         },
         {
-          "value": "FieldIndicatorMap.tsx @ tests_v9/test_frontend_tilejson_date_contract_guard.py:23",
+          "value": "availableImageryDates.some @ frontend/src/components/maphub/PersistedCogTiles.static.test.ts:18",
           "score": 14
         },
         {
@@ -23228,15 +23236,6 @@
           ]
         },
         {
-          "path": "docs/MAP_RENDERING_BEST_PRACTICES_2026-06.md",
-          "score": 15,
-          "signals": [
-            "content:cloud optimized geotiff",
-            "content:cog",
-            "content:tilejson"
-          ]
-        },
-        {
           "path": "GIS_PHASE4_RUNTIME_COMPLETION_20260626.md",
           "score": 15,
           "signals": [
@@ -23251,6 +23250,15 @@
           "signals": [
             "path:raster tile",
             "content:raster tile",
+            "content:tilejson"
+          ]
+        },
+        {
+          "path": "docs/MAP_RENDERING_BEST_PRACTICES_2026-06.md",
+          "score": 15,
+          "signals": [
+            "content:cloud optimized geotiff",
+            "content:cog",
             "content:tilejson"
           ]
         },
@@ -23313,6 +23321,14 @@
           ]
         },
         {
+          "path": "PHASE10_RELIABILITY_LOAD_CHAOS_RECOVERY_REPORT_20260626.md",
+          "score": 10,
+          "signals": [
+            "content:raster tile",
+            "content:tilejson"
+          ]
+        },
+        {
           "path": "config/service_feature_ui_contracts.json",
           "score": 10,
           "signals": [
@@ -23321,11 +23337,11 @@
           ]
         },
         {
-          "path": "PHASE10_RELIABILITY_LOAD_CHAOS_RECOVERY_REPORT_20260626.md",
-          "score": 10,
+          "path": "FORENSIC_VERIFICATION_REPORT_20260626.md",
+          "score": 9,
           "signals": [
-            "content:raster tile",
-            "content:tilejson"
+            "content:cog",
+            "content:raster tile"
           ]
         },
         {
@@ -23354,14 +23370,6 @@
           ]
         },
         {
-          "path": "FORENSIC_VERIFICATION_REPORT_20260626.md",
-          "score": 9,
-          "signals": [
-            "content:cog",
-            "content:raster tile"
-          ]
-        },
-        {
           "path": "scripts/ci/raster_main_decomposition_gate.py",
           "score": 9,
           "signals": [
@@ -23372,6 +23380,14 @@
         {
           "path": "shared/gis/phase5_runtime.py",
           "score": 9,
+          "signals": [
+            "content:cog",
+            "content:tilejson"
+          ]
+        },
+        {
+          "path": "RASTER_MAP_ROOT_CAUSE_DEEP_SCAN_REPORT_20260626.md",
+          "score": 8,
           "signals": [
             "content:cog",
             "content:tilejson"
@@ -23390,14 +23406,6 @@
           "score": 8,
           "signals": [
             "content:raster tile",
-            "content:tilejson"
-          ]
-        },
-        {
-          "path": "RASTER_MAP_ROOT_CAUSE_DEEP_SCAN_REPORT_20260626.md",
-          "score": 8,
-          "signals": [
-            "content:cog",
             "content:tilejson"
           ]
         }
@@ -23573,6 +23581,10 @@
           "score": 10
         },
         {
+          "value": "/api/v1/fields/boundary-graph/rebuild @ services/sahool-platform/api/routers/boundaries.py:243",
+          "score": 9
+        },
+        {
           "value": "/api/v1/fields/{field_id}/boundary-graph @ services/sahool-platform/api/routers/boundaries.py:264",
           "score": 9
         },
@@ -23586,10 +23598,6 @@
         },
         {
           "value": "/api/v1/fields/{field_id}/boundary/score @ services/sahool-platform/api/routers/boundaries.py:78",
-          "score": 9
-        },
-        {
-          "value": "/api/v1/fields/boundary-graph/rebuild @ services/sahool-platform/api/routers/boundaries.py:243",
           "score": 9
         },
         {
@@ -24049,15 +24057,6 @@
           ]
         },
         {
-          "path": "migrations/v9_rls_force_all.sql",
-          "score": 18,
-          "signals": [
-            "path:rls",
-            "content:rls",
-            "content:row level security"
-          ]
-        },
-        {
           "path": "migrations/v92_offline_pending_ops.sql",
           "score": 18,
           "signals": [
@@ -24065,6 +24064,15 @@
             "content:rls",
             "content:row level security",
             "content:tenant isolation"
+          ]
+        },
+        {
+          "path": "migrations/v9_rls_force_all.sql",
+          "score": 18,
+          "signals": [
+            "path:rls",
+            "content:rls",
+            "content:row level security"
           ]
         },
         {
@@ -24520,6 +24528,14 @@
           ]
         },
         {
+          "path": "tests/security/test_phase23_rls_preserve_using.py",
+          "score": 14,
+          "signals": [
+            "path:rls",
+            "content:rls"
+          ]
+        },
+        {
           "path": "tests_v9/test_calibration_audit_migration.py",
           "score": 14,
           "signals": [
@@ -24564,8 +24580,17 @@
           ]
         },
         {
-          "path": "tests/security/test_phase23_rls_preserve_using.py",
-          "score": 14,
+          "path": "tests/integration/irrigation/test_v195_postgres.py",
+          "score": 13,
+          "signals": [
+            "content:rls",
+            "content:row level security",
+            "content:tenant isolation"
+          ]
+        },
+        {
+          "path": "tests/security/test_phase22_rls_with_check_backfill.py",
+          "score": 13,
           "signals": [
             "path:rls",
             "content:rls"
@@ -24614,23 +24639,6 @@
             "content:rls",
             "content:row level security",
             "content:tenant isolation"
-          ]
-        },
-        {
-          "path": "tests/integration/irrigation/test_v195_postgres.py",
-          "score": 13,
-          "signals": [
-            "content:rls",
-            "content:row level security",
-            "content:tenant isolation"
-          ]
-        },
-        {
-          "path": "tests/security/test_phase22_rls_with_check_backfill.py",
-          "score": 13,
-          "signals": [
-            "path:rls",
-            "content:rls"
           ]
         },
         {
@@ -24696,6 +24704,23 @@
           ]
         },
         {
+          "path": "tests/irrigation/test_irrigation_v195_capacity_reservation_core.py",
+          "score": 11,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls",
+            "content:row level security"
+          ]
+        },
+        {
+          "path": "tests/security/test_fii_rls_role_gate.py",
+          "score": 11,
+          "signals": [
+            "path:rls",
+            "content:rls"
+          ]
+        },
+        {
           "path": "tests_v9/test_actuator_idempotency.py",
           "score": 11,
           "signals": [
@@ -24727,23 +24752,6 @@
           "signals": [
             "content:rls",
             "content:row level security"
-          ]
-        },
-        {
-          "path": "tests/irrigation/test_irrigation_v195_capacity_reservation_core.py",
-          "score": 11,
-          "signals": [
-            "content:Tenant RLS",
-            "content:rls",
-            "content:row level security"
-          ]
-        },
-        {
-          "path": "tests/security/test_fii_rls_role_gate.py",
-          "score": 11,
-          "signals": [
-            "path:rls",
-            "content:rls"
           ]
         },
         {
@@ -24811,6 +24819,15 @@
           ]
         },
         {
+          "path": "tests/irrigation/test_irrigation_v196_target_binding.py",
+          "score": 9,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls",
+            "content:row level security"
+          ]
+        },
+        {
           "path": "tests_v9/test_irrx1_pcert_real_postgres.py",
           "score": 9,
           "signals": [
@@ -24854,15 +24871,6 @@
           "path": "tests_v9/test_v198_external_ingest_sources_static.py",
           "score": 9,
           "signals": [
-            "content:rls",
-            "content:row level security"
-          ]
-        },
-        {
-          "path": "tests/irrigation/test_irrigation_v196_target_binding.py",
-          "score": 9,
-          "signals": [
-            "content:Tenant RLS",
             "content:rls",
             "content:row level security"
           ]
@@ -24914,21 +24922,21 @@
           ]
         },
         {
-          "path": "docs/history/TENANT_ISOLATION_VERIFICATION.md",
-          "score": 20,
-          "signals": [
-            "content:rls",
-            "path:tenant isolation",
-            "content:tenant isolation"
-          ]
-        },
-        {
           "path": "PHASE22_RLS_WITH_CHECK_TENANT_SESSION_HARDENING_REPORT_20260626.md",
           "score": 20,
           "signals": [
             "content:Tenant RLS",
             "path:rls",
             "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
+          "path": "docs/history/TENANT_ISOLATION_VERIFICATION.md",
+          "score": 20,
+          "signals": [
+            "content:rls",
+            "path:tenant isolation",
             "content:tenant isolation"
           ]
         },
@@ -24940,7 +24948,7 @@
           ]
         },
         {
-          "path": "scripts_v9/README_RLS_TESTING.md",
+          "path": "scripts/architecture/s4_field_rls_receipt_guard.py",
           "score": 18,
           "signals": [
             "path:rls",
@@ -24949,7 +24957,7 @@
           ]
         },
         {
-          "path": "scripts/architecture/s4_field_rls_receipt_guard.py",
+          "path": "scripts_v9/README_RLS_TESTING.md",
           "score": 18,
           "signals": [
             "path:rls",
@@ -25125,6 +25133,14 @@
           ]
         },
         {
+          "path": "PLATFORM_MAIN_SUBINVENTORY_20260709.md",
+          "score": 11,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls"
+          ]
+        },
+        {
           "path": "docs/architecture/live_pg_findings.md",
           "score": 11,
           "signals": [
@@ -25167,14 +25183,6 @@
           ]
         },
         {
-          "path": "PLATFORM_MAIN_SUBINVENTORY_20260709.md",
-          "score": 11,
-          "signals": [
-            "content:Tenant RLS",
-            "content:rls"
-          ]
-        },
-        {
           "path": "scripts/ci/agronomic_lineage_integrity_gate.py",
           "score": 11,
           "signals": [
@@ -25189,6 +25197,14 @@
           "signals": [
             "content:Tenant RLS",
             "content:rls"
+          ]
+        },
+        {
+          "path": "PHASE9_10_STRENGTHENING_REPORT_20260626.md",
+          "score": 10,
+          "signals": [
+            "content:rls",
+            "content:row level security"
           ]
         },
         {
@@ -25245,16 +25261,16 @@
           ]
         },
         {
-          "path": "PHASE9_10_STRENGTHENING_REPORT_20260626.md",
+          "path": "scripts_v9/runtime_truth_report.py",
           "score": 10,
           "signals": [
             "content:rls",
-            "content:row level security"
+            "content:tenant isolation"
           ]
         },
         {
-          "path": "scripts_v9/runtime_truth_report.py",
-          "score": 10,
+          "path": "V49_5_FIELD_MEMORY_EVIDENCE_HARDENING_REPORT_20260701.md",
+          "score": 9,
           "signals": [
             "content:rls",
             "content:tenant isolation"
@@ -25274,6 +25290,14 @@
           "signals": [
             "content:rls",
             "content:tenant isolation"
+          ]
+        },
+        {
+          "path": "docs/UNIFIED_SETUP.md",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:row level security"
           ]
         },
         {
@@ -25333,14 +25357,6 @@
           ]
         },
         {
-          "path": "docs/UNIFIED_SETUP.md",
-          "score": 9,
-          "signals": [
-            "content:rls",
-            "content:row level security"
-          ]
-        },
-        {
           "path": "scripts/ci/irrigation_convergence_guard.py",
           "score": 9,
           "signals": [
@@ -25358,19 +25374,19 @@
           ]
         },
         {
-          "path": "V49_5_FIELD_MEMORY_EVIDENCE_HARDENING_REPORT_20260701.md",
-          "score": 9,
-          "signals": [
-            "content:rls",
-            "content:tenant isolation"
-          ]
-        },
-        {
           "path": "agent-memory/SCHEMA_FACTS.md",
           "score": 8,
           "signals": [
             "content:rls",
             "content:row level security"
+          ]
+        },
+        {
+          "path": "docs/LIVE_WIRING_V49.md",
+          "score": 8,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls"
           ]
         },
         {
@@ -25427,14 +25443,6 @@
           "signals": [
             "content:rls",
             "content:tenant isolation"
-          ]
-        },
-        {
-          "path": "docs/LIVE_WIRING_V49.md",
-          "score": 8,
-          "signals": [
-            "content:Tenant RLS",
-            "content:rls"
           ]
         },
         {
@@ -25498,6 +25506,9 @@
       "static_evidence_only": true,
       "runtime_verified": false,
       "production_certified": false,
+      "evidence_truncated": {
+        "database": 743
+      },
       "evidence_counts": {
         "backend": 13,
         "routes": 29,
@@ -26250,6 +26261,15 @@
           ]
         },
         {
+          "path": "RUNBOOK.md",
+          "score": 15,
+          "signals": [
+            "content:MFA",
+            "content:mfa",
+            "content:totp"
+          ]
+        },
+        {
           "path": "docs/architecture/db_ownership.yml",
           "score": 15,
           "signals": [
@@ -26277,16 +26297,7 @@
           ]
         },
         {
-          "path": "RUNBOOK.md",
-          "score": 15,
-          "signals": [
-            "content:MFA",
-            "content:mfa",
-            "content:totp"
-          ]
-        },
-        {
-          "path": "config/endpoint_ui_coverage.json",
+          "path": "CONTAINER_FLEET_REVIEW_AND_FIX_REPORT_20260709.md",
           "score": 12,
           "signals": [
             "content:MFA",
@@ -26294,7 +26305,7 @@
           ]
         },
         {
-          "path": "CONTAINER_FLEET_REVIEW_AND_FIX_REPORT_20260709.md",
+          "path": "config/endpoint_ui_coverage.json",
           "score": 12,
           "signals": [
             "content:MFA",
@@ -26688,14 +26699,6 @@
       ],
       "events": [
         {
-          "value": "decision_record.py @ services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py:17",
-          "score": 14
-        },
-        {
-          "value": "decision_record.py @ services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py:15",
-          "score": 14
-        },
-        {
           "value": "DECISION_SERVICE_SOR_CUTOVER_READINESS.md @ services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py:16",
           "score": 14
         },
@@ -26721,6 +26724,14 @@
         },
         {
           "value": "DECISION_SERVICE_SOR_STAGING_PROBE_RUNBOOK.md @ services/sahool-platform/tests/test_p0_4_decision_sor_staging_probe_guard.py:12",
+          "score": 14
+        },
+        {
+          "value": "decision_record.py @ services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py:17",
+          "score": 14
+        },
+        {
+          "value": "decision_record.py @ services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py:15",
           "score": 14
         },
         {
@@ -26876,10 +26887,6 @@
           "score": 12
         },
         {
-          "value": "s5_decision_live_closure_receipt_guard.py @ tests_v9/test_s5_live_closure_receipt_collector.py:41",
-          "score": 11
-        },
-        {
           "value": "s5_decision_live_closure_receipt.py @ tests_v9/test_s5_live_closure_receipt_collector.py:251",
           "score": 11
         },
@@ -26893,6 +26900,10 @@
         },
         {
           "value": "s5_decision_live_closure_receipt.py @ tests_v9/test_s5_live_closure_receipt_collector.py:40",
+          "score": 11
+        },
+        {
+          "value": "s5_decision_live_closure_receipt_guard.py @ tests_v9/test_s5_live_closure_receipt_collector.py:41",
           "score": 11
         }
       ],
@@ -27398,6 +27409,14 @@
           "score": 12
         },
         {
+          "value": "/v1/decisions/record @ services/decision-service/main.py:618",
+          "score": 12
+        },
+        {
+          "value": "/v1/decisions/review-queue @ services/decision-service/main.py:684",
+          "score": 12
+        },
+        {
           "value": "/v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1106",
           "score": 12
         },
@@ -27411,14 +27430,6 @@
         },
         {
           "value": "/v1/decisions/{decision_id}/review @ services/decision-service/main.py:720",
-          "score": 12
-        },
-        {
-          "value": "/v1/decisions/record @ services/decision-service/main.py:618",
-          "score": 12
-        },
-        {
-          "value": "/v1/decisions/review-queue @ services/decision-service/main.py:684",
           "score": 12
         },
         {
@@ -27446,6 +27457,10 @@
           "score": 12
         },
         {
+          "value": "/v1/execution-requests/recovery @ services/decision-service/main.py:1779",
+          "score": 12
+        },
+        {
           "value": "/v1/execution-requests/{execution_request_id}/claim @ services/decision-service/main.py:1801",
           "score": 12
         },
@@ -27455,10 +27470,6 @@
         },
         {
           "value": "/v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:1879",
-          "score": 12
-        },
-        {
-          "value": "/v1/execution-requests/recovery @ services/decision-service/main.py:1779",
           "score": 12
         },
         {
@@ -27582,15 +27593,15 @@
           "score": 12
         },
         {
-          "value": "/v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:1937",
-          "score": 12
-        },
-        {
           "value": "/v1/outcomes/reconciled @ services/decision-service/main.py:1070",
           "score": 12
         },
         {
           "value": "/v1/outcomes/record @ services/decision-service/main.py:926",
+          "score": 12
+        },
+        {
+          "value": "/v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:1937",
           "score": 12
         },
         {
@@ -28474,6 +28485,10 @@
       ],
       "events": [
         {
+          "value": "SoilSamplingPlannerPanel.tsx @ frontend/src/components/maphub/SoilSamplingPlannerPanel.static.test.ts:8",
+          "score": 15
+        },
+        {
           "value": "soil_render.py @ tests_v9/test_soil_layer_v31_7.py:19",
           "score": 15
         },
@@ -28483,10 +28498,6 @@
         },
         {
           "value": "soil_zones.py @ tests_v9/test_soil_layer_v31_7.py:21",
-          "score": 15
-        },
-        {
-          "value": "SoilSamplingPlannerPanel.tsx @ frontend/src/components/maphub/SoilSamplingPlannerPanel.static.test.ts:8",
           "score": 15
         },
         {
@@ -28715,7 +28726,7 @@
           ]
         },
         {
-          "path": "config/endpoint_ui_coverage.json",
+          "path": "V60_PRODUCTIVITY_ZONES_IMPLEMENTATION_REPORT_20260701.md",
           "score": 15,
           "signals": [
             "content:Soil sampling",
@@ -28724,7 +28735,7 @@
           ]
         },
         {
-          "path": "V60_PRODUCTIVITY_ZONES_IMPLEMENTATION_REPORT_20260701.md",
+          "path": "config/endpoint_ui_coverage.json",
           "score": 15,
           "signals": [
             "content:Soil sampling",
@@ -28735,6 +28746,15 @@
         {
           "path": "V61_MAIN_SYNC_MERGE_REPORT_20260701.md",
           "score": 14,
+          "signals": [
+            "content:Soil sampling",
+            "content:sampling plan",
+            "content:soil sampling"
+          ]
+        },
+        {
+          "path": "V62_VRA_PRESCRIPTION_ENGINE_IMPLEMENTATION_REPORT_20260701.md",
+          "score": 12,
           "signals": [
             "content:Soil sampling",
             "content:sampling plan",
@@ -28759,8 +28779,8 @@
           ]
         },
         {
-          "path": "V62_VRA_PRESCRIPTION_ENGINE_IMPLEMENTATION_REPORT_20260701.md",
-          "score": 12,
+          "path": "V49_5_FIELD_MEMORY_EVIDENCE_HARDENING_REPORT_20260701.md",
+          "score": 11,
           "signals": [
             "content:Soil sampling",
             "content:sampling plan",
@@ -28777,11 +28797,10 @@
           ]
         },
         {
-          "path": "V49_5_FIELD_MEMORY_EVIDENCE_HARDENING_REPORT_20260701.md",
-          "score": 11,
+          "path": "V59_1_TO_V62_1_AGRONOMY_ADAPTERS_REPORT_20260701.md",
+          "score": 10,
           "signals": [
             "content:Soil sampling",
-            "content:sampling plan",
             "content:soil sampling"
           ]
         },
@@ -28795,14 +28814,6 @@
         },
         {
           "path": "docs/api/UI_DEBT_MAP.md",
-          "score": 10,
-          "signals": [
-            "content:Soil sampling",
-            "content:soil sampling"
-          ]
-        },
-        {
-          "path": "V59_1_TO_V62_1_AGRONOMY_ADAPTERS_REPORT_20260701.md",
           "score": 10,
           "signals": [
             "content:Soil sampling",
@@ -29770,14 +29781,6 @@
           "score": 18
         },
         {
-          "value": "weather_runtime.py @ scripts/ci/weather_service_real_contract_gate.py:46",
-          "score": 18
-        },
-        {
-          "value": "weather_service_client.py @ scripts/ci/weather_service_real_contract_gate.py:78",
-          "score": 18
-        },
-        {
           "value": "weather.forecast @ tests_v9/test_tool_contracts.py:119",
           "score": 18
         },
@@ -29822,6 +29825,14 @@
           "score": 18
         },
         {
+          "value": "weather_runtime.py @ scripts/ci/weather_service_real_contract_gate.py:46",
+          "score": 18
+        },
+        {
+          "value": "weather_service_client.py @ scripts/ci/weather_service_real_contract_gate.py:78",
+          "score": 18
+        },
+        {
           "value": "weather.forecast @ services/supervisor-agent/tool_contracts.py:461",
           "score": 16
         },
@@ -29862,7 +29873,7 @@
           "score": 14
         },
         {
-          "value": "field_intelligence_adapters.py @ services/sahool-platform/tests/test_p0_weather_service_real_contract_guard.py:24",
+          "value": "WEATHER_OWNERSHIP_CONTRACT.md @ services/sahool-platform/tests/test_p3_4_platform_weather_facade_guard.py:10",
           "score": 13
         },
         {
@@ -29870,7 +29881,11 @@
           "score": 13
         },
         {
-          "value": "WEATHER_OWNERSHIP_CONTRACT.md @ services/sahool-platform/tests/test_p3_4_platform_weather_facade_guard.py:10",
+          "value": "field_intelligence_adapters.py @ services/sahool-platform/tests/test_p0_weather_service_real_contract_guard.py:24",
+          "score": 13
+        },
+        {
+          "value": "weather.py @ services/sahool-platform/tests/test_p3_4_platform_weather_facade_guard.py:8",
           "score": 13
         },
         {
@@ -29882,15 +29897,7 @@
           "score": 13
         },
         {
-          "value": "weather.py @ services/sahool-platform/tests/test_p3_4_platform_weather_facade_guard.py:8",
-          "score": 13
-        },
-        {
           "value": "field.polygon_invalid @ tests_v9/test_v13_refinements.py:207",
-          "score": 12
-        },
-        {
-          "value": "sahool_voice.mp3 @ bots/telegram/main.py:204",
           "score": 12
         },
         {
@@ -29907,6 +29914,10 @@
         },
         {
           "value": "sahool.weather.forecast.updated @ tests_v9/test_weather_polygon_worker.py:36",
+          "score": 12
+        },
+        {
+          "value": "sahool_voice.mp3 @ bots/telegram/main.py:204",
           "score": 12
         },
         {
@@ -29966,15 +29977,15 @@
           "score": 9
         },
         {
-          "value": "sahool.weather_automation @ services/sahool-platform/api/weather_automation.py:26",
-          "score": 9
-        },
-        {
           "value": "sahool.weather.field.overlay.completed @ event_publish_contracts.yaml:76",
           "score": 9
         },
         {
           "value": "sahool.weather.forecast.updated @ event_publish_contracts.yaml:61",
+          "score": 9
+        },
+        {
+          "value": "sahool.weather_automation @ services/sahool-platform/api/weather_automation.py:26",
           "score": 9
         },
         {
@@ -30140,6 +30151,14 @@
           ]
         },
         {
+          "path": "tests/fixtures/evidence_lab/wiremock/mappings/open_meteo_forecast.json",
+          "score": 12,
+          "signals": [
+            "path:forecast",
+            "content:forecast"
+          ]
+        },
+        {
           "path": "tests_v9/test_canonical_water_state_mpc.py",
           "score": 12,
           "signals": [
@@ -30164,14 +30183,6 @@
             "content:Weather forecast",
             "content:forecast",
             "content:weather forecast"
-          ]
-        },
-        {
-          "path": "tests/fixtures/evidence_lab/wiremock/mappings/open_meteo_forecast.json",
-          "score": 12,
-          "signals": [
-            "path:forecast",
-            "content:forecast"
           ]
         },
         {
@@ -30295,7 +30306,7 @@
           ]
         },
         {
-          "path": "docs/history/ZONE_SAMPLING_RESEARCH.md",
+          "path": "SAHOOL_PRODUCTION_GAP_REPORT_v1.md",
           "score": 16,
           "signals": [
             "content:Weather forecast",
@@ -30304,7 +30315,7 @@
           ]
         },
         {
-          "path": "SAHOOL_PRODUCTION_GAP_REPORT_v1.md",
+          "path": "docs/history/ZONE_SAMPLING_RESEARCH.md",
           "score": 16,
           "signals": [
             "content:Weather forecast",
@@ -30367,6 +30378,15 @@
           ]
         },
         {
+          "path": "P3_4_PLATFORM_WEATHER_FACADE_REPORT.md",
+          "score": 9,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
           "path": "agent-memory/FACTS.md",
           "score": 9,
           "signals": [
@@ -30385,7 +30405,7 @@
           ]
         },
         {
-          "path": "docs/api/ROUTE_AUTH_MATRIX.md",
+          "path": "docs/BEST_PRACTICES_BENCHMARK_2026-06.md",
           "score": 9,
           "signals": [
             "content:Weather forecast",
@@ -30394,7 +30414,7 @@
           ]
         },
         {
-          "path": "docs/BEST_PRACTICES_BENCHMARK_2026-06.md",
+          "path": "docs/api/ROUTE_AUTH_MATRIX.md",
           "score": 9,
           "signals": [
             "content:Weather forecast",
@@ -30413,15 +30433,6 @@
         },
         {
           "path": "event_publish_contracts.yaml",
-          "score": 9,
-          "signals": [
-            "content:Weather forecast",
-            "content:forecast",
-            "content:weather forecast"
-          ]
-        },
-        {
-          "path": "P3_4_PLATFORM_WEATHER_FACADE_REPORT.md",
           "score": 9,
           "signals": [
             "content:Weather forecast",
@@ -31323,6 +31334,10 @@
           "score": 28
         },
         {
+          "value": "WeatherAdvicePage.tsx @ tests_v9/test_advice_facade_contract.py:20",
+          "score": 12
+        },
+        {
           "value": "canonical_daily_weather_series.py @ scripts/ci/consumer_contract_gate.py:46",
           "score": 12
         },
@@ -31347,6 +31362,14 @@
           "score": 12
         },
         {
+          "value": "field.canonical_state_computed @ services/sahool-platform/core/agronomic_state_engine.py:634",
+          "score": 12
+        },
+        {
+          "value": "field.polygon_invalid @ tests_v9/test_v13_refinements.py:207",
+          "score": 12
+        },
+        {
           "value": "field_state.canonical @ services/sahool-platform/api/canonical_water.py:28",
           "score": 12
         },
@@ -31360,14 +31383,6 @@
         },
         {
           "value": "field_state.canonical @ tests_v9/test_etc_dual_canonical.py:49",
-          "score": 12
-        },
-        {
-          "value": "field.canonical_state_computed @ services/sahool-platform/core/agronomic_state_engine.py:634",
-          "score": 12
-        },
-        {
-          "value": "field.polygon_invalid @ tests_v9/test_v13_refinements.py:207",
           "score": 12
         },
         {
@@ -31491,6 +31506,10 @@
           "score": 12
         },
         {
+          "value": "weather.stale @ tests_v9/test_confidence_failures.py:151",
+          "score": 12
+        },
+        {
           "value": "weather_advice.py @ tests_v9/test_advice_facade_contract.py:19",
           "score": 12
         },
@@ -31516,14 +31535,6 @@
         },
         {
           "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:533",
-          "score": 12
-        },
-        {
-          "value": "weather.stale @ tests_v9/test_confidence_failures.py:151",
-          "score": 12
-        },
-        {
-          "value": "WeatherAdvicePage.tsx @ tests_v9/test_advice_facade_contract.py:20",
           "score": 12
         },
         {
@@ -31824,6 +31835,16 @@
           ]
         },
         {
+          "path": "services/weather-service/tests/test_et0.py",
+          "score": 28,
+          "signals": [
+            "path:ET0",
+            "content:ET0",
+            "path:et0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "services/weather-service/tests/test_et0_agro_product.py",
           "score": 28,
           "signals": [
@@ -31835,16 +31856,6 @@
         },
         {
           "path": "services/weather-service/tests/test_et0_series.py",
-          "score": 28,
-          "signals": [
-            "path:ET0",
-            "content:ET0",
-            "path:et0",
-            "content:et0"
-          ]
-        },
-        {
-          "path": "services/weather-service/tests/test_et0.py",
           "score": 28,
           "signals": [
             "path:ET0",
@@ -32001,6 +32012,14 @@
           ]
         },
         {
+          "path": "tests/test_real_data.py",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "tests_v9/test_advice_facade_contract.py",
           "score": 12,
           "signals": [
@@ -32009,7 +32028,7 @@
           ]
         },
         {
-          "path": "tests_v9/test_canonical_water_state_mpc.py",
+          "path": "tests_v9/test_canonical_water.py",
           "score": 12,
           "signals": [
             "content:ET0",
@@ -32017,7 +32036,7 @@
           ]
         },
         {
-          "path": "tests_v9/test_canonical_water.py",
+          "path": "tests_v9/test_canonical_water_state_mpc.py",
           "score": 12,
           "signals": [
             "content:ET0",
@@ -32161,14 +32180,6 @@
           ]
         },
         {
-          "path": "tests/test_real_data.py",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
           "path": "services/sahool-platform/tests/test_irrigation_plan_endpoint.py",
           "score": 10,
           "signals": [
@@ -32265,7 +32276,7 @@
           ]
         },
         {
-          "path": "tests_v9/test_weather_views_survive_the_hop_to_the_platform.py",
+          "path": "tests/test_decision_contract_runtime_adapter.py",
           "score": 8,
           "signals": [
             "content:ET0",
@@ -32273,7 +32284,7 @@
           ]
         },
         {
-          "path": "tests/test_decision_contract_runtime_adapter.py",
+          "path": "tests_v9/test_weather_views_survive_the_hop_to_the_platform.py",
           "score": 8,
           "signals": [
             "content:ET0",
@@ -32357,6 +32368,14 @@
           ]
         },
         {
+          "path": "README.md",
+          "score": 10,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "docs/history/REVIEW_RESPONSE_10_11.md",
           "score": 10,
           "signals": [
@@ -32373,7 +32392,7 @@
           ]
         },
         {
-          "path": "README.md",
+          "path": "scripts/ci/weather_hourly_etc_wx_i1_guard.py",
           "score": 10,
           "signals": [
             "content:ET0",
@@ -32381,8 +32400,16 @@
           ]
         },
         {
-          "path": "scripts/ci/weather_hourly_etc_wx_i1_guard.py",
-          "score": 10,
+          "path": "OPEN_METEO_WEATHER_ENGINE_V8_IMPLEMENTATION_REPORT_20260629.md",
+          "score": 8,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "OPEN_METEO_WEATHER_TILE_ENGINE_REPORT_20260629.md",
+          "score": 8,
           "signals": [
             "content:ET0",
             "content:et0"
@@ -32438,22 +32465,6 @@
         },
         {
           "path": "docs/runbooks/MPC_LIVE_CERTIFICATION.md",
-          "score": 8,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
-          "path": "OPEN_METEO_WEATHER_ENGINE_V8_IMPLEMENTATION_REPORT_20260629.md",
-          "score": 8,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
-          "path": "OPEN_METEO_WEATHER_TILE_ENGINE_REPORT_20260629.md",
           "score": 8,
           "signals": [
             "content:ET0",
@@ -32746,7 +32757,7 @@
       "mobile": [],
       "tests": [
         {
-          "path": "services/weather-service/tests/test_vpd_agro_product.py",
+          "path": "services/weather-service/tests/test_vpd.py",
           "score": 28,
           "signals": [
             "path:VPD",
@@ -32756,7 +32767,7 @@
           ]
         },
         {
-          "path": "services/weather-service/tests/test_vpd.py",
+          "path": "services/weather-service/tests/test_vpd_agro_product.py",
           "score": 28,
           "signals": [
             "path:VPD",
@@ -32823,14 +32834,6 @@
           ]
         },
         {
-          "path": "docs/contracts/IRRIGATION-CONTRACTS-v1.1-errata2.md",
-          "score": 8,
-          "signals": [
-            "content:VPD",
-            "content:vpd"
-          ]
-        },
-        {
           "path": "OPEN_METEO_WEATHER_ENGINE_V8_IMPLEMENTATION_REPORT_20260629.md",
           "score": 8,
           "signals": [
@@ -32840,6 +32843,14 @@
         },
         {
           "path": "OPEN_METEO_WEATHER_TILE_ENGINE_REPORT_20260629.md",
+          "score": 8,
+          "signals": [
+            "content:VPD",
+            "content:vpd"
+          ]
+        },
+        {
+          "path": "docs/contracts/IRRIGATION-CONTRACTS-v1.1-errata2.md",
           "score": 8,
           "signals": [
             "content:VPD",
@@ -33820,6 +33831,10 @@
           "score": 15
         },
         {
+          "value": "WeatherAdvicePage.tsx @ tests_v9/test_advice_facade_contract.py:20",
+          "score": 12
+        },
+        {
           "value": "canonical_daily_weather_series.py @ scripts/ci/consumer_contract_gate.py:46",
           "score": 12
         },
@@ -33897,10 +33912,6 @@
         },
         {
           "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:533",
-          "score": 12
-        },
-        {
-          "value": "WeatherAdvicePage.tsx @ tests_v9/test_advice_facade_contract.py:20",
           "score": 12
         },
         {
@@ -34135,6 +34146,16 @@
           ]
         },
         {
+          "path": "services/weather-service/tests/test_gdd.py",
+          "score": 28,
+          "signals": [
+            "path:GDD",
+            "content:GDD",
+            "path:gdd",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "services/weather-service/tests/test_gdd_agro_product.py",
           "score": 28,
           "signals": [
@@ -34146,16 +34167,6 @@
         },
         {
           "path": "services/weather-service/tests/test_gdd_view.py",
-          "score": 28,
-          "signals": [
-            "path:GDD",
-            "content:GDD",
-            "path:gdd",
-            "content:gdd"
-          ]
-        },
-        {
-          "path": "services/weather-service/tests/test_gdd.py",
           "score": 28,
           "signals": [
             "path:GDD",
@@ -34309,6 +34320,14 @@
           ]
         },
         {
+          "path": "tests/test_real_data.py",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "tests_v9/test_advice_facade_contract.py",
           "score": 12,
           "signals": [
@@ -34374,14 +34393,6 @@
         },
         {
           "path": "tests_v9/test_weather_engine_formula_guard.py",
-          "score": 12,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
-          "path": "tests/test_real_data.py",
           "score": 12,
           "signals": [
             "content:GDD",
@@ -34488,7 +34499,7 @@
           ]
         },
         {
-          "path": "docs/audits/CORE_DECISION_MD_REVIEW.md",
+          "path": "docs/BEST_PRACTICES_BENCHMARK_2026-06.md",
           "score": 12,
           "signals": [
             "content:GDD",
@@ -34496,7 +34507,7 @@
           ]
         },
         {
-          "path": "docs/BEST_PRACTICES_BENCHMARK_2026-06.md",
+          "path": "docs/audits/CORE_DECISION_MD_REVIEW.md",
           "score": 12,
           "signals": [
             "content:GDD",
@@ -35082,11 +35093,15 @@
       "kind": "web"
     },
     {
-      "path": "frontend/docker-compose.web.yml",
+      "path": "frontend/DOCKER.md",
       "kind": "web"
     },
     {
-      "path": "frontend/DOCKER.md",
+      "path": "frontend/README.md",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/docker-compose.web.yml",
       "kind": "web"
     },
     {
@@ -35146,10 +35161,6 @@
       "kind": "web"
     },
     {
-      "path": "frontend/README.md",
-      "kind": "web"
-    },
-    {
       "path": "frontend/src/components/AddFieldWithMap.tsx",
       "kind": "web"
     },
@@ -35162,11 +35173,51 @@
       "kind": "web"
     },
     {
-      "path": "frontend/src/components/agrozones/AgroZonesPanel.tsx",
+      "path": "frontend/src/components/AlertBanner.tsx",
       "kind": "web"
     },
     {
-      "path": "frontend/src/components/AlertBanner.tsx",
+      "path": "frontend/src/components/FieldDetailPanel.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/FieldIndicatorMap.static.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/components/FieldSelector.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/KPICard.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/SharedBrowserHygiene.static.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/components/SpeakButton.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/StateViews.featureDisabled.test.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/StateViews.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/ThemeToggle.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/ToastContainer.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/agrozones/AgroZonesPanel.tsx",
       "kind": "web"
     },
     {
@@ -35266,20 +35317,8 @@
       "kind": "web"
     },
     {
-      "path": "frontend/src/components/FieldDetailPanel.tsx",
-      "kind": "web"
-    },
-    {
       "path": "frontend/src/components/fieldhealth/DateScrubber.grouping.test.ts",
       "kind": "tests"
-    },
-    {
-      "path": "frontend/src/components/FieldIndicatorMap.static.test.ts",
-      "kind": "tests"
-    },
-    {
-      "path": "frontend/src/components/FieldSelector.tsx",
-      "kind": "web"
     },
     {
       "path": "frontend/src/components/fieldsetup/FieldSetupWizard.tsx",
@@ -35290,11 +35329,11 @@
       "kind": "web"
     },
     {
-      "path": "frontend/src/components/fieldsetup/steps.ts",
+      "path": "frontend/src/components/fieldsetup/StepShell.tsx",
       "kind": "web"
     },
     {
-      "path": "frontend/src/components/fieldsetup/StepShell.tsx",
+      "path": "frontend/src/components/fieldsetup/steps.ts",
       "kind": "web"
     },
     {
@@ -35422,19 +35461,7 @@
       "kind": "web"
     },
     {
-      "path": "frontend/src/components/KPICard.tsx",
-      "kind": "web"
-    },
-    {
       "path": "frontend/src/components/maphub/AutoSegmentControl.tsx",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/captureTime.test.ts",
-      "kind": "tests"
-    },
-    {
-      "path": "frontend/src/components/maphub/captureTime.ts",
       "kind": "web"
     },
     {
@@ -35447,110 +35474,6 @@
     },
     {
       "path": "frontend/src/components/maphub/DrawControl.tsx",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawGeometry.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/adapters/createDrawingAdapter.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/adapters/DrawingAdapter.static.test.ts",
-      "kind": "tests"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/adapters/DrawingEngineSelection.test.ts",
-      "kind": "tests"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/adapters/GeomanAdapter.static.test.ts",
-      "kind": "tests"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/adapters/LeafletDrawAdapter.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/adapters/LeafletGeomanAdapter.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/DrawingCore.static.test.ts",
-      "kind": "tests"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/drawingEvents.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/drawingFeatureApi.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/drawingMeasurements.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/DrawingOfflineSync.static.test.ts",
-      "kind": "tests"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/DrawingOfflineSync.test.ts",
-      "kind": "tests"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/DrawingProvider.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/DrawingRemainingPhases.static.test.ts",
-      "kind": "tests"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/DrawingRemainingPhases.test.ts",
-      "kind": "tests"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/drawingTypes.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/drawingValidation.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/index.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/pivotDesigner.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/PivotDesignerMapHub.static.test.ts",
-      "kind": "tests"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/PivotPersistence.static.test.ts",
-      "kind": "tests"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/workflows/agriculturalDrawingWorkflows.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/workflows/index.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/ZoneDesigner.static.test.ts",
-      "kind": "tests"
-    },
-    {
-      "path": "frontend/src/components/maphub/drawing/zoneDesigner.ts",
       "kind": "web"
     },
     {
@@ -35602,10 +35525,6 @@
       "kind": "web"
     },
     {
-      "path": "frontend/src/components/maphub/indicatorTileUrl.ts",
-      "kind": "web"
-    },
-    {
       "path": "frontend/src/components/maphub/InteractiveDrawLayer.test.ts",
       "kind": "tests"
     },
@@ -35650,6 +35569,122 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/components/maphub/captureTime.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/components/maphub/captureTime.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawGeometry.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/DrawingCore.static.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/DrawingOfflineSync.static.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/DrawingOfflineSync.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/DrawingProvider.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/DrawingRemainingPhases.static.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/DrawingRemainingPhases.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/PivotDesignerMapHub.static.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/PivotPersistence.static.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/ZoneDesigner.static.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/adapters/DrawingAdapter.static.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/adapters/DrawingEngineSelection.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/adapters/GeomanAdapter.static.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/adapters/LeafletDrawAdapter.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/adapters/LeafletGeomanAdapter.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/adapters/createDrawingAdapter.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/drawingEvents.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/drawingFeatureApi.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/drawingMeasurements.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/drawingTypes.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/drawingValidation.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/index.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/pivotDesigner.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/workflows/agriculturalDrawingWorkflows.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/workflows/index.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/drawing/zoneDesigner.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/indicatorTileUrl.ts",
+      "kind": "web"
+    },
+    {
       "path": "frontend/src/components/maphub/weather/README.md",
       "kind": "web"
     },
@@ -35674,15 +35709,15 @@
       "kind": "web"
     },
     {
-      "path": "frontend/src/components/maphub/weather/weatherPreferences.ts",
-      "kind": "web"
-    },
-    {
       "path": "frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx",
       "kind": "web"
     },
     {
       "path": "frontend/src/components/maphub/weather/WeatherTileLayer.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/weather/weatherPreferences.ts",
       "kind": "web"
     },
     {
@@ -35692,10 +35727,6 @@
     {
       "path": "frontend/src/components/product/DegradedState.tsx",
       "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/SharedBrowserHygiene.static.test.ts",
-      "kind": "tests"
     },
     {
       "path": "frontend/src/components/sharing/SharingPanel.tsx",
@@ -35722,27 +35753,7 @@
       "kind": "web"
     },
     {
-      "path": "frontend/src/components/SpeakButton.tsx",
-      "kind": "web"
-    },
-    {
       "path": "frontend/src/components/sql/SQLEditor.tsx",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/StateViews.featureDisabled.test.tsx",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/StateViews.tsx",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/ThemeToggle.tsx",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/components/ToastContainer.tsx",
       "kind": "web"
     },
     {
@@ -35874,15 +35885,15 @@
       "kind": "tests"
     },
     {
-      "path": "frontend/src/lib/approvalsConsole.ts",
-      "kind": "web"
-    },
-    {
       "path": "frontend/src/lib/appSettings.test.ts",
       "kind": "tests"
     },
     {
       "path": "frontend/src/lib/appSettings.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/lib/approvalsConsole.ts",
       "kind": "web"
     },
     {
@@ -36110,18 +36121,6 @@
       "kind": "web"
     },
     {
-      "path": "frontend/src/lib/fields.fieldview.test.ts",
-      "kind": "tests"
-    },
-    {
-      "path": "frontend/src/lib/fields.test.ts",
-      "kind": "tests"
-    },
-    {
-      "path": "frontend/src/lib/fields.ts",
-      "kind": "web"
-    },
-    {
       "path": "frontend/src/lib/fieldTraceability.test.ts",
       "kind": "tests"
     },
@@ -36163,6 +36162,18 @@
     },
     {
       "path": "frontend/src/lib/fieldZoneVra.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/lib/fields.fieldview.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/lib/fields.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/lib/fields.ts",
       "kind": "web"
     },
     {
@@ -36446,15 +36457,15 @@
       "kind": "web"
     },
     {
-      "path": "frontend/src/sections/DevicesPage.tsx",
-      "kind": "web"
-    },
-    {
       "path": "frontend/src/sections/DeviceTwinPage.test.tsx",
       "kind": "web"
     },
     {
       "path": "frontend/src/sections/DeviceTwinPage.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/DevicesPage.tsx",
       "kind": "web"
     },
     {
@@ -36490,19 +36501,7 @@
       "kind": "web"
     },
     {
-      "path": "frontend/src/sections/fieldWorkspaceAvailability.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/sections/fieldWorkspaceCompletionContract.ts",
-      "kind": "web"
-    },
-    {
       "path": "frontend/src/sections/FieldWorkspaceContextBanner.tsx",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/sections/fieldWorkspaceContract.ts",
       "kind": "web"
     },
     {
@@ -36598,10 +36597,6 @@
       "kind": "web"
     },
     {
-      "path": "frontend/src/sections/labSampleValidation.test.ts",
-      "kind": "tests"
-    },
-    {
       "path": "frontend/src/sections/LabSamplingPage.tsx",
       "kind": "web"
     },
@@ -36615,42 +36610,6 @@
     },
     {
       "path": "frontend/src/sections/ManagerConsolePage.tsx",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/sections/maphub/FieldContextStrip.tsx",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/sections/maphub/FieldDrawerShell.tsx",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/sections/maphub/FieldTimelineShell.tsx",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/sections/maphub/MapCanvasBoundary.tsx",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/sections/maphub/mapClutterControl.ts",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/sections/maphub/MapHubShell.tsx",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/sections/maphub/MapHubToolToggle.tsx",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/sections/maphub/PriorityQueuePanel.tsx",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/src/sections/maphub/roleUiContract.ts",
       "kind": "web"
     },
     {
@@ -36672,10 +36631,6 @@
     {
       "path": "frontend/src/sections/MasterDataPage.tsx",
       "kind": "web"
-    },
-    {
-      "path": "frontend/src/sections/notificationChannelValidation.test.ts",
-      "kind": "tests"
     },
     {
       "path": "frontend/src/sections/NotificationSettingsPage.tsx",
@@ -36718,15 +36673,15 @@
       "kind": "web"
     },
     {
-      "path": "frontend/src/sections/reportsCsv.test.ts",
-      "kind": "tests"
-    },
-    {
       "path": "frontend/src/sections/ReportsPage.test.tsx",
       "kind": "web"
     },
     {
       "path": "frontend/src/sections/ReservoirBoosterNetworkCalculator.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/SQLWorkspacePage.tsx",
       "kind": "web"
     },
     {
@@ -36736,10 +36691,6 @@
     {
       "path": "frontend/src/sections/SatellitePageRuntimeFix.static.test.ts",
       "kind": "tests"
-    },
-    {
-      "path": "frontend/src/sections/SQLWorkspacePage.tsx",
-      "kind": "web"
     },
     {
       "path": "frontend/src/sections/TaskEvidenceAndInviteToken.static.test.ts",
@@ -36760,6 +36711,66 @@
     {
       "path": "frontend/src/sections/YieldAnalysisPage.tsx",
       "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/fieldWorkspaceAvailability.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/fieldWorkspaceCompletionContract.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/fieldWorkspaceContract.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/labSampleValidation.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/sections/maphub/FieldContextStrip.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/maphub/FieldDrawerShell.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/maphub/FieldTimelineShell.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/maphub/MapCanvasBoundary.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/maphub/MapHubShell.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/maphub/MapHubToolToggle.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/maphub/PriorityQueuePanel.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/maphub/mapClutterControl.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/maphub/roleUiContract.ts",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/notificationChannelValidation.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/sections/reportsCsv.test.ts",
+      "kind": "tests"
     },
     {
       "path": "frontend/src/services/api/calibration.ts",
@@ -36930,15 +36941,11 @@
       "kind": "database"
     },
     {
-      "path": "migrations/v17_workflow_state_full.sql",
-      "kind": "database"
-    },
-    {
       "path": "migrations/v179_hourly_energy_aware_irrigation_mpc.sql",
       "kind": "database"
     },
     {
-      "path": "migrations/v18_entity_ids_text.sql",
+      "path": "migrations/v17_workflow_state_full.sql",
       "kind": "database"
     },
     {
@@ -36959,6 +36966,10 @@
     },
     {
       "path": "migrations/v189_irrx1_pcert_manual_execution_db_invariants.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v18_entity_ids_text.sql",
       "kind": "database"
     },
     {
@@ -37054,6 +37065,14 @@
       "kind": "database"
     },
     {
+      "path": "migrations/v91_workflow_compensation_failures.sql",
+      "kind": "database"
+    },
+    {
+      "path": "migrations/v97_user_self_with_check.sql",
+      "kind": "database"
+    },
+    {
       "path": "migrations/v9_append_only_enforcement.down.sql",
       "kind": "database"
     },
@@ -37075,14 +37094,6 @@
     },
     {
       "path": "migrations/v9_lifecycle_occurred_at.sql",
-      "kind": "database"
-    },
-    {
-      "path": "migrations/v91_workflow_compensation_failures.sql",
-      "kind": "database"
-    },
-    {
-      "path": "migrations/v97_user_self_with_check.sql",
       "kind": "database"
     },
     {
@@ -37478,11 +37489,11 @@
       "kind": "backend"
     },
     {
-      "path": "services/decision-service/activation_gate_core.py",
+      "path": "services/decision-service/activation_gate.py",
       "kind": "backend"
     },
     {
-      "path": "services/decision-service/activation_gate.py",
+      "path": "services/decision-service/activation_gate_core.py",
       "kind": "backend"
     },
     {
@@ -37686,6 +37697,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/edge-inference/MODEL_PROVISIONING.md",
+      "kind": "backend"
+    },
+    {
       "path": "services/edge-inference/__init__.py",
       "kind": "backend"
     },
@@ -37695,14 +37710,6 @@
     },
     {
       "path": "services/edge-inference/main.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/edge-inference/MODEL_PROVISIONING.md",
-      "kind": "backend"
-    },
-    {
-      "path": "services/edge-inference/models_manifest/edge_models.required.json",
       "kind": "backend"
     },
     {
@@ -37719,6 +37726,10 @@
     },
     {
       "path": "services/edge-inference/models/yield_estimator.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/edge-inference/models_manifest/edge_models.required.json",
       "kind": "backend"
     },
     {
@@ -37746,6 +37757,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/gis-workflow-service/README.md",
+      "kind": "backend"
+    },
+    {
       "path": "services/gis-workflow-service/__init__.py",
       "kind": "backend"
     },
@@ -37759,10 +37774,6 @@
     },
     {
       "path": "services/gis-workflow-service/publication_map.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/gis-workflow-service/README.md",
       "kind": "backend"
     },
     {
@@ -37906,19 +37917,19 @@
       "kind": "backend"
     },
     {
-      "path": "services/model-registry-adapter/tests/test_runtime_contract.py",
-      "kind": "tests"
-    },
-    {
       "path": "services/model-registry-adapter/tests/test_runtime.py",
       "kind": "tests"
     },
     {
-      "path": "services/model-registry-adapter/worker_assertion.py",
-      "kind": "backend"
+      "path": "services/model-registry-adapter/tests/test_runtime_contract.py",
+      "kind": "tests"
     },
     {
       "path": "services/model-registry-adapter/worker.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/model-registry-adapter/worker_assertion.py",
       "kind": "backend"
     },
     {
@@ -38202,6 +38213,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/README.md",
+      "kind": "backend"
+    },
+    {
       "path": "services/sahool-platform/api/__init__.py",
       "kind": "backend"
     },
@@ -38242,11 +38257,11 @@
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/api/calibration_ingest.py",
+      "path": "services/sahool-platform/api/calibration.py",
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/api/calibration.py",
+      "path": "services/sahool-platform/api/calibration_ingest.py",
       "kind": "backend"
     },
     {
@@ -38422,11 +38437,11 @@
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/api/field_aggregate_ports.py",
+      "path": "services/sahool-platform/api/field_aggregate.py",
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/api/field_aggregate.py",
+      "path": "services/sahool-platform/api/field_aggregate_ports.py",
       "kind": "backend"
     },
     {
@@ -38466,15 +38481,15 @@
       "kind": "backend"
     },
     {
+      "path": "services/sahool-platform/api/food_grain_varieties.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/sahool-platform/api/food_grain_varieties_verified_v1.json",
       "kind": "backend"
     },
     {
       "path": "services/sahool-platform/api/food_grain_varieties_verified_v1.schema.json",
-      "kind": "backend"
-    },
-    {
-      "path": "services/sahool-platform/api/food_grain_varieties.py",
       "kind": "backend"
     },
     {
@@ -38582,11 +38597,11 @@
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
+      "path": "services/sahool-platform/api/irrigation_reservation_lifecycle.py",
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/api/irrigation_reservation_lifecycle.py",
+      "path": "services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
       "kind": "backend"
     },
     {
@@ -38634,10 +38649,6 @@
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/api/phase_runtime_store.py",
-      "kind": "backend"
-    },
-    {
       "path": "services/sahool-platform/api/phase10_continuous_learning.py",
       "kind": "backend"
     },
@@ -38647,6 +38658,10 @@
     },
     {
       "path": "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/sahool-platform/api/phase_runtime_store.py",
       "kind": "backend"
     },
     {
@@ -38782,6 +38797,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/sahool-platform/api/routers/decision.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/sahool-platform/api/routers/decision_dispatch.py",
       "kind": "backend"
     },
@@ -38795,10 +38814,6 @@
     },
     {
       "path": "services/sahool-platform/api/routers/decision_policies.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/sahool-platform/api/routers/decision.py",
       "kind": "backend"
     },
     {
@@ -38838,11 +38853,11 @@
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/api/routers/evidence_map.py",
+      "path": "services/sahool-platform/api/routers/evidence.py",
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/api/routers/evidence.py",
+      "path": "services/sahool-platform/api/routers/evidence_map.py",
       "kind": "backend"
     },
     {
@@ -38874,11 +38889,11 @@
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/api/routers/geo_locate.py",
+      "path": "services/sahool-platform/api/routers/geo.py",
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/api/routers/geo.py",
+      "path": "services/sahool-platform/api/routers/geo_locate.py",
       "kind": "backend"
     },
     {
@@ -38906,6 +38921,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/sahool-platform/api/routers/irrigation.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/sahool-platform/api/routers/irrigation_engineering.py",
       "kind": "backend"
     },
@@ -38915,10 +38934,6 @@
     },
     {
       "path": "services/sahool-platform/api/routers/irrigation_network.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/sahool-platform/api/routers/irrigation.py",
       "kind": "backend"
     },
     {
@@ -39170,11 +39185,11 @@
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/api/walk_plan_pdf.py",
+      "path": "services/sahool-platform/api/walk_plan.py",
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/api/walk_plan.py",
+      "path": "services/sahool-platform/api/walk_plan_pdf.py",
       "kind": "backend"
     },
     {
@@ -39186,11 +39201,11 @@
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/api/water_twin_seed.py",
+      "path": "services/sahool-platform/api/water_twin.py",
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/api/water_twin.py",
+      "path": "services/sahool-platform/api/water_twin_seed.py",
       "kind": "backend"
     },
     {
@@ -39278,11 +39293,11 @@
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/core/canonical_field_state_lock.py",
+      "path": "services/sahool-platform/core/canonical_field_state.py",
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/core/canonical_field_state.py",
+      "path": "services/sahool-platform/core/canonical_field_state_lock.py",
       "kind": "backend"
     },
     {
@@ -39762,6 +39777,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/sahool-platform/core/learning/__init__.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/sahool-platform/core/learning_activation.py",
       "kind": "backend"
     },
@@ -39770,19 +39789,7 @@
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/core/learning/__init__.py",
-      "kind": "backend"
-    },
-    {
       "path": "services/sahool-platform/core/loop_referential_integrity.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/sahool-platform/core/mcp_service_servers.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/sahool-platform/core/mcp_tool_registry.py",
       "kind": "backend"
     },
     {
@@ -39791,6 +39798,14 @@
     },
     {
       "path": "services/sahool-platform/core/mcp/independent_servers.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/sahool-platform/core/mcp_service_servers.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/sahool-platform/core/mcp_tool_registry.py",
       "kind": "backend"
     },
     {
@@ -39966,10 +39981,6 @@
       "kind": "backend"
     },
     {
-      "path": "services/sahool-platform/docs/architecture/remaining_gap_completion.md",
-      "kind": "backend"
-    },
-    {
       "path": "services/sahool-platform/docs/COMPREHENSIVE_CORE_REVIEW.md",
       "kind": "backend"
     },
@@ -40022,6 +40033,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/sahool-platform/docs/architecture/remaining_gap_completion.md",
+      "kind": "backend"
+    },
+    {
       "path": "services/sahool-platform/fallback.yaml",
       "kind": "backend"
     },
@@ -40031,10 +40046,6 @@
     },
     {
       "path": "services/sahool-platform/knowledge/conservative_rag.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/sahool-platform/README.md",
       "kind": "backend"
     },
     {
@@ -40286,11 +40297,11 @@
       "kind": "tests"
     },
     {
-      "path": "services/sahool-platform/tests/test_decision_dispatch_endpoint.py",
+      "path": "services/sahool-platform/tests/test_decision_dispatch.py",
       "kind": "tests"
     },
     {
-      "path": "services/sahool-platform/tests/test_decision_dispatch.py",
+      "path": "services/sahool-platform/tests/test_decision_dispatch_endpoint.py",
       "kind": "tests"
     },
     {
@@ -40394,7 +40405,7 @@
       "kind": "tests"
     },
     {
-      "path": "services/sahool-platform/tests/test_evidence_graph_analytics_endpoints_static.py",
+      "path": "services/sahool-platform/tests/test_evidence_graph.py",
       "kind": "tests"
     },
     {
@@ -40402,11 +40413,11 @@
       "kind": "tests"
     },
     {
-      "path": "services/sahool-platform/tests/test_evidence_graph_normalize.py",
+      "path": "services/sahool-platform/tests/test_evidence_graph_analytics_endpoints_static.py",
       "kind": "tests"
     },
     {
-      "path": "services/sahool-platform/tests/test_evidence_graph.py",
+      "path": "services/sahool-platform/tests/test_evidence_graph_normalize.py",
       "kind": "tests"
     },
     {
@@ -40466,11 +40477,11 @@
       "kind": "tests"
     },
     {
-      "path": "services/sahool-platform/tests/test_field_state_replay_bridge.py",
+      "path": "services/sahool-platform/tests/test_field_state.py",
       "kind": "tests"
     },
     {
-      "path": "services/sahool-platform/tests/test_field_state.py",
+      "path": "services/sahool-platform/tests/test_field_state_replay_bridge.py",
       "kind": "tests"
     },
     {
@@ -40486,15 +40497,15 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_fii_chemical_lineage.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_fii_chemical_lineage_hardened.py",
       "kind": "tests"
     },
     {
       "path": "services/sahool-platform/tests/test_fii_chemical_lineage_p0_hardening.py",
-      "kind": "tests"
-    },
-    {
-      "path": "services/sahool-platform/tests/test_fii_chemical_lineage.py",
       "kind": "tests"
     },
     {
@@ -40950,15 +40961,7 @@
       "kind": "tests"
     },
     {
-      "path": "services/sahool-platform/tests/test_ui_product_rules_contract_guard.py",
-      "kind": "tests"
-    },
-    {
       "path": "services/sahool-platform/tests/test_ui17_ui19_workspace_data_panels_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "services/sahool-platform/tests/test_ui2_advanced_degraded_state_guard.py",
       "kind": "tests"
     },
     {
@@ -40970,11 +40973,15 @@
       "kind": "tests"
     },
     {
-      "path": "services/sahool-platform/tests/test_ui3_api_module_split_guard.py",
+      "path": "services/sahool-platform/tests/test_ui2_advanced_degraded_state_guard.py",
       "kind": "tests"
     },
     {
       "path": "services/sahool-platform/tests/test_ui31_ui35_workspace_completion_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/sahool-platform/tests/test_ui3_api_module_split_guard.py",
       "kind": "tests"
     },
     {
@@ -40994,6 +41001,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_ui_product_rules_contract_guard.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_validate_observations.py",
       "kind": "tests"
     },
@@ -41002,11 +41013,11 @@
       "kind": "tests"
     },
     {
-      "path": "services/sahool-platform/tests/test_weather_alerts_notify.py",
+      "path": "services/sahool-platform/tests/test_weather_alerts.py",
       "kind": "tests"
     },
     {
-      "path": "services/sahool-platform/tests/test_weather_alerts.py",
+      "path": "services/sahool-platform/tests/test_weather_alerts_notify.py",
       "kind": "tests"
     },
     {
@@ -41054,11 +41065,11 @@
       "kind": "tests"
     },
     {
-      "path": "services/sahool-platform/tests/test_weather_overlay_pipeline.py",
+      "path": "services/sahool-platform/tests/test_weather_overlay.py",
       "kind": "tests"
     },
     {
-      "path": "services/sahool-platform/tests/test_weather_overlay.py",
+      "path": "services/sahool-platform/tests/test_weather_overlay_pipeline.py",
       "kind": "tests"
     },
     {
@@ -41302,6 +41313,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/tts-service/README.md",
+      "kind": "backend"
+    },
+    {
       "path": "services/tts-service/arabic_normalizer.py",
       "kind": "backend"
     },
@@ -41311,10 +41326,6 @@
     },
     {
       "path": "services/tts-service/providers.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/tts-service/README.md",
       "kind": "backend"
     },
     {
@@ -41559,6 +41570,170 @@
     },
     {
       "path": "shared/test_marketplace_plugin_runtime.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/__init__.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/certification/test_phase21_certification_matrix.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/ci/test_phase16_ci_cd_gates.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/ci/test_tests_tree_coverage_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/deploy/test_phase15_deployment_readiness_contracts.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/e2e_runtime/test_phase3_runtime_integration_contracts.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/fixtures/evidence_lab/wiremock/mappings/open_meteo_archive.json",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/fixtures/evidence_lab/wiremock/mappings/open_meteo_failure.json",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/irrigation/test_irr_f01_certification_ci_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/irrigation/test_irrigation_activation_gate.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/irrigation/test_irrigation_activation_gate_no_bypass_static.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/irrigation/test_irrigation_capacity_reservation.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/irrigation/test_irrigation_convergence_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/irrigation/test_irrigation_path_query.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/irrigation/test_irrigation_reservation_lifecycle_worker.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/irrigation/test_irrigation_v205_runtime_hardening.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/migrations/test_phase19_migration_manifest_unification.py",
+      "kind": "database"
+    },
+    {
+      "path": "tests/observability/test_phase13_observability_assets.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/release/test_phase14_release_packaging_contracts.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/release/test_platform_route_release_binding.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/reliability/test_phase10_reliability_harness_contracts.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/runtime/test_phase17_runtime_bootstrap_doctor.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/runtime/test_phase18_urgent_runtime_fixes.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/runtime/test_phase20_worker_static_contracts.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/runtime/test_phase9_10_runtime_strengthening.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/runtime/test_phase9_iot_execution_runtime.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/security/test_phase12_final_production_gates.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/security/test_phase4_security_observability_contracts.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/soak/test_phase21_soak_harness.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/test_fields_create_contract_static.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/test_guardrail_mcp_enhancements.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/test_guardrail_metrics.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/test_guardrail_runtime_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/test_intelligence_governance_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/test_migration_manifest_execution_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/test_phase10.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/test_platform_db_compose_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/test_production_rag_kg_mcp.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/test_remaining_ai_runtime_phases.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/test_riv_generated_contracts.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/test_riv_p0_consumer_truth_guard.py",
       "kind": "tests"
     },
     {
@@ -41822,11 +41997,11 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_calibration_ingest.py",
+      "path": "tests_v9/test_calibration.py",
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_calibration.py",
+      "path": "tests_v9/test_calibration_ingest.py",
       "kind": "tests"
     },
     {
@@ -41866,11 +42041,11 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_canonical_nutrient_ledger_contract.py",
+      "path": "tests_v9/test_canonical_nutrient_ledger.py",
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_canonical_nutrient_ledger.py",
+      "path": "tests_v9/test_canonical_nutrient_ledger_contract.py",
       "kind": "tests"
     },
     {
@@ -42358,11 +42533,11 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_guardrails_contract.py",
+      "path": "tests_v9/test_guardrails.py",
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_guardrails.py",
+      "path": "tests_v9/test_guardrails_contract.py",
       "kind": "tests"
     },
     {
@@ -43218,15 +43393,15 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_telegram.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_telegram_bot.py",
       "kind": "tests"
     },
     {
       "path": "tests_v9/test_telegram_healthcheck_guard_v21.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_telegram.py",
       "kind": "tests"
     },
     {
@@ -43258,11 +43433,11 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_tts_providers_20260702.py",
+      "path": "tests_v9/test_tts.py",
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_tts.py",
+      "path": "tests_v9/test_tts_providers_20260702.py",
       "kind": "tests"
     },
     {
@@ -43358,15 +43533,15 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_water_twin.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_water_twin_dynamic_taw.py",
       "kind": "tests"
     },
     {
       "path": "tests_v9/test_water_twin_seed.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_water_twin.py",
       "kind": "tests"
     },
     {
@@ -43410,15 +43585,15 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_workflow_store.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_workflow_store_hardening.py",
       "kind": "tests"
     },
     {
       "path": "tests_v9/test_workflow_store_isolation.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_workflow_store.py",
       "kind": "tests"
     },
     {
@@ -43435,170 +43610,6 @@
     },
     {
       "path": "tests_v9/test_zone_sampling_behavior_v66.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/__init__.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/certification/test_phase21_certification_matrix.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/ci/test_phase16_ci_cd_gates.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/ci/test_tests_tree_coverage_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/deploy/test_phase15_deployment_readiness_contracts.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/e2e_runtime/test_phase3_runtime_integration_contracts.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/fixtures/evidence_lab/wiremock/mappings/open_meteo_archive.json",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/fixtures/evidence_lab/wiremock/mappings/open_meteo_failure.json",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/irrigation/test_irr_f01_certification_ci_contract.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/irrigation/test_irrigation_activation_gate_no_bypass_static.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/irrigation/test_irrigation_activation_gate.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/irrigation/test_irrigation_capacity_reservation.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/irrigation/test_irrigation_convergence_contract.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/irrigation/test_irrigation_path_query.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/irrigation/test_irrigation_reservation_lifecycle_worker.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/irrigation/test_irrigation_v205_runtime_hardening.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/migrations/test_phase19_migration_manifest_unification.py",
-      "kind": "database"
-    },
-    {
-      "path": "tests/observability/test_phase13_observability_assets.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/release/test_phase14_release_packaging_contracts.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/release/test_platform_route_release_binding.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/reliability/test_phase10_reliability_harness_contracts.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/runtime/test_phase17_runtime_bootstrap_doctor.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/runtime/test_phase18_urgent_runtime_fixes.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/runtime/test_phase20_worker_static_contracts.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/runtime/test_phase9_10_runtime_strengthening.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/runtime/test_phase9_iot_execution_runtime.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/security/test_phase12_final_production_gates.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/security/test_phase4_security_observability_contracts.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/soak/test_phase21_soak_harness.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/test_fields_create_contract_static.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/test_guardrail_mcp_enhancements.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/test_guardrail_metrics.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/test_guardrail_runtime_contract.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/test_intelligence_governance_contract.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/test_migration_manifest_execution_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/test_phase10.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/test_platform_db_compose_contract.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/test_production_rag_kg_mcp.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/test_remaining_ai_runtime_phases.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/test_riv_generated_contracts.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/test_riv_p0_consumer_truth_guard.py",
       "kind": "tests"
     }
   ],
@@ -43637,6 +43648,280 @@
           "signals": [
             "content:Execution request",
             "content:execution request"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "FIELD_MANAGEMENT_CLIKCTHROUGH_CDSE_FIX_REPORT_20260629.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-001",
+          "score": 14,
+          "signals": [
+            "path:cdse",
+            "content:cdse"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "FIX_ALL_REPORTED_ISSUES_20260626.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-005",
+          "score": 10,
+          "signals": [
+            "content:cloud mask",
+            "content:scl"
+          ]
+        },
+        {
+          "capability_id": "SEC-004",
+          "score": 8,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "OPEN_METEO_WEATHER_ENGINE_V8_IMPLEMENTATION_REPORT_20260629.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "WX-005",
+          "score": 8,
+          "signals": [
+            "content:VPD",
+            "content:vpd"
+          ]
+        },
+        {
+          "capability_id": "WX-004",
+          "score": 8,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "OPEN_METEO_WEATHER_TILE_ENGINE_REPORT_20260629.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "WX-005",
+          "score": 8,
+          "signals": [
+            "content:VPD",
+            "content:vpd"
+          ]
+        },
+        {
+          "capability_id": "WX-004",
+          "score": 8,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "P2_RASTER_FACADE_CLEANUP_REPORT.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-003",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "capability_id": "GIS-003",
+          "score": 8,
+          "signals": [
+            "content:dem",
+            "content:terrain"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "PLATFORM_MAIN_SUBINVENTORY_20260709.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SEC-001",
+          "score": 11,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls"
+          ]
+        },
+        {
+          "capability_id": "FM-007",
+          "score": 11,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "RASTER_MAIN_DECOMPOSITION_PHASE15_ROUTER_OBS_ANALYSIS_TERRAIN_SOIL_20260706.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "GIS-003",
+          "score": 11,
+          "signals": [
+            "path:terrain",
+            "content:terrain"
+          ]
+        },
+        {
+          "capability_id": "SAT-001",
+          "score": 10,
+          "signals": [
+            "content:cdse",
+            "content:stac"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "README.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-003",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "capability_id": "WX-006",
+          "score": 10,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "WX-004",
+          "score": 10,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "REMOTE_SENSING_RS10_IMPLEMENTATION_REPORT_20260715.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "DEC-008",
+          "score": 8,
+          "signals": [
+            "content:Learning attribution",
+            "content:learning attribution"
+          ]
+        },
+        {
+          "capability_id": "DEC-004",
+          "score": 8,
+          "signals": [
+            "content:Execution request",
+            "content:execution request"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "V49_5_FIELD_MEMORY_EVIDENCE_HARDENING_REPORT_20260701.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SOIL-002",
+          "score": 11,
+          "signals": [
+            "content:Soil sampling",
+            "content:sampling plan",
+            "content:soil sampling"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "V59_1_TO_V62_1_AGRONOMY_ADAPTERS_REPORT_20260701.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-003",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "capability_id": "SOIL-002",
+          "score": 10,
+          "signals": [
+            "content:Soil sampling",
+            "content:soil sampling"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "V60_PRODUCTIVITY_ZONES_IMPLEMENTATION_REPORT_20260701.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SOIL-002",
+          "score": 15,
+          "signals": [
+            "content:Soil sampling",
+            "content:sampling plan",
+            "content:soil sampling"
+          ]
+        },
+        {
+          "capability_id": "PA-001",
+          "score": 14,
+          "signals": [
+            "path:productivity zone",
+            "content:productivity zone"
           ]
         }
       ]
@@ -43911,6 +44196,192 @@
       ]
     },
     {
+      "path": "docs/ARCHITECTURE_AUDIT_2026-06-14.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-003",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/ARCHITECTURE_DEPENDENCY_AND_GAPS_2026-06.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "INT-002",
+          "score": 14,
+          "signals": [
+            "content:event bus",
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 13,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/BEST_PRACTICES_BENCHMARK_2026-06.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "WX-002",
+          "score": 9,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/FIELD_WORKSPACE.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "FM-003",
+          "score": 12,
+          "signals": [
+            "path:field workspace",
+            "content:field workspace"
+          ]
+        },
+        {
+          "capability_id": "SAT-004",
+          "score": 10,
+          "signals": [
+            "content:NDMI",
+            "content:ndmi"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 10,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/MAP_RENDERING_BEST_PRACTICES_2026-06.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-001",
+          "score": 18,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
+          "capability_id": "SAT-009",
+          "score": 15,
+          "signals": [
+            "content:cloud optimized geotiff",
+            "content:cog",
+            "content:tilejson"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/POST_DEPLOYMENT_ROADMAP.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "FM-004",
+          "score": 16,
+          "signals": [
+            "content:Season lifecycle",
+            "content:season",
+            "content:season lifecycle"
+          ]
+        },
+        {
+          "capability_id": "GIS-003",
+          "score": 13,
+          "signals": [
+            "content:dem",
+            "content:slope",
+            "content:terrain"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/UNIFIED_SETUP.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SEC-001",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:row level security"
+          ]
+        },
+        {
+          "capability_id": "INT-002",
+          "score": 9,
+          "signals": [
+            "content:event bus",
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
+          "capability_id": "FM-007",
+          "score": 9,
+          "signals": [
+            "content:inventory",
+            "content:procurement"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
       "path": "docs/api/BACKEND_FRONTEND_COVERAGE.md",
       "kind": "other",
       "candidates": [
@@ -43960,7 +44431,109 @@
       ]
     },
     {
-      "path": "docs/ARCHITECTURE_AUDIT_2026-06-14.md",
+      "path": "docs/architecture/FII_RLS_INCREMENT_1A_INVENTORY.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SEC-001",
+          "score": 14,
+          "signals": [
+            "path:rls",
+            "content:rls"
+          ]
+        },
+        {
+          "capability_id": "FM-007",
+          "score": 13,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/architecture/GIS_CLOUD_NATIVE_BEST_PRACTICES_PHASE4.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-001",
+          "score": 9,
+          "signals": [
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
+          "capability_id": "SAT-009",
+          "score": 8,
+          "signals": [
+            "content:cog",
+            "content:tilejson"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/architecture/PLATFORM_EXTRACTION_MAP.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SOIL-002",
+          "score": 16,
+          "signals": [
+            "content:Soil sampling",
+            "content:sampling plan",
+            "content:soil sampling"
+          ]
+        },
+        {
+          "capability_id": "PA-001",
+          "score": 16,
+          "signals": [
+            "content:Management zones",
+            "content:management zone",
+            "content:productivity zone"
+          ]
+        },
+        {
+          "capability_id": "FM-003",
+          "score": 13,
+          "signals": [
+            "content:field boundary",
+            "content:field geometry",
+            "content:field workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/architecture/RASTER_BOUNDARY_CONTRACT.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "GIS-003",
+          "score": 12,
+          "signals": [
+            "content:contour",
+            "content:hillshade",
+            "content:slope",
+            "content:terrain"
+          ]
+        },
+        {
+          "capability_id": "SAT-001",
+          "score": 10,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "content:stac"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/architecture/RASTER_FACADE_CLEANUP_CONTRACT.md",
       "kind": "other",
       "candidates": [
         {
@@ -43972,35 +44545,20 @@
           ]
         },
         {
-          "capability_id": "SEC-001",
-          "score": 9,
+          "capability_id": "SAT-009",
+          "score": 11,
           "signals": [
-            "content:rls",
-            "content:tenant isolation"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/ARCHITECTURE_DEPENDENCY_AND_GAPS_2026-06.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "INT-002",
-          "score": 14,
-          "signals": [
-            "content:event bus",
-            "content:jetstream",
-            "content:nats"
+            "content:cog",
+            "content:raster tile",
+            "content:tilejson"
           ]
         },
         {
-          "capability_id": "SEC-001",
-          "score": 13,
+          "capability_id": "GIS-003",
+          "score": 9,
           "signals": [
-            "content:Tenant RLS",
-            "content:rls",
-            "content:tenant isolation"
+            "content:dem",
+            "content:terrain"
           ]
         }
       ]
@@ -44046,50 +44604,6 @@
       ]
     },
     {
-      "path": "docs/architecture/FII_RLS_INCREMENT_1A_INVENTORY.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SEC-001",
-          "score": 14,
-          "signals": [
-            "path:rls",
-            "content:rls"
-          ]
-        },
-        {
-          "capability_id": "FM-007",
-          "score": 13,
-          "signals": [
-            "path:inventory",
-            "content:inventory"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/architecture/GIS_CLOUD_NATIVE_BEST_PRACTICES_PHASE4.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SAT-001",
-          "score": 9,
-          "signals": [
-            "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
-          "capability_id": "SAT-009",
-          "score": 8,
-          "signals": [
-            "content:cog",
-            "content:tilejson"
-          ]
-        }
-      ]
-    },
-    {
       "path": "docs/architecture/platform_extraction_map.json",
       "kind": "other",
       "candidates": [
@@ -44127,39 +44641,6 @@
             "content:Management zones",
             "content:management zone",
             "content:productivity zone"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/architecture/PLATFORM_EXTRACTION_MAP.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SOIL-002",
-          "score": 16,
-          "signals": [
-            "content:Soil sampling",
-            "content:sampling plan",
-            "content:soil sampling"
-          ]
-        },
-        {
-          "capability_id": "PA-001",
-          "score": 16,
-          "signals": [
-            "content:Management zones",
-            "content:management zone",
-            "content:productivity zone"
-          ]
-        },
-        {
-          "capability_id": "FM-003",
-          "score": 13,
-          "signals": [
-            "content:field boundary",
-            "content:field geometry",
-            "content:field workspace"
           ]
         }
       ]
@@ -44223,62 +44704,6 @@
           "signals": [
             "content:field geometry",
             "content:field workspace"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/architecture/RASTER_BOUNDARY_CONTRACT.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "GIS-003",
-          "score": 12,
-          "signals": [
-            "content:contour",
-            "content:hillshade",
-            "content:slope",
-            "content:terrain"
-          ]
-        },
-        {
-          "capability_id": "SAT-001",
-          "score": 10,
-          "signals": [
-            "content:cdse",
-            "content:sentinel",
-            "content:stac"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/architecture/RASTER_FACADE_CLEANUP_CONTRACT.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SAT-003",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "capability_id": "SAT-009",
-          "score": 11,
-          "signals": [
-            "content:cog",
-            "content:raster tile",
-            "content:tilejson"
-          ]
-        },
-        {
-          "capability_id": "GIS-003",
-          "score": 9,
-          "signals": [
-            "content:dem",
-            "content:terrain"
           ]
         }
       ]
@@ -44631,29 +45056,6 @@
       ]
     },
     {
-      "path": "docs/BEST_PRACTICES_BENCHMARK_2026-06.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "WX-006",
-          "score": 12,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
-          "capability_id": "WX-002",
-          "score": 9,
-          "signals": [
-            "content:Weather forecast",
-            "content:forecast",
-            "content:weather forecast"
-          ]
-        }
-      ]
-    },
-    {
       "path": "docs/contracts/IRRIGATION-CONTRACTS-v1.1-errata2.md",
       "kind": "other",
       "candidates": [
@@ -44693,36 +45095,6 @@
           "signals": [
             "content:Water balance",
             "content:water balance"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/FIELD_WORKSPACE.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "FM-003",
-          "score": 12,
-          "signals": [
-            "path:field workspace",
-            "content:field workspace"
-          ]
-        },
-        {
-          "capability_id": "SAT-004",
-          "score": 10,
-          "signals": [
-            "content:NDMI",
-            "content:ndmi"
-          ]
-        },
-        {
-          "capability_id": "SAT-003",
-          "score": 10,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
           ]
         }
       ]
@@ -44788,28 +45160,6 @@
       ]
     },
     {
-      "path": "docs/history/FIELD_COMPONENTS_REVIEW.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SAT-003",
-          "score": 10,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "capability_id": "SAT-001",
-          "score": 8,
-          "signals": [
-            "content:sentinel",
-            "content:stac"
-          ]
-        }
-      ]
-    },
-    {
       "path": "docs/history/FIELDVIEW_UI_INSIGHTS.md",
       "kind": "other",
       "candidates": [
@@ -44827,6 +45177,28 @@
           "signals": [
             "content:Scouting",
             "content:scouting"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/history/FIELD_COMPONENTS_REVIEW.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-003",
+          "score": 10,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "capability_id": "SAT-001",
+          "score": 8,
+          "signals": [
+            "content:sentinel",
+            "content:stac"
           ]
         }
       ]
@@ -44942,30 +45314,6 @@
       ]
     },
     {
-      "path": "docs/MAP_RENDERING_BEST_PRACTICES_2026-06.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SAT-001",
-          "score": 18,
-          "signals": [
-            "content:cdse",
-            "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
-          "capability_id": "SAT-009",
-          "score": 15,
-          "signals": [
-            "content:cloud optimized geotiff",
-            "content:cog",
-            "content:tilejson"
-          ]
-        }
-      ]
-    },
-    {
       "path": "docs/openapi/API_MAP.md",
       "kind": "other",
       "candidates": [
@@ -45013,30 +45361,6 @@
           "score": 8,
           "signals": [
             "path:inventory"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/POST_DEPLOYMENT_ROADMAP.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "FM-004",
-          "score": 16,
-          "signals": [
-            "content:Season lifecycle",
-            "content:season",
-            "content:season lifecycle"
-          ]
-        },
-        {
-          "capability_id": "GIS-003",
-          "score": 13,
-          "signals": [
-            "content:dem",
-            "content:slope",
-            "content:terrain"
           ]
         }
       ]
@@ -45174,45 +45498,6 @@
       ]
     },
     {
-      "path": "docs/UNIFIED_SETUP.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SEC-001",
-          "score": 9,
-          "signals": [
-            "content:rls",
-            "content:row level security"
-          ]
-        },
-        {
-          "capability_id": "INT-002",
-          "score": 9,
-          "signals": [
-            "content:event bus",
-            "content:jetstream",
-            "content:nats"
-          ]
-        },
-        {
-          "capability_id": "FM-007",
-          "score": 9,
-          "signals": [
-            "content:inventory",
-            "content:procurement"
-          ]
-        },
-        {
-          "capability_id": "SAT-003",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        }
-      ]
-    },
-    {
       "path": "event_publish_contracts.yaml",
       "kind": "other",
       "candidates": [
@@ -45232,50 +45517,6 @@
             "content:Weather forecast",
             "content:forecast",
             "content:weather forecast"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "FIELD_MANAGEMENT_CLIKCTHROUGH_CDSE_FIX_REPORT_20260629.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SAT-001",
-          "score": 14,
-          "signals": [
-            "path:cdse",
-            "content:cdse"
-          ]
-        },
-        {
-          "capability_id": "SAT-003",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "FIX_ALL_REPORTED_ISSUES_20260626.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SAT-005",
-          "score": 10,
-          "signals": [
-            "content:cloud mask",
-            "content:scl"
-          ]
-        },
-        {
-          "capability_id": "SEC-004",
-          "score": 8,
-          "signals": [
-            "content:MFA",
-            "content:mfa"
           ]
         }
       ]
@@ -46489,6 +46730,28 @@
       ]
     },
     {
+      "path": "migrations/MANIFEST.md",
+      "kind": "database",
+      "candidates": [
+        {
+          "capability_id": "FM-002",
+          "score": 10,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        }
+      ]
+    },
+    {
       "path": "migrations/init_v8.sql",
       "kind": "database",
       "candidates": [
@@ -46516,28 +46779,6 @@
           "signals": [
             "content:NDVI",
             "content:ndvi"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "migrations/MANIFEST.md",
-      "kind": "database",
-      "candidates": [
-        {
-          "capability_id": "FM-002",
-          "score": 10,
-          "signals": [
-            "content:farm",
-            "content:farms"
-          ]
-        },
-        {
-          "capability_id": "SEC-001",
-          "score": 9,
-          "signals": [
-            "content:rls",
-            "content:tenant isolation"
           ]
         }
       ]
@@ -47136,6 +47377,28 @@
       ]
     },
     {
+      "path": "migrations/v90_break_glass.sql",
+      "kind": "database",
+      "candidates": [
+        {
+          "capability_id": "SEC-004",
+          "score": 10,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 10,
+          "signals": [
+            "content:rls",
+            "content:row level security"
+          ]
+        }
+      ]
+    },
+    {
       "path": "migrations/v9_odoo_bridge.sql",
       "kind": "database",
       "candidates": [
@@ -47155,28 +47418,6 @@
             "content:erp bridge",
             "path:odoo bridge",
             "content:odoo bridge"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "migrations/v90_break_glass.sql",
-      "kind": "database",
-      "candidates": [
-        {
-          "capability_id": "SEC-004",
-          "score": 10,
-          "signals": [
-            "content:MFA",
-            "content:mfa"
-          ]
-        },
-        {
-          "capability_id": "SEC-001",
-          "score": 10,
-          "signals": [
-            "content:rls",
-            "content:row level security"
           ]
         }
       ]
@@ -47256,168 +47497,6 @@
       ]
     },
     {
-      "path": "OPEN_METEO_WEATHER_ENGINE_V8_IMPLEMENTATION_REPORT_20260629.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "WX-005",
-          "score": 8,
-          "signals": [
-            "content:VPD",
-            "content:vpd"
-          ]
-        },
-        {
-          "capability_id": "WX-004",
-          "score": 8,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "OPEN_METEO_WEATHER_TILE_ENGINE_REPORT_20260629.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "WX-005",
-          "score": 8,
-          "signals": [
-            "content:VPD",
-            "content:vpd"
-          ]
-        },
-        {
-          "capability_id": "WX-004",
-          "score": 8,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "P2_RASTER_FACADE_CLEANUP_REPORT.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SAT-003",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "capability_id": "GIS-003",
-          "score": 8,
-          "signals": [
-            "content:dem",
-            "content:terrain"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "PLATFORM_MAIN_SUBINVENTORY_20260709.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SEC-001",
-          "score": 11,
-          "signals": [
-            "content:Tenant RLS",
-            "content:rls"
-          ]
-        },
-        {
-          "capability_id": "FM-007",
-          "score": 11,
-          "signals": [
-            "path:inventory",
-            "content:inventory"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "RASTER_MAIN_DECOMPOSITION_PHASE15_ROUTER_OBS_ANALYSIS_TERRAIN_SOIL_20260706.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "GIS-003",
-          "score": 11,
-          "signals": [
-            "path:terrain",
-            "content:terrain"
-          ]
-        },
-        {
-          "capability_id": "SAT-001",
-          "score": 10,
-          "signals": [
-            "content:cdse",
-            "content:stac"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "README.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SAT-003",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "capability_id": "WX-006",
-          "score": 10,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
-          "capability_id": "WX-004",
-          "score": 10,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "REMOTE_SENSING_RS10_IMPLEMENTATION_REPORT_20260715.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "DEC-008",
-          "score": 8,
-          "signals": [
-            "content:Learning attribution",
-            "content:learning attribution"
-          ]
-        },
-        {
-          "capability_id": "DEC-004",
-          "score": 8,
-          "signals": [
-            "content:Execution request",
-            "content:execution request"
-          ]
-        }
-      ]
-    },
-    {
       "path": "runtime-verification/functional_probes/weather-service.json",
       "kind": "other",
       "candidates": [
@@ -47435,29 +47514,6 @@
           "signals": [
             "content:GDD",
             "content:gdd"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "scripts_v9/test_tenant_isolation.sql",
-      "kind": "database",
-      "candidates": [
-        {
-          "capability_id": "SEC-001",
-          "score": 17,
-          "signals": [
-            "content:rls",
-            "path:tenant isolation",
-            "content:tenant isolation"
-          ]
-        },
-        {
-          "capability_id": "FM-001",
-          "score": 14,
-          "signals": [
-            "path:tenant",
-            "content:tenant"
           ]
         }
       ]
@@ -47764,6 +47820,29 @@
           "signals": [
             "content:crop season",
             "content:season"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "scripts_v9/test_tenant_isolation.sql",
+      "kind": "database",
+      "candidates": [
+        {
+          "capability_id": "SEC-001",
+          "score": 17,
+          "signals": [
+            "content:rls",
+            "path:tenant isolation",
+            "content:tenant isolation"
+          ]
+        },
+        {
+          "capability_id": "FM-001",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
           ]
         }
       ]
@@ -48632,28 +48711,6 @@
       ]
     },
     {
-      "path": "services/raster-service/routers/imagery_search.py",
-      "kind": "backend",
-      "candidates": [
-        {
-          "capability_id": "SAT-001",
-          "score": 11,
-          "signals": [
-            "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
-          "capability_id": "SAT-003",
-          "score": 10,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        }
-      ]
-    },
-    {
       "path": "services/raster-service/routers/imagery.py",
       "kind": "backend",
       "candidates": [
@@ -48680,6 +48737,28 @@
           "signals": [
             "content:cog",
             "content:tilejson"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/raster-service/routers/imagery_search.py",
+      "kind": "backend",
+      "candidates": [
+        {
+          "capability_id": "SAT-001",
+          "score": 11,
+          "signals": [
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 10,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
           ]
         }
       ]
@@ -52700,6 +52779,36 @@
       ]
     },
     {
+      "path": "tests/test_real_data.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "WX-004",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
       "path": "tests_v9/test_actuator_idempotency.py",
       "kind": "tests",
       "candidates": [
@@ -53013,28 +53122,6 @@
       ]
     },
     {
-      "path": "tests_v9/test_crop_twin_verified_learning_c2.py",
-      "kind": "tests",
-      "candidates": [
-        {
-          "capability_id": "WX-001",
-          "score": 8,
-          "signals": [
-            "content:Current weather",
-            "content:current weather"
-          ]
-        },
-        {
-          "capability_id": "SAT-003",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        }
-      ]
-    },
-    {
       "path": "tests_v9/test_crop_twin.py",
       "kind": "tests",
       "candidates": [
@@ -53052,6 +53139,28 @@
           "signals": [
             "content:ET0",
             "content:et0"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests_v9/test_crop_twin_verified_learning_c2.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "WX-001",
+          "score": 8,
+          "signals": [
+            "content:Current weather",
+            "content:current weather"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
           ]
         }
       ]
@@ -53956,104 +54065,6 @@
           "signals": [
             "content:Execution request",
             "content:execution request"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "tests/test_real_data.py",
-      "kind": "tests",
-      "candidates": [
-        {
-          "capability_id": "WX-006",
-          "score": 12,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
-          "capability_id": "WX-004",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
-          "capability_id": "SAT-003",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "V49_5_FIELD_MEMORY_EVIDENCE_HARDENING_REPORT_20260701.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SOIL-002",
-          "score": 11,
-          "signals": [
-            "content:Soil sampling",
-            "content:sampling plan",
-            "content:soil sampling"
-          ]
-        },
-        {
-          "capability_id": "SEC-001",
-          "score": 9,
-          "signals": [
-            "content:rls",
-            "content:tenant isolation"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "V59_1_TO_V62_1_AGRONOMY_ADAPTERS_REPORT_20260701.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SAT-003",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "capability_id": "SOIL-002",
-          "score": 10,
-          "signals": [
-            "content:Soil sampling",
-            "content:soil sampling"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "V60_PRODUCTIVITY_ZONES_IMPLEMENTATION_REPORT_20260701.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SOIL-002",
-          "score": 15,
-          "signals": [
-            "content:Soil sampling",
-            "content:sampling plan",
-            "content:soil sampling"
-          ]
-        },
-        {
-          "capability_id": "PA-001",
-          "score": 14,
-          "signals": [
-            "path:productivity zone",
-            "content:productivity zone"
           ]
         }
       ]
