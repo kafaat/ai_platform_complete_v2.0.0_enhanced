@@ -50,6 +50,57 @@ _SOIL_CRITICAL_PCT = 30.0  # تحت هذا الحدّ: إجهاد مائيّ و�
 _SOIL_COMFORTABLE_PCT = 60.0  # فوق هذا الحدّ: التربة رطبة، لا داعي للاستعجال
 
 
+# ─── اكتمالُ المطر — سياسةٌ واحدة، لأنّ الغيابَ هنا يُنتِج أمرَ ريّ ───────
+#
+# **العطلُ مقيسٌ بالتنفيذ لا موصوفٌ:** مطرٌ غائبٌ يصل الحسابَ صفراً فيُعطي
+# `recommended_mm=7.5` و`urgency=moderate` و«خلال ٢٤ ساعة» — **أمرَ ريٍّ صريحاً**؛
+# وبالقراءة الحقيقيّة (١٢مم) يُعطي `0.0` و«لا حاجة للريّ». والانحيازُ في اتّجاهِ
+# الإذن: غيابُ القياس يُنتِج ريّاً لا منعاً. وأسوأُ من الرقم أنّ `rationale_ar`
+# **لا يذكر المطرَ بحرفٍ** عند الصفر، فيُقرأ «حُسِب ولا مطرَ يُخصَم» لا «لا نعلم».
+#
+# **ولمَ هنا لا في كلّ مسار:** الحكمُ كان مكتوباً في `field_workspace_weather.py`
+# وحدَه (`_complete_precipitation_total`)، بينما `fields.py` و`main.py` تجمعان
+# `sum(... or 0.0)` بلا حارس — أي **علاجٌ ضيّقٌ تحت فجوةٍ عريضة**. فاستُخرِج
+# الحكمُ إلى `list[float | None]` مُجرَّدةٍ من الشكل: القاموسُ والكائنُ المُصنَّف
+# يستخرج كلٌّ قراءاتِه ثمّ يسأل **نفسَ** السياسة. تعريفٌ واحد لا ثلاثة تتّفق اليوم.
+#
+# **و`0.0` الصريح يبقى رصداً** — «لا مطر» قياسٌ مشروع. الناقصُ وحدَه هو `None`
+# أو فترةٌ غائبةٌ عن سلسلةٍ أقصر من المتوقَّع.
+def complete_rain_total(
+    readings: list[float | None], *, expected_count: int
+) -> tuple[float | None, list[int]]:
+    """مجموعُ مطرٍ **فقط** إذا رُصِدت كلُّ فترةٍ متوقَّعة، وإلّا تُسمّى الفترات الناقصة.
+
+    تُعيد ``(total, missing_indices)``. وجودُ أيّ ناقصٍ ⇒ ``(None, [...])`` —
+    فلا يُجمَع نصفُ سلسلةٍ ويُقدَّم مجموعاً كاملاً.
+    """
+    missing: list[int] = []
+    values: list[float] = []
+    for index in range(expected_count):
+        value = readings[index] if index < len(readings) else None
+        if value is None:
+            missing.append(index)
+        else:
+            values.append(value)
+    if missing:
+        return None, missing
+    return sum(values), []
+
+
+def precipitation_incomplete_detail(*, context: str, missing_intervals: list[int]) -> dict:
+    """جسمُ الخطأ الفاشل مغلقاً — **بياناً لا استثناءً**، فتبقى هذه الوحدة نقيّة.
+
+    كلُّ مسارٍ يلفّه بـ``HTTPException(503, detail=...)``؛ والشكلُ واحدٌ هنا كي لا
+    يُبلَّغ العطلُ نفسُه برمزين مختلفين في مسارين.
+    """
+    return {
+        "code": "WEATHER_PRECIPITATION_INCOMPLETE",
+        "message_ar": "بيانات المطر غير مكتملة؛ لا يمكن إصدار تقدير زراعي آمن.",
+        "context": context,
+        "missing_intervals": missing_intervals,
+    }
+
+
 def resolve_kc(crop: str | None, stage: str) -> tuple[float, bool, str]:
     """يُرجع (kc, crop_known, kc_source_ar) لمحصول/مرحلة.
 

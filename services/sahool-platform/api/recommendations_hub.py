@@ -76,12 +76,17 @@ class RecommendationContext:
     sowing_date: date | None = None
     # سياق الطقس (من Open-Meteo) — None ⇒ غير متاح، نتخطّى توصيات الطقس.
     et0_mm: float | None = None
-    rain_recent_mm: float = 0.0
-    forecast_rain_mm: float = 0.0
+    # **حقولُ المطر صارت `float | None` كأخواتها.** كانت `float = 0.0` — أي عقدٌ
+    # يمنع الغياب فيُقرأ المفقودُ «لا مطر»، والصفرُ يُنقِص الاحتياجَ المحسوب
+    # ويُنقِص خطرَ المرض ⇒ انحيازٌ إلى الريّ وإلى **عدم** التحذير معاً. والملفُّ
+    # يعرف النمطَ سلفاً: `et0_mm` و`temp_c` و`humidity_pct` كلُّها `| None`
+    # وقواعدُها تصمت عند الغياب — فبقيت حقولُ المطر وحدَها مُصفَّرةً بالعقد.
+    rain_recent_mm: float | None = None
+    forecast_rain_mm: float | None = None
     soil_moisture_pct: float | None = None
     temp_c: float | None = None
     humidity_pct: float | None = None
-    rain_mm_3d: float = 0.0
+    rain_mm_3d: float | None = None
     # Stage F (تغذية آمنة): مرجعيّة من الحالة القانونيّة الموحّدة (النواة الزراعيّة)
     # — تُستخدَم للتصعيد/التنبيه فقط، لا تُغيّر أرقام التوصيات الأخرى.
     salinity_class: str | None = None  # critical|moderate|low (compose_field_state)
@@ -149,8 +154,8 @@ def _normalize_crop(crop: str | None) -> str | None:
 
 
 def _irrigation_rec(ctx: RecommendationContext) -> Recommendation | None:
-    """توصية ريّ من irrigation_advice — تتطلّب ET₀ (الطقس). None إن غاب."""
-    if ctx.et0_mm is None:
+    """توصية ريّ من irrigation_advice — تتطلّب ET₀ **والمطر**. None إن غاب أيّهما."""
+    if ctx.et0_mm is None or ctx.rain_recent_mm is None or ctx.forecast_rain_mm is None:
         return None
     advice = irrigation_advice(
         et0_mm=ctx.et0_mm,
@@ -196,8 +201,8 @@ def _fertilizer_rec(ctx: RecommendationContext) -> Recommendation | None:
 
 
 def _disease_rec(ctx: RecommendationContext) -> Recommendation | None:
-    """توصية أمراض من disease_risk — تتطلّب حرارة + رطوبة (الطقس). None إن غاب."""
-    if ctx.temp_c is None or ctx.humidity_pct is None:
+    """توصية أمراض من disease_risk — تتطلّب حرارة + رطوبة **ومطراً**. None إن غاب."""
+    if ctx.temp_c is None or ctx.humidity_pct is None or ctx.rain_mm_3d is None:
         return None
     risk = disease_risk(
         temp_c=ctx.temp_c,
@@ -341,8 +346,12 @@ _REGISTRY: list[RecommendationEngine] = [
         name_ar="الريّ",
         category="irrigation",
         builder=_irrigation_rec,
-        # يبوّب على ET₀ (الطقس) فقط؛ بقيّة المدخلات لها قيم افتراضيّة/اختياريّة.
-        required_inputs=("et0_mm",),
+        # يبوّب على ET₀ **والمطر**. وضُمَّ المطرُ إلى الإعلان في الشريحة نفسِها التي
+        # ضمّته إلى الإنفاذ: إعلانٌ أضيقُ من الإنفاذ هو عين العطل الذي تُغلقه هذه
+        # الشريحة — قاعدةٌ حقيقيّةٌ تحت وصفٍ يُطمئن. وكان الوصفُ «بقيّة المدخلات لها
+        # قيم افتراضيّة» صادقاً حين كانت `rain_recent_mm: float = 0.0`، وذلك
+        # الافتراضُ نفسُه هو الكذبة: «لا بيانات مطر» تُقرأ «لا مطر».
+        required_inputs=("et0_mm", "rain_recent_mm", "forecast_rain_mm"),
     ),
     RecommendationEngine(
         id="fertilizer",
@@ -357,8 +366,9 @@ _REGISTRY: list[RecommendationEngine] = [
         name_ar="الأمراض",
         category="disease",
         builder=_disease_rec,
-        # يبوّب على الحرارة والرطوبة (الطقس).
-        required_inputs=("temp_c", "humidity_pct"),
+        # يبوّب على الحرارة والرطوبة **والمطر** — والمطرُ يدخل تهديفَ الخطر، فتصفيرُه
+        # يُنقِص الخطرَ المُبلَّغ أي ينحاز إلى **عدم** التحذير.
+        required_inputs=("temp_c", "humidity_pct", "rain_mm_3d"),
     ),
     RecommendationEngine(
         id="yield",

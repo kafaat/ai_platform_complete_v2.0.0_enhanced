@@ -24,6 +24,13 @@ _CTX = RecommendationContext(
     temp_c=24.0,
     humidity_pct=88.0,
     rain_mm_3d=12.0,
+    # **أُضيف المطرُ الآنيُّ والمتوقَّع إلى السياق «الكامل».** كانا يغيبان فيأخذان
+    # `0.0` من العقد، فيقرأ محرّكُ الريّ «لا مطر» حيث الحقيقةُ «لا بيانات» — وهو
+    # `IRRIGATION-READS-MISSING-RAIN-AS-NO-RAIN-01`. وبعد أن صار العقدُ
+    # `float | None` صار غيابُهما يُصمِت المحرّك بحقّ، فوجب أن يحملهما سياقٌ
+    # يدّعي الاكتمال. والصفرُ الصريح هنا **رصدٌ** لا غياب.
+    rain_recent_mm=0.0,
+    forecast_rain_mm=0.0,
     sowing_date=date.today() - timedelta(days=60),
 )
 
@@ -44,9 +51,13 @@ def test_list_engines_returns_all_five() -> None:
     assert by_id["yield"]["category"] == "yield"
     assert by_id["salinity_caution"]["category"] == "irrigation"
     # metadata required_inputs مُشتقّة بصدق من بوّابة كلّ بنّاء.
-    assert by_id["irrigation"]["required_inputs"] == ["et0_mm"]
+    assert by_id["irrigation"]["required_inputs"] == [
+        "et0_mm",
+        "rain_recent_mm",
+        "forecast_rain_mm",
+    ]
     assert by_id["fertilizer"]["required_inputs"] == []
-    assert by_id["disease"]["required_inputs"] == ["temp_c", "humidity_pct"]
+    assert by_id["disease"]["required_inputs"] == ["temp_c", "humidity_pct", "rain_mm_3d"]
     assert by_id["yield"]["required_inputs"] == ["sowing_date", "crop"]
     assert by_id["salinity_caution"]["required_inputs"] == ["salinity_class"]
     assert all(e["default_enabled"] for e in engines)

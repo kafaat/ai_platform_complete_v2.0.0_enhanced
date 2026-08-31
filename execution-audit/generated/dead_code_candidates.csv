@@ -108,9 +108,9 @@ medium,sahool-platform,function,build_governed_vri_prescription,services/sahool-
 medium,sahool-platform,function,vri_prescription_to_translation_input,services/sahool-platform/api/canonical_vri_prescription.py,464,0,review_before_delete,False
 medium,sahool-platform,function,site_suitability,services/sahool-platform/api/coffee_advisor.py,59,0,review_before_delete,False
 medium,sahool-platform,function,cultivation_guide,services/sahool-platform/api/coffee_advisor.py,89,0,review_before_delete,False
-medium,sahool-platform,function,fetch_current_batch,services/sahool-platform/api/connectors/openmeteo.py,293,0,review_before_delete,False
-medium,sahool-platform,function,fetch_bundle,services/sahool-platform/api/connectors/openmeteo.py,404,0,review_before_delete,False
-medium,sahool-platform,function,spraying_condition_score,services/sahool-platform/api/connectors/openmeteo.py,685,0,review_before_delete,False
+medium,sahool-platform,function,fetch_current_batch,services/sahool-platform/api/connectors/openmeteo.py,300,0,review_before_delete,False
+medium,sahool-platform,function,fetch_bundle,services/sahool-platform/api/connectors/openmeteo.py,411,0,review_before_delete,False
+medium,sahool-platform,function,spraying_condition_score,services/sahool-platform/api/connectors/openmeteo.py,692,0,review_before_delete,False
 medium,sahool-platform,function,build_controller_handshake,services/sahool-platform/api/controller_edge_adapter.py,124,0,review_before_delete,False
 medium,sahool-platform,function,normalize_controller_telemetry,services/sahool-platform/api/controller_edge_adapter.py,165,0,review_before_delete,False
 medium,sahool-platform,function,build_controller_capability_snapshot,services/sahool-platform/api/controller_edge_adapter.py,223,0,review_before_delete,False
@@ -170,8 +170,8 @@ medium,sahool-platform,function,field_to_pdf_bytes,services/sahool-platform/api/
 medium,sahool-platform,function,field_imagery_available_dates,services/sahool-platform/api/routers/fields.py,829,0,review_before_delete,False
 medium,sahool-platform,function,field_imagery_timeline,services/sahool-platform/api/routers/fields.py,865,0,review_before_delete,False
 medium,sahool-platform,function,field_irrigation_advice,services/sahool-platform/api/routers/fields.py,2524,0,review_before_delete,False
-medium,sahool-platform,function,field_disease_risk,services/sahool-platform/api/routers/fields.py,2593,0,review_before_delete,False
-medium,sahool-platform,function,field_unified_timeline,services/sahool-platform/api/routers/fields.py,3768,0,review_before_delete,False
+medium,sahool-platform,function,field_disease_risk,services/sahool-platform/api/routers/fields.py,2616,0,review_before_delete,False
+medium,sahool-platform,function,field_unified_timeline,services/sahool-platform/api/routers/fields.py,3812,0,review_before_delete,False
 medium,sahool-platform,function,send_to_subscriber,services/sahool-platform/api/routers/notifications.py,316,0,review_before_delete,False
 medium,sahool-platform,function,irrigation_due_by_soil,services/sahool-platform/api/soil_water.py,119,0,review_before_delete,False
 medium,sahool-platform,function,generate_block_assignments,services/sahool-platform/api/trial_randomization.py,108,0,review_before_delete,False

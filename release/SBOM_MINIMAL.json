@@ -14985,7 +14985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bb0cc2ef754a2b7b0c806f4eea5c10e9074cd7ca44e20b133d17fbd7009440f8"
+          "content": "d382eb34095cf7bfe5a55904c16951de007c30318504430a4297f3488ac31853"
         }
       ],
       "name": "services/sahool-platform/api/alert_rules.py",
@@ -15375,7 +15375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ac3c77976ee6721d85f2c77569c1b6c1eda0b36c34cbb3e005949477888a038c"
+          "content": "3ce523d740cf60d609b4f573234a990978f5cb632db1ce36ab380ac6ecf80d7e"
         }
       ],
       "name": "services/sahool-platform/api/connectors/openmeteo.py",
@@ -15895,7 +15895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9ed58ebc3b7bfc774c52b14d35aecc8503d9945c6ab754d6d3ce0ad477a7dabe"
+          "content": "f577dd661e447790e275dc863618f63b6bcffbe1e2f4d85556011de4eac26191"
         }
       ],
       "name": "services/sahool-platform/api/field_context.py",
@@ -16625,7 +16625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "006411ef3163b60f22cdad4943f31fff8804156f8146c2cf9b22e4e2e978333e"
+          "content": "6300ba3f8dbe886e54c8538ef467ac308834057dca156e7f9e158158897c46a0"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -16925,7 +16925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "31c5039655a4482ba326863ed6157d8e825fc9621a3bc6501126f765ada60eef"
+          "content": "859035ac8054b71557fa0f9353a32b8b391490e7e5e66a86619c46f3b3c26d91"
         }
       ],
       "name": "services/sahool-platform/api/recommendations_hub.py",
@@ -17705,7 +17705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0468701813708d21d291ba275c6b0f6d6909428e358fc5d1921bd0ea2c87ba00"
+          "content": "fd2d1793a3abba3ca4278f5e9f445ed468579e71cac67e00334347dd04c340bd"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_workspace_weather.py",
@@ -17715,7 +17715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1e73f01719d01f7229df27c3b9e59e99e2c173de599239725c4918a665caeaf1"
+          "content": "e4d77634d52af24845b33b68a582b5d895657dc5b3d5641929222d7afb1f5c57"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -18385,7 +18385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "17448644e348beecafd3b4fbf58d0b853701bd5ba30f133089e84886d1808c9f"
+          "content": "9535d09542990f6e7e9ad76c0bb028f8b59d6b3a357d2451baaf29bf1c3c63d0"
         }
       ],
       "name": "services/sahool-platform/api/routers/season_workspace.py",
@@ -19095,7 +19095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a564a19895e75c7f52a2881d7d56ed613358c11126afb38bcc1a2eb02078d489"
+          "content": "fb46dd15935cefb0f0980b08fac9b907711bf5f7b2a21dba1638367adb76dd7a"
         }
       ],
       "name": "services/sahool-platform/api/weather_advice.py",
@@ -25595,6 +25595,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "1c9a3ecfb35f9e4e76709db77929018034fa74499ecec17f64a6f8bf5807ae22"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "07f1884f62292442eaa6f802845d4af10bf5c59d52937722cc42649256951a11"
         }
       ],
@@ -26385,7 +26395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "083abd4000c56ff62f45499b3a3683f7b00a5bf4b442d4fb1d0732fd0cf678c4"
+          "content": "3cfe03cc3462866f239347b93724ec115a643eddf6af2864a1b0c9c03aee9e58"
         }
       ],
       "name": "services/sahool-platform/tests/test_recommendation_registry.py",

@@ -2532,7 +2532,11 @@ async def field_irrigation_advice(
     تعذّر الطقس (لا بيانات وهميّة).
     """
     from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
-    from api.weather_advice import irrigation_advice
+    from api.weather_advice import (
+        complete_rain_total,
+        irrigation_advice,
+        precipitation_incomplete_detail,
+    )
 
     try:
         async with tenant_connection(user) as conn:
@@ -2563,13 +2567,32 @@ async def field_irrigation_advice(
             detail="بيانات ET₀ غير متوفّرة من مصدر الطقس حاليّاً. حاول لاحقاً.",
         )
     # المطر المتوقّع خلال ٤٨ ساعة القادمة (يومان قادمان من التوقّع).
-    forecast_rain = sum(f.precipitation_mm or 0.0 for f in forecast[1:3])
+    #
+    # **كان `sum(... or 0.0)` — والصفرُ المُقنَّع هنا يُنتِج أمرَ ريّ.** قِيس بالتنفيذ
+    # على `irrigation_advice` نفسِها: بغيابٍ مُصفَّر ⇒ `recommended_mm=7.5` و
+    # `urgency=moderate` و«خلال ٢٤ ساعة»؛ وبالقراءة الحقيقيّة (١٢مم) ⇒ `0.0` و«لا
+    # حاجة للريّ». فالانحيازُ في اتّجاه الإذن، و`rationale_ar` **لا يذكر المطرَ
+    # بحرفٍ** عند الصفر فيُقرأ حساباً لا جهلاً. وأشدُّ: نفسُ الحكم كان مفروضاً في
+    # `field_workspace_weather` ومفقوداً هنا — فالمزارعُ يُسقى أو لا يُسقى بحسب
+    # أيّ مسارٍ سأل.
+    forecast_rain, missing_forecast = complete_rain_total(
+        [f.precipitation_mm for f in forecast[1:3]], expected_count=2
+    )
+    current_rain = current.precipitation_mm
+    missing_rain = ([0] if current_rain is None else []) + [i + 1 for i in missing_forecast]
+    if missing_rain:
+        raise HTTPException(
+            status_code=503,
+            detail=precipitation_incomplete_detail(
+                context="field_irrigation_advice", missing_intervals=missing_rain
+            ),
+        )
     soil_pct = soil_reading.value_pct if soil_reading is not None else None
     advice = irrigation_advice(
         et0_mm=et0,
         crop=crop,
         stage=stage,
-        rain_recent_mm=current.precipitation_mm or 0.0,
+        rain_recent_mm=current_rain,
         forecast_rain_mm=forecast_rain,
         soil_moisture_pct=soil_pct,
     )
@@ -2600,7 +2623,11 @@ async def field_disease_risk(
     مطر آخر ٣ أيّام من Open-Meteo. 404 إن غاب الحقل، 503 إن تعذّر الطقس.
     """
     from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
-    from api.weather_advice import disease_risk
+    from api.weather_advice import (
+        complete_rain_total,
+        disease_risk,
+        precipitation_incomplete_detail,
+    )
 
     try:
         async with tenant_connection(user) as conn:
@@ -2621,7 +2648,18 @@ async def field_disease_risk(
             detail="تعذّر جلب الطقس (مصدر Open-Meteo غير متاح). حاول لاحقاً.",
         ) from e
 
-    rain_3d = sum(f.precipitation_mm or 0.0 for f in forecast[:3])
+    # مطرُ ثلاثةِ أيّام يدخل تهديفَ خطر الأمراض الفطريّة — والغيابُ المُصفَّر
+    # يُنقِص الخطرَ المُبلَّغ، أي ينحاز إلى **عدم** التحذير. نفسُ اتّجاه العطل أعلاه.
+    rain_3d, missing_rain = complete_rain_total(
+        [f.precipitation_mm for f in forecast[:3]], expected_count=3
+    )
+    if missing_rain:
+        raise HTTPException(
+            status_code=503,
+            detail=precipitation_incomplete_detail(
+                context="field_disease_risk", missing_intervals=missing_rain
+            ),
+        )
     risk = disease_risk(
         temp_c=current.temperature_c,
         humidity_pct=current.humidity_pct,
@@ -2841,6 +2879,8 @@ async def field_recommendations(
 
     # الطقس اختياريّ: نملأ سياقه إن توفّرت الإحداثيّات والمصدر. تعذّره لا يُسقط
     # الطلب — نكتفي بالتوصيات التي لا تحتاجه (تدهور رشيق، لا تلفيق).
+    from api.weather_advice import complete_rain_total
+
     weather_available = False
     if lat is not None and lon is not None:
         try:
@@ -2849,13 +2889,17 @@ async def field_recommendations(
             today = forecast[0] if forecast else None
             et0 = today.et0_mm if today and today.et0_mm is not None else None
             ctx.et0_mm = et0
-            ctx.rain_recent_mm = current.precipitation_mm or 0.0
-            ctx.forecast_rain_mm = sum(f.precipitation_mm or 0.0 for f in forecast[1:3])
+            # الغيابُ يمرّ `None` — والقواعدُ تصمت عليه بدل أن تُوصي على صفرٍ مُختلَق.
+            ctx.rain_recent_mm = current.precipitation_mm
+            ctx.forecast_rain_mm, _ = complete_rain_total(
+                [f.precipitation_mm for f in forecast[1:3]], expected_count=2
+            )
             ctx.temp_c = current.temperature_c
             ctx.humidity_pct = current.humidity_pct
-            ctx.rain_mm_3d = await _historical_rain_3d_mm(
-                lat, lon, sum(f.precipitation_mm or 0.0 for f in forecast[:3])
+            _fc3, _ = complete_rain_total(
+                [f.precipitation_mm for f in forecast[:3]], expected_count=3
             )
+            ctx.rain_mm_3d = await _historical_rain_3d_mm(lat, lon, _fc3)
             weather_available = True
         except Exception:  # noqa: BLE001 — تعذّر الطقس ⇒ تدهور رشيق لا فشل
             logging.exception("recommendations: weather unavailable for %s", field_id)
