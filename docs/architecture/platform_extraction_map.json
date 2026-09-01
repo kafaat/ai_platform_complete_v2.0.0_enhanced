@@ -2833,7 +2833,7 @@
       "function": "field_weather_crop_stress",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/crop-stress",
-      "line": 220,
+      "line": 216,
       "target_owner": "weather-service",
       "owner_type": "bff-facade-to-weather",
       "route_key": "api/routers/field_workspace_weather.py::GET /api/v1/fields/{field_id}/weather/crop-stress::field_weather_crop_stress"
@@ -2843,7 +2843,7 @@
       "function": "field_disease_risk_facade",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/disease-risk",
-      "line": 400,
+      "line": 396,
       "target_owner": "weather-service",
       "owner_type": "bff-facade-to-weather",
       "route_key": "api/routers/field_workspace_weather.py::GET /api/v1/fields/{field_id}/weather/disease-risk::field_disease_risk_facade"
@@ -2853,7 +2853,7 @@
       "function": "field_irrigation_advice_facade",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/irrigation-advice",
-      "line": 338,
+      "line": 334,
       "target_owner": "weather-service",
       "owner_type": "bff-facade-to-weather",
       "route_key": "api/routers/field_workspace_weather.py::GET /api/v1/fields/{field_id}/weather/irrigation-advice::field_irrigation_advice_facade"
@@ -2863,7 +2863,7 @@
       "function": "field_weather_operation_windows",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/operation-windows",
-      "line": 287,
+      "line": 283,
       "target_owner": "weather-service",
       "owner_type": "bff-facade-to-weather",
       "route_key": "api/routers/field_workspace_weather.py::GET /api/v1/fields/{field_id}/weather/operation-windows::field_weather_operation_windows"
@@ -2873,7 +2873,7 @@
       "function": "field_weather_thermal_stress",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/weather/thermal-stress",
-      "line": 185,
+      "line": 181,
       "target_owner": "weather-service",
       "owner_type": "bff-facade-to-weather",
       "route_key": "api/routers/field_workspace_weather.py::GET /api/v1/fields/{field_id}/weather/thermal-stress::field_weather_thermal_stress"
@@ -2893,7 +2893,7 @@
       "function": "list_field_activities",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/activities",
-      "line": 3028,
+      "line": 3072,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/activities::list_field_activities"
@@ -2903,7 +2903,7 @@
       "function": "field_alerts_derived",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/alerts/derived",
-      "line": 4017,
+      "line": 4061,
       "target_owner": "weather-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/alerts/derived::field_alerts_derived"
@@ -2923,7 +2923,7 @@
       "function": "field_history",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/history",
-      "line": 3714,
+      "line": 3758,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/history::field_history"
@@ -2943,7 +2943,7 @@
       "function": "field_input_traceability",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/input-traceability",
-      "line": 3057,
+      "line": 3101,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/input-traceability::field_input_traceability"
@@ -2953,7 +2953,7 @@
       "function": "field_recommendations",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/recommendations",
-      "line": 2798,
+      "line": 2836,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/recommendations::field_recommendations"
@@ -2963,7 +2963,7 @@
       "function": "list_crop_rotations",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/rotations",
-      "line": 3473,
+      "line": 3517,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/rotations::list_crop_rotations"
@@ -2983,7 +2983,7 @@
       "function": "list_soil_lab_tests",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/soil-lab-tests",
-      "line": 3261,
+      "line": 3305,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/soil-lab-tests::list_soil_lab_tests"
@@ -3003,7 +3003,7 @@
       "function": "field_state_full",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/state/full",
-      "line": 4043,
+      "line": 4087,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/state/full::field_state_full"
@@ -3013,7 +3013,7 @@
       "function": "field_canonical_state",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/state",
-      "line": 3989,
+      "line": 4033,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/state::field_canonical_state"
@@ -3033,7 +3033,7 @@
       "function": "field_water_stress_spectral",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/water-stress-spectral",
-      "line": 3957,
+      "line": 4001,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/water-stress-spectral::field_water_stress_spectral"
@@ -3043,7 +3043,7 @@
       "function": "field_wind_prevailing",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/wind/prevailing",
-      "line": 2644,
+      "line": 2682,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/wind/prevailing::field_wind_prevailing"
@@ -3093,7 +3093,7 @@
       "function": "update_soil_lab_test",
       "method": "PATCH",
       "path": "/api/v1/fields/{field_id}/soil-lab-tests/{test_id}",
-      "line": 3285,
+      "line": 3329,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/fields.py::PATCH /api/v1/fields/{field_id}/soil-lab-tests/{test_id}::update_soil_lab_test"
@@ -3143,7 +3143,7 @@
       "function": "validate_geometry",
       "method": "POST",
       "path": "/api/v1/fields/validate-geometry",
-      "line": 3559,
+      "line": 3603,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/validate-geometry::validate_geometry"
@@ -3153,7 +3153,7 @@
       "function": "create_activity",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/activities",
-      "line": 2890,
+      "line": 2934,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/activities::create_activity"
@@ -3163,7 +3163,7 @@
       "function": "evaluate_field_alerts_endpoint",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/alerts/evaluate",
-      "line": 3412,
+      "line": 3456,
       "target_owner": "weather-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/alerts/evaluate::evaluate_field_alerts_endpoint"
@@ -3183,7 +3183,7 @@
       "function": "field_growth_narrative",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/growth-narrative",
-      "line": 3162,
+      "line": 3206,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/growth-narrative::field_growth_narrative"
@@ -3223,7 +3223,7 @@
       "function": "create_pin",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/pins",
-      "line": 3831,
+      "line": 3875,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/pins::create_pin"
@@ -3233,7 +3233,7 @@
       "function": "prescribe_nitrogen",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/prescriptions/nitrogen",
-      "line": 3592,
+      "line": 3636,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/prescriptions/nitrogen::prescribe_nitrogen"
@@ -3243,7 +3243,7 @@
       "function": "add_crop_rotation",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/rotations",
-      "line": 3431,
+      "line": 3475,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/rotations::add_crop_rotation"
@@ -3263,7 +3263,7 @@
       "function": "create_soil_lab_test",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/soil-lab-tests",
-      "line": 3202,
+      "line": 3246,
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/soil-lab-tests::create_soil_lab_test"
@@ -3273,7 +3273,7 @@
       "function": "field_timeline",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/timeline",
-      "line": 3694,
+      "line": 3738,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/timeline::field_timeline"
@@ -3283,7 +3283,7 @@
       "function": "apply_trueup",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/trueup",
-      "line": 3500,
+      "line": 3544,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/trueup::apply_trueup"
@@ -3293,7 +3293,7 @@
       "function": "field_walk_plan_pdf",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/walk-plan/pdf",
-      "line": 3924,
+      "line": 3968,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/walk-plan/pdf::field_walk_plan_pdf"
@@ -3303,7 +3303,7 @@
       "function": "field_walk_plan",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/walk-plan",
-      "line": 3914,
+      "line": 3958,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/walk-plan::field_walk_plan"
@@ -3313,7 +3313,7 @@
       "function": "field_wind_drift_risk",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/wind/drift-risk",
-      "line": 2719,
+      "line": 2757,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/wind/drift-risk::field_wind_drift_risk"
@@ -3323,7 +3323,7 @@
       "function": "estimate_field_yield",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/yield-estimate",
-      "line": 3621,
+      "line": 3665,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/yield-estimate::estimate_field_yield"
@@ -3333,7 +3333,7 @@
       "function": "field_zones",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/zones",
-      "line": 3943,
+      "line": 3987,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::POST /api/v1/fields/{field_id}/zones::field_zones"
@@ -5183,7 +5183,7 @@
       "function": "season_workspace",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/season-workspace",
-      "line": 218,
+      "line": 219,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/season_workspace.py::GET /api/v1/fields/{field_id}/season-workspace::season_workspace"

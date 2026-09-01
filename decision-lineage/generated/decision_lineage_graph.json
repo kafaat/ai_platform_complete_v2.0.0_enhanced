@@ -276,7 +276,6 @@
         "services/sahool-platform/api/routers/field_ai_context.py",
         "services/sahool-platform/api/routers/field_intelligence.py",
         "services/sahool-platform/api/routers/field_workspace_imagery.py",
-        "services/sahool-platform/api/routers/field_workspace_weather.py",
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/internal_service.py",
         "services/sahool-platform/api/routers/irrigation_recommendation.py",
@@ -451,6 +450,7 @@
         "services/sahool-platform/tests/test_knowledge_levels.py",
         "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
         "services/sahool-platform/tests/test_mcp_streaming_review_artifacts.py",
+        "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
         "services/sahool-platform/tests/test_offline_first.py",
         "services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py",
         "services/sahool-platform/tests/test_p1_4_recommendation_to_learning_lineage_e2e.py",
@@ -610,7 +610,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 484,
+      "evidence_count": 485,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -1013,6 +1013,7 @@
         "services/sahool-platform/tests/test_machinery_export.py",
         "services/sahool-platform/tests/test_maestro_bridge.py",
         "services/sahool-platform/tests/test_mcp_streaming_review_artifacts.py",
+        "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
         "services/sahool-platform/tests/test_nasa_power_wind.py",
         "services/sahool-platform/tests/test_nutrient_4r.py",
         "services/sahool-platform/tests/test_orchestrator_and_api.py",
@@ -2370,7 +2371,7 @@
         "services/sahool-platform/core/ai_artifacts.py"
       ],
       "source_evidence_count": 568,
-      "target_evidence_count": 484,
+      "target_evidence_count": 485,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2478,7 +2479,7 @@
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py"
       ],
-      "source_evidence_count": 484,
+      "source_evidence_count": 485,
       "target_evidence_count": 172,
       "static_supported": true,
       "runtime_verified": false
@@ -2737,5 +2738,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "e4588a4e4f5222a5c6d0fb16e9efd05e098e6898695dde5dd8f0a2c3d6f9e4fb"
+  "content_sha256": "b00b103d61dae8db5ef395f58ee7c7abb631b54ac44c3ae406d88df08047e6de"
 }

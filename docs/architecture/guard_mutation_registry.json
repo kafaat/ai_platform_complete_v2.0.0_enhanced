@@ -5,6 +5,39 @@
     "$scope_ar": "المساران هنا هما بعينهما ما أذن به `GATE01-ADJ-2026-08-13-001` — يقيس التفويضُ ما مُنِح لأجله لا أكثر.",
     "$what_was_missing_ar": "أجنحةُ السلوك كانت **قائمةً** للتعويض وللمُصرِّح منذ إغلاق الدَّينين، والناقص أنّها لم تكن مُثبَتةً بالتكذيب: لا أحد زرع العطل وأثبت أنّها تحمرّ. فالجديد هنا تسجيلٌ وزرعٌ لا كتابةُ اختبارات من جديد — عدا الراوتر نفسه، فكان مقيساً بفحصٍ نصّيّ وحده (بإقرار وثيقته)، فأُضيف له جناحٌ سلوكيّ.",
     "$why_ar": "الحرّاس الساكنة تقيس **وقوع** استشارة مفتاح الطوارئ لا **أثرها**. وحدُّ ذلك مكتوبٌ حرفيّاً في `actuation_killswitch_coverage_guard.py` وفي `GATE01-ADJ-2026-08-13-001`: «يقيس وقوع الاستشارة لا أنّ نتيجتها تمنع الإرسال». وبينهما ثلاثة أعطال يمرّ عليها الحارس أخضر — تجاهلُ النتيجة، وضيقُ النطاق، والاستشارةُ بعد النشر. فهذا القسم يزرعها في منطق الإنتاج نفسه ويُلزِم اختبارَ سلوكٍ مُسمّى بالاحمرار. ومفاتيحه **مسارات مصادر** لا أسماء حرّاس.",
+    ".github/workflows/capability-governance.yml": {
+      "$why_ar": "GATE-READS-A-FROZEN-EVENT-PAYLOAD-NOT-THE-LIVE-BODY-01: خطوةُ إنفاذ أثر القدرات كانت تقرأ المتنَ من حمولة الحدث المجمَّدة، فتصحيحُ المتن بعد الانطلاق غيرُ مرئيّ و«أعد التشغيل» يكرّر القديم (مقيس على #887). الإصلاح: جلبٌ حيّ يفشل مغلقاً.",
+      "mutations": [
+        {
+          "expect": "test_the_enforce_step_does_not_read_the_body_from_the_frozen_payload",
+          "test": "tests_v9/test_capability_gate_reads_live_body.py",
+          "find": "          jq -r '.body // \"\"' /tmp/pr-live.json > /tmp/pr-body.txt\n",
+          "replace": "          printf '%s' \"${PR_BODY:-}\" > /tmp/pr-body.txt  # mutated: عودة الحمولة المجمَّدة\n",
+          "why": "إرجاعُ قراءة المتن إلى الحمولة المجمَّدة يعيد الحادثة بعينها: بوّابةٌ تحجب على متنٍ صُحِّح قبل دقيقة."
+        },
+        {
+          "expect": "test_the_enforce_step_fetches_the_body_live_and_fails_closed",
+          "test": "tests_v9/test_capability_gate_reads_live_body.py",
+          "find": "          if [ \"$HTTP_STATUS\" != \"200\" ]; then\n            echo \"live PR body fetch failed: HTTP $HTTP_STATUS — فشل مغلق (الحمولة المجمّدة ليست بديلاً)\" >&2\n            exit 1\n          fi\n",
+          "replace": "          if [ \"$HTTP_STATUS\" != \"200\" ]; then\n            echo \"fetch failed — falling back\" >&2\n          fi\n",
+          "why": "السقوطُ الصامت عند فشل الجلب يعيد العطلَ بثوب احتياطٍ — فشلُ الشبكة يصير قراءةَ حمولةٍ بائتة بلا أثر."
+        },
+        {
+          "expect": "test_editing_the_pr_body_starts_a_fresh_governance_run",
+          "test": "tests_v9/test_capability_gate_reads_live_body.py",
+          "find": "    types: [opened, synchronize, reopened, edited]\n",
+          "replace": "    types: [opened, synchronize, reopened]\n",
+          "why": "من دون حدث edited لا يبدأ تصحيح الإعلان فحصاً جديداً، وإعادة تشغيل الفحص القديم تبقى مرتبطة بحمولة الحدث السابقة."
+        },
+        {
+          "expect": "test_the_live_body_is_bound_to_the_same_head_as_the_judged_code",
+          "test": "tests_v9/test_capability_gate_reads_live_body.py",
+          "find": "          if [ \"$LIVE_HEAD_SHA\" != \"$HEAD_SHA\" ]; then\n            echo \"live PR head changed during governance run: event=$HEAD_SHA live=$LIVE_HEAD_SHA — أعد التشغيل على الزوج المتطابق\" >&2\n            exit 1\n          fi\n",
+          "replace": "          if false; then\n            echo \"mutated: ignore live head drift\" >&2\n            exit 1\n          fi\n",
+          "why": "قبول متن حيّ من رأس أحدث مع تحليل نسخة حدث أقدم يفصل الإعلان عن الشيفرة التي يحكم عليها؛ يجب فشل التشغيل عند اختلاف الزوج."
+        }
+      ]
+    },
     ".github/workflows/certify-run.yml": {
       "$why_a_workflow_belongs_here_ar": "مفاتيحُ هذا القسم مساراتُ ما **يعمل في الإنتاج**، والـworkflow منها: هي التي ترفع المصنوعة التي يقرأها المُدقِّق. والطفرة تُزرَع في الـYAML نفسه لا في حارسٍ يصفه.",
       "mutations": [
@@ -53,6 +86,51 @@
         }
       ],
       "test": "tests_v9/test_mutation_sweep_headroom.py"
+    },
+    "config/endpoint_ui_coverage_waivers.json": {
+      "$why_ar": "بياناتٌ تحرس نفسَها: منطقُ الحارس سليمٌ ولا يبلغ ما لا يُهجّى كما ينتظر. فعودةُ تهجٍّ واحدٍ إلى هذا الملفّ تُخفي موعداً عن CI ولو لم تُمَسّ سطرٌ من الحارس — ولذلك تُسجَّل الطفرةُ على الملفّ نفسِه، بسابقة `rag_authority_convergence.json`. **والمرساةُ هنا قابلةٌ للبَوار بطبيعتها**، وقد بارت فعلاً: كانت على `2026-08-31` فتجديدُ ذلك الإعفاء أسقطها، وأمسك `guard_mutation_guard` أنّها «تُبلِّغ تغطيةً لا تملكها». فهذا ملفُّ بياناتٍ حيّ تُجدَّد تواريخُه بالتصميم، وأيُّ مرساةٍ على تاريخٍ بعينه تبور عند تجديده. أُعيد إرساؤها على `2026-10-31` — **الوحيدُ الفريد والأبعد** في الملفّ، فأقلُّها تجديداً وأدومُها صلاحيّةً؛ ولو صارت غيرَ فريدة أو جُدِّدت، فالبَوارُ متوقَّعٌ لا مفاجئ، والعلاجُ إعادةُ الإرساء لا إسقاطُ الطفرة.",
+      "mutations": [
+        {
+          "expect": "test_live_waiver_configs_carry_no_invisible_deadline",
+          "test": "tests_v9/test_waiver_expiry_guard.py",
+          "find": "      \"expiry\": \"2026-10-31\",\n",
+          "replace": "      \"expires\": \"2026-10-31\",\n",
+          "why": "الملفُّ الحيُّ راتشِت: عودةُ تهجٍّ واحدٍ إلى البيانات تُخفي موعداً عن الحارس ولو بقي منطقُه سليماً. ومنطقٌ صحيحٌ فوق بياناتٍ لا يبلغها لا يحرس شيئاً."
+        }
+      ]
+    },
+    "docs/architecture/gates/adjudications/GATE01-ADJ-2026-08-13-001.json": {
+      "$why_the_consumed_record_and_not_the_live_one_ar": "الطفراتُ تُزرَع في السجلّ **المختوم** لا في التفويض الحيّ، والسببُ مقيسٌ لا تفضيليّ: التفويضُ الحيّ يُختَم `CONSUMED` بـ`merge_sha` فورَ الدمج — فأيُّ `find` يُثبَّت على نصّه اليوم يصير بائتاً غداً، وتصير الطفرةُ صمتاً لا تكذيباً (`STABLE_WRONG_TEST`). والسجلُّ المختوم لا يتغيّر بعد ختمه، فيصلح مرساةً دائمة. وذراعان من ستّةٍ تخصّان `ISSUED` وحدَه (حملُ `merge_sha` وهو حيّ · و«حيٌّ لا يمنح نطاقَه») **غيرُ مسجَّلتين عمداً** للسبب نفسه، وقد كُذِّبتا يدويّاً وسُجِّل ذلك في رسالة الالتزام.",
+      "mutations": [
+        {
+          "expect": "test_every_live_record_is_consistent_across_state_bytes_scope_and_lifecycle",
+          "test": "tests_v9/test_gate01_frozen_path_guard.py",
+          "find": "    \"services/actuator-service/routers/commands.py\"\n  ],",
+          "replace": "    \"services/actuator-service/routers/commands.py\",\n    \"README.md\"\n  ],",
+          "why": "نطاقٌ يأذن بما ليس مجمَّداً. لولا فحصُ `allowed_paths ⊆ frozen_paths` لصار السجلّ يوسّع نفسَه: يكفي إضافةُ سطرٍ ليصير الإذنُ أوسعَ من البوّابة."
+        },
+        {
+          "expect": "test_every_live_record_is_consistent_across_state_bytes_scope_and_lifecycle",
+          "test": "tests_v9/test_gate01_frozen_path_guard.py",
+          "find": "\"commit_sha\": \"6ba0bef56f47926ce657515fe1717019522f868b\",\n    \"must_match_policy\"",
+          "replace": "\"commit_sha\": \"0000000000000000000000000000000000000000\",\n    \"must_match_policy\"",
+          "why": "أساسُ المرحلة ٠ مخالفٌ لِما جُمِّد في السياسة. تفويضٌ يشير إلى أساسٍ آخر لا يُقرأ إذناً بل تناقضاً — والفحصُ يأخذ التوقّعَ من `gate01_policy.json` لا من السجلّ، فلا يكون تحصيلَ حاصل."
+        },
+        {
+          "expect": "test_every_live_record_is_consistent_across_state_bytes_scope_and_lifecycle",
+          "test": "tests_v9/test_gate01_frozen_path_guard.py",
+          "find": "\"merge_sha\": \"09dbaeb75b77a7f0137b2df5d6ad4b5dfe214b47\",",
+          "replace": "\"$merge_sha_removed_by_mutation\": \"\",",
+          "why": "مُستهلَكٌ بلا `merge_sha`. دورةُ الحياة تصير غيرَ قابلةٍ للمراجعة: يُقال «استُهلِك» ولا يُقال أين — وهو أثرٌ لا يُراجَع، وصنفُ `GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01` نفسُه."
+        },
+        {
+          "expect": "test_every_live_record_is_consistent_across_state_bytes_scope_and_lifecycle",
+          "test": "tests_v9/test_gate01_frozen_path_guard.py",
+          "find": "\"services/actuator-service/actuator_runtime.py\": \"3583eb102d39a047bc5b8fd2de918b19307ed120\"",
+          "replace": "\"services/actuator-service/actuator_runtime.py\": \"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"",
+          "why": "البايتاتُ المُعلَنة تخالف الشجرة ⇒ ما دخل ليس ما أُذِن به. المقابلةُ بين إعلانِ السجلّ و`git hash-object` على الشجرة — مصدران مستقلّان، فالفشلُ ممكنٌ فعلاً لا صوريّاً."
+        }
+      ]
     },
     "docs/architecture/rag_authority_convergence.json": {
       "$why_ar": "المفردةُ المحفوظة هي ما يقرؤه **كلُّ** مُنتِج. وكانت الوثيقةُ بلا مفتاح `canonical_payload_parity` إطلاقاً — فمُنتِجٌ يكتب الاسمَ الواسع `True` كان يُسقِط شرطَ الـpayload من الحساب رأساً، لا يُخالِفه بل لا يراه.",
@@ -216,6 +294,24 @@
         }
       ]
     },
+    "scripts/architecture/rag_corpus_reconciliation_executor.py": {
+      "$why_ar": "CORPUS-RECONCILIATION-01: المنفّذ هو النقطة الوحيدة التي تتحوّل فيها أحكام المالك (HOLD يبقى HOLD · لا حذف · تفرّد على كامل المجموعة) إلى سلوك كتابيّ — عيوبه تُزرع في الاستثناء والحكم النهائيّ.",
+      "test": "tests_v9/test_rag_corpus_reconciliation_executor.py",
+      "mutations": [
+        {
+          "expect": "test_held_identities_are_excluded_from_seeding_and_residue_yields_hold",
+          "find": "        \"exclude_chunk_ids\": sorted(collision_ids),\n",
+          "replace": "        \"exclude_chunk_ids\": [],  # mutated: المحجور يدخل البذر\n",
+          "why": "إسقاطُ الاستثناء يجعل البذر القانونيّ يكتب — بالتقارب الحتميّ — فوق عضو مجموعةٍ محجورة، وهو نصّاً ما حرّمه حكم «لا يُنفَّذ ضدّ HOLD شيء»؛ الشاهد يقرأ ملفّ الاستثناء الفعليّ الذي استُدعي به البذّار لا نيّة الكاتب."
+        },
+        {
+          "expect": "test_dry_run_measures_reports_and_never_passes",
+          "find": "    if all(s == \"PASS\" for s in statuses):\n        return \"PASS\"\n    return \"INCOMPLETE\"\n",
+          "replace": "    return \"PASS\"  # mutated: الغياب يُقرأ نجاحاً\n",
+          "why": "قراءة NOT_MEASURED نجاحاً تعيد صنف «أخضر عن سؤالٍ لم يُطرَح»: تشغيلٌ جافّ بلا الخطوات ٦–١٣ يخرج PASS فيُقرأ اعتماداً حيّاً لم يُقَس — والحكم لا يكون PASS إلا بالثلاث عشرة كلّها."
+        }
+      ]
+    },
     "scripts/architecture/rag_live_corpus_audit.py": {
       "$why_ar": "D08-A: أداة الجرد نفسها جزء من السلوك الذي يصنع الدليل؛ تُزرع عيوب في اكتمال العد وعزل الحجر وكشف عدم تناظر dense/sparse.",
       "test": "tests_v9/test_rag_live_corpus_audit.py",
@@ -321,6 +417,65 @@
           "why": "إن لم يُعِد الحارسُ حسابَ التصادم، اختلف حكمُه عن حكم المخطِّط فصار يُدين خططاً صحيحة أو يقبل خاطئة — حارسٌ يقيس عقداً غير الذي يُنفَّذ."
         }
       ]
+    },
+    "scripts/architecture/s5_decision_live_closure_receipt.py": {
+      "$why_ar": "جامعُ إيصال S5 — الطرفُ المُنتِج من سلسلة C9. خطرُه أنّه يكتب دليلاً تقرؤه بوّابةٌ حاجبة: جامعٌ يحكم لنفسه، أو يفترض ادّعاءً بدل قياسه، أو يقرأ رمزَ الخروج حكماً، أو يعلَق إلى ما لا نهاية بدل أن يعجز عن القياس بسرعة، يُنتِج إيصالاً يبدو صالحاً ويشهد بما لم يُقَس. والطفراتُ الستّ تُثبِت أنّ كلَّ خاصّيّةٍ يدّعيها متنُ #944 (والمُهلة الصريحة المضافة في PR #950 بعد مراجعةٍ جنائيّة) مفروضةٌ باختبارٍ يحمرّ عند نزعها — لا موصوفةٌ في جدول.",
+      "mutations": [
+        {
+          "expect": "test_classification_agrees_with_the_guard_on_every_perturbation",
+          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
+          "find": "    receipt[\"classification\"] = \"PASSED\" if not findings else \"FAILED\"",
+          "replace": "    receipt[\"classification\"] = \"PASSED\"  # mutated: الجامعُ يحكم لنفسه",
+          "why": "جامعٌ يُصنّف PASSED دائماً يُنتِج إيصالاً يدّعي إغلاقاً لم يُقَس — وهو أخطرُ ما يفعله مُنتِجُ أدلّة، لأنّ البوّابة تثق بالجسم لا بنيّة كاتبه."
+        },
+        {
+          "expect": "test_the_write_enforcement_claim_is_measured_not_assumed",
+          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
+          "find": "    after = privilege.get(\"after\") or {}",
+          "replace": "    return True  # mutated: الادّعاءُ يصير مفترَضاً لا مقيساً\n    after = privilege.get(\"after\") or {}",
+          "why": "«منعُ كتابة المنصّة مُثبَت» ادّعاءٌ يُشتقّ من الامتيازات المقروءة. جعلُه ثابتاً يُمرّر جدولاً واحداً ما زال يقبل كتابةً — والحارسُ يقبل الإيصالَ لأنّ الكذبَ في مُدخَله لا في شرطه."
+        },
+        {
+          "expect": "test_a_local_script_exiting_nonzero_is_not_read_as_a_measurement_failure",
+          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
+          "find": "    if not (proc.stdout or \"\").strip():",
+          "replace": "    if proc.returncode != 0:  # mutated: الرمزُ يصير حكماً\n        raise MeasurementError(script.name)\n    if not (proc.stdout or \"\").strip():",
+          "why": "decision_sor_role_certify يُنهي بـ2 حين classification != PASSED، وذلك قياسٌ ناجحٌ لحالةٍ سالبة. فقراءةُ الرمز عجزاً تُنهي بـ1 بلا إيصال — فتضيع الحالةُ السالبة التي كان يجب أن تُوثَّق، ويُقرأ الصمتُ «لم يُقَس» بدل «قِيس ففشل»."
+        },
+        {
+          "expect": "test_the_collector_does_not_reimplement_the_guard_rules",
+          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
+          "find": "_PRIVILEGE_READ_ACTION = \"check\"",
+          "replace": "_PRIVILEGE_READ_ACTION = \"check\"\n_SOR_TABLE_HINT = \"decision_service_sor\"  # mutated: شرطُ الحارس يُعاد كتابته هنا",
+          "why": "مصدرُ الشروط واحد: findings_for تُستورَد من الحارس. وتسرّبُ مفردةٍ من مفرداته إلى الجامع بدايةُ نسخةٍ ثانية تنحرف عنه صامتاً — فيُنتِج إيصالاً يظنّه صاحبُه صالحاً وترفضه البوّابة، أو أسوأ: يقبله وقد تراخى."
+        },
+        {
+          "expect": "test_the_historical_overclaim_is_structurally_impossible",
+          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
+          "find": "            \"historical_zero_platform_writes_measured\": False,",
+          "replace": "            \"historical_zero_platform_writes_measured\": bool(evidence.get(\"hz\")),  # mutated: الادّعاءُ يُشتقّ من المُدخَل",
+          "why": "هذا الجامعُ لا يفحص سجلّاتٍ تاريخيّة، فالحقلُ مُثبَّتٌ false بنيويّاً. وجعلُه مُشتقّاً من المُدخَل يفتح بابَ المبالغة التي يرفضها الحارس بـhistorical_zero_writes_overclaim. **وهذه الطفرةُ بعينها نجت في أوّل جولةٍ لكاتب الشريحة** لأنّ مُدخَلاته لم تحمل المفتاح — فأثبتت القيمةَ لا الاستقلال. تسجيلُها يجعل ذلك التصحيحَ مفروضاً لا موصوفاً."
+        },
+        {
+          "expect": "test_a_hanging_local_script_is_a_measurement_failure_not_an_indefinite_hang",
+          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
+          "find": "    try:\n        proc = subprocess.run(\n            [sys.executable, str(script), *args],\n            cwd=str(DECISION_SVC),\n            capture_output=True,\n            encoding=\"utf-8\",\n            check=False,\n            timeout=_LOCAL_SCRIPT_TIMEOUT_SECONDS,\n        )\n    except subprocess.TimeoutExpired as exc:\n        raise MeasurementError(\n            f\"{script.name} لم يستجب خلال {_LOCAL_SCRIPT_TIMEOUT_SECONDS} ثانية\"\n        ) from exc",
+          "replace": "    proc = subprocess.run(  # mutated: أُسقِطت المهلة المحلّيّة\n        [sys.executable, str(script), *args],\n        cwd=str(DECISION_SVC),\n        capture_output=True,\n        encoding=\"utf-8\",\n        check=False,\n    )",
+          "why": "مراجعةٌ جنائيّة على PR #950 كشفت أنّ `run_json` بلا `timeout` صريح يُبقي سكربتاً محلّيّاً عالقاً (اتّصال قاعدة بيانات مُعلَّق) معلَّقاً حتّى مهلة المنسِّق الخارجيّة الأكبر بكثير — لا بديلٌ عن مهلةٍ محلّيّة لبَدَاهة القياس نفسه."
+        }
+      ]
+    },
+    "scripts/architecture/s5_decision_live_closure_receipt_guard.py": {
+      "$why_ar": "S5 Decision live closure (بعد توحيد PLATFORM-ROUTES-DUAL-S5-PRODUCER-01 على المُنتِج القانونيّ): إيصالٌ أخضر يجب أن يثبت أنّ المنصّة المنشورة مُخفَّضةٌ فعليّاً — لا مجرّد حقلٍ موجود.",
+      "mutations": [
+        {
+          "expect": "test_classification_agrees_with_the_guard_on_every_perturbation",
+          "find": "        and pm.get(\"platform_writes_required\") is False",
+          "replace": "        and pm.get(\"platform_writes_required\") is not None  # mutated: writable platform accepted",
+          "why": "قبول أي قيمة موجودة بدل False يسمح بإيصال أخضر بينما platform_writes_required=true وتبقى نافذة السلطة المزدوجة مفتوحة."
+        }
+      ],
+      "test": "tests_v9/test_s5_live_closure_receipt_collector.py"
     },
     "scripts/architecture/s5_exec_01_edge_freeze.py": {
       "$why_ar": "S5-EXEC-01: بصمة التجميد السلطوية تخص سطح platform runtime فقط؛ نمو شهود الاختبار/خدمة القرار لا يجوز أن يُعاد تصنيفه كتضخم سلطة، لكن فقد الشهود دون أرضية أو نمو runtime يجب أن يُحجب.",
@@ -659,6 +814,42 @@
       ],
       "test": "tests_v9/test_certify_artifact_contract.py"
     },
+    "scripts/ci/generated_write_targets.py": {
+      "$why_ar": "CLASSIFIER-BLIND-TO-GENERATORS-OUTSIDE-generated-DIRS-01: المعيار «يكتبه» لا «يذكره». نكوصُه يُدخِل وثائقَ السياسة بيانَ الكتابة، فيأخذ حلُّ التعارض جانب main ويُعيد التوليد — أي يمحو طفراتٍ مكتوبة. **وهذا القسم لا `mutated`** لأنّ المِرقاب يكتشف `*_guard.py` وحدها، وهذه أداةُ اشتقاق لا حارس؛ تسميتُها حارساً لتمرّ كانت ستكذب على قارئ الكتالوج.",
+      "mutations": [
+        {
+          "expect": "test_only_a_write_counts_not_a_mention",
+          "find": "WRITE_METHODS = {\"write_text\", \"write_bytes\"}",
+          "replace": "WRITE_METHODS = {\"write_text\", \"write_bytes\", \"read_text\"}  # mutated",
+          "why": "عدُّ القراءة كتابةً يُدخِل وثائقَ السياسة البيان — وهي تُقرأ في المحرّكات ولا تُكتَب. وهو العطل الذي وُجِد المعيار كلُّه لمنعه."
+        },
+        {
+          "expect": "test_only_a_write_counts_not_a_mention",
+          "find": "            if any(flag in mode for flag in (\"w\", \"a\", \"x\")):",
+          "replace": "            if True:  # mutated",
+          "why": "`open(P)` بلا وضعٍ فتحُ قراءة. إسقاطُ فحص الوضع يجعل كلّ فتحٍ كتابةً."
+        },
+        {
+          "expect": "test_a_stale_manifest_is_caught_because_check_re_derives",
+          "find": "    live = measure()\n    if sorted(declared) != live:",
+          "replace": "    live = sorted(declared)  # mutated\n    if sorted(declared) != live:",
+          "why": "`--check` الذي يصف بدل أن يقيس يمرّ أخضر على بيانٍ بائت أبداً."
+        }
+      ],
+      "test": "tests_v9/test_generated_write_targets.py"
+    },
+    "scripts/ci/pr_capability_impact_gate.py": {
+      "$why_ar": "إيصال قرار أثر القدرات إلى ملف خرج قابل للتدقيق يتطلب بصمة البايتات نفسها التي حُلّل منها الإعلان، لا نصاً معاد البناء لاحقاً.",
+      "test": "tests_v9/test_capability_gate_reads_live_body.py",
+      "mutations": [
+        {
+          "expect": "test_the_exact_live_body_has_an_auditable_digest",
+          "find": "    return raw.decode(\"utf-8\"), sha256_bytes(raw)\n",
+          "replace": "    return raw.decode(\"utf-8\"), \"\"  # mutated: subject is no longer auditable\n",
+          "why": "إسقاط البصمة يجعل خرج البوابة غير قادر على إثبات أي نسخة من متن الـPR قُرئت مع زوج SHA المحكوم."
+        }
+      ]
+    },
     "scripts/ci/preflight.sh": {
       "mutations": [
         {
@@ -702,35 +893,37 @@
       ],
       "test": "tests/architecture/test_verify_all_generated.py"
     },
-    "scripts/ci/runtime_evidence_ingestion.py": {
-      "$why_ar": "PR-966: لا ترفع أدلة الفحص الصحي runtime_verified إلا من بيئة مؤهلة، بهوية صورة حيّة وتوقيع لا يستطيع مُعدِّل الملف إعادة حسابه.",
+    "scripts/ci/resolve_merge_conflicts.py": {
+      "$why_ar": "قائمةُ المنع تعلو البيان دفاعاً في العمق: بيانٌ بائت أو اشتقاقٌ خاطئ قد يُدخِل وثيقةَ سياسة، فيبقى المنع وحده هو ما يمنع الإتلاف.",
       "mutations": [
         {
-          "expect": "test_untrusted_environment_cannot_set_runtime_verified",
-          "find": "    if not environment:\n        return None, [\"untrusted_environment\"]",
-          "replace": "    if not environment:\n        environment = {\"eligible_for_runtime_verified\": True, \"trusted_issuers\": [\"sahool-staging-hmac\"]}  # mutated: arbitrary environment trusted",
-          "why": "قبول اسم بيئة حسن الشكل بلا سجل الثقة يعيد الإثبات العدائي الذي رفع arbitrary-untrusted إلى runtime_verified."
+          "expect": "test_the_deny_list_holds_even_when_the_manifest_is_wrong",
+          "find": "    if path in HAND_WRITTEN_POLICY:\n        return \"source\"",
+          "replace": "    if False:  # mutated\n        return \"source\"",
+          "why": "إسقاطُ الطبقة الثانية لا يُحمِّر شيئاً على شجرةٍ سليمة — ولذلك يُقاس بالزرع لا بالخضرة."
         },
         {
-          "expect": "test_recomputed_self_hash_without_signing_key_is_rejected",
-          "find": "            if not hmac.compare_digest(signature, expected_signature):",
-          "replace": "            if False:  # mutated: self-hash is treated as an attestation",
-          "why": "البصمة الذاتية قابلة لإعادة الحساب بعد التزوير؛ HMAC المستقل هو حد الثقة الفعلي."
+          "expect": "test_a_missing_manifest_degrades_to_source_not_to_chaos",
+          "find": "    if not WRITE_TARGETS.is_file():\n        return set()",
+          "replace": "    if not WRITE_TARGETS.is_file():\n        return {\"docs/runbooks/GUARD_CATALOGUE.md\"}  # mutated",
+          "why": "غيابُ البيان يجب أن يفشل في الاتّجاه الآمن («مصدر» يُوقِف)، لا أن يخترع أهدافاً."
         },
         {
-          "expect": "test_runtime_identity_must_match_subject",
-          "find": "    if identity.get(\"git_sha\") != tested_sha:",
-          "replace": "    if False:  # mutated: deployed runtime may be an older commit",
-          "why": "ربط checkout وحده لا يثبت أن الحاوية المقاسة بُنيت من الـsubject نفسه."
+          "expect": "test_a_conflicted_manifest_is_named_not_left_to_guesswork",
+          "test": "tests_v9/test_resolve_merge_conflicts.py",
+          "find": "    return MANIFEST_REL in {str(Path(p).as_posix()) for p in paths}",
+          "replace": "    return False  # mutated: البيانُ المتعارض لا يُكتشَف",
+          "why": "CONFLICTED-MANIFEST-DISABLES-THE-LAYER-IT-FEEDS-01: بيانٌ متعارضٌ لا يُحلَّل فتسقط طبقتُه ويتدهور كلُّ شيءٍ إلى «مصدر». التدهورُ آمنٌ لكنّه صامت، فالعطلُ عطلُ إبانةٍ لا صحّة — وإسقاطُ الاكتشاف يُعيد المُشغِّلَ إلى قراءة «مصادر» وظنِّها مصادرَ حقّاً."
         },
         {
-          "expect": "test_duplicate_probe_records_are_rejected",
-          "find": "    if observed_count != len(observed):",
-          "replace": "    if False:  # mutated: one result may be replayed to fill the plan",
-          "why": "تحويل النتائج إلى set بلا فحص العدد يسمح لسجل مكرر أن يبدو مجموعة probes كاملة."
+          "expect": "test_a_conflicted_manifest_is_named_not_left_to_guesswork",
+          "test": "tests_v9/test_resolve_merge_conflicts.py",
+          "find": "    return MANIFEST_REL in {str(Path(p).as_posix()) for p in paths}",
+          "replace": "    return any(MANIFEST_REL in p for p in paths)  # mutated: مرساة نصّيّة",
+          "why": "مطابقةُ `substring` تُطابِق أيَّ مسارٍ يشترك في الذيل (`vendor/docs/architecture/...`)، فتُنتِج رسالةً تقول «حُلَّ بياني أوّلاً» عن ملفٍّ ليس بياننا — رسالةٌ تكذب على قارئها أسوأ من صمت."
         }
       ],
-      "test": "tests_v9/test_runtime_evidence_subject_binding.py"
+      "test": "tests_v9/test_generated_write_targets.py"
     },
     "scripts/ci/runtime_certification_gate.py": {
       "$gap_ar": "CAPABILITY-RUNTIME-PROMOTION-INVISIBLE-TO-EVIDENCE-01 — normalized runtime authority",
@@ -777,6 +970,36 @@
       ],
       "test": "tests/architecture/test_capability_truth_preconditions.py"
     },
+    "scripts/ci/runtime_evidence_ingestion.py": {
+      "$why_ar": "PR-966: لا ترفع أدلة الفحص الصحي runtime_verified إلا من بيئة مؤهلة، بهوية صورة حيّة وتوقيع لا يستطيع مُعدِّل الملف إعادة حسابه.",
+      "mutations": [
+        {
+          "expect": "test_untrusted_environment_cannot_set_runtime_verified",
+          "find": "    if not environment:\n        return None, [\"untrusted_environment\"]",
+          "replace": "    if not environment:\n        environment = {\"eligible_for_runtime_verified\": True, \"trusted_issuers\": [\"sahool-staging-hmac\"]}  # mutated: arbitrary environment trusted",
+          "why": "قبول اسم بيئة حسن الشكل بلا سجل الثقة يعيد الإثبات العدائي الذي رفع arbitrary-untrusted إلى runtime_verified."
+        },
+        {
+          "expect": "test_recomputed_self_hash_without_signing_key_is_rejected",
+          "find": "            if not hmac.compare_digest(signature, expected_signature):",
+          "replace": "            if False:  # mutated: self-hash is treated as an attestation",
+          "why": "البصمة الذاتية قابلة لإعادة الحساب بعد التزوير؛ HMAC المستقل هو حد الثقة الفعلي."
+        },
+        {
+          "expect": "test_runtime_identity_must_match_subject",
+          "find": "    if identity.get(\"git_sha\") != tested_sha:",
+          "replace": "    if False:  # mutated: deployed runtime may be an older commit",
+          "why": "ربط checkout وحده لا يثبت أن الحاوية المقاسة بُنيت من الـsubject نفسه."
+        },
+        {
+          "expect": "test_duplicate_probe_records_are_rejected",
+          "find": "    if observed_count != len(observed):",
+          "replace": "    if False:  # mutated: one result may be replayed to fill the plan",
+          "why": "تحويل النتائج إلى set بلا فحص العدد يسمح لسجل مكرر أن يبدو مجموعة probes كاملة."
+        }
+      ],
+      "test": "tests_v9/test_runtime_evidence_subject_binding.py"
+    },
     "scripts/ci/s5_exec_01_writer_cutover_guard.py": {
       "$why_ar": "S5-EXEC-01: وجود الكاتب القديم قبل القطع مقبول فقط إذا كان لكل writer عقد strict-mode قابل للتكذيب بالزرع.",
       "test": "tests_v9/test_s5_exec_01_writer_cutover_guard.py",
@@ -819,17 +1042,17 @@
       ],
       "test": "tests/architecture/test_capability_truth_preconditions.py"
     },
-    "scripts/architecture/s5_decision_live_closure_receipt_guard.py": {
-      "$why_ar": "S5 Decision live closure (بعد توحيد PLATFORM-ROUTES-DUAL-S5-PRODUCER-01 على المُنتِج القانونيّ): إيصالٌ أخضر يجب أن يثبت أنّ المنصّة المنشورة مُخفَّضةٌ فعليّاً — لا مجرّد حقلٍ موجود.",
+    "scripts/ci/waiver_expiry_guard.py": {
+      "$why_ar": "حارسٌ كامنُ العطل: نجح في ما يفحصه وعمي عمّا لا يفحصه. سبعةُ إعفاءاتٍ في الملفّ الحيّ حملت تاريخَها تحت `expires` والحارسُ يقرأ `expiry` وحدَه، فأبلغ `ok` فوقها منذ نزولها وأقربُها على بعد أربعة أيّام. والطفرتان تحرسان الشقّين معاً: منطقَ الرفض في الحارس، وتهجّيَ البيانات في الملفّ — لأنّ إصلاح أحدهما بلا الآخر يُعيد الصمت.",
       "mutations": [
         {
-          "expect": "test_classification_agrees_with_the_guard_on_every_perturbation",
-          "find": "        and pm.get(\"platform_writes_required\") is False",
-          "replace": "        and pm.get(\"platform_writes_required\") is not None  # mutated: writable platform accepted",
-          "why": "قبول أي قيمة موجودة بدل False يسمح بإيصال أخضر بينما platform_writes_required=true وتبقى نافذة السلطة المزدوجة مفتوحة."
+          "expect": "test_every_near_miss_key_is_covered_not_just_the_one_that_bit_us",
+          "test": "tests_v9/test_waiver_expiry_guard.py",
+          "find": "        for alias in EXPIRY_NEAR_MISS_KEYS:\n",
+          "replace": "        for alias in ():  # mutated: يعود الحارسُ أعمى عن المرادفات\n",
+          "why": "نزعُ الرفض يُعيد الحالةَ التي وُجِد الحارسُ لمنعها بعينها: إعفاءٌ يقرؤه الإنسانُ موقوتاً وتقرؤه CI دائماً. والأسوأُ أنّه يُبلِغ `ok` — فالصمتُ يُقرأ شهادةَ سلامة."
         }
-      ],
-      "test": "tests_v9/test_s5_live_closure_receipt_collector.py"
+      ]
     },
     "scripts/staging/kg_runtime_parity_collector.py": {
       "$why_ar": "S4 KG live parity: equal-empty responses are not evidence and deployed source identity must match.",
@@ -960,17 +1183,46 @@
         }
       ]
     },
-    "services/sahool-platform/api/routers/field_workspace_weather.py": {
-      "$why_ar": "غيابُ المطر لا يجوز أن يُصنَع صفراً في مساري الريّ وخطر المرض؛ الصفرُ الصريح وحده قياسٌ كامل.",
+    "services/sahool-platform/api/irrigation_decision_evidence_chain.py": {
+      "$why_ar": "مُتحقِّقُ سلسلة الأدلّة fail-closed. والخطرُ المقيس هنا **تغطيةٌ بالاسم لا بالأثر**: الرقعةُ الواردة أعلنت «٥ اختبارات تُغطّي parent tamper وC6 وNaN»، فنجت **٤ من ٥** طفرات — لأنّ العبثَ بالمحتوى يُغيّر بصمةَ المرحلة فيُمسَك بحارس E1 قبل أن يبلغ حارسَ E2. **ثغرةٌ يسترها حارسٌ مجاور.** فتُعاد البصماتُ بعد العبث في كلّ طفرةٍ أدناه، كي يُعزَل الحارسُ المقصودُ ويكون احمرارُه شهادةً له وحدَه.",
       "mutations": [
         {
-          "expect": "test_missing_precipitation_never_becomes_a_zero_total",
-          "find": "        if value is None:\n            missing.append(index)",
-          "replace": "        if value is None:\n            values.append(0.0)  # mutated: missing rain becomes no rain",
-          "why": "إدخال صفر عند غياب interval يُعيد انحياز الإسراف في الريّ والطمأنة الكاذبة في خطر المرض."
+          "expect": "test_parent_stage_id_link_is_checked_on_its_own",
+          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+          "find": "            if stage.get(\"parent_stage_id\") != previous.get(\"stage_id\"):",
+          "replace": "            if False:  # mutated: رابطُ الأب لا يُفحَص",
+          "why": "الحقلُ كان **بلا اختبارٍ إطلاقاً**: `test_parent_tamper_is_rejected` يعبث بـ`parent_digest` لا به، والاسمُ يوحي بتغطيةٍ لا توجد."
+        },
+        {
+          "expect": "test_parent_digest_link_is_checked_on_its_own",
+          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+          "find": "            if stage.get(\"parent_digest\") != previous.get(\"stage_digest\"):",
+          "replace": "            if False:  # mutated: بصمةُ الأب لا تُفحَص",
+          "why": "كان مستوراً بحارس E1: العبثُ بالبصمة يُغيّر المحتوى فيُمسَك قبل بلوغ E2. العزلُ بإعادة حساب البصمات."
+        },
+        {
+          "expect": "test_content_tamper_is_rejected_even_when_digest_is_stale",
+          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+          "find": "        if stage.get(\"stage_digest\") and stage_digest(stage) != stage.get(\"stage_digest\"):",
+          "replace": "        if False:  # mutated: بصمةُ المرحلة لا تُفحَص",
+          "why": "E1: محتوًى مُعدَّلٌ ببصمةٍ بائتة يُقرأ صحيحاً — وهو الحارسُ الوحيد الذي كذّبته الرقعةُ الواردة."
+        },
+        {
+          "expect": "test_non_finite_rejection_carries_the_contract_reason_not_a_generic_one",
+          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+          "find": "        if not math.isfinite(value):",
+          "replace": "        if False:  # mutated: يُترَك الرفضُ لـjson",
+          "why": "`json.dumps(allow_nan=False)` يرفض NaN وحدَه، فكان `_reject_nonfinite` **زائداً غيرَ مُثبَت** (مقيسٌ بتعطيله في الذاكرة: بقي الرفض). فالمُثبَّت هو **الرسالة** لا الرفض: «E1» تقول أيَّ عقدٍ خُولِف، والعامّةُ تترك القارئ يخمّن."
+        },
+        {
+          "expect": "test_the_schema_pins_stage_to_sequence_which_is_why_prefix_mismatch_is_unreachable",
+          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
+          "find": "def validate_stage_schema(stage: dict[str, Any]) -> list[str]:",
+          "replace": "def validate_stage_schema(stage: dict[str, Any]) -> list[str]:\n    return []  # mutated: المخطَّط يرتخي",
+          "why": "يحرس **البرهان** لا الفرع: فرعُ `prefix mismatch` غيرُ قابل للبلوغ ما دام المخطَّطُ يُثبِّت (المرحلة ⇄ التسلسل) — مُبرهَنٌ بجداءٍ كامل ٩×٩ بصفر موضعٍ حرّ. فإن ارتخى المخطَّطُ عاد الفرعُ حيّاً ووجب تكذيبٌ خاصّ به، وهذا الاختبارُ هو ما يكشف ذلك بدل أن يبقى «مُغطًّى» بادّعاءٍ قديم."
         }
       ],
-      "test": "tests_v9/test_weather_views_survive_the_hop_to_the_platform.py"
+      "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py"
     },
     "services/sahool-platform/api/machinery_export.py": {
       "$why_ar": "C3: artifact الآلة يجب أن يحتفظ بهوية مناطق الإدارة وبصمة الوصفة/lineage، لا أن يعيد ترقيمها بما يقطع السلسلة.",
@@ -983,6 +1235,40 @@
         }
       ],
       "test": "services/sahool-platform/tests/test_precision_execution_loop_c3.py"
+    },
+    "services/sahool-platform/api/phase_runtime_workers.py": {
+      "$gap_ar": "WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01 — ستّةُ مواضع `FOR UPDATE SKIP LOCKED` في اتّصالٍ بوضع autocommit وصفرُ معاملاتٍ صريحة. القفلُ يُحرَّر فور انتهاء SELECT فالمطالبةُ غيرُ مثبَتة. وأخطرُها run_actuator_once: يطالِب ثمّ ينشر طلبَ إرسالٍ فيزيائيّ — فعاملان متزامنان قد يطلبان حركةَ صمّامٍ مرّتين.",
+      "mutations": [
+        {
+          "expect": "test_the_physical_dispatch_is_gated_on_owning_the_claim",
+          "find": "            if owned and action[\"action\"] == \"request_adapter_dispatch\":",
+          "replace": "            if action[\"action\"] == \"request_adapter_dispatch\":  # mutated: النشرُ الفيزيائيّ بلا بوّابة ملكيّة",
+          "test": "tests_v9/test_worker_claim_lease.py",
+          "why": "بلا بوّابة CAS يَنشُر عاملٌ انتهت إجارتُه طلبَ إرسالٍ فيزيائيٍّ ثانياً للأمر نفسه — حركةُ صمّامٍ أو مضخّةٍ تُطلَب مرّتين. وهي الخاصّيّةُ الوحيدةُ التي تفصل خطأً في المحاسبة عن أثرٍ ماديٍّ مكرَّر."
+        },
+        {
+          "expect": "test_the_claim_is_pinned_by_an_explicit_transaction",
+          "find": "            WHERE ({where}) AND claim_token IS NULL",
+          "replace": "            WHERE ({where})  # mutated: المُطالَبُ يعود إلى بِركة الالتقاط",
+          "test": "tests_v9/test_worker_claim_lease.py",
+          "why": "شرطُ الالتقاط هو ما يُخرِج الصفَّ من البِركة بعد المطالبة. نزعُه يُعيد العطلَ الأصليّ بعينه: عاملٌ ثانٍ يلتقط الصفوفَ نفسَها رغم أنّها مُطالَبة."
+        },
+        {
+          "expect": "test_the_network_publish_is_never_inside_a_transaction",
+          "find": "            if owned and action[\"action\"] == \"request_adapter_dispatch\":\n                await _publish_nats(",
+          "replace": "            if owned and action[\"action\"] == \"request_adapter_dispatch\":\n              async with conn.transaction():  # mutated: الأقفالُ تُحبَس أثناء I/O\n                await _publish_nats(",
+          "test": "tests_v9/test_worker_claim_lease.py",
+          "why": "العلاجُ ليس نقلَ العطل من «مطالبةٌ غيرُ مثبَتة» إلى «أقفالٌ محبوسةٌ أثناء الشبكة» — وهو نمطُ event_bus.py المقيس. **وصياغةُ هذا الاختبار الأولى نجت من هذه الطفرة**: كانت تجمع ast.Attribute وحدَه و_publish_nats نداءٌ بـast.Name، فمرّ أخضرَ على نشرٍ مزروعٍ داخل معاملة."
+        },
+        {
+          "expect": "test_every_worker_reclaims_expired_leases",
+          "find": "            await reclaim_expired(conn, table=\"iot_command_dispatch\")",
+          "replace": "            pass  # mutated: لا استرداد — المطالبةُ تصير قبراً",
+          "test": "tests_v9/test_worker_claim_lease.py",
+          "why": "بلا استرداد يبقى صفٌّ مُطالَبٌ من عاملٍ انهار مُطالَباً إلى الأبد. عطلٌ أهدأُ من التكرار وأطولُ عمراً: الطابورُ يتوقّف بلا خطأٍ ظاهر."
+        }
+      ],
+      "test": "tests_v9/test_worker_claim_lease.py"
     },
     "services/sahool-platform/api/unified_decision.py": {
       "$why_ar": "AGRI-NEXT-1..5 حدود أمان تشغيلية: الإشارة الزراعية قد تُنتج مرشحاً/دليلاً لكنها لا تنفذ أو تروّج أو تدّعي سببية. تُزرع الطفرات في مصدر التركيب نفسه.",
@@ -1013,6 +1299,18 @@
         }
       ],
       "test": "services/sahool-platform/tests/test_agri_next_decision_support.py"
+    },
+    "services/sahool-platform/api/weather_advice.py": {
+      "$why_ar": "غيابُ المطر لا يجوز أن يُصنَع صفراً في مساري الريّ وخطر المرض؛ الصفرُ الصريح وحده قياسٌ كامل. **وانتقلت المواصفةُ مع الحكم لا مع الملفّ:** كان الحكمُ في `field_workspace_weather` وحدَه بينما `fields.py` و`main.py` و`recommendations_hub` تجمع `sum(... or 0.0)` بلا حارس — علاجٌ ضيّقٌ تحت اسمٍ عريض. فاستُخرِج إلى `complete_rain_total` سياسةً واحدة، والموجِّهُ صار يُفوِّض. ولو بقيت المواصفةُ على الموجِّه لأبلغت تغطيةً لا تملكها — وهو ما أمسكه `guard_mutation_guard` فعلاً على هذه الشريحة.",
+      "mutations": [
+        {
+          "expect": "test_missing_precipitation_never_becomes_a_zero_total",
+          "find": "        if value is None:\n            missing.append(index)",
+          "replace": "        if value is None:\n            values.append(0.0)  # mutated: missing rain becomes no rain",
+          "why": "إدخال صفر عند غياب interval يُعيد انحياز الإسراف في الريّ والطمأنة الكاذبة في خطر المرض."
+        }
+      ],
+      "test": "tests_v9/test_weather_views_survive_the_hop_to_the_platform.py"
     },
     "services/sahool-platform/core/rag/production_qdrant.py": {
       "mutations": [
@@ -1178,237 +1476,6 @@
         }
       ]
     },
-    "scripts/ci/generated_write_targets.py": {
-      "$why_ar": "CLASSIFIER-BLIND-TO-GENERATORS-OUTSIDE-generated-DIRS-01: المعيار «يكتبه» لا «يذكره». نكوصُه يُدخِل وثائقَ السياسة بيانَ الكتابة، فيأخذ حلُّ التعارض جانب main ويُعيد التوليد — أي يمحو طفراتٍ مكتوبة. **وهذا القسم لا `mutated`** لأنّ المِرقاب يكتشف `*_guard.py` وحدها، وهذه أداةُ اشتقاق لا حارس؛ تسميتُها حارساً لتمرّ كانت ستكذب على قارئ الكتالوج.",
-      "mutations": [
-        {
-          "expect": "test_only_a_write_counts_not_a_mention",
-          "find": "WRITE_METHODS = {\"write_text\", \"write_bytes\"}",
-          "replace": "WRITE_METHODS = {\"write_text\", \"write_bytes\", \"read_text\"}  # mutated",
-          "why": "عدُّ القراءة كتابةً يُدخِل وثائقَ السياسة البيان — وهي تُقرأ في المحرّكات ولا تُكتَب. وهو العطل الذي وُجِد المعيار كلُّه لمنعه."
-        },
-        {
-          "expect": "test_only_a_write_counts_not_a_mention",
-          "find": "            if any(flag in mode for flag in (\"w\", \"a\", \"x\")):",
-          "replace": "            if True:  # mutated",
-          "why": "`open(P)` بلا وضعٍ فتحُ قراءة. إسقاطُ فحص الوضع يجعل كلّ فتحٍ كتابةً."
-        },
-        {
-          "expect": "test_a_stale_manifest_is_caught_because_check_re_derives",
-          "find": "    live = measure()\n    if sorted(declared) != live:",
-          "replace": "    live = sorted(declared)  # mutated\n    if sorted(declared) != live:",
-          "why": "`--check` الذي يصف بدل أن يقيس يمرّ أخضر على بيانٍ بائت أبداً."
-        }
-      ],
-      "test": "tests_v9/test_generated_write_targets.py"
-    },
-    "scripts/ci/resolve_merge_conflicts.py": {
-      "$why_ar": "قائمةُ المنع تعلو البيان دفاعاً في العمق: بيانٌ بائت أو اشتقاقٌ خاطئ قد يُدخِل وثيقةَ سياسة، فيبقى المنع وحده هو ما يمنع الإتلاف.",
-      "mutations": [
-        {
-          "expect": "test_the_deny_list_holds_even_when_the_manifest_is_wrong",
-          "find": "    if path in HAND_WRITTEN_POLICY:\n        return \"source\"",
-          "replace": "    if False:  # mutated\n        return \"source\"",
-          "why": "إسقاطُ الطبقة الثانية لا يُحمِّر شيئاً على شجرةٍ سليمة — ولذلك يُقاس بالزرع لا بالخضرة."
-        },
-        {
-          "expect": "test_a_missing_manifest_degrades_to_source_not_to_chaos",
-          "find": "    if not WRITE_TARGETS.is_file():\n        return set()",
-          "replace": "    if not WRITE_TARGETS.is_file():\n        return {\"docs/runbooks/GUARD_CATALOGUE.md\"}  # mutated",
-          "why": "غيابُ البيان يجب أن يفشل في الاتّجاه الآمن («مصدر» يُوقِف)، لا أن يخترع أهدافاً."
-        },
-        {
-          "expect": "test_a_conflicted_manifest_is_named_not_left_to_guesswork",
-          "test": "tests_v9/test_resolve_merge_conflicts.py",
-          "find": "    return MANIFEST_REL in {str(Path(p).as_posix()) for p in paths}",
-          "replace": "    return False  # mutated: البيانُ المتعارض لا يُكتشَف",
-          "why": "CONFLICTED-MANIFEST-DISABLES-THE-LAYER-IT-FEEDS-01: بيانٌ متعارضٌ لا يُحلَّل فتسقط طبقتُه ويتدهور كلُّ شيءٍ إلى «مصدر». التدهورُ آمنٌ لكنّه صامت، فالعطلُ عطلُ إبانةٍ لا صحّة — وإسقاطُ الاكتشاف يُعيد المُشغِّلَ إلى قراءة «مصادر» وظنِّها مصادرَ حقّاً."
-        },
-        {
-          "expect": "test_a_conflicted_manifest_is_named_not_left_to_guesswork",
-          "test": "tests_v9/test_resolve_merge_conflicts.py",
-          "find": "    return MANIFEST_REL in {str(Path(p).as_posix()) for p in paths}",
-          "replace": "    return any(MANIFEST_REL in p for p in paths)  # mutated: مرساة نصّيّة",
-          "why": "مطابقةُ `substring` تُطابِق أيَّ مسارٍ يشترك في الذيل (`vendor/docs/architecture/...`)، فتُنتِج رسالةً تقول «حُلَّ بياني أوّلاً» عن ملفٍّ ليس بياننا — رسالةٌ تكذب على قارئها أسوأ من صمت."
-        }
-      ],
-      "test": "tests_v9/test_generated_write_targets.py"
-    },
-    ".github/workflows/capability-governance.yml": {
-      "$why_ar": "GATE-READS-A-FROZEN-EVENT-PAYLOAD-NOT-THE-LIVE-BODY-01: خطوةُ إنفاذ أثر القدرات كانت تقرأ المتنَ من حمولة الحدث المجمَّدة، فتصحيحُ المتن بعد الانطلاق غيرُ مرئيّ و«أعد التشغيل» يكرّر القديم (مقيس على #887). الإصلاح: جلبٌ حيّ يفشل مغلقاً.",
-      "mutations": [
-        {
-          "expect": "test_the_enforce_step_does_not_read_the_body_from_the_frozen_payload",
-          "test": "tests_v9/test_capability_gate_reads_live_body.py",
-          "find": "          jq -r '.body // \"\"' /tmp/pr-live.json > /tmp/pr-body.txt\n",
-          "replace": "          printf '%s' \"${PR_BODY:-}\" > /tmp/pr-body.txt  # mutated: عودة الحمولة المجمَّدة\n",
-          "why": "إرجاعُ قراءة المتن إلى الحمولة المجمَّدة يعيد الحادثة بعينها: بوّابةٌ تحجب على متنٍ صُحِّح قبل دقيقة."
-        },
-        {
-          "expect": "test_the_enforce_step_fetches_the_body_live_and_fails_closed",
-          "test": "tests_v9/test_capability_gate_reads_live_body.py",
-          "find": "          if [ \"$HTTP_STATUS\" != \"200\" ]; then\n            echo \"live PR body fetch failed: HTTP $HTTP_STATUS — فشل مغلق (الحمولة المجمّدة ليست بديلاً)\" >&2\n            exit 1\n          fi\n",
-          "replace": "          if [ \"$HTTP_STATUS\" != \"200\" ]; then\n            echo \"fetch failed — falling back\" >&2\n          fi\n",
-          "why": "السقوطُ الصامت عند فشل الجلب يعيد العطلَ بثوب احتياطٍ — فشلُ الشبكة يصير قراءةَ حمولةٍ بائتة بلا أثر."
-        },
-        {
-          "expect": "test_editing_the_pr_body_starts_a_fresh_governance_run",
-          "test": "tests_v9/test_capability_gate_reads_live_body.py",
-          "find": "    types: [opened, synchronize, reopened, edited]\n",
-          "replace": "    types: [opened, synchronize, reopened]\n",
-          "why": "من دون حدث edited لا يبدأ تصحيح الإعلان فحصاً جديداً، وإعادة تشغيل الفحص القديم تبقى مرتبطة بحمولة الحدث السابقة."
-        },
-        {
-          "expect": "test_the_live_body_is_bound_to_the_same_head_as_the_judged_code",
-          "test": "tests_v9/test_capability_gate_reads_live_body.py",
-          "find": "          if [ \"$LIVE_HEAD_SHA\" != \"$HEAD_SHA\" ]; then\n            echo \"live PR head changed during governance run: event=$HEAD_SHA live=$LIVE_HEAD_SHA — أعد التشغيل على الزوج المتطابق\" >&2\n            exit 1\n          fi\n",
-          "replace": "          if false; then\n            echo \"mutated: ignore live head drift\" >&2\n            exit 1\n          fi\n",
-          "why": "قبول متن حيّ من رأس أحدث مع تحليل نسخة حدث أقدم يفصل الإعلان عن الشيفرة التي يحكم عليها؛ يجب فشل التشغيل عند اختلاف الزوج."
-        }
-      ]
-    },
-    "scripts/ci/pr_capability_impact_gate.py": {
-      "$why_ar": "إيصال قرار أثر القدرات إلى ملف خرج قابل للتدقيق يتطلب بصمة البايتات نفسها التي حُلّل منها الإعلان، لا نصاً معاد البناء لاحقاً.",
-      "test": "tests_v9/test_capability_gate_reads_live_body.py",
-      "mutations": [
-        {
-          "expect": "test_the_exact_live_body_has_an_auditable_digest",
-          "find": "    return raw.decode(\"utf-8\"), sha256_bytes(raw)\n",
-          "replace": "    return raw.decode(\"utf-8\"), \"\"  # mutated: subject is no longer auditable\n",
-          "why": "إسقاط البصمة يجعل خرج البوابة غير قادر على إثبات أي نسخة من متن الـPR قُرئت مع زوج SHA المحكوم."
-        }
-      ]
-    },
-    "scripts/architecture/rag_corpus_reconciliation_executor.py": {
-      "$why_ar": "CORPUS-RECONCILIATION-01: المنفّذ هو النقطة الوحيدة التي تتحوّل فيها أحكام المالك (HOLD يبقى HOLD · لا حذف · تفرّد على كامل المجموعة) إلى سلوك كتابيّ — عيوبه تُزرع في الاستثناء والحكم النهائيّ.",
-      "test": "tests_v9/test_rag_corpus_reconciliation_executor.py",
-      "mutations": [
-        {
-          "expect": "test_held_identities_are_excluded_from_seeding_and_residue_yields_hold",
-          "find": "        \"exclude_chunk_ids\": sorted(collision_ids),\n",
-          "replace": "        \"exclude_chunk_ids\": [],  # mutated: المحجور يدخل البذر\n",
-          "why": "إسقاطُ الاستثناء يجعل البذر القانونيّ يكتب — بالتقارب الحتميّ — فوق عضو مجموعةٍ محجورة، وهو نصّاً ما حرّمه حكم «لا يُنفَّذ ضدّ HOLD شيء»؛ الشاهد يقرأ ملفّ الاستثناء الفعليّ الذي استُدعي به البذّار لا نيّة الكاتب."
-        },
-        {
-          "expect": "test_dry_run_measures_reports_and_never_passes",
-          "find": "    if all(s == \"PASS\" for s in statuses):\n        return \"PASS\"\n    return \"INCOMPLETE\"\n",
-          "replace": "    return \"PASS\"  # mutated: الغياب يُقرأ نجاحاً\n",
-          "why": "قراءة NOT_MEASURED نجاحاً تعيد صنف «أخضر عن سؤالٍ لم يُطرَح»: تشغيلٌ جافّ بلا الخطوات ٦–١٣ يخرج PASS فيُقرأ اعتماداً حيّاً لم يُقَس — والحكم لا يكون PASS إلا بالثلاث عشرة كلّها."
-        }
-      ]
-    },
-    "services/sahool-platform/api/irrigation_decision_evidence_chain.py": {
-      "$why_ar": "مُتحقِّقُ سلسلة الأدلّة fail-closed. والخطرُ المقيس هنا **تغطيةٌ بالاسم لا بالأثر**: الرقعةُ الواردة أعلنت «٥ اختبارات تُغطّي parent tamper وC6 وNaN»، فنجت **٤ من ٥** طفرات — لأنّ العبثَ بالمحتوى يُغيّر بصمةَ المرحلة فيُمسَك بحارس E1 قبل أن يبلغ حارسَ E2. **ثغرةٌ يسترها حارسٌ مجاور.** فتُعاد البصماتُ بعد العبث في كلّ طفرةٍ أدناه، كي يُعزَل الحارسُ المقصودُ ويكون احمرارُه شهادةً له وحدَه.",
-      "mutations": [
-        {
-          "expect": "test_parent_stage_id_link_is_checked_on_its_own",
-          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
-          "find": "            if stage.get(\"parent_stage_id\") != previous.get(\"stage_id\"):",
-          "replace": "            if False:  # mutated: رابطُ الأب لا يُفحَص",
-          "why": "الحقلُ كان **بلا اختبارٍ إطلاقاً**: `test_parent_tamper_is_rejected` يعبث بـ`parent_digest` لا به، والاسمُ يوحي بتغطيةٍ لا توجد."
-        },
-        {
-          "expect": "test_parent_digest_link_is_checked_on_its_own",
-          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
-          "find": "            if stage.get(\"parent_digest\") != previous.get(\"stage_digest\"):",
-          "replace": "            if False:  # mutated: بصمةُ الأب لا تُفحَص",
-          "why": "كان مستوراً بحارس E1: العبثُ بالبصمة يُغيّر المحتوى فيُمسَك قبل بلوغ E2. العزلُ بإعادة حساب البصمات."
-        },
-        {
-          "expect": "test_content_tamper_is_rejected_even_when_digest_is_stale",
-          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
-          "find": "        if stage.get(\"stage_digest\") and stage_digest(stage) != stage.get(\"stage_digest\"):",
-          "replace": "        if False:  # mutated: بصمةُ المرحلة لا تُفحَص",
-          "why": "E1: محتوًى مُعدَّلٌ ببصمةٍ بائتة يُقرأ صحيحاً — وهو الحارسُ الوحيد الذي كذّبته الرقعةُ الواردة."
-        },
-        {
-          "expect": "test_non_finite_rejection_carries_the_contract_reason_not_a_generic_one",
-          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
-          "find": "        if not math.isfinite(value):",
-          "replace": "        if False:  # mutated: يُترَك الرفضُ لـjson",
-          "why": "`json.dumps(allow_nan=False)` يرفض NaN وحدَه، فكان `_reject_nonfinite` **زائداً غيرَ مُثبَت** (مقيسٌ بتعطيله في الذاكرة: بقي الرفض). فالمُثبَّت هو **الرسالة** لا الرفض: «E1» تقول أيَّ عقدٍ خُولِف، والعامّةُ تترك القارئ يخمّن."
-        },
-        {
-          "expect": "test_the_schema_pins_stage_to_sequence_which_is_why_prefix_mismatch_is_unreachable",
-          "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py",
-          "find": "def validate_stage_schema(stage: dict[str, Any]) -> list[str]:",
-          "replace": "def validate_stage_schema(stage: dict[str, Any]) -> list[str]:\n    return []  # mutated: المخطَّط يرتخي",
-          "why": "يحرس **البرهان** لا الفرع: فرعُ `prefix mismatch` غيرُ قابل للبلوغ ما دام المخطَّطُ يُثبِّت (المرحلة ⇄ التسلسل) — مُبرهَنٌ بجداءٍ كامل ٩×٩ بصفر موضعٍ حرّ. فإن ارتخى المخطَّطُ عاد الفرعُ حيّاً ووجب تكذيبٌ خاصّ به، وهذا الاختبارُ هو ما يكشف ذلك بدل أن يبقى «مُغطًّى» بادّعاءٍ قديم."
-        }
-      ],
-      "test": "services/sahool-platform/tests/test_irrigation_decision_evidence_chain.py"
-    },
-    "scripts/architecture/s5_decision_live_closure_receipt.py": {
-      "$why_ar": "جامعُ إيصال S5 — الطرفُ المُنتِج من سلسلة C9. خطرُه أنّه يكتب دليلاً تقرؤه بوّابةٌ حاجبة: جامعٌ يحكم لنفسه، أو يفترض ادّعاءً بدل قياسه، أو يقرأ رمزَ الخروج حكماً، أو يعلَق إلى ما لا نهاية بدل أن يعجز عن القياس بسرعة، يُنتِج إيصالاً يبدو صالحاً ويشهد بما لم يُقَس. والطفراتُ الستّ تُثبِت أنّ كلَّ خاصّيّةٍ يدّعيها متنُ #944 (والمُهلة الصريحة المضافة في PR #950 بعد مراجعةٍ جنائيّة) مفروضةٌ باختبارٍ يحمرّ عند نزعها — لا موصوفةٌ في جدول.",
-      "mutations": [
-        {
-          "expect": "test_classification_agrees_with_the_guard_on_every_perturbation",
-          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
-          "find": "    receipt[\"classification\"] = \"PASSED\" if not findings else \"FAILED\"",
-          "replace": "    receipt[\"classification\"] = \"PASSED\"  # mutated: الجامعُ يحكم لنفسه",
-          "why": "جامعٌ يُصنّف PASSED دائماً يُنتِج إيصالاً يدّعي إغلاقاً لم يُقَس — وهو أخطرُ ما يفعله مُنتِجُ أدلّة، لأنّ البوّابة تثق بالجسم لا بنيّة كاتبه."
-        },
-        {
-          "expect": "test_the_write_enforcement_claim_is_measured_not_assumed",
-          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
-          "find": "    after = privilege.get(\"after\") or {}",
-          "replace": "    return True  # mutated: الادّعاءُ يصير مفترَضاً لا مقيساً\n    after = privilege.get(\"after\") or {}",
-          "why": "«منعُ كتابة المنصّة مُثبَت» ادّعاءٌ يُشتقّ من الامتيازات المقروءة. جعلُه ثابتاً يُمرّر جدولاً واحداً ما زال يقبل كتابةً — والحارسُ يقبل الإيصالَ لأنّ الكذبَ في مُدخَله لا في شرطه."
-        },
-        {
-          "expect": "test_a_local_script_exiting_nonzero_is_not_read_as_a_measurement_failure",
-          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
-          "find": "    if not (proc.stdout or \"\").strip():",
-          "replace": "    if proc.returncode != 0:  # mutated: الرمزُ يصير حكماً\n        raise MeasurementError(script.name)\n    if not (proc.stdout or \"\").strip():",
-          "why": "decision_sor_role_certify يُنهي بـ2 حين classification != PASSED، وذلك قياسٌ ناجحٌ لحالةٍ سالبة. فقراءةُ الرمز عجزاً تُنهي بـ1 بلا إيصال — فتضيع الحالةُ السالبة التي كان يجب أن تُوثَّق، ويُقرأ الصمتُ «لم يُقَس» بدل «قِيس ففشل»."
-        },
-        {
-          "expect": "test_the_collector_does_not_reimplement_the_guard_rules",
-          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
-          "find": "_PRIVILEGE_READ_ACTION = \"check\"",
-          "replace": "_PRIVILEGE_READ_ACTION = \"check\"\n_SOR_TABLE_HINT = \"decision_service_sor\"  # mutated: شرطُ الحارس يُعاد كتابته هنا",
-          "why": "مصدرُ الشروط واحد: findings_for تُستورَد من الحارس. وتسرّبُ مفردةٍ من مفرداته إلى الجامع بدايةُ نسخةٍ ثانية تنحرف عنه صامتاً — فيُنتِج إيصالاً يظنّه صاحبُه صالحاً وترفضه البوّابة، أو أسوأ: يقبله وقد تراخى."
-        },
-        {
-          "expect": "test_the_historical_overclaim_is_structurally_impossible",
-          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
-          "find": "            \"historical_zero_platform_writes_measured\": False,",
-          "replace": "            \"historical_zero_platform_writes_measured\": bool(evidence.get(\"hz\")),  # mutated: الادّعاءُ يُشتقّ من المُدخَل",
-          "why": "هذا الجامعُ لا يفحص سجلّاتٍ تاريخيّة، فالحقلُ مُثبَّتٌ false بنيويّاً. وجعلُه مُشتقّاً من المُدخَل يفتح بابَ المبالغة التي يرفضها الحارس بـhistorical_zero_writes_overclaim. **وهذه الطفرةُ بعينها نجت في أوّل جولةٍ لكاتب الشريحة** لأنّ مُدخَلاته لم تحمل المفتاح — فأثبتت القيمةَ لا الاستقلال. تسجيلُها يجعل ذلك التصحيحَ مفروضاً لا موصوفاً."
-        },
-        {
-          "expect": "test_a_hanging_local_script_is_a_measurement_failure_not_an_indefinite_hang",
-          "test": "tests_v9/test_s5_live_closure_receipt_collector.py",
-          "find": "    try:\n        proc = subprocess.run(\n            [sys.executable, str(script), *args],\n            cwd=str(DECISION_SVC),\n            capture_output=True,\n            encoding=\"utf-8\",\n            check=False,\n            timeout=_LOCAL_SCRIPT_TIMEOUT_SECONDS,\n        )\n    except subprocess.TimeoutExpired as exc:\n        raise MeasurementError(\n            f\"{script.name} لم يستجب خلال {_LOCAL_SCRIPT_TIMEOUT_SECONDS} ثانية\"\n        ) from exc",
-          "replace": "    proc = subprocess.run(  # mutated: أُسقِطت المهلة المحلّيّة\n        [sys.executable, str(script), *args],\n        cwd=str(DECISION_SVC),\n        capture_output=True,\n        encoding=\"utf-8\",\n        check=False,\n    )",
-          "why": "مراجعةٌ جنائيّة على PR #950 كشفت أنّ `run_json` بلا `timeout` صريح يُبقي سكربتاً محلّيّاً عالقاً (اتّصال قاعدة بيانات مُعلَّق) معلَّقاً حتّى مهلة المنسِّق الخارجيّة الأكبر بكثير — لا بديلٌ عن مهلةٍ محلّيّة لبَدَاهة القياس نفسه."
-        }
-      ]
-    },
-    "scripts/ci/waiver_expiry_guard.py": {
-      "$why_ar": "حارسٌ كامنُ العطل: نجح في ما يفحصه وعمي عمّا لا يفحصه. سبعةُ إعفاءاتٍ في الملفّ الحيّ حملت تاريخَها تحت `expires` والحارسُ يقرأ `expiry` وحدَه، فأبلغ `ok` فوقها منذ نزولها وأقربُها على بعد أربعة أيّام. والطفرتان تحرسان الشقّين معاً: منطقَ الرفض في الحارس، وتهجّيَ البيانات في الملفّ — لأنّ إصلاح أحدهما بلا الآخر يُعيد الصمت.",
-      "mutations": [
-        {
-          "expect": "test_every_near_miss_key_is_covered_not_just_the_one_that_bit_us",
-          "test": "tests_v9/test_waiver_expiry_guard.py",
-          "find": "        for alias in EXPIRY_NEAR_MISS_KEYS:\n",
-          "replace": "        for alias in ():  # mutated: يعود الحارسُ أعمى عن المرادفات\n",
-          "why": "نزعُ الرفض يُعيد الحالةَ التي وُجِد الحارسُ لمنعها بعينها: إعفاءٌ يقرؤه الإنسانُ موقوتاً وتقرؤه CI دائماً. والأسوأُ أنّه يُبلِغ `ok` — فالصمتُ يُقرأ شهادةَ سلامة."
-        }
-      ]
-    },
-    "config/endpoint_ui_coverage_waivers.json": {
-      "$why_ar": "بياناتٌ تحرس نفسَها: منطقُ الحارس سليمٌ ولا يبلغ ما لا يُهجّى كما ينتظر. فعودةُ تهجٍّ واحدٍ إلى هذا الملفّ تُخفي موعداً عن CI ولو لم تُمَسّ سطرٌ من الحارس — ولذلك تُسجَّل الطفرةُ على الملفّ نفسِه، بسابقة `rag_authority_convergence.json`.",
-      "mutations": [
-        {
-          "expect": "test_live_waiver_configs_carry_no_invisible_deadline",
-          "test": "tests_v9/test_waiver_expiry_guard.py",
-          "find": "      \"expiry\": \"2026-08-31\",\n",
-          "replace": "      \"expires\": \"2026-08-31\",\n",
-          "why": "الملفُّ الحيُّ راتشِت: عودةُ تهجٍّ واحدٍ إلى البيانات تُخفي موعداً عن الحارس ولو بقي منطقُه سليماً. ومنطقٌ صحيحٌ فوق بياناتٍ لا يبلغها لا يحرس شيئاً."
-        }
-      ]
-    },
     "shared/helpers.py": {
       "test": "tests_v9/test_tenant_context_is_pinned_by_a_transaction.py",
       "mutations": [
@@ -1429,73 +1496,6 @@
           "find": "async def require_tenant(request: Request) -> str:",
           "replace": "async def enforce_tenant(conn, tenant_id: str):  # mutated: عودةُ المُنفِّذ الميّت\n    await conn.execute(\"SELECT set_config('app.current_tenant', $1, true)\", tenant_id)\n\n\nasync def require_tenant(request: Request) -> str:",
           "why": "دالّةٌ تَعِد بإنفاذِ مستأجرٍ ولا تستطيعه بحكم البناء — تضبط GUC محلّيَّ معاملةٍ بلا معاملةٍ ولا كتلة، فالعبارةُ التالية لا ترى الضبطَ أبداً. وأسوأُ من غيابها أنّ اسمَها يُقرَأ حراسةً. عودتُها يجب أن تُحمِّر فوراً."
-        }
-      ]
-    },
-    "services/sahool-platform/api/phase_runtime_workers.py": {
-      "$gap_ar": "WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01 — ستّةُ مواضع `FOR UPDATE SKIP LOCKED` في اتّصالٍ بوضع autocommit وصفرُ معاملاتٍ صريحة. القفلُ يُحرَّر فور انتهاء SELECT فالمطالبةُ غيرُ مثبَتة. وأخطرُها run_actuator_once: يطالِب ثمّ ينشر طلبَ إرسالٍ فيزيائيّ — فعاملان متزامنان قد يطلبان حركةَ صمّامٍ مرّتين.",
-      "mutations": [
-        {
-          "expect": "test_the_physical_dispatch_is_gated_on_owning_the_claim",
-          "find": "            if owned and action[\"action\"] == \"request_adapter_dispatch\":",
-          "replace": "            if action[\"action\"] == \"request_adapter_dispatch\":  # mutated: النشرُ الفيزيائيّ بلا بوّابة ملكيّة",
-          "test": "tests_v9/test_worker_claim_lease.py",
-          "why": "بلا بوّابة CAS يَنشُر عاملٌ انتهت إجارتُه طلبَ إرسالٍ فيزيائيٍّ ثانياً للأمر نفسه — حركةُ صمّامٍ أو مضخّةٍ تُطلَب مرّتين. وهي الخاصّيّةُ الوحيدةُ التي تفصل خطأً في المحاسبة عن أثرٍ ماديٍّ مكرَّر."
-        },
-        {
-          "expect": "test_the_claim_is_pinned_by_an_explicit_transaction",
-          "find": "            WHERE ({where}) AND claim_token IS NULL",
-          "replace": "            WHERE ({where})  # mutated: المُطالَبُ يعود إلى بِركة الالتقاط",
-          "test": "tests_v9/test_worker_claim_lease.py",
-          "why": "شرطُ الالتقاط هو ما يُخرِج الصفَّ من البِركة بعد المطالبة. نزعُه يُعيد العطلَ الأصليّ بعينه: عاملٌ ثانٍ يلتقط الصفوفَ نفسَها رغم أنّها مُطالَبة."
-        },
-        {
-          "expect": "test_the_network_publish_is_never_inside_a_transaction",
-          "find": "            if owned and action[\"action\"] == \"request_adapter_dispatch\":\n                await _publish_nats(",
-          "replace": "            if owned and action[\"action\"] == \"request_adapter_dispatch\":\n              async with conn.transaction():  # mutated: الأقفالُ تُحبَس أثناء I/O\n                await _publish_nats(",
-          "test": "tests_v9/test_worker_claim_lease.py",
-          "why": "العلاجُ ليس نقلَ العطل من «مطالبةٌ غيرُ مثبَتة» إلى «أقفالٌ محبوسةٌ أثناء الشبكة» — وهو نمطُ event_bus.py المقيس. **وصياغةُ هذا الاختبار الأولى نجت من هذه الطفرة**: كانت تجمع ast.Attribute وحدَه و_publish_nats نداءٌ بـast.Name، فمرّ أخضرَ على نشرٍ مزروعٍ داخل معاملة."
-        },
-        {
-          "expect": "test_every_worker_reclaims_expired_leases",
-          "find": "            await reclaim_expired(conn, table=\"iot_command_dispatch\")",
-          "replace": "            pass  # mutated: لا استرداد — المطالبةُ تصير قبراً",
-          "test": "tests_v9/test_worker_claim_lease.py",
-          "why": "بلا استرداد يبقى صفٌّ مُطالَبٌ من عاملٍ انهار مُطالَباً إلى الأبد. عطلٌ أهدأُ من التكرار وأطولُ عمراً: الطابورُ يتوقّف بلا خطأٍ ظاهر."
-        }
-      ],
-      "test": "tests_v9/test_worker_claim_lease.py"
-    },
-    "docs/architecture/gates/adjudications/GATE01-ADJ-2026-08-13-001.json": {
-      "$why_the_consumed_record_and_not_the_live_one_ar": "الطفراتُ تُزرَع في السجلّ **المختوم** لا في التفويض الحيّ، والسببُ مقيسٌ لا تفضيليّ: التفويضُ الحيّ يُختَم `CONSUMED` بـ`merge_sha` فورَ الدمج — فأيُّ `find` يُثبَّت على نصّه اليوم يصير بائتاً غداً، وتصير الطفرةُ صمتاً لا تكذيباً (`STABLE_WRONG_TEST`). والسجلُّ المختوم لا يتغيّر بعد ختمه، فيصلح مرساةً دائمة. وذراعان من ستّةٍ تخصّان `ISSUED` وحدَه (حملُ `merge_sha` وهو حيّ · و«حيٌّ لا يمنح نطاقَه») **غيرُ مسجَّلتين عمداً** للسبب نفسه، وقد كُذِّبتا يدويّاً وسُجِّل ذلك في رسالة الالتزام.",
-      "mutations": [
-        {
-          "expect": "test_every_live_record_is_consistent_across_state_bytes_scope_and_lifecycle",
-          "test": "tests_v9/test_gate01_frozen_path_guard.py",
-          "find": "    \"services/actuator-service/routers/commands.py\"\n  ],",
-          "replace": "    \"services/actuator-service/routers/commands.py\",\n    \"README.md\"\n  ],",
-          "why": "نطاقٌ يأذن بما ليس مجمَّداً. لولا فحصُ `allowed_paths ⊆ frozen_paths` لصار السجلّ يوسّع نفسَه: يكفي إضافةُ سطرٍ ليصير الإذنُ أوسعَ من البوّابة."
-        },
-        {
-          "expect": "test_every_live_record_is_consistent_across_state_bytes_scope_and_lifecycle",
-          "test": "tests_v9/test_gate01_frozen_path_guard.py",
-          "find": "\"commit_sha\": \"6ba0bef56f47926ce657515fe1717019522f868b\",\n    \"must_match_policy\"",
-          "replace": "\"commit_sha\": \"0000000000000000000000000000000000000000\",\n    \"must_match_policy\"",
-          "why": "أساسُ المرحلة ٠ مخالفٌ لِما جُمِّد في السياسة. تفويضٌ يشير إلى أساسٍ آخر لا يُقرأ إذناً بل تناقضاً — والفحصُ يأخذ التوقّعَ من `gate01_policy.json` لا من السجلّ، فلا يكون تحصيلَ حاصل."
-        },
-        {
-          "expect": "test_every_live_record_is_consistent_across_state_bytes_scope_and_lifecycle",
-          "test": "tests_v9/test_gate01_frozen_path_guard.py",
-          "find": "\"merge_sha\": \"09dbaeb75b77a7f0137b2df5d6ad4b5dfe214b47\",",
-          "replace": "\"$merge_sha_removed_by_mutation\": \"\",",
-          "why": "مُستهلَكٌ بلا `merge_sha`. دورةُ الحياة تصير غيرَ قابلةٍ للمراجعة: يُقال «استُهلِك» ولا يُقال أين — وهو أثرٌ لا يُراجَع، وصنفُ `GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01` نفسُه."
-        },
-        {
-          "expect": "test_every_live_record_is_consistent_across_state_bytes_scope_and_lifecycle",
-          "test": "tests_v9/test_gate01_frozen_path_guard.py",
-          "find": "\"services/actuator-service/actuator_runtime.py\": \"3583eb102d39a047bc5b8fd2de918b19307ed120\"",
-          "replace": "\"services/actuator-service/actuator_runtime.py\": \"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"",
-          "why": "البايتاتُ المُعلَنة تخالف الشجرة ⇒ ما دخل ليس ما أُذِن به. المقابلةُ بين إعلانِ السجلّ و`git hash-object` على الشجرة — مصدران مستقلّان، فالفشلُ ممكنٌ فعلاً لا صوريّاً."
         }
       ]
     }

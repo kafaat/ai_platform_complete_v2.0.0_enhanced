@@ -30,6 +30,7 @@ from api.main import (
     tenant_connection,
 )
 from api.season_models import _SEASON_SELECT_COLS, _row_to_season
+from api.weather_advice import complete_rain_total
 
 router = APIRouter()
 
@@ -320,13 +321,17 @@ async def season_workspace(
                 current = await fetch_current(lat, lon)
                 today_fc = forecast[0] if forecast else None
                 ctx.et0_mm = today_fc.et0_mm if today_fc and today_fc.et0_mm is not None else None
-                ctx.rain_recent_mm = current.precipitation_mm or 0.0
-                ctx.forecast_rain_mm = sum(f.precipitation_mm or 0.0 for f in forecast[1:3])
+                # الغيابُ يمرّ `None` — والقواعدُ تصمت عليه بدل أن تُوصي على صفرٍ مُختلَق.
+                ctx.rain_recent_mm = current.precipitation_mm
+                ctx.forecast_rain_mm, _ = complete_rain_total(
+                    [f.precipitation_mm for f in forecast[1:3]], expected_count=2
+                )
                 ctx.temp_c = current.temperature_c
                 ctx.humidity_pct = current.humidity_pct
-                ctx.rain_mm_3d = await _historical_rain_3d_mm(
-                    lat, lon, sum(f.precipitation_mm or 0.0 for f in forecast[:3])
+                _fc3, _ = complete_rain_total(
+                    [f.precipitation_mm for f in forecast[:3]], expected_count=3
                 )
+                ctx.rain_mm_3d = await _historical_rain_3d_mm(lat, lon, _fc3)
                 weather_available = True
             recs = [r.to_dict() for r in build_recommendations(ctx, enabled_ids=enabled_ids)]
             recommendations = {

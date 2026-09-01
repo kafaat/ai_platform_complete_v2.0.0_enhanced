@@ -9961,6 +9961,7 @@
         "services/sahool-platform/tests/test_irrigation_plan_endpoint.py",
         "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
         "services/sahool-platform/tests/test_kc_extraction_engine.py",
+        "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
         "services/sahool-platform/tests/test_platform_agri_full_lifecycle_forensic.py",
         "services/sahool-platform/tests/test_recommendation_engine.py",
         "services/sahool-platform/tests/test_recommendation_registry.py",

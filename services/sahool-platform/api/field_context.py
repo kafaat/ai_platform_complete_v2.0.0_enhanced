@@ -152,9 +152,40 @@ async def _field_season_context(conn, field_id: str):
     return lat, lon, crop, stage, sowing_date
 
 
-async def _historical_rain_3d_mm(lat: float, lon: float, forecast_fallback: float) -> float:
+def alert_rain_context(current, forecast) -> tuple[float | None, float | None, float | None]:
+    """مطرُ التنبيهات: (الآنيّ، مجموعُ ٤٨ ساعة، مجموعُ ٣ أيّام) — و`None` **مجهولٌ** لا «لا مطر».
+
+    استُخرِجت من `main.py` لا تجميلاً: الملفُّ تحت راتشِت تفكيكٍ يهبط ولا يصعد،
+    والمنطقُ الذي لا يخصّ التوجيه موضعُه هنا مع `_historical_rain_3d_mm`. فالحدُّ
+    يُخدَم بإخراج المنطق لا بضغط تعليقاته.
+
+    والحكمُ نفسُه ليس هنا — يُفوَّض إلى `weather_advice.complete_rain_total`،
+    السياسةُ الواحدة التي يسألها كلُّ سطح.
+    """
+    from api.weather_advice import complete_rain_total
+
+    total_48h, _ = complete_rain_total(
+        [f.precipitation_mm for f in forecast[1:3]], expected_count=2
+    )
+    total_3d, _ = complete_rain_total([f.precipitation_mm for f in forecast[:3]], expected_count=3)
+    return current.precipitation_mm, total_48h, total_3d
+
+
+#: نافذةُ المطر التاريخيّ بالأيّام — يقرؤها الاستعلامُ وشرطُ الاكتمال معاً،
+#: فلا ينحرف أحدُهما عن الآخر.
+_HISTORICAL_RAIN_DAYS = 3
+
+
+async def _historical_rain_3d_mm(
+    lat: float, lon: float, forecast_fallback: float | None
+) -> float | None:
     """مطر تراكمي آخر ٣ أيام (تاريخيّ ERA5) — لمخاطر الأمراض تُعدّ رطوبة الأيام
-    السابقة لا المطر المستقبليّ. fallback لمجموع التوقّع إن تعذّر التاريخيّ."""
+    السابقة لا المطر المستقبليّ. fallback لمجموع التوقّع إن تعذّر التاريخيّ.
+
+    **ويُعيد `None` حين لا يكتمل المرصود** بدل مجموعٍ جزئيٍّ يُقدَّم كاملاً:
+    `sum(... or 0.0)` كان يُنقِص المطرَ المُبلَّغ فيُنقِص خطرَ المرض المحسوب — أي
+    ينحاز إلى **عدم** التحذير. والصفرُ الصريح يبقى رصداً.
+    """
     from datetime import timedelta as _td
 
     from api.connectors.openmeteo import fetch_historical
@@ -162,12 +193,29 @@ async def _historical_rain_3d_mm(lat: float, lon: float, forecast_fallback: floa
     try:
         today = datetime.now(UTC).date()
         hist = await fetch_historical(
-            lat, lon, (today - _td(days=3)).isoformat(), (today - _td(days=1)).isoformat()
+            lat,
+            lon,
+            (today - _td(days=_HISTORICAL_RAIN_DAYS)).isoformat(),
+            (today - _td(days=1)).isoformat(),
         )
-        return round(sum(d.precipitation_mm or 0.0 for d in hist), 1)
+        from api.weather_advice import complete_rain_total
+
+        # **`expected_count` ثابتٌ لا مُشتقٌّ من الرَّدّ.** كتبتُ أوّلاً
+        # `expected_count=len(hist)`، وأمسكها مراجعٌ آليّ: الأيّامُ الناقصةُ من
+        # أرشيف ERA5 (يتأخّر ~٥ أيّام) **تُحذَف من القائمة** ولا تصل `None` — فيصير
+        # المتوقَّعُ مساوياً للمرصود دائماً، ويمرّ مجموعٌ جزئيٌّ بوصفه ثلاثةَ أيّام.
+        # وذلك يُبطِل الخاصّيّةَ التي بُنيت السياسةُ لأجلها، ويُناقض اختبارَها
+        # `complete_rain_total([1.0], expected_count=3) == (None, [1, 2])`.
+        # والاستعلامُ يطلب ثلاثةَ أيّامٍ بعينها (`today-3` .. `today-1`)، فالعددُ ٣.
+        total, _missing = complete_rain_total(
+            [d.precipitation_mm for d in hist], expected_count=_HISTORICAL_RAIN_DAYS
+        )
+        if not hist or total is None:
+            return None if forecast_fallback is None else round(forecast_fallback, 1)
+        return round(total, 1)
     except Exception:  # noqa: BLE001 — تعذّر التاريخيّ ⇒ fallback للتوقّع
         logging.exception("historical 3-day rain fetch failed; using forecast fallback")
-        return round(forecast_fallback, 1)
+        return None if forecast_fallback is None else round(forecast_fallback, 1)
 
 
 async def _resolve_recommendation_policy(raw_value) -> set[str] | None:

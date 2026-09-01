@@ -147,6 +147,13 @@ GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
 # ─── Data models ──────────────────────────────────────────────────
 
 
+# **المطرُ وحدَه صار `float | None` في هذه الشريحة، والباقي مُعلَنٌ لا منسيّ.**
+# العقدُ المطبوع كان يمنع الغياب (`float`) فتختلق الحافّةُ `0` لتفي به — وقيس أثرُ
+# ذلك على المطر بالتنفيذ: يُنتِج أمرَ ريٍّ («خلال ٢٤ ساعة») حيث القراءةُ الحقيقيّة
+# تقول «لا حاجة». فالمطرُ أُخِذ أوّلاً لأنّ انحيازَه في اتّجاه الإذن ويصل قراراً
+# يُنفَّذ على أرض. وبقيّةُ الحقول (`temperature_c` · `humidity_pct` · `temp_max_c` …)
+# ما تزال تختلق الصفر، وهي `TYPED-CONTRACT-FORBIDS-ABSENCE-SO-THE-EDGE-INVENTS-ZERO-01`
+# **مفتوحةً بنطاقٍ مقيس**، لا مُصلَحةً هنا ولا مُدَّعًى إصلاحُها.
 @dataclass
 class CurrentWeather:
     temperature_c: float
@@ -155,7 +162,7 @@ class CurrentWeather:
     wind_direction_deg: float | None
     wind_direction_source: str | None
     wind_gusts_ms: float | None
-    precipitation_mm: float
+    precipitation_mm: float | None
     cloud_cover_pct: float
     weather_code: int  # WMO code (0=clear, 61=rain, etc.)
     is_day: bool
@@ -167,7 +174,7 @@ class DailyForecast:
     date: str  # YYYY-MM-DD
     temp_max_c: float
     temp_min_c: float
-    precipitation_mm: float
+    precipitation_mm: float | None
     et0_mm: float | None  # FAO-56 reference ET₀ (في النموذج!)
     sunshine_hours: float | None
     wind_max_ms: float
@@ -217,7 +224,7 @@ def _build_daily(d: dict, i: int, date: str) -> DailyForecast:
         date=date,
         temp_max_c=_daily_at(d, "temperature_2m_max", i, 0),
         temp_min_c=_daily_at(d, "temperature_2m_min", i, 0),
-        precipitation_mm=_daily_at(d, "precipitation_sum", i, 0),
+        precipitation_mm=_daily_at(d, "precipitation_sum", i, None),
         et0_mm=_daily_at(d, "et0_fao_evapotranspiration", i, None),
         sunshine_hours=(_sun / 3600 if _sun is not None else None),
         wind_max_ms=_daily_at(d, "wind_speed_10m_max", i, 0),
@@ -282,7 +289,7 @@ async def fetch_current(
         wind_direction_deg=wind_direction,
         wind_direction_source=wind_direction_source,
         wind_gusts_ms=c.get("wind_gusts_10m"),
-        precipitation_mm=c.get("precipitation", 0),
+        precipitation_mm=c.get("precipitation"),
         cloud_cover_pct=c.get("cloud_cover", 0),
         weather_code=c.get("weather_code", 0),
         is_day=bool(c.get("is_day", 1)),
@@ -342,7 +349,7 @@ async def fetch_current_batch(
                 wind_direction_deg=wd,
                 wind_direction_source="open-meteo" if wd is not None else None,
                 wind_gusts_ms=c.get("wind_gusts_10m"),
-                precipitation_mm=c.get("precipitation", 0),
+                precipitation_mm=c.get("precipitation"),
                 cloud_cover_pct=c.get("cloud_cover", 0),
                 weather_code=c.get("weather_code", 0),
                 is_day=bool(c.get("is_day", 1)),

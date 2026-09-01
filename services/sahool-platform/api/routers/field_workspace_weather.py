@@ -82,35 +82,31 @@ def _reading(source: dict[str, Any] | None, key: str) -> float | None:
 def _complete_precipitation_total(
     sources: list[dict[str, Any]], *, expected_count: int
 ) -> tuple[float | None, list[int]]:
-    """Return a rain total only when every expected interval is observed.
+    """يستخرج القراءات من القواميس ثمّ يسأل **السياسة المشتركة** — لا يُعيد حكمَها.
 
-    The index list names missing intervals, including intervals absent from a
-    short forecast.  An explicit ``0.0`` remains an observation; only ``None``
-    or an absent interval makes the aggregate incomplete.
+    كان الحكمُ مكتوباً هنا وحدَه بينما `fields.py` و`main.py` تجمعان
+    ``sum(... or 0.0)`` بلا حارس — علاجٌ ضيّقٌ تحت فجوةٍ عريضة. فانتقل الحكمُ إلى
+    `weather_advice.complete_rain_total` على ``list[float | None]`` مُجرَّدةٍ من
+    الشكل، وبقي هنا **الاستخراجُ** وحدَه: القاموسُ شكلٌ، والسياسةُ واحدة.
     """
-    missing: list[int] = []
-    values: list[float] = []
-    for index in range(expected_count):
-        value = _reading(sources[index], "precipitation_mm") if index < len(sources) else None
-        if value is None:
-            missing.append(index)
-        else:
-            values.append(value)
-    if missing:
-        return None, missing
-    return sum(values), []
+    from api.weather_advice import complete_rain_total  # استيرادٌ كسول كسائر الملفّ
+
+    readings = [
+        _reading(sources[index], "precipitation_mm") if index < len(sources) else None
+        for index in range(expected_count)
+    ]
+    return complete_rain_total(readings, expected_count=expected_count)
 
 
 def _precipitation_incomplete(*, context: str, missing_intervals: list[int]) -> HTTPException:
-    """Stable fail-closed API error for safety-relevant missing rain."""
+    """يلفّ **جسمَ الخطأ المشترك** — فلا يُبلَّغ العطلُ نفسُه برمزين في مسارين."""
+    from api.weather_advice import precipitation_incomplete_detail
+
     return HTTPException(
         status_code=503,
-        detail={
-            "code": "WEATHER_PRECIPITATION_INCOMPLETE",
-            "message_ar": "بيانات المطر غير مكتملة؛ لا يمكن إصدار تقدير زراعي آمن.",
-            "context": context,
-            "missing_intervals": missing_intervals,
-        },
+        detail=precipitation_incomplete_detail(
+            context=context, missing_intervals=missing_intervals
+        ),
     )
 
 

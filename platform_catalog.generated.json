@@ -17749,7 +17749,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "7e03a08de9e73c19af6a05e3a7b52bc3bd0032bad3eeb2074b2883b234b947a9",
+  "fingerprint": "227641dde69f319566d03e47e1af359e5c545c01083ec0ba366c749eb56ddd3e",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -18062,7 +18062,7 @@
     },
     {
       "endpoint": "/api/v1/learning/promotion-decisions",
-      "expires_on": "2026-08-31",
+      "expires_on": "2026-10-11",
       "owner": "sahool-platform",
       "tracking": "WX-11.4",
       "waiver_id": "ui-waiver-035"

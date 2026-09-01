@@ -200,12 +200,16 @@ def _heavy_rain(ctx: FieldAlertContext, t: AlertThresholds) -> GeneratedAlert | 
 
 def _disease_risk(ctx: FieldAlertContext, t: AlertThresholds) -> GeneratedAlert | None:
     """خطر مرض: نُعيد استخدام weather_advice.disease_risk؛ نُطلِق عند high فقط."""
-    if ctx.temp_c is None or ctx.humidity_pct is None:
+    # **والمطرُ انضمّ إلى الحرارة والرطوبة في هذا الشرط.** كان `ctx.rain_mm_3d or 0.0`
+    # يُمرِّر الغيابَ صفراً، والصفرُ يُنقِص الخطرَ المحسوب ⇒ انحيازٌ إلى **عدم**
+    # التحذير. والملفُّ يعرف النمطَ سلفاً — يحرس المُدخَلين الآخرين بـ`is None`
+    # ويصمت — فبقي المطرُ وحدَه مُصفَّراً.
+    if ctx.temp_c is None or ctx.humidity_pct is None or ctx.rain_mm_3d is None:
         return None
     risk = disease_risk(
         temp_c=ctx.temp_c,
         humidity_pct=ctx.humidity_pct,
-        rain_mm_3d=ctx.rain_mm_3d or 0.0,
+        rain_mm_3d=ctx.rain_mm_3d,
         crop=ctx.crop,
     )
     # disease_risk يُرجع low|moderate|high. نُطلِق التنبيه عند الخطر المرتفع فقط

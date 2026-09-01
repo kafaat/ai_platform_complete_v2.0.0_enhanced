@@ -2,7 +2,7 @@
   "schema_version": 1,
   "file": "services/sahool-platform/api/main.py",
   "total_lines": 2553,
-  "import_lines": 133,
+  "import_lines": 134,
   "top_level_symbols": 46,
   "direct_route_decorators": 0,
   "category_totals": {
@@ -32,7 +32,7 @@
     },
     "field_task_alert_helpers": {
       "symbols": 3,
-      "loc": 268
+      "loc": 267
     },
     "workflow_compatibility": {
       "symbols": 2,
@@ -49,8 +49,8 @@
     "field_task_alert_helpers": "embedded_business_logic",
     "workflow_compatibility": "compatibility_runtime"
   },
-  "embedded_business_logic_loc": 674,
-  "categorized_symbol_loc": 1295,
+  "embedded_business_logic_loc": 673,
+  "categorized_symbol_loc": 1294,
   "uncategorized_residual_loc_estimate": 1125,
   "items": [
     {
@@ -359,8 +359,8 @@
     {
       "name": "_activity_event_type",
       "kind": "FunctionDef",
-      "line_start": 1422,
-      "line_end": 1430,
+      "line_start": 1423,
+      "line_end": 1431,
       "loc": 9,
       "category": "idempotency_outbox_events",
       "decorators": []
@@ -368,8 +368,8 @@
     {
       "name": "_row_to_activity",
       "kind": "FunctionDef",
-      "line_start": 1433,
-      "line_end": 1458,
+      "line_start": 1434,
+      "line_end": 1459,
       "loc": 26,
       "category": "parsers_mappers_serializers",
       "decorators": []
@@ -377,8 +377,8 @@
     {
       "name": "_row_to_task",
       "kind": "FunctionDef",
-      "line_start": 1473,
-      "line_end": 1492,
+      "line_start": 1474,
+      "line_end": 1493,
       "loc": 20,
       "category": "parsers_mappers_serializers",
       "decorators": []
@@ -386,8 +386,8 @@
     {
       "name": "_row_to_soil_test",
       "kind": "FunctionDef",
-      "line_start": 1508,
-      "line_end": 1533,
+      "line_start": 1509,
+      "line_end": 1534,
       "loc": 26,
       "category": "parsers_mappers_serializers",
       "decorators": []
@@ -395,8 +395,8 @@
     {
       "name": "_row_to_prefs",
       "kind": "FunctionDef",
-      "line_start": 1573,
-      "line_end": 1594,
+      "line_start": 1574,
+      "line_end": 1595,
       "loc": 22,
       "category": "parsers_mappers_serializers",
       "decorators": []
@@ -404,8 +404,8 @@
     {
       "name": "_log_alert_deliveries",
       "kind": "AsyncFunctionDef",
-      "line_start": 1604,
-      "line_end": 1663,
+      "line_start": 1605,
+      "line_end": 1664,
       "loc": 60,
       "category": "field_task_alert_helpers",
       "decorators": []
@@ -413,9 +413,9 @@
     {
       "name": "_evaluate_field_alerts_persist",
       "kind": "AsyncFunctionDef",
-      "line_start": 1676,
+      "line_start": 1677,
       "line_end": 1857,
-      "loc": 182,
+      "loc": 181,
       "category": "field_task_alert_helpers",
       "decorators": []
     },

@@ -1405,6 +1405,7 @@ from api.field_context import (  # noqa: E402, F401
     _latest_soil_moisture,
     _load_recommendation_policy,
     _resolve_recommendation_policy,
+    alert_rain_context,
 )
 
 # ─── العمليّات الزراعيّة (Activities) — نمط seasons (v35) ─────────
@@ -1748,10 +1749,10 @@ async def _evaluate_field_alerts_persist(
     today = forecast[0] if forecast else None
     # احتياج الريّ الصافي (FAO-56) — يُستخدم لقاعدة low_moisture حين لا قراءة تربة.
     irrigation_need_mm: float | None = None
-    if today is not None and today.et0_mm is not None:
+    recent_rain, fc_rain_48h, rain_fc_3d = alert_rain_context(current, forecast)
+    if today is not None and today.et0_mm is not None and None not in (recent_rain, fc_rain_48h):
         from core.season_phenology import resolve_crop_id, stage_kc
 
-        forecast_rain_48h = sum(f.precipitation_mm or 0.0 for f in forecast[1:3])
         # Kc طوريّ (FAO-56) من بطاقة المحصول إن توفّرت phenology وعمر المحصول — أدقّ
         # من اشتقاق المرحلة الخشن داخل irrigation_advice؛ None ⇒ سلوك ثابت (رجعيّ).
         kc_phen = stage_kc(resolve_crop_id(crop), days_since_sowing)
@@ -1759,14 +1760,13 @@ async def _evaluate_field_alerts_persist(
             et0_mm=today.et0_mm,
             crop=crop,
             stage=stage,
-            rain_recent_mm=current.precipitation_mm or 0.0,
-            forecast_rain_mm=forecast_rain_48h,
+            rain_recent_mm=recent_rain,
+            forecast_rain_mm=fc_rain_48h,
             soil_moisture_pct=soil_pct,
             kc_override=kc_phen,
         )
         irrigation_need_mm = advice.get("recommended_mm")
 
-    rain_fc_3d = sum(f.precipitation_mm or 0.0 for f in forecast[:3])  # مطر متوقّع (heavy_rain)
     # مطر آخر ٣ أيام تاريخيّاً (disease_risk = رطوبة سابقة)؛ fallback للتوقّع.
     rain_hist_3d = await _historical_rain_3d_mm(lat, lon, rain_fc_3d)
     # خطّ أساس NDVI متوقّع حسب الطور (قرينة محافِظة: النباتيّ يرتفع خلال النموّ ويبلغ

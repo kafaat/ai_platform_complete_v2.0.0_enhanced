@@ -38,6 +38,18 @@ import json
 import sys
 from pathlib import Path
 
+# GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: مخرَجُ هذا الحارس عربيّ،
+# و`print` يُرمّز بلغة الآلة. فتحت `LC_ALL=C` كان يحسب **صحيحاً** ثمّ يموت وهو يطبع
+# **فشلَه** (UnicodeEncodeError) ⇒ العطلُ الحقيقيّ (إعفاءٌ انقضى) يُستبدَل بانهيارِ
+# ترميزٍ يُخفي سببَه، فيقرأ الناظرُ عطلاً في الترميز حيث العطلُ في الحوكمة.
+# **وكشفه التقويمُ لا التغيير:** هذا الحارس لا يطبع عربيّةً إلّا حين يسقط، فبقي
+# العطلُ كامناً حتّى أوّلِ انقضاءِ إعفاء — وهو الصنفُ الذي يجعل الحارسَ نفسَه
+# نقطةَ العمى. **عند التحميل لا داخل `main()`** — بعض الحرّاس بلا `main` وتطبع
+# من جسدها.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 ROOT = Path(__file__).resolve().parents[2]
 
 # Governance waiver files carrying temporary/expiry semantics. Add new files here as
