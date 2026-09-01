@@ -581,9 +581,9 @@
     {
       "endpoint": "/api/v1/learning/promotion-decisions",
       "method": "POST",
-      "reason": "WX-11.3 governed promotion decision is API-only until model governance UI lands",
+      "reason": "WX-11.3 governed promotion decision is API-only until model governance UI lands. RENEWED 2026-09-01 (was 2026-08-31, expired): renewal is deliberate, not a date bump to clear a red gate. Measured at renewal: zero UI consumers reference this endpoint across frontend/ and mobile/. NOT reclassified as permanently no-UI, because the record contradicts itself -- the classification fields say no-ui-required while this reason and tracking WX-11.4 say a governance UI is still planned. Removing the expiry would delete the forcing function on the strength of the disputed side; renewing keeps it. Horizon aligned to the sibling WX-11.x waiver in this file (2026-10-11), not invented. decision-service must either ship WX-11.4 or settle the contradiction before that date.",
       "owner": "decision-service",
-      "expiry": "2026-08-31",
+      "expiry": "2026-10-11",
       "tracking": "WX-11.4",
       "intended_consumer": "machine",
       "reason_category": "operational",

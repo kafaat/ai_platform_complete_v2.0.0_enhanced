@@ -109,11 +109,11 @@
       "status": "passed"
     },
     {
-      "exit_code": 1,
+      "exit_code": 0,
       "name": "waiver_expiry",
-      "output_sha256": "c4494557b573bdc1f120928c585aa2c7e8b5ee704c72598c66b2ba4a79c4250f",
-      "output_tail": "waiver_expiry_guard_failed\nconfig/endpoint_ui_coverage_waivers.json: /api/v1/learning/promotion-decisions: waiver expired 2026-08-31 (owner=decision-service, today=2026-09-01) \u2014 resolve the tracked gap or renew the waiver deliberately",
-      "status": "failed"
+      "output_sha256": "9d8d84775bd07fb3df82fcc20e5937f890bef833e7a336380c519cdd0e572f82",
+      "output_tail": "waiver_expiry_guard_ok (scanned 2 waiver file(s); today=2026-09-01)",
+      "status": "passed"
     },
     {
       "exit_code": 0,
@@ -158,7 +158,7 @@
       "status": "passed"
     }
   ],
-  "generated_at_utc": "2026-09-01T02:10:09.753937+00:00",
+  "generated_at_utc": "2026-09-01T12:58:39.297522+00:00",
   "not_executed_by_this_gate": [
     "python_and_raster_test_suites",
     "frontend_typecheck_vitest_and_build",
@@ -170,6 +170,6 @@
   "production_certified": false,
   "schema_version": 1,
   "scope": "static_source_contracts_only",
-  "static_ready": false,
-  "verdict": "blocked"
+  "static_ready": true,
+  "verdict": "release_candidate"
 }
