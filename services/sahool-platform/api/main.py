@@ -1405,6 +1405,7 @@ from api.field_context import (  # noqa: E402, F401
     _latest_soil_moisture,
     _load_recommendation_policy,
     _resolve_recommendation_policy,
+    alert_rain_context,
 )
 
 # ─── العمليّات الزراعيّة (Activities) — نمط seasons (v35) ─────────
@@ -1696,7 +1697,7 @@ async def _evaluate_field_alerts_persist(
         thresholds_from_policy,
     )
     from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
-    from api.weather_advice import complete_rain_total, irrigation_advice
+    from api.weather_advice import irrigation_advice
 
     # سياسة عتبات التنبيهات لكلّ مستأجِر (best-effort): تُضبَط عبر النقطة الموجودة
     #   PUT /api/v1/settings  مع scope='platform', key='alert_thresholds',
@@ -1748,19 +1749,8 @@ async def _evaluate_field_alerts_persist(
     today = forecast[0] if forecast else None
     # احتياج الريّ الصافي (FAO-56) — يُستخدم لقاعدة low_moisture حين لا قراءة تربة.
     irrigation_need_mm: float | None = None
-    # **لا يُصفَّر الغياب هنا ولا يُرفَع 503.** هذا مسارُ تنبيهات، و`FieldAlertContext`
-    # يُعلن حقولَ المطر `float | None` أصلاً و`_heavy_rain` يفحص `is None` ويصمت —
-    # فالعقدُ مبنيٌّ لحمل الغياب، والتصفيرُ هو ما كان يُتلفه. ونهجُ الملفّ نفسِه
-    # مكتوبٌ أسفلَه: «غياب الطور/NDVI ⇒ None ⇒ القاعدة لا تُطلَق (صدق، لا إنذار كاذب)».
-    forecast_rain_48h, _missing_48h = complete_rain_total(
-        [f.precipitation_mm for f in forecast[1:3]], expected_count=2
-    )
-    # **والمطرُ شرطٌ كالـET0، لا مُدخَلٌ يُصفَّر.** `irrigation_advice` موقَّعةٌ
-    # `rain_recent_mm: float` فلا تقبل الغياب — والمخرجُ الصادق ألّا يُحسَب احتياجٌ
-    # على مطرٍ مجهول، لا أن يُختلَق له صفر. و`_low_moisture` يحرس `need is not None`
-    # سلفاً فيصمت — وهو نفسُ ما يفعله الملفّ عند غياب الطور/NDVI.
-    _rain_known = current.precipitation_mm is not None and forecast_rain_48h is not None
-    if today is not None and today.et0_mm is not None and _rain_known:
+    recent_rain, fc_rain_48h, rain_fc_3d = alert_rain_context(current, forecast)
+    if today is not None and today.et0_mm is not None and None not in (recent_rain, fc_rain_48h):
         from core.season_phenology import resolve_crop_id, stage_kc
 
         # Kc طوريّ (FAO-56) من بطاقة المحصول إن توفّرت phenology وعمر المحصول — أدقّ
@@ -1770,17 +1760,13 @@ async def _evaluate_field_alerts_persist(
             et0_mm=today.et0_mm,
             crop=crop,
             stage=stage,
-            rain_recent_mm=current.precipitation_mm,
-            forecast_rain_mm=forecast_rain_48h,
+            rain_recent_mm=recent_rain,
+            forecast_rain_mm=fc_rain_48h,
             soil_moisture_pct=soil_pct,
             kc_override=kc_phen,
         )
         irrigation_need_mm = advice.get("recommended_mm")
 
-    # مطر متوقّع (heavy_rain) — ناقصٌ ⇒ `None` ⇒ القاعدة تصمت، لا تُطلِق على صفرٍ مُختلَق.
-    rain_fc_3d, _missing_fc3 = complete_rain_total(
-        [f.precipitation_mm for f in forecast[:3]], expected_count=3
-    )
     # مطر آخر ٣ أيام تاريخيّاً (disease_risk = رطوبة سابقة)؛ fallback للتوقّع.
     rain_hist_3d = await _historical_rain_3d_mm(lat, lon, rain_fc_3d)
     # خطّ أساس NDVI متوقّع حسب الطور (قرينة محافِظة: النباتيّ يرتفع خلال النموّ ويبلغ

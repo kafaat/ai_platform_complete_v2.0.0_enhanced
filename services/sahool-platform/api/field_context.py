@@ -152,6 +152,25 @@ async def _field_season_context(conn, field_id: str):
     return lat, lon, crop, stage, sowing_date
 
 
+def alert_rain_context(current, forecast) -> tuple[float | None, float | None, float | None]:
+    """مطرُ التنبيهات: (الآنيّ، مجموعُ ٤٨ ساعة، مجموعُ ٣ أيّام) — و`None` **مجهولٌ** لا «لا مطر».
+
+    استُخرِجت من `main.py` لا تجميلاً: الملفُّ تحت راتشِت تفكيكٍ يهبط ولا يصعد،
+    والمنطقُ الذي لا يخصّ التوجيه موضعُه هنا مع `_historical_rain_3d_mm`. فالحدُّ
+    يُخدَم بإخراج المنطق لا بضغط تعليقاته.
+
+    والحكمُ نفسُه ليس هنا — يُفوَّض إلى `weather_advice.complete_rain_total`،
+    السياسةُ الواحدة التي يسألها كلُّ سطح.
+    """
+    from api.weather_advice import complete_rain_total
+
+    total_48h, _ = complete_rain_total(
+        [f.precipitation_mm for f in forecast[1:3]], expected_count=2
+    )
+    total_3d, _ = complete_rain_total([f.precipitation_mm for f in forecast[:3]], expected_count=3)
+    return current.precipitation_mm, total_48h, total_3d
+
+
 async def _historical_rain_3d_mm(
     lat: float, lon: float, forecast_fallback: float | None
 ) -> float | None:

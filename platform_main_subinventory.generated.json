@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "file": "services/sahool-platform/api/main.py",
-  "total_lines": 2567,
-  "import_lines": 133,
+  "total_lines": 2553,
+  "import_lines": 134,
   "top_level_symbols": 46,
   "direct_route_decorators": 0,
   "category_totals": {
@@ -32,7 +32,7 @@
     },
     "field_task_alert_helpers": {
       "symbols": 3,
-      "loc": 282
+      "loc": 267
     },
     "workflow_compatibility": {
       "symbols": 2,
@@ -49,8 +49,8 @@
     "field_task_alert_helpers": "embedded_business_logic",
     "workflow_compatibility": "compatibility_runtime"
   },
-  "embedded_business_logic_loc": 688,
-  "categorized_symbol_loc": 1309,
+  "embedded_business_logic_loc": 673,
+  "categorized_symbol_loc": 1294,
   "uncategorized_residual_loc_estimate": 1125,
   "items": [
     {
@@ -359,8 +359,8 @@
     {
       "name": "_activity_event_type",
       "kind": "FunctionDef",
-      "line_start": 1422,
-      "line_end": 1430,
+      "line_start": 1423,
+      "line_end": 1431,
       "loc": 9,
       "category": "idempotency_outbox_events",
       "decorators": []
@@ -368,8 +368,8 @@
     {
       "name": "_row_to_activity",
       "kind": "FunctionDef",
-      "line_start": 1433,
-      "line_end": 1458,
+      "line_start": 1434,
+      "line_end": 1459,
       "loc": 26,
       "category": "parsers_mappers_serializers",
       "decorators": []
@@ -377,8 +377,8 @@
     {
       "name": "_row_to_task",
       "kind": "FunctionDef",
-      "line_start": 1473,
-      "line_end": 1492,
+      "line_start": 1474,
+      "line_end": 1493,
       "loc": 20,
       "category": "parsers_mappers_serializers",
       "decorators": []
@@ -386,8 +386,8 @@
     {
       "name": "_row_to_soil_test",
       "kind": "FunctionDef",
-      "line_start": 1508,
-      "line_end": 1533,
+      "line_start": 1509,
+      "line_end": 1534,
       "loc": 26,
       "category": "parsers_mappers_serializers",
       "decorators": []
@@ -395,8 +395,8 @@
     {
       "name": "_row_to_prefs",
       "kind": "FunctionDef",
-      "line_start": 1573,
-      "line_end": 1594,
+      "line_start": 1574,
+      "line_end": 1595,
       "loc": 22,
       "category": "parsers_mappers_serializers",
       "decorators": []
@@ -404,8 +404,8 @@
     {
       "name": "_log_alert_deliveries",
       "kind": "AsyncFunctionDef",
-      "line_start": 1604,
-      "line_end": 1663,
+      "line_start": 1605,
+      "line_end": 1664,
       "loc": 60,
       "category": "field_task_alert_helpers",
       "decorators": []
@@ -413,17 +413,17 @@
     {
       "name": "_evaluate_field_alerts_persist",
       "kind": "AsyncFunctionDef",
-      "line_start": 1676,
-      "line_end": 1871,
-      "loc": 196,
+      "line_start": 1677,
+      "line_end": 1857,
+      "loc": 181,
       "category": "field_task_alert_helpers",
       "decorators": []
     },
     {
       "name": "_parse_date",
       "kind": "FunctionDef",
-      "line_start": 1882,
-      "line_end": 1892,
+      "line_start": 1868,
+      "line_end": 1878,
       "loc": 11,
       "category": "parsers_mappers_serializers",
       "decorators": []
@@ -431,8 +431,8 @@
     {
       "name": "_parse_iso_utc",
       "kind": "FunctionDef",
-      "line_start": 2010,
-      "line_end": 2023,
+      "line_start": 1996,
+      "line_end": 2009,
       "loc": 14,
       "category": "parsers_mappers_serializers",
       "decorators": []
@@ -440,8 +440,8 @@
     {
       "name": "_issue_tags_from_event",
       "kind": "FunctionDef",
-      "line_start": 2071,
-      "line_end": 2091,
+      "line_start": 2057,
+      "line_end": 2077,
       "loc": 21,
       "category": "idempotency_outbox_events",
       "decorators": []
@@ -449,8 +449,8 @@
     {
       "name": "_build_walk_plan",
       "kind": "FunctionDef",
-      "line_start": 2122,
-      "line_end": 2147,
+      "line_start": 2108,
+      "line_end": 2133,
       "loc": 26,
       "category": "field_task_alert_helpers",
       "decorators": []
@@ -458,8 +458,8 @@
     {
       "name": "_get_workflow_store",
       "kind": "FunctionDef",
-      "line_start": 2499,
-      "line_end": 2521,
+      "line_start": 2485,
+      "line_end": 2507,
       "loc": 23,
       "category": "workflow_compatibility",
       "decorators": []
@@ -467,8 +467,8 @@
     {
       "name": "_rebuild_pydantic_models",
       "kind": "FunctionDef",
-      "line_start": 2529,
-      "line_end": 2539,
+      "line_start": 2515,
+      "line_end": 2525,
       "loc": 11,
       "category": "workflow_compatibility",
       "decorators": []

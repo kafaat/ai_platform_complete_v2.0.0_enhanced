@@ -5,8 +5,8 @@
         "blocker_id": "P-CERT-1",
         "file": "certification/evidence/ci_summary.json",
         "name": "Full branch CI",
-        "status": "not_verified",
-        "timestamp_utc": "2026-07-27T19:43:52Z",
+        "status": "pending",
+        "timestamp_utc": null,
         "waivable": false
       },
       {
@@ -29,8 +29,8 @@
         "blocker_id": "P-CERT-4",
         "file": "certification/evidence/model_provisioning_summary.json",
         "name": "ONNX/SAM2 model provisioning",
-        "status": "not_verified",
-        "timestamp_utc": "2026-07-27T19:43:52Z",
+        "status": "pending",
+        "timestamp_utc": null,
         "waivable": false
       }
     ],
@@ -83,8 +83,8 @@
     {
       "exit_code": 0,
       "name": "supply_chain",
-      "output_sha256": "30dc1b51fe19678de2a015d32531ddd6ae03cde5d9adbae0e7b15e88f081ca2f",
-      "output_tail": "container image pin guard passed: 20 images",
+      "output_sha256": "4dcf50716f1808603a2daf015269bc2c4062df206ff9dda3ef4a2fcb3a984721",
+      "output_tail": "container image pin guard passed: 21 images",
       "status": "passed"
     },
     {
@@ -104,16 +104,16 @@
     {
       "exit_code": 0,
       "name": "github_actions_policy",
-      "output_sha256": "ce28fad7759eaf1d3e0201ec681937d4e98400b7bddf25aa3a2b7c3f805a8e97",
-      "output_tail": "GitHub Actions policy guard: PASSED (193 immutable references)",
+      "output_sha256": "244fa72a46bbbd5051b6b09794d0a68b8effddc69abfc9f34ce8ba8c2e66e660",
+      "output_tail": "GitHub Actions policy guard: PASSED (232 immutable references)",
       "status": "passed"
     },
     {
-      "exit_code": 0,
+      "exit_code": 1,
       "name": "waiver_expiry",
-      "output_sha256": "02e423496c05f9cb5aaaf7e273dea79993d8fbd085cc53b5e17d109ac5e8a695",
-      "output_tail": "waiver_expiry_guard_ok (scanned 2 waiver file(s); today=2026-07-27)",
-      "status": "passed"
+      "output_sha256": "c4494557b573bdc1f120928c585aa2c7e8b5ee704c72598c66b2ba4a79c4250f",
+      "output_tail": "waiver_expiry_guard_failed\nconfig/endpoint_ui_coverage_waivers.json: /api/v1/learning/promotion-decisions: waiver expired 2026-08-31 (owner=decision-service, today=2026-09-01) \u2014 resolve the tracked gap or renew the waiver deliberately",
+      "status": "failed"
     },
     {
       "exit_code": 0,
@@ -144,11 +144,11 @@
       "status": "passed"
     },
     {
-      "exit_code": 1,
+      "exit_code": 0,
       "name": "release_package",
-      "output_sha256": "2d8b65a9750dab8f71c42ba3d86cae02c31c074bfdd76f1257e7909ccdda80f0",
-      "output_tail": "checksum mismatch: certification/evidence/production_evidence_manifest.generated.json",
-      "status": "failed"
+      "output_sha256": "cc6e908397e930ca21ed1e1aa25ed3d6e9ba239e2d3db8ace3d7966a229755be",
+      "output_tail": "platform route release binding: PASS\nrelease package validation passed: 5712 checksums verified",
+      "status": "passed"
     },
     {
       "exit_code": 0,
@@ -158,7 +158,7 @@
       "status": "passed"
     }
   ],
-  "generated_at_utc": "2026-07-27T20:02:32.207224+00:00",
+  "generated_at_utc": "2026-09-01T02:10:09.753937+00:00",
   "not_executed_by_this_gate": [
     "python_and_raster_test_suites",
     "frontend_typecheck_vitest_and_build",
