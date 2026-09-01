@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1880,
     "route_handlers": 1049,
-    "call_edges": 76189,
+    "call_edges": 76204,
     "dead_code_candidates": 625,
     "duplicate_function_groups": 61,
     "route_owners": 27,
@@ -189571,182 +189571,175 @@
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_historical_rain_3d_mm",
       "target": "date",
-      "line": 189
+      "line": 194
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_historical_rain_3d_mm",
       "target": "now",
-      "line": 189
+      "line": 194
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_historical_rain_3d_mm",
       "target": "fetch_historical",
-      "line": 190
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/field_context.py",
-      "source": "_historical_rain_3d_mm",
-      "target": "_td",
-      "line": 191
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/field_context.py",
-      "source": "_historical_rain_3d_mm",
-      "target": "_td",
-      "line": 191
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/field_context.py",
-      "source": "_historical_rain_3d_mm",
-      "target": "isoformat",
-      "line": 191
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/field_context.py",
-      "source": "_historical_rain_3d_mm",
-      "target": "isoformat",
-      "line": 191
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/field_context.py",
-      "source": "_historical_rain_3d_mm",
-      "target": "complete_rain_total",
       "line": 195
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_historical_rain_3d_mm",
-      "target": "len",
-      "line": 196
+      "target": "_td",
+      "line": 198
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_historical_rain_3d_mm",
-      "target": "round",
+      "target": "isoformat",
+      "line": 198
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/field_context.py",
+      "source": "_historical_rain_3d_mm",
+      "target": "_td",
       "line": 199
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_historical_rain_3d_mm",
+      "target": "isoformat",
+      "line": 199
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/field_context.py",
+      "source": "_historical_rain_3d_mm",
+      "target": "complete_rain_total",
+      "line": 210
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/field_context.py",
+      "source": "_historical_rain_3d_mm",
       "target": "round",
-      "line": 200
+      "line": 214
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/field_context.py",
+      "source": "_historical_rain_3d_mm",
+      "target": "round",
+      "line": 215
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_historical_rain_3d_mm",
       "target": "exception",
-      "line": 202
+      "line": 217
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_historical_rain_3d_mm",
       "target": "round",
-      "line": 203
+      "line": 218
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_resolve_recommendation_policy",
       "target": "isinstance",
-      "line": 217
+      "line": 232
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_resolve_recommendation_policy",
       "target": "list_engines",
-      "line": 219
+      "line": 234
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_resolve_recommendation_policy",
       "target": "get",
-      "line": 226
+      "line": 241
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_resolve_recommendation_policy",
       "target": "isinstance",
-      "line": 227
+      "line": 242
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_resolve_recommendation_policy",
       "target": "str",
-      "line": 229
+      "line": 244
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_resolve_recommendation_policy",
       "target": "get",
-      "line": 230
+      "line": 245
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_resolve_recommendation_policy",
       "target": "isinstance",
-      "line": 231
+      "line": 246
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_resolve_recommendation_policy",
       "target": "str",
-      "line": 233
+      "line": 248
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_load_recommendation_policy",
       "target": "fetchrow",
-      "line": 247
+      "line": 262
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_load_recommendation_policy",
       "target": "isinstance",
-      "line": 253
+      "line": 268
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_load_recommendation_policy",
       "target": "loads",
-      "line": 254
+      "line": 269
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_load_recommendation_policy",
       "target": "_resolve_recommendation_policy",
-      "line": 255
+      "line": 270
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/field_context.py",
       "source": "_load_recommendation_policy",
       "target": "exception",
-      "line": 257
+      "line": 272
     },
     {
       "owner": "sahool-platform",
@@ -416587,92 +416580,78 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
       "source": "test_the_workspace_router_delegates_instead_of_holding_a_second_judgement",
-      "target": "importorskip",
-      "line": 120
+      "target": "skip",
+      "line": 124
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
       "source": "test_the_workspace_router_delegates_instead_of_holding_a_second_judgement",
       "target": "_complete_precipitation_total",
-      "line": 123
+      "line": 126
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
       "source": "test_the_workspace_router_delegates_instead_of_holding_a_second_judgement",
       "target": "_complete_precipitation_total",
-      "line": 127
+      "line": 130
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
       "source": "test_the_zero_coercion_would_have_ordered_an_irrigation_the_reading_forbids",
       "target": "irrigation_advice",
-      "line": 138
+      "line": 141
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
       "source": "test_the_zero_coercion_would_have_ordered_an_irrigation_the_reading_forbids",
       "target": "irrigation_advice",
-      "line": 146
+      "line": 149
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
       "source": "test_an_unknown_rain_silences_the_irrigation_recommendation",
       "target": "dict",
-      "line": 162
+      "line": 165
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
       "source": "test_an_unknown_rain_silences_the_irrigation_recommendation",
       "target": "build_recommendations",
-      "line": 163
+      "line": 166
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
       "source": "test_an_unknown_rain_silences_the_irrigation_recommendation",
       "target": "RecommendationContext",
-      "line": 164
+      "line": 167
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
       "source": "test_an_unknown_rain_silences_the_irrigation_recommendation",
       "target": "RecommendationContext",
-      "line": 172
+      "line": 175
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
       "source": "test_an_unknown_rain_silences_the_irrigation_recommendation",
       "target": "build_recommendations",
-      "line": 172
+      "line": 175
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
       "source": "test_an_unknown_three_day_rain_silences_the_disease_recommendation",
       "target": "dict",
-      "line": 178
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
-      "source": "test_an_unknown_three_day_rain_silences_the_disease_recommendation",
-      "target": "RecommendationContext",
-      "line": 179
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
-      "source": "test_an_unknown_three_day_rain_silences_the_disease_recommendation",
-      "target": "build_recommendations",
-      "line": 179
+      "line": 181
     },
     {
       "owner": "sahool-platform",
@@ -416687,55 +416666,181 @@
       "source": "test_an_unknown_three_day_rain_silences_the_disease_recommendation",
       "target": "build_recommendations",
       "line": 182
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+      "source": "test_an_unknown_three_day_rain_silences_the_disease_recommendation",
+      "target": "RecommendationContext",
+      "line": 185
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+      "source": "test_an_unknown_three_day_rain_silences_the_disease_recommendation",
+      "target": "build_recommendations",
+      "line": 185
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
       "source": "test_an_unknown_rain_silences_the_disease_alert_rule",
       "target": "AlertThresholds",
-      "line": 190
+      "line": 193
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
       "source": "test_an_unknown_rain_silences_the_disease_alert_rule",
       "target": "dict",
-      "line": 191
+      "line": 194
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
       "source": "test_an_unknown_rain_silences_the_disease_alert_rule",
       "target": "FieldAlertContext",
-      "line": 192
+      "line": 195
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
       "source": "test_an_unknown_rain_silences_the_disease_alert_rule",
       "target": "_disease_risk",
-      "line": 192
+      "line": 195
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
       "source": "test_the_declared_required_inputs_name_every_input_the_engine_actually_gates_on",
       "target": "list_engines",
-      "line": 202
+      "line": 205
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
       "source": "test_the_declared_required_inputs_name_every_input_the_engine_actually_gates_on",
       "target": "set",
-      "line": 203
+      "line": 206
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
       "source": "test_the_declared_required_inputs_name_every_input_the_engine_actually_gates_on",
       "target": "set",
-      "line": 208
+      "line": 211
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+      "source": "_short_archive",
+      "target": "_Day",
+      "line": 239
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+      "source": "_short_archive",
+      "target": "_Day",
+      "line": 239
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+      "source": "test_a_short_archive_window_is_incomplete_not_a_smaller_complete_one",
+      "target": "_Day",
+      "line": 239
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+      "source": "test_a_short_archive_window_is_incomplete_not_a_smaller_complete_one",
+      "target": "_Day",
+      "line": 239
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+      "source": "test_a_short_archive_window_is_incomplete_not_a_smaller_complete_one",
+      "target": "_historical_rain_3d_mm",
+      "line": 244
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+      "source": "test_a_short_archive_window_is_incomplete_not_a_smaller_complete_one",
+      "target": "run",
+      "line": 244
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+      "source": "test_a_short_archive_window_is_incomplete_not_a_smaller_complete_one",
+      "target": "fromisoformat",
+      "line": 256
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+      "source": "test_a_short_archive_window_is_incomplete_not_a_smaller_complete_one",
+      "target": "fromisoformat",
+      "line": 256
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+      "source": "_full_archive",
+      "target": "_Day",
+      "line": 271
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+      "source": "_full_archive",
+      "target": "_Day",
+      "line": 271
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+      "source": "_full_archive",
+      "target": "_Day",
+      "line": 271
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+      "source": "test_a_complete_archive_window_still_totals",
+      "target": "_Day",
+      "line": 271
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+      "source": "test_a_complete_archive_window_still_totals",
+      "target": "_Day",
+      "line": 271
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+      "source": "test_a_complete_archive_window_still_totals",
+      "target": "_Day",
+      "line": 271
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+      "source": "test_a_complete_archive_window_still_totals",
+      "target": "_historical_rain_3d_mm",
+      "line": 276
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
+      "source": "test_a_complete_archive_window_still_totals",
+      "target": "run",
+      "line": 276
     },
     {
       "owner": "sahool-platform",

@@ -112,13 +112,16 @@ def test_the_fail_closed_error_body_is_one_shape():
 def test_the_workspace_router_delegates_instead_of_holding_a_second_judgement():
     """حكمان لحقيقةٍ واحدة ينحرفان — فالمسارُ يستخرج ويُفوّض، ولا يُعيد الحكم.
 
-    **ويُتخطّى هذا وحدَه محلّيّاً لا في CI:** الموجِّه يستورد `fastapi`، وهي
-    مُثبَّتةٌ في وظيفة *Platform Unit Tests* (`api/requirements.txt:6`) وغائبةٌ عن
-    حاويتي. فـ«لم يُقَس هنا» يُعلَن ولا يُقرأ نجاحاً — وبقيّةُ الملفّ نقيّةٌ تعمل
-    في الحالين.
+    **ويُتخطّى هذا وحدَه حيث تنقص تبعيّاتُ الخدمة، لا في CI:** الموجِّه يجرّ سلسلةَ
+    استيرادٍ كاملة (`fastapi` · `numpy` · …) مُثبَّتةً في وظيفة *Platform Unit Tests*
+    (`api/requirements.txt`) وناقصةً في حاويتي. **والتخطّي مقصورٌ على `ImportError`
+    وحدَه** — فأيّ سقوطِ تأكيدٍ يبقى فشلاً صريحاً، ولا يستطيع هذا الحرسُ أن يُخفي
+    عطلاً منطقيّاً. و«لم يُقَس هنا» يُعلَن ولا يُقرأ نجاحاً.
     """
-    pytest.importorskip("fastapi", reason="مُثبَّتةٌ في CI — انظر api/requirements.txt")
-    from api.routers import field_workspace_weather as fww
+    try:
+        from api.routers import field_workspace_weather as fww
+    except ImportError as exc:  # تبعيّاتُ الخدمة ناقصةٌ في هذه البيئة — تُقاس في CI
+        pytest.skip(f"تبعيّةُ خدمةٍ ناقصة: {exc}")
 
     observed, missing = fww._complete_precipitation_total(
         [{"precipitation_mm": 1.0}, {"precipitation_mm": 2.0}], expected_count=2
@@ -206,3 +209,70 @@ def test_the_declared_required_inputs_name_every_input_the_engine_actually_gates
         "forecast_rain_mm",
     }
     assert set(by_id["disease"]["required_inputs"]) >= {"temp_c", "humidity_pct", "rain_mm_3d"}
+
+
+# ── ⑤ عطلٌ أدخلتُه وأمسكه مراجعٌ آليّ ─────────────────────────────────
+def test_a_short_archive_window_is_incomplete_not_a_smaller_complete_one():
+    """**`expected_count` ثابتٌ، لا مُشتقٌّ من طول الرَّدّ.**
+
+    كتبتُ أوّلاً `expected_count=len(hist)` وأمسكها مراجعٌ آليّ على الطلب. والعلّة
+    أنّ أرشيف ERA5 يتأخّر ~٥ أيّام، فالأيّامُ الناقصةُ **تُحذَف من القائمة** ولا
+    تصل `None`: فيصير المتوقَّعُ مساوياً للمرصود **دائماً**، ويمرّ مجموعُ يومين
+    بوصفه مطرَ ثلاثةِ أيّام — وهو بعينه «الجزئيُّ يُقدَّم كاملاً» الذي وُجِدت
+    السياسةُ لمنعه. أي أنّ علاجي كان يحمل صنفَ العطل الذي يُعالجه.
+
+    ولا يُقاس هذا بقراءة الثابت بل بسلوك الدالّة على أرشيفٍ قصير.
+    """
+    import asyncio
+
+    from api import field_context
+    from api.connectors import openmeteo
+
+    class _Day:
+        def __init__(self, mm):
+            self.precipitation_mm = mm
+
+    captured = {}
+
+    async def _short_archive(lat, lon, start, end):
+        captured["window"] = (start, end)
+        return [_Day(1.0), _Day(2.0)]  # يومان فقط — والاستعلامُ طلب ثلاثة
+
+    original = openmeteo.fetch_historical
+    openmeteo.fetch_historical = _short_archive
+    try:
+        got = asyncio.run(field_context._historical_rain_3d_mm(15.0, 44.0, None))
+    finally:
+        openmeteo.fetch_historical = original
+
+    assert got != 3.0, "مجموعُ يومين قُدِّم مطرَ ثلاثةِ أيّام"
+    assert got is None, "أرشيفٌ ناقصٌ ولا fallback ⇒ مجهولٌ لا رقم"
+    assert field_context._HISTORICAL_RAIN_DAYS == 3
+
+    # والنافذةُ المطلوبةُ تُشتقّ من الثابت نفسِه — فلا ينحرف الاستعلامُ عن الشرط.
+    start, end = captured["window"]
+    from datetime import date
+
+    assert (date.fromisoformat(end) - date.fromisoformat(start)).days == 2
+
+
+def test_a_complete_archive_window_still_totals():
+    """الحالةُ السويّة — وإلّا كان العلاجُ انحداراً يُصمِت خطرَ المرض دائماً."""
+    import asyncio
+
+    from api import field_context
+    from api.connectors import openmeteo
+
+    class _Day:
+        def __init__(self, mm):
+            self.precipitation_mm = mm
+
+    async def _full_archive(lat, lon, start, end):
+        return [_Day(1.0), _Day(2.0), _Day(0.0)]
+
+    original = openmeteo.fetch_historical
+    openmeteo.fetch_historical = _full_archive
+    try:
+        assert asyncio.run(field_context._historical_rain_3d_mm(15.0, 44.0, None)) == 3.0
+    finally:
+        openmeteo.fetch_historical = original

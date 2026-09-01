@@ -15895,7 +15895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "791ab1e13a95d9738f8135dd60c7e36b3963bf912cc6c3945565e484d92d6b07"
+          "content": "a6df49e1cb8c721f05ab23f2912f029db87332c2d32fe22371d30501f66f7e8f"
         }
       ],
       "name": "services/sahool-platform/api/field_context.py",
@@ -25595,7 +25595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1c9a3ecfb35f9e4e76709db77929018034fa74499ecec17f64a6f8bf5807ae22"
+          "content": "90ede53fde5d02b7c5ab3a0cea813a53a927afed1c610e087ef6ef5b121e0881"
         }
       ],
       "name": "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
