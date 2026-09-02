@@ -30,30 +30,11 @@
       "why": "`except ImportError ⇒ RuntimeError(\"Pillow مطلوب — pip install pillow\")`: الفشل صريح ويسمّي العلاج، ولا يُدّعى نجاح. تصدير PNG ميزة اختياريّة لا مسار إقلاع."
     }
   ],
-  "undeclared_debt": [
-    {
-      "service": "raster-service",
-      "module": "yaml",
-      "sites": ["services/raster-service/terrain_source_registry.py:63"],
-      "why": "**لا بديل**: المعالِج يلتقط `(FileNotFoundError, OSError)` فقط، فـImportError ينتشر ويُسقِط قراءة سجلّ مصادر التضاريس. pyyaml غير مُعلَن في requirements الخدمة.",
-      "closing_condition": "إعلان pyyaml بعد pip-audit، أو التقاط ImportError صراحةً بسقوط صادق (قائمة فارغة + سبب مُسجَّل) كما يعد الـdocstring."
-    },
-    {
-      "service": "sahool-platform",
-      "module": "sklearn",
-      "sites": ["services/sahool-platform/api/zones_kmeans.py:88"],
-      "why": "**استيراد مؤجَّل عارٍ بلا try/except إطلاقاً** — أخطر الثلاثة: أوّل نداء لتجميع المناطق يرمي ModuleNotFoundError خاماً. scikit-learn غير مُعلَن في api/requirements.txt.",
-      "closing_condition": "قرار: إعلان scikit-learn (حزمة ثقيلة ⇒ يلزم pip-audit وقياس حجم الصورة) أو نقل التجميع إلى خدمة تملكها."
-    },
-    {
-      "service": "ai_agronomist",
-      "module": "redis",
-      "sites": ["services/ai_agronomist/agent_stores.py:138"],
-      "why": "في الإنتاج `_production_mode()` يرفع RuntimeError بدل السقوط للذاكرة — أي redis **مطلوب إنتاجاً** وغير مُعلَن. الرسالة تحمل `type(exc).__name__` فتسمّي ModuleNotFoundError (أفضل من نظيرتها في decision-service قبل هذه الشريحة).",
-      "closing_condition": "إعلان redis في requirements الخدمة بعد pip-audit — القيد نفسه `redis>=5.0.0` مُعلَن في خمس خدمات شقيقة."
-    }
-  ],
+  "undeclared_debt": [],
   "fixed_in_this_slice": {
-    "decision-service:redis": "أُعلِنت redis>=5.0.0 في services/decision-service/requirements.txt، وفُصِل ModuleNotFoundError عن تعذّر الاتّصال في رسالة الفشل — فلم تعد الحالة تُصنَّف ديناً. كانت الفجوة المُسجَّلة DECISION-SERVICE-REDIS-DEPENDENCY-GAP-01."
+    "decision-service:redis": "أُعلِنت redis>=5.0.0 في services/decision-service/requirements.txt، وفُصِل ModuleNotFoundError عن تعذّر الاتّصال في رسالة الفشل — فلم تعد الحالة تُصنَّف ديناً. كانت الفجوة المُسجَّلة DECISION-SERVICE-REDIS-DEPENDENCY-GAP-01.",
+    "raster-service:yaml": "أُعلِنت PyYAML==6.0.2 مباشرةً في services/raster-service/requirements.txt لمسار terrain_source_registry بلا fallback.",
+    "sahool-platform:sklearn": "أُعلِنت scikit-learn>=1.4.0 مباشرةً في services/sahool-platform/api/requirements.txt لمسار zones_kmeans.",
+    "ai_agronomist:redis": "أُعلِنت redis>=5.0.0 مباشرةً في services/ai_agronomist/requirements.txt لمسار agent_stores الإنتاجي fail-closed."
   }
 }

@@ -118,7 +118,7 @@
     },
     {
       "kind": "router",
-      "line": 15,
+      "line": 17,
       "module": "services.auth.routers.mfa",
       "node_id": "services.auth.routers.mfa:router",
       "route_count": 3,
@@ -289,7 +289,7 @@
     },
     {
       "kind": "app",
-      "line": 82,
+      "line": 95,
       "module": "services.mcp_servers.market_server",
       "node_id": "services.mcp_servers.market_server:app",
       "route_count": 13,
@@ -1198,7 +1198,7 @@
     },
     {
       "kind": "router",
-      "line": 139,
+      "line": 141,
       "module": "services.sahool-platform.api.routers.fields",
       "node_id": "services.sahool-platform.api.routers.fields:router",
       "route_count": 48,
@@ -2586,7 +2586,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "76120b00f84645220ec9ec177b47d43b7262330677426513920b5496ba2bae96",
+  "inventory_sha256": "c250e9a025dc3f62f0433b5f5b69e6f0ff5ad44d9297d5724ed6c9ecc2254c86",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {
@@ -2642,7 +2642,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 15,
+      "line": 17,
       "module": "services.auth.routers.mfa",
       "node_id": "services.auth.routers.mfa:router",
       "route_count": 3,
@@ -3672,7 +3672,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 139,
+      "line": 141,
       "module": "services.sahool-platform.api.routers.fields",
       "node_id": "services.sahool-platform.api.routers.fields:router",
       "route_count": 48,

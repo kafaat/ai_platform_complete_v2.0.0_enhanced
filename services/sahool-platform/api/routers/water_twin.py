@@ -30,8 +30,8 @@ from core.season_phenology import crop_kc_profile, resolve_crop_id
 from fastapi import APIRouter, Depends, HTTPException, Path
 from pydantic import BaseModel, Field
 
+from api import main as api_main
 from api.main import (
-    _DB_POOL,
     Permission,
     UserSchema,
     _assert_field_in_tenant,
@@ -160,7 +160,7 @@ async def field_water_twin(
     recent: list[dict] = []
     crop_name: str | None = None
     planting_date = None
-    if _DB_POOL is not None:
+    if api_main._DB_POOL is not None:
         try:
             async with tenant_connection(user) as conn:
                 await _assert_field_in_tenant(conn, field_id)

@@ -40,7 +40,7 @@ def test_the_guard_exists_and_the_baseline_is_declared():
     assert GUARD.is_file(), "الحارس غير موجود"
     assert BASELINE.is_file(), "الأساس المُعلَن غير موجود — بدونه لا راتشِت"
     data = json.loads(BASELINE.read_text(encoding="utf-8"))
-    assert data["offenders"], "أساسٌ فارغ مع دَينٍ قائم يعني أنّ الكاشف لا يرى شيئاً"
+    assert isinstance(data["offenders"], list), "صيغة أساس المخالفات غير صالحة"
 
 
 def test_the_tree_matches_the_declared_baseline():
@@ -54,18 +54,15 @@ def test_the_tree_matches_the_declared_baseline():
     assert proc.returncode == 0, f"الحارس يحجب على الشجرة القائمة:\n{proc.stdout}{proc.stderr}"
 
 
-def test_the_detector_reproduces_the_documented_measurement():
-    """تصادُقٌ مستقلّ: الجرد وثّق ١٢ في `market_server.py` — والكاشف يجب أن يراها.
+def test_market_business_queries_have_no_out_of_transaction_tenant_guc():
+    """جميع عمليات Market ذات المستأجر أصبحت داخل ``tenant_connection`` transaction.
 
-    رقمٌ يُطابِق قياساً وثّقه غيري أقوى من رقمٍ أثق به وحدي.
+    مسبارا health/ready لا يضبطان سياق مستأجر لأنهما لا ينفّذان استعلام أعمال.
     """
     mod = _load_guard()
     offenders, _ = mod.scan()
     market = [o for o in offenders if o["file"].endswith("mcp_servers/market_server.py")]
-    assert len(market) == 12, (
-        f"الجرد وثّق ١٢ موضعاً في market_server.py والكاشف يرى {len(market)} — "
-        "أحدهما خاطئ، ولا يُطوى الفارق"
-    )
+    assert market == []
 
 
 def test_a_new_offender_outside_a_transaction_is_blocked(tmp_path, monkeypatch):

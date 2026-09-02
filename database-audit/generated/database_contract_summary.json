@@ -1,14 +1,14 @@
 {
-  "manifest_entries": 227,
+  "manifest_entries": 228,
   "manifest_missing_count": 0,
   "policies": 193,
   "production_certified": false,
   "rls_enabled": 206,
   "rls_forced": 187,
   "runtime_verified": false,
-  "sql_files": 229,
-  "tables": 333,
-  "tenant_rls_gaps": 135,
-  "tenant_tables": 313,
+  "sql_files": 230,
+  "tables": 339,
+  "tenant_rls_gaps": 141,
+  "tenant_tables": 319,
   "unlisted_sql_count": 0
 }

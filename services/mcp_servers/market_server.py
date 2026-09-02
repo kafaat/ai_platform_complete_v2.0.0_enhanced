@@ -62,6 +62,19 @@ async def get_pool() -> asyncpg.Pool:
 
 
 @asynccontextmanager
+async def tenant_connection(tenant_id: str | None):
+    """Keep the transaction-local tenant GUC alive for the complete DB operation."""
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            await conn.execute(
+                "SELECT set_config('app.current_tenant', $1, true)",
+                str(tenant_id) if tenant_id else "",
+            )
+            yield conn
+
+
+@asynccontextmanager
 async def lifespan(app: FastAPI):
     global _pool
     if DATABASE_URL:
@@ -120,7 +133,6 @@ async def _get_current_user(request: Request):
 
 
 async def tool_search_products(args: dict) -> dict:
-    pool = await get_pool()
     tenant_id = args.get("tenant_id")
     query = args.get("query", "")
     category = args.get("category")
@@ -156,25 +168,18 @@ async def tool_search_products(args: dict) -> dict:
         LIMIT ${len(params) + 1}
     """
     params.append(limit)
-    async with pool.acquire() as conn:
-        await conn.execute(
-            "SELECT set_config('app.current_tenant', $1, true)", str(tenant_id) if tenant_id else ""
-        )  # CRIT-10/11 FIX
+    async with tenant_connection(tenant_id) as conn:
         rows = await conn.fetch(sql, *params)
     return {"products": [record_to_dict(r) for r in rows], "count": len(rows)}
 
 
 async def tool_get_supplier(args: dict) -> dict:
-    pool = await get_pool()
     tenant_id = args.get("tenant_id")
     sid = args.get("supplier_id")
     sname = args.get("supplier_name")
     if not sid and not sname:
         raise HTTPException(400, "supplier_id or supplier_name required")
-    async with pool.acquire() as conn:
-        await conn.execute(
-            "SELECT set_config('app.current_tenant', $1, true)", str(tenant_id) if tenant_id else ""
-        )  # CRIT-10/11 FIX
+    async with tenant_connection(tenant_id) as conn:
         if sid:
             row = await conn.fetchrow(
                 "SELECT * FROM market_suppliers WHERE supplier_id=$1::uuid", sid
@@ -197,7 +202,6 @@ async def tool_get_supplier(args: dict) -> dict:
 
 
 async def tool_create_procurement(args: dict) -> dict:
-    pool = await get_pool()
     tenant_id = args["tenant_id"]
     field_id = args.get("field_id")
     items = args["items"]
@@ -220,10 +224,7 @@ async def tool_create_procurement(args: dict) -> dict:
         qty = float(it.get("quantity", 0))
         price = float(it.get("max_unit_price_usd", 0))
         total_estimated += qty * price
-    async with pool.acquire() as conn:
-        await conn.execute(
-            "SELECT set_config('app.current_tenant', $1, true)", str(tenant_id) if tenant_id else ""
-        )  # CRIT-10/11 FIX
+    async with tenant_connection(tenant_id) as conn:
         async with conn.transaction():
             order_id = await conn.fetchval(
                 """INSERT INTO market_procurement_orders
@@ -241,8 +242,10 @@ async def tool_create_procurement(args: dict) -> dict:
             for it in items:
                 await conn.execute(
                     """INSERT INTO market_procurement_items
-                        (order_id, product_id, product_name, quantity, unit, max_unit_price_usd, notes)
-                        VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7)""",
+                        (tenant_id, order_id, product_id, product_name, quantity, unit,
+                         max_unit_price_usd, notes)
+                        VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, $7, $8)""",
+                    tenant_id,
                     order_id,
                     it.get("product_id") if it.get("product_id") else None,
                     it["product_name"],
@@ -281,13 +284,9 @@ async def tool_create_procurement(args: dict) -> dict:
 
 
 async def tool_get_procurement_status(args: dict) -> dict:
-    pool = await get_pool()
     tenant_id = args.get("tenant_id")
     order_id = args["order_id"]
-    async with pool.acquire() as conn:
-        await conn.execute(
-            "SELECT set_config('app.current_tenant', $1, true)", str(tenant_id) if tenant_id else ""
-        )  # CRIT-10/11 FIX
+    async with tenant_connection(tenant_id) as conn:
         row = await conn.fetchrow(
             "SELECT * FROM market_procurement_orders WHERE order_id=$1::uuid", order_id
         )
@@ -302,7 +301,6 @@ async def tool_get_procurement_status(args: dict) -> dict:
 
 
 async def tool_create_sales_listing(args: dict) -> dict:
-    pool = await get_pool()
     tenant_id = args["tenant_id"]
     batch_id = args.get("batch_id")
     crop = args["crop_type"]
@@ -325,10 +323,7 @@ async def tool_create_sales_listing(args: dict) -> dict:
             raise HTTPException(503, "تعذّر إثبات ملكيّة الدفعة — أعد المحاولة لاحقاً") from e
         if visible is False:
             raise HTTPException(403, "الدفعة لا تخصّ مستأجِرك")
-    async with pool.acquire() as conn:
-        await conn.execute(
-            "SELECT set_config('app.current_tenant', $1, true)", str(tenant_id) if tenant_id else ""
-        )  # CRIT-10/11 FIX
+    async with tenant_connection(tenant_id) as conn:
         listing_id = await conn.fetchval(
             """INSERT INTO market_sales_listings
                 (tenant_id, batch_id, crop_type, quantity_kg, price_per_kg_usd,
@@ -357,7 +352,6 @@ async def tool_create_sales_listing(args: dict) -> dict:
 
 
 async def tool_search_sales(args: dict) -> dict:
-    pool = await get_pool()
     tenant_id = args.get("tenant_id")
     crop = args.get("crop_type")
     grade = args.get("quality_grade")
@@ -386,25 +380,18 @@ async def tool_search_sales(args: dict) -> dict:
         LIMIT ${len(params) + 1}
     """
     params.append(limit)
-    async with pool.acquire() as conn:
-        await conn.execute(
-            "SELECT set_config('app.current_tenant', $1, true)", str(tenant_id) if tenant_id else ""
-        )  # CRIT-10/11 FIX
+    async with tenant_connection(tenant_id) as conn:
         rows = await conn.fetch(sql, *params)
     return {"listings": [record_to_dict(r) for r in rows], "count": len(rows)}
 
 
 async def tool_price_history(args: dict) -> dict:
-    pool = await get_pool()
     tenant_id = args.get("tenant_id")
     category = args["category"]
     days = min(args.get("days", 90), 365)
     agg = args.get("aggregation", "weekly")
     trunc = {"daily": "day", "weekly": "week", "monthly": "month"}.get(agg, "week")
-    async with pool.acquire() as conn:
-        await conn.execute(
-            "SELECT set_config('app.current_tenant', $1, true)", str(tenant_id) if tenant_id else ""
-        )  # CRIT-10/11 FIX
+    async with tenant_connection(tenant_id) as conn:
         rows = await conn.fetch(
             f"""
             SELECT DATE_TRUNC('{trunc}', recorded_date) as period,
@@ -428,12 +415,8 @@ async def tool_price_history(args: dict) -> dict:
 
 
 async def tool_analytics_dashboard(args: dict) -> dict:
-    pool = await get_pool()
     tenant_id = args["tenant_id"]
-    async with pool.acquire() as conn:
-        await conn.execute(
-            "SELECT set_config('app.current_tenant', $1, true)", str(tenant_id) if tenant_id else ""
-        )  # CRIT-10/11 FIX
+    async with tenant_connection(tenant_id) as conn:
         proc = await conn.fetchrow(
             """SELECT COUNT(*) as total_orders, SUM(total_estimated_usd) as total_value,
                 COUNT(*) FILTER (WHERE status='pending_approval') as pending_count,
@@ -476,14 +459,10 @@ async def tool_analytics_dashboard(args: dict) -> dict:
 
 # ── NEW tools required by market_skill.py ─────────────────────
 async def tool_get_market_price(args: dict) -> dict:
-    pool = await get_pool()
     tenant_id = args.get("tenant_id")
     crop = args.get("crop", "wheat")
     market = args.get("market", "sanaa")
-    async with pool.acquire() as conn:
-        await conn.execute(
-            "SELECT set_config('app.current_tenant', $1, true)", str(tenant_id) if tenant_id else ""
-        )  # CRIT-10/11 FIX
+    async with tenant_connection(tenant_id) as conn:
         row = await conn.fetchrow(
             "SELECT AVG(price_usd) as avg_price FROM market_price_history WHERE category=$1 AND market_location=$2 AND recorded_date >= CURRENT_DATE - INTERVAL '7 days'",
             crop,
@@ -499,13 +478,9 @@ async def tool_get_market_price(args: dict) -> dict:
 
 
 async def tool_get_price_trend(args: dict) -> dict:
-    pool = await get_pool()
     tenant_id = args.get("tenant_id")
     crop = args.get("crop", "wheat")
-    async with pool.acquire() as conn:
-        await conn.execute(
-            "SELECT set_config('app.current_tenant', $1, true)", str(tenant_id) if tenant_id else ""
-        )  # CRIT-10/11 FIX
+    async with tenant_connection(tenant_id) as conn:
         rows = await conn.fetch(
             "SELECT recorded_date, price_usd FROM market_price_history WHERE category=$1 ORDER BY recorded_date DESC LIMIT 30",
             crop,
@@ -700,10 +675,6 @@ async def health():
     try:
         pool = await get_pool()
         async with pool.acquire() as conn:
-            # Health check has no tenant context; probe DB connectivity with empty tenant.
-            await conn.execute(
-                "SELECT set_config('app.current_tenant', $1, true)", ""
-            )  # CRIT-10/11 FIX
             await conn.fetchval("SELECT 1")
             db_ok = True
     except Exception as e:  # noqa: BLE001
@@ -723,10 +694,6 @@ async def readyz():
     try:
         pool = await get_pool()
         async with pool.acquire() as conn:
-            # مسبار جاهزيّة بلا سياق مستأجِر (كـ/healthz).
-            await conn.execute(
-                "SELECT set_config('app.current_tenant', $1, true)", ""
-            )  # CRIT-10/11 FIX
             await conn.fetchval("SELECT 1")
     except Exception as e:  # noqa: BLE001
         logger.warning("readyz: فحص جاهزيّة القاعدة فشل: %s", type(e).__name__)

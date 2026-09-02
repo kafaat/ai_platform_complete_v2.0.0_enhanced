@@ -6,7 +6,7 @@
 
 - Python files parsed: **1880**
 - FastAPI-style route handlers: **1049**
-- Static function-call edges: **76204**
+- Static function-call edges: **76188**
 - Dead-code candidates: **625**
 - Duplicate function groups: **61**
 - Automatic deletions: **0**
@@ -26,7 +26,7 @@
 | `raster-service` | `_clean_cache` | function | `services/raster-service/test_cdse_empty_raster_not_cached.py` | 70 |
 | `sahool-platform` | `_apply_tenant_guc` | function | `services/sahool-platform/api/main.py` | 645 |
 | `sahool-platform` | `_record_to_json` | function | `services/sahool-platform/api/routers/field_ai_context.py` | 59 |
-| `sahool-platform` | `_conflict_changed_fields` | function | `services/sahool-platform/api/routers/fields.py` | 1235 |
+| `sahool-platform` | `_conflict_changed_fields` | function | `services/sahool-platform/api/routers/fields.py` | 1237 |
 | `sahool-platform` | `_weather_tile_interpolation_payload` | function | `services/sahool-platform/api/routers/weather.py` | 417 |
 | `sahool-platform` | `_parse_series_hours` | function | `services/sahool-platform/api/routers/weather.py` | 1192 |
 | `sahool-platform` | `_time_key_from_hour` | function | `services/sahool-platform/api/routers/weather.py` | 1206 |

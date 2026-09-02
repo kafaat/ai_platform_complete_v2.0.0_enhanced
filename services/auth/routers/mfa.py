@@ -10,6 +10,8 @@
 from __future__ import annotations
 
 import main
+import mfa_crypto
+import pyotp
 from fastapi import APIRouter, Depends, HTTPException, status
 
 router = APIRouter()
@@ -24,7 +26,7 @@ async def mfa_setup(user: dict = Depends(main.get_current_user)):
     السرّ يُعرَض هنا مرّة واحدة فقط (لبناء رمز QR).
     """
     user_id = int(user["sub"])
-    if not main.mfa_crypto.encryption_configured():
+    if not mfa_crypto.encryption_configured():
         raise HTTPException(
             status.HTTP_503_SERVICE_UNAVAILABLE,
             "MFA_SECRET_ENCRYPTION_KEY غير مُهيَّأ — تعذّر إعداد MFA بأمان",
@@ -40,8 +42,14 @@ async def mfa_setup(user: dict = Depends(main.get_current_user)):
             status.HTTP_400_BAD_REQUEST, "MFA مفعّل بالفعل — عطّله أولاً لإعادة الاقتران"
         )
 
-    secret = main.pyotp.random_base32()
-    encrypted = main.mfa_crypto.encrypt_secret(secret)
+    secret = pyotp.random_base32()
+    try:
+        encrypted = mfa_crypto.encrypt_secret(secret)
+    except mfa_crypto.MfaKeyMissing as exc:
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            "MFA_SECRET_ENCRYPTION_KEY غير صالح لبيئة الإنتاج",
+        ) from exc
     async with main._acquire() as conn:
         # نخزّن السرّ مشفّراً ونمسح أيّ نصّ قديم؛ mfa_enabled يبقى FALSE حتى التأكيد.
         await conn.execute(
@@ -50,7 +58,7 @@ async def mfa_setup(user: dict = Depends(main.get_current_user)):
             encrypted,
             user_id,
         )
-    uri = main.pyotp.TOTP(secret).provisioning_uri(name=row["email"], issuer_name="SAHOOL")
+    uri = pyotp.TOTP(secret).provisioning_uri(name=row["email"], issuer_name="SAHOOL")
     await main.audit_log("mfa_setup_started", user_id, "authenticated")
     await main._emit_mfa_audit(
         user_id=user_id, event="mfa_setup_started", outcome="pending", tenant_id=row["tenant_id"]
@@ -75,8 +83,8 @@ async def mfa_activate(req: main.MfaCodeRequest, user: dict = Depends(main.get_c
     if not row:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "المستخدم غير موجود")
     try:
-        secret = main.mfa_crypto.resolve_mfa_secret(row["encrypted_mfa_secret"], row["mfa_secret"])
-    except (main.mfa_crypto.MfaKeyMissing, main.mfa_crypto.MfaSecretUndecryptable):
+        secret = mfa_crypto.resolve_mfa_secret(row["encrypted_mfa_secret"], row["mfa_secret"])
+    except (mfa_crypto.MfaKeyMissing, mfa_crypto.MfaSecretUndecryptable):
         raise HTTPException(
             status.HTTP_503_SERVICE_UNAVAILABLE, "تعذّر التحقّق من MFA (خلل تشفير الخادم)"
         ) from None
@@ -93,7 +101,7 @@ async def mfa_activate(req: main.MfaCodeRequest, user: dict = Depends(main.get_c
 
     # رحّل أيّ سرّ نصّيّ قديم إلى مشفّر عند التفعيل (نقطة ترحيل نظيفة).
     migrate_enc = (
-        main.mfa_crypto.encrypt_secret(secret)
+        mfa_crypto.encrypt_secret(secret)
         if (row["mfa_secret"] and not row["encrypted_mfa_secret"])
         else None
     )
@@ -112,7 +120,7 @@ async def mfa_activate(req: main.MfaCodeRequest, user: dict = Depends(main.get_c
                 "mfa_locked_until=NULL, updated_at=NOW() WHERE id=$1",
                 user_id,
             )
-    recovery_codes = main.mfa_crypto.generate_recovery_codes()
+    recovery_codes = mfa_crypto.generate_recovery_codes()
     await main._store_recovery_codes(user_id, row["tenant_id"], recovery_codes)
     await main.audit_log("mfa_activated", user_id, "authenticated")
     await main._emit_mfa_audit(
@@ -145,8 +153,8 @@ async def mfa_disable(req: main.MfaCodeRequest, user: dict = Depends(main.get_cu
     if not row or not row["mfa_enabled"]:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "MFA غير مفعّل")
     try:
-        secret = main.mfa_crypto.resolve_mfa_secret(row["encrypted_mfa_secret"], row["mfa_secret"])
-    except (main.mfa_crypto.MfaKeyMissing, main.mfa_crypto.MfaSecretUndecryptable):
+        secret = mfa_crypto.resolve_mfa_secret(row["encrypted_mfa_secret"], row["mfa_secret"])
+    except (mfa_crypto.MfaKeyMissing, mfa_crypto.MfaSecretUndecryptable):
         raise HTTPException(
             status.HTTP_503_SERVICE_UNAVAILABLE, "تعذّر التحقّق من MFA (خلل تشفير الخادم)"
         ) from None

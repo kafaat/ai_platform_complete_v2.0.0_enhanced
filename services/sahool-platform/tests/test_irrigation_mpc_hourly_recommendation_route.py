@@ -20,7 +20,7 @@ class _FakeUser:
 
 
 @contextlib.asynccontextmanager
-async def _fake_tenant_conn(tenant_id):
+async def _fake_tenant_conn(user):
     yield object()  # conn لا يُستعمَل فعليّاً (المنسّق مُموَّه)
 
 
@@ -28,8 +28,8 @@ async def _fake_tenant_conn(tenant_id):
 async def test_hourly_recommendation_delegates_and_is_server_owned(monkeypatch):
     seen = {}
 
-    async def fake_owns(tenant_id, field_id):
-        seen["owns"] = (tenant_id, field_id)
+    async def fake_owns(user, field_id):
+        seen["owns"] = (user.tenant_id, field_id)
         return True
 
     async def fake_orch(conn, *, tenant_id, field_id, horizon_hours, persist):
@@ -69,7 +69,7 @@ async def test_hourly_recommendation_delegates_and_is_server_owned(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_hourly_recommendation_blocks_unowned_field_without_orchestrating(monkeypatch):
-    async def fake_owns(tenant_id, field_id):
+    async def fake_owns(user, field_id):
         return False
 
     def _boom(*a, **k):  # يجب ألّا يُستدعى المنسّق للحقل غير المملوك
@@ -87,7 +87,7 @@ async def test_hourly_recommendation_blocks_unowned_field_without_orchestrating(
 
 @pytest.mark.asyncio
 async def test_hourly_recommendation_pins_recommendation_only_on_blocked(monkeypatch):
-    async def fake_owns(tenant_id, field_id):
+    async def fake_owns(user, field_id):
         return True
 
     async def fake_orch(conn, **kwargs):

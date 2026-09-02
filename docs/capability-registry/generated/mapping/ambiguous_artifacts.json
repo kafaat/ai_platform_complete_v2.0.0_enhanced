@@ -4007,6 +4007,16 @@
         ]
       },
       {
+        "capability_id": "INT-002",
+        "score": 32,
+        "signals": [
+          "content:event bus",
+          "content:jetstream",
+          "content:nats",
+          "explicit_id"
+        ]
+      },
+      {
         "capability_id": "FM-007",
         "score": 32,
         "signals": [

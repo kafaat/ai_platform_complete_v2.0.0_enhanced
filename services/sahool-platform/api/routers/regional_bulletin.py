@@ -16,8 +16,8 @@ import logging
 from core.regional_bulletin import build_regional_bulletin, bulletin_rows_to_records
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from api import main as api_main
 from api.main import (
-    _DB_POOL,
     Permission,
     UserSchema,
     require_permission,
@@ -60,7 +60,7 @@ async def regional_bulletin(
     صدق: القاعدة غير مفعّلة ⇒ نشرة فارغة موثَّقة؛ المجموعات دون أرضيّة الخصوصيّة مكتومة
     بلا أرقام؛ لا معرّفات حقول في المخرَج؛ لا NDVI ⇒ حالة ``unknown`` (لا تخمين).
     """
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         return {
             **build_regional_bulletin([], period=period, min_fields_privacy=min_fields_privacy),
             "note_db": "القاعدة غير مفعّلة (DATABASE_URL) — لا بيانات حقول للتجميع",

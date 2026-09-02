@@ -4,15 +4,15 @@
 
 ## Summary
 
-- **manifest_entries**: 227
-- **sql_files**: 229
+- **manifest_entries**: 228
+- **sql_files**: 230
 - **manifest_missing_count**: 0
 - **unlisted_sql_count**: 0
-- **tables**: 333
-- **tenant_tables**: 313
+- **tables**: 339
+- **tenant_tables**: 319
 - **rls_enabled**: 206
 - **rls_forced**: 187
-- **tenant_rls_gaps**: 135
+- **tenant_rls_gaps**: 141
 - **policies**: 193
 - **runtime_verified**: False
 - **production_certified**: False
@@ -109,7 +109,13 @@
 - `irrigation_well_pumping_tests` — enabled=False, forced=False, policies=0
 - `irrigation_wells` — enabled=False, forced=False, policies=0
 - `management_zones` — enabled=True, forced=False, policies=1
+- `market_analytics_snapshots` — enabled=False, forced=False, policies=0
+- `market_price_history` — enabled=False, forced=False, policies=0
+- `market_procurement_items` — enabled=False, forced=False, policies=0
+- `market_procurement_orders` — enabled=False, forced=False, policies=0
+- `market_products` — enabled=False, forced=False, policies=0
 - `market_sales_listings` — enabled=False, forced=False, policies=0
+- `market_suppliers` — enabled=False, forced=False, policies=0
 - `master_data` — enabled=False, forced=False, policies=0
 - `ndvi_timeseries` — enabled=True, forced=False, policies=0
 - `notification_preferences` — enabled=True, forced=False, policies=1

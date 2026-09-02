@@ -10,7 +10,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from fastapi import Depends, FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from shared.oauth_middleware import require_scope
 from shared.streamable_http import StreamableHTTPTransport
 
@@ -135,7 +135,10 @@ async def call_tool(request: dict):
 async def _execute(name: str, args: dict) -> dict:
     if name == "run_wofost_simulation":
         # نتحقّق من صحّة المدخل أوّلاً (422 على المُدخل السيّئ)…
-        WOFOSTRequest(**args)
+        try:
+            WOFOSTRequest(**args)
+        except ValidationError as exc:
+            raise HTTPException(status_code=422, detail=exc.errors()) from exc
         # …ثمّ نرفض بأمانة: لا محرّك WOFOST-RUE حقيقيّ هنا.
         # كان _simulate_wofost يُرجِع تقديراً بثوابت مكتوبة (avg_solar=20، et0=5،
         # kc=0.8، stress=10% ثابتة) ويتجاهل weather_data المُمرَّر، ثمّ يُوسَم
