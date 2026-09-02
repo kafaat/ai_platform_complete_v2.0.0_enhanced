@@ -53,6 +53,10 @@ def safe_env() -> dict[str, str]:
             "INGEST_DB_PASSWORD": "strong-pass",
             "JOBS_DB_PASSWORD": "strong-pass",
             "JWT_SECRET": "strong-jwt-secret",
+            # Fernet-compatible test value (32 zero bytes, URL-safe base64). The
+            # compose contract remains fail-closed; only this isolated doctor
+            # fixture supplies the value required by `docker compose config`.
+            "MFA_SECRET_ENCRYPTION_KEY": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
             "REDIS_PASSWORD": "strong-pass",
             "ADMIN_PASSWORD": "strong-admin-pass",
             "GRAFANA_PASSWORD": "strong-grafana-pass",

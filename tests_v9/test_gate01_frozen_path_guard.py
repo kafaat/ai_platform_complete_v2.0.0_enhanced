@@ -300,10 +300,6 @@ def test_every_live_record_is_consistent_across_state_bytes_scope_and_lifecycle(
         assert set(adj["allowed_paths"]) <= frozen, f"{ident}: يأذن بما ليس مجمَّداً"
         assert adj["phase0_baseline_ref"]["commit_sha"] == baseline, f"{ident}: أساسٌ مخالف"
 
-        # البايتات ← من الشجرة، مقابلَ إعلان السجلّ
-        for path, declared in adj["authorized_blobs"].items():
-            assert guard.blob_sha(path) == declared, f"{ident}/{path}: بايتاتٌ تخالف المُعلَن"
-
         # دورةُ الحياة: الختمُ يلزم المُستهلَك ويُمنَع على الحيّ
         merge_sha = (adj.get("consumption") or {}).get("merge_sha")
         if status == "CONSUMED":
@@ -313,6 +309,11 @@ def test_every_live_record_is_consistent_across_state_bytes_scope_and_lifecycle(
 
         # وسجلٌّ حيٌّ يجب أن يكون **صالحاً للاستعمال** على نطاقه، لا حبراً مهجوراً
         if status == "ISSUED":
+            # التفويض الحيّ يجب أن يطابق بايتات الشجرة التي سيأذن بها الآن.
+            for path, declared in adj["authorized_blobs"].items():
+                assert guard.blob_sha(path) == declared, (
+                    f"{ident}/{path}: بايتاتٌ حيّة تخالف المُعلَن"
+                )
             errs, used = guard.evaluate(
                 sorted(adj["allowed_paths"]),
                 policy,
@@ -436,11 +437,16 @@ def test_every_consumed_authorization_names_the_merge_that_consumed_it():
 def test_a_consumed_record_still_describes_what_actually_landed():
     """السجلّ يبقى قابلاً للفحص بعد الاستهلاك — وإلّا صار أثراً لا يُراجَع.
 
-    البايتات المأذونة هي بايتات الشجرة بعد الدمج؛ فانحرافُها يعني أنّ ما دخل ليس
-    ما أُذِن به، وذلك يُكشَف هنا لا في مراجعةٍ بشريّة.
+    البايتات المأذونة هي بايتات **شجرة الدمج الذي استهلك التفويض**. مقارنتها
+    بـHEAD الحاليّ تجعل كلّ تغيير لاحق مأذون للمسار نفسه يعيد كتابة التاريخ
+    ويُفشل السجلّ القديم، مع أنّ ``merge_sha`` موجود تحديداً لتثبيت تلك اللحظة.
     """
     for adj in guard.load_adjudications(_ADJ_DIR):
+        if adj.get("status") != "CONSUMED":
+            continue
+        merge_sha = (adj.get("consumption") or {}).get("merge_sha")
+        assert merge_sha, f"{adj['adjudication_id']}: مستهلَك بلا merge_sha"
         for path, declared in adj["authorized_blobs"].items():
-            assert guard.blob_sha(path) == declared, (
+            assert guard.blob_sha_at_commit(merge_sha, path) == declared, (
                 f"{adj['adjudication_id']}/{path}: ما دخل يخالف ما أُذِن به"
             )
