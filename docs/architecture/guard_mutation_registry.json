@@ -1503,46 +1503,6 @@
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
   "honesty_limit": "الفحص الثابت يحجب على **وجود** المواصفة وحداثتها؛ والتنفيذ الفعليّ (`--run`) هو الدليل، ويجري على المُواصَفين وحدهم. فالخضرة هنا تعني «ما قِيس يُطلِق»، لا «كلّ حارس يُطلِق».",
   "mutated": {
-    "github_actions_security_guard.py": {
-      "mutations": [
-        {
-          "expect": "test_security_lane_mutations_are_killed",
-          "find": "        if command not in run_text:",
-          "replace": "        if False:",
-          "why": "نزع التحقق من أوامر مسار التحليل المستقل يجعل خفض عتبة Zizmor أو تغيير قاعدة Poutine يمرّ بينما يبدو المسار الأمني قائماً."
-        },
-        {
-          "expect": "test_security_lane_mutations_are_killed",
-          "find": "        if version not in installer_text or digest not in installer_text:",
-          "replace": "        if False:",
-          "why": "قبول أداة بلا نسخة وبصمة أصل مثبتتين يحول مُثبّت أدوات الحراسة نفسه إلى مدخل سلسلة توريد غير محروس."
-        },
-        {
-          "expect": "test_security_lane_mutations_are_killed",
-          "find": "        if command not in ci_text:",
-          "replace": "        if False:",
-          "why": "المسار المستقل غير مطلوب في Ruleset؛ إسقاط نفس الأوامر من وظيفة Security Scan المطلوبة يجعل الحراس إرشادية بصمت."
-        }
-      ],
-      "test": "tests_v9/test_github_actions_security_guard.py"
-    },
-    "runtime_image_supply_chain_guard.py": {
-      "mutations": [
-        {
-          "expect": "test_security_mutations_are_killed",
-          "find": "        if token not in runtime_text and token not in runtime_runs:",
-          "replace": "        if False:",
-          "why": "إسقاط فحص الرموز الإلزامية يسمح بتعطيل فشل Trivy أو حذف تحقق CycloneDX مع بقاء workflow صالحاً نحوياً."
-        },
-        {
-          "expect": "test_security_mutations_are_killed",
-          "find": "    if \"${{ inputs.\" in matrix_runs or \"${{ github.event.inputs.\" in matrix_runs:",
-          "replace": "    if False:",
-          "why": "إعادة توسعة مدخل workflow_dispatch مباشرة داخل shell تعيد حقن الأوامر الذي أثبته Poutine وZizmor في المسار الأصلي."
-        }
-      ],
-      "test": "tests_v9/test_runtime_image_supply_chain_guard.py"
-    },
     "action_pin_agreement_guard.py": {
       "mutations": [
         {
@@ -2246,6 +2206,81 @@
       ],
       "test": "tests_v9/test_container_command_path_guard.py"
     },
+    "cross_service_path_contract_guard.py": {
+      "test": "tests_v9/test_cross_service_path_contract_guard.py",
+      "mutations": [
+        {
+          "expect": "test_no_requested_path_is_absent_from_the_target_service",
+          "find": "        \"undeclared\": sorted(requested - declared),",
+          "replace": "        \"undeclared\": sorted(requested & declared),  # mutated: يُبلَّغ عن المُعلَن لا المفقود",
+          "why": "قلبُ الطرح إلى تقاطعٍ يجعل الحارسَ يُبلِّغ عمّا **يعمل** ويصمت عمّا ينكسر. وهو أخبثُ من تعطيله: يطبع قائمةً طويلةً تُقرَأ عملاً، والمسارُ المنحرفُ وحدَه هو الغائبُ منها."
+        },
+        {
+          "expect": "test_a_client_that_reads_zero_is_actually_reported_blind",
+          "find": "    if not requested and client not in PATH_LESS_BY_DESIGN:\n        blind_reasons.append(client)",
+          "replace": "    if False:  # mutated: القراءةُ الصفريّة تمرّ صامتة\n        blind_reasons.append(client)",
+          "why": "القراءةُ الصفريّة هي **كيف يمرّ هذا الصنفُ نفسُه**: عميلٌ بشكل نداءٍ لا يعرفه المستخرِج يُقرأ منه صفرُ مسار، فيمرّ أخضرَ عن سؤالٍ لم يطرحه (مقيس: `soil_hydraulic_client` أعطى صفراً بأوّل قارئ). وهذه الطفرةُ **نجت أوّلَ مرّة** لأنّ شاهدَها كان تأكيدَ غيابٍ على شجرةٍ سليمة — والقائمةُ تبقى فارغةً إن عُطِّل الكشفُ رأساً. فأُخرِج التصنيفُ نقيّاً وصار له شاهدٌ موجب."
+        },
+        {
+          "expect": "test_both_call_shapes_and_the_module_constant_are_read",
+          "find": "            if _PATH_SHAPED.match(value.value):\n                found.add(normalise(value.value))",
+          "replace": "            if False:  # mutated: ثابتُ الوحدة لا يُقرأ\n                found.add(normalise(value.value))",
+          "why": "`irrigation_activation_gate` يحمل مسارَه في ثابتِ وحدةٍ ويبنيه داخل دالّة، فلا يُرى عند موضع النداء. إسقاطُ هذا الشكل يُعيد عقداً حقيقيّاً إلى خارج النطاق بلا أن يُعلَن."
+        },
+        {
+          "expect": "test_the_structural_reader_sees_everything_a_textual_one_sees",
+          "find": "        is_wrapper = bool(_JSON_WRAPPER.search(name))",
+          "replace": "        is_wrapper = name.endswith((\"_get_json\", \"_post_json\"))  # mutated: النهايةُ لا الاحتواء",
+          "why": "هذه هي الطفرةُ الوحيدةُ التي **وقعت فعلاً**: `endswith` أفلت `raster_get_json_sync` فضاع مسارانِ حقيقيّان، ولم يُكشَف إلّا بمقابلة قارئَين. إعادتُها تُعيد الثقبَ بعينه."
+        },
+        {
+          "expect": "test_the_guard_sees_exactly_the_modules_that_name_an_internal_service",
+          "find": "        if len(hosts) != 1:\n            continue",
+          "replace": "        if len(hosts) != 99:  # mutated: لا وحدةَ تُكتشَف\n            continue",
+          "why": "صفرُ عقدٍ مكتشَفٍ أخطرُ من عقدٍ منحرف: الحارسُ يعمل ويُنهي بنجاحٍ وهو لا يفحص شيئاً — تأمينٌ على لا شيء، وهو الصنفُ الذي سُجِّل في `MUT-REGISTRY-STRANDED-SPECS-01`."
+        }
+      ]
+    },
+    "db_writer_ownership_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_a_write_the_contract_does_not_permit_is_caught",
+          "find": "    if service in (meta.get(\"writers\") or []):\n        return True",
+          "replace": "    return True  # mutated: كلُّ كتابةٍ مأذونة\n    if service in (meta.get(\"writers\") or []):\n        return True",
+          "test": "tests_v9/test_db_writer_ownership_guard.py",
+          "why": "حارسٌ يأذن للجميع يُبلِغ صفراً على شجرةٍ تحمل 75 مخالفة — ويُقرَأ ضماناً ويُسجَّل تغطية. وهو بعينه الصنفُ الذي جعل M-03 يبيت حتّى كشفه فحصٌ يدويّ."
+        },
+        {
+          "expect": "test_a_documented_interim_bridge_is_not_a_violation",
+          "find": "    return meta.get(\"mirror\") == service",
+          "replace": "    return False  # mutated: الجسرُ الانتقاليُّ الموثَّق يصير انحرافاً",
+          "test": "tests_v9/test_db_writer_ownership_guard.py",
+          "why": "إدانةُ خمسةِ جسورٍ موثَّقة (status: interim-bridge) إنذارٌ كاذب — ويُدرَّب الناسُ على تجاهل الحارس، فيموت وهو أخضر بينما الانحرافُ الحقيقيّ يمرّ معه."
+        },
+        {
+          "expect": "test_the_detection_is_structural_so_a_comment_is_never_accused",
+          "find": "        for sql in _sql_literals(tree):",
+          "replace": "        for sql in [path.read_text(encoding=\"utf-8\")]:  # mutated: يعود الكشفُ نصّيّاً على كامل الملفّ",
+          "test": "tests_v9/test_db_writer_ownership_guard.py",
+          "why": "بحثٌ نصّيّ على كامل الملفّ يتّهم التعليقَ الذي يشرح لماذا هُجِر مسار — فيصير توثيقُ الإصلاح مُبطِلاً له. وهو A-GUARD-THAT-SEARCHES-TEXT-ACCUSES-ITS-OWN-DOCUMENTATION-01 بعينه، وقد أسقط إصلاحاً حقيقيّاً في #951."
+        },
+        {
+          "expect": "test_the_ratchet_fails_in_both_directions",
+          "find": "    for key in sorted(set(base) - set(current)):\n        out.append(f\"مدخلٌ بائتٌ في الأساس لم يعد منحرفاً — احذفه: {key}\")",
+          "replace": "    # mutated: أُسقِط السقفُ النازل",
+          "test": "tests_v9/test_db_writer_ownership_guard.py",
+          "why": "راتشِتٌ يفشل في اتّجاهٍ واحد يُبقي مداخلَ سُدِّدت تُقرأ ديناً قائماً — إعفاءٌ بلا سقفٍ نازل ليس ديناً مؤجَّلاً بل شطبٌ صامت (AN-EXEMPTION-LIST-WITH-NO-DESCENDING-CEILING-01)."
+        },
+        {
+          "expect": "test_an_unreadable_contract_fails_loudly_instead_of_passing_zero",
+          "find": "    if not isinstance(tables, dict) or len(tables) < 100:",
+          "replace": "    if False:  # mutated: عقدٌ فارغ يمرّ صفراً كاذباً",
+          "test": "tests_v9/test_db_writer_ownership_guard.py",
+          "why": "هذه الطفرةُ تُعيد عطلاً وقع فعلاً أثناء كتابة الحارس: قراءةُ جذر YAML بدل tables جعلت كلَّ جدولٍ «غيرَ مُصرَّحٍ عنه» فأبلغ صفرَ مخالفات على شجرةٍ تحمل 75. صفرٌ كاذبٌ أسوأُ من غياب الحارس."
+        }
+      ],
+      "test": "tests_v9/test_db_writer_ownership_guard.py"
+    },
     "env_compose_default_override_guard.py": {
       "mutations": [
         {
@@ -2457,6 +2492,29 @@
         }
       ],
       "test": "tests_v9/test_gate01_frozen_path_guard.py"
+    },
+    "github_actions_security_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_security_lane_mutations_are_killed",
+          "find": "        if command not in run_text:",
+          "replace": "        if False:",
+          "why": "نزع التحقق من أوامر مسار التحليل المستقل يجعل خفض عتبة Zizmor أو تغيير قاعدة Poutine يمرّ بينما يبدو المسار الأمني قائماً."
+        },
+        {
+          "expect": "test_security_lane_mutations_are_killed",
+          "find": "        if version not in installer_text or digest not in installer_text:",
+          "replace": "        if False:",
+          "why": "قبول أداة بلا نسخة وبصمة أصل مثبتتين يحول مُثبّت أدوات الحراسة نفسه إلى مدخل سلسلة توريد غير محروس."
+        },
+        {
+          "expect": "test_security_lane_mutations_are_killed",
+          "find": "        if command not in ci_text:",
+          "replace": "        if False:",
+          "why": "المسار المستقل غير مطلوب في Ruleset؛ إسقاط نفس الأوامر من وظيفة Security Scan المطلوبة يجعل الحراس إرشادية بصمت."
+        }
+      ],
+      "test": "tests_v9/test_github_actions_security_guard.py"
     },
     "guard_locale_survival_guard.py": {
       "mutations": [
@@ -2942,6 +3000,41 @@
       ],
       "test": "tests_v9/test_manifest_registry_guard.py"
     },
+    "no_manual_backup_files_guard.py": {
+      "test": "tests_v9/test_no_manual_backup_files_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_manual_backup_name_is_rejected",
+          "find": "    | (?:\\.before[_-][^/]*$)          # main.before_p2 وأخواتُه",
+          "replace": "    # mutated: مقطعُ .before_ لا يُطابَق — وهو الحادثةُ الأصليّةُ بعينها",
+          "why": "`main.before_p2` هو الملفُّ الذي وقع مرّتين في خدمتين. حارسٌ يفقد هذا البديل يبقى أخضرَ على الحادثة التي وُجِد لأجلها حرفيّاً — وهو الشكلُ الأدقّ لِـ«حارسٍ لا يفعل شيئاً»."
+        },
+        {
+          "expect": "test_a_manual_backup_name_is_rejected",
+          "find": "    (?:\\.(?:bak|orig|rej|save)$)      # لاحقةٌ صريحة",
+          "replace": "    (?:\\.(?:zzzz)$)      # mutated: اللواحقُ المعروفةُ لا تُطابَق",
+          "why": "`.bak`/`.orig`/`.rej` هي مخرجاتُ أدوات الدمج والنسخ نفسِها — أكثرُ الأشكال وروداً. إسقاطُها يُبقي الحارسَ يحرس صنفاً واحداً من ثلاثة ويُعلِن تغطيةَ الثلاثة."
+        },
+        {
+          "expect": "test_the_guard_exits_nonzero_when_it_finds_one",
+          "find": "        return 1\n    print(\"no_manual_backup_files_guard_ok\")",
+          "replace": "        return 0  # mutated: يشكو ثمّ يُنهي بنجاح\n    print(\"no_manual_backup_files_guard_ok\")",
+          "why": "فخُّ رمز الخروج: الحارسُ يطبع الشكوى كاملةً ثمّ يُنهي بصفر، فتقرأ CI نجاحاً ويقرأ الإنسانُ فشلاً. لا شيءَ يُحجَب، ولا شيءَ يبدو مكسوراً."
+        },
+        {
+          "expect": "test_the_guard_exits_nonzero_when_it_finds_one",
+          "find": "    return sorted(rel for rel in tracked_files() if is_manual_backup(rel))",
+          "replace": "    return sorted(rel for rel in tracked_files() if False)  # mutated: لا يُبلَّغ عن شيء",
+          "why": "مسحٌ يُعيد قائمةً فارغةً دائماً يمرّ أخضرَ على كلّ شجرة. وهي الخاصّيّةُ التي يُحقّقها حارسٌ محذوف — فوجودُه في CI يصير تأميناً على لا شيء."
+        },
+        {
+          "expect": "test_a_manual_backup_name_is_rejected",
+          "find": "    | (?:~$)                          # نسخةُ محرّر",
+          "replace": "    # mutated: نسخةُ المحرّر (`main.py~`) لا تُطابَق",
+          "why": "`main.py~` مخرَجُ محرّراتٍ شائعة (vim/emacs/gedit) ويُلتزَم سهواً لأنّه غيرُ مرئيٍّ في `ls`. إسقاطُ هذا البديل يترك أكثرَ الأشكال إفلاتاً من العين البشريّة بلا كاشف."
+        }
+      ]
+    },
     "no_report_only_change_guard.py": {
       "mutations": [
         {
@@ -3103,6 +3196,23 @@
         }
       ],
       "test": "tests_v9/test_run_outcome_guard.py"
+    },
+    "runtime_image_supply_chain_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_security_mutations_are_killed",
+          "find": "        if token not in runtime_text and token not in runtime_runs:",
+          "replace": "        if False:",
+          "why": "إسقاط فحص الرموز الإلزامية يسمح بتعطيل فشل Trivy أو حذف تحقق CycloneDX مع بقاء workflow صالحاً نحوياً."
+        },
+        {
+          "expect": "test_security_mutations_are_killed",
+          "find": "    if \"${{ inputs.\" in matrix_runs or \"${{ github.event.inputs.\" in matrix_runs:",
+          "replace": "    if False:",
+          "why": "إعادة توسعة مدخل workflow_dispatch مباشرة داخل shell تعيد حقن الأوامر الذي أثبته Poutine وZizmor في المسار الأصلي."
+        }
+      ],
+      "test": "tests_v9/test_runtime_image_supply_chain_guard.py"
     },
     "s5_exec_01_writer_cutover_guard.py": {
       "test": "tests_v9/test_s5_exec_01_writer_cutover_guard.py",
@@ -3566,6 +3676,53 @@
       ],
       "test": "tests_v9/test_sot_provenance_guard.py"
     },
+    "tenant_connection_call_shape_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_each_planted_class_reddens_for_its_own_reason",
+          "find": "                    if passed is not None:",
+          "replace": "                    if False:",
+          "why": "إسقاط صنف شكل الوسيط يُعيد الـ٢٢ موضعاً التي كانت تمرّر مُعرِّف المستأجر عارياً إلى tenant_connection(user): خطأ نوع يتنكّر في زيّ ٥٠٣ «القاعدة غير متاحة» في gis_cloud_native، وفي زيّ blocked/field_not_owned في irrigation_mpc — أي يُقال للمزارع إنّ حقله ليس له."
+        },
+        {
+          "expect": "test_each_planted_class_reddens_for_its_own_reason",
+          "find": "                and node.attr not in exported",
+          "replace": "                and False",
+          "why": "إسقاط صنف مرجع main.X غير المعرَّف يُعيد main.tenant_connection_for — دالّة لا وجود لها تُحَلّ وقت النداء لا وقت الاستيراد، فلا استيراد يفشل ولا مُدقِّق يشتكي، ويبتلع AttributeError مصيدةُ except Exception فتصير ٥٠٣."
+        },
+        {
+          "expect": "test_each_planted_class_reddens_for_its_own_reason",
+          "find": "        if path == MAIN:",
+          "replace": "        if True:",
+          "why": "تخطّي كلّ ملفّ بدل main.py وحده يُفرِغ المسح فيبقى الحارس أخضر أبداً — وهي الخاصّيّة التي يُحقّقها حارس لا يفعل شيئاً."
+        }
+      ],
+      "test": "tests_v9/test_tenant_connection_call_shape.py"
+    },
+    "tenant_guc_name_convergence_guard.py": {
+      "$why_ar": "`TENANT-GUC-NAME-DIVERGES-ACROSS-POLICY-FAMILIES-01`: ثلاثةُ أسماءٍ لمُتغيّر المستأجِر في سياسات RLS، **وشكلُ فشلها صامت** — اسمٌ خاطئ ⇒ `NULL` ⇒ `USING` تُصفّي كلَّ شيء ⇒ صفرُ صفوفٍ بلا خطأ ولا سجلّ. فكلُّ تأكيدٍ على شجرةٍ سليمة هنا تأكيدُ **غياب** يبقى صادقاً لو عُطِّل الكشفُ رأساً — ولذلك كلُّ طفرةٍ هنا تُعمي كاشفاً بعينه ويقتلها **شاهدٌ موجب** على مُدخَلٍ مُصطنَع لا تأكيدٌ على الشجرة.",
+      "test": "tests_v9/test_tenant_guc_name_convergence_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_fourth_name_is_actually_reported",
+          "find": "    if report[\"new\"]:\n",
+          "replace": "    if False:  # mutated: الاسمُ الرابع يمرّ صامتاً\n",
+          "why": "تعميةُ كاشف الاسم الجديد تُعيد الصنفَ بحرفه: عائلةُ سياساتٍ رابعة تدخل الشجرة باسمٍ لا يضبطه أحد، فتُعيد جداولُها صفرَ صفوفٍ في كلّ مسارٍ حيّ — والبوّابةُ خضراء."
+        },
+        {
+          "expect": "test_a_name_no_path_sets_is_actually_reported",
+          "find": "    if report[\"unset\"]:\n",
+          "replace": "    if False:  # mutated: اسمٌ بلا ضابطٍ يمرّ\n",
+          "why": "اسمٌ تقرؤه سياسةٌ ولا يضبطه مسارٌ يعني عزلاً يفشل مغلقاً **دائماً**: الجدولُ لا يُقرَأ منه شيءٌ أبداً. وتعميةُ هذا الكاشف تُبقي الحالةَ غيرَ مرئيّة، وهي أخبثُ من انحرافٍ مُبلَّغ لأنّ ناتجَها إجابةٌ ناقصةٌ تُقرَأ كاملة."
+        },
+        {
+          "expect": "test_a_zero_discovery_run_fails_instead_of_passing_green",
+          "find": "    if not report[\"names\"]:\n",
+          "replace": "    if False:  # mutated: صفرُ اكتشافٍ يمرّ أخضر\n",
+          "why": "انكسارُ المُستخرِج (تبدّلُ صياغةِ `current_setting` أو نقلُ الهجرات) يجعل النطاق صفراً، فيمرّ الحارسُ أخضرَ عن سؤالٍ لم يطرحه — وهو `GUARDS-WITHOUT-A-PLANTED-DEFECT-01` بعينه: «لم يجد» تُقرَأ «لا يوجد»."
+        }
+      ]
+    },
     "tenant_guc_scope_guard.py": {
       "mutations": [
         {
@@ -3730,140 +3887,6 @@
         }
       ],
       "test": "tests_v9/test_visual_fixme_baseline_guard.py"
-    },
-    "no_manual_backup_files_guard.py": {
-      "test": "tests_v9/test_no_manual_backup_files_guard.py",
-      "mutations": [
-        {
-          "expect": "test_a_manual_backup_name_is_rejected",
-          "find": "    | (?:\\.before[_-][^/]*$)          # main.before_p2 وأخواتُه",
-          "replace": "    # mutated: مقطعُ .before_ لا يُطابَق — وهو الحادثةُ الأصليّةُ بعينها",
-          "why": "`main.before_p2` هو الملفُّ الذي وقع مرّتين في خدمتين. حارسٌ يفقد هذا البديل يبقى أخضرَ على الحادثة التي وُجِد لأجلها حرفيّاً — وهو الشكلُ الأدقّ لِـ«حارسٍ لا يفعل شيئاً»."
-        },
-        {
-          "expect": "test_a_manual_backup_name_is_rejected",
-          "find": "    (?:\\.(?:bak|orig|rej|save)$)      # لاحقةٌ صريحة",
-          "replace": "    (?:\\.(?:zzzz)$)      # mutated: اللواحقُ المعروفةُ لا تُطابَق",
-          "why": "`.bak`/`.orig`/`.rej` هي مخرجاتُ أدوات الدمج والنسخ نفسِها — أكثرُ الأشكال وروداً. إسقاطُها يُبقي الحارسَ يحرس صنفاً واحداً من ثلاثة ويُعلِن تغطيةَ الثلاثة."
-        },
-        {
-          "expect": "test_the_guard_exits_nonzero_when_it_finds_one",
-          "find": "        return 1\n    print(\"no_manual_backup_files_guard_ok\")",
-          "replace": "        return 0  # mutated: يشكو ثمّ يُنهي بنجاح\n    print(\"no_manual_backup_files_guard_ok\")",
-          "why": "فخُّ رمز الخروج: الحارسُ يطبع الشكوى كاملةً ثمّ يُنهي بصفر، فتقرأ CI نجاحاً ويقرأ الإنسانُ فشلاً. لا شيءَ يُحجَب، ولا شيءَ يبدو مكسوراً."
-        },
-        {
-          "expect": "test_the_guard_exits_nonzero_when_it_finds_one",
-          "find": "    return sorted(rel for rel in tracked_files() if is_manual_backup(rel))",
-          "replace": "    return sorted(rel for rel in tracked_files() if False)  # mutated: لا يُبلَّغ عن شيء",
-          "why": "مسحٌ يُعيد قائمةً فارغةً دائماً يمرّ أخضرَ على كلّ شجرة. وهي الخاصّيّةُ التي يُحقّقها حارسٌ محذوف — فوجودُه في CI يصير تأميناً على لا شيء."
-        },
-        {
-          "expect": "test_a_manual_backup_name_is_rejected",
-          "find": "    | (?:~$)                          # نسخةُ محرّر",
-          "replace": "    # mutated: نسخةُ المحرّر (`main.py~`) لا تُطابَق",
-          "why": "`main.py~` مخرَجُ محرّراتٍ شائعة (vim/emacs/gedit) ويُلتزَم سهواً لأنّه غيرُ مرئيٍّ في `ls`. إسقاطُ هذا البديل يترك أكثرَ الأشكال إفلاتاً من العين البشريّة بلا كاشف."
-        }
-      ]
-    },
-    "cross_service_path_contract_guard.py": {
-      "test": "tests_v9/test_cross_service_path_contract_guard.py",
-      "mutations": [
-        {
-          "expect": "test_no_requested_path_is_absent_from_the_target_service",
-          "find": "        \"undeclared\": sorted(requested - declared),",
-          "replace": "        \"undeclared\": sorted(requested & declared),  # mutated: يُبلَّغ عن المُعلَن لا المفقود",
-          "why": "قلبُ الطرح إلى تقاطعٍ يجعل الحارسَ يُبلِّغ عمّا **يعمل** ويصمت عمّا ينكسر. وهو أخبثُ من تعطيله: يطبع قائمةً طويلةً تُقرَأ عملاً، والمسارُ المنحرفُ وحدَه هو الغائبُ منها."
-        },
-        {
-          "expect": "test_a_client_that_reads_zero_is_actually_reported_blind",
-          "find": "    if not requested and client not in PATH_LESS_BY_DESIGN:\n        blind_reasons.append(client)",
-          "replace": "    if False:  # mutated: القراءةُ الصفريّة تمرّ صامتة\n        blind_reasons.append(client)",
-          "why": "القراءةُ الصفريّة هي **كيف يمرّ هذا الصنفُ نفسُه**: عميلٌ بشكل نداءٍ لا يعرفه المستخرِج يُقرأ منه صفرُ مسار، فيمرّ أخضرَ عن سؤالٍ لم يطرحه (مقيس: `soil_hydraulic_client` أعطى صفراً بأوّل قارئ). وهذه الطفرةُ **نجت أوّلَ مرّة** لأنّ شاهدَها كان تأكيدَ غيابٍ على شجرةٍ سليمة — والقائمةُ تبقى فارغةً إن عُطِّل الكشفُ رأساً. فأُخرِج التصنيفُ نقيّاً وصار له شاهدٌ موجب."
-        },
-        {
-          "expect": "test_both_call_shapes_and_the_module_constant_are_read",
-          "find": "            if _PATH_SHAPED.match(value.value):\n                found.add(normalise(value.value))",
-          "replace": "            if False:  # mutated: ثابتُ الوحدة لا يُقرأ\n                found.add(normalise(value.value))",
-          "why": "`irrigation_activation_gate` يحمل مسارَه في ثابتِ وحدةٍ ويبنيه داخل دالّة، فلا يُرى عند موضع النداء. إسقاطُ هذا الشكل يُعيد عقداً حقيقيّاً إلى خارج النطاق بلا أن يُعلَن."
-        },
-        {
-          "expect": "test_the_structural_reader_sees_everything_a_textual_one_sees",
-          "find": "        is_wrapper = bool(_JSON_WRAPPER.search(name))",
-          "replace": "        is_wrapper = name.endswith((\"_get_json\", \"_post_json\"))  # mutated: النهايةُ لا الاحتواء",
-          "why": "هذه هي الطفرةُ الوحيدةُ التي **وقعت فعلاً**: `endswith` أفلت `raster_get_json_sync` فضاع مسارانِ حقيقيّان، ولم يُكشَف إلّا بمقابلة قارئَين. إعادتُها تُعيد الثقبَ بعينه."
-        },
-        {
-          "expect": "test_the_guard_sees_exactly_the_modules_that_name_an_internal_service",
-          "find": "        if len(hosts) != 1:\n            continue",
-          "replace": "        if len(hosts) != 99:  # mutated: لا وحدةَ تُكتشَف\n            continue",
-          "why": "صفرُ عقدٍ مكتشَفٍ أخطرُ من عقدٍ منحرف: الحارسُ يعمل ويُنهي بنجاحٍ وهو لا يفحص شيئاً — تأمينٌ على لا شيء، وهو الصنفُ الذي سُجِّل في `MUT-REGISTRY-STRANDED-SPECS-01`."
-        }
-      ]
-    },
-    "db_writer_ownership_guard.py": {
-      "mutations": [
-        {
-          "expect": "test_a_write_the_contract_does_not_permit_is_caught",
-          "find": "    if service in (meta.get(\"writers\") or []):\n        return True",
-          "replace": "    return True  # mutated: كلُّ كتابةٍ مأذونة\n    if service in (meta.get(\"writers\") or []):\n        return True",
-          "test": "tests_v9/test_db_writer_ownership_guard.py",
-          "why": "حارسٌ يأذن للجميع يُبلِغ صفراً على شجرةٍ تحمل 75 مخالفة — ويُقرَأ ضماناً ويُسجَّل تغطية. وهو بعينه الصنفُ الذي جعل M-03 يبيت حتّى كشفه فحصٌ يدويّ."
-        },
-        {
-          "expect": "test_a_documented_interim_bridge_is_not_a_violation",
-          "find": "    return meta.get(\"mirror\") == service",
-          "replace": "    return False  # mutated: الجسرُ الانتقاليُّ الموثَّق يصير انحرافاً",
-          "test": "tests_v9/test_db_writer_ownership_guard.py",
-          "why": "إدانةُ خمسةِ جسورٍ موثَّقة (status: interim-bridge) إنذارٌ كاذب — ويُدرَّب الناسُ على تجاهل الحارس، فيموت وهو أخضر بينما الانحرافُ الحقيقيّ يمرّ معه."
-        },
-        {
-          "expect": "test_the_detection_is_structural_so_a_comment_is_never_accused",
-          "find": "        for sql in _sql_literals(tree):",
-          "replace": "        for sql in [path.read_text(encoding=\"utf-8\")]:  # mutated: يعود الكشفُ نصّيّاً على كامل الملفّ",
-          "test": "tests_v9/test_db_writer_ownership_guard.py",
-          "why": "بحثٌ نصّيّ على كامل الملفّ يتّهم التعليقَ الذي يشرح لماذا هُجِر مسار — فيصير توثيقُ الإصلاح مُبطِلاً له. وهو A-GUARD-THAT-SEARCHES-TEXT-ACCUSES-ITS-OWN-DOCUMENTATION-01 بعينه، وقد أسقط إصلاحاً حقيقيّاً في #951."
-        },
-        {
-          "expect": "test_the_ratchet_fails_in_both_directions",
-          "find": "    for key in sorted(set(base) - set(current)):\n        out.append(f\"مدخلٌ بائتٌ في الأساس لم يعد منحرفاً — احذفه: {key}\")",
-          "replace": "    # mutated: أُسقِط السقفُ النازل",
-          "test": "tests_v9/test_db_writer_ownership_guard.py",
-          "why": "راتشِتٌ يفشل في اتّجاهٍ واحد يُبقي مداخلَ سُدِّدت تُقرأ ديناً قائماً — إعفاءٌ بلا سقفٍ نازل ليس ديناً مؤجَّلاً بل شطبٌ صامت (AN-EXEMPTION-LIST-WITH-NO-DESCENDING-CEILING-01)."
-        },
-        {
-          "expect": "test_an_unreadable_contract_fails_loudly_instead_of_passing_zero",
-          "find": "    if not isinstance(tables, dict) or len(tables) < 100:",
-          "replace": "    if False:  # mutated: عقدٌ فارغ يمرّ صفراً كاذباً",
-          "test": "tests_v9/test_db_writer_ownership_guard.py",
-          "why": "هذه الطفرةُ تُعيد عطلاً وقع فعلاً أثناء كتابة الحارس: قراءةُ جذر YAML بدل tables جعلت كلَّ جدولٍ «غيرَ مُصرَّحٍ عنه» فأبلغ صفرَ مخالفات على شجرةٍ تحمل 75. صفرٌ كاذبٌ أسوأُ من غياب الحارس."
-        }
-      ],
-      "test": "tests_v9/test_db_writer_ownership_guard.py"
-    },
-    "tenant_guc_name_convergence_guard.py": {
-      "$why_ar": "`TENANT-GUC-NAME-DIVERGES-ACROSS-POLICY-FAMILIES-01`: ثلاثةُ أسماءٍ لمُتغيّر المستأجِر في سياسات RLS، **وشكلُ فشلها صامت** — اسمٌ خاطئ ⇒ `NULL` ⇒ `USING` تُصفّي كلَّ شيء ⇒ صفرُ صفوفٍ بلا خطأ ولا سجلّ. فكلُّ تأكيدٍ على شجرةٍ سليمة هنا تأكيدُ **غياب** يبقى صادقاً لو عُطِّل الكشفُ رأساً — ولذلك كلُّ طفرةٍ هنا تُعمي كاشفاً بعينه ويقتلها **شاهدٌ موجب** على مُدخَلٍ مُصطنَع لا تأكيدٌ على الشجرة.",
-      "test": "tests_v9/test_tenant_guc_name_convergence_guard.py",
-      "mutations": [
-        {
-          "expect": "test_a_fourth_name_is_actually_reported",
-          "find": "    if report[\"new\"]:\n",
-          "replace": "    if False:  # mutated: الاسمُ الرابع يمرّ صامتاً\n",
-          "why": "تعميةُ كاشف الاسم الجديد تُعيد الصنفَ بحرفه: عائلةُ سياساتٍ رابعة تدخل الشجرة باسمٍ لا يضبطه أحد، فتُعيد جداولُها صفرَ صفوفٍ في كلّ مسارٍ حيّ — والبوّابةُ خضراء."
-        },
-        {
-          "expect": "test_a_name_no_path_sets_is_actually_reported",
-          "find": "    if report[\"unset\"]:\n",
-          "replace": "    if False:  # mutated: اسمٌ بلا ضابطٍ يمرّ\n",
-          "why": "اسمٌ تقرؤه سياسةٌ ولا يضبطه مسارٌ يعني عزلاً يفشل مغلقاً **دائماً**: الجدولُ لا يُقرَأ منه شيءٌ أبداً. وتعميةُ هذا الكاشف تُبقي الحالةَ غيرَ مرئيّة، وهي أخبثُ من انحرافٍ مُبلَّغ لأنّ ناتجَها إجابةٌ ناقصةٌ تُقرَأ كاملة."
-        },
-        {
-          "expect": "test_a_zero_discovery_run_fails_instead_of_passing_green",
-          "find": "    if not report[\"names\"]:\n",
-          "replace": "    if False:  # mutated: صفرُ اكتشافٍ يمرّ أخضر\n",
-          "why": "انكسارُ المُستخرِج (تبدّلُ صياغةِ `current_setting` أو نقلُ الهجرات) يجعل النطاق صفراً، فيمرّ الحارسُ أخضرَ عن سؤالٍ لم يطرحه — وهو `GUARDS-WITHOUT-A-PLANTED-DEFECT-01` بعينه: «لم يجد» تُقرَأ «لا يوجد»."
-        }
-      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

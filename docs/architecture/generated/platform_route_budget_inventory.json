@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 631
   },
-  "inventory_sha256": "58ae142652a4515d5f549b4c3846e2eb7e3c595c40b366b3d7c590e84d0a9fb4",
+  "inventory_sha256": "2b445db38894ba819d2a105c3ae9a2f0e7ac8758fa9a22b1c6fa505c9fce39fd",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "34fe6118e66dd47bc3cf894e05e8353d123df8f55fbc354a1c932599629cadad"
+    "policy_sha256": "f48a33bcddccf8ced410139a0220228539db2566c124802b7a21457df6c2de93"
   },
   "routes": [
     {
@@ -2610,7 +2610,7 @@
     {
       "classification": "domain",
       "function": "internal_field_state",
-      "line": 25,
+      "line": 51,
       "method": "GET",
       "path": "/internal/fields/{field_id}/state",
       "source": "api/routers/internal_service.py"
@@ -4666,7 +4666,7 @@
     {
       "classification": "domain",
       "function": "internal_ai_advice_event",
-      "line": 137,
+      "line": 163,
       "method": "POST",
       "path": "/internal/events/ai-advice",
       "source": "api/routers/internal_service.py"
