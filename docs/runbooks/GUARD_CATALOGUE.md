@@ -1028,7 +1028,7 @@
 | `platform_route_placement_guard.py` | Enforce machine-readable source placement for governed platform routes. | `platform-route-budget` |
 | `pr_capability_impact_gate.py` | Compute and enforce pull-request capability impact declarations. | `capability-registry` |
 | `prepare_attested_runtime_images.py` | Validate an externally built image manifest and generate a pull-by-digest Compose override. | `runtime-producer` · `trusted-signer` |
-| `production_certification_blockers_status.py` | Print the current status of the four production certification blockers. | `certification-verdict` · `full-branch-ci-evidence` |
+| `production_certification_blockers_status.py` | Print the current status of the production certification blockers. | `certification-verdict` · `full-branch-ci-evidence` |
 | `production_certification_checklist_guard.py` | Production certification checklist inventory/guard. | `guard` |
 | `production_evidence_pack_guard.py` | Production evidence pack guard. | `transitive-locks-evidence` · `evidence-pack` |
 | `production_honesty_guard.py` | Production honesty guard. | `honesty` |
