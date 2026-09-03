@@ -79,10 +79,25 @@ def _offences(text: str) -> list[tuple[str, str, str]]:
 
 
 def test_the_workflow_directory_is_actually_being_measured():
-    """حارسٌ يقيس صفراً من الملفّات يمرّ دائماً. هذه تمنع ذلك الصمت."""
-    files = _workflow_files()
-    assert files, "لم يُقَس أيّ workflow — صارت الحزمةُ صامتةً"
-    assert any(path.name == "ci.yml" for path in files), "ملفّ ci.yml ليس ضمن القياس"
+    """حارسٌ يقيس صفراً من الملفّات يمرّ دائماً. هذه تمنع ذلك الصمت.
+
+    **ولا رقمَ سحريّاً هنا.** كانت الصيغةُ الأولى ``>= 40`` فاعترض عليها المراجعُ
+    الآليّ بحقّ: عددٌ اعتباطيّ يكسر عند نقصٍ مشروع. والصيغةُ الثانية (وجودُ ملفٍّ
+    ما + ``ci.yml``) تُصلِح ذلك وتُبقي ثغرةً: تمرّ لو أعاد المسحُ **ملفّاً واحداً**.
+
+    فالمقياسُ هنا **مقارنةٌ بالمجلَّد نفسِه**: كلُّ ملفٍّ بامتداد workflow على القرص
+    يجب أن يبلغه المسح. لا ثابتَ يبيت، ولا انهيارَ صامتَ يمرّ.
+    """
+    measured = {path.name for path in _workflow_files()}
+    on_disk = {
+        entry.name
+        for entry in _WORKFLOWS.iterdir()
+        if entry.is_file() and entry.suffix in {".yml", ".yaml"}
+    }
+    assert measured, "لم يُقَس أيّ workflow — صارت الحزمةُ صامتةً"
+    assert measured == on_disk, (
+        f"المسحُ لا يبلغ كلَّ ما في المجلَّد — غائبٌ عن القياس: {sorted(on_disk - measured)}"
+    )
 
 
 def test_no_workflow_interpolates_a_foreign_owned_value_into_a_shell_body():
