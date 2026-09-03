@@ -3686,8 +3686,8 @@
         },
         {
           "expect": "test_each_planted_class_reddens_for_its_own_reason",
-          "find": "                and node.attr not in exported",
-          "replace": "                and False",
+          "find": "            if attr is not None and attr not in exported:",
+          "replace": "            if False:",
           "why": "إسقاط صنف مرجع main.X غير المعرَّف يُعيد main.tenant_connection_for — دالّة لا وجود لها تُحَلّ وقت النداء لا وقت الاستيراد، فلا استيراد يفشل ولا مُدقِّق يشتكي، ويبتلع AttributeError مصيدةُ except Exception فتصير ٥٠٣."
         },
         {
@@ -3695,6 +3695,12 @@
           "find": "        if path == MAIN:",
           "replace": "        if True:",
           "why": "تخطّي كلّ ملفّ بدل main.py وحده يُفرِغ المسح فيبقى الحارس أخضر أبداً — وهي الخاصّيّة التي يُحقّقها حارس لا يفعل شيئاً."
+        },
+        {
+          "expect": "test_each_planted_class_reddens_for_its_own_reason",
+          "find": "        and value.attr == \"main\"",
+          "replace": "        and False",
+          "why": "إسقاط الشكل المنقوط api.main.X يُعمي الحارس عن أشيَع صيغ الاستيراد: `import api.main` يربط `api` وحدَه، فلا اسمَ قصيراً يُمسَك — وهذا بالضبط ما كشفته المراجعة الآليّة، حارسٌ يبدو مغطّياً شكلاً لا يغطّيه."
         }
       ],
       "test": "tests_v9/test_tenant_connection_call_shape.py"

@@ -411380,140 +411380,140 @@
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "_fake_tenant_conn",
       "target": "object",
-      "line": 24
+      "line": 34
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_delegates_and_is_server_owned",
       "target": "setattr",
-      "line": 50
+      "line": 60
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_delegates_and_is_server_owned",
       "target": "setattr",
-      "line": 51
+      "line": 61
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_delegates_and_is_server_owned",
       "target": "setattr",
-      "line": 52
+      "line": 62
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_delegates_and_is_server_owned",
       "target": "HourlyRecommendationRequest",
-      "line": 54
+      "line": 64
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_delegates_and_is_server_owned",
       "target": "_FakeUser",
-      "line": 55
+      "line": 65
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_delegates_and_is_server_owned",
       "target": "irrigation_mpc_hourly_recommendation",
-      "line": 55
+      "line": 66
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "_boom",
       "target": "AssertionError",
-      "line": 76
+      "line": 93
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_blocks_unowned_field_without_orchestrating",
       "target": "AssertionError",
-      "line": 76
+      "line": 93
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_blocks_unowned_field_without_orchestrating",
       "target": "setattr",
-      "line": 78
+      "line": 95
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_blocks_unowned_field_without_orchestrating",
       "target": "setattr",
-      "line": 79
+      "line": 96
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_blocks_unowned_field_without_orchestrating",
       "target": "irrigation_mpc_hourly_recommendation",
-      "line": 81
+      "line": 98
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_blocks_unowned_field_without_orchestrating",
       "target": "HourlyRecommendationRequest",
-      "line": 82
+      "line": 99
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_blocks_unowned_field_without_orchestrating",
       "target": "_FakeUser",
-      "line": 82
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
-      "source": "test_hourly_recommendation_pins_recommendation_only_on_blocked",
-      "target": "setattr",
-      "line": 97
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
-      "source": "test_hourly_recommendation_pins_recommendation_only_on_blocked",
-      "target": "setattr",
-      "line": 98
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
-      "source": "test_hourly_recommendation_pins_recommendation_only_on_blocked",
-      "target": "setattr",
       "line": 99
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_pins_recommendation_only_on_blocked",
+      "target": "setattr",
+      "line": 114
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
+      "source": "test_hourly_recommendation_pins_recommendation_only_on_blocked",
+      "target": "setattr",
+      "line": 115
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
+      "source": "test_hourly_recommendation_pins_recommendation_only_on_blocked",
+      "target": "setattr",
+      "line": 116
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
+      "source": "test_hourly_recommendation_pins_recommendation_only_on_blocked",
       "target": "irrigation_mpc_hourly_recommendation",
-      "line": 101
+      "line": 118
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_pins_recommendation_only_on_blocked",
       "target": "HourlyRecommendationRequest",
-      "line": 102
+      "line": 119
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_pins_recommendation_only_on_blocked",
       "target": "_FakeUser",
-      "line": 102
+      "line": 119
     },
     {
       "owner": "sahool-platform",

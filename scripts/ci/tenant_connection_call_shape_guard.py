@@ -116,17 +116,55 @@ def main_toplevel_names() -> set[str]:
 
 
 def _main_aliases(tree: ast.Module) -> set[str]:
-    """الأسماءُ المحلّيّة التي تشير إلى وحدة ``api.main`` في هذا الملفّ."""
+    """الأسماءُ المحلّيّة التي **تُربَط فعلاً** بوحدة ``api.main`` في هذا الملفّ.
+
+    **تصويبٌ من مراجعةٍ آليّة، مُكذَّبٌ بالتنفيذ:** كانت هذه الدالّة تشتقّ الاسمَ من
+    ``a.name.split(".")[-1]``، أي تفترض أنّ ``import api.main`` يربط ``main``. وقياسُ
+    بايثون يقول غيرَ ذلك::
+
+        import pkg.mod          ⇒ يربط: ['pkg']     ← لا 'mod'
+        import pkg.mod as mod   ⇒ يربط: ['mod']
+        from pkg import mod     ⇒ يربط: ['mod']
+
+    فكان الاسمُ المُشتَقُّ **غيرَ موجودٍ في نطاق الملفّ**: لا يطابق شيئاً في الشكل
+    المقصود (``api.main.X`` عقدتُه ``Attribute(value=Attribute(...))`` لا
+    ``Attribute(value=Name)``)، **وقد يطابق متغيّراً محلّيّاً اسمه ``main`` لا علاقةَ
+    له** ⇒ إنذارٌ كاذب. أي حارسٌ **يبدو** مغطّياً شكلَ استيرادٍ لا يغطّيه — وهو الصنفُ
+    الذي وُضِع هذا الحارسُ أصلاً لإغلاقه، منقلباً عليه.
+
+    والعلاجُ ليس إسقاطَ الشكل بل تغطيتَه في موضعه: ``ast.Import`` يُحتسَب **فقط** مع
+    ``asname``، والشكلُ المنقوط ``api.main.X`` يُمسَك في ``scan`` بعقدته الحقيقيّة.
+    وأُسقِط ``"services.sahool-platform.api"`` — مسارٌ لا يصلح وحدةً أصلاً (شَرطة).
+    """
     aliases: set[str] = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
-            aliases.update(
-                a.asname or a.name.split(".")[-1] for a in node.names if a.name.endswith(".main")
-            )
-        elif isinstance(node, ast.ImportFrom):
-            if (node.module or "") in {"api", "services.sahool-platform.api"}:
-                aliases.update(a.asname or a.name for a in node.names if a.name == "main")
+            # ``import api.main`` يربط ``api`` وحدَه؛ فلا اسمَ قصيراً إلّا بـ``as``.
+            aliases.update(a.asname for a in node.names if a.asname and a.name.endswith(".main"))
+        elif isinstance(node, ast.ImportFrom) and (node.module or "") == "api":
+            aliases.update(a.asname or a.name for a in node.names if a.name == "main")
     return aliases
+
+
+def _main_attribute(node: ast.AST, aliases: set[str]) -> str | None:
+    """اسمُ السمة إن كانت وصولاً إلى ``api.main`` — بالشكلين المربوطَين فعلاً.
+
+    ``main.X`` حيث ``main`` اسمٌ مربوط · و``api.main.X`` المنقوط (الذي يربطه
+    ``import api.main``). وبلا الثاني كان الحارسُ أعمى عن الشكل الأشيَع.
+    """
+    if not isinstance(node, ast.Attribute) or node.attr.startswith("__"):
+        return None
+    value = node.value
+    if isinstance(value, ast.Name) and value.id in aliases:
+        return node.attr
+    if (
+        isinstance(value, ast.Attribute)
+        and value.attr == "main"
+        and isinstance(value.value, ast.Name)
+        and value.value.id == "api"
+    ):
+        return node.attr
+    return None
 
 
 def scan() -> list[str]:
@@ -163,15 +201,10 @@ def scan() -> list[str]:
                         )
 
             # ② مرجعُ ``main.X`` غيرُ معرَّفٍ في ``main.py`` — يُحَلّ وقتَ النداء فيمرّ صامتاً.
-            if (
-                isinstance(node, ast.Attribute)
-                and isinstance(node.value, ast.Name)
-                and node.value.id in aliases
-                and not node.attr.startswith("__")
-                and node.attr not in exported
-            ):
+            attr = _main_attribute(node, aliases)
+            if attr is not None and attr not in exported:
                 failures.append(
-                    f"{rel}:{node.lineno}: main.{node.attr} — غيرُ معرَّفٍ في api/main.py. "
+                    f"{rel}:{node.lineno}: main.{attr} — غيرُ معرَّفٍ في api/main.py. "
                     "تُحَلّ السمةُ وقتَ النداء، فلا الاستيرادُ يفشل ولا المُدقِّقُ يشتكي."
                 )
 

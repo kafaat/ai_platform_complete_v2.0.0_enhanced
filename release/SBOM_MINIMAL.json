@@ -25315,7 +25315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9e77eae308e93210d902af7ba388f00ed860653002b7c1a1e3867db4411132c8"
+          "content": "16cebb56da6ae9e8465ca652c731dcf7793db27e22b04db55c40f88220daa24d"
         }
       ],
       "name": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",

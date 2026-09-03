@@ -59,9 +59,26 @@ def _evidence_guard():
 
 
 def _load(path: Path) -> dict:
+    """**لا ترمي أبداً.** مخرَجُ هذا الملفّ JSON آليّ، والحكمُ يخصّ `check_files()`.
+
+    تصويبٌ من مراجعةٍ آليّة: ملفُّ دليلٍ واحدٌ تالفٌ أو مكتوبٌ جزئيّاً كان يقلب
+    السكربتَ من JSON إلى `JSONDecodeError` **قبل** أن يبلغ الحارسَ الصارم الذي يملك
+    رسالةَ الرفض المفهومة. وهو بعينه ما وقع لي هنا من الجهة الأخرى: مخرَجُ الحارس
+    على `stdout` أفسد JSON المُحكِّم، فكُتِم بـ`redirect_stdout`. **الطرفان صنفٌ
+    واحد: عطلٌ في الأداة يُقرأ حكماً على المُدخَل.**
+
+    والقراءةُ الفاشلة تُصنَّف صراحةً `unreadable` — لا `verified` ولا إعفاءً — فتسقط
+    من شرط `states_ok`، ويبقى تفصيلُ الرفض حيث الصرامة.
+    """
     if not path.exists():
         return {"status": "missing", "timestamp_utc": None}
-    return json.loads(path.read_text(encoding="utf-8"))
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return {"status": "unreadable", "timestamp_utc": None}
+    if not isinstance(payload, dict):  # قائمةٌ أو رقمٌ في موضع كائن ⇒ ليس دليلاً
+        return {"status": "unreadable", "timestamp_utc": None}
+    return payload
 
 
 def main(*, require_certified: bool = False) -> int:

@@ -15,12 +15,22 @@ from api.routers import irrigation_mpc as mod
 
 
 class _FakeUser:
+    """بديلٌ **كامل السمات** — والنقصُ هنا كان جزءاً من العطل.
+
+    `main.tenant_connection` تقرأ من وسيطها `tenant_id` و`user_id` و`role`. وكان هذا
+    البديلُ يحمل `tenant_id` وحدَه، وكان `_fake_tenant_conn` يستقبل مُعرِّفاً لا كائناً
+    — فوافق البديلان الشكلَ الخاطئ في المصدر ولم يُظهراه. **بديلٌ أنحفُ من العقد
+    لا يقيس العقد.**
+    """
+
     def __init__(self, tenant_id: str):
         self.tenant_id = tenant_id
+        self.user_id = "user-1"
+        self.role = "viewer"
 
 
 @contextlib.asynccontextmanager
-async def _fake_tenant_conn(tenant_id):
+async def _fake_tenant_conn(user):
     yield object()  # conn لا يُستعمَل فعليّاً (المنسّق مُموَّه)
 
 
@@ -28,8 +38,8 @@ async def _fake_tenant_conn(tenant_id):
 async def test_hourly_recommendation_delegates_and_is_server_owned(monkeypatch):
     seen = {}
 
-    async def fake_owns(tenant_id, field_id):
-        seen["owns"] = (tenant_id, field_id)
+    async def fake_owns(user, field_id):
+        seen["owns"] = (user, field_id)
         return True
 
     async def fake_orch(conn, *, tenant_id, field_id, horizon_hours, persist):
@@ -52,10 +62,17 @@ async def test_hourly_recommendation_delegates_and_is_server_owned(monkeypatch):
     monkeypatch.setattr(mod, "tenant_connection", _fake_tenant_conn)
 
     req = mod.HourlyRecommendationRequest(horizon_hours=24, persist=False)
-    out = await mod.irrigation_mpc_hourly_recommendation("field-1", req, user=_FakeUser("tenant-A"))
+    user = _FakeUser("tenant-A")
+    out = await mod.irrigation_mpc_hourly_recommendation("field-1", req, user=user)
 
     # tenant من JWT لا من الجسم؛ horizon/persist مُمرَّران بأمانة.
-    assert seen["owns"] == ("tenant-A", "field-1")
+    # **والمرساةُ قُلِبت لا حُذِفت:** كانت تؤكّد `("tenant-A", "field-1")` — أي أنّ
+    # المسار يمرّر مُعرِّفَ المستأجِر عارياً، وهو بعينه خطأُ النوع الذي كان يُترجَم إلى
+    # ٥٠٣/blocked. والنيّةُ («المستأجِر من الهويّة المُصادَقة لا من الجسم») تبقى
+    # مُقاسةً — بل أدقّ: يُطابَق **الكائنُ نفسُه** لا نسخةٌ من حقله، ويبقى
+    # `tenant-A` مُتحقَّقاً منه حيث يصل فعلاً (المنسّق).
+    assert seen["owns"] == (user, "field-1")
+    assert seen["owns"][0].tenant_id == "tenant-A"
     assert seen["orch"] == {
         "tenant_id": "tenant-A",
         "field_id": "field-1",
@@ -69,7 +86,7 @@ async def test_hourly_recommendation_delegates_and_is_server_owned(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_hourly_recommendation_blocks_unowned_field_without_orchestrating(monkeypatch):
-    async def fake_owns(tenant_id, field_id):
+    async def fake_owns(user, field_id):
         return False
 
     def _boom(*a, **k):  # يجب ألّا يُستدعى المنسّق للحقل غير المملوك
@@ -87,7 +104,7 @@ async def test_hourly_recommendation_blocks_unowned_field_without_orchestrating(
 
 @pytest.mark.asyncio
 async def test_hourly_recommendation_pins_recommendation_only_on_blocked(monkeypatch):
-    async def fake_owns(tenant_id, field_id):
+    async def fake_owns(user, field_id):
         return True
 
     async def fake_orch(conn, **kwargs):

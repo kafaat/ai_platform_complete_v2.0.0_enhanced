@@ -89,7 +89,7 @@ def _load(name: str, path: Path):
     return module
 
 
-def _adjudicate(*, patch=None, target=None, env=None, waiver=None) -> dict:
+def _adjudicate(*, patch=None, target=None, env=None, waiver=None, corrupt=None) -> dict:
     """يُشغّل الحكمَ على دليلٍ مُصطنَعٍ في **رملٍ معزول** — لا تُمَسّ أدلّةُ المستودع."""
     sandbox = Path(tempfile.mkdtemp()) / "evidence"
     sandbox.mkdir(parents=True)
@@ -107,6 +107,10 @@ def _adjudicate(*, patch=None, target=None, env=None, waiver=None) -> dict:
             body = {**body, **patch}
         (sandbox / name).write_text(json.dumps(body), encoding="utf-8")
 
+    if corrupt is not None:
+        # JSON مبتورٌ — كما يقع عند كتابةٍ جزئيّةٍ أو انقطاعِ وظيفة.
+        (sandbox / corrupt).write_text('{"status": "veri', encoding="utf-8")
+
     # البيانُ يُعاد توليدُه **بعد** كتابة الأدلّة — وإلّا كان الانحرافُ من المِسبار.
     guard.MANIFEST.write_text(
         json.dumps(guard.manifest_payload(), indent=2, ensure_ascii=False) + "\n",
@@ -117,7 +121,18 @@ def _adjudicate(*, patch=None, target=None, env=None, waiver=None) -> dict:
     adjudicator.EVIDENCE_DIR = sandbox
     adjudicator._evidence_guard = lambda: guard
 
+    # **الرملُ يملك بيئتَه، ولا يرثها.** ``_check_provenance`` يطابق ``repository``
+    # و``workflow`` ضدّ متغيّرَي البيئة **متى كانا مضبوطَين**. محلّيّاً هما غائبان
+    # فيُتخطّى الفحص ويمرّ كلُّ شيء؛ وفي CI هما مضبوطان (``GITHUB_WORKFLOW`` =
+    # «SAHOOL v9.1.0 CI») فيُرفَض دليلُ الرمل كلُّه لعدم المطابقة — فسقطت سبعُ حالات
+    # **بسببٍ غير الذي تقيسه**، ومنها حالتان سويّتان.
+    #
+    # وهذا **بعينه صنفُ العطل الذي يعالجه هذا الـPR**، منقلباً على اختباري: خضرةٌ
+    # محلّيّةٌ مصدرُها أنّ البيئةَ تنقص ما يُشعِل الفحص. فيُنزَع المتغيّران صراحةً،
+    # ولا يُضبَطان إلّا في الحالتين اللتين **تقيسان المطابقة نفسَها**.
     previous = dict(os.environ)
+    for _leaked in ("GITHUB_REPOSITORY", "GITHUB_WORKFLOW"):
+        os.environ.pop(_leaked, None)
     if env:
         os.environ.update(env)
     try:
@@ -141,6 +156,21 @@ def test_complete_and_valid_evidence_is_certified():
 def test_a_waiver_carrying_all_five_conditions_is_accepted():
     out = _adjudicate(waiver=_VALID_WAIVER)
     assert out["production_certified"] is True, out["evidence_pack_error"]
+
+
+def test_a_corrupt_evidence_file_yields_a_verdict_not_a_stacktrace():
+    """تصويبُ مراجعةٍ آليّة: مخرَجُ المُحكِّم JSON آليّ، لا `JSONDecodeError`.
+
+    ملفُّ دليلٍ تالفٌ أو مكتوبٌ جزئيّاً كان يقلب السكربتَ إلى stacktrace **قبل** أن
+    يبلغ الحارسَ الصارم الذي يملك رسالةَ الرفض. وهو الطرفُ الآخر من العطل الذي وقع
+    لي هنا: مخرَجُ الحارس على `stdout` أفسد JSON المُحكِّم. **صنفٌ واحد: عطلٌ في
+    الأداة يُقرأ حكماً على المُدخَل.** والتالفُ يُصنَّف `unreadable` — لا `verified`
+    ولا إعفاءً — فلا اعتماد.
+    """
+    out = _adjudicate(corrupt="guard_results_summary.json")
+    assert out["production_certified"] is False
+    statuses = {row["blocker_id"]: row["status"] for row in out["blockers"]}
+    assert "unreadable" in statuses.values(), statuses
 
 
 # ── ② الحكمُ يقرأ القائمةَ الواحدة، لا قائمةً ثانية ──────────────────────

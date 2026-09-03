@@ -25,6 +25,7 @@ from __future__ import annotations
 import ast
 import asyncio
 import importlib.util
+import sys
 import textwrap
 import uuid
 from contextlib import asynccontextmanager
@@ -241,12 +242,34 @@ def test_the_sandbox_itself_is_clean_before_any_mutation(tmp_path):
             "tenant_connection(tenant_id)",
         ),
         (
-            "مرجعُ main.X غيرُ معرَّف",
+            "مرجعُ main.X غيرُ معرَّف — from api import main",
             """
             from api import main
 
             async def route(tenant_id):
                 async with main.tenant_connection_for(tenant_id) as conn:
+                    return conn
+            """,
+            "main.tenant_connection_for",
+        ),
+        (
+            "مرجعُ main.X غيرُ معرَّف — import api.main as main",
+            """
+            import api.main as main
+
+            async def route(tenant_id):
+                async with main.tenant_connection_for(tenant_id) as conn:
+                    return conn
+            """,
+            "main.tenant_connection_for",
+        ),
+        (
+            "مرجعُ main.X غيرُ معرَّف — الشكلُ المنقوط api.main.X",
+            """
+            import api.main
+
+            async def route(tenant_id):
+                async with api.main.tenant_connection_for(tenant_id) as conn:
                     return conn
             """,
             "main.tenant_connection_for",
@@ -257,3 +280,44 @@ def test_each_planted_class_reddens_for_its_own_reason(tmp_path, case, body, exp
     problems = _guard(**_sandbox(tmp_path, body)).scan()
     assert problems, f"{case}: الطفرةُ نجت"
     assert any(expected in p for p in problems), f"{case}: احمرّ لسببٍ آخر — {problems}"
+
+
+# ── ④ تصويبُ مراجعةٍ آليّة: ما الذي يربطه كلُّ شكلِ استيراد **فعلاً** ─────
+def test_a_dotted_import_binds_only_its_top_package(tmp_path):
+    """`import api.main` يربط ``api`` لا ``main`` — مقيسٌ بالتنفيذ لا مُستنتَجاً.
+
+    كان الحارسُ يشتقّ الاسمَ بـ`split(".")[-1]` فيُسجّل ``main``، وهو اسمٌ **غيرُ
+    موجودٍ في نطاق الملفّ**: لا يمسك الشكلَ المنقوط، وقد يمسك متغيّراً محلّيّاً
+    اسمُه ``main`` لا علاقةَ له ⇒ إنذارٌ كاذب.
+    """
+    package = tmp_path / "pkg"
+    package.mkdir()
+    (package / "__init__.py").write_text("", encoding="utf-8")
+    (package / "mod.py").write_text("VALUE = 1\n", encoding="utf-8")
+    sys.path.insert(0, str(tmp_path))
+    try:
+        bindings = {}
+        for statement in ("import pkg.mod", "import pkg.mod as m", "from pkg import mod"):
+            namespace: dict = {}
+            exec(statement, namespace)  # noqa: S102 - الربطُ هو المقيس
+            bindings[statement] = sorted(k for k in namespace if not k.startswith("__"))
+    finally:
+        sys.path.remove(str(tmp_path))
+
+    assert bindings["import pkg.mod"] == ["pkg"], bindings
+    assert bindings["import pkg.mod as m"] == ["m"]
+    assert bindings["from pkg import mod"] == ["mod"]
+
+
+def test_an_unrelated_local_named_main_is_not_a_false_positive(tmp_path):
+    """`import api.main` لا يربط ``main``، فمتغيّرٌ محلّيٌّ بذاك الاسم ليس الوحدة."""
+    env = _sandbox(
+        tmp_path,
+        """
+        import api.main
+
+        def route(main):
+            return main.anything_at_all
+        """,
+    )
+    assert _guard(**env).scan() == []
