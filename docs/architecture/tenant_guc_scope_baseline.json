@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "21b0af36d0d312871ce810f716e95ae79d0a8f42",
+  "measured_on": "9954640cace988a7b0eac77f886640c01fa48242",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "b42a6c50c70f190f15557228d3d10c8392aa39f245ae45c122de6efb7cda785b",
+  "measurement_input_digest": "5e9e07397b82227bac56cbb4c0dd9e656908e78309a4800956757b500ff08052",
   "measurement_algorithm_digest": "5e1674674f2856600b7a8a67f9e383a7f122d1f39acd605826ec75bd98fc4641",
-  "measurement_basis_digest": "3f72739ccfb4802aa8ea102121e974b0b336c2c2c802067b68801aebb266382a",
+  "measurement_basis_digest": "2fb46f9cd4dd81c1021ef2e19d2294871ed860daa2dba5a82a15727ff06770d9",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -56,11 +56,11 @@
     },
     {
       "path": "services/mcp_servers/market_db_authz.py",
-      "sha256": "2b8b92cf3bd49a18f4d4749f2b9b4885ad77e944473e109b66df5235153c6986"
+      "sha256": "7640cb6b5fd99bf5029a8c5981c31495a92e3bb5ad652b9425cb6689d515a761"
     },
     {
       "path": "services/mcp_servers/market_server.py",
-      "sha256": "c751c5046c282971786767908355c008e31631ee3dc12dbf971abb8d54ee65b9"
+      "sha256": "5889e99da5772bb8ac94a717f5a3dcd944a5cf6328d2aa93930a9aa9b806f2d8"
     },
     {
       "path": "services/mcp_servers/shared/oauth_middleware.py",
@@ -171,6 +171,19 @@
   "offenders": [
     "agents/base_agent.py:50",
     "services/auth/main.py:983",
+    "services/mcp_servers/market_db_authz.py:95",
+    "services/mcp_servers/market_server.py:161",
+    "services/mcp_servers/market_server.py:176",
+    "services/mcp_servers/market_server.py:225",
+    "services/mcp_servers/market_server.py:289",
+    "services/mcp_servers/market_server.py:330",
+    "services/mcp_servers/market_server.py:391",
+    "services/mcp_servers/market_server.py:406",
+    "services/mcp_servers/market_server.py:435",
+    "services/mcp_servers/market_server.py:485",
+    "services/mcp_servers/market_server.py:507",
+    "services/mcp_servers/market_server.py:705",
+    "services/mcp_servers/market_server.py:728",
     "services/mcp_servers/shared/oauth_middleware.py:34",
     "services/mcp_servers/shared/oauth_middleware.py:38",
     "services/raster-service/backfill_scan_worker.py:101",
