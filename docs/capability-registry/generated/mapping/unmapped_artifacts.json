@@ -6984,6 +6984,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_certification_verdict_is_not_forgeable.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_certify_artifact_contract.py",
     "kind": "tests"
   },

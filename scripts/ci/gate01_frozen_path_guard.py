@@ -47,6 +47,8 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -97,6 +99,96 @@ def canonical_patch_digest(blobs: dict[str, str]) -> str:
     """بصمة البايتات المأذونة — الوصفة مُعلَنة في التفويض نفسه فتُراجَع لا تُخمَّن."""
     canon = "".join(f"{p}\0{blobs[p]}\n" for p in sorted(blobs))
     return hashlib.sha256(canon.encode("utf-8")).hexdigest()
+
+
+#: مجلّداتٌ لا يقع فيها مصدرٌ محكوم، ومشيُها كان الكلفةَ الباقية بعد تسريع #970.
+_WALK_PRUNED_DIRS = frozenset(
+    {".git", "node_modules", ".venv", "venv", "__pycache__", ".pytest_cache", "dist", "build"}
+)
+
+
+def _migration_version(name: str) -> str | None:
+    """رقمُ إصدار الهجرة من اسمها (``v228_worker_claim_lease.sql`` ⇒ ``v228``)."""
+    match = re.match(r"(v\d+)_", name)
+    return match.group(1) if match else None
+
+
+def alias_candidates(frozen_path: str, root: Path = ROOT) -> list[str]:
+    """ملفّاتٌ حيّةٌ **تبدو** هي المسارَ المجمَّد الغائب تحت اسمٍ آخر.
+
+    قاعدتان، وكلتاهما مُشتقّةٌ من عطلٍ وقع لا من تخيّل:
+
+    - **رقمُ الإصدار** — التجميدُ سمّى ``v228_phase_runtime_claim_leases.sql``
+      وأُنشئ ``v228_worker_claim_lease.sql``. أرقامُ الهجرات فريدةٌ بالعقد، فالرقمُ
+      هو الهويّةُ والاسمُ وصف.
+    - **الاسمُ الأساسيّ في مجلّدٍ آخر** — التجميدُ سمّى ``migrations/run_migrations.sql``
+      **ولم يوجد قطّ** (صفرُ التزاماتٍ في كامل التاريخ)، والمُشغِّلُ الحقيقيُّ
+      ``scripts_v9/run_migrations.sql`` قائمٌ منذ أوّل التزام.
+    """
+    target = Path(frozen_path)
+    version = _migration_version(target.name)
+    out: set[str] = set()
+
+    # مشيٌ **مُقلَّم**: `rglob` يهبط في `.git` و`node_modules` ثمّ نرفض نتائجَها بعد أن
+    # دفعنا ثمنَ المشي. والفرقُ مقيسٌ على هذه الشجرة لكلّ المسارات العشرة:
+    # ١٤١٩مس (قبل التسريع) ⇒ ٩١٢مس (`rglob` بالاسم) ⇒ **٩٧مس** بالتقليم. والمشيُ
+    # هو الكلفةُ لا عددُ النتائج، فالتقليمُ قبل الهبوط لا بعده.
+    for parent, directories, names in os.walk(root):
+        directories[:] = [d for d in directories if d not in _WALK_PRUNED_DIRS]
+        if target.name in names:
+            rel = (Path(parent) / target.name).relative_to(root).as_posix()
+            if rel != frozen_path:
+                out.add(rel)
+
+    if version is not None:
+        parent = root / target.parent
+        if parent.is_dir():
+            for candidate in parent.glob(f"{version}_*{target.suffix}"):
+                rel = candidate.relative_to(root).as_posix()
+                if rel != frozen_path and "node_modules" not in rel and not rel.startswith(".git/"):
+                    out.add(rel)
+
+    return sorted(out)
+
+
+def alias_escape_errors(policy: dict, root: Path = ROOT) -> list[str]:
+    """مسارٌ مُجمَّدٌ غائبٌ وله نظيرٌ حيّ ⇒ **التجميدُ يحرس اسماً لا ملفّاً**.
+
+    **العطلُ الذي وُجِد هذا الفحص لأجله، وقع مرّتين وبصنفين مختلفين:**
+
+    ``v228`` — التجميدُ يعني «لا تُنشئه»، فأُنشئ باسمٍ آخر ودُمِج في #954 والحارسُ
+    صامت. النيّةُ خُرِقت والحرفُ سليم.
+
+    ``run_migrations.sql`` — أسوأُ صنفاً: المسارُ المجمَّد **لم يوجد قطّ**، والمُشغِّلُ
+    الحقيقيُّ خارج التجميد منذ #837. أي أنّ الحراسةَ كانت **فارغةً منذ كُتِبت**،
+    و#954 عدّلت المُشغِّلَ الحقيقيّ (+٣ أسطر) بلا أن يُبلِّغ شيء.
+
+    ولا يُقرَأ هذا حكماً بأنّ الملفّ يجب أن يُجمَّد — يُقرَأ **إبلاغاً بأنّ السياسة
+    تناقض الشجرة**: إمّا الاسمُ خطأٌ فيُصحَّح، أو النظيرُ دخيلٌ فيُزال. وكلاهما
+    قرارُ مالكٍ لأنّه يُغيّر ما تحرسه البوّابة فعلاً.
+    """
+    declared_absent = set(policy.get("not_yet_in_tree") or [])
+    acknowledged = policy.get("alias_mismatch_acknowledged") or {}
+    errors: list[str] = []
+    for frozen_path in policy.get("frozen_paths") or []:
+        if (root / frozen_path).exists() or frozen_path not in declared_absent:
+            continue
+        aliases = alias_candidates(frozen_path, root)
+        if not aliases:
+            continue
+        # الإقرارُ **ضيّقٌ بالبناء**: يُسمّي النظيرَ بعينه. فنظيرٌ جديد لنفس المسار
+        # المجمَّد يبقى حاجباً — وإلّا صار الحقلُ بابَ تجاوزٍ دائماً بدل أن يكون
+        # تسجيلَ حالةٍ معروفةٍ تنتظر حكماً. راتشِتٌ يحفظ المعروف ويمنع القادم.
+        entry = acknowledged.get(frozen_path) or {}
+        known = entry.get("live_alias")
+        if known is not None and aliases == [known]:
+            continue
+        extra = [a for a in aliases if a != known]
+        errors.append(
+            f"{frozen_path}: مُعلَنُ الغياب ولكنّ نظيراً حيّاً موجود {extra} — "
+            "التجميدُ يحرس اسماً لا ملفّاً. صحّح المسار في السياسة أو أزِل النظير."
+        )
+    return errors
 
 
 def blob_sha(path: str, root: Path = ROOT) -> str | None:
@@ -300,6 +392,10 @@ def main(argv: list[str] | None = None) -> int:
     frozen = set(policy.get("frozen_paths") or [])
     frozen_touched = {p for p in changed if p in frozen}
     errors = list(errors) + stale_authorization_errors(adjudications, frozen_touched, blobs)
+    # فحصُ النظائر يجري **دائماً** كفحصِ دورة الحياة: تجميدٌ يحرس اسماً لا ملفّاً لا
+    # يُكتشَف بالمسّ — يُكتشَف بوجود النظير. ولو رُبِط بالمسّ لبقي صامتاً إلى أن يمسّه
+    # أحدٌ، وهو الأوان الذي وُجِد ليسبقه.
+    errors = errors + alias_escape_errors(policy)
     if errors:
         print("gate01_frozen_path_guard_failed")
         for e in errors:
