@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5239,
+    "files_scanned": 5242,
     "files_by_kind": {
       "backend": 1204,
       "database": 276,
       "governance": 62,
       "mobile": 51,
-      "other": 1434,
-      "tests": 1755,
+      "other": 1435,
+      "tests": 1757,
       "web": 457
     },
-    "unmapped_artifacts": 2136,
+    "unmapped_artifacts": 2137,
     "ambiguous_artifacts": 418
   },
   "capabilities": [
@@ -3519,6 +3519,10 @@
           "score": 14
         },
         {
+          "value": "services.sahool-platform.api @ scripts/ci/tenant_connection_call_shape_guard.py:137",
+          "score": 14
+        },
+        {
           "value": "v161_soil_p1_products.sql @ tests_v9/test_tenant_guc_name_convergence_guard.py:69",
           "score": 14
         },
@@ -3692,6 +3696,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_tenant_connection_call_shape.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "tests_v9/test_tenant_context_is_pinned_by_a_transaction.py",
           "score": 14,
           "signals": [
@@ -3783,6 +3795,14 @@
           ]
         },
         {
+          "path": "scripts/ci/tenant_connection_call_shape_guard.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "scripts/ci/tenant_guc_name_convergence_guard.py",
           "score": 14,
           "signals": [
@@ -3847,12 +3867,12 @@
         "backend": 15,
         "routes": 2,
         "database": 20,
-        "events": 5,
+        "events": 6,
         "web": 1,
         "mobile": 0,
-        "tests": 26,
+        "tests": 27,
         "governance": 0,
-        "other_evidence": 11
+        "other_evidence": 12
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -11875,11 +11895,11 @@
           "score": 20
         },
         {
-          "value": "/internal/events/ai-advice @ services/sahool-platform/api/routers/internal_service.py:137",
+          "value": "/internal/events/ai-advice @ services/sahool-platform/api/routers/internal_service.py:163",
           "score": 20
         },
         {
-          "value": "/internal/fields/{field_id}/state @ services/sahool-platform/api/routers/internal_service.py:25",
+          "value": "/internal/fields/{field_id}/state @ services/sahool-platform/api/routers/internal_service.py:51",
           "score": 20
         }
       ],
@@ -42093,6 +42113,10 @@
     },
     {
       "path": "tests_v9/test_certification_regression_fixes.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_certification_verdict_is_not_forgeable.py",
       "kind": "tests"
     },
     {

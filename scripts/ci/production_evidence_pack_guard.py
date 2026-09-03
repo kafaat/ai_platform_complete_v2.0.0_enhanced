@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -80,6 +81,89 @@ TEMPLATE_STATUS = {
     "non_waivable_blockers": ["P-CERT-1", "P-CERT-2", "P-CERT-4", "GUARDS"],
     "policy": "Do not set production_certified until every non-waivable blocker has verified evidence from target CI/deployment.",
 }
+
+
+# ═══ قياسُ القيم لا المفاتيح ═══════════════════════════════════════
+#
+# **العطلُ الذي وُجِدت هذه الكتلة لأجله مُكذَّبٌ بالتنفيذ لا موصوف:** أربعةُ ملفّات
+# JSON مكتوبةٍ باليد أنتجت `production_certified=true` وخروجاً `0` — ببصمةٍ من
+# **أربعين صفراً**، و`repository: attacker/x`، وقوائمَ فارغة، وقيمِ `null`.
+# فالحقلُ كان يُفحَص **حضوراً** والبصمةُ **شكلاً**، وكلاهما يُرضيه المُختلَق.
+
+
+#: بصماتٌ صحيحةُ الشكل ومنحلّةُ المضمون — تمرّ `[0-9a-f]{40}` ولا تشير إلى شيء.
+def _is_degenerate_sha(value: str) -> bool:
+    """بصمةٌ من رمزٍ واحدٍ مكرَّر (أربعون صفراً · أربعون `a`) ليست التزاماً.
+
+    لا يُدَّعى أنّ هذا يُثبت وجودَ الالتزام — يُثبت فقط أنّ المُدخَل **لم يُختلَق
+    بأسهل طريقة**. والإثباتُ الحقيقيّ attestation موقَّعة، وهي مُسجَّلةٌ ديناً.
+    """
+    return len(set(value)) <= 1
+
+
+def _is_substantive(value: object) -> bool:
+    """قيمةٌ تحمل مضموناً: لا `None` ولا فراغٌ ولا قائمةٌ/خريطةٌ خاوية.
+
+    و**`False` و`0` مضمونٌ مشروع** — فحصُ الصدق وحده كان سيرفضهما، وهو الخطأ
+    المعاكس: رفضُ رصدٍ حقيقيّ لأنّه يساوي صفراً.
+    """
+    if value is None:
+        return False
+    if isinstance(value, str):
+        return bool(value.strip())
+    if isinstance(value, (list, tuple, dict, set)):
+        return len(value) > 0
+    return True
+
+
+#: شروطُ الإعفاء الخمسة — سببٌ ومالكٌ ونطاقٌ وانقضاءٌ وموافقٌ مستقلّ.
+#
+# **ولمَ خمسة:** كان `waived_with_reason` يمرّ بمقارنةِ **اسم الحالة** وحدَه، ولا
+# يُقرأ حقلُ سببٍ البتّة — فالكلمةُ في الاسم لا في البيانات. أي أنّ «مُعفًى بسببٍ»
+# كان اسماً لا شرطاً.
+_WAIVER_REQUIRED_FIELDS = ("reason", "owner", "scope", "expiry", "approver")
+
+
+def _check_waiver(path: Path, data: dict) -> None:
+    missing = [f for f in _WAIVER_REQUIRED_FIELDS if not _is_substantive(data.get(f))]
+    if missing:
+        raise SystemExit(f"{path} waived but missing/empty waiver fields: {', '.join(missing)}")
+    try:
+        expiry = datetime.fromisoformat(str(data["expiry"])).date()
+    except ValueError as exc:
+        raise SystemExit(f"{path} waiver expiry is not an ISO date") from exc
+    if expiry < datetime.now(UTC).date():
+        raise SystemExit(f"{path} waiver expired {expiry} — renew deliberately or close the gap")
+    # موافقٌ مستقلّ: مَن يُنفّذ لا يُوافِق على إعفاء نفسِه.
+    if str(data["approver"]).strip().lower() == str(data["owner"]).strip().lower():
+        raise SystemExit(f"{path} waiver approver must differ from owner (independent approval)")
+
+
+def _check_provenance(path: Path, data: dict) -> None:
+    """يربط الدليلَ بمستودعٍ وworkflow والتزامٍ **مطابقٍ للبيئة الفعليّة**.
+
+    وخارج CI لا تُفرَض المطابقةُ (لا `GITHUB_*`) — يبقى الشكلُ مفروضاً. وهذا حدُّ
+    صدقٍ مُعلَن: **الشكلُ يُقاس دائماً، والمطابقةُ حيث تُتاح**.
+    """
+    provenance_fields = ["repository", "workflow", "workflow_run_id", "commit"]
+    missing_provenance = [f for f in provenance_fields if not _is_substantive(data.get(f))]
+    if missing_provenance:
+        raise SystemExit(
+            f"{path} verified but missing CI provenance: {', '.join(missing_provenance)}"
+        )
+    commit = str(data["commit"])
+    if not re.fullmatch(r"[0-9a-f]{40}", commit):
+        raise SystemExit(f"{path} verified with invalid commit SHA")
+    if _is_degenerate_sha(commit):
+        raise SystemExit(
+            f"{path} verified with a degenerate commit SHA ({commit[:8]}…) — not a commit"
+        )
+    for field, env in (("repository", "GITHUB_REPOSITORY"), ("workflow", "GITHUB_WORKFLOW")):
+        actual = os.environ.get(env)
+        if actual and str(data[field]) != actual:
+            raise SystemExit(
+                f"{path} {field}={data[field]!r} does not match this environment ({actual!r})"
+            )
 
 
 def _placeholder(item: dict) -> dict:
@@ -156,20 +240,17 @@ def check_files() -> None:
         status = data.get("status")
         if status == "production_certified":
             raise SystemExit(f"{p} must use verified, not production_certified")
-        if status == "waived_with_reason" and not item["waivable"]:
-            raise SystemExit(f"{item['id']} is non-waivable")
+        if status == "waived_with_reason":
+            if not item["waivable"]:
+                raise SystemExit(f"{item['id']} is non-waivable")
+            _check_waiver(p, data)
         if status == "verified":
-            missing = [f for f in item["minimum_fields"] if f not in data]
+            # **قيمةٌ لا مفتاح.** كان الشرطُ `f not in data`، فقائمةٌ فارغةٌ أو `null`
+            # تُرضيه — وهو ما مرّ به الدليلُ المُختلَق في التكذيب.
+            missing = [f for f in item["minimum_fields"] if not _is_substantive(data.get(f))]
             if missing:
-                raise SystemExit(f"{p} verified but missing fields: {', '.join(missing)}")
-            provenance_fields = ["repository", "workflow", "workflow_run_id", "commit"]
-            missing_provenance = [f for f in provenance_fields if not data.get(f)]
-            if missing_provenance:
-                raise SystemExit(
-                    f"{p} verified but missing CI provenance: {', '.join(missing_provenance)}"
-                )
-            if not re.fullmatch(r"[0-9a-f]{40}", str(data["commit"])):
-                raise SystemExit(f"{p} verified with invalid commit SHA")
+                raise SystemExit(f"{p} verified but missing/empty fields: {', '.join(missing)}")
+            _check_provenance(p, data)
             try:
                 timestamp = datetime.fromisoformat(
                     str(data["timestamp_utc"]).replace("Z", "+00:00")

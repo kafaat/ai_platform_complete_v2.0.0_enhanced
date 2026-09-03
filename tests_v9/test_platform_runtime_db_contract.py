@@ -29,29 +29,31 @@ def test_routers_never_snapshot_db_pool_from_main() -> None:
 
 
 @pytest.mark.unit
-def test_routers_do_not_pass_scalar_tenant_to_user_connection() -> None:
-    offenders: list[str] = []
-    for path in sorted(ROUTERS.glob("*.py")):
-        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        for node in ast.walk(tree):
-            if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Name):
-                continue
-            if node.func.id != "tenant_connection" or not node.args:
-                continue
-            arg = node.args[0]
-            scalar_name = isinstance(arg, ast.Name) and arg.id == "tenant_id"
-            scalar_attr = (
-                isinstance(arg, ast.Attribute)
-                and isinstance(arg.value, ast.Name)
-                and arg.value.id == "user"
-                and arg.attr == "tenant_id"
-            )
-            if scalar_name or scalar_attr:
-                offenders.append(f"{path.name}:{node.lineno}")
-    assert offenders == [], (
-        "tenant_connection requires the authenticated user object, not a tenant scalar: "
-        + ", ".join(offenders)
+def test_the_call_shape_rule_has_exactly_one_definition() -> None:
+    """شكلُ نداء ``tenant_connection`` يُفرَض في موضعٍ **واحد** — لا هنا.
+
+    كان هذا الملفّ يحمل نسخةً ثانيةً من القاعدة
+    (``test_routers_do_not_pass_scalar_tenant_to_user_connection``)، وهي **أضعفُ**
+    من الحارس القانونيّ في محورين مقيسَين:
+
+    * **النطاق:** ``routers/*.py`` وحدَها مقابل كامل ``services/sahool-platform``.
+    * **العقد:** الاسم ``tenant_id`` مثبَّتٌ نصّاً، مقابل اشتقاقِ السمات من توقيع
+      ``tenant_connection`` نفسِه — فلو غُيِّر التوقيعُ غداً تبِع الحارسُ القانونيُّ
+      وتخلّفت النسخةُ هنا.
+
+    وحذفُها ليس تخفيفاً بل **إغلاقٌ لصنفٍ بعينه**: تعريفان لحقيقةٍ واحدة يتّفقان
+    اليوم وينحرفان غداً — وهو الصنفُ الذي أُغلِق في #973 في أخطر موضعَيه (حكمُ
+    الاعتماد وسياسةُ المطر). فيبقى هذا الملفّ على ما ينفرد به: لقطةُ ``_DB_POOL``.
+
+    وهذا الاختبارُ ليس تعليقاً: يُحمِّر إن زال الحارسُ القانونيُّ من الشجرة، فلا
+    يُحذَف المُنفرِدُ ويبقى الحذفُ هنا بلا بديل.
+    """
+    canonical = ROOT / "scripts" / "ci" / "tenant_connection_call_shape_guard.py"
+    assert canonical.is_file(), (
+        f"الحارسُ القانونيُّ لشكل النداء غائب؛ حُذِفت النسخةُ المكرَّرة من هنا اعتماداً عليه: {canonical}"
     )
+    source = canonical.read_text(encoding="utf-8")
+    assert "def contract()" in source, "الحارسُ لم يعد يشتقّ عقدَه من التوقيع"
 
 
 @pytest.mark.unit
