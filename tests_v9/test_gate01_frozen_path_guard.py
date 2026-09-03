@@ -311,9 +311,7 @@ def test_every_live_record_is_consistent_across_state_bytes_scope_and_lifecycle(
         if status == "ISSUED":
             # التفويض الحيّ يجب أن يطابق بايتات الشجرة التي سيأذن بها الآن.
             for path, declared in adj["authorized_blobs"].items():
-                assert guard.blob_sha(path) == declared, (
-                    f"{ident}/{path}: بايتاتٌ حيّة تخالف المُعلَن"
-                )
+                assert guard.blob_sha(path) == declared, f"{ident}/{path}: بايتاتٌ حيّة تخالف المُعلَن"
             errs, used = guard.evaluate(
                 sorted(adj["allowed_paths"]),
                 policy,
