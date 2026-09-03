@@ -183,9 +183,16 @@ def test_purge_removes_exactly_the_blocker_files(tmp_path: Path) -> None:
 @pytest.mark.unit
 def test_verdict_job_purges_before_downloading_artifacts() -> None:
     """المسحُ **قبل** الجلب لا بعده — العكسُ يمحو ما جلبه العدّاء ويُبقي المودَع."""
-    text = WORKFLOW.read_text(encoding="utf-8")
-    purge_at = text.index("--purge")
-    download_at = text.index("actions/download-artifact")
+    import yaml
+
+    workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
+    steps = workflow["jobs"]["certification-verdict"]["steps"]
+    purge_at = next(i for i, step in enumerate(steps) if "--purge" in str(step.get("run", "")))
+    download_at = next(
+        i
+        for i, step in enumerate(steps)
+        if "actions/download-artifact" in str(step.get("uses", ""))
+    )
     assert purge_at < download_at, "المسح يجب أن يسبق download-artifact"
 
 
@@ -271,7 +278,7 @@ def test_declaring_no_honest_producer_while_emitting_is_rejected(
     workflow_copy = tmp_path / "wf.yml"
     workflow_copy.write_text(
         WORKFLOW.read_text(encoding="utf-8")
-        + "\n# mutation:\n#   python scripts/ci/emit_certification_evidence.py --blocker P-CERT-3\n",
+        + "\npython scripts/ci/emit_certification_evidence.py --blocker P-CERT-3\n",
         encoding="utf-8",
     )
     contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
@@ -291,6 +298,24 @@ def test_declaring_no_honest_producer_while_emitting_is_rejected(
     out = capsys.readouterr().out
     assert "P-CERT-3" in out
     assert "no_honest_producer" in out and "يُبعَث" in out
+
+
+@pytest.mark.unit
+def test_commented_emission_is_not_counted(tmp_path: Path) -> None:
+    """ذكرُ الباعث في تعليقٍ كامل أو ذيل أمرٍ ليس انبعاثاً قابلاً للبلوغ."""
+    import importlib.util
+
+    source = tmp_path / "comments.yml"
+    source.write_text(
+        "# python scripts/ci/emit_certification_evidence.py --blocker P-CERT-3\n"
+        "run: echo measured # python scripts/ci/emit_certification_evidence.py --blocker P-CERT-4\n",
+        encoding="utf-8",
+    )
+    spec = importlib.util.spec_from_file_location("_producer_guard", PRODUCER_GUARD)
+    assert spec and spec.loader
+    guard = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(guard)
+    assert guard._emitted_blockers(source) == set()
 
 
 @pytest.mark.unit
