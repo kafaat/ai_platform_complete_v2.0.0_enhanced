@@ -14,7 +14,7 @@ guardrails-engine,service,sahool-guardrails-engine,decision-governance,system_of
 indicators-service,service,sahool-indicators-service,indicators,stateless_compute,services/indicators-service,sahool-indicators-service,sahool-indicators-service,0,True,True
 knowledge-graph,service,sahool-knowledge-graph,knowledge,stateless_compute,services/knowledge-graph,sahool-knowledge-graph,sahool-knowledge-graph,0,True,True
 local-ai-rag,service,sahool-local-ai-rag,knowledge,stateless_compute,services/local-ai-rag,sahool-local-ai-rag,sahool-local-ai-rag,0,True,True
-mcp_servers,service,sahool-market-mcp|sahool-sentinel-hub-mcp|sahool-weather-mcp|sahool-wofost-mcp,agents-mcp,stateless_compute,services/mcp_servers,sahool-market-mcp|sahool-sentinel-hub-mcp|sahool-weather-mcp|sahool-wofost-mcp,sahool-market-mcp|sahool-sentinel-hub-mcp|sahool-weather-mcp|sahool-wofost-mcp,0,True,True
+mcp_servers,service,sahool-market-mcp|sahool-sentinel-hub-mcp|sahool-weather-mcp|sahool-wofost-mcp,agents-mcp,system_of_record,services/mcp_servers,sahool-market-mcp|sahool-sentinel-hub-mcp|sahool-weather-mcp|sahool-wofost-mcp,sahool-market-mcp|sahool-sentinel-hub-mcp|sahool-weather-mcp|sahool-wofost-mcp,6,True,True
 mobile,mobile,,user-interface,presentation,mobile,,,0,,
 model-registry-adapter,worker_adapter,sahool-model-lifecycle-adapter,decision-governance,stateless_compute,services/model-registry-adapter,sahool-model-lifecycle-adapter,sahool-model-lifecycle-adapter,0,True,True
 notification-agent,worker,sahool-notification-agent,notifications,stateless_compute,agents/notification,sahool-notification-agent,sahool-notification-agent,0,,

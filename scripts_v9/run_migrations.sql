@@ -597,5 +597,7 @@
 \i migrations/v227_decision_learning_runtime.sql
 \echo '═══ 226. v228_worker_claim_lease.sql ═══'
 \i migrations/v228_worker_claim_lease.sql
-\echo '═══ 227. v206_rls_final_hardening.sql ═══'
+\echo '═══ 227. v229_market_mcp_schema.sql ═══'
+\i migrations/v229_market_mcp_schema.sql
+\echo '═══ 228. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

@@ -714,11 +714,41 @@ tables:
     writers: [field-management-service]
     readers: [sahool-platform]
     source: "migrations/v14_imagery_storage.sql"
+  market_analytics_snapshots:
+    owner: mcp_servers
+    writers: [mcp_servers]
+    readers: []
+    source: "migrations/v229_market_mcp_schema.sql"
+  market_price_history:
+    owner: mcp_servers
+    writers: [mcp_servers]
+    readers: []
+    source: "migrations/v229_market_mcp_schema.sql"
+  market_procurement_items:
+    owner: mcp_servers
+    writers: [mcp_servers]
+    readers: []
+    source: "migrations/v229_market_mcp_schema.sql"
+  market_procurement_orders:
+    owner: mcp_servers
+    writers: [mcp_servers]
+    readers: []
+    source: "migrations/v229_market_mcp_schema.sql"
+  market_products:
+    owner: mcp_servers
+    writers: [mcp_servers]
+    readers: []
+    source: "migrations/v229_market_mcp_schema.sql"
   market_sales_listings:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: []
     source: "migrations/v9_market.sql"
+  market_suppliers:
+    owner: mcp_servers
+    writers: [mcp_servers]
+    readers: []
+    source: "migrations/v229_market_mcp_schema.sql"
   marketplace_apps:
     owner: erp-bridge
     writers: [erp-bridge]

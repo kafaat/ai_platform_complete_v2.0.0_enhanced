@@ -91,15 +91,16 @@ async def batch_visible_under_tenant(batch_id: str, tenant_id: str | None) -> bo
     if conn is None:
         raise OwnerLookupUnavailable(f"connect failed for batch {batch_id}")
     try:
-        await conn.execute(
-            "SELECT set_config('app.current_tenant', $1, true)",
-            str(tenant_id) if tenant_id else "",
-        )
-        # RLS يقصر الرؤية على دفعات المستأجِر الحاليّ ⇒ صفّ مرئيّ = ملكيّة مُثبَتة.
-        row = await conn.fetchval(
-            "SELECT 1 FROM inventory_batches WHERE batch_id = $1 LIMIT 1",
-            str(batch_id),
-        )
+        async with conn.transaction():
+            await conn.execute(
+                "SELECT set_config('app.current_tenant', $1, true)",
+                str(tenant_id) if tenant_id else "",
+            )
+            # RLS يقصر الرؤية على دفعات المستأجِر الحاليّ ⇒ صفّ مرئيّ = ملكيّة مُثبَتة.
+            row = await conn.fetchval(
+                "SELECT 1 FROM inventory_batches WHERE batch_id = $1 LIMIT 1",
+                str(batch_id),
+            )
         return row is not None
     except Exception as e:  # noqa: BLE001 — DB مُهيّأة لكن الاستعلام/الجدول تعذّرا
         logger.warning(

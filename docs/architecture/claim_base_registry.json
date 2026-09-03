@@ -57,6 +57,7 @@
     "generated_chain_known_drift.json",
     "generated_sweep_unmapped_generators.json",
     "generated_write_targets.json",
+    "nats_subject_ownership_contract.json",
     "platform_extraction_map.json",
     "platform_python_module_baseline.json",
     "platform_shrink_ratchet.json",

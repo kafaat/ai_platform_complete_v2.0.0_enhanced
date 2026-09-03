@@ -16061,7 +16061,7 @@
         "sahool-weather-mcp",
         "sahool-wofost-mcp"
       ],
-      "authority_kind": "stateless_compute",
+      "authority_kind": "system_of_record",
       "canonical_name": "mcp_servers",
       "component_id": "mcp_servers",
       "component_kind": "service",
@@ -16089,7 +16089,14 @@
       ],
       "domain": "agents-mcp",
       "owns": {
-        "tables": []
+        "tables": [
+          "market_analytics_snapshots",
+          "market_price_history",
+          "market_procurement_items",
+          "market_procurement_orders",
+          "market_products",
+          "market_suppliers"
+        ]
       },
       "runtime": {
         "compose_reachable": true,
@@ -16105,7 +16112,7 @@
       },
       "source_path": "services/mcp_servers",
       "sources": {
-        "db_ownership": false,
+        "db_ownership": true,
         "service_inventory": "mcp_servers",
         "ui_contract": "internal"
       },
@@ -17749,7 +17756,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "227641dde69f319566d03e47e1af359e5c545c01083ec0ba366c749eb56ddd3e",
+  "fingerprint": "ce067d08bfc8881294bc7d0bd8c587e1d5ee8ae53e0c64f48e95723dbbc456a1",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17799,16 +17806,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 797,
+      "edge_count": 804,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 38,
         "CONSUMES": 1,
         "EMITS": 1,
-        "READS": 408,
+        "READS": 413,
         "ROUTES_TO": 70,
-        "WRITES": 279
+        "WRITES": 281
       }
     },
     "u3_wiring_ownership": {

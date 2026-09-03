@@ -204,7 +204,13 @@ machine_control_profiles,v216_machinery_export.sql,220,True,True,True,1,True,Fal
 machinery_export_artifacts,v216_machinery_export.sql,220,True,True,True,1,True,False,1,1
 management_zone_sets,v115_precision_agriculture_phase6.sql,121,True,True,True,1,True,False,0,0
 management_zones,v14_imagery_storage.sql,17,True,True,False,1,False,True,0,0
+market_analytics_snapshots,v229_market_mcp_schema.sql,226,True,True,True,1,True,False,0,0
+market_price_history,v229_market_mcp_schema.sql,226,True,True,True,1,True,False,1,0
+market_procurement_items,v229_market_mcp_schema.sql,226,True,True,True,1,True,False,1,1
+market_procurement_orders,v229_market_mcp_schema.sql,226,True,True,True,1,True,False,1,1
+market_products,v229_market_mcp_schema.sql,226,True,True,True,1,True,False,1,0
 market_sales_listings,v9_market.sql,5,True,False,False,0,False,True,1,1
+market_suppliers,v229_market_mcp_schema.sql,226,True,True,True,1,True,False,1,0
 marketplace_apps,v121_marketplace_ecosystem.sql,127,False,True,True,1,True,False,1,1
 marketplace_installations,v121_marketplace_ecosystem.sql,127,True,True,True,0,False,False,0,1
 marketplace_plugin_execution_runs,v110_phase12_plugin_sandbox_runtime.sql,116,True,True,True,2,True,False,0,0

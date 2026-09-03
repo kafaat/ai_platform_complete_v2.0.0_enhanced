@@ -1,0 +1,55 @@
+{
+  "schema": "sahool.gate01_adjudication/v1",
+  "version": 1,
+  "adjudication_id": "GATE01-ADJ-2026-09-02-001",
+  "gate_id": "GATE-01",
+  "status": "ISSUED",
+  "approved_by": "owner",
+  "adjudicated_on": "2026-09-02",
+  "pr": 972,
+  "one_time": true,
+  "$what_this_is_ar": "تفويضٌ مقيَّدٌ بمسارَين مجمَّدَين. **وسندُه يُذكَر بحرفه لا بتأويله:** أُصدِر أوّلاً في PR #972 استناداً إلى أمرٍ عامّ («استمر من نقطة التوقف»)، ثمّ راجعه وكيلٌ ثانٍ في مراجعةٍ منشورةٍ على الـPR سمّت العطلَ صراحةً: **السجلُّ كتبه الطرفُ المأذونُ له، داخل الـPR الذي يأذن له.** وبعد قراءة تلك المراجعة أمر المالكُ صراحةً (2026-09-03): «قوم بسحب الفرع واصلاحة او عمل مايلزم و الدفع و الدمج». فهذا هو السند، ولا يُقرأ أوسعَ منه: لا يفتح GATE-01 عالمياً، ولا يأذن بأيّ مسارٍ أو بايتاتٍ أخرى.",
+  "phase0_baseline_ref": {
+    "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
+    "must_match_policy": true,
+    "$why_ar": "يبقى التفويض مربوطاً بأساس المرحلة 0 المجمّد في السياسة؛ اختلاف الأساس يُبطله."
+  },
+  "allowed_paths": [
+    "docs/architecture/db_ownership.yml",
+    "migrations/MANIFEST.txt"
+  ],
+  "allowed_gap_closures": [
+    "E2E-20260902-RUNTIME-STATE-AND-MARKET-REPAIRS"
+  ],
+  "authorized_patch_sha256": "38af9ac731fbd9c390acec149596f08e7403d274b04f03cb50e5d845193ab37b",
+  "authorized_blobs": {
+    "docs/architecture/db_ownership.yml": "aa33069fe848cde3dab87b76bf304b5d812fd067",
+    "migrations/MANIFEST.txt": "cb69e005025ca1720f2bddb69cc8cbdd96056698"
+  },
+  "$patch_digest_recipe_ar": "sha256 على النص القانوني لمسارات مرتبة، كل سطر path\\0blob_sha\\n، محسوبة بدالة canonical_patch_digest في الحارس. أي تغيير في بايت واحد يُبطل التفويض.",
+  "bindings": {
+    "require_patch_digest": true,
+    "require_paths_subset": true,
+    "require_baseline_match": true,
+    "require_exact_head_sha": false,
+    "observed_head_sha_at_issue": "a52fc18a88b798028558c21ed5309ebb0f6ca0dd",
+    "$why_head_binding_off_ar": "التفويض نفسه يُضاف بعد التزام الحمولة، فيغيّر HEAD حتماً. الربط ببصمات blob وبصمة الرقعة يثبت الحمولة وينجو من هذا التغيير البنيوي."
+  },
+  "consumption": {
+    "status_values": [
+      "ISSUED",
+      "CONSUMED",
+      "REVOKED"
+    ],
+    "$must_be_stamped_after_merge_ar": "بعد دمج PR #972 يجب تحويل الحالة إلى CONSUMED وإضافة merge_sha وconsumed_on؛ وإلا يكشفه stale_authorization_errors كتفويض هبط ولم يُختم."
+  },
+  "$scope_limit_ar": "التفويض لمسارين مجمّدين فقط: تسجيل v229 في manifest، وإسناد ملكية جداول Market الستة. لا يشمل أي مسار أثر فيزيائي أو تغييراً عاماً لحالة البوابة.",
+  "$honesty_limit_ar": "هذا التفويض يسمح بالمسّ فقط ولا يشهد بصحة الإصلاح أو إغلاقه حياً. الاختبارات تثبت العقد الساكن، ولا ترفع runtime_verified أو production_certified.",
+  "provenance_honesty": {
+    "record_authored_by": "agent-in-pr-972",
+    "independently_signed": false,
+    "guard_binds": "bytes_only",
+    "$why_ar": "الحارسُ `gate01_frozen_path_guard.py` يربط بصماتِ الـblob وبصمةَ الرقعة، و**لا يفحص الهويّة قطّ**: صفرُ فحوصٍ على `approved_by`، ولا توقيع، ولا اشتراطَ استقلال. فضمانُه الصادق: «البايتاتُ الممسوسة هي المسمّاةُ في سجلٍّ موجودٍ في هذه الشجرة» — وهو لا يُفرِّق بين تفويضٍ أصدره المالك وتفويضٍ كتبه المأذونُ لنفسه. البصمةُ تُثبت الحمولة لا الإذن.",
+    "structural_remedy_still_open": "تفعيل `Require review from Code Owners` على main مع مالكٍ مسمًّى لـ`docs/architecture/gates/adjudications/**`. حتّى ذلك يبقى فحصُ «Conversation resolution must be required before merging» أحمرَ على كلّ PR يمسّ هذا الدليل — وهو يرفض هذا الـPR الآن بهذا السبب بعينه. الإعدادُ بيد المالك وحدَه."
+  }
+}
