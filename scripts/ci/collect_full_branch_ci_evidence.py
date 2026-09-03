@@ -73,6 +73,47 @@ def _require_env(name: str) -> str:
     return value
 
 
+def resolve_workflow_id(api: str, repository: str, workflow_path: str, token: str) -> int:
+    """يُحوِّل **مسارَ** الـworkflow إلى معرّفه الرقميّ بالسؤال، لا بافتراضِ شكلِ المُعرِّف.
+
+    **مراجعةٌ آليّةٌ أصابت:** كانت الصيغةُ السابقة تُمرِّر المسارَ الكامل
+    (`.github/workflows/ci.yml`) في موضع `{workflow_id}`، ونقطةُ الواجهة توثَّق أنّها
+    تقبل **معرّفاً رقميّاً أو اسمَ الملفّ**. فالمسارُ الكامل يُرجِع `404` على الأرجح.
+
+    **ولمَ هذا أخطرُ من عطلِ مسارٍ عاديّ:** السقوطُ كان سيُقرأ «لا عدّاءَ CI على هذه
+    البصمة» — أي **عطلٌ يتنكّر في زيّ عُطلٍ آخر**، فيبقى `P-CERT-1` مُعلَّقاً إلى الأبد
+    ويُقرأ ذلك تقصيراً في تشغيل CI لا خطأً في السطر. وهو الصنفُ نفسُه الذي أُغلِق في
+    `tenant_connection` هذه الجلسة.
+
+    **ولم أُرجِّح بين قراءتَي التوثيق بالظنّ:** تعذّر قياسُ سلوك النقطة من هذه الحاوية
+    (الوسيطُ يردّ `403` على الطلب غير المُصادَق، ولا يُلتَفُّ حوله). فأُزيل الاعتمادُ
+    على الجواب أصلاً: تُسأل قائمةُ الـworkflows ويُطابَق حقلُ `path` **بيانات**، ثمّ
+    يُستعمَل `id` الرقميّ — وهو صحيحٌ تحت القراءتين معاً، ويحوّل المسارَ من مُعرِّفٍ
+    مفترَض إلى حقيقةٍ مقيسة.
+    """
+    page = 1
+    seen: list[str] = []
+    while page <= 10:  # سقفٌ صريح: قائمةٌ بلا نهايةٍ عطلٌ لا انتظار
+        payload = _api(
+            f"{api}/repos/{repository}/actions/workflows?per_page=100&page={page}", token
+        )
+        workflows = payload.get("workflows", [])
+        if not workflows:
+            break
+        for workflow in workflows:
+            if str(workflow.get("path") or "") == workflow_path:
+                return int(workflow["id"])
+            seen.append(str(workflow.get("path") or ""))
+        if len(workflows) < 100:
+            break
+        page += 1
+    raise SystemExit(
+        f"لا workflow مسارُه {workflow_path} في {repository} — "
+        f"المسارات المرصودة ({len(seen)}): {', '.join(sorted(seen)[:8])}…\n"
+        "وهذا **ليس** «لا عدّاءَ على هذه البصمة»: المُعرِّفُ نفسُه لم يُحلَّ."
+    )
+
+
 def collect(workflow_path: str = DEFAULT_WORKFLOW_PATH) -> dict:
     repository = _require_env("GITHUB_REPOSITORY")
     head_sha = _require_env("GITHUB_SHA")
@@ -81,9 +122,9 @@ def collect(workflow_path: str = DEFAULT_WORKFLOW_PATH) -> dict:
         raise SystemExit("لا رمزَ وصول (GITHUB_TOKEN) — امنح الوظيفة `permissions: actions: read`.")
     api = str(os.environ.get("GITHUB_API_URL") or "https://api.github.com").rstrip("/")
 
+    workflow_id = resolve_workflow_id(api, repository, workflow_path, token)
     runs = _api(
-        f"{api}/repos/{repository}/actions/workflows/"
-        f"{urllib.parse.quote(workflow_path, safe='')}/runs"
+        f"{api}/repos/{repository}/actions/workflows/{workflow_id}/runs"
         f"?head_sha={urllib.parse.quote(head_sha)}&per_page=20",
         token,
     ).get("workflow_runs", [])

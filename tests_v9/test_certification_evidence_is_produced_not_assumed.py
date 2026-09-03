@@ -372,3 +372,109 @@ def test_the_verdict_is_still_false_on_the_committed_tree() -> None:
     assert result.returncode == 0, result.stderr
     payload = json.loads(result.stdout)
     assert payload["production_certified"] is False
+
+
+# ═══ ⑤ شاهدُ P-CERT-1: المُعرِّفُ يُحَلّ ولا يُفترَض ═══════════════════════
+
+
+def _collector():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "_collector", ROOT / "scripts" / "ci" / "collect_full_branch_ci_evidence.py"
+    )
+    assert spec and spec.loader
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+@pytest.mark.unit
+def test_the_runs_url_never_carries_a_path_in_the_workflow_id_slot(monkeypatch) -> None:
+    """نقطةُ `/actions/workflows/{id}/runs` تقبل معرّفاً رقميّاً أو اسمَ ملفّ — لا مساراً.
+
+    **مراجعةٌ آليّةٌ أصابت.** والخطرُ ليس `404` بذاته: سقوطُ الجامع كان يُقرأ «لا عدّاءَ
+    CI على هذه البصمة»، فيبقى `P-CERT-1` مُعلَّقاً أبداً ويُقرأ ذلك تقصيراً في تشغيل CI
+    لا خطأً في سطرٍ — **عطلٌ يتنكّر في زيّ عُطلٍ آخر**.
+    """
+    mod = _collector()
+    calls: list[str] = []
+
+    def fake_api(url: str, token: str) -> dict:
+        calls.append(url)
+        if "/actions/workflows?" in url:
+            return {"workflows": [{"id": 4242, "path": ".github/workflows/ci.yml"}]}
+        if "/runs?" in url:
+            return {
+                "workflow_runs": [
+                    {
+                        "id": 7,
+                        "status": "completed",
+                        "conclusion": "success",
+                        "head_branch": "main",
+                        "head_sha": "a" * 39 + "b",
+                        "html_url": "https://example.invalid/7",
+                    }
+                ]
+            }
+        return {"jobs": [{"name": "Unit Tests", "conclusion": "success"}]}
+
+    monkeypatch.setattr(mod, "_api", fake_api)
+    monkeypatch.setenv("GITHUB_REPOSITORY", "kafaat/x")
+    monkeypatch.setenv("GITHUB_SHA", "a" * 39 + "b")
+    monkeypatch.setenv("GITHUB_TOKEN", "t")
+
+    fields = mod.collect()
+    runs_url = next(u for u in calls if "/runs?" in u)
+    assert "/actions/workflows/4242/runs" in runs_url
+    # **المقطعُ نفسُه يُفحَص لا الرابطُ كلُّه.** أوّلُ صيغةٍ لهذا التوكيد كانت
+    # `".github" not in runs_url` — وسقطت على `api.github.com`، أي على المضيف لا على
+    # موضع المعرّف. توكيدٌ يسقط لسببٍ غير خاصّيّته يقول «العطلُ هنا» وهو ليس هنا.
+    slot = runs_url.split("/actions/workflows/", 1)[1].split("/", 1)[0]
+    assert slot == "4242"
+    assert "%2F" not in slot and "." not in slot
+    assert fields["ci_run_id"] == "7"
+
+
+@pytest.mark.unit
+def test_an_unresolvable_workflow_is_not_reported_as_a_missing_run(monkeypatch) -> None:
+    """التشخيصُ يفرّق: «المُعرِّف لم يُحَلّ» ليس «لا عدّاءَ على هذه البصمة».
+
+    وبدون هذا الفرق يُقرأ خطأٌ في السطر تقصيراً في تشغيل CI — وهو ما يُبقي الحاجبَ
+    مُعلَّقاً بلا أن يعرف أحدٌ لماذا.
+    """
+    mod = _collector()
+    monkeypatch.setattr(mod, "_api", lambda url, token: {"workflows": [{"id": 1, "path": "x.yml"}]})
+    monkeypatch.setenv("GITHUB_REPOSITORY", "kafaat/x")
+    monkeypatch.setenv("GITHUB_SHA", "a" * 39 + "b")
+    monkeypatch.setenv("GITHUB_TOKEN", "t")
+
+    with pytest.raises(SystemExit) as excinfo:
+        mod.collect()
+    message = str(excinfo.value)
+    assert "المُعرِّفُ نفسُه لم يُحلَّ" in message
+    assert "لا عدّاءَ" not in message.split("وهذا")[0]
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("status", "conclusion"),
+    [("completed", "failure"), ("completed", "cancelled"), ("in_progress", None)],
+)
+def test_no_witness_is_produced_from_a_run_that_did_not_pass(
+    status: str, conclusion: str | None, monkeypatch
+) -> None:
+    """عدّاءٌ فاشلٌ أو قيدَ التشغيل ⇒ سقوطٌ ⇒ الحاجبُ `pending`. لا اعتمادَ بلا شاهد."""
+    mod = _collector()
+
+    def fake_api(url: str, token: str) -> dict:
+        if "/actions/workflows?" in url:
+            return {"workflows": [{"id": 1, "path": ".github/workflows/ci.yml"}]}
+        return {"workflow_runs": [{"id": 9, "status": status, "conclusion": conclusion}]}
+
+    monkeypatch.setattr(mod, "_api", fake_api)
+    monkeypatch.setenv("GITHUB_REPOSITORY", "kafaat/x")
+    monkeypatch.setenv("GITHUB_SHA", "a" * 39 + "b")
+    monkeypatch.setenv("GITHUB_TOKEN", "t")
+    with pytest.raises(SystemExit):
+        mod.collect()
