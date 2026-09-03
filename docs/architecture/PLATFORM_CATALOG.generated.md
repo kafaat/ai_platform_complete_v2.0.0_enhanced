@@ -3,7 +3,7 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `b2cb946fcd9020f9409cea1c7152a369a8e15708342689aea196693142f74948`
+- fingerprint: `ce067d08bfc8881294bc7d0bd8c587e1d5ee8ae53e0c64f48e95723dbbc456a1`
 - components: **36** (backend: 32)
 - route rows: **1112** → unique method/path: **998**
 - capabilities (derived, uncurated): **827**
@@ -30,7 +30,7 @@
 | indicators-service | service | indicators | sahool-indicators-service | 0 | True |
 | knowledge-graph | service | knowledge | sahool-knowledge-graph | 0 | True |
 | local-ai-rag | service | knowledge | sahool-local-ai-rag | 0 | True |
-| mcp_servers | service | agents-mcp | sahool-market-mcp, sahool-sentinel-hub-mcp, sahool-weather-mcp, sahool-wofost-mcp | 0 | True |
+| mcp_servers | service | agents-mcp | sahool-market-mcp, sahool-sentinel-hub-mcp, sahool-weather-mcp, sahool-wofost-mcp | 6 | True |
 | mobile | mobile | user-interface | — | 0 | None |
 | model-registry-adapter | worker_adapter | decision-governance | sahool-model-lifecycle-adapter | 0 | True |
 | notification-agent | worker | notifications | sahool-notification-agent | 0 | None |
