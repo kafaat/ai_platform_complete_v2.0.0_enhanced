@@ -67,10 +67,59 @@ def _blocker_ids() -> list[str]:
     return [b["id"] for b in module.BLOCKERS]
 
 
-# يتحمّل فواصلَ الأسطر بـ`\` وتعدّدَ المسافات ورايةً وسيطةً بين الاسم و`--blocker`.
+# يُطبَّق على **أمرٍ فعليّ** بعد حذف التعليقات وضمّ فواصل `\`، لا على النصّ الخام؛
+# وإلّا صار ذكرُ الباعث في شرحٍ أو تعليقٍ دليلاً على استدعائه.
 _EMIT_CALL = re.compile(
-    re.escape(EMITTER) + r"[\s\\]+(?:[^\n]*?[\s\\]+)??--blocker[\s\\]+([\w.-]+)"
+    r"^(?:python(?:3)?\s+)?" + re.escape(EMITTER) + r"\s+.*?--blocker\s+([\w.-]+)(?:\s|$)"
 )
+
+
+def _strip_unquoted_comment(line: str) -> str:
+    """احذف تعليقَ الصدفة/YAML دون قطع `#` داخل قيمةٍ مقتبسة."""
+    quote: str | None = None
+    escaped = False
+    for index, char in enumerate(line):
+        if escaped:
+            escaped = False
+            continue
+        if char == "\\" and quote != "'":
+            escaped = True
+            continue
+        if char in {"'", '"'}:
+            if quote is None:
+                quote = char
+            elif quote == char:
+                quote = None
+            continue
+        if char == "#" and quote is None and (index == 0 or line[index - 1].isspace()):
+            return line[:index].rstrip()
+    return line.rstrip()
+
+
+def _active_commands(text: str) -> list[str]:
+    """استخرج أوامرَ التنفيذ، متجاهلاً التعليقات ومفاتيح YAML الوصفية."""
+    commands: list[str] = []
+    pending = ""
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("run:"):
+            line = line.removeprefix("run:").lstrip()
+            if line in {"|", ">", "|-", ">-"}:
+                continue
+        line = _strip_unquoted_comment(line)
+        if not line:
+            continue
+        pending += (" " if pending else "") + line
+        if pending.endswith("\\"):
+            pending = pending[:-1].rstrip()
+            continue
+        commands.append(pending)
+        pending = ""
+    if pending:
+        commands.append(pending)
+    return commands
 
 
 def _emitted_blockers(path: Path) -> set[str]:
@@ -88,7 +137,12 @@ def _emitted_blockers(path: Path) -> set[str]:
     """
     if not path.is_file():
         return set()
-    return set(_EMIT_CALL.findall(path.read_text(encoding="utf-8")))
+    emitted: set[str] = set()
+    for command in _active_commands(path.read_text(encoding="utf-8")):
+        match = _EMIT_CALL.match(command)
+        if match:
+            emitted.add(match.group(1))
+    return emitted
 
 
 def _shown(path: Path) -> str:
