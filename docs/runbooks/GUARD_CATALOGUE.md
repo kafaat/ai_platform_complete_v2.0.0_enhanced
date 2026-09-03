@@ -12,8 +12,8 @@
 
 - حرّاس تحجب في CI: **267**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **48**
-- إجماليّ الطفرات المُسجَّلة: **343**
-- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **183** على 61 مصدراً
+- إجماليّ الطفرات المُسجَّلة: **347**
+- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **181** على 60 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
 أنّ المسار يستشير مفتاح الطوارئ مثلاً — ويمرّ أخضر على مسارٍ يستشيره ثمّ يتجاهل
@@ -1028,7 +1028,7 @@
 | `platform_route_placement_guard.py` | Enforce machine-readable source placement for governed platform routes. | `platform-route-budget` |
 | `pr_capability_impact_gate.py` | Compute and enforce pull-request capability impact declarations. | `capability-registry` |
 | `prepare_attested_runtime_images.py` | Validate an externally built image manifest and generate a pull-by-digest Compose override. | `runtime-producer` · `trusted-signer` |
-| `production_certification_blockers_status.py` | Print the current status of the four production certification blockers. | `certification-verdict` · `full-branch-ci-evidence` |
+| `production_certification_blockers_status.py` | Print the current status of the production certification blockers. | `certification-verdict` · `full-branch-ci-evidence` |
 | `production_certification_checklist_guard.py` | Production certification checklist inventory/guard. | `guard` |
 | `production_evidence_pack_guard.py` | Production evidence pack guard. | `transitive-locks-evidence` · `evidence-pack` |
 | `production_honesty_guard.py` | Production honesty guard. | `honesty` |
@@ -1105,7 +1105,7 @@
 
 ---
 
-## مُواصَفة بطفرات ولا يستدعيها أيّ workflow (9)
+## مُواصَفة بطفرات ولا يستدعيها أيّ workflow (10)
 
 أداة غير موصولة لا تحرس شيئاً (§٣.٢). وجودها هنا سؤالٌ لا اتّهام.
 
@@ -1118,6 +1118,7 @@
 - `scripts/architecture/rag_corpus_audit_receipt_guard.py`
 - `scripts/architecture/rag_cutover_admission_guard.py`
 - `scripts/architecture/rag_live_parity_receipt_guard.py`
+- `tenant_connection_call_shape_guard.py`
 
 ---
 

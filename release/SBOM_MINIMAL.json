@@ -17765,7 +17765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f980c17d104f5513ab70b5bd5d2940aec758c24487babd74aaf1682bafea9ada"
+          "content": "5a4e217a9317a8bc2faf2635c52c700dae5f83e259d5da39af3e37d3891e2446"
         }
       ],
       "name": "services/sahool-platform/api/routers/gis_cloud_native.py",
@@ -17825,7 +17825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9905fa3426c45a9c22b5d871dceac2f19f6404320a8a1d1076ad614c347cd224"
+          "content": "5fce453ad214998729f27966dfe66563ac0e01619b93f9b607461f9810fdd5f5"
         }
       ],
       "name": "services/sahool-platform/api/routers/internal_service.py",
@@ -17895,7 +17895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3a4e4245192c615b08fb5208afe6c1392caf150e05dfc7341bdd9b83ec1a5b8a"
+          "content": "aa3b21fe9c72ad615c93ecf02bca53bb4eb11141bf3e11041189f8c8602c758e"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_mpc.py",
@@ -25315,7 +25315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9e77eae308e93210d902af7ba388f00ed860653002b7c1a1e3867db4411132c8"
+          "content": "16cebb56da6ae9e8465ca652c731dcf7793db27e22b04db55c40f88220daa24d"
         }
       ],
       "name": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",

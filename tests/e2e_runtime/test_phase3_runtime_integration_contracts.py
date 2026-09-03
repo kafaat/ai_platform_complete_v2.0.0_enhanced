@@ -53,7 +53,13 @@ def test_platform_has_internal_ai_advice_event_endpoint() -> None:
     assert '@router.post("/internal/events/ai-advice")' in src
     assert "AI_SUGGESTION" in src
     assert "_require_service_token" in src
-    assert "tenant_connection_for" in src
+    # المرساةُ قُلِبت لا حُذِفت. كان هذا السطرُ يؤكّد وجودَ `tenant_connection_for` —
+    # **دالّةٍ لا وجودَ لها في `api/main.py` أصلاً**. أي أنّ الاختبارَ كان يحرس العطلَ
+    # نفسَه: كلُّ نداءٍ للمسار يرفع `AttributeError` يبتلعه `except Exception` ويصير
+    # ٥٠٣ «القاعدة غير متاحة». والنيّةُ المقصودة — أن تُفتَح المعاملةُ في سياق
+    # مستأجِرٍ لا على اتّصالٍ خام — تبقى مُقاسةً، وتُقاس الآن على ما هو **موجود**.
+    assert "main.tenant_connection(" in src
+    assert "_ServiceUser(" in src
 
 
 def test_runtime_scripts_are_present_and_safe() -> None:
