@@ -8085,7 +8085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a130aa32bd9215a7a46c087a9fb0f9714d0a78a626ca73c26117db07f9b204c8"
+          "content": "f5725756accb959dbff121b7bc75405af64a429e443c12375a355f0987baba9f"
         }
       ],
       "name": "migrations/v229_market_mcp_schema.sql",
@@ -12715,7 +12715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "81b424128c48b076ae8857868874b5259f6952880dce68e8aa58ab62db52b467"
+          "content": "c751c5046c282971786767908355c008e31631ee3dc12dbf971abb8d54ee65b9"
         }
       ],
       "name": "services/mcp_servers/market_server.py",

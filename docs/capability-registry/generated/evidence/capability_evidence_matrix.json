@@ -7792,6 +7792,7 @@
         "tests/integration/irrigation/test_v195_postgres.py",
         "tests_v9/test_crop_root_policy_rls_integration.py",
         "tests_v9/test_dispatch_decisions_integration.py",
+        "tests_v9/test_e2e_findings_regressions.py",
         "tests_v9/test_field_aggregate_ports_integration.py",
         "tests_v9/test_rls_write_isolation_integration.py",
         "tests_v9/test_rs_anomaly_pg_isolation_integration.py",

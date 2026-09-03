@@ -86,6 +86,12 @@ def test_local_agent_helpers_exist_under_the_operations_namespace() -> None:
     assert (scripts / "run_readonly_baseline.sh").is_file()
 
 
+def test_preflight_does_not_require_unused_ripgrep() -> None:
+    helper = _text(ROOT / "scripts/ops/live_gap_closure/run_preflight.sh")
+    assert "for cmd in git python; do" in helper
+    assert "git python rg" not in helper
+
+
 def test_readonly_helper_neither_executes_env_file_nor_copies_nats_secrets() -> None:
     helper = _text(ROOT / "scripts/ops/live_gap_closure/run_readonly_baseline.sh")
     assert '. "$ENV_FILE"' not in helper

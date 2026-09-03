@@ -42,14 +42,29 @@ def test_market_runtime_tables_are_created_by_forward_migration():
     }
     for table in required:
         assert f"CREATE TABLE IF NOT EXISTS {table}" in migration
+        assert f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY" in migration
+        assert f"ALTER TABLE {table} FORCE ROW LEVEL SECURITY" in migration
+        assert f"CREATE POLICY tenant_isolation ON {table}" in migration
     assert "v229_market_mcp_schema.sql" in _source("migrations/MANIFEST.txt")
     assert _source("migrations/MANIFEST.txt").rstrip().endswith("v206_rls_final_hardening.sql")
 
 
 def test_market_tenant_guc_is_scoped_by_transaction_context():
     source = _source("services/mcp_servers/market_server.py")
+    tree = ast.parse(source)
+    functions = {node.name: node for node in tree.body if isinstance(node, ast.AsyncFunctionDef)}
+
+    def transactions(function: ast.AsyncFunctionDef) -> list[ast.AsyncWith]:
+        return [
+            node
+            for node in ast.walk(function)
+            if isinstance(node, ast.AsyncWith)
+            and any("transaction()" in ast.unparse(item.context_expr) for item in node.items)
+        ]
+
     assert "async def tenant_connection" in source
-    assert "async with conn.transaction():" in source
+    assert len(transactions(functions["tenant_connection"])) == 1
+    assert transactions(functions["tool_create_procurement"]) == []
     assert source.count("async with tenant_connection(tenant_id) as conn:") == 10
     assert source.count("set_config('app.current_tenant'") == 1
 

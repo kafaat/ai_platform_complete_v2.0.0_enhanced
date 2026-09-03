@@ -11,7 +11,7 @@ fail() {
 }
 
 cd "$REPO"
-for cmd in git python rg; do
+for cmd in git python; do
   command -v "$cmd" >/dev/null || fail "$cmd not found"
 done
 

@@ -93,21 +93,46 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_market_products_odoo_product_id
 CREATE UNIQUE INDEX IF NOT EXISTS idx_market_suppliers_odoo_partner_id
     ON market_suppliers(odoo_partner_id) WHERE odoo_partner_id IS NOT NULL;
 
-DO $$
-DECLARE tbl TEXT;
-BEGIN
-    FOREACH tbl IN ARRAY ARRAY[
-        'market_suppliers', 'market_products', 'market_price_history',
-        'market_procurement_orders', 'market_procurement_items', 'market_analytics_snapshots'
-    ] LOOP
-        EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', tbl);
-        EXECUTE format('ALTER TABLE %I FORCE ROW LEVEL SECURITY', tbl);
-        EXECUTE format('DROP POLICY IF EXISTS tenant_isolation ON %I', tbl);
-        EXECUTE format(
-            'CREATE POLICY tenant_isolation ON %I USING '
-            '(tenant_id::text = current_setting(''app.current_tenant'', true)) '
-            'WITH CHECK (tenant_id::text = current_setting(''app.current_tenant'', true))',
-            tbl
-        );
-    END LOOP;
-END $$;
+-- Keep the RLS DDL literal: repository governance scans these statements and
+-- must report the same protection that PostgreSQL applies at runtime.
+ALTER TABLE market_suppliers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE market_suppliers FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS tenant_isolation ON market_suppliers;
+CREATE POLICY tenant_isolation ON market_suppliers
+    USING (tenant_id::text = current_setting('app.current_tenant', true))
+    WITH CHECK (tenant_id::text = current_setting('app.current_tenant', true));
+
+ALTER TABLE market_products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE market_products FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS tenant_isolation ON market_products;
+CREATE POLICY tenant_isolation ON market_products
+    USING (tenant_id::text = current_setting('app.current_tenant', true))
+    WITH CHECK (tenant_id::text = current_setting('app.current_tenant', true));
+
+ALTER TABLE market_price_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE market_price_history FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS tenant_isolation ON market_price_history;
+CREATE POLICY tenant_isolation ON market_price_history
+    USING (tenant_id::text = current_setting('app.current_tenant', true))
+    WITH CHECK (tenant_id::text = current_setting('app.current_tenant', true));
+
+ALTER TABLE market_procurement_orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE market_procurement_orders FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS tenant_isolation ON market_procurement_orders;
+CREATE POLICY tenant_isolation ON market_procurement_orders
+    USING (tenant_id::text = current_setting('app.current_tenant', true))
+    WITH CHECK (tenant_id::text = current_setting('app.current_tenant', true));
+
+ALTER TABLE market_procurement_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE market_procurement_items FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS tenant_isolation ON market_procurement_items;
+CREATE POLICY tenant_isolation ON market_procurement_items
+    USING (tenant_id::text = current_setting('app.current_tenant', true))
+    WITH CHECK (tenant_id::text = current_setting('app.current_tenant', true));
+
+ALTER TABLE market_analytics_snapshots ENABLE ROW LEVEL SECURITY;
+ALTER TABLE market_analytics_snapshots FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS tenant_isolation ON market_analytics_snapshots;
+CREATE POLICY tenant_isolation ON market_analytics_snapshots
+    USING (tenant_id::text = current_setting('app.current_tenant', true))
+    WITH CHECK (tenant_id::text = current_setting('app.current_tenant', true));

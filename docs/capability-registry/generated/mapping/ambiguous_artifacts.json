@@ -9593,6 +9593,29 @@
     ]
   },
   {
+    "path": "tests_v9/test_e2e_findings_regressions.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-004",
+        "score": 12,
+        "signals": [
+          "content:MFA",
+          "content:mfa"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 10,
+        "signals": [
+          "content:rls",
+          "content:row level security",
+          "content:tenant isolation"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests_v9/test_e2e_offline_flow.py",
     "kind": "tests",
     "candidates": [

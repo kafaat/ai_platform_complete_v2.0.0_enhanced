@@ -225,49 +225,48 @@ async def tool_create_procurement(args: dict) -> dict:
         price = float(it.get("max_unit_price_usd", 0))
         total_estimated += qty * price
     async with tenant_connection(tenant_id) as conn:
-        async with conn.transaction():
-            order_id = await conn.fetchval(
-                """INSERT INTO market_procurement_orders
-                    (tenant_id, field_id, status, total_estimated_usd, delivery_date, notes, auto_approve_threshold)
-                    VALUES ($1::uuid, $2, $3, $4, $5, $6, $7)
-                    RETURNING order_id""",
+        order_id = await conn.fetchval(
+            """INSERT INTO market_procurement_orders
+                (tenant_id, field_id, status, total_estimated_usd, delivery_date, notes, auto_approve_threshold)
+                VALUES ($1::uuid, $2, $3, $4, $5, $6, $7)
+                RETURNING order_id""",
+            tenant_id,
+            field_id,
+            "draft",
+            total_estimated,
+            delivery_date,
+            notes,
+            auto_approve,
+        )
+        for it in items:
+            await conn.execute(
+                """INSERT INTO market_procurement_items
+                    (tenant_id, order_id, product_id, product_name, quantity, unit,
+                     max_unit_price_usd, notes)
+                    VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, $7, $8)""",
                 tenant_id,
-                field_id,
-                "draft",
-                total_estimated,
-                delivery_date,
-                notes,
-                auto_approve,
+                order_id,
+                it.get("product_id") if it.get("product_id") else None,
+                it["product_name"],
+                float(it["quantity"]),
+                it.get("unit", "kg"),
+                float(it.get("max_unit_price_usd", 0)),
+                it.get("notes", ""),
             )
-            for it in items:
-                await conn.execute(
-                    """INSERT INTO market_procurement_items
-                        (tenant_id, order_id, product_id, product_name, quantity, unit,
-                         max_unit_price_usd, notes)
-                        VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, $7, $8)""",
-                    tenant_id,
-                    order_id,
-                    it.get("product_id") if it.get("product_id") else None,
-                    it["product_name"],
-                    float(it["quantity"]),
-                    it.get("unit", "kg"),
-                    float(it.get("max_unit_price_usd", 0)),
-                    it.get("notes", ""),
-                )
-            new_status = "draft"
-            if total_estimated <= auto_approve:
-                new_status = "approved"
-                await conn.execute(
-                    "UPDATE market_procurement_orders SET status=$1, approved_at=NOW() WHERE order_id=$2",
-                    new_status,
-                    order_id,
-                )
-            else:
-                await conn.execute(
-                    "UPDATE market_procurement_orders SET status=$1 WHERE order_id=$2",
-                    "pending_approval",
-                    order_id,
-                )
+        new_status = "draft"
+        if total_estimated <= auto_approve:
+            new_status = "approved"
+            await conn.execute(
+                "UPDATE market_procurement_orders SET status=$1, approved_at=NOW() WHERE order_id=$2",
+                new_status,
+                order_id,
+            )
+        else:
+            await conn.execute(
+                "UPDATE market_procurement_orders SET status=$1 WHERE order_id=$2",
+                "pending_approval",
+                order_id,
+            )
     return {
         "order_id": str(order_id),
         "status": new_status,

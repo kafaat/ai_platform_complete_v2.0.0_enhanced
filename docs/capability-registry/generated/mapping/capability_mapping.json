@@ -26,7 +26,7 @@
       "web": 457
     },
     "unmapped_artifacts": 2136,
-    "ambiguous_artifacts": 417
+    "ambiguous_artifacts": 418
   },
   "capabilities": [
     {
@@ -8392,7 +8392,7 @@
           "score": 12
         },
         {
-          "value": "/health @ services/mcp_servers/market_server.py:672",
+          "value": "/health @ services/mcp_servers/market_server.py:671",
           "score": 12
         },
         {
@@ -8400,7 +8400,7 @@
           "score": 12
         },
         {
-          "value": "/healthz @ services/mcp_servers/market_server.py:671",
+          "value": "/healthz @ services/mcp_servers/market_server.py:670",
           "score": 12
         },
         {
@@ -8412,47 +8412,47 @@
           "score": 12
         },
         {
-          "value": "/readyz @ services/mcp_servers/market_server.py:685",
+          "value": "/readyz @ services/mcp_servers/market_server.py:684",
           "score": 12
         },
         {
-          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:665",
+          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:664",
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:552",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:551",
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:520",
+          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:519",
           "score": 12
         },
         {
-          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:658",
+          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:657",
           "score": 12
         },
         {
-          "value": "/v1/procurement @ services/mcp_servers/market_server.py:623",
+          "value": "/v1/procurement @ services/mcp_servers/market_server.py:622",
           "score": 12
         },
         {
-          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:629",
+          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:628",
           "score": 12
         },
         {
-          "value": "/v1/products @ services/mcp_servers/market_server.py:606",
+          "value": "/v1/products @ services/mcp_servers/market_server.py:605",
           "score": 12
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:636",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:635",
           "score": 12
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:641",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:640",
           "score": 12
         },
         {
-          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:618",
+          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:617",
           "score": 12
         },
         {
@@ -8824,55 +8824,55 @@
           "score": 11
         },
         {
-          "value": "/health @ services/mcp_servers/market_server.py:672",
+          "value": "/health @ services/mcp_servers/market_server.py:671",
           "score": 10
         },
         {
-          "value": "/healthz @ services/mcp_servers/market_server.py:671",
+          "value": "/healthz @ services/mcp_servers/market_server.py:670",
           "score": 10
         },
         {
-          "value": "/readyz @ services/mcp_servers/market_server.py:685",
+          "value": "/readyz @ services/mcp_servers/market_server.py:684",
           "score": 10
         },
         {
-          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:665",
+          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:664",
           "score": 10
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:552",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:551",
           "score": 10
         },
         {
-          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:520",
+          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:519",
           "score": 10
         },
         {
-          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:658",
+          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:657",
           "score": 10
         },
         {
-          "value": "/v1/procurement @ services/mcp_servers/market_server.py:623",
+          "value": "/v1/procurement @ services/mcp_servers/market_server.py:622",
           "score": 10
         },
         {
-          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:629",
+          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:628",
           "score": 10
         },
         {
-          "value": "/v1/products @ services/mcp_servers/market_server.py:606",
+          "value": "/v1/products @ services/mcp_servers/market_server.py:605",
           "score": 10
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:636",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:635",
           "score": 10
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:641",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:640",
           "score": 10
         },
         {
-          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:618",
+          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:617",
           "score": 10
         },
         {
@@ -23611,55 +23611,55 @@
           "score": 9
         },
         {
-          "value": "/health @ services/mcp_servers/market_server.py:672",
+          "value": "/health @ services/mcp_servers/market_server.py:671",
           "score": 9
         },
         {
-          "value": "/healthz @ services/mcp_servers/market_server.py:671",
+          "value": "/healthz @ services/mcp_servers/market_server.py:670",
           "score": 9
         },
         {
-          "value": "/readyz @ services/mcp_servers/market_server.py:685",
+          "value": "/readyz @ services/mcp_servers/market_server.py:684",
           "score": 9
         },
         {
-          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:665",
+          "value": "/v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:664",
           "score": 9
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:552",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:551",
           "score": 9
         },
         {
-          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:520",
+          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:519",
           "score": 9
         },
         {
-          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:658",
+          "value": "/v1/price-history/{category} @ services/mcp_servers/market_server.py:657",
           "score": 9
         },
         {
-          "value": "/v1/procurement @ services/mcp_servers/market_server.py:623",
+          "value": "/v1/procurement @ services/mcp_servers/market_server.py:622",
           "score": 9
         },
         {
-          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:629",
+          "value": "/v1/procurement/{order_id} @ services/mcp_servers/market_server.py:628",
           "score": 9
         },
         {
-          "value": "/v1/products @ services/mcp_servers/market_server.py:606",
+          "value": "/v1/products @ services/mcp_servers/market_server.py:605",
           "score": 9
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:636",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:635",
           "score": 9
         },
         {
-          "value": "/v1/sales @ services/mcp_servers/market_server.py:641",
+          "value": "/v1/sales @ services/mcp_servers/market_server.py:640",
           "score": 9
         },
         {
-          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:618",
+          "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:617",
           "score": 9
         },
         {
@@ -24773,6 +24773,15 @@
           ]
         },
         {
+          "path": "tests_v9/test_e2e_findings_regressions.py",
+          "score": 10,
+          "signals": [
+            "content:rls",
+            "content:row level security",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "tests_v9/test_field_state_projection.py",
           "score": 10,
           "signals": [
@@ -25517,7 +25526,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 750
+        "database": 762
       },
       "evidence_counts": {
         "backend": 13,
@@ -25526,7 +25535,7 @@
         "events": 46,
         "web": 0,
         "mobile": 0,
-        "tests": 63,
+        "tests": 64,
         "governance": 0,
         "other_evidence": 70
       },
@@ -53237,6 +53246,29 @@
           "signals": [
             "content:NDVI",
             "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests_v9/test_e2e_findings_regressions.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "SEC-004",
+          "score": 12,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 10,
+          "signals": [
+            "content:rls",
+            "content:row level security",
+            "content:tenant isolation"
           ]
         }
       ]
