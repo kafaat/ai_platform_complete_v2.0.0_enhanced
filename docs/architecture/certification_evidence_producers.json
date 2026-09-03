@@ -1,0 +1,95 @@
+{
+  "schema": "sahool.certification-evidence-producers/v1",
+  "version": 1,
+  "adjudicated_on": "2026-09-03",
+  "why": [
+    "كلُّ حاجبٍ في production_evidence_pack_guard.BLOCKERS إمّا له مُنتِجُ دليلٍ مُسمّى،",
+    "وإمّا مُعلَنٌ بلا مُنتِجٍ **بسببٍ مقيس**. الصمتُ ليس خياراً ثالثاً.",
+    "",
+    "العطلُ الذي أوجب هذا الملفّ: أربعُ وظائفِ «دليل» في production-certification-blockers.yml",
+    "لا تكتب دليلاً البتّة، وخمسةُ حواجزَ كلُّها pending — فيُقرأ الحكمُ `false` عجزاً في",
+    "القياس بينما سببُه أنّ **لا شيء يُنتِج ما يقرؤه المُحكِّم**. وأخطرُ ما في ذلك أنّ",
+    "العلاج الظاهر — «فلتبعث كلُّ وظيفةٍ دليلَها» — يختلق: ثلاثٌ من الأربع تقيس شيئاً",
+    "غير الحاجب المسمّى بها.",
+    "",
+    "فالقاعدة: مُنتِجٌ يقيس الحاجبَ نفسَه، أو إعلانُ غيابٍ بسببه. ويفرضها",
+    "scripts/ci/certification_evidence_producer_guard.py."
+  ],
+  "producers": {
+    "P-CERT-1": {
+      "state": "produced",
+      "producer": "scripts/ci/collect_full_branch_ci_evidence.py",
+      "emitted_by": "scripts/ci/emit_certification_evidence.py",
+      "workflow": ".github/workflows/production-certification-blockers.yml",
+      "witness": "عدّاءُ .github/workflows/ci.yml على GITHUB_SHA نفسِها، مكتملاً وخُلاصتُه success، بأسماء وظائفه وخُلاصاتها كما تُرجِعها واجهة Actions.",
+      "honesty_limit": "يشهد أنّ عدّاءً بهذا الاسم على هذه البصمة انتهى ناجحاً بحسب الواجهة؛ ولا يشهد أنّ ذلك العدّاء شغّل البوّابات التي نظنّها فيه — تلك حقيقةٌ في ci.yml يحرسها preflight_required وكتالوجُ الحرّاس."
+    },
+    "P-CERT-2": {
+      "state": "produced",
+      "producer": "scripts/ci/compile_transitive_service_locks.sh",
+      "emitted_by": "scripts/ci/emit_certification_evidence.py",
+      "workflow": ".github/workflows/production-certification-blockers.yml",
+      "witness": "الأقفالُ العبوريّة تُجمَّع فعلاً في العدّاء بـpip-compile --generate-hashes، ثمّ تُدقَّق بـpip-audit، وتُقاس ببصمة sha256 وحجمٍ لكلّ ملفّ.",
+      "honesty_limit": "يشهد على الأقفال المولَّدة في هذا العدّاء بمرآة الفهرس المُعلَنة؛ ولا يشهد أنّ النشرَ المستهدَف يُثبِّت منها."
+    },
+    "P-CERT-3": {
+      "state": "no_honest_producer",
+      "workflow": ".github/workflows/production-certification-blockers.yml",
+      "measured_instead": [
+        "scripts/ci/run_weather_redis_integration.sh"
+      ],
+      "reason": [
+        "الحاجبُ اسمُه «Redis live integration»، والوظيفةُ تحجب على وجود السرّ",
+        "WEATHER_REDIS_INTEGRATION_URL — ثمّ يتجاهله السكربتُ تجاهلاً تامّاً: يرفع",
+        "test-redis من docker-compose.test.yml ويُثبّت الرابط",
+        "redis://:test_redis_pass@127.0.0.1:6380/0 في سطره الأخير. فالسرُّ يحكم **هل",
+        "تعمل الخطوة**، ولا يحكم **ما الذي اختُبِر**.",
+        "",
+        "فختمُ verified هنا يقول «Redis الحيّ مرّ» والمقيسُ حاوٍ محلّيٌّ زائل. وحقلُ",
+        "readyz_cache_backend الذي يشترطه الحارس لا يُقاس في هذا المسار أصلاً.",
+        "",
+        "الإغلاقُ الصحيح: أن يستعمل السكربتُ السرَّ فعلاً، ويقرأ readyz فيُخرِج خلفيّةَ",
+        "الذاكرة المؤقّتة المرصودة. وهو عملٌ في السكربت لا في الباعث."
+      ]
+    },
+    "P-CERT-4": {
+      "state": "no_honest_producer",
+      "workflow": ".github/workflows/production-certification-blockers.yml",
+      "measured_instead": [
+        "scripts/ci/edge_model_contract_guard.py",
+        "scripts/ci/edge_production_readiness_guard.py"
+      ],
+      "reason": [
+        "الحاجبُ «ONNX/SAM2 model provisioning»، والوظيفةُ تفحص **اتّساق العقد** لا",
+        "تزويدَ النماذج. والمانيفست نفسُه يقول العكس صراحةً: كلُّ نموذجٍ مطلوبٍ فيه",
+        "packaged_in_repository=false و operator_must_provision=true",
+        "(services/edge-inference/models_manifest/edge_models.required.json).",
+        "",
+        "وافتراضاتُ docker-compose.v9.yml هي EDGE_READINESS_MODE=partial و",
+        "EDGE_PRODUCTION_REQUIRED=false — أي أنّ الحقلَين اللذين يشترطهما الحارس",
+        "قيمتُهما في CI هي **قيمةُ عدم التزويد**، لا شاهدٌ عليه.",
+        "",
+        "فالتزويدُ يقع عند نشر المُشغِّل، ولا تملك هذه الـworkflow رؤيتَه. الإغلاقُ",
+        "الصحيح: دليلٌ من النشر المستهدَف يحمل بصماتِ الملفّات المُزوَّدة — لا انبعاثٌ",
+        "من CI."
+      ]
+    },
+    "GUARDS": {
+      "state": "no_honest_producer",
+      "workflow": null,
+      "measured_instead": [],
+      "reason": [
+        "guard_results_summary.json لا يكتبه شيءٌ في المستودع كلِّه: البحثُ عن اسمه",
+        "يُرجِع قارئَين وتوثيقاً ولا مُنتِجاً واحداً. ولا وظيفةَ له في",
+        "production-certification-blockers.yml أصلاً — أربعُ وظائفَ لخمسة حواجز.",
+        "",
+        "وأقربُ شاهدٍ متاحٍ اليوم (scripts/ci/preflight.sh) يقيس ٨٦ من ٢٦١ بوّابةً",
+        "حاجبة بحسب كتالوج الحرّاس، وختمُ verified فوق ثلثٍ ادّعاءُ اكتمالٍ من شاهد",
+        "حضور — وهو الصنفُ الذي بُنيت حزمةُ الأدلّة كلُّها لمنعه.",
+        "",
+        "الإغلاقُ الصحيح: مُنتِجٌ يقارن البوّاباتِ المُشغَّلة فعلاً في عدّاء ci.yml",
+        "بقائمة الحاجبات في كتالوج الحرّاس، فيُخرِج الفارقَ لا العدد."
+      ]
+    }
+  }
+}

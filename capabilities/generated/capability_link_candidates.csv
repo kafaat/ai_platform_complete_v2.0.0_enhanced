@@ -41,6 +41,7 @@ DEC-001,test,services/vegetation-analysis-service/test_evidence_producer_contrac
 DEC-001,test,tests/architecture/test_capability_evidence_maturity_engine.py,3,applied
 DEC-001,test,tests/architecture/test_runtime_evidence_ingestion.py,3,applied
 DEC-001,test,tests/architecture/test_runtime_evidence_trust_hardening.py,3,applied
+DEC-001,test,tests_v9/test_certification_evidence_is_produced_not_assumed.py,3,applied
 DEC-001,test,tests_v9/test_d09_live_evidence_receipt.py,3,applied
 DEC-001,test,tests_v9/test_evidence_contract_v62_3.py,3,applied
 DEC-001,test,tests_v9/test_evidence_graph_nodes_migration_v149.py,3,applied

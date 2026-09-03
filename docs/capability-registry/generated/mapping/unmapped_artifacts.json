@@ -6980,6 +6980,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_certification_evidence_is_produced_not_assumed.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_certification_regression_fixes.py",
     "kind": "tests"
   },

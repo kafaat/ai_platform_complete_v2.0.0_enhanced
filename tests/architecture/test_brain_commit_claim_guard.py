@@ -229,3 +229,43 @@ def test_the_live_adjudication_is_verified_against_its_own_file(tmp_path):
     mod = _module()
     assert mod.adjudication_exists("GATE01-ADJ-2026-08-13-001")
     assert not mod.adjudication_exists("GATE01-ADJ-2026-08-13-001", tmp_path)
+
+
+def test_a_certification_blocker_id_is_not_demanded_as_a_gap_section(capsys):
+    """`P-CERT-1` بندُ اعتمادٍ لا عطلٌ مرصود — وتسجيلُه فجوةً كذبٌ كالتفويض.
+
+    أسقط الحارسُ التزامَ «أربعُ وظائفِ دليلٍ لا تكتب دليلاً» لأنّه يسمّي الحواجزَ
+    الثلاثةَ المُعلَنة بلا مُنتِجٍ صادق. وحالةُ الحاجب
+    `pending`/`verified`/`waived_with_reason` لا `open`/`fixed`، فالمطلوبُ كان
+    إدخالاً كاذباً — أو حذفَ المعرّفات، وهو كتمانُ **أيّ حاجبٍ يُذكَر**.
+    """
+    mod = _module()
+    body = "P-CERT-1 عولج بشاهد، و P-CERT-3 و P-CERT-4 أُعلِنا بلا مُنتِجٍ صادق."
+    mod.commit_messages = lambda base, head: [("abc1234", body)]
+    assert mod.check("x", "y") == 0, capsys.readouterr().out
+
+
+def test_a_fabricated_certification_blocker_id_is_still_rejected(capsys):
+    """ولا يُستثنى الصنف بل **يُتحقَّق منه في `BLOCKERS`** — قائمتُه في هذه الشجرة."""
+    mod = _module()
+    mod.commit_messages = lambda base, head: [("abc1234", "أُغلِق P-CERT-9 اليوم")]
+    assert mod.check("x", "y") == 1
+    out = capsys.readouterr().out
+    assert "P-CERT-9" in out
+    assert "BLOCKERS" in out, "الرسالة لا تدلّ على القائمة الصحيحة"
+
+
+def test_the_blocker_class_did_not_swallow_real_gap_ids():
+    """الشكل كامل لا بادئة: معرّفُ فجوةٍ يبدأ بـ`P-CERT` ما زال يُطالَب بالتسجيل."""
+    mod = _module()
+    for gid in ("P-CERT-EVIDENCE-IS-FORGEABLE-01", "P-CERTIFY-1", "P-CERT-1-EXTRA"):
+        assert not mod.is_cert_blocker(gid), f"{gid} عُومِل حاجباً خطأً"
+    assert mod.is_cert_blocker("P-CERT-1")
+
+
+def test_the_blocker_list_is_read_from_its_source_not_copied():
+    """قائمةٌ منسوخةٌ تنحرف — وهو بعينه العطلُ الذي أسقط `GUARDS` من التقييم."""
+    mod = _module()
+    ids = mod.cert_blocker_ids()
+    assert {"P-CERT-1", "P-CERT-2", "P-CERT-3", "P-CERT-4"} <= ids
+    assert "P-CERT-9" not in ids

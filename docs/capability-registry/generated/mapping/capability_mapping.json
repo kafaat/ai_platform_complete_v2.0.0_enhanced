@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5239,
+    "files_scanned": 5244,
     "files_by_kind": {
       "backend": 1204,
       "database": 275,
       "governance": 62,
       "mobile": 51,
-      "other": 1434,
-      "tests": 1756,
+      "other": 1438,
+      "tests": 1757,
       "web": 457
     },
-    "unmapped_artifacts": 2137,
+    "unmapped_artifacts": 2138,
     "ambiguous_artifacts": 417
   },
   "capabilities": [
@@ -42082,6 +42082,10 @@
     },
     {
       "path": "tests_v9/test_capability_mapping_table_extraction.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_certification_evidence_is_produced_not_assumed.py",
       "kind": "tests"
     },
     {

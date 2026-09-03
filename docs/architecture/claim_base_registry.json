@@ -9,6 +9,7 @@
     "c8_c13_execution_contract.json",
     "capability_core_consumption_registry.json",
     "certification_acceptance_record.json",
+    "certification_evidence_producers.json",
     "claim_base_registry.json",
     "component_registry.json",
     "compose_auth_sinks.json",
