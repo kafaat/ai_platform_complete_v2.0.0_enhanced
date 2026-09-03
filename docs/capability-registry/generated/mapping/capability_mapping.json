@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5238,
+    "files_scanned": 5239,
     "files_by_kind": {
       "backend": 1204,
       "database": 275,
       "governance": 62,
       "mobile": 51,
       "other": 1434,
-      "tests": 1755,
+      "tests": 1756,
       "web": 457
     },
-    "unmapped_artifacts": 2136,
+    "unmapped_artifacts": 2137,
     "ambiguous_artifacts": 417
   },
   "capabilities": [
@@ -43618,6 +43618,10 @@
     },
     {
       "path": "tests_v9/test_workflow_lease_v19_5.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_workflow_run_body_interpolation.py",
       "kind": "tests"
     },
     {
