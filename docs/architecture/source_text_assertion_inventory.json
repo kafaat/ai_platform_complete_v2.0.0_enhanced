@@ -1,11 +1,11 @@
 {
   "$comment": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01 — المسح الأوّل لسطح التأكيدات الساكنة على نصّ المصدر. `prohibitions_without_a_stated_reason` **مَعدودة لا محكومٌ عليها**: لم يُثبَت أنّ أيّاً منها خاطئ، بل أنّ سببه غير مكتوب. الأساس يمنع النموّ، وسدادُه بكتابة السبب الحقيقيّ لا بنسخ عبارة. و`positive_pinning_a_call` **يُنشَر ولا يُحرَس**: معيار الفجوة (هل يبقى التأكيد صحيحاً بعد إعادة صياغة صحيحة؟) غير قابل للحسم آليّاً، ومُصنِّفٌ استدلاليّ يُنتِج قائمةً تُقرأ ديناً وهي ما طابق نمطاً.",
   "gap": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01",
-  "measured_on": "30b8be8b3a0cbf4396f998e8dd07445c07ed06f5",
+  "measured_on": "55c5f83e6be7bf73491eb1bba8b52756e27c3743",
   "scope": "assert على نصّ مصدر فقط — متغيّر أُسنِد من read_text/read/getsource في الاختبار نفسه، مُشتقٌّ بالبنية لا بالاسم. ما يُؤكَّد على جسم استجابة أو حمولة JSON خارج النطاق: هناك التأكيد هو العقد.",
   "totals": {
-    "source_text_assertions": 2270,
-    "positive_pinning_a_call": 320,
+    "source_text_assertions": 2274,
+    "positive_pinning_a_call": 322,
     "prohibitions": 184
   },
   "prohibitions_without_a_stated_reason": {
