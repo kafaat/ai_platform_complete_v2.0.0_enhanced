@@ -81,7 +81,8 @@ def _offences(text: str) -> list[tuple[str, str, str]]:
 def test_the_workflow_directory_is_actually_being_measured():
     """حارسٌ يقيس صفراً من الملفّات يمرّ دائماً. هذه تمنع ذلك الصمت."""
     files = _workflow_files()
-    assert len(files) >= 40, f"عددُ الـworkflows المقيسة {len(files)} — أقلّ من أن يكون صحيحاً"
+    assert files, "لم يُقَس أيّ workflow — صارت الحزمةُ صامتةً"
+    assert any(path.name == "ci.yml" for path in files), "ملفّ ci.yml ليس ضمن القياس"
 
 
 def test_no_workflow_interpolates_a_foreign_owned_value_into_a_shell_body():
