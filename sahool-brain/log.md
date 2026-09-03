@@ -7366,6 +7366,13 @@ no_third_value_registry نصّاً)، GATE-01 نظيف، 33 اختباراً، r
 - أُضيفت هجرة `v229_market_mcp_schema.sql` للجداول الستة التي يعتمد عليها Market MCP، ونُقلت كل عمليات أعمال Market إلى سياق معاملة يحمل GUC المستأجر؛ أساس مخالفات GUC تقلّص 20→18.
 - أُصلح إرجاع هندسة محفوظة كنص JSONB، وخطأ WOFOST صار 422، وتهيئة outbox أصبحت قابلة للتمرير إلى المنصّة دون تشغيلها افتراضياً.
 - القياس: 135 passed · 3 skipped · 0 failed. بلا rebuild/stack حيّ؛ لا رفع لـruntime_verified أو production_certified، ولا commit ولا push.
+## 2026-08-30 — شاهدٌ محلّيّ لصنف حقن الـworkflows (فوق `a0f20490`)
+
+- **المقيس:** `5112a613` ⇒ **٢٣** قيمةً يملكها طرفٌ خارجيّ داخل أجسام `run:` · `764713df` (#964) ⇒ **٠** · `a0f20490` ⇒ **٠**. #964 أغلق الصنفَ فعلاً.
+- **الفجوة المسجَّلة:** `WORKFLOW-INJECTION-REGRESSION-HAS-NO-LOCAL-WITNESS-01` — الإغلاقُ بلا شاهدٍ محلّيّ؛ `scripts/ci/github_actions_security_guard.py:24` حارسٌ فوقيّ لا يحلّل الحقن، والكشفُ مُفوَّضٌ إلى `zizmor` عند `--min-severity high --min-confidence high` (`.github/workflows/github-actions-security.yml:58`).
+- **المضاف:** `tests_v9/test_workflow_run_body_interpolation.py` (`unit`) — أربعُ حالات، وطفرةٌ سلوكيّةٌ واحدة على `.github/workflows/runtime-image-provenance.yml` في `guard_mutation_registry.json`.
+- **التكذيب:** على التاريخ الحقيقيّ — إعادةُ workflows ما قبل #964 تُحمِّر بـ**١١** مخالفةً مسمّاة؛ والطفرةُ المُسجَّلة تُقتَل بالاختبار المُسمَّى (`guard_mutation_guard --run` أخضر).
+- **حدُّ صدق:** المهاجمُ صاحبُ صلاحية write لا غريب — الثلاثةُ `workflow_dispatch` فقط، ولا `pull_request_target` في الشجرة. والتغطيةُ ثلاثُ عائلاتٍ لا تشمل `steps.*.outputs.*`.
 
 ## 2026-09-01 (د) — صفٌّ سجّلتُه أنا كان فيه خطآن، وقياسٌ نقض دعواي
 
