@@ -120,18 +120,21 @@ def alias_candidates(frozen_path: str, root: Path = ROOT) -> list[str]:
     """
     target = Path(frozen_path)
     version = _migration_version(target.name)
-    out: list[str] = []
-    for candidate in root.rglob(f"*{target.suffix}"):
+    out: set[str] = set()
+
+    for candidate in root.rglob(target.name):
         rel = candidate.relative_to(root).as_posix()
-        if rel == frozen_path or "node_modules" in rel or rel.startswith(".git/"):
-            continue
-        same_version = (
-            version is not None
-            and candidate.parent == (root / target.parent)
-            and _migration_version(candidate.name) == version
-        )
-        if same_version or candidate.name == target.name:
-            out.append(rel)
+        if rel != frozen_path and "node_modules" not in rel and not rel.startswith(".git/"):
+            out.add(rel)
+
+    if version is not None:
+        parent = root / target.parent
+        if parent.is_dir():
+            for candidate in parent.glob(f"{version}_*{target.suffix}"):
+                rel = candidate.relative_to(root).as_posix()
+                if rel != frozen_path and "node_modules" not in rel and not rel.startswith(".git/"):
+                    out.add(rel)
+
     return sorted(out)
 
 
