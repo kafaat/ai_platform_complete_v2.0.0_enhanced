@@ -129,6 +129,24 @@ def cert_blocker_ids(path: Path = _PACK_GUARD) -> set[str]:
     return {b["id"] for b in module.BLOCKERS}
 
 
+# **مرجعُ تفويضٍ مبتور**: صنفٌ رابع كان يُصنَّف خطأً «فجوةً غيرَ مسجَّلة».
+# `GATE01-ADJ-2026-09-02` (بلا المقاطع الثلاثة الأخيرة) لا يطابق `_ADJUDICATION`،
+# فيسقط إلى فرع الفجوات ويُعرَض عليه علاجٌ **يستحيل اتّباعُه بصدق**: «سجّلها في
+# `gaps/registry.md`» — وهو بعينه ما يصفه متنُ `_ADJUDICATION` أعلاه بأنّه **كذب**
+# («التفويض إذنُ مالكٍ لا عطلٌ مرصود»). فالرسالةُ كانت تقود إلى ما يحذّر منه الملفّ.
+#
+# ولا يُستثنى الصنف: الذكرُ يبقى ادّعاءً ويبقى الفشلُ قائماً — **يتغيّر التشخيصُ
+# لا الحكم**. رسالةٌ تسمّي العطلَ الحقيقيّ (مرجعٌ ناقص) توصل إلى العلاج الوحيد
+# الصحيح (أتمِم المعرّف أو احذف الذكر)، ورسالةٌ تقول «سجّله فجوةً» تدفع نحو
+# تلويث سجلّ الفجوات — وهو ثمنٌ أغلى من الفشل نفسِه.
+_ADJUDICATION_PREFIX = re.compile(r"^GATE[0-9]{2}-ADJ-[0-9]{4}-[0-9]{2}-[0-9]{2}$")
+
+
+def is_truncated_adjudication(gid: str) -> bool:
+    """مرجعُ تفويضٍ ينقصه المقطع التسلسليّ — لا فجوةٌ ولا تفويضٌ صالح."""
+    return bool(_ADJUDICATION_PREFIX.match(gid))
+
+
 def registry_ids() -> set[str]:
     """المعرّفات المُعلَنة رسميّاً — عنواناً أو **عمود معرّف في الجدول**.
 
@@ -178,6 +196,7 @@ def check(base: str, head: str) -> int:
     violations: list[str] = []
     adjudication_violations: list[str] = []
     blocker_violations: list[str] = []
+    truncated_violations: list[str] = []
     claimed = 0
     for sha, body in commit_messages(base, head):
         for gid in sorted(set(_GAP_ID.findall(body))):
@@ -190,6 +209,11 @@ def check(base: str, head: str) -> int:
                         f"{sha}: يذكر {gid} — ليس في production_evidence_pack_guard.BLOCKERS"
                     )
                 continue
+            if is_truncated_adjudication(gid):
+                truncated_violations.append(
+                    f"{sha}: يذكر {gid} — مرجعُ تفويضٍ **مبتور**، ينقصه المقطع التسلسليّ"
+                )
+                continue
             if is_adjudication(gid):
                 if not adjudication_exists(gid):
                     adjudication_violations.append(
@@ -199,9 +223,11 @@ def check(base: str, head: str) -> int:
                 continue
             if gid not in known:
                 violations.append(f"{sha}: يذكر {gid} — لا قسم '## {gid}' ولا صفّ جدول يبدأ به")
-    if violations or adjudication_violations or blocker_violations:
+    if violations or adjudication_violations or blocker_violations or truncated_violations:
         print("brain commit claim guard: FAIL")
-        for v in sorted(set(violations + adjudication_violations + blocker_violations)):
+        for v in sorted(
+            set(violations + adjudication_violations + blocker_violations + truncated_violations)
+        ):
             print(f"  ✗ {v}")
         if violations:
             print(
@@ -220,6 +246,14 @@ def check(base: str, head: str) -> int:
                 "\nوذكر معرّف حاجبِ اعتمادٍ ادّعاءُ وجوده في القائمة. الحواجزُ مصنوعةٌ "
                 "في هذه الشجرة — عرِّفه في production_evidence_pack_guard.BLOCKERS أو "
                 "احذف الذكر. ولا يُسجَّل في سجلّ الفجوات: بندُ اعتمادٍ لا عطلٌ مرصود."
+            )
+        if truncated_violations:
+            print(
+                "\nومرجعُ التفويض المبتور ليس فجوةً ولا تفويضاً صالحاً: **أتمِم المعرّف** "
+                "بمقطعه التسلسليّ (GATEnn-ADJ-YYYY-MM-DD-nnn) أو احذف الذكر.\n"
+                "**ولا يُسجَّل في سجلّ الفجوات** — ذاك يُلوّثه بمعرّفٍ لا وجود له، وهو "
+                "أغلى من الفشل نفسِه. وكانت هذه الحالة تسقط في فرع الفجوات فيُعرَض عليها "
+                "ذلك بالضبط: علاجٌ يستحيل اتّباعُه بصدق."
             )
         return 1
     print(f"brain commit claim guard: PASS ({claimed} ادّعاء معرّف مُتحقَّق منه)")

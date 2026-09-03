@@ -7864,6 +7864,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_platform_runtime_db_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_platform_shrink_ratchet_guard.py",
     "kind": "tests"
   },

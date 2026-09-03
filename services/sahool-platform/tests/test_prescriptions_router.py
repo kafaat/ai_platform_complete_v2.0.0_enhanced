@@ -89,7 +89,7 @@ def test_row_to_prescription_malformed_zones_falls_back_to_empty():
 
 async def test_list_prescriptions_db_disabled_returns_empty_with_reason(monkeypatch):
     """``_DB_POOL is None`` ⇒ قائمة فارغة + note_ar (لا وصفات مخترَعة، لا 500)."""
-    monkeypatch.setattr(rx, "_DB_POOL", None)
+    monkeypatch.setattr(rx.api_main, "_DB_POOL", None)
     out = await rx.list_prescriptions(field_id="fld_x", user=object())
     assert out["field_id"] == "fld_x"
     assert out["prescriptions"] == []
@@ -137,7 +137,7 @@ async def test_list_prescriptions_maps_rows_from_connection(monkeypatch):
             "created_at": "2026-06-22T10:00:00+00:00",
         }
     ]
-    monkeypatch.setattr(rx, "_DB_POOL", object())  # مُفعَّل (مسار القاعدة)
+    monkeypatch.setattr(rx.api_main, "_DB_POOL", object())  # مُفعَّل (مسار القاعدة)
     monkeypatch.setattr(rx, "tenant_connection", lambda user: _FakeCtx(_FakeConn(rows)))
 
     async def _ok_assert(conn, field_id):
@@ -152,7 +152,7 @@ async def test_list_prescriptions_maps_rows_from_connection(monkeypatch):
 
 async def test_list_prescriptions_tenant_isolation_empty_when_no_rows(monkeypatch):
     """مستأجِر بلا صفوف (RLS يرشّح) ⇒ قائمة فارغة صادقة (لا تسريب)."""
-    monkeypatch.setattr(rx, "_DB_POOL", object())
+    monkeypatch.setattr(rx.api_main, "_DB_POOL", object())
     monkeypatch.setattr(rx, "tenant_connection", lambda user: _FakeCtx(_FakeConn([])))
 
     async def _ok_assert(conn, field_id):
@@ -183,7 +183,7 @@ async def test_create_prescription_db_disabled_returns_503(monkeypatch):
     """قاعدة معطّلة ⇒ 503 موثَّق (لا ادّعاء حفظ)."""
     from fastapi import HTTPException
 
-    monkeypatch.setattr(rx, "_DB_POOL", None)
+    monkeypatch.setattr(rx.api_main, "_DB_POOL", None)
     req = rx.PrescriptionCreateRequest(
         prescription_id="rx_1", name="x", product_type="seed", zones=[]
     )
@@ -210,7 +210,7 @@ async def test_create_prescription_persists_and_returns_payload(monkeypatch):
         tenant_id = "11111111-1111-1111-1111-111111111111"
         user_id = "user_1"
 
-    monkeypatch.setattr(rx, "_DB_POOL", object())
+    monkeypatch.setattr(rx.api_main, "_DB_POOL", object())
     monkeypatch.setattr(rx, "tenant_connection", lambda user: _FakeCtx(_WConn()))
 
     async def _ok_assert(conn, field_id):
@@ -285,7 +285,7 @@ class _U:
 
 async def test_create_prescription_idempotent_replay_returns_persisted_false(monkeypatch):
     """Same id + same content ⇒ NOT a new write: persisted=False, returns the stored row."""
-    monkeypatch.setattr(rx, "_DB_POOL", object())
+    monkeypatch.setattr(rx.api_main, "_DB_POOL", object())
     monkeypatch.setattr(
         rx, "tenant_connection", lambda user: _FakeCtx(_conflict_conn(_stored_row()))
     )
@@ -303,7 +303,7 @@ async def test_create_prescription_same_id_different_content_is_409(monkeypatch)
     """Same id, different content ⇒ 409 IDEMPOTENCY_CONFLICT (never claim persistence)."""
     from fastapi import HTTPException
 
-    monkeypatch.setattr(rx, "_DB_POOL", object())
+    monkeypatch.setattr(rx.api_main, "_DB_POOL", object())
     monkeypatch.setattr(
         rx, "tenant_connection", lambda user: _FakeCtx(_conflict_conn(_stored_row(name="مختلف")))
     )
@@ -322,7 +322,7 @@ async def test_create_prescription_cross_tenant_id_collision_is_409(monkeypatch)
     """Id exists but invisible to this tenant (global PK owned elsewhere) ⇒ 409, not success."""
     from fastapi import HTTPException
 
-    monkeypatch.setattr(rx, "_DB_POOL", object())
+    monkeypatch.setattr(rx.api_main, "_DB_POOL", object())
     monkeypatch.setattr(rx, "tenant_connection", lambda user: _FakeCtx(_conflict_conn(None)))
 
     async def _ok_assert(conn, field_id):

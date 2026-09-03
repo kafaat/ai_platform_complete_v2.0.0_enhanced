@@ -565,6 +565,8 @@ services:
       # docker-compose.dev.yml (ENFORCE_SENSITIVE_MFA=false)؛ لا تجعل false افتراضاً.
       ENFORCE_SENSITIVE_MFA: ${ENFORCE_SENSITIVE_MFA:-true}
       REQUIRE_MFA_ROLES: ${REQUIRE_MFA_ROLES:-admin}
+      MFA_SECRET_ENCRYPTION_KEY: ${MFA_SECRET_ENCRYPTION_KEY:?MFA_SECRET_ENCRYPTION_KEY required}
+      MFA_SECRET_DECRYPTION_KEYS: ${MFA_SECRET_DECRYPTION_KEYS:-}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER:-}
@@ -614,6 +616,8 @@ services:
         required}@sahool-postgres:5432/sahool}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
+      FEATURE_NATS_PUBLISHERS: ${FEATURE_NATS_PUBLISHERS:-false}
+      NATS_URL: ${NATS_URL:-nats://sahool-nats:4222}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_SERVICE_URL: ${RASTER_SERVICE_URL:-http://sahool-raster-service:8001}

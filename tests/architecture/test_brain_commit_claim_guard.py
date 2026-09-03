@@ -231,6 +231,36 @@ def test_the_live_adjudication_is_verified_against_its_own_file(tmp_path):
     assert not mod.adjudication_exists("GATE01-ADJ-2026-08-13-001", tmp_path)
 
 
+def test_a_truncated_adjudication_reference_is_diagnosed_as_such_not_as_a_gap():
+    """صنفٌ رابع كان يُصنَّف خطأً، فيُعرَض عليه علاجٌ يستحيل اتّباعُه بصدق.
+
+    ``GATE01-ADJ-2026-09-02`` — مرجعُ تفويضٍ ينقصه المقطع التسلسليّ — لا يطابق
+    ``_ADJUDICATION``، فكان يسقط إلى فرع الفجوات ورسالتُه «سجّلها في
+    ``gaps/registry.md``». وذاك بعينه ما يصفه متنُ الحارس بأنّه **كذب**: التفويض
+    إذنُ مالكٍ لا عطلٌ مرصود. فالرسالةُ كانت تقود إلى ما يحذّر منه الملفّ.
+
+    **والحكمُ لم يُخفَّف**: الذكرُ يبقى ادّعاءً ويبقى الفشلُ قائماً — يتغيّر
+    التشخيصُ وحدَه. حارسٌ نصيحتُه خاطئةٌ يُصلَح بتصحيح النصيحة، لا بالتسامح.
+    """
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("g", GUARD)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    truncated = "GATE01-ADJ-2026-09-02"
+    assert mod.is_truncated_adjudication(truncated)
+    assert not mod.is_adjudication(truncated), "المبتور ليس تفويضاً صالحاً"
+
+    # والكاملُ يبقى تفويضاً يُتحقَّق منه في مجلَّده — لا مبتوراً.
+    full = "GATE01-ADJ-2026-09-02-001"
+    assert mod.is_adjudication(full)
+    assert not mod.is_truncated_adjudication(full), "ابتلع الصنفُ الجديدُ التفويضَ الكامل"
+
+    # والشاهدُ السويّ: معرِّفُ فجوةٍ حقيقيٌّ لم يُبتلَع بالصنف الجديد.
+    assert not mod.is_truncated_adjudication("WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01")
+
+
 def test_a_certification_blocker_id_is_not_demanded_as_a_gap_section(capsys):
     """`P-CERT-1` بندُ اعتمادٍ لا عطلٌ مرصود — وتسجيلُه فجوةً كذبٌ كالتفويض.
 

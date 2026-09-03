@@ -1,0 +1,49 @@
+{
+  "$comment": "عقد دين NATS المقيس على main@9b1f630b. لا يدّعي الإغلاق؛ يمنع تغيّر الواقع أو اختفاء الفجوة من التقرير بلا تحديث صريح للعقد والاختبارات.",
+  "schema_version": 1,
+  "measured_on": "9b1f630b42044d8516c6420c5139cfcf901e2b95",
+  "baseline_sha": "9b1f630b42044d8516c6420c5139cfcf901e2b95",
+  "compose_file": "docker-compose.v9.yml",
+  "connected_services": [
+    "sahool-actuator-dispatch-worker",
+    "sahool-canonical-execution-learning-worker",
+    "sahool-model-registry-worker",
+    "sahool-notification-agent",
+    "sahool-phase-runtime-outbox-worker",
+    "sahool-platform",
+    "sahool-plugin-runtime-worker",
+    "sahool-reservation-dispatch-relay-worker",
+    "sahool-soil-service",
+    "sahool-telegram-bot",
+    "sahool-vegetation-analysis",
+    "sahool-weather-polygon-worker",
+    "sahool-weather-service"
+  ],
+  "gaps": {
+    "NATS-AUTHORIZATION-NOT-ENFORCED": {
+      "status": "OPEN",
+      "evidence": "nats/nats.conf defines JetStream limits and monitoring but no authorization/accounts/users/NKeys or subject permissions",
+      "closing_condition": "anonymous denied; per-service publish/subscribe allow-lists proven with negative and positive probes"
+    },
+    "AGENT-TO-ACTUATOR-ADAPTER-ABSENT": {
+      "status": "OPEN",
+      "subject": "sahool.actuator.dispatch.requested",
+      "publisher": "services/sahool-platform/api/phase_runtime_workers.py",
+      "consumers": [],
+      "boundary": "services/actuator-service uses MQTT and does not subscribe to this NATS subject",
+      "closing_condition": "owned/versioned simulated-first adapter consumes the exact subject, validates tenant/device/content-pin/idempotency, and emits a correlated receipt"
+    },
+    "NATS-SUBJECT-NAMESPACE-CONTRACT-DIVERGENCE": {
+      "status": "OPEN",
+      "producer": "sahool-plugin-runtime-worker",
+      "current_transform": "sahool.<event_type with underscores replaced by dots>",
+      "examples": [
+        "sahool.field.updated",
+        "sahool.recommendation.created"
+      ],
+      "canonical_domain_transform": "sahool.events.<event_type>",
+      "canonical_consumer": "agents/notification/agent.py subscribes sahool.events.>",
+      "closing_condition": "one versioned subject contract and a producer-consumer test; migration/compatibility window if existing external consumers are discovered"
+    }
+  }
+}

@@ -3,7 +3,7 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `227641dde69f319566d03e47e1af359e5c545c01083ec0ba366c749eb56ddd3e`
+- fingerprint: `ce067d08bfc8881294bc7d0bd8c587e1d5ee8ae53e0c64f48e95723dbbc456a1`
 - components: **36** (backend: 32)
 - route rows: **1112** → unique method/path: **998**
 - capabilities (derived, uncurated): **827**
@@ -30,7 +30,7 @@
 | indicators-service | service | indicators | sahool-indicators-service | 0 | True |
 | knowledge-graph | service | knowledge | sahool-knowledge-graph | 0 | True |
 | local-ai-rag | service | knowledge | sahool-local-ai-rag | 0 | True |
-| mcp_servers | service | agents-mcp | sahool-market-mcp, sahool-sentinel-hub-mcp, sahool-weather-mcp, sahool-wofost-mcp | 0 | True |
+| mcp_servers | service | agents-mcp | sahool-market-mcp, sahool-sentinel-hub-mcp, sahool-weather-mcp, sahool-wofost-mcp | 6 | True |
 | mobile | mobile | user-interface | — | 0 | None |
 | model-registry-adapter | worker_adapter | decision-governance | sahool-model-lifecycle-adapter | 0 | True |
 | notification-agent | worker | notifications | sahool-notification-agent | 0 | None |
@@ -55,8 +55,8 @@
 ## Architecture gates
 
 - ARCH-S1a component classification: `PASS`
-- ARCH-S2 dependency truth: `PASS` — edges **797**
-- S2 relations: CALLS=38, CONSUMES=1, EMITS=1, READS=408, ROUTES_TO=70, WRITES=279
+- ARCH-S2 dependency truth: `PASS` — edges **804**
+- S2 relations: CALLS=38, CONSUMES=1, EMITS=1, READS=413, ROUTES_TO=70, WRITES=281
 
 ## Governance gates (U3/U4)
 

@@ -5,7 +5,10 @@
 > (شبكة الخدمات) قبل 3 (السلسلة الكاملة).
 >
 > **أساس القياس:** كلّ رقم واسم في هذا الدليل (الجداول والأعمدة وسلوك المصادقة) مقيس على
-> `4ad1b1cc`. لم أذكر التزام الفرع لأنّه يتغيّر مع كلّ إعادة تأسيس فيبيت النصّ — والتحقّق
+> `4ad1b1cc`. أمّا أوامر المرحلة الثالثة فقد أُعيدت معايرتها على
+> `9b1f630b42044d8516c6420c5139cfcf901e2b95` بعد أن أثبت التشغيل الحيّ أنّ
+> marker الاختبار وعمود ledger وموضوع NATS ومسار HTTP القديمة لا تنفّذ القياس المعلن.
+> لم أذكر التزام الفرع لأنّه يتغيّر مع كلّ إعادة تأسيس فيبيت النصّ — والتحقّق
 > الصحيح ليس مقارنة رقمين بل أمرٌ تُشغّله أنت:
 > `git diff --name-only 4ad1b1cc HEAD -- migrations/ services/` — إن كان فارغاً فالأرقام قائمة،
 > وإلّا فأعِد قياس ما مسّه الفرق قبل أن تستعمله. البيئة والرفع موصوفان في
@@ -472,12 +475,16 @@ mv /tmp/skills_probe skills && git checkout -- skills 2>/dev/null   # استعا
 docker compose -f docker-compose.v9.yml up -d sahool-decision-service sahool-nats sahool-actuator-service
 sleep 25
 
-# 1) مرشّح بمحتوى معروف  2) عدّل الخطّة بعد الموافقة  3) نفّذ ⇒ يجب الرفض ببصمة غير مطابقة
-pytest -v -m integration tests_v9/test_wx10_11b_execution_delivery_receipt_contract.py \
+# هذا الملف عقدٌ ساكن معلَّم unit؛ لا تقدّمه كاختبار TOCTOU حيّ. يشغّل هنا
+# لتثبيت حدود migration/route/receipt فقط. اختبار PG الحيّ المنفصل شرط الإغلاق أدناه.
+pytest -v tests_v9/test_wx10_11b_execution_delivery_receipt_contract.py \
   > "$EV/A0_toctou.log" 2>&1; echo "exit=$?" | tee -a "$EV/A0_toctou.log"
 
 docker compose -f docker-compose.v9.yml exec -T sahool-postgres psql -U postgres -d sahool -c "
-  SELECT status, count(*) FROM execution_ledger GROUP BY 1,2;
+  SELECT outcome, count(*) AS total
+  FROM execution_ledger
+  GROUP BY outcome
+  ORDER BY outcome;
 " | tee "$EV/A1_execution_rejections.txt"
 ```
 
@@ -487,31 +494,61 @@ docker compose -f docker-compose.v9.yml exec -T sahool-postgres psql -U postgres
 ```bash
 : "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
 
-# لا أمر تسرّب: راقب الموضوع أثناء المحاولة
-docker compose -f docker-compose.v9.yml exec -T sahool-nats \
-  nats sub 'actuator.>' --count=1 --timeout=30s > "$EV/A2_nats_silence.txt" 2>&1 || echo "no message (expected)"
+# لا أمر تسرّب: راقب الموضوع الفعليّ أثناء **اختبار PG الحيّ**. لا يُقبل
+# "no message" ما لم يثبت السجلّ أولاً نجاح الاتصال والاشتراك. استخدم عميلاً
+# موثّقاً يكتب connected=true وsubscribed=true قبل بدء محاولة التنفيذ.
+export ACTUATOR_DISPATCH_SUBJECT='sahool.actuator.dispatch.requested'
+printf 'subject=%s\nstatus=BLOCKED_UNTIL_LIVE_SUBSCRIBER_IS_READY\n' \
+  "$ACTUATOR_DISPATCH_SUBJECT" | tee "$EV/A2_nats_silence.txt"
 ```
 
 ---
 
 ### ⑪ `AGENT-TO-ACTUATOR-BYPASS-NOT-GUARDED`
 
+> **اكتشاف المصدر على `9b1f630b`:** يوجد ناشر واحد للموضوع
+> `sahool.actuator.dispatch.requested` وصفر مستهلكين داخل المستودع؛
+> `services/actuator-service` يستخدم MQTT ولا يشترك بهذا الموضوع. لذلك نجاح منع
+> publisher غير المصرح لا يغلق المسار الشرعي: يلزم adapter مملوك ومُصدَّر أو
+> إثبات adapter خارجي. الجرد القانوني وحالة namespace الإضافية في
+> [`nats_subject_ownership_contract.json`](../architecture/nats_subject_ownership_contract.json).
+
 ```bash
 : "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
 
-# تجاوز HTTP مباشر من حاوية وكيل ⇒ يجب أن يفشل بسياسة الشبكة/المصادقة
-docker compose -f docker-compose.v9.yml exec -T sahool-ai-agronomist \
-  curl -sS -o /dev/null -w 'direct_bypass_http=%{http_code}\n' \
-  http://sahool-actuator-service:8000/v1/commands 2>&1 | tee "$EV/B0_http_bypass.txt"
+# تجاوز HTTP مباشر من حاوية وكيل ⇒ يجب أن يفشل بسياسة الشبكة/المصادقة.
+# صورة الوكيل لا تحتوي curl؛ urllib جزء من Python المثبّت ويطبع المصدر الحقيقيّ للرمز.
+docker compose -f docker-compose.v9.yml exec -T sahool-ai-agronomist python - <<'PY' \
+  | tee "$EV/B0_http_bypass.txt"
+import urllib.error
+import urllib.request
+
+url = "http://sahool-actuator-service:8000/v1/commands"
+try:
+    with urllib.request.urlopen(url, timeout=10) as response:
+        print(f"direct_bypass_http={response.status}")
+except urllib.error.HTTPError as exc:
+    print(f"direct_bypass_http={exc.code}")
+except Exception as exc:
+    print(f"direct_bypass_http=000 transport_error={type(exc).__name__}:{exc}")
+PY
 # المقبول: رفض (000 اتّصال محجوب · أو 401/403). أمّا 2xx فهو **تجاوز حقيقيّ**.
 ```
 
 ```bash
 : "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
 
-# تجاوز NATS بهويّة وكيل ⇒ يجب أن يرفضه الوسيط
-docker compose -f docker-compose.v9.yml exec -T sahool-ai-agronomist \
-  nats pub 'actuator.command' '{"probe":"bypass"}' 2>&1 | tee "$EV/B1_nats_bypass.txt"
+# الموضوع القانونيّ الذي ينشره العامل. لا تنشر عليه من هذا الدليل ما لم يكن
+# adapter محاكياً والشبكة الفيزيائيّة مفصولة وNATS auth مفعّلة والمشغّل موافقاً.
+export ACTUATOR_DISPATCH_SUBJECT='sahool.actuator.dispatch.requested'
+: "${SIMULATED_ADAPTER_ONLY:?يجب SIMULATED_ADAPTER_ONLY=YES قبل probe NATS}"
+: "${PHYSICAL_DEVICE_NETWORK_DISCONNECTED:?يجب فصل شبكة الأجهزة قبل probe NATS}"
+: "${OPERATOR_APPROVED_LIVE_PROBE:?تحتاج موافقة تشغيلية صريحة}"
+test "$SIMULATED_ADAPTER_ONLY" = YES
+test "$PHYSICAL_DEVICE_NETWORK_DISCONNECTED" = YES
+test "$OPERATOR_APPROVED_LIVE_PROBE" = YES
+printf 'subject=%s\nstatus=READY_FOR_AUTHENTICATED_NEGATIVE_PROBE\n' \
+  "$ACTUATOR_DISPATCH_SUBJECT" | tee "$EV/B1_nats_bypass.txt"
 
 # المسار الصحيح كاملاً يجب أن ينجح — وإلّا فالحجب أعمى لا انتقائيّ
 pytest -v -m integration tests_v9/test_actuation_killswitch_v29_5_op.py \
@@ -519,6 +556,7 @@ pytest -v -m integration tests_v9/test_actuation_killswitch_v29_5_op.py \
 ```
 
 **معيار الإغلاق:** التجاوزان مرفوضان **والمسار الشرعيّ ناجح**. حجبٌ يمنع الاثنين ليس حراسة بل عطل.
+وإلى أن يوجد مستهلك شرعي موثّق تبقى الحالة `OPEN` لا `PARTIAL`.
 
 ---
 
@@ -526,7 +564,7 @@ pytest -v -m integration tests_v9/test_actuation_killswitch_v29_5_op.py \
 
 > **حقيقة مقيسة تُغيّر شكل هذا الاختبار:** بحثٌ في `migrations/` على `4ad1b1cc` يُظهر أنّ
 > `correlation_id` **غير موجود** في `decision_record` ولا `execution_ledger` ولا
-> `as_applied_irrigation_receipts` ولا `approvals`. يوجد في `irrigation_resource_reservations`
+> `as_applied_irrigation_receipts` ولا `decision_reviews`. يوجد في `irrigation_resource_reservations`
 > و`irrigation_resource_reservation_events` و`workflow_state`، وكـ`analysis_id` في
 > `field_evidence_snapshots`. **أي أنّ الجسر مفقود في المخطّط نفسه** — وهو تأكيد للفجوة لا نفي لها.
 >
@@ -540,8 +578,9 @@ pytest -v -m integration tests_v9/test_actuation_killswitch_v29_5_op.py \
 export CID="probe-$(date -u +%s)"
 curl -sS -X POST -H "Authorization: Bearer $SAHOOL_AGENT_TOKEN" \
      -H "X-Correlation-ID: $CID" -H 'Content-Type: application/json' \
-     -d "{\"field_id\":\"${FIELD_ID}\"}" \
-     http://localhost:8000/api/v1/irrigation/recommendations | tee "$EV/C0_kickoff.json"
+     -d '{"submit_to_decision":true}' \
+     "http://localhost:8000/api/v1/fields/${FIELD_ID}/irrigation-recommendation" \
+  | tee "$EV/C0_kickoff.json"
 ```
 
 ```bash

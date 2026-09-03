@@ -204,6 +204,24 @@ def blob_sha(path: str, root: Path = ROOT) -> str | None:
     return out if proc.returncode == 0 and out else None
 
 
+def blob_sha_at_commit(commit: str, path: str, root: Path = ROOT) -> str | None:
+    """Return the blob SHA for ``path`` in an immutable historical commit.
+
+    A consumed authorization describes the tree that consumed it, not every
+    future HEAD.  Keeping this lookup separate from :func:`blob_sha` prevents
+    current-tree authorization checks from accidentally becoming historical.
+    """
+    proc = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", f"{commit}:{path}"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=False,
+    )
+    out = proc.stdout.strip()
+    return out if proc.returncode == 0 and out else None
+
+
 def load_adjudications(directory: Path = ADJUDICATIONS) -> list[dict]:
     if not directory.is_dir():
         return []

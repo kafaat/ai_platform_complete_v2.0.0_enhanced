@@ -31,9 +31,9 @@ from core.season_phenology import crop_kc_profile, resolve_crop_id
 from fastapi import APIRouter, Depends, HTTPException, Path
 from pydantic import BaseModel, Field
 
+from api import main as api_main
 from api.field_state_projection import gather_field_freshness
 from api.main import (
-    _DB_POOL,
     Permission,
     UserSchema,
     _assert_field_in_tenant,
@@ -235,7 +235,7 @@ async def field_etc_dual(
     يقرأ الحقل (محصول/تاريخ زراعة/إحداثيّات) + أحدث NDVI/ملوحة (RLS)، يبني الطقس (مُمرَّر أو حيّ)،
     ويستدعي `compute_etc_dual`. صدق: NDVI/طقس مفقودان ⇒ تدرّج/503 معلَن؛ بطاقة/عمر ⇒ 422؛ DB ⇒ 503.
     """
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         raise HTTPException(status_code=503, detail="القاعدة غير مفعّلة (DATABASE_URL)")
     try:
         async with tenant_connection(user) as conn:

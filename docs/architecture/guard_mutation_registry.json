@@ -155,7 +155,7 @@
           "why": "مُستهلَكٌ بلا `merge_sha`. دورةُ الحياة تصير غيرَ قابلةٍ للمراجعة: يُقال «استُهلِك» ولا يُقال أين — وهو أثرٌ لا يُراجَع، وصنفُ `GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01` نفسُه."
         },
         {
-          "expect": "test_every_live_record_is_consistent_across_state_bytes_scope_and_lifecycle",
+          "expect": "test_a_consumed_record_still_describes_what_actually_landed",
           "test": "tests_v9/test_gate01_frozen_path_guard.py",
           "find": "\"services/actuator-service/actuator_runtime.py\": \"3583eb102d39a047bc5b8fd2de918b19307ed120\"",
           "replace": "\"services/actuator-service/actuator_runtime.py\": \"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"",
@@ -706,7 +706,7 @@
         },
         {
           "expect": "test_meta_governance_tests_are_never_lexical_evidence",
-          "find": "        rel_posix = rel.as_posix()\n        if rel_posix.startswith(META_GOVERNANCE_PREFIXES):\n            continue\n        results.append(rel_posix)",
+          "find": "        rel_posix = rel.as_posix()\n        if rel_posix in META_GOVERNANCE_FILES or rel_posix.startswith(META_GOVERNANCE_PREFIXES):\n            continue\n        results.append(rel_posix)",
           "replace": "        results.append(rel.as_posix())",
           "why": "نزع استثناء شهود الحوكمة يعيد التلوّث المعجميّ المقيس: حارس report-only «change» يعود دليلاً لقدرة كشف التغيّر SAT-007 فتحجب بوّابة الأثر إعلاناتٍ صادقة (قِيس على PR #857)"
         }

@@ -18,12 +18,15 @@ FieldAggregate ولا استيرادات الاختبارات. الرموز ال
 
 from __future__ import annotations
 
+import json
 import logging
 from datetime import date
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import Response
 from pydantic import BaseModel, Field, field_validator
+
+from api import main as api_main
 
 # validate_field_geometry يُستورَد من مصدره مباشرةً (كان main يعيد تصديره، لكنه صار
 # يتيماً فيه بعد نقل _persist_field إلى هنا — تفكيك B1).
@@ -55,7 +58,6 @@ from api.gis_geometry_guard import geometry_metadata, guard_field_geometry
 # بقيّة التبعيّات/النماذج/المساعِدات المشتركة تبقى في api.main وتُستورَد من هناك.
 from api.main import (
     _ACTIVITY_TYPES,
-    _DB_POOL,
     _SOIL_TEST_SELECT,
     ActivityCreateRequest,
     ActivitySummary,
@@ -1631,8 +1633,19 @@ async def revert_field_geometry(
             if hrow is None:
                 raise HTTPException(status_code=404, detail="مراجعة الحدود غير موجودة لهذا الحقل")
             raw_geometry = hrow["geometry"]
+            if isinstance(raw_geometry, str):
+                try:
+                    raw_geometry = json.loads(raw_geometry)
+                except json.JSONDecodeError as exc:
+                    logging.getLogger(__name__).warning(
+                        "geometry revert rejected malformed stored JSON field=%s revision=%s",
+                        field_id,
+                        revision,
+                    )
+                    raise HTTPException(status_code=409, detail="stored_geometry_invalid") from exc
+            if not isinstance(raw_geometry, dict):
+                raise HTTPException(status_code=409, detail="stored_geometry_invalid")
             guarded = guard_field_geometry(raw_geometry)
-            import json as _json
 
             await conn.execute(
                 """
@@ -1644,7 +1657,7 @@ async def revert_field_geometry(
                     row_version = row_version + 1
                 WHERE field_id = $5 AND tenant_id = $6::uuid
                 """,
-                _json.dumps(guarded.geometry),
+                json.dumps(guarded.geometry),
                 round(guarded.area_ha, 2),
                 guarded.centroid[0],
                 guarded.centroid[1],
@@ -3767,7 +3780,7 @@ async def field_history(
     يُغذّي memory_adapter في حلقة القرار (Runtime Cohesion). صدق: عند تعطّل
     القاعدة يُرجِع events فارغة (لا تاريخ مخترَع) ويُعلن السبب.
     """
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         return {
             "field_id": field_id,
             "events": [],
@@ -3824,7 +3837,7 @@ async def field_unified_timeline(
     عبر ``tenant_connection`` (RLS — كلّ مستأجر أحداثه فقط). صدق: عند تعطّل القاعدة
     يُرجِع خطّاً فارغاً ويُعلن السبب (لا تاريخ مخترَع).
     """
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         return {
             "field_id": field_id,
             "events": [],
@@ -3920,7 +3933,7 @@ async def _persist_scouting_pin(user: UserSchema, pin) -> bool:
     القاعدة (لا استثناء يصعد — المسار offline-first يبقى سليماً). SQL بارامتريّ
     بالكامل (لا حقن). ``created_at`` يُمرَّر كنصّ ISO من النواة ويُحوَّل بـ``::timestamptz``.
     """
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         return False
     try:
         async with tenant_connection(user) as conn:

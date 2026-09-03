@@ -748,4 +748,6 @@ v227_decision_learning_runtime.sql
 #   وفهارسُ جزئيّةٌ على claim_token لعاملِ استرجاع العقود المنتهية. ALTER فقط، idempotent،
 #   بلا RLS جديد. يُدرَج قبل v206 كي يبقى v206 آخِر مدخل.
 v228_worker_claim_lease.sql
+# v229: schema contract used by Market MCP + FORCE-RLS tenant isolation.
+v229_market_mcp_schema.sql
 v206_rls_final_hardening.sql

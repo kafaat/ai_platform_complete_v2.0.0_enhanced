@@ -150,7 +150,7 @@
         },
         {
           "function": "health",
-          "line": 698,
+          "line": 672,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/health",
@@ -174,7 +174,7 @@
         },
         {
           "function": "healthz",
-          "line": 283,
+          "line": 286,
           "method": "GET",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/health",
@@ -349,7 +349,7 @@
         },
         {
           "function": "health",
-          "line": 698,
+          "line": 672,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/healthz",
@@ -373,7 +373,7 @@
         },
         {
           "function": "healthz",
-          "line": 283,
+          "line": 286,
           "method": "GET",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/healthz",
@@ -691,7 +691,7 @@
         },
         {
           "function": "readyz",
-          "line": 715,
+          "line": 685,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/readyz",
@@ -715,7 +715,7 @@
         },
         {
           "function": "readyz",
-          "line": 288,
+          "line": 291,
           "method": "GET",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/readyz",
@@ -952,7 +952,7 @@
       "registrations": [
         {
           "function": "api_search_products",
-          "line": 632,
+          "line": 606,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/products",
@@ -1068,7 +1068,7 @@
         },
         {
           "function": "mcp_tools_call",
-          "line": 578,
+          "line": 552,
           "method": "POST",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1151,7 +1151,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1096,
-  "route_inventory_sha256": "92df9309e510186f9d92d218b96d64aed4595659c93e9773f434ff04f976d998",
+  "route_inventory_sha256": "d6285272838d98019055ee84497ce869abeef2b9336345e8eb9c7e11837e7bcb",
   "runtime_verified": false,
   "schema_version": 1
 }

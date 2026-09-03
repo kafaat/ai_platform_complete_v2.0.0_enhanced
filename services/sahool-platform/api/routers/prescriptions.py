@@ -41,13 +41,13 @@ import os
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response
 from pydantic import BaseModel, Field, field_validator
 
+from api import main as api_main
 from api.machinery_export import (
     MachineryExportError,
     build_prescription_isoxml,
     generate_export_package,
 )
 from api.main import (
-    _DB_POOL,
     Permission,
     UserSchema,
     _assert_field_in_tenant,
@@ -239,7 +239,7 @@ async def create_prescription(
             status_code=422,
             detail=f"نوع المنتج غير مدعوم (المسموح: {sorted(_PRODUCT_TYPES)})",
         )
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         raise HTTPException(
             status_code=503,
             detail="تعذّر حفظ الوصفة (القاعدة غير مفعّلة DATABASE_URL أو الهجرات غير مطبّقة).",
@@ -343,7 +343,7 @@ async def list_prescriptions(
     ``{field_id, prescriptions, total}``. صدق: القاعدة غير مفعّلة (``DATABASE_URL``)
     ⇒ قائمة فارغة + سبب (لا وصفات مخترَعة)؛ تعذّر القاعدة أثناء التنفيذ ⇒ 503 موثَّق.
     """
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         return {
             "field_id": field_id,
             "prescriptions": [],
@@ -417,7 +417,7 @@ async def export_prescription(
             status_code=422,
             detail="صيغة غير مدعومة (المتاح: shapefile | isoxml)",
         )
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         raise HTTPException(status_code=503, detail="القاعدة غير مفعّلة (DATABASE_URL)")
     rx: dict | None = None
     try:
