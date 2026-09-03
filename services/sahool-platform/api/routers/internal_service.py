@@ -7,12 +7,38 @@ routes remain service-token protected and preserve their paths/contracts.
 from __future__ import annotations
 
 from core.canonical_field_state import compose_canonical_field_state
+from core.canonical_schemas import UserRole
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api import main
 from api.service_token_auth import _require_service_token
 
 router = APIRouter()
+
+
+class _ServiceUser:
+    """هويّةُ الخدمة-لخدمة كـ**كائنِ مستخدِمٍ حقيقيّ** — لا مُعرِّفُ مستأجِرٍ عارٍ.
+
+    `main.tenant_connection` تقرأ من وسيطها ثلاث سماتٍ (`tenant_id` · `user_id` ·
+    `role`) لتضبط GUCات RLS الثلاثة. وكان هذا الملفّ يستدعي `main.tenant_connection_for`
+    — **دالّةٌ لا وجودَ لها في `main.py` أصلاً** (مقيسٌ: مَرجِعا `main.X` غيرُ
+    المعرَّفَين في كلّ خدمة المنصّة هما هذان السطران فحسب). فكلّ نداءٍ للمسارين كان
+    يرفع `AttributeError` يبتلعه `except Exception` ويُترجَم **٥٠٣ «القاعدة غير
+    متاحة»** — عطلُ برمجةٍ يُروى قصّةَ بنيةٍ تحتيّة.
+
+    والعلاجُ ليس اختراعَ الدالّة الغائبة: سياقُ المستأجِر وحدَه (`_apply_tenant_guc`)
+    يترك `app.current_user_id` و`app.current_role` غيرَ مضبوطَين، و**٢٨ موضعاً في
+    `migrations/*.sql` يقرؤهما**. فالهويّةُ تُصرَّح: مستأجِرٌ صريح، فاعلٌ خدميٌّ
+    مُميَّزٌ في التدقيق، ودورُ `VIEWER` (أدنى صلاحيّة — لا `owner` ولا `platform_admin`).
+    """
+
+    __slots__ = ("role", "tenant_id", "user_id")
+
+    def __init__(self, tenant_id: str, *, user_id: str = "service:internal") -> None:
+        self.tenant_id = tenant_id
+        self.user_id = user_id
+        self.role = UserRole.VIEWER
+
 
 # NOTE: the tenant-scoped internal field READ routes (GET /api/v1/internal/fields
 # and /api/v1/internal/fields/{field_id}) were MOVED off the platform to the new
@@ -61,7 +87,7 @@ async def internal_field_state(
     from api.field_state_projection import recompute_field_state
 
     try:
-        async with main.tenant_connection_for(tenant_id) as conn:
+        async with main.tenant_connection(_ServiceUser(tenant_id)) as conn:
             await main._assert_field_in_tenant(conn, field_id)
             result = await recompute_field_state(conn, field_id)
             need_canonical = canonical or twin or bool(learning_model_id)
@@ -140,11 +166,9 @@ async def internal_ai_advice_event(
     _: None = Depends(_require_service_token),
 ):
     """Record evidence-only AI advice as a domain event through the platform outbox."""
-
-    class _ServiceUser:
-        tenant_id = req.tenant_id
-        user_id = "service:ai_agronomist"
-
+    # هويّةٌ واحدة للمسارين — والصنفُ المحلّيُّ الذي كان هنا كان بلا `role` أصلاً،
+    # فحتّى لو وُجِدت `tenant_connection_for` لَسقط تمريرُه إلى `tenant_connection`.
+    actor = _ServiceUser(req.tenant_id, user_id="service:ai_agronomist")
     payload = {
         "field_id": req.field_id,
         "question": req.question,
@@ -156,12 +180,12 @@ async def internal_ai_advice_event(
         "runtime": "ai_agronomist",
     }
     try:
-        async with main.tenant_connection_for(req.tenant_id) as conn:
+        async with main.tenant_connection(actor) as conn:
             if req.field_id:
                 await main._assert_field_in_tenant(conn, req.field_id)
             await main._emit_domain_event(
                 conn,
-                _ServiceUser(),
+                actor,
                 "AI_SUGGESTION",
                 "field" if req.field_id else "tenant",
                 req.field_id or req.tenant_id,

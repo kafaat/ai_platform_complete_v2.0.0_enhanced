@@ -1,55 +1,132 @@
 #!/usr/bin/env python3
-"""Print the current status of the four production certification blockers.
+"""Print the current status of the production certification blockers.
 
 This script is intentionally read-only. It does not promote certification and
 it does not convert local/sandbox checks into deployment evidence.
+
+**والحكمُ هنا لا يُكتَب — يُفوَّض.** كان هذا الملفُّ يحمل قائمةَ حواجزَ ثانيةً
+وحكماً ثانياً، وكلاهما أضعفُ من الحارس الصارم القائم:
+
+* قائمتُه أربعةُ حواجز، وقائمةُ `production_evidence_pack_guard` **خمسة** —
+  الخامسُ `GUARDS` مُدرَجٌ هناك في `non_waivable_blockers` وغائبٌ هنا. أي أنّ
+  حاجباً كاملاً لم يكن يُقيَّم أصلاً، لا لأنّه غيرُ معرَّفٍ بل لأنّ القائمتين
+  اختلفتا.
+* وحكمُه كان `row["status"] == "verified"` — مقارنةَ سلسلةٍ لا غير: لا بصمةَ
+  تُفحَص، ولا مستودعَ ولا workflow يُطابَق، ولا سببَ إعفاءٍ يُقرأ.
+
+**ومُكذَّبٌ بالتنفيذ لا موصوف:** في رملٍ معزول (`EVIDENCE_DIR` مُوجَّهٌ إلى دليلٍ
+مؤقّت) أنتجت **أربعةُ ملفّات JSON مكتوبةٍ باليد** `production_certified=true`
+وخروجاً `0` — ببصمةٍ من أربعين صفراً، و`repository: attacker/x`، وقوائمَ فارغة،
+وإعفاءٍ **بلا حقل سببٍ أصلاً**؛ والكلمةُ «سبب» كانت في **اسم الحالة**
+(`waived_with_reason`) لا في البيانات.
+
+فصار المصدرُ واحداً: القائمةُ تُستورَد، والتحقّقُ يُفوَّض إلى `check_files()`،
+ولا يُعلَن اعتمادٌ إلّا بعد مروره. **وحكمان لحقيقةٍ واحدة ينحرفان — وهذان لم
+يكونا متّفقَين أصلاً.**
+
+**حدُّ صدقٍ مُعلَن:** هذا يمنع التزييفَ **الأسهل** (ملفّاتٌ مكتوبةٌ باليد بقيمٍ
+شكليّة). ولا يُثبت أنّ الدليلَ صادرٌ عن تشغيلٍ حقيقيّ — ذاك يحتاج attestation
+موقَّعة، وهي مُسجَّلةٌ ديناً مفتوحاً في
+`PRODUCTION-CERTIFICATION-VERDICT-IS-FORGEABLE-AND-UNREACHABLE-01`.
 """
 
 from __future__ import annotations
 
 import argparse
+import contextlib
+import importlib.util
+import io
 import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 EVIDENCE_DIR = ROOT / "certification" / "evidence"
+_GUARD = Path(__file__).resolve().parent / "production_evidence_pack_guard.py"
 
-BLOCKERS = [
-    ("P-CERT-1", "Full branch CI", "ci_summary.json", False),
-    ("P-CERT-2", "Connected transitive lock generation", "transitive_locks_summary.json", False),
-    ("P-CERT-3", "Redis live integration", "redis_live_test_summary.json", True),
-    ("P-CERT-4", "ONNX/SAM2 model provisioning", "model_provisioning_summary.json", False),
-]
+
+def _evidence_guard():
+    """المصدرُ الواحد للحواجز وللتحقّق — يُستورَد ولا يُنسَخ.
+
+    نسخُ القائمة هنا هو بعينه العطلُ الذي أُغلِق: قائمتان تختلفان بلا أن يذكر
+    أحدُهما الآخر.
+    """
+    spec = importlib.util.spec_from_file_location("_production_evidence_pack_guard", _GUARD)
+    if not spec or not spec.loader:  # pragma: no cover - بيئةٌ مكسورة
+        raise SystemExit("cannot load production_evidence_pack_guard")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def _load(path: Path) -> dict:
+    """**لا ترمي أبداً.** مخرَجُ هذا الملفّ JSON آليّ، والحكمُ يخصّ `check_files()`.
+
+    تصويبٌ من مراجعةٍ آليّة: ملفُّ دليلٍ واحدٌ تالفٌ أو مكتوبٌ جزئيّاً كان يقلب
+    السكربتَ من JSON إلى `JSONDecodeError` **قبل** أن يبلغ الحارسَ الصارم الذي يملك
+    رسالةَ الرفض المفهومة. وهو بعينه ما وقع لي هنا من الجهة الأخرى: مخرَجُ الحارس
+    على `stdout` أفسد JSON المُحكِّم، فكُتِم بـ`redirect_stdout`. **الطرفان صنفٌ
+    واحد: عطلٌ في الأداة يُقرأ حكماً على المُدخَل.**
+
+    والقراءةُ الفاشلة تُصنَّف صراحةً `unreadable` — لا `verified` ولا إعفاءً — فتسقط
+    من شرط `states_ok`، ويبقى تفصيلُ الرفض حيث الصرامة.
+    """
     if not path.exists():
         return {"status": "missing", "timestamp_utc": None}
-    return json.loads(path.read_text(encoding="utf-8"))
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return {"status": "unreadable", "timestamp_utc": None}
+    if not isinstance(payload, dict):  # قائمةٌ أو رقمٌ في موضع كائن ⇒ ليس دليلاً
+        return {"status": "unreadable", "timestamp_utc": None}
+    return payload
 
 
 def main(*, require_certified: bool = False) -> int:
+    guard = _evidence_guard()
+
     rows = []
-    for blocker_id, name, filename, waivable in BLOCKERS:
-        payload = _load(EVIDENCE_DIR / filename)
-        status = payload.get("status", "unknown")
+    for item in guard.BLOCKERS:
+        payload = _load(EVIDENCE_DIR / item["required_file"])
         rows.append(
             {
-                "blocker_id": blocker_id,
-                "name": name,
-                "status": status,
-                "waivable": waivable,
-                "file": f"certification/evidence/{filename}",
+                "blocker_id": item["id"],
+                "name": item["name"],
+                "status": payload.get("status", "unknown"),
+                "waivable": item["waivable"],
+                "file": f"certification/evidence/{item['required_file']}",
                 "timestamp_utc": payload.get("timestamp_utc"),
             }
         )
-    certified = all(
+
+    # **البوّابةُ الصارمة تسبق الحكم.** حالةٌ تقول `verified` بلا بصمةٍ صالحة أو
+    # بمستودعٍ لا يطابق البيئة، أو إعفاءٌ بلا شروطه الخمسة ⇒ لا اعتماد.
+    # وسببُ المنع يُطبَع، فلا يُقرأ الرفضُ عطلاً في الأداة.
+    # **ويُكتَم مخرَجُ الحارس عمداً:** ينجح بطباعة `production_evidence_pack_check_ok`
+    # إلى `stdout`، ومخرَجُ هذا الملفّ **JSON آليّ**. تركُها يُفسِد كلَّ مُحلِّلٍ يقرؤه —
+    # مقيسٌ: أوّلُ مِسبارٍ لي سقط بـ`JSONDecodeError` على هذا بالذات.
+    evidence_error: str | None = None
+    try:
+        with contextlib.redirect_stdout(io.StringIO()):
+            guard.check_files()
+    except SystemExit as exc:
+        evidence_error = str(exc) or "evidence pack check failed"
+
+    states_ok = all(
         row["status"] == "verified" or (row["waivable"] and row["status"] == "waived_with_reason")
         for row in rows
     )
+    certified = states_ok and evidence_error is None
+
     print(
         json.dumps(
-            {"production_certified": certified, "blockers": rows}, indent=2, ensure_ascii=False
+            {
+                "production_certified": certified,
+                "evidence_pack_ok": evidence_error is None,
+                "evidence_pack_error": evidence_error,
+                "blockers": rows,
+            },
+            indent=2,
+            ensure_ascii=False,
         )
     )
     if certified or not require_certified:

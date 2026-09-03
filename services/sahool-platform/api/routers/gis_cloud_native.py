@@ -202,7 +202,7 @@ async def list_stac_collections(
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
     try:
-        async with tenant_connection(user.tenant_id) as conn:
+        async with tenant_connection(user) as conn:
             records = await _records(conn, field_id=None, index_type=None, limit=limit)
         return stac_collections_response(records)
     except HTTPException:
@@ -217,7 +217,7 @@ async def stac_search_post(
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
     try:
-        async with tenant_connection(user.tenant_id) as conn:
+        async with tenant_connection(user) as conn:
             records = await _records(
                 conn, field_id=req.field_id, index_type=req.index_type, limit=req.limit
             )
@@ -249,7 +249,7 @@ async def scene_ranking(
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
     try:
-        async with tenant_connection(user.tenant_id) as conn:
+        async with tenant_connection(user) as conn:
             records = await _records(conn, field_id=field_id, index_type=index_type, limit=limit)
         return {"ranked": rank_scenes(records), "count": len(records)}
     except HTTPException:
@@ -266,7 +266,7 @@ async def scene_processing_plan(
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
     try:
-        async with tenant_connection(user.tenant_id) as conn:
+        async with tenant_connection(user) as conn:
             records = await _records(conn, field_id=field_id, index_type=index_type, limit=limit)
         return build_scene_processing_plan(records, field_id=field_id, index_type=index_type)
     except HTTPException:
@@ -282,7 +282,7 @@ async def get_tile_cache_plan(
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
     try:
-        async with tenant_connection(user.tenant_id) as conn:
+        async with tenant_connection(user) as conn:
             records = await _records(conn, field_id=field_id, index_type=index_type, limit=1000)
         return tile_cache_plan(records)
     except HTTPException:
@@ -319,7 +319,7 @@ async def ogc_field_items(
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
     try:
-        async with tenant_connection(user.tenant_id) as conn:
+        async with tenant_connection(user) as conn:
             rows = await conn.fetch(
                 """
                 SELECT field_id, name, crop, area_ha, ST_AsGeoJSON(geom)::json AS geometry
@@ -362,7 +362,7 @@ async def editing_session_undo_redo(
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
     try:
-        async with tenant_connection(user.tenant_id) as conn:
+        async with tenant_connection(user) as conn:
             row = await conn.fetchrow(
                 """
                 SELECT undo_stack, redo_stack, viewport, enabled_layers, active_tool
@@ -429,7 +429,7 @@ async def register_cog(
         resolution_m=req.resolution_m,
     )
     try:
-        async with tenant_connection(user.tenant_id) as conn:
+        async with tenant_connection(user) as conn:
             row = await conn.fetchrow(
                 """
                 INSERT INTO raster_registry
@@ -480,7 +480,7 @@ async def stac_search(
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
     try:
-        async with tenant_connection(user.tenant_id) as conn:
+        async with tenant_connection(user) as conn:
             records = await _records(conn, field_id=field_id, index_type=index_type, limit=limit)
         return {
             "type": "FeatureCollection",
@@ -500,7 +500,7 @@ async def get_collection(
 ):
     index_type = collection_id.removeprefix("sahool-")
     try:
-        async with tenant_connection(user.tenant_id) as conn:
+        async with tenant_connection(user) as conn:
             records = await _records(conn, field_id=None, index_type=index_type, limit=500)
         return stac_collection(records, index_type=index_type)
     except HTTPException:
@@ -517,7 +517,7 @@ async def mosaicjson(
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
     try:
-        async with tenant_connection(user.tenant_id) as conn:
+        async with tenant_connection(user) as conn:
             records = await _records(conn, field_id=field_id, index_type=index_type, limit=limit)
         return mosaicjson_from_records(
             records, name=f"sahool-{field_id or 'tenant'}-{index_type or 'all'}"
@@ -534,7 +534,7 @@ async def raster_tilejson(
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
     try:
-        async with tenant_connection(user.tenant_id) as conn:
+        async with tenant_connection(user) as conn:
             row = await conn.fetchrow(
                 """
                 SELECT id, tenant_id, field_id, scene_id, product_date, index_type, cog_url,
@@ -559,7 +559,7 @@ async def upsert_editing_session(
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
     try:
-        async with tenant_connection(user.tenant_id) as conn:
+        async with tenant_connection(user) as conn:
             row = await conn.fetchrow(
                 """
                 INSERT INTO geometry_editing_sessions
@@ -594,7 +594,7 @@ async def acquire_geometry_lock(
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
     try:
-        async with tenant_connection(user.tenant_id) as conn:
+        async with tenant_connection(user) as conn:
             row = await conn.fetchrow(
                 """
                 INSERT INTO geometry_locks (tenant_id, field_id, locked_by, locked_at, expires_at, reason)
@@ -630,7 +630,7 @@ async def release_geometry_lock(
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
     try:
-        async with tenant_connection(user.tenant_id) as conn:
+        async with tenant_connection(user) as conn:
             deleted = await conn.fetchval(
                 "DELETE FROM geometry_locks WHERE tenant_id=$1::uuid AND field_id=$2 AND locked_by=$3::uuid RETURNING 1",
                 str(user.tenant_id),
@@ -649,7 +649,7 @@ async def export_geoparquet(
 ):
     out_dir = Path(os.getenv("GEOEXPORT_DIR", "/tmp/sahool-geoparquet")) / str(user.tenant_id)
     try:
-        async with tenant_connection(user.tenant_id) as conn:
+        async with tenant_connection(user) as conn:
             rows = await conn.fetch(
                 """
                 SELECT field_id, name, crop, area_ha, ST_AsGeoJSON(geom)::json AS geometry

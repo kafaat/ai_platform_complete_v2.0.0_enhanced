@@ -1425,6 +1425,7 @@
         "tests_v9/test_service_tenant_assertion.py",
         "tests_v9/test_soil_field_tenant_authz.py",
         "tests_v9/test_tenant_ai_policy_store_v52.py",
+        "tests_v9/test_tenant_connection_call_shape.py",
         "tests_v9/test_tenant_context_is_pinned_by_a_transaction.py",
         "tests_v9/test_tenant_guc_name_convergence_guard.py",
         "tests_v9/test_tenant_guc_scope_guard.py",
