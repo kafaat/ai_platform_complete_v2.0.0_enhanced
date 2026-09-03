@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1880,
     "route_handlers": 1049,
-    "call_edges": 76204,
+    "call_edges": 76205,
     "dead_code_candidates": 625,
     "duplicate_function_groups": 61,
     "route_owners": 27,
@@ -5327,7 +5327,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
-      "line": 26,
+      "line": 52,
       "handler": "internal_field_state",
       "method": "GET",
       "path": "/internal/fields/{field_id}/state"
@@ -5335,7 +5335,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
-      "line": 138,
+      "line": 164,
       "handler": "internal_ai_advice_event",
       "method": "POST",
       "path": "/internal/events/ai-advice"
@@ -265430,329 +265430,336 @@
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "get",
-      "line": 25
+      "line": 51
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "Query",
-      "line": 28
+      "line": 54
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "Query",
-      "line": 29
+      "line": 55
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "Query",
-      "line": 33
+      "line": 59
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "Query",
-      "line": 37
+      "line": 63
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "Depends",
-      "line": 44
+      "line": 70
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
-      "target": "tenant_connection_for",
-      "line": 64
+      "target": "_ServiceUser",
+      "line": 90
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "internal_field_state",
+      "target": "tenant_connection",
+      "line": 90
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "_assert_field_in_tenant",
-      "line": 65
+      "line": 91
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "recompute_field_state",
-      "line": 66
+      "line": 92
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "bool",
-      "line": 67
+      "line": 93
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "_compose_canonical",
-      "line": 69
+      "line": 95
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "_db_unavailable",
-      "line": 76
+      "line": 102
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "asdict",
-      "line": 90
+      "line": 116
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "build_field_twin_from_canonical_state",
-      "line": 90
+      "line": 116
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "get",
-      "line": 96
+      "line": 122
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "get_calibration_dataset",
-      "line": 106
+      "line": 132
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "get",
-      "line": 113
+      "line": 139
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "get",
-      "line": 113
+      "line": 139
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "get",
-      "line": 117
+      "line": 143
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "int",
-      "line": 117
+      "line": 143
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "get",
-      "line": 118
+      "line": 144
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "get",
-      "line": 119
+      "line": 145
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "get",
-      "line": 121
+      "line": 147
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "get",
-      "line": 123
+      "line": 149
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "post",
-      "line": 137
+      "line": 163
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "Depends",
-      "line": 140
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "internal_ai_advice_event",
-      "target": "tenant_connection_for",
-      "line": 159
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "internal_ai_advice_event",
-      "target": "_assert_field_in_tenant",
-      "line": 161
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "internal_ai_advice_event",
-      "target": "_emit_domain_event",
-      "line": 162
+      "line": 166
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "_ServiceUser",
-      "line": 164
+      "line": 171
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "internal_ai_advice_event",
+      "target": "tenant_connection",
+      "line": 183
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "internal_ai_advice_event",
+      "target": "_assert_field_in_tenant",
+      "line": 185
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "internal_ai_advice_event",
+      "target": "_emit_domain_event",
+      "line": 186
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "_db_unavailable",
-      "line": 174
+      "line": 198
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "resolve_canonical_water_state",
-      "line": 197
+      "line": 221
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "isinstance",
-      "line": 198
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "_compose_canonical",
-      "target": "to_dict",
-      "line": 198
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "_compose_canonical",
-      "target": "get",
-      "line": 199
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "_compose_canonical",
-      "target": "str",
-      "line": 199
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "_compose_canonical",
-      "target": "resolve_canonical_soil_state",
-      "line": 202
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "_compose_canonical",
-      "target": "resolve_canonical_spectral_state",
-      "line": 203
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "_compose_canonical",
-      "target": "fetchrow",
-      "line": 209
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "_compose_canonical",
-      "target": "get_canonical_field_weather",
-      "line": 216
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "_compose_canonical",
-      "target": "float",
-      "line": 217
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "_compose_canonical",
-      "target": "float",
-      "line": 217
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "_compose_canonical",
-      "target": "load_active_season_id",
-      "line": 220
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "_compose_canonical",
-      "target": "compose_canonical_field_state",
       "line": 222
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
+      "target": "to_dict",
+      "line": 222
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "get",
+      "line": 223
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "str",
+      "line": 223
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "resolve_canonical_soil_state",
+      "line": 226
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "resolve_canonical_spectral_state",
+      "line": 227
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "fetchrow",
+      "line": 233
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "get_canonical_field_weather",
+      "line": 240
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "float",
+      "line": 241
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "float",
+      "line": 241
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "load_active_season_id",
+      "line": 244
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "compose_canonical_field_state",
+      "line": 246
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
       "target": "isoformat",
-      "line": 225
+      "line": 249
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "now",
-      "line": 225
+      "line": 249
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "to_dict",
-      "line": 231
+      "line": 255
     },
     {
       "owner": "sahool-platform",
@@ -411373,140 +411380,140 @@
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "_fake_tenant_conn",
       "target": "object",
-      "line": 24
+      "line": 34
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_delegates_and_is_server_owned",
       "target": "setattr",
-      "line": 50
+      "line": 60
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_delegates_and_is_server_owned",
       "target": "setattr",
-      "line": 51
+      "line": 61
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_delegates_and_is_server_owned",
       "target": "setattr",
-      "line": 52
+      "line": 62
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_delegates_and_is_server_owned",
       "target": "HourlyRecommendationRequest",
-      "line": 54
+      "line": 64
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_delegates_and_is_server_owned",
       "target": "_FakeUser",
-      "line": 55
+      "line": 65
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_delegates_and_is_server_owned",
       "target": "irrigation_mpc_hourly_recommendation",
-      "line": 55
+      "line": 66
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "_boom",
       "target": "AssertionError",
-      "line": 76
+      "line": 93
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_blocks_unowned_field_without_orchestrating",
       "target": "AssertionError",
-      "line": 76
+      "line": 93
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_blocks_unowned_field_without_orchestrating",
       "target": "setattr",
-      "line": 78
+      "line": 95
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_blocks_unowned_field_without_orchestrating",
       "target": "setattr",
-      "line": 79
+      "line": 96
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_blocks_unowned_field_without_orchestrating",
       "target": "irrigation_mpc_hourly_recommendation",
-      "line": 81
+      "line": 98
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_blocks_unowned_field_without_orchestrating",
       "target": "HourlyRecommendationRequest",
-      "line": 82
+      "line": 99
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_blocks_unowned_field_without_orchestrating",
       "target": "_FakeUser",
-      "line": 82
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
-      "source": "test_hourly_recommendation_pins_recommendation_only_on_blocked",
-      "target": "setattr",
-      "line": 97
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
-      "source": "test_hourly_recommendation_pins_recommendation_only_on_blocked",
-      "target": "setattr",
-      "line": 98
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
-      "source": "test_hourly_recommendation_pins_recommendation_only_on_blocked",
-      "target": "setattr",
       "line": 99
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_pins_recommendation_only_on_blocked",
+      "target": "setattr",
+      "line": 114
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
+      "source": "test_hourly_recommendation_pins_recommendation_only_on_blocked",
+      "target": "setattr",
+      "line": 115
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
+      "source": "test_hourly_recommendation_pins_recommendation_only_on_blocked",
+      "target": "setattr",
+      "line": 116
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
+      "source": "test_hourly_recommendation_pins_recommendation_only_on_blocked",
       "target": "irrigation_mpc_hourly_recommendation",
-      "line": 101
+      "line": 118
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_pins_recommendation_only_on_blocked",
       "target": "HourlyRecommendationRequest",
-      "line": 102
+      "line": 119
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "source": "test_hourly_recommendation_pins_recommendation_only_on_blocked",
       "target": "_FakeUser",
-      "line": 102
+      "line": 119
     },
     {
       "owner": "sahool-platform",
