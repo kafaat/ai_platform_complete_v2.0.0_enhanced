@@ -642,32 +642,44 @@ def test_the_attestation_is_verified_not_merely_issued() -> None:
 
 
 @pytest.mark.unit
-def test_every_job_that_moves_artifacts_declares_the_actions_scope() -> None:
-    """`permissions:` على مستوى الوظيفة يُصفِّر كلَّ نطاقٍ غيرِ مذكور.
+def test_only_the_job_that_queries_the_actions_api_declares_that_scope() -> None:
+    """`actions: read` يُعلَن حيث تُسأل واجهةُ Actions — **ولا يُعلَن حيث لا تُسأل**.
 
-    فالغيابُ ليس «الافتراضيّ» بل `none` — وهذا يجعل نقصَ نطاقٍ **عطلاً صامتاً في
-    الإعداد** لا خطأً ظاهراً في الكود. وحدَه تشغيلُ الـworkflow يكشفه، وهي
-    `workflow_dispatch` فقد تبيت شهوراً.
+    `permissions:` على مستوى الوظيفة قائمةٌ مُغلَقة: نطاقٌ غيرُ مذكورٍ يساوي `none`
+    لا «الافتراضيّ». فوظيفةٌ تسأل الواجهةَ بلا النطاق تسقط سقوطاً صامتاً في الإعداد.
 
-    مقيسٌ على مراجعةٍ آليّة: `certification-verdict` كان يجلب مصنوعاتٍ بلا
-    `actions: read` بينما تُعلِنه وظيفةُ `P-CERT-1` للسبب نفسِه — تعريفان لحاجةٍ
-    واحدة، أحدُهما ساقط.
+    **لكنّ عكسَ ذلك ليس آمناً بالمجّان.** الصياغةُ الأولى لهذا الاختبار عدّت
+    `actions/download-artifact` سؤالاً للواجهة، فألزمت **وظيفةَ الحكم** بالنطاق —
+    وهي الوظيفةُ الحاملةُ `id-token: write` و`attestations: write`، أي المُوقِّعة.
+    والجلبُ بلا `run-id` يقع داخل العدّاء نفسِه ولا يمسّ الواجهة، فكان الإلزامُ
+    **تثبيتَ صلاحيّةٍ زائدةٍ شرطاً** — واختبارٌ يفرض توسيعاً أسوأُ من توسيعٍ يبيت
+    بلا اختبار، لأنّه يجعل تضييقَه انحداراً.
+
+    فالمقيسُ الآن الخاصّيّةُ في اتّجاهيها: مَن يسأل يُعلِن، ومَن لا يسأل لا يُعلِن.
     """
     import yaml
 
     workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
     for job_id, job in workflow["jobs"].items():
         steps = job.get("steps") or []
-        moves = any(
-            "actions/download-artifact" in str(s.get("uses", ""))
-            or "collect_full_branch_ci_evidence" in str(s.get("run", ""))
-            for s in steps
+        # سؤالُ الواجهة يُقاس بمن يستدعيها فعلاً، أو بجلبٍ من عدّاءٍ **آخر** (`run-id`).
+        queries_api = any(
+            "collect_full_branch_ci_evidence" in str(step.get("run", ""))
+            or (
+                "actions/download-artifact" in str(step.get("uses", ""))
+                and (step.get("with") or {}).get("run-id")
+            )
+            for step in steps
         )
-        if not moves:
-            continue
-        perms = job.get("permissions")
-        assert isinstance(perms, dict), f"{job_id}: يجلب من واجهة Actions بلا permissions مُعلَنة"
-        assert perms.get("actions") == "read", (
-            f"{job_id}: يجلب من واجهة Actions و`actions` = {perms.get('actions')!r}؛ "
-            "والنطاقُ غيرُ المذكور في permissions على مستوى الوظيفة يساوي none"
-        )
+        perms = job.get("permissions") or {}
+        declared = perms.get("actions")
+        if queries_api:
+            assert declared == "read", (
+                f"{job_id}: يسأل واجهةَ Actions و`actions` = {declared!r}؛ "
+                "والنطاقُ غيرُ المذكور في permissions على مستوى الوظيفة يساوي none"
+            )
+        else:
+            assert declared is None, (
+                f"{job_id}: يُعلِن `actions: {declared!r}` ولا يسأل الواجهة — "
+                "صلاحيّةٌ زائدة. والجلبُ بلا `run-id` داخل العدّاء نفسِه لا يحتاجها."
+            )
