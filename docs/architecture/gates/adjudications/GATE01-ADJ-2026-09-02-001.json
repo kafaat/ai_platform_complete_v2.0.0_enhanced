@@ -3,7 +3,7 @@
   "version": 1,
   "adjudication_id": "GATE01-ADJ-2026-09-02-001",
   "gate_id": "GATE-01",
-  "status": "CONSUMED",
+  "status": "ISSUED",
   "approved_by": "owner",
   "adjudicated_on": "2026-09-02",
   "pr": 972,
@@ -41,10 +41,7 @@
       "CONSUMED",
       "REVOKED"
     ],
-    "$must_be_stamped_after_merge_ar": "بعد دمج PR #972 يجب تحويل الحالة إلى CONSUMED وإضافة merge_sha وconsumed_on؛ وإلا يكشفه stale_authorization_errors كتفويض هبط ولم يُختم.",
-    "merge_sha": "9cd809d35d6ffb3abbc1f8c7a27ccfdf832c89c1",
-    "consumed_on": "2026-09-03",
-    "$consumption_record_ar": "خُتِم بعد دمج #972 بالبصمة أعلاه. والختمُ إجراءٌ منفصلٌ عن الحارس عمداً: حارسٌ يكتب أثناء CI يصير طرفاً في القرار الذي يحكم فيه. وقبل الختم كان `gate01_frozen_path_guard` يفشل على **شجرةٍ نظيفةٍ بفرقٍ فارغ** — مقيسٌ — أي أنّ التفويضَ غيرَ المختوم صار حاجباً لكلّ PR لا ديناً مؤجَّلاً."
+    "$must_be_stamped_after_merge_ar": "بعد دمج PR #972 يجب تحويل الحالة إلى CONSUMED وإضافة merge_sha وconsumed_on؛ وإلا يكشفه stale_authorization_errors كتفويض هبط ولم يُختم."
   },
   "$scope_limit_ar": "التفويض لمسارين مجمّدين فقط: تسجيل v229 في manifest، وإسناد ملكية جداول Market الستة. لا يشمل أي مسار أثر فيزيائي أو تغييراً عاماً لحالة البوابة.",
   "$honesty_limit_ar": "هذا التفويض يسمح بالمسّ فقط ولا يشهد بصحة الإصلاح أو إغلاقه حياً. الاختبارات تثبت العقد الساكن، ولا ترفع runtime_verified أو production_certified.",
