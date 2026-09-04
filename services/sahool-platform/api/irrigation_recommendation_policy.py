@@ -277,6 +277,27 @@ def recommend_irrigation(
             }
         )
 
+    # ── حجزُ المطر المتوقَّع: **حجزٌ معرفيّ لا قرارٌ زراعيّ جديد** ────────────────
+    #
+    # `irrigation_advice` يحكم منذ كُتِب بأنّ مطراً متوقَّعاً ≥٥مم/٤٨ساعة **يؤجّل** الريّ
+    # (`forecast_hold`). وكان ذلك الحكمُ يعيش في `urgency` وحدَه — فيبتلعه هنا قرارُ
+    # الإطلاق من الاستنزاف ورفعُ الإجهاد، ويخرج المُخرَجُ يقول «اروِ ٤٨ مم» عشيّةَ مطرٍ
+    # لا يُذكَر. مقيس: `forecast_rain_mm=25` لا يُغيّر حرفاً في الاستجابة.
+    #
+    # **ولا يُتَّخَذ هنا قرارٌ زراعيّ جديد:** لا عتبةَ مُخترَعة، ولا «لا تروِ». اجتماعُ
+    # حكمين متعارضين — الاستنزافُ يقول أطلِق، والتوقّعُ يقول انتظِر — يُنتِج **امتناعاً**:
+    # `should_irrigate=None` و`target_refill_mm=None`، وهو تحديداً ما تعنيه `None` في
+    # هذا الحقل أصلاً («لا قرارَ مُختلَق»، كما عند غياب Dr). و`net_irrigation_mm` يبقى
+    # **معلومةً حسابيّة** لأنّه احتياجٌ مقيس لا أمرٌ بالتنفيذ.
+    #
+    # فالتصعيدُ إلى إنسان، لا استبدالُ حكمٍ بآخر. وتبقى معايرةُ عتبة المطر ميدانيّاً
+    # فجوةً مفتوحة: هذا يمنع الأمرَ الصامت، ولا يُثبِت أنّ ٥مم هي العتبة الصحيحة.
+    forecast_hold = bool(base.get("forecast_hold"))
+    if forecast_hold and should_irrigate is True:
+        should_irrigate = None
+        target_refill_mm = None
+        trigger_reason = "forecast_rain_hold_requires_reassessment"
+
     # الإلحاح (مفردات irrigation_advice: none|low|moderate|high): الإجهاد الحرج يرفعه
     # صراحةً؛ لا يختلق قراراً (يبقى should_irrigate كما هو).
     urgency = base.get("urgency")
@@ -286,7 +307,12 @@ def recommend_irrigation(
         urgency = "moderate"
 
     rationale_ar = str(base.get("rationale_ar", ""))
-    if should_irrigate is None:
+    if trigger_reason == "forecast_rain_hold_requires_reassessment":
+        rationale_ar += (
+            " الاستنزاف بلغ عتبة الإطلاق ومطرٌ متوقَّعٌ يؤجّل الريّ — **حكمان متعارضان**، "
+            "فلا أمرَ ريٍّ تلقائيّ. أعِد التقييم بعد المطر أو راجِعه بشراً."
+        )
+    elif should_irrigate is None:
         rationale_ar += " (قرار الإطلاق غير محسوب — لا استنزاف Dr/TAW موثوق للحقل.)"
     elif should_irrigate:
         rationale_ar += (
@@ -322,6 +348,7 @@ def recommend_irrigation(
         # ── قرار الإطلاق المُشتقّ من الاستنزاف (FAO-56) ──
         "should_irrigate": should_irrigate,
         "trigger_reason": trigger_reason,
+        "forecast_hold": forecast_hold,
         "target_refill_mm": target_refill_mm,
         "raw_mm": raw_mm,
         "depletion_mm": round(dr_out, 1) if dr_out is not None else None,

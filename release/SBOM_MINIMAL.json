@@ -1155,7 +1155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d317a05784c7043b52afdd548591478a7d7acc22b30c0ffab042df215ba83b59"
+          "content": "97ab500be2c3bf86c481963d619a33e561922264f50ce96cb4a44811256fa3db"
         }
       ],
       "name": "frontend/src/components/fieldview/AgronomyConsistencyCard.tsx",
@@ -16505,7 +16505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2c04a74dbb102b4715c089ec299f367ffb90bb06731e626c88315ff53f2336b9"
+          "content": "52c842a4571c492d2e140fcd0f793e26e8dab769126bc4a0546083a4923fd54d"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_recommendation_policy.py",
@@ -17935,7 +17935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0aa36753d47e0e3ccd9633d2f0f16dd532b5a4a7f9fa481c7205dab2c8a84b65"
+          "content": "45308332aee4a07b5f12e91ac611bfb43a80efe07670b88f14d55bf5a05350d7"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_recommendation.py",
@@ -19105,7 +19105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fb46dd15935cefb0f0980b08fac9b907711bf5f7b2a21dba1638367adb76dd7a"
+          "content": "3207fbfbb556cb54289a27eb757648ef1af5ac01d2105eed5e6f06969a439ebc"
         }
       ],
       "name": "services/sahool-platform/api/weather_advice.py",
@@ -24755,7 +24755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "83ac2618ba3a038aacf6043799d46a3a48283620e2c98cd4937fd6a593edaef1"
+          "content": "f4a4d917503a9114816f15fd67244b3b07dd58b4bafa7942ef83079c693e1838"
         }
       ],
       "name": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
@@ -29305,7 +29305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c313d006253e51ef7039c898e9a78f4ed48f7cda54a06d5bca8bcd49c91bd86b"
+          "content": "184325e2b741e948f455a544514262fc3457801cbec3aeb326f38ac5bfb47ccf"
         }
       ],
       "name": "services/weather-service/canonical_weather_state.py",
@@ -29375,7 +29375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3d6ab6fa9bb138ecede13df2e610de7fd6fff37889cabde79438c26b4f09cabc"
+          "content": "f6137c1e2e4a0b9bfe4aa855dcdab31683780ff260985826dd8a6bb071343855"
         }
       ],
       "name": "services/weather-service/open_meteo.py",
@@ -29425,7 +29425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "109af041a515bdfd7650f29f8f6fe484eaa0c12273c644f7d63f72141513807b"
+          "content": "78082020d71039edfb290b84b01aa291c6084fee7a2552fe4115aa0cc9f8a7fe"
         }
       ],
       "name": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
@@ -29565,7 +29565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "be9b4c1726a49f7697128beda3d927e4c973bef2f04770fe5645b9c0617c8b82"
+          "content": "9fa110f91bf3ff4c4548ccd1dfd1e51b8949dc6d449620f1decb44f5b3df1823"
         }
       ],
       "name": "services/weather-service/tests/test_missing_temperature_is_not_zero.py",

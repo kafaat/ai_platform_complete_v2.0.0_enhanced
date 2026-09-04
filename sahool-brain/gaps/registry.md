@@ -5577,7 +5577,7 @@ scripts/ci/capability_mapping_engine.py:270      ["git","ls-files","-z"]
 - **المصدر الأوّل للكشف:** مراجعةٌ خارجيّة نقلها المالك في هذه الجلسة؛ والقياسُ والتوسعةُ هنا.
 - **حدُّ صدقٍ مُعلَن:** أُصلِحت **الوجهة** ولم تُثبَت الاستعادة. **لا drill حيّ جرى**، وPITR غير موصول، ولا إثباتَ حيّ لتزويد الأسرار من مدير أسرار. تبقى الاستعادةُ P0 مفتوحةً بوصفها **قدرةً**، ومغلقةً بوصفها **عنواناً**.
 
-## FORECAST-RAIN-IS-INERT-ON-THE-FIELD-IRRIGATION-PATH-01 — يُوصى بالملء عشيّةَ المطر (فُتحت 2026-09-04 · **open**)
+## FORECAST-RAIN-IS-INERT-ON-THE-FIELD-IRRIGATION-PATH-01 — يُوصى بالملء عشيّةَ المطر (فُتحت 2026-09-04 · **MITIGATED**، تبقى مفتوحةً حتّى المعايرة الميدانيّة)
 
 - **المصدر:** `services/sahool-platform/api/weather_advice.py:137-138` (العقد: «المطر المتوقّع **لا يدخل في الكمّيّة** — يُستخدم فقط لخفض الإلحاح») · `services/sahool-platform/api/routers/irrigation_recommendation.py` (استجابةُ `recommendation` تُصدِّر `urgency` ولا تُصدِّر `timing_ar` ولا `rationale_ar`).
 - **رأسُ القياس:** `claude/cert-evidence-loop @ 41918184`.
@@ -5585,3 +5585,22 @@ scripts/ci/capability_mapping_engine.py:270      ["git","ls-files","-z"]
 - **الأثر:** يُوصى المزارعُ بملءٍ ≈٤٨ مم عشيّةَ مطرٍ متوقَّعٍ **لا يُذكَر له بحرف**.
 - **لماذا `open` لا مُصلَحة:** تعديلُ قرار الإطلاق ليُنصِت للمطر المتوقّع **قرارٌ زراعيّ** (كم مم خلال كم ساعة يؤجّل ريّاً، وبأيّ ثقةٍ في التوقّع) لا يُتَّخذ داخل شريحةِ إصلاحِ مُدخَل. وتصديرُ `timing_ar`/`rationale_ar` أرخصُ منه وأقلُّ خطراً — وهو أوّلُ ما يُقترَح.
 - **كُشِف** أثناء كتابة الشاهد الموجب لـ«المطر المفقود ≠ صفر»: احمرّت الحالةُ لأنّها انتظرت نقصانَ الكمّيّة من المطر المتوقّع، فقادت إلى قراءة العقد بدل تثبيت سلوكٍ معدوم.
+
+- **تخفيفٌ هبط في اليوم نفسِه (`forecast_rain_hold`) — ولا يُغلِقها.** استُخرِج حكمُ التأجيل القائم في `weather_advice.irrigation_advice` (`forecast_rain_mm >= 5 and net > 0 and urgency != "high"`) إلى حقلٍ `forecast_hold` **بلا تغيير شرطٍ ولا عتبة**، فصار اجتماعُه مع قرار الإطلاق من الاستنزاف يُنتِج **امتناعاً**: `should_irrigate=None` و`target_refill_mm=None` و`trigger_reason="forecast_rain_hold_requires_reassessment"`. و`net_irrigation_mm` يبقى **معلومةً حسابيّة** لأنّه احتياجٌ مقيس لا أمرُ تنفيذ. وصار `timing_ar`/`rationale_ar` يُصدَّران — وهما الموضعان الوحيدان اللذان يذكران المطرَ للمزارع — ويُمنَع `submit_to_decision` في هذه الحالة (`approval_state="blocked_forecast_rain_hold"`).
+  - **حجزٌ معرفيّ لا قرارٌ زراعيّ:** لا عتبةَ مُخترَعة ولا «لا تروِ»؛ تعارضُ حكمين يُصعَّد إلى إنسان. و`None` هنا هي **نفسُ** دلالتها عند غياب Dr: لا قرارَ مُختلَق.
+  - **ولمَ تبقى مفتوحة:** عتبةُ ٥مم/٤٨ساعة **غير معايَرة ميدانيّاً**، ولا يُثبِت هذا أنّها الصحيحة — يمنع الأمرَ الصامت فحسب. الإغلاقُ يتطلّب معايرةً بمرجعٍ مستقلّ.
+  - **مُكذَّبٌ بأربع:** الحجز يمتنع · وبلا مطرٍ متوقَّعٍ يُطلِق (شاهدٌ موجب أنّ الحجز مشروطٌ لا دائم) · والتقديم يُمنَع أثناء الحجز · وردٌّ بلا شاهدِ حفظٍ لا يُنتِج `pending_approval`.
+
+## ABSENT-RAIN-COERCED-TO-ZERO-AT-THREE-MORE-EDGES-01 — أُغلِقت (2026-09-04)
+
+- **الحافّة (`services/weather-service/open_meteo.py:371`):** `normalize_daily` كان يُصفّر `precipitation_sum` الغائب بإعلانٍ صريح في `_DAILY_ZERO_COERCED_FIELD_MAP`. والحجّةُ («لا مطر قراءةٌ معقولةٌ لصفرِ مجموعٍ يوميّ») **تعتمد على المستهلك**: معقولةٌ لعرضٍ على خريطة، كاذبةٌ لكمّيّةِ ريٍّ يُطرَح منها المطر. وقد كان يمنع الفشلَ المُغلَق في المنصّة من أن يرى الغيابَ أصلاً — **حاجزٌ عند الحافّة يُبطِل فشلاً مُغلَقاً في النواة**. أُخرِج من الإعلان في الطبقتين (`open_meteo` و`canonical_weather_state`)، وإلّا بقي **قيدٌ يُعلَن ولا وجودَ له**.
+  - وأمسك الحارسُ القائم `test_the_only_zero_coerced_daily_fields_are_the_declared_ones` الخروجَ بشقّه الثاني («أو أُزيل مُعلَن») كما صُمِّم.
+- **الواجهة (`frontend/src/components/fieldview/AgronomyConsistencyCard.tsx:227-228`):** `parseMeasure(...) ?? 0` كان يجعل **حقلاً فارغاً يُرسَل «صفر مطر»** — أي أنّ تركَ الحقل فارغاً يُنتِج توصيةً **أسخى**. أُلحِق المطران بقاعدة الحرارة القائمة في الملفّ نفسِه (`return null` قبل الطلب)، فلا يُخفي المتصفّحُ فشلاً مُغلَقاً خادميّاً خلف رقمٍ مُختلَق.
+- **المصدر:** المراجعةُ الخارجيّة سمّت الحدّين؛ والقياسُ والعلاجُ هنا.
+
+## IRRIGATION-CANDIDATE-SUBMITTED-WITH-A-CONTRACT-THE-RECORDER-DOES-NOT-READ-01 — أُغلِقت (2026-09-04)
+
+- **المصدر:** `services/sahool-platform/api/routers/irrigation_recommendation.py` (مسار `submit_to_decision` قبل الإصلاح) مقابل `services/sahool-platform/api/crop_decision_bridge.py:248-291`.
+- **المقيس:** كان يُرسَل `recommendation` و`status: "pending_approval"` — وعقدُ `record_decision` هو `stage="candidate"` + `decision_value`. فحقلان لا يقرؤهما المُسجِّل، وقد تُحفَظ قيمةٌ فارغة. ثمّ يُستنتَج `pending_approval` **محلّيّاً من غياب استثناء** — إعلانُ نجاحٍ بلا شاهدٍ عليه، في مسارٍ يقود إلى ماءٍ يُصرَف.
+- **العلاج:** إعادةُ استعمال نمط `crop_decision_bridge` نفسِه — `CANDIDATE_STAGE` **مستورَدةً لا مكرَّرةً**، و`decision_value` يحمل المرشَّح كاملاً بـ`status`/`approval_required` بداخله، ولا `pending_approval` إلّا بـ`authoritative=true` و`persisted=true` ومعرّفٍ صالحٍ و`stage` مُعاد. وإلّا `submit_unproven`.
+- **حدُّ صدق:** مقيسٌ بنقطة وصلٍ مُثبَّتة (`monkeypatch`) لا بخدمةِ قرارٍ حيّة.

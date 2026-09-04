@@ -85,8 +85,14 @@ def _as_list(payload: dict[str, Any], section: str, key: str) -> list[Any]:
 # فصار **التقابلُ نفسُه** هو التعريفَ الواحد: مفتاحُه اسمُ هذه الطبقة، وقيمتُه
 # اسمُ الطبقة القانونيّة الذي **يجب** أن يبلغ المستهلك. والتسلسلُ (الأسماءُ
 # المُعلَنة) يُشتقّ منه فلا يُحرَّر مرّتين.
+#
+# **وخرج منه `precipitation_mm` (2026-09-04).** كان مُعلَناً هنا بحجّة أنّ «لا مطر»
+# قراءةٌ معقولةٌ للصفر — وهي معقولةٌ للعرض، **وكاذبةٌ للريّ**: المطرُ الأخير يُطرَح من
+# احتياج الريّ، فالصفرُ المُقنَّع يرفع الكمّيّةَ الموصى بها. أي أنّ انحيازَ الغياب في
+# اتّجاه **الإذن بالريّ**، وهو الاتّجاه الذي يُغرِق حقلاً. والإعلانُ كان يجعله مرئيّاً
+# لا مقبولاً؛ ومستهلكُ الريّ الآن يفشل مغلقاً عند الغياب، فالتصفيرُ هنا كان يمنعه من
+# أن يرى الغيابَ أصلاً — حاجزٌ عند الحافّة يُبطِل فشلاً مُغلَقاً في النواة.
 _DAILY_ZERO_COERCED_FIELD_MAP = {
-    "precipitation_mm": "precipitation_mm",
     "wind_max_kmh": "wind_max_ms",
 }
 _DAILY_ZERO_COERCED_SOURCE_FIELDS = tuple(_DAILY_ZERO_COERCED_FIELD_MAP)
@@ -364,11 +370,13 @@ def normalize_daily(
                 # ``_finite`` في نواة GDD فيُحتسَب يوماً صالحاً بمساهمة صفر: يبخس
                 # التراكم **ويُضخّم** عدد الأيّام المرصودة ونسبة التغطية معاً. و``0.0°C``
                 # قراءةٌ فيزيائيّة مشروعة، فلا سبيل لتمييزها من الغياب بعد التصفير.
-                # (المطر والرياح يبقيان مُصفَّرَين هنا — «لا مطر» قراءةٌ معقولة للصفر،
-                # وقيدُهما مُعلَنٌ في ``_DAILY_ZERO_COERCED_SOURCE_FIELDS``.)
+                # (والرياحُ وحدَها تبقى مُصفَّرةً هنا، وقيدُها مُعلَنٌ في
+                # ``_DAILY_ZERO_COERCED_SOURCE_FIELDS``. أمّا المطرُ فخرج من الإعلان:
+                # «لا مطر» قراءةٌ معقولةٌ **للعرض** وكاذبةٌ **للريّ** — تُطرَح من الاحتياج
+                # فترفع الكمّيّة الموصى بها.)
                 "temp_max_c": _at(_as_list(data, "daily", "temperature_2m_max"), idx),
                 "temp_min_c": _at(_as_list(data, "daily", "temperature_2m_min"), idx),
-                "precipitation_mm": _at(_as_list(data, "daily", "precipitation_sum"), idx, 0),
+                "precipitation_mm": _at(_as_list(data, "daily", "precipitation_sum"), idx),
                 "et0_mm": _at(_as_list(data, "daily", "et0_fao_evapotranspiration"), idx),
                 "sunshine_hours": round(float(sunshine_s) / 3600, 2)
                 if sunshine_s is not None

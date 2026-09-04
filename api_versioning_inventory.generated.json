@@ -6626,7 +6626,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-    "line": 183,
+    "line": 187,
     "method": "POST",
     "path": "/api/v1/irrigation-recommendation",
     "handler": "irrigation_recommendation",
@@ -6635,7 +6635,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-    "line": 279,
+    "line": 283,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/irrigation-recommendation",
     "handler": "field_irrigation_recommendation",

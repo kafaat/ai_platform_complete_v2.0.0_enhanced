@@ -19,6 +19,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from api.canonical_water_stress import canonical_water_stress
+
+# مرحلةُ المرشَّح تُستورَد ولا تُكرَّر: سلسلةٌ ثانيةٌ باسم `"candidate"` هنا كانت ستُطابِق
+# اليوم وتنحرف غداً، وشرطُ الإثبات يقارنها بما يُعيده المُسجِّل.
+from api.crop_decision_bridge import CANDIDATE_STAGE
 from api.decision_service_client import record_decision
 from api.field_context import _field_weather_context
 from api.irrigation_recommendation_policy import recommend_irrigation
@@ -572,17 +576,36 @@ async def field_irrigation_recommendation(
     approval_state = "not_submitted"
     decision_id = None
     submit_limitation: str | None = None
-    if req.submit_to_decision:
-        candidate_payload = {
+    if req.submit_to_decision and rec["forecast_hold"] and rec["should_irrigate"] is None:
+        # حجزُ المطر يمنع التقديم. المرشَّحُ الذي لا قرارَ فيه (`should_irrigate=None`)
+        # ليس شيئاً يُعتمَد؛ وتقديمُه كان سيُنتِج سجلَّ موافقةٍ على امتناع.
+        approval_state = "blocked_forecast_rain_hold"
+        submit_limitation = (
+            "forecast_rain_hold_requires_reassessment — لم يُقدَّم: مطرٌ متوقَّعٌ يؤجّل الريّ "
+            "بينما بلغ الاستنزافُ عتبةَ الإطلاق. أعِد التقييم بعد المطر."
+        )
+    elif req.submit_to_decision:
+        # **عقدُ التسجيل هو عقدُ `crop_decision_bridge` نفسُه.** كان هذا المسار يرسل
+        # `recommendation` و`status` — حقلين لا يقرؤهما المُسجِّل — فتُحفَظ قيمةٌ فارغة،
+        # ثمّ يُستنتَج `pending_approval` **محلّيّاً** من غياب استثناء. أي إعلانُ نجاحٍ
+        # بلا شاهدٍ عليه، في مسارٍ يقود إلى ماءٍ يُصرَف.
+        candidate = {
             "decision_type": "irrigation",
             "field_id": field_id,
             "season_id": season_id,
+            "status": "pending_approval",
+            "approval_required": True,
             "recommendation": {
                 "should_irrigate": rec["should_irrigate"],
                 "trigger_reason": rec["trigger_reason"],
                 "net_irrigation_mm": rec["net_irrigation_mm"],
                 "target_refill_mm": rec["target_refill_mm"],
                 "urgency": rec["urgency"],
+                # `timing_ar`/`rationale_ar` هما الموضعان الوحيدان اللذان يذكران المطرَ
+                # المتوقَّع للمزارع. حجبُهما كان يجعل الحجزَ صامتاً: قرارٌ يُمتنَع عنه بلا سبب.
+                "timing_ar": rec["timing_ar"],
+                "rationale_ar": rec["rationale_ar"],
+                "forecast_hold": rec["forecast_hold"],
             },
             "confidence": confidence,
             "evidence_ids": evidence_ids,
@@ -591,15 +614,37 @@ async def field_irrigation_recommendation(
                 "weather": wx.get("valid_time"),
                 "taw_source": taw_source,
             },
-            "status": "pending_approval",
             "calibrated": False,
+        }
+        record_payload = {
+            "field_id": field_id,
+            "decision_type": "irrigation",
+            "stage": CANDIDATE_STAGE,
+            "decision_value": candidate,
+            "created_by": getattr(user, "username", None) or getattr(user, "user_id", None),
         }
         try:
             res = await _submit_candidate_to_decision(
-                candidate_payload, getattr(user, "tenant_id", None)
+                record_payload, getattr(user, "tenant_id", None)
             )
             decision_id = res.get("decision_id") or res.get("id")
-            approval_state = "pending_approval"
+            # شاهدُ الحفظ لا غيابُ الاستثناء: نقطةُ التسجيل لا تُعيد `status`، فاستنتاجُ
+            # `pending_approval` منها محلّيّاً كان يُعلِن نجاحاً لم يُثبَت.
+            proven = (
+                res.get("authoritative") is True
+                and res.get("persisted") is True
+                and bool(decision_id)
+                and res.get("stage") == CANDIDATE_STAGE
+            )
+            if proven:
+                approval_state = "pending_approval"
+            else:
+                decision_id = None
+                approval_state = "submit_unproven"
+                submit_limitation = (
+                    "decision-service did not confirm authoritative persistence of the "
+                    "pending_approval candidate — fail-closed (not submitted)"
+                )
         except HTTPException as exc:
             # فشل مُغلَق: تعذّر خدمة القرار ⇒ لم يُقدَّم (لا اختلاق تقديم ناجح).
             if exc.status_code in _ENGINE_DOWN_CODES:
@@ -621,6 +666,11 @@ async def field_irrigation_recommendation(
             "target_refill_mm": rec["target_refill_mm"],
             "water_stress_class": water_stress_class,
             "urgency": rec["urgency"],
+            # `timing_ar`/`rationale_ar` هما الموضعان الوحيدان اللذان يذكران المطرَ
+            # المتوقَّع للمزارع. حجبُهما كان يجعل الحجزَ صامتاً: قرارٌ يُمتنَع عنه بلا سبب.
+            "timing_ar": rec["timing_ar"],
+            "rationale_ar": rec["rationale_ar"],
+            "forecast_hold": rec["forecast_hold"],
             "policy_knobs": rec["policy_knobs"],
         },
         "et0": _et0_provenance(et0_prod),
