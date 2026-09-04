@@ -16505,7 +16505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b19a769a51171ad6f583cc1bfb2d8fdcbdfff1d5f4520220e90864d4d5131b8e"
+          "content": "2c04a74dbb102b4715c089ec299f367ffb90bb06731e626c88315ff53f2336b9"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_recommendation_policy.py",
@@ -17935,7 +17935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f05963b27a8854589db6ce1ec91a021f8d8156b1ea30918fbc4fe8eb1298bcae"
+          "content": "0aa36753d47e0e3ccd9633d2f0f16dd532b5a4a7f9fa481c7205dab2c8a84b65"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_recommendation.py",
@@ -24755,7 +24755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e0a8b8cc5076ca7d089f1968f6f122cf06add07c0ca4c6e34f96316da9f4b32a"
+          "content": "83ac2618ba3a038aacf6043799d46a3a48283620e2c98cd4937fd6a593edaef1"
         }
       ],
       "name": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
@@ -25275,7 +25275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "11935a76aa98d314f1cad4de8a092acd2a85ffb5d28f68b8454de092095a9546"
+          "content": "1c595f31ac0d73cf800c4558865295fc7571a1ff04d677c3be98b33750a08a75"
         }
       ],
       "name": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
@@ -25285,7 +25285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f4ae7d6c6b28a279351b462490674d0bc888790c3c5b71d274563c6a1a828d95"
+          "content": "fc1a1c9a656a133c7f0f67dedf792dc1fb758726719d2827e1a42b15520f3bbb"
         }
       ],
       "name": "services/sahool-platform/tests/test_irrigation_depletion_wiring_guard.py",

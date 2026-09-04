@@ -5,7 +5,7 @@
   "runtime_verified": false,
   "python_files_parsed": 1880,
   "route_handlers": 1049,
-  "call_edges": 76188,
+  "call_edges": 76222,
   "dead_code_candidates": 625,
   "duplicate_function_groups": 61,
   "route_owners": 27,
@@ -5679,7 +5679,7 @@
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "line": 169,
+   "line": 183,
    "handler": "irrigation_recommendation",
    "method": "POST",
    "path": "/api/v1/irrigation-recommendation"
@@ -5687,7 +5687,7 @@
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "line": 245,
+   "line": 279,
    "handler": "field_irrigation_recommendation",
    "method": "POST",
    "path": "/api/v1/fields/{field_id}/irrigation-recommendation"
@@ -208463,260 +208463,274 @@
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
+   "target": "ValueError",
+   "line": 136
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "join",
+   "line": 136
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
    "target": "getenv",
-   "line": 119
+   "line": 143
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "salinity_policy_forced_off",
-   "line": 119
+   "line": 143
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "int",
-   "line": 125
+   "line": 149
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "int",
-   "line": 125
+   "line": 149
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "float",
-   "line": 127
+   "line": 151
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "append",
-   "line": 131
+   "line": 155
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "float",
-   "line": 134
+   "line": 158
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "irrigation_advice",
-   "line": 140
+   "line": 164
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "float",
-   "line": 152
+   "line": 176
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "float",
-   "line": 153
+   "line": 177
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "float",
-   "line": 156
+   "line": 180
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "lower",
-   "line": 162
+   "line": 186
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "strip",
-   "line": 162
+   "line": 186
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "float",
-   "line": 167
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "float",
-   "line": 167
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "leaching_requirement",
-   "line": 167
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "round",
-   "line": 168
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "round",
-   "line": 170
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "append",
    "line": 191
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
-   "target": "append",
-   "line": 202
+   "target": "float",
+   "line": 191
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "leaching_requirement",
+   "line": 191
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "round",
+   "line": 192
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "round",
+   "line": 194
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "append",
-   "line": 210
+   "line": 215
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "append",
+   "line": 226
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "append",
+   "line": 234
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "policy_params",
-   "line": 222
+   "line": 246
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "float",
-   "line": 232
+   "line": 256
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "float",
-   "line": 234
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "max",
-   "line": 234
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "float",
-   "line": 235
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "max",
-   "line": 235
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "min",
-   "line": 235
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "round",
-   "line": 236
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "round",
-   "line": 242
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "append",
-   "line": 243
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "get",
    "line": 258
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
-   "target": "get",
-   "line": 264
+   "target": "max",
+   "line": 258
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
-   "target": "str",
-   "line": 264
+   "target": "float",
+   "line": 259
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
-   "target": "get",
-   "line": 295
+   "target": "max",
+   "line": 259
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "min",
+   "line": 259
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "round",
-   "line": 303
+   "line": 260
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "round",
+   "line": 266
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "append",
+   "line": 267
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "get",
+   "line": 282
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "get",
+   "line": 288
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "str",
+   "line": 288
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "get",
+   "line": 319
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "round",
+   "line": 327
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "to_dict",
-   "line": 305
+   "line": 329
   },
   {
    "owner": "sahool-platform",
@@ -269203,357 +269217,378 @@
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_engine_et0",
    "target": "get_et0_product",
-   "line": 62
+   "line": 63
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_field_weather_snapshot",
    "target": "get_weather_forecast",
-   "line": 86
+   "line": 91
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_field_weather_snapshot",
    "target": "get",
-   "line": 87
+   "line": 92
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_field_weather_snapshot",
    "target": "HTTPException",
-   "line": 89
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "_field_weather_snapshot",
-   "target": "get",
    "line": 94
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_field_weather_snapshot",
+   "target": "get",
+   "line": 99
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "_field_weather_snapshot",
    "target": "fromisoformat",
-   "line": 96
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "_field_weather_snapshot",
-   "target": "timetuple",
-   "line": 96
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "_field_weather_snapshot",
-   "target": "get",
-   "line": 100
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "_field_weather_snapshot",
-   "target": "get",
    "line": 101
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_field_weather_snapshot",
-   "target": "get",
-   "line": 102
+   "target": "timetuple",
+   "line": 101
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "_field_weather_snapshot",
+   "target": "complete_rain_total",
+   "line": 106
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_field_weather_snapshot",
    "target": "get",
-   "line": 103
+   "line": 107
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "_field_weather_snapshot",
+   "target": "get",
+   "line": 110
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "_field_weather_snapshot",
+   "target": "get",
+   "line": 111
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "_field_weather_snapshot",
+   "target": "get",
+   "line": 112
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "_field_weather_snapshot",
+   "target": "get",
+   "line": 113
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "_field_weather_snapshot",
+   "target": "get",
+   "line": 115
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_submit_candidate_to_decision",
    "target": "record_decision",
-   "line": 117
+   "line": 129
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_et0_provenance",
    "target": "get",
-   "line": 123
+   "line": 135
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_et0_provenance",
    "target": "get",
-   "line": 124
+   "line": 136
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_et0_provenance",
    "target": "get",
-   "line": 125
+   "line": 137
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_et0_provenance",
    "target": "get",
-   "line": 126
+   "line": 138
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_et0_provenance",
    "target": "get",
-   "line": 127
+   "line": 139
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_et0_provenance",
    "target": "get",
-   "line": 128
+   "line": 140
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "irrigation_recommendation",
    "target": "post",
-   "line": 168
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "irrigation_recommendation",
-   "target": "Depends",
-   "line": 171
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "irrigation_recommendation",
-   "target": "_engine_et0",
    "line": 182
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "irrigation_recommendation",
+   "target": "Depends",
+   "line": 185
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "irrigation_recommendation",
+   "target": "enumerate",
+   "line": 200
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "irrigation_recommendation",
    "target": "HTTPException",
-   "line": 194
+   "line": 204
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "irrigation_recommendation",
+   "target": "precipitation_incomplete_detail",
+   "line": 206
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "irrigation_recommendation",
+   "target": "_engine_et0",
+   "line": 212
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "irrigation_recommendation",
+   "target": "HTTPException",
+   "line": 224
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "irrigation_recommendation",
    "target": "get",
-   "line": 199
+   "line": 229
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "irrigation_recommendation",
    "target": "recommend_irrigation",
-   "line": 200
+   "line": 230
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "post",
-   "line": 244
+   "line": 278
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "Depends",
-   "line": 248
+   "line": 282
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "require_permission",
-   "line": 248
+   "line": 282
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "tenant_connection",
-   "line": 262
+   "line": 296
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "_field_weather_context",
-   "line": 264
+   "line": 298
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "fetchrow",
-   "line": 265
+   "line": 299
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "fetchrow",
-   "line": 272
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "fetchrow",
-   "line": 280
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "transaction",
-   "line": 293
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "fetchrow",
-   "line": 294
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "float",
    "line": 306
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "extract_texture",
-   "line": 310
+   "target": "fetchrow",
+   "line": 314
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "str",
-   "line": 311
+   "target": "transaction",
+   "line": 327
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "float",
-   "line": 313
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "soil_water_params",
-   "line": 315
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "soil_water_provenance",
-   "line": 317
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "bool",
-   "line": 318
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 318
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 319
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "assess_irrigation_state",
-   "line": 326
+   "target": "fetchrow",
+   "line": 328
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "float",
-   "line": 334
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "round",
-   "line": 334
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "round",
    "line": 340
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "append",
-   "line": 346
+   "target": "extract_texture",
+   "line": 344
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "append",
-   "line": 348
+   "target": "str",
+   "line": 345
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "canonical_water_stress",
-   "line": 368
+   "target": "float",
+   "line": 347
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "soil_water_params",
+   "line": 349
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "soil_water_provenance",
+   "line": 351
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "bool",
+   "line": 352
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "get",
-   "line": 381
+   "line": 352
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 353
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "assess_irrigation_state",
+   "line": 360
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "float",
+   "line": 368
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "round",
+   "line": 368
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "round",
+   "line": 374
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "append",
+   "line": 380
   },
   {
    "owner": "sahool-platform",
@@ -269566,246 +269601,302 @@
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 383
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "_field_weather_snapshot",
-   "line": 406
+   "target": "canonical_water_stress",
+   "line": 402
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "get",
-   "line": 427
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 427
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "_engine_et0",
-   "line": 443
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 446
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 447
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 448
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 449
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 452
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 474
+   "line": 415
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "append",
-   "line": 475
+   "line": 416
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "get",
-   "line": 475
+   "line": 417
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "recommend_irrigation",
-   "line": 477
+   "target": "_field_weather_snapshot",
+   "line": 445
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "float",
-   "line": 492
+   "target": "get",
+   "line": 466
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "round",
-   "line": 493
+   "target": "get",
+   "line": 466
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "max",
-   "line": 494
+   "target": "get",
+   "line": 484
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "len",
+   "target": "get",
+   "line": 484
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "precipitation_incomplete_detail",
    "line": 496
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 521
+   "target": "enumerate",
+   "line": 500
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "get",
-   "line": 522
+   "line": 501
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "_submit_candidate_to_decision",
-   "line": 529
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "getattr",
-   "line": 530
+   "target": "_engine_et0",
+   "line": 510
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "get",
-   "line": 532
+   "line": 513
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "get",
-   "line": 532
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "isoformat",
-   "line": 546
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "today",
-   "line": 546
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "_et0_provenance",
-   "line": 557
+   "line": 514
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "get",
-   "line": 560
+   "line": 515
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "get",
+   "line": 516
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 519
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 541
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "append",
+   "line": 542
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 542
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "recommend_irrigation",
+   "line": 544
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "float",
    "line": 561
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
+   "target": "round",
+   "line": 562
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "max",
+   "line": 563
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "len",
+   "line": 565
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 590
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 591
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "_submit_candidate_to_decision",
+   "line": 598
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "getattr",
+   "line": 599
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 601
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 601
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "isoformat",
+   "line": 615
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "today",
+   "line": 615
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "_et0_provenance",
+   "line": 626
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 629
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 630
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
    "target": "bool",
-   "line": 566
+   "line": 635
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "get",
-   "line": 566
+   "line": 635
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "get",
-   "line": 567
+   "line": 636
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "get",
-   "line": 568
+   "line": 637
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "bool",
-   "line": 569
+   "line": 638
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "get",
-   "line": 569
+   "line": 638
   },
   {
    "owner": "sahool-platform",
@@ -400460,623 +400551,770 @@
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_ready_produces_candidate",
    "target": "_FakeConn",
-   "line": 117
+   "line": 119
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_ready_produces_candidate",
    "target": "_patch",
-   "line": 117
+   "line": 119
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_ready_produces_candidate",
    "target": "field_irrigation_recommendation",
-   "line": 118
+   "line": 120
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_ready_produces_candidate",
    "target": "object",
-   "line": 118
+   "line": 120
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_ready_produces_candidate",
    "target": "any",
-   "line": 125
+   "line": 127
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_ready_produces_candidate",
    "target": "startswith",
-   "line": 125
+   "line": 127
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_et0_provenance_from_weather_engine",
    "target": "_FakeConn",
-   "line": 131
+   "line": 133
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_et0_provenance_from_weather_engine",
    "target": "_patch",
-   "line": 131
+   "line": 133
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_et0_provenance_from_weather_engine",
    "target": "field_irrigation_recommendation",
-   "line": 132
+   "line": 134
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_et0_provenance_from_weather_engine",
    "target": "object",
-   "line": 132
+   "line": 134
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_et0_provenance_from_weather_engine",
    "target": "any",
-   "line": 139
+   "line": 141
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_et0_provenance_from_weather_engine",
    "target": "startswith",
-   "line": 139
+   "line": 141
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_msi_reaches_irrigation_candidate",
    "target": "_patch",
-   "line": 147
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_msi_reaches_irrigation_candidate",
-   "target": "_FakeConn",
    "line": 149
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_msi_reaches_irrigation_candidate",
-   "target": "date",
-   "line": 154
+   "target": "_FakeConn",
+   "line": 151
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_msi_reaches_irrigation_candidate",
    "target": "date",
-   "line": 155
+   "line": 156
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_msi_reaches_irrigation_candidate",
+   "target": "date",
+   "line": 157
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_msi_reaches_irrigation_candidate",
    "target": "field_irrigation_recommendation",
-   "line": 159
+   "line": 161
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_msi_reaches_irrigation_candidate",
    "target": "object",
-   "line": 159
+   "line": 161
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_msi_reaches_irrigation_candidate",
    "target": "any",
-   "line": 161
+   "line": 163
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_msi_reaches_irrigation_candidate",
    "target": "startswith",
-   "line": 161
+   "line": 163
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_no_spectral_escalation_when_msi_missing",
    "target": "_patch",
-   "line": 167
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_no_spectral_escalation_when_msi_missing",
-   "target": "_FakeConn",
    "line": 169
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_no_spectral_escalation_when_msi_missing",
-   "target": "date",
+   "target": "_FakeConn",
    "line": 171
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_no_spectral_escalation_when_msi_missing",
+   "target": "date",
+   "line": 173
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_no_spectral_escalation_when_msi_missing",
    "target": "field_irrigation_recommendation",
-   "line": 174
+   "line": 176
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_no_spectral_escalation_when_msi_missing",
    "target": "object",
-   "line": 174
+   "line": 176
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_lab_texture_is_measured_provenance",
    "target": "_FakeConn",
-   "line": 182
+   "line": 184
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_lab_texture_is_measured_provenance",
    "target": "_patch",
-   "line": 182
+   "line": 184
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_lab_texture_is_measured_provenance",
    "target": "field_irrigation_recommendation",
-   "line": 183
+   "line": 185
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_lab_texture_is_measured_provenance",
    "target": "object",
-   "line": 183
+   "line": 185
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_lab_texture_is_measured_provenance",
    "target": "any",
-   "line": 188
+   "line": 190
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_lab_texture_is_measured_provenance",
    "target": "startswith",
-   "line": 188
+   "line": 190
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_missing_lab_texture_fallback_lowers_confidence",
    "target": "_FakeConn",
-   "line": 194
+   "line": 196
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_missing_lab_texture_fallback_lowers_confidence",
    "target": "_patch",
-   "line": 194
+   "line": 196
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_missing_lab_texture_fallback_lowers_confidence",
    "target": "field_irrigation_recommendation",
-   "line": 195
+   "line": 197
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_missing_lab_texture_fallback_lowers_confidence",
    "target": "object",
-   "line": 195
+   "line": 197
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_missing_lab_texture_fallback_lowers_confidence",
    "target": "any",
-   "line": 199
+   "line": 201
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_engine_down_fails_closed_no_local_et0",
    "target": "_patch",
-   "line": 207
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_engine_down_fails_closed_no_local_et0",
-   "target": "_FakeConn",
    "line": 209
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_engine_down_fails_closed_no_local_et0",
-   "target": "HTTPException",
-   "line": 210
+   "target": "_FakeConn",
+   "line": 211
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_engine_down_fails_closed_no_local_et0",
-   "target": "field_irrigation_recommendation",
+   "target": "HTTPException",
    "line": 212
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_engine_down_fails_closed_no_local_et0",
+   "target": "field_irrigation_recommendation",
+   "line": 214
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_engine_down_fails_closed_no_local_et0",
    "target": "object",
-   "line": 212
+   "line": 214
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_engine_down_fails_closed_no_local_et0",
    "target": "any",
-   "line": 215
+   "line": 217
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_auto_fetch_weather_is_primary_path",
    "target": "_FakeConn",
-   "line": 224
+   "line": 226
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_auto_fetch_weather_is_primary_path",
    "target": "_patch",
-   "line": 224
+   "line": 226
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_auto_fetch_weather_is_primary_path",
    "target": "setattr",
-   "line": 238
+   "line": 243
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_auto_fetch_weather_is_primary_path",
    "target": "field_irrigation_recommendation",
-   "line": 239
+   "line": 244
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_auto_fetch_weather_is_primary_path",
    "target": "object",
-   "line": 239
+   "line": 244
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_manual_weather_is_flagged_override",
    "target": "_FakeConn",
-   "line": 249
+   "line": 254
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_manual_weather_is_flagged_override",
    "target": "_patch",
-   "line": 249
+   "line": 254
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_manual_weather_is_flagged_override",
    "target": "field_irrigation_recommendation",
-   "line": 250
+   "line": 255
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_manual_weather_is_flagged_override",
    "target": "object",
-   "line": 250
+   "line": 255
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_manual_weather_is_flagged_override",
    "target": "any",
-   "line": 252
+   "line": 257
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_weather_engine_down_fails_closed",
    "target": "_FakeConn",
-   "line": 259
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_weather_engine_down_fails_closed",
-   "target": "_patch",
-   "line": 259
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "_down",
-   "target": "HTTPException",
-   "line": 262
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_weather_engine_down_fails_closed",
-   "target": "HTTPException",
-   "line": 262
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_weather_engine_down_fails_closed",
-   "target": "setattr",
    "line": 264
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_weather_engine_down_fails_closed",
-   "target": "field_irrigation_recommendation",
-   "line": 265
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_weather_engine_down_fails_closed",
-   "target": "object",
-   "line": 265
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_weather_engine_down_fails_closed",
-   "target": "any",
-   "line": 268
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_default_is_not_submitted",
-   "target": "_FakeConn",
-   "line": 274
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_default_is_not_submitted",
    "target": "_patch",
-   "line": 274
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_default_is_not_submitted",
-   "target": "field_irrigation_recommendation",
-   "line": 275
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_default_is_not_submitted",
-   "target": "object",
-   "line": 275
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_to_decision_is_pending_approval",
-   "target": "_FakeConn",
-   "line": 282
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_to_decision_is_pending_approval",
-   "target": "_patch",
-   "line": 282
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_to_decision_is_pending_approval",
-   "target": "setattr",
-   "line": 289
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_to_decision_is_pending_approval",
-   "target": "FieldIrrigationRequest",
-   "line": 290
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_to_decision_is_pending_approval",
-   "target": "setattr",
-   "line": 304
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_to_decision_is_pending_approval",
-   "target": "field_irrigation_recommendation",
-   "line": 305
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_to_decision_is_pending_approval",
-   "target": "object",
-   "line": 305
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_decision_service_down_is_flagged",
-   "target": "_FakeConn",
-   "line": 314
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_decision_service_down_is_flagged",
-   "target": "_patch",
-   "line": 314
+   "line": 264
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "_down",
    "target": "HTTPException",
-   "line": 317
+   "line": 267
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_weather_engine_down_fails_closed",
+   "target": "HTTPException",
+   "line": 267
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_weather_engine_down_fails_closed",
+   "target": "setattr",
+   "line": 269
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_weather_engine_down_fails_closed",
+   "target": "field_irrigation_recommendation",
+   "line": 270
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_weather_engine_down_fails_closed",
+   "target": "object",
+   "line": 270
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_weather_engine_down_fails_closed",
+   "target": "any",
+   "line": 273
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_default_is_not_submitted",
+   "target": "_FakeConn",
+   "line": 279
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_default_is_not_submitted",
+   "target": "_patch",
+   "line": 279
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_default_is_not_submitted",
+   "target": "field_irrigation_recommendation",
+   "line": 280
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_default_is_not_submitted",
+   "target": "object",
+   "line": 280
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_to_decision_is_pending_approval",
+   "target": "_FakeConn",
+   "line": 287
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_to_decision_is_pending_approval",
+   "target": "_patch",
+   "line": 287
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_to_decision_is_pending_approval",
+   "target": "setattr",
+   "line": 294
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_to_decision_is_pending_approval",
+   "target": "FieldIrrigationRequest",
+   "line": 295
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_to_decision_is_pending_approval",
+   "target": "setattr",
+   "line": 312
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_to_decision_is_pending_approval",
+   "target": "field_irrigation_recommendation",
+   "line": 313
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_to_decision_is_pending_approval",
+   "target": "object",
+   "line": 313
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_decision_service_down_is_flagged",
+   "target": "_FakeConn",
+   "line": 322
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_decision_service_down_is_flagged",
+   "target": "_patch",
+   "line": 322
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "_down",
+   "target": "HTTPException",
+   "line": 325
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_submit_decision_service_down_is_flagged",
    "target": "HTTPException",
-   "line": 317
+   "line": 325
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_submit_decision_service_down_is_flagged",
    "target": "setattr",
-   "line": 331
+   "line": 342
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_submit_decision_service_down_is_flagged",
    "target": "setattr",
-   "line": 332
+   "line": 343
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_submit_decision_service_down_is_flagged",
    "target": "FieldIrrigationRequest",
-   "line": 333
+   "line": 344
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_submit_decision_service_down_is_flagged",
    "target": "field_irrigation_recommendation",
-   "line": 334
+   "line": 345
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_submit_decision_service_down_is_flagged",
    "target": "object",
-   "line": 334
+   "line": 345
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_submit_decision_service_down_is_flagged",
    "target": "any",
-   "line": 338
+   "line": 349
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_missing_depletion_is_insufficient",
    "target": "_FakeConn",
-   "line": 343
+   "line": 354
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_missing_depletion_is_insufficient",
    "target": "_patch",
-   "line": 343
+   "line": 354
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_missing_depletion_is_insufficient",
    "target": "field_irrigation_recommendation",
-   "line": 344
+   "line": 355
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_missing_depletion_is_insufficient",
    "target": "object",
-   "line": 344
+   "line": 355
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_depletion_exceeds_taw_is_inconsistent",
    "target": "_FakeConn",
-   "line": 353
+   "line": 364
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_depletion_exceeds_taw_is_inconsistent",
    "target": "_patch",
-   "line": 353
+   "line": 364
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_depletion_exceeds_taw_is_inconsistent",
    "target": "field_irrigation_recommendation",
-   "line": 354
+   "line": 365
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_depletion_exceeds_taw_is_inconsistent",
    "target": "object",
-   "line": 354
+   "line": 365
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_missing_rain_refuses_instead_of_assuming_no_rain",
+   "target": "_FakeConn",
+   "line": 383
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_missing_rain_refuses_instead_of_assuming_no_rain",
+   "target": "_patch",
+   "line": 383
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_missing_rain_refuses_instead_of_assuming_no_rain",
+   "target": "setattr",
+   "line": 399
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_missing_rain_refuses_instead_of_assuming_no_rain",
+   "target": "field_irrigation_recommendation",
+   "line": 400
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_missing_rain_refuses_instead_of_assuming_no_rain",
+   "target": "object",
+   "line": 400
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_missing_rain_refuses_instead_of_assuming_no_rain",
+   "target": "any",
+   "line": 403
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_manual_temperature_override_without_rain_also_refuses",
+   "target": "_FakeConn",
+   "line": 413
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_manual_temperature_override_without_rain_also_refuses",
+   "target": "_patch",
+   "line": 413
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_manual_temperature_override_without_rain_also_refuses",
+   "target": "FieldIrrigationRequest",
+   "line": 414
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_manual_temperature_override_without_rain_also_refuses",
+   "target": "field_irrigation_recommendation",
+   "line": 415
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_manual_temperature_override_without_rain_also_refuses",
+   "target": "object",
+   "line": 415
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_recent_rain_reaches_the_policy_and_lowers_the_amount",
+   "target": "_FakeConn",
+   "line": 439
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_recent_rain_reaches_the_policy_and_lowers_the_amount",
+   "target": "_patch",
+   "line": 439
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "_run",
+   "target": "setattr",
+   "line": 456
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_recent_rain_reaches_the_policy_and_lowers_the_amount",
+   "target": "setattr",
+   "line": 456
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "_run",
+   "target": "field_irrigation_recommendation",
+   "line": 457
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "_run",
+   "target": "object",
+   "line": 457
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_recent_rain_reaches_the_policy_and_lowers_the_amount",
+   "target": "field_irrigation_recommendation",
+   "line": 457
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_recent_rain_reaches_the_policy_and_lowers_the_amount",
+   "target": "object",
+   "line": 457
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_recent_rain_reaches_the_policy_and_lowers_the_amount",
+   "target": "_run",
+   "line": 461
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_recent_rain_reaches_the_policy_and_lowers_the_amount",
+   "target": "_run",
+   "line": 462
   },
   {
    "owner": "sahool-platform",
@@ -410701,84 +410939,84 @@
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "_base",
    "target": "dict",
-   "line": 13
+   "line": 15
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "_base",
    "target": "update",
-   "line": 14
+   "line": 16
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "_base",
    "target": "recommend_irrigation",
-   "line": 15
+   "line": 17
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "test_missing_depletion_fails_safe_no_decision",
    "target": "_base",
-   "line": 20
+   "line": 22
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "test_depletion_at_or_above_trigger_fires_water_saving",
    "target": "_base",
-   "line": 30
+   "line": 32
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "test_depletion_below_trigger_defers",
    "target": "_base",
-   "line": 41
+   "line": 43
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "test_yield_max_fires_earlier_and_refills_full",
    "target": "_base",
-   "line": 50
+   "line": 52
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "test_yield_max_fires_earlier_and_refills_full",
    "target": "_base",
-   "line": 51
+   "line": 53
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "test_critical_stress_class_raises_urgency_high",
    "target": "_base",
-   "line": 59
+   "line": 61
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "test_watch_stress_class_lifts_low_urgency_to_moderate",
    "target": "_base",
-   "line": 66
+   "line": 68
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "test_invalid_taw_fails_safe",
    "target": "_base",
-   "line": 79
+   "line": 81
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "test_policy_knobs_reported_for_audit",
    "target": "_base",
-   "line": 85
+   "line": 87
   },
   {
    "owner": "sahool-platform",
