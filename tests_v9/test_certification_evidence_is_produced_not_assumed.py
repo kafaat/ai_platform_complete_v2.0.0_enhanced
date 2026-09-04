@@ -639,3 +639,35 @@ def test_the_attestation_is_verified_not_merely_issued() -> None:
     attest_at = next(i for i, s in enumerate(steps) if "actions/attest@" in str(s.get("uses", "")))
     verify_at = steps.index(verify)
     assert attest_at < verify_at, "التحقّق قبل الإصدار لا معنى له"
+
+
+@pytest.mark.unit
+def test_every_job_that_moves_artifacts_declares_the_actions_scope() -> None:
+    """`permissions:` على مستوى الوظيفة يُصفِّر كلَّ نطاقٍ غيرِ مذكور.
+
+    فالغيابُ ليس «الافتراضيّ» بل `none` — وهذا يجعل نقصَ نطاقٍ **عطلاً صامتاً في
+    الإعداد** لا خطأً ظاهراً في الكود. وحدَه تشغيلُ الـworkflow يكشفه، وهي
+    `workflow_dispatch` فقد تبيت شهوراً.
+
+    مقيسٌ على مراجعةٍ آليّة: `certification-verdict` كان يجلب مصنوعاتٍ بلا
+    `actions: read` بينما تُعلِنه وظيفةُ `P-CERT-1` للسبب نفسِه — تعريفان لحاجةٍ
+    واحدة، أحدُهما ساقط.
+    """
+    import yaml
+
+    workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
+    for job_id, job in workflow["jobs"].items():
+        steps = job.get("steps") or []
+        moves = any(
+            "actions/download-artifact" in str(s.get("uses", ""))
+            or "collect_full_branch_ci_evidence" in str(s.get("run", ""))
+            for s in steps
+        )
+        if not moves:
+            continue
+        perms = job.get("permissions")
+        assert isinstance(perms, dict), f"{job_id}: يجلب من واجهة Actions بلا permissions مُعلَنة"
+        assert perms.get("actions") == "read", (
+            f"{job_id}: يجلب من واجهة Actions و`actions` = {perms.get('actions')!r}؛ "
+            "والنطاقُ غيرُ المذكور في permissions على مستوى الوظيفة يساوي none"
+        )
