@@ -261,8 +261,20 @@ def _read_json_file(path: Path) -> dict | None:
 
 def _read_json_from_git(revision: str, path: str, *, root: Path) -> dict | None:
     """يقرأ نسخة Git من الملفّ بلا شبكة؛ الغياب/التعذّر = None لا قبول."""
+    listing = subprocess.run(
+        ["git", "ls-tree", "-z", "--format=%(objectname)", revision, "--", path],
+        cwd=root,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if listing.returncode != 0:
+        return None
+    object_id = listing.stdout.strip("\0\r\n ")
+    if not object_id:
+        return None
     result = subprocess.run(
-        ["git", "show", f"{revision}:{path}"],
+        ["git", "cat-file", "-p", object_id],
         cwd=root,
         check=False,
         capture_output=True,
