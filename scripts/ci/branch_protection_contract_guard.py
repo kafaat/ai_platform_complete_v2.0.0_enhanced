@@ -71,6 +71,7 @@ import json
 import re
 import subprocess
 import sys
+from datetime import date
 from pathlib import Path
 
 #: نسخة ظرف الدليل. تغييرُ شكل الظرف يُبطِل الأدلّة القديمة صراحةً بدل أن يُقرأ نقصُها قبولاً.
@@ -93,7 +94,6 @@ HTTP_MEANING = {
 
 #: بصمة الالتزام: أربعون خانة سِتّ-عشريّة. أيّ شكلٍ آخر يعني حقلاً لم يُملأ صحيحاً.
 _SHA_RE = re.compile(r"\A[0-9a-f]{40}\Z")
-_DATE_RE = re.compile(r"\A\d{4}-\d{2}-\d{2}\Z")
 
 #: نوع القاعدة التي تحمل شروط الـPR في استجابة القواعد النافذة.
 CONTRACT_RULE_TYPE = "pull_request"
@@ -310,7 +310,11 @@ def is_consumption_only_seal(before: dict, after: dict) -> bool:
     consumed_on = after_consumption.get("consumed_on")
     if not isinstance(merge_sha, str) or not _SHA_RE.match(merge_sha):
         return False
-    if not isinstance(consumed_on, str) or not _DATE_RE.match(consumed_on):
+    if not isinstance(consumed_on, str):
+        return False
+    try:
+        date.fromisoformat(consumed_on)
+    except ValueError:
         return False
 
     extra_consumption = set(after_consumption) - set(before_consumption)
