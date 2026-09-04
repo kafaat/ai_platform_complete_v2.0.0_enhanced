@@ -66,8 +66,10 @@ GitHub لا تدخل أداةً محلّيّة (عقد ``test_local_preflight_co
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -112,6 +114,7 @@ CODE_OWNER_PARAMETER = "require_code_owner_review"
 
 #: المسار المحميّ — وهو نفسه ما يقرؤه `gate01_frozen_path_guard` تفويضاً.
 AUTHORIZATION_PATH = "docs/architecture/gates/adjudications/"
+_CONSUMPTION_SEAL_OPTIONAL_KEYS = {"$consumption_record_ar"}
 
 #: **سطحُ الإنفاذ نفسه** — `REQUIRED-CHECKS-DRIFT-IS-INVISIBLE-IN-BOTH-DIRECTIONS-01`.
 #: وهذا ليس «الجردَ العامّ للحماية» الذي يرفضه التعليق أعلاه: ذاك يَبيت مع كلّ تغيير
@@ -247,9 +250,100 @@ def evidence_violations(envelope: dict, *, expect_repository: str, expect_sha: s
     return found
 
 
-def touches_authorization(changed: list[str]) -> bool:
-    """هل تمسّ هذه الـPR مسارَ التفويضات؟ — الشرط الذي يُشغّل البند المشروط."""
-    return any(name.startswith(AUTHORIZATION_PATH) for name in changed)
+def _read_json_file(path: Path) -> dict | None:
+    """يُعيد JSON من الشجرة الحالية، أو None إن لم يكن الملف/الجسم صالحاً للتحليل."""
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return document if isinstance(document, dict) else None
+
+
+def _read_json_from_git(revision: str, path: str, *, root: Path) -> dict | None:
+    """يقرأ نسخة Git من الملفّ بلا شبكة؛ الغياب/التعذّر = None لا قبول."""
+    result = subprocess.run(
+        ["git", "show", f"{revision}:{path}"],
+        cwd=root,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        return None
+    try:
+        document = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return None
+    return document if isinstance(document, dict) else None
+
+
+def is_consumption_only_seal(before: dict, after: dict) -> bool:
+    """هل التغيير ختمُ استهلاكٍ صرفٌ لا إصدار/توسيعُ تفويض؟
+
+    المسموح هنا أضيقُ من «أيّ ملفٍّ حالته CONSUMED»: يجب أن تكون نسخةُ الأساس `ISSUED`
+    نفسها، وأن يتحوّل `status` وحده إلى `CONSUMED`، وأن تُزاد حقول سجلّ الاستهلاك في
+    `consumption` فقط. أيّ مساسٍ آخر بالحمولة/النطاق/الهويّة يبقيه **تغييرَ تفويضٍ**
+    يحتاج مراجعةَ مالكي الكود.
+    """
+    if before.get("status") != "ISSUED" or after.get("status") != "CONSUMED":
+        return False
+
+    before_consumption = before.get("consumption")
+    after_consumption = after.get("consumption")
+    if not isinstance(before_consumption, dict) or not isinstance(after_consumption, dict):
+        return False
+
+    merge_sha = after_consumption.get("merge_sha")
+    consumed_on = after_consumption.get("consumed_on")
+    if not isinstance(merge_sha, str) or not _SHA_RE.match(merge_sha):
+        return False
+    if not isinstance(consumed_on, str) or not consumed_on.strip():
+        return False
+
+    extra_consumption = set(after_consumption) - set(before_consumption)
+    if extra_consumption - {"merge_sha", "consumed_on"} - _CONSUMPTION_SEAL_OPTIONAL_KEYS:
+        return False
+    if "$consumption_record_ar" in after_consumption and not isinstance(
+        after_consumption["$consumption_record_ar"], str
+    ):
+        return False
+
+    baseline = copy.deepcopy(before)
+    baseline["status"] = "CONSUMED"
+    baseline["consumption"] = dict(before_consumption)
+    baseline["consumption"]["merge_sha"] = merge_sha
+    baseline["consumption"]["consumed_on"] = consumed_on
+    if "$consumption_record_ar" in after_consumption:
+        baseline["consumption"]["$consumption_record_ar"] = after_consumption["$consumption_record_ar"]
+    return baseline == after
+
+
+def substantive_authorization_paths(
+    changed: list[str], *, diff_base: str | None = None, root: Path | None = None
+) -> list[str]:
+    """يعزل ما يمسّ التفويض **حقيقةً**؛ ختمُ CONSUMED الصرف لا يوسّع إذناً.
+
+    من دون أساس مقارنةٍ Git يبقى الحكم محافظاً: كلّ مسٍّ في المسار يُعامَل تغييرَ تفويض.
+    """
+    touched = [name for name in changed if name.startswith(AUTHORIZATION_PATH)]
+    if not touched or not diff_base:
+        return touched
+
+    repo_root = root or Path.cwd()
+    substantive: list[str] = []
+    for relative in touched:
+        before = _read_json_from_git(diff_base, relative, root=repo_root)
+        after = _read_json_file(repo_root / relative)
+        if before is None or after is None or not is_consumption_only_seal(before, after):
+            substantive.append(relative)
+    return substantive
+
+
+def touches_authorization(
+    changed: list[str], *, diff_base: str | None = None, root: Path | None = None
+) -> bool:
+    """هل تمسّ هذه الـPR **تفويضاً حيّاً** لا ختمَ استهلاكٍ صرفاً؟"""
+    return bool(substantive_authorization_paths(changed, diff_base=diff_base, root=root))
 
 
 def code_owner_violations(rules: list) -> list[str]:
@@ -427,6 +521,13 @@ def main(argv: list[str] | None = None) -> int:
             f"`{AUTHORIZATION_PATH}` يُفرَض `{CODE_OWNER_PARAMETER}` أيضاً."
         ),
     )
+    parser.add_argument(
+        "--authorization-diff-base",
+        help=(
+            "مرجع Git لتمييز ختم `CONSUMED` الصرف عن إصدار/تعديل التفويض. "
+            "عند غيابه يبقى كلّ مسٍّ للمسار جوهريّاً."
+        ),
+    )
     args = parser.parse_args(argv)
 
     changed: list[str] = []
@@ -457,7 +558,7 @@ def main(argv: list[str] | None = None) -> int:
         # تُنتِج حكماً عن سؤالٍ آخر — وهو الصنف الذي وُجِد هذا الملفّ ليطارده.
         canonical = canonical_required_contexts()
         problems += required_checks_violations(rules, canonical)
-        if touches_authorization(changed):
+        if touches_authorization(changed, diff_base=args.authorization_diff_base):
             problems += code_owner_violations(rules)
 
     if problems:

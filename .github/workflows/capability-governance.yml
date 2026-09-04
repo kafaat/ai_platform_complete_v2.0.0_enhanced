@@ -356,6 +356,7 @@ jobs:
           PUSH_BEFORE: ${{ github.event.before }}
         run: |
           set -euo pipefail
+          comparison_base=""
           # GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01: البند المشروط يحتاج معرفة
           # ما مسّته الـPR. الاشتقاق هنا لا في الحارس — `scripts/ci/**` لا يستدعي
           # GitHub ولا يقرأ حالته (عقد `test_local_preflight_contract`).
@@ -373,10 +374,12 @@ jobs:
           # الشحّ في العمق (`fetch-depth: 0` أعلاه) وسقط `--depth=1` هنا.
           if [ -n "${BASE_REF}" ]; then
             git fetch origin "${BASE_REF}" -q
-            git diff --name-only "origin/${BASE_REF}...HEAD" > changed.txt
+            comparison_base="origin/${BASE_REF}"
+            git diff --name-only "${comparison_base}...HEAD" > changed.txt
           elif [ -n "${PUSH_BEFORE:-}" ] && git cat-file -e "${PUSH_BEFORE}^{commit}" 2>/dev/null; then
             # على `push` لا PR ولا `base_ref`؛ والمقيس عندئذٍ ما أضافته الدفعة نفسها.
-            git diff --name-only "${PUSH_BEFORE}" "${GITHUB_SHA}" > changed.txt
+            comparison_base="${PUSH_BEFORE}"
+            git diff --name-only "${comparison_base}" "${GITHUB_SHA}" > changed.txt
           else
             echo "✗ تعذّر اشتقاق ما مسّه هذا الحدث — ولا يُقرأ التعذّر «لم يُمَسّ»." >&2
             exit 1
@@ -386,4 +389,5 @@ jobs:
             --protection-file protection.json \
             --expect-repository "${REPO}" \
             --expect-sha "${TESTED_SHA}" \
-            --changed-files changed.txt
+            --changed-files changed.txt \
+            --authorization-diff-base "${comparison_base}"

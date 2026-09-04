@@ -18,6 +18,7 @@ from __future__ import annotations
 import importlib.util
 import io
 import json
+import subprocess
 import sys
 import tokenize
 from pathlib import Path
@@ -455,6 +456,10 @@ def test_the_guard_reads_no_github_state():
     `test_local_preflight_contract` يمنع ذلك على الأداة المحلّيّة. فلو زحف الاستدعاء إلى
     هنا لصار الحارس غيرَ قابل للاختبار بلا رمزٍ وصلاحيّة — أي لصار تكذيبُه متخطًّى.
 
+    **والـGit المحلّي ليس GitHub:** الحارس قد يحتاج قراءة نسخة الأساس من الشجرة عبر
+    `git show` ليميّز ختم `CONSUMED` الصرف من تعديل تفويضٍ حيّ. هذا لا يُدخل حالةَ
+    GitHub ولا شبكةً؛ الممنوع هنا هو استدعاءُ الشبكة نفسها من داخل الحارس.
+
     **ويُقاس الكودُ لا النثر:** الصياغة الأولى بحثت في **نصّ الملفّ كلّه**، فاحمرّت حين
     وثّق الحارسُ في تعليقه النقطةَ التي تجلبها الوظيفة. وهذا عيبٌ في القياس لا في الكود:
     ذِكرُ عنوانٍ في شرحٍ ليس استدعاءً له، وقياسٌ يخلط بينهما يُعاقِب التوثيق ويُدرِّب
@@ -467,7 +472,7 @@ def test_the_guard_reads_no_github_state():
         for token in tokenize.generate_tokens(io.StringIO(source).readline)
         if token.type not in (tokenize.COMMENT, tokenize.STRING)
     )
-    for name in ("requests", "urllib", "httpx", "subprocess", "socket", "http"):
+    for name in ("requests", "urllib", "httpx", "socket", "http"):
         assert name not in executable.split(), f"وصولُ شبكةٍ داخل الحارس: {name!r}"
 
 
@@ -514,7 +519,7 @@ def _rules_with_code_owner(value) -> list:
     return rules
 
 
-def _run_changed(tmp_path: Path, document, changed: list[str]) -> int:
+def _run_changed(tmp_path: Path, document, changed: list[str], *extra_args: str) -> int:
     listing = tmp_path / "changed.txt"
     listing.write_text("\n".join(changed), encoding="utf-8")
     return MOD.main(
@@ -527,8 +532,53 @@ def _run_changed(tmp_path: Path, document, changed: list[str]) -> int:
             SHA,
             "--changed-files",
             str(listing),
+            *extra_args,
         ]
     )
+
+
+def _git(*args: str, cwd: Path) -> None:
+    subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True, text=True)
+
+
+def _init_authorization_repo(tmp_path: Path, after: dict) -> tuple[Path, str]:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git("init", cwd=repo)
+    _git("config", "user.name", "Test User", cwd=repo)
+    _git("config", "user.email", "test@example.com", cwd=repo)
+
+    rel = Path(ADJUDICATION)
+    target = repo / rel
+    target.parent.mkdir(parents=True, exist_ok=True)
+
+    before = {
+        "schema": "sahool.gate01_adjudication/v1",
+        "version": 1,
+        "adjudication_id": "GATE01-ADJ-2026-08-13-001",
+        "gate_id": "GATE-01",
+        "status": "ISSUED",
+        "approved_by": "owner",
+        "consumption": {
+            "status_values": ["ISSUED", "CONSUMED", "REVOKED"],
+            "$must_be_stamped_after_merge_ar": "اختمه بعد الدمج.",
+        },
+        "allowed_paths": ["docs/architecture/db_ownership.yml"],
+        "authorized_blobs": {"docs/architecture/db_ownership.yml": "abc123"},
+    }
+    target.write_text(json.dumps(before, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    _git("add", str(rel), cwd=repo)
+    _git("commit", "-m", "base", cwd=repo)
+    base = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+    target.write_text(json.dumps(after, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return repo, base
 
 
 def test_touching_the_authorization_path_requires_code_owner_review(tmp_path):
@@ -561,6 +611,77 @@ def test_a_policy_change_alone_does_not_trigger_the_term(tmp_path):
     """
     assert MOD.touches_authorization(["docs/architecture/gate01_policy.json"]) is False
     assert MOD.touches_authorization([ADJUDICATION]) is True
+
+
+def test_a_consumption_only_seal_does_not_trigger_the_conditional_term(tmp_path, monkeypatch):
+    after = {
+        "schema": "sahool.gate01_adjudication/v1",
+        "version": 1,
+        "adjudication_id": "GATE01-ADJ-2026-08-13-001",
+        "gate_id": "GATE-01",
+        "status": "CONSUMED",
+        "approved_by": "owner",
+        "consumption": {
+            "status_values": ["ISSUED", "CONSUMED", "REVOKED"],
+            "$must_be_stamped_after_merge_ar": "اختمه بعد الدمج.",
+            "merge_sha": SHA,
+            "consumed_on": "2026-09-04",
+            "$consumption_record_ar": "خُتِم بعد الدمج.",
+        },
+        "allowed_paths": ["docs/architecture/db_ownership.yml"],
+        "authorized_blobs": {"docs/architecture/db_ownership.yml": "abc123"},
+    }
+    repo, base = _init_authorization_repo(tmp_path, after)
+    monkeypatch.chdir(repo)
+    assert (
+        _run_changed(
+            tmp_path,
+            _envelope(_rules(True)),
+            [ADJUDICATION],
+            "--authorization-diff-base",
+            base,
+        )
+        == 0
+    )
+
+
+def test_a_consumption_stamp_plus_scope_change_still_requires_code_owner_review(
+    tmp_path, monkeypatch
+):
+    after = {
+        "schema": "sahool.gate01_adjudication/v1",
+        "version": 1,
+        "adjudication_id": "GATE01-ADJ-2026-08-13-001",
+        "gate_id": "GATE-01",
+        "status": "CONSUMED",
+        "approved_by": "owner",
+        "consumption": {
+            "status_values": ["ISSUED", "CONSUMED", "REVOKED"],
+            "$must_be_stamped_after_merge_ar": "اختمه بعد الدمج.",
+            "merge_sha": SHA,
+            "consumed_on": "2026-09-04",
+        },
+        "allowed_paths": [
+            "docs/architecture/db_ownership.yml",
+            "migrations/MANIFEST.txt",
+        ],
+        "authorized_blobs": {
+            "docs/architecture/db_ownership.yml": "abc123",
+            "migrations/MANIFEST.txt": "def456",
+        },
+    }
+    repo, base = _init_authorization_repo(tmp_path, after)
+    monkeypatch.chdir(repo)
+    assert (
+        _run_changed(
+            tmp_path,
+            _envelope(_rules(True)),
+            [ADJUDICATION],
+            "--authorization-diff-base",
+            base,
+        )
+        == 1
+    )
 
 
 def test_an_unreadable_changed_file_list_fails_closed(tmp_path):
