@@ -3,7 +3,8 @@
 
 يفرض:
 - v206 آخر مدخل MANIFEST دائمًا + محتواه (fail-closed WITH CHECK + catalog assertion).
-- backup_postgres.sh يشير لخدمة compose/الدور الفعليّين (لا sahool-postgis/postgres).
+- وجهةُ PostgreSQL مُعرَّفةٌ **مرّةً واحدة** يقرأ منها النسخُ الاحتياطيّ والاستعادة،
+  وتطابق خدمةَ compose ودورَها فعلاً (لا sahool-postgis/postgres).
 - دور Odoo المقيَّد في apply_in_compose.sh (REVOKE ALL PRIVILEGES على قاعدة المنصّة).
 - سحب CONNECT الضمنيّ من PUBLIC + منح صريح + حارس MANIFEST وقت التشغيل + تأكيد
   سمات الأدوار (SUPERUSER/BYPASSRLS) عند bootstrap.
@@ -14,6 +15,7 @@
 from __future__ import annotations
 
 import pathlib
+import re
 
 import pytest
 
@@ -23,6 +25,8 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 MANIFEST = ROOT / "migrations/MANIFEST.txt"
 V206 = ROOT / "migrations/v206_rls_final_hardening.sql"
 BACKUP = ROOT / "scripts/backup_postgres.sh"
+RESTORE = ROOT / "scripts/restore_postgres.sh"
+LIB_PG = ROOT / "scripts/lib/pg_conn_defaults.sh"
 APPLY = ROOT / "migrations/apply_in_compose.sh"
 COMPOSE = ROOT / "docker-compose.v9.yml"
 
@@ -54,12 +58,63 @@ def test_v206_fail_closed_and_catalog_assertion():
     assert "RAISE EXCEPTION 'v206 catalog assertion:" in src
 
 
-def test_backup_script_targets_real_service_and_role():
-    src = BACKUP.read_text(encoding="utf-8")
-    assert "sahool-postgis" not in src, "الخدمة الفعليّة في compose هي sahool-postgres"
-    assert 'PGHOST="${PGHOST:-sahool-postgres}"' in src
-    assert 'PGUSER="${PGUSER:-sahool_user}"' in src
-    assert 'PGUSER="${PGUSER:-postgres}"' not in src
+def _compose_postgres_identity() -> tuple[str, str, str]:
+    """يشتقّ (المضيف، الدور، القاعدة) من `docker-compose.v9.yml` نفسِه.
+
+    الاشتقاق قصدٌ لا زينة: صياغةٌ تُثبِّت السلاسل حرفيّاً تقيس **تطابقَ نصٍّ مع نصّ**،
+    فتبقى خضراء لو أُعيدت تسميةُ الخدمة في compose وتخلّف السكربتان. والمقصود
+    خاصّيّةٌ أخرى: أن يقصد السكربتان **ما هو قائمٌ فعلاً**.
+    """
+    src = COMPOSE.read_text(encoding="utf-8")
+    block = src.split("\n  sahool-postgres:", 1)[1].split("\n  sahool-", 1)[0]
+    db = re.search(r"POSTGRES_DB:\s*(\S+)", block)
+    user = re.search(r"POSTGRES_USER:\s*(\S+)", block)
+    assert db and user, "خدمة sahool-postgres في compose بلا POSTGRES_DB/POSTGRES_USER"
+    return "sahool-postgres", user.group(1), db.group(1)
+
+
+def test_one_definition_of_the_postgres_destination_shared_by_backup_and_restore():
+    """وجهةُ القاعدة تُعرَّف **مرّةً واحدة**، ويقرأ منها النسخُ الاحتياطيّ والاستعادة.
+
+    **العطل المقيس:** كان لكلٍّ منهما جدولُ افتراضاتٍ خاصّ. النسخُ يقصد
+    `sahool-postgres`/`sahool_user` (وهو ما في compose)، والاستعادةُ تقصد
+    `sahool-postgis`/`postgres` — **مضيفٌ ودورٌ لا وجودَ لهما** في الملفّ القانونيّ.
+    وكان تعليقُ الاستعادة يقول «نفس قيم backup_postgres.sh»: انحرافٌ يحمل معه دعوى
+    عدم الانحراف، فلا يفحصه قارئ.
+
+    **وهذا الاختبارُ نفسُه كان نصفَ حارس:** فرض الزوجَ الصحيح على `backup` وحدَه،
+    وسمّى `sahool-postgis/postgres` خطأً بالحرف — وهو ما كان في `restore` بلا أن
+    ينظر إليه. فالمقيسُ الآن الطرفان والمصدرُ الواحد.
+    """
+    host, user, database = _compose_postgres_identity()
+    lib = LIB_PG.read_text(encoding="utf-8")
+    assert f': "${{PGHOST:={host}}}"' in lib, f"المصدر الواحد لا يقصد خدمة compose ({host})"
+    assert f': "${{PGUSER:={user}}}"' in lib, f"المصدر الواحد لا يقصد دور compose ({user})"
+    assert f': "${{PGDATABASE:={database}}}"' in lib
+
+    for script in (BACKUP, RESTORE):
+        src = script.read_text(encoding="utf-8")
+        assert "lib/pg_conn_defaults.sh" in src, f"{script.name} لا يقرأ من المصدر الواحد"
+        # ولا جدولَ ثانياً: تعريفٌ محلّيٌّ لأيٍّ من الأربعة يُعيد الانحرافَ الذي أُزيل.
+        for name in ("PGHOST", "PGPORT", "PGUSER", "PGDATABASE"):
+            assert f'{name}="${{{name}:-' not in src, (
+                f"{script.name} يُعيد تعريف {name} محلّيّاً — تعريفان لحاجةٍ واحدة"
+            )
+
+
+def test_neither_backup_nor_restore_targets_the_nonexistent_host_or_role():
+    """الشاهدُ السالب صريحاً: الزوجُ الخاطئ الذي أسقط الاستعادة لا يعود من أيّ باب.
+
+    `sahool-postgis` اسمٌ **قائمٌ** في `docker-compose.light.yml` — فليس هراءً
+    يُمسَك بالصدفة، بل جارٌ مقنعٌ يسهل أن يُكتَب مرّةً أخرى.
+    """
+    for path in (BACKUP, RESTORE, LIB_PG):
+        src = path.read_text(encoding="utf-8")
+        code = "\n".join(ln for ln in src.splitlines() if not ln.lstrip().startswith("#"))
+        assert "sahool-postgis" not in code, f"{path.name}: الخدمة الفعليّة هي sahool-postgres"
+        assert "PGUSER:=postgres}" not in code and "PGUSER:-postgres}" not in code, (
+            f"{path.name}: الدور الفعليّ هو sahool_user"
+        )
 
 
 def test_odoo_restricted_role_cannot_reach_platform_db():
