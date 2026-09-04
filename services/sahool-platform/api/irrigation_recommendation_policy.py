@@ -51,8 +51,16 @@ def recommend_irrigation(
     et0_mm: float,
     crop: str | None,
     stage: str = "mid",
-    rain_recent_mm: float = 0.0,
-    forecast_rain_mm: float = 0.0,
+    # **لا افتراضَ صفراً هنا.** «لا بياناتِ مطر» ليست «لا مطر»: الصفرُ المُقنَّع يُنقِص
+    # المطروحَ من الحاجة فيرفع الكمّيّةَ الموصى بها — أي أنّ الانحياز في اتّجاه
+    # **الإذن بالريّ**، وهو الاتّجاه الذي يُغرِق. وقد أُغلِق هذا الصنفُ في
+    # `recommendations_hub` (`required_inputs` تضمّ المطرَ) وفي
+    # `routers/fields.py` (٥٠٣ عند نقص المطر) — وبقي مفتوحاً هنا.
+    #
+    # و`None` تصل النواةَ ⇒ **استثناء**، لا حسابٌ بقيمةٍ بديلة: الرفضُ عند الحدّ
+    # يجعل كلَّ مسارٍ يُقرّر صراحةً ماذا يفعل بالغياب، بدل أن يرثه صامتاً.
+    rain_recent_mm: float | None = None,
+    forecast_rain_mm: float | None = None,
     soil_moisture_pct: float | None = None,
     kc_override: float | None = None,
     # ── مدخلات الملوحة (فحص مخبريّ) ──
@@ -81,8 +89,10 @@ def recommend_irrigation(
 
     Args (المهمّة):
         et0_mm: التبخّر-نتح المرجعيّ اليوميّ (FAO-56) — محسوب مسبقاً.
-        crop/stage/rain_recent_mm/forecast_rain_mm/soil_moisture_pct/kc_override:
-            تُمرَّر كما هي إلى ``irrigation_advice`` (حساب الصافي + Ks).
+        crop/stage/soil_moisture_pct/kc_override: تُمرَّر كما هي إلى ``irrigation_advice``.
+        rain_recent_mm/forecast_rain_mm: **إلزاميّتان** (mm). ``None`` ⇒ ``ValueError``
+            — لا حسابَ على مطرٍ مفقود، ولا تصفيرَ له. على كلّ مسارٍ أن يُقرّر ما يفعله
+            بالغياب صراحةً (٥٠٣ / ``dependency_unavailable``)، لا أن يرثه صامتاً.
         soil_ece: ECe من فحص مخبريّ (dS/m). None ⇒ لا تقييم ملوحة (``net_only``).
         soil_ec_age_days: عُمر الفحص بالأيّام. أقدم من ``ec_max_age_days`` ⇒ غير موثوق.
         crop_salt_tolerance_ece: عتبة المحصول (FAO-56 T23). None ⇒ لا تصحيح ملوحة.
@@ -111,6 +121,20 @@ def recommend_irrigation(
     صدق: قرار الإطلاق يحتاج Dr+TAW فعليَّين؛ غيابهما ⇒ ``should_irrigate=None`` و
     ``trigger_reason="no_depletion_data"`` (يبقى الصافي معروضاً، لا قرار على غياب).
     """
+    # مطرٌ مفقود يقف هنا. صياغةُ `float = 0.0` السابقة كانت تجعل الغيابَ يُحسَب «صفر مطر»
+    # في المطروح من الحاجة، فتخرج كمّيّةٌ أعلى بثقةٍ لا تستحقّها — ولا يظهر في المخرَج
+    # ما يقول إنّ المطرَ لم يُعرَف. والرفضُ عند الحدّ يمنع وراثةَ الافتراض صامتاً.
+    missing_rain = [
+        name
+        for name, value in (
+            ("rain_recent_mm", rain_recent_mm),
+            ("forecast_rain_mm", forecast_rain_mm),
+        )
+        if value is None
+    ]
+    if missing_rain:
+        raise ValueError("recommend_irrigation: مطرٌ مفقود لا يُصفَّر — " + "، ".join(missing_rain))
+
     # سياسة الإطلاق/الملء تُلتقَط الآن: المتغيّر ``policy`` يُعاد استخدامه لاحقاً لتصنيف
     # سياسة الملوحة (net_only/…)، فلا نقرأ منه بعد ذلك لمقابض الإطلاق.
     irrigation_strategy = policy

@@ -22,7 +22,13 @@ def test_recommend_irrigation_accepts_depletion_inputs():
 
 def test_recommend_irrigation_emits_trigger_decision():
     out = recommend_irrigation(
-        et0_mm=5.0, crop="wheat", depletion_mm=60.0, taw_mm=100.0, policy="water_saving"
+        et0_mm=5.0,
+        crop="wheat",
+        rain_recent_mm=0.0,
+        forecast_rain_mm=0.0,
+        depletion_mm=60.0,
+        taw_mm=100.0,
+        policy="water_saving",
     )
     for key in ("should_irrigate", "trigger_reason", "target_refill_mm", "raw_mm", "policy_knobs"):
         assert key in out, f"مخرَج التوصية فقد مفتاح قرار الإطلاق {key!r}"

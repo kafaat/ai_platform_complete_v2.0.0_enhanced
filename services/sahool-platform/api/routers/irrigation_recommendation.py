@@ -32,6 +32,7 @@ from api.main import (
 )
 from api.soil_enrichment import extract_texture, soil_water_provenance
 from api.soil_water import soil_water_params
+from api.weather_advice import complete_rain_total, precipitation_incomplete_detail
 from api.weather_service_client import get_et0_product, get_weather_forecast
 
 router = APIRouter()
@@ -83,7 +84,11 @@ async def _field_weather_snapshot(latitude_deg: float, longitude_deg: float) -> 
     """
     from datetime import date as _date
 
-    fc = await get_weather_forecast(latitude_deg, longitude_deg, days=1)
+    # ثلاثةُ أيّامٍ لا يوم: المطرُ جزءٌ من المدخَل لا زينة — يومُ اليوم لـ``rain_recent_mm``
+    # واليومان التاليان لـ``forecast_rain_mm``، وهي **نفسُ قسمة** ``routers/fields.py``
+    # (رصدُ اليوم + ``forecast[1:3]``). قسمةٌ ثانيةٌ هنا كانت ستُعطي المزارعَ توصيتين
+    # مختلفتين بحسب أيّ مسارٍ سأل.
+    fc = await get_weather_forecast(latitude_deg, longitude_deg, days=3)
     days = fc.get("days") or []
     if not days:
         raise HTTPException(
@@ -96,12 +101,19 @@ async def _field_weather_snapshot(latitude_deg: float, longitude_deg: float) -> 
         doy = _date.fromisoformat(valid_time).timetuple().tm_yday if valid_time else None
     except (TypeError, ValueError):
         doy = None
+    # مطرُ اليوم + مجموعُ اليومين التاليين. ``complete_rain_total`` هو المصدرُ الواحد
+    # لقاعدة «لا يُجمَع نصفُ سلسلةٍ ويُقدَّم مجموعاً كاملاً» — فترةٌ ناقصةٌ ⇒ ``None``.
+    forecast_rain, _missing = complete_rain_total(
+        [d.get("precipitation_mm") for d in days[1:3]], expected_count=2
+    )
     return {
         "t_min_c": d0.get("temp_min_c"),
         "t_max_c": d0.get("temp_max_c"),
         "wind_2m_ms": d0.get("wind_max_ms"),
         "solar_rad_mj_m2": d0.get("solar_radiation_mj_m2"),
         "rh_mean_pct": None,  # غير متوفّر في التوقّع اليوميّ
+        "rain_recent_mm": d0.get("precipitation_mm"),
+        "forecast_rain_mm": forecast_rain,
         "day_of_year": doy,
         "valid_time": valid_time,
         "source": "weather-engine-forecast",
@@ -135,8 +147,10 @@ class IrrigationRecommendationRequest(BaseModel):
     stage: str = "mid"  # initial|development|mid|late
     t_min_c: float
     t_max_c: float
-    rain_recent_mm: float = 0.0
-    forecast_rain_mm: float = 0.0
+    # **إلزاميّتان بلا افتراضٍ صفريّ.** عميلٌ يُغفِلهما كان يحصل على توصيةٍ محسوبةٍ على
+    # «لا مطر» بلا أن يعلم — وهو الانحياز الذي يُغرِق. الحذفُ الآن ⇒ ٥٠٣ صريحة.
+    rain_recent_mm: float | None = None
+    forecast_rain_mm: float | None = None
     soil_moisture_pct: float | None = None
     kc_override: float | None = None  # Kc دقيق من الفينولوجيا إن توفّر
     # طقس Penman-Monteith (اختياريّ — يسقط إلى Hargreaves عند الغياب)
@@ -177,7 +191,23 @@ async def irrigation_recommendation(
     ``requires_expert_review`` + ``salinity_ks`` + ``evidence`` + ``rationale_ar``.
 
     ET0 من محرّك الطقس (المصدر الوحيد)؛ تعذّره ⇒ 503 صريح (لا حساب محلّيّ بديل).
+    **والمطر إلزاميّ**: حذفُه ⇒ 503 بنفس شكل خطأ نقص المطر في بقيّة المنصّة، لا صفر.
     """
+    # قبل ET0 عمداً: نقصُ المطر عطلُ **مُدخَلٍ** لا عطلُ اعتماديّة، فلا يُنفَق عليه نداءُ
+    # شبكةٍ ولا يُبلَّغ برسالة «المحرّك غير متاح» — تشخيصٌ يسمّي غيرَ سببه يُطيل العطل.
+    missing_rain = [
+        index
+        for index, value in enumerate((req.rain_recent_mm, req.forecast_rain_mm))
+        if value is None
+    ]
+    if missing_rain:
+        raise HTTPException(
+            status_code=503,
+            detail=precipitation_incomplete_detail(
+                context="irrigation_recommendation", missing_intervals=missing_rain
+            ),
+        )
+
     try:
         et0_prod = await _engine_et0(
             t_min_c=req.t_min_c,
@@ -236,6 +266,10 @@ class FieldIrrigationRequest(BaseModel):
     root_depth_m: float | None = None  # عمق الجذور (لاشتقاق TAW)؛ None ⇒ افتراضيّ موسوم
     policy: str | None = None  # سياسة الريّ (water_saving افتراضاً)
     water_price_per_m3: float | None = None
+    # مطرُ التجاوز اليدويّ — يُقرأ **فقط** مع تجاوز الحرارة. المسارُ الأساسيّ يجلبه من
+    # المحرّك، وغيابُه في التجاوز ⇒ ``dependency_unavailable`` لا صفر.
+    rain_recent_mm: float | None = None
+    forecast_rain_mm: float | None = None
     # WS-D.2d: تقديم صريح للمرشَّح إلى خدمة القرار (لا تلقائيّ — احترام حوكمة الموافقة).
     submit_to_decision: bool = False
     yield_value_per_ha: float | None = None
@@ -398,6 +432,11 @@ async def field_irrigation_recommendation(
                 "rh_mean_pct": req.rh_mean_pct,
                 "wind_2m_ms": req.wind_2m_ms,
                 "day_of_year": req.day_of_year if req.day_of_year is not None else 100,
+                # التجاوزُ اليدويّ يحمل مطرَه أيضاً. وإلّا كان «تجاوزُ حرارة» يُسقِط
+                # المطرَ ضمناً إلى صفر — فيصير المسارُ الاحتياطيّ أكثرَ إذناً بالريّ
+                # من الأساسيّ، وهو عكسُ ما يُنتظَر من تجاوزٍ يدويّ.
+                "rain_recent_mm": req.rain_recent_mm,
+                "forecast_rain_mm": req.forecast_rain_mm,
                 "valid_time": None,
                 "source": "manual_override",
             }
@@ -435,6 +474,34 @@ async def field_irrigation_recommendation(
             "confidence": None,
             "evidence_ids": evidence_ids,
             "limitations": [*state["limitations"], "weather snapshot missing temperature"],
+            "calibrated": False,
+        }
+
+    # ومطرٌ ناقصٌ يقف حيث تقف الحرارة. كان هذا المسارُ **لا يمرّر المطرَ أصلاً**، فتأخذه
+    # النواةُ صفراً — والصفرُ يُنقِص المطروحَ من الحاجة فيرفع الكمّيّة: انحيازٌ في اتّجاه
+    # الإذن بالريّ، صامتٌ في المخرَج. وتوثيقُ هذه الدالّة يقول «**صدق:** مفقود ≠ صفر» —
+    # وكان صادقاً عن الاستنزاف والتربة، ساكتاً عن المطر.
+    if wx.get("rain_recent_mm") is None or wx.get("forecast_rain_mm") is None:
+        return {
+            "status": "dependency_unavailable",
+            "field_id": field_id,
+            "season_id": season_id,
+            "inputs": inputs,
+            "recommendation": None,
+            "ownership": "recommendation_candidate → decision-service",
+            "confidence": None,
+            "evidence_ids": evidence_ids,
+            "limitations": [
+                *state["limitations"],
+                precipitation_incomplete_detail(
+                    context="field_irrigation_recommendation",
+                    missing_intervals=[
+                        i
+                        for i, key in enumerate(("rain_recent_mm", "forecast_rain_mm"))
+                        if wx.get(key) is None
+                    ],
+                )["message_ar"],
+            ],
             "calibrated": False,
         }
 
@@ -478,6 +545,8 @@ async def field_irrigation_recommendation(
         et0_mm=et0_mm,
         crop=crop,
         stage=stage,
+        rain_recent_mm=wx["rain_recent_mm"],
+        forecast_rain_mm=wx["forecast_rain_mm"],
         depletion_mm=depletion_mm,
         taw_mm=taw_mm,
         raw_fraction=sw["raw_fraction"],

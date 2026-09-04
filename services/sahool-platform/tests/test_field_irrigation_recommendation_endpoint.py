@@ -108,7 +108,9 @@ def _patch(monkeypatch, conn, *, engine=None, engine_raises=None):
     monkeypatch.setattr(mod, "_engine_et0", _engine)
 
 
-_REQ = FieldIrrigationRequest(t_min_c=18.0, t_max_c=34.0, policy="water_saving")
+_REQ = FieldIrrigationRequest(
+    t_min_c=18.0, t_max_c=34.0, policy="water_saving", rain_recent_mm=0.0, forecast_rain_mm=3.0
+)
 
 
 @pytest.mark.asyncio
@@ -215,7 +217,7 @@ async def test_engine_down_fails_closed_no_local_et0(monkeypatch):
     assert any("fail-closed" in lim for lim in out["limitations"])
 
 
-_REQ_AUTO = FieldIrrigationRequest(policy="water_saving")  # لا حرارة ⇒ جلب تلقائيّ
+_REQ_AUTO = FieldIrrigationRequest(policy="water_saving")  # لا حرارة ⇒ جلب تلقائيّ (والمطر معه)
 
 
 @pytest.mark.asyncio
@@ -230,6 +232,9 @@ async def test_auto_fetch_weather_is_primary_path(monkeypatch):
             "wind_2m_ms": 2.0,
             "solar_rad_mj_m2": 22.0,
             "rh_mean_pct": None,
+            # المطرُ جزءٌ من اللقطة: بدونه يرفض المسارُ التوصيةَ بدل أن يحسبها على صفر.
+            "rain_recent_mm": 0.0,
+            "forecast_rain_mm": 3.0,
             "day_of_year": 191,
             "valid_time": "2026-07-10",
             "source": "weather-engine-forecast",
@@ -296,6 +301,9 @@ async def test_submit_to_decision_is_pending_approval(monkeypatch):
             "wind_2m_ms": 2.0,
             "solar_rad_mj_m2": 22.0,
             "rh_mean_pct": None,
+            # المطرُ جزءٌ من اللقطة: بدونه يرفض المسارُ التوصيةَ بدل أن يحسبها على صفر.
+            "rain_recent_mm": 0.0,
+            "forecast_rain_mm": 3.0,
             "day_of_year": 191,
             "valid_time": "2026-07-10",
             "source": "weather-engine-forecast",
@@ -323,6 +331,9 @@ async def test_submit_decision_service_down_is_flagged(monkeypatch):
             "wind_2m_ms": 2.0,
             "solar_rad_mj_m2": 22.0,
             "rh_mean_pct": None,
+            # المطرُ جزءٌ من اللقطة: بدونه يرفض المسارُ التوصيةَ بدل أن يحسبها على صفر.
+            "rain_recent_mm": 0.0,
+            "forecast_rain_mm": 3.0,
             "day_of_year": 191,
             "valid_time": "2026-07-10",
             "source": "weather-engine-forecast",
@@ -355,3 +366,101 @@ async def test_depletion_exceeds_taw_is_inconsistent(monkeypatch):
     assert out["status"] == "inconsistent_state"
     assert out["recommendation"] is None
     assert "depletion_exceeds_taw" in out["limitations"]
+
+
+# ─── المطر المفقود ≠ صفر ────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_missing_rain_refuses_instead_of_assuming_no_rain(monkeypatch):
+    """لقطةٌ بلا مطر ⇒ ``dependency_unavailable``، لا توصيةٌ محسوبةٌ على «لا مطر».
+
+    **العطل المقيس:** كان هذا المسار لا يمرّر المطرَ إلى ``recommend_irrigation``
+    البتّة، فتأخذه النواةُ ``0.0`` بحكم توقيعها. والصفرُ يُنقِص المطروحَ من الحاجة
+    فترتفع الكمّيّة — أي أنّ الانحيازَ في اتّجاه **الإذن بالريّ**، وهو الاتّجاه الذي
+    يُغرِق حقلاً؛ ولا يظهر في المخرَج ما يقول إنّ المطرَ لم يُعرَف.
+    """
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+
+    async def _snap(_lat, _lon):
+        return {
+            "t_min_c": 17.0,
+            "t_max_c": 33.0,
+            "wind_2m_ms": 2.0,
+            "solar_rad_mj_m2": 22.0,
+            "rh_mean_pct": None,
+            "rain_recent_mm": None,  # المحرّك لم يُعطِ مطرَ اليوم
+            "forecast_rain_mm": 3.0,
+            "day_of_year": 191,
+            "valid_time": "2026-07-10",
+            "source": "weather-engine-forecast",
+        }
+
+    monkeypatch.setattr(mod, "_field_weather_snapshot", _snap)
+    out = await field_irrigation_recommendation("fld_1", _REQ_AUTO, user=object())
+    assert out["status"] == "dependency_unavailable"
+    assert out["recommendation"] is None
+    assert any("المطر" in lim for lim in out["limitations"]), out["limitations"]
+
+
+@pytest.mark.asyncio
+async def test_manual_temperature_override_without_rain_also_refuses(monkeypatch):
+    """التجاوزُ اليدويّ لا يفتح باباً خلفيّاً.
+
+    لولا هذه الحالة لصار «تجاوزُ حرارة» يُسقِط المطرَ ضمناً إلى صفر، فيكون المسارُ
+    الاحتياطيّ **أكثرَ إذناً بالريّ** من الأساسيّ — وهو عكسُ ما يُنتظَر من تجاوزٍ يدويّ.
+    """
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+    req = FieldIrrigationRequest(t_min_c=18.0, t_max_c=34.0, policy="water_saving")
+    out = await field_irrigation_recommendation("fld_1", req, user=object())
+    assert out["status"] == "dependency_unavailable"
+    assert out["recommendation"] is None
+
+
+@pytest.mark.asyncio
+async def test_recent_rain_reaches_the_policy_and_lowers_the_amount(monkeypatch):
+    """شاهدٌ موجب: المطرُ الأخير **يصل** النواةَ ويُغيّر الرقم.
+
+    رفضُ الغياب وحدَه لا يُثبِت أنّ الحاضرَ يُستعمَل — مسارٌ يرفض ``None`` ثمّ يهمل
+    القيمةَ يمرّ بحالتَي الرفض أعلاه وهو معطوب. فالمقيسُ هنا **الفرق**.
+
+    **وقيدان مُعلَنان، مقيسان أثناء كتابة هذه الحالة — لا يُصلَحان هنا:**
+
+    (١) ``irrigation_advice`` يقول صراحةً إنّ **المطر المتوقّع لا يدخل في الكمّيّة**؛
+    يخفض الإلحاح ويؤخّر التوقيت. فصياغةٌ تنتظر نقصانَ الكمّيّة منه كانت ستُثبِّت
+    سلوكاً لا وجودَ له — واحمرّت هذه الحالةُ عليه أوّلَ مرّة فكُشِف.
+
+    (٢) وعلى **هذا المسار** المتوقّعُ خامدٌ تماماً: ٢٥ مم خلال ٤٨ ساعة لا تُغيّر شيئاً
+    في الاستجابة — ``urgency`` يقودها الاستنزاف/الإجهاد لا المطر، و``timing_ar``
+    و``rationale_ar`` (وفيهما «انتظِر قبل الريّ») **لا يُصدَّران أصلاً**. أي أنّ
+    المزارع يُوصى بملء ≈٤٨ مم عشيّةَ مطرٍ متوقَّعٍ لا يُذكَر له. مسجَّلٌ فجوةً؛
+    وتعديلُ قرار الإطلاق قرارٌ زراعيّ لا يُتَّخذ داخل شريحةِ إصلاحِ مُدخَل.
+    """
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+
+    async def _run(recent: float) -> dict:
+        async def _snap(_lat, _lon):
+            return {
+                "t_min_c": 17.0,
+                "t_max_c": 33.0,
+                "wind_2m_ms": 2.0,
+                "solar_rad_mj_m2": 22.0,
+                "rh_mean_pct": None,
+                "rain_recent_mm": recent,
+                "forecast_rain_mm": 0.0,
+                "day_of_year": 191,
+                "valid_time": "2026-07-10",
+                "source": "weather-engine-forecast",
+            }
+
+        monkeypatch.setattr(mod, "_field_weather_snapshot", _snap)
+        out = await field_irrigation_recommendation("fld_1", _REQ_AUTO, user=object())
+        assert out["status"] == "recommendation_ready"
+        return out["recommendation"]
+
+    dry = await _run(0.0)
+    rained = await _run(20.0)
+    assert dry["net_irrigation_mm"] > 0.0, "الحالةُ الجافّة لا تُنتِج كمّيّةً — لا فرقَ يُقاس"
+    assert rained["net_irrigation_mm"] < dry["net_irrigation_mm"], (
+        "مطرٌ أخيرٌ أكبر لم يُنقِص الكمّيّة — القيمةُ لا تصل النواة"
+    )
