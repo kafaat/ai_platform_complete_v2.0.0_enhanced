@@ -71,7 +71,30 @@ SUBSTANTIVE_PREFIXES = (
     # still demands code-owner review on this exact path, and it is a separate gate.
     "docs/architecture/gates/",
 )
-SUBSTANTIVE_EXACT = {"requirements.services.direct.lock", "REPORT_INDEX.md"}
+SUBSTANTIVE_EXACT = {
+    "requirements.services.direct.lock",
+    "REPORT_INDEX.md",
+    # `.github/CODEOWNERS` هو **أداةُ التفويض** لا تقريرَ تقدّم — نفسُ صنف
+    # `docs/architecture/gates/` أعلاه وبالحجّة عينها: خطوةٌ **واجبة** يجب أن تكون
+    # قابلةً للهبوط بلا اختلاق تغييرٍ لا صلةَ له.
+    #
+    # ورسالةُ `branch_protection_contract_guard` تسمّيه بنفسها علاجاً:
+    # «و`.github/CODEOWNERS` يُسمّي مالك `docs/architecture/gates/adjudications/**`».
+    #
+    # **مقيسٌ على #976:** إضافةُ هويّةٍ ثانيةٍ فيه — وهي ما يفكّ قفلَ
+    # `GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01` — تمسّ هذا الملفَّ والمصنوعاتِ
+    # المولَّدة وحدَها، فصُنِّفت «تقريراً فقط» و**سقطت**. أي أنّ العلاجَ الذي يطلبه
+    # حارسٌ كان يمنعه حارسٌ آخر: قفلٌ لا يُفتَح بعملٍ صحيح، وهو الصنفُ الذي أُغلِق
+    # هنا مرّتين قبله (`sahool-brain/` ثمّ `docs/architecture/gates/`).
+    #
+    # **وموضعُه هنا لا في `SUBSTANTIVE_PREFIXES` قصدٌ:** بادئةُ `.github/` كانت
+    # ستجعل كلَّ ملفٍّ تحتها جوهريّاً بالمصادفة — قوالبَ ووسومَ إصدارٍ وغيرَها.
+    # الاسمُ الكامل يُعفي ما قُصِد وحدَه.
+    #
+    # ولا يُضعِف هذا ما يهمّ: `branch_protection_contract_guard` ما زال يطلب مراجعةَ
+    # مالكي الكود على مسار التفويضات، وهو بوّابةٌ منفصلة.
+    ".github/CODEOWNERS",
+}
 
 
 def is_report_like(path: str) -> bool:
