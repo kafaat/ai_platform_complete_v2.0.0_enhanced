@@ -19,9 +19,16 @@ name: Production Certification Blockers
 #    (`--purge`): وإلّا مرّ دليلٌ `verified` **مودَعٌ بـ`git add`** بقيمِ أصلٍ عامّةٍ
 #    يعرفها أيُّ مؤلّف، فلا تُنتِجه وظيفةٌ واحدة ويُعتَدّ به. لا يُعتَدّ إلّا بما أنتجه
 #    هذا العدّاء.
-# ③ **التوقيع** — `actions/attest` بهويّة Sigstore بلا مفتاح. يربط بايتاتِ الحزمة
-#    بهويّةِ هذا الـworkflow في هذا المستودع — وهي هويّةٌ **لا يملك مؤلّفُ الشجرة
-#    إصدارَها**، بخلاف كلّ حقلٍ في الحزمة.
+# ③ **التوقيع ثمّ التحقّق** — `actions/attest` بهويّة Sigstore بلا مفتاح، ثمّ
+#    `gh attestation verify --signer-workflow --source-digest`. والخطوةُ الثانية
+#    ليست زينة: **إصدارُ شهادةٍ ليس التحقّقَ منها**، وبلا التحقّق يبقى القولُ
+#    «هويّةٌ لا يملك مؤلّفُ الشجرة إصدارَها» أقوى ممّا يضمنه التنفيذ — تُنتَج
+#    الشهادةُ ولا يُقاس أنّها تُقبَل، ولا تُربَط بالـworkflow المُوقِّع ولا بالبصمة.
+#
+#    **وحدُّ صدقٍ يبقى بعد ذلك:** هذه الوظيفة **بلا Environment محميّة**، فلا
+#    مُوافِقَ بشريّاً بين التشغيل والتوقيع. والتوقيعُ يُثبِت **مَن أنتج البايتات
+#    وأنّها لم تتغيّر** — لا صدقَ ما فيها؛ ومنصّةُ البناء تبقى داخل نطاق الثقة
+#    (تقولها SLSA في أسئلتها الشائعة: «لا خيارَ إلّا الثقةُ بالباني»).
 #
 # ── ولمَ لا تبعث الوظائفُ الأربعُ كلُّها ─────────────────────────────────────
 # لأنّ ثلاثاً منها **تقيس شيئاً غير الحاجب المسمّى بها**، مقيسٌ في الشجرة لا مظنون:
@@ -58,6 +65,10 @@ jobs:
   full-branch-ci-evidence:
     name: P-CERT-1 Full branch CI evidence
     runs-on: ubuntu-latest
+    # البصمةُ تعبُر في مخرَجات الوظيفة **لا داخل المصنوعة**: مصنوعةٌ تُستبدَل في
+    # المخزن لا تحمل بصمتَها الجديدة إلى المُحكِّم، وبصمةٌ داخلها شاهدٌ يشهد لنفسه.
+    outputs:
+      digest: ${{ steps.p_cert_1_digest.outputs.sha256 }}
     permissions:
       contents: read
       # الشاهدُ يُقرأ من واجهة Actions لا يُختلَق هنا — انظر الخطوة أدناه.
@@ -93,6 +104,11 @@ jobs:
           python scripts/ci/emit_certification_evidence.py \
             --blocker P-CERT-1 \
             --fields-file "${RUNNER_TEMP}/p-cert-1-fields.json"
+      - name: Record the digest of what this job produced
+        id: p_cert_1_digest
+        run: |
+          echo "sha256=$(sha256sum certification/evidence/ci_summary.json | cut -d' ' -f1)" \
+            >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: certification-evidence-p-cert-1
@@ -103,6 +119,8 @@ jobs:
   transitive-locks-evidence:
     name: P-CERT-2 Transitive lock evidence
     runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.p_cert_2_digest.outputs.sha256 }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
@@ -115,6 +133,11 @@ jobs:
         run: bash scripts/ci/compile_transitive_service_locks.sh
       - name: Validate evidence pack remains honest
         run: python scripts/ci/production_evidence_pack_guard.py --check
+      - name: Record the digest of what this job produced
+        id: p_cert_2_digest
+        run: |
+          echo "sha256=$(sha256sum certification/evidence/transitive_locks_summary.json | cut -d' ' -f1)" \
+            >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: certification-evidence-p-cert-2
@@ -189,6 +212,12 @@ jobs:
       contents: read
       id-token: write
       attestations: write
+      # مُقاسٌ لا منقول: ستُّ وظائفَ في هذه الشجرة تستعمل `actions/attest` بلا هذه
+      # الصلاحيّة — و**لا واحدةٌ منها نُفِّذت قطّ** (كلُّها `workflow_dispatch`،
+      # و`release-artifact-attestation` صفرُ أعدية). فالسابقةُ الوحيدةُ التي جرت
+      # فعلاً وخضرّت هي `ci.yml :: live-pg-fake-connection-proofs`، وهي تُعلِنها.
+      # أخواتٌ لم تُختبَر ليست شاهداً على أنّها تُغني.
+      artifact-metadata: write
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
@@ -202,6 +231,15 @@ jobs:
           pattern: certification-evidence-*
           merge-multiple: true
           path: certification/evidence
+      # **`download-artifact` لا يفشل مغلقاً.** تحقّقُ GitHub التلقائيّ يعرض
+      # **تحذيراً** عند اختلاف البصمة ويمضي — فمصنوعةٌ استُبدِلت تبلغ المُحكِّمَ
+      # ويُحكَم عليها، والتحذيرُ سطرٌ لا يقرؤه أحد. فالمقارنةُ هنا هي الحاجب،
+      # وتقع **قبل** إعادة بناء النائبات كي لا تُخفي `--write` ملفّاً دخيلاً.
+      - name: Fail closed unless each file matches the digest its producer recorded
+        env:
+          EVIDENCE_SHA256_P_CERT_1: ${{ needs.full-branch-ci-evidence.outputs.digest }}
+          EVIDENCE_SHA256_P_CERT_2: ${{ needs.transitive-locks-evidence.outputs.digest }}
+        run: python scripts/ci/verify_certification_evidence_digests.py
       - name: Rebuild placeholders and manifest over the collected evidence
         # `--write` لا يرقّي شيئاً: يُنشئ نائبةَ `pending` لكلّ حاجبٍ لم تصله مصنوعة
         # ويُعيد بناء البيان. فالوظيفةُ الساقطة تصير `pending` صراحةً لا ملفّاً غائباً.
@@ -228,6 +266,22 @@ jobs:
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-path: ${{ runner.temp }}/certification-evidence-${{ github.sha }}.tar.gz
+      # **إصدارُ شهادةٍ ليس التحقّقَ منها.** بلا هذه الخطوة يبقى الادّعاء «هويّةٌ
+      # لا يملك المؤلّفُ إصدارَها» **أقوى ممّا ينفّذه** الـworkflow: تُنتَج الشهادة
+      # ولا يُقاس أنّها تُقبَل، ولا تُربَط بـworkflow المُوقِّع ولا بالبصمة الهدف.
+      # النمطُ مأخوذٌ من `path3-runtime-verification.yml` القائم في هذه الشجرة.
+      - name: Install pinned GitHub attestation verifier
+        run: bash scripts/ci/install_pinned_gh_attestation_cli.sh
+      - name: Verify the attestation binds this workflow and this commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh attestation verify \
+            "${RUNNER_TEMP}/certification-evidence-${GITHUB_SHA}.tar.gz" \
+            --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/production-certification-blockers.yml" \
+            --source-digest "$GITHUB_SHA"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: certification-evidence-pack-${{ github.sha }}

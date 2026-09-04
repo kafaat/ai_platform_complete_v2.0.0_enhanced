@@ -10,17 +10,17 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **270**
+- حرّاس تحجب في CI: **271**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **49**
 - إجماليّ الطفرات المُسجَّلة: **353**
-- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **184** على 62 مصدراً
+- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **187** على 63 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
 أنّ المسار يستشير مفتاح الطوارئ مثلاً — ويمرّ أخضر على مسارٍ يستشيره ثمّ يتجاهل
 نتيجته، أو يستشيره بنطاقٍ أضيق فلا يُطابِق. فتلك تُزرَع في المصدر الفيزيائيّ
 ويجب أن يحمرّ اختبارُ **أثرها**.
 
-أي أنّ **221** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **222** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
@@ -893,7 +893,7 @@
 
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (221)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (222)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -1112,6 +1112,7 @@
 | `vegetation_container_contract_guard.py` | Guard vegetation-analysis-service container/runtime contract. | `guard` |
 | `vegetation_runtime_truth_guard.py` | Fail closed when vegetation runtime regains synthetic field/provider ownership. | `structural-lint` |
 | `verify_all_generated.py` | يشغّل **كلّ** خطوات ``--check`` المولَّدة بأمر واحد — وبالترتيب الذي تتطلّبه التبعيّات. | `capability-registry` |
+| `verify_certification_evidence_digests.py` | يقارن بصمةَ كلّ ملفِّ دليلٍ **مجلوب** ببصمةٍ سجّلها مُنتِجُه على قناةٍ أخرى. | `certification-verdict` |
 | `waiver_expiry_guard.py` | WAIVER-EXPIRY-GUARD — fail CI once a governance waiver has expired. | `structural-lint` |
 | `weather_engine_formula_guard.py` | Guard: vapour-pressure / ET0 formulas live only in the Weather Engine (WS-C.1b boundary). | `structural-lint` |
 | `weather_hourly_etc_wx_i1_guard.py` | — | `structural-lint` |

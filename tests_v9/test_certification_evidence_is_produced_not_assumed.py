@@ -503,3 +503,139 @@ def test_no_witness_is_produced_from_a_run_that_did_not_pass(
     monkeypatch.setenv("GITHUB_TOKEN", "t")
     with pytest.raises(SystemExit):
         mod.collect()
+
+
+# ═══ ⑥ العبور يفشل مغلقاً، والتوقيع يُتحقَّق منه ═══════════════════════════
+
+
+def _digest_checker():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "_digests", ROOT / "scripts" / "ci" / "verify_certification_evidence_digests.py"
+    )
+    assert spec and spec.loader
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+@pytest.mark.unit
+def test_an_evidence_file_with_no_producer_digest_is_rejected(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """حالةُ الاستبدال بعينها: ملفٌّ بلغ المُحكِّمَ ولم تُنتِجه وظيفةٌ في هذا العدّاء.
+
+    `download-artifact` يعرض **تحذيراً** عند اختلاف البصمة ويمضي — فبلا مقارنةٍ
+    صريحةٍ يبقى نصفُ ما بُني في `--purge` مُبطَلاً: المسحُ يقول «لا يُعتَدّ إلّا بما
+    أنتجه هذا العدّاء»، والجلبُ بلا مقارنةٍ يقول «ما جاء من المخزن أنتجَه» — وليستا
+    الحقيقةَ نفسَها.
+
+    **والتشخيصُ يُفحَص لا رمزُ الخروج وحدَه.** أوّلُ صيغةٍ لهذا الاختبار أكّدت `== 1`
+    فحسب، **فنجت الطفرةُ** التي تُعطّل هذا الفرع: بصمةٌ خاويةٌ تسقط في فرع
+    «الاختلاف» أيضاً فيبقى الحكمُ `1`. والفرعان ليسا واحداً — أحدهما **استبدالٌ**
+    (لا مُنتِج) والآخر **تلفٌ** (مُنتِجٌ وبصمةٌ لا تطابق). التقطه مسحُ الطفرات.
+    """
+    (tmp_path / "ci_summary.json").write_text("{}", encoding="utf-8")
+    mod = _digest_checker()
+    assert mod.check(tmp_path, env={}) == 1
+    out = capsys.readouterr().out
+    assert "بلا بصمةٍ من مُنتِج" in out
+    assert "تخالف ما سجّله" not in out, "شُخِّص استبدالٌ على أنّه تلفُ بصمة"
+
+
+@pytest.mark.unit
+def test_a_mismatching_digest_is_rejected(tmp_path: Path) -> None:
+    mod = _digest_checker()
+    path = tmp_path / "ci_summary.json"
+    path.write_text("{}", encoding="utf-8")
+    env = {mod.env_var_for("P-CERT-1"): "0" * 64}
+    assert mod.check(tmp_path, env=env) == 1
+    # والمطابِقةُ تمرّ — وإلّا كان حارساً يرفض كلّ شيء لا بوّابة.
+    assert mod.check(tmp_path, env={mod.env_var_for("P-CERT-1"): mod.sha256_of(path)}) == 0
+
+
+@pytest.mark.unit
+def test_a_recorded_digest_with_no_file_is_rejected(tmp_path: Path) -> None:
+    """رُفِع ثمّ ضاع في العبور — سكوتٌ عنه يُبقي الحاجبَ يبدو غيرَ مُنتَجٍ أصلاً."""
+    mod = _digest_checker()
+    assert mod.check(tmp_path, env={mod.env_var_for("P-CERT-1"): "0" * 64}) == 1
+
+
+@pytest.mark.unit
+def test_the_digest_channel_is_job_outputs_not_the_artifact() -> None:
+    """البصمةُ تعبُر في مخرَجات الوظيفة — بصمةٌ **داخل** المصنوعة شاهدٌ يشهد لنفسه.
+
+    مصنوعةٌ تُستبدَل في المخزن تحمل معها بصمتَها الجديدة؛ ومخرَجاتُ الوظيفة جزءٌ من
+    حالة تشغيل الـworkflow ولا تمرّ بذلك المخزن.
+    """
+    import yaml
+
+    workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
+    verdict = workflow["jobs"]["certification-verdict"]
+    step = next(
+        s
+        for s in verdict["steps"]
+        if "verify_certification_evidence_digests" in str(s.get("run", ""))
+    )
+    for value in (step.get("env") or {}).values():
+        assert "needs." in value and ".outputs.digest" in value, (
+            f"البصمة لا تأتي من مخرَجات وظيفةٍ سابقة: {value!r}"
+        )
+    # وكلُّ حاجبٍ `produced` يسجّل بصمته في مخرَجات وظيفته.
+    declared = json.loads(CONTRACT.read_text(encoding="utf-8"))["producers"]
+    produced = {b for b, e in declared.items() if e["state"] == "produced"}
+    carried = {
+        var.removeprefix("EVIDENCE_SHA256_").replace("_", "-").replace("P-CERT", "P-CERT")
+        for var in (step.get("env") or {})
+    }
+    assert produced <= carried, f"حواجزُ مُنتَجةٌ بلا بصمةٍ عابرة: {sorted(produced - carried)}"
+
+
+@pytest.mark.unit
+def test_the_digest_gate_runs_before_the_manifest_rebuild() -> None:
+    """`--write` يُنشئ نائباتٍ ويُعيد بناء البيان — فلو سبق المقارنةَ لأخفى دخيلاً."""
+    import yaml
+
+    steps = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]["certification-verdict"][
+        "steps"
+    ]
+    names = [str(s.get("name") or s.get("uses") or "") for s in steps]
+    gate = next(
+        i
+        for i, s in enumerate(steps)
+        if "verify_certification_evidence_digests" in str(s.get("run", ""))
+    )
+    write = next(
+        i
+        for i, s in enumerate(steps)
+        if "production_evidence_pack_guard.py --write" in str(s.get("run", ""))
+    )
+    download = next(
+        i for i, s in enumerate(steps) if "actions/download-artifact" in str(s.get("uses", ""))
+    )
+    assert download < gate < write, f"ترتيبٌ خاطئ: {names}"
+
+
+@pytest.mark.unit
+def test_the_attestation_is_verified_not_merely_issued() -> None:
+    """إصدارُ شهادةٍ ليس التحقّقَ منها.
+
+    بلا تحقّقٍ يبقى ادّعاءُ «هويّةٌ لا يملك المؤلّفُ إصدارَها» **أقوى ممّا يُنفَّذ**:
+    تُنتَج الشهادة ولا يُقاس أنّها تُقبَل، ولا تُربَط بـworkflow المُوقِّع ولا
+    بالبصمة الهدف.
+    """
+    import yaml
+
+    steps = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]["certification-verdict"][
+        "steps"
+    ]
+    verify = next((s for s in steps if "gh attestation verify" in str(s.get("run", ""))), None)
+    assert verify is not None, "تُصدَر الشهادةُ ولا يُتحقَّق منها"
+    body = str(verify["run"])
+    assert "--signer-workflow" in body, "التحقّق لا يربط الشهادة بـworkflow المُوقِّع"
+    assert "--source-digest" in body, "التحقّق لا يربط الشهادة بالبصمة الهدف"
+
+    attest_at = next(i for i, s in enumerate(steps) if "actions/attest@" in str(s.get("uses", "")))
+    verify_at = steps.index(verify)
+    assert attest_at < verify_at, "التحقّق قبل الإصدار لا معنى له"

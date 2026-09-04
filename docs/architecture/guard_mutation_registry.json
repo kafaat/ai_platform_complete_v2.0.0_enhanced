@@ -1529,6 +1529,29 @@
           "why": "دالّةٌ تَعِد بإنفاذِ مستأجرٍ ولا تستطيعه بحكم البناء — تضبط GUC محلّيَّ معاملةٍ بلا معاملةٍ ولا كتلة، فالعبارةُ التالية لا ترى الضبطَ أبداً. وأسوأُ من غيابها أنّ اسمَها يُقرَأ حراسةً. عودتُها يجب أن تُحمِّر فوراً."
         }
       ]
+    },
+    "scripts/ci/verify_certification_evidence_digests.py": {
+      "test": "tests_v9/test_certification_evidence_is_produced_not_assumed.py",
+      "mutations": [
+        {
+          "expect": "test_an_evidence_file_with_no_producer_digest_is_rejected",
+          "find": "        if not declared:",
+          "replace": "        if False:",
+          "why": "ملفٌّ بلغ المُحكِّمَ بلا بصمةٍ من مُنتِج هو **حالةُ الاستبدال بعينها**؛ والسكوتُ عنه يُبطِل نصفَ ما بناه --purge: المسحُ يقول «لا يُعتَدّ إلّا بما أنتجه هذا العدّاء» والجلبُ بلا مقارنةٍ يقول «ما جاء من المخزن أنتجَه»"
+        },
+        {
+          "expect": "test_a_mismatching_digest_is_rejected",
+          "find": "        if actual != declared:",
+          "replace": "        if False:",
+          "why": "المقارنةُ نفسُها هي الحاجب: تحقّقُ download-artifact التلقائيّ يعرض **تحذيراً** عند اختلاف البصمة ويمضي، فبلا هذا الشرط تبلغ مصنوعةٌ مستبدَلةٌ الحكمَ ويُحكَم عليها"
+        },
+        {
+          "expect": "test_a_recorded_digest_with_no_file_is_rejected",
+          "find": "        if declared and not path.exists():",
+          "replace": "        if False:",
+          "why": "رُفِع ثمّ ضاع في العبور: بلا هذا الشرط يبدو الحاجبُ **غيرَ مُنتَجٍ أصلاً** بدل أن يُقال إنّ دليلاً أُنتِج ولم يصل — تشخيصان مختلفان لحالةٍ واحدة"
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
