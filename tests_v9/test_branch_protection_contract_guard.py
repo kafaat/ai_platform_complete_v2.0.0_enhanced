@@ -684,6 +684,39 @@ def test_a_consumption_stamp_plus_scope_change_still_requires_code_owner_review(
     )
 
 
+def test_a_consumption_stamp_with_malformed_date_still_requires_code_owner_review(
+    tmp_path, monkeypatch
+):
+    after = {
+        "schema": "sahool.gate01_adjudication/v1",
+        "version": 1,
+        "adjudication_id": "GATE01-ADJ-2026-08-13-001",
+        "gate_id": "GATE-01",
+        "status": "CONSUMED",
+        "approved_by": "owner",
+        "consumption": {
+            "status_values": ["ISSUED", "CONSUMED", "REVOKED"],
+            "$must_be_stamped_after_merge_ar": "اختمه بعد الدمج.",
+            "merge_sha": SHA,
+            "consumed_on": "tomorrow",
+        },
+        "allowed_paths": ["docs/architecture/db_ownership.yml"],
+        "authorized_blobs": {"docs/architecture/db_ownership.yml": "abc123"},
+    }
+    repo, base = _init_authorization_repo(tmp_path, after)
+    monkeypatch.chdir(repo)
+    assert (
+        _run_changed(
+            tmp_path,
+            _envelope(_rules(True)),
+            [ADJUDICATION],
+            "--authorization-diff-base",
+            base,
+        )
+        == 1
+    )
+
+
 def test_an_unreadable_changed_file_list_fails_closed(tmp_path):
     """راية مُمرَّرة لملفٍّ غير موجود تعني أنّ الاشتقاق لم يعمل — لا أنّ شيئاً لم يُمَسّ."""
     with pytest.raises(SystemExit):
