@@ -16,5 +16,15 @@
 # هويّةً مستقلّة لا حقلاً نصّيّاً.
 
 # نسخُ التفويض وسياستُه — أخطر ملفّين في نموذج الحوكمة.
-/docs/architecture/gates/adjudications/ @kafaat
-/docs/architecture/gate01_policy.json   @kafaat
+/docs/architecture/gates/adjudications/ @kafaat @haithmgarallah-ye
+/docs/architecture/gate01_policy.json   @kafaat @haithmgarallah-ye
+
+# ــ والملفُّ يحمي نفسَه ــــــــــــــــــــــــــــــــــــــــــــــــــــــــ
+#
+# بلا هذا السطر يبقى القفلُ **ذاتيَّ الفكّ**: مَن أراد تفويضاً بلا مراجعٍ مستقلّ
+# يحذف اسمَه من هنا في PR واحدة، ثمّ يمسّ مسارَ التفويضات في الثانية. فالمِلكيّةُ
+# التي لا تحمي مِلفَّها ليست مِلكيّة.
+#
+# وترتيبُ الأسطر مقصود: CODEOWNERS يُرجِّح **آخِرَ نمطٍ مُطابِق**، وهذا السطرُ لا
+# يتقاطع مع ما فوقه، فموضعُه لا يغيّر حكمَ المسارَين أعلاه.
+/.github/CODEOWNERS                     @kafaat @haithmgarallah-ye
