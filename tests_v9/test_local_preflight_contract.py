@@ -119,9 +119,19 @@ def test_skips_are_counted_and_the_summary_refuses_to_overclaim():
     text = _text()
     assert "skipped=$((skipped + 1))" in text, "a skipped gate must be counted, not swallowed"
     assert "لم تُقَس" in text
-    assert "٢٦١" in text and "٨٦" in text, (
-        "the summary must state the measured coverage ratio, not imply completeness"
-    )
+    # **الخاصّيّة هي رفضُ الادّعاء، لا سلسلةٌ عدديّة بعينها.**
+    #
+    # كانت هذه الحالة تشترط ورودَ «٢٦١» و«٨٦» حرفيّاً في `preflight.sh`. والعددان
+    # لقطةٌ مؤرَّخة — أي أنّ الاختبار كان **يفرض بقاءَ لقطةٍ بائتةٍ في وثيقةٍ حيّة**،
+    # ويجعل تحديثَها انحداراً. وذاك المسمار هو الحارسُ الثالث الذي كان يُثبّت الأعداد
+    # المنقولة، بعد `CLAUDE.md` والـrunbook.
+    #
+    # فالمقيسُ الآن ما أرادته الحالةُ فعلاً: أن يُقرّ الملخّصُ بأنّ التغطية **جزئيّة**
+    # وأن يُحيل إلى مصدرٍ مولَّد بدل نقل رقمٍ يبيت. واللقطاتُ المؤرَّخة موضعُها
+    # `sahool-brain/reports/guard_surface_ledger.md` مقيَّدةً بـSHA وبصمةِ الكتالوج.
+    assert "أقلّيّة" in text, "الملخّص يجب أن يُقرّ بأنّ التغطية جزئيّة"
+    assert "GUARD_CATALOGUE" in text, "ويُحيل إلى المصدر المولَّد بدل نقل عددٍ يبيت"
+    assert "§٣.١٧" in text, "ويُسمّي القسم الذي يقيس النسبة"
     assert "ادفع بثقة" not in text
 
 
