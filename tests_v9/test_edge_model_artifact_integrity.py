@@ -129,6 +129,26 @@ def test_the_downloader_no_longer_passes_an_empty_digest(downloader, tmp_path):
     assert downloader.verify_sha256(str(model), hashlib.sha256(b"x").hexdigest()) is True
 
 
+def test_nothing_is_downloaded_without_an_approved_digest(downloader, tmp_path, monkeypatch):
+    """لا «نزِّل ثمّ ارفض»: بلا بصمةٍ لا يُلمَس المزوّدُ ولا يُكتَب بايتٌ على القرص."""
+    monkeypatch.setattr(downloader, "MODELS_DIR", str(tmp_path))
+    # يُسجَّل النداءُ بدل أن يُرفَع: `download_model` تلتقط أيّ استثناءٍ من التنزيل
+    # وتُرجِع False، فالرفعُ كان سيجعل الطفرةَ «نزِّل ثمّ ارفض» تمرّ خضراء (قِيس).
+    calls: list[str] = []
+    monkeypatch.setattr(
+        downloader.urllib.request, "urlretrieve", lambda url, dest: calls.append(url)
+    )
+    ok = downloader.download_model(
+        "pest_detector_int8.onnx",
+        # بالشكل الكامل لِما في `REQUIRED_MODELS` — مدخلٌ ناقص (`size_mb`) كان يُسقِط سطرَ
+        # السجلّ قبل التنزيل فتمرّ الطفرةُ خلف KeyError لا خلف الفحص (قِيس).
+        {"url": "https://x/pest.onnx", "size_mb": 18, "sha256": "", "fallback": "not_provisioned"},
+    )
+    assert ok is False
+    assert calls == [], f"نُودي المزوّدُ بلا بصمة: {calls}"
+    assert not (tmp_path / "pest_detector_int8.onnx").exists()
+
+
 # ─── (٢) الكاشفُ ملاحظةٌ لا علاج ──────────────────────────────────────────
 
 

@@ -57,6 +57,11 @@ def verify_sha256(path: str, expected: str) -> bool:
 
 
 def download_model(name: str, info: dict) -> bool:
+    # بلا بصمةٍ معتمدة لا يُنزَّل شيءٌ أصلاً — لا «نزِّل ثمّ ارفض»: كلُّ بايتٍ يُجلَب
+    # من `MODELS_BASE` بلا هويّةٍ منتظَرة بايتٌ مجهول لا مكانَ له على القرص.
+    if not _SHA256_HEX.match((info.get("sha256") or "").strip().lower()):
+        logger.error("  ❌ %s: لا بصمةَ معتمدةً — لا تنزيل (يبقى %s)", name, info["fallback"])
+        return False
     dest = os.path.join(MODELS_DIR, name)
     if os.path.exists(dest):
         if verify_sha256(dest, info.get("sha256", "")):

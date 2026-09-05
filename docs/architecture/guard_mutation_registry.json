@@ -1622,6 +1622,12 @@
           "find": "    if not _SHA256_HEX.match(expected):\n        logger.error(",
           "replace": "    if not expected:\n        return True\n    if not _SHA256_HEX.match(expected):\n        logger.error(",
           "why": "السطرُ الذي شُحِن: `if not expected: return True`. البصمةُ الفارغة هي القيمةُ المشحونة في REQUIRED_MODELS فيمرّ أيّ ملفّ «✅ downloaded OK»"
+        },
+        {
+          "expect": "test_nothing_is_downloaded_without_an_approved_digest",
+          "find": "    if not _SHA256_HEX.match((info.get(\"sha256\") or \"\").strip().lower()):\n        logger.error(\"  ❌ %s: لا بصمةَ معتمدةً — لا تنزيل (يبقى %s)\", name, info[\"fallback\"])\n        return False",
+          "replace": "    if False:\n        return False",
+          "why": "بلا الفحص المسبق يعود السلوكُ «نزِّل ثمّ ارفض»: بايتاتٌ مجهولة تُجلَب من MODELS_BASE وتُكتَب على القرص قبل أن يرفضها التحقّق — والاختبارُ يفشل إن نُودي المزوّدُ أصلاً"
         }
       ]
     },
