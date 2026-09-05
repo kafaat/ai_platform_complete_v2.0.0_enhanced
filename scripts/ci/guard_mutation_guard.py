@@ -753,8 +753,43 @@ def surface_key(triple: tuple[str, str, str]) -> str:
     return "{}::{}::{}".format(*triple)
 
 
-def addition_violations(key: str, declaration: object) -> list[str]:
-    """ما ينقص إقرارَ زيادةٍ ليكون إقراراً — دالّةٌ نقيّةٌ تُختبَر بلا ملفّات."""
+def registered_mutation_tests(registry: dict) -> dict[str, set[str]]:
+    """الاختباراتُ المُسمّاة في طفرات كلّ حارس — مفتاحُها اسمُ ملفّ الحارس المجرَّد.
+
+    يُقرأ من `guard_mutation_registry.json` نفسِه لا من نسخةٍ عنه، فلا يصير للطفرات
+    تعريفان.
+
+    والمقروءُ `expect` — **اسمُ الاختبار الذي يجب أن يحمرّ** — لا `mutation_test`،
+    فذاك يُعيد ملفَّ الجناح لا اسمَ الحالة. (خلطتُهما أوّلَ مرّة فأبلغ الفحصُ عن
+    طفرةٍ مسجَّلةٍ بأنّها غيرُ مسجَّلة، وكشفه تشغيلٌ لا قراءة.)
+    """
+    tests: dict[str, set[str]] = {}
+    for section in ("mutated", "behavioural"):
+        for label, spec in (registry.get(section) or {}).items():
+            if label.startswith("$") or not isinstance(spec, dict):
+                continue
+            named = {
+                str(mutation.get("expect") or "").strip()
+                for mutation in (spec.get("mutations") or [])
+                if isinstance(mutation, dict)
+            }
+            tests.setdefault(Path(label).name, set()).update(n for n in named if n)
+    return tests
+
+
+def addition_violations(
+    key: str,
+    declaration: object,
+    known_mutation_tests: dict[str, set[str]] | None = None,
+) -> list[str]:
+    """ما ينقص إقرارَ زيادةٍ ليكون إقراراً — دالّةٌ نقيّةٌ تُختبَر بلا ملفّات.
+
+    و`known_mutation_tests` هو ما يجعل `mutation` حقلاً **مقيساً لا نثراً**: أوّلُ
+    إقرارٍ كُتِب في هذا الملفّ حمل جملةً تذكر اسمَ الاختبار داخلها، وكان الحقلُ
+    سيقبل «طفرةٌ ما» بالقدر نفسِه — أي شرطاً يُستوفى بالكتابة لا بالتسجيل. فصار
+    الحقلُ يُطالَب باسمِ اختبارٍ **مسجَّلٍ لهذا الحارس بعينه**، والنثرُ إلى
+    `$mutation_ar`. ويُترك `None` في الاختبارات النقيّة التي لا تملك سجلّاً.
+    """
     if not isinstance(declaration, dict):
         return [f"{key}: الإقرار ليس كائناً"]
     problems = [
@@ -767,6 +802,15 @@ def addition_violations(key: str, declaration: object) -> list[str]:
         problems.append(
             f"{key}: `impact` = {impact!r} ليس قيمةَ أثرٍ معروفة ({'/'.join(_IMPACT_PLACEMENTS)})"
         )
+    mutation = str(declaration.get("mutation") or "").strip()
+    if mutation and known_mutation_tests is not None:
+        guard = Path(key.split("::")[0]).name
+        registered = known_mutation_tests.get(guard, set())
+        if mutation not in registered:
+            problems.append(
+                f"{key}: `mutation` = {mutation!r} ليس اسمَ اختبارٍ مسجَّلاً لـ{guard} "
+                "في `guard_mutation_registry.json` — الإقرارُ يسمّي تكذيباً لا وجودَ له"
+            )
     return problems
 
 
@@ -774,6 +818,7 @@ def blocking_surface_findings(
     current: set[tuple[str, str, str]],
     baseline: dict,
     additions: dict,
+    known_mutation_tests: dict[str, set[str]] | None = None,
 ) -> list[str]:
     """ثلاثةُ اتّجاهات: زيادةٌ بلا إقرار · إقرارٌ ناقصُ الخصائص · وإقرارٌ لزيادةٍ زالت.
 
@@ -793,7 +838,7 @@ def blocking_surface_findings(
     for key in sorted(live - frozen - declared):
         findings.append(f"زيادةٌ في سطح الحجب بلا إقرار — {key}")
     for key in sorted(declared & live):
-        findings.extend(addition_violations(key, additions[key]))
+        findings.extend(addition_violations(key, additions[key], known_mutation_tests))
     for key in sorted(declared - live):
         findings.append(f"إقرارُ زيادةٍ لا وجودَ لها في الشجرة — {key}")
     return findings
@@ -809,7 +854,9 @@ def report_blocking_surface(*, enforce: bool = False) -> int:
     current = discover_blocking_surface()
     baseline = _load_surface_json(BLOCKING_SURFACE_BASELINE, "legacy_blocking")
     additions = _load_surface_json(BLOCKING_SURFACE_ADDITIONS, "additions")
-    findings = blocking_surface_findings(current, baseline, additions)
+    findings = blocking_surface_findings(
+        current, baseline, additions, registered_mutation_tests(load_registry())
+    )
 
     print(
         f"blocking_surface: {len(current)} ثلاثيّةً حاليّة · "

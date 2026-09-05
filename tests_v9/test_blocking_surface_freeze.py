@@ -280,3 +280,92 @@ def test_the_surface_is_derived_from_the_catalogue_not_a_second_model():
         "**نموذجاً ثانياً** لسطحٍ واحد: يتّفقان اليوم وينحرفان غداً، فيقيس التجميدُ سطحاً "
         "غيرَ الذي يولّده الكتالوج — وهو الصنفُ الذي أُغلِق في هذه الشجرة مراراً."
     )
+
+
+def test_a_mutation_naming_an_unregistered_test_is_reported():
+    """**المثالُ المضادّ:** إقرارٌ يسمّي تكذيباً لا وجودَ له يُبلَّغ عنه.
+
+    كان `mutation` نثراً حرّاً لا يُقرأ إلّا بالعين: أوّلُ إقرارٍ كُتِب في هذا
+    المستودع حمل جملةً تذكر اسمَ الاختبار **داخلها**، وكان الحقلُ سيقبل «طفرةٌ ما»
+    بالقدر نفسِه. أي شرطٌ يُستوفى بالكتابة لا بالتسجيل — و«بوّابةٌ تُغلَق بالنثر»
+    صنفٌ من «حارسٍ يبدو أنّه يحرس ولا يحرس».
+    """
+    declaration = dict(_COMPLETE, mutation="test_a_name_nobody_registered")
+    problems = MOD.addition_violations(
+        MOD.surface_key(_NEW),
+        declaration,
+        {"new_guard.py": {"test_the_registered_one"}},
+    )
+    assert len(problems) == 1
+    assert "test_a_name_nobody_registered" in problems[0]
+    assert "تكذيباً لا وجودَ له" in problems[0]
+
+
+def test_a_mutation_naming_a_registered_test_passes():
+    """**الشاهدُ الموجب:** الاسمُ المسجَّل يمرّ — وإلّا صار الحقلُ يرفض كلَّ إقرار."""
+    declaration = dict(_COMPLETE, mutation="test_the_registered_one")
+    assert (
+        MOD.addition_violations(
+            MOD.surface_key(_NEW),
+            declaration,
+            {"new_guard.py": {"test_the_registered_one"}},
+        )
+        == []
+    )
+
+
+def test_a_registered_test_of_another_guard_is_not_this_guard_s_proof():
+    """التسجيلُ **لهذا الحارس بعينه** — لا «موجودٌ في السجلّ في مكانٍ ما».
+
+    وإلّا كفى أن يُستعار اسمُ اختبارٍ يُكذِّب حارساً آخر، فيصير الإقرارُ صحيحَ
+    الشكل ولا يُكذِّب شيئاً ممّا يُقرّه.
+    """
+    declaration = dict(_COMPLETE, mutation="test_belongs_to_someone_else")
+    problems = MOD.addition_violations(
+        MOD.surface_key(_NEW),
+        declaration,
+        {"other_guard.py": {"test_belongs_to_someone_else"}},
+    )
+    assert len(problems) == 1
+    assert "new_guard.py" in problems[0]
+
+
+def test_the_registry_reader_reads_the_expected_test_not_the_suite_file():
+    """`expect` اسمُ الحالة · `test` ملفُّ الجناح — وخلطُهما يقلب الفحصَ كاذباً.
+
+    قرأتُ `mutation_test` أوّلَ مرّة (وهو يُعيد **ملفَّ** الجناح) فأبلغ الفحصُ عن
+    طفرةٍ **مسجَّلةٍ** بأنّها غيرُ مسجَّلة. كشفه تشغيلٌ لا قراءة، فيُثبَّت هنا.
+    """
+    registry = {
+        "mutated": {
+            "some_guard.py": {
+                "test": "tests_v9/test_some_guard.py",
+                "mutations": [{"expect": "test_the_case_name", "find": "x", "replace": "y"}],
+            }
+        }
+    }
+    assert MOD.registered_mutation_tests(registry) == {"some_guard.py": {"test_the_case_name"}}
+
+
+def test_the_live_declaration_names_a_registered_mutation_test():
+    """الإقرارُ الحيُّ الوحيد يجتاز الفحصَ الجديد بسجلّ الطفرات الحقيقيّ."""
+    additions = json.loads(ADDITIONS.read_text(encoding="utf-8"))["additions"]
+    key = "scripts/ci/guard_mutation_guard.py::capability-governance.yml::blocking-surface-advisory"
+    known = MOD.registered_mutation_tests(MOD.load_registry())
+    assert MOD.addition_violations(key, additions[key], known) == []
+
+
+def test_the_baseline_is_frozen_at_the_current_merge_base():
+    """خطُّ التجميد قاعدةُ الطلب — لا لقطةٌ أُخِذت قبل عملٍ آخر ثمّ بقيت.
+
+    قِيس الأساسُ أوّلاً على `912ad691`، ثمّ دُمِج #979 فزاد السطحُ ستَّ ثلاثيّات.
+    ولقطةٌ بائتةٌ كانت ستُبلِّغ عنها بوصفها «زيادةً بعد التجميد» وهي سابقةٌ له —
+    وهو بعينه صنفُ «تعريفان لحاجةٍ واحدة، أحدُهما ساقط».
+    """
+    baseline = json.loads(BASELINE.read_text(encoding="utf-8"))
+    assert baseline["measured_on"] == baseline["frozen_at_sha"]
+    assert len(baseline["frozen_at_sha"]) == 40
+    live = {MOD.surface_key(t) for t in MOD.discover_blocking_surface()}
+    declared = set(MOD._load_surface_json(ADDITIONS, "additions"))
+    frozen = set(MOD._load_surface_json(BASELINE, "legacy_blocking"))
+    assert live - frozen - declared == set(), "الأساسُ لا يغطّي السطحَ الحيّ — أعِد التجميد"
