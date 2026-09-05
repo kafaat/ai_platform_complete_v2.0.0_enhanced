@@ -68,6 +68,13 @@ for _stream in (sys.stdout, sys.stderr):
 ROOT = Path(__file__).resolve().parents[2]
 CI = ROOT / "scripts" / "ci"
 REGISTRY = ROOT / "docs" / "architecture" / "guard_mutation_registry.json"
+#: سطحُ الحجب المُجمَّد — كلُّ ثلاثيّة (حارس، workflow، وظيفة) قائمةٍ يومَ التجميد.
+BLOCKING_SURFACE_BASELINE = ROOT / "docs" / "architecture" / "blocking_surface_baseline.json"
+#: إقراراتُ ما زِيد بعد التجميد — أربعُ خصائصَ لكلّ زيادة.
+BLOCKING_SURFACE_ADDITIONS = ROOT / "docs" / "architecture" / "blocking_surface_additions.json"
+#: مواضعُ الحجب المشروعة. `advisory` ليست موضعاً بل إعلانُ أنّ الفحص **لا يحجب**.
+_IMPACT_PLACEMENTS = ("merge", "release", "publish", "advisory")
+_REQUIRED_ADDITION_FIELDS = ("counterexample", "mutation", "positive_witness", "impact")
 
 # هذا الحارس نفسه ليس استثناءً — يظهر في السجلّ كغيره، ومواصفته تحت الاختبار.
 GUARD_GLOBS = ("*_guard.py", "*_guard.sh")
@@ -695,6 +702,130 @@ def shard_inventory_failures(inventory: dict) -> list[str]:
     return failures
 
 
+# ═══ تجميدُ سطح الحجب — إرشاديٌّ حتّى يُكذَّب هو نفسُه ═══════════════════════
+#
+# **العطلُ الذي يُقاس هنا:** يُضاف الحارسُ لأنّه يبدو صواباً، لا لأنّ عطلاً وقع. فينمو
+# سطحُ الحجب أسرعَ ممّا يُثبَت، ويصير الأخضرُ ثمناً يُدفَع لا معلومةً تُقرأ. والمقيسُ
+# في هذه الشجرة يقول ذلك بلا تأويل: **٢٩٦ ثلاثيّةَ حجبٍ** من **٢٦٧ حارساً**، وأقلُّ
+# من خُمسها له مواصفةُ طفرةٍ تُثبِت أنّه يُطلِق حين يوجد العطل.
+#
+# **ووحدةُ القياس ثلاثيّةٌ لا اسمُ حارس:** `(الحارس، الـworkflow، الوظيفة)`. لأنّ
+# استدعاءَ حارسٍ **قائمٍ** في وظيفةٍ ثانيةٍ توسيعٌ لسطح الحجب أيضاً — يصير يحجب حيث
+# لم يكن يحجب — وعدُّ الأسماء وحدَها يُخفيه.
+#
+# **ولا نموذجَ ثانٍ للاشتقاق:** المصدرُ هو `guard_catalogue.discover_invocations`
+# نفسُه الذي يولّد الكتالوج. نموذجان لسطحٍ واحد كانا سينحرفان، وهو الصنفُ الذي
+# أُغلِق في هذه الشجرة مراراً.
+#
+# **وحدُّ تغطيةٍ مُعلَنٌ لا مطويّ:** هذا يقيس **سطحَ الاستدعاء** وحدَه. تشديدُ عتبةٍ
+# داخل حارسٍ قائم، أو ترقيةُ فحصٍ إرشاديٍّ إلى حاجب، أو إضافةُ سياقٍ مطلوبٍ في
+# الـruleset — **لا يقيسها هذا**. الأخيرةُ خارج المستودع أصلاً. فمن قرأ أخضرَه
+# «سطحُ الحجب لم يتوسّع» قرأ أكثرَ ممّا قيس.
+
+
+def discover_blocking_surface() -> set[tuple[str, str, str]]:
+    """ثلاثيّاتُ الحجب الحاليّة — مشتقّةٌ من `guard_catalogue`، لا مكرّرةٌ عنه."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "_guard_catalogue_for_surface", CI / "guard_catalogue.py"
+    )
+    if not spec or not spec.loader:  # pragma: no cover - بيئةٌ مكسورة
+        raise SystemExit("cannot load guard_catalogue")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return {
+        (guard, workflow, job)
+        for guard, places in module.discover_invocations().items()
+        for (workflow, job) in places
+    }
+
+
+def _load_surface_json(path: Path, key: str) -> dict:
+    if not path.exists():
+        return {}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return {k: v for k, v in (data.get(key) or {}).items() if not k.startswith("$")}
+
+
+def surface_key(triple: tuple[str, str, str]) -> str:
+    """مفتاحٌ نصّيٌّ للثلاثيّة — الشكلُ واحدٌ في الأساس والإقرارات معاً."""
+    return "{}::{}::{}".format(*triple)
+
+
+def addition_violations(key: str, declaration: object) -> list[str]:
+    """ما ينقص إقرارَ زيادةٍ ليكون إقراراً — دالّةٌ نقيّةٌ تُختبَر بلا ملفّات."""
+    if not isinstance(declaration, dict):
+        return [f"{key}: الإقرار ليس كائناً"]
+    problems = [
+        f"{key}: ينقصه `{field}`"
+        for field in _REQUIRED_ADDITION_FIELDS
+        if not str(declaration.get(field) or "").strip()
+    ]
+    impact = str(declaration.get("impact") or "").strip()
+    if impact and impact not in _IMPACT_PLACEMENTS:
+        problems.append(
+            f"{key}: `impact` = {impact!r} ليس موضعَ حجبٍ معروفاً ({'/'.join(_IMPACT_PLACEMENTS)})"
+        )
+    return problems
+
+
+def blocking_surface_findings(
+    current: set[tuple[str, str, str]],
+    baseline: dict,
+    additions: dict,
+) -> list[str]:
+    """زياداتٌ بلا إقرارٍ مكتمل · وإقراراتٌ بلا زيادة · وأساسٌ زال منه موضع.
+
+    **والاتّجاه الثالث مقصود:** إقرارٌ لزيادةٍ لم تعد موجودة يعني أنّ السطحَ ضاق ولم
+    يُنظَّف إقرارُه — وسجلٌّ يحمل ما لا وجودَ له يُدرِّب قارئَه على تجاهله.
+    """
+    findings: list[str] = []
+    frozen = set(baseline)
+    declared = set(additions)
+    live = {surface_key(t) for t in current}
+
+    for key in sorted(live - frozen - declared):
+        findings.append(f"زيادةٌ في سطح الحجب بلا إقرار — {key}")
+    for key in sorted(declared & live):
+        findings.extend(addition_violations(key, additions[key]))
+    for key in sorted(declared - live):
+        findings.append(f"إقرارُ زيادةٍ لا وجودَ لها في الشجرة — {key}")
+    return findings
+
+
+def report_blocking_surface(*, enforce: bool = False) -> int:
+    """يطبع حالةَ السطح. **إرشاديٌّ افتراضيّاً** — يُعيد 0 مهما وجد.
+
+    و`--enforce` **غيرُ موصولٍ بأيّ workflow**: يوجد ليُشغَّل يدويّاً ويُكذَّب، فترقيتُه
+    إلى الحجب تصير قراراً يُتَّخذ بقياسٍ لا بالنسيان. وهذا ما تشترطه السياسةُ على
+    نفسِها: لا يُرقّى فحصٌ إلى حاجبٍ قبل أن يُكذَّب هو أوّلاً.
+    """
+    current = discover_blocking_surface()
+    baseline = _load_surface_json(BLOCKING_SURFACE_BASELINE, "legacy_blocking")
+    additions = _load_surface_json(BLOCKING_SURFACE_ADDITIONS, "additions")
+    findings = blocking_surface_findings(current, baseline, additions)
+
+    print(
+        f"blocking_surface: {len(current)} ثلاثيّةً حاليّة · "
+        f"{len(baseline)} مُجمَّدةً (legacy_blocking) · {len(additions)} إقراراً"
+    )
+    if findings:
+        print(f"\nblocking_surface: {len(findings)} ملاحظة" + ("" if enforce else " (إرشاديّ)"))
+        for line in findings:
+            print(f"  ⚠ {line}")
+        print(
+            "\nكلُّ زيادةٍ تحتاج قبل تفعيلها: مثالاً مضادّاً مقيساً (أو التزامَ سلامة) · "
+            "طفرةً يقتلها اختبارٌ مُسمًّى · شاهداً موجباً أنّ العلاج المشروع يمرّ · "
+            "وتصنيفَ أثرٍ يقول أين يحجب."
+        )
+        if enforce:
+            return 1
+    else:
+        print("blocking_surface_ok — لا زيادةَ بلا إقرار")
+    return 0
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--run", action="store_true", help="ازرع الطفرات وشغّل اختباراتها")
@@ -705,7 +836,21 @@ def main() -> int:
         "شغّل `--shard-inventory N` لتقرأ الأنصبة، ومجموعُها يجب أن يساوي الكون.",
     )
     p.add_argument("--shard-inventory", type=int, metavar="N")
+    p.add_argument(
+        "--blocking-surface",
+        action="store_true",
+        help="قِس سطحَ الحجب مقابل الأساس المُجمَّد — **إرشاديّ**، يُعيد 0 مهما وجد",
+    )
+    p.add_argument(
+        "--enforce",
+        action="store_true",
+        help="مع `--blocking-surface`: اجعلها حاجبة. غيرُ موصولٍ بأيّ workflow عمداً — "
+        "الترقيةُ إلى الحجب قرارٌ يُتَّخذ بقياسٍ لا بالنسيان.",
+    )
     args = p.parse_args()
+
+    if args.blocking_surface:
+        return report_blocking_surface(enforce=args.enforce)
 
     registry = load_registry()
 

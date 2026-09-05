@@ -2744,6 +2744,13 @@
           "find": "        return code, out\n    return _run_tests(test_file, root)",
           "replace": "        return code, out\n    return code, out  # mutated: لا تراجُع",
           "why": "إسقاط التراجع إلى الملفّ الكامل ⇒ مرورُ المتوقَّع وحده يُختَم unexpected_green/survived من مشهدٍ ناقص، وتصنيفا wrong_test/التشخيص يفقدان مصدرهما"
+        },
+        {
+          "expect": "test_an_undeclared_addition_is_reported",
+          "find": "    for key in sorted(live - frozen - declared):",
+          "replace": "    for key in sorted(set()):",
+          "why": "نزعُ كشفِ الزيادة غير المُقرَّة ⇒ تجميدُ سطح الحجب يصير اسماً بلا قياس: ينمو السطحُ صامتاً وتبقى الوظيفةُ خضراء، وهو صنفُ «الحارس الذي لا يرى العطل أصلاً»",
+          "test": "tests_v9/test_blocking_surface_freeze.py"
         }
       ],
       "test": "tests_v9/test_guard_mutation_guard.py"

@@ -6876,6 +6876,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_blocking_surface_freeze.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_brain_append_only_guard.py",
     "kind": "tests"
   },

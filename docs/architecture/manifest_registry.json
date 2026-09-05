@@ -18,6 +18,10 @@
       "kind": "governed"
     },
     {
+      "path": "docs/architecture/blocking_surface_additions.json",
+      "kind": "governed"
+    },
+    {
       "path": "docs/architecture/c8_c13_execution_contract.json",
       "kind": "governed"
     },

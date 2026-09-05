@@ -387,3 +387,29 @@ jobs:
             --expect-repository "${REPO}" \
             --expect-sha "${TESTED_SHA}" \
             --changed-files changed.txt
+
+  # ── تجميدُ سطح الحجب — إرشاديٌّ عمداً ────────────────────────────────────
+  #
+  # **لا يحجب، ولا يُقصَد به أن يحجب اليوم.** السياسةُ التي يقيسها تشترط أن يُكذَّب
+  # الفحصُ نفسُه قبل ترقيته إلى حاجب — فترقيةُ هذه الوظيفة تكون قراراً يُتَّخذ
+  # بقياسٍ لا بالنسيان. ولذلك `--enforce` موجودٌ في الأداة **وغيرُ ممرَّرٍ هنا**.
+  #
+  # وسببُ وجودها أصلاً مقيسٌ لا مظنون: ٢٩٦ ثلاثيّةَ حجبٍ من ٢٦٧ حارساً، و٤٨ منها
+  # فقط مُثبَتٌ بالتكذيب. النموُّ يسبق الإثباتَ بفارقٍ يتّسع.
+  blocking-surface-advisory:
+    name: Blocking surface freeze (advisory)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Install PyYAML (workflow parsing — no guesswork)
+        run: python -m pip install --quiet pyyaml
+      # `--blocking-surface` يُعيد 0 مهما وجد. و`continue-on-error` **غيرُ مضاف**
+      # عمداً: لو أُضيف لصار غيابُ الحجب خاصّيّةَ الـworkflow لا خاصّيّةَ الأداة،
+      # فتُرقَّى بالصدفة يومَ يُنزَع السطر. الإرشاديّةُ في الأداة حيث تُختبَر.
+      - name: Blocking surface must not grow without a declaration
+        run: python scripts/ci/guard_mutation_guard.py --blocking-surface
