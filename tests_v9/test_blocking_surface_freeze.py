@@ -446,3 +446,32 @@ def test_the_live_tree_has_no_unspoken_retirement():
         MOD._load_surface_json(BASELINE, "retired"),
     )
     assert findings == [], findings
+
+
+def test_a_retirement_for_a_triple_never_in_the_baseline_is_reported():
+    """**أصابت مراجعةٌ آليّة على #983:** `retired` كان يقبل أيّ مفتاح.
+
+    فتتراكم فيه أسماءٌ يتيمةٌ لا تخصّ ثلاثيّةً كانت في الأساس قطّ — سجلٌّ يبدو
+    نظيفاً وهو يحمل ما لا وجودَ له. **وهو الصنفُ نفسُه** الذي أُغلِق للإقرارات في
+    الاتّجاه الثالث، ولم يكن مُغلَقاً للتقاعد.
+    """
+    orphan = "scripts/ci/never_existed_guard.py::ci.yml::structural-lint"
+    findings = MOD.blocking_surface_findings({_OLD}, _BASELINE, {}, None, {orphan: _RETIRED_OK})
+    assert len(findings) == 1, findings
+    assert orphan in findings[0]
+    assert "لم تكن في الأساس" in findings[0]
+
+
+def test_a_retirement_for_a_live_orphan_is_reported_once_not_twice():
+    """حقيقةٌ واحدة ⇒ ملاحظةٌ واحدة — و«ما زال يعمل» أدقُّ من «لم تكن في الأساس».
+
+    مفتاحٌ يتيمٌ **وحيٌّ** يستوفي الشرطين معاً؛ ولو لم يُستثنَ الحيُّ من فحص اليُتم
+    لقيلت الحقيقةُ مرّتين، وهو ما تُغلقه هذه الآليّةُ نفسُها في موضعين قبله.
+    """
+    key = MOD.surface_key(_NEW)
+    findings = MOD.blocking_surface_findings({_OLD, _NEW}, _BASELINE, {}, None, {key: _RETIRED_OK})
+    # يبقى `_NEW` زيادةً بلا إقرار — حقيقةٌ **أخرى** صحيحة، لا تكرارٌ لهذه. والمقيسُ
+    # هنا أنّ اليُتمَ لا يُقال عن مفتاحٍ حيّ، لأنّ «ما زال يعمل» أدقُّ منه ويصفه.
+    about_key = [f for f in findings if key in f]
+    assert sum("ما زال يعمل" in f for f in about_key) == 1, findings
+    assert not any("لم تكن في الأساس" in f for f in about_key), findings

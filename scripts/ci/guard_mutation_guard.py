@@ -870,6 +870,14 @@ def blocking_surface_findings(
         findings.append(f"حاجبٌ زال من سطح الحجب بلا إقرار تقاعد — {key}")
     for key in sorted(retired & live):
         findings.append(f"إقرارُ تقاعدٍ لحاجبٍ ما زال يعمل — {key}")
+    # **وتقاعدٌ لثلاثيّةٍ لم تكن في الأساس قطّ يُبلَّغ أيضاً.** أصابت مراجعةٌ آليّة على
+    # #983: كان `retired` يقبل أيّ مفتاح، فتتراكم فيه أسماءٌ يتيمةٌ لا تخصّ شيئاً —
+    # سجلٌّ يبدو نظيفاً وهو يحمل ما لا وجودَ له، **وهو الصنفُ نفسُه** الذي أُغلِق
+    # للإقرارات في الاتّجاه الثالث. ومن يقرأ سجلّاً فيه ما لا يخصّه يتدرّب على تخطّيه.
+    # ويُستثنى الحيُّ لئلّا يُبلَّغ عن حقيقةٍ واحدة مرّتين — سطرُ «ما زال يعمل» أعلاه
+    # يقولها بدقّةٍ أكبر.
+    for key in sorted(retired - frozen - live):
+        findings.append(f"إقرارُ تقاعدٍ لثلاثيّةٍ لم تكن في الأساس قطّ — {key}")
     for key in sorted(retired - live):
         findings.extend(retirement_violations(key, (retirements or {})[key]))
     return findings

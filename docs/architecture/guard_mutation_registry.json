@@ -2779,6 +2779,13 @@
           "replace": "    for key in sorted(set()):",
           "why": "إقرارُ تقاعدٍ لحاجبٍ يعمل بابُ إسكاتٍ دائم: يُعلَن التقاعدُ اليومَ ويُعاد الاستدعاءُ غداً فلا يُبلَّغ عن نزعِه ثانيةً — أي أنّ سطراً واحداً في السجلّ يشتري صمتاً دائماً عن ثلاثيّة",
           "test": "tests_v9/test_blocking_surface_freeze.py"
+        },
+        {
+          "expect": "test_a_retirement_for_a_triple_never_in_the_baseline_is_reported",
+          "find": "    for key in sorted(retired - frozen - live):",
+          "replace": "    for key in sorted(set()):",
+          "why": "نزعُ فحص اليُتم يُعيد `retired` حقلاً يقبل أيّ مفتاح، فتتراكم فيه أسماءٌ لا تخصّ ثلاثيّةً كانت في الأساس قطّ — سجلٌّ يبدو نظيفاً وهو يحمل ما لا وجودَ له، وهو الصنفُ نفسُه المُغلَق للإقرارات في الاتّجاه الثالث. أصابت مراجعةٌ آليّة على #983",
+          "test": "tests_v9/test_blocking_surface_freeze.py"
         }
       ],
       "test": "tests_v9/test_guard_mutation_guard.py"
