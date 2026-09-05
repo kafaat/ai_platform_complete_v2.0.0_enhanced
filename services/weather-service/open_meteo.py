@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import time
+from datetime import datetime, timedelta
 from typing import Any
 
 import httpx
@@ -17,6 +18,13 @@ _LAST_ERROR: str | None = None
 # ختمُ آخرِ نجاحٍ منبعيٍّ **حقيقيّ** (من حركة مرورٍ فعليّة، لا من مِسبار).
 # تُبنى عليه جهوزيّةٌ لا تُنادي المزوّدَ لتسأله عمّا قاسته حركةُ المرور توّاً.
 _LAST_SUCCESS_S: float | None = None
+# WEATHER-MODEL-IDENTITY-v1 — حالتان **منفصلتان** عن قاطع توافر المزوّد:
+# خطأُ عقدِ الطلب (4xx من طلبنا نحن: معرّفُ نموذجٍ مرفوض، معامِلٌ مجهول) لا يقول
+# شيئاً عن صحّة المزوّد، وخطأُ الوصول (401/403/429) يقول شيئاً عن **إعدادنا**
+# أو حصّتنا لا عن توافره. كلاهما يُسجَّل ليُرى، ولا يُحسَب على القاطع.
+_LAST_REQUEST_ERROR: dict[str, Any] | None = None
+_LAST_ACCESS_ERROR: dict[str, Any] | None = None
+_ACCESS_STATUS_CODES = frozenset({401, 403, 429})
 
 
 def circuit_breaker_state() -> dict[str, Any]:
@@ -32,6 +40,8 @@ def circuit_breaker_state() -> dict[str, Any]:
         "last_success_age_s": (
             None if _LAST_SUCCESS_S is None else round(time.monotonic() - _LAST_SUCCESS_S, 3)
         ),
+        "last_request_error": _LAST_REQUEST_ERROR,
+        "last_access_error": _LAST_ACCESS_ERROR,
     }
 
 
@@ -49,6 +59,56 @@ def _record_failure(exc: Exception) -> None:
     _LAST_ERROR = str(exc)
     if _BREAKER_FAILURES >= BREAKER_FAILURE_THRESHOLD:
         _BREAKER_OPEN_UNTIL = time.monotonic() + BREAKER_RESET_S
+
+
+def classify_upstream_error(exc: Exception) -> str:
+    """يصنّف عطلَ نداءٍ منبعيّ إلى ما **يقيسه** فعلاً.
+
+    - ``provider``: شبكة/مهلة/5xx — المزوّدُ نفسُه متعثّر ⇒ يُحسَب على القاطع.
+    - ``access``: 401/403/429 — إعدادُنا أو حصّتُنا ⇒ حالةٌ مستقلّة، لا قاطع.
+    - ``request``: بقيّة 4xx — طلبُنا نحن مرفوض (معرّفُ نموذجٍ متقاعد، معامِلٌ
+      مجهول) ⇒ يُسجَّل ليُرى، ولا يُحسَب على القاطع.
+
+    **العطلُ الذي وُجِد لأجله:** كان كلُّ ``Exception`` يزيد عدّادَ القاطع، فمستخدمٌ
+    يختار من الواجهة نموذجاً رفضه المزوّد ثلاثَ مرّات كان يُطفئ الطقسَ **لكلّ**
+    المستخدمين — حتّى ``best_match`` — ثلاثين ثانية. رفضُ معرّفٍ ليس عطلَ مزوّد.
+    """
+    if isinstance(exc, httpx.HTTPStatusError):
+        code = exc.response.status_code
+        if code in _ACCESS_STATUS_CODES:
+            return "access"
+        if 400 <= code < 500:
+            return "request"
+        return "provider"
+    return "provider"
+
+
+def _record_request_error(exc: httpx.HTTPStatusError) -> None:
+    global _LAST_REQUEST_ERROR
+    _LAST_REQUEST_ERROR = {
+        "status_code": exc.response.status_code,
+        "reason": _upstream_reason(exc.response),
+        "at_monotonic_s": round(time.monotonic(), 3),
+    }
+
+
+def _record_access_error(exc: httpx.HTTPStatusError) -> None:
+    global _LAST_ACCESS_ERROR
+    _LAST_ACCESS_ERROR = {
+        "status_code": exc.response.status_code,
+        "reason": _upstream_reason(exc.response),
+        "at_monotonic_s": round(time.monotonic(), 3),
+    }
+
+
+def _upstream_reason(response: httpx.Response) -> str | None:
+    """سببُ Open-Meteo كما أعلنه (``{"error": true, "reason": "..."}``) إن وُجِد."""
+    try:
+        body = response.json()
+    except Exception:  # noqa: BLE001 — جسمٌ غيرُ JSON: لا سبب، لا انهيار
+        return None
+    reason = body.get("reason") if isinstance(body, dict) else None
+    return str(reason)[:200] if reason else None
 
 
 def _as_list(payload: dict[str, Any], section: str, key: str) -> list[Any]:
@@ -195,7 +255,13 @@ async def _fetch_json(url: str, params: dict[str, Any]) -> dict[str, Any]:
             _record_success()
             return data
     except Exception as exc:  # noqa: BLE001
-        _record_failure(exc)
+        kind = classify_upstream_error(exc)
+        if kind == "request":
+            _record_request_error(exc)  # type: ignore[arg-type]
+        elif kind == "access":
+            _record_access_error(exc)  # type: ignore[arg-type]
+        else:
+            _record_failure(exc)
         raise
 
 
@@ -463,6 +529,71 @@ def _hour_offset(time_key: str) -> int:
     return 0
 
 
+def _parse_provider_time(value: Any) -> datetime | None:
+    """يقرأ طابعَ Open-Meteo (``2026-09-05T13:00`` أو ``…T13:15``)؛ ``None`` لِما لا يُقرأ."""
+    if value is None:
+        return None
+    try:
+        return datetime.fromisoformat(str(value))
+    except (TypeError, ValueError):
+        return None
+
+
+def resolve_hourly_index(
+    times: list[Any] | None, anchor_time: Any, offset_hours: int
+) -> dict[str, Any]:
+    """يحلّ ``+Nh`` إلى **فهرسٍ بطابعه الزمنيّ**، لا بموضعه في المصفوفة.
+
+    **العطلان المقيسان اللذان يُغلَقان هنا** (كانا ``idx = offset``):
+
+    1. مصفوفاتُ Open-Meteo الساعيّة تبدأ من **منتصف ليل** أوّل يومٍ لا من الساعة
+       الحاليّة؛ فـ``+1h`` في الثالثة عصراً كان يُرجِع **01:00 فجراً** — أربعَ
+       عشرةَ ساعةً في الماضي — بلا رسالةٍ ولا علامة.
+    2. نموذجٌ خطوتُه ٦ ساعات (AIFS) يُرجِع سلسلةً أخفّ؛ فـ``+6h`` بالموضع كان
+       يُرجِع **+36h**، و``+1h`` يُرجِع **+6h**. إضافةُ نموذجٍ بخطوةٍ مختلفة كانت
+       ستفتح خطأً زمنيّاً صامتاً.
+
+    **السياسة، مُعلَنةً لا مخفيّة:** المرساةُ ساعةُ ``current.time`` مُدوَّرةً
+    للأسفل؛ الهدفُ المرساة + N. طابعٌ مطابقٌ ⇒ ``exact``. لا مطابق ⇒ الأقربُ
+    زمنيّاً (والأسبقُ عند التعادل) مع ``policy = "nearest"`` و``delta_hours`` وقيدٌ
+    مسمّى في ``limitations`` — فلا يُقرأ ``+6h`` على أنّه ``+1h`` أبداً. لا مرساة ⇒
+    ``unanchored`` بلا فهرس: **لا قيمة أصدقُ من قيمةٍ من زمنٍ مجهول.**
+    """
+    out: dict[str, Any] = {
+        "requested_offset_hours": int(offset_hours),
+        "anchor": None,
+        "target": None,
+        "resolved": None,
+        "index": None,
+        "policy": "unanchored",
+        "delta_hours": None,
+        "limitations": [],
+    }
+    anchor = _parse_provider_time(anchor_time)
+    if anchor is None:
+        out["limitations"].append("sampling_anchor_unavailable")
+        return out
+    anchor = anchor.replace(minute=0, second=0, microsecond=0)
+    target = anchor + timedelta(hours=int(offset_hours))
+    out["anchor"] = anchor.isoformat(timespec="minutes")
+    out["target"] = target.isoformat(timespec="minutes")
+    parsed = [(i, _parse_provider_time(t)) for i, t in enumerate(times or [])]
+    parsed = [(i, t) for i, t in parsed if t is not None]
+    if not parsed:
+        out["policy"] = "empty_series"
+        out["limitations"].append("hourly_series_empty")
+        return out
+    for i, t in parsed:
+        if t == target:
+            out.update(index=i, resolved=str((times or [])[i]), policy="exact", delta_hours=0.0)
+            return out
+    i, t = min(parsed, key=lambda p: (abs((p[1] - target).total_seconds()), p[1] > target))
+    delta = round((t - target).total_seconds() / 3600.0, 2)
+    out.update(index=i, resolved=str((times or [])[i]), policy="nearest", delta_hours=delta)
+    out["limitations"].append(f"requested_time_not_in_series:nearest_used:delta_hours={delta:+.2f}")
+    return out
+
+
 def normalize_tile_sample(
     data: dict[str, Any], *, lat: float, lon: float, time_key: str, model: str
 ) -> dict[str, Any]:
@@ -470,7 +601,6 @@ def normalize_tile_sample(
     hourly = data.get("hourly") or {}
     current = data.get("current") or {}
     times = hourly.get("time") if isinstance(hourly.get("time"), list) else []
-    idx = min(offset, max(0, len(times) - 1)) if times else 0
     if time_key == "now" and current:
         sample = normalize_current(current, lat=lat, lon=lon, source_payload=data)
         sample.update(
@@ -481,7 +611,21 @@ def normalize_tile_sample(
                 "soil_moisture_1_to_3cm_m3m3": None,
             }
         )
+        resolution: dict[str, Any] = {
+            "requested_offset_hours": 0,
+            "anchor": current.get("time"),
+            "target": current.get("time"),
+            "resolved": current.get("time"),
+            "index": None,
+            "policy": "current",
+            "delta_hours": 0.0,
+            "limitations": [],
+        }
     else:
+        # الفهرسُ يُحَلّ بالطابع الزمنيّ لا بالموضع — انظر `resolve_hourly_index`.
+        # بلا فهرس (لا مرساة/سلسلة فارغة) تبقى القيمُ `None` بصدق: `_at(-1)`.
+        resolution = resolve_hourly_index(times, current.get("time"), offset)
+        idx = resolution["index"] if resolution["index"] is not None else -1
         # الافتراضيُّ `None` لا `0` — انظر التعليقَ في `normalize_current`. والفرعُ
         # المقابلُ أعلاه يستعمل `None` للحقول المشتقّة، فهذا يُطابِقه لا يُخالفه.
         wind = _at(hourly.get("wind_speed_10m") or [], idx)
@@ -513,6 +657,7 @@ def normalize_tile_sample(
         }
     sample["model"] = model
     sample["time_key"] = time_key
+    sample["time_resolution"] = resolution
     return sample
 
 

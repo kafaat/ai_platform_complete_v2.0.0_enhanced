@@ -1552,6 +1552,42 @@
           "why": "رُفِع ثمّ ضاع في العبور: بلا هذا الشرط يبدو الحاجبُ **غيرَ مُنتَجٍ أصلاً** بدل أن يُقال إنّ دليلاً أُنتِج ولم يصل — تشخيصان مختلفان لحالةٍ واحدة"
         }
       ]
+    },
+    "services/weather-service/open_meteo.py": {
+      "$gap_ar": "WEATHER-MODEL-IDENTITY-01 — رفضُ طلبنا كان يُحسَب عطلَ مزوّد، و`+Nh` كان فهرسَ مصفوفةٍ لا طابعاً.",
+      "test": "tests_v9/test_weather_model_identity.py",
+      "mutations": [
+        {
+          "expect": "test_three_rejected_model_requests_leave_the_weather_service_breaker_closed",
+          "find": "        if 400 <= code < 500:\n            return \"request\"",
+          "replace": "        if 400 <= code < 500:\n            return \"provider\"",
+          "why": "هذا السطرُ هو الفصلُ كلُّه: بدونه يعود 400 لمعرّفٍ مرفوض يُحسَب على القاطع، فثلاثةُ اختياراتٍ من الواجهة تُطفئ الطقسَ للجميع ثلاثين ثانية — العطلُ المقيس على 9876bd92 بعينه"
+        },
+        {
+          "expect": "test_plus_one_hour_resolves_to_the_next_hour_not_to_one_am",
+          "find": "    for i, t in parsed:\n        if t == target:",
+          "replace": "    for i, t in parsed:\n        if False:",
+          "why": "بلا المطابقة الدقيقة يسقط الحلُّ إلى «الأقرب» دائماً فيُعلَن قيدٌ على سلسلةٍ ساعيّةٍ تامّة؛ والاختبارُ يطلب `exact` عند 16:00 لا `nearest` — فالطفرةُ تُميّز بين حلٍّ بالطابع وحلٍّ تقريبيّ يصادف الصواب"
+        }
+      ]
+    },
+    "services/sahool-platform/api/connectors/openmeteo.py": {
+      "$gap_ar": "WEATHER-MODEL-IDENTITY-01 — النسخةُ الثانية في موصِّل المنصّة (خدمتان لا تتشاركان حزمة).",
+      "test": "tests_v9/test_weather_model_identity.py",
+      "mutations": [
+        {
+          "expect": "test_five_rejected_model_requests_leave_the_platform_connector_breaker_closed",
+          "find": "        if kind == \"provider\":\n            _OPENMETEO_BREAKER.record_failure()",
+          "replace": "        if True:\n            _OPENMETEO_BREAKER.record_failure()",
+          "why": "إعادةُ السلوك القديم حرفاً: كلُّ استثناءٍ منبعيّ يزيد العدّاد. خمسةُ 400 تفتح القاطعَ المشترك فيسقط best_match لكلّ البلاطات — وهذا القاطعُ يخدم forecast وarchive وgeocoding معاً"
+        },
+        {
+          "expect": "test_a_null_at_the_exact_hour_stays_null_instead_of_borrowing_a_neighbour",
+          "find": "    if index is None or not isinstance(values, list) or index < 0 or index >= len(values):\n        return None\n    return values[index]",
+          "replace": "    if index is None or not isinstance(values, list) or index < 0 or index >= len(values):\n        return None\n    if values[index] is None:\n        return next((v for v in values[index + 1 :] if v is not None), None)\n    return values[index]",
+          "why": "هذه إعادةُ احتياط «أقربِ قيمةٍ غيرِ فارغة» الذي أُسقِط: استبدالٌ صامتٌ على مستوى القيمة يُعيد ساعةً أخرى تحت طابع الساعة المطلوبة. الاختبارُ يطلب `None` بصدق عند الغياب"
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

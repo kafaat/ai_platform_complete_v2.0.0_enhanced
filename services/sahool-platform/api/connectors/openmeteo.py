@@ -55,13 +55,57 @@ _OPENMETEO_BREAKER = CircuitBreaker(
 # فارغة) لا تمرّ هنا لأنّ الموصِّل لا يرفعها كفشل أصلاً.
 _UPSTREAM_ERRORS = (httpx.HTTPStatusError, httpx.RequestError)
 
+# WEATHER-MODEL-IDENTITY-v1 — ليس كلُّ 4xx عطلَ مزوّد. رفضُ **طلبنا** (معرّفُ
+# نموذجٍ متقاعد، معامِلٌ مجهول ⇒ 400/404/422) لا يقول شيئاً عن توافر Open-Meteo،
+# وكان يُحسَب على القاطع المشترك: مستخدمٌ يختار نموذجاً مرفوضاً خمسَ مرّات كان
+# يُطفئ الطقسَ للجميع ٣٠ ثانية. و401/403/429 حالةُ **وصولٍ** (إعدادٌ/حصّة) تُرى
+# على حدة. كلاهما يُسجَّل ويُعاد رفعُه كما هو — نوعُ الاستثناء للمتّصلين لم يتغيّر.
+_ACCESS_STATUS_CODES = frozenset({401, 403, 429})
+_last_request_error: dict | None = None
+_last_access_error: dict | None = None
+
+
+def classify_upstream_error(exc: Exception) -> str:
+    """``provider`` (شبكة/مهلة/5xx ⇒ قاطع) · ``access`` (401/403/429) · ``request`` (بقيّة 4xx)."""
+    if isinstance(exc, httpx.HTTPStatusError):
+        code = exc.response.status_code
+        if code in _ACCESS_STATUS_CODES:
+            return "access"
+        if 400 <= code < 500:
+            return "request"
+    return "provider"
+
+
+def _upstream_reason(response: httpx.Response) -> str | None:
+    try:
+        body = response.json()
+    except Exception:  # noqa: BLE001 — جسمٌ غيرُ JSON: لا سبب، لا انهيار
+        return None
+    reason = body.get("reason") if isinstance(body, dict) else None
+    return str(reason)[:200] if reason else None
+
+
+def _record_non_provider_error(kind: str, exc: httpx.HTTPStatusError) -> None:
+    global _last_request_error, _last_access_error
+    record = {
+        "status_code": exc.response.status_code,
+        "reason": _upstream_reason(exc.response),
+    }
+    if kind == "access":
+        _last_access_error = record
+    else:
+        _last_request_error = record
+
 
 def openmeteo_breaker_state() -> dict:
     """إسقاط رصديّ لحالة قاطع Open-Meteo (للـ/healthz/deps والرصد).
 
     accessor على مستوى الوحدة — لا نقطة نهاية جديدة. يعكس العدّادات الحقيقيّة.
     """
-    return _OPENMETEO_BREAKER.snapshot()
+    snap = _OPENMETEO_BREAKER.snapshot()
+    snap["last_request_error"] = _last_request_error
+    snap["last_access_error"] = _last_access_error
+    return snap
 
 
 # علم «حُذِّر لهذه النافذة»: نُسجّل تحذيراً واحداً عند فتح القاطع لا على كلّ fail-fast.
@@ -116,8 +160,12 @@ async def _fetch_json(url: str, params: dict, timeout_s: float):
             resp = await client.get(url, params=params)
             resp.raise_for_status()
             data = resp.json()
-    except _UPSTREAM_ERRORS:
-        _OPENMETEO_BREAKER.record_failure()
+    except _UPSTREAM_ERRORS as exc:
+        kind = classify_upstream_error(exc)
+        if kind == "provider":
+            _OPENMETEO_BREAKER.record_failure()
+        else:
+            _record_non_provider_error(kind, exc)  # type: ignore[arg-type]
         raise
     _OPENMETEO_BREAKER.record_success()
     return data
@@ -529,29 +577,77 @@ def _parse_time_offset_hours(time_key: str | None) -> int:
     return 0
 
 
-def _hourly_value_at(hourly: dict, key: str, offset_hours: int):
+def _parse_provider_time(value) -> datetime | None:
+    """يقرأ طابعَ Open-Meteo (``2026-09-05T13:00`` أو ``…T13:15``)؛ ``None`` لِما لا يُقرأ."""
+    if value is None:
+        return None
+    try:
+        return datetime.fromisoformat(str(value))
+    except (TypeError, ValueError):
+        return None
+
+
+def resolve_hourly_index(times: list | None, anchor_time, offset_hours: int) -> dict:
+    """يحلّ ``+Nh`` إلى **فهرسٍ بطابعه الزمنيّ**، لا بموضعه في المصفوفة.
+
+    **العطلان المقيسان اللذان يُغلَقان هنا** (كان ``idx = offset_hours``):
+
+    1. مصفوفاتُ Open-Meteo الساعيّة تبدأ من **منتصف ليل** أوّل يومٍ لا من الساعة
+       الحاليّة؛ فـ``+1h`` في الثالثة عصراً كان يُرجِع **01:00 فجراً**.
+    2. نموذجٌ خطوتُه ٦ ساعات (AIFS) يُرجِع سلسلةً أخفّ؛ فـ``+6h`` بالموضع كان
+       يُرجِع **+36h**، و``+1h`` يُرجِع **+6h**.
+
+    **السياسة مُعلَنة:** المرساةُ ساعةُ ``current.time`` مُدوَّرةً للأسفل؛ الهدفُ
+    المرساة + N. مطابقٌ ⇒ ``exact``؛ وإلّا الأقربُ (والأسبقُ عند التعادل) مع
+    ``policy="nearest"`` و``delta_hours`` وقيدٌ مسمّى — فلا يُقرأ ``+6h`` على أنّه
+    ``+1h`` أبداً. لا مرساة ⇒ ``unanchored`` بلا فهرس.
+
+    **وسقط احتياطُ «أقربِ قيمةٍ غيرِ فارغة»** الذي كان يمسح المصفوفةَ أماماً
+    وخلفاً: هو الاستبدالُ الصامتُ نفسُه على مستوى القيمة. ``None`` أصدق.
+    نسخةٌ مطابقة في ``services/weather-service/open_meteo.py`` (خدمتان لا
+    تتشاركان حزمة).
+    """
+    out: dict = {
+        "requested_offset_hours": int(offset_hours),
+        "anchor": None,
+        "target": None,
+        "resolved": None,
+        "index": None,
+        "policy": "unanchored",
+        "delta_hours": None,
+        "limitations": [],
+    }
+    anchor = _parse_provider_time(anchor_time)
+    if anchor is None:
+        out["limitations"].append("sampling_anchor_unavailable")
+        return out
+    anchor = anchor.replace(minute=0, second=0, microsecond=0)
+    target = anchor + timedelta(hours=int(offset_hours))
+    out["anchor"] = anchor.isoformat(timespec="minutes")
+    out["target"] = target.isoformat(timespec="minutes")
+    parsed = [(i, _parse_provider_time(t)) for i, t in enumerate(times or [])]
+    parsed = [(i, t) for i, t in parsed if t is not None]
+    if not parsed:
+        out["policy"] = "empty_series"
+        out["limitations"].append("hourly_series_empty")
+        return out
+    for i, t in parsed:
+        if t == target:
+            out.update(index=i, resolved=str((times or [])[i]), policy="exact", delta_hours=0.0)
+            return out
+    i, t = min(parsed, key=lambda p: (abs((p[1] - target).total_seconds()), p[1] > target))
+    delta = round((t - target).total_seconds() / 3600.0, 2)
+    out.update(index=i, resolved=str((times or [])[i]), policy="nearest", delta_hours=delta)
+    out["limitations"].append(f"requested_time_not_in_series:nearest_used:delta_hours={delta:+.2f}")
+    return out
+
+
+def _hourly_value_at(hourly: dict, key: str, index: int | None):
+    """قيمةُ ``key`` عند فهرسٍ **مُحَلٍّ بالطابع**؛ ``None`` بصدق عند الغياب."""
     values = hourly.get(key)
-    if not isinstance(values, list) or not values:
+    if index is None or not isinstance(values, list) or index < 0 or index >= len(values):
         return None
-    idx = min(max(0, offset_hours), len(values) - 1)
-    value = values[idx]
-    if value is not None:
-        return value
-    # fallback قريب: ابحث للأمام ثم للخلف عن أول قيمة صالحة.
-    for j in range(idx + 1, len(values)):
-        if values[j] is not None:
-            return values[j]
-    for j in range(idx - 1, -1, -1):
-        if values[j] is not None:
-            return values[j]
-    return None
-
-
-def _time_at(hourly: dict, offset_hours: int):
-    values = hourly.get("time")
-    if not isinstance(values, list) or not values:
-        return None
-    return values[min(max(0, offset_hours), len(values) - 1)]
+    return values[index]
 
 
 async def fetch_weather_tile_data(
@@ -587,9 +683,14 @@ async def fetch_weather_tile_data(
     c = data.get("current", {}) if isinstance(data, dict) else {}
     h = data.get("hourly", {}) if isinstance(data, dict) else {}
     use_current = offset_hours == 0
+    # WEATHER-MODEL-IDENTITY-v1: الفهرسُ بالطابع الزمنيّ لا بالموضع.
+    resolution = resolve_hourly_index(h.get("time"), c.get("time"), offset_hours)
+    if use_current and c.get("time") is not None:
+        resolution = {**resolution, "policy": "current", "delta_hours": 0.0, "limitations": []}
+    hourly_index = resolution["index"]
 
     def hv(key: str):
-        return _hourly_value_at(h, key, offset_hours)
+        return _hourly_value_at(h, key, hourly_index)
 
     def nvl(*values):
         for value in values:
@@ -606,7 +707,8 @@ async def fetch_weather_tile_data(
         "lon": lon,
         "requested_time": time_key or "now",
         "model": model or "best_match",
-        "time": (c.get("time") if use_current else None) or _time_at(h, offset_hours),
+        "time": (c.get("time") if use_current else None) or resolution["resolved"],
+        "time_resolution": resolution,
         "temperature_2m_c": (c.get("temperature_2m") if use_current else None)
         or hv("temperature_2m"),
         "relative_humidity_2m_pct": (c.get("relative_humidity_2m") if use_current else None)
