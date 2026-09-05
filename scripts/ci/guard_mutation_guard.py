@@ -814,25 +814,46 @@ def addition_violations(
     return problems
 
 
+def retirement_violations(key: str, declaration: object) -> list[str]:
+    """ما ينقص إقرارَ تقاعدٍ ليكون إقراراً — سببٌ نصّيٌّ وتاريخُ إقرار.
+
+    ولا يُطلَب هنا تكذيبٌ ولا شاهدٌ موجب: التقاعدُ **إزالةُ** حجبٍ لا إضافتُه، فلا
+    شيءَ جديدٌ يُقاس. المطلوبُ أن يُقال **لماذا** ومتى، فيبقى القرارُ مقروءاً.
+    """
+    if not isinstance(declaration, dict):
+        return [f"{key}: إقرارُ التقاعد ليس كائناً"]
+    return [
+        f"{key}: ينقص إقرارَ التقاعد `{field}`"
+        for field in ("reason", "retired_on")
+        if not str(declaration.get(field) or "").strip()
+    ]
+
+
 def blocking_surface_findings(
     current: set[tuple[str, str, str]],
     baseline: dict,
     additions: dict,
     known_mutation_tests: dict[str, set[str]] | None = None,
+    retirements: dict | None = None,
 ) -> list[str]:
-    """ثلاثةُ اتّجاهات: زيادةٌ بلا إقرار · إقرارٌ ناقصُ الخصائص · وإقرارٌ لزيادةٍ زالت.
+    """أربعةُ اتّجاهات: زيادةٌ بلا إقرار · إقرارٌ ناقص · إقرارٌ لزيادةٍ زالت · **وحاجبٌ
+    تقاعد بلا إقرار**.
 
-    **والثالثُ مقصود:** إقرارٌ لزيادةٍ لم تعد موجودة يعني أنّ السطحَ ضاق ولم يُنظَّف
-    إقرارُه — وسجلٌّ يحمل ما لا وجودَ له يُدرِّب قارئَه على تجاهله.
+    **والرابعُ مقيسٌ لا مُتوقَّع** — قِيس على `main @ a3124ccf` بنزع سطرٍ واحد:
+    استدعاءُ `vegetation_runtime_truth_guard.py` من `ci.yml`. فهبط السطحُ ٣٠١ ⇒ ٣٠٠،
+    واشتكى فحصُ انحراف الكتالوج وحدَه — **وعلاجُه المنصوصُ عليه إعادةُ التوليد**،
+    فإذا فُعِل قال الاثنان معاً `guard_catalogue_ok` و`blocking_surface_ok`. أي أنّ
+    **العلاجَ الذي يأمر به النظامُ هو ما يمحو الدليل**، ويبقى ملفُّ الحارس في مكانه
+    يبدو حمايةً ولا يُشغّله شيء: «حارسٌ يبدو أنّه يحرس ولا يحرس» على مستوى الـworkflow.
 
-    **وتقلّصُ الأساس نفسِه لا يُبلَّغ عنه قصداً:** التجميدُ يمنع النموّ ولا يُطالِب
-    ببقاء الموجود، فزوالُ حاجبٍ من `legacy_blocking` تضييقٌ مشروعٌ لا انحراف.
-    (كان هذا السطرُ يعد باتّجاهٍ رابعٍ غيرِ منفَّذ؛ أصابت مراجعةٌ آليّة على #982،
-    ووصفٌ أوسعُ من السلوك هو **بعينه** ما تُغلقه هذه الشريحة.)
+    **ولا يُمنَع التقاعد — يُطالَب بأن يُنطَق.** كان السطرُ السابق يقول إنّ التقلّص
+    «تضييقٌ مشروعٌ لا انحراف»، وهو صحيحٌ في الحكم وخاطئٌ في النتيجة: مشروعيّةُ الفعل
+    لا تُبرّر **صمتَه**. فيكفيه سببٌ وتاريخ، ويبقى الحذفُ بابَ من يعرف ما يحذف.
     """
     findings: list[str] = []
     frozen = set(baseline)
     declared = set(additions)
+    retired = set(retirements or {})
     live = {surface_key(t) for t in current}
 
     for key in sorted(live - frozen - declared):
@@ -841,6 +862,24 @@ def blocking_surface_findings(
         findings.extend(addition_violations(key, additions[key], known_mutation_tests))
     for key in sorted(declared - live):
         findings.append(f"إقرارُ زيادةٍ لا وجودَ لها في الشجرة — {key}")
+    # **الأساسُ وحدَه، لا الإقرارات.** إقرارُ زيادةٍ زالت يغطّيه الاتّجاهُ الثالث
+    # أعلاه، وعلاجُه حذفُ الإقرار لا كتابةُ تقاعد. وضمُّ `declared` هنا كان يُنتِج
+    # **ملاحظتين لحقيقةٍ واحدة** — وسجلٌّ يقول الشيءَ مرّتين يُدرِّب قارئَه على
+    # تخطّيه، وهو الصنفُ نفسُه الذي تُغلقه هذه الآليّة. أمسكه اختبارٌ قائم.
+    for key in sorted(frozen - live - retired):
+        findings.append(f"حاجبٌ زال من سطح الحجب بلا إقرار تقاعد — {key}")
+    for key in sorted(retired & live):
+        findings.append(f"إقرارُ تقاعدٍ لحاجبٍ ما زال يعمل — {key}")
+    # **وتقاعدٌ لثلاثيّةٍ لم تكن في الأساس قطّ يُبلَّغ أيضاً.** أصابت مراجعةٌ آليّة على
+    # #983: كان `retired` يقبل أيّ مفتاح، فتتراكم فيه أسماءٌ يتيمةٌ لا تخصّ شيئاً —
+    # سجلٌّ يبدو نظيفاً وهو يحمل ما لا وجودَ له، **وهو الصنفُ نفسُه** الذي أُغلِق
+    # للإقرارات في الاتّجاه الثالث. ومن يقرأ سجلّاً فيه ما لا يخصّه يتدرّب على تخطّيه.
+    # ويُستثنى الحيُّ لئلّا يُبلَّغ عن حقيقةٍ واحدة مرّتين — سطرُ «ما زال يعمل» أعلاه
+    # يقولها بدقّةٍ أكبر.
+    for key in sorted(retired - frozen - live):
+        findings.append(f"إقرارُ تقاعدٍ لثلاثيّةٍ لم تكن في الأساس قطّ — {key}")
+    for key in sorted(retired - live):
+        findings.extend(retirement_violations(key, (retirements or {})[key]))
     return findings
 
 
@@ -854,27 +893,42 @@ def report_blocking_surface(*, enforce: bool = False) -> int:
     current = discover_blocking_surface()
     baseline = _load_surface_json(BLOCKING_SURFACE_BASELINE, "legacy_blocking")
     additions = _load_surface_json(BLOCKING_SURFACE_ADDITIONS, "additions")
+    retirements = _load_surface_json(BLOCKING_SURFACE_BASELINE, "retired")
     findings = blocking_surface_findings(
-        current, baseline, additions, registered_mutation_tests(load_registry())
+        current,
+        baseline,
+        additions,
+        registered_mutation_tests(load_registry()),
+        retirements,
     )
 
     print(
         f"blocking_surface: {len(current)} ثلاثيّةً حاليّة · "
-        f"{len(baseline)} مُجمَّدةً (legacy_blocking) · {len(additions)} إقراراً"
+        f"{len(baseline)} مُجمَّدةً (legacy_blocking) · {len(additions)} إقراراً · "
+        f"{len(retirements)} تقاعداً"
     )
     if findings:
         print(f"\nblocking_surface: {len(findings)} ملاحظة" + ("" if enforce else " (إرشاديّ)"))
         for line in findings:
             print(f"  ⚠ {line}")
-        print(
-            "\nكلُّ زيادةٍ تحتاج قبل تفعيلها: مثالاً مضادّاً مقيساً (أو التزامَ سلامة) · "
-            "طفرةً يقتلها اختبارٌ مُسمًّى · شاهداً موجباً أنّ العلاج المشروع يمرّ · "
-            "وتصنيفَ أثرٍ يقول أين يحجب."
-        )
+        # **الإرشادُ يتبع نوعَ الملاحظة.** كان يُطبَع نصُّ الزيادة مهما كانت الملاحظة،
+        # فيُقرأ على تقاعدٍ فيُطالِبه بطفرةٍ وشاهدٍ موجب — وهو مطلبٌ لا معنى له لإزالةِ
+        # حجب. ورسالةٌ تصف واجباً غيرَ الواجب تُدرِّب قارئَها على تجاهل الرسائل.
+        if any("تقاعد" in line for line in findings):
+            print(
+                "\nوالتقاعدُ لا يُمنَع بل يُنطَق: أدرِج الثلاثيّة في `retired` داخل "
+                "`blocking_surface_baseline.json` بـ`reason` و`retired_on`."
+            )
+        if any("زيادة" in line for line in findings):
+            print(
+                "\nوكلُّ زيادةٍ تحتاج قبل تفعيلها: مثالاً مضادّاً مقيساً (أو التزامَ سلامة) · "
+                "طفرةً يقتلها اختبارٌ مُسمًّى · شاهداً موجباً أنّ العلاج المشروع يمرّ · "
+                "وتصنيفَ أثرٍ يقول أين يحجب."
+            )
         if enforce:
             return 1
     else:
-        print("blocking_surface_ok — لا زيادةَ بلا إقرار")
+        print("blocking_surface_ok — لا زيادةَ بلا إقرار ولا تقاعدَ بلا نطق")
     return 0
 
 
