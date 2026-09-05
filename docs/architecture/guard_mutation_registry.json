@@ -2744,6 +2744,27 @@
           "find": "        return code, out\n    return _run_tests(test_file, root)",
           "replace": "        return code, out\n    return code, out  # mutated: لا تراجُع",
           "why": "إسقاط التراجع إلى الملفّ الكامل ⇒ مرورُ المتوقَّع وحده يُختَم unexpected_green/survived من مشهدٍ ناقص، وتصنيفا wrong_test/التشخيص يفقدان مصدرهما"
+        },
+        {
+          "expect": "test_an_undeclared_addition_is_reported",
+          "find": "    for key in sorted(live - frozen - declared):",
+          "replace": "    for key in sorted(set()):",
+          "why": "نزعُ كشفِ الزيادة غير المُقرَّة ⇒ تجميدُ سطح الحجب يصير اسماً بلا قياس: ينمو السطحُ صامتاً وتبقى الوظيفةُ خضراء، وهو صنفُ «الحارس الذي لا يرى العطل أصلاً»",
+          "test": "tests_v9/test_blocking_surface_freeze.py"
+        },
+        {
+          "expect": "test_a_mutation_naming_an_unregistered_test_is_reported",
+          "find": "        if mutation not in registered:",
+          "replace": "        if False:",
+          "why": "نزعُ شرطِ «الاسمُ مسجَّلٌ لهذا الحارس» يُعيد `mutation` حقلاً نثريّاً: يُستوفى بالكتابة لا بالتسجيل، فيمرّ إقرارٌ يسمّي تكذيباً لا وجودَ له. وهو صنفُ «بوّابةٌ تُغلَق بالنثر» — قِيس على أوّل إقرارٍ كُتِب في هذه الشجرة، إذ حمل اسمَ الاختبار داخل جملةٍ وكان الحقلُ سيقبل «طفرةٌ ما» بالقدر نفسِه",
+          "test": "tests_v9/test_blocking_surface_freeze.py"
+        },
+        {
+          "expect": "test_the_registry_reader_reads_the_expected_test_not_the_suite_file",
+          "find": "                str(mutation.get(\"expect\") or \"\").strip()",
+          "replace": "                mutation_test(spec, mutation)",
+          "why": "`expect` اسمُ الحالة و`test` ملفُّ الجناح؛ وقراءةُ الثاني مكانَ الأوّل تجعل الفحصَ يُبلِّغ عن طفرةٍ **مسجَّلةٍ** بأنّها غيرُ مسجَّلة — إنذارٌ كاذبٌ يدفع كاتبَ الإقرار إلى تعطيل الفحص لا إلى تسجيل طفرة. وقعت فعلاً عند كتابة هذه الشريحة وكشفها تشغيلٌ لا قراءة",
+          "test": "tests_v9/test_blocking_surface_freeze.py"
         }
       ],
       "test": "tests_v9/test_guard_mutation_guard.py"
