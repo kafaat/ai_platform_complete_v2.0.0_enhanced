@@ -1923,6 +1923,18 @@
           "find": "    if not checks_rules:",
           "replace": "    if False:",
           "why": "غيابُ قاعدة required_status_checks يُقرأ مساواةً فارغة صحيحة ⇒ «لا فحص يحجب» يمرّ أخضر: أخطر صور الخضرة الكاذبة"
+        },
+        {
+          "expect": "test_a_stale_approval_that_survives_a_new_head_is_a_failure",
+          "find": "        problems += stale_review_violations(rules)",
+          "replace": "        problems += []",
+          "why": "نزعُ البند الثالث يُعيد `dismiss_stale_reviews_on_push` إلى ما كان: **مُفعَّلٌ بلا تكذيب**، فحمايةٌ قائمةٌ تُقرأ عقداً وهي إعدادٌ يزول بنقرة. والأثرُ يمسّ صدقَ الاعتماد نفسِه — يعتمد المراجعُ بايتاتٍ ثمّ يُدفَع غيرُها فيبقى الاعتمادُ سارياً على شيفرةٍ لم يرَها أحد، ولا تُغني `required_status_checks` لأنّها تشهد للآلة لا لأنّ إنساناً قرأ"
+        },
+        {
+          "expect": "test_an_unreadable_parameters_block_is_diagnosed_once_not_twice",
+          "find": "    if not seen_values:\n        return []",
+          "replace": "    if False:\n        return []",
+          "why": "نزعُ الرجوع الصامت يُسقِط الحالةَ إلى فرع «غير مُفعَّل» فيطبع `dismiss_stale_reviews_on_push = []` وكأنّ القيمة رُصِدت وهي لم تُقرأ أصلاً — ملاحظةٌ ثانيةٌ مُضلِّلة عن عطلٍ واحد تدفع المُشخِّص إلى مطاردة إعدادٍ سليم. والحكمُ لا يتغيّر، فالتكذيبُ بالمخرَج لا برمز الخروج"
         }
       ],
       "test": "tests_v9/test_branch_protection_contract_guard.py"
