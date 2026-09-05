@@ -99,7 +99,13 @@ def _checks_rule(contexts=None) -> dict:
     }
 
 
-def _rules(resolution, *, with_params: bool = True, checks: dict | None = None) -> list:
+def _rules(
+    resolution,
+    *,
+    with_params: bool = True,
+    checks: dict | None = None,
+    stale: object = True,
+) -> list:
     """قواعد نافذة نموذجيّة: حذف + عدم-تقديم + قاعدة PR تحمل الشرط + الفحوص المطلوبة.
 
     قاعدةُ `required_status_checks` جزءٌ من النموذج منذ
@@ -111,6 +117,9 @@ def _rules(resolution, *, with_params: bool = True, checks: dict | None = None) 
         pull_request["parameters"] = {
             "required_approving_review_count": 0,
             "required_review_thread_resolution": resolution,
+            # `A-STALE-APPROVAL-SURVIVES-A-NEW-HEAD-01`: النموذج يصف `main` مضبوطةً،
+            # وهي تحمل هذا البند فعلاً. نموذجٌ بدونه يقيس عالماً لا يشبهها.
+            "dismiss_stale_reviews_on_push": stale,
         }
     return [
         {"type": "deletion"},
@@ -147,8 +156,18 @@ def test_a_missing_key_is_not_read_as_enabled(tmp_path):
     # قاعدةُ الفحوص سليمةٌ عمداً — `COVERAGE-MASKED-BY-A-NEIGHBOURING-GUARD-01`:
     # بلاها يبتلع فحصُ سطح الإنفاذ الحالةَ قبل الحارس المقصود، فينجو زرعُ هذا البند
     # ويبقى الرمز `1` عن سببٍ آخر. مقيسٌ بالزرع في preflight لا مفترَض.
+    # و`dismiss_stale_reviews_on_push` مُفعَّلٌ عمداً لنفس السبب المكتوب أعلاه:
+    # البندُ الثالث جارٌ ثالث، وتركُه ساقطاً هنا كان يُبقي الرمزَ `1` عن سببٍ آخر
+    # فينجو زرعُ هذا البند. **مقيسٌ لا مفترَض:** حين أُضيف البندُ الثالث نجت طفرتُه
+    # `[2]` فعلاً حتّى ضُبِط هذا السطر.
     rules = [
-        {"type": "pull_request", "parameters": {"required_approving_review_count": 1}},
+        {
+            "type": "pull_request",
+            "parameters": {
+                "required_approving_review_count": 1,
+                "dismiss_stale_reviews_on_push": True,
+            },
+        },
         _checks_rule(),
     ]
     assert _run(_protection(tmp_path, _envelope(rules))) == 1
@@ -201,9 +220,19 @@ def test_one_enabling_rule_among_several_is_enough(tmp_path):
     فقاعدةٌ من Ruleset تُفعّل الشرط وأخرى كلاسيكيّة لا تُفعّله ⇒ الشرط **نافذ**.
     ولو قرأناها تقاطعاً لأبلغنا أحمرَ عن قفلٍ قائم — إنذارٌ كاذب يُدرِّب قارئه على التجاهل.
     """
+    # كلتا القاعدتين تحملان `dismiss_stale_reviews_on_push` مُفعَّلاً عمداً: موضوعُ
+    # هذه الحالة اتّحادُ **حلّ المحادثات** وحدَه، وتركُ بندٍ آخر ساقطاً فيها كان
+    # سيجعلها تحمرّ لسببٍ لا تقيسه — أي حالةً تُبلِّغ عن سؤالٍ لم تطرحه.
+    enabled_stale = {"dismiss_stale_reviews_on_push": True}
     rules = [
-        {"type": "pull_request", "parameters": {"required_review_thread_resolution": False}},
-        {"type": "pull_request", "parameters": {"required_review_thread_resolution": True}},
+        {
+            "type": "pull_request",
+            "parameters": {"required_review_thread_resolution": False, **enabled_stale},
+        },
+        {
+            "type": "pull_request",
+            "parameters": {"required_review_thread_resolution": True, **enabled_stale},
+        },
         _checks_rule(),
     ]
     assert _run(_protection(tmp_path, _envelope(rules))) == 0
@@ -655,3 +684,87 @@ def test_the_contract_file_is_the_single_source_read_by_both_readers():
     assert "Frontend E2E (Playwright · MapLibre/WebGL QA)" in contexts, (
         "الاسم الخامس عشر المقيس على الـRuleset — غيابُه هو الانحراف الذي فُتِح العقد لأجله"
     )
+
+
+def test_a_stale_approval_that_survives_a_new_head_is_a_failure(tmp_path):
+    """**المثالُ المضادّ:** `dismiss_stale_reviews_on_push` مُطفَأ ⇒ أحمر.
+
+    كان البندُ **مُفعَّلاً على `main` وبلا تكذيب**: لا شيء في الشجرة يحمرّ إن أُطفِئ،
+    فحمايةٌ قائمةٌ تُقرأ عقداً وهي إعدادٌ يزول بنقرة — وهو الصنفُ الذي وُجِد لأجله
+    هذا الملفّ في بنده الأوّل.
+
+    **والأثرُ يمسّ صدقَ الاعتماد نفسِه:** الاعتمادُ شهادةٌ على **بايتاتٍ بعينها**؛
+    فبدونه يعتمد المراجعُ رأساً، ثمّ يُدفَع غيرُه، ويبقى الاعتمادُ سارياً على شيفرةٍ
+    **لم يرَها أحد**. ولا تُغني عنه `required_status_checks`: تلك تشهد للآلة على
+    الرأس الجديد، ولا تشهد أنّ **إنساناً** قرأه.
+    """
+    assert _run(_protection(tmp_path, _envelope(_rules(True, stale=False)))) == 1
+
+
+def test_the_enabled_stale_review_lock_passes(tmp_path):
+    """**الشاهدُ الموجب:** الضبطُ الكامل يمرّ — وإلّا صار الحارسُ يرفض كلَّ حالة."""
+    assert _run(_protection(tmp_path, _ENABLED)) == 0
+
+
+def test_a_missing_stale_review_key_is_not_read_as_enabled(tmp_path):
+    """الغيابُ ليس تفعيلاً — نفسُ قاعدة البند الأوّل.
+
+    مفتاحٌ ناقصٌ يعني أنّ الشرطَ **لم يُرَ**، وقراءتُه «مُفعَّل» هي «نتيجةٌ عن سؤالٍ
+    لم يُطرَح» بعينها.
+    """
+    rules = _rules(True)
+    pr = next(r for r in rules if r.get("type") == "pull_request")
+    del pr["parameters"]["dismiss_stale_reviews_on_push"]
+    assert _run(_protection(tmp_path, _envelope(rules))) == 1
+
+
+@pytest.mark.parametrize("value", ["true", 1, "enabled", None])
+def test_a_non_boolean_stale_review_value_is_not_enabled(tmp_path, value):
+    """`"true"` نصّاً ليست `True` — ونمطُ الرخوِ يقبل ما لا تقبله GitHub."""
+    assert _run(_protection(tmp_path, _envelope(_rules(True, stale=value)))) == 1
+
+
+def test_one_rule_enabling_stale_dismissal_is_enough(tmp_path):
+    """**الاتّحاد لا التقاطع** للبند الجديد أيضاً — GitHub تطبّق الأشدّ."""
+    resolution = {"required_review_thread_resolution": True}
+    rules = [
+        {
+            "type": "pull_request",
+            "parameters": {**resolution, "dismiss_stale_reviews_on_push": False},
+        },
+        {
+            "type": "pull_request",
+            "parameters": {**resolution, "dismiss_stale_reviews_on_push": True},
+        },
+        _checks_rule(),
+    ]
+    assert _run(_protection(tmp_path, _envelope(rules))) == 0
+
+
+def test_a_missing_pull_request_rule_reports_the_absence_once_not_twice(tmp_path, capsys):
+    """حقيقةٌ واحدة ⇒ ملاحظةٌ واحدة.
+
+    البندُ الأوّل يُبلِّغ «لا قاعدة نافذة» أوّلاً، فلو أعاد البندُ الجديدُ الجردَ
+    نفسَه لصار الغيابُ يُقال مرّتين — وسجلٌّ يكرّر الشيءَ يُدرِّب قارئَه على تخطّيه.
+    """
+    rules = [{"type": "deletion"}, _checks_rule()]
+    assert _run(_protection(tmp_path, _envelope(rules))) == 1
+    out = capsys.readouterr().out
+    assert out.count("لا قاعدة `pull_request` نافذة") == 1, out
+
+
+def test_the_workflows_path_has_a_code_owner():
+    """`A-WORKFLOWS-PATH-HAS-NO-CODE-OWNER-01` — مقيسٌ على #982.
+
+    مسّت `.github/workflows/capability-governance.yml` وانتقلت من `blocked` إلى
+    `clean` **بلا اعتمادٍ يُضاف**: شريحةٌ موضوعُها «سطحُ الحجب لا ينمو بلا إثبات»
+    أمكنها أن تُدمَج بصفر مراجعةٍ بشريّة مستقلّة. ومن يملك تعديلَ الـworkflow يملك
+    نزعَ أيّ حارسٍ منها.
+    """
+    owners = (ROOT / ".github" / "CODEOWNERS").read_text(encoding="utf-8")
+    line = next(
+        (ln for ln in owners.splitlines() if ln.strip().startswith("/.github/workflows/")),
+        None,
+    )
+    assert line, "مسارُ تعريف الحجب بلا مالك — راجع `A-WORKFLOWS-PATH-HAS-NO-CODE-OWNER-01`"
+    assert "@kafaat" in line and "@haithmgarallah-ye" in line, line

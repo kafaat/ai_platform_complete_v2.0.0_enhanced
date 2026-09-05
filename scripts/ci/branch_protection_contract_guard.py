@@ -113,6 +113,23 @@ CODE_OWNER_PARAMETER = "require_code_owner_review"
 #: المسار المحميّ — وهو نفسه ما يقرؤه `gate01_frozen_path_guard` تفويضاً.
 AUTHORIZATION_PATH = "docs/architecture/gates/adjudications/"
 
+#: **البند الثالث — `A-STALE-APPROVAL-SURVIVES-A-NEW-HEAD-01`.**
+#: كان مُفعَّلاً فعلاً على `main` **وبلا تكذيب**: لا شيء في الشجرة يحمرّ إن أُطفِئ،
+#: فحمايةٌ قائمةٌ اليوم تُقرأ عقداً وهي إعدادٌ يزول بنقرة. وهو الصنف نفسه الذي وُجِد
+#: لأجله هذا الملفّ في بنده الأوّل.
+#:
+#: **والأثرُ لو أُطفِئ ليس تنظيميّاً بل يمسّ صدقَ الاعتماد:** الاعتمادُ شهادةٌ على
+#: **بايتاتٍ بعينها**. فبدونه يعتمد المراجعُ رأساً، ثمّ يُدفَع رأسٌ آخر، ويبقى
+#: الاعتمادُ ساريّاً على شيفرةٍ **لم يرَها أحد** — أي أنّ التوقيع يُنقَل إلى مستندٍ
+#: غير الذي وُقِّع. ولا يُغني عنه `required_status_checks`: تلك تُعيد تشغيل الفحوص
+#: على الرأس الجديد وتشهد للآلة، ولا تشهد لأحدٍ أنّ **إنساناً** قرأه.
+#:
+#: **ولمَ دائمٌ لا مشروط** (بخلاف `CODE_OWNER_PARAMETER`): البند المشروط يحرس مسارَ
+#: التفويضات وحده لأنّ ثمنَ الدوام هناك تعطيلُ كلّ دمج. أمّا هذا فلا ثمنَ له على
+#: الدمج أصلاً — لا يُعطّل شيئاً ما دام الرأسُ ثابتاً — ونطاقُه **كلُّ** اعتمادٍ في
+#: المستودع لا ملفّان. فتقييدُه بمسارٍ كان سيترك الأكثريّة بلا حراسة.
+STALE_REVIEW_PARAMETER = "dismiss_stale_reviews_on_push"
+
 #: **سطحُ الإنفاذ نفسه** — `REQUIRED-CHECKS-DRIFT-IS-INVISIBLE-IN-BOTH-DIRECTIONS-01`.
 #: وهذا ليس «الجردَ العامّ للحماية» الذي يرفضه التعليق أعلاه: ذاك يَبيت مع كلّ تغيير
 #: إعدادٍ مشروع فيُدرَّب قارئه على تجاهله. أمّا قائمةُ الفحوص المطلوبة فمُشتقّةٌ من
@@ -401,6 +418,43 @@ def violations(rules: list) -> list[str]:
     return found
 
 
+def stale_review_violations(rules: list) -> list[str]:
+    """`dismiss_stale_reviews_on_push` — والغياب مخالفةٌ لا سكوت، كسائر البنود.
+
+    **والاتّحاد لا التقاطع** كالبند الأوّل: يكفي أن تُفعّله قاعدةٌ نافذةٌ واحدة،
+    لأنّ GitHub تطبّق الأشدّ.
+
+    ولا يُعاد هنا جردُ «لا قاعدة نافذة»: البند الأوّل يقوله أوّلاً، وتكرارُه يُنتِج
+    **ملاحظتين لحقيقةٍ واحدة** فيُدرَّب قارئُه على تخطّيها.
+    """
+    # **أسماءٌ محلّيّةٌ مغايرةٌ عمداً** (`pr_scope`/`seen_values` لا `pr_rules`/`observed`):
+    # مراسي الطفرات المسجَّلة سلاسلُ نصّيّةٌ **يجب أن تكون فريدةً في الملفّ**، وتكرارُ
+    # أسماء `violations` هنا جعل طفرتين قائمتين «غيرَ محدَّدتي الموضع» فسقط الزرع.
+    # فالتمييزُ يحفظ تكذيبَ البند الأوّل بدل أن يُوسَّع مرساه لاستيعاب هذا.
+    pr_scope = [r for r in rules if isinstance(r, dict) and r.get("type") == CONTRACT_RULE_TYPE]
+    if not pr_scope:
+        return []
+
+    seen_values = [
+        rule.get("parameters", {}).get(STALE_REVIEW_PARAMETER)
+        for rule in pr_scope
+        if isinstance(rule.get("parameters"), dict)
+    ]
+    # **ولا فرعَ هنا لـ«لا كتلة `parameters` مفهومة».** كُتِب أوّلاً على غرار البند
+    # الأوّل، ثمّ أثبتت المكنسةُ أنّه **لا يُقتَل**: زُرِع العطلُ فيه وبقي الاختبارُ
+    # أخضر. والسببُ أنّه غيرُ بالغٍ أصلاً — `violations` تُبلِّغ السببَ الجذريّ نفسَه
+    # وتُخرِج بـ1 قبل أن يُغيّر هذا الفرعُ حكماً؛ ولا مُدخَلَ تمرّ منه تلك ويسقط فيه
+    # هذا. فحُذِف: دفاعٌ لا يُكذَّب **يبدو حمايةً وليس بها**، وهو الصنفُ الذي وُجِدت
+    # هذه الآليّةُ كلُّها لأجله. (كشفه تشغيلُ المكنسة على أساسٍ أخضر لا قراءةُ الرمز.)
+    if not any(value is True for value in seen_values):
+        return [
+            f"`{STALE_REVIEW_PARAMETER}` = {seen_values!r} — الاعتمادُ ينجو من رأسٍ جديد. "
+            "يعتمد المراجعُ بايتاتٍ، ثمّ يُدفَع غيرُها، ويبقى الاعتمادُ سارياً على "
+            "شيفرةٍ لم يرَها أحد."
+        ]
+    return []
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
@@ -457,6 +511,7 @@ def main(argv: list[str] | None = None) -> int:
         # تُنتِج حكماً عن سؤالٍ آخر — وهو الصنف الذي وُجِد هذا الملفّ ليطارده.
         canonical = canonical_required_contexts()
         problems += required_checks_violations(rules, canonical)
+        problems += stale_review_violations(rules)
         if touches_authorization(changed):
             problems += code_owner_violations(rules)
 
