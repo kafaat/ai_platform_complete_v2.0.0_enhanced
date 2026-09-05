@@ -369,3 +369,80 @@ def test_the_baseline_is_frozen_at_the_current_merge_base():
     declared = set(MOD._load_surface_json(ADDITIONS, "additions"))
     frozen = set(MOD._load_surface_json(BASELINE, "legacy_blocking"))
     assert live - frozen - declared == set(), "الأساسُ لا يغطّي السطحَ الحيّ — أعِد التجميد"
+
+
+_RETIRED_OK = {"reason": "نُقِل الحارس إلى وظيفةٍ أنسب في #123", "retired_on": "2026-09-05"}
+
+
+def test_a_blocker_that_vanished_is_reported():
+    """**المثالُ المضادّ — مقيسٌ لا مُتوقَّع.**
+
+    على `main @ a3124ccf` نُزِع سطرٌ واحد (استدعاءُ
+    `vegetation_runtime_truth_guard.py` من `ci.yml`) فهبط السطحُ ٣٠١ ⇒ ٣٠٠. ولم
+    يشتكِ إلّا فحصُ انحراف الكتالوج — **وعلاجُه المنصوصُ عليه إعادةُ التوليد**،
+    فإذا فُعِل قال الاثنان `guard_catalogue_ok` و`blocking_surface_ok`. أي أنّ
+    **العلاجَ الذي يأمر به النظامُ هو ما يمحو الدليل**، ويبقى ملفُّ الحارس في مكانه
+    يبدو حمايةً ولا يُشغّله شيء.
+    """
+    findings = MOD.blocking_surface_findings(set(), _BASELINE, {})
+    assert len(findings) == 1
+    assert MOD.surface_key(_OLD) in findings[0]
+    assert "تقاعد" in findings[0]
+
+
+def test_a_declared_retirement_passes():
+    """**الشاهدُ الموجب:** التقاعدُ المنطوق يمرّ — فالحذفُ لا يُمنَع، يُقال.
+
+    بدونه يصير التجميدُ يفرض بقاءَ كلّ حاجبٍ إلى الأبد، فيُعاقِب التضييقَ المشروع
+    ويُدرِّب الناسَ على الالتفاف عليه.
+    """
+    retired = {MOD.surface_key(_OLD): _RETIRED_OK}
+    assert MOD.blocking_surface_findings(set(), _BASELINE, {}, None, retired) == []
+
+
+@pytest.mark.parametrize("missing", ["reason", "retired_on"])
+def test_a_retirement_without_reason_or_date_is_not_a_declaration(missing):
+    """سببٌ وتاريخ — وإلّا فهو حذفٌ ارتدى اسمَ الإقرار."""
+    incomplete = {k: v for k, v in _RETIRED_OK.items() if k != missing}
+    retired = {MOD.surface_key(_OLD): incomplete}
+    findings = MOD.blocking_surface_findings(set(), _BASELINE, {}, None, retired)
+    assert len(findings) == 1
+    assert missing in findings[0]
+
+
+def test_a_retirement_declared_for_a_blocker_still_running_is_reported():
+    """سجلٌّ يقول «تقاعد» عن حاجبٍ يعمل يكذب في الاتّجاه المعاكس.
+
+    ولو أُهمِل لصار بابَ إسكاتٍ دائم: يُعلَن التقاعدُ اليومَ ويُعاد الاستدعاءُ غداً،
+    فلا يُبلَّغ عن شيء.
+    """
+    retired = {MOD.surface_key(_OLD): _RETIRED_OK}
+    findings = MOD.blocking_surface_findings({_OLD}, _BASELINE, {}, None, retired)
+    assert len(findings) == 1
+    assert "ما زال يعمل" in findings[0]
+
+
+def test_a_vanished_addition_is_reported_once_not_twice():
+    """حقيقةٌ واحدة ⇒ ملاحظةٌ واحدة.
+
+    أوّلُ صياغةٍ للاتّجاه الرابع شملت الإقراراتِ مع الأساس، فصار الإقرارُ الزائل
+    يُبلَّغ **مرّتين**: «إقرارٌ لزيادةٍ لا وجودَ لها» و«حاجبٌ زال بلا إقرار تقاعد».
+    وسجلٌّ يقول الشيءَ مرّتين يُدرِّب قارئَه على تخطّيه — وهو الصنفُ الذي تُغلقه هذه
+    الآليّة نفسُها. وعلاجُ الإقرار الزائل حذفُه، لا كتابةُ تقاعدٍ له.
+    """
+    key = MOD.surface_key(_NEW)
+    findings = MOD.blocking_surface_findings({_OLD}, _BASELINE, {key: _COMPLETE})
+    assert len(findings) == 1, findings
+    assert "لا وجودَ لها" in findings[0]
+
+
+def test_the_live_tree_has_no_unspoken_retirement():
+    """الشجرةُ الحيّةُ لا تقاعدَ فيها اليوم — وهذا ما يجعل أوّلَ نزعٍ قادمٍ مرئيّاً."""
+    findings = MOD.blocking_surface_findings(
+        MOD.discover_blocking_surface(),
+        MOD._load_surface_json(BASELINE, "legacy_blocking"),
+        MOD._load_surface_json(ADDITIONS, "additions"),
+        MOD.registered_mutation_tests(MOD.load_registry()),
+        MOD._load_surface_json(BASELINE, "retired"),
+    )
+    assert findings == [], findings

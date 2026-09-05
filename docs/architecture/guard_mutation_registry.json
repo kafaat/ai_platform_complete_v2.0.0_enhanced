@@ -2765,6 +2765,20 @@
           "replace": "                mutation_test(spec, mutation)",
           "why": "`expect` اسمُ الحالة و`test` ملفُّ الجناح؛ وقراءةُ الثاني مكانَ الأوّل تجعل الفحصَ يُبلِّغ عن طفرةٍ **مسجَّلةٍ** بأنّها غيرُ مسجَّلة — إنذارٌ كاذبٌ يدفع كاتبَ الإقرار إلى تعطيل الفحص لا إلى تسجيل طفرة. وقعت فعلاً عند كتابة هذه الشريحة وكشفها تشغيلٌ لا قراءة",
           "test": "tests_v9/test_blocking_surface_freeze.py"
+        },
+        {
+          "expect": "test_a_blocker_that_vanished_is_reported",
+          "find": "    for key in sorted(frozen - live - retired):",
+          "replace": "    for key in sorted(set()):",
+          "why": "نزعُ الاتّجاه الرابع يُعيد **الصمت المقيس**: نُزِع استدعاءُ حارسٍ من `ci.yml` على `a3124ccf` فهبط السطحُ ٣٠١ ⇒ ٣٠٠، ولم يشتكِ إلّا فحصُ انحراف الكتالوج — وعلاجُه المنصوصُ عليه إعادةُ التوليد، فإذا فُعِل قال الاثنان أوكيه. أي أنّ العلاجَ الذي يأمر به النظامُ هو ما يمحو الدليل، ويبقى ملفُّ الحارس يبدو حمايةً ولا يُشغّله شيء",
+          "test": "tests_v9/test_blocking_surface_freeze.py"
+        },
+        {
+          "expect": "test_a_retirement_declared_for_a_blocker_still_running_is_reported",
+          "find": "    for key in sorted(retired & live):",
+          "replace": "    for key in sorted(set()):",
+          "why": "إقرارُ تقاعدٍ لحاجبٍ يعمل بابُ إسكاتٍ دائم: يُعلَن التقاعدُ اليومَ ويُعاد الاستدعاءُ غداً فلا يُبلَّغ عن نزعِه ثانيةً — أي أنّ سطراً واحداً في السجلّ يشتري صمتاً دائماً عن ثلاثيّة",
+          "test": "tests_v9/test_blocking_surface_freeze.py"
         }
       ],
       "test": "tests_v9/test_guard_mutation_guard.py"
