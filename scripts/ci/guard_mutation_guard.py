@@ -762,10 +762,8 @@ def addition_violations(key: str, declaration: object) -> list[str]:
         for field in _REQUIRED_ADDITION_FIELDS
         if not str(declaration.get(field) or "").strip()
     ]
-    impact = str(declaration.get("impact") or "").strip()
-    if impact and impact not in _IMPACT_PLACEMENTS:
         problems.append(
-            f"{key}: `impact` = {impact!r} ليس موضعَ حجبٍ معروفاً ({'/'.join(_IMPACT_PLACEMENTS)})"
+            f"{key}: `impact` = {impact!r} ليس قيمةَ أثرٍ معروفة ({'/'.join(_IMPACT_PLACEMENTS)})"
         )
     return problems
 
