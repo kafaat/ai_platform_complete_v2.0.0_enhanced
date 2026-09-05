@@ -144,10 +144,10 @@ def test_enforce_is_available_but_not_wired_into_any_workflow():
     فترقيةُ التجميد إلى الحجب تصير قراراً يُتَّخذ بقياسٍ لا بالنسيان.
     """
     assert "--enforce" in GUARD.read_text(encoding="utf-8")
+    import re
     for path in (ROOT / ".github" / "workflows").glob("*.y*ml"):
         text = path.read_text(encoding="utf-8")
-        assert "--blocking-surface --enforce" not in text, path.name
-        assert "--enforce --blocking-surface" not in text, path.name
+        assert not re.search(r"(?s)--blocking-surface(?:[ \t\\\n]+)--enforce|--enforce(?:[ \t\\\n]+)--blocking-surface", text), path.name
 
 
 def test_the_advisory_job_does_not_lean_on_continue_on_error():
