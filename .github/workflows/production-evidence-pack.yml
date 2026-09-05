@@ -12,3 +12,9 @@ jobs:
         with:
           python-version: '3.12'
       - run: python scripts/ci/production_evidence_pack_guard.py --check
+      # الحزمةُ تفحص **صلاحيّة الدليل الموجود**؛ وهذا يفحص **أنّ له مُنتِجاً أصلاً**.
+      # وبدون الثاني كانت الأولى تُبقي خمسةَ حواجزَ `pending` صحيحةَ الشكل إلى الأبد،
+      # فيُقرأ الحكمُ عجزاً في القياس لا غياباً في الإنتاج. الحاجبُ هنا لا في
+      # `production-certification-blockers.yml`: تلك تُشغَّل يدويّاً (`workflow_dispatch`)
+      # فلا تحرس دمجاً، وهذه تعمل على كلّ PR ودفعٍ إلى main.
+      - run: python scripts/ci/certification_evidence_producer_guard.py

@@ -29,11 +29,10 @@ S3_PREFIX="${S3_PREFIX:-postgres}"
 RETENTION_DAYS_LOCAL="${RETENTION_DAYS_LOCAL:-7}"
 RETENTION_DAYS_S3="${RETENTION_DAYS_S3:-30}"
 
-# Postgres connection (from env)
-PGHOST="${PGHOST:-sahool-postgres}"
-PGPORT="${PGPORT:-5432}"
-PGUSER="${PGUSER:-sahool_user}"
-PGDATABASE="${PGDATABASE:-sahool}"
+# Postgres connection — **تعريفٌ واحد** يقرأ منه النسخُ الاحتياطيّ والاستعادة معاً.
+# البيئةُ تَغلِب الافتراضَ كما كانت. (سببُ إخراجها إلى ملفٍّ واحد في رأس الملفّ نفسِه.)
+# shellcheck source=lib/pg_conn_defaults.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/pg_conn_defaults.sh"
 # PGPASSWORD يجب أن يُمرّر عبر env (لا في الـscript)
 
 # Metrics endpoint (Prometheus pushgateway)

@@ -25,8 +25,10 @@ if str(_PLATFORM) not in sys.path:
 from api.irrigation_recommendation_policy import recommend_irrigation  # noqa: E402
 from core.thresholds import SALINITY_CRITICAL_ECE  # noqa: E402
 
-# طقس ثابت بلا مطر كي يظهر أثر الملوحة/الغسل على الأرقام صافياً.
-_BASE = dict(et0_mm=6.0, crop="wheat", stage="mid", rain_recent_mm=0.0)
+# طقس ثابت بلا مطر كي يظهر أثر الملوحة/الغسل على الأرقام صافياً. والصفرُ هنا **دعوى
+# مقصودة** («لم تمطر») لا غياباً — ولذلك يُصرَّح به لكلا القناتين: النواةُ لم تَعُد
+# تقبل `None` في أيّهما، فيصير كلُّ صفرٍ في الشجرة صفراً قالَه أحدٌ عن قصد.
+_BASE = dict(et0_mm=6.0, crop="wheat", stage="mid", rain_recent_mm=0.0, forecast_rain_mm=0.0)
 _WHEAT_THRESHOLD = 4.0  # عتبة منخفضة عمداً كي يتجاوزها ECe الاختباريّ
 _SALINE = 6.0  # ≥ العتبة المتوسّطة، < الحرجة
 _CRITICAL = SALINITY_CRITICAL_ECE + 2.0  # ملوحة حرجة
@@ -101,6 +103,26 @@ def test_stale_ec_treated_as_unreliable():
     )
     assert r["policy"] == "net_only"
     assert r["salinity_ks"] == 1.0
+
+
+def test_missing_rain_raises_instead_of_being_read_as_no_rain():
+    """``None`` في أيّ من قناتَي المطر ⇒ ``ValueError``، لا حسابٌ بصفر.
+
+    **العطل الذي أُغلِق:** كان توقيعُ النواة ``rain_recent_mm: float = 0.0``، فكلُّ
+    مسارٍ يُغفِل المطرَ يحصل على حسابٍ مبنيٍّ على «لم تمطر» بلا أن يعلم. والصفرُ
+    يُنقِص المطروحَ من الاحتياج فترتفع الكمّيّة — الانحيازُ في اتّجاه **الإذن بالريّ**،
+    وهو الاتّجاه الذي يُغرِق حقلاً. وقد أُغلِق هذا الصنفُ في ``recommendations_hub``
+    و``routers/fields.py`` وبقي مفتوحاً هنا: **مسارٌ ثالثٌ لحاجةٍ واحدة، وهو الساقط**.
+
+    والرفضُ عند الحدّ — لا قيمةٌ بديلة — يُلزِم كلَّ نداءٍ بأن يُقرّر صراحةً ماذا يفعل
+    بالغياب، فلا يُورَث الافتراضُ صامتاً إلى مسارٍ رابعٍ يُكتَب غداً.
+    """
+    for channel in ("rain_recent_mm", "forecast_rain_mm"):
+        kwargs = {**_BASE, channel: None}
+        with pytest.raises(ValueError) as exc:
+            recommend_irrigation(**kwargs, soil_ece=None)
+        # التشخيص يسمّي القناة — رمزُ خطأٍ بلا اسمٍ يُطيل العطل بدل أن يُنهيَه.
+        assert channel in str(exc.value), str(exc.value)
 
 
 if __name__ == "__main__":

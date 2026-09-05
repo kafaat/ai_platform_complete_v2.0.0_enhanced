@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5243,
+    "files_scanned": 5249,
     "files_by_kind": {
       "backend": 1204,
       "database": 276,
       "governance": 62,
       "mobile": 51,
-      "other": 1435,
-      "tests": 1758,
+      "other": 1440,
+      "tests": 1759,
       "web": 457
     },
-    "unmapped_artifacts": 2138,
+    "unmapped_artifacts": 2139,
     "ambiguous_artifacts": 418
   },
   "capabilities": [
@@ -12625,18 +12625,18 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:244",
+          "value": "/api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:282",
           "score": 28
         },
         {
-          "value": "/api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:168",
+          "value": "/api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:186",
           "score": 28
         }
       ],
       "database": [],
       "events": [
         {
-          "value": "sahool.irrigation.et0 @ services/sahool-platform/api/routers/irrigation_recommendation.py:39",
+          "value": "sahool.irrigation.et0 @ services/sahool-platform/api/routers/irrigation_recommendation.py:44",
           "score": 28
         },
         {
@@ -42109,6 +42109,10 @@
     },
     {
       "path": "tests_v9/test_capability_mapping_table_extraction.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_certification_evidence_is_produced_not_assumed.py",
       "kind": "tests"
     },
     {

@@ -1,12 +1,78 @@
 name: Production Certification Blockers
 
+# ═══ الدليلُ يُنتَج، ثمّ يعبُر، ثمّ يُوقَّع ═════════════════════════════════
+#
+# **العطلُ الذي أُغلِق هنا مُكذَّبٌ بالتنفيذ لا موصوف.** كانت هذه الوظائف الأربع
+# تستنسخ الشجرة، تُشغّل فحصَها، ثمّ تطبع حالةَ ملفّاتِ الأدلّة **المودَعة كما هي** —
+# ولا واحدةٌ منها تكتب دليلاً. ووظيفةُ الحكم تستنسخ الشجرة من جديدٍ فتقرأ النائبات
+# نفسَها. المقيسُ على الشجرة قبل هذا التغيير: خمسةُ حواجزَ كلُّها `pending`،
+# و`--require-certified` يُخرِج `1` — لا لأنّ القياس فشل، بل لأنّ **لا شيء يُنتِج
+# ما يقرؤه المُحكِّم**. فالاعتمادُ لم يكن صعباً؛ كان مستحيلاً.
+#
+# والمسارُ الآن ثلاثُ حلقاتٍ كلٌّ منها يقطع تزييفاً بعينه:
+#
+# ① **الإنتاج** — الوظيفةُ التي تقيس حاجبَها فعلاً تبعث دليلَه بـ
+#    `emit_certification_evidence.py` في خطوةٍ **تالية** لخطوة القياس. وخطوةُ Actions
+#    لا تُنفَّذ إن سقطت سابقتُها، فالانبعاثُ **غيرُ قابلٍ للبلوغ** ما لم يمرّ القياس.
+#    هذا شرطُ وصولٍ لا فحصٌ يُخدَع.
+# ② **العبور** — `upload/download-artifact`. وقبل الجلب **يُمسَح** ما في الاستنساخ
+#    (`--purge`): وإلّا مرّ دليلٌ `verified` **مودَعٌ بـ`git add`** بقيمِ أصلٍ عامّةٍ
+#    يعرفها أيُّ مؤلّف، فلا تُنتِجه وظيفةٌ واحدة ويُعتَدّ به. لا يُعتَدّ إلّا بما أنتجه
+#    هذا العدّاء.
+# ③ **التوقيع ثمّ التحقّق** — `actions/attest` بهويّة Sigstore بلا مفتاح، ثمّ
+#    `gh attestation verify --signer-workflow --source-digest`. والخطوةُ الثانية
+#    ليست زينة: **إصدارُ شهادةٍ ليس التحقّقَ منها**، وبلا التحقّق يبقى القولُ
+#    «هويّةٌ لا يملك مؤلّفُ الشجرة إصدارَها» أقوى ممّا يضمنه التنفيذ — تُنتَج
+#    الشهادةُ ولا يُقاس أنّها تُقبَل، ولا تُربَط بالـworkflow المُوقِّع ولا بالبصمة.
+#
+#    **وحدُّ صدقٍ يبقى بعد ذلك:** هذه الوظيفة **بلا Environment محميّة**، فلا
+#    مُوافِقَ بشريّاً بين التشغيل والتوقيع. والتوقيعُ يُثبِت **مَن أنتج البايتات
+#    وأنّها لم تتغيّر** — لا صدقَ ما فيها؛ ومنصّةُ البناء تبقى داخل نطاق الثقة
+#    (تقولها SLSA في أسئلتها الشائعة: «لا خيارَ إلّا الثقةُ بالباني»).
+#
+# ── ولمَ لا تبعث الوظائفُ الأربعُ كلُّها ─────────────────────────────────────
+# لأنّ ثلاثاً منها **تقيس شيئاً غير الحاجب المسمّى بها**، مقيسٌ في الشجرة لا مظنون:
+#
+#   `P-CERT-1` «Full branch CI»          ⇐ كانت تُشغّل `runtime_real_smoke.sh` وحدَه.
+#   `P-CERT-3` «Redis live»              ⇐ تحجب على سرٍّ **يتجاهله السكربت**.
+#   `P-CERT-4` «model provisioning»      ⇐ تفحص اتّساقَ العقد، والمانيفست يقول
+#                                          `operator_must_provision=true`.
+#
+# فالانبعاثُ الآليّ من كلّ وظيفةٍ كان سيحوّل أداةَ الصدق إلى مصدرِ الكذبة. عولج
+# `P-CERT-1` بشاهدٍ حقيقيّ يُسأل من مصدره (واجهةُ Actions عن عدّاء `ci.yml` على هذه
+# البصمة)، و`P-CERT-2` كان يقيس حاجبَه فعلاً فبقي. و`P-CERT-3` و`P-CERT-4` **لا
+# انبعاثَ لهما** — ولا صمتَ أيضاً.
+#
+# ── حدُّ صدقٍ مُعلَن: ثلاثةٌ من خمسةٍ بلا مُنتِج ─────────────────────────────
+# حواجزُ `production_evidence_pack_guard.BLOCKERS` **خمسة**، والمُنتِجُ الصادقُ اليوم
+# **اثنان**. و`GUARDS` أشدُّها: `guard_results_summary.json` لا يكتبه شيءٌ في المستودع
+# كلِّه (مقيسٌ: البحثُ عن اسمه يُرجِع قارئَين وتوثيقاً ولا مُنتِجاً)، ولا وظيفةَ له هنا
+# أصلاً — أربعُ وظائفَ لخمسة حواجز.
+#
+# فالحكمُ يبقى `production_certified=false` بعد هذا التغيير. والفرقُ أنّ سببَه صار
+# **ثلاثةَ مُنتِجين غائبين مُسمَّين بأسبابهم** في
+# `docs/architecture/certification_evidence_producers.json`، يفرضه
+# `scripts/ci/certification_evidence_producer_guard.py`: مَن أراد ختمَ حاجبٍ بلا
+# مُنتِجٍ صادقٍ يصطدم بسطرٍ يقول لماذا لا يُختَم.
+
 on:
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   full-branch-ci-evidence:
     name: P-CERT-1 Full branch CI evidence
     runs-on: ubuntu-latest
+    # البصمةُ تعبُر في مخرَجات الوظيفة **لا داخل المصنوعة**: مصنوعةٌ تُستبدَل في
+    # المخزن لا تحمل بصمتَها الجديدة إلى المُحكِّم، وبصمةٌ داخلها شاهدٌ يشهد لنفسه.
+    outputs:
+      digest: ${{ steps.p_cert_1_digest.outputs.sha256 }}
+    permissions:
+      contents: read
+      # الشاهدُ يُقرأ من واجهة Actions لا يُختلَق هنا — انظر الخطوة أدناه.
+      actions: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
@@ -24,21 +90,60 @@ jobs:
             -r services/edge-inference/requirements.txt
       - name: Run core smoke guards
         run: bash scripts/ci/runtime_real_smoke.sh
-      - name: Show blocker status
-        run: python scripts/ci/production_certification_blockers_status.py
+      # **المِسبارُ أعلاه ليس «CI الفرعِ كاملاً».** ختمُ `verified` عليه يقول ما لم
+      # يُقَس؛ فالشاهدُ يُطلَب من مصدره: عدّاءُ `ci.yml` على هذه البصمة بعينها، ولا
+      # يُقبَل إلّا مكتملاً وخُلاصتُه `success`. غيابُه ⇒ سقوطُ الوظيفة ⇒ لا دليل.
+      - name: Collect the real full-branch CI witness for this commit
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/ci/collect_full_branch_ci_evidence.py \
+            --out "${RUNNER_TEMP}/p-cert-1-fields.json"
+      - name: Emit P-CERT-1 evidence
+        run: |
+          python scripts/ci/emit_certification_evidence.py \
+            --blocker P-CERT-1 \
+            --fields-file "${RUNNER_TEMP}/p-cert-1-fields.json"
+      - name: Record the digest of what this job produced
+        id: p_cert_1_digest
+        run: |
+          echo "sha256=$(sha256sum certification/evidence/ci_summary.json | cut -d' ' -f1)" \
+            >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: certification-evidence-p-cert-1
+          path: certification/evidence/ci_summary.json
+          if-no-files-found: error
+          retention-days: 30
 
   transitive-locks-evidence:
     name: P-CERT-2 Transitive lock evidence
     runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.p_cert_2_digest.outputs.sha256 }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
+      # السكربتُ نفسُه يبعث دليلَه عبر الباعث الواحد (كان يكتبه بيده بتعريفٍ ثانٍ
+      # أضعف: بلا تحقّقٍ من الحقول الدنيا، وبهبوطٍ إلى `evidence_attached` عند
+      # مقارنة سلسلةٍ حارسة).
       - name: Compile transitive service locks
         run: bash scripts/ci/compile_transitive_service_locks.sh
       - name: Validate evidence pack remains honest
         run: python scripts/ci/production_evidence_pack_guard.py --check
+      - name: Record the digest of what this job produced
+        id: p_cert_2_digest
+        run: |
+          echo "sha256=$(sha256sum certification/evidence/transitive_locks_summary.json | cut -d' ' -f1)" \
+            >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: certification-evidence-p-cert-2
+          path: certification/evidence/transitive_locks_summary.json
+          if-no-files-found: error
+          retention-days: 30
 
   redis-live-evidence:
     name: P-CERT-3 Redis live evidence
@@ -60,6 +165,16 @@ jobs:
             exit 1
           fi
           bash scripts/ci/run_weather_redis_integration.sh
+      # **لا انبعاثَ لـP-CERT-3 عمداً — والسببُ مقيسٌ لا متحفَّظٌ عليه.** الوظيفةُ
+      # تحجب على وجود السرّ `WEATHER_REDIS_INTEGRATION_URL`، ثمّ **يتجاهله السكربتُ
+      # تجاهلاً تامّاً**: يرفع `test-redis` من `docker-compose.test.yml` ويُثبِّت
+      # `redis://:test_redis_pass@127.0.0.1:6380/0` في سطره الأخير. فالسرُّ يحكم
+      # *هل تعمل الخطوة* لا *ما الذي اختُبِر*؛ وختمُ `verified` هنا يقول «Redis الحيّ
+      # مرّ» والمقيسُ حاوٍ محلّيٌّ زائل — وحقلُ `readyz_cache_backend` الذي يشترطه
+      # الحارس لا يُقاس في هذا المسار أصلاً.
+      # الإعلانُ وسببُه في `docs/architecture/certification_evidence_producers.json`،
+      # ويحرسه `scripts/ci/certification_evidence_producer_guard.py` فيرفض انبعاثاً
+      # هنا ما دام الإعلانُ قائماً.
 
   model-provisioning-evidence:
     name: P-CERT-4 ONNX/SAM2 model provisioning evidence
@@ -73,11 +188,19 @@ jobs:
         run: |
           python scripts/ci/edge_model_contract_guard.py
           python scripts/ci/edge_production_readiness_guard.py
-      - name: Show blocker status
-        run: python scripts/ci/production_certification_blockers_status.py
+      # **ولا انبعاثَ لـP-CERT-4 عمداً.** الوظيفةُ تفحص **اتّساقَ عقد** الحافّة لا
+      # **تزويدَ** النماذج؛ والمانيفست يقول العكس صراحةً: كلُّ نموذجٍ مطلوبٍ فيه
+      # `packaged_in_repository=false` و`operator_must_provision=true`
+      # (`services/edge-inference/models_manifest/edge_models.required.json`).
+      # وافتراضا `docker-compose.v9.yml` هما `EDGE_READINESS_MODE=partial` و
+      # `EDGE_PRODUCTION_REQUIRED=false` — أي أنّ الحقلَين اللذين يشترطهما الحارس
+      # قيمتُهما في CI هي **قيمةُ عدم التزويد** لا شاهدٌ عليه. التزويدُ يقع عند نشر
+      # المُشغِّل، ولا تملك هذه الـworkflow رؤيتَه.
 
   certification-verdict:
     name: Production certification verdict
+    # `always()` عمداً: وظيفةٌ ساقطةٌ لا تُنتِج مصنوعة، فيبقى حاجبُها `pending` بعد
+    # المسح ⇒ `production_certified=false`. الحكمُ يُقال ولا يُتخطّى.
     if: ${{ always() }}
     needs:
       - full-branch-ci-evidence
@@ -85,10 +208,93 @@ jobs:
       - redis-live-evidence
       - model-provisioning-evidence
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # **و`actions: read` غائبٌ هنا قصداً.** مُنِح مرّةً ثمّ نُزِع: `download-artifact`
+      # أدناه بلا `run-id`، أي يجلب من **العدّاء نفسِه** — وذاك لا يمسّ واجهةَ Actions
+      # فلا يحتاج النطاق. والذي يحتاجه هو `full-branch-ci-evidence` وحدَه لأنّه يسأل
+      # `/actions/workflows` فعلاً، وهو يُعلِنه هناك.
+      #
+      # **وسببُ المنح الأوّل هو الدرس:** «لم أستطع القياس فأزلتُ الاعتمادَ على الجواب»
+      # تعني **منحَ صلاحيّةٍ عند الشكّ** — في الوظيفة الحاملة `id-token: write`
+      # و`attestations: write` تحديداً، أي المُوقِّعة. والاتّجاهُ الصحيح عند الشكّ في
+      # وظيفةٍ تُوقِّع هو المنع؛ فإن سقطت لاحقاً بنقصِ نطاق، فذاك عطلٌ يُقاس ويُصلَح،
+      # لا صلاحيّةٌ تبيت ممنوحةً تحسّباً.
+      id-token: write
+      attestations: write
+      # مُقاسٌ لا منقول: ستُّ وظائفَ في هذه الشجرة تستعمل `actions/attest` بلا هذه
+      # الصلاحيّة — و**لا واحدةٌ منها نُفِّذت قطّ** (كلُّها `workflow_dispatch`،
+      # و`release-artifact-attestation` صفرُ أعدية). فالسابقةُ الوحيدةُ التي جرت
+      # فعلاً وخضرّت هي `ci.yml :: live-pg-fake-connection-proofs`، وهي تُعلِنها.
+      # أخواتٌ لم تُختبَر ليست شاهداً على أنّها تُغني.
+      artifact-metadata: write
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
+      # **قبل الجلب لا بعده.** المسحُ هو ما يجعل «أنتجه هذا العدّاء» شرطاً بدل أمنية.
+      - name: Discard checked-out evidence — only this run's artifacts count
+        run: python scripts/ci/emit_certification_evidence.py --purge
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: certification-evidence-*
+          merge-multiple: true
+          path: certification/evidence
+      # **`download-artifact` لا يفشل مغلقاً.** تحقّقُ GitHub التلقائيّ يعرض
+      # **تحذيراً** عند اختلاف البصمة ويمضي — فمصنوعةٌ استُبدِلت تبلغ المُحكِّمَ
+      # ويُحكَم عليها، والتحذيرُ سطرٌ لا يقرؤه أحد. فالمقارنةُ هنا هي الحاجب،
+      # وتقع **قبل** إعادة بناء النائبات كي لا تُخفي `--write` ملفّاً دخيلاً.
+      - name: Fail closed unless each file matches the digest its producer recorded
+        env:
+          EVIDENCE_SHA256_P_CERT_1: ${{ needs.full-branch-ci-evidence.outputs.digest }}
+          EVIDENCE_SHA256_P_CERT_2: ${{ needs.transitive-locks-evidence.outputs.digest }}
+        run: python scripts/ci/verify_certification_evidence_digests.py
+      - name: Rebuild placeholders and manifest over the collected evidence
+        # `--write` لا يرقّي شيئاً: يُنشئ نائبةَ `pending` لكلّ حاجبٍ لم تصله مصنوعة
+        # ويُعيد بناء البيان. فالوظيفةُ الساقطة تصير `pending` صراحةً لا ملفّاً غائباً.
+        run: python scripts/ci/production_evidence_pack_guard.py --write
       - name: Require complete or explicitly waived evidence
         run: python scripts/ci/production_certification_blockers_status.py --require-certified
+      # يُوقَّع بعد الحكم لا قبله: لا تُختَم حزمةٌ لم تمرّ.
+      - name: Package the verdict-passing evidence for attestation
+        run: |
+          tar -czf "${RUNNER_TEMP}/certification-evidence-${GITHUB_SHA}.tar.gz" \
+            -C certification evidence
+      - name: Attest the evidence pack (Sigstore keyless)
+        id: attest
+        # هويّةُ الـworkflow عبر OIDC — الحقلُ الوحيدُ في هذه الحزمة الذي لا يملك
+        # مؤلّفُ الشجرة إصدارَه.
+        continue-on-error: true
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: ${{ runner.temp }}/certification-evidence-${{ github.sha }}.tar.gz
+      - name: Retry the attestation once (transparency-log timeouts are transient)
+        # حاجزةٌ عمداً: سقوطُ المحاولة الأخيرة يعني أنّ المنشأ لم يُثبَت فعلاً،
+        # وحزمةٌ بلا توقيعٍ ليست حزمةً موثَّقةَ المنشأ. نفس نمط `ci.yml` المُقاس.
+        if: ${{ steps.attest.outcome == 'failure' }}
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: ${{ runner.temp }}/certification-evidence-${{ github.sha }}.tar.gz
+      # **إصدارُ شهادةٍ ليس التحقّقَ منها.** بلا هذه الخطوة يبقى الادّعاء «هويّةٌ
+      # لا يملك المؤلّفُ إصدارَها» **أقوى ممّا ينفّذه** الـworkflow: تُنتَج الشهادة
+      # ولا يُقاس أنّها تُقبَل، ولا تُربَط بـworkflow المُوقِّع ولا بالبصمة الهدف.
+      # النمطُ مأخوذٌ من `path3-runtime-verification.yml` القائم في هذه الشجرة.
+      - name: Install pinned GitHub attestation verifier
+        run: bash scripts/ci/install_pinned_gh_attestation_cli.sh
+      - name: Verify the attestation binds this workflow and this commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh attestation verify \
+            "${RUNNER_TEMP}/certification-evidence-${GITHUB_SHA}.tar.gz" \
+            --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/production-certification-blockers.yml" \
+            --source-digest "$GITHUB_SHA"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: certification-evidence-pack-${{ github.sha }}
+          path: ${{ runner.temp }}/certification-evidence-${{ github.sha }}.tar.gz
+          if-no-files-found: error
+          retention-days: 30

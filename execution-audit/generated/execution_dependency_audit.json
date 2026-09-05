@@ -5,7 +5,7 @@
   "runtime_verified": false,
   "python_files_parsed": 1880,
   "route_handlers": 1049,
-  "call_edges": 76188,
+  "call_edges": 76261,
   "dead_code_candidates": 625,
   "duplicate_function_groups": 61,
   "route_owners": 27,
@@ -5679,7 +5679,7 @@
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "line": 169,
+   "line": 187,
    "handler": "irrigation_recommendation",
    "method": "POST",
    "path": "/api/v1/irrigation-recommendation"
@@ -5687,7 +5687,7 @@
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "line": 245,
+   "line": 283,
    "handler": "field_irrigation_recommendation",
    "method": "POST",
    "path": "/api/v1/fields/{field_id}/irrigation-recommendation"
@@ -208463,239 +208463,239 @@
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
+   "target": "ValueError",
+   "line": 136
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "join",
+   "line": 136
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
    "target": "getenv",
-   "line": 119
+   "line": 143
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "salinity_policy_forced_off",
-   "line": 119
+   "line": 143
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "int",
-   "line": 125
+   "line": 149
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "int",
-   "line": 125
+   "line": 149
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "float",
-   "line": 127
+   "line": 151
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "append",
-   "line": 131
+   "line": 155
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "float",
-   "line": 134
+   "line": 158
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "irrigation_advice",
-   "line": 140
+   "line": 164
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "float",
-   "line": 152
+   "line": 176
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "float",
-   "line": 153
+   "line": 177
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "float",
-   "line": 156
+   "line": 180
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "lower",
-   "line": 162
+   "line": 186
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "strip",
-   "line": 162
+   "line": 186
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "float",
-   "line": 167
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "float",
-   "line": 167
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "leaching_requirement",
-   "line": 167
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "round",
-   "line": 168
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "round",
-   "line": 170
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "append",
    "line": 191
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
-   "target": "append",
-   "line": 202
+   "target": "float",
+   "line": 191
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "leaching_requirement",
+   "line": 191
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "round",
+   "line": 192
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "round",
+   "line": 194
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "append",
-   "line": 210
+   "line": 215
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "append",
+   "line": 226
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "append",
+   "line": 234
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "policy_params",
-   "line": 222
+   "line": 246
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "float",
-   "line": 232
+   "line": 256
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
    "target": "float",
-   "line": 234
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "max",
-   "line": 234
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "float",
-   "line": 235
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "max",
-   "line": 235
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "min",
-   "line": 235
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "round",
-   "line": 236
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "round",
-   "line": 242
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "append",
-   "line": 243
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
-   "source": "recommend_irrigation",
-   "target": "get",
    "line": 258
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
-   "target": "get",
-   "line": 264
+   "target": "max",
+   "line": 258
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
-   "target": "str",
-   "line": 264
+   "target": "float",
+   "line": 259
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "max",
+   "line": 259
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "min",
+   "line": 259
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "round",
+   "line": 260
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "round",
+   "line": 266
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "append",
+   "line": 267
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "bool",
+   "line": 295
   },
   {
    "owner": "sahool-platform",
@@ -208708,15 +208708,43 @@
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
-   "target": "round",
+   "target": "get",
    "line": 303
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
    "source": "recommend_irrigation",
+   "target": "get",
+   "line": 309
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "str",
+   "line": 309
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "get",
+   "line": 345
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
+   "target": "round",
+   "line": 354
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/irrigation_recommendation_policy.py",
+   "source": "recommend_irrigation",
    "target": "to_dict",
-   "line": 305
+   "line": 356
   },
   {
    "owner": "sahool-platform",
@@ -269203,70 +269231,28 @@
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_engine_et0",
    "target": "get_et0_product",
-   "line": 62
+   "line": 67
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_field_weather_snapshot",
    "target": "get_weather_forecast",
-   "line": 86
+   "line": 95
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_field_weather_snapshot",
    "target": "get",
-   "line": 87
+   "line": 96
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_field_weather_snapshot",
    "target": "HTTPException",
-   "line": 89
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "_field_weather_snapshot",
-   "target": "get",
-   "line": 94
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "_field_weather_snapshot",
-   "target": "fromisoformat",
-   "line": 96
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "_field_weather_snapshot",
-   "target": "timetuple",
-   "line": 96
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "_field_weather_snapshot",
-   "target": "get",
-   "line": 100
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "_field_weather_snapshot",
-   "target": "get",
-   "line": 101
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "_field_weather_snapshot",
-   "target": "get",
-   "line": 102
+   "line": 98
   },
   {
    "owner": "sahool-platform",
@@ -269278,302 +269264,358 @@
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "_submit_candidate_to_decision",
-   "target": "record_decision",
+   "source": "_field_weather_snapshot",
+   "target": "fromisoformat",
+   "line": 105
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "_field_weather_snapshot",
+   "target": "timetuple",
+   "line": 105
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "_field_weather_snapshot",
+   "target": "complete_rain_total",
+   "line": 110
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "_field_weather_snapshot",
+   "target": "get",
+   "line": 111
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "_field_weather_snapshot",
+   "target": "get",
+   "line": 114
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "_field_weather_snapshot",
+   "target": "get",
+   "line": 115
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "_field_weather_snapshot",
+   "target": "get",
+   "line": 116
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "_field_weather_snapshot",
+   "target": "get",
    "line": 117
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "_et0_provenance",
+   "source": "_field_weather_snapshot",
    "target": "get",
-   "line": 123
+   "line": 119
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "_submit_candidate_to_decision",
+   "target": "record_decision",
+   "line": 133
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_et0_provenance",
    "target": "get",
-   "line": 124
+   "line": 139
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_et0_provenance",
    "target": "get",
-   "line": 125
+   "line": 140
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_et0_provenance",
    "target": "get",
-   "line": 126
+   "line": 141
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_et0_provenance",
    "target": "get",
-   "line": 127
+   "line": 142
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "_et0_provenance",
    "target": "get",
-   "line": 128
+   "line": 143
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "_et0_provenance",
+   "target": "get",
+   "line": 144
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "irrigation_recommendation",
    "target": "post",
-   "line": 168
+   "line": 186
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "irrigation_recommendation",
    "target": "Depends",
-   "line": 171
+   "line": 189
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "irrigation_recommendation",
-   "target": "_engine_et0",
-   "line": 182
+   "target": "enumerate",
+   "line": 204
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "irrigation_recommendation",
    "target": "HTTPException",
-   "line": 194
+   "line": 208
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "irrigation_recommendation",
+   "target": "precipitation_incomplete_detail",
+   "line": 210
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "irrigation_recommendation",
+   "target": "_engine_et0",
+   "line": 216
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "irrigation_recommendation",
+   "target": "HTTPException",
+   "line": 228
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "irrigation_recommendation",
    "target": "get",
-   "line": 199
+   "line": 233
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "irrigation_recommendation",
    "target": "recommend_irrigation",
-   "line": 200
+   "line": 234
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "post",
-   "line": 244
+   "line": 282
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "Depends",
-   "line": 248
+   "line": 286
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "require_permission",
-   "line": 248
+   "line": 286
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "tenant_connection",
-   "line": 262
+   "line": 300
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "_field_weather_context",
-   "line": 264
+   "line": 302
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "fetchrow",
-   "line": 265
+   "line": 303
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "fetchrow",
-   "line": 272
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "fetchrow",
-   "line": 280
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "transaction",
-   "line": 293
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "fetchrow",
-   "line": 294
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "float",
-   "line": 306
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "extract_texture",
    "line": 310
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "str",
-   "line": 311
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "float",
-   "line": 313
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "soil_water_params",
-   "line": 315
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "soil_water_provenance",
-   "line": 317
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "bool",
+   "target": "fetchrow",
    "line": 318
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 318
+   "target": "transaction",
+   "line": 331
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 319
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "assess_irrigation_state",
-   "line": 326
+   "target": "fetchrow",
+   "line": 332
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "float",
-   "line": 334
+   "line": 344
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "round",
-   "line": 334
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "round",
-   "line": 340
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "append",
-   "line": 346
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "append",
+   "target": "extract_texture",
    "line": 348
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "canonical_water_stress",
-   "line": 368
+   "target": "str",
+   "line": 349
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "float",
+   "line": 351
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "soil_water_params",
+   "line": 353
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "soil_water_provenance",
+   "line": 355
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "bool",
+   "line": 356
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "get",
-   "line": 381
+   "line": 356
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 357
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "assess_irrigation_state",
+   "line": 364
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "float",
+   "line": 372
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "round",
+   "line": 372
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "round",
+   "line": 378
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "append",
-   "line": 382
+   "line": 384
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 383
+   "target": "append",
+   "line": 386
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "_field_weather_snapshot",
+   "target": "canonical_water_stress",
    "line": 406
   },
   {
@@ -269581,48 +269623,27 @@
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "get",
-   "line": 427
+   "line": 419
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "append",
+   "line": 420
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "get",
-   "line": 427
+   "line": 421
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
-   "target": "_engine_et0",
-   "line": 443
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 446
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 447
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 448
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
+   "target": "_field_weather_snapshot",
    "line": 449
   },
   {
@@ -269630,182 +269651,308 @@
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "get",
-   "line": 452
+   "line": 470
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "get",
-   "line": 474
+   "line": 470
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 488
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 488
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "precipitation_incomplete_detail",
+   "line": 500
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "enumerate",
+   "line": 504
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 505
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "_engine_et0",
+   "line": 514
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 517
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 518
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 519
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 520
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 523
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 545
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "append",
-   "line": 475
+   "line": 546
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "get",
-   "line": 475
+   "line": 546
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "recommend_irrigation",
-   "line": 477
+   "line": 548
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "float",
-   "line": 492
+   "line": 565
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "round",
-   "line": 493
+   "line": 566
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "max",
-   "line": 494
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "len",
-   "line": 496
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 521
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 522
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "_submit_candidate_to_decision",
-   "line": 529
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "getattr",
-   "line": 530
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 532
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 532
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "isoformat",
-   "line": 546
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "today",
-   "line": 546
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "_et0_provenance",
-   "line": 557
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 560
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 561
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "bool",
-   "line": 566
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
-   "line": 566
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-   "source": "field_irrigation_recommendation",
-   "target": "get",
    "line": 567
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
+   "target": "len",
+   "line": 569
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
    "target": "get",
-   "line": 568
+   "line": 613
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 614
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "getattr",
+   "line": 624
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "getattr",
+   "line": 624
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "_submit_candidate_to_decision",
+   "line": 627
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "getattr",
+   "line": 628
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 630
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 630
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 634
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 635
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "bool",
-   "line": 569
+   "line": 636
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
    "source": "field_irrigation_recommendation",
    "target": "get",
-   "line": 569
+   "line": 637
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "isoformat",
+   "line": 660
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "today",
+   "line": 660
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "_et0_provenance",
+   "line": 676
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 679
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 680
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "bool",
+   "line": 685
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 685
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 686
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 687
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "bool",
+   "line": 688
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+   "source": "field_irrigation_recommendation",
+   "target": "get",
+   "line": 688
   },
   {
    "owner": "sahool-platform",
@@ -301907,27 +302054,20 @@
    "file": "services/sahool-platform/api/weather_advice.py",
    "source": "irrigation_advice",
    "target": "append",
-   "line": 252
+   "line": 258
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/weather_advice.py",
    "source": "irrigation_advice",
    "target": "join",
-   "line": 263
+   "line": 269
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/weather_advice.py",
    "source": "irrigation_advice",
    "target": "join",
-   "line": 266
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/weather_advice.py",
-   "source": "irrigation_advice",
-   "target": "round",
    "line": 272
   },
   {
@@ -301935,76 +302075,69 @@
    "file": "services/sahool-platform/api/weather_advice.py",
    "source": "irrigation_advice",
    "target": "round",
-   "line": 273
+   "line": 278
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/weather_advice.py",
    "source": "irrigation_advice",
    "target": "round",
-   "line": 274
+   "line": 279
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/weather_advice.py",
    "source": "irrigation_advice",
    "target": "round",
-   "line": 276
+   "line": 280
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/weather_advice.py",
+   "source": "irrigation_advice",
+   "target": "round",
+   "line": 282
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/weather_advice.py",
    "source": "disease_risk",
    "target": "float",
-   "line": 309
+   "line": 316
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/weather_advice.py",
    "source": "disease_risk",
    "target": "float",
-   "line": 310
+   "line": 317
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/weather_advice.py",
    "source": "disease_risk",
    "target": "float",
-   "line": 311
+   "line": 318
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/weather_advice.py",
    "source": "disease_risk",
    "target": "max",
-   "line": 311
+   "line": 318
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/weather_advice.py",
    "source": "disease_risk",
    "target": "append",
-   "line": 322
+   "line": 329
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/weather_advice.py",
    "source": "disease_risk",
    "target": "append",
-   "line": 325
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/weather_advice.py",
-   "source": "disease_risk",
-   "target": "append",
-   "line": 328
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/weather_advice.py",
-   "source": "disease_risk",
-   "target": "max",
    "line": 332
   },
   {
@@ -302012,63 +302145,70 @@
    "file": "services/sahool-platform/api/weather_advice.py",
    "source": "disease_risk",
    "target": "append",
-   "line": 333
+   "line": 335
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/weather_advice.py",
+   "source": "disease_risk",
+   "target": "max",
+   "line": 339
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/weather_advice.py",
    "source": "disease_risk",
    "target": "append",
-   "line": 345
+   "line": 340
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/weather_advice.py",
    "source": "disease_risk",
    "target": "append",
-   "line": 346
+   "line": 352
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/weather_advice.py",
    "source": "disease_risk",
    "target": "append",
-   "line": 348
+   "line": 353
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/weather_advice.py",
    "source": "disease_risk",
    "target": "append",
-   "line": 349
+   "line": 355
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/weather_advice.py",
    "source": "disease_risk",
    "target": "append",
-   "line": 351
+   "line": 356
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/weather_advice.py",
+   "source": "disease_risk",
+   "target": "append",
+   "line": 358
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/weather_advice.py",
    "source": "disease_risk",
    "target": "fromkeys",
-   "line": 353
+   "line": 360
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/weather_advice.py",
    "source": "disease_risk",
    "target": "list",
-   "line": 353
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/weather_advice.py",
-   "source": "disease_risk",
-   "target": "join",
-   "line": 358
+   "line": 360
   },
   {
    "owner": "sahool-platform",
@@ -302076,6 +302216,13 @@
    "source": "disease_risk",
    "target": "join",
    "line": 365
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/weather_advice.py",
+   "source": "disease_risk",
+   "target": "join",
+   "line": 372
   },
   {
    "owner": "sahool-platform",
@@ -400460,623 +400607,973 @@
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_ready_produces_candidate",
    "target": "_FakeConn",
-   "line": 117
+   "line": 119
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_ready_produces_candidate",
    "target": "_patch",
-   "line": 117
+   "line": 119
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_ready_produces_candidate",
    "target": "field_irrigation_recommendation",
-   "line": 118
+   "line": 120
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_ready_produces_candidate",
    "target": "object",
-   "line": 118
+   "line": 120
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_ready_produces_candidate",
    "target": "any",
-   "line": 125
+   "line": 127
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_ready_produces_candidate",
    "target": "startswith",
-   "line": 125
+   "line": 127
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_et0_provenance_from_weather_engine",
    "target": "_FakeConn",
-   "line": 131
+   "line": 133
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_et0_provenance_from_weather_engine",
    "target": "_patch",
-   "line": 131
+   "line": 133
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_et0_provenance_from_weather_engine",
    "target": "field_irrigation_recommendation",
-   "line": 132
+   "line": 134
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_et0_provenance_from_weather_engine",
    "target": "object",
-   "line": 132
+   "line": 134
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_et0_provenance_from_weather_engine",
    "target": "any",
-   "line": 139
+   "line": 141
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_et0_provenance_from_weather_engine",
    "target": "startswith",
-   "line": 139
+   "line": 141
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_msi_reaches_irrigation_candidate",
    "target": "_patch",
-   "line": 147
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_msi_reaches_irrigation_candidate",
-   "target": "_FakeConn",
    "line": 149
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_msi_reaches_irrigation_candidate",
-   "target": "date",
-   "line": 154
+   "target": "_FakeConn",
+   "line": 151
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_msi_reaches_irrigation_candidate",
    "target": "date",
-   "line": 155
+   "line": 156
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_msi_reaches_irrigation_candidate",
+   "target": "date",
+   "line": 157
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_msi_reaches_irrigation_candidate",
    "target": "field_irrigation_recommendation",
-   "line": 159
+   "line": 161
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_msi_reaches_irrigation_candidate",
    "target": "object",
-   "line": 159
+   "line": 161
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_msi_reaches_irrigation_candidate",
    "target": "any",
-   "line": 161
+   "line": 163
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_msi_reaches_irrigation_candidate",
    "target": "startswith",
-   "line": 161
+   "line": 163
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_no_spectral_escalation_when_msi_missing",
    "target": "_patch",
-   "line": 167
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_no_spectral_escalation_when_msi_missing",
-   "target": "_FakeConn",
    "line": 169
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_no_spectral_escalation_when_msi_missing",
-   "target": "date",
+   "target": "_FakeConn",
    "line": 171
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_no_spectral_escalation_when_msi_missing",
+   "target": "date",
+   "line": 173
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_no_spectral_escalation_when_msi_missing",
    "target": "field_irrigation_recommendation",
-   "line": 174
+   "line": 176
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_no_spectral_escalation_when_msi_missing",
    "target": "object",
-   "line": 174
+   "line": 176
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_lab_texture_is_measured_provenance",
    "target": "_FakeConn",
-   "line": 182
+   "line": 184
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_lab_texture_is_measured_provenance",
    "target": "_patch",
-   "line": 182
+   "line": 184
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_lab_texture_is_measured_provenance",
    "target": "field_irrigation_recommendation",
-   "line": 183
+   "line": 185
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_lab_texture_is_measured_provenance",
    "target": "object",
-   "line": 183
+   "line": 185
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_lab_texture_is_measured_provenance",
    "target": "any",
-   "line": 188
+   "line": 190
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_lab_texture_is_measured_provenance",
    "target": "startswith",
-   "line": 188
+   "line": 190
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_missing_lab_texture_fallback_lowers_confidence",
    "target": "_FakeConn",
-   "line": 194
+   "line": 196
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_missing_lab_texture_fallback_lowers_confidence",
    "target": "_patch",
-   "line": 194
+   "line": 196
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_missing_lab_texture_fallback_lowers_confidence",
    "target": "field_irrigation_recommendation",
-   "line": 195
+   "line": 197
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_missing_lab_texture_fallback_lowers_confidence",
    "target": "object",
-   "line": 195
+   "line": 197
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_missing_lab_texture_fallback_lowers_confidence",
    "target": "any",
-   "line": 199
+   "line": 201
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_engine_down_fails_closed_no_local_et0",
    "target": "_patch",
-   "line": 207
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_engine_down_fails_closed_no_local_et0",
-   "target": "_FakeConn",
    "line": 209
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_engine_down_fails_closed_no_local_et0",
-   "target": "HTTPException",
-   "line": 210
+   "target": "_FakeConn",
+   "line": 211
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_engine_down_fails_closed_no_local_et0",
-   "target": "field_irrigation_recommendation",
+   "target": "HTTPException",
    "line": 212
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_engine_down_fails_closed_no_local_et0",
+   "target": "field_irrigation_recommendation",
+   "line": 214
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_engine_down_fails_closed_no_local_et0",
    "target": "object",
-   "line": 212
+   "line": 214
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_engine_down_fails_closed_no_local_et0",
    "target": "any",
-   "line": 215
+   "line": 217
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_auto_fetch_weather_is_primary_path",
    "target": "_FakeConn",
-   "line": 224
+   "line": 226
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_auto_fetch_weather_is_primary_path",
    "target": "_patch",
-   "line": 224
+   "line": 226
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_auto_fetch_weather_is_primary_path",
    "target": "setattr",
-   "line": 238
+   "line": 243
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_auto_fetch_weather_is_primary_path",
    "target": "field_irrigation_recommendation",
-   "line": 239
+   "line": 244
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_auto_fetch_weather_is_primary_path",
    "target": "object",
-   "line": 239
+   "line": 244
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_manual_weather_is_flagged_override",
    "target": "_FakeConn",
-   "line": 249
+   "line": 254
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_manual_weather_is_flagged_override",
    "target": "_patch",
-   "line": 249
+   "line": 254
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_manual_weather_is_flagged_override",
    "target": "field_irrigation_recommendation",
-   "line": 250
+   "line": 255
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_manual_weather_is_flagged_override",
    "target": "object",
-   "line": 250
+   "line": 255
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_manual_weather_is_flagged_override",
    "target": "any",
-   "line": 252
+   "line": 257
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_weather_engine_down_fails_closed",
    "target": "_FakeConn",
-   "line": 259
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_weather_engine_down_fails_closed",
-   "target": "_patch",
-   "line": 259
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "_down",
-   "target": "HTTPException",
-   "line": 262
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_weather_engine_down_fails_closed",
-   "target": "HTTPException",
-   "line": 262
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_weather_engine_down_fails_closed",
-   "target": "setattr",
    "line": 264
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_weather_engine_down_fails_closed",
-   "target": "field_irrigation_recommendation",
-   "line": 265
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_weather_engine_down_fails_closed",
-   "target": "object",
-   "line": 265
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_weather_engine_down_fails_closed",
-   "target": "any",
-   "line": 268
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_default_is_not_submitted",
-   "target": "_FakeConn",
-   "line": 274
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_default_is_not_submitted",
    "target": "_patch",
-   "line": 274
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_default_is_not_submitted",
-   "target": "field_irrigation_recommendation",
-   "line": 275
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_default_is_not_submitted",
-   "target": "object",
-   "line": 275
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_to_decision_is_pending_approval",
-   "target": "_FakeConn",
-   "line": 282
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_to_decision_is_pending_approval",
-   "target": "_patch",
-   "line": 282
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_to_decision_is_pending_approval",
-   "target": "setattr",
-   "line": 289
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_to_decision_is_pending_approval",
-   "target": "FieldIrrigationRequest",
-   "line": 290
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_to_decision_is_pending_approval",
-   "target": "setattr",
-   "line": 304
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_to_decision_is_pending_approval",
-   "target": "field_irrigation_recommendation",
-   "line": 305
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_to_decision_is_pending_approval",
-   "target": "object",
-   "line": 305
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_decision_service_down_is_flagged",
-   "target": "_FakeConn",
-   "line": 314
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_decision_service_down_is_flagged",
-   "target": "_patch",
-   "line": 314
+   "line": 264
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "_down",
    "target": "HTTPException",
-   "line": 317
+   "line": 267
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_decision_service_down_is_flagged",
+   "source": "test_weather_engine_down_fails_closed",
    "target": "HTTPException",
-   "line": 317
+   "line": 267
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_decision_service_down_is_flagged",
+   "source": "test_weather_engine_down_fails_closed",
    "target": "setattr",
-   "line": 331
+   "line": 269
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_decision_service_down_is_flagged",
+   "source": "test_weather_engine_down_fails_closed",
+   "target": "field_irrigation_recommendation",
+   "line": 270
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_weather_engine_down_fails_closed",
+   "target": "object",
+   "line": 270
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_weather_engine_down_fails_closed",
+   "target": "any",
+   "line": 273
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_default_is_not_submitted",
+   "target": "_FakeConn",
+   "line": 279
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_default_is_not_submitted",
+   "target": "_patch",
+   "line": 279
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_default_is_not_submitted",
+   "target": "field_irrigation_recommendation",
+   "line": 280
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_default_is_not_submitted",
+   "target": "object",
+   "line": 280
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_to_decision_is_pending_approval",
+   "target": "_FakeConn",
+   "line": 287
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_to_decision_is_pending_approval",
+   "target": "_patch",
+   "line": 287
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_to_decision_is_pending_approval",
    "target": "setattr",
-   "line": 332
+   "line": 305
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
-   "source": "test_submit_decision_service_down_is_flagged",
+   "source": "test_submit_to_decision_is_pending_approval",
    "target": "FieldIrrigationRequest",
+   "line": 306
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_to_decision_is_pending_approval",
+   "target": "setattr",
+   "line": 323
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_to_decision_is_pending_approval",
+   "target": "field_irrigation_recommendation",
+   "line": 324
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_to_decision_is_pending_approval",
+   "target": "object",
+   "line": 324
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_decision_service_down_is_flagged",
+   "target": "_FakeConn",
    "line": 333
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_submit_decision_service_down_is_flagged",
+   "target": "_patch",
+   "line": 333
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "_down",
+   "target": "HTTPException",
+   "line": 336
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_decision_service_down_is_flagged",
+   "target": "HTTPException",
+   "line": 336
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_decision_service_down_is_flagged",
+   "target": "setattr",
+   "line": 353
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_decision_service_down_is_flagged",
+   "target": "setattr",
+   "line": 354
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_decision_service_down_is_flagged",
+   "target": "FieldIrrigationRequest",
+   "line": 355
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submit_decision_service_down_is_flagged",
    "target": "field_irrigation_recommendation",
-   "line": 334
+   "line": 356
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_submit_decision_service_down_is_flagged",
    "target": "object",
-   "line": 334
+   "line": 356
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_submit_decision_service_down_is_flagged",
    "target": "any",
-   "line": 338
+   "line": 360
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_missing_depletion_is_insufficient",
    "target": "_FakeConn",
-   "line": 343
+   "line": 365
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_missing_depletion_is_insufficient",
    "target": "_patch",
-   "line": 343
+   "line": 365
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_missing_depletion_is_insufficient",
    "target": "field_irrigation_recommendation",
-   "line": 344
+   "line": 366
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_missing_depletion_is_insufficient",
    "target": "object",
-   "line": 344
+   "line": 366
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_depletion_exceeds_taw_is_inconsistent",
    "target": "_FakeConn",
-   "line": 353
+   "line": 375
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_depletion_exceeds_taw_is_inconsistent",
    "target": "_patch",
-   "line": 353
+   "line": 375
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_depletion_exceeds_taw_is_inconsistent",
    "target": "field_irrigation_recommendation",
-   "line": 354
+   "line": 376
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
    "source": "test_depletion_exceeds_taw_is_inconsistent",
    "target": "object",
-   "line": 354
+   "line": 376
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_missing_rain_refuses_instead_of_assuming_no_rain",
+   "target": "_FakeConn",
+   "line": 394
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_missing_rain_refuses_instead_of_assuming_no_rain",
+   "target": "_patch",
+   "line": 394
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_missing_rain_refuses_instead_of_assuming_no_rain",
+   "target": "setattr",
+   "line": 410
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_missing_rain_refuses_instead_of_assuming_no_rain",
+   "target": "field_irrigation_recommendation",
+   "line": 411
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_missing_rain_refuses_instead_of_assuming_no_rain",
+   "target": "object",
+   "line": 411
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_missing_rain_refuses_instead_of_assuming_no_rain",
+   "target": "any",
+   "line": 414
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_manual_temperature_override_without_rain_also_refuses",
+   "target": "_FakeConn",
+   "line": 424
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_manual_temperature_override_without_rain_also_refuses",
+   "target": "_patch",
+   "line": 424
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_manual_temperature_override_without_rain_also_refuses",
+   "target": "FieldIrrigationRequest",
+   "line": 425
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_manual_temperature_override_without_rain_also_refuses",
+   "target": "field_irrigation_recommendation",
+   "line": 426
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_manual_temperature_override_without_rain_also_refuses",
+   "target": "object",
+   "line": 426
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_recent_rain_reaches_the_policy_and_lowers_the_amount",
+   "target": "_FakeConn",
+   "line": 450
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_recent_rain_reaches_the_policy_and_lowers_the_amount",
+   "target": "_patch",
+   "line": 450
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "_run",
+   "target": "setattr",
+   "line": 467
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_recent_rain_reaches_the_policy_and_lowers_the_amount",
+   "target": "setattr",
+   "line": 467
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "_run",
+   "target": "field_irrigation_recommendation",
+   "line": 468
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "_run",
+   "target": "object",
+   "line": 468
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_recent_rain_reaches_the_policy_and_lowers_the_amount",
+   "target": "field_irrigation_recommendation",
+   "line": 468
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_recent_rain_reaches_the_policy_and_lowers_the_amount",
+   "target": "object",
+   "line": 468
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_recent_rain_reaches_the_policy_and_lowers_the_amount",
+   "target": "_run",
+   "line": 472
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_recent_rain_reaches_the_policy_and_lowers_the_amount",
+   "target": "_run",
+   "line": 473
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_forecast_rain_hold_withholds_the_release_decision",
+   "target": "_FakeConn",
+   "line": 514
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_forecast_rain_hold_withholds_the_release_decision",
+   "target": "_patch",
+   "line": 514
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_forecast_rain_hold_withholds_the_release_decision",
+   "target": "_snap_forecast",
+   "line": 515
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_forecast_rain_hold_withholds_the_release_decision",
+   "target": "setattr",
+   "line": 515
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_forecast_rain_hold_withholds_the_release_decision",
+   "target": "field_irrigation_recommendation",
+   "line": 516
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_forecast_rain_hold_withholds_the_release_decision",
+   "target": "object",
+   "line": 516
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_without_the_hold_the_release_decision_still_fires",
+   "target": "_FakeConn",
+   "line": 534
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_without_the_hold_the_release_decision_still_fires",
+   "target": "_patch",
+   "line": 534
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_without_the_hold_the_release_decision_still_fires",
+   "target": "_snap_forecast",
+   "line": 535
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_without_the_hold_the_release_decision_still_fires",
+   "target": "setattr",
+   "line": 535
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_without_the_hold_the_release_decision_still_fires",
+   "target": "field_irrigation_recommendation",
+   "line": 536
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_without_the_hold_the_release_decision_still_fires",
+   "target": "object",
+   "line": 536
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_the_hold_blocks_submission_to_decision_service",
+   "target": "_FakeConn",
+   "line": 548
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_the_hold_blocks_submission_to_decision_service",
+   "target": "_patch",
+   "line": 548
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_the_hold_blocks_submission_to_decision_service",
+   "target": "_snap_forecast",
+   "line": 549
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_the_hold_blocks_submission_to_decision_service",
+   "target": "setattr",
+   "line": 549
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_the_hold_blocks_submission_to_decision_service",
+   "target": "setattr",
+   "line": 558
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_the_hold_blocks_submission_to_decision_service",
+   "target": "FieldIrrigationRequest",
+   "line": 559
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_the_hold_blocks_submission_to_decision_service",
+   "target": "field_irrigation_recommendation",
+   "line": 560
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_the_hold_blocks_submission_to_decision_service",
+   "target": "object",
+   "line": 560
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submission_without_proof_of_persistence_is_not_pending_approval",
+   "target": "_FakeConn",
+   "line": 574
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submission_without_proof_of_persistence_is_not_pending_approval",
+   "target": "_patch",
+   "line": 574
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submission_without_proof_of_persistence_is_not_pending_approval",
+   "target": "_snap_forecast",
+   "line": 575
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submission_without_proof_of_persistence_is_not_pending_approval",
+   "target": "setattr",
+   "line": 575
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submission_without_proof_of_persistence_is_not_pending_approval",
+   "target": "setattr",
+   "line": 580
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submission_without_proof_of_persistence_is_not_pending_approval",
+   "target": "FieldIrrigationRequest",
+   "line": 581
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submission_without_proof_of_persistence_is_not_pending_approval",
+   "target": "field_irrigation_recommendation",
+   "line": 582
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submission_without_proof_of_persistence_is_not_pending_approval",
+   "target": "object",
+   "line": 582
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+   "source": "test_submission_without_proof_of_persistence_is_not_pending_approval",
+   "target": "any",
+   "line": 586
   },
   {
    "owner": "sahool-platform",
@@ -410701,84 +411198,84 @@
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "_base",
    "target": "dict",
-   "line": 13
+   "line": 15
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "_base",
    "target": "update",
-   "line": 14
+   "line": 16
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "_base",
    "target": "recommend_irrigation",
-   "line": 15
+   "line": 17
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "test_missing_depletion_fails_safe_no_decision",
    "target": "_base",
-   "line": 20
+   "line": 22
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "test_depletion_at_or_above_trigger_fires_water_saving",
    "target": "_base",
-   "line": 30
+   "line": 32
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "test_depletion_below_trigger_defers",
    "target": "_base",
-   "line": 41
+   "line": 43
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "test_yield_max_fires_earlier_and_refills_full",
    "target": "_base",
-   "line": 50
+   "line": 52
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "test_yield_max_fires_earlier_and_refills_full",
    "target": "_base",
-   "line": 51
+   "line": 53
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "test_critical_stress_class_raises_urgency_high",
    "target": "_base",
-   "line": 59
+   "line": 61
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "test_watch_stress_class_lifts_low_urgency_to_moderate",
    "target": "_base",
-   "line": 66
+   "line": 68
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "test_invalid_taw_fails_safe",
    "target": "_base",
-   "line": 79
+   "line": 81
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
    "source": "test_policy_knobs_reported_for_audit",
    "target": "_base",
-   "line": 85
+   "line": 87
   },
   {
    "owner": "sahool-platform",
@@ -493560,147 +494057,133 @@
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_daily_series_product",
    "target": "isinstance",
-   "line": 295
+   "line": 298
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_daily_series_product",
    "target": "list",
-   "line": 301
+   "line": 304
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_daily_series_product",
    "target": "get",
-   "line": 305
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "_daily_series_product",
-   "target": "isinstance",
-   "line": 306
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "_daily_series_product",
-   "target": "dict",
-   "line": 307
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "_daily_series_product",
-   "target": "update",
    "line": 308
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_daily_series_product",
-   "target": "list",
-   "line": 314
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "_daily_series_product",
-   "target": "set",
-   "line": 320
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "_daily_series_product",
-   "target": "set",
-   "line": 321
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "_daily_series_product",
    "target": "isinstance",
-   "line": 323
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "_daily_series_product",
-   "target": "update",
-   "line": 324
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "_daily_series_product",
-   "target": "get",
-   "line": 326
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "_daily_series_product",
-   "target": "update",
-   "line": 326
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "_daily_series_product",
-   "target": "get",
-   "line": 327
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "_daily_series_product",
-   "target": "update",
-   "line": 327
+   "line": 309
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_daily_series_product",
    "target": "dict",
+   "line": 310
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "_daily_series_product",
+   "target": "update",
+   "line": 311
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "_daily_series_product",
+   "target": "list",
+   "line": 317
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "_daily_series_product",
+   "target": "set",
+   "line": 323
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "_daily_series_product",
+   "target": "set",
+   "line": 324
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "_daily_series_product",
+   "target": "isinstance",
+   "line": 326
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "_daily_series_product",
+   "target": "update",
+   "line": 327
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "_daily_series_product",
+   "target": "get",
    "line": 329
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_daily_series_product",
-   "target": "append",
-   "line": 333
+   "target": "update",
+   "line": 329
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "_daily_series_product",
+   "target": "get",
+   "line": 330
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "_daily_series_product",
+   "target": "update",
+   "line": 330
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "_daily_series_product",
+   "target": "dict",
+   "line": 332
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_daily_series_product",
    "target": "append",
-   "line": 338
+   "line": 336
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "_daily_series_product",
+   "target": "append",
+   "line": 341
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_daily_series_product",
    "target": "sorted",
-   "line": 339
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "_daily_series_product",
-   "target": "append",
    "line": 342
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "_daily_series_product",
-   "target": "sorted",
-   "line": 343
   },
   {
    "owner": "weather-service",
@@ -493713,134 +494196,134 @@
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_daily_series_product",
+   "target": "sorted",
+   "line": 346
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "_daily_series_product",
+   "target": "append",
+   "line": 348
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "_daily_series_product",
    "target": "list",
-   "line": 347
+   "line": 350
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_daily_series_product",
    "target": "update",
-   "line": 351
+   "line": 354
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_daily_series_product",
    "target": "len",
-   "line": 355
+   "line": 358
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_daily_series_product",
    "target": "sorted",
-   "line": 356
+   "line": 359
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_daily_series_product",
    "target": "sorted",
-   "line": 357
+   "line": 360
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_dtr_product",
    "target": "_finite",
-   "line": 366
+   "line": 369
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_dtr_product",
    "target": "_finite",
-   "line": 366
+   "line": 369
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_dtr_product",
    "target": "round",
-   "line": 383
+   "line": 386
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "build_canonical_weather_state",
    "target": "et0_agro_product",
-   "line": 421
+   "line": 424
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "build_canonical_weather_state",
    "target": "compute_vpd",
-   "line": 434
+   "line": 437
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "build_canonical_weather_state",
    "target": "gdd_agro_product",
-   "line": 440
+   "line": 443
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "build_canonical_weather_state",
    "target": "_astronomy_product",
-   "line": 449
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "build_canonical_weather_state",
-   "target": "_dtr_product",
-   "line": 450
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "build_canonical_weather_state",
-   "target": "_current_product",
-   "line": 451
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "build_canonical_weather_state",
-   "target": "_daily_series_product",
    "line": 452
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "build_canonical_weather_state",
-   "target": "_daily_series_product",
+   "target": "_dtr_product",
    "line": 453
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "build_canonical_weather_state",
+   "target": "_current_product",
+   "line": 454
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "build_canonical_weather_state",
+   "target": "_daily_series_product",
+   "line": 455
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "build_canonical_weather_state",
+   "target": "_daily_series_product",
+   "line": 456
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "build_canonical_weather_state",
    "target": "weather_snapshot_id",
-   "line": 482
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "build_canonical_weather_state",
-   "target": "get",
-   "line": 491
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "build_canonical_weather_state",
-   "target": "_is_available",
-   "line": 492
+   "line": 485
   },
   {
    "owner": "weather-service",
@@ -493853,43 +494336,29 @@
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "build_canonical_weather_state",
-   "target": "append",
+   "target": "_is_available",
+   "line": 495
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "build_canonical_weather_state",
+   "target": "get",
    "line": 497
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "build_canonical_weather_state",
+   "target": "append",
+   "line": 500
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "build_canonical_weather_state",
    "target": "_worse",
-   "line": 499
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "build_canonical_weather_state",
-   "target": "get",
    "line": 502
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "build_canonical_weather_state",
-   "target": "get",
-   "line": 502
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "build_canonical_weather_state",
-   "target": "get",
-   "line": 502
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "build_canonical_weather_state",
-   "target": "get",
-   "line": 504
   },
   {
    "owner": "weather-service",
@@ -493903,7 +494372,21 @@
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "build_canonical_weather_state",
    "target": "get",
-   "line": 506
+   "line": 505
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "build_canonical_weather_state",
+   "target": "get",
+   "line": 505
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "build_canonical_weather_state",
+   "target": "get",
+   "line": 507
   },
   {
    "owner": "weather-service",
@@ -493916,91 +494399,70 @@
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "build_canonical_weather_state",
+   "target": "get",
+   "line": 509
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "build_canonical_weather_state",
+   "target": "get",
+   "line": 511
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "build_canonical_weather_state",
    "target": "append",
-   "line": 513
+   "line": 516
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "build_canonical_weather_state",
    "target": "items",
-   "line": 522
+   "line": 525
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "build_canonical_weather_state",
    "target": "hexdigest",
-   "line": 527
+   "line": 530
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "build_canonical_weather_state",
    "target": "sha1",
-   "line": 527
+   "line": 530
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "build_canonical_weather_state",
    "target": "_canonical_inputs",
-   "line": 528
+   "line": 531
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "build_canonical_weather_state",
    "target": "encode",
-   "line": 528
+   "line": 531
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "build_canonical_weather_state",
    "target": "_confidence_from_quality",
-   "line": 541
+   "line": 544
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "weather_state_report",
    "target": "get",
-   "line": 557
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "weather_state_report",
-   "target": "get",
-   "line": 558
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "weather_state_report",
-   "target": "items",
-   "line": 559
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "weather_state_report",
-   "target": "sorted",
-   "line": 559
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "weather_state_report",
-   "target": "items",
-   "line": 560
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "weather_state_report",
-   "target": "sorted",
    "line": 560
   },
   {
@@ -494008,35 +494470,35 @@
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "weather_state_report",
    "target": "get",
+   "line": 561
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "weather_state_report",
+   "target": "items",
+   "line": 562
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "weather_state_report",
+   "target": "sorted",
+   "line": 562
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "weather_state_report",
+   "target": "items",
    "line": 563
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "weather_state_report",
-   "target": "get",
-   "line": 564
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "weather_state_report",
-   "target": "get",
-   "line": 564
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "weather_state_report",
-   "target": "get",
-   "line": 565
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "weather_state_report",
-   "target": "get",
-   "line": 566
+   "target": "sorted",
+   "line": 563
   },
   {
    "owner": "weather-service",
@@ -494057,7 +494519,7 @@
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "weather_state_report",
    "target": "get",
-   "line": 568
+   "line": 567
   },
   {
    "owner": "weather-service",
@@ -494078,7 +494540,7 @@
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "weather_state_report",
    "target": "get",
-   "line": 570
+   "line": 569
   },
   {
    "owner": "weather-service",
@@ -494099,7 +494561,7 @@
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "weather_state_report",
    "target": "get",
-   "line": 572
+   "line": 571
   },
   {
    "owner": "weather-service",
@@ -494113,21 +494575,35 @@
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "weather_state_report",
    "target": "get",
-   "line": 577
+   "line": 573
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "weather_state_report",
    "target": "get",
-   "line": 578
+   "line": 573
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "weather_state_report",
    "target": "get",
-   "line": 579
+   "line": 574
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "weather_state_report",
+   "target": "get",
+   "line": 575
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "weather_state_report",
+   "target": "get",
+   "line": 575
   },
   {
    "owner": "weather-service",
@@ -494155,42 +494631,42 @@
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "weather_state_report",
    "target": "get",
-   "line": 586
+   "line": 583
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "weather_state_report",
+   "target": "get",
+   "line": 584
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "weather_state_report",
+   "target": "get",
+   "line": 585
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "weather_state_report",
+   "target": "get",
+   "line": 589
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "weather_state_report",
    "target": "list",
-   "line": 586
+   "line": 589
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "et0_view",
    "target": "dict",
-   "line": 598
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "et0_view",
-   "target": "get",
-   "line": 598
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "et0_view",
-   "target": "get",
-   "line": 598
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "et0_view",
-   "target": "get",
-   "line": 600
+   "line": 601
   },
   {
    "owner": "weather-service",
@@ -494204,35 +494680,42 @@
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "et0_view",
    "target": "get",
+   "line": 601
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "et0_view",
+   "target": "get",
+   "line": 603
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "et0_view",
+   "target": "get",
    "line": 604
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "et0_view",
+   "target": "get",
+   "line": 607
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_slot_view",
    "target": "dict",
-   "line": 610
+   "line": 613
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_slot_view",
    "target": "get",
-   "line": 610
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "_slot_view",
-   "target": "get",
-   "line": 610
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "_slot_view",
-   "target": "get",
-   "line": 611
+   "line": 613
   },
   {
    "owner": "weather-service",
@@ -494251,121 +494734,121 @@
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
+   "source": "_slot_view",
+   "target": "get",
+   "line": 616
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "_slot_view",
+   "target": "get",
+   "line": 617
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
    "source": "forecast_view",
    "target": "_slot_view",
-   "line": 627
+   "line": 630
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "historical_view",
    "target": "_slot_view",
-   "line": 645
+   "line": 648
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "historical_view",
    "target": "_coverage_against_request",
-   "line": 646
+   "line": 649
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "historical_view",
    "target": "get",
-   "line": 654
+   "line": 657
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "historical_view",
    "target": "get",
-   "line": 656
+   "line": 659
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "historical_view",
    "target": "list",
-   "line": 656
+   "line": 659
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "historical_view",
    "target": "append",
-   "line": 657
+   "line": 660
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_coverage_against_request",
    "target": "_expected_days_inclusive",
-   "line": 678
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "_coverage_against_request",
-   "target": "get",
    "line": 681
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_coverage_against_request",
+   "target": "get",
+   "line": 684
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "_coverage_against_request",
    "target": "isinstance",
-   "line": 682
+   "line": 685
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_coverage_against_request",
    "target": "len",
-   "line": 682
+   "line": 685
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_coverage_against_request",
    "target": "max",
-   "line": 688
+   "line": 691
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "_coverage_against_request",
    "target": "round",
-   "line": 689
+   "line": 692
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "current_view",
    "target": "dict",
-   "line": 704
+   "line": 707
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "current_view",
    "target": "get",
-   "line": 704
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "current_view",
-   "target": "get",
-   "line": 704
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "current_view",
-   "target": "get",
-   "line": 705
+   "line": 707
   },
   {
    "owner": "weather-service",
@@ -494384,30 +494867,30 @@
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
+   "source": "current_view",
+   "target": "get",
+   "line": 710
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "current_view",
+   "target": "get",
+   "line": 711
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
    "source": "vpd_view",
    "target": "dict",
-   "line": 726
+   "line": 729
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/canonical_weather_state.py",
    "source": "vpd_view",
    "target": "get",
-   "line": 726
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "vpd_view",
-   "target": "get",
-   "line": 726
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/canonical_weather_state.py",
-   "source": "vpd_view",
-   "target": "get",
-   "line": 727
+   "line": 729
   },
   {
    "owner": "weather-service",
@@ -494422,6 +494905,20 @@
    "source": "vpd_view",
    "target": "get",
    "line": 730
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "vpd_view",
+   "target": "get",
+   "line": 732
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/canonical_weather_state.py",
+   "source": "vpd_view",
+   "target": "get",
+   "line": 733
   },
   {
    "owner": "weather-service",
@@ -495989,69 +496486,34 @@
    "file": "services/weather-service/open_meteo.py",
    "source": "_at",
    "target": "len",
-   "line": 98
+   "line": 104
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_thermal_series",
    "target": "int",
-   "line": 111
+   "line": 117
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_thermal_series",
    "target": "max",
-   "line": 111
+   "line": 117
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_thermal_series",
    "target": "min",
-   "line": 111
+   "line": 117
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_thermal_series",
    "target": "_fetch_json",
-   "line": 122
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "fetch_thermal_series",
-   "target": "get",
-   "line": 123
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "fetch_thermal_series",
-   "target": "get",
-   "line": 124
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "fetch_thermal_series",
-   "target": "get",
-   "line": 126
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "fetch_thermal_series",
-   "target": "get",
-   "line": 127
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "fetch_thermal_series",
-   "target": "get",
    "line": 128
   },
   {
@@ -496073,69 +496535,69 @@
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_thermal_series",
    "target": "get",
-   "line": 131
+   "line": 132
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "fetch_thermal_series",
+   "target": "get",
+   "line": 133
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "fetch_thermal_series",
+   "target": "get",
+   "line": 134
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "fetch_thermal_series",
+   "target": "get",
+   "line": 135
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "fetch_thermal_series",
+   "target": "get",
+   "line": 136
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "fetch_thermal_series",
+   "target": "get",
+   "line": 137
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_daily_wind_temp_rain",
    "target": "int",
-   "line": 139
+   "line": 145
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_daily_wind_temp_rain",
    "target": "max",
-   "line": 139
+   "line": 145
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_daily_wind_temp_rain",
    "target": "min",
-   "line": 139
+   "line": 145
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_daily_wind_temp_rain",
    "target": "_fetch_json",
-   "line": 153
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "fetch_daily_wind_temp_rain",
-   "target": "get",
-   "line": 154
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "fetch_daily_wind_temp_rain",
-   "target": "get",
-   "line": 156
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "fetch_daily_wind_temp_rain",
-   "target": "get",
-   "line": 157
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "fetch_daily_wind_temp_rain",
-   "target": "get",
-   "line": 158
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "fetch_daily_wind_temp_rain",
-   "target": "get",
    "line": 159
   },
   {
@@ -496148,191 +496610,198 @@
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
+   "source": "fetch_daily_wind_temp_rain",
+   "target": "get",
+   "line": 162
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "fetch_daily_wind_temp_rain",
+   "target": "get",
+   "line": 163
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "fetch_daily_wind_temp_rain",
+   "target": "get",
+   "line": 164
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "fetch_daily_wind_temp_rain",
+   "target": "get",
+   "line": 165
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "fetch_daily_wind_temp_rain",
+   "target": "get",
+   "line": 166
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
    "source": "fetch_archive_hourly_temps",
    "target": "_fetch_json",
-   "line": 176
+   "line": 182
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_archive_hourly_temps",
    "target": "get",
-   "line": 177
+   "line": 183
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_archive_hourly_temps",
    "target": "get",
-   "line": 178
+   "line": 184
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_archive_hourly_temps",
    "target": "get",
-   "line": 178
+   "line": 184
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "_fetch_json",
    "target": "monotonic",
-   "line": 182
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "_fetch_json",
-   "target": "RuntimeError",
-   "line": 183
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "_fetch_json",
-   "target": "AsyncClient",
-   "line": 185
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "_fetch_json",
-   "target": "get",
-   "line": 186
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "_fetch_json",
-   "target": "raise_for_status",
-   "line": 187
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "_fetch_json",
-   "target": "json",
    "line": 188
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "_fetch_json",
-   "target": "_record_success",
+   "target": "RuntimeError",
    "line": 189
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "_fetch_json",
-   "target": "_record_failure",
+   "target": "AsyncClient",
+   "line": 191
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "_fetch_json",
+   "target": "get",
    "line": 192
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "_fetch_json",
+   "target": "raise_for_status",
+   "line": 193
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "_fetch_json",
+   "target": "json",
+   "line": 194
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "_fetch_json",
+   "target": "_record_success",
+   "line": 195
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "_fetch_json",
+   "target": "_record_failure",
+   "line": 198
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_hourly_fao_et0_precipitation",
    "target": "int",
-   "line": 200
+   "line": 206
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_hourly_fao_et0_precipitation",
    "target": "max",
-   "line": 200
+   "line": 206
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_hourly_fao_et0_precipitation",
    "target": "min",
-   "line": 200
+   "line": 206
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_hourly_fao_et0_precipitation",
    "target": "max",
-   "line": 201
+   "line": 207
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_hourly_fao_et0_precipitation",
    "target": "min",
-   "line": 201
+   "line": 207
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_hourly_fao_et0_precipitation",
    "target": "_fetch_json",
-   "line": 211
+   "line": 217
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_current",
    "target": "join",
-   "line": 218
+   "line": 224
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_current",
    "target": "join",
-   "line": 232
+   "line": 238
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_current",
    "target": "_fetch_json",
-   "line": 254
+   "line": 260
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_current",
    "target": "get",
-   "line": 255
+   "line": 261
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_current",
    "target": "normalize_current",
-   "line": 256
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_current",
-   "target": "get",
-   "line": 267
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_current",
-   "target": "float",
-   "line": 268
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_current",
-   "target": "get",
-   "line": 269
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_current",
-   "target": "get",
-   "line": 272
+   "line": 262
   },
   {
    "owner": "weather-service",
@@ -496345,7 +496814,7 @@
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_current",
-   "target": "round",
+   "target": "float",
    "line": 274
   },
   {
@@ -496353,20 +496822,20 @@
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_current",
    "target": "get",
-   "line": 276
+   "line": 275
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_current",
    "target": "get",
-   "line": 277
+   "line": 278
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_current",
-   "target": "float",
+   "target": "get",
    "line": 279
   },
   {
@@ -496374,14 +496843,7 @@
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_current",
    "target": "round",
-   "line": 279
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_current",
-   "target": "get",
-   "line": 281
+   "line": 280
   },
   {
    "owner": "weather-service",
@@ -496401,36 +496863,15 @@
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_current",
-   "target": "get",
-   "line": 284
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_current",
-   "target": "bool",
+   "target": "float",
    "line": 285
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_current",
-   "target": "get",
+   "target": "round",
    "line": 285
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_current",
-   "target": "get",
-   "line": 285
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_current",
-   "target": "get",
-   "line": 286
   },
   {
    "owner": "weather-service",
@@ -496444,76 +496885,125 @@
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_current",
    "target": "get",
+   "line": 288
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_current",
+   "target": "get",
    "line": 289
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_current",
+   "target": "get",
+   "line": 290
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_current",
+   "target": "bool",
+   "line": 291
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_current",
+   "target": "get",
+   "line": 291
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_current",
+   "target": "get",
+   "line": 291
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_current",
+   "target": "get",
+   "line": 292
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_current",
+   "target": "get",
+   "line": 293
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_current",
+   "target": "get",
+   "line": 295
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_forecast",
    "target": "int",
-   "line": 296
+   "line": 302
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_forecast",
    "target": "max",
-   "line": 296
+   "line": 302
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_forecast",
    "target": "min",
-   "line": 296
+   "line": 302
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_forecast",
    "target": "join",
-   "line": 300
+   "line": 306
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_forecast",
    "target": "_fetch_json",
-   "line": 321
+   "line": 327
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_forecast",
    "target": "normalize_daily",
-   "line": 322
+   "line": 328
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_historical",
    "target": "join",
-   "line": 333
+   "line": 339
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_historical",
    "target": "_fetch_json",
-   "line": 346
+   "line": 352
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_historical",
    "target": "normalize_daily",
-   "line": 347
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_daily",
-   "target": "get",
    "line": 353
   },
   {
@@ -496521,161 +497011,98 @@
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_daily",
    "target": "get",
-   "line": 354
+   "line": 359
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_daily",
    "target": "get",
-   "line": 354
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_daily",
-   "target": "isinstance",
-   "line": 354
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_daily",
-   "target": "enumerate",
-   "line": 356
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_daily",
-   "target": "_as_list",
-   "line": 357
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_daily",
-   "target": "_at",
-   "line": 357
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_daily",
-   "target": "_as_list",
-   "line": 358
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_daily",
-   "target": "_at",
-   "line": 358
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_daily",
-   "target": "_as_list",
-   "line": 359
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_daily",
-   "target": "_at",
-   "line": 359
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_daily",
-   "target": "append",
    "line": 360
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_daily",
-   "target": "_as_list",
-   "line": 369
+   "target": "get",
+   "line": 360
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_daily",
-   "target": "_at",
-   "line": 369
+   "target": "isinstance",
+   "line": 360
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_daily",
-   "target": "_as_list",
-   "line": 370
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_daily",
-   "target": "_at",
-   "line": 370
+   "target": "enumerate",
+   "line": 362
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_daily",
    "target": "_as_list",
-   "line": 371
+   "line": 363
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_daily",
    "target": "_at",
-   "line": 371
+   "line": 363
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_daily",
    "target": "_as_list",
-   "line": 372
+   "line": 364
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_daily",
    "target": "_at",
-   "line": 372
+   "line": 364
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_daily",
-   "target": "float",
-   "line": 373
+   "target": "_as_list",
+   "line": 365
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_daily",
-   "target": "round",
-   "line": 373
+   "target": "_at",
+   "line": 365
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_daily",
-   "target": "float",
-   "line": 376
+   "target": "append",
+   "line": 366
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_daily",
-   "target": "round",
-   "line": 376
+   "target": "_as_list",
+   "line": 377
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_daily",
+   "target": "_at",
+   "line": 377
   },
   {
    "owner": "weather-service",
@@ -496737,7 +497164,14 @@
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_daily",
-   "target": "_at",
+   "target": "float",
+   "line": 384
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_daily",
+   "target": "round",
    "line": 384
   },
   {
@@ -496745,244 +497179,237 @@
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_daily",
    "target": "_as_list",
-   "line": 385
+   "line": 386
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_daily",
+   "target": "_at",
+   "line": 386
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_daily",
+   "target": "_as_list",
+   "line": 387
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_daily",
+   "target": "_at",
+   "line": 387
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_daily",
+   "target": "_as_list",
+   "line": 388
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_daily",
+   "target": "_at",
+   "line": 388
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_daily",
+   "target": "float",
+   "line": 389
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_daily",
+   "target": "round",
+   "line": 389
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_daily",
+   "target": "_at",
+   "line": 392
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_daily",
+   "target": "_as_list",
+   "line": 393
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_daily",
    "target": "get",
-   "line": 395
+   "line": 403
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_tile_sample",
    "target": "join",
-   "line": 406
+   "line": 414
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_tile_sample",
    "target": "join",
-   "line": 418
+   "line": 426
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_tile_sample",
    "target": "_fetch_json",
-   "line": 443
+   "line": 451
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "fetch_tile_sample",
    "target": "normalize_tile_sample",
-   "line": 444
+   "line": 452
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "_hour_offset",
    "target": "endswith",
-   "line": 450
+   "line": 458
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "_hour_offset",
    "target": "startswith",
-   "line": 450
+   "line": 458
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "_hour_offset",
    "target": "int",
-   "line": 452
+   "line": 460
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "_hour_offset",
    "target": "max",
-   "line": 452
+   "line": 460
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
    "target": "_hour_offset",
-   "line": 461
+   "line": 469
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
    "target": "get",
-   "line": 462
+   "line": 470
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
    "target": "get",
-   "line": 463
+   "line": 471
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
    "target": "get",
-   "line": 464
+   "line": 472
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
    "target": "get",
-   "line": 464
+   "line": 472
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
    "target": "isinstance",
-   "line": 464
+   "line": 472
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
    "target": "len",
-   "line": 465
+   "line": 473
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
    "target": "max",
-   "line": 465
+   "line": 473
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
    "target": "min",
-   "line": 465
+   "line": 473
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
    "target": "normalize_current",
-   "line": 467
+   "line": 475
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
    "target": "update",
-   "line": 468
+   "line": 476
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
    "target": "_at",
-   "line": 479
+   "line": 487
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
    "target": "get",
-   "line": 479
+   "line": 487
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
    "target": "_at",
-   "line": 480
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_tile_sample",
-   "target": "get",
-   "line": 480
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_tile_sample",
-   "target": "_at",
-   "line": 483
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_tile_sample",
-   "target": "get",
-   "line": 483
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_tile_sample",
-   "target": "_at",
-   "line": 484
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_tile_sample",
-   "target": "get",
-   "line": 484
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_tile_sample",
-   "target": "_at",
-   "line": 485
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_tile_sample",
-   "target": "get",
-   "line": 485
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_tile_sample",
-   "target": "_at",
-   "line": 486
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_tile_sample",
-   "target": "get",
-   "line": 486
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_tile_sample",
-   "target": "float",
    "line": 488
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
-   "target": "round",
+   "target": "get",
    "line": 488
   },
   {
@@ -496990,41 +497417,41 @@
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
    "target": "_at",
-   "line": 489
+   "line": 491
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
    "target": "get",
-   "line": 489
+   "line": 491
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
    "target": "_at",
-   "line": 490
+   "line": 492
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
    "target": "get",
-   "line": 490
+   "line": 492
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
-   "target": "float",
+   "target": "_at",
    "line": 493
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
-   "target": "round",
+   "target": "get",
    "line": 493
   },
   {
@@ -497045,28 +497472,14 @@
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
-   "target": "_at",
-   "line": 495
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_tile_sample",
-   "target": "get",
-   "line": 495
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_tile_sample",
-   "target": "_at",
+   "target": "float",
    "line": 496
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
-   "target": "get",
+   "target": "round",
    "line": 496
   },
   {
@@ -497101,42 +497514,14 @@
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
-   "target": "_at",
-   "line": 499
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_tile_sample",
-   "target": "get",
-   "line": 499
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_tile_sample",
-   "target": "_at",
-   "line": 500
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_tile_sample",
-   "target": "get",
-   "line": 500
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/open_meteo.py",
-   "source": "normalize_tile_sample",
-   "target": "_at",
+   "target": "float",
    "line": 501
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
-   "target": "get",
+   "target": "round",
    "line": 501
   },
   {
@@ -497150,43 +497535,155 @@
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "normalize_tile_sample",
+   "target": "get",
+   "line": 502
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_tile_sample",
    "target": "_at",
    "line": 503
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_tile_sample",
+   "target": "get",
+   "line": 503
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_tile_sample",
+   "target": "_at",
+   "line": 504
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_tile_sample",
+   "target": "get",
+   "line": 504
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_tile_sample",
+   "target": "_at",
+   "line": 505
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_tile_sample",
+   "target": "get",
+   "line": 505
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_tile_sample",
+   "target": "_at",
+   "line": 506
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_tile_sample",
+   "target": "get",
+   "line": 506
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_tile_sample",
+   "target": "_at",
+   "line": 507
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_tile_sample",
+   "target": "get",
+   "line": 507
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_tile_sample",
+   "target": "_at",
+   "line": 508
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_tile_sample",
+   "target": "get",
+   "line": 508
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_tile_sample",
+   "target": "_at",
+   "line": 509
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_tile_sample",
+   "target": "get",
+   "line": 509
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_tile_sample",
+   "target": "_at",
+   "line": 510
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
+   "source": "normalize_tile_sample",
+   "target": "_at",
+   "line": 511
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/open_meteo.py",
    "source": "readiness_probe",
    "target": "fetch_current",
-   "line": 519
+   "line": 527
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "readiness_probe",
    "target": "get",
-   "line": 523
+   "line": 531
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "readiness_probe",
    "target": "circuit_breaker_state",
-   "line": 524
+   "line": 532
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "readiness_probe",
    "target": "str",
-   "line": 530
+   "line": 538
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/open_meteo.py",
    "source": "readiness_probe",
    "target": "circuit_breaker_state",
-   "line": 531
+   "line": 539
   },
   {
    "owner": "weather-service",
@@ -498227,30 +498724,44 @@
   {
    "owner": "weather-service",
    "file": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
-   "source": "test_the_only_zero_coerced_fields_are_the_declared_daily_two",
+   "source": "test_the_only_zero_coerced_daily_fields_are_the_declared_ones",
    "target": "read_text",
-   "line": 89
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
-   "source": "test_the_only_zero_coerced_fields_are_the_declared_daily_two",
-   "target": "count",
-   "line": 91
-  },
-  {
-   "owner": "weather-service",
-   "file": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
-   "source": "test_the_only_zero_coerced_fields_are_the_declared_daily_two",
-   "target": "len",
    "line": 92
   },
   {
    "owner": "weather-service",
    "file": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
-   "source": "test_the_only_zero_coerced_fields_are_the_declared_daily_two",
+   "source": "test_the_only_zero_coerced_daily_fields_are_the_declared_ones",
+   "target": "count",
+   "line": 99
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
+   "source": "test_the_only_zero_coerced_daily_fields_are_the_declared_ones",
    "target": "len",
-   "line": 94
+   "line": 100
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
+   "source": "test_the_only_zero_coerced_daily_fields_are_the_declared_ones",
+   "target": "len",
+   "line": 102
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
+   "source": "test_a_missing_daily_precipitation_is_none_not_dry",
+   "target": "normalize_daily",
+   "line": 118
+  },
+  {
+   "owner": "weather-service",
+   "file": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
+   "source": "test_a_real_daily_zero_precipitation_stays_zero",
+   "target": "normalize_daily",
+   "line": 130
   },
   {
    "owner": "weather-service",

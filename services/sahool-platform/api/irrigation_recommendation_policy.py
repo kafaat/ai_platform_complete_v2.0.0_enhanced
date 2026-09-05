@@ -51,8 +51,16 @@ def recommend_irrigation(
     et0_mm: float,
     crop: str | None,
     stage: str = "mid",
-    rain_recent_mm: float = 0.0,
-    forecast_rain_mm: float = 0.0,
+    # **لا افتراضَ صفراً هنا.** «لا بياناتِ مطر» ليست «لا مطر»: الصفرُ المُقنَّع يُنقِص
+    # المطروحَ من الحاجة فيرفع الكمّيّةَ الموصى بها — أي أنّ الانحياز في اتّجاه
+    # **الإذن بالريّ**، وهو الاتّجاه الذي يُغرِق. وقد أُغلِق هذا الصنفُ في
+    # `recommendations_hub` (`required_inputs` تضمّ المطرَ) وفي
+    # `routers/fields.py` (٥٠٣ عند نقص المطر) — وبقي مفتوحاً هنا.
+    #
+    # و`None` تصل النواةَ ⇒ **استثناء**، لا حسابٌ بقيمةٍ بديلة: الرفضُ عند الحدّ
+    # يجعل كلَّ مسارٍ يُقرّر صراحةً ماذا يفعل بالغياب، بدل أن يرثه صامتاً.
+    rain_recent_mm: float | None = None,
+    forecast_rain_mm: float | None = None,
     soil_moisture_pct: float | None = None,
     kc_override: float | None = None,
     # ── مدخلات الملوحة (فحص مخبريّ) ──
@@ -81,8 +89,10 @@ def recommend_irrigation(
 
     Args (المهمّة):
         et0_mm: التبخّر-نتح المرجعيّ اليوميّ (FAO-56) — محسوب مسبقاً.
-        crop/stage/rain_recent_mm/forecast_rain_mm/soil_moisture_pct/kc_override:
-            تُمرَّر كما هي إلى ``irrigation_advice`` (حساب الصافي + Ks).
+        crop/stage/soil_moisture_pct/kc_override: تُمرَّر كما هي إلى ``irrigation_advice``.
+        rain_recent_mm/forecast_rain_mm: **إلزاميّتان** (mm). ``None`` ⇒ ``ValueError``
+            — لا حسابَ على مطرٍ مفقود، ولا تصفيرَ له. على كلّ مسارٍ أن يُقرّر ما يفعله
+            بالغياب صراحةً (٥٠٣ / ``dependency_unavailable``)، لا أن يرثه صامتاً.
         soil_ece: ECe من فحص مخبريّ (dS/m). None ⇒ لا تقييم ملوحة (``net_only``).
         soil_ec_age_days: عُمر الفحص بالأيّام. أقدم من ``ec_max_age_days`` ⇒ غير موثوق.
         crop_salt_tolerance_ece: عتبة المحصول (FAO-56 T23). None ⇒ لا تصحيح ملوحة.
@@ -111,6 +121,20 @@ def recommend_irrigation(
     صدق: قرار الإطلاق يحتاج Dr+TAW فعليَّين؛ غيابهما ⇒ ``should_irrigate=None`` و
     ``trigger_reason="no_depletion_data"`` (يبقى الصافي معروضاً، لا قرار على غياب).
     """
+    # مطرٌ مفقود يقف هنا. صياغةُ `float = 0.0` السابقة كانت تجعل الغيابَ يُحسَب «صفر مطر»
+    # في المطروح من الحاجة، فتخرج كمّيّةٌ أعلى بثقةٍ لا تستحقّها — ولا يظهر في المخرَج
+    # ما يقول إنّ المطرَ لم يُعرَف. والرفضُ عند الحدّ يمنع وراثةَ الافتراض صامتاً.
+    missing_rain = [
+        name
+        for name, value in (
+            ("rain_recent_mm", rain_recent_mm),
+            ("forecast_rain_mm", forecast_rain_mm),
+        )
+        if value is None
+    ]
+    if missing_rain:
+        raise ValueError("recommend_irrigation: مطرٌ مفقود لا يُصفَّر — " + "، ".join(missing_rain))
+
     # سياسة الإطلاق/الملء تُلتقَط الآن: المتغيّر ``policy`` يُعاد استخدامه لاحقاً لتصنيف
     # سياسة الملوحة (net_only/…)، فلا نقرأ منه بعد ذلك لمقابض الإطلاق.
     irrigation_strategy = policy
@@ -253,6 +277,27 @@ def recommend_irrigation(
             }
         )
 
+    # ── حجزُ المطر المتوقَّع: **حجزٌ معرفيّ لا قرارٌ زراعيّ جديد** ────────────────
+    #
+    # `irrigation_advice` يحكم منذ كُتِب بأنّ مطراً متوقَّعاً ≥٥مم/٤٨ساعة **يؤجّل** الريّ
+    # (`forecast_hold`). وكان ذلك الحكمُ يعيش في `urgency` وحدَه — فيبتلعه هنا قرارُ
+    # الإطلاق من الاستنزاف ورفعُ الإجهاد، ويخرج المُخرَجُ يقول «اروِ ٤٨ مم» عشيّةَ مطرٍ
+    # لا يُذكَر. مقيس: `forecast_rain_mm=25` لا يُغيّر حرفاً في الاستجابة.
+    #
+    # **ولا يُتَّخَذ هنا قرارٌ زراعيّ جديد:** لا عتبةَ مُخترَعة، ولا «لا تروِ». اجتماعُ
+    # حكمين متعارضين — الاستنزافُ يقول أطلِق، والتوقّعُ يقول انتظِر — يُنتِج **امتناعاً**:
+    # `should_irrigate=None` و`target_refill_mm=None`، وهو تحديداً ما تعنيه `None` في
+    # هذا الحقل أصلاً («لا قرارَ مُختلَق»، كما عند غياب Dr). و`net_irrigation_mm` يبقى
+    # **معلومةً حسابيّة** لأنّه احتياجٌ مقيس لا أمرٌ بالتنفيذ.
+    #
+    # فالتصعيدُ إلى إنسان، لا استبدالُ حكمٍ بآخر. وتبقى معايرةُ عتبة المطر ميدانيّاً
+    # فجوةً مفتوحة: هذا يمنع الأمرَ الصامت، ولا يُثبِت أنّ ٥مم هي العتبة الصحيحة.
+    forecast_hold = bool(base.get("forecast_hold"))
+    if forecast_hold and should_irrigate is True:
+        should_irrigate = None
+        target_refill_mm = None
+        trigger_reason = "forecast_rain_hold_requires_reassessment"
+
     # الإلحاح (مفردات irrigation_advice: none|low|moderate|high): الإجهاد الحرج يرفعه
     # صراحةً؛ لا يختلق قراراً (يبقى should_irrigate كما هو).
     urgency = base.get("urgency")
@@ -262,7 +307,12 @@ def recommend_irrigation(
         urgency = "moderate"
 
     rationale_ar = str(base.get("rationale_ar", ""))
-    if should_irrigate is None:
+    if trigger_reason == "forecast_rain_hold_requires_reassessment":
+        rationale_ar += (
+            " الاستنزاف بلغ عتبة الإطلاق ومطرٌ متوقَّعٌ يؤجّل الريّ — **حكمان متعارضان**، "
+            "فلا أمرَ ريٍّ تلقائيّ. أعِد التقييم بعد المطر أو راجِعه بشراً."
+        )
+    elif should_irrigate is None:
         rationale_ar += " (قرار الإطلاق غير محسوب — لا استنزاف Dr/TAW موثوق للحقل.)"
     elif should_irrigate:
         rationale_ar += (
@@ -298,6 +348,7 @@ def recommend_irrigation(
         # ── قرار الإطلاق المُشتقّ من الاستنزاف (FAO-56) ──
         "should_irrigate": should_irrigate,
         "trigger_reason": trigger_reason,
+        "forecast_hold": forecast_hold,
         "target_refill_mm": target_refill_mm,
         "raw_mm": raw_mm,
         "depletion_mm": round(dr_out, 1) if dr_out is not None else None,

@@ -26,6 +26,10 @@
       "kind": "governed"
     },
     {
+      "path": "docs/architecture/certification_evidence_producers.json",
+      "kind": "governed"
+    },
+    {
       "path": "docs/architecture/claim_base_registry.json",
       "kind": "legacy_schema_version"
     },

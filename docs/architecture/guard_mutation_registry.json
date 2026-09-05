@@ -1529,6 +1529,29 @@
           "why": "دالّةٌ تَعِد بإنفاذِ مستأجرٍ ولا تستطيعه بحكم البناء — تضبط GUC محلّيَّ معاملةٍ بلا معاملةٍ ولا كتلة، فالعبارةُ التالية لا ترى الضبطَ أبداً. وأسوأُ من غيابها أنّ اسمَها يُقرَأ حراسةً. عودتُها يجب أن تُحمِّر فوراً."
         }
       ]
+    },
+    "scripts/ci/verify_certification_evidence_digests.py": {
+      "test": "tests_v9/test_certification_evidence_is_produced_not_assumed.py",
+      "mutations": [
+        {
+          "expect": "test_an_evidence_file_with_no_producer_digest_is_rejected",
+          "find": "        if not declared:",
+          "replace": "        if False:",
+          "why": "ملفٌّ بلغ المُحكِّمَ بلا بصمةٍ من مُنتِج هو **حالةُ الاستبدال بعينها**؛ والسكوتُ عنه يُبطِل نصفَ ما بناه --purge: المسحُ يقول «لا يُعتَدّ إلّا بما أنتجه هذا العدّاء» والجلبُ بلا مقارنةٍ يقول «ما جاء من المخزن أنتجَه»"
+        },
+        {
+          "expect": "test_a_mismatching_digest_is_rejected",
+          "find": "        if actual != declared:",
+          "replace": "        if False:",
+          "why": "المقارنةُ نفسُها هي الحاجب: تحقّقُ download-artifact التلقائيّ يعرض **تحذيراً** عند اختلاف البصمة ويمضي، فبلا هذا الشرط تبلغ مصنوعةٌ مستبدَلةٌ الحكمَ ويُحكَم عليها"
+        },
+        {
+          "expect": "test_a_recorded_digest_with_no_file_is_rejected",
+          "find": "        if declared and not path.exists():",
+          "replace": "        if False:",
+          "why": "رُفِع ثمّ ضاع في العبور: بلا هذا الشرط يبدو الحاجبُ **غيرَ مُنتَجٍ أصلاً** بدل أن يُقال إنّ دليلاً أُنتِج ولم يصل — تشخيصان مختلفان لحالةٍ واحدة"
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
@@ -1693,6 +1716,18 @@
           "find": "_GAP_ID = re.compile(r\"(?<![-A-Za-z0-9_])[A-Z][A-Z0-9]*(?:-[A-Z0-9]+){2,}(?![-A-Za-z0-9_])\")",
           "replace": "_GAP_ID = re.compile(r\"\\b[A-Z][A-Z0-9]*(?:-[A-Z0-9]+){2,}\\b\")",
           "why": "حدُّ الكلمة يقتطع المعرّف الملتصق بالعربيّة فيخترع وهميّاً (`E2E-UNDER-…`) ويُفوّت الحقيقيّ (`AUTH-E2E-…`) في آنٍ — عطبان متعاكسان من سببٍ واحد."
+        },
+        {
+          "expect": "test_a_certification_blocker_id_is_not_demanded_as_a_gap_section",
+          "find": "            if is_cert_blocker(gid):",
+          "replace": "            if False:",
+          "why": "معرّف حاجبِ اعتمادٍ يُطالَب بقسمٍ في سجلّ الفجوات ⇒ إمّا إدخالٌ كاذب (الحاجبُ بندُ اعتمادٍ حالتُه pending/verified، لا عطلٌ حالتُه open/fixed) أو حذفُ المعرّف من الرسالة، أي كتمانُ أيّ حاجبٍ يُذكَر — نفس متّجه التفويض والاستشارة"
+        },
+        {
+          "expect": "test_a_fabricated_certification_blocker_id_is_still_rejected",
+          "find": "                if gid not in blockers:",
+          "replace": "                if False:",
+          "why": "الصنفُ يصير استثناءً بدل تحقّق ⇒ P-CERT-9 الملفَّق يمرّ. والقائمةُ في هذه الشجرة فتُقرأ، وهذا أقوى من الاستثناء لا أضعف"
         }
       ],
       "test": "tests/architecture/test_brain_commit_claim_guard.py"
@@ -3924,6 +3959,35 @@
         }
       ],
       "test": "tests_v9/test_visual_fixme_baseline_guard.py"
+    },
+    "certification_evidence_producer_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_declaring_no_honest_producer_while_emitting_is_rejected",
+          "find": "            if blocker in emitted:",
+          "replace": "            if False:",
+          "why": "هذا هو الحاجزُ الفعليّ في العقد: بدونه يبقى «مُعلَنٌ بلا مُنتِجٍ صادق» نصّاً يُخالِفه العمل — تُضاف خطوةُ انبعاثٍ لـP-CERT-3 (وهو مُعلَنٌ بلا مُنتِج لأنّ سكربتَه يتجاهل السرّ ويُثبِّت رابطَ حاوٍ محلّيّ) فيمرّ ختمُ verified على «Redis الحيّ» بينما المقيسُ حاوٍ زائل"
+        },
+        {
+          "expect": "test_declaring_produced_without_any_emission_is_rejected",
+          "find": "            if declared and blocker not in emitted:",
+          "replace": "            if False:",
+          "why": "الوجهُ المقابل: إعلانُ produced بلا انبعاثٍ على المسار المُعلَن ادّعاءُ إنتاجٍ لا إنتاج. نجا هذا وحدَه من أوّل مسحِ طفراتٍ بينما ماتت الثلاث الأخرى — أي أنّ نصفَ القاعدة كان بلا شاهد، ولم تلتقطه المراجعة"
+        },
+        {
+          "expect": "test_a_declared_producer_that_no_longer_exists_is_rejected",
+          "find": "                if rel and not (ROOT / rel).is_file():",
+          "replace": "                if False:",
+          "why": "سكربتٌ مُعلَنٌ محذوف **تقلّصُ تغطية** لا خطأُ مسار: يبقى العقدُ يقول «لهذا الحاجب مُنتِج» بعد زوال المُنتِج، فيُقرأ الحاجبُ مُغطّى وهو مكشوف — نفس تمييز require_file في preflight"
+        },
+        {
+          "expect": "test_an_empty_reason_is_rejected",
+          "find": "            if not _reason_text(entry.get(\"reason\")):",
+          "replace": "            if False:",
+          "why": "إعلانُ غيابٍ بلا سببٍ صمتٌ بصيغةٍ أخرى — والعقدُ كلُّه وُجِد لأنّ الصمتَ عن «لا مُنتِج لهذا الحاجب» جعل خمسةَ حواجزَ pending تُقرأ عجزاً في القياس لا غياباً في الإنتاج"
+        }
+      ],
+      "test": "tests_v9/test_certification_evidence_is_produced_not_assumed.py"
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

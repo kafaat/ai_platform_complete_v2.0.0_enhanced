@@ -95,6 +95,40 @@ def adjudication_exists(gid: str, directory: Path = ADJUDICATIONS) -> bool:
     return (directory / f"{gid}.json").is_file()
 
 
+# معرّف حاجبِ اعتماد — صنفٌ رابع، وأخو التفويض لا أخو الاستشارة: **مصنوعٌ في هذه
+# الشجرة** في `production_evidence_pack_guard.BLOCKERS`. يُطابِق شكلَ معرّف الفجوة
+# (`P-CERT-1` ثلاثةُ مقاطع) فكان يُطالَب بقسمٍ في سجلّ الفجوات — وتسجيلُه هناك **كذب**:
+# الحاجبُ بندُ اعتمادٍ حالتُه `pending`/`verified`/`waived_with_reason`، لا عطلٌ
+# مرصودٌ حالتُه `open`/`fixed`.
+#
+# **ولا يُستثنى، بل يُتحقَّق منه في قائمته:** مبدأ الحارس أنّ الذكر ادّعاء، والاستشارةُ
+# تُستثنى اضطراراً لأنّ مصدرها خارج الشجرة. أمّا الحاجبُ فقائمتُه هنا فتُقرأ — وهذا
+# **أقوى** من الاستثناء: `P-CERT-9` الملفَّق يبقى ساقطاً.
+#
+# الدليل: رسالةُ التزام «أربعُ وظائفِ دليلٍ لا تكتب دليلاً» تسمّي الحواجزَ الثلاثةَ
+# التي أُعلِنت بلا مُنتِجٍ صادق. والبديلُ — حذفُ المعرّفات — يُخفي **أيَّ حاجبٍ يُذكَر**
+# في رسالة، أي يدفع نحو الكتمان كما كان سيفعل مع أرقام الاستشارات.
+_CERT_BLOCKER = re.compile(r"^P-CERT-[0-9]+$")
+_PACK_GUARD = Path(__file__).resolve().parent / "production_evidence_pack_guard.py"
+
+
+def is_cert_blocker(gid: str) -> bool:
+    """معرّف حاجبِ اعتماد — يُتحقَّق منه في `BLOCKERS` لا في سجلّ الفجوات."""
+    return bool(_CERT_BLOCKER.match(gid))
+
+
+def cert_blocker_ids(path: Path = _PACK_GUARD) -> set[str]:
+    """القائمةُ تُستورَد ولا تُنسَخ — نسخُها هو بعينه العطلُ الذي أسقط `GUARDS`."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("_production_evidence_pack_guard", path)
+    if not spec or not spec.loader:  # pragma: no cover - بيئةٌ مكسورة
+        return set()
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return {b["id"] for b in module.BLOCKERS}
+
+
 # **مرجعُ تفويضٍ مبتور**: صنفٌ رابع كان يُصنَّف خطأً «فجوةً غيرَ مسجَّلة».
 # `GATE01-ADJ-2026-09-02` (بلا المقاطع الثلاثة الأخيرة) لا يطابق `_ADJUDICATION`،
 # فيسقط إلى فرع الفجوات ويُعرَض عليه علاجٌ **يستحيل اتّباعُه بصدق**: «سجّلها في
@@ -158,8 +192,10 @@ def commit_messages(base: str, head: str) -> list[tuple[str, str]]:
 
 def check(base: str, head: str) -> int:
     known = registry_ids()
+    blockers = cert_blocker_ids()
     violations: list[str] = []
     adjudication_violations: list[str] = []
+    blocker_violations: list[str] = []
     truncated_violations: list[str] = []
     claimed = 0
     for sha, body in commit_messages(base, head):
@@ -167,6 +203,12 @@ def check(base: str, head: str) -> int:
             if gid in _NOT_GAP_IDS or is_advisory(gid):
                 continue
             claimed += 1
+            if is_cert_blocker(gid):
+                if gid not in blockers:
+                    blocker_violations.append(
+                        f"{sha}: يذكر {gid} — ليس في production_evidence_pack_guard.BLOCKERS"
+                    )
+                continue
             if is_truncated_adjudication(gid):
                 truncated_violations.append(
                     f"{sha}: يذكر {gid} — مرجعُ تفويضٍ **مبتور**، ينقصه المقطع التسلسليّ"
@@ -181,9 +223,11 @@ def check(base: str, head: str) -> int:
                 continue
             if gid not in known:
                 violations.append(f"{sha}: يذكر {gid} — لا قسم '## {gid}' ولا صفّ جدول يبدأ به")
-    if violations or adjudication_violations or truncated_violations:
+    if violations or adjudication_violations or blocker_violations or truncated_violations:
         print("brain commit claim guard: FAIL")
-        for v in sorted(set(violations + adjudication_violations + truncated_violations)):
+        for v in sorted(
+            set(violations + adjudication_violations + blocker_violations + truncated_violations)
+        ):
             print(f"  ✗ {v}")
         if violations:
             print(
@@ -196,6 +240,12 @@ def check(base: str, head: str) -> int:
                 "\nوذكر معرّف تفويض ادّعاءُ صدوره. التفويض مصنوعٌ في هذه الشجرة — أضِف "
                 "ملفّه في docs/architecture/gates/adjudications/ أو احذف الذكر. "
                 "ولا يُسجَّل في سجلّ الفجوات: إذنُ مالكٍ لا عطلٌ مرصود."
+            )
+        if blocker_violations:
+            print(
+                "\nوذكر معرّف حاجبِ اعتمادٍ ادّعاءُ وجوده في القائمة. الحواجزُ مصنوعةٌ "
+                "في هذه الشجرة — عرِّفه في production_evidence_pack_guard.BLOCKERS أو "
+                "احذف الذكر. ولا يُسجَّل في سجلّ الفجوات: بندُ اعتمادٍ لا عطلٌ مرصود."
             )
         if truncated_violations:
             print(

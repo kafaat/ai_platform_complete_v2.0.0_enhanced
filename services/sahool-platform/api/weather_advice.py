@@ -247,7 +247,13 @@ def irrigation_advice(
             )
 
     # المطر المتوقّع قريباً: يؤجّل الريّ إن كان يغطّي جزءاً معتبراً من الاحتياج.
-    if forecast_rain_mm >= 5 and net > 0 and urgency != "high":
+    #
+    # **و`forecast_hold` استخراجٌ لهذا الحكم عينِه، لا حكمٌ ثانٍ.** الشرطُ والعتبةُ
+    # كما هما منذ كُتِبا؛ المتغيّرُ الوحيد أنّ نتيجتَهما صارت **حقلاً** بدل أن تعيش في
+    # `urgency` و`reasons` وحدَهما. وسببُ الاستخراج أنّ مستهلكاً أعلى (قرارُ الإطلاق
+    # من الاستنزاف) كان يبتلع الإلحاضَ المخفوض فيختفي التأجيلُ بلا أثر.
+    forecast_hold = forecast_rain_mm >= 5 and net > 0 and urgency != "high"
+    if forecast_hold:
         urgency = "low"
         reasons.append(f"مطر متوقّع ({forecast_rain_mm:.0f} مم خلال ٤٨ ساعة) — انتظِر قبل الريّ.")
 
@@ -275,6 +281,7 @@ def irrigation_advice(
         "kc_source": kc_source,
         "salinity_ks": round(salinity_ks, 3),
         "rationale_ar": rationale_ar,
+        "forecast_hold": forecast_hold,
     }
 
 
