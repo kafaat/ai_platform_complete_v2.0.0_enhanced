@@ -768,3 +768,23 @@ def test_the_workflows_path_has_a_code_owner():
     )
     assert line, "مسارُ تعريف الحجب بلا مالك — راجع `A-WORKFLOWS-PATH-HAS-NO-CODE-OWNER-01`"
     assert "@kafaat" in line and "@haithmgarallah-ye" in line, line
+
+
+def test_an_unreadable_parameters_block_is_diagnosed_once_not_twice(tmp_path, capsys):
+    """**أصابت مراجعةٌ آليّة على #984** — والمقيسُ هنا المخرَجُ لا الحكم.
+
+    قاعدةُ `pull_request` بلا كتلة `parameters` مقروءة عطلٌ **واحد**: `violations`
+    تقوله بدقّة. ولو سقط البندُ الثالث إلى فرع «غير مُفعَّل» لطبع
+    `dismiss_stale_reviews_on_push = []` **وكأنّ القيمة رُصِدت وهي لم تُقرأ أصلاً** —
+    ملاحظةٌ ثانيةٌ مُضلِّلة تدفع المُشخِّص إلى مطاردة إعدادٍ سليم.
+
+    والحكمُ واحدٌ في الحالتين (`1`)، فلا يُكذِّب هذا رمزُ الخروج — **يُكذِّبه المخرَج
+    وحدَه**، وهو ما يجعل البيانة قابلةً للقتل بعد أن كان الفرعُ الأصليّ غيرَ قابل.
+    """
+    rules = [
+        {"type": "pull_request", "parameters": "not-a-dict"},
+        _checks_rule(),
+    ]
+    assert _run(_protection(tmp_path, _envelope(rules))) == 1
+    out = capsys.readouterr().out
+    assert MOD.STALE_REVIEW_PARAMETER not in out, out
