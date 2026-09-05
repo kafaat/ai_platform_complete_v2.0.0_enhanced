@@ -1588,6 +1588,54 @@
           "why": "هذه إعادةُ احتياط «أقربِ قيمةٍ غيرِ فارغة» الذي أُسقِط: استبدالٌ صامتٌ على مستوى القيمة يُعيد ساعةً أخرى تحت طابع الساعة المطلوبة. الاختبارُ يطلب `None` بصدق عند الغياب"
         }
       ]
+    },
+    "services/edge-inference/model_artifact_gate.py": {
+      "$gap_ar": "EDGE-MODEL-ARTIFACT-INTEGRITY-01 — الاسمُ كان يُفعِّل القدرة؛ البصمةُ المطابقة وحدَها تُفعِّل.",
+      "test": "tests_v9/test_edge_model_artifact_integrity.py",
+      "mutations": [
+        {
+          "expect": "test_a_same_named_file_without_an_approved_digest_is_not_active",
+          "find": "    active = bool(exists and verified and runtime_available)",
+          "replace": "    active = bool(exists and runtime_available)",
+          "why": "إعادةُ الشرط القديم حرفاً: وجودٌ + runtime بلا بصمة. هذا هو العطلُ المقيس على ad4ac5cc — ملفٌّ بالاسم المتوقَّع من أيّ مصدر يصير قدرةً فعّالة ويُستدلّ به"
+        },
+        {
+          "expect": "test_a_mismatching_digest_is_not_active_and_names_the_reason",
+          "find": "    verified = bool(exists and expected is not None and actual == expected)",
+          "replace": "    verified = bool(exists and expected is not None)",
+          "why": "بصمةٌ مُعلَنة لكن غيرُ مقارَنة بالبايتات — شكلُ «التحقّق الذي لا يتحقّق» نفسُه الذي كان في المُنزِّل"
+        },
+        {
+          "expect": "test_a_model_without_an_interval_publishes_none_and_a_named_limitation",
+          "find": "        limitations.append(\"yield_uncertainty_not_calibrated\")",
+          "replace": "        shaped_interval = {\"lower\": round(float(prediction[\"yield_kg_ha\"]) * 0.85, 2), \"upper\": round(float(prediction[\"yield_kg_ha\"]) * 1.15, 2)}",
+          "why": "إعادةُ ±15٪ المُصطنَعة بعينها تحت اسم فاصل ثقة — الاختبارُ يطلب None وقيداً مسمّى حين لا يُنتِج النموذجُ فاصلاً"
+        }
+      ]
+    },
+    "services/edge-inference/download_models.py": {
+      "$gap_ar": "EDGE-MODEL-ARTIFACT-INTEGRITY-01 — المُنزِّل كان يقبل البصمةَ الفارغة.",
+      "test": "tests_v9/test_edge_model_artifact_integrity.py",
+      "mutations": [
+        {
+          "expect": "test_the_downloader_no_longer_passes_an_empty_digest",
+          "find": "    if not _SHA256_HEX.match(expected):\n        logger.error(",
+          "replace": "    if not expected:\n        return True\n    if not _SHA256_HEX.match(expected):\n        logger.error(",
+          "why": "السطرُ الذي شُحِن: `if not expected: return True`. البصمةُ الفارغة هي القيمةُ المشحونة في REQUIRED_MODELS فيمرّ أيّ ملفّ «✅ downloaded OK»"
+        }
+      ]
+    },
+    "services/edge-inference/models/pest_detector.py": {
+      "$gap_ar": "EDGE-MODEL-ARTIFACT-INTEGRITY-01 — كاشفُ صورٍ كان يُصدِر أسماء مبيدات.",
+      "test": "tests_v9/test_edge_model_artifact_integrity.py",
+      "mutations": [
+        {
+          "expect": "test_a_real_shaped_detection_is_observation_only",
+          "find": "                    \"action_policy\": \"observation_only\",\n                    \"severity\": pest_info[\"severity\"],\n                }\n            )\n        detections.sort(key=lambda d: d[\"confidence\"], reverse=True)",
+          "replace": "                    \"recommended_action\": \"treat\",\n                    \"severity\": pest_info[\"severity\"],\n                }\n            )\n        detections.sort(key=lambda d: d[\"confidence\"], reverse=True)",
+          "why": "إعادةُ حقل التوصية في مسار ONNX الحقيقيّ (لا المحاكاة): الاختبارُ يُنتِج كشفاً من رأسٍ تركيبيّ ويفحص شكلَه، فلا يمرّ إن عاد الكاشفُ يصف"
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

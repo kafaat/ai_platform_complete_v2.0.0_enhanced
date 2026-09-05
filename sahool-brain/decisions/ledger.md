@@ -2289,3 +2289,14 @@ SHAs من `git log --oneline origin/main`.
 - **السبب:** `weather-service` و`sahool-platform` صورتان منفصلتان بلا حزمةٍ بينهما اليوم، وإنشاءُ واحدةٍ لأجل دالّتين توسيعُ نطاقٍ يفوق الشريحة. **والتطابقُ يُقاس لا يُفترَض**: `test_the_two_services_resolve_identically` يُشغِّل النسختين على المدخلات نفسها.
 - **حدُّ صدق:** حالةُ `ecmwf_ifs04` الحيّة **NOT_MEASURED** (الوكيلُ حجب المزوّد)؛ العلاجُ صحيحٌ سواءٌ أُجيب المعرّفُ القديم أم رُفِض. وعتباتُ القاطع (٣ · ٥) لم تُمَسّ.
 - **المصدر:** `docs/architecture/weather_model_catalogue.json` · `services/weather-service/open_meteo.py` · `services/sahool-platform/api/connectors/openmeteo.py` · `tests_v9/test_weather_model_identity.py` · فرع `claude/claude-md-docs-p6qqir` فوق `9876bd92`.
+
+## 2026-09-05 — البصمةُ تُفعِّل عند الاستدلال، والجدولُ يُحذَف لا يُخفى
+
+- **القرار ①:** بوّابةُ هويّة المصنوعة تُطبَّق **في نقطتي الاستدلال** (`_require_approved_model` ⇒ 503) لا في `/capabilities` و`/readyz` وحدَهما.
+- **السبب:** الكاشفُ والمُقدِّر يحمّلان ONNX **بالمسار**؛ فبوّابةٌ على التقرير وحدَه تترك ملفّاً أعلنت القدرةُ أنّه غيرُ فعّال **يُستدلّ به** فعلاً. الرقعةُ والحزمةُ الواردتان وقفتا عند التقرير.
+- **القرار ②:** جدولُ «الإجراء» في `PEST_DB` **حُذِف** من المصدر، لا أُبقي مع تصفير الحقل.
+- **السبب:** جدولٌ بأسماء مبيدات لا يقرؤه أحد بياناتٌ ميّتة تعود بنسخةٍ ولصق؛ وحارسٌ يطابق نصّاً هشّ. الاختبارُ يقيس **شكلَ كشفٍ منتَج** من رأسٍ تركيبيّ وغيابَ الأسماء من المصدر.
+- **القرار ③:** المنطقُ الصرف في `model_artifact_gate.py` **بلا FastAPI**.
+- **السبب:** لا وظيفةَ CI تُشغّل `services/edge-inference/tests`، و`python-multipart` ليست في `requirements-test` فاستيرادُ `main.py` يسقط في جناح الوحدة. الفصلُ يجعل الحكمَ يبلغ بوّابةَ الدمج بدل أن يعيش في جناحٍ لا يعمل — ولم تُضَف وظيفةُ CI لأنّ توسيعَ السطح قرارٌ منفصل.
+- **حدُّ صدق:** البصمةُ هويّةٌ لا صلاحيّة؛ الرخصةُ والتصنيفُ والمعايرةُ NOT_PROVISIONED. وجودُ `MODELS_BASE` على GitHub لم يُقَس.
+- **المصدر:** `services/edge-inference/model_artifact_gate.py` · `tests_v9/test_edge_model_artifact_integrity.py` · فرع `claude/claude-md-docs-p6qqir` فوق `ad4ac5cc`.
