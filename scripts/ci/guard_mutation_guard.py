@@ -762,6 +762,8 @@ def addition_violations(key: str, declaration: object) -> list[str]:
         for field in _REQUIRED_ADDITION_FIELDS
         if not str(declaration.get(field) or "").strip()
     ]
+    impact = str(declaration.get("impact") or "").strip()
+    if impact and impact not in _IMPACT_PLACEMENTS:
         problems.append(
             f"{key}: `impact` = {impact!r} ليس قيمةَ أثرٍ معروفة ({'/'.join(_IMPACT_PLACEMENTS)})"
         )
@@ -773,10 +775,15 @@ def blocking_surface_findings(
     baseline: dict,
     additions: dict,
 ) -> list[str]:
-    """زياداتٌ بلا إقرارٍ مكتمل · وإقراراتٌ بلا زيادة.
+    """ثلاثةُ اتّجاهات: زيادةٌ بلا إقرار · إقرارٌ ناقصُ الخصائص · وإقرارٌ لزيادةٍ زالت.
 
-    **والاتّجاه الثالث مقصود:** إقرارٌ لزيادةٍ لم تعد موجودة يعني أنّ السطحَ ضاق ولم
-    يُنظَّف إقرارُه — وسجلٌّ يحمل ما لا وجودَ له يُدرِّب قارئَه على تجاهله.
+    **والثالثُ مقصود:** إقرارٌ لزيادةٍ لم تعد موجودة يعني أنّ السطحَ ضاق ولم يُنظَّف
+    إقرارُه — وسجلٌّ يحمل ما لا وجودَ له يُدرِّب قارئَه على تجاهله.
+
+    **وتقلّصُ الأساس نفسِه لا يُبلَّغ عنه قصداً:** التجميدُ يمنع النموّ ولا يُطالِب
+    ببقاء الموجود، فزوالُ حاجبٍ من `legacy_blocking` تضييقٌ مشروعٌ لا انحراف.
+    (كان هذا السطرُ يعد باتّجاهٍ رابعٍ غيرِ منفَّذ؛ أصابت مراجعةٌ آليّة على #982،
+    ووصفٌ أوسعُ من السلوك هو **بعينه** ما تُغلقه هذه الشريحة.)
     """
     findings: list[str] = []
     frozen = set(baseline)

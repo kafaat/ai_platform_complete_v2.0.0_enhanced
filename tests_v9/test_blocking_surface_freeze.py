@@ -139,15 +139,90 @@ def test_the_advisory_report_returns_zero_even_with_findings(capsys, monkeypatch
 
 
 def test_enforce_is_available_but_not_wired_into_any_workflow():
-    """`--enforce` يوجد ليُشغَّل يدويّاً — **ولا يمرّره أيُّ workflow**.
+    """`--enforce` يوجد ليُشغَّل يدويّاً — **ولا يمرّره أيُّ workflow لهذه الأداة**.
 
     فترقيةُ التجميد إلى الحجب تصير قراراً يُتَّخذ بقياسٍ لا بالنسيان.
+
+    **والقياسُ بالتحليل لا بمطابقة سلسلة.** الصياغةُ الأولى بحثت عن
+    `"--blocking-surface --enforce"` حرفيّاً بمسافةٍ واحدة، فكان يكفي شَرطةٌ مائلةٌ
+    وسطرٌ جديدٌ بين العلمين لتمرّ:
+
+        run: |
+          python scripts/ci/guard_mutation_guard.py --blocking-surface \\
+            --enforce
+
+    أي **حارسٌ يبدو أنّه يحرس ولا يحرس** — وهو الصنفُ عينُه الذي وُجِدت هذه الشريحة
+    لأجله، فوقع في اختبارها. (أصابت مراجعةٌ آليّة على #982.)
+
+    ولا يُحظَر `--enforce` في الشجرة جملةً: `ci.yml` يمرّر `--enforce-expiry` لأداةٍ
+    أخرى مشروعةٍ تماماً. فالمقيسُ **العلمُ في نداء هذه الأداة بعينها**.
     """
-    assert "--enforce" in GUARD.read_text(encoding="utf-8")
     import re
-    for path in (ROOT / ".github" / "workflows").glob("*.y*ml"):
-        text = path.read_text(encoding="utf-8")
-        assert not re.search(r"(?s)--blocking-surface(?:[ \t\\\n]+)--enforce|--enforce(?:[ \t\\\n]+)--blocking-surface", text), path.name
+
+    import yaml
+
+    assert "--enforce" in GUARD.read_text(encoding="utf-8")
+    for path in sorted((ROOT / ".github" / "workflows").glob("*.y*ml")):
+        document = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        for job_name, job in (document.get("jobs") or {}).items():
+            if not isinstance(job, dict):
+                continue
+            for step in job.get("steps") or []:
+                body = str(step.get("run") or "")
+                if not body:
+                    continue
+                # تُطوى وصلاتُ الأسطر ثمّ تُقسَّم الأوامر: العلمُ يُنسَب إلى نداءٍ لا إلى ملفّ.
+                folded = re.sub(r"\\\s*\n\s*", " ", body)
+                for command in re.split(r"[\n;&|]+", folded):
+                    if "guard_mutation_guard.py" not in command:
+                        continue
+                    assert "--enforce" not in command.split(), (
+                        f"{path.name} :: {job_name} يمرّر `--enforce` إلى تجميد سطح الحجب — "
+                        "الترقيةُ إلى الحجب قرارٌ يُتَّخذ بقياسٍ لا بتعديل workflow"
+                    )
+
+
+def test_a_non_adjacent_enforce_flag_is_still_caught(tmp_path):
+    """`--enforce` **غيرُ ملاصقٍ** لـ`--blocking-surface` يُمسَك أيضاً.
+
+    اقترحت المراجعةُ الآليّة نمطاً يسمح بالفراغات والأسطر **بين العلمين**، وهو يُصلِح
+    صياغةَ السطرين. لكنّه يشترط **التلاصق**، فيفلت منه:
+
+        python scripts/ci/guard_mutation_guard.py --blocking-surface --shard 1/2 --enforce
+
+    ولا شيءَ في الأداة يمنع علماً ثالثاً بينهما. فالمقيسُ ليس المسافةَ بين العلمين بل
+    **أن يحمل نداءُ هذه الأداة العلمَ أصلاً** — ولذلك يُحلَّل الـYAML ويُقسَّم الأمر،
+    ولا يُطابَق نصٌّ خام. وهذه الحالةُ هي ما يمنع الارتدادَ إلى النمط.
+    """
+    import re
+
+    import yaml
+
+    workflow = tmp_path / "escaped.yml"
+    workflow.write_text(
+        "jobs:\n"
+        "  x:\n"
+        "    steps:\n"
+        "      - run: python scripts/ci/guard_mutation_guard.py "
+        "--blocking-surface --shard 1/2 --enforce\n",
+        encoding="utf-8",
+    )
+    text = workflow.read_text(encoding="utf-8")
+
+    adjacent_only = (
+        r"(?s)--blocking-surface(?:[ \t\\\n]+)--enforce|--enforce(?:[ \t\\\n]+)--blocking-surface"
+    )
+    assert not re.search(adjacent_only, text), "النمطُ الملاصق لا يرى هذه الصياغة — وهو سببُ التحليل"
+
+    caught = False
+    document = yaml.safe_load(text) or {}
+    for job in (document.get("jobs") or {}).values():
+        for step in job.get("steps") or []:
+            folded = re.sub(r"\\\s*\n\s*", " ", str(step.get("run") or ""))
+            for command in re.split(r"[\n;&|]+", folded):
+                if "guard_mutation_guard.py" in command and "--enforce" in command.split():
+                    caught = True
+    assert caught, "التحليلُ يجب أن يمسك ما يفلت من النمط"
 
 
 def test_the_advisory_job_does_not_lean_on_continue_on_error():
