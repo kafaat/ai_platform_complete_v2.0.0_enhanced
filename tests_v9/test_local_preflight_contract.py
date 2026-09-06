@@ -528,11 +528,17 @@ def _extract_block(marker: str) -> str:
     return text[start:end]
 
 
-def _run_pin_block(tmp_path: Path, pin: str) -> int:
+def _run_pin_block(
+    tmp_path: Path, pin: str | None, *, write_requirements: bool = True
+) -> subprocess.CompletedProcess[str]:
     (tmp_path / "services/sahool-platform/api").mkdir(parents=True)
-    (tmp_path / "services/sahool-platform/api/requirements.txt").write_text(
-        f"httpx>=0.28\nfastapi=={pin}\npydantic==2.13.4\n", encoding="utf-8"
-    )
+    if write_requirements:
+        requirements = ["httpx>=0.28", "pydantic==2.13.4"]
+        if pin is not None:
+            requirements.insert(1, f"fastapi=={pin}")
+        (tmp_path / "services/sahool-platform/api/requirements.txt").write_text(
+            "\n".join(requirements) + "\n", encoding="utf-8"
+        )
     return subprocess.run(
         [sys.executable, "-"],
         input=_extract_block("PINPY"),
@@ -541,7 +547,7 @@ def _run_pin_block(tmp_path: Path, pin: str) -> int:
         encoding="utf-8",
         cwd=tmp_path,
         timeout=120,
-    ).returncode
+    )
 
 
 def test_the_platform_suite_is_skipped_loudly_when_fastapi_differs_from_the_pin(tmp_path):
@@ -551,15 +557,22 @@ def test_the_platform_suite_is_skipped_loudly_when_fastapi_differs_from_the_pin(
     اختلافٌ ⇒ غيرُ صفر — فيُعَدّ الجناحُ «لم يُقَس» بدل حمرةٍ تُقرأ شيفريّة."""
     import fastapi
 
-    assert _run_pin_block(tmp_path / "match", fastapi.__version__) == 0
-    assert _run_pin_block(tmp_path / "mismatch", "0.0.1") != 0, (
-        "إصدارٌ مختلفٌ يجب أن يُخرِج الجناحَ إلى التخطّي المُعلَن لا أن يُشغّله"
-    )
+    assert _run_pin_block(tmp_path / "match", fastapi.__version__).returncode == 0
+    mismatch = _run_pin_block(tmp_path / "mismatch", "0.0.1")
+    assert mismatch.returncode != 0, "إصدارٌ مختلفٌ يجب أن يُخرِج الجناحَ إلى التخطّي المُعلَن لا أن يُشغّله"
+    assert "إصدارُ FastAPI المثبَّت" in mismatch.stderr
     text = _text()
-    skip_at = text.index("إصدارُ FastAPI المثبَّت ≠")
+    skip_at = text.index('echo "   ⊘ متخطّاة: ${pin_check_reason')
     assert "skipped=$((skipped + 1))" in text[skip_at : skip_at + 400], (
         "التخطّي يجب أن يُعَدّ في عدّاد المتخطّاة لا أن يُبتلَع"
     )
+
+
+def test_the_platform_suite_skip_reason_names_non_version_pin_failures(tmp_path):
+    missing_requirements = _run_pin_block(tmp_path / "missing-reqs", None, write_requirements=False)
+    assert missing_requirements.returncode != 0
+    assert "تعذّرت قراءة" in missing_requirements.stderr
+    assert "إصدارُ FastAPI المثبَّت" not in missing_requirements.stderr
 
 
 def test_the_commit_claim_step_says_it_reads_committed_messages_only():

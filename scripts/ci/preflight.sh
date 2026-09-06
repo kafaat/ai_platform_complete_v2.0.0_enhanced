@@ -441,26 +441,46 @@ run "٨ب) pytest tests/"   python3 -m pytest -q tests/
 # «مسارٌ مُسجَّل» تحمرّ لسببٍ بيئيّ لا شيفريّ بينما CI يثبّت الإصدارَ الذي في
 # `api/requirements.txt`. حمرةٌ بيئيّة تُقرأ شيفريّةً أسوأ من تخطٍّ مُعلَن — فعند اختلاف
 # الإصدار يُتخطّى بصوتٍ عالٍ ويُعَدّ «لم يُقَس»، لا أخضرَ ولا أحمرَ كاذبين.
-if python3 - <<'PINPY' 2>/dev/null
+pin_check_reason="$(
+python3 - <<'PINPY' 2>&1
 import re, sys
 from pathlib import Path
+
+requirements = Path("services/sahool-platform/api/requirements.txt")
+try:
+    lines = requirements.read_text(encoding="utf-8").splitlines()
+except Exception as exc:
+    print(f"تعذّرت قراءة {requirements}: {exc}", file=sys.stderr)
+    sys.exit(2)
+
 pin = None
-for line in Path("services/sahool-platform/api/requirements.txt").read_text(encoding="utf-8").splitlines():
+for line in lines:
     m = re.match(r"\s*fastapi==([0-9][0-9A-Za-z.]*)", line)
     if m:
         pin = m.group(1)
+if pin is None:
+    print(f"لم يُعثر على تثبيت fastapi==… في {requirements}", file=sys.stderr)
+    sys.exit(3)
 try:
     import fastapi
-except Exception:
+except Exception as exc:
+    print(f"تعذّر استيراد FastAPI المثبَّت: {exc}", file=sys.stderr)
+    sys.exit(4)
+if fastapi.__version__ != pin:
+    print(
+        f"إصدارُ FastAPI المثبَّت ({fastapi.__version__}) ≠ المثبَّت في {requirements} ({pin})",
+        file=sys.stderr,
+    )
     sys.exit(1)
-sys.exit(0 if pin is not None and fastapi.__version__ == pin else 1)
 PINPY
-then
+)"
+pin_check_rc=$?
+if [ "$pin_check_rc" -eq 0 ]; then
   run "٨ج) pytest services/sahool-platform/tests (شكل CI)" \
     bash -c 'cd services/sahool-platform && PYTHONPATH=. python3 -m pytest -q -p no:cacheprovider tests'
 else
   echo "── ٨ج) pytest services/sahool-platform/tests (شكل CI)"
-  echo "   ⊘ متخطّاة: إصدارُ FastAPI المثبَّت ≠ المثبَّت في api/requirements.txt — هذه البوّابة **لم تُقَس**"
+  echo "   ⊘ متخطّاة: ${pin_check_reason:-تعذّر التحقّق من شرط FastAPI} — هذه البوّابة **لم تُقَس**"
   skipped=$((skipped + 1))
 fi
 

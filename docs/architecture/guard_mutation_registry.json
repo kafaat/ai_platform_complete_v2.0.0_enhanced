@@ -928,8 +928,8 @@
         {
           "expect": "test_the_platform_suite_is_skipped_loudly_when_fastapi_differs_from_the_pin",
           "test": "tests_v9/test_local_preflight_contract.py",
-          "find": "sys.exit(0 if pin is not None and fastapi.__version__ == pin else 1)\n",
-          "replace": "sys.exit(0)  # mutated: الجناحُ يُشغَّل على أيّ إصدار\n",
+          "find": "if fastapi.__version__ != pin:\n",
+          "replace": "if False:  # mutated: الجناحُ يُشغَّل على أيّ إصدار\n",
           "why": "إسقاطُ شرط تطابق الإصدار يُشغّل الجناحَ على FastAPI مختلفٍ عن المثبَّت في CI، فتحمرّ ٣٢ حالةً لسببٍ بيئيّ وتُقرأ شيفريّةً — حمرةٌ كاذبةٌ بدل تخطٍّ مُعلَن."
         }
       ]
