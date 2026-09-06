@@ -1,9 +1,9 @@
-"""Date-parser extraction preserves router aliases, error codes and timezone behavior."""
+"""Request date contracts stay intact without growing either platform budget."""
 
 from __future__ import annotations
 
 import ast
-import importlib.util
+import types
 from datetime import UTC, date, timedelta
 from pathlib import Path
 
@@ -14,12 +14,33 @@ pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
 API = ROOT / "services" / "sahool-platform" / "api"
-_SPEC = importlib.util.spec_from_file_location(
-    "platform_request_dates_test", API / "request_dates.py"
+# Execute the real parser definitions and their real datetime import from main.
+# This narrow unit harness does not boot the application or stand in for an HTTP test.
+_MAIN_TREE = ast.parse((API / "main.py").read_text(encoding="utf-8"))
+_NAMES = {"_parse_date", "_parse_iso_utc"}
+_FUNCTIONS = [
+    node
+    for node in _MAIN_TREE.body
+    if isinstance(node, ast.FunctionDef) and node.name in _NAMES
+]
+assert len(_FUNCTIONS) == 2
+assert {node.name for node in _FUNCTIONS} == _NAMES
+_DATETIME_IMPORTS = [
+    node
+    for node in _MAIN_TREE.body
+    if isinstance(node, ast.ImportFrom) and node.module == "datetime"
+]
+assert len(_DATETIME_IMPORTS) == 1
+PARSERS = types.ModuleType("platform_main_dates_under_test")
+PARSERS.HTTPException = HTTPException
+exec(
+    compile(
+        ast.Module(body=[*_DATETIME_IMPORTS, *_FUNCTIONS], type_ignores=[]),
+        str(API / "main.py"),
+        "exec",
+    ),
+    vars(PARSERS),
 )
-assert _SPEC is not None and _SPEC.loader is not None
-PARSERS = importlib.util.module_from_spec(_SPEC)
-_SPEC.loader.exec_module(PARSERS)
 
 
 @pytest.mark.parametrize("value", [None, ""])
@@ -73,30 +94,38 @@ def test_bad_iso_preserves_422(value):
     assert repr(value) in exc.value.detail
 
 
-def test_main_reexports_one_implementation_to_existing_consumers(monkeypatch):
-    """Execute the real import statement, without booting the database-bearing app."""
+def test_main_keeps_one_parser_for_existing_router_consumers(monkeypatch):
+    """Execute each router's existing parser import without booting the application."""
     import sys
-    import types
 
-    tree = ast.parse((API / "main.py").read_text(encoding="utf-8"))
-    names = {"_parse_date", "_parse_iso_utc"}
+    assert not (API / "request_dates.py").exists()
+    assert all(not function.decorator_list for function in _FUNCTIONS)
     assert not any(
-        isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name in names
-        for node in tree.body
+        isinstance(node, ast.ImportFrom) and node.module == "api.request_dates"
+        for node in _MAIN_TREE.body
     )
-    imports = [
-        node
-        for node in tree.body
-        if isinstance(node, ast.ImportFrom) and node.module == "api.request_dates"
-    ]
-    assert len(imports) == 1
-    assert {alias.name for alias in imports[0].names} == names
     package = types.ModuleType("api")
     package.__path__ = [str(API)]
     monkeypatch.setitem(sys.modules, "api", package)
-    monkeypatch.setitem(sys.modules, "api.request_dates", PARSERS)
-    bound = {}
-    exec(compile(ast.Module(body=imports, type_ignores=[]), "main_parser_import", "exec"), bound)
-    assert bound["_parse_date"] is PARSERS._parse_date
-    assert bound["_parse_iso_utc"] is PARSERS._parse_iso_utc
-    assert bound["_parse_date"]("2026-09-06", "sowing_date") == date(2026, 9, 6)
+    monkeypatch.setitem(sys.modules, "api.main", PARSERS)
+    consumers = set()
+    for path in sorted((API / "routers").glob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in tree.body:
+            if not isinstance(node, ast.ImportFrom) or node.module != "api.main":
+                continue
+            aliases = [alias for alias in node.names if alias.name in _NAMES]
+            if not aliases:
+                continue
+            selected = ast.ImportFrom(module=node.module, names=aliases, level=node.level)
+            code = ast.fix_missing_locations(ast.Module(body=[selected], type_ignores=[]))
+            bound = {}
+            exec(compile(code, str(path), "exec"), bound)
+            for alias in aliases:
+                assert bound[alias.asname or alias.name] is getattr(PARSERS, alias.name)
+                consumers.add(alias.name)
+    assert consumers == _NAMES
+
+
+def test_main_line_budget_is_preserved():
+    assert len((API / "main.py").read_text(encoding="utf-8").splitlines()) <= 2553
