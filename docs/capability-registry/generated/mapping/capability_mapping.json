@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5261,
+    "files_scanned": 5263,
     "files_by_kind": {
-      "backend": 1205,
+      "backend": 1206,
       "database": 276,
       "governance": 62,
       "mobile": 51,
       "other": 1444,
-      "tests": 1766,
+      "tests": 1767,
       "web": 457
     },
-    "unmapped_artifacts": 2147,
+    "unmapped_artifacts": 2148,
     "ambiguous_artifacts": 418
   },
   "capabilities": [
@@ -32267,6 +32267,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_weather_model_identity.py",
+          "score": 10,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "tests_v9/test_wired_endpoints.py",
           "score": 10,
           "signals": [
@@ -32554,7 +32562,7 @@
         "events": 82,
         "web": 19,
         "mobile": 0,
-        "tests": 59,
+        "tests": 60,
         "governance": 0,
         "other_evidence": 24
       },
@@ -32579,6 +32587,15 @@
         {
           "path": "services/sahool-platform/api/routers/weather.py",
           "score": 18,
+          "signals": [
+            "content:VPD",
+            "content:vapour pressure deficit",
+            "content:vpd"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/api/connectors/openmeteo.py",
+          "score": 13,
           "signals": [
             "content:VPD",
             "content:vapour pressure deficit",
@@ -32631,15 +32648,6 @@
           "score": 12,
           "signals": [
             "content:VPD",
-            "content:vpd"
-          ]
-        },
-        {
-          "path": "services/sahool-platform/api/connectors/openmeteo.py",
-          "score": 11,
-          "signals": [
-            "content:VPD",
-            "content:vapour pressure deficit",
             "content:vpd"
           ]
         }
@@ -32765,6 +32773,10 @@
       "database": [],
       "events": [
         {
+          "value": "sahool.api.openmeteo @ services/sahool-platform/api/connectors/openmeteo.py:35",
+          "score": 13
+        },
+        {
           "value": "canonical_daily_weather_series.py @ scripts/ci/consumer_contract_gate.py:46",
           "score": 12
         },
@@ -32783,10 +32795,6 @@
         {
           "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:533",
           "score": 12
-        },
-        {
-          "value": "sahool.api.openmeteo @ services/sahool-platform/api/connectors/openmeteo.py:35",
-          "score": 11
         }
       ],
       "web": [
@@ -38756,6 +38764,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/sahool-platform/api/request_dates.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/sahool-platform/api/router_registry.py",
       "kind": "backend"
     },
@@ -43016,6 +43028,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_platform_request_dates.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_platform_rs256_production.py",
       "kind": "tests"
     },
@@ -43649,10 +43665,6 @@
     },
     {
       "path": "tests_v9/test_weather_engine.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_weather_model_identity.py",
       "kind": "tests"
     },
     {
@@ -49383,20 +49395,20 @@
       "kind": "backend",
       "candidates": [
         {
+          "capability_id": "WX-005",
+          "score": 13,
+          "signals": [
+            "content:VPD",
+            "content:vapour pressure deficit",
+            "content:vpd"
+          ]
+        },
+        {
           "capability_id": "WX-004",
           "score": 12,
           "signals": [
             "content:ET0",
             "content:et0"
-          ]
-        },
-        {
-          "capability_id": "WX-005",
-          "score": 11,
-          "signals": [
-            "content:VPD",
-            "content:vapour pressure deficit",
-            "content:vpd"
           ]
         }
       ]

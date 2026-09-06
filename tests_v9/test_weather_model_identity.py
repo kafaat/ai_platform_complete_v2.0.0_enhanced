@@ -418,6 +418,57 @@ async def test_platform_tile_sample_resolves_by_timestamp_and_declares_it(om, mo
     assert sample["time_resolution"]["requested_offset_hours"] == 3
 
 
+async def test_platform_now_sample_declares_one_time_and_names_the_hourly_row(om, monkeypatch):
+    """مراجعةُ Copilot على #985، مُعاد إنتاجُها: `time` بدقائقه و`resolved` صفُّ الساعة.
+
+    عيّنةُ `now` تخلط مصدرين بحقّ — حقولُ `current` عند 15:10، والحقولُ الساعيّةُ فقط
+    (ET0/VPD/التربة) من صفّ 15:00 — فيُعلَن كلاهما باسمه: `resolved` يطابق `time`،
+    وصفُّ الساعة يُسمّى `hourly_row_time` مع قيدٍ مقروء، ولا تُخفي إحداهما الأخرى.
+    """
+    hourly = _hourly_from_midnight()
+    hourly["et0_fao_evapotranspiration"] = [float(i) for i in range(len(hourly["time"]))]
+    payload = {
+        "current": {"time": f"{_DAY}T15:10", "temperature_2m": 33.3, "wind_direction_10m": 90.0},
+        "hourly": hourly,
+    }
+
+    async def fake_fetch(url, params, timeout_s):
+        return payload
+
+    monkeypatch.setattr(om, "_fetch_json", fake_fetch)
+    sample = await om.fetch_weather_tile_data(15.0, 44.0, time_key="now")
+    resolution = sample["time_resolution"]
+    assert sample["time"] == f"{_DAY}T15:10"
+    assert resolution["resolved"] == sample["time"], (
+        "وقتان لعيّنةٍ واحدة — التناقضُ الذي أمسكته المراجعة"
+    )
+    assert resolution["anchor"] == resolution["target"] == sample["time"]
+    assert resolution["policy"] == "current"
+    assert sample["temperature_2m_c"] == 33.3, "حقلُ current يبقى من current"
+    assert sample["et0_fao_evapotranspiration_mm"] == 15.0, "الحقلُ الساعيّ من صفّ 15:00 لا 15:10"
+    assert resolution["hourly_row_time"] == f"{_DAY}T15:00"
+    assert f"hourly_only_fields_from:{_DAY}T15:00" in resolution["limitations"]
+
+
+async def test_platform_now_sample_on_the_hour_declares_no_split(om, monkeypatch):
+    """حين يقع `current.time` على رأس الساعة لا يوجد صفٌّ مغاير فلا قيد."""
+    payload = {
+        "current": {"time": f"{_DAY}T15:00", "temperature_2m": 1.0},
+        "hourly": _hourly_from_midnight(),
+    }
+
+    async def fake_fetch(url, params, timeout_s):
+        return payload
+
+    monkeypatch.setattr(om, "_fetch_json", fake_fetch)
+    sample = await om.fetch_weather_tile_data(15.0, 44.0, time_key="now")
+    resolution = sample["time_resolution"]
+    assert (
+        resolution["resolved"] == sample["time"] == resolution["hourly_row_time"] == f"{_DAY}T15:00"
+    )
+    assert not any(lim.startswith("hourly_only_fields_from") for lim in resolution["limitations"])
+
+
 def test_a_null_at_the_exact_hour_stays_null_instead_of_borrowing_a_neighbour(om):
     """الاحتياطُ القديم كان يمسح المصفوفةَ أماماً وخلفاً — استبدالٌ صامتٌ على مستوى القيمة."""
     hourly = _hourly_from_midnight()

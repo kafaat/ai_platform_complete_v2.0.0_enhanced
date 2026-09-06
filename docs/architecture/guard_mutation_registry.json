@@ -1590,6 +1590,12 @@
       "test": "tests_v9/test_weather_model_identity.py",
       "mutations": [
         {
+          "expect": "test_platform_now_sample_declares_one_time_and_names_the_hourly_row",
+          "find": "            \"resolved\": c[\"time\"],\n            \"hourly_row_time\": hourly_row_time,",
+          "replace": "            \"resolved\": hourly_row_time,\n            \"hourly_row_time\": hourly_row_time,",
+          "why": "مراجعةُ Copilot على #985: إعادةُ `resolved` إلى صفّ الساعة المُدوَّر تُعيد عيّنةَ `now` بوقتين — `time` بدقائقه و`resolved` قبله بربع ساعة — وهو التناقضُ الذي أُضيف `time_resolution` أصلاً لمنعه."
+        },
+        {
           "expect": "test_five_rejected_model_requests_leave_the_platform_connector_breaker_closed",
           "find": "        if kind == \"provider\":\n            _OPENMETEO_BREAKER.record_failure()",
           "replace": "        if True:\n            _OPENMETEO_BREAKER.record_failure()",

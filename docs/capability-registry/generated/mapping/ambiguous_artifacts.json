@@ -5661,20 +5661,20 @@
     "kind": "backend",
     "candidates": [
       {
+        "capability_id": "WX-005",
+        "score": 13,
+        "signals": [
+          "content:VPD",
+          "content:vapour pressure deficit",
+          "content:vpd"
+        ]
+      },
+      {
         "capability_id": "WX-004",
         "score": 12,
         "signals": [
           "content:ET0",
           "content:et0"
-        ]
-      },
-      {
-        "capability_id": "WX-005",
-        "score": 11,
-        "signals": [
-          "content:VPD",
-          "content:vapour pressure deficit",
-          "content:vpd"
         ]
       }
     ]

@@ -9,7 +9,13 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
+import api.main  # noqa: F401 — تهيئة api.main قبل استيراد الموجِّه (تفادي دورة استيراد)
 import pytest
+
+# **الترتيب مقيس لا تزييناً:** استيرادُ الراوتر قبل `api.main` يبني التطبيقَ أثناء
+# استيرادٍ دائريّ فيفقد راوترَ `water_twin`، ويسقط `test_every_router_module_is_included_in_main`
+# لكلّ مَن يعمل بعد هذا الملفّ في الجلسة نفسها (`['water_twin']`). CI لم يره لأنّ ترتيبَ
+# الملفّات أبجديّ (r قبل w)؛ التشغيلُ المحلّيّ المختلط أظهره.
 from api.routers.water_twin import FieldWaterTwinRequest, _join_sensor
 from api.soil_telemetry import SoilMoistureReading
 

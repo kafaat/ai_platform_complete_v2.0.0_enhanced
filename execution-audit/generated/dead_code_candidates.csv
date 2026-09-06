@@ -110,7 +110,7 @@ medium,sahool-platform,function,site_suitability,services/sahool-platform/api/co
 medium,sahool-platform,function,cultivation_guide,services/sahool-platform/api/coffee_advisor.py,89,0,review_before_delete,False
 medium,sahool-platform,function,fetch_current_batch,services/sahool-platform/api/connectors/openmeteo.py,348,0,review_before_delete,False
 medium,sahool-platform,function,fetch_bundle,services/sahool-platform/api/connectors/openmeteo.py,459,0,review_before_delete,False
-medium,sahool-platform,function,spraying_condition_score,services/sahool-platform/api/connectors/openmeteo.py,794,0,review_before_delete,False
+medium,sahool-platform,function,spraying_condition_score,services/sahool-platform/api/connectors/openmeteo.py,811,0,review_before_delete,False
 medium,sahool-platform,function,build_controller_handshake,services/sahool-platform/api/controller_edge_adapter.py,124,0,review_before_delete,False
 medium,sahool-platform,function,normalize_controller_telemetry,services/sahool-platform/api/controller_edge_adapter.py,165,0,review_before_delete,False
 medium,sahool-platform,function,build_controller_capability_snapshot,services/sahool-platform/api/controller_edge_adapter.py,223,0,review_before_delete,False
