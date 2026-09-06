@@ -20,9 +20,15 @@ UNITS = {
     "sand": "%",
     "silt": "%",
     "texture": None,
+    # SOIL-MOISTURE-UNIT-IDENTITY-01: `%` العارية **غيرُ مُعلَنة** — لا تقول أهي رطوبةٌ
+    # حجميّة (VWC) أم نسبةُ ماءٍ متاح. المُنتِجُ الذي يعرف ما يُخرِجه حسّاسُه يمرّر
+    # `units={"soil_moisture": "vwc_pct"}` (أو `available_pct`)، ولا يُخمَّن عنه هنا.
     "soil_moisture": "%",
     "soil_temperature": "degC",
 }
+
+#: الوحداتُ التي يقبلها المستهلكُ (`sahool-platform/api/soil_telemetry.py`) مُعلَنةً.
+DECLARED_SOIL_MOISTURE_UNITS = frozenset({"vwc_pct", "available_pct", "m3/m3"})
 
 
 def observations_from_properties(
@@ -40,8 +46,13 @@ def observations_from_properties(
     provenance: dict[str, Any] | None = None,
     supersedes_observation_ids: dict[str, str] | None = None,
     supersession_reason: str | None = None,
+    units: dict[str, str] | None = None,
 ) -> list[SoilObservation]:
+    """يحوّل خصائصَ شاهدٍ إلى سجلّات قانونيّة. ``units`` وحدةٌ **يُعلنها المصدر** لخاصّيّة
+    بعينها فتغلب الافتراضيّ في ``UNITS``؛ ما لم يُعلَن يبقى على افتراضيّه (ولـ`soil_moisture`
+    الافتراضيُّ `%` أي غيرُ مُعلَن — انظر التعليق على ``UNITS``)."""
     observed_at = observed_at or datetime.now(UTC)
+    units = units or {}
     quality = (
         SoilObservationQuality.ACCEPTED
         if approved
@@ -77,7 +88,7 @@ def observations_from_properties(
                 field_id=field_id,
                 property=canonical,
                 value=value,
-                unit=UNITS.get(canonical),
+                unit=units.get(canonical, units.get(prop, UNITS.get(canonical))),
                 depth_from_cm=depth_from_cm,
                 depth_to_cm=depth_to_cm,
                 observed_at=observed_at,

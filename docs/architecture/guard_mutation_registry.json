@@ -1684,6 +1684,30 @@
           "why": "الافتراضُ الموروث حرفاً: كلُّ وحدةٍ مجهولة «ماءٌ متاح». بها تصير `%` العارية التي يخزّنها الكاتبُ القانونيّ إعلاناً — وهي ما لم يُعلنه أحد"
         }
       ]
+    },
+    "services/sahool-platform/api/alert_rules.py": {
+      "$gap_ar": "SOIL-MOISTURE-UNIT-IDENTITY-01 — قاعدةُ low_moisture تقرأ وحدةَ القراءة قبل أن تقارنها بعتبة ماءٍ متاح.",
+      "test": "tests_v9/test_soil_moisture_unit_identity.py",
+      "mutations": [
+        {
+          "expect": "test_a_vwc_reading_does_not_fire_the_available_water_alert",
+          "find": "    if sm is not None and ctx.soil_moisture_unit_kind == \"vwc_pct\":\n        # قراءةٌ حجميّة لا تُقارَن بعتبةِ ماءٍ متاح بلا θFC/θWP — تسقط إلى مسار الاحتياج.\n        sm = None",
+          "replace": "    if False:\n        sm = None",
+          "why": "بلا هذا السطر تُقارَن 20٪ VWC بعتبة 30٪ ماءٍ متاح فيُطلَق تنبيهُ «رطوبة حرجة» على تربةٍ قد تكون قربَ سعتها الحقليّة — الصنفُ نفسُه الذي أُغلق في الوصلة يعود من باب التنبيه"
+        }
+      ]
+    },
+    "services/soil-service/evidence_adapters.py": {
+      "$gap_ar": "SOIL-MOISTURE-UNIT-IDENTITY-01 — الكاتبُ القانونيّ يخزّن الوحدةَ التي أعلنها المصدر لا `%` العارية دائماً.",
+      "test": "tests_v9/test_soil_moisture_unit_identity.py",
+      "mutations": [
+        {
+          "expect": "test_the_writer_stores_the_declared_unit_and_keeps_bare_percent_when_nothing_is_declared",
+          "find": "                unit=units.get(canonical, units.get(prop, UNITS.get(canonical))),",
+          "replace": "                unit=UNITS.get(canonical),",
+          "why": "السطرُ الذي شُحِن: كلُّ رطوبةٍ تُخزَّن `%` مهما أعلن المصدر، فيصير كلُّ ما يبلغ المستهلكَ `undeclared` إلى الأبد ولا سبيلَ لإغلاق جانب الكاتب"
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

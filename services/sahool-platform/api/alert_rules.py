@@ -108,8 +108,12 @@ class FieldAlertContext:
     """
 
     field_id: str
-    # رطوبة التربة المتاحة % (إن توفّرت من جهاز/قياس). None ⇒ نستخدم احتياج الريّ.
+    # رطوبة التربة % (إن توفّرت من جهاز/قياس). None ⇒ نستخدم احتياج الريّ.
     soil_moisture_pct: float | None = None
+    # SOIL-MOISTURE-UNIT-IDENTITY-01: نوعُ وحدة القراءة كما أعلنه المصدر —
+    # `available_pct` (ما تقيسه العتبة) · `vwc_pct` (حجميّة، لا تُقارَن بعتبة ماءٍ متاح
+    # بلا معايرة) · `undeclared` (تُفسَّر كما كانت، والافتراضُ يُكتَب في السبب).
+    soil_moisture_unit_kind: str = "available_pct"
     # احتياج الريّ الصافي (mm) من توصية الريّ (FAO-56) — بديل لرطوبة التربة.
     irrigation_need_mm: float | None = None
     # مطر متوقّع (mm) خلال نافذة التوقّع القادمة.
@@ -153,16 +157,24 @@ def _low_moisture(ctx: FieldAlertContext, t: AlertThresholds) -> GeneratedAlert 
     need = ctx.irrigation_need_mm
     fired = False
     reason = ""
+    unit_note = ""
+    if sm is not None and ctx.soil_moisture_unit_kind == "vwc_pct":
+        # قراءةٌ حجميّة لا تُقارَن بعتبةِ ماءٍ متاح بلا θFC/θWP — تسقط إلى مسار الاحتياج.
+        sm = None
+        unit_note = " (قراءة الرطوبة حجميّة بلا معايرة إلى ماءٍ متاح فلم تُستعمل)"
+    elif sm is not None and ctx.soil_moisture_unit_kind == "undeclared":
+        unit_note = " (وحدة القراءة غير مُعلَنة — فُسِّرت ماءً متاحاً، افتراضٌ موروث)"
     if sm is not None and sm < t.LOW_MOISTURE_SOIL_PCT:
         fired = True
         reason = (
-            f"رطوبة التربة المتاحة ({sm:.0f}٪) دون الحدّ الحرج ({t.LOW_MOISTURE_SOIL_PCT:.0f}٪)."
+            f"رطوبة التربة المتاحة ({sm:.0f}٪) دون الحدّ الحرج ({t.LOW_MOISTURE_SOIL_PCT:.0f}٪)"
+            f"{unit_note}."
         )
     elif sm is None and need is not None and need >= t.LOW_MOISTURE_IRRIGATION_MM:
         fired = True
         reason = (
             f"احتياج الريّ الصافي مرتفع ({need:.0f} مم ≥ {t.LOW_MOISTURE_IRRIGATION_MM:.0f} مم) "
-            "ولا قراءة رطوبة تربة."
+            f"ولا قراءة رطوبة تربة صالحة للمقارنة{unit_note}."
         )
     if not fired:
         return None

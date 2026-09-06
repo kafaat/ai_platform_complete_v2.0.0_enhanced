@@ -120,6 +120,9 @@ class EvidenceBatchIn(BaseModel):
     provenance: dict[str, object] = Field(default_factory=dict)
     supersedes_observation_ids: dict[str, str] = Field(default_factory=dict)
     supersession_reason: str | None = Field(default=None, max_length=160)
+    # وحدةٌ يُعلنها المصدرُ لخاصّيّةٍ بعينها (مثل {"soil_moisture": "vwc_pct"}) — بدونها
+    # تبقى الرطوبةُ `%` غيرَ مُعلَنة ولا يحوّلها أيُّ مستهلك.
+    units: dict[str, str] = Field(default_factory=dict)
 
 
 @router.post("/v1/fields/{field_id}/soil/evidence", status_code=201)
@@ -146,6 +149,7 @@ async def ingest_typed_evidence(
         provenance=payload.provenance,
         supersedes_observation_ids=payload.supersedes_observation_ids,
         supersession_reason=payload.supersession_reason,
+        units=payload.units,
     )
     created = 0
     for observation in observations:

@@ -230,3 +230,73 @@ def test_an_undeclared_unit_keeps_the_inherited_reading_but_names_the_assumption
     out = _advice("undeclared")
     assert out["urgency"] == _advice("available_pct")["urgency"]
     assert "غير مُعلَنة" in out["rationale_ar"]
+
+
+# ─── (٦) قاعدةُ التنبيه تقرأ الوحدة ────────────────────────────────────────
+
+from api.alert_rules import FieldAlertContext, evaluate_field_alerts  # noqa: E402
+
+
+def _low_moisture_alert(unit_kind: str, pct: float | None = 20.0, need: float | None = None):
+    ctx = FieldAlertContext(
+        field_id="f1",
+        soil_moisture_pct=pct,
+        soil_moisture_unit_kind=unit_kind,
+        irrigation_need_mm=need,
+    )
+    return next((a for a in evaluate_field_alerts(ctx) if a.alert_type == "low_moisture"), None)
+
+
+def test_a_vwc_reading_does_not_fire_the_available_water_alert():
+    """20٪ VWC ليست 20٪ ماءٍ متاح — القاعدةُ تسقط إلى مسار الاحتياج وتقول لماذا."""
+    assert _low_moisture_alert("vwc_pct") is None
+    with_need = _low_moisture_alert("vwc_pct", need=50.0)
+    assert with_need is not None and "حجميّة" in with_need.message_ar
+
+
+def test_an_available_reading_still_fires_and_an_undeclared_one_names_its_assumption():
+    available = _low_moisture_alert("available_pct")
+    assert available is not None and "غير مُعلَنة" not in available.message_ar
+    undeclared = _low_moisture_alert("undeclared")
+    assert undeclared is not None and "غير مُعلَنة" in undeclared.message_ar
+
+
+# ─── (٧) جانبُ الكاتب: الوحدةُ المُعلَنة تصل السجلَّ القانونيّ ──────────────
+
+_SOIL_SERVICE = Path(__file__).resolve().parents[1] / "services" / "soil-service"
+
+
+def _adapter():
+    import importlib.util
+
+    repo_root = Path(__file__).resolve().parents[1]
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+    spec = importlib.util.spec_from_file_location(
+        "smui_evidence_adapters", _SOIL_SERVICE / "evidence_adapters.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_the_writer_stores_the_declared_unit_and_keeps_bare_percent_when_nothing_is_declared():
+    adapter = _adapter()
+    from shared.contracts.soil import SoilObservationSource
+
+    common = dict(
+        tenant_id="t1",
+        field_id="f1",
+        source_type=SoilObservationSource.SENSOR,
+        source_id="dev_1",
+        observed_at=_T,
+    )
+    declared = adapter.observations_from_properties(
+        properties={"soil_moisture": 23.0}, units={"soil_moisture": "vwc_pct"}, **common
+    )
+    default = adapter.observations_from_properties(properties={"soil_moisture": 23.0}, **common)
+    assert declared[0].unit == "vwc_pct"
+    assert default[0].unit == "%"  # غيرُ مُعلَن — ولا يُخمَّن
+    assert st.classify_soil_moisture_unit(declared[0].unit) == "vwc_pct"
+    assert st.classify_soil_moisture_unit(default[0].unit) == "undeclared"

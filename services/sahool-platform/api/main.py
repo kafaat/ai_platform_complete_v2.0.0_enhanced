@@ -1780,6 +1780,9 @@ async def _evaluate_field_alerts_persist(
     ctx = FieldAlertContext(
         field_id=field_id,
         soil_moisture_pct=soil_pct,  # رطوبة تربة حيّة من telemetry إن وُجدت، وإلّا None.
+        soil_moisture_unit_kind=(
+            soil_reading.unit_kind if soil_reading is not None else "available_pct"
+        ),
         irrigation_need_mm=irrigation_need_mm,
         forecast_rain_mm=rain_fc_3d,
         temp_c=current.temperature_c,
