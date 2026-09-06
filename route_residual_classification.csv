@@ -92,12 +92,12 @@ decision-service,services/decision-service/main.py,2744,POST,/v1/learning/runtim
 decision-service,services/decision-service/main.py,2791,POST,/v1/learning/reconcile-evidence,reconcile_evidence_boundary,business_endpoint
 decision-service,services/decision-service/main.py,2821,POST,/v1/context-snapshots,compose_context_snapshot,business_endpoint
 decision-service,services/decision-service/main.py,2853,GET,/v1/context-snapshots/{snapshot_id},read_context_snapshot,business_endpoint
-edge-inference,services/edge-inference/main.py,168,GET,/healthz,health_check,health
-edge-inference,services/edge-inference/main.py,200,POST,/v1/inference/pest-detect,detect_pest,business_endpoint
-edge-inference,services/edge-inference/main.py,262,POST,/v1/inference/yield-estimate,estimate_yield,business_endpoint
-edge-inference,services/edge-inference/main.py,328,POST,/v1/sync/trigger,trigger_sync,business_endpoint
-edge-inference,services/edge-inference/main.py,360,GET,/capabilities,capabilities,capabilities
-edge-inference,services/edge-inference/main.py,365,GET,/readyz,readyz,readiness
+edge-inference,services/edge-inference/main.py,188,GET,/healthz,health_check,health
+edge-inference,services/edge-inference/main.py,220,POST,/v1/inference/pest-detect,detect_pest,business_endpoint
+edge-inference,services/edge-inference/main.py,279,POST,/v1/inference/yield-estimate,estimate_yield,business_endpoint
+edge-inference,services/edge-inference/main.py,344,POST,/v1/sync/trigger,trigger_sync,business_endpoint
+edge-inference,services/edge-inference/main.py,376,GET,/capabilities,capabilities,capabilities
+edge-inference,services/edge-inference/main.py,381,GET,/readyz,readyz,readiness
 field-management-service,services/field-management-service/main.py,209,GET,/healthz,healthz,health
 field-management-service,services/field-management-service/main.py,214,GET,/health,legacy_health,health
 field-management-service,services/field-management-service/main.py,219,GET,/readyz,readyz,readiness
@@ -151,5 +151,5 @@ scout-ingest-service,services/scout-ingest-service/main.py,183,GET,/readyz,ready
 scout-ingest-service,services/scout-ingest-service/main.py,216,GET,/internal/scouting/external-observations,read_external_observations,internal_endpoint
 scout-ingest-service,services/scout-ingest-service/main.py,335,POST,/internal/ingest/submissions/odk,ingest_odk_submission,internal_endpoint
 scout-ingest-service,services/scout-ingest-service/main.py,344,POST,/internal/ingest/submissions/kobo,ingest_kobo_submission,internal_endpoint
-soil-service,services/soil-service/main.py,198,GET,/runtime-identity,runtime_evidence_identity,business_endpoint
+soil-service,services/soil-service/main.py,208,GET,/runtime-identity,runtime_evidence_identity,business_endpoint
 weather-service,services/weather-service/main.py,55,GET,/runtime-identity,runtime_evidence_identity,business_endpoint

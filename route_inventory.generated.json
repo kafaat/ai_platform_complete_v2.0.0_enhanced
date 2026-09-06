@@ -1018,7 +1018,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 168,
+    "line": 188,
     "method": "GET",
     "path": "/healthz",
     "function": "health_check"
@@ -1026,7 +1026,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 200,
+    "line": 220,
     "method": "POST",
     "path": "/v1/inference/pest-detect",
     "function": "detect_pest"
@@ -1034,7 +1034,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 262,
+    "line": 279,
     "method": "POST",
     "path": "/v1/inference/yield-estimate",
     "function": "estimate_yield"
@@ -1042,7 +1042,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 328,
+    "line": 344,
     "method": "POST",
     "path": "/v1/sync/trigger",
     "function": "trigger_sync"
@@ -1050,7 +1050,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 360,
+    "line": 376,
     "method": "GET",
     "path": "/capabilities",
     "function": "capabilities"
@@ -1058,7 +1058,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 365,
+    "line": 381,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -7258,7 +7258,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/water_twin.py",
-    "line": 146,
+    "line": 197,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/water-twin",
     "function": "field_water_twin"
@@ -7266,7 +7266,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 1947,
+    "line": 1955,
     "method": "GET",
     "path": "/api/v1/weather/health",
     "function": "weather_health"
@@ -7274,7 +7274,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 1965,
+    "line": 1973,
     "method": "GET",
     "path": "/api/v1/weather/readyz",
     "function": "weather_readyz"
@@ -7282,7 +7282,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 1979,
+    "line": 1987,
     "method": "GET",
     "path": "/api/v1/weather/self-test",
     "function": "weather_self_test"
@@ -7290,7 +7290,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 1989,
+    "line": 1997,
     "method": "GET",
     "path": "/api/v1/weather/wind-source-selftest",
     "function": "weather_wind_source_selftest"
@@ -7298,7 +7298,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2044,
+    "line": 2052,
     "method": "GET",
     "path": "/api/v1/weather/runtime-contract",
     "function": "weather_runtime_contract"
@@ -7306,7 +7306,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2057,
+    "line": 2065,
     "method": "GET",
     "path": "/api/v1/weather/env-doctor",
     "function": "weather_env_doctor"
@@ -7314,7 +7314,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2070,
+    "line": 2078,
     "method": "GET",
     "path": "/api/v1/weather/runtime-smoke-plan",
     "function": "weather_runtime_smoke_plan"
@@ -7322,7 +7322,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2078,
+    "line": 2086,
     "method": "GET",
     "path": "/api/v1/weather/current",
     "function": "weather_current"
@@ -7330,7 +7330,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2084,
+    "line": 2092,
     "method": "GET",
     "path": "/api/v1/weather/forecast",
     "function": "weather_forecast"
@@ -7338,7 +7338,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2090,
+    "line": 2098,
     "method": "GET",
     "path": "/api/v1/weather/historical",
     "function": "weather_historical"
@@ -7346,7 +7346,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2101,
+    "line": 2109,
     "method": "GET",
     "path": "/api/v1/weather/layers",
     "function": "weather_layers_manifest"
@@ -7354,7 +7354,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2279,
+    "line": 2288,
     "method": "GET",
     "path": "/api/v1/weather/tile-cache/backend",
     "function": "weather_tile_cache_backend"
@@ -7362,7 +7362,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2286,
+    "line": 2295,
     "method": "GET",
     "path": "/api/v1/weather/rate-limit/backend",
     "function": "weather_rate_limit_backend"
@@ -7370,7 +7370,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2293,
+    "line": 2302,
     "method": "GET",
     "path": "/api/v1/weather/tile-cache/stats",
     "function": "weather_tile_cache_stats"
@@ -7378,7 +7378,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2299,
+    "line": 2308,
     "method": "GET",
     "path": "/api/v1/weather/observability",
     "function": "weather_observability"
@@ -7386,7 +7386,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2330,
+    "line": 2339,
     "method": "GET",
     "path": "/api/v1/weather/metrics.prom",
     "function": "weather_metrics_prometheus"
@@ -7394,7 +7394,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2346,
+    "line": 2355,
     "method": "POST",
     "path": "/api/v1/weather/tile-cache/prune",
     "function": "weather_tile_cache_prune"
@@ -7402,7 +7402,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2423,
+    "line": 2432,
     "method": "GET",
     "path": "/api/v1/weather/tile-data/{z}/{x}/{y}",
     "function": "weather_tile_data"
@@ -7410,7 +7410,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2447,
+    "line": 2456,
     "method": "GET",
     "path": "/api/v1/weather/operation-tile-data/{z}/{x}/{y}",
     "function": "weather_operation_tile_data"
@@ -7418,7 +7418,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2463,
+    "line": 2472,
     "method": "GET",
     "path": "/api/v1/weather/probe",
     "function": "weather_probe"
@@ -7426,7 +7426,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2511,
+    "line": 2520,
     "method": "GET",
     "path": "/api/v1/weather/operation-window",
     "function": "weather_operation_window"
@@ -7434,7 +7434,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2526,
+    "line": 2535,
     "method": "GET",
     "path": "/api/v1/weather/field-weather-summary",
     "function": "weather_field_summary"
@@ -7442,7 +7442,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2569,
+    "line": 2578,
     "method": "GET",
     "path": "/api/v1/weather/operation-plan",
     "function": "weather_operation_plan"
@@ -7450,7 +7450,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2584,
+    "line": 2593,
     "method": "GET",
     "path": "/api/v1/weather/action-recommendation",
     "function": "weather_action_recommendation"
@@ -7458,7 +7458,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2649,
+    "line": 2658,
     "method": "GET",
     "path": "/api/v1/weather/alerts",
     "function": "weather_alerts"
@@ -7466,7 +7466,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2718,
+    "line": 2727,
     "method": "POST",
     "path": "/api/v1/weather/alerts/notify",
     "function": "weather_alerts_notify"
@@ -7474,7 +7474,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2812,
+    "line": 2821,
     "method": "POST",
     "path": "/api/v1/weather/tasks/from-operation-plan",
     "function": "weather_create_task_from_operation_plan"
@@ -7482,7 +7482,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 2913,
+    "line": 2922,
     "method": "POST",
     "path": "/api/v1/weather/recommendations/from-operation-plan",
     "function": "weather_recommendation_from_operation_plan"
@@ -7490,7 +7490,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather.py",
-    "line": 3004,
+    "line": 3013,
     "method": "GET",
     "path": "/api/v1/weather/tile-series/{z}/{x}/{y}",
     "function": "weather_tile_series"
@@ -7786,7 +7786,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/main.py",
-    "line": 198,
+    "line": 208,
     "method": "GET",
     "path": "/runtime-identity",
     "function": "runtime_evidence_identity"
@@ -7834,7 +7834,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/canonical.py",
-    "line": 126,
+    "line": 129,
     "method": "POST",
     "path": "/v1/fields/{field_id}/soil/evidence",
     "function": "ingest_typed_evidence"
@@ -7842,7 +7842,7 @@
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/canonical.py",
-    "line": 167,
+    "line": 175,
     "method": "GET",
     "path": "/v1/soil/cutover/readiness",
     "function": "soil_cutover_readiness"

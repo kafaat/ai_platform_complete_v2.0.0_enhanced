@@ -9,12 +9,13 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 568,
+      "evidence_count": 572,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
         "database",
         "decision-service",
+        "edge-inference",
         "gis-workflow-service",
         "indicators-service",
         "knowledge-graph",
@@ -158,6 +159,8 @@
         "services/decision-service/tests/test_wx10_9_execution_plan.py",
         "services/decision-service/tests/test_wx11_6_registry_activation_boundary.py",
         "services/decision-service/tests/test_wx12_3_runtime_schedules.py",
+        "services/edge-inference/models/pest_detector.py",
+        "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
         "services/gis-workflow-service/bulletin_bundle.py",
         "services/gis-workflow-service/run_bundle.py",
         "services/indicators-service/__init__.py",
@@ -293,6 +296,7 @@
         "services/sahool-platform/api/routers/weather.py",
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
         "services/sahool-platform/api/soil_evidence_bridge.py",
+        "services/sahool-platform/api/soil_telemetry.py",
         "services/sahool-platform/api/temporal_arbitration.py",
         "services/sahool-platform/api/trial_engine.py",
         "services/sahool-platform/api/trial_models.py",
@@ -505,6 +509,7 @@
         "services/soil-service/test_canonical_soil_profile.py",
         "services/soil-service/test_soil_cutover_readiness.py",
         "services/soil-service/test_soil_evidence_adapters_and_policy.py",
+        "services/soil-service/test_soil_ingest_entrypoint_parity.py",
         "services/soil-service/test_soil_lab_supersession_adapter.py",
         "services/soil-service/test_soil_p1_products.py",
         "services/soil-service/test_soil_p2_products.py",
@@ -1319,7 +1324,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 241,
+      "evidence_count": 242,
       "owners": [
         "ai_agronomist",
         "auth",
@@ -1553,6 +1558,7 @@
         "services/soil-service/p1_store.py",
         "services/soil-service/p3_products.py",
         "services/soil-service/routers/p4_workflow.py",
+        "services/soil-service/test_soil_ingest_entrypoint_parity.py",
         "services/soil-service/test_soil_p4_governance.py",
         "services/supervisor-agent/main.py",
         "services/supervisor-agent/tool_contracts.py",
@@ -1955,7 +1961,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 282,
+      "evidence_count": 285,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2061,6 +2067,7 @@
         "services/sahool-platform/api/event_replay.py",
         "services/sahool-platform/api/evidence_registry.py",
         "services/sahool-platform/api/feature_registry.py",
+        "services/sahool-platform/api/field_context.py",
         "services/sahool-platform/api/field_lifecycle.py",
         "services/sahool-platform/api/field_readiness.py",
         "services/sahool-platform/api/field_state_projection.py",
@@ -2099,6 +2106,7 @@
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
         "services/sahool-platform/api/season_models.py",
         "services/sahool-platform/api/sensor_confidence.py",
+        "services/sahool-platform/api/soil_telemetry.py",
         "services/sahool-platform/api/sync_delta.py",
         "services/sahool-platform/api/trueup.py",
         "services/sahool-platform/api/yield_map_ingestion.py",
@@ -2236,6 +2244,7 @@
         "services/soil-service/routers/p5_certification.py",
         "services/soil-service/routers/readings.py",
         "services/soil-service/soil_store.py",
+        "services/soil-service/test_soil_ingest_entrypoint_parity.py",
         "services/soil-service/test_soil_p5_certification.py",
         "services/soil-service/test_soil_p6_certification.py",
         "services/supervisor-agent/routers/agent.py",
@@ -2308,6 +2317,7 @@
         "services/decision-service/tests/test_wx10_7_decision_review.py",
         "services/decision-service/tests/test_wx10_9_execution_plan.py",
         "services/decision-service/tests/test_wx11_6_registry_activation_boundary.py",
+        "services/edge-inference/models/pest_detector.py",
         "services/indicators-service/main.py",
         "services/knowledge-graph/main.py",
         "services/mcp_servers/generic_context_server.py",
@@ -2367,10 +2377,9 @@
         "services/sahool-platform/api/temporal_arbitration.py",
         "services/sahool-platform/api/trial_engine.py",
         "services/sahool-platform/api/unified_decision.py",
-        "services/sahool-platform/core/activity_log.py",
-        "services/sahool-platform/core/ai_artifacts.py"
+        "services/sahool-platform/core/activity_log.py"
       ],
-      "source_evidence_count": 568,
+      "source_evidence_count": 572,
       "target_evidence_count": 485,
       "static_supported": true,
       "runtime_verified": false
@@ -2550,7 +2559,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 172,
-      "target_evidence_count": 241,
+      "target_evidence_count": 242,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2581,7 +2590,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 241,
+      "source_evidence_count": 242,
       "target_evidence_count": 32,
       "static_supported": true,
       "runtime_verified": false
@@ -2728,7 +2737,7 @@
         "services/vegetation-analysis-service/post_execution_bridge.py"
       ],
       "source_evidence_count": 49,
-      "target_evidence_count": 282,
+      "target_evidence_count": 285,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -2738,5 +2747,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "b00b103d61dae8db5ef395f58ee7c7abb631b54ac44c3ae406d88df08047e6de"
+  "content_sha256": "89f7210ecf621f71b2da06dc6ac0cdf965fc1b7b815abfb3cf0a0913346ddb8e"
 }

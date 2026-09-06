@@ -136,6 +136,10 @@
     {
       "path": "docs/architecture/threshold_authority_ledger.json",
       "kind": "governed"
+    },
+    {
+      "path": "docs/architecture/weather_model_catalogue.json",
+      "kind": "governed"
     }
   ]
 }

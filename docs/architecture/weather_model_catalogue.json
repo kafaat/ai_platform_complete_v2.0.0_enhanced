@@ -1,6 +1,9 @@
 {
   "$comment": "WEATHER-MODEL-IDENTITY-v1 — المصدرُ الواحد لهويّة نماذج الطقس التي تقبلها المنصّة. ثلاثةُ أسطحٍ تُقاس عليه في `tests_v9/test_weather_model_identity.py`: `services/weather-service/tiles.py` (ALLOWED_MODELS) · `services/sahool-platform/api/routers/weather.py` (_ALLOWED_WEATHER_MODELS + manifest) · `frontend/src/components/maphub/weather/weatherLayerDefinitions.ts` (WEATHER_MODELS). كلُّ نموذجٍ إمّا `upstream_id` موثَّقٌ بمصدرٍ أو `internal_alias_of` صريح — لا ثالث. `native_step_hours` **إرشاديّ**: العيّنةُ تُحَلّ بالطوابع الزمنيّة الفعليّة في الاستجابة لا بهذا الرقم (انظر `resolve_hourly_index`).",
-  "adjudicated_on": "2026-09-05 · فوق 9876bd92 — حكمُ المالك في المراجعة المضادّة: WEATHER-MODEL-IDENTITY-v1 بخصائصه الأربع",
+  "schema": "sahool.weather_model_catalogue",
+  "version": 1,
+  "adjudicated_on": "2026-09-05",
+  "adjudication_note_ar": "2026-09-05 · فوق 9876bd92 — حكمُ المالك في المراجعة المضادّة: WEATHER-MODEL-IDENTITY-v1 بخصائصه الأربع",
   "contract": "WEATHER-MODEL-IDENTITY-v1",
   "provider": "open-meteo",
   "models": {

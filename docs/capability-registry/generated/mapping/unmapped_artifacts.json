@@ -2636,6 +2636,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/edge-inference/model_artifact_gate.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/edge-inference/models/__init__.py",
     "kind": "backend"
   },
@@ -2658,6 +2662,10 @@
   {
     "path": "services/edge-inference/sync_service.py",
     "kind": "backend"
+  },
+  {
+    "path": "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
+    "kind": "tests"
   },
   {
     "path": "services/field-segmentation/__init__.py",
@@ -5936,6 +5944,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_weather_alerts.py",
     "kind": "tests"
   },
@@ -6137,6 +6149,10 @@
   },
   {
     "path": "services/soil-service/test_soil_cutover_readiness.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/soil-service/test_soil_ingest_entrypoint_parity.py",
     "kind": "tests"
   },
   {
@@ -7260,6 +7276,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_edge_model_artifact_integrity.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_end_to_end.py",
     "kind": "tests"
   },
@@ -8300,6 +8320,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_soil_moisture_unit_identity.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_soil_p4_multisource_e2e.py",
     "kind": "tests"
   },
@@ -8493,6 +8517,10 @@
   },
   {
     "path": "tests_v9/test_weather_engine.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_weather_model_identity.py",
     "kind": "tests"
   },
   {

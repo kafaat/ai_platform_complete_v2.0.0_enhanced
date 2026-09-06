@@ -199,7 +199,7 @@
     },
     {
       "kind": "app",
-      "line": 34,
+      "line": 35,
       "module": "services.edge-inference.main",
       "node_id": "services.edge-inference.main:app",
       "route_count": 6,
@@ -514,7 +514,7 @@
     },
     {
       "kind": "app",
-      "line": 191,
+      "line": 192,
       "module": "services.sahool-platform.api.main",
       "node_id": "services.sahool-platform.api.main:app",
       "route_count": 0,
@@ -1990,7 +1990,7 @@
     },
     {
       "kind": "router",
-      "line": 48,
+      "line": 54,
       "module": "services.sahool-platform.api.routers.water_twin",
       "node_id": "services.sahool-platform.api.routers.water_twin:router",
       "route_count": 1,
@@ -2586,7 +2586,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "cf9607f17e2597560d383c5a02335f15f0ded2b39a2b37fbc86297eb91b64c90",
+  "inventory_sha256": "831fd1789c13366bc3ca1dba5dbac7b5898afdaf1cfe0510cd6c66cdb999a669",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {
@@ -4552,7 +4552,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 48,
+      "line": 54,
       "module": "services.sahool-platform.api.routers.water_twin",
       "node_id": "services.sahool-platform.api.routers.water_twin:router",
       "route_count": 1,

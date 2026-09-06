@@ -2445,7 +2445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c7c05bd5d5bf52a6f517d06f45e6f018df049428a9020bd4ac863e1ff804bb2c"
+          "content": "51641a6a9e51b72a2435d2f916b807b928553ce51016223c897d861f928f3510"
         }
       ],
       "name": "frontend/src/components/maphub/weather/weatherLayerDefinitions.ts",
@@ -11845,7 +11845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "462055db88a9bdc6b231123bf78b48fc45e486426ffc81704d4260ab16e21192"
+          "content": "dcf62616f997308c1d03dd9847a601aa00715b813011fcae99b90077d86fdc00"
         }
       ],
       "name": "services/edge-inference/MODEL_PROVISIONING.md",
@@ -11865,7 +11865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "878e902e7a4156e63f8ae1bb5b7701e73fe81ba5bc122a115e8eb435a1fb95fc"
+          "content": "e160b97b3ff21ba63cda190a18002cca45491b0b3561c46736de81a2425d2d81"
         }
       ],
       "name": "services/edge-inference/download_models.py",
@@ -11875,10 +11875,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "82fb598e1ee06bb32e138c94c59ea53877e53faced074e926279254bceca111e"
+          "content": "790172910c2d86d275ac8fd514b86cb7606da16ce429ea1479c1d7282ea46f8f"
         }
       ],
       "name": "services/edge-inference/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f16021bd2397d9f370e84751d16d439d56cfb2b5399edd3ae9a368d031bcb398"
+        }
+      ],
+      "name": "services/edge-inference/model_artifact_gate.py",
       "type": "file"
     },
     {
@@ -11905,7 +11915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "30482fdcf9cfc9885aa7d5f349db5bd5616bcdae382e8c65a8d28f3a207bfd0c"
+          "content": "cb58ad80bb6cc8af59a8c42f965495bbe3ed82397e9970a68d14dc862d26114c"
         }
       ],
       "name": "services/edge-inference/models/pest_detector.py",
@@ -11915,7 +11925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "920525e657be90fbab0b3423f5a021e58d58f65cd53a0dd5ed7d3b79e8b7bf17"
+          "content": "3b2c263bc79d19b0418e77125891c6398132bcfe6fba4f96436eb65832cc3e0d"
         }
       ],
       "name": "services/edge-inference/models/yield_estimator.py",
@@ -11955,10 +11965,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d5fdf183c8cda13a25f3fc758e692115bfc3434c04e7be5aaed2260aeb9528a4"
+          "content": "f70e264b335dba0ae45c579a58b40301d8ca3cbd47d04ec8c2f78ce3add5b6d3"
         }
       ],
       "name": "services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b71c16de88800e38ba6609e36351b1b9b28b02e0eb1271d89a50ef4569680a40"
+        }
+      ],
+      "name": "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
       "type": "file"
     },
     {
@@ -14995,7 +15015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d382eb34095cf7bfe5a55904c16951de007c30318504430a4297f3488ac31853"
+          "content": "6740880ecefaee8fab44689c88abd1a66318c687a6cf0c0188b4bb071ed34ef8"
         }
       ],
       "name": "services/sahool-platform/api/alert_rules.py",
@@ -15385,7 +15405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3ce523d740cf60d609b4f573234a990978f5cb632db1ce36ab380ac6ecf80d7e"
+          "content": "ff9f0c8c5be86449f86178f0c125909141be1fdbd2239929c8a70cc358264b6a"
         }
       ],
       "name": "services/sahool-platform/api/connectors/openmeteo.py",
@@ -15645,7 +15665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "da8e5c952654d9b407d68512dfffe92a01e4b3da3163a49ddb928a941653342c"
+          "content": "b613b8a60bec2cb38b4d197454a46decb3752f0c18ac9b0cb854ce870b4b2cb4"
         }
       ],
       "name": "services/sahool-platform/api/device_registry.py",
@@ -15905,7 +15925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a6df49e1cb8c721f05ab23f2912f029db87332c2d32fe22371d30501f66f7e8f"
+          "content": "a99b3b57b16a897401f4fc3993d34ef7f7d132070741e2a89ff0e94b50854da6"
         }
       ],
       "name": "services/sahool-platform/api/field_context.py",
@@ -16635,7 +16655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c190840ad4002093414f7014be6a564e961fc5babff679a8594d697614cea260"
+          "content": "34edb6eb9351840f70c48324d206749c2a0b94fd933fd896b2320fe40a16b188"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -18605,7 +18625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "08939f4932500daa619efd029071fb7f717c36d9264432d995f8ae87dba6578a"
+          "content": "75c98808fa6b5261f2bb2e761699851dcd2d3a4113c8d9921ae20ee22cd82b62"
         }
       ],
       "name": "services/sahool-platform/api/routers/water_twin.py",
@@ -18615,7 +18635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "688b28df33f69b7bdb91beb38bea044df7435e4b2db8fee5cdfd9eaeedaf438d"
+          "content": "0904f9f36ca9da4b7295553e74fc7e71937e453678a399eb7c1853eee2b23259"
         }
       ],
       "name": "services/sahool-platform/api/routers/weather.py",
@@ -18875,7 +18895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5a4f309075731beefff1dcb7c355c7058b5bfb8d0fa81532f31ba41f0cf7b03c"
+          "content": "14e77c812389796957dfc6222d4c293d958fe3d3b30661a8ec882a1386110a6f"
         }
       ],
       "name": "services/sahool-platform/api/soil_telemetry.py",
@@ -19095,7 +19115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7b2fb2921bd0cb0515857daab3ab5f3782c93d7dde542d4bc4bb6896ee3994eb"
+          "content": "39fde97f9f2851949e0ac27ada63fe8467b4916434211805e132911a028a3b1c"
         }
       ],
       "name": "services/sahool-platform/api/water_twin_seed.py",
@@ -19105,7 +19125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3207fbfbb556cb54289a27eb757648ef1af5ac01d2105eed5e6f06969a439ebc"
+          "content": "4d0191f898a266c9ef4f72976f30b1a74f692ca5a690b2e108868134457603ed"
         }
       ],
       "name": "services/sahool-platform/api/weather_advice.py",
@@ -27235,6 +27255,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "aab8b9e09c440e45a25417e031a943ec9fdf9d5915d178fe4e312d783abad89c"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "13fab353f614b45ef2f93ce23667b305e5fb64eba4d73a5a88ed473250a63769"
         }
       ],
@@ -27815,7 +27845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b3a5c8e14706418f3b100dc9484fa7410f0b26af329ef5ed7f10050570f372c7"
+          "content": "86d7e591f67217e717f42b20accd3c5ccc57a7a070da6549e6c6dc1e62d98361"
         }
       ],
       "name": "services/soil-service/evidence_adapters.py",
@@ -27825,7 +27855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "958b21651798dadc296d734709a425a32c5e721c49f3c5ed13e7c2c88eb8685b"
+          "content": "9b7d9a5c3f3ec260bff813280c3554f2d5cd39823ede2e048274a07ec6024883"
         }
       ],
       "name": "services/soil-service/main.py",
@@ -28005,7 +28035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8ece7422f1fc98dd822c513e856388455a3b3fceef3b8dc0e79a767eb52b6a64"
+          "content": "d44c8a9767b0625bf4ff4b48a3b7f0320c82dff32fbf3d464752e4e37f2a575c"
         }
       ],
       "name": "services/soil-service/routers/canonical.py",
@@ -28169,6 +28199,16 @@
         }
       ],
       "name": "services/soil-service/test_soil_evidence_adapters_and_policy.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9eb61ab1955dd748402babc79b750cb85bf75e89fba9f0b637234d9b3d0d11a1"
+        }
+      ],
+      "name": "services/soil-service/test_soil_ingest_entrypoint_parity.py",
       "type": "file"
     },
     {
@@ -29375,7 +29415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f6137c1e2e4a0b9bfe4aa855dcdab31683780ff260985826dd8a6bb071343855"
+          "content": "ce2d0e42800ffb14c7394ec4bae330a499802cbe9403e1b2055e92746d0c41ce"
         }
       ],
       "name": "services/weather-service/open_meteo.py",
@@ -29705,7 +29745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2da2e4a0c943806e8a631eedfe508c8e3d9663a557587da98f0162ec0e3923b5"
+          "content": "fefb6ad7e179e9858bdda12c4394af10bb0ccb7568335c6257fbc2c6173cc165"
         }
       ],
       "name": "services/weather-service/tiles.py",
@@ -30345,7 +30385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "08711c6c925d5598863b4b6cb19a3d2456ad9c874062e0d002892fe2aac84664"
+          "content": "74b6366af2c3643ba4f79da1910b816fec75a52141e5c8659b3a83db10f9f483"
         }
       ],
       "name": "shared/contracts/soil/__init__.py",
@@ -30355,7 +30395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3278cbd5b5bec567d9e0c7581ac9d29dce532834eb4cc3c6e9fef37b0c0d731b"
+          "content": "9352b9d7a6a18ef41823081c41553e74dfb465de10d15c0d696af053ab9dbe0e"
         }
       ],
       "name": "shared/contracts/soil/observation.py",
