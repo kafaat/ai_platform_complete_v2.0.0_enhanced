@@ -1661,15 +1661,21 @@
         },
         {
           "expect": "test_a_stale_sensor_is_neither_compared_nor_used_to_seed",
-          "find": "    usable = sensor is not None and sensor_depletion is not None and not stale",
-          "replace": "    usable = sensor is not None and sensor_depletion is not None",
-          "why": "قراءةٌ عمرها شهر تهيّئ Dr وتُقارَن بالدفتر كأنّها الآن — شرطُ المالك «sensor freshness/quality» يسقط بلا هذا السطر"
+          "find": "    freshness = sensor_freshness(sensor_age_s, max_reading_age_s)",
+          "replace": "    freshness = \"fresh\"",
+          "why": "قراءةٌ عمرها خمسُ ساعات تهيّئ Dr وتُقارَن بالدفتر كأنّها الآن — شرطُ المالك «sensor freshness/quality» يسقط بلا هذا السطر"
         },
         {
           "expect": "test_a_fresh_convertible_sensor_seeds_only_when_the_ledger_is_absent",
           "find": "    elif usable:\n        depletion, source = float(sensor_depletion), f\"sensor.{sensor['unit_kind']}\"",
           "replace": "    elif False:\n        depletion, source = float(sensor_depletion), f\"sensor.{sensor['unit_kind']}\"",
           "why": "بلا هذا الفرع لا يهيّئ الحسّاسُ شيئاً أبداً فتعود الحقيقتان لا تلتقيان — وهي الفجوةُ الأصليّة"
+        },
+        {
+          "expect": "test_freshness_is_positive_proof_not_absence_of_staleness",
+          "find": "    usable = sensor is not None and sensor_depletion is not None and freshness == \"fresh\"",
+          "replace": "    usable = sensor is not None and sensor_depletion is not None and freshness != \"stale\"",
+          "why": "العودةُ إلى «غيابُ النفي إثبات»: unproven وfuture تعودان قابلتين للاستعمال فيهيّئ حسّاسٌ بلا عمرٍ أو بطابعٍ من المستقبل بذرةَ النضوب — الحالةُ الثانية في مراجعة a7d64adf"
         }
       ]
     },
@@ -1682,6 +1688,12 @@
           "find": "    return _UNIT_ALIASES.get(key, UNIT_UNDECLARED)",
           "replace": "    return _UNIT_ALIASES.get(key, UNIT_AVAILABLE_PCT)",
           "why": "الافتراضُ الموروث حرفاً: كلُّ وحدةٍ مجهولة «ماءٌ متاح». بها تصير `%` العارية التي يخزّنها الكاتبُ القانونيّ إعلاناً — وهي ما لم يُعلنه أحد"
+        },
+        {
+          "expect": "test_a_boolean_is_not_a_soil_moisture_measurement",
+          "find": "    if isinstance(value, bool):\n        return None\n    try:\n        v = float(value)",
+          "replace": "    try:\n        v = float(value)",
+          "why": "إعادةُ ما أعادت مراجعةُ المالك إنتاجَه: `float(True) == 1.0` فتصير قيمةٌ منطقيّة 1٪ (أو 100٪ تحت m3/m3) ثمّ بذرةَ نضوبٍ في التوأم بلا قيدٍ يسمّيها"
         }
       ]
     },

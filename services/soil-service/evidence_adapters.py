@@ -31,6 +31,22 @@ UNITS = {
 DECLARED_SOIL_MOISTURE_UNITS = frozenset({"vwc_pct", "available_pct", "m3/m3"})
 
 
+def _require_soil_moisture_measurement(value: Any) -> None:
+    """رطوبةُ التربة قياسٌ عدديّ محدود — لا `true`/`false` ولا NaN/inf.
+
+    العقدُ العامّ يسمح بـ`bool` لخصائصَ أخرى عمداً؛ هذا التحقّقُ خاصٌّ بالرطوبة لأنّ
+    `float(True) == 1.0` كان يصير قراءةً ثمّ بذرةَ نضوبٍ في التوأم (مراجعة `a7d64adf`).
+    """
+    if isinstance(value, bool):
+        raise ValueError("soil_moisture_value_boolean_not_a_measurement")
+    try:
+        number = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("soil_moisture_value_not_numeric") from exc
+    if number != number or number in (float("inf"), float("-inf")):
+        raise ValueError("soil_moisture_value_not_finite")
+
+
 def observations_from_properties(
     *,
     tenant_id: str,
@@ -73,6 +89,8 @@ def observations_from_properties(
     for prop, value in properties.items():
         if value is None:
             continue
+        if prop == "soil_moisture":
+            _require_soil_moisture_measurement(value)
         canonical = {
             "ec_dsm": "ec",
             "organic_matter_pct": "organic_matter",

@@ -135,22 +135,26 @@ async def ingest_typed_evidence(
     await main._require_field_tenant(field_id)
     if not main._pool:
         raise HTTPException(503, "database unavailable")
-    observations = evidence_adapters.observations_from_properties(
-        tenant_id=tenant_id,
-        field_id=field_id,
-        source_type=payload.source_type,
-        source_id=payload.source_id,
-        properties=payload.properties,
-        observed_at=payload.observed_at,
-        depth_from_cm=payload.depth_from_cm,
-        depth_to_cm=payload.depth_to_cm,
-        approved=payload.approved,
-        procedure_id=payload.procedure_id,
-        provenance=payload.provenance,
-        supersedes_observation_ids=payload.supersedes_observation_ids,
-        supersession_reason=payload.supersession_reason,
-        units=payload.units,
-    )
+    try:
+        observations = evidence_adapters.observations_from_properties(
+            tenant_id=tenant_id,
+            field_id=field_id,
+            source_type=payload.source_type,
+            source_id=payload.source_id,
+            properties=payload.properties,
+            observed_at=payload.observed_at,
+            depth_from_cm=payload.depth_from_cm,
+            depth_to_cm=payload.depth_to_cm,
+            approved=payload.approved,
+            procedure_id=payload.procedure_id,
+            provenance=payload.provenance,
+            supersedes_observation_ids=payload.supersedes_observation_ids,
+            supersession_reason=payload.supersession_reason,
+            units=payload.units,
+        )
+    except ValueError as exc:
+        # قيمةٌ ليست قياساً (منطقيّة/غيرُ عدديّة/غيرُ محدودة) ⇒ 422 صريح، لا 500 ولا صفّ.
+        raise HTTPException(422, str(exc)) from exc
     created = 0
     for observation in observations:
         created += int(await soil_store.persist_observation(main._pool, observation))

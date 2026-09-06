@@ -300,3 +300,71 @@ def test_the_writer_stores_the_declared_unit_and_keeps_bare_percent_when_nothing
     assert default[0].unit == "%"  # غيرُ مُعلَن — ولا يُخمَّن
     assert st.classify_soil_moisture_unit(declared[0].unit) == "vwc_pct"
     assert st.classify_soil_moisture_unit(default[0].unit) == "undeclared"
+
+
+# ─── (٨) مراجعةُ المالك المضادّة على a7d64adf — حالتان مُعاد إنتاجُهما ───────
+
+
+@pytest.mark.parametrize("unit", ["vwc_pct", "m3/m3", "%"])
+@pytest.mark.parametrize("raw", [True, False])
+def test_a_boolean_is_not_a_soil_moisture_measurement(unit, raw):
+    """`float(True) == 1.0` كان يصير 1٪ (أو 100٪ تحت m3/m3) ثمّ بذرةَ نضوب."""
+    assert st.pick_latest_soil_moisture([_row(raw, unit)]) is None
+
+
+@pytest.mark.parametrize(
+    ("raw", "unit", "expected_pct"),
+    [(0.0, "vwc_pct", 0.0), (1.0, "vwc_pct", 1.0), (0.0, "m3/m3", 0.0), (1.0, "m3/m3", 100.0)],
+)
+def test_numeric_zero_and_one_stay_valid_readings(raw, unit, expected_pct):
+    """الضابطُ المضادّ: رفضُ `bool` لا يرفض الأعدادَ الصغيرة."""
+    reading = st.pick_latest_soil_moisture([_row(raw, unit)])
+    assert reading is not None and reading.value_pct == pytest.approx(expected_pct)
+
+
+@pytest.mark.parametrize("raw", [float("nan"), float("inf"), float("-inf"), "wet"])
+def test_non_finite_and_non_numeric_values_are_not_readings(raw):
+    assert st.pick_latest_soil_moisture([_row(raw, "vwc_pct")]) is None
+
+
+@pytest.mark.parametrize(
+    ("overrides", "limitation"),
+    [
+        ({"sensor_age_s": None}, seed.LIMIT_FRESHNESS_UNPROVEN),
+        ({"max_reading_age_s": None}, seed.LIMIT_FRESHNESS_UNPROVEN),
+        ({"sensor_age_s": float("nan")}, seed.LIMIT_FRESHNESS_UNPROVEN),
+        ({"max_reading_age_s": 0}, seed.LIMIT_FRESHNESS_UNPROVEN),
+        ({"sensor_age_s": -86400.0}, seed.LIMIT_TIMESTAMP_IN_FUTURE),
+    ],
+    ids=["age-absent", "policy-absent", "age-nan", "policy-zero", "future-24h"],
+)
+def test_freshness_is_positive_proof_not_absence_of_staleness(overrides, limitation):
+    """كان `not stale` يجعل غيابَ الدليل دليلاً — الأربعُ كانت تهيّئ البذرة."""
+    out = _join(ledger_depletion_mm=None, ledger_source="unavailable", **overrides)
+    assert out["depletion_mm"] is None and out["source"] == "unavailable"
+    assert limitation in out["limitations"]
+    assert out["sensor"]["freshness"] != "fresh"
+    with_ledger = _join(**overrides)
+    assert with_ledger["delta_mm"] is None, "قراءةٌ بلا إثبات طزاجة لا تُقارَن أيضاً"
+
+
+def test_small_clock_skew_is_still_fresh_by_declared_policy():
+    out = _join(ledger_depletion_mm=None, ledger_source="unavailable", sensor_age_s=-60.0)
+    assert out["source"] == "sensor.vwc_pct" and out["sensor"]["freshness"] == "fresh"
+
+
+def test_the_writer_refuses_a_boolean_soil_moisture_at_ingestion():
+    adapter = _adapter()
+    from shared.contracts.soil import SoilObservationSource
+
+    common = dict(
+        tenant_id="t1",
+        field_id="f1",
+        source_type=SoilObservationSource.SENSOR,
+        source_id="dev_1",
+        observed_at=_T,
+    )
+    for bad in (True, False, float("nan"), "wet"):
+        with pytest.raises(ValueError, match="soil_moisture_value"):
+            adapter.observations_from_properties(properties={"soil_moisture": bad}, **common)
+    assert adapter.observations_from_properties(properties={"ph": True}, **common)[0].value is True
