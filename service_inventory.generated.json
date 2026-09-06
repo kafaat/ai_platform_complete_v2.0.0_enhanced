@@ -255,7 +255,7 @@
     "service": "sahool-platform",
     "domain": "Core Field Platform",
     "python_files": 1138,
-    "python_loc": 163932,
+    "python_loc": 163938,
     "tests": 458,
     "routes": 637,
     "main": "services/sahool-platform/api/main.py",
