@@ -352,6 +352,132 @@ def test_the_locale_decoding_guard_runs_in_the_fast_tier_not_only_inside_the_sui
     )
 
 
+def test_the_duplicate_gap_row_guard_runs_in_the_fast_tier():
+    """DUPLICATE-GAP-ROW-GUARD-ABSENT-FROM-PREFLIGHT-01 — الموضعُ، لا الوجود.
+
+    صفّان بالمعرّف `SOIL-MOISTURE-UNIT-IDENTITY-01` عاشا في `gaps/registry.md` عبر
+    التزامين (`e5b7f39e` ثمّ `a7d64adf`) ومرّ `--fast` أخضرَ عليهما، بينما
+    `brain_duplicate_gap_identity_guard.py` **يراهما**. كان موصولاً في
+    `no-report-only-change.yml` وحدَه — فالسؤالُ لم يُطرَح محلّيّاً قطّ، والتقطه
+    المالكُ بالعين. نفسُ صنف ٠ج و٢د و٢و: حارسٌ قائمٌ لا يُستدعى في الطبقة التي
+    يُشغّلها المطوّر قبل الدفع.
+
+    الإرساءُ على **الاستدعاء** لا على المسار: المسارُ يرد في `require_file` وفي
+    التعليق وفي العقد، فالإرساءُ عليه قد يُطابِق نثراً فوق الخروج المبكر.
+    """
+    text = _text()
+    invocation = "python3 scripts/ci/brain_duplicate_gap_identity_guard.py"
+    assert invocation in text, (
+        "حارسٌ يحجب على PR ولا يُستدعى محلّيّاً يترك الشجرةَ تُدفَع على أخضرِ أداةٍ لم تسأله"
+    )
+    assert text.count(invocation) == 1, "استدعاءان يجعلان فحصَ الموضع يقرأ أوّلَهما — اختر واحداً"
+    fast_exit_at = text.index('if [ "$TIER" = fast ]')
+    assert text.index(invocation) < fast_exit_at, (
+        "يجب أن يعمل في `--fast`: الطبقةُ التي يُشغّلها المطوّر قبل الدفع"
+    )
+    assert (
+        text.index("require_file scripts/ci/brain_duplicate_gap_identity_guard.py") < fast_exit_at
+    ), "غيابُ الحارس يجب أن يُسمّى تقلّصَ تغطية داخل الطبقة التي تُشغّله"
+    contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
+    assert "scripts/ci/brain_duplicate_gap_identity_guard.py" in contract["required_scripts"], (
+        "حذفُ الحارس يجب أن يُسمّى فقدَ تغطية، لا أن يُقرَأ بوّابةً مارّة"
+    )
+
+
+def _shipped_function(name: str) -> str:
+    """يستخرج تعريفَ دالّةٍ من `preflight.sh` **المشحون** — لا نسخةً منه في الاختبار."""
+    text = _text()
+    start = text.index(f"\n{name}() {{") + 1
+    end = text.index("\n}\n", start) + 3
+    return text[start:end]
+
+
+def _shipped_invocation(path: str) -> str:
+    """أسطرُ التنفيذ التي تذكر المسار (مع سطرِ الاستمرار الذي يسبقها) — لا التعليقات."""
+    lines = _text().splitlines()
+    picked: list[str] = []
+    for i, line in enumerate(lines):
+        if line.lstrip().startswith("#") or path not in line:
+            continue
+        if i > 0 and lines[i - 1].rstrip().endswith("\\") and lines[i - 1] not in picked:
+            picked.append(lines[i - 1])
+        picked.append(line)
+    assert picked, f"لا سطرَ تنفيذٍ يذكر {path}"
+    return "\n".join(picked) + "\n"
+
+
+_DUP_GUARD = "scripts/ci/brain_duplicate_gap_identity_guard.py"
+_CLEAN_REGISTRY = "| GAP-AA-01 | حالة |\n| GAP-BB-01 | حالة |\n"
+_DUPLICATE_REGISTRY = (
+    "| GAP-AA-01 | حالة أولى |\n| GAP-BB-01 | فاصل |\n| GAP-AA-01 | حالة ثانية |\n"
+)
+
+
+def _run_shipped_step(tmp_path: Path, registry: str, *, with_guard: bool) -> tuple[int, int, str]:
+    """يُشغّل `require_file`/`run` **المشحونتين** وسطرَ استدعاء ٦د **المشحون** في جذرٍ مؤقّت.
+
+    الجذرُ يحمل نسخةً من الحارس الحقيقيّ (يحلّ جذرَه من موضع ملفّه) والملفّاتِ
+    الأربعةَ التي يفحصها. المقيسُ عدّادا `failures`/`skipped` كما يقرؤهما الملخّص.
+    """
+    import shutil
+    import subprocess as sp
+
+    root = tmp_path / "root"
+    (root / "scripts/ci").mkdir(parents=True)
+    (root / "sahool-brain/gaps").mkdir(parents=True)
+    (root / "sahool-brain/decisions").mkdir(parents=True)
+    if with_guard:
+        shutil.copy(ROOT / _DUP_GUARD, root / _DUP_GUARD)
+    (root / "sahool-brain/gaps/registry.md").write_text(registry, encoding="utf-8")
+    for other in ("sahool-brain/hot.md", "sahool-brain/log.md", "sahool-brain/decisions/ledger.md"):
+        (root / other).write_text("# لا عناوين\n", encoding="utf-8")
+    script = (
+        "set -u\nfailures=0\nskipped=0\n"
+        + _shipped_function("require_file")
+        + _shipped_function("run")
+        + _shipped_invocation(_DUP_GUARD)
+        + 'printf \'COUNTS failures=%s skipped=%s\\n\' "$failures" "$skipped"\n'
+    )
+    python_dir = str(Path(sys.executable).parent)
+    proc = sp.run(
+        ["bash", "-c", script],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env={"PATH": f"{python_dir}:/usr/bin:/bin", "PYTHONIOENCODING": "utf-8", "HOME": str(root)},
+        timeout=120,
+    )
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    counts = re.search(r"COUNTS failures=(\d+) skipped=(\d+)", proc.stdout)
+    assert counts, proc.stdout + proc.stderr
+    return int(counts.group(1)), int(counts.group(2)), proc.stdout
+
+
+def test_a_duplicate_registry_row_reddens_the_fast_tier(tmp_path):
+    """شرطُ الإغلاق الأوّل: الشكلُ المقيس (صفّان غيرُ متلاصقين) يرفع `failures`."""
+    failures, skipped, out = _run_shipped_step(tmp_path, _DUPLICATE_REGISTRY, with_guard=True)
+    assert failures == 1, out
+    assert skipped == 0, out
+    assert "duplicate gap ROW" in out, "سببُ الحمرة يجب أن يظهر في مخرج الخطوة لا في ملفّ جانبيّ"
+
+
+def test_a_missing_duplicate_guard_is_a_coverage_loss_not_a_skip(tmp_path):
+    """شرطُ الإغلاق الثاني: حذفُ السكربت يُحسَب فشلاً مُسمًّى، لا تخطّياً ولا خطأَ تشغيل."""
+    failures, skipped, out = _run_shipped_step(tmp_path, _DUPLICATE_REGISTRY, with_guard=False)
+    assert failures == 1, out
+    assert skipped == 0, "التخطّي يُقرأ «لم يُقَس»؛ الغيابُ تقلّصُ تغطيةٍ ويجب أن يُحمِّر"
+    assert "سكربت بوّابة مفقود" in out, out
+    assert "✗ فشل (" not in out, "فشلُ تشغيلٍ عامّ يُقرأ خطأً برمجيّاً لا تقلّصاً — الغيابُ يُسمّى باسمه"
+
+
+def test_a_clean_registry_passes_the_shipped_step(tmp_path):
+    """شرطُ الإغلاق الثالث: الحالةُ النظيفة تمرّ — وإلّا كان الحارس يُعطَّل في أوّل يوم."""
+    failures, skipped, out = _run_shipped_step(tmp_path, _CLEAN_REGISTRY, with_guard=True)
+    assert (failures, skipped) == (0, 0), out
+    assert "✓" in out
+
+
 def test_the_commit_claim_step_says_it_reads_committed_messages_only():
     """Measured: its green ran before the commit it was read as clearing.
 

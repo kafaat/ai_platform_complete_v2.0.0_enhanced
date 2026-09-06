@@ -903,6 +903,20 @@
           "find": "            touched.update(by_test[path])\n",
           "replace": "            touched.add(sorted(by_test[path])[0])  # mutated: الشاهد المشترك يشهد لواحد\n",
           "why": "قاموسُ شاهد→هدفٍ أخيرُ الترجيح كان يُظلِّل أهدافاً صامتاً حين يتشارك سلوكيّان ملفَّ اختبار — التصعيدُ الجزئيّ أخفى من التقنيع الكامل لأنّه يبدو عاملاً."
+        },
+        {
+          "expect": "test_a_duplicate_registry_row_reddens_the_fast_tier",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "find": "  && run \"٦د) brain_duplicate_gap_identity\" python3 scripts/ci/brain_duplicate_gap_identity_guard.py\n",
+          "replace": "  && run \"٦د) brain_duplicate_gap_identity\" echo skipped  # mutated: الحارس يخرج من الطبقة السريعة\n",
+          "why": "DUPLICATE-GAP-ROW-GUARD-ABSENT-FROM-PREFLIGHT-01: إخراجُ الحارس من الطبقة السريعة يُعيد الحالةَ المقيسة على `a7d64adf`: صفّان بالمعرّف نفسه في السجلّ و`--fast` أخضرُ عليهما. والاختبارُ الشاهد يُشغّل سطرَ الاستدعاء **المشحون** في جذرٍ مؤقّت، فطفرةُ السطر تُحمِّره لا فحصُ نصٍّ فقط."
+        },
+        {
+          "expect": "test_a_missing_duplicate_guard_is_a_coverage_loss_not_a_skip",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "find": "require_file scripts/ci/brain_duplicate_gap_identity_guard.py \"٦د) brain_duplicate_gap_identity\" \\\n  && run \"٦د) brain_duplicate_gap_identity\"",
+          "replace": "run \"٦د) brain_duplicate_gap_identity\"",
+          "why": "الصيغةُ الساذجة `run x python3 y.py` تُبلِّغ فشلاً عاديّاً عند حذف `y.py` فيُقرأ خطأً برمجيّاً لا تقلّصاً في التغطية — الشرطُ الثاني من شروط إغلاق الفجوة كما طلبها المراجع: الغيابُ يُسمّى باسمه."
         }
       ]
     },

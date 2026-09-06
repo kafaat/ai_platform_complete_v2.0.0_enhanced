@@ -1009,7 +1009,7 @@
         "GET /api/v1/fields/{field_id}/yield-map-records @ services/sahool-platform/api/routers/yield_map_ingestion.py:290",
         "GET /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:256",
         "GET /api/v1/indicators/map-layers @ services/sahool-platform/api/routers/indicators.py:47",
-        "GET /api/v1/weather/layers @ services/sahool-platform/api/routers/weather.py:2101",
+        "GET /api/v1/weather/layers @ services/sahool-platform/api/routers/weather.py:2109",
         "GET /v1/info/{layer_id} @ services/raster-service/routers/observability.py:241",
         "GET /v1/layers/{layer_id}/tilejson @ services/raster-service/routers/tiles.py:37",
         "GET /v1/tiles/{layer_id}/{z}/{x}/{y}.png @ services/raster-service/routers/tiles.py:23",
@@ -1610,7 +1610,7 @@
         "GET /api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:1033",
         "GET /api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:87",
         "GET /api/v1/fields/{field_id}/unified-timeline @ services/sahool-platform/api/routers/field_workspace_timeline.py:32",
-        "GET /api/v1/weather/historical @ services/sahool-platform/api/routers/weather.py:2090",
+        "GET /api/v1/weather/historical @ services/sahool-platform/api/routers/weather.py:2098",
         "GET /api/v1/weather/history/coverage @ services/sahool-platform/api/routers/operational_truth.py:203",
         "GET /api/v1/weather/history/records @ services/sahool-platform/api/routers/operational_truth.py:172",
         "GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:191",
@@ -1843,11 +1843,11 @@
         "GET /api/raster/{path:path} @ services/sahool-platform/api/routers/compat_gateway.py:114",
         "GET /api/v1/gis/cloud-native/rasters/{raster_id}/tilejson.json @ services/sahool-platform/api/routers/gis_cloud_native.py:532",
         "GET /api/v1/gis/cloud-native/tile-cache-plan @ services/sahool-platform/api/routers/gis_cloud_native.py:279",
-        "GET /api/v1/weather/operation-tile-data/{z}/{x}/{y} @ services/sahool-platform/api/routers/weather.py:2447",
-        "GET /api/v1/weather/tile-cache/backend @ services/sahool-platform/api/routers/weather.py:2279",
-        "GET /api/v1/weather/tile-cache/stats @ services/sahool-platform/api/routers/weather.py:2293",
-        "GET /api/v1/weather/tile-data/{z}/{x}/{y} @ services/sahool-platform/api/routers/weather.py:2423",
-        "GET /api/v1/weather/tile-series/{z}/{x}/{y} @ services/sahool-platform/api/routers/weather.py:3004",
+        "GET /api/v1/weather/operation-tile-data/{z}/{x}/{y} @ services/sahool-platform/api/routers/weather.py:2456",
+        "GET /api/v1/weather/tile-cache/backend @ services/sahool-platform/api/routers/weather.py:2288",
+        "GET /api/v1/weather/tile-cache/stats @ services/sahool-platform/api/routers/weather.py:2302",
+        "GET /api/v1/weather/tile-data/{z}/{x}/{y} @ services/sahool-platform/api/routers/weather.py:2432",
+        "GET /api/v1/weather/tile-series/{z}/{x}/{y} @ services/sahool-platform/api/routers/weather.py:3013",
         "GET /healthz @ services/raster-service/routers/observability.py:31",
         "GET /metrics @ services/raster-service/routers/observability.py:36",
         "GET /readyz @ services/raster-service/routers/observability.py:186",
@@ -1967,7 +1967,7 @@
         "services/weather-service/main.py"
       ],
       "apis": [
-        "GET /api/v1/weather/current @ services/sahool-platform/api/routers/weather.py:2078",
+        "GET /api/v1/weather/current @ services/sahool-platform/api/routers/weather.py:2086",
         "GET /v1/weather/current @ services/weather-service/main.py:29"
       ],
       "ui_consumers": [],
@@ -2007,7 +2007,7 @@
         "services/weather-service/main.py"
       ],
       "apis": [
-        "GET /api/v1/weather/forecast @ services/sahool-platform/api/routers/weather.py:2084",
+        "GET /api/v1/weather/forecast @ services/sahool-platform/api/routers/weather.py:2092",
         "GET /v1/weather/forecast @ services/weather-service/main.py:30"
       ],
       "ui_consumers": [],
@@ -2310,7 +2310,7 @@
       ],
       "apis": [
         "GET /api/v1/fields/{field_id}/weather/operation-windows @ services/sahool-platform/api/routers/field_workspace_weather.py:284",
-        "GET /api/v1/weather/operation-window @ services/sahool-platform/api/routers/weather.py:2511",
+        "GET /api/v1/weather/operation-window @ services/sahool-platform/api/routers/weather.py:2520",
         "GET /v1/weather/operation-window @ services/weather-service/main.py:32"
       ],
       "ui_consumers": [],
@@ -2941,13 +2941,13 @@
       "apis": [
         "GET /api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:303",
         "GET /api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:563",
-        "GET /api/v1/weather/action-recommendation @ services/sahool-platform/api/routers/weather.py:2584",
+        "GET /api/v1/weather/action-recommendation @ services/sahool-platform/api/routers/weather.py:2593",
         "POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:283",
         "POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:500",
         "POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:320",
         "POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:187",
         "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:441",
-        "POST /api/v1/weather/recommendations/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2913",
+        "POST /api/v1/weather/recommendations/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2922",
         "POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:303",
         "POST /v1/recommendation-outcomes @ services/decision-service/main.py:954"
       ],
@@ -3672,7 +3672,7 @@
       "apis": [
         "GET /api/v1/tasks @ services/sahool-platform/api/routers/tasks.py:37",
         "PATCH /api/v1/tasks/{task_id} @ services/sahool-platform/api/routers/tasks.py:87",
-        "POST /api/v1/weather/tasks/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2812"
+        "POST /api/v1/weather/tasks/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2821"
       ],
       "ui_consumers": [],
       "mobile_consumers": [
@@ -4198,7 +4198,7 @@
         "GET /runtime-identity @ services/agriai-engine/main.py:97",
         "GET /runtime-identity @ services/raster-service/main.py:64",
         "GET /runtime-identity @ services/sahool-platform/api/routers/platform_health.py:24",
-        "GET /runtime-identity @ services/soil-service/main.py:198",
+        "GET /runtime-identity @ services/soil-service/main.py:208",
         "GET /runtime-identity @ services/weather-service/main.py:55",
         "GET /v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1107",
         "POST /api/v1/calibration/{region}/adapt-from-evidence @ services/sahool-platform/api/routers/calibration.py:247",
@@ -4209,7 +4209,7 @@
         "POST /v1/activation/evidence-receipts @ services/decision-service/main.py:1409",
         "POST /v1/activation/evidence-receipts/{evidence_id}/revoke @ services/decision-service/main.py:1483",
         "POST /v1/evidence/vegetation-snapshots @ services/decision-service/main.py:601",
-        "POST /v1/fields/{field_id}/soil/evidence @ services/soil-service/routers/canonical.py:126",
+        "POST /v1/fields/{field_id}/soil/evidence @ services/soil-service/routers/canonical.py:129",
         "POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:2791"
       ],
       "ui_consumers": [],
@@ -5628,6 +5628,7 @@
       "mobile_consumers": [],
       "tests": [
         "services/sahool-platform/tests/test_sensor_intake.py",
+        "services/sahool-platform/tests/test_water_twin_sensor_join.py",
         "tests/runtime/test_phase9_iot_execution_runtime.py",
         "tests_v9/test_iot_devices.py",
         "tests_v9/test_mqtt_anonymous_off_guard.py",
@@ -5661,7 +5662,7 @@
           "path": "services/sahool-platform/sensor_health.yaml"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=5, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=6, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": "5",

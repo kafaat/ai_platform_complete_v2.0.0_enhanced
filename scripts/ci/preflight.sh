@@ -366,6 +366,17 @@ run "٥ب) marker_coverage"         python3 scripts/ci/test_marker_coverage_guar
 
 # ── ٦) حرّاس الدماغ — على مدى الـPR لا على الشجرة ─────────────────────────
 run "٦أ) brain_deferral"          python3 scripts/ci/brain_deferral_registry_guard.py
+
+# ── ٦د) صفٌّ مكرَّر لهويّة فجوة — على الشجرة لا على المدى ─────────────────
+# DUPLICATE-GAP-ROW-GUARD-ABSENT-FROM-PREFLIGHT-01: صفّان بالمعرّف نفسه عاشا في
+# `gaps/registry.md` عبر التزامين، ومرّ هذا السكربت أخضرَ عليهما — بينما الحارس
+# **يراهما** (`global_duplicate_row_identities` على سجلّ `a7d64adf` ⇒ سطران). كان
+# موصولاً في `no-report-only-change.yml` وحدَه، فيُكتشَف التكرارُ على PR لا هنا —
+# والتقطه المالكُ بالعين قبل أيّ بوّابة. Python صرف على أربعة ملفّات، أقلّ من ثانية.
+# وغيابُ سكربته يُسمّى تقلّصَ تغطيةٍ (`require_file`) لا تخطّياً ولا خطأَ تشغيل.
+require_file scripts/ci/brain_duplicate_gap_identity_guard.py "٦د) brain_duplicate_gap_identity" \
+  && run "٦د) brain_duplicate_gap_identity" python3 scripts/ci/brain_duplicate_gap_identity_guard.py
+
 if git rev-parse --verify "$BASE" >/dev/null 2>&1; then
   run "٦ب) brain_state_transition" python3 scripts/ci/brain_state_transition_guard.py --base "$BASE" --head HEAD
   run "٦ج) brain_commit_claim"     python3 scripts/ci/brain_commit_claim_guard.py --base "$BASE" --head HEAD

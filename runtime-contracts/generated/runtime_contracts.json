@@ -597,9 +597,11 @@
         "MODEL_CACHE",
         "OFFLINE_MODE",
         "PEST_MODEL_PATH",
+        "PEST_MODEL_SHA256",
         "SAHOOL_CLOUD_URL",
         "SYNC_INTERVAL",
-        "YIELD_MODEL_PATH"
+        "YIELD_MODEL_PATH",
+        "YIELD_MODEL_SHA256"
       ],
       "container": {
         "dockerfile": "services/edge-inference/Dockerfile.arm64",
@@ -629,8 +631,10 @@
         "routes": [
           "services/edge-inference/download_models.py",
           "services/edge-inference/main.py",
+          "services/edge-inference/model_artifact_gate.py",
           "services/edge-inference/sync_service.py",
-          "services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py"
+          "services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py",
+          "services/edge-inference/tests/test_model_artifact_gate_endpoints.py"
         ],
         "tracing": []
       },
@@ -2827,7 +2831,8 @@
           "services/soil-service/main.py",
           "services/soil-service/projection_jobs.py",
           "services/soil-service/projection_observability.py",
-          "services/soil-service/soilgrids_client.py"
+          "services/soil-service/soilgrids_client.py",
+          "services/soil-service/test_soil_ingest_entrypoint_parity.py"
         ],
         "metrics": [
           "services/soil-service/projection_observability.py",
@@ -2854,6 +2859,7 @@
           "services/soil-service/routers/soil_profile.py",
           "services/soil-service/soil_store.py",
           "services/soil-service/soilgrids_client.py",
+          "services/soil-service/test_soil_ingest_entrypoint_parity.py",
           "services/soil-service/test_soil_supersession_current_pointer.py"
         ],
         "tracing": []

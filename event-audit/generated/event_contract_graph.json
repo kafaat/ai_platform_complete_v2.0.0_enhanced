@@ -95,7 +95,7 @@
       "dynamic_expr": "subject",
       "file": "services/sahool-platform/api/main.py",
       "kind": "producer",
-      "line": 565,
+      "line": 566,
       "queue": null,
       "subject": null
     },
@@ -235,7 +235,7 @@
     "consumer_only_subjects": 1,
     "cross_component_duplicate_durables": 0,
     "dynamic_contracts": 16,
-    "files_scanned": 1178,
+    "files_scanned": 1179,
     "matched_subjects": 0,
     "producer_only_subjects": 1,
     "production_certified": false,
