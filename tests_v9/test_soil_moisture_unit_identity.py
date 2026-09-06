@@ -459,3 +459,42 @@ def test_the_contract_itself_rejects_a_boolean_soil_moisture_and_keeps_other_boo
         SoilObservation(property="soil_moisture", value=good, unit="vwc_pct", **common)
     # `bool` مشروعٌ لخاصّيّةٍ أخرى — التشديدُ على الخاصّيّة لا على النوع
     SoilObservation(property="salinity_flag", value=True, **common)
+
+
+def test_a_sensor_moisture_observation_without_declared_quality_is_uncalibrated_not_accepted():
+    """مراجعة `703607bf`: افتراضُ العقد `accepted` كان يجعل الغيابَ أهليّةً عبر الباب المباشر."""
+    repo_root = Path(__file__).resolve().parents[1]
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+    from shared.contracts.soil import SoilObservation, SoilObservationSource
+
+    common = dict(tenant_id="t1", field_id="f1", observed_at=_T, idempotency_key="k1")
+    absent = SoilObservation(
+        property="soil_moisture",
+        value=25.0,
+        unit="vwc_pct",
+        source_type=SoilObservationSource.SENSOR,
+        **common,
+    )
+    assert absent.quality_status.value == "uncalibrated"
+    explicit = SoilObservation(
+        property="soil_moisture",
+        value=25.0,
+        unit="vwc_pct",
+        source_type=SoilObservationSource.SENSOR,
+        quality_status="accepted",
+        **common,
+    )
+    assert explicit.quality_status.value == "accepted"
+    # الحسمُ خاصٌّ بالحسّاس وخاصّيّة القياس — المختبرُ والخصائصُ الأخرى كما كانت
+    lab = SoilObservation(
+        property="soil_moisture",
+        value=25.0,
+        unit="vwc_pct",
+        source_type=SoilObservationSource.LABORATORY,
+        **common,
+    )
+    other = SoilObservation(
+        property="ph", value=7.1, source_type=SoilObservationSource.SENSOR, **common
+    )
+    assert lab.quality_status.value == "accepted" and other.quality_status.value == "accepted"

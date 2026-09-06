@@ -88,4 +88,14 @@ class SoilObservation(BaseModel):
             raise ValueError("soil_observation_cannot_supersede_itself")
         if self.property in MEASUREMENT_ONLY_PROPERTIES and self.value is not None:
             require_soil_moisture_measurement(self.value)
+        # غيابُ إعلان الجودة من حسّاسٍ ليس قبولاً. كان الافتراضُ `accepted` يجعل قراءةَ
+        # `/v1/soil/observations` بلا `quality_status` مؤهّلةً لتهيئة التوأم بينما البابُ
+        # المجمِّع يصنّف الحالةَ نفسَها `uncalibrated` (مراجعة `703607bf`). يُحسَم هنا — عند
+        # الحدّ المشترك — للحالة `sensor` + خاصّيّة قياسٍ فقط؛ الخصائصُ والمصادرُ الأخرى كما هي.
+        if (
+            self.property in MEASUREMENT_ONLY_PROPERTIES
+            and self.source_type == SoilObservationSource.SENSOR
+            and "quality_status" not in self.model_fields_set
+        ):
+            self.quality_status = SoilObservationQuality.UNCALIBRATED
         return self

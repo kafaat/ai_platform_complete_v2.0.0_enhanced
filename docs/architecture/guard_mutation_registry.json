@@ -1742,6 +1742,12 @@
           "find": "        if self.property in MEASUREMENT_ONLY_PROPERTIES and self.value is not None:\n            require_soil_moisture_measurement(self.value)",
           "replace": "        if False:\n            require_soil_moisture_measurement(self.value)",
           "why": "بلا هذا السطر يعود التحقّقُ إلى بابٍ واحد (المحوِّل) ويقبل `/v1/soil/observations` القيمةَ المنطقيّة نفسَها بـ201 — الشكلُ المقيس في مراجعة b9c5aceb"
+        },
+        {
+          "expect": "test_a_sensor_moisture_observation_without_declared_quality_is_uncalibrated_not_accepted",
+          "find": "            self.quality_status = SoilObservationQuality.UNCALIBRATED",
+          "replace": "            self.quality_status = SoilObservationQuality.ACCEPTED",
+          "why": "إعادةُ الافتراض القديم بعينه: غيابُ إعلان الجودة من حسّاس يصير `accepted` فتؤهَّل القراءةُ لتهيئة التوأم من الباب المباشر — الشكلُ المُعاد إنتاجُه في مراجعة 703607bf"
         }
       ]
     }

@@ -135,3 +135,102 @@ def test_the_third_door_does_not_coerce_true_into_one_percent(service):
     )
     assert response.status_code == 422, response.text
     assert writes == []
+
+
+def test_a_sensor_reading_without_a_quality_declaration_never_seeds_from_any_door(service):
+    """مراجعة `703607bf`: الافتراضُ `accepted` كان يجعل الغيابَ أهليّةً عبر الباب المباشر.
+
+    من الطلب حتّى الوصلة: الكائنُ الذي يبلغ الحفظَ يُسقَط إلى القارئ ثمّ الوصلة كما يفعل
+    `_latest_soil_moisture`، ويجب ألّا يهيّئ التوأمَ من أيّ باب.
+    """
+    platform = ROOT / "services" / "sahool-platform"
+    if str(platform) not in sys.path:
+        sys.path.insert(0, str(platform))
+    import soil_store
+    from api.soil_telemetry import pick_latest_soil_moisture
+    from api.water_twin_seed import join_sensor_with_ledger_seed, sensor_depletion_mm
+
+    main, _writes = service
+    stored: list[object] = []
+
+    async def _capture(pool, observation):
+        stored.append(observation)
+        return True
+
+    import pytest as _pytest
+
+    with _pytest.MonkeyPatch.context() as mp:
+        mp.setattr(soil_store, "persist_observation", _capture)
+        client = TestClient(main.app, headers=_HEADERS)
+        body = _direct_body(25.0)
+        assert "quality_status" not in body
+        assert client.post("/v1/soil/observations", json=body).status_code == 201
+        assert (
+            client.post(
+                "/v1/fields/review-field/soil/evidence",
+                json={
+                    "source_type": "sensor",
+                    "source_id": "dev_1",
+                    "properties": {"soil_moisture": 25.0},
+                },
+            ).status_code
+            == 201
+        )
+    assert len(stored) == 2
+    for observation in stored:
+        assert observation.quality_status.value == "uncalibrated", observation
+        reading = pick_latest_soil_moisture(
+            [
+                {
+                    "value": observation.value,
+                    "unit": observation.unit,
+                    "recorded_at": observation.observed_at,
+                    "device_id": observation.source_id,
+                    "observation_id": observation.observation_id,
+                    "quality_status": observation.quality_status.value,
+                    "calibration_id": observation.calibration_id,
+                    "confidence": observation.confidence,
+                }
+            ]
+        )
+        depletion, _limit = sensor_depletion_mm(
+            value_pct=reading.value_pct,
+            unit_kind=reading.unit_kind,
+            taw_mm=100.0,
+            root_depth_m=0.6,
+            theta_fc=0.32,
+        )
+        join = join_sensor_with_ledger_seed(
+            ledger_depletion_mm=None,
+            ledger_source="unavailable",
+            sensor=reading.as_dict(),
+            sensor_depletion=depletion,
+            sensor_limitation=None,
+            sensor_age_s=300.0,
+            max_reading_age_s=4 * 3600,
+            taw_mm=100.0,
+        )
+        assert join["depletion_mm"] is None and join["source"] == "unavailable"
+        assert join["sensor"]["seed_eligible"] is False
+        assert "soil_moisture_sensor_quality_not_seed_eligible:uncalibrated" in join["limitations"]
+
+
+def test_an_explicit_accepted_declaration_still_governs(service):
+    """الضابطُ المضادّ: القبولُ الصريح يعمل وفق السياسة — الحسمُ يمسّ الغيابَ وحدَه."""
+    import soil_store
+
+    main, _writes = service
+    stored: list[object] = []
+
+    async def _capture(pool, observation):
+        stored.append(observation)
+        return True
+
+    import pytest as _pytest
+
+    with _pytest.MonkeyPatch.context() as mp:
+        mp.setattr(soil_store, "persist_observation", _capture)
+        client = TestClient(main.app, headers=_HEADERS)
+        body = {**_direct_body(25.0), "quality_status": "accepted", "idempotency_key": "k-explicit"}
+        assert client.post("/v1/soil/observations", json=body).status_code == 201
+    assert stored[0].quality_status.value == "accepted"
