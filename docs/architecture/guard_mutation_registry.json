@@ -917,6 +917,20 @@
           "find": "require_file scripts/ci/brain_duplicate_gap_identity_guard.py \"٦د) brain_duplicate_gap_identity\" \\\n  && run \"٦د) brain_duplicate_gap_identity\"",
           "replace": "run \"٦د) brain_duplicate_gap_identity\"",
           "why": "الصيغةُ الساذجة `run x python3 y.py` تُبلِّغ فشلاً عاديّاً عند حذف `y.py` فيُقرأ خطأً برمجيّاً لا تقلّصاً في التغطية — الشرطُ الثاني من شروط إغلاق الفجوة كما طلبها المراجع: الغيابُ يُسمّى باسمه."
+        },
+        {
+          "expect": "test_the_platform_module_budget_ratchet_runs_in_the_fast_tier",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "find": "run \"٥ج) platform_module_budget\"  python3 -m pytest -q -p no:cacheprovider services/sahool-platform/tests/test_p0_platform_module_growth_guard.py\n",
+          "replace": "run \"٥ج) platform_module_budget\"  echo skipped  # mutated: الراتشِت يخرج من الطبقة السريعة\n",
+          "why": "PREFLIGHT-BLIND-TO-PLATFORM-SERVICE-TESTS-01: إخراجُ راتشِت ميزانية الوحدات من الطبقة السريعة يُعيد الحالةَ المقيسة على #985 — `--fast` 0/0 وCI أحمر على وحدةٍ جديدة في المنصّة."
+        },
+        {
+          "expect": "test_the_platform_suite_is_skipped_loudly_when_fastapi_differs_from_the_pin",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "find": "sys.exit(0 if pin is not None and fastapi.__version__ == pin else 1)\n",
+          "replace": "sys.exit(0)  # mutated: الجناحُ يُشغَّل على أيّ إصدار\n",
+          "why": "إسقاطُ شرط تطابق الإصدار يُشغّل الجناحَ على FastAPI مختلفٍ عن المثبَّت في CI، فتحمرّ ٣٢ حالةً لسببٍ بيئيّ وتُقرأ شيفريّةً — حمرةٌ كاذبةٌ بدل تخطٍّ مُعلَن."
         }
       ]
     },

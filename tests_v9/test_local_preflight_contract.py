@@ -478,6 +478,90 @@ def test_a_clean_registry_passes_the_shipped_step(tmp_path):
     assert "✓" in out
 
 
+def test_the_platform_module_budget_ratchet_runs_in_the_fast_tier():
+    """PREFLIGHT-BLIND-TO-PLATFORM-SERVICE-TESTS-01 — الموضعُ لا الوجود، للمرّة الخامسة.
+
+    وظيفةُ *Platform Unit Tests* المطلوبة تُشغّل `services/sahool-platform/tests`، ولم تكن
+    أيُّ طبقةٍ هنا تُشغّله. مقيس على #985: `--fast` والافتراضيّةُ 0/0 محلّيّاً وCI أحمر
+    لأنّ `api/request_dates.py` رفع عددَ وحدات المنصّة من 680 إلى 681 — راتشِتٌ يعدّ
+    ملفّاتٍ بلا استيراد، أقلُّ من ثانية، وكان محبوساً في جناحٍ لا يُسأل. نفسُ صنف ٢د/٢و.
+    الإرساءُ على الاستدعاء لا المسار (المسارُ يرد في العقد وفي التعليق).
+    """
+    text = _text()
+    invocation = (
+        "python3 -m pytest -q -p no:cacheprovider "
+        "services/sahool-platform/tests/test_p0_platform_module_growth_guard.py"
+    )
+    assert invocation in text, "راتشِتٌ يحجب في CI ولا يُسأل محلّيّاً يترك الشجرةَ تُدفَع على أخضرٍ لم يقسه"
+    assert text.count(invocation) == 1, "استدعاءان يجعلان فحصَ الموضع يقرأ أوّلَهما — اختر واحداً"
+    assert text.index(invocation) < text.index('if [ "$TIER" = fast ]'), (
+        "يجب أن يعمل في `--fast`: الطبقةُ التي يُشغّلها المطوّر قبل الدفع"
+    )
+    contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
+    assert (
+        "services/sahool-platform/tests/test_p0_platform_module_growth_guard.py"
+        in contract["required_tests"]
+    ), "حذفُ الراتشِت يجب أن يُسمّى فقدَ تغطية، لا أن يُقرَأ بوّابةً مارّة"
+
+
+def test_the_platform_suite_runs_in_ci_form_in_the_default_tier():
+    """الجناحُ كاملاً يُشغَّل كما تُشغّله CI (`services/sahool-platform` + `PYTHONPATH=.`)
+    في الطبقة الافتراضيّة — بعد الخروج المبكر لأنّ كلفتَه في CI ~٩٠ ث لا تُناسب `--fast`."""
+    text = _text()
+    executed = [
+        line
+        for line in text.splitlines()
+        if "cd services/sahool-platform && PYTHONPATH=. python3 -m pytest" in line
+    ]
+    assert len(executed) == 1, f"استدعاءٌ منفَّذٌ واحدٌ للجناح — وُجِد {len(executed)}: {executed}"
+    assert text.index(executed[0]) > text.index('if [ "$TIER" = fast ]'), (
+        "الجناحُ الكامل قرارُ كلفةٍ يخصّ الطبقةَ الافتراضيّة لا السريعة"
+    )
+
+
+def _extract_block(marker: str) -> str:
+    """يستخرج كتلة heredoc مشحونة من preflight.sh بعلامتها — لا نسخةً منها."""
+    text = _text()
+    start_at = text.index(f"<<'{marker}'")
+    start = text.index("\n", start_at) + 1
+    end = text.index(f"\n{marker}", start)
+    return text[start:end]
+
+
+def _run_pin_block(tmp_path: Path, pin: str) -> int:
+    (tmp_path / "services/sahool-platform/api").mkdir(parents=True)
+    (tmp_path / "services/sahool-platform/api/requirements.txt").write_text(
+        f"httpx>=0.28\nfastapi=={pin}\npydantic==2.13.4\n", encoding="utf-8"
+    )
+    return subprocess.run(
+        [sys.executable, "-"],
+        input=_extract_block("PINPY"),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        cwd=tmp_path,
+        timeout=120,
+    ).returncode
+
+
+def test_the_platform_suite_is_skipped_loudly_when_fastapi_differs_from_the_pin(tmp_path):
+    """**الشرطُ مقيسٌ لا احتياط:** FastAPI 0.141 يُدرِج الراوترات كسولةً (`_IncludedRouter`)
+    فيصير `app.routes` معتماً و٣٢ اختبارَ «مسارٌ مُسجَّل» تحمرّ لسببٍ بيئيّ، بينما CI يثبّت
+    إصدارَ `api/requirements.txt`. الكتلةُ المشحونة تُشغَّل على متطلّباتٍ مُختلَقة: تطابقٌ ⇒ 0،
+    اختلافٌ ⇒ غيرُ صفر — فيُعَدّ الجناحُ «لم يُقَس» بدل حمرةٍ تُقرأ شيفريّة."""
+    import fastapi
+
+    assert _run_pin_block(tmp_path / "match", fastapi.__version__) == 0
+    assert _run_pin_block(tmp_path / "mismatch", "0.0.1") != 0, (
+        "إصدارٌ مختلفٌ يجب أن يُخرِج الجناحَ إلى التخطّي المُعلَن لا أن يُشغّله"
+    )
+    text = _text()
+    skip_at = text.index("إصدارُ FastAPI المثبَّت ≠")
+    assert "skipped=$((skipped + 1))" in text[skip_at : skip_at + 400], (
+        "التخطّي يجب أن يُعَدّ في عدّاد المتخطّاة لا أن يُبتلَع"
+    )
+
+
 def test_the_commit_claim_step_says_it_reads_committed_messages_only():
     """Measured: its green ran before the commit it was read as clearing.
 

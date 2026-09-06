@@ -364,6 +364,14 @@ run "٤ز) db_writer_ownership"     python3 scripts/ci/db_writer_ownership_guard
 run "٥أ) arch_test_ci_coverage"   python3 scripts/ci/arch_test_ci_coverage_guard.py
 run "٥ب) marker_coverage"         python3 scripts/ci/test_marker_coverage_guard.py --check
 
+# ── ٥ج) راتشِت ميزانية وحدات المنصّة — في الطبقة السريعة عمداً ─────────────
+# PREFLIGHT-BLIND-TO-PLATFORM-SERVICE-TESTS-01: وظيفةُ *Platform Unit Tests* (مطلوبة)
+# تُشغّل `services/sahool-platform/tests`، ولم تكن أيُّ طبقةٍ هنا تُشغّله. مقيس على #985:
+# `--fast` والافتراضيّةُ 0/0 محلّيّاً بينما CI أحمر لأنّ وحدةً جديدة في المنصّة رفعت
+# العدَّ من 680 إلى 681. الراتشِت يعدّ ملفّاتٍ على القرص بلا استيراد — أقلّ من ثانية،
+# حتميٌّ في كلّ بيئة، فموضعُه الطبقةُ الأرخص. الجناحُ كلُّه في ٨ج بشرطه.
+run "٥ج) platform_module_budget"  python3 -m pytest -q -p no:cacheprovider services/sahool-platform/tests/test_p0_platform_module_growth_guard.py
+
 # ── ٦) حرّاس الدماغ — على مدى الـPR لا على الشجرة ─────────────────────────
 run "٦أ) brain_deferral"          python3 scripts/ci/brain_deferral_registry_guard.py
 
@@ -425,6 +433,36 @@ fi
 # `-m unit` (§٢/٧ب) — أُغفِلت من الكتلة الأصليّة حتّى أسقطت بناءً.
 run "٨أ) pytest -m unit"  python3 -m pytest -q -m unit
 run "٨ب) pytest tests/"   python3 -m pytest -q tests/
+
+# ── ٨ج) جناحُ المنصّة كما تُشغّله CI — بشرط تطابق إصدار FastAPI ─────────────
+# PREFLIGHT-BLIND-TO-PLATFORM-SERVICE-TESTS-01: الوظيفةُ تعمل من `services/sahool-platform`
+# بـ`PYTHONPATH=.`، والشكلُ يُنسَخ لا يُقارَب. **والشرطُ مقيسٌ لا احتياط:** FastAPI 0.141
+# يُدرِج الراوترات كسولةً (`_IncludedRouter`) فيصير `app.routes` معتماً، واختباراتُ
+# «مسارٌ مُسجَّل» تحمرّ لسببٍ بيئيّ لا شيفريّ بينما CI يثبّت الإصدارَ الذي في
+# `api/requirements.txt`. حمرةٌ بيئيّة تُقرأ شيفريّةً أسوأ من تخطٍّ مُعلَن — فعند اختلاف
+# الإصدار يُتخطّى بصوتٍ عالٍ ويُعَدّ «لم يُقَس»، لا أخضرَ ولا أحمرَ كاذبين.
+if python3 - <<'PINPY' 2>/dev/null
+import re, sys
+from pathlib import Path
+pin = None
+for line in Path("services/sahool-platform/api/requirements.txt").read_text(encoding="utf-8").splitlines():
+    m = re.match(r"\s*fastapi==([0-9][0-9A-Za-z.]*)", line)
+    if m:
+        pin = m.group(1)
+try:
+    import fastapi
+except Exception:
+    sys.exit(1)
+sys.exit(0 if pin is not None and fastapi.__version__ == pin else 1)
+PINPY
+then
+  run "٨ج) pytest services/sahool-platform/tests (شكل CI)" \
+    bash -c 'cd services/sahool-platform && PYTHONPATH=. python3 -m pytest -q -p no:cacheprovider tests'
+else
+  echo "── ٨ج) pytest services/sahool-platform/tests (شكل CI)"
+  echo "   ⊘ متخطّاة: إصدارُ FastAPI المثبَّت ≠ المثبَّت في api/requirements.txt — هذه البوّابة **لم تُقَس**"
+  skipped=$((skipped + 1))
+fi
 
 if [ "$TIER" = full ]; then
   # ── ٩) الأمن — bandit يحجب على HIGH وحده؛ الباقي إرشاديّ ────────────────
