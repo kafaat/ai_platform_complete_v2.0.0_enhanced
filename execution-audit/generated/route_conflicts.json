@@ -32,7 +32,7 @@
       "registrations": [
         {
           "function": "capabilities",
-          "line": 360,
+          "line": 376,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/capabilities",
@@ -285,7 +285,7 @@
         },
         {
           "function": "health_check",
-          "line": 168,
+          "line": 188,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/healthz",
@@ -627,7 +627,7 @@
         },
         {
           "function": "readyz",
-          "line": 365,
+          "line": 381,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/readyz",
@@ -882,7 +882,7 @@
         },
         {
           "function": "runtime_evidence_identity",
-          "line": 198,
+          "line": 208,
           "method": "GET",
           "module": "services/soil-service/main.py",
           "path": "/runtime-identity",
@@ -1151,7 +1151,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1096,
-  "route_inventory_sha256": "9ea9f8babc2133419ee868cbb118f4e9ff8fb278567d3e1909035022757572c6",
+  "route_inventory_sha256": "b81172fba5a94f469c0399a37d920a8f620c3fc4e83cd5c27304a2486b74a003",
   "runtime_verified": false,
   "schema_version": 1
 }

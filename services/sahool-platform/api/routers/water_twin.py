@@ -22,15 +22,16 @@
 from __future__ import annotations
 
 import logging
-from datetime import date
+from datetime import UTC, date, datetime
 from typing import Literal
 
-from core.engines.fao56 import root_depth_for_crop, taw_from_root_depth
+from core.engines.fao56 import root_depth_for_crop, taw_from_root_depth, theta_fc_wp_for_texture
 from core.season_phenology import crop_kc_profile, resolve_crop_id
 from fastapi import APIRouter, Depends, HTTPException, Path
 from pydantic import BaseModel, Field
 
 from api import main as api_main
+from api.device_registry import get_device_type
 from api.main import (
     Permission,
     UserSchema,
@@ -41,7 +42,12 @@ from api.main import (
 )
 from api.water_ledger_compute import LEDGER_SELECT_COLS, row_to_ledger_entry
 from api.water_twin import DayPlan, compare_scenarios, delay_irrigation, scale_irrigation
-from api.water_twin_seed import seed_daily_etc, seed_initial_depletion
+from api.water_twin_seed import (
+    join_sensor_with_ledger_seed,
+    seed_daily_etc,
+    seed_initial_depletion,
+    sensor_depletion_mm,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -142,6 +148,51 @@ def resolve_taw_raw(
     )
 
 
+def _join_sensor(
+    sensor_reading,
+    init_dr: float | None,
+    dr_source: str,
+    taw_mm: float,
+    taw_meta: dict,
+    req: FieldWaterTwinRequest,
+) -> dict:
+    """يحوّل القراءةَ بوحدتها المُعلَنة ويقارنها بالبذرة — بلا سلطةٍ على الدفتر أو الطلب.
+
+    θFC من قوام الطلب (Table 19، تقديريّ ومُعلَن كذلك في ``taw_notes``)، وZr من اشتقاق
+    TAW الديناميكيّ إن وُجد؛ غيابُهما يُعلَن قيداً ولا يُخمَّن.
+    """
+    sensor_payload = None
+    sensor_dep: float | None = None
+    sensor_limit: str | None = None
+    age_s: float | None = None
+    if sensor_reading is not None:
+        theta_fc, _ = theta_fc_wp_for_texture(req.texture)
+        sensor_dep, sensor_limit = sensor_depletion_mm(
+            value_pct=sensor_reading.value_pct,
+            unit_kind=sensor_reading.unit_kind,
+            taw_mm=taw_mm,
+            root_depth_m=taw_meta.get("root_depth_m"),
+            theta_fc=theta_fc,
+        )
+        recorded = sensor_reading.recorded_at
+        now = datetime.now(UTC)
+        if recorded.tzinfo is None:
+            recorded = recorded.replace(tzinfo=UTC)
+        age_s = (now - recorded).total_seconds()
+        sensor_payload = sensor_reading.as_dict()
+    device_type = get_device_type("soil_moisture_sensor")
+    return join_sensor_with_ledger_seed(
+        ledger_depletion_mm=init_dr,
+        ledger_source=dr_source,
+        sensor=sensor_payload,
+        sensor_depletion=sensor_dep,
+        sensor_limitation=sensor_limit,
+        sensor_age_s=age_s,
+        max_reading_age_s=None if device_type is None else device_type.get("max_reading_age_s"),
+        taw_mm=taw_mm,
+    )
+
+
 @router.post("/api/v1/fields/{field_id}/water-twin")
 async def field_water_twin(
     req: FieldWaterTwinRequest,
@@ -160,6 +211,7 @@ async def field_water_twin(
     recent: list[dict] = []
     crop_name: str | None = None
     planting_date = None
+    sensor_reading = None
     if api_main._DB_POOL is not None:
         try:
             async with tenant_connection(user) as conn:
@@ -173,6 +225,8 @@ async def field_water_twin(
                     field_id,
                     req.recent_days_window,
                 )
+                # SOIL-MOISTURE-UNIT-IDENTITY-01: قراءةُ الحسّاس تُقارَن بالدفتر ولا تحكمه.
+                sensor_reading = await api_main._latest_soil_moisture(conn, field_id)
             recent = [row_to_ledger_entry(r) for r in rows]
             if field_row is not None:
                 crop_name = field_row["crop"]
@@ -200,6 +254,10 @@ async def field_water_twin(
 
     latest_row = recent[0] if recent else None
     init_dr, dr_source = seed_initial_depletion(latest_row, taw_mm, req.initial_depletion_mm)
+    soil_moisture_join = _join_sensor(sensor_reading, init_dr, dr_source, taw_mm, taw_meta, req)
+    if init_dr is None and soil_moisture_join["depletion_mm"] is not None:
+        # لا طلبَ ولا دفتر — الحسّاسُ الطازجُ القابلُ للتحويل يهيّئ Dr بقيدٍ مُعلَن.
+        init_dr, dr_source = soil_moisture_join["depletion_mm"], soil_moisture_join["source"]
     try:
         daily_etc, etc_source = seed_daily_etc(recent, req.daily_etc_mm)
     except ValueError as e:
@@ -210,7 +268,9 @@ async def field_water_twin(
             status_code=422,
             detail=(
                 "تعذّر اشتقاق النضوب الابتدائيّ: لا صفّ دفتر يحمل depletion_mm/soil_moisture_pct "
-                "ولا initial_depletion_mm في الطلب. سجّل قيد دفتر أوّلاً أو مرّر القيمة صراحةً."
+                "ولا initial_depletion_mm في الطلب ولا قراءةَ حسّاسٍ طازجةً بوحدةٍ مُعلَنة "
+                f"({', '.join(soil_moisture_join['limitations']) or 'لا حسّاس'}). "
+                "سجّل قيد دفتر أوّلاً أو مرّر القيمة صراحةً."
             ),
         )
     if daily_etc is None:
@@ -245,6 +305,7 @@ async def field_water_twin(
         "ledger_rows_used": len(recent),
         "horizon_days": req.horizon_days,
     }
+    result["soil_moisture_join"] = soil_moisture_join
     result["taw_mm"] = round(taw_mm, 2)
     result["raw_mm"] = round(raw_mm, 2)
     result["taw_source"] = taw_meta["taw_source"]

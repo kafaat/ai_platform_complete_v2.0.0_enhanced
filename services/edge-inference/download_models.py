@@ -7,6 +7,7 @@ SAHOOL v9.0 — edge_inference/download_models.py
 import hashlib
 import logging
 import os
+import re
 import sys
 import urllib.request
 
@@ -17,25 +18,37 @@ MODELS_BASE = os.getenv(
 )
 MODELS_DIR = os.getenv("MODELS_DIR", "/models")
 
+#: البصمةُ المعتمدة تأتي من البيئة — الاسمان نفسُهما اللذان يقرؤهما `main.py`
+#: عند تفعيل القدرة، فلا يقبل المُنزِّلُ ملفّاً ترفضه الخدمة.
 REQUIRED_MODELS = {
     "pest_detector_int8.onnx": {
         "url": f"{MODELS_BASE}/pest_detector_int8.onnx",
         "size_mb": 18,
-        "sha256": "",  # set in production
+        "sha256": os.getenv("PEST_MODEL_SHA256", ""),
         "fallback": "not_provisioned",
     },
     "yield_estimator_int8.onnx": {
         "url": f"{MODELS_BASE}/yield_estimator_int8.onnx",
         "size_mb": 12,
-        "sha256": "",
+        "sha256": os.getenv("YIELD_MODEL_SHA256", ""),
         "fallback": "not_provisioned",
     },
 }
 
+_SHA256_HEX = re.compile(r"^[0-9a-f]{64}$")
+
 
 def verify_sha256(path: str, expected: str) -> bool:
-    if not expected:
-        return True
+    """يفشل **مغلقاً**: بصمةٌ فارغةٌ أو غيرُ صالحة ترفض الملفّ، لا تقبله.
+
+    **العطلُ المقيس:** كان `if not expected: return True` — فالبصمةُ الفارغةُ
+    (وهي القيمةُ المشحونة) تجعل «التحقّق» يمرّ على أيّ بايتات. ملفٌّ بالاسم
+    المتوقَّع من أيّ مصدر كان يُقرأ «✅ downloaded OK».
+    """
+    expected = (expected or "").strip().lower()
+    if not _SHA256_HEX.match(expected):
+        logger.error("  ❌ %s: لا بصمةَ معتمدةً (PEST_MODEL_SHA256/YIELD_MODEL_SHA256) — يُرفَض", path)
+        return False
     h = hashlib.sha256()
     with open(path, "rb") as f:
         for chunk in iter(lambda: f.read(8192), b""):
@@ -44,6 +57,11 @@ def verify_sha256(path: str, expected: str) -> bool:
 
 
 def download_model(name: str, info: dict) -> bool:
+    # بلا بصمةٍ معتمدة لا يُنزَّل شيءٌ أصلاً — لا «نزِّل ثمّ ارفض»: كلُّ بايتٍ يُجلَب
+    # من `MODELS_BASE` بلا هويّةٍ منتظَرة بايتٌ مجهول لا مكانَ له على القرص.
+    if not _SHA256_HEX.match((info.get("sha256") or "").strip().lower()):
+        logger.error("  ❌ %s: لا بصمةَ معتمدةً — لا تنزيل (يبقى %s)", name, info["fallback"])
+        return False
     dest = os.path.join(MODELS_DIR, name)
     if os.path.exists(dest):
         if verify_sha256(dest, info.get("sha256", "")):

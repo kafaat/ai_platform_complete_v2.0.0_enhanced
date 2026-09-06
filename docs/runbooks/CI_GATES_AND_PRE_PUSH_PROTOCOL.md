@@ -325,7 +325,7 @@ python scripts/ci/verify_all_generated.py --check               # يجب أن ت
 |---|---|---|
 | **حتميّة المصنوعات** (`scripts/ci/deterministic_time.py`) | إعادة توليد بلا تغيّر حمولة ⇒ **صفر فرق** | لا تمنع تعارض تغيّر حقيقيّ |
 | **`merge=union`** على أربعة مسارات دماغ | يضمّ الجانبين محلّيّاً بدل ترك العلامات | **لا يُزيل لافتة GitHub** — GitHub يتجاهل `.gitattributes` |
-| **`brain_duplicate_gap_identity_guard`** | يكشف فجوة بحالتين متناقضتين بعد union | **يكشف** ولا يمنع |
+| **`brain_duplicate_gap_identity_guard`** | يكشف فجوة بحالتين متناقضتين بعد union — في `no-report-only-change.yml` **وفي `preflight.sh --fast` (٦د)** منذ `DUPLICATE-GAP-ROW-GUARD-ABSENT-FROM-PREFLIGHT-01` | **يكشف** ولا يمنع |
 | **`scripts/dev/enable_rerere.sh`** | يحفظ الحلّ ويُعيده على الفروع طويلة العمر | محلّيّ لكلّ نسخة، **وليس بوّابة CI** |
 
 **قاعدتان عمليّتان:**

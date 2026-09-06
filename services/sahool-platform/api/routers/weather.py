@@ -55,7 +55,15 @@ _WEATHER_REDIS_CLIENT = None
 _WEATHER_REDIS_LAST_ERROR: str | None = None
 _WEATHER_REDIS_KEY_PREFIX = "sahool:weather:tile"
 _ALLOWED_WEATHER_TIMES = {"now", "+1h", "+3h", "+6h", "+12h", "+24h", "+48h"}
-_ALLOWED_WEATHER_MODELS = {"best_match", "auto", "gfs_seamless", "ecmwf_ifs04"}
+# WEATHER-MODEL-IDENTITY-v1: المصدرُ الواحد `docs/architecture/weather_model_catalogue.json`،
+# ويُقاس التطابقُ في `tests_v9/test_weather_model_identity.py`. `ecmwf_ifs04` متقاعد.
+_ALLOWED_WEATHER_MODELS = {
+    "best_match",
+    "auto",
+    "gfs_seamless",
+    "ecmwf_ifs025",
+    "ecmwf_aifs025_single",
+}
 _WEATHER_RATE_WINDOWS: dict[str, tuple[float, int]] = {}
 _WEATHER_RATE_REDIS_LAST_ERROR: str | None = None
 _WEATHER_RATE_REDIS_KEY_PREFIX = "sahool:weather:rate"
@@ -2111,7 +2119,8 @@ def weather_layers_manifest():
         "models": [
             {"key": "best_match", "label_ar": "الأفضل تلقائياً"},
             {"key": "gfs_seamless", "label_ar": "GFS"},
-            {"key": "ecmwf_ifs04", "label_ar": "ECMWF IFS"},
+            {"key": "ecmwf_ifs025", "label_ar": "ECMWF IFS"},
+            {"key": "ecmwf_aifs025_single", "label_ar": "ECMWF AIFS (تعلّم آليّ)"},
         ],
         "layers": [
             {"key": "temperature", "label_ar": "حرارة السطح", "unit": "°C", "kind": "weather"},

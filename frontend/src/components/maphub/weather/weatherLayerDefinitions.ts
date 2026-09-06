@@ -86,7 +86,10 @@ export const WEATHER_TIMES: Array<{ key: WeatherTimeKey; label: string }> = [
 export const WEATHER_MODELS: Array<{ key: string; label: string }> = [
   { key: 'best_match', label: 'الأفضل تلقائياً' },
   { key: 'gfs_seamless', label: 'GFS' },
-  { key: 'ecmwf_ifs04', label: 'ECMWF IFS' },
+  // WEATHER-MODEL-IDENTITY-v1: المصدرُ الواحد docs/architecture/weather_model_catalogue.json؛
+  // كلُّ مفتاحٍ هنا يجب أن يقبله الخلفيّان (يُقاس في tests_v9/test_weather_model_identity.py).
+  { key: 'ecmwf_ifs025', label: 'ECMWF IFS' },
+  { key: 'ecmwf_aifs025_single', label: 'ECMWF AIFS (تعلّم آليّ)' },
 ];
 
 // مخطط الألوان (palette) للطبقة النشطة: 'coldwarm' هو السلّم الافتراضيّ لكلّ طبقة (cfg.stops)،

@@ -1,0 +1,58 @@
+{
+  "$comment": "WEATHER-MODEL-IDENTITY-v1 — المصدرُ الواحد لهويّة نماذج الطقس التي تقبلها المنصّة. ثلاثةُ أسطحٍ تُقاس عليه في `tests_v9/test_weather_model_identity.py`: `services/weather-service/tiles.py` (ALLOWED_MODELS) · `services/sahool-platform/api/routers/weather.py` (_ALLOWED_WEATHER_MODELS + manifest) · `frontend/src/components/maphub/weather/weatherLayerDefinitions.ts` (WEATHER_MODELS). كلُّ نموذجٍ إمّا `upstream_id` موثَّقٌ بمصدرٍ أو `internal_alias_of` صريح — لا ثالث. `native_step_hours` **إرشاديّ**: العيّنةُ تُحَلّ بالطوابع الزمنيّة الفعليّة في الاستجابة لا بهذا الرقم (انظر `resolve_hourly_index`).",
+  "schema": "sahool.weather_model_catalogue",
+  "version": 1,
+  "adjudicated_on": "2026-09-05",
+  "adjudication_note_ar": "2026-09-05 · فوق 9876bd92 — حكمُ المالك في المراجعة المضادّة: WEATHER-MODEL-IDENTITY-v1 بخصائصه الأربع",
+  "contract": "WEATHER-MODEL-IDENTITY-v1",
+  "provider": "open-meteo",
+  "models": {
+    "best_match": {
+      "upstream_id": "best_match",
+      "sent_upstream": false,
+      "native_step_hours": 1,
+      "ui_visible": true,
+      "label_ar": "الأفضل تلقائياً",
+      "source": "https://open-meteo.com/en/docs — السلوك الافتراضيّ حين يُحذَف `models`؛ لا يُرسَل صراحةً كي لا يُكسَر الوضع المجّانيّ"
+    },
+    "auto": {
+      "internal_alias_of": "best_match",
+      "sent_upstream": false,
+      "ui_visible": false,
+      "source": "اسمٌ داخليّ يقبله الطرفان ويُحلّ إلى best_match؛ لا يُرسَل للمزوّد"
+    },
+    "gfs_seamless": {
+      "upstream_id": "gfs_seamless",
+      "sent_upstream": true,
+      "native_step_hours": 1,
+      "ui_visible": true,
+      "label_ar": "GFS",
+      "source": "https://open-meteo.com/en/docs/gfs-api"
+    },
+    "ecmwf_ifs025": {
+      "upstream_id": "ecmwf_ifs025",
+      "sent_upstream": true,
+      "native_step_hours": 3,
+      "ui_visible": true,
+      "label_ar": "ECMWF IFS",
+      "replaces": "ecmwf_ifs04",
+      "source": "https://open-meteo.com/en/docs/ecmwf-api — IFS 0.25° (~25 كم)، ٣-ساعيّ، ١٥ يوماً"
+    },
+    "ecmwf_aifs025_single": {
+      "upstream_id": "ecmwf_aifs025_single",
+      "sent_upstream": true,
+      "native_step_hours": 6,
+      "ui_visible": true,
+      "label_ar": "ECMWF AIFS (تعلّم آليّ)",
+      "source": "https://open-meteo.com/en/docs/ecmwf-api — AIFS Single 0.25°، ٦-ساعيّ، ١٥ يوماً؛ بيانات ECMWF المفتوحة CC-BY-4.0"
+    }
+  },
+  "retired": {
+    "ecmwf_ifs04": {
+      "replaced_by": "ecmwf_ifs025",
+      "reason": "رفع Open-Meteo دقّة IFS من 0.4° إلى 0.25° واستبدل المعرّف؛ توثيقُه يقول إنّ الانتقال «تغييرُ المعرّف فقط».",
+      "live_status": "NOT_MEASURED — الوكيلُ الشبكيّ في جلسة التأليف حجب api.open-meteo.com؛ لم يُقَس هل ما يزال المعرّفُ القديم يُجاب أم يُرفَض بـ400.",
+      "why_it_matters_even_if_still_served": "حتّى ٤ سبتمبر ٢٠٢٦ كان رفضُ معرّفٍ (4xx) يُحسَب على قاطع المزوّد نفسِه، فثلاثةُ اختياراتٍ لنموذجٍ مرفوض تُطفئ الطقسَ كلَّه ٣٠ ثانية."
+    }
+  }
+}

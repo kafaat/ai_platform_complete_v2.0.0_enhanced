@@ -4,7 +4,9 @@ from math import atan, degrees, pi, sinh
 from typing import Any
 
 ALLOWED_TIMES = {"now", "+1h", "+3h", "+6h", "+12h", "+24h", "+48h"}
-ALLOWED_MODELS = {"best_match", "auto", "gfs_seamless", "ecmwf_ifs04"}
+# WEATHER-MODEL-IDENTITY-v1: المصدرُ الواحد `docs/architecture/weather_model_catalogue.json`،
+# ويُقاس التطابقُ في `tests_v9/test_weather_model_identity.py`. `ecmwf_ifs04` متقاعد.
+ALLOWED_MODELS = {"best_match", "auto", "gfs_seamless", "ecmwf_ifs025", "ecmwf_aifs025_single"}
 ALLOWED_LAYERS = {
     "temperature",
     "wind",

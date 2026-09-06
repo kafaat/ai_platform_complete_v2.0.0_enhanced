@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import os
 import sys
@@ -81,6 +82,9 @@ def test_strict_readyz_is_ready_when_required_models_are_present(monkeypatch, tm
     monkeypatch.setenv("EDGE_READINESS_MODE", "strict")
     monkeypatch.setenv("PEST_MODEL_PATH", str(pest))
     monkeypatch.setenv("YIELD_MODEL_PATH", str(yld))
+    # EDGE-MODEL-ARTIFACT-INTEGRITY-01: الوجودُ وحدَه لم يعد يكفي — البصمةُ المعتمدة تُفعِّل.
+    monkeypatch.setenv("PEST_MODEL_SHA256", hashlib.sha256(pest.read_bytes()).hexdigest())
+    monkeypatch.setenv("YIELD_MODEL_SHA256", hashlib.sha256(yld.read_bytes()).hexdigest())
     monkeypatch.setattr(
         importlib.util, "find_spec", lambda name: object() if name == "onnxruntime" else object()
     )

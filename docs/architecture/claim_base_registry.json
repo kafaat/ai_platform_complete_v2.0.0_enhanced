@@ -42,7 +42,8 @@
     "threshold_authority_ledger.json",
     "weather_boundary_allowlist.json",
     "weather_direct_wiring_allowlist.json",
-    "weather_engine_formula_allowlist.json"
+    "weather_engine_formula_allowlist.json",
+    "weather_model_catalogue.json"
   ],
   "decided_base_keys": [
     "adjudicated_on"

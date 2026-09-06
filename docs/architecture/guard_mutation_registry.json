@@ -903,6 +903,20 @@
           "find": "            touched.update(by_test[path])\n",
           "replace": "            touched.add(sorted(by_test[path])[0])  # mutated: الشاهد المشترك يشهد لواحد\n",
           "why": "قاموسُ شاهد→هدفٍ أخيرُ الترجيح كان يُظلِّل أهدافاً صامتاً حين يتشارك سلوكيّان ملفَّ اختبار — التصعيدُ الجزئيّ أخفى من التقنيع الكامل لأنّه يبدو عاملاً."
+        },
+        {
+          "expect": "test_a_duplicate_registry_row_reddens_the_fast_tier",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "find": "  && run \"٦د) brain_duplicate_gap_identity\" python3 scripts/ci/brain_duplicate_gap_identity_guard.py\n",
+          "replace": "  && run \"٦د) brain_duplicate_gap_identity\" echo skipped  # mutated: الحارس يخرج من الطبقة السريعة\n",
+          "why": "DUPLICATE-GAP-ROW-GUARD-ABSENT-FROM-PREFLIGHT-01: إخراجُ الحارس من الطبقة السريعة يُعيد الحالةَ المقيسة على `a7d64adf`: صفّان بالمعرّف نفسه في السجلّ و`--fast` أخضرُ عليهما. والاختبارُ الشاهد يُشغّل سطرَ الاستدعاء **المشحون** في جذرٍ مؤقّت، فطفرةُ السطر تُحمِّره لا فحصُ نصٍّ فقط."
+        },
+        {
+          "expect": "test_a_missing_duplicate_guard_is_a_coverage_loss_not_a_skip",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "find": "require_file scripts/ci/brain_duplicate_gap_identity_guard.py \"٦د) brain_duplicate_gap_identity\" \\\n  && run \"٦د) brain_duplicate_gap_identity\"",
+          "replace": "run \"٦د) brain_duplicate_gap_identity\"",
+          "why": "الصيغةُ الساذجة `run x python3 y.py` تُبلِّغ فشلاً عاديّاً عند حذف `y.py` فيُقرأ خطأً برمجيّاً لا تقلّصاً في التغطية — الشرطُ الثاني من شروط إغلاق الفجوة كما طلبها المراجع: الغيابُ يُسمّى باسمه."
         }
       ]
     },
@@ -1550,6 +1564,210 @@
           "find": "        if declared and not path.exists():",
           "replace": "        if False:",
           "why": "رُفِع ثمّ ضاع في العبور: بلا هذا الشرط يبدو الحاجبُ **غيرَ مُنتَجٍ أصلاً** بدل أن يُقال إنّ دليلاً أُنتِج ولم يصل — تشخيصان مختلفان لحالةٍ واحدة"
+        }
+      ]
+    },
+    "services/weather-service/open_meteo.py": {
+      "$gap_ar": "WEATHER-MODEL-IDENTITY-01 — رفضُ طلبنا كان يُحسَب عطلَ مزوّد، و`+Nh` كان فهرسَ مصفوفةٍ لا طابعاً.",
+      "test": "tests_v9/test_weather_model_identity.py",
+      "mutations": [
+        {
+          "expect": "test_three_rejected_model_requests_leave_the_weather_service_breaker_closed",
+          "find": "        if 400 <= code < 500:\n            return \"request\"",
+          "replace": "        if 400 <= code < 500:\n            return \"provider\"",
+          "why": "هذا السطرُ هو الفصلُ كلُّه: بدونه يعود 400 لمعرّفٍ مرفوض يُحسَب على القاطع، فثلاثةُ اختياراتٍ من الواجهة تُطفئ الطقسَ للجميع ثلاثين ثانية — العطلُ المقيس على 9876bd92 بعينه"
+        },
+        {
+          "expect": "test_plus_one_hour_resolves_to_the_next_hour_not_to_one_am",
+          "find": "    for i, t in parsed:\n        if t == target:",
+          "replace": "    for i, t in parsed:\n        if False:",
+          "why": "بلا المطابقة الدقيقة يسقط الحلُّ إلى «الأقرب» دائماً فيُعلَن قيدٌ على سلسلةٍ ساعيّةٍ تامّة؛ والاختبارُ يطلب `exact` عند 16:00 لا `nearest` — فالطفرةُ تُميّز بين حلٍّ بالطابع وحلٍّ تقريبيّ يصادف الصواب"
+        }
+      ]
+    },
+    "services/sahool-platform/api/connectors/openmeteo.py": {
+      "$gap_ar": "WEATHER-MODEL-IDENTITY-01 — النسخةُ الثانية في موصِّل المنصّة (خدمتان لا تتشاركان حزمة).",
+      "test": "tests_v9/test_weather_model_identity.py",
+      "mutations": [
+        {
+          "expect": "test_platform_now_sample_declares_one_time_and_names_the_hourly_row",
+          "find": "            \"resolved\": c[\"time\"],\n            \"hourly_row_time\": hourly_row_time,",
+          "replace": "            \"resolved\": hourly_row_time,\n            \"hourly_row_time\": hourly_row_time,",
+          "why": "مراجعةُ Copilot على #985: إعادةُ `resolved` إلى صفّ الساعة المُدوَّر تُعيد عيّنةَ `now` بوقتين — `time` بدقائقه و`resolved` قبله بربع ساعة — وهو التناقضُ الذي أُضيف `time_resolution` أصلاً لمنعه."
+        },
+        {
+          "expect": "test_five_rejected_model_requests_leave_the_platform_connector_breaker_closed",
+          "find": "        if kind == \"provider\":\n            _OPENMETEO_BREAKER.record_failure()",
+          "replace": "        if True:\n            _OPENMETEO_BREAKER.record_failure()",
+          "why": "إعادةُ السلوك القديم حرفاً: كلُّ استثناءٍ منبعيّ يزيد العدّاد. خمسةُ 400 تفتح القاطعَ المشترك فيسقط best_match لكلّ البلاطات — وهذا القاطعُ يخدم forecast وarchive وgeocoding معاً"
+        },
+        {
+          "expect": "test_a_null_at_the_exact_hour_stays_null_instead_of_borrowing_a_neighbour",
+          "find": "    if index is None or not isinstance(values, list) or index < 0 or index >= len(values):\n        return None\n    return values[index]",
+          "replace": "    if index is None or not isinstance(values, list) or index < 0 or index >= len(values):\n        return None\n    if values[index] is None:\n        return next((v for v in values[index + 1 :] if v is not None), None)\n    return values[index]",
+          "why": "هذه إعادةُ احتياط «أقربِ قيمةٍ غيرِ فارغة» الذي أُسقِط: استبدالٌ صامتٌ على مستوى القيمة يُعيد ساعةً أخرى تحت طابع الساعة المطلوبة. الاختبارُ يطلب `None` بصدق عند الغياب"
+        }
+      ]
+    },
+    "services/edge-inference/model_artifact_gate.py": {
+      "$gap_ar": "EDGE-MODEL-ARTIFACT-INTEGRITY-01 — الاسمُ كان يُفعِّل القدرة؛ البصمةُ المطابقة وحدَها تُفعِّل.",
+      "test": "tests_v9/test_edge_model_artifact_integrity.py",
+      "mutations": [
+        {
+          "expect": "test_a_same_named_file_without_an_approved_digest_is_not_active",
+          "find": "    active = bool(exists and verified and runtime_available)",
+          "replace": "    active = bool(exists and runtime_available)",
+          "why": "إعادةُ الشرط القديم حرفاً: وجودٌ + runtime بلا بصمة. هذا هو العطلُ المقيس على ad4ac5cc — ملفٌّ بالاسم المتوقَّع من أيّ مصدر يصير قدرةً فعّالة ويُستدلّ به"
+        },
+        {
+          "expect": "test_a_mismatching_digest_is_not_active_and_names_the_reason",
+          "find": "    verified = bool(exists and expected is not None and actual == expected)",
+          "replace": "    verified = bool(exists and expected is not None)",
+          "why": "بصمةٌ مُعلَنة لكن غيرُ مقارَنة بالبايتات — شكلُ «التحقّق الذي لا يتحقّق» نفسُه الذي كان في المُنزِّل"
+        },
+        {
+          "expect": "test_a_model_without_an_interval_publishes_none_and_a_named_limitation",
+          "find": "        limitations.append(\"yield_uncertainty_not_calibrated\")",
+          "replace": "        shaped_interval = {\"lower\": round(float(prediction[\"yield_kg_ha\"]) * 0.85, 2), \"upper\": round(float(prediction[\"yield_kg_ha\"]) * 1.15, 2)}",
+          "why": "إعادةُ ±15٪ المُصطنَعة بعينها تحت اسم فاصل ثقة — الاختبارُ يطلب None وقيداً مسمّى حين لا يُنتِج النموذجُ فاصلاً"
+        }
+      ]
+    },
+    "services/edge-inference/download_models.py": {
+      "$gap_ar": "EDGE-MODEL-ARTIFACT-INTEGRITY-01 — المُنزِّل كان يقبل البصمةَ الفارغة.",
+      "test": "tests_v9/test_edge_model_artifact_integrity.py",
+      "mutations": [
+        {
+          "expect": "test_the_downloader_no_longer_passes_an_empty_digest",
+          "find": "    if not _SHA256_HEX.match(expected):\n        logger.error(",
+          "replace": "    if not expected:\n        return True\n    if not _SHA256_HEX.match(expected):\n        logger.error(",
+          "why": "السطرُ الذي شُحِن: `if not expected: return True`. البصمةُ الفارغة هي القيمةُ المشحونة في REQUIRED_MODELS فيمرّ أيّ ملفّ «✅ downloaded OK»"
+        },
+        {
+          "expect": "test_nothing_is_downloaded_without_an_approved_digest",
+          "find": "    if not _SHA256_HEX.match((info.get(\"sha256\") or \"\").strip().lower()):\n        logger.error(\"  ❌ %s: لا بصمةَ معتمدةً — لا تنزيل (يبقى %s)\", name, info[\"fallback\"])\n        return False",
+          "replace": "    if False:\n        return False",
+          "why": "بلا الفحص المسبق يعود السلوكُ «نزِّل ثمّ ارفض»: بايتاتٌ مجهولة تُجلَب من MODELS_BASE وتُكتَب على القرص قبل أن يرفضها التحقّق — والاختبارُ يفشل إن نُودي المزوّدُ أصلاً"
+        }
+      ]
+    },
+    "services/edge-inference/models/pest_detector.py": {
+      "$gap_ar": "EDGE-MODEL-ARTIFACT-INTEGRITY-01 — كاشفُ صورٍ كان يُصدِر أسماء مبيدات.",
+      "test": "tests_v9/test_edge_model_artifact_integrity.py",
+      "mutations": [
+        {
+          "expect": "test_a_real_shaped_detection_is_observation_only",
+          "find": "                    \"action_policy\": \"observation_only\",\n                    \"severity\": pest_info[\"severity\"],\n                }\n            )\n        detections.sort(key=lambda d: d[\"confidence\"], reverse=True)",
+          "replace": "                    \"recommended_action\": \"treat\",\n                    \"severity\": pest_info[\"severity\"],\n                }\n            )\n        detections.sort(key=lambda d: d[\"confidence\"], reverse=True)",
+          "why": "إعادةُ حقل التوصية في مسار ONNX الحقيقيّ (لا المحاكاة): الاختبارُ يُنتِج كشفاً من رأسٍ تركيبيّ ويفحص شكلَه، فلا يمرّ إن عاد الكاشفُ يصف"
+        }
+      ]
+    },
+    "services/sahool-platform/api/water_twin_seed.py": {
+      "$gap_ar": "SOIL-MOISTURE-UNIT-IDENTITY-01 — النضوبُ بالوحدة المُعلَنة، والوصلةُ غيرُ سلطويّة.",
+      "test": "tests_v9/test_soil_moisture_unit_identity.py",
+      "mutations": [
+        {
+          "expect": "test_a_vwc_reading_is_never_read_as_a_share_of_taw",
+          "find": "        theta = float(value_pct) / 100.0\n        return _clamp((float(theta_fc) - theta) * float(root_depth_m) * 1000.0, taw_mm), None",
+          "replace": "        return _clamp(taw_mm * (1.0 - float(value_pct) / 100.0), taw_mm), None",
+          "why": "إعادةُ خطأ الحزمة المرفوضة بعينه: قراءةُ VWC تُحسَب نسبةً من TAW — 25٪ حجميّة تصير نضوباً 75 مم على TAW=100، وهو ما حجب التوأمَ بـ409 على مقارنةٍ بلا معنى"
+        },
+        {
+          "expect": "test_a_large_disagreement_is_declared_with_both_values_and_never_blocks",
+          "find": "            if abs(delta_mm) > threshold:\n                limitations.append(LIMIT_SENSOR_DISAGREES)",
+          "replace": "            if False:\n                limitations.append(LIMIT_SENSOR_DISAGREES)",
+          "why": "بلا إعلان الخلاف تصير الوصلةُ صامتةً: الدفترُ يبقى بذرةً والحسّاسُ يخالفه بأربعين ملّيمتراً ولا يعلم المستهلكُ شيئاً — الإعلانُ هو كلُّ ما يميّز الوصلةَ عن تجاهل الحسّاس"
+        },
+        {
+          "expect": "test_a_stale_sensor_is_neither_compared_nor_used_to_seed",
+          "find": "    freshness = sensor_freshness(sensor_age_s, max_reading_age_s)",
+          "replace": "    freshness = \"fresh\"",
+          "why": "قراءةٌ عمرها خمسُ ساعات تهيّئ Dr وتُقارَن بالدفتر كأنّها الآن — شرطُ المالك «sensor freshness/quality» يسقط بلا هذا السطر"
+        },
+        {
+          "expect": "test_a_fresh_convertible_sensor_seeds_only_when_the_ledger_is_absent",
+          "find": "    elif comparable and seed_eligible:\n        depletion, source = float(sensor_depletion), f\"sensor.{sensor['unit_kind']}\"",
+          "replace": "    elif False:\n        depletion, source = float(sensor_depletion), f\"sensor.{sensor['unit_kind']}\"",
+          "why": "بلا هذا الفرع لا يهيّئ الحسّاسُ شيئاً أبداً فتعود الحقيقتان لا تلتقيان — وهي الفجوةُ الأصليّة"
+        },
+        {
+          "expect": "test_freshness_is_positive_proof_not_absence_of_staleness",
+          "find": "    comparable = sensor is not None and sensor_depletion is not None and freshness == \"fresh\"",
+          "replace": "    comparable = sensor is not None and sensor_depletion is not None and freshness != \"stale\"",
+          "why": "العودةُ إلى «غيابُ النفي إثبات»: unproven وfuture تعودان قابلتين للاستعمال فيهيّئ حسّاسٌ بلا عمرٍ أو بطابعٍ من المستقبل بذرةَ النضوب — الحالةُ الثانية في مراجعة a7d64adf"
+        },
+        {
+          "expect": "test_a_non_accepted_reading_is_a_visible_witness_but_never_a_seed",
+          "find": "    elif comparable and seed_eligible:",
+          "replace": "    elif comparable:",
+          "why": "إسقاطُ الأهليّة يُعيد QUALITY-PROJECTION-LOSS: `uncalibrated` و`suspect` تهيّئان البذرةَ كما تفعل `accepted` — 42 مم في الثلاث بلا قيدٍ يسمّي الجودة"
+        }
+      ]
+    },
+    "services/sahool-platform/api/soil_telemetry.py": {
+      "$gap_ar": "SOIL-MOISTURE-UNIT-IDENTITY-01 — الوحدةُ تُصنَّف ممّا أُعلِن؛ `%` العارية لا تُعلن شيئاً.",
+      "test": "tests_v9/test_soil_moisture_unit_identity.py",
+      "mutations": [
+        {
+          "expect": "test_the_unit_kind_comes_from_the_declaration_and_bare_percent_declares_nothing",
+          "find": "    return _UNIT_ALIASES.get(key, UNIT_UNDECLARED)",
+          "replace": "    return _UNIT_ALIASES.get(key, UNIT_AVAILABLE_PCT)",
+          "why": "الافتراضُ الموروث حرفاً: كلُّ وحدةٍ مجهولة «ماءٌ متاح». بها تصير `%` العارية التي يخزّنها الكاتبُ القانونيّ إعلاناً — وهي ما لم يُعلنه أحد"
+        },
+        {
+          "expect": "test_a_boolean_is_not_a_soil_moisture_measurement",
+          "find": "    if isinstance(value, bool):\n        return None\n    try:\n        v = float(value)",
+          "replace": "    try:\n        v = float(value)",
+          "why": "إعادةُ ما أعادت مراجعةُ المالك إنتاجَه: `float(True) == 1.0` فتصير قيمةٌ منطقيّة 1٪ (أو 100٪ تحت m3/m3) ثمّ بذرةَ نضوبٍ في التوأم بلا قيدٍ يسمّيها"
+        },
+        {
+          "expect": "test_the_reader_keeps_observation_identity_and_quality",
+          "find": "                quality_status=_opt_str(row.get(\"quality_status\")),",
+          "replace": "                quality_status=None,",
+          "why": "إسقاطُ الجودة في القراءة هو العطلُ نفسُه: الصفُّ يقول `uncalibrated` والقراءةُ تصمت فتصير مؤهّلةً بالخطأ أو مجهولةً بلا سبب"
+        }
+      ]
+    },
+    "services/sahool-platform/api/alert_rules.py": {
+      "$gap_ar": "SOIL-MOISTURE-UNIT-IDENTITY-01 — قاعدةُ low_moisture تقرأ وحدةَ القراءة قبل أن تقارنها بعتبة ماءٍ متاح.",
+      "test": "tests_v9/test_soil_moisture_unit_identity.py",
+      "mutations": [
+        {
+          "expect": "test_a_vwc_reading_does_not_fire_the_available_water_alert",
+          "find": "    if sm is not None and ctx.soil_moisture_unit_kind == \"vwc_pct\":\n        # قراءةٌ حجميّة لا تُقارَن بعتبةِ ماءٍ متاح بلا θFC/θWP — تسقط إلى مسار الاحتياج.\n        sm = None",
+          "replace": "    if False:\n        sm = None",
+          "why": "بلا هذا السطر تُقارَن 20٪ VWC بعتبة 30٪ ماءٍ متاح فيُطلَق تنبيهُ «رطوبة حرجة» على تربةٍ قد تكون قربَ سعتها الحقليّة — الصنفُ نفسُه الذي أُغلق في الوصلة يعود من باب التنبيه"
+        }
+      ]
+    },
+    "services/soil-service/evidence_adapters.py": {
+      "$gap_ar": "SOIL-MOISTURE-UNIT-IDENTITY-01 — الكاتبُ القانونيّ يخزّن الوحدةَ التي أعلنها المصدر لا `%` العارية دائماً.",
+      "test": "tests_v9/test_soil_moisture_unit_identity.py",
+      "mutations": [
+        {
+          "expect": "test_the_writer_stores_the_declared_unit_and_keeps_bare_percent_when_nothing_is_declared",
+          "find": "                unit=units.get(canonical, units.get(prop, UNITS.get(canonical))),",
+          "replace": "                unit=UNITS.get(canonical),",
+          "why": "السطرُ الذي شُحِن: كلُّ رطوبةٍ تُخزَّن `%` مهما أعلن المصدر، فيصير كلُّ ما يبلغ المستهلكَ `undeclared` إلى الأبد ولا سبيلَ لإغلاق جانب الكاتب"
+        }
+      ]
+    },
+    "shared/contracts/soil/observation.py": {
+      "$gap_ar": "INGEST-ENTRYPOINT-PARITY — الحارسُ عند العقد فيبلغه كلُّ بابٍ يبني SoilObservation.",
+      "test": "tests_v9/test_soil_moisture_unit_identity.py",
+      "mutations": [
+        {
+          "expect": "test_the_contract_itself_rejects_a_boolean_soil_moisture_and_keeps_other_booleans",
+          "find": "        if self.property in MEASUREMENT_ONLY_PROPERTIES and self.value is not None:\n            require_soil_moisture_measurement(self.value)",
+          "replace": "        if False:\n            require_soil_moisture_measurement(self.value)",
+          "why": "بلا هذا السطر يعود التحقّقُ إلى بابٍ واحد (المحوِّل) ويقبل `/v1/soil/observations` القيمةَ المنطقيّة نفسَها بـ201 — الشكلُ المقيس في مراجعة b9c5aceb"
+        },
+        {
+          "expect": "test_a_sensor_moisture_observation_without_declared_quality_is_uncalibrated_not_accepted",
+          "find": "            self.quality_status = SoilObservationQuality.UNCALIBRATED",
+          "replace": "            self.quality_status = SoilObservationQuality.ACCEPTED",
+          "why": "إعادةُ الافتراض القديم بعينه: غيابُ إعلان الجودة من حسّاس يصير `accepted` فتؤهَّل القراءةُ لتهيئة التوأم من الباب المباشر — الشكلُ المُعاد إنتاجُه في مراجعة 703607bf"
         }
       ]
     }

@@ -16,7 +16,7 @@ from datetime import UTC, datetime
 
 import asyncpg
 from fastapi import FastAPI, Header, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 try:
     from shared.logging_config import setup_logging
@@ -161,6 +161,16 @@ class SoilReading(BaseModel):
     temperature: float | None = Field(None, ge=-50, le=80)
     moisture_pct: float | None = Field(None, ge=0, le=100)
     ph_level: float | None = Field(None, ge=0, le=14)
+
+    @field_validator("moisture_pct", mode="before")
+    @classmethod
+    def _moisture_is_a_measurement(cls, value):
+        # INGEST-ENTRYPOINT-PARITY: `float` في المخطّط كان يقبل `true` كـ`1.0` قبل أن يبلغ
+        # عقدَ SoilObservation الذي يرفضه — فيُغلَق البابُ الثالث حيث يُغلَق الآخران.
+        if isinstance(value, bool):
+            raise ValueError("soil_moisture_value_boolean_not_a_measurement")
+        return value
+
     ec_level: float | None = Field(None, ge=0, le=50)
     # H5 FIX: NPK كان يُقرأ ولا يُكتب ولا حقل له — أُضيف ليُدخَل فعلاً.
     n_ppm: float | None = Field(None, ge=0)

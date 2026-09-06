@@ -21,6 +21,7 @@
     "scripts/ci/arch_test_ci_coverage_guard.py",
     "scripts/ci/brain_commit_claim_guard.py",
     "scripts/ci/brain_deferral_registry_guard.py",
+    "scripts/ci/brain_duplicate_gap_identity_guard.py",
     "scripts/ci/brain_state_transition_guard.py",
     "scripts/ci/capability_impact.py",
     "scripts/ci/claim_base_guard.py",

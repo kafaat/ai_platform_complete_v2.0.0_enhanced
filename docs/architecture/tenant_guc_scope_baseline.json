@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "b1019401d8e8e60073a94a57e129e408f1f19b68",
+  "measured_on": "80f1d5e814e84b2bb0a59026c61870f230516cbc",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "b42a6c50c70f190f15557228d3d10c8392aa39f245ae45c122de6efb7cda785b",
+  "measurement_input_digest": "4e9b315629f9a9e524651d9b40ca0420ca724aed8db32186ab8e4106ae96b9be",
   "measurement_algorithm_digest": "5e1674674f2856600b7a8a67f9e383a7f122d1f39acd605826ec75bd98fc4641",
-  "measurement_basis_digest": "3f72739ccfb4802aa8ea102121e974b0b336c2c2c802067b68801aebb266382a",
+  "measurement_basis_digest": "9677950bd06382cd0d64d5953670a06a42679ee6e47dc0456aa172e5b9e69437",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -96,7 +96,7 @@
     },
     {
       "path": "services/sahool-platform/api/main.py",
-      "sha256": "c190840ad4002093414f7014be6a564e961fc5babff679a8594d697614cea260"
+      "sha256": "34edb6eb9351840f70c48324d206749c2a0b94fd933fd896b2320fe40a16b188"
     },
     {
       "path": "services/sahool-platform/api/phase_runtime_store.py",
@@ -176,7 +176,7 @@
     "services/raster-service/backfill_scan_worker.py:101",
     "services/raster-service/cache_invalidation_worker.py:87",
     "services/sahool-platform/api/imagery_automation.py:178",
-    "services/sahool-platform/api/main.py:655",
+    "services/sahool-platform/api/main.py:656",
     "services/sahool-platform/api/phase_runtime_store.py:98",
     "services/sahool-platform/api/phase_runtime_store.py:99",
     "services/sahool-platform/api/phase_runtime_workers.py:49",
