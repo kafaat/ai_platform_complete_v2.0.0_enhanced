@@ -43,7 +43,7 @@ import os
 import secrets
 import sys
 from contextlib import asynccontextmanager
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 # جعل النواة قابلة للاستيراد
@@ -1860,19 +1860,8 @@ async def _evaluate_field_alerts_persist(
 # نقاط /api/v1/farms (إنشاء/قائمة/حقول-المزرعة) نُقلت إلى api/routers/farms.py (نمط P0).
 # النموذج FarmCreateRequest يبقى هنا ويُستورَد من الموجِّه (حفظاً
 # لـ_rebuild_pydantic_models/الاختبارات).
-
-
-def _parse_date(value: str | None, field: str) -> date | None:
-    """يحوّل سلسلة ISO (YYYY-MM-DD) إلى date؛ يرفع 400 واضحة على قيمة غير صالحة
-    بدل تمريرها للقاعدة فتُسقِط 500 (ملاحظة المراجعة). فارغة/None ⇒ None."""
-    if not value:
-        return None
-    try:
-        return date.fromisoformat(value.strip())
-    except (ValueError, TypeError, AttributeError):
-        raise HTTPException(
-            status_code=400, detail=f"تاريخ غير صالح في {field} — استخدم صيغة YYYY-MM-DD"
-        ) from None
+# مُحلّلا تواريخ HTTP (`_parse_date`/`_parse_iso_utc`) نُقِلا إلى api/request_dates.py
+# (تفكيك #985)، ويُعاد تصديرُهما أدناه مع استيراد TrueUp فتبقى أسماء main للراوترات.
 
 
 # ─── المخزون (Inventory) — الطبقة ١٠ (v22) ───────────────────────
@@ -1960,6 +1949,7 @@ def _parse_date(value: str | None, field: str) -> date | None:
 # هنا نوصّله بـendpoint حقيقي. الـpersist (apply) يحتاج DB pool — يُفعّل
 # عند توفّر PostgreSQL؛ حتّى ذلك الحين الـendpoint يحسب ويُرجع النتيجة.
 
+from api.request_dates import _parse_date, _parse_iso_utc  # noqa: E402, F401
 from api.trueup import TrueUpEngine  # noqa: E402
 
 _trueup_engine = TrueUpEngine()  # pure-compute mode (pool=None)
@@ -1988,22 +1978,6 @@ _rx_generator = PrescriptionGenerator()
 
 
 # ─── ٣. Confidence (NDVI) ────────────────────────────────────────
-
-
-def _parse_iso_utc(value: str) -> datetime:
-    """يحلّل تاريخ ISO ويضمن أنّه واعٍ بالمنطقة (UTC افتراضاً).
-
-    H8 FIX: `fromisoformat` لتاريخ بلا إزاحة يُنتج datetime ساذجاً، فطرحه من
-    `datetime.now(timezone.utc)` يرمي TypeError (= 500). هنا نطبّع للمنطقة
-    ونُرجع 422 للمدخل غير القابل للتحليل بدل 500.
-    """
-    try:
-        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except (ValueError, AttributeError) as err:
-        raise HTTPException(status_code=422, detail=f"تاريخ ISO غير صالح: {value!r}") from err
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=UTC)
-    return dt
 
 
 # ─── ٤. Confidence aggregation (recommendation-level) ────────────

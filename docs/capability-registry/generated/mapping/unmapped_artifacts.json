@@ -3624,6 +3624,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/sahool-platform/api/request_dates.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/sahool-platform/api/router_registry.py",
     "kind": "backend"
   },
@@ -7884,6 +7888,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_platform_request_dates.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_platform_rs256_production.py",
     "kind": "tests"
   },
@@ -8517,10 +8525,6 @@
   },
   {
     "path": "tests_v9/test_weather_engine.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests_v9/test_weather_model_identity.py",
     "kind": "tests"
   },
   {

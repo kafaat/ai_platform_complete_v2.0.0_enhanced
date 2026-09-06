@@ -3,9 +3,9 @@
   "schema_version": 1,
   "evidence_scope": "static_repository_only",
   "runtime_verified": false,
-  "python_files_parsed": 1884,
+  "python_files_parsed": 1885,
   "route_handlers": 1049,
-  "call_edges": 76611,
+  "call_edges": 76613,
   "dead_code_candidates": 625,
   "duplicate_function_groups": 61,
   "route_owners": 27,
@@ -180400,91 +180400,35 @@
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/connectors/openmeteo.py",
    "source": "fetch_weather_tile_data",
+   "target": "list",
+   "line": 694
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
+   "target": "append",
+   "line": 696
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
    "target": "_hourly_value_at",
-   "line": 693
+   "line": 710
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/connectors/openmeteo.py",
    "source": "hv",
    "target": "_hourly_value_at",
-   "line": 693
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/connectors/openmeteo.py",
-   "source": "fetch_weather_tile_data",
-   "target": "nvl",
-   "line": 701
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/connectors/openmeteo.py",
-   "source": "fetch_weather_tile_data",
-   "target": "get",
-   "line": 702
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/connectors/openmeteo.py",
-   "source": "fetch_weather_tile_data",
-   "target": "hv",
-   "line": 702
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/connectors/openmeteo.py",
-   "source": "fetch_weather_tile_data",
-   "target": "get",
    "line": 710
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/connectors/openmeteo.py",
    "source": "fetch_weather_tile_data",
-   "target": "get",
-   "line": 712
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/connectors/openmeteo.py",
-   "source": "fetch_weather_tile_data",
-   "target": "hv",
-   "line": 713
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/connectors/openmeteo.py",
-   "source": "fetch_weather_tile_data",
-   "target": "get",
-   "line": 714
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/connectors/openmeteo.py",
-   "source": "fetch_weather_tile_data",
-   "target": "hv",
-   "line": 715
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/connectors/openmeteo.py",
-   "source": "fetch_weather_tile_data",
-   "target": "get",
-   "line": 716
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/connectors/openmeteo.py",
-   "source": "fetch_weather_tile_data",
-   "target": "hv",
-   "line": 717
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/connectors/openmeteo.py",
-   "source": "fetch_weather_tile_data",
-   "target": "hv",
+   "target": "nvl",
    "line": 718
   },
   {
@@ -180506,70 +180450,7 @@
    "file": "services/sahool-platform/api/connectors/openmeteo.py",
    "source": "fetch_weather_tile_data",
    "target": "get",
-   "line": 720
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/connectors/openmeteo.py",
-   "source": "fetch_weather_tile_data",
-   "target": "hv",
-   "line": 720
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/connectors/openmeteo.py",
-   "source": "fetch_weather_tile_data",
-   "target": "get",
-   "line": 721
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/connectors/openmeteo.py",
-   "source": "fetch_weather_tile_data",
-   "target": "hv",
-   "line": 722
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/connectors/openmeteo.py",
-   "source": "fetch_weather_tile_data",
-   "target": "get",
-   "line": 723
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/connectors/openmeteo.py",
-   "source": "fetch_weather_tile_data",
-   "target": "hv",
-   "line": 724
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/connectors/openmeteo.py",
-   "source": "fetch_weather_tile_data",
-   "target": "get",
-   "line": 726
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/connectors/openmeteo.py",
-   "source": "fetch_weather_tile_data",
-   "target": "hv",
    "line": 727
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/connectors/openmeteo.py",
-   "source": "fetch_weather_tile_data",
-   "target": "get",
-   "line": 728
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/connectors/openmeteo.py",
-   "source": "fetch_weather_tile_data",
-   "target": "hv",
-   "line": 728
   },
   {
    "owner": "sahool-platform",
@@ -180589,7 +180470,7 @@
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/connectors/openmeteo.py",
    "source": "fetch_weather_tile_data",
-   "target": "hv",
+   "target": "get",
    "line": 731
   },
   {
@@ -180603,7 +180484,7 @@
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/connectors/openmeteo.py",
    "source": "fetch_weather_tile_data",
-   "target": "hv",
+   "target": "get",
    "line": 733
   },
   {
@@ -180624,7 +180505,7 @@
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/connectors/openmeteo.py",
    "source": "fetch_weather_tile_data",
-   "target": "_soil_temperature_10_40cm",
+   "target": "get",
    "line": 736
   },
   {
@@ -180632,6 +180513,13 @@
    "file": "services/sahool-platform/api/connectors/openmeteo.py",
    "source": "fetch_weather_tile_data",
    "target": "hv",
+   "line": 736
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
+   "target": "get",
    "line": 737
   },
   {
@@ -180645,8 +180533,8 @@
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/connectors/openmeteo.py",
    "source": "fetch_weather_tile_data",
-   "target": "hv",
-   "line": 737
+   "target": "get",
+   "line": 738
   },
   {
    "owner": "sahool-platform",
@@ -180659,7 +180547,7 @@
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/connectors/openmeteo.py",
    "source": "fetch_weather_tile_data",
-   "target": "hv",
+   "target": "get",
    "line": 740
   },
   {
@@ -180674,21 +180562,147 @@
    "file": "services/sahool-platform/api/connectors/openmeteo.py",
    "source": "fetch_weather_tile_data",
    "target": "get",
+   "line": 743
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
+   "target": "hv",
+   "line": 744
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
+   "target": "get",
+   "line": 745
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
+   "target": "hv",
+   "line": 745
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
+   "target": "get",
+   "line": 746
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
+   "target": "hv",
+   "line": 747
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
+   "target": "hv",
    "line": 748
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/connectors/openmeteo.py",
    "source": "fetch_weather_tile_data",
-   "target": "fetch_wind_direction_deg",
+   "target": "hv",
+   "line": 749
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
+   "target": "hv",
+   "line": 750
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
+   "target": "hv",
+   "line": 751
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
+   "target": "hv",
    "line": 752
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
+   "target": "_soil_temperature_10_40cm",
+   "line": 753
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
+   "target": "hv",
+   "line": 754
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
+   "target": "hv",
+   "line": 754
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
+   "target": "hv",
+   "line": 754
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
+   "target": "hv",
+   "line": 756
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
+   "target": "hv",
+   "line": 757
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
+   "target": "hv",
+   "line": 758
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
+   "target": "get",
+   "line": 765
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/connectors/openmeteo.py",
+   "source": "fetch_weather_tile_data",
+   "target": "fetch_wind_direction_deg",
+   "line": 769
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/connectors/openmeteo.py",
    "source": "describe_weather_ar",
    "target": "get",
-   "line": 791
+   "line": 808
   },
   {
    "owner": "sahool-platform",
@@ -217107,254 +217121,205 @@
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
-   "source": "_parse_date",
-   "target": "fromisoformat",
-   "line": 1871
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/main.py",
-   "source": "_parse_date",
-   "target": "strip",
-   "line": 1871
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/main.py",
-   "source": "_parse_date",
-   "target": "HTTPException",
-   "line": 1873
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/main.py",
-   "source": "_parse_iso_utc",
-   "target": "fromisoformat",
-   "line": 2001
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/main.py",
-   "source": "_parse_iso_utc",
-   "target": "replace",
-   "line": 2001
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/main.py",
-   "source": "_parse_iso_utc",
-   "target": "HTTPException",
-   "line": 2003
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/main.py",
-   "source": "_parse_iso_utc",
-   "target": "replace",
-   "line": 2005
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "lower",
-   "line": 2061
+   "line": 2035
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "get",
-   "line": 2064
+   "line": 2038
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "append",
-   "line": 2065
+   "line": 2039
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "get",
-   "line": 2066
+   "line": 2040
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "append",
-   "line": 2067
+   "line": 2041
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "get",
-   "line": 2068
+   "line": 2042
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "append",
-   "line": 2069
+   "line": 2043
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "get",
-   "line": 2070
+   "line": 2044
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "append",
-   "line": 2071
+   "line": 2045
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "get",
-   "line": 2072
+   "line": 2046
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "get",
-   "line": 2072
+   "line": 2046
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "append",
-   "line": 2073
+   "line": 2047
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_build_walk_plan",
    "target": "ApplicationMethod",
-   "line": 2107
+   "line": 2081
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_build_walk_plan",
    "target": "HTTPException",
-   "line": 2109
+   "line": 2083
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_build_walk_plan",
    "target": "EquipmentSpec",
-   "line": 2110
+   "line": 2084
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_build_walk_plan",
    "target": "ZoneRateInput",
-   "line": 2118
+   "line": 2092
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_build_walk_plan",
    "target": "generate_walk_plan",
-   "line": 2120
+   "line": 2094
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_build_walk_plan",
    "target": "HTTPException",
-   "line": 2130
+   "line": 2104
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_build_walk_plan",
    "target": "str",
-   "line": 2130
+   "line": 2104
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_get_workflow_store",
    "target": "getenv",
-   "line": 2496
+   "line": 2470
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_get_workflow_store",
    "target": "PostgresWorkflowStore",
-   "line": 2498
+   "line": 2472
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_get_workflow_store",
    "target": "str",
-   "line": 2499
+   "line": 2473
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_get_workflow_store",
    "target": "get",
-   "line": 2500
+   "line": 2474
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_get_workflow_store",
    "target": "InMemoryWorkflowStore",
-   "line": 2502
+   "line": 2476
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_rebuild_pydantic_models",
    "target": "dir",
-   "line": 2516
+   "line": 2490
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_rebuild_pydantic_models",
    "target": "getattr",
-   "line": 2517
+   "line": 2491
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_rebuild_pydantic_models",
    "target": "isinstance",
-   "line": 2519
+   "line": 2493
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_rebuild_pydantic_models",
    "target": "issubclass",
-   "line": 2519
+   "line": 2493
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_rebuild_pydantic_models",
    "target": "model_rebuild",
-   "line": 2520
+   "line": 2494
   },
   {
    "owner": "sahool-platform",
@@ -230802,6 +230767,55 @@
    "source": "field_to_pdf_bytes",
    "target": "getvalue",
    "line": 341
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/request_dates.py",
+   "source": "_parse_date",
+   "target": "fromisoformat",
+   "line": 21
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/request_dates.py",
+   "source": "_parse_date",
+   "target": "strip",
+   "line": 21
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/request_dates.py",
+   "source": "_parse_date",
+   "target": "HTTPException",
+   "line": 23
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/request_dates.py",
+   "source": "_parse_iso_utc",
+   "target": "fromisoformat",
+   "line": 36
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/request_dates.py",
+   "source": "_parse_iso_utc",
+   "target": "replace",
+   "line": 36
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/request_dates.py",
+   "source": "_parse_iso_utc",
+   "target": "HTTPException",
+   "line": 38
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/request_dates.py",
+   "source": "_parse_iso_utc",
+   "target": "replace",
+   "line": 40
   },
   {
    "owner": "sahool-platform",
@@ -449432,140 +449446,140 @@
    "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
    "source": "_reading",
    "target": "timedelta",
-   "line": 19
+   "line": 25
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
    "source": "_reading",
    "target": "SoilMoistureReading",
-   "line": 20
+   "line": 26
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
    "source": "_reading",
    "target": "now",
-   "line": 22
+   "line": 28
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
    "source": "test_a_fresh_vwc_reading_is_converted_through_the_request_texture_and_derived_zr",
    "target": "_join_sensor",
-   "line": 31
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
-   "source": "test_a_fresh_vwc_reading_is_converted_through_the_request_texture_and_derived_zr",
-   "target": "_reading",
-   "line": 32
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
-   "source": "test_a_fresh_vwc_reading_is_converted_through_the_request_texture_and_derived_zr",
-   "target": "FieldWaterTwinRequest",
    "line": 37
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
    "source": "test_a_fresh_vwc_reading_is_converted_through_the_request_texture_and_derived_zr",
-   "target": "approx",
-   "line": 40
+   "target": "_reading",
+   "line": 38
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
+   "source": "test_a_fresh_vwc_reading_is_converted_through_the_request_texture_and_derived_zr",
+   "target": "FieldWaterTwinRequest",
+   "line": 43
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
    "source": "test_a_fresh_vwc_reading_is_converted_through_the_request_texture_and_derived_zr",
    "target": "approx",
-   "line": 42
+   "line": 46
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
-   "source": "test_an_explicit_taw_request_has_no_zr_so_vwc_cannot_be_converted",
-   "target": "_join_sensor",
-   "line": 47
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
-   "source": "test_an_explicit_taw_request_has_no_zr_so_vwc_cannot_be_converted",
-   "target": "_reading",
+   "source": "test_a_fresh_vwc_reading_is_converted_through_the_request_texture_and_derived_zr",
+   "target": "approx",
    "line": 48
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
    "source": "test_an_explicit_taw_request_has_no_zr_so_vwc_cannot_be_converted",
-   "target": "FieldWaterTwinRequest",
+   "target": "_join_sensor",
    "line": 53
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
+   "source": "test_an_explicit_taw_request_has_no_zr_so_vwc_cannot_be_converted",
+   "target": "_reading",
+   "line": 54
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
+   "source": "test_an_explicit_taw_request_has_no_zr_so_vwc_cannot_be_converted",
+   "target": "FieldWaterTwinRequest",
+   "line": 59
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
    "source": "test_a_stale_reading_uses_the_registry_bound_not_a_router_constant",
    "target": "_join_sensor",
-   "line": 60
+   "line": 66
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
    "source": "test_a_stale_reading_uses_the_registry_bound_not_a_router_constant",
    "target": "_reading",
-   "line": 61
+   "line": 67
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
    "source": "test_a_stale_reading_uses_the_registry_bound_not_a_router_constant",
    "target": "timedelta",
-   "line": 61
+   "line": 67
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
    "source": "test_a_stale_reading_uses_the_registry_bound_not_a_router_constant",
    "target": "FieldWaterTwinRequest",
-   "line": 66
+   "line": 72
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
    "source": "test_a_bare_percent_reading_is_published_but_never_converted",
    "target": "_join_sensor",
-   "line": 74
+   "line": 80
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
    "source": "test_a_bare_percent_reading_is_published_but_never_converted",
    "target": "_reading",
-   "line": 75
+   "line": 81
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
    "source": "test_a_bare_percent_reading_is_published_but_never_converted",
    "target": "FieldWaterTwinRequest",
-   "line": 80
+   "line": 86
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
    "source": "test_no_reading_is_an_honest_absence",
    "target": "FieldWaterTwinRequest",
-   "line": 88
+   "line": 94
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_water_twin_sensor_join.py",
    "source": "test_no_reading_is_an_honest_absence",
    "target": "_join_sensor",
-   "line": 88
+   "line": 94
   },
   {
    "owner": "sahool-platform",
@@ -545910,7 +545924,7 @@
    "symbol": "spraying_condition_score",
    "kind": "function",
    "file": "services/sahool-platform/api/connectors/openmeteo.py",
-   "line": 794,
+   "line": 811,
    "owner": "sahool-platform",
    "decorated_route": false,
    "reference_count": 0,

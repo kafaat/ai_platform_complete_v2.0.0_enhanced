@@ -686,7 +686,24 @@ async def fetch_weather_tile_data(
     # WEATHER-MODEL-IDENTITY-v1: الفهرسُ بالطابع الزمنيّ لا بالموضع.
     resolution = resolve_hourly_index(h.get("time"), c.get("time"), offset_hours)
     if use_current and c.get("time") is not None:
-        resolution = {**resolution, "policy": "current", "delta_hours": 0.0, "limitations": []}
+        # مراجعةُ Copilot على #985 (مُعاد إنتاجُها): `time` يُرجَع من `current.time` بدقائقه
+        # بينما كان `resolved` صفَّ الساعة المُدوَّر — إعلانان لوقتٍ واحد لا يتطابقان.
+        # والحقيقةُ مزدوجة: حقولُ `current` عند طابعها، والحقولُ الساعيّةُ فقط (ET0/VPD/
+        # التربة) من صفّ الساعة. فيُعلَن كلاهما باسمه بدل أن يُخفي أحدُهما الآخر.
+        hourly_row_time = resolution["resolved"]
+        limitations = list(resolution["limitations"])
+        if hourly_row_time is not None and hourly_row_time != c["time"]:
+            limitations.append(f"hourly_only_fields_from:{hourly_row_time}")
+        resolution = {
+            **resolution,
+            "anchor": c["time"],
+            "target": c["time"],
+            "resolved": c["time"],
+            "hourly_row_time": hourly_row_time,
+            "policy": "current",
+            "delta_hours": 0.0,
+            "limitations": limitations,
+        }
     hourly_index = resolution["index"]
 
     def hv(key: str):
