@@ -68,6 +68,14 @@ class SoilMoistureReading:
     device_id: str | None = None
     unit: str | None = None
     unit_kind: str = UNIT_UNDECLARED
+    #: هويّةُ المشاهدة وجودتُها — كانت تُفقَد في الإسقاط فتتساوى `accepted` و`suspect`
+    #: و`uncalibrated` عند بذرة التوأم (مراجعة `b9c5aceb`، QUALITY-PROJECTION-LOSS).
+    observation_id: str | None = None
+    quality_status: str | None = None
+    calibration_id: str | None = None
+    confidence: float | None = None
+    depth_from_cm: float | None = None
+    depth_to_cm: float | None = None
 
     @property
     def unit_declared(self) -> bool:
@@ -82,7 +90,27 @@ class SoilMoistureReading:
             "unit": self.unit,
             "unit_kind": self.unit_kind,
             "unit_declared": self.unit_declared,
+            "observation_id": self.observation_id,
+            "quality_status": self.quality_status,
+            "calibration_id": self.calibration_id,
+            "confidence": self.confidence,
+            "depth_from_cm": self.depth_from_cm,
+            "depth_to_cm": self.depth_to_cm,
         }
+
+
+def _opt_str(value: Any) -> str | None:
+    return None if value is None else str(value)
+
+
+def _opt_float(value: Any) -> float | None:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return None if number != number else number
 
 
 def _valid_pct(value: Any, *, fractional: bool = False) -> float | None:
@@ -131,5 +159,11 @@ def pick_latest_soil_moisture(rows: list[dict[str, Any]]) -> SoilMoistureReading
                 device_id=row.get("device_id"),
                 unit=unit,
                 unit_kind=classify_soil_moisture_unit(unit),
+                observation_id=_opt_str(row.get("observation_id")),
+                quality_status=_opt_str(row.get("quality_status")),
+                calibration_id=_opt_str(row.get("calibration_id")),
+                confidence=_opt_float(row.get("confidence")),
+                depth_from_cm=_opt_float(row.get("depth_from_cm")),
+                depth_to_cm=_opt_float(row.get("depth_to_cm")),
             )
     return best

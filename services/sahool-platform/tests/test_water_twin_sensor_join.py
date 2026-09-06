@@ -23,6 +23,7 @@ def _reading(unit: str, kind: str, *, age: timedelta = timedelta(minutes=10), pc
         device_id="dev_1",
         unit=unit,
         unit_kind=kind,
+        quality_status="accepted",
     )
 
 
