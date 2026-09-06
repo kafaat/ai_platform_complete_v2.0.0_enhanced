@@ -1,10 +1,12 @@
 """Canonical soil contracts shared by producers and governed consumers."""
 
 from .observation import (
+    MEASUREMENT_ONLY_PROPERTIES,
     SOIL_OBSERVATION_CONTRACT_VERSION,
     SoilObservation,
     SoilObservationQuality,
     SoilObservationSource,
+    require_soil_moisture_measurement,
 )
 from .profile import (
     SOIL_PROFILE_CONTRACT_VERSION,
@@ -21,6 +23,8 @@ from .profile import (
 )
 
 __all__ = [
+    "MEASUREMENT_ONLY_PROPERTIES",
+    "require_soil_moisture_measurement",
     "SOIL_OBSERVATION_CONTRACT_VERSION",
     "SoilObservation",
     "SoilObservationQuality",

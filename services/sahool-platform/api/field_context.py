@@ -103,7 +103,9 @@ async def _latest_soil_moisture(conn, field_id: str):
 
     rows = await conn.fetch(
         """SELECT value_json AS value, unit, observed_at AS recorded_at,
-                  source_id AS device_id
+                  source_id AS device_id,
+                  observation_id, quality_status, calibration_id, confidence,
+                  depth_from_cm, depth_to_cm
              FROM soil_observations
             WHERE field_id = $1
               AND property = 'soil_moisture'

@@ -108,6 +108,28 @@ _FRESHNESS_LIMITATION = {
     "unproven": LIMIT_FRESHNESS_UNPROVEN,
     "future": LIMIT_TIMESTAMP_IN_FUTURE,
 }
+
+#: أهليّةُ **التهيئة من الحسّاس وحدَه** — سياسةٌ صريحة لا استنتاج: الوحدةُ الصحيحة
+#: والطابعُ الحديث لا يُثبِتان جودةَ القياس. `accepted` وحدَها تؤهّل؛ `uncalibrated`
+#: و`suspect` تبقيان شاهداً مرئيّاً يُقارَن ولا يهيّئ؛ الغيابُ لا يؤهّل (إثباتٌ إيجابيّ).
+SEED_ELIGIBLE_QUALITY_STATUSES = frozenset({"accepted"})
+LIMIT_QUALITY_UNPROVEN = "soil_moisture_sensor_quality_unproven"
+LIMIT_QUALITY_NOT_SEED_ELIGIBLE = "soil_moisture_sensor_quality_not_seed_eligible"
+
+
+def sensor_seed_eligibility(sensor: dict | None) -> tuple[bool, str | None]:
+    """هل تؤهّل جودةُ القراءة لتهيئة `Dr` بلا دفتر؟ ``(eligible, limitation)``."""
+    if sensor is None:
+        return False, None
+    status = sensor.get("quality_status")
+    if status is None:
+        return False, LIMIT_QUALITY_UNPROVEN
+    status = str(status).strip().lower()
+    if status in SEED_ELIGIBLE_QUALITY_STATUSES:
+        return True, None
+    return False, f"{LIMIT_QUALITY_NOT_SEED_ELIGIBLE}:{status}"
+
+
 LIMIT_SENSOR_DISAGREES = "soil_moisture_sensor_disagrees_with_ledger"
 LIMIT_SEED_FROM_SENSOR = "seed_from_single_point_sensor"
 LIMIT_NO_SENSOR = "soil_moisture_sensor_unavailable"
@@ -158,7 +180,8 @@ def join_sensor_with_ledger_seed(
     limitations: list[str] = []
     threshold = max(SENSOR_CONFLICT_FLOOR_MM, SENSOR_CONFLICT_FRACTION_OF_TAW * float(taw_mm))
     freshness = sensor_freshness(sensor_age_s, max_reading_age_s)
-    usable = sensor is not None and sensor_depletion is not None and freshness == "fresh"
+    comparable = sensor is not None and sensor_depletion is not None and freshness == "fresh"
+    seed_eligible, quality_limitation = sensor_seed_eligibility(sensor)
     if sensor is None:
         limitations.append(LIMIT_NO_SENSOR)
     else:
@@ -166,15 +189,17 @@ def join_sensor_with_ledger_seed(
             limitations.append(_FRESHNESS_LIMITATION[freshness])
         if sensor_limitation is not None:
             limitations.append(sensor_limitation)
+        if quality_limitation is not None:
+            limitations.append(quality_limitation)
 
     delta_mm: float | None = None
     if ledger_depletion_mm is not None:
         depletion, source = float(ledger_depletion_mm), ledger_source
-        if usable:
+        if comparable:
             delta_mm = round(float(sensor_depletion) - depletion, 2)
             if abs(delta_mm) > threshold:
                 limitations.append(LIMIT_SENSOR_DISAGREES)
-    elif usable:
+    elif comparable and seed_eligible:
         depletion, source = float(sensor_depletion), f"sensor.{sensor['unit_kind']}"
         limitations.append(LIMIT_SEED_FROM_SENSOR)
     else:
@@ -193,6 +218,7 @@ def join_sensor_with_ledger_seed(
             "age_s": round(float(sensor_age_s), 1) if _finite(sensor_age_s) else None,
             "freshness": freshness,
             "stale": freshness == "stale",
+            "seed_eligible": seed_eligible,
             "depletion_mm": None if sensor_depletion is None else round(float(sensor_depletion), 2),
         },
         "delta_mm": delta_mm,

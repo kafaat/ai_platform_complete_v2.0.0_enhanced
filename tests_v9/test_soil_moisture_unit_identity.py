@@ -123,7 +123,12 @@ def test_vwc_depletion_is_clamped_to_the_physical_range():
 
 # ─── (٣) الوصلةُ غيرُ سلطويّة ─────────────────────────────────────────────
 
-_SENSOR = {"soil_moisture_pct": 25.0, "unit": "vwc_pct", "unit_kind": "vwc_pct"}
+_SENSOR = {
+    "soil_moisture_pct": 25.0,
+    "unit": "vwc_pct",
+    "unit_kind": "vwc_pct",
+    "quality_status": "accepted",
+}
 
 
 def _join(**overrides):
@@ -368,3 +373,89 @@ def test_the_writer_refuses_a_boolean_soil_moisture_at_ingestion():
         with pytest.raises(ValueError, match="soil_moisture_value"):
             adapter.observations_from_properties(properties={"soil_moisture": bad}, **common)
     assert adapter.observations_from_properties(properties={"ph": True}, **common)[0].value is True
+
+
+# ─── (٩) الجودةُ تصل الوصلةَ ولا تُفقَد في الإسقاط (QUALITY-PROJECTION-LOSS) ──
+
+
+def test_the_reader_keeps_observation_identity_and_quality():
+    """كانت `quality_status`/`calibration_id`/`confidence`/العمق/الهويّة تسقط في الإسقاط."""
+    reading = st.pick_latest_soil_moisture(
+        [
+            {
+                **_row(25.0, "vwc_pct"),
+                "observation_id": "sob_1",
+                "quality_status": "uncalibrated",
+                "calibration_id": None,
+                "confidence": 0.6,
+                "depth_from_cm": 0,
+                "depth_to_cm": 30,
+            }
+        ]
+    )
+    assert reading is not None
+    payload = reading.as_dict()
+    assert payload["observation_id"] == "sob_1"
+    assert payload["quality_status"] == "uncalibrated"
+    assert payload["confidence"] == 0.6
+    assert payload["depth_to_cm"] == 30.0
+
+
+@pytest.mark.parametrize("status", ["uncalibrated", "suspect"])
+def test_a_non_accepted_reading_is_a_visible_witness_but_never_a_seed(status):
+    """الشكلُ الذي شُحِن: `accepted`/`suspect`/`uncalibrated` كلُّها 42 مم بذرةً بلا قيد."""
+    out = _join(
+        ledger_depletion_mm=None,
+        ledger_source="unavailable",
+        sensor={**_SENSOR, "quality_status": status},
+    )
+    assert out["depletion_mm"] is None and out["source"] == "unavailable"
+    assert out["sensor"]["seed_eligible"] is False
+    assert out["sensor"]["depletion_mm"] == 42.0  # مرئيٌّ كشاهد
+    assert f"{seed.LIMIT_QUALITY_NOT_SEED_ELIGIBLE}:{status}" in out["limitations"]
+    # ومع الدفتر: يُقارَن ويُنشَر الخلاف، والدفترُ يبقى
+    with_ledger = _join(sensor={**_SENSOR, "quality_status": status})
+    assert with_ledger["source"] == "ledger.depletion_mm" and with_ledger["delta_mm"] == 2.0
+
+
+def test_missing_quality_is_not_eligibility():
+    out = _join(
+        ledger_depletion_mm=None,
+        ledger_source="unavailable",
+        sensor={k: v for k, v in _SENSOR.items() if k != "quality_status"},
+    )
+    assert out["depletion_mm"] is None
+    assert seed.LIMIT_QUALITY_UNPROVEN in out["limitations"]
+
+
+def test_an_accepted_fresh_convertible_reading_seeds_with_its_single_point_limitation():
+    out = _join(ledger_depletion_mm=None, ledger_source="unavailable")
+    assert out["depletion_mm"] == 42.0 and out["sensor"]["seed_eligible"] is True
+    assert out["limitations"] == [seed.LIMIT_SEED_FROM_SENSOR]
+
+
+# ─── (١٠) الحارسُ عند العقد — كلُّ بابٍ يبني SoilObservation يبلغه ──────────
+
+
+def test_the_contract_itself_rejects_a_boolean_soil_moisture_and_keeps_other_booleans():
+    repo_root = Path(__file__).resolve().parents[1]
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+    from pydantic import ValidationError
+
+    from shared.contracts.soil import SoilObservation, SoilObservationSource
+
+    common = dict(
+        tenant_id="t1",
+        field_id="f1",
+        observed_at=_T,
+        source_type=SoilObservationSource.SENSOR,
+        idempotency_key="k1",
+    )
+    for bad in (True, False, "NaN", "Infinity", "-Infinity", "banana"):
+        with pytest.raises(ValidationError):
+            SoilObservation(property="soil_moisture", value=bad, unit="vwc_pct", **common)
+    for good in (0.0, 1.0, 25.0, "23.5"):
+        SoilObservation(property="soil_moisture", value=good, unit="vwc_pct", **common)
+    # `bool` مشروعٌ لخاصّيّةٍ أخرى — التشديدُ على الخاصّيّة لا على النوع
+    SoilObservation(property="salinity_flag", value=True, **common)

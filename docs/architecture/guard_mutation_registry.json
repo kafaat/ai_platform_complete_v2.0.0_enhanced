@@ -1667,15 +1667,21 @@
         },
         {
           "expect": "test_a_fresh_convertible_sensor_seeds_only_when_the_ledger_is_absent",
-          "find": "    elif usable:\n        depletion, source = float(sensor_depletion), f\"sensor.{sensor['unit_kind']}\"",
+          "find": "    elif comparable and seed_eligible:\n        depletion, source = float(sensor_depletion), f\"sensor.{sensor['unit_kind']}\"",
           "replace": "    elif False:\n        depletion, source = float(sensor_depletion), f\"sensor.{sensor['unit_kind']}\"",
           "why": "بلا هذا الفرع لا يهيّئ الحسّاسُ شيئاً أبداً فتعود الحقيقتان لا تلتقيان — وهي الفجوةُ الأصليّة"
         },
         {
           "expect": "test_freshness_is_positive_proof_not_absence_of_staleness",
-          "find": "    usable = sensor is not None and sensor_depletion is not None and freshness == \"fresh\"",
-          "replace": "    usable = sensor is not None and sensor_depletion is not None and freshness != \"stale\"",
+          "find": "    comparable = sensor is not None and sensor_depletion is not None and freshness == \"fresh\"",
+          "replace": "    comparable = sensor is not None and sensor_depletion is not None and freshness != \"stale\"",
           "why": "العودةُ إلى «غيابُ النفي إثبات»: unproven وfuture تعودان قابلتين للاستعمال فيهيّئ حسّاسٌ بلا عمرٍ أو بطابعٍ من المستقبل بذرةَ النضوب — الحالةُ الثانية في مراجعة a7d64adf"
+        },
+        {
+          "expect": "test_a_non_accepted_reading_is_a_visible_witness_but_never_a_seed",
+          "find": "    elif comparable and seed_eligible:",
+          "replace": "    elif comparable:",
+          "why": "إسقاطُ الأهليّة يُعيد QUALITY-PROJECTION-LOSS: `uncalibrated` و`suspect` تهيّئان البذرةَ كما تفعل `accepted` — 42 مم في الثلاث بلا قيدٍ يسمّي الجودة"
         }
       ]
     },
@@ -1694,6 +1700,12 @@
           "find": "    if isinstance(value, bool):\n        return None\n    try:\n        v = float(value)",
           "replace": "    try:\n        v = float(value)",
           "why": "إعادةُ ما أعادت مراجعةُ المالك إنتاجَه: `float(True) == 1.0` فتصير قيمةٌ منطقيّة 1٪ (أو 100٪ تحت m3/m3) ثمّ بذرةَ نضوبٍ في التوأم بلا قيدٍ يسمّيها"
+        },
+        {
+          "expect": "test_the_reader_keeps_observation_identity_and_quality",
+          "find": "                quality_status=_opt_str(row.get(\"quality_status\")),",
+          "replace": "                quality_status=None,",
+          "why": "إسقاطُ الجودة في القراءة هو العطلُ نفسُه: الصفُّ يقول `uncalibrated` والقراءةُ تصمت فتصير مؤهّلةً بالخطأ أو مجهولةً بلا سبب"
         }
       ]
     },
@@ -1718,6 +1730,18 @@
           "find": "                unit=units.get(canonical, units.get(prop, UNITS.get(canonical))),",
           "replace": "                unit=UNITS.get(canonical),",
           "why": "السطرُ الذي شُحِن: كلُّ رطوبةٍ تُخزَّن `%` مهما أعلن المصدر، فيصير كلُّ ما يبلغ المستهلكَ `undeclared` إلى الأبد ولا سبيلَ لإغلاق جانب الكاتب"
+        }
+      ]
+    },
+    "shared/contracts/soil/observation.py": {
+      "$gap_ar": "INGEST-ENTRYPOINT-PARITY — الحارسُ عند العقد فيبلغه كلُّ بابٍ يبني SoilObservation.",
+      "test": "tests_v9/test_soil_moisture_unit_identity.py",
+      "mutations": [
+        {
+          "expect": "test_the_contract_itself_rejects_a_boolean_soil_moisture_and_keeps_other_booleans",
+          "find": "        if self.property in MEASUREMENT_ONLY_PROPERTIES and self.value is not None:\n            require_soil_moisture_measurement(self.value)",
+          "replace": "        if False:\n            require_soil_moisture_measurement(self.value)",
+          "why": "بلا هذا السطر يعود التحقّقُ إلى بابٍ واحد (المحوِّل) ويقبل `/v1/soil/observations` القيمةَ المنطقيّة نفسَها بـ201 — الشكلُ المقيس في مراجعة b9c5aceb"
         }
       ]
     }
