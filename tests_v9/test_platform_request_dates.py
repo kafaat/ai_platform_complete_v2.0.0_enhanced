@@ -19,9 +19,7 @@ API = ROOT / "services" / "sahool-platform" / "api"
 _MAIN_TREE = ast.parse((API / "main.py").read_text(encoding="utf-8"))
 _NAMES = {"_parse_date", "_parse_iso_utc"}
 _FUNCTIONS = [
-    node
-    for node in _MAIN_TREE.body
-    if isinstance(node, ast.FunctionDef) and node.name in _NAMES
+    node for node in _MAIN_TREE.body if isinstance(node, ast.FunctionDef) and node.name in _NAMES
 ]
 assert len(_FUNCTIONS) == 2
 assert {node.name for node in _FUNCTIONS} == _NAMES
