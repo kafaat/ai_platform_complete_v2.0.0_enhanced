@@ -68,6 +68,46 @@ SENSOR_CONFLICT_FLOOR_MM = 10.0
 LIMIT_UNIT_UNDECLARED = "soil_moisture_sensor_unit_undeclared"
 LIMIT_CONVERSION_INPUTS_MISSING = "soil_moisture_sensor_conversion_inputs_missing"
 LIMIT_SENSOR_STALE = "soil_moisture_sensor_reading_stale"
+LIMIT_FRESHNESS_UNPROVEN = "soil_moisture_sensor_freshness_unproven"
+LIMIT_TIMESTAMP_IN_FUTURE = "soil_moisture_sensor_timestamp_in_future"
+
+#: سياسةُ الطوابع المستقبليّة، مُعلَنة: انحرافُ ساعاتٍ حتّى خمس دقائق يُعدّ طازجاً؛
+#: أبعدُ منه طابعٌ من المستقبل لا يثبت شيئاً.
+FUTURE_SKEW_TOLERANCE_S = 300.0
+
+
+def _finite(value: float | None) -> bool:
+    return (
+        value is not None
+        and not isinstance(value, bool)
+        and value == value
+        and value not in (float("inf"), float("-inf"))
+    )
+
+
+def sensor_freshness(age_s: float | None, max_reading_age_s: float | None) -> str:
+    """الطزاجةُ **إثباتٌ إيجابيّ** لا غيابُ نفي.
+
+    كان `stale = age is not None and max is not None and age > max` ثمّ
+    `usable = … and not stale` — فغيابُ العمر أو السقف أو NaN أو عمرٌ سالبٌ بيومٍ
+    كلُّها `stale=False` ⇒ حسّاسٌ «طازج» بلا دليل (مُعاد إنتاجُه في مراجعة `a7d64adf`).
+    الآن: ``fresh`` فقط حين يكون العمرُ والسقفُ عددين محدودين، والسقفُ موجباً، والعمرُ
+    ضمن النافذة؛ وإلّا ``unproven`` (ناقص/غيرُ صالح) أو ``future`` أو ``stale``.
+    """
+    if not _finite(age_s) or not _finite(max_reading_age_s) or float(max_reading_age_s) <= 0:
+        return "unproven"
+    if float(age_s) < -FUTURE_SKEW_TOLERANCE_S:
+        return "future"
+    if float(age_s) > float(max_reading_age_s):
+        return "stale"
+    return "fresh"
+
+
+_FRESHNESS_LIMITATION = {
+    "stale": LIMIT_SENSOR_STALE,
+    "unproven": LIMIT_FRESHNESS_UNPROVEN,
+    "future": LIMIT_TIMESTAMP_IN_FUTURE,
+}
 LIMIT_SENSOR_DISAGREES = "soil_moisture_sensor_disagrees_with_ledger"
 LIMIT_SEED_FROM_SENSOR = "seed_from_single_point_sensor"
 LIMIT_NO_SENSOR = "soil_moisture_sensor_unavailable"
@@ -117,17 +157,13 @@ def join_sensor_with_ledger_seed(
     """
     limitations: list[str] = []
     threshold = max(SENSOR_CONFLICT_FLOOR_MM, SENSOR_CONFLICT_FRACTION_OF_TAW * float(taw_mm))
-    stale = (
-        sensor_age_s is not None
-        and max_reading_age_s is not None
-        and sensor_age_s > max_reading_age_s
-    )
-    usable = sensor is not None and sensor_depletion is not None and not stale
+    freshness = sensor_freshness(sensor_age_s, max_reading_age_s)
+    usable = sensor is not None and sensor_depletion is not None and freshness == "fresh"
     if sensor is None:
         limitations.append(LIMIT_NO_SENSOR)
     else:
-        if stale:
-            limitations.append(LIMIT_SENSOR_STALE)
+        if freshness != "fresh":
+            limitations.append(_FRESHNESS_LIMITATION[freshness])
         if sensor_limitation is not None:
             limitations.append(sensor_limitation)
 
@@ -154,8 +190,9 @@ def join_sensor_with_ledger_seed(
         if sensor is None
         else {
             **sensor,
-            "age_s": None if sensor_age_s is None else round(float(sensor_age_s), 1),
-            "stale": stale,
+            "age_s": round(float(sensor_age_s), 1) if _finite(sensor_age_s) else None,
+            "freshness": freshness,
+            "stale": freshness == "stale",
             "depletion_mm": None if sensor_depletion is None else round(float(sensor_depletion), 2),
         },
         "delta_mm": delta_mm,

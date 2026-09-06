@@ -86,12 +86,19 @@ class SoilMoistureReading:
 
 
 def _valid_pct(value: Any, *, fractional: bool = False) -> float | None:
-    """يحوّل القيمة إلى ٪ صالحة ضمن النطاق، أو None إن تعذّر/خرج عن النطاق."""
+    """يحوّل القيمة إلى ٪ صالحة ضمن النطاق، أو None إن تعذّر/خرج عن النطاق.
+
+    **`true`/`false` ليستا قياسَ رطوبة.** `float(True) == 1.0` فكانت قيمةٌ منطقيّة تصير
+    1٪ (أو 100٪ تحت `m3/m3`) ثمّ **بذرةَ نضوبٍ** في التوأم — مُعاد إنتاجُه في مراجعة
+    `a7d64adf`. تُرفَض قبل التحويل؛ و`0.0`/`1.0` العدديّتان تبقيان مقبولتين بوحدتهما.
+    """
+    if isinstance(value, bool):
+        return None
     try:
         v = float(value)
     except (TypeError, ValueError):
         return None
-    if v != v:  # NaN
+    if v != v or v in (float("inf"), float("-inf")):  # NaN / ±inf
         return None
     if fractional:
         v *= 100.0
