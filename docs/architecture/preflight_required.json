@@ -15,8 +15,10 @@
     "tests_v9/test_local_preflight_contract.py",
     "tests_v9/test_non_ascii_fixture_path_guard.py",
     "tests_v9/test_platform_catalog_gate.py",
-    "tests_v9/test_text_encoding_locale.py"
+    "tests_v9/test_text_encoding_locale.py",
+    "services/sahool-platform/tests/test_p0_platform_module_growth_guard.py"
   ],
+  "required_tests_platform_note": "services/sahool-platform/tests/test_p0_platform_module_growth_guard.py: راتشِت ميزانية وحدات المنصّة — يعمل في الطبقة السريعة (٥ج) لأنّه يعدّ ملفّاتٍ بلا استيراد؛ الجناحُ كاملاً في ٨ج بشرط تطابق إصدار FastAPI.",
   "required_scripts": [
     "scripts/ci/arch_test_ci_coverage_guard.py",
     "scripts/ci/brain_commit_claim_guard.py",
