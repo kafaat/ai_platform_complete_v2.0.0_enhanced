@@ -3,7 +3,7 @@
   "schema_version": 1,
   "evidence_scope": "static_repository_only",
   "runtime_verified": false,
-  "python_files_parsed": 1885,
+  "python_files_parsed": 1884,
   "route_handlers": 1049,
   "call_edges": 76613,
   "dead_code_candidates": 625,
@@ -217121,205 +217121,254 @@
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
+   "source": "_parse_date",
+   "target": "fromisoformat",
+   "line": 1871
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/main.py",
+   "source": "_parse_date",
+   "target": "strip",
+   "line": 1871
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/main.py",
+   "source": "_parse_date",
+   "target": "HTTPException",
+   "line": 1873
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/main.py",
+   "source": "_parse_iso_utc",
+   "target": "fromisoformat",
+   "line": 2001
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/main.py",
+   "source": "_parse_iso_utc",
+   "target": "replace",
+   "line": 2001
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/main.py",
+   "source": "_parse_iso_utc",
+   "target": "HTTPException",
+   "line": 2003
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/main.py",
+   "source": "_parse_iso_utc",
+   "target": "replace",
+   "line": 2005
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "lower",
-   "line": 2035
+   "line": 2061
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "get",
-   "line": 2038
+   "line": 2064
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "append",
-   "line": 2039
+   "line": 2065
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "get",
-   "line": 2040
+   "line": 2066
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "append",
-   "line": 2041
+   "line": 2067
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "get",
-   "line": 2042
+   "line": 2068
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "append",
-   "line": 2043
+   "line": 2069
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "get",
-   "line": 2044
+   "line": 2070
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "append",
-   "line": 2045
+   "line": 2071
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "get",
-   "line": 2046
+   "line": 2072
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "get",
-   "line": 2046
+   "line": 2072
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_issue_tags_from_event",
    "target": "append",
-   "line": 2047
+   "line": 2073
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_build_walk_plan",
    "target": "ApplicationMethod",
-   "line": 2081
+   "line": 2107
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_build_walk_plan",
    "target": "HTTPException",
-   "line": 2083
+   "line": 2109
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_build_walk_plan",
    "target": "EquipmentSpec",
-   "line": 2084
+   "line": 2110
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_build_walk_plan",
    "target": "ZoneRateInput",
-   "line": 2092
+   "line": 2118
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_build_walk_plan",
    "target": "generate_walk_plan",
-   "line": 2094
+   "line": 2120
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_build_walk_plan",
    "target": "HTTPException",
-   "line": 2104
+   "line": 2130
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_build_walk_plan",
    "target": "str",
-   "line": 2104
+   "line": 2130
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_get_workflow_store",
    "target": "getenv",
-   "line": 2470
+   "line": 2496
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_get_workflow_store",
    "target": "PostgresWorkflowStore",
-   "line": 2472
+   "line": 2498
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_get_workflow_store",
    "target": "str",
-   "line": 2473
+   "line": 2499
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_get_workflow_store",
    "target": "get",
-   "line": 2474
+   "line": 2500
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_get_workflow_store",
    "target": "InMemoryWorkflowStore",
-   "line": 2476
+   "line": 2502
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_rebuild_pydantic_models",
    "target": "dir",
-   "line": 2490
+   "line": 2516
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_rebuild_pydantic_models",
    "target": "getattr",
-   "line": 2491
+   "line": 2517
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_rebuild_pydantic_models",
    "target": "isinstance",
-   "line": 2493
+   "line": 2519
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_rebuild_pydantic_models",
    "target": "issubclass",
-   "line": 2493
+   "line": 2519
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/main.py",
    "source": "_rebuild_pydantic_models",
    "target": "model_rebuild",
-   "line": 2494
+   "line": 2520
   },
   {
    "owner": "sahool-platform",
@@ -230767,55 +230816,6 @@
    "source": "field_to_pdf_bytes",
    "target": "getvalue",
    "line": 341
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/request_dates.py",
-   "source": "_parse_date",
-   "target": "fromisoformat",
-   "line": 21
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/request_dates.py",
-   "source": "_parse_date",
-   "target": "strip",
-   "line": 21
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/request_dates.py",
-   "source": "_parse_date",
-   "target": "HTTPException",
-   "line": 23
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/request_dates.py",
-   "source": "_parse_iso_utc",
-   "target": "fromisoformat",
-   "line": 36
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/request_dates.py",
-   "source": "_parse_iso_utc",
-   "target": "replace",
-   "line": 36
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/request_dates.py",
-   "source": "_parse_iso_utc",
-   "target": "HTTPException",
-   "line": 38
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/request_dates.py",
-   "source": "_parse_iso_utc",
-   "target": "replace",
-   "line": 40
   },
   {
    "owner": "sahool-platform",
