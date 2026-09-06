@@ -1764,6 +1764,9 @@ async def _evaluate_field_alerts_persist(
             forecast_rain_mm=fc_rain_48h,
             soil_moisture_pct=soil_pct,
             kc_override=kc_phen,
+            soil_moisture_unit_kind=(
+                soil_reading.unit_kind if soil_reading is not None else "available_pct"
+            ),
         )
         irrigation_need_mm = advice.get("recommended_mm")
 

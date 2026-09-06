@@ -129,6 +129,7 @@ def irrigation_advice(
     soil_ece: float | None = None,
     crop_salt_tolerance_ece: float | None = None,
     salt_slope_pct: float | None = None,
+    soil_moisture_unit_kind: str = "available_pct",
 ) -> dict:
     """توصية ريّ بنمط FAO-56 — دالّة نقيّة (تُختبَر offline).
 
@@ -232,7 +233,16 @@ def irrigation_advice(
     recommended_mm = round(net, 1)
 
     # رطوبة التربة (إن توفّرت): التربة الرطبة تخفّض الإلحاح، والجافّة ترفعه.
-    if soil_moisture_pct is not None:
+    # SOIL-MOISTURE-UNIT-IDENTITY-01: العتبتان (٣٠٪/٦٠٪) نسبةُ **ماءٍ متاح**. قراءةٌ
+    # حجميّة (VWC) لا تُقارَن بهما بلا معايرة θFC/θWP فلا تُستعمل؛ ووحدةٌ غيرُ
+    # مُعلَنة تُفسَّر كما كانت تُفسَّر — لكنّ الافتراضَ يُعلَن في الأسباب لا يُخفى.
+    if soil_moisture_pct is not None and soil_moisture_unit_kind == "vwc_pct":
+        reasons.append(
+            "قراءة رطوبة التربة حجميّة (VWC) بلا معايرة إلى ماءٍ متاح — لم تُستعمل في الإلحاح."
+        )
+    elif soil_moisture_pct is not None:
+        if soil_moisture_unit_kind == "undeclared":
+            reasons.append("وحدة قراءة رطوبة التربة غير مُعلَنة — فُسِّرت نسبةَ ماءٍ متاح (افتراضٌ موروث).")
         sm = float(soil_moisture_pct)
         if sm >= _SOIL_COMFORTABLE_PCT and urgency in {"low", "moderate"}:
             urgency = "low" if urgency == "moderate" else "none"

@@ -1642,6 +1642,48 @@
           "why": "إعادةُ حقل التوصية في مسار ONNX الحقيقيّ (لا المحاكاة): الاختبارُ يُنتِج كشفاً من رأسٍ تركيبيّ ويفحص شكلَه، فلا يمرّ إن عاد الكاشفُ يصف"
         }
       ]
+    },
+    "services/sahool-platform/api/water_twin_seed.py": {
+      "$gap_ar": "SOIL-MOISTURE-UNIT-IDENTITY-01 — النضوبُ بالوحدة المُعلَنة، والوصلةُ غيرُ سلطويّة.",
+      "test": "tests_v9/test_soil_moisture_unit_identity.py",
+      "mutations": [
+        {
+          "expect": "test_a_vwc_reading_is_never_read_as_a_share_of_taw",
+          "find": "        theta = float(value_pct) / 100.0\n        return _clamp((float(theta_fc) - theta) * float(root_depth_m) * 1000.0, taw_mm), None",
+          "replace": "        return _clamp(taw_mm * (1.0 - float(value_pct) / 100.0), taw_mm), None",
+          "why": "إعادةُ خطأ الحزمة المرفوضة بعينه: قراءةُ VWC تُحسَب نسبةً من TAW — 25٪ حجميّة تصير نضوباً 75 مم على TAW=100، وهو ما حجب التوأمَ بـ409 على مقارنةٍ بلا معنى"
+        },
+        {
+          "expect": "test_a_large_disagreement_is_declared_with_both_values_and_never_blocks",
+          "find": "            if abs(delta_mm) > threshold:\n                limitations.append(LIMIT_SENSOR_DISAGREES)",
+          "replace": "            if False:\n                limitations.append(LIMIT_SENSOR_DISAGREES)",
+          "why": "بلا إعلان الخلاف تصير الوصلةُ صامتةً: الدفترُ يبقى بذرةً والحسّاسُ يخالفه بأربعين ملّيمتراً ولا يعلم المستهلكُ شيئاً — الإعلانُ هو كلُّ ما يميّز الوصلةَ عن تجاهل الحسّاس"
+        },
+        {
+          "expect": "test_a_stale_sensor_is_neither_compared_nor_used_to_seed",
+          "find": "    usable = sensor is not None and sensor_depletion is not None and not stale",
+          "replace": "    usable = sensor is not None and sensor_depletion is not None",
+          "why": "قراءةٌ عمرها شهر تهيّئ Dr وتُقارَن بالدفتر كأنّها الآن — شرطُ المالك «sensor freshness/quality» يسقط بلا هذا السطر"
+        },
+        {
+          "expect": "test_a_fresh_convertible_sensor_seeds_only_when_the_ledger_is_absent",
+          "find": "    elif usable:\n        depletion, source = float(sensor_depletion), f\"sensor.{sensor['unit_kind']}\"",
+          "replace": "    elif False:\n        depletion, source = float(sensor_depletion), f\"sensor.{sensor['unit_kind']}\"",
+          "why": "بلا هذا الفرع لا يهيّئ الحسّاسُ شيئاً أبداً فتعود الحقيقتان لا تلتقيان — وهي الفجوةُ الأصليّة"
+        }
+      ]
+    },
+    "services/sahool-platform/api/soil_telemetry.py": {
+      "$gap_ar": "SOIL-MOISTURE-UNIT-IDENTITY-01 — الوحدةُ تُصنَّف ممّا أُعلِن؛ `%` العارية لا تُعلن شيئاً.",
+      "test": "tests_v9/test_soil_moisture_unit_identity.py",
+      "mutations": [
+        {
+          "expect": "test_the_unit_kind_comes_from_the_declaration_and_bare_percent_declares_nothing",
+          "find": "    return _UNIT_ALIASES.get(key, UNIT_UNDECLARED)",
+          "replace": "    return _UNIT_ALIASES.get(key, UNIT_AVAILABLE_PCT)",
+          "why": "الافتراضُ الموروث حرفاً: كلُّ وحدةٍ مجهولة «ماءٌ متاح». بها تصير `%` العارية التي يخزّنها الكاتبُ القانونيّ إعلاناً — وهي ما لم يُعلنه أحد"
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

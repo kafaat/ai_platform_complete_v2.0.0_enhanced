@@ -7501,3 +7501,11 @@ no_third_value_registry نصّاً)، GATE-01 نظيف، 33 اختباراً، r
 - **التكذيب:** `tests_v9/test_edge_model_artifact_integrity.py` ١٧/١٧ (unit) · `services/edge-inference/tests` ١٠/١٠ محلّيّاً (لا وظيفةَ CI لها — مُعلَن) · ٥ طفرات مُسجَّلة ومقتولة.
 - **أُعيد الفرعُ على `ad4ac5cc`** (rebase نظيف؛ #984 لم يمسّ ملفّات الشريحة).
 - **NOT_PROVISIONED مُعلَن:** لا وزنَ معتمدٌ ولا رخصةَ ولا معايرةَ في الشجرة؛ البصمةُ هويّةٌ لا صلاحيّة.
+
+## 2026-09-06 — P0-C-join فوق `ad4ac5cc`: SOIL-MOISTURE-UNIT-IDENTITY-01
+
+- **من أين جاء:** ملاحظةُ المالك أنّ `soil_telemetry.py` يصف الوحدة «٪ من السعة المتاحة» بينما `compute_rwc` يقرأ VWC، وتصميمُه للوصلة غير السلطويّة.
+- **ما قِيس أوسع:** الحسّاسُ لا يبلغ `compute_rwc` (مدخلُه من المستخدم عبر `routers/irrigation.py:393`) بل `irrigation_advice` (`main.py:1759`)؛ الكاتبُ القانونيّ يخزّن `"%"` (`evidence_adapters.py:23`)؛ `soil_observations.unit` نصّ حرّ بلا قيد؛ دفتر v98 وحدةٌ ثالثة.
+- **العقد:** `classify_soil_moisture_unit` (القراءة تحمل `unit_kind`) · `sensor_depletion_mm` بالوحدة · `join_sensor_with_ledger_seed` (دفترٌ ⇒ بذرة؛ حسّاسٌ طازجٌ عند غيابه؛ خلافٌ > max(10, 0.15·TAW) قيد) · `device_registry` يُعلن الإيقاع والطزاجة · `irrigation_advice(soil_moisture_unit_kind=…)` لا يستعمل VWC ضدّ عتبات الماء المتاح ويكتب الافتراضَ الموروث.
+- **التكذيب:** `tests_v9/test_soil_moisture_unit_identity.py` ٢٥/٢٥ · ٥ طفرات (قراءة VWC نسبةً من TAW · كتمُ الخلاف · إسقاطُ الطزاجة · إسقاطُ بذرة الحسّاس · افتراضُ «متاح» للوحدة المجهولة) مقتولة · ٨٧ اختباراً مجاوراً في المنصّة خضراء.
+- **حدودُ صدق:** جانبُ الكاتب مفتوح — ما تُخرِجه الحسّاساتُ فعلاً NOT_MEASURED؛ `alert_rules._low_moisture` بلا وحدة؛ الراوتر مُستورَدٌ لا مُختبَرٌ بقاعدة.
