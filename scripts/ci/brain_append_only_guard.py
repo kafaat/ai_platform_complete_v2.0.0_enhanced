@@ -230,19 +230,21 @@ def check_range(
                         )
                     )
                     continue
-                if len(after) < len(before):
-                    if is_lossless_row_deduplication(path, before, after):
-                        advisory.append(
-                            Finding(
-                                "DUPLICATE_ROWS_DEDUPLICATED",
-                                path,
-                                parent,
-                                commit,
-                                f"{len(before):,} -> {len(after):,} bytes: removed only "
-                                "byte-identical duplicate rows; retained content is unchanged",
-                            )
+                # Keep the shrink-to-advisory mutation anchored to the blocking rule.
+                # The lossless exception is proved before that rule, not inserted into it.
+                if len(after) < len(before) and is_lossless_row_deduplication(path, before, after):
+                    advisory.append(
+                        Finding(
+                            "DUPLICATE_ROWS_DEDUPLICATED",
+                            path,
+                            parent,
+                            commit,
+                            f"{len(before):,} -> {len(after):,} bytes: removed only "
+                            "byte-identical duplicate rows; retained content is unchanged",
                         )
-                        continue
+                    )
+                    continue
+                if len(after) < len(before):
                     blocking.append(
                         Finding(
                             "JOURNAL_SHRANK",
