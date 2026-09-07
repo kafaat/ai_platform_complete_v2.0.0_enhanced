@@ -197,140 +197,6 @@ def test_a_deleted_journal_blocks(guard, tmp_path):
     assert codes <= {"JOURNAL_DELETED", "JOURNAL_ABSENT_AT_HEAD"}, codes
 
 
-# ── the one shrink that is not a loss ──────────────────────────────────────
-#
-# ``APPEND-ONLY-GUARD-FORBIDS-ROW-DEDUPLICATION-01``. The sibling guard requires one
-# governing row per gap identity, so reconciling a ``merge=union`` duplicate must remove a
-# row — and on #985 that cost 1,090 bytes and this guard answered ``JOURNAL_SHRANK``. Two
-# blocking guards demanding opposite things about one edit. These tests pin the exception
-# *and* its four edges, because an exception nobody can falsify is a hole with a comment.
-
-REGISTRY = "sahool-brain/gaps/registry.md"
-JOURNAL = "sahool-brain/log.md"
-
-_HEADER = "# سجلّ الفجوات\n\n| المعرّف | الوسم | المصدر | الحالة |\n| --- | --- | --- | --- |\n"
-_DUP_FIRST = "| GAP-ALPHA-01 | brain | src.py:1 | **open** — الصفّ الأوّل، من جلسةٍ أولى |\n"
-_DUP_SECOND = "| GAP-ALPHA-01 | brain | src.py:1 | **open** — الصفّ الثاني، من جلسةٍ ثانية |\n"
-_MERGED = "| GAP-ALPHA-01 | brain | src.py:1 | **open** — الأوّل والثاني مضمومان |\n"
-_UNIQUE = "| GAP-BETA-02 | ci | other.py:9 | **fixed** — صفٌّ وحيد لا يجوز أن يختفي |\n"
-
-WITH_DUPLICATE = _HEADER + _DUP_FIRST + _UNIQUE + _DUP_SECOND
-RECONCILED = _HEADER + _MERGED + _UNIQUE
-
-
-def _two_commits(tmp_path: Path, name: str, path: str, before: str, after: str) -> Path:
-    """A repo whose HEAD edits ``path`` from ``before`` to ``after``, and nothing else."""
-    root = tmp_path / name
-    target = root / path
-    target.parent.mkdir(parents=True)
-
-    def git(*args):
-        subprocess.run(["git", *args], cwd=root, check=True, capture_output=True)
-
-    git("init", "-q", "-b", "main", ".")
-    git("config", "user.email", "t@t")
-    git("config", "user.name", "t")
-    target.write_text(before, encoding="utf-8")
-    git("add", "-A")
-    git("commit", "-qm", "parent")
-    target.write_text(after, encoding="utf-8")
-    git("add", "-A")
-    git("commit", "-qm", "child")
-    return root
-
-
-def _verdict(guard, root: Path, path: str):
-    blocking, advisory, pairs = guard.check_range(None, "HEAD", files=(path,), root=root)
-    assert pairs == 1, f"the premise is one comparable pair; examined {pairs}"
-    return blocking, advisory
-
-
-def test_folding_a_duplicated_row_shrinks_the_registry_and_is_not_a_loss(guard, tmp_path):
-    """The blocked edit from #985, in miniature: two rows for one identity become one."""
-    assert len(RECONCILED) < len(WITH_DUPLICATE), "the premise is that the file shrinks"
-    root = _two_commits(tmp_path, "dedup", REGISTRY, WITH_DUPLICATE, RECONCILED)
-    blocking, advisory = _verdict(guard, root, REGISTRY)
-    assert not blocking, "\n".join(str(f) for f in blocking)
-    codes = [f.code for f in advisory]
-    assert "DUPLICATE_ROW_RECONCILED" in codes, (
-        f"the shrink must be reported, never silent; got {codes}"
-    )
-    assert (
-        "GAP-ALPHA-01" in next(f for f in advisory if f.code == "DUPLICATE_ROW_RECONCILED").detail
-    )
-
-
-def test_the_exception_does_not_excuse_deleting_every_row_of_the_duplicated_identity(
-    guard, tmp_path
-):
-    """A fold that erases the identity is not a fold — found by Copilot's review on #988.
-
-    Both rows are "rows of a duplicated identity", so the subset proof alone accepted
-    deleting *both*: the governing row disappears from the registry and the shrink reads
-    as reconciliation. The identity must still be declared afterwards.
-    """
-    root = _two_commits(tmp_path, "erased", REGISTRY, WITH_DUPLICATE, _HEADER + _UNIQUE)
-    blocking, _ = _verdict(guard, root, REGISTRY)
-    assert [f.code for f in blocking] == ["JOURNAL_SHRANK"], (
-        "GAP-ALPHA-01 is gone from the table; that is a loss, not a deduplication"
-    )
-
-
-def test_the_exception_does_not_excuse_truncating_a_registry_that_has_duplicates(guard, tmp_path):
-    """The incident, dressed as a deduplication. Emptying removes rows that were unique."""
-    root = _two_commits(tmp_path, "empty", REGISTRY, WITH_DUPLICATE, "")
-    blocking, _ = _verdict(guard, root, REGISTRY)
-    assert [f.code for f in blocking] == ["JOURNAL_SHRANK"], (
-        "a file containing duplicates is not thereby a file that may be emptied"
-    )
-
-
-def test_the_exception_does_not_excuse_removing_a_row_that_was_never_duplicated(guard, tmp_path):
-    """The narrow reading: only the *duplicated* identity's rows may vanish."""
-    root = _two_commits(
-        tmp_path,
-        "unique",
-        REGISTRY,
-        WITH_DUPLICATE,
-        _HEADER + _DUP_FIRST + _DUP_SECOND,  # both duplicates kept, the unique row deleted
-    )
-    blocking, _ = _verdict(guard, root, REGISTRY)
-    assert [f.code for f in blocking] == ["JOURNAL_SHRANK"], (
-        "GAP-BETA-02 was declared once; losing it is a loss"
-    )
-
-
-def test_the_exception_is_scoped_to_the_file_whose_rows_are_unique_declarations(guard, tmp_path):
-    """``log.md`` is prose. Nothing there is a "governing row", so nothing there is exempt."""
-    root = _two_commits(tmp_path, "scope", JOURNAL, WITH_DUPLICATE, RECONCILED)
-    blocking, _ = _verdict(guard, root, JOURNAL)
-    assert [f.code for f in blocking] == ["JOURNAL_SHRANK"], (
-        "the exception must not follow the shape of the content into another journal"
-    )
-
-
-def test_a_registry_with_no_duplicate_at_the_parent_has_no_exception_to_claim(guard, tmp_path):
-    root = _two_commits(
-        tmp_path, "clean", REGISTRY, _HEADER + _DUP_FIRST + _UNIQUE, _HEADER + _DUP_FIRST
-    )
-    blocking, _ = _verdict(guard, root, REGISTRY)
-    assert [f.code for f in blocking] == ["JOURNAL_SHRANK"]
-
-
-def test_what_counts_as_a_duplicate_row_is_imported_from_the_guard_that_enforces_it(guard):
-    """Two readings of "duplicate row" would drift; the sibling guard owns the parsing."""
-    source = GUARD.read_text(encoding="utf-8")
-    assert "module.duplicate_row_lines(" in source
-    assert "module.row_identities(" in source
-    assert "module.GLOBAL_ROW_UNIQUENESS_TARGETS" in source
-    assert "re.compile" not in source, "this guard must not grow a second row parser"
-
-    sibling = _load(ROOT / "scripts/ci/brain_duplicate_gap_identity_guard.py", "_dup_probe")
-    rows = sibling.duplicate_row_lines(WITH_DUPLICATE)
-    assert set(rows) == {"GAP-ALPHA-01"}, rows
-    assert rows["GAP-ALPHA-01"] == [_DUP_FIRST.rstrip("\n"), _DUP_SECOND.rstrip("\n")]
-
-
 # ── the classification is imported, never restated ────────────────────────
 
 
@@ -441,3 +307,263 @@ def test_no_registered_mutation_names_a_test_that_can_be_skipped():
     # And every named test must exist, or the mutation names nothing at all.
     defined = {node.name for node in tree.body if isinstance(node, ast.FunctionDef)}
     assert named <= defined, f"mutations name absent tests: {sorted(named - defined)}"
+
+
+# APPEND-ONLY-GUARD-FORBIDS-ROW-DEDUPLICATION-01: synthetic Git histories, no skips.
+_REGISTRY = "sahool-brain/gaps/registry.md"
+_HEADER = "# Registry\n\n| ID | state | evidence |\n| --- | --- | --- |\n"
+_ROW_A = "| GAP-A | open | retained evidence A |\n"
+_ROW_B = "| GAP-B | open | retained evidence B |\n"
+
+
+def _dedup_git(root: Path, *args: str) -> str:
+    result = subprocess.run(
+        ["git", *args], cwd=root, check=True, capture_output=True, encoding="utf-8"
+    )
+    return result.stdout.strip()
+
+
+def _dedup_repo(tmp_path: Path, before: bytes, path: str = _REGISTRY) -> Path:
+    root = tmp_path / "dedup-probe"
+    target = root / path
+    target.parent.mkdir(parents=True)
+    _dedup_git(root, "init", "-q", "-b", "main", ".")
+    _dedup_git(root, "config", "user.email", "guard-test@example.invalid")
+    _dedup_git(root, "config", "user.name", "Guard Test")
+    _dedup_git(root, "config", "commit.gpgsign", "false")
+    target.write_bytes(before)
+    _dedup_git(root, "add", "-A")
+    _dedup_git(root, "commit", "-qm", "synthetic parent")
+    return root
+
+
+def _dedup_candidate(root: Path, after: bytes, path: str, *parents: str) -> str:
+    """A candidate commit object, never moving HEAD to pretend it was the tested ref."""
+    (root / path).write_bytes(after)
+    _dedup_git(root, "add", path)
+    tree = _dedup_git(root, "write-tree")
+    parent_args = [item for parent in parents for item in ("-p", parent)]
+    return _dedup_git(root, "commit-tree", tree, *parent_args, "-m", "candidate under test")
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+@pytest.mark.parametrize("identity", ["GAP-A", "WAIVER-WX10.6-001"])
+def test_lossless_row_deduplication_satisfies_both_real_guards(
+    guard, tmp_path, monkeypatch, newline, identity
+):
+    row = _ROW_A.replace("GAP-A", identity)
+    retained = _HEADER + row + _ROW_B + "\nOriginal prose remains.\n"
+    before = (retained + row + row).replace("\n", newline).encode("utf-8")
+    after = (retained + "\nRepair recorded.\n").replace("\n", newline).encode("utf-8")
+    assert len(after) < len(before), "the old size guard must actually reject this edit"
+    root = _dedup_repo(tmp_path, before)
+    parent = _dedup_git(root, "rev-parse", "HEAD")
+    duplicate = _load(
+        ROOT / "scripts/ci/brain_duplicate_gap_identity_guard.py", "_duplicate_coexistence"
+    )
+    monkeypatch.setattr(duplicate, "ROOT", root)
+    assert duplicate.check([root / _REGISTRY]), "the parent's duplicate must be detected"
+    candidate = _dedup_candidate(root, after, _REGISTRY, parent)
+    assert _dedup_git(root, "rev-parse", "HEAD") == parent
+    assert candidate != parent, "a stale HEAD is not evidence for the candidate"
+    assert guard.blob(candidate, _REGISTRY, root=root) == after
+    blocking, advisory, pairs = guard.check_range(parent, candidate, files=(_REGISTRY,), root=root)
+    assert pairs == 1
+    assert not blocking, "\n".join(str(f) for f in blocking)
+    assert [f.code for f in advisory] == ["DUPLICATE_ROWS_DEDUPLICATED"]
+    assert not duplicate.check([root / _REGISTRY]), "the SAME candidate must satisfy both guards"
+
+
+@pytest.mark.parametrize("fence", ["```", "~~~"])
+def test_lossless_row_deduplication_preserves_fenced_examples(guard, tmp_path, fence):
+    examples = fence + "text\n" + _ROW_A + _ROW_A + fence + "\n"
+    retained = (_HEADER + _ROW_A + examples + _ROW_B + "\nKeep this prose.\n").encode()
+    before = retained + _ROW_A.encode()
+    root = _dedup_repo(tmp_path, before)
+    parent = _dedup_git(root, "rev-parse", "HEAD")
+    candidate = _dedup_candidate(root, retained, _REGISTRY, parent)
+    blocking, _, pairs = guard.check_range(parent, candidate, files=(_REGISTRY,), root=root)
+    assert pairs == 1 and not blocking
+    assert guard.blob(candidate, _REGISTRY, root=root) == retained
+
+
+@pytest.mark.parametrize(
+    "before,after",
+    [
+        pytest.param(
+            _HEADER + _ROW_A + _ROW_B + _ROW_A,
+            _HEADER + _ROW_A,
+            id="unique-row-deletion",
+        ),
+        pytest.param(
+            _HEADER + _ROW_A + _ROW_A.replace("open", "closed"),
+            _HEADER + _ROW_A,
+            id="same-id-different-state",
+        ),
+        pytest.param(
+            _HEADER + _ROW_A + _ROW_A.replace("evidence A", "evidence B"),
+            _HEADER + _ROW_A,
+            id="same-id-different-evidence",
+        ),
+        pytest.param(
+            _HEADER + _ROW_A + _ROW_A.replace("| open |", "|  open |"),
+            _HEADER + _ROW_A,
+            id="same-id-different-whitespace",
+        ),
+        pytest.param(
+            _HEADER + _ROW_A + "Keep original prose.\n" + _ROW_A,
+            _HEADER + _ROW_A,
+            id="non-row-prose-deletion",
+        ),
+        pytest.param(
+            _HEADER + _ROW_A + _ROW_B + _ROW_A * 2,
+            _HEADER + _ROW_A + "replacement filler\n",
+            id="padding-does-not-fund-a-unique-row-deletion",
+        ),
+        pytest.param(
+            _HEADER + _ROW_A * 2,
+            _HEADER + _ROW_A.replace("open", "closed"),
+            id="status-edit-is-not-deduplication",
+        ),
+        pytest.param(
+            _HEADER + _ROW_A + _ROW_B + _ROW_A,
+            _HEADER + _ROW_B + _ROW_A,
+            id="reordered-retained-rows",
+        ),
+        pytest.param(_HEADER + _ROW_A * 2, _HEADER, id="all-copies-deleted"),
+        pytest.param(
+            _HEADER + _ROW_A * 3,
+            _HEADER + _ROW_A * 2,
+            id="remaining-or-reintroduced-duplicate",
+        ),
+        pytest.param(
+            _HEADER + _ROW_A * 3,
+            _HEADER + _ROW_A + _ROW_A.replace("open", "closed"),
+            id="conflicting-duplicate-in-appended-suffix",
+        ),
+        pytest.param(
+            _HEADER + "```text\n" + _ROW_A * 2 + "```\n",
+            _HEADER + "```text\n" + _ROW_A + "```\n",
+            id="fenced-example-not-an-active-duplicate",
+        ),
+        pytest.param(
+            _HEADER
+            + _ROW_A.replace("GAP-A", "WAIVER-WX10.6-001")
+            + _ROW_A.replace("GAP-A", "WAIVER-WX10.7-001"),
+            _HEADER + _ROW_A.replace("GAP-A", "WAIVER-WX10.6-001"),
+            id="dotted-identities-are-distinct",
+        ),
+        pytest.param(
+            _HEADER + "## GAP-A\nHistorical evidence.\n" * 2,
+            _HEADER + "## GAP-A\nHistorical evidence.\n",
+            id="historical-headings-are-not-table-rows",
+        ),
+        pytest.param(
+            _HEADER + _ROW_A * 2 + "unterminated prose",
+            _HEADER + _ROW_A + "unterminated prose altered",
+            id="append-must-not-rewrite-unterminated-final-line",
+        ),
+        pytest.param(
+            (_HEADER + _ROW_A * 2).encode() + b"\xff\n",
+            (_HEADER + _ROW_A).encode() + b"\xff\n",
+            id="invalid-utf8-fails-closed",
+        ),
+    ],
+)
+def test_lossless_row_deduplication_rejects_information_loss(guard, tmp_path, before, after):
+    before = before.encode("utf-8") if isinstance(before, str) else before
+    after = after.encode("utf-8") if isinstance(after, str) else after
+    assert len(after) < len(before), "negative case must enter the shrink branch"
+    root = _dedup_repo(tmp_path, before)
+    parent = _dedup_git(root, "rev-parse", "HEAD")
+    candidate = _dedup_candidate(root, after, _REGISTRY, parent)
+    blocking, _, pairs = guard.check_range(parent, candidate, files=(_REGISTRY,), root=root)
+    assert pairs == 1
+    assert [f.code for f in blocking] == ["JOURNAL_SHRANK"]
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "sahool-brain/log.md",
+        "sahool-brain/hot.md",
+        "sahool-brain/decisions/ledger.md",
+        "other/gaps/registry.md",
+    ],
+)
+def test_lossless_row_deduplication_does_not_exempt_other_files(guard, tmp_path, path):
+    root = _dedup_repo(tmp_path, (_HEADER + _ROW_A * 2).encode(), path)
+    parent = _dedup_git(root, "rev-parse", "HEAD")
+    candidate = _dedup_candidate(root, (_HEADER + _ROW_A).encode(), path, parent)
+    blocking, _, pairs = guard.check_range(parent, candidate, files=(path,), root=root)
+    assert pairs == 1
+    assert [f.code for f in blocking] == ["JOURNAL_SHRANK"]
+
+
+@pytest.mark.parametrize("lose_second_parent", [False, True])
+def test_lossless_row_deduplication_checks_every_merge_parent(guard, tmp_path, lose_second_parent):
+    root = _dedup_repo(tmp_path, (_HEADER + _ROW_A + _ROW_B).encode())
+    ancestor = _dedup_git(root, "rev-parse", "HEAD")
+    left_content = (_HEADER + _ROW_A * 3 + _ROW_B).encode()
+    left = _dedup_candidate(root, left_content, _REGISTRY, ancestor)
+    right_row = _ROW_B.replace("GAP-B", "GAP-C") if lose_second_parent else _ROW_B
+    right_content = (_HEADER + _ROW_A * 2 + right_row).encode()
+    right = _dedup_candidate(root, right_content, _REGISTRY, ancestor)
+    after = (_HEADER + _ROW_A + _ROW_B).encode()
+    candidate = _dedup_candidate(root, after, _REGISTRY, left, right)
+    blocking, advisory, pairs = guard.check_range(None, candidate, files=(_REGISTRY,), root=root)
+    assert pairs == 2
+    if lose_second_parent:
+        assert [(f.code, f.parent) for f in blocking] == [("JOURNAL_SHRANK", right)]
+        assert [f.parent for f in advisory] == [left]
+    else:
+        assert not blocking
+        assert {f.parent for f in advisory} == {left, right}
+        assert {f.code for f in advisory} == {"DUPLICATE_ROWS_DEDUPLICATED"}
+
+
+def test_lossless_row_deduplication_does_not_hide_an_intermediate_shrink(guard, tmp_path):
+    before = (_HEADER + _ROW_A * 2 + _ROW_B).encode()
+    root = _dedup_repo(tmp_path, before)
+    parent = _dedup_git(root, "rev-parse", "HEAD")
+    lossy = _dedup_candidate(root, (_HEADER + _ROW_A).encode(), _REGISTRY, parent)
+    repaired = _dedup_candidate(root, (_HEADER + _ROW_A + _ROW_B).encode(), _REGISTRY, lossy)
+    blocking, _, pairs = guard.check_range(parent, repaired, files=(_REGISTRY,), root=root)
+    assert pairs == 2
+    assert [(f.code, f.commit) for f in blocking] == [("JOURNAL_SHRANK", lossy)]
+
+
+def test_lossless_row_deduplication_preserves_an_unterminated_final_line(guard, tmp_path):
+    before = (_HEADER + _ROW_A * 2 + "unchanged final prose").encode()
+    after = (_HEADER + _ROW_A + "unchanged final prose").encode()
+    root = _dedup_repo(tmp_path, before)
+    parent = _dedup_git(root, "rev-parse", "HEAD")
+    candidate = _dedup_candidate(root, after, _REGISTRY, parent)
+    blocking, _, pairs = guard.check_range(parent, candidate, files=(_REGISTRY,), root=root)
+    assert pairs == 1 and not blocking
+
+
+def test_lossless_row_deduplication_conflicts_require_preserved_audit_evidence(
+    guard, tmp_path, monkeypatch
+):
+    """Different versions can be reconciled without shrinking or destroying either one."""
+    closed = _ROW_A.replace("open", "closed")
+    before = (_HEADER + _ROW_A + closed).encode()
+    after = (
+        _HEADER + closed + "\n## Resolution audit\n"
+        "Operator selected the closed state; both original versions are retained below.\n"
+        "```text\n" + _ROW_A + closed + "```\n"
+    ).encode()
+    assert len(after) > len(before)
+    root = _dedup_repo(tmp_path, before)
+    parent = _dedup_git(root, "rev-parse", "HEAD")
+    candidate = _dedup_candidate(root, after, _REGISTRY, parent)
+    blocking, advisory, pairs = guard.check_range(parent, candidate, files=(_REGISTRY,), root=root)
+    assert pairs == 1 and not blocking
+    assert [f.code for f in advisory] == ["PREFIX_NOT_PRESERVED"]
+    duplicate = _load(
+        ROOT / "scripts/ci/brain_duplicate_gap_identity_guard.py", "_duplicate_audit_probe"
+    )
+    monkeypatch.setattr(duplicate, "ROOT", root)
+    assert not duplicate.check([root / _REGISTRY])
+    assert _ROW_A.encode() in after and closed.encode() in after

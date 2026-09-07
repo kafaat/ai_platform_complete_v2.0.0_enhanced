@@ -163,34 +163,6 @@ def global_duplicate_row_identities(text: str) -> list[tuple[str, list[int]]]:
     return [(gap_id, at) for gap_id, at in seen.items() if len(at) > 1]
 
 
-def row_identities(text: str) -> dict[str, list[str]]:
-    """كلُّ هويّةٍ يُعلِنها صفُّ جدولٍ، والنصُّ الخامّ لصفوفها — لا المكرَّرة وحدها.
-
-    مُصدَّرٌ عمداً: `brain_append_only_guard` يحتاج **بعينها** هذه المعرفة ليميّز نقصاً
-    هو ضمُّ صفٍّ مكرَّر (وهو ما يفرضه هذا الحارس) من نقصٍ هو فقدُ محتوى (وهو ما يحجبه
-    ذاك). ولو اشتقّها بنمطٍ ثانٍ لصار للحارسَين قراءتان لـ«صفّ السجلّ» تنحرفان — وهو
-    صنفُ «قائمتان تصفان الشيء نفسه» المقيس مراراً هنا. المعرفةُ تبقى حيث تُفرَض.
-
-    ويحتاج **الجرد كاملاً** لا المكرَّر منه: ليتحقّق أنّ الهويّة التي مسّها الضمُّ
-    ما تزال مُعلَنةً بعده، وإلّا كان «الضمّ» محواً لها (مراجعةُ Copilot على #988).
-    """
-    lines = text.splitlines()
-    stripped = _strip_fenced_blocks(lines)
-    out: dict[str, list[str]] = {}
-    for raw, line in zip(lines, stripped, strict=True):
-        if line is None:
-            continue
-        m = ROW_FULL_ID_RE.match(line)
-        if m:
-            out.setdefault(m.group("gap_id"), []).append(raw)
-    return out
-
-
-def duplicate_row_lines(text: str) -> dict[str, list[str]]:
-    """النصُّ الخامّ لكلّ صفٍّ يُعلِن هويّةً مكرَّرةً عالميّاً، مفهرَساً بالهويّة."""
-    return {gap_id: rows for gap_id, rows in row_identities(text).items() if len(rows) > 1}
-
-
 def check(paths: list[Path]) -> list[str]:
     problems: list[str] = []
     for path in paths:
