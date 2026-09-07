@@ -1897,6 +1897,12 @@
           "why": "إسقاطُ شرط «كلُّ ما اختفى صفٌّ مكرَّر الهويّة» يُبقي الاستثناءَ يشترط نقصاً فقط ⇒ يصير أيُّ حذفٍ في سجلّ الفجوات مُعفًى ما دام الملفُّ يحوي مكرَّراً واحداً — وهو تحويلُ الاستثناء المبرهَن إلى بابٍ مفتوح"
         },
         {
+          "expect": "test_the_exception_does_not_excuse_deleting_every_row_of_the_duplicated_identity",
+          "find": "    if any(gap_id not in surviving for gap_id in touched):",
+          "replace": "    if False:",
+          "why": "إسقاطُ شرط «الهويّة ما تزال مُعلَنةً بعد الضمّ» ⇒ حذفُ صفّي الهويّة معاً يمرّ استثناءً، فيختفي الصفُّ الحاكم من الجدول ويُقرأ النقصُ ضمّاً — العطلُ الذي أمسكته مراجعةُ Copilot على #988"
+        },
+        {
           "expect": "test_the_exception_is_scoped_to_the_file_whose_rows_are_unique_declarations",
           "find": "    if path not in module.GLOBAL_ROW_UNIQUENESS_TARGETS:",
           "replace": "    if False:",

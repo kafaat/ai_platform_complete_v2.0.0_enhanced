@@ -146,6 +146,13 @@ def duplicate_row_reconciliation(path: str, before: bytes, after: bytes) -> str 
     touched = sorted(
         gap_id for gap_id, rows in duplicated.items() if any(row in removed for row in rows)
     )
+    # وضمٌّ يمحو الهويّةَ كلَّها ليس ضمّاً. كلُّ صفوف هويّةٍ مكرَّرة «مسموحٌ» بزوالها
+    # بالشرط أعلاه، فحذفُ الاثنين معاً كان يمرّ بينما الصفُّ الحاكم اختفى — أمسكته
+    # مراجعةُ Copilot على #988. الشرطُ: كلُّ هويّةٍ مسَّها الحذف ما تزال مُعلَنةً بصفٍّ
+    # بعده، وإلّا فهو محوٌ يحجب.
+    surviving = module.row_identities(after_text)
+    if any(gap_id not in surviving for gap_id in touched):
+        return None
     return (
         f"نقصٌ مبرهَن أنّه ضمُّ صفوفٍ مكرَّرة الهويّة: "
         f"{sum(removed.values())} صفّاً أُزيل، كلُّه مُعلَنٌ مرّتين فأكثر عند الوالد "

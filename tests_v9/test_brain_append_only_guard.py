@@ -260,6 +260,22 @@ def test_folding_a_duplicated_row_shrinks_the_registry_and_is_not_a_loss(guard, 
     )
 
 
+def test_the_exception_does_not_excuse_deleting_every_row_of_the_duplicated_identity(
+    guard, tmp_path
+):
+    """A fold that erases the identity is not a fold — found by Copilot's review on #988.
+
+    Both rows are "rows of a duplicated identity", so the subset proof alone accepted
+    deleting *both*: the governing row disappears from the registry and the shrink reads
+    as reconciliation. The identity must still be declared afterwards.
+    """
+    root = _two_commits(tmp_path, "erased", REGISTRY, WITH_DUPLICATE, _HEADER + _UNIQUE)
+    blocking, _ = _verdict(guard, root, REGISTRY)
+    assert [f.code for f in blocking] == ["JOURNAL_SHRANK"], (
+        "GAP-ALPHA-01 is gone from the table; that is a loss, not a deduplication"
+    )
+
+
 def test_the_exception_does_not_excuse_truncating_a_registry_that_has_duplicates(guard, tmp_path):
     """The incident, dressed as a deduplication. Emptying removes rows that were unique."""
     root = _two_commits(tmp_path, "empty", REGISTRY, WITH_DUPLICATE, "")
@@ -305,6 +321,7 @@ def test_what_counts_as_a_duplicate_row_is_imported_from_the_guard_that_enforces
     """Two readings of "duplicate row" would drift; the sibling guard owns the parsing."""
     source = GUARD.read_text(encoding="utf-8")
     assert "module.duplicate_row_lines(" in source
+    assert "module.row_identities(" in source
     assert "module.GLOBAL_ROW_UNIQUENESS_TARGETS" in source
     assert "re.compile" not in source, "this guard must not grow a second row parser"
 
