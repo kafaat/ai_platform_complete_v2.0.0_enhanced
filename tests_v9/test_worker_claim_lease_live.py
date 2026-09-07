@@ -45,9 +45,18 @@ _SCHEMA = "claim_lease_probe_ns"
 _TABLE = f"{_SCHEMA}.probe"
 _ROWS = 40
 _BATCH = 20
-# نافذةُ التقاطع: العملُ الذي يقع بين المطالبة والإنهاء. أطولُ من زمن دورةِ
-# عاملٍ آخر بكثير، فيتقاطعان يقيناً بدل أن يتقاطعا مصادفة.
+# العملُ الذي يقع بين المطالبة والإنهاء (نداءُ شبكةٍ في الواقع). **ولم يعد التقاطعُ
+# معلَّقاً عليه**: كان الاختبارُ يرجو أن يبدأ العاملان في نافذةٍ واحدة، فيحمرّ حين لا
+# يفعلان — `CLAIM-LEASE-RACE-REPRODUCTION-IS-ITSELF-A-RACE-01`. مقيسٌ على PostgreSQL 16
+# محلّيّاً: تأخّرُ العامل الثاني ٠٫٣٥ث (> الحجز) ⇒ `overlap=0` **يقيناً**، لأنّ الأوّل
+# أنهى تحديثاته فيرى الثاني صفوفاً أخرى. وهو ما وقع في CI على `c84455d9` بعد أن أضافت
+# الشريحةُ تطبيقاً ثانياً للبيان قبل الاختبارات فأثقلت العدّاء. فصار الترتيبُ **مُواعَداً**
+# أدناه، والحجزُ يبقى تمثيلاً للعمل لا شرطاً للصحّة.
 _HOLD_SECONDS = 0.30
+
+# سقفُ المواعدة: انتظارٌ بلا سقفٍ يُعلّق الوظيفة بدل أن يُبلِغ. أوسعُ من أيّ تأخّرِ
+# جدولةٍ معقول، وأضيقُ من مهلة الوظيفة بكثير.
+_RENDEZVOUS_TIMEOUT = 20.0
 
 if not _DSN and _CERTIFICATION_REQUIRED:
     raise RuntimeError(
@@ -58,6 +67,51 @@ if not _DSN and _CERTIFICATION_REQUIRED:
 pytestmark.append(
     pytest.mark.skipif(not _DSN, reason="يحتاج TEST_DATABASE_URL — قاعدةً حيّة لا محاكاة")
 )
+
+
+class _Rendezvous:
+    """يفرض الترتيبَ الحرج بدل أن يرجوَه من المُجدوِل.
+
+    الترتيبُ الذي يكشف العطل: مطالبةُ الأوّل ⇒ **مطالبةُ الثاني** ⇒ تحديثاتُ الأوّل.
+    كان الاختبارُ يعتمد على أن يقع ذلك مصادفةً في نافذة `_HOLD_SECONDS`؛ ومقيسٌ أنّ
+    تأخّرَ الثاني ٠٫٣٥ث وحدَه يقلب النتيجة إلى `overlap=0` — فيُقرأ «لا عطل» وهو
+    **تعذُّرُ قياس**. المواعدةُ تجعل الترتيبَ حتميّاً، فالحمرةُ بعدها تعني عطلاً حقيقيّاً.
+
+    وهي متناظرة: النمطان يُواعِدان عند النقطة نفسِها (انتهاءُ خطوة المطالبة)، فالمقارنةُ
+    بينهما تبقى عادلة — لا يُمنَح الجديدُ ترتيباً أسهل.
+    """
+
+    def __init__(self, *, waits_for, announces, leads: bool) -> None:
+        self._waits_for = waits_for
+        self._announces = announces
+        self._leads = leads
+
+    @classmethod
+    def pair(cls) -> tuple[_Rendezvous, _Rendezvous]:
+        first, second = asyncio.Event(), asyncio.Event()
+        return (
+            cls(announces=first, waits_for=second, leads=True),
+            cls(announces=second, waits_for=first, leads=False),
+        )
+
+    async def before_claim(self) -> None:
+        """التابعُ لا يُطالِب قبل أن يُنهي القائدُ مطالبتَه؛ والقائدُ لا ينتظر أحداً هنا."""
+        if self._leads:
+            return
+        await asyncio.wait_for(self._waits_for.wait(), _RENDEZVOUS_TIMEOUT)
+
+    async def after_claim(self) -> None:
+        """**اتّجاهان لا واحد** — وهذا مقيسٌ لا مُفترَض.
+
+        الإشارةُ الأحاديّة (القائدُ يُعلِن، والتابعُ ينتظر) لا تكفي: إن تأخّر بدءُ التابع
+        أكثرَ من `_HOLD_SECONDS` كان القائدُ قد أنهى تحديثاته قبل أن يصل، فيرى التابعُ
+        صفوفاً أخرى ⇒ `overlap=0`. مقيسٌ بالحقن محلّيّاً: تأخّرُ ٠٫٦ث يُسقِط الاختبارَ
+        رغم المواعدة الأحاديّة. فالقائدُ **ينتظر مطالبةَ التابع** قبل أن يُحدِّث.
+        """
+        if self._announces is not None:
+            self._announces.set()
+        if self._waits_for is not None:
+            await asyncio.wait_for(self._waits_for.wait(), _RENDEZVOUS_TIMEOUT)
 
 
 async def _seed(pool) -> None:
@@ -77,22 +131,25 @@ async def _seed(pool) -> None:
         await conn.executemany(f"INSERT INTO {_TABLE} (status) VALUES ('pending')", [()] * _ROWS)
 
 
-async def _claim_the_old_way(pool, _worker: str) -> list[str]:
+async def _claim_the_old_way(pool, _worker: str, gate: _Rendezvous) -> list[str]:
     """النمطُ الذي كان في الشجرة: `SKIP LOCKED` في autocommit بلا معاملة."""
     async with pool.acquire() as conn:
+        await gate.before_claim()
         rows = await conn.fetch(
             f"SELECT id FROM {_TABLE} WHERE status='pending' "
             f"ORDER BY created_at LIMIT {_BATCH} FOR UPDATE SKIP LOCKED"
         )
-        await asyncio.sleep(_HOLD_SECONDS)  # القفلُ تحرَّر سلفاً؛ هنا يقع العملُ الشبكيّ
+        await gate.after_claim()  # القفلُ تحرَّر بانتهاء العبارة — وهذا بيت القصيد
+        await asyncio.sleep(_HOLD_SECONDS)  # هنا يقع العملُ الشبكيّ
         for row in rows:
             await conn.execute(f"UPDATE {_TABLE} SET status='done' WHERE id=$1", row["id"])
         return [str(row["id"]) for row in rows]
 
 
-async def _claim_the_new_way(pool, worker: str) -> list[str]:
+async def _claim_the_new_way(pool, worker: str, gate: _Rendezvous) -> list[str]:
     """النمطُ المُطبَّق: TX-1 مطالبةٌ تُثبَّت بـcommit · الشبكةُ خارجها · TX-2 بـCAS."""
     async with pool.acquire() as conn:
+        await gate.before_claim()
         async with conn.transaction():
             rows = await conn.fetch(
                 f"""
@@ -110,6 +167,7 @@ async def _claim_the_new_way(pool, worker: str) -> list[str]:
                 """,
                 worker,
             )
+        await gate.after_claim()  # المطالبةُ مُثبَّتةٌ بـcommit — نفسُ نقطة المقارنة
         await asyncio.sleep(_HOLD_SECONDS)  # خارج أيّ معاملة — لا أقفالَ محبوسة
         for row in rows:
             async with conn.transaction():
@@ -126,7 +184,10 @@ async def _measure_overlap(claim_fn) -> tuple[int, int]:
     pool = await asyncpg.create_pool(_DSN, min_size=4, max_size=8)
     try:
         await _seed(pool)
-        first, second = await asyncio.gather(claim_fn(pool, "A"), claim_fn(pool, "B"))
+        leader, follower = _Rendezvous.pair()
+        first, second = await asyncio.gather(
+            claim_fn(pool, "A", leader), claim_fn(pool, "B", follower)
+        )
         return len(set(first) & set(second)), len(first) + len(second)
     finally:
         try:
@@ -146,8 +207,9 @@ async def test_the_old_pattern_really_does_double_claim_on_a_live_database():
     overlap, total = await _measure_overlap(_claim_the_old_way)
     assert total == 2 * _BATCH, f"لم يلتقط العاملان دفعةً كاملة: {total}"
     assert overlap > 0, (
-        "لم يُعَد إنتاجُ العطل — القياسُ غيرُ حاسم، لا الإصلاحُ مُثبَت. "
-        f"أطِل _HOLD_SECONDS (الآن {_HOLD_SECONDS}ث)"
+        "لم يُعَد إنتاجُ العطل — القياسُ غيرُ حاسم، لا الإصلاحُ مُثبَت. والترتيبُ "
+        "مُواعَدٌ لا موقوت، فالسببُ ليس تأخّرَ عاملٍ: افحص أنّ `_Rendezvous` ما يزال "
+        "يُدخِل مطالبةَ الثاني **بين** مطالبة الأوّل وتحديثاته."
     )
 
 
