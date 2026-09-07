@@ -135,7 +135,14 @@ def known_columns() -> dict[str, set[str]]:
             for c in _ADD_COLUMN_CLAUSE.finditer(clauses):
                 columns.setdefault(table, set()).add(_ident(c.group("col")))
             for r in _RENAME_COLUMN.finditer(clauses):
-                columns.setdefault(table, set()).add(_ident(r.group("new")))
+                # الاسمُ القديم **يُتقاعَد**: الجردُ يصف شكلَ الجدول كما تتركه الهجرات
+                # مجتمعةً، وإبقاءُ الاسمين معاً يجعل فهرساً على اسمٍ أُعيدت تسميتُه يمرّ.
+                # أمسكه `copilot-pull-request-reviewer` على #989. مقيس عند الإصلاح: صفرُ
+                # `RENAME COLUMN` في البيان — فالمسارُ كامنٌ لا مُفعَّل، ويُغلَق قبل أن
+                # يُستعمَل لا بعد أن يُخطئ.
+                cols = columns.setdefault(table, set())
+                cols.discard(_ident(r.group("old")))
+                cols.add(_ident(r.group("new")))
     # جدولٌ أُنشئ بـ`AS SELECT` أعمدتُه من الاستعلام — لا نعرفها فلا نحكم عليه.
     for table in created_as:
         columns.pop(table, None)
@@ -219,3 +226,61 @@ def test_the_incident_shape_is_caught(tmp_path: Path, monkeypatch: pytest.Monkey
     monkeypatch.setattr("tests.test_migration_index_columns_exist.MANIFEST", mig / "MANIFEST.txt")
     with pytest.raises(AssertionError, match="crop_type"):
         test_every_indexed_column_is_defined_by_some_migration_of_its_table()
+
+
+def test_a_renamed_column_retires_its_old_name(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`RENAME COLUMN` يُخرِج الاسمَ القديم من الجرد — وإلّا مرّ فهرسٌ عليه.
+
+    أمسكه `copilot-pull-request-reviewer` على #989: أوّلُ صياغةٍ أضافت الاسمَ الجديد
+    **وأبقت** القديم، فصار الجردُ يصف اتّحادَ ما كان وما صار لا شكلَ الجدول بعد الهجرات
+    — وفهرسٌ على اسمٍ أُعيدت تسميتُه يمرّ أخضرَ وهو مكسورٌ على أيّ قاعدة.
+
+    **ومقيسٌ عند الإصلاح: صفرُ `RENAME COLUMN` في البيان** — فالمسارُ كامنٌ لا مُفعَّل،
+    وهذه الحالةُ تُغلقه قبل أوّل استعمالٍ لا بعد أوّل خطأ. ولذلك تشحن بياناً مصطنعاً:
+    لا شاهدَ لها في الشجرة اليوم.
+    """
+    mig = tmp_path / "migrations"
+    mig.mkdir()
+    (mig / "a_table.sql").write_text(
+        "CREATE TABLE IF NOT EXISTS soil_readings (\n"
+        "  reading_id UUID PRIMARY KEY, moisture_pct NUMERIC(6,3), recorded_at TIMESTAMPTZ\n"
+        ");\n",
+        encoding="utf-8",
+    )
+    (mig / "b_rename.sql").write_text(
+        "ALTER TABLE soil_readings RENAME COLUMN moisture_pct TO available_pct;\n",
+        encoding="utf-8",
+    )
+    (mig / "c_index.sql").write_text(
+        "CREATE INDEX IF NOT EXISTS idx_soil_moisture ON soil_readings(moisture_pct);\n",
+        encoding="utf-8",
+    )
+    (mig / "MANIFEST.txt").write_text("a_table.sql\nb_rename.sql\nc_index.sql\n", encoding="utf-8")
+    monkeypatch.setattr("tests.test_migration_index_columns_exist.MIGRATIONS", mig)
+    monkeypatch.setattr("tests.test_migration_index_columns_exist.MANIFEST", mig / "MANIFEST.txt")
+
+    assert known_columns()["soil_readings"] == {"reading_id", "available_pct", "recorded_at"}
+    with pytest.raises(AssertionError, match="moisture_pct"):
+        test_every_indexed_column_is_defined_by_some_migration_of_its_table()
+
+
+def test_the_tree_has_no_rename_today_so_this_path_is_latent_not_exercised() -> None:
+    """الصدقُ عن حدود ما قِيس: الحالةُ أعلاه مصطنعة لأنّ الشجرةَ خاليةٌ من إعادة التسمية.
+
+    تُحمِّر هذه البيانةُ حين يُضاف أوّلُ `RENAME COLUMN` حقيقيّ — لا لأنّ ذلك عطل، بل
+    لأنّ المسارَ يصير حينئذٍ **مُفعَّلاً** ويجب أن يُقاس على الشجرة لا على مستودعٍ مؤقّت:
+    احذف هذه البيانة، وتحقّق أنّ الجرد يعكس الاسمَ الجديد، وسمِّ الهجرةَ في الوثيقة.
+    """
+    pattern = re.compile(r"ALTER\s+TABLE\s+[^;]*?\bRENAME\s+(?:COLUMN\s+)?\w+\s+TO\s+", re.I | re.S)
+    renames = [
+        path.name
+        for path in _manifest_files()
+        if path.exists()
+        and pattern.search(_strip_sql_comments(path.read_text(encoding="utf-8", errors="replace")))
+    ]
+    assert not renames, (
+        "ظهرت أوّلُ إعادةِ تسميةٍ حقيقيّة في البيان — المسارُ الكامن صار مُفعَّلاً: "
+        f"{renames}. اقرأ وثيقةَ هذه البيانة قبل تحديثها."
+    )
