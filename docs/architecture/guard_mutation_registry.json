@@ -1901,6 +1901,48 @@
           "find": "    return tuple(module.APPEND_ONLY)",
           "replace": "    return (\"sahool-brain/log.md\",)",
           "why": "تصليبُ القائمة ⇒ فهرس ثانٍ ينحرف عن `resolve_merge_conflicts`، وهو صنف «قائمتان تصفان الشيء نفسه»"
+        },
+        {
+          "expect": "test_lossless_row_deduplication_does_not_exempt_other_files",
+          "find": "    if path not in policy.GLOBAL_ROW_UNIQUENESS_TARGETS:\n        return False",
+          "replace": "    if False:\n        return False",
+          "why": "إسقاطُ قيد النطاق ⇒ يصير استثناءُ إزالة الصفوف المكرّرة إعفاءً ملفّيّاً عاماً، فتُمحى بايتاتٌ من `log`/`hot` أو من سجلٍّ شبيه بلا أن يحجب الحارس"
+        },
+        {
+          "expect": "test_lossless_row_deduplication_rejects_information_loss",
+          "find": "                if raw != seen[identity]:\n                    return False",
+          "replace": "                if False:\n                    return False",
+          "why": "تركُ المعرّف يحكم وحده بلا بايتات الصفّ كاملةً ⇒ صفّان بالهوية نفسها لكن بدليلٍ أو حالةٍ أو مسافاتٍ مختلفة يُقرأان «نسخةً زائدة»، فيُفقد أحد النصّين المتعارضين صامتاً"
+        },
+        {
+          "expect": "test_lossless_row_deduplication_rejects_information_loss",
+          "find": "    if not after.startswith(retained):\n        return False",
+          "replace": "    if False:\n        return False",
+          "why": "إسقاطُ شرط البادئة المحفوظة ⇒ إعادةُ ترتيب الصفوف أو ملءُ الحذف بحشوٍ جديد تُقرأ «ضمّاً lossless»، مع أنّ النصّ المحفوظ لم يبقَ بادئةً كما كان"
+        },
+        {
+          "expect": "test_lossless_row_deduplication_preserves_fenced_examples",
+          "find": "    active_lines = policy._strip_fenced_blocks(parent_text.splitlines())",
+          "replace": "    active_lines = parent_text.splitlines()",
+          "why": "قراءةُ أمثلة الكتل المسوّرة كسجلّ حيّ ⇒ صفوفُ الشرح تموّل التقلّص، فيُحذَف مثالٌ موثّق ويُقال إنّه صفٌّ زائد"
+        },
+        {
+          "expect": "test_lossless_row_deduplication_rejects_information_loss",
+          "find": "    if after != retained and not retained.endswith((b\"\\n\", b\"\\r\")):\n        return False",
+          "replace": "    if False:\n        return False",
+          "why": "إسقاطُ حدّ السطر ⇒ لاحقةٌ جديدة تعيد كتابة السطر الأخير غير المنتهي بدل أن تُلحَق بعده، فيُمحى نثرٌ قائم ويُسمّى ذلك إضافة"
+        },
+        {
+          "expect": "test_lossless_row_deduplication_rejects_information_loss",
+          "find": "    return not policy.global_duplicate_row_identities(child_text)",
+          "replace": "    return True",
+          "why": "تركُ الابن يحمل التكرار بعد «الإصلاح» ⇒ الحارس يقبل تقلّصاً لم يحقق التفرّد العالميّ أصلاً، فيبقى الصفّ المكرّر أو يعود في اللاحقة"
+        },
+        {
+          "expect": "test_lossless_row_deduplication_satisfies_both_real_guards",
+          "find": "                if len(after) < len(before) and is_lossless_row_deduplication(path, before, after):",
+          "replace": "                if False:",
+          "why": "إبطالُ مسار القبول الضيّق نفسه ⇒ الشاهدُ الذي يجعل الحارسين يحكمان المرشّحَ نفسه يحمَرّ، ويعود الإصلاح lossless إلى `JOURNAL_SHRANK` رغم أنه أزال النسخ المتطابقة فقط"
         }
       ],
       "test": "tests_v9/test_brain_append_only_guard.py"
