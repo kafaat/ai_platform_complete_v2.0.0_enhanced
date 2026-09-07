@@ -8975,7 +8975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "73ca0c517f6cbf2770c2129b7027c80bb579efe5e387bece158e72acd13f4277"
+          "content": "5a3bc498f904ff85e1989b5de8170b10f1fb4452bed1bed9c539dbaf561243e2"
         }
       ],
       "name": "migrations/v9_new_tables.sql",

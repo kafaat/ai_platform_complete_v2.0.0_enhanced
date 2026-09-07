@@ -112,7 +112,13 @@ def test_both_jobs_use_the_one_canonical_runner_and_not_a_copied_loop():
     عدّاداً وIntegration لا تحمله، فأعطت **أخضرَ كاذباً** لقاعدةٍ ناقصة 225 هجرة.
     """
     ci = CI.read_text(encoding="utf-8")
-    assert ci.count("apply_migration_manifest.sh") == 2
+    # ثلاثُ استدعاءات لمُشغِّلٍ واحد: Live PG (١) · Integration التطبيقُ الأوّل على الفراغ (١)
+    # · Integration **التطبيقُ الثاني على القاعدة نفسِها** (١) —
+    # MIGRATION-REAPPLY-IDEMPOTENCY-UNMEASURED-01: الادّعاءُ المطبوع «idempotent» لم يكن
+    # يُقاس، وهجرةٌ تمرّ على الفراغ وتنكسر على القائم (v9_new_tables.sql:165) أسقطت
+    # مكدّسَ المالك. الثالثةُ استدعاءٌ للمُشغِّل القانونيّ نفسِه لا حلقةٌ منسوخة — وذلك ما
+    # يحرسه فحصُ `done <` أدناه، لا العدُّ وحده.
+    assert ci.count("apply_migration_manifest.sh") == 3
     # ولا يبقى **أيّ** مُعدِّدٍ آخر للبيان في الشجرة. النسخة الثالثة كانت في
     # `scripts/irr_f01/upgrade_gate_u1.sh` وأسقطت 32290853228 بعد أن ظننّا العطل
     # مُغلَقاً — لأنّ الفحص كان على `ci.yml` وحدها.
