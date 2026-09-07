@@ -43,14 +43,20 @@ name: Production Certification Blockers
 # البصمة)، و`P-CERT-2` كان يقيس حاجبَه فعلاً فبقي. و`P-CERT-3` و`P-CERT-4` **لا
 # انبعاثَ لهما** — ولا صمتَ أيضاً.
 #
-# ── حدُّ صدقٍ مُعلَن: ثلاثةٌ من خمسةٍ بلا مُنتِج ─────────────────────────────
+# ── حدُّ صدقٍ مُعلَن: اثنان من خمسةٍ بلا مُنتِج ──────────────────────────────
 # حواجزُ `production_evidence_pack_guard.BLOCKERS` **خمسة**، والمُنتِجُ الصادقُ اليوم
-# **اثنان**. و`GUARDS` أشدُّها: `guard_results_summary.json` لا يكتبه شيءٌ في المستودع
-# كلِّه (مقيسٌ: البحثُ عن اسمه يُرجِع قارئَين وتوثيقاً ولا مُنتِجاً)، ولا وظيفةَ له هنا
-# أصلاً — أربعُ وظائفَ لخمسة حواجز.
+# **ثلاثة**. و`GUARDS` كان أشدَّها — `guard_results_summary.json` لا يكتبه شيءٌ في
+# المستودع كلِّه، ولا وظيفةَ له هنا أصلاً — فصار له مُنتِجٌ ووظيفة:
+# `scripts/ci/collect_guard_surface_evidence.py` يقارن قائمةَ الحاجبات في كتالوج
+# الحرّاس بما أثبتت واجهةُ Actions تشغيلَه على هذه البصمة، ويُخرِج **الفارقَ لا العدد**
+# (وهو الإغلاقُ الموصوفُ حرفيّاً في `certification_evidence_producers.json`).
 #
-# فالحكمُ يبقى `production_certified=false` بعد هذا التغيير. والفرقُ أنّ سببَه صار
-# **ثلاثةَ مُنتِجين غائبين مُسمَّين بأسبابهم** في
+# فالحكمُ يبقى `production_certified=false` بعد هذا التغيير أيضاً. والفرقُ أنّ سببَه
+# انتقل من «لا مُنتِجَ أصلاً» إلى **فارقٍ مقيسٍ مُسمّى**: حرّاسُ workflows لا تعمل إلّا
+# بالإطلاق اليدويّ لم تُشغَّل على هذه البصمة، فتُسمّى واحداً واحداً في الدليل. وذاك
+# فرقٌ جوهريّ: الأوّل عجزٌ بنيويّ، والثاني عملٌ مُحدَّدٌ يُنجَز.
+#
+# والباقيان (`P-CERT-3`, `P-CERT-4`) **مُنتِجان غائبان مُسمَّيان بأسبابهما** في
 # `docs/architecture/certification_evidence_producers.json`، يفرضه
 # `scripts/ci/certification_evidence_producer_guard.py`: مَن أراد ختمَ حاجبٍ بلا
 # مُنتِجٍ صادقٍ يصطدم بسطرٍ يقول لماذا لا يُختَم.
@@ -197,6 +203,51 @@ jobs:
       # قيمتُهما في CI هي **قيمةُ عدم التزويد** لا شاهدٌ عليه. التزويدُ يقع عند نشر
       # المُشغِّل، ولا تملك هذه الـworkflow رؤيتَه.
 
+  guard-surface-evidence:
+    name: GUARDS Guard results summary evidence
+    runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.guards_digest.outputs.sha256 }}
+    permissions:
+      contents: read
+      # الفارقُ يُقاس من واجهة Actions — أيُّ خطوةٍ حاجبةٍ بلغت `success` على هذه
+      # البصمة. النطاقُ مُعلَنٌ هنا وحدَه كما في `full-branch-ci-evidence`.
+      actions: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      # `guard_catalogue` يقرأ الـworkflows كـYAML — نسبةُ خطوةٍ إلى وظيفتها بلا
+      # مُحلِّلٍ تخمين، وهو الخطأُ الذي يجعل الشاهدَ يشهد لموضعٍ غير موضعه.
+      - name: Install PyYAML (workflow parsing — no guesswork)
+        run: python -m pip install --quiet PyYAML
+      # **القياسُ يسبق الانبعاثَ ويحجبه.** فارقٌ غيرُ خالٍ ⇒ خروجٌ `1` ⇒ الخطوةُ
+      # التالية **غيرُ قابلةٍ للبلوغ** ⇒ لا دليل ⇒ `GUARDS` يبقى `pending` ⇒
+      # `production_certified=false`. شرطُ وصولٍ لا فحصٌ يُخدَع.
+      - name: Measure which blocking guards actually ran on this commit
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/ci/collect_guard_surface_evidence.py \
+            --out "${RUNNER_TEMP}/guards-fields.json"
+      - name: Emit GUARDS evidence
+        run: |
+          python scripts/ci/emit_certification_evidence.py \
+            --blocker GUARDS \
+            --fields-file "${RUNNER_TEMP}/guards-fields.json"
+      - name: Record the digest of what this job produced
+        id: guards_digest
+        run: |
+          echo "sha256=$(sha256sum certification/evidence/guard_results_summary.json | cut -d' ' -f1)" \
+            >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: certification-evidence-guards
+          path: certification/evidence/guard_results_summary.json
+          if-no-files-found: error
+          retention-days: 30
+
   certification-verdict:
     name: Production certification verdict
     # `always()` عمداً: وظيفةٌ ساقطةٌ لا تُنتِج مصنوعة، فيبقى حاجبُها `pending` بعد
@@ -207,6 +258,7 @@ jobs:
       - transitive-locks-evidence
       - redis-live-evidence
       - model-provisioning-evidence
+      - guard-surface-evidence
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -249,6 +301,7 @@ jobs:
         env:
           EVIDENCE_SHA256_P_CERT_1: ${{ needs.full-branch-ci-evidence.outputs.digest }}
           EVIDENCE_SHA256_P_CERT_2: ${{ needs.transitive-locks-evidence.outputs.digest }}
+          EVIDENCE_SHA256_GUARDS: ${{ needs.guard-surface-evidence.outputs.digest }}
         run: python scripts/ci/verify_certification_evidence_digests.py
       - name: Rebuild placeholders and manifest over the collected evidence
         # `--write` لا يرقّي شيئاً: يُنشئ نائبةَ `pending` لكلّ حاجبٍ لم تصله مصنوعة

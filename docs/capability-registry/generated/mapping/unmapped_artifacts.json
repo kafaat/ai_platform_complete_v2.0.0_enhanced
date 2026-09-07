@@ -7036,6 +7036,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_collect_guard_surface_evidence.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_command_dispatch_race_v65.py",
     "kind": "tests"
   },

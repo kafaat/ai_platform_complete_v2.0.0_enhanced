@@ -1784,6 +1784,100 @@
           "why": "إعادةُ الافتراض القديم بعينه: غيابُ إعلان الجودة من حسّاس يصير `accepted` فتؤهَّل القراءةُ لتهيئة التوأم من الباب المباشر — الشكلُ المُعاد إنتاجُه في مراجعة 703607bf"
         }
       ]
+    },
+    "scripts/ci/collect_guard_surface_evidence.py": {
+      "$why_ar": "PRODUCTION-CERTIFICATION-VERDICT-IS-FORGEABLE-AND-UNREACHABLE-01: الحاجبُ GUARDS غيرُ قابلٍ للإعفاء ولم يكن له مُنتِجٌ البتّة. وهذا الجامعُ منطقُ حكمٍ لا فحصٌ ساكن: كلُّ بندٍ فيه يفصل «شُغِّل الحارس» عن «لم يُقَس»، وعطلٌ في أيٍّ منها يُنتِج دليلاً verified عن سطحِ حراسةٍ لم يعمل — أي يحوّل أداةَ الصدق إلى مصدر الكذبة. فتُزرَع الأعطالُ في المنطق نفسِه ويُلزَم اختبارُ أثرها بالاحمرار.",
+      "mutations": [
+        {
+          "expect": "test_a_skipped_step_is_not_a_run",
+          "test": "tests_v9/test_collect_guard_surface_evidence.py",
+          "find": "            if step_conclusion != ACCEPTED_CONCLUSION:",
+          "replace": "            if False:",
+          "why": "خطوةٌ `skipped` تُقرأ تشغيلاً ⇒ خمسُ خطواتٍ حاجبةٍ تحمل `if:` في هذه الشجرة تُختَم «مرّت» وهي لم تعمل، وهو بعينه صنفُ «لم يُقَس يُقرأ أخضر» الذي يُعلِنه `_ACCEPTED_CONCLUSION` بصوتٍ عالٍ"
+        },
+        {
+          "expect": "test_a_renamed_step_does_not_inherit_the_jobs_green",
+          "test": "tests_v9/test_collect_guard_surface_evidence.py",
+          "find": "            if str(step.get(\"name\") or \"\") == declared:",
+          "replace": "            if True:",
+          "why": "أوّلُ خطوةٍ في الوظيفة تُطابِق أيَّ اسم ⇒ إعادةُ تسميةٍ (أو حذفُ الخطوة) تَرِث خضرةَ الوظيفة، فيبقى الشاهد أخضرَ على حارسٍ لم يعد يُستدعى أصلاً"
+        },
+        {
+          "expect": "test_a_missing_job_is_not_a_run",
+          "test": "tests_v9/test_collect_guard_surface_evidence.py",
+          "find": "        if not jobs:",
+          "replace": "        if False:",
+          "why": "وظيفةٌ غائبةٌ من العدّاء تُمرَّر بلا حكم: الحلقةُ الداخليّة لا تدور فيصل التنفيذ إلى `ran` — «لا وظيفة» يصير «نجحت»، وهو أخطر من فشلٍ صريح لأنّه صامت"
+        },
+        {
+          "expect": "test_a_matrix_job_must_prove_every_leg",
+          "test": "tests_v9/test_collect_guard_surface_evidence.py",
+          "find": "    for job_name in site[\"job_names\"]:",
+          "replace": "    for job_name in site[\"job_names\"][:1]:",
+          "why": "رِجلٌ واحدةٌ من خمسٍ تكفي ⇒ مكنسةُ الطفرات (٥ تفريعات) تُختَم مُشغَّلةً وأربعةُ أخماسها لم تعمل — والشاهدُ يقول عن سطح الحراسة أكثرَ ممّا قِيس"
+        },
+        {
+          "expect": "test_continue_on_error_is_not_a_blocking_run",
+          "test": "tests_v9/test_collect_guard_surface_evidence.py",
+          "find": "    if site[\"continue_on_error\"]:",
+          "replace": "    if False:",
+          "why": "خطوةٌ لا تُسقِط وظيفتَها حين تفشل تُعَدّ حاجباً ⇒ يتضخّم سطحُ الحراسة المُدَّعى بحرّاسٍ لا يمنعون دمجاً، وهو ادّعاءُ اكتمالٍ من شاهد حضور"
+        },
+        {
+          "expect": "test_an_inventory_that_collapsed_to_nothing_fails_closed",
+          "test": "tests_v9/test_collect_guard_surface_evidence.py",
+          "find": "    if len(declared) < MINIMUM_DISCOVERED_GUARDS:",
+          "replace": "    if False:",
+          "why": "مجلَّدُ workflows غائبٌ أو نمطُ الاستدعاء تغيّر ⇒ صفرُ حرّاس ⇒ صفرُ فارق ⇒ `verified` عن لا شيء. وهو أخطرُ فشلٍ ممكنٍ في شاهدٍ يُختَم به اعتمادُ إنتاج"
+        },
+        {
+          "expect": "test_the_exclusion_does_not_leak_to_a_guard_that_also_runs_elsewhere",
+          "test": "tests_v9/test_collect_guard_surface_evidence.py",
+          "find": "    if site[\"workflow\"] == SELF_WITNESSING_WORKFLOW:",
+          "replace": "    if True:",
+          "why": "استثناءُ الدور يبتلع الشجرةَ كلَّها ⇒ كلُّ موضعٍ مُستثنى ⇒ صفرُ فارق ⇒ `verified` دائماً. والاستثناءُ الضروريّ يصير باباً مفتوحاً إن لم يُقَس حدُّه"
+        },
+        {
+          "expect": "test_a_nonempty_difference_exits_nonzero",
+          "test": "tests_v9/test_collect_guard_surface_evidence.py",
+          "find": "    if fields[\"guards_unproven\"]:",
+          "replace": "    if False:",
+          "why": "فارقٌ غيرُ خالٍ يخرج بصفر ⇒ تُبلَغ خطوةُ الانبعاث فيُختَم `verified` فوق حرّاسٍ لم تُشغَّل. وشرطُ الوصول (خطوةٌ لا تُنفَّذ بعد ساقطة) هو الآليّةُ الوحيدة التي تحدّد `status`، فإسقاطُه يُسقِط الحاجبَ كلَّه"
+        }
+      ]
+    },
+    "scripts/ci/emit_certification_evidence.py": {
+      "$why_ar": "PRODUCTION-CERTIFICATION-VERDICT-IS-FORGEABLE-AND-UNREACHABLE-01: الباعثُ هو الحدُّ الوحيد بين «قياسٌ وقع» و«ملفٌّ كُتِب» في حزمة أدلّة الاعتماد كلِّها — يرث الأصلَ من البيئة ولا يقبله وسيطاً، ويرفض حقلاً أدنى فارغاً. وكان **بلا تكذيبٍ مسجَّل** رغم أنّ له جناحاً كاملاً: أي أنّ أحداً لم يزرع العطلَ ويُثبِت أنّ الجناح يحمرّ. سُجِّل حين أُضيفت له ثلاثيّةُ حجبٍ جديدة (وظيفةُ GUARDS)، لأنّ سياسةَ تجميد سطح الحجب توجب طفرةً سلوكيّةً قبل تفعيل أيّ زيادة.",
+      "mutations": [
+        {
+          "expect": "test_emitter_rejects_provenance_smuggled_through_a_fields_file",
+          "test": "tests_v9/test_certification_evidence_is_produced_not_assumed.py",
+          "find": "    reserved = sorted(set(fields) & set(_RESERVED_FIELDS))",
+          "replace": "    reserved = sorted(set())",
+          "why": "الحقولُ المحجوزة تُقبَل من ملفّ الحقول ⇒ يصير الباعثُ أداةَ تلفيقٍ جاهزة: يكفي تمريرُ `repository`/`commit` المطابقَين لتمرَّ مطابقةُ الأصل في الحارس، وهي قيمٌ عامّةٌ يعرفها أيُّ مؤلّف"
+        },
+        {
+          "expect": "test_emitter_rejects_an_empty_minimum_field",
+          "test": "tests_v9/test_certification_evidence_is_produced_not_assumed.py",
+          "find": "    empty = [f for f in item[\"minimum_fields\"] if not _substantive(payload.get(f))]",
+          "replace": "    empty = []",
+          "why": "دليلٌ ينقصه حقلٌ يشترطه الحارس يُكتَب ويُرفَع ⇒ يسقط بعد خطوتين في وظيفة الحكم التي لا تعرف ما الذي لم يُقَس، بدل أن يسقط في الوظيفة المالكة للسبب. والأسوأ: قائمةٌ فارغةٌ أو null تُرضي فحصَ الحضور، وهو المتّجه الذي مرّ به الدليلُ المُلفَّق أصلاً"
+        },
+        {
+          "expect": "test_emitter_refuses_to_write_outside_a_ci_run",
+          "test": "tests_v9/test_certification_evidence_is_produced_not_assumed.py",
+          "find": "    if missing:",
+          "replace": "    if False:",
+          "why": "الانبعاثُ خارج عدّاء Actions يصير ممكناً بأصلٍ ناقص ⇒ يُكتَب دليلٌ على جهازٍ محلّيّ ويُلتزَم بـ`git add`، وهو بعينه التزييفُ الذي وُجِد `--purge` لقطعه من الطرف الآخر"
+        },
+        {
+          "expect": "test_purge_removes_exactly_the_blocker_files",
+          "test": "tests_v9/test_certification_evidence_is_produced_not_assumed.py",
+          "find": "    for item in _blockers():",
+          "replace": "    for item in []:",
+          "why": "المسحُ لا يمسح شيئاً ⇒ يبقى دليلٌ `verified` **مودَعٌ في الشجرة** فيقرؤه المُحكِّم بلا أن تُنتِجه وظيفة، أي أنّ كلّ سلسلة الإنتاج والعبور والتوقيع يُلتَفُّ عليها بالتزامٍ واحد"
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

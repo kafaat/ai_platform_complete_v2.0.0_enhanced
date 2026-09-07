@@ -91,8 +91,26 @@ def resolve_workflow_id(api: str, repository: str, workflow_path: str, token: st
     يُستعمَل `id` الرقميّ — وهو صحيحٌ تحت القراءتين معاً، ويحوّل المسارَ من مُعرِّفٍ
     مفترَض إلى حقيقةٍ مقيسة.
     """
+    index = workflow_index(api, repository, token)
+    if workflow_path in index:
+        return index[workflow_path]
+    raise SystemExit(
+        f"لا workflow مسارُه {workflow_path} في {repository} — "
+        f"المسارات المرصودة ({len(index)}): {', '.join(sorted(index)[:8])}…\n"
+        "وهذا **ليس** «لا عدّاءَ على هذه البصمة»: المُعرِّفُ نفسُه لم يُحلَّ."
+    )
+
+
+def workflow_index(api: str, repository: str, token: str) -> dict[str, int]:
+    """`path -> id` لكلّ workflow في المستودع — تُسأل القائمةُ **مرّةً**.
+
+    فُصِلت عن `resolve_workflow_id` حين صار لها مُنادٍ ثانٍ يحلّ ستّةً وأربعين مساراً
+    (`collect_guard_surface_evidence`): استدعاءُ الحلّ لكلٍّ منها كان سيُعيد سردَ
+    القائمة ستّاً وأربعين مرّة. والتعريفُ يبقى واحداً — نسخُ حلقةِ الترقيم في المُنادي
+    الثاني هو بعينه صنفُ «تعريفان يتّفقان اليوم» الذي يقيسه هذا المستودع مراراً.
+    """
+    index: dict[str, int] = {}
     page = 1
-    seen: list[str] = []
     while page <= 10:  # سقفٌ صريح: قائمةٌ بلا نهايةٍ عطلٌ لا انتظار
         payload = _api(
             f"{api}/repos/{repository}/actions/workflows?per_page=100&page={page}", token
@@ -101,17 +119,13 @@ def resolve_workflow_id(api: str, repository: str, workflow_path: str, token: st
         if not workflows:
             break
         for workflow in workflows:
-            if str(workflow.get("path") or "") == workflow_path:
-                return int(workflow["id"])
-            seen.append(str(workflow.get("path") or ""))
+            path = str(workflow.get("path") or "")
+            if path and path not in index:
+                index[path] = int(workflow["id"])
         if len(workflows) < 100:
             break
         page += 1
-    raise SystemExit(
-        f"لا workflow مسارُه {workflow_path} في {repository} — "
-        f"المسارات المرصودة ({len(seen)}): {', '.join(sorted(seen)[:8])}…\n"
-        "وهذا **ليس** «لا عدّاءَ على هذه البصمة»: المُعرِّفُ نفسُه لم يُحلَّ."
-    )
+    return index
 
 
 def collect(workflow_path: str = DEFAULT_WORKFLOW_PATH) -> dict:

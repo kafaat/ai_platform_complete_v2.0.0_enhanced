@@ -19,6 +19,24 @@
       "positive_witness": "test_a_fully_declared_addition_passes — زيادةٌ تحمل الخصائصَ الأربع تمرّ بلا ملاحظة. بدونه يمرّ فحصٌ يرفض **كلّ** زيادةٍ بما فيها المشروعة.",
       "impact": "advisory",
       "$note_ar": "**هذه الزيادةُ تُقرّ نفسَها.** أوّلُ ما يمرّ على آليّة التجميد هو إدخالُ الآليّة نفسِها — وإلّا كانت سياسةً تُطالِب غيرَها بما لا تُطالِب به نفسَها. وتصنيفُها `advisory` صادقٌ لا تحايل: الوظيفةُ تُعيد 0 مهما وجدت، و`--enforce` غيرُ موصولٍ بأيّ workflow."
+    },
+    "scripts/ci/collect_guard_surface_evidence.py::production-certification-blockers.yml::guard-surface-evidence": {
+      "counterexample": "مقيسٌ على `main @ 82e56b05`: الحاجبُ `GUARDS` في `production_evidence_pack_guard.BLOCKERS` **غيرُ قابلٍ للإعفاء** ويشترط `certification/evidence/guard_results_summary.json` بحالة `verified` — و**لا شيءَ في المستودع كلِّه يكتب ذلك الملفّ** (البحثُ عن اسمه يُرجِع قارئَين وتوثيقاً ولا مُنتِجاً)، ولا وظيفةَ له في `production-certification-blockers.yml` أصلاً: أربعُ وظائفَ لخمسة حواجز. فالحكمُ `production_certified=false` لم يكن نتيجةَ قياسٍ فشل بل نتيجةَ **قياسٍ لا وجودَ له** — وبوّابةٌ لا تُغلَق بعملٍ صحيح تُقرأ بمرور الوقت دعوةً إلى تزييف مُدخَلها. والعلاجُ منصوصٌ حرفيّاً في `docs/architecture/certification_evidence_producers.json`.",
+      "mutation": "test_a_skipped_step_is_not_a_run",
+      "$mutation_ar": "ثمانُ طفراتٍ سلوكيّةٍ مسجَّلةٌ لهذا المصدر في `guard_mutation_registry.json`، **٨/٨ مقتولة** بالزرع الفعليّ. والمُسمّاة هنا أشدُّها دلالةً: تعطيلُ شرط `success` يجعل خطوةً `skipped` تُقرأ تشغيلاً — أي «لم يُقَس» يلبس ثوبَ «مرّ»، وهو العطلُ الذي وُجِد هذا الشاهدُ كلُّه لمنعه.",
+      "positive_witness": "test_a_successful_step_proves_its_guard_ran",
+      "$positive_witness_ar": "ومعه `test_a_guard_invoked_twice_is_proven_by_either_site` و`test_an_unnamed_step_is_matched_by_the_command_github_names_it_with`: لا يكفي أن يُرفَض الزائف، بل يجب أن يمرّ الصحيح — وإلّا صار الشاهدُ رفضاً لكلّ شيءٍ فيُلتَفّ عليه في أوّل ضغط.",
+      "impact": "release",
+      "$impact_ar": "يحجب في `production-certification-blockers.yml` وحدَها، وهي `workflow_dispatch` — فلا تمسّ الدمج. موضعُها حكمُ اعتماد الإنتاج: فارقٌ غيرُ خالٍ ⇒ لا دليل ⇒ `GUARDS` يبقى `pending` ⇒ `production_certified=false`."
+    },
+    "scripts/ci/emit_certification_evidence.py::production-certification-blockers.yml::guard-surface-evidence": {
+      "counterexample": "مقيسٌ على `main @ 82e56b05`: الحاجبُ `GUARDS` في `production_evidence_pack_guard.BLOCKERS` **غيرُ قابلٍ للإعفاء** ويشترط `certification/evidence/guard_results_summary.json` بحالة `verified` — و**لا شيءَ في المستودع كلِّه يكتب ذلك الملفّ** (البحثُ عن اسمه يُرجِع قارئَين وتوثيقاً ولا مُنتِجاً)، ولا وظيفةَ له في `production-certification-blockers.yml` أصلاً: أربعُ وظائفَ لخمسة حواجز. فالحكمُ `production_certified=false` لم يكن نتيجةَ قياسٍ فشل بل نتيجةَ **قياسٍ لا وجودَ له** — وبوّابةٌ لا تُغلَق بعملٍ صحيح تُقرأ بمرور الوقت دعوةً إلى تزييف مُدخَلها. والعلاجُ منصوصٌ حرفيّاً في `docs/architecture/certification_evidence_producers.json`. والباعثُ يُستدعى في الوظيفة الجديدة لأنّ `certification_evidence_producer_guard` يشترط أن يستدعيَه الـworkflow المُعلَن **لهذا الحاجب بعينه** قبل قبول `state: produced`.",
+      "mutation": "test_emitter_rejects_provenance_smuggled_through_a_fields_file",
+      "$mutation_ar": "أربعُ طفراتٍ سلوكيّةٍ سُجِّلت للباعث في هذه الشريحة — وكان **بلا تكذيبٍ مسجَّل** رغم جناحه الكامل، أي أنّ أحداً لم يزرع العطل ويُثبِت أنّ الجناح يحمرّ. والمُسمّاة هنا تنزع رفضَ الحقول المحجوزة، فيصير تمريرُ `repository`/`commit` مطابقَين كافياً لخداع مطابقةِ الأصل في الحارس.",
+      "positive_witness": "test_emitter_writes_evidence_the_strict_guard_accepts",
+      "$positive_witness_ar": "يُثبِت أنّ الانبعاثَ من قياسٍ حقيقيّ يُنتِج ملفّاً **يقبله الحارسُ الصارم** — فالباعثُ ليس رفضاً لكلّ شيء.",
+      "impact": "release",
+      "$impact_ar": "نفسُ موضع الأولى: الوظيفةُ في workflow بالإطلاق اليدويّ، وأثرُها حكمُ اعتماد الإنتاج لا الدمج."
     }
   }
 }

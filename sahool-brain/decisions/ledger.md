@@ -2384,3 +2384,17 @@ SHAs من `git log --oneline origin/main`.
 - **المصدر:** `migrations/v9_new_tables.sql` · `tests/test_migration_index_columns_exist.py` · صفّا `MIGRATION-INDEX-NAMES-A-COLUMN-NO-TABLE-DEFINES-01` و`MIGRATION-REAPPLY-IDEMPOTENCY-UNMEASURED-01`.
 - **القرار ④ (بإذن المالك «نفّذ»):** تُضاف خطوةُ إعادة تطبيق البيان مرّةً ثانية إلى *Integration Tests* — تعديلٌ في `ci.yml` بإذنٍ صريح، وهو تشديدٌ لا تجاوز.
 - **السبب:** الحارسُ الساكن يغطّي صنفَ أعمدة الفهارس وحدَه؛ التطبيقُ الثاني يقيس الادّعاءَ المطبوع نفسَه على كلّ DDL. والمُشغِّل مقيسٌ أنّه لا يتخطّى ما طُبِّق، فالخطوةُ قياسٌ لا زينة.
+
+## 2026-09-07 — شاهدُ سطح الحراسة: الفارقُ لا العدد، وكلُّ الـworkflows لا `ci.yml` وحدَها
+
+- **القرار ①:** يُبنى مُنتِجُ `GUARDS` بمقارنة قائمة الحاجبات المشتقّة من `guard_catalogue` بما أثبتت واجهةُ Actions تشغيلَه على البصمة نفسِها، ويُخرِج الفارقَ مُسمًّى لا عدداً.
+- **السبب:** هذا هو الإغلاقُ الموصوف حرفيّاً في `certification_evidence_producers.json`، والبديلُ المرفوضُ فيه (ختمُ `verified` فوق ما يقيسه `preflight.sh`) ادّعاءُ اكتمالٍ من شاهد حضور.
+- **القرار ②:** يشمل القياسُ **كلَّ** workflow يستدعي حارساً حاجباً، لا `ci.yml` وحدَها كما نصّ الوصف.
+- **السبب:** مقيس — ١١٤ من ٢٧١ حارساً تحجب خارج `ci.yml`، فقصرُ الشاهد عليها يُنتِج `verified` عن ٥٨٪: نفسُ العطل المرفوض بحجمٍ أكبر. الوصفُ يُنفَّذ بروحه لا بحرفه حين يكون حرفُه أضعف.
+- **القرار ③:** `discover_invocation_sites()` تصير المُحلِّل الوحيد للـworkflows، و`discover_invocations()` إسقاطٌ منها.
+- **السبب:** مُحلِّلٌ ثانٍ للاستدعاءات يتّفق مع الأوّل اليوم وينحرف غداً — الصنفُ المقيس مراراً هنا. والكتالوجُ خرج بايتاً بايتاً كما كان، فالإسقاطُ مُثبَتٌ لا مزعوم.
+- **القرار ④:** مواضعُ الاستدعاء في `production-certification-blockers.yml` مُستثناةٌ من المطالبة، والاستثناءُ يُنشَر في الدليل وتُثبَّت عضويّتُه باختبار.
+- **السبب:** دورٌ لا يتقارب (العدّاءُ الجاري بلا خُلاصة، والسابقُ لا يخضرّ حكمُه إلّا بهذا الشاهد). وبوّابةٌ لا تُغلَق بعملٍ صحيح هي العطلُ الذي يُغلقه هذا الملفّ، فلا يجوز أن يُعيد إنتاجه. وتثبيتُ العضويّة يمنع أن يصير الاستثناءُ باباً للإعفاء بالنقل.
+- **القرار ⑤:** `GUARDS` ينتقل إلى `state: produced`، ويبقى `production_certified=false` بلا ادّعاءٍ بالعكس.
+- **السبب:** المُنتِجُ يقيس الحاجبَ المسمّى به فعلاً (شرطُ `certification_evidence_producer_guard`)؛ والحكمُ يبقى سالباً لفارقٍ مقيسٍ مُسمّى لا لغياب قياس.
+- **المصدر:** `scripts/ci/collect_guard_surface_evidence.py` · `scripts/ci/guard_catalogue.py` · `scripts/ci/collect_full_branch_ci_evidence.py` (`workflow_index`) · `.github/workflows/production-certification-blockers.yml` · `docs/architecture/certification_evidence_producers.json` · `tests_v9/test_collect_guard_surface_evidence.py` (٢٠ حالة) · `guard_mutation_registry.json` (٨ طفرات سلوكيّة، ٨/٨ مقتولة).
