@@ -163,6 +163,27 @@ def global_duplicate_row_identities(text: str) -> list[tuple[str, list[int]]]:
     return [(gap_id, at) for gap_id, at in seen.items() if len(at) > 1]
 
 
+def duplicate_row_lines(text: str) -> dict[str, list[str]]:
+    """النصُّ الخامّ لكلّ صفٍّ يُعلِن هويّةً مكرَّرةً عالميّاً، مفهرَساً بالهويّة.
+
+    مُصدَّرٌ عمداً: `brain_append_only_guard` يحتاج **بعينها** هذه المعرفة ليميّز نقصاً
+    هو ضمُّ صفٍّ مكرَّر (وهو ما يفرضه هذا الحارس) من نقصٍ هو فقدُ محتوى (وهو ما يحجبه
+    ذاك). ولو اشتقّها بنمطٍ ثانٍ لصار للحارسَين قراءتان لـ«الصفّ المكرَّر» تنحرفان —
+    وهو صنفُ «قائمتان تصفان الشيء نفسه» المقيس مراراً هنا. المعرفةُ تبقى حيث تُفرَض.
+    """
+    lines = text.splitlines()
+    stripped = _strip_fenced_blocks(lines)
+    dup_ids = {gap_id for gap_id, _ in global_duplicate_row_identities(text)}
+    out: dict[str, list[str]] = {}
+    for raw, line in zip(lines, stripped, strict=True):
+        if line is None:
+            continue
+        m = ROW_FULL_ID_RE.match(line)
+        if m and m.group("gap_id") in dup_ids:
+            out.setdefault(m.group("gap_id"), []).append(raw)
+    return out
+
+
 def check(paths: list[Path]) -> list[str]:
     problems: list[str] = []
     for path in paths:

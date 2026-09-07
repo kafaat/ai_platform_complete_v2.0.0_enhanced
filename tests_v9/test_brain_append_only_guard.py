@@ -197,6 +197,123 @@ def test_a_deleted_journal_blocks(guard, tmp_path):
     assert codes <= {"JOURNAL_DELETED", "JOURNAL_ABSENT_AT_HEAD"}, codes
 
 
+# ── the one shrink that is not a loss ──────────────────────────────────────
+#
+# ``APPEND-ONLY-GUARD-FORBIDS-ROW-DEDUPLICATION-01``. The sibling guard requires one
+# governing row per gap identity, so reconciling a ``merge=union`` duplicate must remove a
+# row — and on #985 that cost 1,090 bytes and this guard answered ``JOURNAL_SHRANK``. Two
+# blocking guards demanding opposite things about one edit. These tests pin the exception
+# *and* its four edges, because an exception nobody can falsify is a hole with a comment.
+
+REGISTRY = "sahool-brain/gaps/registry.md"
+JOURNAL = "sahool-brain/log.md"
+
+_HEADER = "# سجلّ الفجوات\n\n| المعرّف | الوسم | المصدر | الحالة |\n| --- | --- | --- | --- |\n"
+_DUP_FIRST = "| GAP-ALPHA-01 | brain | src.py:1 | **open** — الصفّ الأوّل، من جلسةٍ أولى |\n"
+_DUP_SECOND = "| GAP-ALPHA-01 | brain | src.py:1 | **open** — الصفّ الثاني، من جلسةٍ ثانية |\n"
+_MERGED = "| GAP-ALPHA-01 | brain | src.py:1 | **open** — الأوّل والثاني مضمومان |\n"
+_UNIQUE = "| GAP-BETA-02 | ci | other.py:9 | **fixed** — صفٌّ وحيد لا يجوز أن يختفي |\n"
+
+WITH_DUPLICATE = _HEADER + _DUP_FIRST + _UNIQUE + _DUP_SECOND
+RECONCILED = _HEADER + _MERGED + _UNIQUE
+
+
+def _two_commits(tmp_path: Path, name: str, path: str, before: str, after: str) -> Path:
+    """A repo whose HEAD edits ``path`` from ``before`` to ``after``, and nothing else."""
+    root = tmp_path / name
+    target = root / path
+    target.parent.mkdir(parents=True)
+
+    def git(*args):
+        subprocess.run(["git", *args], cwd=root, check=True, capture_output=True)
+
+    git("init", "-q", "-b", "main", ".")
+    git("config", "user.email", "t@t")
+    git("config", "user.name", "t")
+    target.write_text(before, encoding="utf-8")
+    git("add", "-A")
+    git("commit", "-qm", "parent")
+    target.write_text(after, encoding="utf-8")
+    git("add", "-A")
+    git("commit", "-qm", "child")
+    return root
+
+
+def _verdict(guard, root: Path, path: str):
+    blocking, advisory, pairs = guard.check_range(None, "HEAD", files=(path,), root=root)
+    assert pairs == 1, f"the premise is one comparable pair; examined {pairs}"
+    return blocking, advisory
+
+
+def test_folding_a_duplicated_row_shrinks_the_registry_and_is_not_a_loss(guard, tmp_path):
+    """The blocked edit from #985, in miniature: two rows for one identity become one."""
+    assert len(RECONCILED) < len(WITH_DUPLICATE), "the premise is that the file shrinks"
+    root = _two_commits(tmp_path, "dedup", REGISTRY, WITH_DUPLICATE, RECONCILED)
+    blocking, advisory = _verdict(guard, root, REGISTRY)
+    assert not blocking, "\n".join(str(f) for f in blocking)
+    codes = [f.code for f in advisory]
+    assert "DUPLICATE_ROW_RECONCILED" in codes, (
+        f"the shrink must be reported, never silent; got {codes}"
+    )
+    assert (
+        "GAP-ALPHA-01" in next(f for f in advisory if f.code == "DUPLICATE_ROW_RECONCILED").detail
+    )
+
+
+def test_the_exception_does_not_excuse_truncating_a_registry_that_has_duplicates(guard, tmp_path):
+    """The incident, dressed as a deduplication. Emptying removes rows that were unique."""
+    root = _two_commits(tmp_path, "empty", REGISTRY, WITH_DUPLICATE, "")
+    blocking, _ = _verdict(guard, root, REGISTRY)
+    assert [f.code for f in blocking] == ["JOURNAL_SHRANK"], (
+        "a file containing duplicates is not thereby a file that may be emptied"
+    )
+
+
+def test_the_exception_does_not_excuse_removing_a_row_that_was_never_duplicated(guard, tmp_path):
+    """The narrow reading: only the *duplicated* identity's rows may vanish."""
+    root = _two_commits(
+        tmp_path,
+        "unique",
+        REGISTRY,
+        WITH_DUPLICATE,
+        _HEADER + _DUP_FIRST + _DUP_SECOND,  # both duplicates kept, the unique row deleted
+    )
+    blocking, _ = _verdict(guard, root, REGISTRY)
+    assert [f.code for f in blocking] == ["JOURNAL_SHRANK"], (
+        "GAP-BETA-02 was declared once; losing it is a loss"
+    )
+
+
+def test_the_exception_is_scoped_to_the_file_whose_rows_are_unique_declarations(guard, tmp_path):
+    """``log.md`` is prose. Nothing there is a "governing row", so nothing there is exempt."""
+    root = _two_commits(tmp_path, "scope", JOURNAL, WITH_DUPLICATE, RECONCILED)
+    blocking, _ = _verdict(guard, root, JOURNAL)
+    assert [f.code for f in blocking] == ["JOURNAL_SHRANK"], (
+        "the exception must not follow the shape of the content into another journal"
+    )
+
+
+def test_a_registry_with_no_duplicate_at_the_parent_has_no_exception_to_claim(guard, tmp_path):
+    root = _two_commits(
+        tmp_path, "clean", REGISTRY, _HEADER + _DUP_FIRST + _UNIQUE, _HEADER + _DUP_FIRST
+    )
+    blocking, _ = _verdict(guard, root, REGISTRY)
+    assert [f.code for f in blocking] == ["JOURNAL_SHRANK"]
+
+
+def test_what_counts_as_a_duplicate_row_is_imported_from_the_guard_that_enforces_it(guard):
+    """Two readings of "duplicate row" would drift; the sibling guard owns the parsing."""
+    source = GUARD.read_text(encoding="utf-8")
+    assert "module.duplicate_row_lines(" in source
+    assert "module.GLOBAL_ROW_UNIQUENESS_TARGETS" in source
+    assert "re.compile" not in source, "this guard must not grow a second row parser"
+
+    sibling = _load(ROOT / "scripts/ci/brain_duplicate_gap_identity_guard.py", "_dup_probe")
+    rows = sibling.duplicate_row_lines(WITH_DUPLICATE)
+    assert set(rows) == {"GAP-ALPHA-01"}, rows
+    assert rows["GAP-ALPHA-01"] == [_DUP_FIRST.rstrip("\n"), _DUP_SECOND.rstrip("\n")]
+
+
 # ── the classification is imported, never restated ────────────────────────
 
 

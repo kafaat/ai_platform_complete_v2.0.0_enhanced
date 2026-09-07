@@ -34,6 +34,24 @@ to bypass it, so prefix loss is **reported** and size loss **blocks**.
 The file list is not written here: it is imported from ``resolve_merge_conflicts``, which
 already owns that classification. A second list is a second thing to keep in step.
 
+**One shrink is not a loss, and it took a blocked merge to learn it.**
+``APPEND-ONLY-GUARD-FORBIDS-ROW-DEDUPLICATION-01``: ``brain_duplicate_gap_identity_guard``
+requires **one governing row per gap identity** in ``gaps/registry.md``, so reconciling a
+``merge=union`` duplicate means one of the two rows must stop existing. Measured on #985:
+folding the two ``SOIL-MOISTURE-UNIT-IDENTITY-01`` rows cost 1,090 bytes and this guard
+answered ``JOURNAL_SHRANK`` — two blocking guards demanding opposite things about the same
+edit, satisfiable only by rewriting history. Neither is wrong; the rule was simply stated
+in bytes when what it protects is **content**.
+
+So the exception is narrow and **proven per pair**, never asserted: on the one file whose
+rows are unique declarations by design, a shrink passes only when *every line that vanished
+was a row carrying an identity that was declared more than once at the parent*. The proof
+is a multiset difference over the parent's own lines, and the surviving duplicate row may
+be rewritten to absorb both texts. Truncation removes lines that are not duplicate rows, so
+it still blocks — including truncation of a file that happens to contain duplicates. What
+the exception bounds is **which lines may disappear**; whether the surviving row still says
+what both said is a review question, not a measurable one, and is not claimed here.
+
 Fails closed. An unreadable history, an unresolvable ref, or a deleted journal is a
 failure — "there is nothing to compare against" is never a pass.
 """
@@ -44,6 +62,8 @@ import argparse
 import importlib.util
 import subprocess
 import sys
+from collections import Counter
+from functools import lru_cache
 from pathlib import Path
 
 # GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: مخرَجُ هذا الحارس عربيّ،
@@ -58,6 +78,7 @@ for _stream in (sys.stdout, sys.stderr):
 
 ROOT = Path(__file__).resolve().parents[2]
 RESOLVER = Path(__file__).resolve().parent / "resolve_merge_conflicts.py"
+DUPLICATE_GUARD = Path(__file__).resolve().parent / "brain_duplicate_gap_identity_guard.py"
 
 
 def append_only_files() -> tuple[str, ...]:
@@ -73,6 +94,63 @@ def append_only_files() -> tuple[str, ...]:
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return tuple(module.APPEND_ONLY)
+
+
+@lru_cache(maxsize=1)
+def _duplicate_guard():
+    """The sibling guard, loaded rather than re-implemented.
+
+    It owns what "a row declaring a duplicated identity" means — the fenced-block
+    exclusion and the dotted-identity anchor were both corrected there by measurement.
+    Re-deriving either here would make the two guards disagree about the same line.
+    """
+    spec = importlib.util.spec_from_file_location(
+        "_brain_duplicate_gap_identity_guard", DUPLICATE_GUARD
+    )
+    if not spec or not spec.loader:
+        raise SystemExit(f"✗ لا يمكن قراءة حارس الهويّات المكرَّرة من {DUPLICATE_GUARD}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def duplicate_row_reconciliation(path: str, before: bytes, after: bytes) -> str | None:
+    """A proof string when the shrink is exactly the removal of duplicate-identity rows.
+
+    Returns ``None`` — meaning "block" — for every other shrink, including a shrink in a
+    file that merely *contains* duplicates. The bound is the parent's own lines: whatever
+    disappeared must be one of the rows whose identity the sibling guard would refuse to
+    leave duplicated.
+    """
+    module = _duplicate_guard()
+    if path not in module.GLOBAL_ROW_UNIQUENESS_TARGETS:
+        return None
+    try:
+        before_text = before.decode("utf-8")
+        after_text = after.decode("utf-8")
+    except UnicodeDecodeError:
+        return None  # unreadable content is never proof of anything
+
+    duplicated = module.duplicate_row_lines(before_text)
+    if not duplicated:
+        return None
+
+    allowed: Counter[str] = Counter()
+    for rows in duplicated.values():
+        allowed.update(rows)
+    removed = Counter(before_text.splitlines()) - Counter(after_text.splitlines())
+    if not removed or removed - allowed:
+        return None
+
+    touched = sorted(
+        gap_id for gap_id, rows in duplicated.items() if any(row in removed for row in rows)
+    )
+    return (
+        f"نقصٌ مبرهَن أنّه ضمُّ صفوفٍ مكرَّرة الهويّة: "
+        f"{sum(removed.values())} صفّاً أُزيل، كلُّه مُعلَنٌ مرّتين فأكثر عند الوالد "
+        f"({', '.join(touched)}) — ولا سطرَ آخر اختفى"
+    )
 
 
 def _git(*args: str, root: Path = ROOT) -> subprocess.CompletedProcess[bytes]:
@@ -162,16 +240,28 @@ def check_range(
                     )
                     continue
                 if len(after) < len(before):
-                    blocking.append(
-                        Finding(
-                            "JOURNAL_SHRANK",
-                            path,
-                            parent,
-                            commit,
-                            f"{len(before):,} ← {len(after):,} بايت "
-                            f"(فُقِد {len(before) - len(after):,})",
+                    proof = duplicate_row_reconciliation(path, before, after)
+                    if proof is None:
+                        blocking.append(
+                            Finding(
+                                "JOURNAL_SHRANK",
+                                path,
+                                parent,
+                                commit,
+                                f"{len(before):,} ← {len(after):,} بايت "
+                                f"(فُقِد {len(before) - len(after):,})",
+                            )
                         )
-                    )
+                    else:
+                        advisory.append(
+                            Finding(
+                                "DUPLICATE_ROW_RECONCILED",
+                                path,
+                                parent,
+                                commit,
+                                f"{len(before):,} ← {len(after):,} بايت — {proof}",
+                            )
+                        )
                 elif not after.startswith(before):
                     advisory.append(
                         Finding(
