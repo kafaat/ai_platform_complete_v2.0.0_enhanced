@@ -367,9 +367,7 @@ def test_lossless_row_deduplication_satisfies_both_real_guards(
     assert _dedup_git(root, "rev-parse", "HEAD") == parent
     assert candidate != parent, "a stale HEAD is not evidence for the candidate"
     assert guard.blob(candidate, _REGISTRY, root=root) == after
-    blocking, advisory, pairs = guard.check_range(
-        parent, candidate, files=(_REGISTRY,), root=root
-    )
+    blocking, advisory, pairs = guard.check_range(parent, candidate, files=(_REGISTRY,), root=root)
     assert pairs == 1
     assert not blocking, "\n".join(str(f) for f in blocking)
     assert [f.code for f in advisory] == ["DUPLICATE_ROWS_DEDUPLICATED"]
@@ -449,7 +447,8 @@ def test_lossless_row_deduplication_preserves_fenced_examples(guard, tmp_path, f
             id="fenced-example-not-an-active-duplicate",
         ),
         pytest.param(
-            _HEADER + _ROW_A.replace("GAP-A", "WAIVER-WX10.6-001")
+            _HEADER
+            + _ROW_A.replace("GAP-A", "WAIVER-WX10.6-001")
             + _ROW_A.replace("GAP-A", "WAIVER-WX10.7-001"),
             _HEADER + _ROW_A.replace("GAP-A", "WAIVER-WX10.6-001"),
             id="dotted-identities-are-distinct",
@@ -502,9 +501,7 @@ def test_lossless_row_deduplication_does_not_exempt_other_files(guard, tmp_path,
 
 
 @pytest.mark.parametrize("lose_second_parent", [False, True])
-def test_lossless_row_deduplication_checks_every_merge_parent(
-    guard, tmp_path, lose_second_parent
-):
+def test_lossless_row_deduplication_checks_every_merge_parent(guard, tmp_path, lose_second_parent):
     root = _dedup_repo(tmp_path, (_HEADER + _ROW_A + _ROW_B).encode())
     ancestor = _dedup_git(root, "rev-parse", "HEAD")
     left_content = (_HEADER + _ROW_A * 3 + _ROW_B).encode()
