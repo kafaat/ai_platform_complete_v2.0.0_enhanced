@@ -344,7 +344,9 @@ def test_mcp_idempotency_cannot_cross_callers(live_mcp_contract, monkeypatch, mo
 def test_compose_starts_each_distinct_mcp_module():
     import yaml
 
-    services = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text())["services"]
+    services = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))[
+        "services"
+    ]
     modules = {
         "sentinel-hub": "sentinel_hub_server",
         "weather": "weather_server",

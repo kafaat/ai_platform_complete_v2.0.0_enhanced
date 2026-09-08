@@ -222,7 +222,7 @@ async def test_drawing_migration_reapplies_and_isolates_runtime_dml():
     table = f"{schema}.drawing_features"
     migration = (
         Path(__file__).resolve().parents[1] / "migrations/v230_drawing_features.sql"
-    ).read_text()
+    ).read_text(encoding="utf-8")
     app = await asyncpg.connect(_APP_DSN)
     admin = await asyncpg.connect(_ADMIN_DSN)
     try:
