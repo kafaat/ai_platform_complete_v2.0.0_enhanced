@@ -22,8 +22,10 @@
   "gaps": {
     "NATS-AUTHORIZATION-NOT-ENFORCED": {
       "status": "OPEN",
-      "evidence": "nats/nats.conf defines JetStream limits and monitoring but no authorization/accounts/users/NKeys or subject permissions",
-      "closing_condition": "anonymous denied; per-service publish/subscribe allow-lists proven with negative and positive probes"
+      "evidence": "أُغلِق نصفُه الأوّل (2026-09-08): nats/nats.conf صار يحمل authorization بـ$NATS_USER/$NATS_PASSWORD مُستوفَيَين من بيئة الوسيط، وcompose يُلزِمهما بـ:? فلا يُقلِع المكدّس بسرٍّ افتراضيّ منشور؛ وكلُّ عملاء NATS الثلاثةَ عشرَ يحملون الاعتمادَ في NATS_URL. والباقي: لا accounts ولا permissions ولا NKeys — أي **لا عزلَ مواضيعَ بين الخدمات**، ولا TLS على 4222. فخدمةٌ معتمَدةٌ تنشر على موضوع غيرها بلا مانع.",
+      "closing_condition": "anonymous denied; per-service publish/subscribe allow-lists proven with negative and positive probes",
+      "partially_closed_by": "NATS-BROKER-HAS-NO-AUTHENTICATION-SO-ACTUATOR-COMMANDS-ARE-UNGUARDED-01",
+      "why_still_open": "شرطُ الإغلاق المكتوب يطلب أمرين: منعَ المجهول **وقوائمَ سماحٍ لكلّ خدمة مُثبَتةً بمِسبارٍ سالبٍ وموجبٍ حيَّين**. وقع الأوّلُ ساكناً فقط؛ ولم يقع الثاني ولا المِسباران."
     },
     "AGENT-TO-ACTUATOR-ADAPTER-ABSENT": {
       "status": "OPEN",

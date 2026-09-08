@@ -118,6 +118,22 @@ def test_the_live_tree_passes():
     assert guard.main([]) == 0
 
 
+def test_a_nested_interpolation_is_read_whole_not_truncated():
+    """`[^}]*` يقف عند أوّل `}` **داخل** استيفاءٍ متداخل فيبتر الافتراض.
+
+    **عطلٌ كامنٌ كشفه أوّلُ افتراضٍ متداخلٍ في هذه الشجرة** (اعتمادُ NATS في
+    `NATS_URL`): صار الافتراضُ المقروء `nats://${NATS_USER` — قيمةً لا تدلّ على شيء،
+    تُقارَن بـ`.env.example` ثمّ تُطبَع في رسالة الحارس. فالحارسُ يقيس نصفَ قيمةٍ
+    ويُبلِغ عنها بثقة، وهو أسوأ من ألّا يقيس.
+    """
+    nested = "X: ${NATS_URL:-nats://${U}:${P}@host:4222}"
+    assert guard.compose_defaults(nested) == {"NATS_URL": "nats://${U}:${P}@host:4222"}
+    # والبسيطُ لم يتغيّر، والمتداخلان يُقرآن، والقوسُ غيرُ المغلق **لا يُخمَّن**.
+    assert guard.compose_defaults("Y: ${A_URL:-http://svc:80}") == {"A_URL": "http://svc:80"}
+    assert guard.compose_defaults("W: ${C_URL:-a${M}b${N}c}") == {"C_URL": "a${M}b${N}c"}
+    assert guard.compose_defaults("Z: ${B_URL:-http://svc") == {}
+
+
 def test_the_live_tree_actually_compares_something():
     """حارسٌ يقارن صفر متغيّر يقول «لا انجراف» عن سؤالٍ لم يُطرَح.
 
@@ -134,8 +150,18 @@ def test_the_real_measured_defect_is_caught():
     """المرساة على الحادثة الحقيقيّة: القيمة التي كانت في الشجرة فعلاً.
 
     فلو مرّت خضراء لكان الحارس يحرس عالماً غير الذي وقع فيه العطل.
+
+    **والافتراضُ المُتوقَّع يُشتقّ ولا يُكتَب حرفيّاً.** كان مثبَّتاً
+    `nats://sahool-nats:4222`، فلمّا صار الافتراضُ يحمل الاعتماد
+    (`nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222`) أحمرّ الاختبارُ على
+    تغييرٍ صحيح. والمقيسُ هنا **أنّ الرسالة تُسمّي افتراضَ compose** — لا نصُّ
+    الافتراض؛ فيُقرأ من `compose_defaults` نفسِها.
     """
     defaults = guard.compose_defaults(guard._read(guard.COMPOSE))
     problems = guard.violations(defaults, {"NATS_URL": "nats://localhost:4222"})
     assert len(problems) == 1, f"الحارس لا يرى العطل المقيس: {problems}"
-    assert "nats://sahool-nats:4222" in problems[0]
+    expected = defaults["NATS_URL"]
+    assert "sahool-nats" in expected, "افتراضُ compose لم يعد يشير إلى الوسيط — أعِد القياس"
+    assert expected in problems[0], (
+        f"الرسالة لا تُسمّي افتراضَ compose كاملاً.\n  المتوقَّع: {expected}\n  الرسالة: {problems[0]}"
+    )
