@@ -1,10 +1,4 @@
 #!/usr/bin/env python3
-import logging as _log
-
-from contracts import SPENDING_ACTIONS, contract_violations
-
-_audit = _log.getLogger("guardrails.economic_tier")
-#!/usr/bin/env python3
 """
 Tier 3: Economic Safety Guardrails
 Validates actions against:
@@ -13,6 +7,12 @@ Validates actions against:
 - Loan/credit risk
 - Market price volatility
 """
+
+import logging as _log
+
+from contracts import SPENDING_ACTIONS, contract_violations
+
+_audit = _log.getLogger("guardrails.economic_tier")
 
 
 class EconomicSafetyTier:
