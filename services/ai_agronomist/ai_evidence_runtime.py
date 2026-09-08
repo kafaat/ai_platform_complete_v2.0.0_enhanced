@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import asyncio
 import os
 from collections.abc import Callable
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any
 
@@ -42,6 +44,32 @@ RAG_BASE_URL = os.getenv("RAG_BASE_URL", "http://sahool-rag-retrieval:8000")
 KNOWLEDGE_GRAPH_URL = os.getenv("KNOWLEDGE_GRAPH_URL", "http://sahool-knowledge-graph:8000")
 PLATFORM_URL = os.getenv("PLATFORM_URL", "http://sahool-platform:8000")
 AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
+
+
+@asynccontextmanager
+async def _dependency_boundary(dependency: str, timeout_s: float):
+    """Bound the whole retrieval hop and retain its identity on transport failure."""
+    try:
+        async with asyncio.timeout(timeout_s):
+            yield
+    except (TimeoutError, httpx.TimeoutException) as exc:
+        raise HTTPException(
+            504,
+            {
+                "dependency": dependency,
+                "reason_code": "advisory_dependency_timeout",
+                "message_ar": "انتهت مهلة جلب أدلة المستشار؛ أعد المحاولة لاحقاً.",
+            },
+        ) from exc
+    except httpx.HTTPError as exc:
+        raise HTTPException(
+            502,
+            {
+                "dependency": dependency,
+                "reason_code": "advisory_dependency_unavailable",
+                "message_ar": "تعذّر جلب أدلة المستشار؛ أعد المحاولة لاحقاً.",
+            },
+        ) from exc
 
 
 async def _fetch_canonical_field_state(
@@ -664,14 +692,15 @@ async def build_evidence_response(
 
         # SEMANTIC-CONVERGENCE-01: resolve reference KG context first, then use it only
         # to expand RAG retrieval. KG remains reference-only and never becomes decision evidence.
-        kg_resp = await client.get(
-            f"{KNOWLEDGE_GRAPH_URL.rstrip('/')}/v1/edges",
-            params={"subject_id": req.crop} if req.crop else {},
-            # C2: forward the trusted tenant so knowledge-graph enforces its C5 read
-            # guard (require_trusted_tenant) on this internal service-to-service call.
-            headers={"X-Tenant-Id": tenant_id},
-            timeout=5.0,
-        )
+        async with _dependency_boundary("knowledge-graph", 5.0):
+            kg_resp = await client.get(
+                f"{KNOWLEDGE_GRAPH_URL.rstrip('/')}/v1/edges",
+                params={"subject_id": req.crop} if req.crop else {},
+                # C2: forward the trusted tenant so knowledge-graph enforces its C5 read
+                # guard (require_trusted_tenant) on this internal service-to-service call.
+                headers={"X-Tenant-Id": tenant_id},
+                timeout=5.0,
+            )
         if kg_resp.status_code >= 500:
             raise HTTPException(502, {"dependency": "knowledge-graph", "detail": kg_resp.text})
         # ٤xx من KG (رفض حارس المستأجر مثلاً) يُهبَط به فاشلاً-مغلقاً إلى «لا حواف»،
@@ -683,22 +712,23 @@ async def build_evidence_response(
         kg_payload = kg_resp.json() if kg_available else {"edges": []}
         retrieval_query, graph_terms = _graph_conditioned_retrieval_query(req.question, kg_payload)
 
-        rag_resp = await client.post(
-            f"{RAG_BASE_URL.rstrip('/')}/v1/search",
-            json={
-                "tenant_id": tenant_id,
-                "query": retrieval_query,
-                "crop": req.crop,
-                "field_id": req.field_id,
-                "region": req.region,
-                "source_type": None,
-                "final_k": req.final_k,
-            },
-            # SEC-3: forward the trusted tenant so rag-retrieval enforces the same
-            # X-Tenant-Id-source-of-truth guard on this internal service-to-service call.
-            headers={"X-Tenant-Id": tenant_id},
-            timeout=10.0,
-        )
+        async with _dependency_boundary("rag-retrieval", 10.0):
+            rag_resp = await client.post(
+                f"{RAG_BASE_URL.rstrip('/')}/v1/search",
+                json={
+                    "tenant_id": tenant_id,
+                    "query": retrieval_query,
+                    "crop": req.crop,
+                    "field_id": req.field_id,
+                    "region": req.region,
+                    "source_type": None,
+                    "final_k": req.final_k,
+                },
+                # SEC-3: forward the trusted tenant so rag-retrieval enforces the same
+                # X-Tenant-Id-source-of-truth guard on this internal service-to-service call.
+                headers={"X-Tenant-Id": tenant_id},
+                timeout=10.0,
+            )
         if rag_resp.status_code >= 400:
             raise HTTPException(502, {"dependency": "rag-retrieval", "detail": rag_resp.text})
 
