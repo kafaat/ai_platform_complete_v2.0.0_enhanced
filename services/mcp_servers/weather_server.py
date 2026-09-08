@@ -4,6 +4,7 @@ SAHOOL Weather MCP Server
 Open-Meteo + NOAA APIs with caching and idempotency
 """
 
+import email.message
 import json
 import logging
 import os
@@ -152,6 +153,7 @@ async def list_tools():
 
 @app.post(
     "/v1/mcp/tools/call",
+    responses={422: {"description": "Validation Error"}},
     openapi_extra={
         "requestBody": {
             "required": True,
@@ -162,6 +164,14 @@ async def list_tools():
 async def call_tool(request: Request, user: dict = Depends(require_scope("weather:read"))):
     # A typed FastAPI body is decoded before dependencies. Keep all body reads
     # here, after authentication, while retaining explicit schema validation.
+    if content_type := request.headers.get("content-type"):
+        media_type = email.message.Message()
+        media_type["content-type"] = content_type
+        subtype = media_type.get_content_subtype()
+        if media_type.get_content_maintype() != "application" or not (
+            subtype == "json" or subtype.endswith("+json")
+        ):
+            raise HTTPException(status_code=422, detail="JSON request body required")
     try:
         call = ToolCallRequest.model_validate_json(await request.body())
     except ValidationError as exc:

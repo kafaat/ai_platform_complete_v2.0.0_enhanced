@@ -4,6 +4,7 @@ SAHOOL WOFOST MCP Server
 Crop simulation via WOFOST-RUE with MCP interface
 """
 
+import email.message
 import json
 import logging
 from datetime import UTC, datetime, timedelta
@@ -118,6 +119,7 @@ async def list_tools():
 
 @app.post(
     "/v1/mcp/tools/call",
+    responses={422: {"description": "Validation Error"}},
     openapi_extra={
         "requestBody": {
             "required": True,
@@ -128,6 +130,14 @@ async def list_tools():
 async def call_tool(request: Request, user: dict = Depends(require_scope("crop:read"))):
     # A typed FastAPI body is decoded before dependencies. Keep all body reads
     # here, after authentication, while retaining explicit schema validation.
+    if content_type := request.headers.get("content-type"):
+        media_type = email.message.Message()
+        media_type["content-type"] = content_type
+        subtype = media_type.get_content_subtype()
+        if media_type.get_content_maintype() != "application" or not (
+            subtype == "json" or subtype.endswith("+json")
+        ):
+            raise HTTPException(status_code=422, detail="JSON request body required")
     try:
         call = ToolCallRequest.model_validate_json(await request.body())
     except ValidationError as exc:
@@ -158,7 +168,7 @@ async def _execute(name: str, args: dict) -> dict:
         try:
             WOFOSTRequest(**args)
         except ValidationError as exc:
-            raise HTTPException(status_code=422, detail=exc.errors()) from exc
+            raise HTTPException(status_code=422, detail=exc.errors(include_input=False)) from exc
         # …ثمّ نرفض بأمانة: لا محرّك WOFOST-RUE حقيقيّ هنا.
         # كان _simulate_wofost يُرجِع تقديراً بثوابت مكتوبة (avg_solar=20، et0=5،
         # kc=0.8، stress=10% ثابتة) ويتجاهل weather_data المُمرَّر، ثمّ يُوسَم

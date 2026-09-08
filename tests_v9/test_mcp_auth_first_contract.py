@@ -404,6 +404,66 @@ def test_mcp_authenticated_invalid_body_is_422(
     assert module.IDEMPOTENCY_CACHE == {}
 
 
+@pytest.mark.parametrize(
+    "module_name,scope", [("weather_server", "weather:read"), ("wofost_server", "crop:read")]
+)
+@pytest.mark.parametrize(
+    "content_type,status",
+    [
+        (None, 200),
+        ("application/json", 200),
+        ("Application/JSON; charset=utf-8", 200),
+        ("application/problem+json; charset=utf-8", 200),
+        ("text/plain", 422),
+        ("text/json", 422),
+        ("application/octet-stream", 422),
+        ("application/jsonp", 422),
+    ],
+)
+def test_mcp_post_auth_media_types(
+    live_mcp_contract, monkeypatch, module_name, scope, content_type, status
+):
+    from unittest.mock import AsyncMock
+
+    module = _load("_live_" + module_name, MCP / (module_name + ".py"))
+    execute = AsyncMock(return_value={"content": []})
+    monkeypatch.setattr(module, "_execute", execute)
+    headers = {"Authorization": "Bearer " + _caller_token(scope=scope)}
+    if content_type is not None:
+        headers["content-type"] = content_type
+    client = TestClient(module.app)
+    response = client.post("/v1/mcp/tools/call", content=b'{"name":"probe"}', headers=headers)
+    assert response.status_code == status, response.text
+    assert execute.await_count == (1 if status == 200 else 0)
+    responses = module.app.openapi()["paths"]["/v1/mcp/tools/call"]["post"]["responses"]
+    assert responses["422"]["description"] == "Validation Error"
+    # A non-JSON media type must still be checked only after authentication.
+    response = client.post(
+        "/v1/mcp/tools/call", content=b'{"name":"probe"}', headers={"content-type": "text/plain"}
+    )
+    assert response.status_code == 401
+
+
+@pytest.mark.parametrize("nonfinite", ["NaN", "Infinity", "-Infinity"])
+def test_wofost_invalid_nonfinite_input_returns_serializable_422(live_mcp_contract, nonfinite):
+    module = _load("_live_wofost_server", MCP / "wofost_server.py")
+    body = (
+        '{"name":"run_wofost_simulation","arguments":{"planting_date":"2026-09-08","crop":'
+        + nonfinite
+        + "}}"
+    )
+    response = TestClient(module.app, raise_server_exceptions=False).post(
+        "/v1/mcp/tools/call",
+        content=body,
+        headers={
+            "content-type": "application/json",
+            "Authorization": "Bearer " + _caller_token(scope="crop:read"),
+        },
+    )
+    assert response.status_code == 422, response.text
+    assert response.json()["detail"][0]["type"] == "string_type"
+
+
 def test_mcp_authenticated_real_tools_keep_validation_and_results(
     live_mcp_contract, monkeypatch, respx_mock
 ):
