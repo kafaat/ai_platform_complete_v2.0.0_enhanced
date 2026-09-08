@@ -13,7 +13,7 @@ from typing import Any
 import httpx
 from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field
-from shared.oauth_middleware import require_scope
+from shared.oauth_middleware import idempotency_key, require_scope
 from shared.streamable_http import StreamableHTTPTransport
 
 from shared.helpers import retry_request
@@ -144,11 +144,11 @@ async def list_tools():
     }
 
 
-@app.post("/v1/mcp/tools/call", dependencies=[Depends(require_scope("weather:read"))])
-async def call_tool(request: dict):
+@app.post("/v1/mcp/tools/call")
+async def call_tool(request: dict, user: dict = Depends(require_scope("weather:read"))):
     name = request.get("name")
     args = request.get("arguments", {})
-    req_id = request.get("request_id")
+    req_id = idempotency_key(user, request.get("request_id"), name, args)
 
     if req_id and req_id in IDEMPOTENCY_CACHE:
         cached = IDEMPOTENCY_CACHE[req_id]

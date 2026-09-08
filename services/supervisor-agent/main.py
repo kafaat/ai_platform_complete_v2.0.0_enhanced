@@ -68,14 +68,11 @@ if (
 
 mcp_client = MCPClient(
     servers={
-        "sentinel-hub": os.getenv(
-            "MCP_SENTINEL_HUB_URL", "http://sahool-sentinel-hub-mcp:8000/mcp/v1"
-        ),
-        "weather": os.getenv("MCP_WEATHER_URL", "http://sahool-weather-mcp:8000/mcp/v1"),
-        "wofost": os.getenv("MCP_WOFOST_URL", "http://sahool-wofost-mcp:8000/mcp/v1"),
-        "market": os.getenv("MCP_MARKET_URL", "http://sahool-market-mcp:8000/mcp/v1"),
+        "sentinel-hub": os.getenv("MCP_SENTINEL_HUB_URL", "http://sahool-sentinel-hub-mcp:8000"),
+        "weather": os.getenv("MCP_WEATHER_URL", "http://sahool-weather-mcp:8000"),
+        "wofost": os.getenv("MCP_WOFOST_URL", "http://sahool-wofost-mcp:8000"),
+        "market": os.getenv("MCP_MARKET_URL", "http://sahool-market-mcp:8000"),
     },
-    token=os.getenv("SAHOOL_AGENT_TOKEN", ""),
 )
 
 # بوّابة القرار المركزيّة — التوصيات تمرّ عبرها (حَوكمة موحّدة)
@@ -164,12 +161,12 @@ async def _get_current_user(credentials: Optional = Depends(security)):
     import jwt
 
     secret = os.getenv("JWT_SECRET", "")
+    _pub = os.getenv("JWT_PUBLIC_KEY", "").strip()
     # فشل-مغلق: لا نقبل توكنات بمفتاح فارغ (كان يقبل أيّ توكن مزوّر)
-    if len(secret) < 32:
+    if not _pub and len(secret) < 32:
         raise HTTPException(503, "JWT_SECRET غير مضبوط — الخدمة معطّلة بأمان")
     try:
         # RS256 (public key) لو مضبوط، وإلّا HS256 fallback
-        _pub = os.getenv("JWT_PUBLIC_KEY", "")
         _vkey = _pub if _pub else secret
         _valg = "RS256" if _pub else "HS256"
         # FIX (اتّساق audience): auth/platform يُصدران aud="sahool" وmcp يتطلّبه.
@@ -183,6 +180,7 @@ async def _get_current_user(credentials: Optional = Depends(security)):
         # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
         if payload.get("iss") not in _ALLOWED_ISS:
             raise ValueError("Invalid token issuer")
+        payload["_mcp_bearer"] = credentials.credentials
         return payload
     except Exception as e:
         # عدم كشف المعلومات: نُرجِع رسالة عامّة للعميل (لا تفاصيل PyJWT الداخليّة

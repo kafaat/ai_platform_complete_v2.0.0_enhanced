@@ -780,14 +780,17 @@ services:
     - 127.0.0.1:8096:8000
     environment:
       DATABASE_URL: ${DATABASE_URL}
-      MCP_SENTINEL_HUB_URL: http://sahool-sentinel-hub-mcp:8000/mcp/v1
-      MCP_WEATHER_URL: http://sahool-weather-mcp:8000/mcp/v1
-      MCP_WOFOST_URL: http://sahool-wofost-mcp:8000/mcp/v1
-      MCP_MARKET_URL: http://sahool-market-mcp:8000/mcp/v1
+      MCP_SENTINEL_HUB_URL: http://sahool-sentinel-hub-mcp:8000
+      MCP_WEATHER_URL: http://sahool-weather-mcp:8000
+      MCP_WOFOST_URL: http://sahool-wofost-mcp:8000
+      MCP_MARKET_URL: http://sahool-market-mcp:8000
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       JWT_SECRET: ${JWT_SECRET}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
+      SAHOOL_ENV: ${SAHOOL_ENV:-development}
+      SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
     depends_on:
       sahool-auth:
         condition: service_healthy
@@ -856,6 +859,10 @@ services:
       SH_CLIENT_ID: ${SH_CLIENT_ID:?SH_CLIENT_ID required}
       SH_CLIENT_SECRET: ${SH_CLIENT_SECRET:?SH_CLIENT_SECRET required}
       JWT_SECRET: ${JWT_SECRET}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
+      SAHOOL_ENV: ${SAHOOL_ENV:-development}
+      SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
+      MCP_SERVER_MODULE: sentinel_hub_server
     networks:
     - sahool-internal
     healthcheck:
@@ -879,6 +886,10 @@ services:
     logging: *id001
     environment:
       JWT_SECRET: ${JWT_SECRET}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
+      SAHOOL_ENV: ${SAHOOL_ENV:-development}
+      SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
+      MCP_SERVER_MODULE: weather_server
       WEATHER_SERVICE_URL: ${WEATHER_SERVICE_URL:-http://sahool-weather-service:8000}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
     networks:
@@ -904,6 +915,10 @@ services:
     logging: *id001
     environment:
       JWT_SECRET: ${JWT_SECRET}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
+      SAHOOL_ENV: ${SAHOOL_ENV:-development}
+      SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
+      MCP_SERVER_MODULE: wofost_server
     networks:
     - sahool-internal
     healthcheck:
@@ -928,6 +943,10 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
+      SAHOOL_ENV: ${SAHOOL_ENV:-development}
+      SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
+      MCP_SERVER_MODULE: market_server
       ERP_BRIDGE_URL: http://sahool-erp-bridge:8126
       ODOO_BRIDGE_URL: http://sahool-erp-bridge:8126
       SAHOOL_API_URL: http://sahool-auth:8000

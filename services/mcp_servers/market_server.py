@@ -7,9 +7,10 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import os
 from contextlib import asynccontextmanager
-from datetime import UTC, date, datetime
+from datetime import date, datetime
 from decimal import Decimal
 
 import asyncpg
@@ -107,7 +108,6 @@ def record_to_dict(record) -> dict:
     Handles: UUID, Decimal, datetime, date objects.
     """
     import uuid
-    from datetime import datetime
 
     d = dict(record)
     for k, v in d.items():
@@ -457,43 +457,75 @@ async def tool_analytics_dashboard(args: dict) -> dict:
 
 
 # ── NEW tools required by market_skill.py ─────────────────────
+def _observed_price(value) -> float:
+    try:
+        price = float(value)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise HTTPException(424, "Observed market price unavailable") from exc
+    if not math.isfinite(price) or price <= 0:
+        raise HTTPException(424, "Observed market price unavailable")
+    return price
+
+
 async def tool_get_market_price(args: dict) -> dict:
     tenant_id = args.get("tenant_id")
     crop = args.get("crop", "wheat")
     market = args.get("market", "sanaa")
     async with tenant_connection(tenant_id) as conn:
         row = await conn.fetchrow(
-            "SELECT AVG(price_usd) as avg_price FROM market_price_history WHERE category=$1 AND market_location=$2 AND recorded_date >= CURRENT_DATE - INTERVAL '7 days'",
+            """SELECT AVG(price_usd) AS avg_price, MAX(recorded_date) AS observed_date,
+                      COUNT(*) AS sample_count
+               FROM market_price_history
+               WHERE category=$1 AND market_location=$2 AND currency='USD'
+                 AND price_usd > 0 AND recorded_date <= CURRENT_DATE
+                 AND recorded_date >= CURRENT_DATE - INTERVAL '7 days'""",
             crop,
             market,
         )
-    price = float(row["avg_price"]) if row and row["avg_price"] else 0.0
+    if not row or not row["sample_count"] or not row["observed_date"]:
+        raise HTTPException(424, "Observed market price unavailable")
+    # The current schema records currency, but no quantity unit. Do not invent
+    # a USD/kg denominator, exchange rate, trend, or fresh observation time.
     return {
-        "price_yer_kg": round(price * 250, 2),
-        "price_usd_kg": round(price, 4),
-        "trend": "stable",
-        "updated": datetime.now(UTC).isoformat(),
+        "price_usd": _observed_price(row["avg_price"]),
+        "currency": "USD",
+        "unit": None,
+        "updated": str(row["observed_date"]),
+        "sample_count": int(row["sample_count"]),
+        "aggregation": "mean_last_7_days",
     }
 
 
 async def tool_get_price_trend(args: dict) -> dict:
     tenant_id = args.get("tenant_id")
     crop = args.get("crop", "wheat")
+    market = args.get("market", "sanaa")
     async with tenant_connection(tenant_id) as conn:
         rows = await conn.fetch(
-            "SELECT recorded_date, price_usd FROM market_price_history WHERE category=$1 ORDER BY recorded_date DESC LIMIT 30",
+            """SELECT recorded_date, AVG(price_usd) AS price_usd
+               FROM market_price_history
+               WHERE category=$1 AND market_location=$2 AND currency='USD'
+                 AND price_usd > 0 AND recorded_date <= CURRENT_DATE
+                 AND recorded_date >= CURRENT_DATE - INTERVAL '30 days'
+               GROUP BY recorded_date ORDER BY recorded_date DESC""",
             crop,
+            market,
         )
-    prices = [float(r["price_usd"]) for r in rows if r["price_usd"]]
-    current = prices[0] if prices else 0
-    prev = prices[-1] if len(prices) > 1 else current
-    change = ((current - prev) / prev * 100) if prev else 0
+    if not rows:
+        raise HTTPException(424, "Observed market history unavailable")
+    prices = [_observed_price(row["price_usd"]) for row in rows]
+    change = (prices[0] - prices[-1]) / prices[-1] * 100 if len(prices) > 1 else None
     return {
-        "current_price": round(current, 4),
-        "price_change_pct": round(change, 2),
-        "forecast": "stable" if abs(change) < 5 else ("up" if change > 0 else "down"),
+        "current_price_usd": prices[0],
+        "currency": "USD",
+        "unit": None,
+        "historical_change_pct": round(change, 2) if change is not None else None,
+        "observation_count": len(rows),
+        "updated": str(rows[0]["recorded_date"]),
+        "period_start": str(rows[-1]["recorded_date"]),
         "trend_data": [
-            {"date": str(r["recorded_date"]), "price": float(r["price_usd"])} for r in rows[:7]
+            {"date": str(row["recorded_date"]), "price_usd": price}
+            for row, price in zip(rows[:7], prices[:7], strict=True)
         ],
     }
 
@@ -516,7 +548,12 @@ class MCPCallRequest(BaseModel):
     arguments: dict = Field(default_factory=dict)
 
 
-@app.get("/v1/mcp/tools/list", dependencies=[Depends(require_scope("market:read"))])
+@app.get("/v1/mcp/tools", dependencies=[Depends(require_scope("market:read"))])
+@app.get(
+    "/v1/mcp/tools/list",
+    dependencies=[Depends(require_scope("market:read"))],
+    include_in_schema=False,
+)
 async def mcp_tools_list():
     return {
         "tools": [
