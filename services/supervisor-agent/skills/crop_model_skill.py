@@ -120,14 +120,29 @@ class CropModelSkill:
                 raise ValueError("invalid canonical payload")
             if advice.get("field_id") != field_id or field.get("field_id") != field_id:
                 raise ValueError("field identity mismatch")
-            action = IrrigationAction(
+            evidence = _IrrigationInputs(
                 water_mm=advice.get("recommended_mm"),
                 area_ha=field.get("area_ha"),
-                # Volume is the net depth over the observed field area (1 mm/ha = 10 m3).
-                water_m3=advice["recommended_mm"] * field["area_ha"] * 10,
+                irrigation_efficiency_pct=field.get("irrigation_efficiency_pct"),
                 field_id=field_id,
             )
-        except (KeyError, TypeError, ValueError, ValidationError):
+            # The owner's recommendation is NET crop demand. Withdrawal limits
+            # govern GROSS water: preserve both and apply only explicit canonical
+            # field efficiency (ADR-0032); never assume an irrigation system's efficiency.
+            net_water_m3 = evidence.water_mm * evidence.area_ha * 10
+            action = IrrigationAction(
+                **evidence.model_dump(),
+                net_water_m3=net_water_m3,
+                water_m3=net_water_m3 / evidence.irrigation_efficiency_pct * 100,
+            )
+        except (KeyError, TypeError, ValueError) as exc:
+            if isinstance(exc, ValidationError) and any(
+                error["loc"] == ("irrigation_efficiency_pct",) for error in exc.errors()
+            ):
+                return _unavailable(
+                    "canonical_irrigation_efficiency_required",
+                    "كفاءة الري غير متاحة أو غير صالحة؛ لا يمكن حساب حجم السحب الإجمالي للتحقق من حدود المياه.",
+                )
             return _unavailable(
                 "canonical_irrigation_incomplete",
                 "بيانات توصية الري أو مساحة الحقل غير مكتملة؛ لا يمكن إصدار كمية آمنة.",
@@ -153,14 +168,21 @@ class CropModelSkill:
         }
 
 
-class IrrigationAction(BaseModel):
-    """Canonical net irrigation quantity passed intact to central governance."""
+class _IrrigationInputs(BaseModel):
+    """Explicit canonical inputs; missing efficiency cannot become full efficiency."""
 
     model_config = ConfigDict(strict=True, allow_inf_nan=False, extra="forbid")
     field_id: str
-    water_mm: float = Field(ge=0)
+    water_mm: float = Field(ge=0, description="Net crop demand in mm")
     area_ha: float = Field(gt=0)
-    water_m3: float = Field(ge=0)
+    irrigation_efficiency_pct: float = Field(gt=0, le=100)
+
+
+class IrrigationAction(_IrrigationInputs):
+    """Keep net crop demand separate from gross withdrawal sent to governance."""
+
+    net_water_m3: float = Field(ge=0)
+    water_m3: float = Field(ge=0, description="Gross withdrawal volume in m3")
 
 
 def _unavailable(code: str, message: str) -> dict:

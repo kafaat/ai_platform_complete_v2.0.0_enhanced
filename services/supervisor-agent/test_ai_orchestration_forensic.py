@@ -174,7 +174,9 @@ def test_irrigation_consumes_canonical_owner_and_converts_observed_area(monkeypa
                     "source": "weather-service",
                 },
             )
-        return httpx.Response(200, json={"field_id": "field-1", "area_ha": 2.0})
+        return httpx.Response(
+            200, json={"field_id": "field-1", "area_ha": 2.0, "irrigation_efficiency_pct": 80.0}
+        )
 
     factory = httpx.AsyncClient
     monkeypatch.setattr(
@@ -188,7 +190,9 @@ def test_irrigation_consumes_canonical_owner_and_converts_observed_area(monkeypa
     depth[0] = 0.0
     wet = _run(skill.execute("irrigation_advice", field_id="field-1", context=context))
     assert dry["amount_mm"] == 12.0
-    assert dry["structured"]["water_m3"] == 240.0
+    assert dry["structured"]["net_water_m3"] == 240.0
+    assert dry["structured"]["water_m3"] == 300.0
+    assert dry["structured"]["irrigation_efficiency_pct"] == 80.0
     assert wet["amount_mm"] == wet["structured"]["water_m3"] == 0.0
     assert dry["action_type"] == "irrigation" and dry["actionable"] is True
     assert {r.url.path for r in requests} == {
@@ -206,7 +210,7 @@ def test_irrigation_invalid_or_mismatched_canonical_payload_stays_unavailable(mo
         body = (
             payload[0]
             if request.url.path.endswith("irrigation-advice")
-            else {"field_id": "field-1", "area_ha": 2.0}
+            else {"field_id": "field-1", "area_ha": 2.0, "irrigation_efficiency_pct": 80.0}
         )
         return httpx.Response(200, json=body)
 
@@ -447,3 +451,62 @@ def test_guardrails_missing_evidence_is_distinct_from_service_unavailability(mon
     assert result["source"] == "guardrails-engine"
     assert captured[0]["action_data"] == {"water_m3": 240.0}
     assert "annual_revenue_usd" not in captured[0]["farm_context"]
+
+
+def test_irrigation_requires_explicit_canonical_efficiency_for_gross_withdrawal(monkeypatch):
+    from pydantic import ValidationError
+    from skills.crop_model_skill import CropModelSkill, _IrrigationInputs
+
+    observed = {}
+
+    def handle(request):
+        if request.url.path.endswith("irrigation-advice"):
+            return httpx.Response(200, json={"field_id": "field-1", "recommended_mm": 12.0})
+        return httpx.Response(200, json={"field_id": "field-1", "area_ha": 2.0, **observed})
+
+    factory = httpx.AsyncClient
+    monkeypatch.setattr(
+        httpx,
+        "AsyncClient",
+        lambda **kwargs: factory(transport=httpx.MockTransport(handle), **kwargs),
+    )
+    skill = CropModelSkill(SimpleNamespace())
+    # Neither a missing field nor invalid canonical values may be replaced by
+    # a user-supplied efficiency or an implicit 100% efficiency assumption.
+    for fields in (
+        {},
+        {"irrigation_efficiency_pct": None},
+        {"irrigation_efficiency_pct": 0.0},
+        {"irrigation_efficiency_pct": -1.0},
+        {"irrigation_efficiency_pct": 101.0},
+        {"irrigation_efficiency_pct": "80"},
+        {"irrigation_efficiency_pct": True},
+    ):
+        observed.clear()
+        observed.update(fields)
+        result = _run(
+            skill.execute(
+                "irrigation_advice",
+                field_id="field-1",
+                context={
+                    "field_state": {"validity": "valid"},
+                    "_platform_bearer": "verified",
+                    "irrigation_efficiency_pct": 100.0,
+                },
+            )
+        )
+        assert result["type"] == "unavailable"
+        assert result["structured"]["reason"] == "canonical_irrigation_efficiency_required"
+        assert result["actionable"] is False
+        assert "water_m3" not in result["structured"]
+    # JSON rejects nonfinite values before this boundary; the typed input must
+    # reject them as well when invoked from internal Python call sites.
+    for efficiency in (float("nan"), float("inf")):
+        try:
+            _IrrigationInputs(
+                field_id="field-1", water_mm=12.0, area_ha=2.0, irrigation_efficiency_pct=efficiency
+            )
+        except ValidationError:
+            pass
+        else:
+            raise AssertionError("Nonfinite irrigation efficiency accepted")
