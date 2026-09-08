@@ -906,6 +906,7 @@ supervisor-agent,market-mcp,compose-depends-on,docker-compose.unified.yml
 supervisor-agent,networks,compose-depends-on,docker-compose.light.yml
 supervisor-agent,networks,compose-depends-on,docker-compose.unified.yml
 supervisor-agent,platform,code-reference,services/supervisor-agent/main.py
+supervisor-agent,platform,code-reference,services/supervisor-agent/skills/crop_model_skill.py
 supervisor-agent,redis,compose-depends-on,docker-compose.light.yml
 supervisor-agent,redis,compose-depends-on,docker-compose.unified.yml
 supervisor-agent,sentinel-hub-mcp,compose-depends-on,docker-compose.light.yml

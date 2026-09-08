@@ -2728,7 +2728,15 @@
     "kind": "backend"
   },
   {
+    "path": "services/guardrails-engine/README.md",
+    "kind": "backend"
+  },
+  {
     "path": "services/guardrails-engine/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/guardrails-engine/contracts.py",
     "kind": "backend"
   },
   {
@@ -5465,10 +5473,6 @@
   },
   {
     "path": "services/sahool-platform/tests/test_gis_tile_math.py",
-    "kind": "tests"
-  },
-  {
-    "path": "services/sahool-platform/tests/test_governance_modules.py",
     "kind": "tests"
   },
   {
