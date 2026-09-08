@@ -9,8 +9,12 @@ ROUTER = (ROOT / "api/routers/drawing_features.py").read_text(encoding="utf-8")
 def test_drawing_features_router_exposes_crud_contract():
     migration = ROOT.parents[1] / "migrations/v230_drawing_features.sql"
     assert "CREATE TABLE IF NOT EXISTS drawing_features" in migration.read_text()
-    assert "CREATE TABLE" not in ROUTER
-    assert "_ensure_table" not in ROUTER
+    assert "CREATE TABLE" not in ROUTER, (
+        "The application role lacks schema CREATE privilege; DDL belongs to migration v230."
+    )
+    assert "_ensure_table" not in ROUTER, (
+        "Request handlers must not restore schema bootstrap through the removed DDL helper."
+    )
     manifest = (ROOT.parents[1] / "migrations/MANIFEST.txt").read_text()
     assert manifest.index("v230_drawing_features.sql") < manifest.rindex(
         "v206_rls_final_hardening.sql"
