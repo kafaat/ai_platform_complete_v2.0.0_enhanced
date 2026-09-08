@@ -9,10 +9,15 @@ yield=biomass×HI) مع توازن ماء FAO-56 — ليس WOFOST يومي ال
 يُحسّن بالمعايرة (TrueUp k_factor).
 """
 
+import asyncio
 import json
+import os
 from typing import Any
+from urllib.parse import quote
 
+import httpx
 from mcp_client import MCPClient
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 
 class CropModelSkill:
@@ -70,96 +75,99 @@ class CropModelSkill:
             }
 
         elif intent == "irrigation_advice":
-            # Get weather forecast first (warms cache / validates availability;
-            # result intentionally not consumed by the simplified FAO-56 path below)
-            await self.mcp.call_tool(
-                "weather",
-                "get_weather_forecast",
-                {
-                    "lat": context.get("lat", 15.0) if context else 15.0,
-                    "lon": context.get("lon", 45.0) if context else 45.0,
-                    "days": 7,
-                },
-            )
-
-            # Simplified irrigation logic (production: FAO-56 full calculation)
-            et0 = 5.0  # mm/day average
-            kc = {
-                "wheat": 0.85,
-                "barley": 0.80,
-                "maize": 1.15,
-                "sorghum": 0.90,
-                "millet": 0.75,
-                "rice": 1.20,
-                "potato": 1.10,
-            }.get(context.get("crop", "wheat") if context else "wheat", 0.85)
-
-            etc = et0 * kc  # mm/day
-            weekly_need = etc * 7
-
-            # Check soil moisture (from context or IoT)
-            soil_moisture = context.get("soil_moisture_30cm", 40) if context else 40  # %
-
-            if soil_moisture < 30:
-                urgency = "🔴 عاجل — ري فوري"
-                amount = round(weekly_need * 1.2, 1)
-            elif soil_moisture < 50:
-                urgency = "🟡 ري خلال 2–3 أيام"
-                amount = round(weekly_need, 1)
-            else:
-                urgency = "🟢 لا حاجة للري الآن"
-                amount = 0
-
-            return {
-                "type": "irrigation_advice",
-                "advice": f"{urgency}",
-                "amount_mm": amount,
-                "timing": "صباحاً مبكراً (5–8 ص) لتقليل التبخر" if amount > 0 else "لا يوجد",
-                "et0_mm_day": et0,
-                "kc": kc,
-                "etc_mm_day": round(etc, 2),
-                "soil_moisture_pct": soil_moisture,
-                "weekly_need_mm": round(weekly_need, 1),
-                "sources": ["FAO-56", "WOFOST", "Open-Meteo"],
-            }
+            return await self._irrigation_advice(field_id, context or {})
 
         elif intent == "fertilizer_advice":
-            crop = context.get("crop", "wheat") if context else "wheat"
-            growth_stage = context.get("growth_stage", "vegetative") if context else "vegetative"
-
-            # Simplified NPK recommendations (production: soil test + leaf analysis)
-            recommendations = {
-                "wheat": {
-                    "vegetative": {"N": 80, "P": 40, "K": 30, "note": "تسميد نشط للأوراق"},
-                    "flowering": {"N": 30, "P": 50, "K": 60, "note": "تسميد للحبوب"},
-                    "ripening": {"N": 0, "P": 20, "K": 40, "note": "لا نيتروجين — يؤثر على الجودة"},
-                },
-                "maize": {
-                    "vegetative": {"N": 120, "P": 50, "K": 40, "note": "ذرة تحتاج نيتروجيناً عالياً"},
-                    "flowering": {"N": 60, "P": 40, "K": 50, "note": "تسميد عند الإزهار"},
-                    "ripening": {"N": 0, "P": 20, "K": 30, "note": "تقليل التسميد"},
-                },
-            }
-
-            rec = recommendations.get(crop, {}).get(
-                growth_stage, {"N": 50, "P": 30, "K": 25, "note": "توصية عامة"}
+            # No approved soil-specific prescription is exposed by this skill yet.
+            # Crop/stage templates cannot establish a safe nutrient dose.
+            return _unavailable(
+                "fertilizer_prescription_required",
+                "توصية التسميد الكمية غير متاحة: يلزم تحليل تربة معتمد ووصفة تسميد مراجعة للحقل.",
             )
-
-            return {
-                "type": "fertilizer_advice",
-                "crop": crop,
-                "growth_stage": growth_stage,
-                "recommendation_kg_ha": rec,
-                "note": rec["note"],
-                "sources": [
-                    "FAO Guidelines",
-                    "Yemen Ministry of Agriculture",
-                    "SAHOOL Soil Analysis",
-                ],
-            }
 
         else:
             return {
                 "type": "error",
                 "response": f"نوعية استعلام نموذج المحصول غير معروفة: {intent}",
             }
+
+    async def _irrigation_advice(self, field_id: str | None, context: dict) -> dict:
+        state = context.get("field_state") or {}
+        bearer = context.get("_platform_bearer")
+        if not field_id or not bearer or state.get("validity") != "valid":
+            return _unavailable(
+                "canonical_field_evidence_required",
+                "لا يمكن تحديد كمية ري آمنة دون حقل محدد وبيانات حقل صالحة من المنصة.",
+            )
+        platform = os.getenv(
+            "PLATFORM_SERVICE_URL", os.getenv("PLATFORM_URL", "http://sahool-platform:8000")
+        ).rstrip("/")
+        field_path = f"{platform}/api/v1/fields/{quote(str(field_id), safe='')}"
+        # Delegate all ET0/Kc/rain calculations to the existing owner. Never
+        # interpret missing observations as dry weather or invent soil moisture.
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            headers = {"Authorization": f"Bearer {bearer}"}
+            async with asyncio.timeout(20.0):
+                advice_resp, field_resp = await asyncio.gather(
+                    client.get(f"{field_path}/weather/irrigation-advice", headers=headers),
+                    client.get(field_path, headers=headers),
+                )
+            advice_resp.raise_for_status()
+            field_resp.raise_for_status()
+            advice, field = advice_resp.json(), field_resp.json()
+        try:
+            if not isinstance(advice, dict) or not isinstance(field, dict):
+                raise ValueError("invalid canonical payload")
+            if advice.get("field_id") != field_id or field.get("field_id") != field_id:
+                raise ValueError("field identity mismatch")
+            action = IrrigationAction(
+                water_mm=advice.get("recommended_mm"),
+                area_ha=field.get("area_ha"),
+                # Volume is the net depth over the observed field area (1 mm/ha = 10 m3).
+                water_m3=advice["recommended_mm"] * field["area_ha"] * 10,
+                field_id=field_id,
+            )
+        except (KeyError, TypeError, ValueError, ValidationError):
+            return _unavailable(
+                "canonical_irrigation_incomplete",
+                "بيانات توصية الري أو مساحة الحقل غير مكتملة؛ لا يمكن إصدار كمية آمنة.",
+            )
+        return {
+            "type": "irrigation_advice",
+            "advice": advice.get("rationale_ar", ""),
+            "amount_mm": action.water_mm,
+            "timing": advice.get("timing_ar", "غير محدد"),
+            "actionable": True,
+            "action_type": "irrigation",
+            "structured": action.model_dump(),
+            "farm_context": {
+                "field_id": field_id,
+                "field_area_ha": action.area_ha,
+                "water_source": field.get("water_source"),
+                "field_state": state,
+            },
+            "sources": [
+                "SAHOOL field irrigation advice",
+                advice.get("source") or "weather-service",
+            ],
+        }
+
+
+class IrrigationAction(BaseModel):
+    """Canonical net irrigation quantity passed intact to central governance."""
+
+    model_config = ConfigDict(strict=True, allow_inf_nan=False, extra="forbid")
+    field_id: str
+    water_mm: float = Field(ge=0)
+    area_ha: float = Field(gt=0)
+    water_m3: float = Field(ge=0)
+
+
+def _unavailable(code: str, message: str) -> dict:
+    return {
+        "type": "unavailable",
+        "response": message,
+        "actionable": False,
+        "structured": {"status": "unavailable", "reason": code},
+        "sources": [],
+    }

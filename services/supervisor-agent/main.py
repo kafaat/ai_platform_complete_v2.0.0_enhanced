@@ -105,14 +105,11 @@ async def _fetch_field_state(client, field_id, tenant_id):
 
 
 def bind_field_context(context, field_state):
-    """يحقن الحالة القانونيّة للحقل في سياق سؤال المستشار (دالّة نقيّة — grounding).
+    """Bind fetched canonical evidence; strip body-supplied trust and credential fields.
 
-    يقلّل الهلوسة بربط الجواب بمصدر الحقيقة الواحد (Canonical Field State). صدق:
-    لا يدهس مفاتيح أرسلها العميل (setdefault)، ولا يلفّق (يكتب المتاح فقط)، ولا يُعدّل
-    الأصل. `field_state` dict الحالة (validity/execution_mode/confidence_level/
-    remote_sensing/inputs...) أو None ⇒ يُعيد السياق كما هو.
+    Ordinary user context is preserved, but cannot impersonate server evidence.
     """
-    out = dict(context or {})
+    out = {k: v for k, v in (context or {}).items() if not k.startswith("_") and k != "field_state"}
     if not field_state:
         return out
     out["field_state"] = field_state
@@ -215,39 +212,44 @@ async def _validate_actions_via_guardrails(
 ) -> dict:
     """يمرّر إجراءات المهارة عبر Guardrails /validate — حَوكمة كلّ المسارات.
 
-    يحدّد نوع الإجراء من المهارة (تسميد/مبيد/ريّ...) ويمرّره للبوّابة. صدق:
-    عند التعذّر، التوصية تبقى استشاريّة موسومة (لا تنفيذ تلقائي، لا فراغ).
+    يرسل نوع الإجراء الصريح وبياناته إلى البوابة. عند غياب العقد أو تعذر
+    التحقق يحجب مسار الاستعلام تفاصيل التوصية الكمية وأي إجراء معلن.
     """
     import httpx
 
-    # نوع الإجراء من المهارة (المهارة تحدّده: pesticide/fertilization/...) — حَوكمة
-    # فعليّة لا اسميّة: action_data بنية مهيكلة تفهمها الطبقات.
+    # An actionable result without a typed contract must not become informational.
     action_type = result.get("action_type")
-    structured = result.get("structured") or {}
-    if action_type not in (
-        "irrigation",
-        "fertilization",
-        "pesticide",
-        "harvest",
-        "contract",
-        "investment",
-        "loan",
+    structured = result.get("structured")
+    if (
+        action_type
+        not in {
+            "irrigation",
+            "fertilization",
+            "pesticide",
+            "harvest",
+            "contract",
+            "investment",
+            "loan",
+        }
+        or not isinstance(structured, dict)
+        or not structured
+        or not user_id
+        or not tenant_id
     ):
-        # لا نوع صريح + لا بنية → نصيحة معلوماتيّة خالصة، لا تُحكَم (تبويب صحيح)
-        if not structured:
-            return {
-                "allowed": True,
-                "overall_risk": "INFORMATIONAL",
-                "status": "informational_advice",
-                "source": "no-action",
-                "note": "نصيحة معلوماتيّة لا إجراء قابل للتنفيذ — لا تحتاج حَوكمة",
-            }
-        action_type = "irrigation"
+        return {
+            "allowed": False,
+            "overall_risk": "UNKNOWN",
+            "status": "invalid_action_contract",
+            "source": "supervisor-agent",
+        }
     payload = {
         "action_type": action_type,
-        "action_data": structured or {"advisory": True},
-        "farm_context": {"field_id": getattr(query, "field_id", None)},
-        "user_id": user_id or "agent",
+        "action_data": structured,
+        "farm_context": {
+            **(result.get("farm_context") or {}),
+            "field_id": getattr(query, "field_id", None),
+        },
+        "user_id": user_id,
         "tenant_id": tenant_id or "",
         "request_source": "agent",
         "auto_approve_low_risk": True,
@@ -264,24 +266,34 @@ async def _validate_actions_via_guardrails(
                 json=payload,
                 headers={"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")},
             )
+            if resp.status_code == 422:
+                return {
+                    "allowed": False,
+                    "overall_risk": "UNKNOWN",
+                    "status": "context_incomplete",
+                    "source": "guardrails-engine",
+                    "error": "action_context_incomplete",
+                    "note": "بيانات التحقق غير مكتملة؛ يلزم استكمال الأدلة المالية والمائية المطلوبة.",
+                }
             resp.raise_for_status()
             r = resp.json()
         return {
-            "allowed": r.get("allowed"),
+            "allowed": r.get("allowed") is True,
             "overall_risk": r.get("overall_risk"),
             "requires_human_approval": r.get("requires_human_approval"),
             "approval_workflow_id": r.get("approval_workflow_id"),
             "status": "validated",
+            "violations": r.get("violations", []),
             "source": "guardrails-engine",
         }
-    except Exception:  # noqa: BLE001 — صدق: استشاريّة موسومة لا فراغ
+    except Exception:  # noqa: BLE001 — تعذّر التحقق يحجب التوصية
         return {
             "allowed": None,
             "overall_risk": "UNKNOWN",
             "status": "advisory_pending_validation",
             "source": "guardrails-unavailable",
             "error": "guardrails_unavailable",
-            "note": "التوصية استشاريّة — بانتظار التحقّق، لا تُنفَّذ تلقائيّاً",
+            "note": "تفاصيل التوصية محجوبة بانتظار التحقّق، لا تُنفَّذ تلقائيّاً",
         }
 
 

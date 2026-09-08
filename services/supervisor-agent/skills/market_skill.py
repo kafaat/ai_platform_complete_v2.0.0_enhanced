@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""
-Market Skill Library for SAHOOL Supervisor Agent
-"""
+"""Observed market data; missing prices and unavailable contracts stay explicit."""
 
 import json
+import math
 from typing import Any
 
 from mcp_client import MCPClient
@@ -24,73 +23,59 @@ class MarketSkill:
         context: dict[str, Any] = None,
         objectives: list[str] = None,
     ) -> dict[str, Any]:
-
-        if intent == "price_current":
-            crop = context.get("crop", "wheat") if context else "wheat"
-            market = context.get("market", "sanaa") if context else "sanaa"
-            result = await self.mcp.call_tool(
-                self.server, "get_market_price", {"crop": crop, "market": market}
-            )
-            content = result.get("content", [{}])[0].get("text", "{}")
-            price_data = json.loads(content)
-            return {
-                "type": "price_current",
-                "crop": crop,
-                "market": market,
-                "price_yer_kg": price_data.get("price_yer_kg", 0),
-                "price_usd_kg": price_data.get("price_usd_kg", 0),
-                "trend": price_data.get("trend", "stable"),
-                "updated": price_data.get("updated", "N/A"),
-                "sources": [f"SAHOOL Market Data — {market}"],
-            }
-
-        elif intent == "price_forecast":
-            crop = context.get("crop", "wheat") if context else "wheat"
-            result = await self.mcp.call_tool(self.server, "get_price_trend", {"crop": crop})
-            content = result.get("content", [{}])[0].get("text", "{}")
-            trend_data = json.loads(content)
-            return {
-                "type": "price_forecast",
-                "crop": crop,
-                "current_price_yer_kg": trend_data.get("current_price", 0),
-                "change_30d_pct": trend_data.get("price_change_pct", 0),
-                "forecast": trend_data.get("forecast", "stable"),
-                "trend_data": trend_data.get("trend_data", [])[:7],
-                "sources": ["SAHOOL Market Analytics"],
-            }
-
-        elif intent == "create_contract":
-            if not field_id:
-                return {"type": "error", "response": "يجب تحديد الحقل لإنشاء عقد آجل."}
-            crop = context.get("crop", "wheat") if context else "wheat"
-            yield_est = context.get("estimated_yield_kg", 1000) if context else 1000
-            harvest = context.get("harvest_date", "2026-09-01") if context else "2026-09-01"
-            result = await self.mcp.call_tool(
-                self.server,
-                "create_forward_contract",
-                {
-                    "farmer_id": user_id,
-                    "field_id": field_id,
-                    "crop": crop,
-                    "estimated_yield_kg": yield_est,
-                    "harvest_date": harvest,
-                    "quality_grade": "A",
-                },
-            )
-            content = result.get("content", [{}])[0].get("text", "{}")
-            contract = json.loads(content)
-            return {
-                "type": "contract_created",
-                "contract_id": contract.get("contract_id", "N/A"),
-                "crop": crop,
-                "yield_kg": yield_est,
-                "price_yer_kg": contract.get("agreed_price_yer_kg", 0),
-                "total_value_yer": contract.get("total_contract_value_yer", 0),
-                "harvest_date": harvest,
-                "status": contract.get("status", "pending"),
-                "next_steps": contract.get("next_steps", []),
-                "sources": ["SAHOOL B2B Marketplace"],
-            }
-
-        else:
+        if intent == "create_contract":
+            # The owner explicitly returns 501. Do not claim a write succeeded,
+            # invent harvest/yield/prices, or issue a write before governance.
+            return _unavailable("forward_contract_not_implemented")
+        tools = {"price_current": "get_market_price", "price_forecast": "get_price_trend"}
+        if intent not in tools:
             return {"type": "error", "response": f"نوعية استعلام السوق غير معروفة: {intent}"}
+        context = context or {}
+        crop = context.get("crop")
+        if not crop:
+            return _unavailable("crop_required")
+        arguments = {"crop": crop}
+        if intent == "price_current":
+            if not context.get("market"):
+                return _unavailable("market_required")
+            arguments["market"] = context["market"]
+        envelope = await self.mcp.call_tool(self.server, tools[intent], arguments)
+        try:
+            if envelope.get("isError"):
+                raise ValueError("tool error")
+            data = json.loads(envelope["content"][0]["text"])
+            key = "price_usd" if intent == "price_current" else "current_price_usd"
+            price = data[key]
+            if isinstance(price, bool) or not isinstance(price, (float, int)):
+                raise ValueError("price not numeric")
+            if not math.isfinite(price) or price <= 0 or data.get("error"):
+                raise ValueError("price not observed")
+            if data.get("currency") != "USD" or not data.get(
+                "sample_count" if intent == "price_current" else "observation_count"
+            ):
+                raise ValueError("missing provenance")
+        except (KeyError, IndexError, TypeError, ValueError):
+            return _unavailable("market_observations_unavailable")
+        historical = intent == "price_forecast"
+        return {
+            "type": "price_history" if historical else "price_current",
+            "response": (
+                "المتاح سجل أسعار تاريخي، ولا يتوفر نموذج توقع للسعر المستقبلي. "
+                if historical
+                else ""
+            )
+            + f"السعر المرصود: {price} دولار. وحدة التسعير غير مسجلة؛ لا يُفترض أنه سعر الكيلوغرام.",
+            "structured": {"crop": crop, **data, "forecast_available": False},
+            "actionable": False,
+            "sources": ["SAHOOL market price observations"],
+        }
+
+
+def _unavailable(reason: str) -> dict:
+    return {
+        "type": "unavailable",
+        "response": "لا تتوفر بيانات سوق موثقة لهذا الطلب أو أن الوظيفة المطلوبة غير متاحة حالياً.",
+        "structured": {"status": "unavailable", "reason": reason},
+        "actionable": False,
+        "sources": [],
+    }
