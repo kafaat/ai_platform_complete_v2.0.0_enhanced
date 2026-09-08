@@ -210,12 +210,33 @@ class TestHILGetStatus:
             assert (await hil.approve(wf_id, "1", "agronomist", req.tenant_id))[
                 "status"
             ] == "pending"
+            assert (
+                await db.fetchval(
+                    "SELECT resolved_at FROM approval_workflows WHERE workflow_id=$1", wf_id
+                )
+                is None
+            )
             assert (await hil.approve(wf_id, "1", "agronomist", req.tenant_id))[
                 "approvals_received"
             ] == 1
             assert (await hil.approve(wf_id, "2", "pesticide_expert", req.tenant_id))[
                 "status"
             ] == "approved"
+            resolved_at = await db.fetchval(
+                "SELECT resolved_at FROM approval_workflows WHERE workflow_id=$1", wf_id
+            )
+            assert resolved_at is not None
+            assert (await hil.get_status(wf_id, req.tenant_id))["status"] == "approved"
+            assert await hil.reject(wf_id, "3", "agronomist", "late", req.tenant_id) == {
+                "error": "Workflow already approved",
+                "status": "approved",
+            }
+            assert (
+                await db.fetchval(
+                    "SELECT resolved_at FROM approval_workflows WHERE workflow_id=$1", wf_id
+                )
+                == resolved_at
+            )
 
             # workflow غير موجود ⇒ None
             assert await hil.get_status("SAHOOL-HIL-NOPE0000", req.tenant_id) is None

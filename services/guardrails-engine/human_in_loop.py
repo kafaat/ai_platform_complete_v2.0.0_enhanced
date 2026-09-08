@@ -186,8 +186,8 @@ class HumanApprovalWorkflow:
             required_count = {"LOW": 1, "MEDIUM": 1, "HIGH": 2, "CRITICAL": 3}[row["risk_level"]]
             status = "approved" if len(approvals) >= required_count else "pending"
             await conn.execute(
-                "UPDATE approval_workflows SET status=$1, approvals=$2, "
-                "resolved_at=CASE WHEN $1='approved' THEN NOW() ELSE NULL END WHERE workflow_id=$3",
+                "UPDATE approval_workflows SET status=$1::varchar, approvals=$2, "
+                "resolved_at=CASE WHEN $1::varchar='approved' THEN NOW() ELSE NULL END WHERE workflow_id=$3",
                 status,
                 json.dumps(approvals),
                 workflow_id,
