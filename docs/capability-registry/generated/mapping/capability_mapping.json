@@ -25,7 +25,7 @@
       "tests": 1770,
       "web": 457
     },
-    "unmapped_artifacts": 2149,
+    "unmapped_artifacts": 2148,
     "ambiguous_artifacts": 417
   },
   "capabilities": [
@@ -29699,23 +29699,23 @@
           "score": 14
         },
         {
-          "value": "/health @ services/mcp_servers/weather_server.py:334",
+          "value": "/health @ services/mcp_servers/weather_server.py:367",
           "score": 14
         },
         {
-          "value": "/healthz @ services/mcp_servers/weather_server.py:333",
+          "value": "/healthz @ services/mcp_servers/weather_server.py:366",
           "score": 14
         },
         {
-          "value": "/readyz @ services/mcp_servers/weather_server.py:339",
+          "value": "/readyz @ services/mcp_servers/weather_server.py:372",
           "score": 14
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/weather_server.py:84",
+          "value": "/v1/mcp/tools @ services/mcp_servers/weather_server.py:91",
           "score": 14
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/weather_server.py:147",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/weather_server.py:154",
           "score": 14
         },
         {
@@ -29946,6 +29946,10 @@
         },
         {
           "value": "sahool.plugin.execution.requested @ services/sahool-platform/api/phase_runtime_workers.py:280",
+          "score": 14
+        },
+        {
+          "value": "weather_server.py @ tests_v9/test_mcp_auth_first_contract.py:474",
           "score": 14
         },
         {
@@ -30184,6 +30188,15 @@
         {
           "path": "tests_v9/test_mcp_servers.py",
           "score": 16,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
+          "path": "tests_v9/test_mcp_auth_first_contract.py",
+          "score": 14,
           "signals": [
             "content:Weather forecast",
             "content:forecast",
@@ -30543,10 +30556,10 @@
         "backend": 22,
         "routes": 62,
         "database": 8,
-        "events": 56,
+        "events": 57,
         "web": 9,
         "mobile": 0,
-        "tests": 23,
+        "tests": 24,
         "governance": 0,
         "other_evidence": 19
       },
@@ -31291,7 +31304,7 @@
           "score": 12
         },
         {
-          "value": "/health @ services/mcp_servers/weather_server.py:334",
+          "value": "/health @ services/mcp_servers/weather_server.py:367",
           "score": 12
         },
         {
@@ -31299,7 +31312,7 @@
           "score": 12
         },
         {
-          "value": "/healthz @ services/mcp_servers/weather_server.py:333",
+          "value": "/healthz @ services/mcp_servers/weather_server.py:366",
           "score": 12
         },
         {
@@ -31307,7 +31320,7 @@
           "score": 12
         },
         {
-          "value": "/readyz @ services/mcp_servers/weather_server.py:339",
+          "value": "/readyz @ services/mcp_servers/weather_server.py:372",
           "score": 12
         },
         {
@@ -31327,11 +31340,11 @@
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/weather_server.py:84",
+          "value": "/v1/mcp/tools @ services/mcp_servers/weather_server.py:91",
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/weather_server.py:147",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/weather_server.py:154",
           "score": 12
         },
         {
@@ -31347,23 +31360,23 @@
           "score": 10
         },
         {
-          "value": "/health @ services/mcp_servers/wofost_server.py:285",
+          "value": "/health @ services/mcp_servers/wofost_server.py:315",
           "score": 10
         },
         {
-          "value": "/healthz @ services/mcp_servers/wofost_server.py:284",
+          "value": "/healthz @ services/mcp_servers/wofost_server.py:314",
           "score": 10
         },
         {
-          "value": "/readyz @ services/mcp_servers/wofost_server.py:290",
+          "value": "/readyz @ services/mcp_servers/wofost_server.py:320",
           "score": 10
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/wofost_server.py:50",
+          "value": "/v1/mcp/tools @ services/mcp_servers/wofost_server.py:57",
           "score": 10
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/wofost_server.py:113",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/wofost_server.py:120",
           "score": 10
         },
         {
@@ -33718,7 +33731,7 @@
           "score": 12
         },
         {
-          "value": "/health @ services/mcp_servers/wofost_server.py:285",
+          "value": "/health @ services/mcp_servers/wofost_server.py:315",
           "score": 12
         },
         {
@@ -33726,7 +33739,7 @@
           "score": 12
         },
         {
-          "value": "/healthz @ services/mcp_servers/wofost_server.py:284",
+          "value": "/healthz @ services/mcp_servers/wofost_server.py:314",
           "score": 12
         },
         {
@@ -33734,7 +33747,7 @@
           "score": 12
         },
         {
-          "value": "/readyz @ services/mcp_servers/wofost_server.py:290",
+          "value": "/readyz @ services/mcp_servers/wofost_server.py:320",
           "score": 12
         },
         {
@@ -33750,11 +33763,11 @@
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/wofost_server.py:50",
+          "value": "/v1/mcp/tools @ services/mcp_servers/wofost_server.py:57",
           "score": 12
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/wofost_server.py:113",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/wofost_server.py:120",
           "score": 12
         },
         {
@@ -42874,10 +42887,6 @@
     },
     {
       "path": "tests_v9/test_master_data.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_mcp_auth_first_contract.py",
       "kind": "tests"
     },
     {

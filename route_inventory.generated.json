@@ -1594,7 +1594,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/weather_server.py",
-    "line": 85,
+    "line": 92,
     "method": "GET",
     "path": "/v1/mcp/tools",
     "function": "list_tools"
@@ -1602,7 +1602,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/weather_server.py",
-    "line": 148,
+    "line": 164,
     "method": "POST",
     "path": "/v1/mcp/tools/call",
     "function": "call_tool"
@@ -1610,7 +1610,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/weather_server.py",
-    "line": 335,
+    "line": 368,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -1618,7 +1618,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/weather_server.py",
-    "line": 335,
+    "line": 368,
     "method": "GET",
     "path": "/health",
     "function": "healthz"
@@ -1626,7 +1626,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/weather_server.py",
-    "line": 340,
+    "line": 373,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -1634,7 +1634,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/wofost_server.py",
-    "line": 51,
+    "line": 58,
     "method": "GET",
     "path": "/v1/mcp/tools",
     "function": "list_tools"
@@ -1642,7 +1642,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/wofost_server.py",
-    "line": 114,
+    "line": 130,
     "method": "POST",
     "path": "/v1/mcp/tools/call",
     "function": "call_tool"
@@ -1650,7 +1650,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/wofost_server.py",
-    "line": 286,
+    "line": 316,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -1658,7 +1658,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/wofost_server.py",
-    "line": 286,
+    "line": 316,
     "method": "GET",
     "path": "/health",
     "function": "healthz"
@@ -1666,7 +1666,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/wofost_server.py",
-    "line": 291,
+    "line": 321,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"

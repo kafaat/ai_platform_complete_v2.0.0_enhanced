@@ -166,7 +166,7 @@
         },
         {
           "function": "healthz",
-          "line": 335,
+          "line": 368,
           "method": "GET",
           "module": "services/mcp_servers/weather_server.py",
           "path": "/health",
@@ -174,7 +174,7 @@
         },
         {
           "function": "healthz",
-          "line": 286,
+          "line": 316,
           "method": "GET",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/health",
@@ -365,7 +365,7 @@
         },
         {
           "function": "healthz",
-          "line": 335,
+          "line": 368,
           "method": "GET",
           "module": "services/mcp_servers/weather_server.py",
           "path": "/healthz",
@@ -373,7 +373,7 @@
         },
         {
           "function": "healthz",
-          "line": 286,
+          "line": 316,
           "method": "GET",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/healthz",
@@ -707,7 +707,7 @@
         },
         {
           "function": "readyz",
-          "line": 340,
+          "line": 373,
           "method": "GET",
           "module": "services/mcp_servers/weather_server.py",
           "path": "/readyz",
@@ -715,7 +715,7 @@
         },
         {
           "function": "readyz",
-          "line": 291,
+          "line": 321,
           "method": "GET",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/readyz",
@@ -937,7 +937,7 @@
         },
         {
           "function": "list_tools",
-          "line": 85,
+          "line": 92,
           "method": "GET",
           "module": "services/mcp_servers/weather_server.py",
           "path": "/v1/mcp/tools",
@@ -945,7 +945,7 @@
         },
         {
           "function": "list_tools",
-          "line": 51,
+          "line": 58,
           "method": "GET",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/v1/mcp/tools",
@@ -1092,7 +1092,7 @@
         },
         {
           "function": "call_tool",
-          "line": 148,
+          "line": 164,
           "method": "POST",
           "module": "services/mcp_servers/weather_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1100,7 +1100,7 @@
         },
         {
           "function": "call_tool",
-          "line": 114,
+          "line": 130,
           "method": "POST",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1159,7 +1159,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1097,
-  "route_inventory_sha256": "edf38c6a427e40bb426d49a3af8dad856fffbaa5c0c23b457bb37ed0e5d074c4",
+  "route_inventory_sha256": "9db130f5a6427ed125827f71d25989518af28462edb156cb1cfa769de1be8055",
   "runtime_verified": false,
   "schema_version": 1
 }
