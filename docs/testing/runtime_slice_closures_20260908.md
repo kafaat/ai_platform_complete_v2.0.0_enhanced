@@ -159,3 +159,19 @@ bash docs/testing/run_hil_drawing_pg.sh /absolute/path/to/repository /absolute/p
 - جناح `pytest tests/` **نجح**؛ لم يُحفظ عدده النهائي مستقلاً، فلا يُنسب إليه عدد مستنتج. جناح المنصة اكتمل: **4294 passed** خلال **49.58 ثانية**. نجحت البوابات السابقة للأجنحة وخطوات اتساق المصنوعات الـ**75** في التشغيل نفسه.
 - سجلا القياس المحليان: `diagnostics/preflight-ci-measurement.log` و`diagnostics/platform-preflight-completed.log`. هذه نتيجة محلية على `fb82eff6`، وليست جولة GitHub Actions أو إثبات PostgreSQL حي.
 - تعديل شاهد HIL اللاحق في `8078bda3` له قياسه الموجه المستقل: **47 حالة ناجحة** كما سبق. لا تُنسب نتيجة الأجنحة الكاملة على `fb82eff6` إلى هذا التعديل اللاحق، ولا تحل سرعة الوحدة المحلية محل مرساة زمن المكنسة المقيسة في CI.
+
+
+متابعة مراجعة #990 — 2026-09-08
+
+المصدر: [المراجعة 5135471149](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/990#pullrequestreview-5135471149)، والتعليق [3952828845](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/990#discussion_r3952828845). المراجعة COMMENTED؛ التعليق ما زال غير محلول على GitHub وقت القراءة. الأساس المحلي لهذه الشريحة `611bae0c`، وإصلاح المصدر `4163de82`.
+
+الملاحظة صحيحة وأثرها تشخيصي: عند اجتماع موضع مستثنى من الشهادة الذاتية مع موضع خارجي غير مثبت، كان `collect_guard_surface_evidence.py:212` يضع `self_witnessing_excluded` في أسباب الإخفاق وتفاصيل مواضعه. بقي الحكم `not_proven`؛ لم يُكتشف تجاوز يجعل الحارس ناجحاً. تُرشَّح المواضع المستثناة الآن من `reasons` و`sites` مع بقاء أحكام النجاح والاستثناء والعدّادات كما هي. قائمة `self_witnessing_excluded` العليا تخص الحرّاس المستثناة بالكامل؛ لا تُضاف إليها الحرّاس المختلطة كي لا يفسد حساب المثبت منها.
+
+أعاد وكيل مستقل إنتاج العطل على الجرد الفعلي عند `611bae0c`: 272 حارساً و298 موضعاً. الحرّاس المختلطة المتأثرة هي `edge_model_contract_guard.py` و`edge_production_readiness_guard.py` و`production_evidence_pack_guard.py`. المقارنة المحكومة قبل الإصلاح وبعده عبر سبعة سيناريوهات أبقت كل الأحكام والعدّادات والعضوية والتشخيصات غير المختلطة متطابقة، ونقّت أسباب ومواضع الحرّاس الثلاثة. هذا قياس لمنطق الجامع محلياً، لا تشغيل لهذه الحرّاس في GitHub Actions.
+
+- قبل الإصلاح: فشل شاهدان بسبب السبب المستثنى الزائد تحديداً.
+- بعده: `tests_v9/test_collect_guard_surface_evidence.py` و`tests_v9/test_guard_mutation_guard.py` أعطيا **86 passed**؛ ملف الجامع وحده22 حالة. تشمل الحالات موضعاً خارجياً متخطى، إخفاقين خارجيين مختلفين، ونجاحاً خارجياً مع موضعين مستثنيين.
+- التشغيل الفعلي `guard_mutation_guard.py --run --only scripts/ci/collect_guard_surface_evidence.py` كشف **10/10** طفرات بالشواهد المسماة؛ الطفرتان الجديدتان تعيدان الخلل إلى `reasons` و`sites` مستقلاً.
+- `test_mutation_sweep_headroom.py`: **3 passed, 2 failed**. الإجمالي648 (368 حراسة و280 سلوك)، والإضافات منذ799842d3 صارت48؛ العلامة642 وحد الانجراف610 لم يتغيرا. هذه متابعة للعائق المفتوح، وليست نتيجة CI جديدة.
+
+سجلات القياس المحلية: `diagnostics/review990-before-fix.log` و`review990-targeted-tests.log` و`review990-mutations.log` و`review990-headroom.log`. لم تُعد الأجنحة الكاملة في هذه الشريحة الضيقة؛ قياسها السابق على `fb82eff6` يبقى منسوباً إليه. إغلاق العيب في الشيفرة لا يغلق تعليق GitHub ولا يثبت نشر commit؛ اعتماد دفع Git ما زال غير متاح. `runtime_verified=0` و`production_certified=0` و`capable=false`.

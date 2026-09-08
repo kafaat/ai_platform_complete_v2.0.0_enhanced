@@ -5706,3 +5706,12 @@ scripts/ci/capability_mapping_engine.py:270      ["git","ls-files","-z"]
 | LIVE-20260908-HIL-CERTIFICATE-SKIP-01 | fixed (proof contract) / live pending | `8078bda3`؛ tests_v9/test_db_wiring.py وtest_guardrails_contract.py؛ اشتراط قاعدة معلنة وفشل اتصال/دور غير مقاس، وCI يفرض العلم.47 حالة ناجحة؛ لا PG حي محلي. |
 
 متابعة LIVE-20260908-MUTATION-TIMING-01: الإجمالي646 بعد طفرة CI الجديدة؛ تبقى العلامة642 وحد الانجراف610 بلا تغيير. إصدار مصدر كامل محفوظ، وCI على هذا الكون لم يقس بعد بسبب اعتماد الدفع المفقود.
+
+
+### متابعة تشخيص شاهد GUARDS في #990 — 2026-09-08
+
+| الهوية | الحالة | الدليل وحد الإغلاق |
+|---|---|---|
+| GUARDS-MIXED-SELF-WITNESS-DIAGNOSTICS-01 | fixed locally / remote review pending | `4163de82`؛ #990 / discussion_r3952828845؛ `scripts/ci/collect_guard_surface_evidence.py:212` و`tests_v9/test_collect_guard_surface_evidence.py:208`. استبعاد مواضع الشهادة الذاتية من أسباب وتفاصيل الإخفاق المختلط؛86 اختباراً و10/10 طفرات، وثبات الأحكام والعدّادات بمقارنة مستقلة. تعليق GitHub غير محلول، وCI على الرأس الجديد غير مقاس. |
+
+متابعة LIVE-20260908-MUTATION-TIMING-01 عند `4163de82`: الإجمالي648 بعد طفرتي مراجعة #990؛3 حالات headroom ناجحة وحالتان مخفقتان مقابل642 و610 دون تعديل الحدود.
