@@ -25321,6 +25321,14 @@
           ]
         },
         {
+          "path": "docs/testing/runtime_slice_closures_20260908.md",
+          "score": 10,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "scripts_v9/runtime_truth_report.py",
           "score": 10,
           "signals": [
@@ -25499,14 +25507,6 @@
         },
         {
           "path": "docs/history/REVIEW_P2_P3_FIXES.md",
-          "score": 8,
-          "signals": [
-            "content:rls",
-            "content:tenant isolation"
-          ]
-        },
-        {
-          "path": "docs/testing/runtime_slice_closures_20260908.md",
           "score": 8,
           "signals": [
             "content:rls",
