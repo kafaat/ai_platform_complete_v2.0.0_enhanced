@@ -219,6 +219,10 @@ class TestHILGetStatus:
             assert (await hil.approve(wf_id, "1", "agronomist", req.tenant_id))[
                 "approvals_received"
             ] == 1
+            after_duplicate = await hil.get_status(wf_id, req.tenant_id)
+            assert after_duplicate["status"] == "pending"
+            assert [a["expert_id"] for a in after_duplicate["approvals"]] == ["1"]
+            assert after_duplicate["resolved_at"] is None
             assert (await hil.approve(wf_id, "2", "pesticide_expert", req.tenant_id))[
                 "status"
             ] == "approved"
@@ -226,7 +230,10 @@ class TestHILGetStatus:
                 "SELECT resolved_at FROM approval_workflows WHERE workflow_id=$1", wf_id
             )
             assert resolved_at is not None
-            assert (await hil.get_status(wf_id, req.tenant_id))["status"] == "approved"
+            approved_snapshot = await hil.get_status(wf_id, req.tenant_id)
+            assert approved_snapshot["status"] == "approved"
+            assert [a["expert_id"] for a in approved_snapshot["approvals"]] == ["1", "2"]
+            assert approved_snapshot["rejections"] == []
             assert await hil.reject(wf_id, "3", "agronomist", "late", req.tenant_id) == {
                 "error": "Workflow already approved",
                 "status": "approved",
@@ -237,6 +244,7 @@ class TestHILGetStatus:
                 )
                 == resolved_at
             )
+            assert await hil.get_status(wf_id, req.tenant_id) == approved_snapshot
 
             # workflow غير موجود ⇒ None
             assert await hil.get_status("SAHOOL-HIL-NOPE0000", req.tenant_id) is None
