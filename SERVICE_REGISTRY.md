@@ -6,7 +6,7 @@
 ## Inventory summary
 
 - Services discovered: **32**
-- Python LOC discovered: **256,321**
+- Python LOC discovered: **256,322**
 - Routes discovered: **1113**
 - Largest service concentration: **sahool-platform**
 - Protected product decision: **MapHub default must be raw field satellite image / truecolor, not weather and not NDVI-only.**
@@ -24,7 +24,7 @@
 | `field-management-service` | Unclassified / Support | 3 | 473 | 2 | 7 | `services/field-management-service/main.py` | `services/field-management-service/Dockerfile` | `services/field-management-service/requirements.txt` | `normal` |
 | `field-segmentation` | Field Boundary AI | 5 | 1000 | 2 | 4 | `services/field-segmentation/main.py` | `services/field-segmentation/Dockerfile` | `services/field-segmentation/requirements.txt` | `normal` |
 | `gis-workflow-service` | Unclassified / Support | 20 | 1562 | 9 | 0 | `-` | `-` | `services/gis-workflow-service/requirements.txt` | `medium-runtime-contract-gap` |
-| `guardrails-engine` | AI Safety & Governance | 14 | 1703 | 1 | 8 | `services/guardrails-engine/main.py` | `services/guardrails-engine/Dockerfile` | `services/guardrails-engine/requirements.txt` | `normal` |
+| `guardrails-engine` | AI Safety & Governance | 14 | 1704 | 1 | 8 | `services/guardrails-engine/main.py` | `services/guardrails-engine/Dockerfile` | `services/guardrails-engine/requirements.txt` | `normal` |
 | `indicators-service` | Vegetation Analytics | 8 | 742 | 4 | 11 | `services/indicators-service/main.py` | `services/indicators-service/Dockerfile` | `services/indicators-service/requirements.txt` | `normal` |
 | `knowledge-graph` | Edge Inference | 3 | 363 | 1 | 7 | `services/knowledge-graph/main.py` | `services/knowledge-graph/Dockerfile` | `services/knowledge-graph/requirements.txt` | `normal` |
 | `local-ai-rag` | Knowledge Retrieval | 2 | 549 | 1 | 5 | `services/local-ai-rag/main.py` | `services/local-ai-rag/Dockerfile` | `services/local-ai-rag/requirements.txt` | `normal` |

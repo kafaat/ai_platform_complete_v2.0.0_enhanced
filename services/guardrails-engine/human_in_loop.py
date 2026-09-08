@@ -186,8 +186,15 @@ class HumanApprovalWorkflow:
             required_count = {"LOW": 1, "MEDIUM": 1, "HIGH": 2, "CRITICAL": 3}[row["risk_level"]]
             status = "approved" if len(approvals) >= required_count else "pending"
             await conn.execute(
-                "UPDATE approval_workflows SET status=$1::varchar, approvals=$2, "
-                "resolved_at=CASE WHEN $1::varchar='approved' THEN NOW() ELSE NULL END WHERE workflow_id=$3",
+                # `status` هو VARCHAR(20) بينما 'approved' حرفيّةٌ نصّيّة، فاستعمالُ
+                # `$1` في الإسنادِ والمقارنةِ معاً يستنتج له نوعين متضاربين
+                # (character varying مقابل text) فيفشل التحضيرُ بـAmbiguousParameterError
+                # قبل أن يُكتَب أيُّ صفّ. التصريحُ بالنوع في **الموضعين** يوحّده،
+                # والإسنادُ إلى العمود يُكيَّف بعده. مقيسٌ على PostgreSQL 16.13:
+                # `$1::text` في موضعٍ واحد لا يكفي — يبقى التضاربُ قائماً.
+                "UPDATE approval_workflows SET status=$1::text, approvals=$2, "
+                "resolved_at=CASE WHEN $1::text='approved' THEN NOW() ELSE NULL END "
+                "WHERE workflow_id=$3",
                 status,
                 json.dumps(approvals),
                 workflow_id,
