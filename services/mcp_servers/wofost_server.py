@@ -9,7 +9,7 @@ import logging
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field, ValidationError
 from shared.oauth_middleware import idempotency_key, require_scope
 from shared.streamable_http import StreamableHTTPTransport
@@ -45,6 +45,12 @@ class WOFOSTResult(BaseModel):
     phenology: dict[str, str]
     gdd_total: float
     stress_days: int
+
+
+class ToolCallRequest(BaseModel):
+    name: str = Field(min_length=1)
+    arguments: dict[str, Any] = Field(default_factory=dict)
+    request_id: str | None = None
 
 
 @app.get("/v1/mcp/tools", dependencies=[Depends(require_scope("crop:read"))])
@@ -110,11 +116,25 @@ async def list_tools():
     }
 
 
-@app.post("/v1/mcp/tools/call")
-async def call_tool(request: dict, user: dict = Depends(require_scope("crop:read"))):
-    name = request.get("name")
-    args = request.get("arguments", {})
-    req_id = idempotency_key(user, request.get("request_id"), name, args)
+@app.post(
+    "/v1/mcp/tools/call",
+    openapi_extra={
+        "requestBody": {
+            "required": True,
+            "content": {"application/json": {"schema": ToolCallRequest.model_json_schema()}},
+        }
+    },
+)
+async def call_tool(request: Request, user: dict = Depends(require_scope("crop:read"))):
+    # A typed FastAPI body is decoded before dependencies. Keep all body reads
+    # here, after authentication, while retaining explicit schema validation.
+    try:
+        call = ToolCallRequest.model_validate_json(await request.body())
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail=exc.errors(include_input=False)) from exc
+    name = call.name
+    args = call.arguments
+    req_id = idempotency_key(user, call.request_id, name, args)
 
     if req_id and req_id in IDEMPOTENCY_CACHE:
         cached = IDEMPOTENCY_CACHE[req_id]

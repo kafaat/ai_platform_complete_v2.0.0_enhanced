@@ -2307,6 +2307,30 @@
         }
       ]
     },
+    "services/mcp_servers/weather_server.py": {
+      "mutations": [
+        {
+          "id": "MCP-WEATHER-AUTH-BEFORE-BODY",
+          "test": "tests_v9/test_mcp_auth_first_contract.py",
+          "expect": "test_mcp_auth_precedes_body_read",
+          "find": "async def call_tool(request: Request,",
+          "replace": "async def call_tool(request: dict,",
+          "why": "A typed FastAPI body restores unauthenticated body reads before the weather scope dependency; rejected callers must never reach body decoding."
+        }
+      ]
+    },
+    "services/mcp_servers/wofost_server.py": {
+      "mutations": [
+        {
+          "id": "MCP-WOFOST-AUTH-BEFORE-BODY",
+          "test": "tests_v9/test_mcp_auth_first_contract.py",
+          "expect": "test_mcp_auth_precedes_body_read",
+          "find": "async def call_tool(request: Request,",
+          "replace": "async def call_tool(request: dict,",
+          "why": "A typed FastAPI body restores unauthenticated body reads before the crop scope dependency; rejected callers must never reach body decoding."
+        }
+      ]
+    },
     "services/mcp_servers/market_server.py": {
       "mutations": [
         {
