@@ -40,3 +40,5 @@ Notification transport is not configured. Responses explicitly report
 through `GET /v1/workflow/{workflow_id}`. No delivery or live PostgreSQL certification
 is implied by unit tests. The restricted-role integration case is in
 `tests_v9/test_db_wiring.py::TestHILGetStatus` and requires a migrated PostgreSQL instance.
+
+The current auth enrollment API issues generic expert roles only; specialty claims need an authoritative provisioning mechanism before these reviewer paths are available. This change does not grant generic experts financial or pesticide authority.

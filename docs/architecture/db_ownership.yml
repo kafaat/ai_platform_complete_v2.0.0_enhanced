@@ -264,6 +264,11 @@ tables:
     writers: [sahool-platform]
     readers: []
     source: "migrations/init_v8.sql"
+  drawing_features:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v230_drawing_features.sql"
   edge_results:
     owner: sahool-platform
     writers: [sahool-platform]

@@ -143,7 +143,7 @@ class TestHILGetStatus:
             )
 
         hil_mod._pool = await asyncpg.create_pool(
-            DATABASE_URL, min_size=1, max_size=1, init=restricted_role
+            DATABASE_URL, min_size=1, max_size=1, setup=restricted_role
         )
         hil = hil_mod.HumanApprovalWorkflow()
 
