@@ -90,6 +90,53 @@ def test_contract_violations_pure(gr_mod):
     )
 
 
+def test_an_explicit_zero_is_an_observation_not_missing_evidence(gr_mod):
+    # أطروحةُ contracts.py في صدره: الصفرُ رصدٌ صريح لا بديلٌ عن دليلٍ غائب. لو
+    # عُدّ نقصاً لصار كلُّ ريٍّ صفريٍّ ودَينٍ صفريٍّ «سياقاً ناقصاً» فحُجب بلا سبب.
+    p = payload("irrigation")
+    p["action_data"]["water_m3"] = 0
+    assert p["farm_context"]["current_debt_usd"] == 0
+    assert gr_mod.contract_violations(p["action_type"], p["action_data"], p["farm_context"]) == []
+
+
+def test_an_action_type_without_a_contract_is_not_falsely_blocked(gr_mod):
+    # نوعٌ خارج ECONOMIC/SPENDING لا عقدَ له ⇒ لا نقص. الاتّجاه المقابل للاكتمال:
+    # بلا هذا يمرّ عقدٌ يطلب حقولاً من كلّ نوعٍ فيُعطّل الحصادَ وما لا عقد له.
+    assert gr_mod.contract_violations("harvest", {}, {}) == []
+
+
+def test_pesticide_without_a_dose_is_incomplete(gr_mod):
+    # الجرعةُ الصفريّةُ الصامتة خطرُ سلامة — غيابُها نقصٌ يُرفَض لا قيمةٌ تُفترَض.
+    p = payload("pesticide")
+    p["action_data"].pop("dosage_kg_ha")
+    assert "action_data.dosage_kg_ha" in gr_mod.contract_violations(
+        p["action_type"], p["action_data"], p["farm_context"]
+    )
+
+
+def test_loan_without_annual_revenue_is_incomplete(gr_mod):
+    # بلا الإيراد السنويّ يتعطّل الفحصُ الاقتصاديّ كلُّه، فيصير القرضُ بلا حاكم.
+    p = payload("loan")
+    p["farm_context"].pop("annual_revenue_usd")
+    assert "farm_context.annual_revenue_usd" in gr_mod.contract_violations(
+        p["action_type"], p["action_data"], p["farm_context"]
+    )
+
+
+def test_the_completion_contract_is_enforced_at_construction_in_both_directions(gr_mod):
+    # موضعُ العقد انتقل: `validate_evidence` على النموذج نفسِه ⇒ لا وجودَ لطلبٍ
+    # ناقصٍ أصلاً. الاتّجاهان معاً في شاهدٍ واحد لأنّ أحدهما بلا الآخر يمرّ على
+    # عقدٍ يرفض كلَّ شيء (أو لا يرفض شيئاً) وهو يبدو fail-closed سليماً.
+    incomplete = payload("pesticide")
+    incomplete["action_data"].pop("dosage_kg_ha")
+    with pytest.raises(ValidationError) as caught:
+        gr_mod.GuardrailsRequest(**incomplete)
+    assert "action_data.dosage_kg_ha" in str(caught.value)
+
+    complete = payload("irrigation")
+    assert gr_mod.GuardrailsRequest(**complete).action_type == "irrigation"
+
+
 @pytest.mark.parametrize(
     "action", ["investment", "loan", "contract", "irrigation", "fertilization", "pesticide"]
 )
