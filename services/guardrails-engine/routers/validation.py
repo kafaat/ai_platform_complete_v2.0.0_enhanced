@@ -53,9 +53,18 @@ async def approve_workflow(
     tenant_id = str(claims.get("tenant_id", ""))
     hil = HumanApprovalWorkflow()
     if approved:
-        return await hil.approve(workflow_id, expert_id, expert_role, tenant_id, notes=reason)
+        result = await hil.approve(workflow_id, expert_id, expert_role, tenant_id, notes=reason)
     else:
-        return await hil.reject(workflow_id, expert_id, expert_role, reason, tenant_id)
+        result = await hil.reject(workflow_id, expert_id, expert_role, reason, tenant_id)
+    status_code = {
+        "unauthorized": 403,
+        "not_found": 404,
+        "expired": 409,
+        "requires_revalidation": 409,
+    }.get(result.get("status"))
+    if status_code:
+        raise HTTPException(status_code=status_code, detail=result)
+    return result
 
 
 @router.get("/v1/workflow/{workflow_id}")
@@ -67,7 +76,7 @@ async def get_workflow(workflow_id: str, claims: dict = Depends(main._gr_authn))
     تطابق المستأجر كي لا نكشف وجود الـworkflow عبر المستأجرين.
     """
     hil = HumanApprovalWorkflow()
-    status = await hil.get_status(workflow_id)
+    status = await hil.get_status(workflow_id, str(claims.get("tenant_id", "")))
     if status is None or str(status.get("tenant_id")) != str(claims.get("tenant_id")):
         raise HTTPException(status_code=404, detail="Workflow not found")
     return status

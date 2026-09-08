@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import logging as _log
 
+from contracts import SPENDING_ACTIONS, contract_violations
+
 _audit = _log.getLogger("guardrails.economic_tier")
 #!/usr/bin/env python3
 """
@@ -31,6 +33,20 @@ class EconomicSafetyTier:
     MIN_RESERVE_MONTHS = 2
 
     async def validate(self, action_type: str, action_data: dict, farm_context: dict) -> dict:
+        invalid = contract_violations(action_type, action_data, farm_context)
+        if invalid:
+            return {
+                "tier": "economic",
+                "passed": False,
+                "findings": [
+                    {
+                        "severity": "HIGH",
+                        "rule": "invalid_economic_evidence",
+                        "invalid_fields": invalid,
+                    }
+                ],
+                "suggestions": [],
+            }
         findings = []
         suggestions = []
         passed = True
@@ -41,7 +57,17 @@ class EconomicSafetyTier:
         cash_reserve = farm_context.get("cash_reserve_usd", 0)
         monthly_expenses = annual_costs / 12 if annual_costs > 0 else 0
 
-        if action_type in ["irrigation", "fertilization", "pesticide"]:
+        if annual_revenue == 0:
+            findings.append(
+                {
+                    "severity": "HIGH",
+                    "rule": "zero_revenue_requires_review",
+                    "message_ar": "الإيراد السنوي صفر؛ يلزم تقييم بشري للقدرة المالية.",
+                }
+            )
+            passed = False
+
+        if action_type in SPENDING_ACTIONS:
             action_cost = action_data.get("cost_usd", 0)
             projected_revenue_increase = action_data.get("projected_revenue_increase_usd", 0)
 
@@ -104,6 +130,16 @@ class EconomicSafetyTier:
             projected_annual_revenue = farm_context.get(
                 "projected_annual_revenue_usd", annual_revenue
             )
+
+            if projected_annual_revenue == 0 and annual_revenue != 0:
+                findings.append(
+                    {
+                        "severity": "HIGH",
+                        "rule": "zero_projected_revenue_requires_review",
+                        "message_ar": "الإيراد المتوقع صفر؛ لا يمكن اعتماد القرض تلقائياً.",
+                    }
+                )
+                passed = False
 
             # Check debt-to-income
             new_debt = current_debt + loan_amount
