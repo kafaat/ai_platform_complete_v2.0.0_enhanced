@@ -220,6 +220,43 @@ class FieldRecommendationRequest(BaseModel):
     district_id: str | None = None
 
 
+def field_quality_grade(state: dict | str | None) -> str:
+    """Project the canonical decision state; missing evidence never means READY.
+
+    The grade describes the stored projection, not a new agronomic assessment.
+    Both JSONB strings (asyncpg) and an in-memory recomputation use this contract.
+    """
+    if isinstance(state, str):
+        try:
+            state = _json.loads(state)
+        except (ValueError, TypeError):
+            return "LIMITED"
+    if not isinstance(state, dict):
+        return "LIMITED"
+    validity = state.get("validity")
+    mode = state.get("execution_mode")
+    if validity == "valid" and mode == "auto":
+        return "READY"
+    if validity in {"conflicted", "invalid"}:
+        return "BLOCKED"
+    inputs = state.get("inputs") if isinstance(state.get("inputs"), dict) else {}
+    soil_age = state.get("soil_age_days", inputs.get("soil_age_days"))
+    if validity == "insufficient" and soil_age is None:
+        return "PENDING_LAB"
+    if mode == "blocked":
+        return "BLOCKED"
+    return "LIMITED"
+
+
+# A scalar, tenant-bound projection keeps field list/detail queries unambiguous.
+_FIELD_QUALITY_SELECT = (
+    "(SELECT jsonb_build_object('validity', fs.validity, "
+    "'execution_mode', fs.execution_mode, 'soil_age_days', fs.soil_age_days) "
+    "FROM field_state fs WHERE fs.field_id = fields.field_id "
+    "AND fs.tenant_id = fields.tenant_id) AS quality_state"
+)
+
+
 def _row_to_field_summary(r) -> FieldSummary:
     """صفّ DB → FieldSummary (يفكّ geometry لو رجعت نصّاً من JSONB)."""
     import json as _json
@@ -243,7 +280,7 @@ def _row_to_field_summary(r) -> FieldSummary:
         name_ar=r["name"],
         crop=r["crop"] or "—",
         area_ha=float(r["area_ha"]) if r["area_ha"] is not None else 0.0,
-        quality_grade="READY",
+        quality_grade=field_quality_grade(_opt("quality_state")),
         health_summary_ar="—",
         soil_type=r["soil_type"],
         manager=r["manager"],
@@ -372,5 +409,8 @@ def _row_to_field_detail(r) -> FieldDetail:
 _FIELD_DETAIL_SELECT = (
     "field_id, farm_id, name, area_ha, crop, soil_type, manager, "
     "field_code, description, water_source, ownership_type, country, region, "
-    "lat, lon, geometry, row_version, geometry_version, " + ", ".join(_FIELD_ADVANCED_COLUMNS)
+    "lat, lon, geometry, row_version, geometry_version, "
+    + ", ".join(_FIELD_ADVANCED_COLUMNS)
+    + ", "
+    + _FIELD_QUALITY_SELECT
 )
