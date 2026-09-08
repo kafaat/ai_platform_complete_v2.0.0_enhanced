@@ -591,6 +591,12 @@ class TokenResponse(BaseModel):
 
 
 # ── JWT Helpers ────────────────────────────────────────────────
+# Interactive roles can read the same tenant-bound data exposed by the platform.
+# This explicit MCP grant never delegates write scopes or the MCP admin wildcard.
+_MCP_READ_ROLES = frozenset({"owner", "admin", "expert", "farmer", "viewer"})
+_MCP_READ_SCOPES = "satellite:read weather:read crop:read market:read"
+
+
 def create_access_token(
     user_id: int, email: str, role: str, full_name: str, tenant_id: str
 ) -> tuple[str, str]:
@@ -603,6 +609,7 @@ def create_access_token(
         "role": role,
         "full_name": full_name,
         "tenant_id": tenant_id,
+        "scope": _MCP_READ_SCOPES if role in _MCP_READ_ROLES and tenant_id else "",
         "jti": jti,  # ✅ JWT ID for revocation
         "iss": "sahool-auth",  # ✅ issuer
         "aud": "sahool",  # ✅ audience
