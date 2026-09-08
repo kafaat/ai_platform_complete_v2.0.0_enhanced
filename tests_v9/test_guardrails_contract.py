@@ -90,51 +90,78 @@ def test_contract_violations_pure(gr_mod):
     )
 
 
-def test_an_explicit_zero_is_an_observation_not_missing_evidence(gr_mod):
-    # أطروحةُ contracts.py في صدره: الصفرُ رصدٌ صريح لا بديلٌ عن دليلٍ غائب. لو
-    # عُدّ نقصاً لصار كلُّ ريٍّ صفريٍّ ودَينٍ صفريٍّ «سياقاً ناقصاً» فحُجب بلا سبب.
+def test_contract_accepts_explicit_zero_and_uncontracted_harvest(gr_mod):
+    cv = gr_mod.contract_violations
     p = payload("irrigation")
-    p["action_data"]["water_m3"] = 0
-    assert p["farm_context"]["current_debt_usd"] == 0
-    assert gr_mod.contract_violations(p["action_type"], p["action_data"], p["farm_context"]) == []
+    p["action_data"].update(water_m3=0, cost_usd=0, projected_revenue_increase_usd=0)
+    p["farm_context"].update(annual_revenue_usd=0, annual_costs_usd=0, cash_reserve_usd=0)
+    assert cv("irrigation", p["action_data"], p["farm_context"]) == []
+    p["action_data"].pop("water_m3")
+    assert cv("irrigation", p["action_data"], p["farm_context"]) == ["action_data.water_m3"]
+    p["action_data"]["water_m3"] = -1
+    assert cv("irrigation", p["action_data"], p["farm_context"]) == ["action_data.water_m3"]
+    assert cv("harvest", {}, {}) == []
 
 
-def test_an_action_type_without_a_contract_is_not_falsely_blocked(gr_mod):
-    # نوعٌ خارج ECONOMIC/SPENDING لا عقدَ له ⇒ لا نقص. الاتّجاه المقابل للاكتمال:
-    # بلا هذا يمرّ عقدٌ يطلب حقولاً من كلّ نوعٍ فيُعطّل الحصادَ وما لا عقد له.
-    assert gr_mod.contract_violations("harvest", {}, {}) == []
-
-
-def test_pesticide_without_a_dose_is_incomplete(gr_mod):
-    # الجرعةُ الصفريّةُ الصامتة خطرُ سلامة — غيابُها نقصٌ يُرفَض لا قيمةٌ تُفترَض.
+def test_contract_requires_pesticide_dosage_and_loan_revenue(gr_mod):
+    cv = gr_mod.contract_violations
     p = payload("pesticide")
+    assert cv("pesticide", p["action_data"], p["farm_context"]) == []
     p["action_data"].pop("dosage_kg_ha")
-    assert "action_data.dosage_kg_ha" in gr_mod.contract_violations(
-        p["action_type"], p["action_data"], p["farm_context"]
-    )
-
-
-def test_loan_without_annual_revenue_is_incomplete(gr_mod):
-    # بلا الإيراد السنويّ يتعطّل الفحصُ الاقتصاديّ كلُّه، فيصير القرضُ بلا حاكم.
+    assert cv("pesticide", p["action_data"], p["farm_context"]) == ["action_data.dosage_kg_ha"]
     p = payload("loan")
+    assert cv("loan", p["action_data"], p["farm_context"]) == []
     p["farm_context"].pop("annual_revenue_usd")
-    assert "farm_context.annual_revenue_usd" in gr_mod.contract_violations(
-        p["action_type"], p["action_data"], p["farm_context"]
-    )
+    assert cv("loan", p["action_data"], p["farm_context"]) == ["farm_context.annual_revenue_usd"]
 
 
-def test_the_completion_contract_is_enforced_at_construction_in_both_directions(gr_mod):
-    # موضعُ العقد انتقل: `validate_evidence` على النموذج نفسِه ⇒ لا وجودَ لطلبٍ
-    # ناقصٍ أصلاً. الاتّجاهان معاً في شاهدٍ واحد لأنّ أحدهما بلا الآخر يمرّ على
-    # عقدٍ يرفض كلَّ شيء (أو لا يرفض شيئاً) وهو يبدو fail-closed سليماً.
-    incomplete = payload("pesticide")
-    incomplete["action_data"].pop("dosage_kg_ha")
-    with pytest.raises(ValidationError) as caught:
-        gr_mod.GuardrailsRequest(**incomplete)
-    assert "action_data.dosage_kg_ha" in str(caught.value)
+def test_validate_rejects_incomplete(gr_mod):
+    p = payload("pesticide")
+    p["user_id"] = 1
+    request = gr_mod.GuardrailsRequest(**p)
+    # Nested dicts remain mutable after request validation; the engine must recheck them.
+    request.action_data.pop("dosage_kg_ha")
+    with pytest.raises(ValidationError, match="action_data.dosage_kg_ha"):
+        gr_mod.GuardrailsRequest(**request.model_dump())
+    eng = gr_mod.SAHOOLGuardrailsEngine()
+    for tier in (eng.chemical_tier, eng.environmental_tier, eng.economic_tier):
+        tier.validate = AsyncMock(wraps=tier.validate)
+    eng.human_workflow.create = AsyncMock(return_value="unexpected-review")
+    result = asyncio.run(eng.validate(request))
+    assert result.allowed is False and result.overall_risk == "HIGH"
+    assert result.requires_human_approval is False
+    assert result.approval_workflow_id is None
+    assert len(result.tier_checks) == 1
+    check = result.tier_checks[0]
+    assert check["tier"] == "context_contract" and check["passed"] is False
+    assert len(check["findings"]) == 1
+    finding = check["findings"][0]
+    assert finding["rule"] == "incomplete_context"
+    assert finding["missing_fields"] == ["action_data.dosage_kg_ha"]
+    for tier in (eng.chemical_tier, eng.environmental_tier, eng.economic_tier):
+        tier.validate.assert_not_awaited()
+    eng.human_workflow.create.assert_not_awaited()
 
-    complete = payload("irrigation")
-    assert gr_mod.GuardrailsRequest(**complete).action_type == "irrigation"
+
+def test_validate_passes_complete_past_contract(gr_mod):
+    p = payload("irrigation")
+    p["user_id"] = 1
+    request = gr_mod.GuardrailsRequest(**p)
+    eng = gr_mod.SAHOOLGuardrailsEngine()
+    for tier in (eng.chemical_tier, eng.environmental_tier, eng.economic_tier):
+        tier.validate = AsyncMock(wraps=tier.validate)
+    eng.human_workflow.create = AsyncMock(return_value="unexpected-review")
+    result = asyncio.run(eng.validate(request))
+    rules = [f.get("rule") for check in result.tier_checks for f in check.get("findings", [])]
+    assert "incomplete_context" not in rules, "Complete evidence must reach the safety tiers"
+    assert {check["tier"] for check in result.tier_checks} == {"environmental", "economic"}
+    for tier in (eng.environmental_tier, eng.economic_tier):
+        tier.validate.assert_awaited_once_with(
+            action_type="irrigation",
+            action_data=request.action_data,
+            farm_context=request.farm_context,
+        )
+    eng.chemical_tier.validate.assert_not_awaited()
 
 
 @pytest.mark.parametrize(

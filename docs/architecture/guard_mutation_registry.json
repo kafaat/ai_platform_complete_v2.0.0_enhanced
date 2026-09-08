@@ -2142,6 +2142,20 @@
           "find": "        if isinstance(value, bool) or not isinstance(value, int):\n",
           "replace": "        if not isinstance(value, int):\n",
           "why": "Pydantic must not coerce boolean identities into users.id integers."
+        },
+        {
+          "test": "tests_v9/test_guardrails_contract.py",
+          "expect": "test_validate_rejects_incomplete",
+          "find": "        if missing:\n",
+          "replace": "        if False:\n",
+          "why": "Removing the engine completeness gate lets request dictionaries mutated after model validation reach safety tiers. The restored witness requires incomplete_context and no tier or human-review call."
+        },
+        {
+          "test": "tests_v9/test_guardrails_contract.py",
+          "expect": "test_validate_passes_complete_past_contract",
+          "find": "        if missing:\n",
+          "replace": "        if True:\n",
+          "why": "An unconditional incomplete_context refusal blocks complete requests; the restored witness requires real environmental and economic tier execution."
         }
       ]
     },
@@ -2367,31 +2381,31 @@
       "mutations": [
         {
           "test": "tests_v9/test_guardrails_contract.py",
-          "expect": "test_an_explicit_zero_is_an_observation_not_missing_evidence",
-          "find": "            if values.get(key) is None:\n",
-          "replace": "            if not values.get(key):\n",
-          "why": "Treating an explicit zero as absent evidence must turn the module's own thesis test red."
+          "expect": "test_contract_accepts_explicit_zero_and_uncontracted_harvest",
+          "find": "                    or value < 0\n",
+          "replace": "                    or value <= 0\n",
+          "why": "Rejecting an explicitly observed zero as invalid loses the distinction between zero and missing evidence. Positive field area and all other mandatory context remain supplied."
         },
         {
           "test": "tests_v9/test_guardrails_contract.py",
-          "expect": "test_an_action_type_without_a_contract_is_not_falsely_blocked",
-          "find": "    required = {\"action_data\": [], \"farm_context\": []}\n",
-          "replace": "    required = {\"action_data\": [\"cost_usd\"], \"farm_context\": []}\n",
-          "why": "Demanding a field from every action type must turn the no-false-blocking witness red."
+          "expect": "test_contract_accepts_explicit_zero_and_uncontracted_harvest",
+          "find": "    if action_type in ECONOMIC_ACTIONS:\n",
+          "replace": "    if action_type in ECONOMIC_ACTIONS or action_type == \"harvest\":\n",
+          "why": "Adding a financial completeness obligation to harvest invents a contract for an action outside the economic set."
         },
         {
           "test": "tests_v9/test_guardrails_contract.py",
-          "expect": "test_pesticide_without_a_dose_is_incomplete",
+          "expect": "test_contract_requires_pesticide_dosage_and_loan_revenue",
           "find": "        required[\"action_data\"].extend([\"chemical\", \"dosage_kg_ha\"])\n",
           "replace": "        required[\"action_data\"].extend([\"chemical\"])\n",
-          "why": "Dropping the dose requirement lets a silent zero dose pass; the safety witness must go red."
+          "why": "Omitting the required pesticide dose lets downstream safety tiers interpret an absent dose as zero; all other required evidence is complete in the witness."
         },
         {
           "test": "tests_v9/test_guardrails_contract.py",
-          "expect": "test_loan_without_annual_revenue_is_incomplete",
-          "find": "    if action_type in ECONOMIC_ACTIONS:\n        required[\"farm_context\"].append(\"annual_revenue_usd\")\n",
-          "replace": "    if action_type in ECONOMIC_ACTIONS - {\"loan\"}:\n        required[\"farm_context\"].append(\"annual_revenue_usd\")\n",
-          "why": "Exempting loans from the revenue requirement leaves the economic tier ungoverned; the witness must go red."
+          "expect": "test_contract_requires_pesticide_dosage_and_loan_revenue",
+          "find": "    if action_type in ECONOMIC_ACTIONS:\n",
+          "replace": "    if action_type in ECONOMIC_ACTIONS and action_type != \"loan\":\n",
+          "why": "Exempting loans from annual revenue completeness hides missing financial evidence; the witness removes only annual_revenue_usd from a complete loan context."
         }
       ]
     }

@@ -5,7 +5,7 @@
 ## Summary
 
 - Capabilities: **81**
-- Average assessed maturity: **2.04 / 5**
+- Average assessed maturity: **2.05 / 5**
 - Aligned: **28**
 - Declared above current evidence: **50**
 - Evidence above declared: **3**
@@ -16,7 +16,7 @@
 
 | Domain | Capabilities | Declared avg | Assessed avg | Declared above evidence |
 |---|---:|---:|---:|---:|
-| decision | 10 | 3.0 | 2.4 | 4 |
+| decision | 10 | 3.0 | 2.5 | 4 |
 | farm_management | 10 | 3.0 | 2.2 | 6 |
 | gis | 4 | 3.0 | 2.0 | 3 |
 | irrigation | 11 | 2.55 | 1.64 | 8 |
