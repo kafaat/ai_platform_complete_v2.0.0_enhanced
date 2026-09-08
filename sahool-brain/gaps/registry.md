@@ -5715,3 +5715,12 @@ scripts/ci/capability_mapping_engine.py:270      ["git","ls-files","-z"]
 | GUARDS-MIXED-SELF-WITNESS-DIAGNOSTICS-01 | fixed locally / remote review pending | `4163de82`؛ #990 / discussion_r3952828845؛ `scripts/ci/collect_guard_surface_evidence.py:212` و`tests_v9/test_collect_guard_surface_evidence.py:208`. استبعاد مواضع الشهادة الذاتية من أسباب وتفاصيل الإخفاق المختلط؛86 اختباراً و10/10 طفرات، وثبات الأحكام والعدّادات بمقارنة مستقلة. تعليق GitHub غير محلول، وCI على الرأس الجديد غير مقاس. |
 
 متابعة LIVE-20260908-MUTATION-TIMING-01 عند `4163de82`: الإجمالي648 بعد طفرتي مراجعة #990؛3 حالات headroom ناجحة وحالتان مخفقتان مقابل642 و610 دون تعديل الحدود.
+
+
+### تصحيح انحدار شهود عقد Guardrails — 2026-09-08
+
+| الهوية | الحالة | الدليل وحد الإغلاق |
+|---|---|---|
+| GUARDRAILS-CONTRACT-WITNESSES-REMOVED-01 | fixed locally / CI pending | `36faa270` حذف شاهدي incomplete_context وضيّق العقد النقي؛ `87518ec9` يستعيد أربع دوال في tests_v9/test_guardrails_contract.py ويضيف6 طفرات على main.py/contracts.py.51 حالة ناجحة و7/7 طفرات مقيسة، دون تعديل الإنتاج. أعداد النجاح السابقة لم تكن دليلاً على حفظ الدلالات. |
+
+متابعة LIVE-20260908-MUTATION-TIMING-01 عند87518ec9:654=368+286، مقابل642 و610؛ الحالتان ما زالتا مخفقتين. نتيجة preflight لدى المالك علىe1c28fc0 لم تصل بعد.
