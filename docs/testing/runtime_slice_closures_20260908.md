@@ -234,3 +234,27 @@ passed 63 targeted cases (23 newly parameterized cases), and its two planted
 Request-to-dict regressions were detected. The merged Guardrails/MCP suite passed
 106 cases. Registry total: 656 = 368 + 288. The old timing limits are retained
 until an eligible completed pair is available.
+
+### PR #991: completed timing and final review fixes
+
+`da71cc0f` merges remote `d96bbacd` without rewriting either history. Its HIL
+`::text` casts are retained, with the stronger local durable-decision witnesses.
+The remote Integration Tests job102257332285 passed132 cases and skipped92;
+that result does not certify the later local witness additions.
+
+`d5c91477` completes the MCP repair: accepted JSON media types and OpenAPI422
+responses are preserved, and WOFOST non-finite validation errors remain
+serializable. The three Copilot findings have local code fixes; their threads
+remain open until publication and verification of the repaired head.
+
+`639bde28` anchors the mutation budget to the same-run pair45.30 minutes/654
+mutations from [job102257332191](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/34284639549/job/102257332191)
+on d96bbacd: 2026-09-08 22:12:12–22:57:30 UTC. Planting succeeded in29:42;
+pytest completed with6495 passed,25 skipped and two headroom failures, with
+50.87% coverage. Codecov and Field-forms skipped after that failure: this is
+an observed failed-job duration, not a fully successful pipeline certificate.
+The unchanged formula yields watermark711 and drift682; timeout90 and cost0.775
+remain fixed. The current656-mutation registry does not replace the measured654.
+
+The merged targeted suite passed130 tests. Final generation, default preflight
+and publication are pending; no production certification is claimed.
