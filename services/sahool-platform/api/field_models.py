@@ -224,7 +224,7 @@ def field_quality_grade(state: dict | str | None) -> str:
     """Project the canonical decision state; missing evidence never means READY.
 
     The grade describes the stored projection, not a new agronomic assessment.
-    Both JSONB strings (asyncpg) and an in-memory recomputation use this contract.
+    Both JSONB strings (asyncpg) and a freshly recomputed dictionary use this contract.
     """
     if isinstance(state, str):
         try:
