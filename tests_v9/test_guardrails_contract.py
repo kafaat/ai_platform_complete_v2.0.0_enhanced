@@ -9,6 +9,8 @@ import os
 import sys
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
@@ -356,4 +358,109 @@ def test_specialist_token_can_reach_approval_endpoint(gr_mod, monkeypatch, stora
             f"/v1/workflow/{wid}", headers={"Authorization": f"Bearer {incomplete}"}
         ).status_code
         == 401
+    )
+
+
+@pytest.fixture
+def hil_live_witness():
+    """Load the shipped live probe; these checks certify its failure behavior, not PG."""
+    spec = importlib.util.spec_from_file_location(
+        "hil_live_witness_contract", os.path.join(ROOT, "tests_v9/test_db_wiring.py")
+    )
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("required", [False, True])
+@pytest.mark.parametrize("unreachable", [False, True])
+async def test_hil_live_fixture_requires_its_declared_database(
+    hil_live_witness, monkeypatch, required, unreachable
+):
+    monkeypatch.setenv("HIL_CERTIFICATION_REQUIRED", "1" if required else "0")
+    monkeypatch.delenv("TEST_DATABASE_URL", raising=False)
+    if unreachable:
+        monkeypatch.setenv("TEST_DATABASE_URL", "postgresql://unused.invalid/probe")
+    connect = AsyncMock(side_effect=ConnectionRefusedError("deliberate probe failure"))
+    monkeypatch.setattr(hil_live_witness, "_connect", connect)
+    probe = hil_live_witness.TestHILGetStatus()
+    generator = hil_live_witness.TestHILGetStatus.db.__wrapped__(probe)
+    outcome = pytest.fail.Exception if required else pytest.skip.Exception
+    reason = "database unavailable" if unreachable else "explicit TEST_DATABASE_URL"
+    with pytest.raises((pytest.fail.Exception, pytest.skip.Exception), match=reason) as raised:
+        await anext(generator)
+    assert isinstance(raised.value, outcome), "Required HIL proof must fail, not skip"
+    assert connect.await_count == int(unreachable)
+
+
+@pytest.mark.asyncio
+async def test_hil_live_fixture_yields_and_closes_an_available_connection(
+    hil_live_witness, monkeypatch
+):
+    monkeypatch.setenv("HIL_CERTIFICATION_REQUIRED", "1")
+    monkeypatch.setenv("TEST_DATABASE_URL", "postgresql://unused.invalid/probe")
+    connection = SimpleNamespace(close=AsyncMock())
+    monkeypatch.setattr(hil_live_witness, "_connect", AsyncMock(return_value=connection))
+    probe = hil_live_witness.TestHILGetStatus()
+    generator = hil_live_witness.TestHILGetStatus.db.__wrapped__(probe)
+    assert await anext(generator) is connection
+    await generator.aclose()
+    connection.close.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "flags",
+    [None, {"rolsuper": True, "rolbypassrls": False}, {"rolsuper": False, "rolbypassrls": True}],
+)
+async def test_hil_live_role_proof_fails_for_missing_or_privileged_role(hil_live_witness, flags):
+    connection = SimpleNamespace(execute=AsyncMock(), fetchrow=AsyncMock(return_value=flags))
+    with pytest.raises((AssertionError, pytest.skip.Exception)) as raised:
+        await hil_live_witness._set_hil_restricted_role(connection)
+    assert isinstance(raised.value, AssertionError), "A missing restricted-role proof cannot skip"
+    assert "NOSUPERUSER NOBYPASSRLS" in str(raised.value)
+
+
+@pytest.mark.asyncio
+async def test_hil_live_role_proof_accepts_a_measured_restricted_role(hil_live_witness):
+    connection = SimpleNamespace(
+        execute=AsyncMock(),
+        fetchrow=AsyncMock(return_value={"rolsuper": False, "rolbypassrls": False}),
+    )
+    await hil_live_witness._set_hil_restricted_role(connection)
+    connection.execute.assert_awaited_once_with(f"SET ROLE {hil_live_witness.RLS_ROLE}")
+
+
+@pytest.mark.asyncio
+async def test_hil_live_probe_checks_role_on_every_pool_acquire(hil_live_witness, monkeypatch):
+    import asyncpg
+
+    class PoolProbeReached(Exception):
+        pass
+
+    create_pool = AsyncMock(side_effect=PoolProbeReached)
+    monkeypatch.setattr(asyncpg, "create_pool", create_pool)
+    monkeypatch.setattr(hil_live_witness, "_load", lambda *args: SimpleNamespace())
+    db = SimpleNamespace(execute=AsyncMock(), fetchval=AsyncMock(return_value=True))
+    saved_path = sys.path[:]
+    try:
+        with pytest.raises(PoolProbeReached):
+            await hil_live_witness.TestHILGetStatus().test_create_then_get_status(db)
+    finally:
+        sys.path[:] = saved_path
+    assert create_pool.call_args.kwargs["setup"] is hil_live_witness._set_hil_restricted_role
+    assert create_pool.call_args.kwargs["min_size"] == 1
+    assert create_pool.call_args.kwargs["max_size"] == 1
+
+
+def test_hil_ci_requires_the_live_database_certificate():
+    import yaml
+
+    workflow = yaml.safe_load((Path(ROOT) / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
+    steps = workflow["jobs"]["integration-tests"]["steps"]
+    selected = [step for step in steps if step.get("run") == "pytest -v -m integration --tb=short"]
+    assert len(selected) == 1
+    assert selected[0]["env"].get("HIL_CERTIFICATION_REQUIRED") == "1", (
+        "The shared integration run must require the HIL live proof; DB failure cannot skip it"
     )

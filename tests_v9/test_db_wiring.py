@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import importlib.util
 import os
 import sys
@@ -50,6 +51,33 @@ async def db():
         pytest.skip(f"قاعدة البيانات غير متاحة: {type(e).__name__}")
     yield conn
     await conn.close()
+
+
+async def _connect_hil():
+    """A declared HIL certificate must fail if its database cannot be measured."""
+    required = os.getenv("HIL_CERTIFICATION_REQUIRED") == "1"
+    if not os.getenv("TEST_DATABASE_URL"):
+        message = "HIL certification requires explicit TEST_DATABASE_URL"
+        if required:
+            pytest.fail(message, pytrace=False)
+        pytest.skip(message)
+    try:
+        return await asyncio.wait_for(_connect(), timeout=10.0)
+    except Exception as exc:
+        message = f"HIL certification database unavailable: {type(exc).__name__}"
+        if required:
+            pytest.fail(message, pytrace=False)
+        pytest.skip(message)
+
+
+async def _set_hil_restricted_role(conn):
+    await conn.execute(f"SET ROLE {RLS_ROLE}")
+    flags = await conn.fetchrow(
+        "SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname=current_user"
+    )
+    assert flags is not None and not flags["rolsuper"] and not flags["rolbypassrls"], (
+        "HIL certificate requires a measured NOSUPERUSER NOBYPASSRLS runtime role"
+    )
 
 
 @pytest.mark.integration
@@ -114,6 +142,14 @@ class TestOfflineSyncPersistence:
 class TestHILGetStatus:
     """get_status يقرأ workflow حقيقيّاً من القاعدة (كان يُرجع None دائماً)."""
 
+    @pytest.fixture
+    async def db(self):
+        conn = await _connect_hil()
+        try:
+            yield conn
+        finally:
+            await conn.close()
+
     async def test_create_then_get_status(self, db):
         # نضبط DATABASE_URL على وحدة HIL فقط، لا على os.environ: تعيينه عالميّاً
         # كان يُسرّب فيُفعّل اختبارات أخرى (test_services_functional) كانت تتخطّى،
@@ -136,14 +172,8 @@ class TestHILGetStatus:
             "SELECT relrowsecurity FROM pg_class WHERE oid='approval_workflows'::regclass"
         )
 
-        async def restricted_role(conn):
-            await conn.execute(f"SET ROLE {RLS_ROLE}")
-            assert not await conn.fetchval(
-                "SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname=current_user"
-            )
-
         hil_mod._pool = await asyncpg.create_pool(
-            DATABASE_URL, min_size=1, max_size=1, setup=restricted_role
+            DATABASE_URL, min_size=1, max_size=1, setup=_set_hil_restricted_role
         )
         hil = hil_mod.HumanApprovalWorkflow()
 

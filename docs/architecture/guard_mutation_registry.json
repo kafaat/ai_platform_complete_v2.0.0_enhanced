@@ -83,6 +83,13 @@
           "find": "      - name: guard-mutation guard (plant the defects)\n        run: python scripts/ci/guard_mutation_guard.py --run\n",
           "replace": "      - name: guard-mutation guard (plant the defects)\n        run: echo skipped  # mutated: المكنسة تخرج من الوظيفة الحاجبة\n",
           "why": "نقلُ المكنسة خارج *Unit Tests* بلا إضافةِ اسمِ الوظيفة الجديدة إلى الفحوص المطلوبة في الـRuleset يجعلها إرشاديّةً **صامتاً**. و`branch_protection_contract_guard` يفرض حلَّ المحادثات وحده ولا يُعدّد الفحوصَ بالاسم، فلا شيءَ في الشجرة يمنع ذلك. وهو صنفُ «حارسٌ كفّ عن الحجب بلا أن يحمرّ» بعينه. والمَرسى يضمّ سطرَ اسمِ الخطوة لا سطرَ `run` وحده: بعد MUT-SHARD-JOB-01 صار `--run` يظهر مرّتين (المكنسة الكاملة وحزمة المصفوفة)، فالمَرسى القصير يزرع في موضعٍ غير محدَّد."
+        },
+        {
+          "expect": "test_hil_ci_requires_the_live_database_certificate",
+          "find": "          HIL_CERTIFICATION_REQUIRED: \"1\"\n",
+          "replace": "          HIL_CERTIFICATION_REQUIRED: \"0\"  # mutated: permit silent HIL DB skip\n",
+          "why": "HIL runtime persistence must not appear certified when its database fixture skipped; the real CI invocation must require the witness.",
+          "test": "tests_v9/test_guardrails_contract.py"
         }
       ],
       "test": "tests_v9/test_mutation_sweep_headroom.py"
