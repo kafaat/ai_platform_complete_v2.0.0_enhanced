@@ -1857,6 +1857,20 @@
           "find": "    if fields[\"guards_unproven\"]:",
           "replace": "    if False:",
           "why": "فارقٌ غيرُ خالٍ يخرج بصفر ⇒ تُبلَغ خطوةُ الانبعاث فيُختَم `verified` فوق حرّاسٍ لم تُشغَّل. وشرطُ الوصول (خطوةٌ لا تُنفَّذ بعد ساقطة) هو الآليّةُ الوحيدة التي تحدّد `status`، فإسقاطُه يُسقِط الحاجبَ كلَّه"
+        },
+        {
+          "expect": "test_the_exclusion_does_not_leak_to_a_guard_that_also_runs_elsewhere",
+          "test": "tests_v9/test_collect_guard_surface_evidence.py",
+          "find": "        reasons = sorted({str(s[\"status\"]) for s in failed_sites})",
+          "replace": "        reasons = sorted({str(s[\"status\"]) for s in sites_judged})",
+          "why": "#990 / discussion_r3952828845: إعادة المواضع المستثناة إلى أسباب الحارس المختلط تجعل الاستثناء سبب إخفاق مضللاً؛ الحكم يبقى not_proven لكن التشخيص يجب أن يسمّي الإخفاق الفعلي وحده."
+        },
+        {
+          "expect": "test_the_exclusion_does_not_leak_to_a_guard_that_also_runs_elsewhere",
+          "test": "tests_v9/test_collect_guard_surface_evidence.py",
+          "find": "        unproven.append({\"guard\": guard, \"reasons\": reasons, \"sites\": failed_sites})",
+          "replace": "        unproven.append({\"guard\": guard, \"reasons\": reasons, \"sites\": sites_judged})",
+          "why": "#990 / discussion_r3952828845: تصحيح reasons وحده يترك مواقع مستثناة في sites؛ الشاهد يثبت تفاصيل الإخفاق كاملة كي لا يبقى نصف التشخيص ملوثاً."
         }
       ]
     },
