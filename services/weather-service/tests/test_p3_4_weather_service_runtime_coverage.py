@@ -32,6 +32,8 @@ if str(SERVICE_DIR) not in sys.path:
 main = importlib.import_module("main")
 cache = importlib.import_module("cache")
 
+pytestmark = pytest.mark.unit
+
 
 def _sample(**overrides):
     base = {
@@ -177,3 +179,184 @@ def test_tile_data_supports_derived_heat_stress_layer(monkeypatch):
     assert body["layer"] == "heat_stress"
     assert body["unit"] == "0..1"
     assert body["value"] == 1.0
+
+
+def test_plan_reuses_each_frame_across_operations_and_warm_and_expired_cache(monkeypatch):
+    import asyncio
+
+    cache._CACHE.clear()
+    calls = []
+    active = 0
+    peak = 0
+
+    async def counted(lat, lon, time_key="now", model="best_match"):
+        nonlocal active, peak
+        calls.append((time_key, model))
+        active += 1
+        peak = max(peak, active)
+        try:
+            await asyncio.sleep(0.005)
+            return _sample(time_key=time_key, model=model)
+        finally:
+            active -= 1
+
+    monkeypatch.setattr(main, "fetch_tile_sample", counted)
+    client = TestClient(main.app)
+    url = "/v1/weather/operation-plan?lat=15&lon=44"
+    cold = client.get(url)
+    assert cold.status_code == 200
+    assert len(calls) == 7  # One fetch per frame, independent of the four operations.
+    assert 1 < peak <= 3
+    assert len(cold.json()["operations"]) == 4
+    warm = client.get(url)
+    assert warm.status_code == 200
+    assert len(calls) == 7
+    assert all(frame["cache_state"] == "fresh" for frame in warm.json()["operations"][0]["frames"])
+    for key, (_, sample) in list(cache._CACHE.items()):
+        cache._CACHE[key] = (cache.monotonic() - cache.TTL_S - 5, sample)
+    assert client.get(url).status_code == 200
+    assert len(calls) == 14
+
+
+def test_concurrent_windows_share_fetches_and_one_cancellation_keeps_other_waiter(monkeypatch):
+    import asyncio
+
+    import weather_runtime as rt
+
+    cache._CACHE.clear()
+    calls = 0
+    cancellations = 0
+
+    async def run():
+        started = asyncio.Event()
+        release = asyncio.Event()
+
+        async def blocked(lat, lon, time_key="now", model="best_match"):
+            nonlocal calls, cancellations
+            calls += 1
+            started.set()
+            try:
+                await release.wait()
+            except asyncio.CancelledError:
+                cancellations += 1
+                raise
+            return _sample()
+
+        monkeypatch.setattr(main, "fetch_tile_sample", blocked)
+        first = asyncio.create_task(rt.operation_window(lat=15, lon=44, hours="0"))
+        await started.wait()
+        second = asyncio.create_task(
+            rt.operation_window(lat=15, lon=44, hours="0", operation="irrigation")
+        )
+        # Let the second request reach the same pending fetch before disconnecting.
+        await asyncio.sleep(0.01)
+        first.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await first
+        release.set()
+        result = await asyncio.wait_for(second, timeout=1)
+        assert result["best"]["operation"]["operation"] == "irrigation"
+        assert calls == 1
+        assert cancellations == 0
+        assert not rt._SAMPLE_POOLS
+
+    asyncio.run(run())
+
+
+def test_whole_plan_deadline_cancels_all_unused_provider_work(monkeypatch):
+    import asyncio
+
+    import weather_runtime as rt
+
+    cache._CACHE.clear()
+    monkeypatch.setattr(rt, "_OPERATION_DEADLINE_S", 0.02)
+    active = 0
+    cancelled = 0
+
+    async def blocked(*args, **kwargs):
+        nonlocal active, cancelled
+        active += 1
+        try:
+            await asyncio.Event().wait()
+        except asyncio.CancelledError:
+            cancelled += 1
+            raise
+        finally:
+            active -= 1
+
+    monkeypatch.setattr(main, "fetch_tile_sample", blocked)
+
+    async def run():
+        from fastapi import HTTPException
+
+        with pytest.raises(HTTPException) as error:
+            await asyncio.wait_for(rt.operation_plan(lat=15, lon=44), timeout=1)
+        assert error.value.status_code == 504
+        assert error.value.detail["reason_code"] == "weather_provider_timeout"
+        assert active == 0
+        assert cancelled == 3
+        assert not rt._SAMPLE_POOLS
+
+    asyncio.run(run())
+
+
+def test_plan_propagates_partial_frames_and_does_not_fill_missing_rain(monkeypatch):
+    import httpx
+
+    cache._CACHE.clear()
+
+    async def incomplete(lat, lon, time_key="now", model="best_match"):
+        if time_key == "+1h":
+            raise httpx.ReadTimeout("")
+        return _sample(precipitation_mm=None)
+
+    monkeypatch.setattr(main, "fetch_tile_sample", incomplete)
+    response = TestClient(main.app).get("/v1/weather/operation-plan?lat=15&lon=44&hours=0,1")
+    assert response.status_code == 200
+    plan = response.json()
+    assert plan["partial"] is True
+    assert "+1h: weather_provider_timeout" in plan["upstream_errors"]
+    assert not plan["recommended_now"]
+    for operation in plan["operations"]:
+        assert operation["partial"] is True
+        assert operation["recommended"] is False
+        assert operation["best"]["sample"]["precipitation_mm"] is None
+        assert operation["best"]["operation"]["status"] == "insufficient_data"
+
+
+def test_operation_cache_preserves_hour_and_model_identity(monkeypatch):
+    cache._CACHE.clear()
+    calls = []
+
+    async def identified(lat, lon, time_key="now", model="best_match"):
+        calls.append((time_key, model))
+        return _sample(time_key=time_key, model=model)
+
+    monkeypatch.setattr(main, "fetch_tile_sample", identified)
+    client = TestClient(main.app)
+    for model in ("best_match", "gfs_seamless"):
+        response = client.get(
+            f"/v1/weather/operation-window?lat=15&lon=44&hours=0,72,168&model={model}"
+        )
+        assert response.status_code == 200
+        frames = response.json()["frames"]
+        assert [frame["sample"]["time_key"] for frame in frames] == ["now", "+72h", "+168h"]
+        assert all(frame["sample"]["model"] == model for frame in frames)
+    assert len(calls) == 6
+
+
+def test_requested_horizon_is_sent_to_provider(monkeypatch):
+    import asyncio
+
+    import open_meteo
+
+    captured = {}
+
+    async def provider(url, params):
+        captured.update(params)
+        return {}
+
+    monkeypatch.setattr(open_meteo, "_fetch_json", provider)
+    asyncio.run(open_meteo.fetch_tile_sample(15, 44, time_key="+168h", model="gfs_seamless"))
+    assert captured["forecast_days"] >= 8
+    assert captured["models"] == "gfs_seamless"

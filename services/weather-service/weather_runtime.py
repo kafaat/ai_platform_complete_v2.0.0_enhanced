@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import sys
+from dataclasses import dataclass, field
 from typing import Literal
 
 from cache import get as cache_get
@@ -33,7 +35,7 @@ from open_meteo import (
     fetch_tile_sample,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
     readiness_probe,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
 )
-from operations import advice_ar, best_operation_frame, operation_suitability
+from operations import SUPPORTED_OPERATIONS, advice_ar, best_operation_frame, operation_suitability
 from pollination_risk import compute_pollination_risk
 from pydantic import BaseModel, Field
 from raw_weather_processing import RawWeatherProcessRequest, build_raw_weather_response
@@ -341,6 +343,65 @@ async def historical_weather(
     return historical_view(state, requested_start=start_date, requested_end=end_date)
 
 
+# The platform permits 20 seconds for this hop. Keep one operation request below
+# that budget, independent of its number of operations/frames. Limits apply per
+# worker/event loop; cancellation of one consumer must not cancel another's fetch.
+_OPERATION_DEADLINE_S = 15.0
+_SAMPLE_TIMEOUT_S = 12.0
+_SAMPLE_CONCURRENCY = 3
+
+
+@dataclass
+class _SampleFlight:
+    task: asyncio.Task
+    waiters: int = 0
+
+
+@dataclass
+class _SamplePool:
+    semaphore: asyncio.Semaphore = field(
+        default_factory=lambda: asyncio.Semaphore(_SAMPLE_CONCURRENCY)
+    )
+    flights: dict[str, _SampleFlight] = field(default_factory=dict)
+
+
+_SAMPLE_POOLS: dict[asyncio.AbstractEventLoop, _SamplePool] = {}
+
+
+async def _fetch_sample_once(key: str, lat: float, lon: float, time: str, model: str):
+    loop = asyncio.get_running_loop()
+    pool = _SAMPLE_POOLS.setdefault(loop, _SamplePool())
+    flight = pool.flights.get(key)
+    if flight is None:
+
+        async def fetch():
+            async with pool.semaphore, asyncio.timeout(_SAMPLE_TIMEOUT_S):
+                value = await _facade_attr("fetch_tile_sample")(
+                    lat, lon, time_key=time, model=model
+                )
+                if not isinstance(value, dict):
+                    raise ValueError("weather sample is not an object")
+                cache_set(key, value)
+                return value
+
+        flight = _SampleFlight(asyncio.create_task(fetch()))
+        pool.flights[key] = flight
+    flight.waiters += 1
+    try:
+        return await asyncio.shield(flight.task)
+    finally:
+        flight.waiters -= 1
+        if flight.waiters == 0:
+            pool.flights.pop(key, None)
+            if not flight.task.done():
+                flight.task.cancel()
+            # Drain exceptions/cancellation. No orphan provider work after the last
+            # request has left; a still-waiting request keeps its shared task alive.
+            await asyncio.gather(flight.task, return_exceptions=True)
+            if not pool.flights and _SAMPLE_POOLS.get(loop) is pool:
+                _SAMPLE_POOLS.pop(loop, None)
+
+
 async def _cached_sample(lat: float, lon: float, time: str, model: str, key_prefix: str = "sample"):
     time, model = validate_time_model(time, model)
     key = f"{key_prefix}:{round(lat, 4)}:{round(lon, 4)}:{time}:{model}"
@@ -348,8 +409,7 @@ async def _cached_sample(lat: float, lon: float, time: str, model: str, key_pref
     upstream_error = None
     if state != "fresh":
         try:
-            sample = await _facade_attr("fetch_tile_sample")(lat, lon, time_key=time, model=model)
-            cache_set(key, sample)
+            sample = await _fetch_sample_once(key, lat, lon, time, model)
             return sample, "refreshed", 0, None
         except Exception as exc:
             upstream_error = str(exc)
@@ -357,6 +417,86 @@ async def _cached_sample(lat: float, lon: float, time: str, model: str, key_pref
                 return sample, "stale_fallback", age, upstream_error
             raise
     return sample, state, age, upstream_error
+
+
+def _provider_error_code(exc: Exception) -> str:
+    import httpx
+
+    if isinstance(exc, (TimeoutError, httpx.TimeoutException)):
+        return "weather_provider_timeout"
+    return "weather_provider_unavailable"
+
+
+async def _operation_samples(lat: float, lon: float, hours: str, model: str):
+    async def frame(hour: int):
+        time = time_key_from_hour(hour)
+        try:
+            sample, state, age, upstream_error = await _cached_sample(
+                lat, lon, time, model, "window"
+            )
+            error = "weather_provider_unavailable" if upstream_error is not None else None
+            return {
+                "hour_offset": hour,
+                "time": time,
+                "weather_time": sample.get("time"),
+                "sample": sample,
+                "cache_state": state,
+                "cache_age_s": age,
+                "upstream_error": error,
+            }, error
+        except Exception as exc:
+            return None, _provider_error_code(exc)
+
+    tasks = {hour: asyncio.create_task(frame(hour)) for hour in parse_series_hours(hours)}
+    try:
+        await asyncio.wait(tasks.values(), timeout=_OPERATION_DEADLINE_S)
+    finally:
+        for task in tasks.values():
+            if not task.done():
+                task.cancel()
+        await asyncio.gather(*tasks.values(), return_exceptions=True)
+    samples = []
+    errors = []
+    for hour, task in tasks.items():
+        sample, error = (None, "weather_provider_timeout") if task.cancelled() else task.result()
+        if sample is not None:
+            samples.append(sample)
+        if error:
+            errors.append(f"{time_key_from_hour(hour)}: {error}")
+    if not samples:
+        timeout = any("weather_provider_timeout" in error for error in errors)
+        raise HTTPException(
+            status_code=504 if timeout else 502,
+            detail={
+                "reason_code": "weather_provider_timeout"
+                if timeout
+                else "weather_provider_unavailable",
+                "message_ar": "تعذّر الحصول على نافذة طقس موثوقة؛ أعد المحاولة لاحقاً.",
+            },
+        )
+    return samples, errors
+
+
+def _operation_window_result(lat, lon, operation, model, samples, errors):
+    frames = []
+    errors = list(errors)
+    for sample in samples:
+        decision = operation_suitability(sample["sample"], operation)
+        frames.append({**sample, "operation": decision})
+        if decision.get("status") == "insufficient_data":
+            errors.append(f"{sample['time']}: weather_inputs_incomplete")
+    best = best_operation_frame(frames)
+    return {
+        "location": {"lat": lat, "lon": lon},
+        "operation": operation,
+        "model": model,
+        "frames": frames,
+        "best": best,
+        "advice_ar": advice_ar(best.get("operation") if best else None),
+        "source": "open-meteo+sahool-rules",
+        "partial": bool(errors),
+        "upstream_errors": errors[:6],
+    }
 
 
 async def operation_window(
@@ -368,44 +508,9 @@ async def operation_window(
     hours: str = "0,1,3,6,12,24,48",
     model: str = "best_match",
 ):
-    frames = []
-    upstream_errors: list[str] = []
     _, model = validate_time_model("now", model)
-    for h in parse_series_hours(hours):
-        t = time_key_from_hour(h)
-        try:
-            sample, cache_state, cache_age_s, upstream_error = await _cached_sample(
-                lat, lon, t, model, f"window:{operation}"
-            )
-            decision = operation_suitability(sample, operation)
-            frames.append(
-                {
-                    "hour_offset": h,
-                    "time": t,
-                    "weather_time": sample.get("time"),
-                    "operation": decision,
-                    "sample": sample,
-                    "cache_state": cache_state,
-                    "cache_age_s": cache_age_s,
-                    "upstream_error": upstream_error,
-                }
-            )
-        except Exception as exc:
-            upstream_errors.append(f"{t}: {exc}")
-    if not frames:
-        raise HTTPException(status_code=502, detail="Open-Meteo operation-window unavailable")
-    best = best_operation_frame(frames)
-    return {
-        "location": {"lat": lat, "lon": lon},
-        "operation": operation,
-        "model": model,
-        "frames": frames,
-        "best": best,
-        "advice_ar": advice_ar(best.get("operation") if best else None),
-        "source": "open-meteo+sahool-rules",
-        "partial": bool(upstream_errors),
-        "upstream_errors": upstream_errors[:6],
-    }
+    samples, errors = await _operation_samples(lat, lon, hours, model)
+    return _operation_window_result(lat, lon, operation, model, samples, errors)
 
 
 async def operation_plan(
@@ -415,31 +520,31 @@ async def operation_plan(
     hours: str = "0,1,3,6,12,24,48",
     model: str = "best_match",
 ):
+    requested = list(dict.fromkeys(op.strip() for op in operations.split(",") if op.strip()))
+    if not requested or any(op not in SUPPORTED_OPERATIONS for op in requested):
+        raise HTTPException(
+            status_code=422, detail={"reason_code": "unsupported_weather_operation"}
+        )
+    _, model = validate_time_model("now", model)
+    samples, sample_errors = await _operation_samples(lat, lon, hours, model)
     items = []
-    errors: list[str] = []
-    for op in [x.strip() for x in operations.split(",") if x.strip()]:
-        try:
-            window = await operation_window(
-                lat=lat, lon=lon, operation=op, hours=hours, model=model
-            )  # type: ignore[arg-type]
-            best = window.get("best")
-            items.append(
-                {
-                    "operation": op,
-                    "best": best,
-                    "frames": window.get("frames", []),
-                    "recommended": bool(
-                        best and (best.get("operation") or {}).get("score", 0) >= 0.55
-                    ),
-                    "priority": (best.get("operation") or {}).get("score", 0) if best else 0,
-                    "advice_ar": window.get("advice_ar"),
-                }
-            )
-        except Exception as exc:
-            errors.append(f"{op}: {exc}")
+    errors = list(sample_errors)
+    for op in requested:
+        window = _operation_window_result(lat, lon, op, model, samples, sample_errors)
+        errors.extend(window["upstream_errors"])
+        best = window["best"]
+        items.append(
+            {
+                "operation": op,
+                "best": best,
+                "frames": window["frames"],
+                "recommended": bool(best and (best.get("operation") or {}).get("score", 0) >= 0.55),
+                "priority": (best.get("operation") or {}).get("score", 0) if best else 0,
+                "advice_ar": window["advice_ar"],
+                "partial": window["partial"],
+            }
+        )
     items.sort(key=lambda item: item.get("priority", 0), reverse=True)
-    if not items:
-        raise HTTPException(status_code=502, detail="Open-Meteo operation-plan unavailable")
     return {
         "location": {"lat": lat, "lon": lon},
         "model": model,
@@ -448,7 +553,7 @@ async def operation_plan(
         "top_recommendation": items[0] if items else None,
         "source": "open-meteo+sahool-operation-plan",
         "partial": bool(errors),
-        "upstream_errors": errors[:10],
+        "upstream_errors": list(dict.fromkeys(errors))[:10],
     }
 
 
