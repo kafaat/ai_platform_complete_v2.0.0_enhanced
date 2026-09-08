@@ -1878,6 +1878,56 @@
           "why": "المسحُ لا يمسح شيئاً ⇒ يبقى دليلٌ `verified` **مودَعٌ في الشجرة** فيقرؤه المُحكِّم بلا أن تُنتِجه وظيفة، أي أنّ كلّ سلسلة الإنتاج والعبور والتوقيع يُلتَفُّ عليها بالتزامٍ واحد"
         }
       ]
+    },
+    "nats/nats.conf": {
+      "$why_ar": "NATS-BROKER-HAS-NO-AUTHENTICATION-…-01: الوسيطُ كان بلا `authorization` فمفتوحاً لكلّ من بلغ شبكةَ sahool-internal. والإغلاقُ ملفُّ إعدادٍ لا شيفرة، فلا يمسّه أيُّ اختبارٍ سلوكيّ إلّا بزرعٍ فيه — ومن غير ذلك يبقى «حارسٌ يمرّ على شجرةٍ سليمة».",
+      "mutations": [
+        {
+          "expect": "test_the_broker_config_demands_credentials",
+          "test": "tests_v9/test_nats_broker_authentication.py",
+          "find": "authorization {",
+          "replace": "disabled_authorization {",
+          "why": "نزعُ اشتراط الاعتماد يُعيد الوسيطَ مفتوحاً: أيُّ حاويةٍ مخترَقة في المكدّس تنشر وتشترك على أيّ موضوع — والملفُّ يبقى يبدو مضبوطاً"
+        },
+        {
+          "expect": "test_no_credential_is_written_into_the_committed_config",
+          "test": "tests_v9/test_nats_broker_authentication.py",
+          "find": "password: $NATS_PASSWORD",
+          "replace": "password: hunter2",
+          "why": "سرٌّ حرفيٌّ في ملفٍّ مُلتزَم سرٌّ **منشور**: كلُّ من قرأ المستودع يعرفه وكلُّ بيئةٍ أُقلعت بلا ضبطٍ صريح تعمل به — نفسُ صنف COMPOSE-DEFAULT-SECRET-IS-A-PUBLISHED-SECRET-01"
+        }
+      ]
+    },
+    "docker-compose.v9.yml": {
+      "$why_ar": "NATS-BROKER-HAS-NO-AUTHENTICATION-…-01: إغلاقُ الوسيط بلا إيصال الاعتماد إلى كلّ عميلٍ يقلب الفتحةَ كسراً — وسيطٌ يرفض وعملاءُ لا يعرفون، ويُقرأ عطلَ شبكة لا عطلَ إعداد. وكان الانقسامُ قائماً فعلاً: ستٌّ تستوفي المتغيّر وسبعٌ تكتب العنوانَ حرفيّاً.",
+      "mutations": [
+        {
+          "expect": "test_every_client_url_carries_the_credentials",
+          "test": "tests_v9/test_nats_broker_authentication.py",
+          "find": "      FEATURE_NATS_PUBLISHERS: ${FEATURE_NATS_PUBLISHERS:-false}\n      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}",
+          "replace": "      FEATURE_NATS_PUBLISHERS: ${FEATURE_NATS_PUBLISHERS:-false}\n      NATS_URL: nats://sahool-nats:4222",
+          "why": "عميلٌ واحدٌ يعود إلى عنوانٍ بلا اعتماد ⇒ يُرفَض اتّصالُه بعد التصلّب، والإصلاحُ الجزئيّ يبدو تامّاً لأنّ الاثنتَي عشرة الأخرى تعمل. (المرساةُ تشمل السطرَ السابق لأنّ العنوانَ نفسَه يتكرّر ١٣ مرّة.)"
+        },
+        {
+          "expect": "test_the_broker_service_inherits_the_credentials_and_refuses_a_published_default",
+          "test": "tests_v9/test_nats_broker_authentication.py",
+          "find": "NATS_PASSWORD: ${NATS_PASSWORD:?NATS_PASSWORD مطلوب — لا سرَّ افتراضيّ للوسيط}",
+          "replace": "NATS_PASSWORD: ${NATS_PASSWORD:-changeme}",
+          "why": "سرٌّ افتراضيّ للوسيط ⇒ كلُّ مكدّسٍ أُقلع بلا ضبطٍ صريح يعمل بكلمةٍ يعرفها كلُّ من قرأ المستودع، فتصير المصادقةُ زينةً"
+        }
+      ]
+    },
+    "shared/broker_url.py": {
+      "$why_ar": "العلاجُ فتح عطلاً ثانياً بيده: وضعُ الاعتماد في `NATS_URL` وضعه في عنوانٍ **كان يُطبَع في موضعين**، فيُسرَّب إلى سجلّاتٍ تُجمَع وتُشحَن. والتنقيةُ جزءٌ من الإصلاح لا زينة.",
+      "mutations": [
+        {
+          "expect": "test_the_redaction_actually_removes_the_secret",
+          "test": "tests_v9/test_nats_broker_authentication.py",
+          "find": "    if not parts.netloc or \"@\" not in parts.netloc:",
+          "replace": "    if True:",
+          "why": "التنقيةُ تُعيد العنوانَ كما هو ⇒ تبدو مطبَّقةً وتُسرّب كلمةَ المرور — احتياطٌ لا يمنع شيئاً أسوأُ من غيابه لأنّه يُقرأ ضماناً"
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

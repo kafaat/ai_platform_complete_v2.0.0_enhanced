@@ -3174,6 +3174,7 @@
         "tests_v9/test_canonical_execution_learning_worker_subscriptions.py",
         "tests_v9/test_event_bus_invariants.py",
         "tests_v9/test_h2_nats_publishers_flag.py",
+        "tests_v9/test_nats_broker_authentication.py",
         "tests_v9/test_nats_publisher_coverage.py",
         "tests_v9/test_outbox_delivery_attempts_v19_5.py",
         "tests_v9/test_outbox_idempotent_consumption.py",

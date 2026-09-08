@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aa6189c248a8948ddcfec2cb877d77bdc9be3b4ab817eded2ab31339a8e7f301"
+          "content": "c66ccbc9ab80593cc0e5977cab9e3e17fd54ef448a36c5ee18eb3a952ce550bf"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -16395,7 +16395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "62921ab62850013455343e5e7bc6a10fbc7dc1f9cfb42f52267ae08a458e6316"
+          "content": "d0b6fe140bcd4d79f0ce16297d4800cbdf5da1055758b85f67726c162d317be6"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
@@ -16655,7 +16655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "34edb6eb9351840f70c48324d206749c2a0b94fd933fd896b2320fe40a16b188"
+          "content": "a0fa51ae1c6d192e7f98c4651e18db18e165522278adb18623ec3f5762c4f5b2"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -29929,6 +29929,16 @@
         }
       ],
       "name": "shared/autonomous_farm_os_phase9.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f57f3207ce351bb82ddb421e1063515b23040d1b998f9c4f2910150bd4d8f09b"
+        }
+      ],
+      "name": "shared/broker_url.py",
       "type": "file"
     },
     {

@@ -1074,6 +1074,7 @@ INT-001,service,services/sahool-platform/api/main.py,10,applied
 INT-002,service,services/sahool-platform/api/main.py,10,applied
 INT-002,test,tests_v9/test_event_bus_invariants.py,5,applied
 INT-002,test,tests_v9/test_h2_nats_publishers_flag.py,3,applied
+INT-002,test,tests_v9/test_nats_broker_authentication.py,3,applied
 INT-002,test,tests_v9/test_nats_publisher_coverage.py,3,applied
 INT-003,api,POST /v1/phase9/autonomy/iot/dispatch/preview @ services/sahool-platform/api/phase9_autonomous_farm_os.py:217,2,applied
 INT-003,api,POST /v1/phase9/autonomy/iot/dispatch/simulate @ services/sahool-platform/api/phase9_autonomous_farm_os.py:230,2,applied

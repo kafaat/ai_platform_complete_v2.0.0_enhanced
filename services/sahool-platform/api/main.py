@@ -558,6 +558,7 @@ async def _start_outbox_worker():
     try:
         import nats
         from api.event_bus import OutboxWorker
+        from shared.broker_url import redact_broker_url
 
         nats_url = os.getenv("NATS_URL", "nats://sahool-nats:4222")
         _NATS_CONN = await nats.connect(nats_url, max_reconnect_attempts=-1)
@@ -569,7 +570,9 @@ async def _start_outbox_worker():
         # (sahool_jobs/BYPASSRLS). تحت RLS الجديدة (v72) لا يصلح مسبح التطبيق هنا.
         _OUTBOX_WORKER = OutboxWorker(_JOBS_POOL or _DB_POOL, _publish)
         _OUTBOX_TASK = asyncio.create_task(_OUTBOX_WORKER.run())
-        logging.info("✓ OutboxWorker بدأ — relay الأحداث إلى %s", nats_url)
+        # `NATS_URL` صار يحمل الاعتماد (NATS-BROKER-HAS-NO-AUTHENTICATION-…-01)،
+        # فطباعتُه خاماً تُسرّب كلمةَ المرور إلى سجلٍّ يُجمَع ويُشحَن.
+        logging.info("✓ OutboxWorker بدأ — relay الأحداث إلى %s", redact_broker_url(nats_url))
     except Exception as e:  # noqa: BLE001 — غياب NATS لا يُسقط المنصّة
         logging.warning("OutboxWorker معطّل (NATS؟): %s — الأحداث تبقى في outbox", e)
 

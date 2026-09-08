@@ -2398,3 +2398,17 @@ SHAs من `git log --oneline origin/main`.
 - **القرار ⑤:** `GUARDS` ينتقل إلى `state: produced`، ويبقى `production_certified=false` بلا ادّعاءٍ بالعكس.
 - **السبب:** المُنتِجُ يقيس الحاجبَ المسمّى به فعلاً (شرطُ `certification_evidence_producer_guard`)؛ والحكمُ يبقى سالباً لفارقٍ مقيسٍ مُسمّى لا لغياب قياس.
 - **المصدر:** `scripts/ci/collect_guard_surface_evidence.py` · `scripts/ci/guard_catalogue.py` · `scripts/ci/collect_full_branch_ci_evidence.py` (`workflow_index`) · `.github/workflows/production-certification-blockers.yml` · `docs/architecture/certification_evidence_producers.json` · `tests_v9/test_collect_guard_surface_evidence.py` (٢٠ حالة) · `guard_mutation_registry.json` (٨ طفرات سلوكيّة، ٨/٨ مقتولة).
+
+## 2026-09-08 — اعتمادُ NATS يمرّ في العنوان، ويُنقّى عند الطباعة
+
+- **القرار ①:** المصادقةُ بـ`authorization { user, password }` من البيئة، لا `accounts` بصلاحيّاتٍ لكلّ خدمة.
+- **السبب:** الأضيقُ الذي يقطع العطلَ المقيس («أيُّ حاويةٍ على الشبكة تنشر»). والعزلُ بين الخدمات عملٌ أكبر لا يقيسه هذا الصفّ، وادّعاؤه هنا كان سيقول ما لم يُنفَّذ — فأُعلِن حدّاً مُختبَراً بدل أن يُنفَّذ نصفُه.
+- **القرار ②:** الاعتمادُ يُحمَل في `NATS_URL` لا في وسائط `nats.connect`.
+- **السبب:** قيدٌ قائمٌ لا تفضيل — `phase_runtime_workers.py` ينادي `nats.connect(nats_url)` بلا وسائط، وتعديلُه ممنوعٌ بقرار المالك. فالعنوانُ هو القناةُ الوحيدة التي تبلغ **كلَّ** عميلٍ بلا مساسه.
+- **القرار ③:** تُنقّى الطباعةُ بمساعدٍ واحدٍ في `shared/broker_url.py` لا بنسختين في الملفّين.
+- **السبب:** القرارُ ② وضع السرَّ في شيءٍ يُطبَع، فالتنقيةُ جزءٌ من الإصلاح لا زينة. ونسختان تتّفقان اليوم وتنحرفان غداً — الصنفُ المقيس مراراً هنا.
+- **القرار ④:** `NATS_URL` يُعلَن **فارغاً** في `.env.example` لا يُحذَف ولا يُعلَّق.
+- **السبب:** حجبه `compose_env_contract_gate` (كلُّ متغيّرٍ يذكره compose مُعلَنٌ في أمثلة البيئة)، و`${VAR:-…}` يعالج الفراغَ كالغياب — مقيسٌ بـ`docker compose config`. فالإعلانُ الفارغ يُرضي العقدَ ويُبقي الافتراضَ الحاملَ للاعتماد نافذاً.
+- **القرار ⑤:** الثلاثةُ المكتشَفة بتعميم الحالة تُسمّى في راتشِتٍ مسقوف ولا تُصلَح هنا.
+- **السبب:** إصلاحُها توسيعٌ إلى نظامَين (خدمةُ النماذج · تنفيذُ الملحقات) بلا قياسٍ لهما — والشريحةُ تُقاس بما قاست. وإسقاطُها صمتٌ، وهو ما يرفضه هذا المستودع.
+- **المصدر:** `nats/nats.conf` · `docker-compose.v9.yml` · `.env.example` · `shared/broker_url.py` · `services/sahool-platform/api/{main.py,irrigation_dispatch_relay_worker.py}` · `tests_v9/test_nats_broker_authentication.py` (١٠ حالات) · `guard_mutation_registry.json` (٦ طفرات سلوكيّة على ثلاثة مصادر).
