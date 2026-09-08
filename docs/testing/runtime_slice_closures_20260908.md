@@ -195,3 +195,8 @@ bash docs/testing/run_hil_drawing_pg.sh /absolute/path/to/repository /absolute/p
 التحقق عند `87518ec9`: **51 حالة Guardrails ناجحة**، منها الأربع المستعادة؛ و**7/7 طفرات مقيسة** على `main.py` و`contracts.py`، منها **6 جديدة** (تعطيل/تعميم حارس المحرك، رفض الصفر، إلزام harvest، إسقاط جرعة المبيد، وإعفاء القرض من الإيراد). لم تُحذف مواصفة قائمة. الإجمالي صار **654 = 368 + 286**؛ القياس المشترك مع headroom أعطى **54 passed, 2 failed**، وتبقى642 و610 دون تغيير. سجلات القياس المحلية: `guardrails-coverage-tests.log` و`guardrails-contracts-mutations.log` و`guardrails-engine-mutations.log` و`guardrails-coverage-and-headroom.log` تحت diagnostics.
 
 في الحزمة الأصلية، مسّ `ci.yml` مقتصر على موضعي HIL_CERTIFICATION_REQUIRED=1 الموثقين في8078bda3؛ تشديد القياس لا إعفاء له. الشريحة الحالية لا تمسه. نتيجة preflight التي يشغلها المالك علىe1c28fc0 لم تصل وقت هذا التصحيح، ولا يُدّعى اكتمالها أو تُنسب إلى الرأس اللاحق. الحزمة الأصلية وبصمتها محفوظتان؛ تصحيح التغطية امتداد لها. يبقى runtime_verified=0 وproduction_certified=0 وcapable=false.
+
+
+### 2026-09-08 — HIL SQL parameter typing, PR #991
+
+`83e8c187` fixes the live CI failure reported at 20:49 UTC: approval UPDATE inferred parameter $1 as both text and varchar. Both uses now explicitly cast to varchar, matching migrations/v9_new_tables.sql. tests_v9/test_db_wiring.py also checks unresolved/resolved timestamps and refusal of a late rejection. Guardrails unit suite: 51 passed. PostgreSQL is unavailable locally; the corrected integration test remains NOT_MEASURED until CI reruns it. The supplied CI result was 1 failed, 131 passed, 92 skipped, 2 xfailed, 1 xpassed; this supersedes the earlier claim that only mutation headroom blocks the PR. No skip, role bypass or certification flag was weakened.

@@ -7678,3 +7678,8 @@ no_third_value_registry نصّاً)، GATE-01 نظيف، 33 اختباراً، r
 ### 2026-09-08 — استعادة شهود حوكمة حُذفت أثناء الإصلاح
 
 مراجعة المالك للحزمةe1c28fc0 كشفت حذف شاهدي incomplete_context وتضييق اختبار العقد في36faa270؛ انحدار حقيقي أغفله تقريرنا.87518ec9 يعيد أربع دوال بست دلالات ويزرع6 طفرات جديدة؛51 حالة Guardrails ناجحة و7/7 طفرات مقيسة. الإجمالي654، وقياس headroom المشترك54 ناجحة وحالتان مخفقتان بلا تخفيف. لا تغيير في الإنتاج أوci.yml؛ حُدثت hot والفجوة والقرارات و[تقرير الإغلاق](../docs/testing/runtime_slice_closures_20260908.md). نتيجة preflight لدى المالك لا تزال منتظرة.
+
+
+### 2026-09-08 — HIL SQL parameter typing, PR #991
+
+`83e8c187` fixes the live CI failure reported at 20:49 UTC: approval UPDATE inferred parameter $1 as both text and varchar. Both uses now explicitly cast to varchar, matching migrations/v9_new_tables.sql. tests_v9/test_db_wiring.py also checks unresolved/resolved timestamps and refusal of a late rejection. Guardrails unit suite: 51 passed. PostgreSQL is unavailable locally; the corrected integration test remains NOT_MEASURED until CI reruns it. The supplied CI result was 1 failed, 131 passed, 92 skipped, 2 xfailed, 1 xpassed; this supersedes the earlier claim that only mutation headroom blocks the PR. No skip, role bypass or certification flag was weakened.

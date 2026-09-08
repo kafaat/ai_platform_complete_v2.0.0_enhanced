@@ -5724,3 +5724,10 @@ scripts/ci/capability_mapping_engine.py:270      ["git","ls-files","-z"]
 | GUARDRAILS-CONTRACT-WITNESSES-REMOVED-01 | fixed locally / CI pending | `36faa270` حذف شاهدي incomplete_context وضيّق العقد النقي؛ `87518ec9` يستعيد أربع دوال في tests_v9/test_guardrails_contract.py ويضيف6 طفرات على main.py/contracts.py.51 حالة ناجحة و7/7 طفرات مقيسة، دون تعديل الإنتاج. أعداد النجاح السابقة لم تكن دليلاً على حفظ الدلالات. |
 
 متابعة LIVE-20260908-MUTATION-TIMING-01 عند87518ec9:654=368+286، مقابل642 و610؛ الحالتان ما زالتا مخفقتين. نتيجة preflight لدى المالك علىe1c28fc0 لم تصل بعد.
+
+
+### HIL SQL follow-up 2026-09-08
+
+| Gap | Status | Evidence |
+|---|---|---|
+| HIL-STATUS-PARAMETER-TYPE-01 | fixed (code) / live pending | `83e8c187`; services/guardrails-engine/human_in_loop.py approval UPDATE, tests_v9/test_db_wiring.py. PR #991 CI failed with AmbiguousParameterError; rerun required. |

@@ -2451,3 +2451,8 @@ SHAs من `git log --oneline origin/main`.
 - `87518ec9`: إعادة شاهدَي incomplete_context وتثبيت الصفر وharvest وجرعة المبيد وإيراد القرض بأربع دوال؛ السبب أن إعادة كتابة36faa270 أسقطت دلالات حراسة رغم ارتفاع عدد الاختبارات الناجحة.
 - الطلب الناقص يُختبر بعد حذف حقل من طلب صحيح، مع إثبات رفض النموذج أيضاً؛ السبب أن model_validator صار يرفض النقص قبل وصوله إلى المحرك، وأن القواميس المتداخلة ما زالت قابلة للتعديل.
 - ست طفرات إضافية تبقى مع جميع المواصفات القديمة، ولا يتغير سقف الزمن أو مسار الإنتاج لإرضاء الاختبارات. حزمةe1c28fc0 الأصلية محفوظة، وتصحيحها يُسلّم امتداداً لها.
+
+
+### 2026-09-08 — HIL SQL parameter typing, PR #991
+
+`83e8c187` fixes the live CI failure reported at 20:49 UTC: approval UPDATE inferred parameter $1 as both text and varchar. Both uses now explicitly cast to varchar, matching migrations/v9_new_tables.sql. tests_v9/test_db_wiring.py also checks unresolved/resolved timestamps and refusal of a late rejection. Guardrails unit suite: 51 passed. PostgreSQL is unavailable locally; the corrected integration test remains NOT_MEASURED until CI reruns it. The supplied CI result was 1 failed, 131 passed, 92 skipped, 2 xfailed, 1 xpassed; this supersedes the earlier claim that only mutation headroom blocks the PR. No skip, role bypass or certification flag was weakened.
