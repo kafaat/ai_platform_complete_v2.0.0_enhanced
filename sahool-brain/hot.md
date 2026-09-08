@@ -1,3 +1,5 @@
+> **2026-09-08 — PR #991 review fixes integrated:** `da71cc0f` retains the remote HIL fix; `d5c91477` completes MCP validation compatibility; `639bde28` binds headroom to the completed45.30-minute/654-mutation run (watermark711, drift682). 130 targeted tests pass. [Evidence](../docs/testing/runtime_slice_closures_20260908.md) records the skipped CI tail. Final preflight and publication pending; Copilot threads still open. No production certification.
+
 > **2026-09-08 — PR #991 repair follow-up:** `4456cea6` preserves the remote coverage history; `83e8c187` repairs HIL SQL typing; `ab240e46` checks durable decisions; `48991e6d` fixes the module header; `531efe47` authenticates MCP calls before body parsing. [Evidence](../docs/testing/runtime_slice_closures_20260908.md): 106 targeted tests pass. Corrected HIL PostgreSQL execution and fresh timing remain pending. No production certification.
 
 > **2026-09-08 — HIL SQL CI failure:** `83e8c187` fixes ambiguous status parameter typing. 51 unit tests pass; corrected live integration remains NOT_MEASURED. See [report](../docs/testing/runtime_slice_closures_20260908.md).
