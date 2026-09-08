@@ -352,6 +352,7 @@ def test_compose_starts_each_distinct_mcp_module():
         "market": "market_server",
     }
     supervisor = services["sahool-supervisor-agent"]["environment"]
+    assert services["sahool-auth"]["environment"]["SAHOOL_ENV"] == supervisor["SAHOOL_ENV"]
     for name, module in modules.items():
         env = services[f"sahool-{name}-mcp"]["environment"]
         assert env["MCP_SERVER_MODULE"] == module
