@@ -7683,3 +7683,7 @@ no_third_value_registry نصّاً)، GATE-01 نظيف، 33 اختباراً، r
 ### 2026-09-08 — HIL SQL parameter typing, PR #991
 
 `83e8c187` fixes the live CI failure reported at 20:49 UTC: approval UPDATE inferred parameter $1 as both text and varchar. Both uses now explicitly cast to varchar, matching migrations/v9_new_tables.sql. tests_v9/test_db_wiring.py also checks unresolved/resolved timestamps and refusal of a late rejection. Guardrails unit suite: 51 passed. PostgreSQL is unavailable locally; the corrected integration test remains NOT_MEASURED until CI reruns it. The supplied CI result was 1 failed, 131 passed, 92 skipped, 2 xfailed, 1 xpassed; this supersedes the earlier claim that only mutation headroom blocks the PR. No skip, role bypass or certification flag was weakened.
+
+### 2026-09-08 — merge and MCP auth ordering
+
+`4456cea6` preserves both histories after remote44a4cbcf; `48991e6d` repairs the economic module header; `ab240e46` checks durable HIL decisions. `531efe47` moves MCP JSON decoding after authentication, with 2/2 new mutants detected and 106 merged Guardrails/MCP cases passing. The registry now holds656 mutations; full local gates and a valid new timing pair are pending. Corrected HIL live SQL is NOT_MEASURED. See docs/testing/runtime_slice_closures_20260908.md for source and CI evidence.

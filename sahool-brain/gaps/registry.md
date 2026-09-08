@@ -5731,3 +5731,11 @@ scripts/ci/capability_mapping_engine.py:270      ["git","ls-files","-z"]
 | Gap | Status | Evidence |
 |---|---|---|
 | HIL-STATUS-PARAMETER-TYPE-01 | fixed (code) / live pending | `83e8c187`; services/guardrails-engine/human_in_loop.py approval UPDATE, tests_v9/test_db_wiring.py. PR #991 CI failed with AmbiguousParameterError; rerun required. |
+
+### MCP review follow-up 2026-09-08
+
+| Gap | Status | Evidence |
+|---|---|---|
+| MCP-BODY-BEFORE-AUTH-991-01 | fixed (code) / CI pending | `531efe47`; weather_server.py and wofost_server.py authenticate before body reads; tests_v9/test_mcp_auth_first_contract.py, 2/2 new mutants detected. |
+
+Timing follow-up: final source registry656; run34281851595 measured654 in five successful shards but the complete Unit Tests duration is still pending. No timing limit changed.
