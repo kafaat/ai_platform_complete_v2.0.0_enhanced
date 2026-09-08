@@ -1,9 +1,8 @@
 """Drawing features CRUD — tenant-scoped map drawings.
 
 Stores agricultural drawing outputs (field zones, pivots, prescriptions, exclusion
-zones) as versioned GeoJSON payloads. This is intentionally lightweight for v38:
-PostGIS topology enforcement arrives in the next hardening phase, while this
-router gives the frontend a real persistence contract now.
+zones) as versioned GeoJSON payloads after PostGIS topology validation. Schema
+creation and tenant policies belong to migration v230; requests use DML only.
 """
 
 from __future__ import annotations
@@ -141,39 +140,6 @@ class PostgisTopologyValidation(BaseModel):
 class DrawingTopologyValidateRequest(BaseModel):
     feature: DrawFeatureIn
     excludeFeatureId: str | None = None
-
-
-_CREATE_TABLE_SQL = """
-CREATE TABLE IF NOT EXISTS drawing_features (
-    feature_id TEXT PRIMARY KEY,
-    tenant_id UUID NOT NULL,
-    field_id TEXT NULL,
-    season_id TEXT NULL,
-    kind TEXT NOT NULL,
-    workflow TEXT NULL,
-    geometry JSONB NOT NULL,
-    properties JSONB NOT NULL DEFAULT '{}'::jsonb,
-    measurements JSONB NULL,
-    validation JSONB NULL,
-    draft BOOLEAN NOT NULL DEFAULT TRUE,
-    version INTEGER NOT NULL DEFAULT 1,
-    saved_by TEXT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    deleted_at TIMESTAMPTZ NULL
-)
-"""
-
-_INDEX_SQL = [
-    "CREATE INDEX IF NOT EXISTS idx_drawing_features_tenant_field ON drawing_features(tenant_id, field_id) WHERE deleted_at IS NULL",
-    "CREATE INDEX IF NOT EXISTS idx_drawing_features_tenant_kind ON drawing_features(tenant_id, kind) WHERE deleted_at IS NULL",
-]
-
-
-async def _ensure_table(conn) -> None:
-    await conn.execute(_CREATE_TABLE_SQL)
-    for sql in _INDEX_SQL:
-        await conn.execute(sql)
 
 
 def _field_id_from(feature: DrawFeatureIn | DrawFeaturePatch) -> str | None:
@@ -418,7 +384,6 @@ async def list_field_drawing_features(
 ):
     try:
         async with tenant_connection(user) as conn:
-            await _ensure_table(conn)
             await _assert_field_owner(conn, user=user, field_id=field_id)
             rows = await conn.fetch(
                 """
@@ -449,7 +414,6 @@ async def validate_drawing_feature_topology(
     field_id = _field_id_from(req.feature)
     try:
         async with tenant_connection(user) as conn:
-            await _ensure_table(conn)
             await _assert_field_owner(conn, user=user, field_id=field_id)
             return await _validate_topology_postgis(
                 conn,
@@ -474,7 +438,6 @@ async def create_drawing_feature(
     field_id = _field_id_from(req)
     try:
         async with tenant_connection(user) as conn:
-            await _ensure_table(conn)
             await _assert_field_owner(conn, user=user, field_id=field_id)
             topology = await _validate_topology_postgis(
                 conn, user=user, feature=req, field_id=field_id, exclude_feature_id=feature_id
@@ -540,7 +503,6 @@ async def update_drawing_feature(
 ):
     try:
         async with tenant_connection(user) as conn:
-            await _ensure_table(conn)
             existing = await conn.fetchrow(
                 "SELECT * FROM drawing_features WHERE feature_id = $1 AND tenant_id = $2::uuid AND deleted_at IS NULL",
                 feature_id,
@@ -639,7 +601,6 @@ async def delete_drawing_feature(
 ):
     try:
         async with tenant_connection(user) as conn:
-            await _ensure_table(conn)
             row = await conn.fetchrow(
                 """
                 UPDATE drawing_features

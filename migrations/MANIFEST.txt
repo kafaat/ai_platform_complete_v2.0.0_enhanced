@@ -750,4 +750,6 @@ v227_decision_learning_runtime.sql
 v228_worker_claim_lease.sql
 # v229: schema contract used by Market MCP + FORCE-RLS tenant isolation.
 v229_market_mcp_schema.sql
+# v230: drawing persistence under the migration owner; DML-only runtime and FORCE-RLS.
+v230_drawing_features.sql
 v206_rls_final_hardening.sql
