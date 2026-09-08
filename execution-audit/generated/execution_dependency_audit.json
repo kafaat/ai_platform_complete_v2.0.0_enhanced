@@ -393026,140 +393026,140 @@
    "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
    "source": "test_drawing_features_router_exposes_crud_contract",
    "target": "read_text",
-   "line": 14
+   "line": 18
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
    "source": "test_drawing_features_router_exposes_crud_contract",
    "target": "index",
-   "line": 15
+   "line": 19
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
    "source": "test_drawing_features_router_exposes_crud_contract",
    "target": "rindex",
-   "line": 15
+   "line": 19
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
    "source": "test_drawing_endpoints_work_with_dml_only_connection",
    "target": "parametrize",
-   "line": 38
+   "line": 42
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
    "source": "test_drawing_endpoints_work_with_dml_only_connection",
    "target": "now",
-   "line": 70
+   "line": 74
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
    "source": "test_drawing_endpoints_work_with_dml_only_connection",
    "target": "now",
-   "line": 71
+   "line": 75
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
    "source": "execute",
    "target": "AssertionError",
-   "line": 77
+   "line": 81
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
    "source": "test_drawing_endpoints_work_with_dml_only_connection",
    "target": "AssertionError",
-   "line": 77
+   "line": 81
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
    "source": "connection",
    "target": "Connection",
-   "line": 90
+   "line": 94
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
    "source": "test_drawing_endpoints_work_with_dml_only_connection",
    "target": "Connection",
-   "line": 90
+   "line": 94
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
    "source": "test_drawing_endpoints_work_with_dml_only_connection",
    "target": "PostgisTopologyValidation",
-   "line": 93
+   "line": 97
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
    "source": "valid_topology",
    "target": "PostgisTopologyValidation",
-   "line": 93
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
-   "source": "test_drawing_endpoints_work_with_dml_only_connection",
-   "target": "setattr",
-   "line": 95
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
-   "source": "test_drawing_endpoints_work_with_dml_only_connection",
-   "target": "setattr",
-   "line": 96
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
-   "source": "test_drawing_endpoints_work_with_dml_only_connection",
-   "target": "FastAPI",
    "line": 97
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
    "source": "test_drawing_endpoints_work_with_dml_only_connection",
-   "target": "include_router",
-   "line": 98
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
-   "source": "test_drawing_endpoints_work_with_dml_only_connection",
-   "target": "UserSchema",
+   "target": "setattr",
    "line": 99
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
    "source": "test_drawing_endpoints_work_with_dml_only_connection",
+   "target": "setattr",
+   "line": 100
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
+   "source": "test_drawing_endpoints_work_with_dml_only_connection",
+   "target": "FastAPI",
+   "line": 101
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
+   "source": "test_drawing_endpoints_work_with_dml_only_connection",
+   "target": "include_router",
+   "line": 102
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
+   "source": "test_drawing_endpoints_work_with_dml_only_connection",
+   "target": "UserSchema",
+   "line": 103
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
+   "source": "test_drawing_endpoints_work_with_dml_only_connection",
    "target": "TestClient",
-   "line": 110
+   "line": 114
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
    "source": "test_drawing_endpoints_work_with_dml_only_connection",
    "target": "request",
-   "line": 111
+   "line": 115
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
    "source": "test_drawing_migration_declares_owner_and_fail_closed_tenant_policy",
    "target": "read_text",
-   "line": 117
+   "line": 121
   },
   {
    "owner": "sahool-platform",

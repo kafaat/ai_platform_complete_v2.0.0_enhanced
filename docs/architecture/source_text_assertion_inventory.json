@@ -1,7 +1,7 @@
 {
   "$comment": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01 — المسح الأوّل لسطح التأكيدات الساكنة على نصّ المصدر. `prohibitions_without_a_stated_reason` **مَعدودة لا محكومٌ عليها**: لم يُثبَت أنّ أيّاً منها خاطئ، بل أنّ سببه غير مكتوب. الأساس يمنع النموّ، وسدادُه بكتابة السبب الحقيقيّ لا بنسخ عبارة. و`positive_pinning_a_call` **يُنشَر ولا يُحرَس**: معيار الفجوة (هل يبقى التأكيد صحيحاً بعد إعادة صياغة صحيحة؟) غير قابل للحسم آليّاً، ومُصنِّفٌ استدلاليّ يُنتِج قائمةً تُقرأ ديناً وهي ما طابق نمطاً.",
   "gap": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01",
-  "measured_on": "59c4eb8fa7438ac4dbdd608de0cdf410225caad6",
+  "measured_on": "e9b4e5b79b580ac909c19578459be1e52383f801",
   "scope": "assert على نصّ مصدر فقط — متغيّر أُسنِد من read_text/read/getsource في الاختبار نفسه، مُشتقٌّ بالبنية لا بالاسم. ما يُؤكَّد على جسم استجابة أو حمولة JSON خارج النطاق: هناك التأكيد هو العقد.",
   "totals": {
     "source_text_assertions": 2277,
@@ -22,10 +22,6 @@
     "services/sahool-platform/tests/test_crop_intelligence_canonical_gdd_product.py": {
       "gdd_pending_weather_engine_delegation": 1,
       "legacy_local_gdd_pending_weather_delegation": 1
-    },
-    "services/sahool-platform/tests/test_drawing_features_v38_static.py": {
-      "CREATE TABLE": 1,
-      "_ensure_table": 1
     },
     "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py": {
       "WHERE water_source_id=$1": 1,

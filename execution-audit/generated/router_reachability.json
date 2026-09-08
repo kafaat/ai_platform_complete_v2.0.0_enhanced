@@ -2461,7 +2461,7 @@
     },
     {
       "expression": "drawing.router",
-      "line": 98,
+      "line": 102,
       "module": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
       "prefix": null,
       "resolved": false,
@@ -2604,7 +2604,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "bc46970cdd7947cb9b86d9ebd3bdc017779034e242e94730955382955c5caa5b",
+  "inventory_sha256": "5dc29c8dfde07941f727de2aba6c4d8e397f50b8900cd49c0030ba16cac8704f",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {
@@ -4968,7 +4968,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
-      "line": 98,
+      "line": 102,
       "module": "services.sahool-platform.tests.test_drawing_features_v38_static",
       "source": null,
       "target_expression": "drawing.router"
