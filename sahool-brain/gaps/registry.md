@@ -5674,3 +5674,19 @@ scripts/ci/capability_mapping_engine.py:270      ["git","ls-files","-z"]
 - **المقيس:** زُرِع العطلُ فيه فبقي الاختبارُ **أخضر**. والسببُ أنّه **غيرُ بالغٍ أصلاً**: `violations` تُبلِّغ السببَ الجذريّ نفسَه وتخرج بـ1 قبل أن يُغيّر هذا الفرعُ حكماً، ولا مُدخَلَ تمرّ منه تلك ويسقط فيه هذا.
 - **العلاج: الحذف لا التوسيع.** دفاعٌ لا يُكذَّب **يبدو حمايةً وليس بها**، وإبقاؤه يُضخِّم عددَ ما يبدو محروساً بلا زيادةِ حراسة.
 - **وكيف كُشِف:** تشغيلُ المكنسة على أساسٍ أخضر — لا قراءةُ الرمز. وأوّلُ تشغيلٍ أعطى `✓` كاذبةً لأنّ الأساسَ كان أحمرَ بـ`NameError`؛ **المكنسةُ تتحقّق من الحمرة بعد الزرع ولا تشترط الخضرةَ قبله**، فتُقرأ نتيجتُها قتلاً وهي حمرةٌ سابقة. يُسجَّل بنداً للمكنسة نفسِها.
+
+
+## شرائح مراجعة التشغيل 2026-09-08
+
+| المعرّف | الحالة | المصدر والحكم |
+|---|---|---|
+| LIVE-20260908-MCP-CONTRACT-01 | fixed (code) / runtime pending | `515bd392` + `612bd2dc` + `1c7b45fb`؛ `tests_v9/test_mcp_auth_first_contract.py`؛ مسار واعتماد وإقلاع واكتشاف وأخطاء وهوية cache. النشر الحي غير مقاس. |
+| LIVE-20260908-GUARDRAILS-HIL-01 | fixed (code) / runtime pending | `36faa270`؛ `tests_v9/test_guardrails_contract.py`؛ النوع والمالية والحفظ ومعاملات المستأجر. تشغيل PG وتوفير تخصصات المراجعين وتسليم الإشعارات يبقى open. |
+| LIVE-20260908-DRAWING-SCHEMA-01 | fixed (code) / runtime pending | `36b1a6b9`؛ `migrations/v230_drawing_features.sql` + `tests_v9/test_rls_tenant_isolation_live_pg.py`؛ نقل DDL وعزل RLS؛ لا شهادة تطبيق الهجرة. |
+| LIVE-20260908-GIS-DEVICES-01 | fixed (code) | `36b1a6b9`؛ `services/sahool-platform/tests/test_governance_modules.py`؛ أخطاء DB المقيسة 503 واستعلام current_stage وتطبيع UUID. |
+| LIVE-20260908-FIELD-READINESS-01 | fixed (code) / original trace pending | `ba51967d`؛ `tests_v9/test_season_workspace.py`؛ الحالة القانونية والمختبر والموسم والأولويات. سبب PDF الأصلي غير منسوب دون traceback. |
+| LIVE-20260908-WEATHER-BOUNDARIES-01 | fixed (code) / deployment pending | `ed49c948` + `dc7b0901`؛ اختبارات weather runtime وKG/RAG؛ المشاركة والمهلات والغياب. Redis المتزامن وسياسة البيانات القديمة لم يُغيّرا. |
+| LIVE-20260908-AGENT-UNSUPPORTED-ADVICE-01 | fixed (unsafe defaults) / capability open | `7dcb9097` + `5d770f22`؛ `services/supervisor-agent/test_ai_orchestration_forensic.py`؛ منع كمية بلا دليل/حوكمة وفصل الصافي والإجمالي. الأدلة المالية والمائية والوصفة المعتمدة لازمة لإتاحة القدرة. |
+| LIVE-20260908-ARABIC-INTENTS-01 | fixed (code) | `d374c7c1`؛ `services/supervisor-agent/test_router.py`؛ تطبيع وحدود وأولوية، لا ادعاء شمول كل الصيغ. |
+
+تفاصيل الشهود والحدود في [تقرير الشرائح](../../docs/testing/runtime_slice_closures_20260908.md). ادعاء P2-8 بفقد الراستر عند استبدال الحاوية مردود بوجود named volume؛ لا إغلاق لنسخ المضيف واستعادته بلا قياس.
