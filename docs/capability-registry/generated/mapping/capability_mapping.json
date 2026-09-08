@@ -25,7 +25,7 @@
       "tests": 1770,
       "web": 457
     },
-    "unmapped_artifacts": 2150,
+    "unmapped_artifacts": 2149,
     "ambiguous_artifacts": 417
   },
   "capabilities": [
@@ -267,7 +267,16 @@
       "events": [],
       "web": [],
       "mobile": [],
-      "tests": [],
+      "tests": [
+        {
+          "path": "tests_v9/test_guardrails_contract.py",
+          "score": 9,
+          "signals": [
+            "content:Human approval",
+            "content:approval workflow"
+          ]
+        }
+      ],
       "governance": [],
       "other_evidence": [
         {
@@ -290,11 +299,11 @@
         "events": 0,
         "web": 0,
         "mobile": 0,
-        "tests": 0,
+        "tests": 1,
         "governance": 0,
         "other_evidence": 1
       },
-      "coverage_dimensions": 1,
+      "coverage_dimensions": 2,
       "mapped": true
     },
     {
@@ -42661,10 +42670,6 @@
     },
     {
       "path": "tests_v9/test_guardrails.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_guardrails_contract.py",
       "kind": "tests"
     },
     {
