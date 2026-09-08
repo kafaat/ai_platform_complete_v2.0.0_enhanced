@@ -195,3 +195,66 @@ bash docs/testing/run_hil_drawing_pg.sh /absolute/path/to/repository /absolute/p
 التحقق عند `87518ec9`: **51 حالة Guardrails ناجحة**، منها الأربع المستعادة؛ و**7/7 طفرات مقيسة** على `main.py` و`contracts.py`، منها **6 جديدة** (تعطيل/تعميم حارس المحرك، رفض الصفر، إلزام harvest، إسقاط جرعة المبيد، وإعفاء القرض من الإيراد). لم تُحذف مواصفة قائمة. الإجمالي صار **654 = 368 + 286**؛ القياس المشترك مع headroom أعطى **54 passed, 2 failed**، وتبقى642 و610 دون تغيير. سجلات القياس المحلية: `guardrails-coverage-tests.log` و`guardrails-contracts-mutations.log` و`guardrails-engine-mutations.log` و`guardrails-coverage-and-headroom.log` تحت diagnostics.
 
 في الحزمة الأصلية، مسّ `ci.yml` مقتصر على موضعي HIL_CERTIFICATION_REQUIRED=1 الموثقين في8078bda3؛ تشديد القياس لا إعفاء له. الشريحة الحالية لا تمسه. نتيجة preflight التي يشغلها المالك علىe1c28fc0 لم تصل وقت هذا التصحيح، ولا يُدّعى اكتمالها أو تُنسب إلى الرأس اللاحق. الحزمة الأصلية وبصمتها محفوظتان؛ تصحيح التغطية امتداد لها. يبقى runtime_verified=0 وproduction_certified=0 وcapable=false.
+
+
+### 2026-09-08 — HIL SQL parameter typing, PR #991
+
+`83e8c187` fixes the live CI failure reported at 20:49 UTC: approval UPDATE inferred parameter $1 as both text and varchar. Both uses now explicitly cast to varchar, matching migrations/v9_new_tables.sql. tests_v9/test_db_wiring.py also checks unresolved/resolved timestamps and refusal of a late rejection. Guardrails unit suite: 51 passed. PostgreSQL is unavailable locally; the corrected integration test remains NOT_MEASURED until CI reruns it. The supplied CI result was 1 failed, 131 passed, 92 skipped, 2 xfailed, 1 xpassed; this supersedes the earlier claim that only mutation headroom blocks the PR. No skip, role bypass or certification flag was weakened.
+
+### PR #991: integration of the repaired SQL and independent review
+
+The remote head `44a4cbcf` contains the stronger coverage repair, including
+`87518ec9`, `6eb81b42` and `994da32a`. Its integration job
+[102248437393](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/34281851595/job/102248437393)
+still failed at 2026-09-08 21:43 UTC on the uncorrected HIL query (one failed,
+131 passed, 92 skipped). `4456cea6` merges that remote history with the local
+HIL repair without rewriting either history. `48991e6d` moves the economic-tier
+docstring before its imports and removes its duplicate shebang.
+
+Independent review confirmed that the SQL casts preserve the transaction,
+row lock, tenant and role checks, expiry and approval quorum. `ab240e46`
+strengthens the live witness: it reads the durable approvals after a duplicate
+vote and compares the entire resolved snapshot after a refused late rejection.
+The local Guardrails suite remains 51 passed. These tests with local doubles
+cannot establish that PostgreSQL accepted the prepared statement; that corrected
+live test still requires a new CI run.
+
+The five successful mutation shards in run `34281851595` measure their own
+execution, not the complete Unit Tests job. Cancelled earlier runs do not provide
+a completed timing pair. The mutation budget must use a completed eligible
+measurement under its existing formula; shard success alone cannot close it.
+
+`531efe47` repairs the two MCP auth-order findings from review `5147072917`.
+Weather and WOFOST accept a `Request` and decode/validate the body inside the
+authenticated handler; their OpenAPI body schemas remain explicit. Denied
+requests never read the body. Authenticated malformed JSON, invalid UTF-8 and
+invalid envelopes return 422. Execution, identity-bound caching and WOFOST's
+explicit unsupported-simulation response retain their witnesses. The slice
+passed 63 targeted cases (23 newly parameterized cases), and its two planted
+Request-to-dict regressions were detected. The merged Guardrails/MCP suite passed
+106 cases. Registry total: 656 = 368 + 288. The old timing limits are retained
+until an eligible completed pair is available.
+
+### PR #991: completed timing and final review fixes
+
+`da71cc0f` merges remote `d96bbacd` without rewriting either history. Its HIL
+`::text` casts are retained, with the stronger local durable-decision witnesses.
+The remote Integration Tests job102257332285 passed132 cases and skipped92;
+that result does not certify the later local witness additions.
+
+`d5c91477` completes the MCP repair: accepted JSON media types and OpenAPI422
+responses are preserved, and WOFOST non-finite validation errors remain
+serializable. The three Copilot findings have local code fixes; their threads
+remain open until publication and verification of the repaired head.
+
+`639bde28` anchors the mutation budget to the same-run pair45.30 minutes/654
+mutations from [job102257332191](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/34284639549/job/102257332191)
+on d96bbacd: 2026-09-08 22:12:12–22:57:30 UTC. Planting succeeded in29:42;
+pytest completed with6495 passed,25 skipped and two headroom failures, with
+50.87% coverage. Codecov and Field-forms skipped after that failure: this is
+an observed failed-job duration, not a fully successful pipeline certificate.
+The unchanged formula yields watermark711 and drift682; timeout90 and cost0.775
+remain fixed. The current656-mutation registry does not replace the measured654.
+
+The merged targeted suite passed130 tests. Final generation, default preflight
+and publication are pending; no production certification is claimed.

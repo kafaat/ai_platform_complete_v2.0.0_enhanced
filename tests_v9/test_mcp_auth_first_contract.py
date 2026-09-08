@@ -341,6 +341,205 @@ def test_mcp_idempotency_cannot_cross_callers(live_mcp_contract, monkeypatch, mo
     assert len(calls) == 4
 
 
+@pytest.mark.parametrize(
+    "module_name,scope", [("weather_server", "weather:read"), ("wofost_server", "crop:read")]
+)
+@pytest.mark.parametrize("credential,status", [(None, 401), ("invalid", 401), ("wrong_scope", 403)])
+def test_mcp_auth_precedes_body_read(
+    live_mcp_contract, monkeypatch, module_name, scope, credential, status
+):
+    from starlette.requests import Request
+
+    module = _load("_live_" + module_name, MCP / (module_name + ".py"))
+
+    async def must_not_read(request):
+        pytest.fail("Denied MCP caller reached request-body decoding")
+
+    monkeypatch.setattr(Request, "body", must_not_read)
+    headers = {"content-type": "application/json"}
+    if credential:
+        token = _caller_token(scope="unrelated:read") if credential == "wrong_scope" else credential
+        headers["Authorization"] = "Bearer " + token
+    response = TestClient(module.app).post(
+        "/v1/mcp/tools/call", content=b'{"name":', headers=headers
+    )
+    assert response.status_code == status, response.text
+
+
+@pytest.mark.parametrize(
+    "module_name,scope", [("weather_server", "weather:read"), ("wofost_server", "crop:read")]
+)
+@pytest.mark.parametrize(
+    "body",
+    [
+        b'{"name":',
+        b"\xff",
+        b"[]",
+        b"null",
+        b'"string"',
+        b"{}",
+        b'{"name": []}',
+        b'{"name": "probe", "arguments": []}',
+    ],
+)
+def test_mcp_authenticated_invalid_body_is_422(
+    live_mcp_contract, monkeypatch, module_name, scope, body
+):
+    module = _load("_live_" + module_name, MCP / (module_name + ".py"))
+    monkeypatch.setattr(module, "IDEMPOTENCY_CACHE", {})
+
+    async def must_not_execute(*args):
+        pytest.fail("Invalid MCP envelope reached the tool executor")
+
+    monkeypatch.setattr(module, "_execute", must_not_execute)
+    response = TestClient(module.app, raise_server_exceptions=False).post(
+        "/v1/mcp/tools/call",
+        content=body,
+        headers={
+            "content-type": "application/json",
+            "Authorization": "Bearer " + _caller_token(scope=scope),
+        },
+    )
+    assert response.status_code == 422, response.text
+    assert module.IDEMPOTENCY_CACHE == {}
+
+
+@pytest.mark.parametrize(
+    "module_name,scope", [("weather_server", "weather:read"), ("wofost_server", "crop:read")]
+)
+@pytest.mark.parametrize(
+    "content_type,status",
+    [
+        (None, 200),
+        ("application/json", 200),
+        ("Application/JSON; charset=utf-8", 200),
+        ("application/problem+json; charset=utf-8", 200),
+        ("text/plain", 422),
+        ("text/json", 422),
+        ("application/octet-stream", 422),
+        ("application/jsonp", 422),
+    ],
+)
+def test_mcp_post_auth_media_types(
+    live_mcp_contract, monkeypatch, module_name, scope, content_type, status
+):
+    from unittest.mock import AsyncMock
+
+    module = _load("_live_" + module_name, MCP / (module_name + ".py"))
+    execute = AsyncMock(return_value={"content": []})
+    monkeypatch.setattr(module, "_execute", execute)
+    headers = {"Authorization": "Bearer " + _caller_token(scope=scope)}
+    if content_type is not None:
+        headers["content-type"] = content_type
+    client = TestClient(module.app)
+    response = client.post("/v1/mcp/tools/call", content=b'{"name":"probe"}', headers=headers)
+    assert response.status_code == status, response.text
+    assert execute.await_count == (1 if status == 200 else 0)
+    responses = module.app.openapi()["paths"]["/v1/mcp/tools/call"]["post"]["responses"]
+    assert responses["422"]["description"] == "Validation Error"
+    # A non-JSON media type must still be checked only after authentication.
+    response = client.post(
+        "/v1/mcp/tools/call", content=b'{"name":"probe"}', headers={"content-type": "text/plain"}
+    )
+    assert response.status_code == 401
+
+
+@pytest.mark.parametrize("nonfinite", ["NaN", "Infinity", "-Infinity"])
+def test_wofost_invalid_nonfinite_input_returns_serializable_422(live_mcp_contract, nonfinite):
+    module = _load("_live_wofost_server", MCP / "wofost_server.py")
+    body = (
+        '{"name":"run_wofost_simulation","arguments":{"planting_date":"2026-09-08","crop":'
+        + nonfinite
+        + "}}"
+    )
+    response = TestClient(module.app, raise_server_exceptions=False).post(
+        "/v1/mcp/tools/call",
+        content=body,
+        headers={
+            "content-type": "application/json",
+            "Authorization": "Bearer " + _caller_token(scope="crop:read"),
+        },
+    )
+    assert response.status_code == 422, response.text
+    assert response.json()["detail"][0]["type"] == "string_type"
+
+
+def test_mcp_authenticated_real_tools_keep_validation_and_results(
+    live_mcp_contract, monkeypatch, respx_mock
+):
+    import json
+
+    import httpx
+
+    weather = _load("_live_weather_server", MCP / "weather_server.py")
+    wofost = _load("_live_wofost_server", MCP / "wofost_server.py")
+    monkeypatch.setattr(weather, "IDEMPOTENCY_CACHE", {})
+    monkeypatch.setattr(wofost, "IDEMPOTENCY_CACHE", {})
+    weather_headers = {"Authorization": "Bearer " + _caller_token(scope="weather:read")}
+    crop_headers = {"Authorization": "Bearer " + _caller_token(scope="crop:read")}
+    for module, headers, body in [
+        (
+            weather,
+            weather_headers,
+            {"name": "get_weather_forecast", "arguments": {"lat": 91, "lon": 45}},
+        ),
+        (wofost, crop_headers, {"name": "run_wofost_simulation", "arguments": {"crop": "invalid"}}),
+    ]:
+        response = TestClient(module.app, raise_server_exceptions=False).post(
+            "/v1/mcp/tools/call", json=body, headers=headers
+        )
+        assert response.status_code == 422, response.text
+        assert module.IDEMPOTENCY_CACHE == {}
+        schema = module.app.openapi()["paths"]["/v1/mcp/tools/call"]["post"]["requestBody"]
+        assert schema["required"] is True
+        assert (
+            schema["content"]["application/json"]["schema"]["properties"]["arguments"]["type"]
+            == "object"
+        )
+    vendor = respx_mock.get(weather.OPEN_METEO_URL + "/forecast").mock(
+        return_value=httpx.Response(200, json={"daily": {"temperature_2m_max": [32]}})
+    )
+    weather_client = TestClient(weather.app)
+    forecast = {
+        "name": "get_weather_forecast",
+        "arguments": {"lat": 15.5, "lon": 45, "days": 1},
+        "request_id": "forecast-1",
+    }
+    first = weather_client.post("/v1/mcp/tools/call", json=forecast, headers=weather_headers)
+    repeated = weather_client.post("/v1/mcp/tools/call", json=forecast, headers=weather_headers)
+    assert first.status_code == repeated.status_code == 200
+    assert first.json() == repeated.json()
+    payload = json.loads(first.json()["content"][0]["text"])
+    assert payload["daily"]["temperature_2m_max"] == [32] and payload["forecast_days"] == 1
+    assert vendor.call_count == 1
+    assert vendor.calls[0].request.url.params["latitude"] == "15.5"
+    assert len(weather.IDEMPOTENCY_CACHE) == 1
+    client = TestClient(wofost.app)
+    response = client.post(
+        "/v1/mcp/tools/call",
+        json={
+            "name": "get_crop_parameters",
+            "arguments": {"crop": "wheat"},
+            "request_id": "crop-params",
+        },
+        headers=crop_headers,
+    )
+    assert response.status_code == 200, response.text
+    payload = json.loads(response.json()["content"][0]["text"])
+    assert payload["crop"] == "wheat" and payload["parameters"]["tsum1"] == 200
+    assert len(wofost.IDEMPOTENCY_CACHE) == 1
+    response = client.post(
+        "/v1/mcp/tools/call",
+        json={
+            "name": "run_wofost_simulation",
+            "arguments": {"crop": "wheat", "planting_date": "2026-09-08"},
+        },
+        headers=crop_headers,
+    )
+    assert response.status_code == 501, response.text
+    assert len(wofost.IDEMPOTENCY_CACHE) == 1
+
+
 def test_compose_starts_each_distinct_mcp_module():
     import yaml
 

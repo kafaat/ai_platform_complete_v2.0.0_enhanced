@@ -4,6 +4,7 @@ SAHOOL Weather MCP Server
 Open-Meteo + NOAA APIs with caching and idempotency
 """
 
+import email.message
 import json
 import logging
 import os
@@ -11,8 +12,8 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx
-from fastapi import Depends, FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from fastapi import Depends, FastAPI, HTTPException, Request
+from pydantic import BaseModel, Field, ValidationError
 from shared.oauth_middleware import idempotency_key, require_scope
 from shared.streamable_http import StreamableHTTPTransport
 
@@ -81,6 +82,12 @@ class ET0Request(BaseModel):
     latitude: float | None = Field(default=None, ge=-90, le=90)  # degrees
 
 
+class ToolCallRequest(BaseModel):
+    name: str = Field(min_length=1)
+    arguments: dict[str, Any] = Field(default_factory=dict)
+    request_id: str | None = None
+
+
 @app.get("/v1/mcp/tools", dependencies=[Depends(require_scope("weather:read"))])
 async def list_tools():
     return {
@@ -144,18 +151,44 @@ async def list_tools():
     }
 
 
-@app.post("/v1/mcp/tools/call")
-async def call_tool(request: dict, user: dict = Depends(require_scope("weather:read"))):
-    name = request.get("name")
-    args = request.get("arguments", {})
-    req_id = idempotency_key(user, request.get("request_id"), name, args)
+@app.post(
+    "/v1/mcp/tools/call",
+    responses={422: {"description": "Validation Error"}},
+    openapi_extra={
+        "requestBody": {
+            "required": True,
+            "content": {"application/json": {"schema": ToolCallRequest.model_json_schema()}},
+        }
+    },
+)
+async def call_tool(request: Request, user: dict = Depends(require_scope("weather:read"))):
+    # A typed FastAPI body is decoded before dependencies. Keep all body reads
+    # here, after authentication, while retaining explicit schema validation.
+    if content_type := request.headers.get("content-type"):
+        media_type = email.message.Message()
+        media_type["content-type"] = content_type
+        subtype = media_type.get_content_subtype()
+        if media_type.get_content_maintype() != "application" or not (
+            subtype == "json" or subtype.endswith("+json")
+        ):
+            raise HTTPException(status_code=422, detail="JSON request body required")
+    try:
+        call = ToolCallRequest.model_validate_json(await request.body())
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail=exc.errors(include_input=False)) from exc
+    name = call.name
+    args = call.arguments
+    req_id = idempotency_key(user, call.request_id, name, args)
 
     if req_id and req_id in IDEMPOTENCY_CACHE:
         cached = IDEMPOTENCY_CACHE[req_id]
         if datetime.now(UTC) < cached["expires"]:
             return cached["result"]
 
-    result = await _execute(name, args)
+    try:
+        result = await _execute(name, args)
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail=exc.errors(include_input=False)) from exc
 
     if req_id:
         IDEMPOTENCY_CACHE[req_id] = {

@@ -5,7 +5,7 @@
   "runtime_verified": false,
   "python_files_parsed": 1886,
   "route_handlers": 1049,
-  "call_edges": 77227,
+  "call_edges": 77245,
   "dead_code_candidates": 627,
   "duplicate_function_groups": 60,
   "route_owners": 27,
@@ -1551,7 +1551,7 @@
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
-   "line": 85,
+   "line": 92,
    "handler": "list_tools",
    "method": "GET",
    "path": "/v1/mcp/tools"
@@ -1559,7 +1559,7 @@
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
-   "line": 148,
+   "line": 164,
    "handler": "call_tool",
    "method": "POST",
    "path": "/v1/mcp/tools/call"
@@ -1567,7 +1567,7 @@
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
-   "line": 335,
+   "line": 368,
    "handler": "healthz",
    "method": "GET",
    "path": "/healthz"
@@ -1575,7 +1575,7 @@
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
-   "line": 340,
+   "line": 373,
    "handler": "readyz",
    "method": "GET",
    "path": "/readyz"
@@ -1583,7 +1583,7 @@
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
-   "line": 51,
+   "line": 58,
    "handler": "list_tools",
    "method": "GET",
    "path": "/v1/mcp/tools"
@@ -1591,7 +1591,7 @@
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
-   "line": 114,
+   "line": 130,
    "handler": "call_tool",
    "method": "POST",
    "path": "/v1/mcp/tools/call"
@@ -1599,7 +1599,7 @@
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
-   "line": 286,
+   "line": 316,
    "handler": "healthz",
    "method": "GET",
    "path": "/healthz"
@@ -1607,7 +1607,7 @@
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
-   "line": 291,
+   "line": 321,
    "handler": "readyz",
    "method": "GET",
    "path": "/readyz"
@@ -100293,777 +100293,903 @@
    "file": "services/mcp_servers/weather_server.py",
    "source": "_weather_service_url",
    "target": "getenv",
-   "line": 39
+   "line": 40
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "_weather_service_url",
    "target": "rstrip",
-   "line": 39
+   "line": 40
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "_weather_service_headers",
    "target": "getenv",
-   "line": 46
+   "line": 47
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "_mcp_text",
    "target": "dumps",
-   "line": 54
+   "line": 55
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "list_tools",
    "target": "Depends",
-   "line": 84
+   "line": 91
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "list_tools",
    "target": "get",
-   "line": 84
+   "line": 91
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "list_tools",
    "target": "require_scope",
-   "line": 84
+   "line": 91
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "call_tool",
    "target": "post",
-   "line": 147
+   "line": 154
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "call_tool",
+   "target": "model_json_schema",
+   "line": 160
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "call_tool",
    "target": "Depends",
-   "line": 148
+   "line": 164
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "call_tool",
    "target": "require_scope",
-   "line": 148
+   "line": 164
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "call_tool",
    "target": "get",
-   "line": 149
+   "line": 167
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "call_tool",
-   "target": "get",
-   "line": 150
+   "target": "Message",
+   "line": 168
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "call_tool",
-   "target": "get",
-   "line": 151
+   "target": "get_content_subtype",
+   "line": 170
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "call_tool",
+   "target": "get_content_maintype",
+   "line": 171
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "call_tool",
+   "target": "endswith",
+   "line": 172
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "call_tool",
+   "target": "HTTPException",
+   "line": 174
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "call_tool",
+   "target": "body",
+   "line": 176
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "call_tool",
+   "target": "model_validate_json",
+   "line": 176
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "call_tool",
+   "target": "HTTPException",
+   "line": 178
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "call_tool",
+   "target": "errors",
+   "line": 178
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "call_tool",
    "target": "idempotency_key",
-   "line": 151
+   "line": 181
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "call_tool",
    "target": "now",
-   "line": 155
+   "line": 185
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "call_tool",
    "target": "_execute",
-   "line": 158
+   "line": 189
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "call_tool",
+   "target": "HTTPException",
+   "line": 191
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "call_tool",
+   "target": "errors",
+   "line": 191
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "call_tool",
    "target": "now",
-   "line": 163
+   "line": 196
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "call_tool",
    "target": "timedelta",
-   "line": 163
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "ForecastRequest",
-   "line": 171
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "join",
-   "line": 176
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "AsyncClient",
-   "line": 180
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "retry_request",
-   "line": 181
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "raise_for_status",
-   "line": 184
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "json",
-   "line": 185
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "dumps",
-   "line": 191
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "get",
    "line": 196
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "_execute",
-   "target": "get",
-   "line": 198
+   "target": "ForecastRequest",
+   "line": 204
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "_execute",
-   "target": "get",
-   "line": 198
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "isoformat",
-   "line": 200
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "now",
-   "line": 200
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "ET0Request",
+   "target": "join",
    "line": 209
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "_execute",
-   "target": "HTTPException",
-   "line": 220
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "strptime",
-   "line": 222
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "timetuple",
-   "line": 222
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "_mcp_text",
-   "line": 227
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_unavailable",
-   "target": "_mcp_text",
-   "line": 227
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
    "target": "AsyncClient",
-   "line": 250
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "post",
-   "line": 251
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "_weather_service_url",
-   "line": 252
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "_weather_service_headers",
-   "line": 254
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "getLogger",
-   "line": 257
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "warning",
-   "line": 257
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "_unavailable",
-   "line": 258
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "_unavailable",
-   "line": 263
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "json",
-   "line": 267
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "get",
-   "line": 268
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "_unavailable",
-   "line": 270
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "_mcp_text",
-   "line": 278
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "get",
-   "line": 281
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "float",
-   "line": 282
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "round",
-   "line": 282
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "round",
-   "line": 283
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "round",
-   "line": 284
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "get",
-   "line": 285
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "get",
-   "line": 286
-  },
-  {
-   "owner": "mcp-servers",
-   "file": "services/mcp_servers/weather_server.py",
-   "source": "_execute",
-   "target": "AsyncClient",
-   "line": 302
+   "line": 213
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "_execute",
    "target": "retry_request",
-   "line": 303
+   "line": 214
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "_execute",
    "target": "raise_for_status",
-   "line": 306
+   "line": 217
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "_execute",
    "target": "json",
-   "line": 307
+   "line": 218
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "_execute",
    "target": "dumps",
-   "line": 313
+   "line": 224
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "_execute",
    "target": "get",
-   "line": 317
+   "line": 229
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "get",
+   "line": 231
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "get",
+   "line": 231
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "_execute",
    "target": "isoformat",
-   "line": 318
+   "line": 233
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "_execute",
    "target": "now",
-   "line": 318
+   "line": 233
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "ET0Request",
+   "line": 242
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "_execute",
    "target": "HTTPException",
-   "line": 327
+   "line": 253
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "strptime",
+   "line": 255
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "timetuple",
+   "line": 255
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "_mcp_text",
+   "line": 260
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_unavailable",
+   "target": "_mcp_text",
+   "line": 260
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "AsyncClient",
+   "line": 283
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "post",
+   "line": 284
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "_weather_service_url",
+   "line": 285
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "_weather_service_headers",
+   "line": 287
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "getLogger",
+   "line": 290
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "warning",
+   "line": 290
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "_unavailable",
+   "line": 291
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "_unavailable",
+   "line": 296
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "json",
+   "line": 300
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "get",
+   "line": 301
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "_unavailable",
+   "line": 303
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "_mcp_text",
+   "line": 311
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "get",
+   "line": 314
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "float",
+   "line": 315
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "round",
+   "line": 315
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "round",
+   "line": 316
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "round",
+   "line": 317
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "get",
+   "line": 318
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "get",
+   "line": 319
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "AsyncClient",
+   "line": 335
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "retry_request",
+   "line": 336
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "raise_for_status",
+   "line": 339
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "json",
+   "line": 340
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "dumps",
+   "line": 346
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "get",
+   "line": 350
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "isoformat",
+   "line": 351
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "now",
+   "line": 351
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/weather_server.py",
+   "source": "_execute",
+   "target": "HTTPException",
+   "line": 360
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "healthz",
    "target": "get",
-   "line": 333
+   "line": 366
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "healthz",
    "target": "get",
-   "line": 334
+   "line": 367
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "readyz",
    "target": "get",
-   "line": 339
+   "line": 372
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/weather_server.py",
    "source": "_handle_sigterm",
    "target": "exit",
-   "line": 351
+   "line": 384
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "list_tools",
    "target": "Depends",
-   "line": 50
+   "line": 57
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "list_tools",
    "target": "get",
-   "line": 50
+   "line": 57
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "list_tools",
    "target": "require_scope",
-   "line": 50
+   "line": 57
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "call_tool",
    "target": "post",
-   "line": 113
+   "line": 120
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/wofost_server.py",
+   "source": "call_tool",
+   "target": "model_json_schema",
+   "line": 126
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "call_tool",
    "target": "Depends",
-   "line": 114
+   "line": 130
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "call_tool",
    "target": "require_scope",
-   "line": 114
+   "line": 130
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "call_tool",
    "target": "get",
-   "line": 115
+   "line": 133
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "call_tool",
-   "target": "get",
-   "line": 116
+   "target": "Message",
+   "line": 134
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "call_tool",
-   "target": "get",
-   "line": 117
+   "target": "get_content_subtype",
+   "line": 136
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/wofost_server.py",
+   "source": "call_tool",
+   "target": "get_content_maintype",
+   "line": 137
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/wofost_server.py",
+   "source": "call_tool",
+   "target": "endswith",
+   "line": 138
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/wofost_server.py",
+   "source": "call_tool",
+   "target": "HTTPException",
+   "line": 140
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/wofost_server.py",
+   "source": "call_tool",
+   "target": "body",
+   "line": 142
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/wofost_server.py",
+   "source": "call_tool",
+   "target": "model_validate_json",
+   "line": 142
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/wofost_server.py",
+   "source": "call_tool",
+   "target": "HTTPException",
+   "line": 144
+  },
+  {
+   "owner": "mcp-servers",
+   "file": "services/mcp_servers/wofost_server.py",
+   "source": "call_tool",
+   "target": "errors",
+   "line": 144
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "call_tool",
    "target": "idempotency_key",
-   "line": 117
+   "line": 147
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "call_tool",
    "target": "now",
-   "line": 121
+   "line": 151
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "call_tool",
    "target": "_execute",
-   "line": 124
+   "line": 154
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "call_tool",
    "target": "now",
-   "line": 129
+   "line": 159
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "call_tool",
    "target": "timedelta",
-   "line": 129
+   "line": 159
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_execute",
    "target": "WOFOSTRequest",
-   "line": 139
+   "line": 169
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_execute",
    "target": "HTTPException",
-   "line": 141
+   "line": 171
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_execute",
    "target": "errors",
-   "line": 141
+   "line": 171
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_execute",
    "target": "HTTPException",
-   "line": 147
+   "line": 177
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_execute",
    "target": "dumps",
-   "line": 220
+   "line": 250
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_execute",
    "target": "get",
-   "line": 223
+   "line": 253
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_execute",
    "target": "HTTPException",
-   "line": 233
+   "line": 263
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_simulate_wofost",
    "target": "get",
-   "line": 247
+   "line": 277
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_simulate_wofost",
    "target": "strptime",
-   "line": 249
+   "line": 279
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_simulate_wofost",
    "target": "int",
-   "line": 251
+   "line": 281
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_simulate_wofost",
    "target": "timedelta",
-   "line": 252
+   "line": 282
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_simulate_wofost",
    "target": "int",
-   "line": 262
+   "line": 292
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_simulate_wofost",
    "target": "WOFOSTResult",
-   "line": 264
+   "line": 294
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_simulate_wofost",
    "target": "round",
-   "line": 265
+   "line": 295
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_simulate_wofost",
    "target": "round",
-   "line": 266
+   "line": 296
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_simulate_wofost",
    "target": "round",
-   "line": 267
+   "line": 297
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_simulate_wofost",
    "target": "strftime",
-   "line": 268
+   "line": 298
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_simulate_wofost",
    "target": "int",
-   "line": 270
+   "line": 300
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_simulate_wofost",
    "target": "strftime",
-   "line": 270
+   "line": 300
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_simulate_wofost",
    "target": "timedelta",
-   "line": 270
+   "line": 300
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_simulate_wofost",
    "target": "strftime",
-   "line": 271
+   "line": 301
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_simulate_wofost",
    "target": "int",
-   "line": 272
+   "line": 302
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_simulate_wofost",
    "target": "timedelta",
-   "line": 272
+   "line": 302
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_simulate_wofost",
    "target": "strftime",
-   "line": 274
+   "line": 304
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_simulate_wofost",
    "target": "round",
-   "line": 276
+   "line": 306
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "healthz",
    "target": "get",
-   "line": 284
+   "line": 314
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "healthz",
    "target": "get",
-   "line": 285
+   "line": 315
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "readyz",
    "target": "get",
-   "line": 290
+   "line": 320
   },
   {
    "owner": "mcp-servers",
    "file": "services/mcp_servers/wofost_server.py",
    "source": "_handle_sigterm",
    "target": "exit",
-   "line": 302
+   "line": 332
   },
   {
    "owner": "model-registry-adapter",
@@ -556996,13 +557122,13 @@
     {
      "file": "services/mcp_servers/weather_server.py",
      "symbol": "_handle_sigterm",
-     "line": 347,
+     "line": 380,
      "owner": "mcp-servers"
     },
     {
      "file": "services/mcp_servers/wofost_server.py",
      "symbol": "_handle_sigterm",
-     "line": 298,
+     "line": 328,
      "owner": "mcp-servers"
     }
    ]

@@ -2451,3 +2451,23 @@ SHAs من `git log --oneline origin/main`.
 - `87518ec9`: إعادة شاهدَي incomplete_context وتثبيت الصفر وharvest وجرعة المبيد وإيراد القرض بأربع دوال؛ السبب أن إعادة كتابة36faa270 أسقطت دلالات حراسة رغم ارتفاع عدد الاختبارات الناجحة.
 - الطلب الناقص يُختبر بعد حذف حقل من طلب صحيح، مع إثبات رفض النموذج أيضاً؛ السبب أن model_validator صار يرفض النقص قبل وصوله إلى المحرك، وأن القواميس المتداخلة ما زالت قابلة للتعديل.
 - ست طفرات إضافية تبقى مع جميع المواصفات القديمة، ولا يتغير سقف الزمن أو مسار الإنتاج لإرضاء الاختبارات. حزمةe1c28fc0 الأصلية محفوظة، وتصحيحها يُسلّم امتداداً لها.
+
+
+### 2026-09-08 — HIL SQL parameter typing, PR #991
+
+`83e8c187` fixes the live CI failure reported at 20:49 UTC: approval UPDATE inferred parameter $1 as both text and varchar. Both uses now explicitly cast to varchar, matching migrations/v9_new_tables.sql. tests_v9/test_db_wiring.py also checks unresolved/resolved timestamps and refusal of a late rejection. Guardrails unit suite: 51 passed. PostgreSQL is unavailable locally; the corrected integration test remains NOT_MEASURED until CI reruns it. The supplied CI result was 1 failed, 131 passed, 92 skipped, 2 xfailed, 1 xpassed; this supersedes the earlier claim that only mutation headroom blocks the PR. No skip, role bypass or certification flag was weakened.
+
+### 2026-09-08 — merge and MCP auth ordering
+
+`4456cea6` preserves both histories after remote44a4cbcf; `48991e6d` repairs the economic module header; `ab240e46` checks durable HIL decisions. `531efe47` moves MCP JSON decoding after authentication, with 2/2 new mutants detected and 106 merged Guardrails/MCP cases passing. The registry now holds656 mutations; full local gates and a valid new timing pair are pending. Corrected HIL live SQL is NOT_MEASURED. See docs/testing/runtime_slice_closures_20260908.md for source and CI evidence.
+
+
+### 2026-09-08 — PR 991 review and timing closure prepared
+
+`da71cc0f` merges remote `d96bbacd` with the local Copilot repairs, preserving both histories. The remote HIL `::text` casts are retained; the stronger durable-decision tests from `ab240e46` remain. Remote Integration Tests job102257332285 passed132 cases, skipped92, on d96bbacd. That result does not certify the later local witness additions.
+
+`d5c91477` preserves authenticated JSON media types, restores the OpenAPI422 response, and makes WOFOST non-finite validation errors serializable. Together with `531efe47` and `48991e6d`, all three Copilot findings have code fixes. Review threads remain open until the repaired head is published and checked.
+
+`639bde28` uses the observed pair45.30 minutes/654 mutations from run34284639549/job102257332191 (22:12:12–22:57:30 UTC). Planting succeeded in29:42; pytest completed with6495 passed,25 skipped, and only the two headroom failures; coverage50.87%. Codecov and Field-forms were skipped after that failure. The same formula yields watermark711 and drift682, keeping the90-minute timeout and0.775 marginal-cost assumption. The current656-mutation registry is not substituted for the measured654 count.
+
+The merged targeted suite passed130 tests. Final generated checks, default preflight and publication remain pending. No production certification is claimed.
