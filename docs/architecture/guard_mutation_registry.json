@@ -2142,6 +2142,20 @@
           "find": "        if isinstance(value, bool) or not isinstance(value, int):\n",
           "replace": "        if not isinstance(value, int):\n",
           "why": "Pydantic must not coerce boolean identities into users.id integers."
+        },
+        {
+          "test": "tests_v9/test_guardrails_contract.py",
+          "expect": "test_validate_rejects_incomplete",
+          "find": "        if missing:\n",
+          "replace": "        if False:\n",
+          "why": "Removing the engine completeness gate lets request dictionaries mutated after model validation reach safety tiers. The restored witness requires incomplete_context and no tier or human-review call."
+        },
+        {
+          "test": "tests_v9/test_guardrails_contract.py",
+          "expect": "test_validate_passes_complete_past_contract",
+          "find": "        if missing:\n",
+          "replace": "        if True:\n",
+          "why": "An unconditional incomplete_context refusal blocks complete requests; the restored witness requires real environmental and economic tier execution."
         }
       ]
     },
@@ -2360,6 +2374,38 @@
           "find": "    return re.search(r\"(?<!\\w)(?:\" + \"|\".join(alternatives) + r\")(?!\\w)\", query) is not None",
           "replace": "    return re.search(\"|\".join(alternatives), query) is not None",
           "why": "Removing word boundaries makes ري inside الرياح and بق inside بقع win unrelated intents."
+        }
+      ]
+    },
+    "services/guardrails-engine/contracts.py": {
+      "mutations": [
+        {
+          "test": "tests_v9/test_guardrails_contract.py",
+          "expect": "test_contract_accepts_explicit_zero_and_uncontracted_harvest",
+          "find": "                    or value < 0\n",
+          "replace": "                    or value <= 0\n",
+          "why": "Rejecting an explicitly observed zero as invalid loses the distinction between zero and missing evidence. Positive field area and all other mandatory context remain supplied."
+        },
+        {
+          "test": "tests_v9/test_guardrails_contract.py",
+          "expect": "test_contract_accepts_explicit_zero_and_uncontracted_harvest",
+          "find": "    if action_type in ECONOMIC_ACTIONS:\n",
+          "replace": "    if action_type in ECONOMIC_ACTIONS or action_type == \"harvest\":\n",
+          "why": "Adding a financial completeness obligation to harvest invents a contract for an action outside the economic set."
+        },
+        {
+          "test": "tests_v9/test_guardrails_contract.py",
+          "expect": "test_contract_requires_pesticide_dosage_and_loan_revenue",
+          "find": "        required[\"action_data\"].extend([\"chemical\", \"dosage_kg_ha\"])\n",
+          "replace": "        required[\"action_data\"].extend([\"chemical\"])\n",
+          "why": "Omitting the required pesticide dose lets downstream safety tiers interpret an absent dose as zero; all other required evidence is complete in the witness."
+        },
+        {
+          "test": "tests_v9/test_guardrails_contract.py",
+          "expect": "test_contract_requires_pesticide_dosage_and_loan_revenue",
+          "find": "    if action_type in ECONOMIC_ACTIONS:\n",
+          "replace": "    if action_type in ECONOMIC_ACTIONS and action_type != \"loan\":\n",
+          "why": "Exempting loans from annual revenue completeness hides missing financial evidence; the witness removes only annual_revenue_usd from a complete loan context."
         }
       ]
     }

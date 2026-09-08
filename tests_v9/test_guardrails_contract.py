@@ -90,6 +90,80 @@ def test_contract_violations_pure(gr_mod):
     )
 
 
+def test_contract_accepts_explicit_zero_and_uncontracted_harvest(gr_mod):
+    cv = gr_mod.contract_violations
+    p = payload("irrigation")
+    p["action_data"].update(water_m3=0, cost_usd=0, projected_revenue_increase_usd=0)
+    p["farm_context"].update(annual_revenue_usd=0, annual_costs_usd=0, cash_reserve_usd=0)
+    assert cv("irrigation", p["action_data"], p["farm_context"]) == []
+    p["action_data"].pop("water_m3")
+    assert cv("irrigation", p["action_data"], p["farm_context"]) == ["action_data.water_m3"]
+    p["action_data"]["water_m3"] = -1
+    assert cv("irrigation", p["action_data"], p["farm_context"]) == ["action_data.water_m3"]
+    assert cv("harvest", {}, {}) == []
+
+
+def test_contract_requires_pesticide_dosage_and_loan_revenue(gr_mod):
+    cv = gr_mod.contract_violations
+    p = payload("pesticide")
+    assert cv("pesticide", p["action_data"], p["farm_context"]) == []
+    p["action_data"].pop("dosage_kg_ha")
+    assert cv("pesticide", p["action_data"], p["farm_context"]) == ["action_data.dosage_kg_ha"]
+    p = payload("loan")
+    assert cv("loan", p["action_data"], p["farm_context"]) == []
+    p["farm_context"].pop("annual_revenue_usd")
+    assert cv("loan", p["action_data"], p["farm_context"]) == ["farm_context.annual_revenue_usd"]
+
+
+def test_validate_rejects_incomplete(gr_mod):
+    p = payload("pesticide")
+    p["user_id"] = 1
+    request = gr_mod.GuardrailsRequest(**p)
+    # Nested dicts remain mutable after request validation; the engine must recheck them.
+    request.action_data.pop("dosage_kg_ha")
+    with pytest.raises(ValidationError, match="action_data.dosage_kg_ha"):
+        gr_mod.GuardrailsRequest(**request.model_dump())
+    eng = gr_mod.SAHOOLGuardrailsEngine()
+    for tier in (eng.chemical_tier, eng.environmental_tier, eng.economic_tier):
+        tier.validate = AsyncMock(wraps=tier.validate)
+    eng.human_workflow.create = AsyncMock(return_value="unexpected-review")
+    result = asyncio.run(eng.validate(request))
+    assert result.allowed is False and result.overall_risk == "HIGH"
+    assert result.requires_human_approval is False
+    assert result.approval_workflow_id is None
+    assert len(result.tier_checks) == 1
+    check = result.tier_checks[0]
+    assert check["tier"] == "context_contract" and check["passed"] is False
+    assert len(check["findings"]) == 1
+    finding = check["findings"][0]
+    assert finding["rule"] == "incomplete_context"
+    assert finding["missing_fields"] == ["action_data.dosage_kg_ha"]
+    for tier in (eng.chemical_tier, eng.environmental_tier, eng.economic_tier):
+        tier.validate.assert_not_awaited()
+    eng.human_workflow.create.assert_not_awaited()
+
+
+def test_validate_passes_complete_past_contract(gr_mod):
+    p = payload("irrigation")
+    p["user_id"] = 1
+    request = gr_mod.GuardrailsRequest(**p)
+    eng = gr_mod.SAHOOLGuardrailsEngine()
+    for tier in (eng.chemical_tier, eng.environmental_tier, eng.economic_tier):
+        tier.validate = AsyncMock(wraps=tier.validate)
+    eng.human_workflow.create = AsyncMock(return_value="unexpected-review")
+    result = asyncio.run(eng.validate(request))
+    rules = [f.get("rule") for check in result.tier_checks for f in check.get("findings", [])]
+    assert "incomplete_context" not in rules, "Complete evidence must reach the safety tiers"
+    assert {check["tier"] for check in result.tier_checks} == {"environmental", "economic"}
+    for tier in (eng.environmental_tier, eng.economic_tier):
+        tier.validate.assert_awaited_once_with(
+            action_type="irrigation",
+            action_data=request.action_data,
+            farm_context=request.farm_context,
+        )
+    eng.chemical_tier.validate.assert_not_awaited()
+
+
 @pytest.mark.parametrize(
     "action", ["investment", "loan", "contract", "irrigation", "fertilization", "pesticide"]
 )
