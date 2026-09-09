@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import importlib.util
 import sys
+import uuid
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -27,7 +28,11 @@ from api.decision_service_client import decision_service_headers
 pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
-TOKEN = "s3rv1ce-t0ken-for-the-join"
+
+# تُولَّد وقتَ التشغيل ولا تُكتَب حرفيّاً: قيمةٌ ثابتة تُشبه اعتماداً تبقى في تاريخ Git
+# إلى الأبد، وفحصُ الأسرار يقرأ **كلّ التزام** لا الشجرةَ الحاليّة وحدَها. والقيمةُ
+# تُقارَن بنفسها هنا فحسب، فلا حاجةَ إلى ثباتها بين التشغيلات.
+TOKEN = "placeholder-" + uuid.uuid4().hex
 
 
 DECISION_SERVICE_DIR = ROOT / "services" / "decision-service"
