@@ -5,7 +5,7 @@
   "runtime_verified": false,
   "python_files_parsed": 1887,
   "route_handlers": 1049,
-  "call_edges": 77431,
+  "call_edges": 77434,
   "dead_code_candidates": 627,
   "duplicate_function_groups": 60,
   "route_owners": 27,
@@ -430777,7 +430777,28 @@
    "file": "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
    "source": "test_decision_service_client_exposes_mirror_facade_functions",
    "target": "read_text",
-   "line": 133
+   "line": 135
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
+   "source": "test_decision_service_client_exposes_mirror_facade_functions",
+   "target": "setenv",
+   "line": 146
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
+   "source": "test_decision_service_client_exposes_mirror_facade_functions",
+   "target": "setenv",
+   "line": 147
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
+   "source": "test_decision_service_client_exposes_mirror_facade_functions",
+   "target": "decision_service_headers",
+   "line": 148
   },
   {
    "owner": "sahool-platform",

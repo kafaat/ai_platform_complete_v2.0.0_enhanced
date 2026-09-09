@@ -1661,7 +1661,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 124,
+      "evidence_count": 125,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1781,6 +1781,7 @@
         "services/sahool-platform/tests/test_irrigation_closed_loop_runtime.py",
         "services/sahool-platform/tests/test_notifications_ws_handshake.py",
         "services/sahool-platform/tests/test_p2_4_compat_gateway_raster_facade_guard.py",
+        "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
         "services/sahool-platform/tests/test_recommendation_bridge.py",
         "services/sahool-platform/tests/test_s5_exec_01_dispatch_cutover.py",
         "services/sahool-platform/tests/test_tenant_audit.py",
@@ -2651,7 +2652,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 32,
-      "target_evidence_count": 124,
+      "target_evidence_count": 125,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2679,7 +2680,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 124,
+      "source_evidence_count": 125,
       "target_evidence_count": 28,
       "static_supported": true,
       "runtime_verified": false
@@ -2773,5 +2774,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "0297912f5c3798f4be4bccff06eaf4e3a15b42ee61b3ee1c216c1e638ea678b7"
+  "content_sha256": "845c8e751929708061a542afc271775aac84e2135df6f54a4aa1455ca1875b84"
 }
