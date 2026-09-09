@@ -2476,3 +2476,10 @@ The merged targeted suite passed130 tests. Final generated checks, default prefl
 ### 2026-09-09 — require complete decision evidence at existing boundaries
 
 Decision implemented in `f8086c1ff`, based on review of `7407eae2`: retain legacy MPC as simulation because its TAW/weather remain client facts even when Dr comes from the ledger. Reuse the existing JSONB decoder at persisted-evidence reads instead of changing pool-wide codecs. Require explicit precipitation, valid dates and stored elevation before operational water truth; require fertilizer N/P/K and cumulative-use inputs before safety tiers. These choices close the demonstrated failure paths without inventing farm data or changing agronomic thresholds. Source/test mapping and limits: [docs/testing/main_irrigation_guardrails_repairs_20260909.md](../../docs/testing/main_irrigation_guardrails_repairs_20260909.md).
+
+
+### 2026-09-09 — preserve boundaries and validation provenance
+
+`655903768` controls the canonical adapter in raster-fallback unit tests because unit execution must not depend on a live indicators service. `cb0dc6cbd` consumes an already-used authorization only after verifying the actual #990 merge and matching authorized bytes; it grants no new scope. `73a67e3bd` names weather-service in the canonical-water comment because this consumer depends on that facade, not a provider; AST equality and 4,306 passing platform tests verify the correction.
+
+Unit and repository suites passed on `bd7bca34b`; the platform-only rerun resolves its sole failure without relabeling the earlier log or lowering a guard. Direct Git publication is unavailable, so a bundle retains the original tested commits rather than recreating a different history through the API. Source/test mapping and delivery state: [main repair report](../../docs/testing/main_irrigation_guardrails_repairs_20260909.md).

@@ -3700,6 +3700,8 @@ RLS يمرّ الفحص لأيّ مستأجِر، وتحته لا يمرّ لأ�
   وإمّا تصديقاً مستقلّاً يفحصه الحارس. وكلاهما يلزمه طفرةٌ تُكذّبه.
 ## GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01 — `fixed` (2026-08-13 · رصده المالك)
 
+**2026-09-09 recurrence:** `cb0dc6cbd` consumes `GATE01-ADJ-2026-09-08-001` after #990 merged at `7407eae2`. Both authorized blob hashes were verified against that merge tree. The existing guard correctly blocked unrelated changes until the record was stamped; its policy and byte bindings were not changed. Evidence: [main repair report](../../docs/testing/main_irrigation_guardrails_repairs_20260909.md).
+
 **الوعد كُتِب وفُرِض عند الاستعمال، ولم يُنهَ عند الدمج.** التفويض يحمل `one_time: true`
 و`_authorization_errors` يشترط `status == "ISSUED"` — فالمُستهلَك يُرفَض بحقّ. لكن **لا
 شيء في المستودع يُحوِّل `ISSUED` إلى `CONSUMED` بعد الدمج**، فبقيت الحالة الابتدائيّة
@@ -5749,7 +5751,7 @@ Timing follow-up: final source registry656; run34281851595 measured654 in five s
 
 ## LEGACY-MPC-CLIENT-FACTS-EMITTED-01 — FIXED_IN_CODE (2026-09-09)
 
-`f8086c1ff`: `api/routers/irrigation_mpc.py::irrigation_mpc_plan` always returns simulation and rejects submission. `tests_v9/test_lexicographic_mpc_bridge.py` holds ledger Dr constant while varying client TAW/ET0 and asserts no emitter call for either bridge flag. The separate daily recommendation adapters remain deferred as documented in the source.
+`f8086c1ff`: `services/sahool-platform/api/routers/irrigation_mpc.py::irrigation_mpc_plan` always returns simulation and rejects submission. `tests_v9/test_lexicographic_mpc_bridge.py` holds ledger Dr constant while varying client TAW/ET0 and asserts no emitter call for either bridge flag. The separate daily recommendation adapters remain deferred as documented in the source.
 
 ## CANONICAL-WATER-ABSENCE-VERIFIED-AS-ZERO-01 — FIXED_IN_CODE (2026-09-09)
 
@@ -5758,3 +5760,8 @@ Timing follow-up: final source registry656; run34281851595 measured654 in five s
 ## FERTILIZER-MISSING-RECIPE-AUTOAPPROVED-01 — FIXED_IN_CODE (2026-09-09)
 
 `f8086c1ff`: `services/guardrails-engine/contracts.py` requires N/P/K doses, annual nitrogen and accumulated carbon. `tests_v9/test_guardrails_contract.py` rejects each absent/invalid quantity at HTTP and after nested-dict mutation, and verifies complete inputs still reach the real tiers. Dose and cumulative-use threshold violations still require human review. Validation details: [docs/testing/main_irrigation_guardrails_repairs_20260909.md](../../docs/testing/main_irrigation_guardrails_repairs_20260909.md).
+
+
+## VEGETATION-RASTER-UNIT-REACHES-LIVE-INDICATORS-01 — FIXED_IN_CODE (2026-09-09)
+
+`655903768`: `tests_v9/test_vegetation_raster_ndvi.py` controlled the raster adapter but left the preceding canonical adapter live, interrupting local unit execution with an attempted indicators-service request. The function-scoped fixture now returns an unavailable canonical bundle and asserts that adapter was awaited, so both raster fallback paths are deterministic. Six focused tests and the complete unit suite passed. Production vegetation behavior and static boundary assertions are unchanged.
