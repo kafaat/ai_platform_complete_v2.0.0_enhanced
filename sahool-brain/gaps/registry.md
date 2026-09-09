@@ -5741,3 +5741,20 @@ scripts/ci/capability_mapping_engine.py:270      ["git","ls-files","-z"]
 Timing follow-up: final source registry656; run34281851595 measured654 in five successful shards but the complete Unit Tests duration is still pending. No timing limit changed.
 
 2026-09-08 timing update: `639bde28` supersedes the pending timing note with run34284639549/job102257332191,45.30 minutes/654 mutations. The same formula yields711/682; Codecov and Field-forms skipped after the two headroom failures, so the later full green pipeline remains unmeasured. `da71cc0f` retains remote HIL casts proven by integration job102257332285; local stronger live witnesses still await CI. MCP review fixes include `d5c91477`; publication and remote thread closure remain pending. See docs/testing/runtime_slice_closures_20260908.md.
+
+
+## HOURLY-MPC-JSONB-STRING-CRASH-01 — FIXED_IN_CODE (2026-09-09)
+
+`f8086c1ff`: `services/sahool-platform/api/irrigation_runtime_orchestrator.py` decodes capability/gate JSONB with the shared decoder and validates object/list shapes. `services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py` proves default string and decoded representations, plus blocked HTTP results for malformed evidence. Live PostgreSQL on this repaired branch is not measured.
+
+## LEGACY-MPC-CLIENT-FACTS-EMITTED-01 — FIXED_IN_CODE (2026-09-09)
+
+`f8086c1ff`: `api/routers/irrigation_mpc.py::irrigation_mpc_plan` always returns simulation and rejects submission. `tests_v9/test_lexicographic_mpc_bridge.py` holds ledger Dr constant while varying client TAW/ET0 and asserts no emitter call for either bridge flag. The separate daily recommendation adapters remain deferred as documented in the source.
+
+## CANONICAL-WATER-ABSENCE-VERIFIED-AS-ZERO-01 — FIXED_IN_CODE (2026-09-09)
+
+`f8086c1ff`: `services/sahool-platform/api/canonical_water_state.py` rejects missing/invalid rain, ET0, depletion and confidence, future ledger dates and incorrect forecast coverage. Field elevation replaces the fixed 2000 m assumption; missing elevation blocks. `tests_v9/test_canonical_water_state_mpc.py` checks explicit zero, valid signed elevation, stale ledger degradation and the provider calendar at a UTC date boundary. Operational field/weather execution is not certified.
+
+## FERTILIZER-MISSING-RECIPE-AUTOAPPROVED-01 — FIXED_IN_CODE (2026-09-09)
+
+`f8086c1ff`: `services/guardrails-engine/contracts.py` requires N/P/K doses, annual nitrogen and accumulated carbon. `tests_v9/test_guardrails_contract.py` rejects each absent/invalid quantity at HTTP and after nested-dict mutation, and verifies complete inputs still reach the real tiers. Dose and cumulative-use threshold violations still require human review. Validation details: [docs/testing/main_irrigation_guardrails_repairs_20260909.md](../../docs/testing/main_irrigation_guardrails_repairs_20260909.md).

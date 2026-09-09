@@ -2008,7 +2008,6 @@
         "services/sahool-platform/tests/test_fields_endpoint.py",
         "services/sahool-platform/tests/test_variety_suitability.py",
         "services/sahool-platform/tests/test_yield_analysis.py",
-        "tests_v9/test_canonical_water_state_mpc.py",
         "tests_v9/test_variety_catalog_reference_only_barrier.py",
         "tests_v9/test_variety_policy_resolution.py"
       ]
@@ -9991,7 +9990,6 @@
         "services/weather-service/tests/test_p3_weather_service_runtime.py",
         "tests/test_real_data.py",
         "tests_v9/test_canonical_water.py",
-        "tests_v9/test_canonical_water_state_mpc.py",
         "tests_v9/test_confidence_failures.py",
         "tests_v9/test_crop_twin.py",
         "tests_v9/test_etc_dual_canonical.py",

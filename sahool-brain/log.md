@@ -7698,3 +7698,8 @@ no_third_value_registry نصّاً)، GATE-01 نظيف، 33 اختباراً، r
 `639bde28` uses the observed pair45.30 minutes/654 mutations from run34284639549/job102257332191 (22:12:12–22:57:30 UTC). Planting succeeded in29:42; pytest completed with6495 passed,25 skipped, and only the two headroom failures; coverage50.87%. Codecov and Field-forms were skipped after that failure. The same formula yields watermark711 and drift682, keeping the90-minute timeout and0.775 marginal-cost assumption. The current656-mutation registry is not substituted for the measured654 count.
 
 The merged targeted suite passed130 tests. Final generated checks, default preflight and publication remain pending. No production certification is claimed.
+
+
+### 2026-09-09 — four main review findings repaired
+
+Audited base `7407eae2`; implementation `f8086c1ff`. The real asyncpg JSONB representation no longer crashes hourly MPC; ledger-seeded client plans cannot emit; canonical water rejects absent/invalid rain and dates and uses field elevation; fertilizer safety requires the actual recipe and cumulative use. See [docs/testing/main_irrigation_guardrails_repairs_20260909.md](../docs/testing/main_irrigation_guardrails_repairs_20260909.md) for the four source/test mappings, red/green evidence and client implications. Initial regression run: 53 failed, 111 passed, 1 skipped. After implementation: 164 passed, 1 skipped. Fast preflight: 0 failures, 0 skipped gates. Default preflight and publication remain pending. No live deployment or certification is claimed.

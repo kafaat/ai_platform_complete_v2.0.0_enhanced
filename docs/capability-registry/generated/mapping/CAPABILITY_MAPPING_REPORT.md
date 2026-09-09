@@ -12,8 +12,8 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **49**
-- Files scanned: **5272**
-- Ambiguous artifacts queued: **417**
+- Files scanned: **5273**
+- Ambiguous artifacts queued: **416**
 - Unmapped artifacts queued: **2148**
 
 ## Capability coverage
@@ -34,7 +34,7 @@
 | FM-002 | farm_management | 33 | 44 | 98 | 22 | 14 | 2 | 25 | 7 |
 | FM-003 | farm_management | 13 | 56 | 5 | 61 | 2 | 2 | 12 | 7 |
 | FM-004 | farm_management | 30 | 82 | 84 | 58 | 13 | 1 | 34 | 7 |
-| FM-005 | farm_management | 6 | 0 | 0 | 7 | 3 | 1 | 7 | 5 |
+| FM-005 | farm_management | 6 | 0 | 0 | 7 | 3 | 1 | 6 | 5 |
 | FM-006 | farm_management | 2 | 3 | 0 | 0 | 2 | 0 | 1 | 4 |
 | FM-007 | farm_management | 8 | 26 | 8 | 1 | 1 | 1 | 5 | 7 |
 | FM-008 | farm_management | 10 | 25 | 5 | 1 | 0 | 0 | 7 | 5 |
@@ -94,7 +94,7 @@
 | WX-001 | weather | 1 | 4 | 0 | 3 | 0 | 0 | 2 | 4 |
 | WX-002 | weather | 22 | 62 | 8 | 57 | 9 | 0 | 24 | 6 |
 | WX-003 | weather | 4 | 6 | 4 | 0 | 0 | 0 | 4 | 4 |
-| WX-004 | weather | 58 | 48 | 0 | 82 | 19 | 0 | 60 | 5 |
+| WX-004 | weather | 58 | 48 | 0 | 82 | 19 | 0 | 59 | 5 |
 | WX-005 | weather | 9 | 29 | 0 | 6 | 2 | 0 | 6 | 5 |
 | WX-006 | weather | 85 | 26 | 33 | 28 | 17 | 0 | 46 | 6 |
 | WX-007 | weather | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |

@@ -9353,37 +9353,6 @@
     ]
   },
   {
-    "path": "tests_v9/test_canonical_water_state_mpc.py",
-    "kind": "tests",
-    "candidates": [
-      {
-        "capability_id": "WX-004",
-        "score": 12,
-        "signals": [
-          "content:ET0",
-          "content:et0"
-        ]
-      },
-      {
-        "capability_id": "WX-002",
-        "score": 12,
-        "signals": [
-          "content:Weather forecast",
-          "content:forecast",
-          "content:weather forecast"
-        ]
-      },
-      {
-        "capability_id": "FM-005",
-        "score": 12,
-        "signals": [
-          "content:cultivar",
-          "content:variety"
-        ]
-      }
-    ]
-  },
-  {
     "path": "tests_v9/test_cdse_and_storage_failclosed_v29_8.py",
     "kind": "tests",
     "candidates": [

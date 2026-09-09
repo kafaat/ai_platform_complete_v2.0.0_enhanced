@@ -2471,3 +2471,8 @@ SHAs من `git log --oneline origin/main`.
 `639bde28` uses the observed pair45.30 minutes/654 mutations from run34284639549/job102257332191 (22:12:12–22:57:30 UTC). Planting succeeded in29:42; pytest completed with6495 passed,25 skipped, and only the two headroom failures; coverage50.87%. Codecov and Field-forms were skipped after that failure. The same formula yields watermark711 and drift682, keeping the90-minute timeout and0.775 marginal-cost assumption. The current656-mutation registry is not substituted for the measured654 count.
 
 The merged targeted suite passed130 tests. Final generated checks, default preflight and publication remain pending. No production certification is claimed.
+
+
+### 2026-09-09 — require complete decision evidence at existing boundaries
+
+Decision implemented in `f8086c1ff`, based on review of `7407eae2`: retain legacy MPC as simulation because its TAW/weather remain client facts even when Dr comes from the ledger. Reuse the existing JSONB decoder at persisted-evidence reads instead of changing pool-wide codecs. Require explicit precipitation, valid dates and stored elevation before operational water truth; require fertilizer N/P/K and cumulative-use inputs before safety tiers. These choices close the demonstrated failure paths without inventing farm data or changing agronomic thresholds. Source/test mapping and limits: [docs/testing/main_irrigation_guardrails_repairs_20260909.md](../../docs/testing/main_irrigation_guardrails_repairs_20260909.md).
