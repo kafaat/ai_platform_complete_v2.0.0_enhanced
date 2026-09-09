@@ -70,3 +70,18 @@ def test_irrigation_only_needs_precip_not_wind():
     # الريّ حرِجه المطر فقط — غياب الرياح لا يُفشِله.
     out = operation_suitability({"temperature_c": 20.0, "precipitation_mm": 0.0}, "irrigation")
     assert out["status"] == "ok"
+
+
+@pytest.mark.parametrize("reading", [float("nan"), float("inf"), float("-inf")])
+@pytest.mark.parametrize(
+    "field, operation, missing",
+    [
+        ("precipitation_mm", "irrigation", "missing_precip"),
+        ("wind_speed_10m_kmh", "spraying", "missing_wind"),
+    ],
+)
+def test_nonfinite_safety_readings_fail_closed(reading, field, operation, missing):
+    out = operation_suitability(_complete(**{field: reading}), operation)
+    assert out["status"] == "insufficient_data"
+    assert out["safe"] is False
+    assert missing in out["limiting_factors"]

@@ -437,6 +437,13 @@
   },
   "exceptions": [
     {
+      "category": "platform_domain_table_ownership",
+      "identity": "drawing_features",
+      "owner": "field-management-service-cutover",
+      "reason": "ملكيّة قائمة لم تكن مسجّلة: services/sahool-platform/api/routers/drawing_features.py عند 799842d3 كان ينشئ الجدول ويكتب فيه أثناء الطلب. نقل 36b1a6b9 ذلك الـDDL إلى migrations/v230_drawing_features.sql وسجّل المالك القائم في db_ownership.yml؛ لم يضف كاتباً جديداً. يبقى أساس الراتشِت دون زيادة. هدف system-of-record في docs/architecture/platform_extraction_map.json هو field-management-service؛ يُحذف هذا الاستثناء فقط بعد نقل الملكيّة والكتابة الفعليّة إلى ذلك المالك وإثبات قطع الكتابة المباشرة من المنصّة. نقل DDL وحده لا يغلق الاستخراج ولا يشهد على تطبيق الهجرة حيّاً.",
+      "target_close_by": "2026-11-30"
+    },
+    {
       "category": "platform_domain_compute",
       "identity": "services/sahool-platform/api/irrigation_decision_evidence_chain.py",
       "owner": "IRR-CORR1-evidence-chain",

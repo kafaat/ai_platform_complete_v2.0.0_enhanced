@@ -19,9 +19,11 @@ from __future__ import annotations
 import asyncio
 from datetime import UTC, datetime
 
+import httpx
 import main
 from circuit_breaker import CircuitOpenError
 from fastapi import APIRouter, Depends, HTTPException
+from mcp_client import MCPError, classify_mcp_error
 from tool_contracts import SideEffectClass
 
 router = APIRouter()
@@ -43,50 +45,72 @@ async def process_query(
             processing_time_ms=elapsed,
         )
     # الهويّة من التوكن المُتحقَّق لا من جسم الطلب (منع انتحال المستأجر)
-    trusted_user_id = user.get("sub") or user.get("user_id") or query.user_id
-    trusted_tenant_id = user.get("tenant_id") or query.tenant_id
-    # Advisor Context Binding: حين يتوفّر field_id نُرفِق الحالة القانونيّة للحقل
-    # (grounding) في السياق قبل المهارة — best-effort، يحفظ العقد تماماً (غياب
-    # field_id أو تعذّر الجلب ⇒ السياق كما ورد، بلا 500 ولا حجب).
-    agro_context = query.context
+    trusted_user_id = user.get("sub") or user.get("user_id")
+    trusted_tenant_id = user.get("tenant_id")
+    # Bind only server-fetched field state. Missing evidence is explicit to
+    # quantitative skills; client context cannot forge the canonical state.
+    if not trusted_user_id or not trusted_tenant_id:
+        raise HTTPException(401, "Token missing user or tenant identity")
+    agro_context = main.bind_field_context(query.context, None)
     if query.field_id:
-        import httpx
-
         async with httpx.AsyncClient(timeout=10.0) as client:
             _fs = await main._fetch_field_state(client, query.field_id, trusted_tenant_id)
         agro_context = main.bind_field_context(query.context, _fs)
+    agro_context["_platform_bearer"] = user.get("_mcp_bearer", "")
     try:
-        result = await skill.execute(
-            intent=sub_intent,
-            query=query.query,
-            field_id=query.field_id,
-            user_id=trusted_user_id,
-            tenant_id=trusted_tenant_id,
-            context=agro_context,
-            objectives=query.preferred_objectives,
-        )
-    except CircuitOpenError as e:
-        # خدمة MCP خلفيّة متعطّلة (القاطع مفتوح) — تدهور لطيف بدل 500.
-        # القاطع المفتوح مرصود أصلاً (مقياس + سجلّ)؛ هنا نُبقي المنصّة مستجيبة.
-        main.logger.warning("circuit.degraded_response domain=%s detail=%s", domain, e)
-        return main._degraded_response(start_time, domain)
-    response_ar = main._format_arabic_response(result)
+        with main.mcp_client.bind_credentials(user.get("_mcp_bearer", ""), trusted_tenant_id):
+            result = await skill.execute(
+                intent=sub_intent,
+                query=query.query,
+                field_id=query.field_id,
+                user_id=trusted_user_id,
+                tenant_id=trusted_tenant_id,
+                context=agro_context,
+                objectives=query.preferred_objectives,
+            )
+    except (CircuitOpenError, MCPError, httpx.HTTPError, TimeoutError) as exc:
+        reason = classify_mcp_error(exc)
+        main.logger.warning("agent.degraded domain=%s reason=%s", domain, reason)
+        return main._degraded_response(start_time, domain, reason)
     # حَوكمة موحّدة: إن أنتجت المهارة إجراءات قابلة للتنفيذ، تمرّ عبر البوّابة
     # (سدّ الباب الخلفي: لا مسار توصية→أمر يتجاوز /validate).
     actions = result.get("actions", [])
     governance = None
-    if actions or result.get("actionable"):
+    if (
+        actions
+        or result.get("actionable")
+        or result.get("type")
+        in {
+            "irrigation_advice",
+            "fertilizer_advice",
+            "pest_alert",
+            "disease_alert",
+            "contract_created",
+        }
+    ):
         governance = await main._validate_actions_via_guardrails(
             result, query, trusted_user_id, trusted_tenant_id
         )
+        if governance.get("allowed") is not True or governance.get("requires_human_approval"):
+            # Do not expose dosage/text/English alternatives or alleged executed
+            # actions before a positive decision on this exact structured proposal.
+            result = {
+                "type": "governance_pending",
+                "response": "لم تُعتمد التوصية للتنفيذ؛ يلزم استكمال بيانات التحقق أو المراجعة البشرية.",
+                "structured": {"status": "withheld", "reason": governance.get("status")},
+                "sources": [],
+            }
+    response_ar = main._format_arabic_response(result)
     elapsed = int((datetime.now(UTC) - start_time).total_seconds() * 1000)
     return main.AgentResponse(
         response_ar=response_ar,
         response_en=result.get("en_response"),
         structured_data=result.get("structured"),
-        actions_triggered=actions,
+        actions_triggered=[],  # This route recommends; it does not execute actuator commands.
         governance=governance,
-        confidence=confidence,
+        confidence=0.0
+        if result.get("type") in {"unavailable", "governance_pending"}
+        else confidence,
         sources=result.get("sources", []),
         processing_time_ms=elapsed,
     )
@@ -98,7 +122,9 @@ async def optimize_farm(query: main.AgentQuery, user: dict = Depends(main._get_c
     if not query.field_id:
         raise HTTPException(status_code=400, detail="field_id required for optimization")
     # الهويّة من التوكن المُتحقَّق لا من جسم الطلب (منع انتحال المستأجر)
-    trusted_tenant_id = user.get("tenant_id") or query.tenant_id
+    trusted_tenant_id = user.get("tenant_id")
+    if not trusted_tenant_id or not user.get("sub"):
+        raise HTTPException(401, "Token missing user or tenant identity")
     rs_task = main.skill_libraries["remote_sensing"].execute(
         intent="full_analysis", field_id=query.field_id, tenant_id=trusted_tenant_id
     )
@@ -108,7 +134,11 @@ async def optimize_farm(query: main.AgentQuery, user: dict = Depends(main._get_c
     mk_task = main.skill_libraries["market"].execute(
         intent="price_forecast", field_id=query.field_id, tenant_id=trusted_tenant_id
     )
-    rs_result, cm_result, mk_result = await asyncio.gather(rs_task, cm_task, mk_task)
+    try:
+        with main.mcp_client.bind_credentials(user.get("_mcp_bearer", ""), trusted_tenant_id):
+            rs_result, cm_result, mk_result = await asyncio.gather(rs_task, cm_task, mk_task)
+    except (CircuitOpenError, MCPError, httpx.HTTPError, TimeoutError) as exc:
+        return main._degraded_response(start_time, "optimization", classify_mcp_error(exc))
     scenarios = main._generate_scenarios(rs_result, cm_result, mk_result)
     pareto_front = main._pareto_optimal(scenarios, query.preferred_objectives)
     recommended = main._select_balanced(pareto_front, query.preferred_objectives)
@@ -122,6 +152,15 @@ async def optimize_farm(query: main.AgentQuery, user: dict = Depends(main._get_c
         x_user_id=user.get("sub"),
         trusted_tenant_id=trusted_tenant_id,
     )
+    if governance.get("allowed") is not True or governance.get("requires_human_approval"):
+        return {
+            "pareto_options": [],
+            "recommended": None,
+            "governance": governance,
+            "trade_off_explanation": "لم تُعتمد سيناريوهات التحسين؛ يلزم استكمال بيانات التحقق.",
+            "processing_time_ms": int((datetime.now(UTC) - start_time).total_seconds() * 1000),
+            "sources": [],
+        }
     elapsed = int((datetime.now(UTC) - start_time).total_seconds() * 1000)
     return {
         "pareto_options": pareto_front,

@@ -179,8 +179,11 @@ def test_meta_governance_witness_files_are_not_capability_evidence() -> None:
     paths = _iter_scanned_paths()
     assert "docs/architecture/guard_mutation_registry.json" not in paths
     assert "docs/architecture/capability_core_consumption_registry.json" not in paths
+    assert "docs/architecture/nats_subject_ownership_contract.json" not in paths
     assert "docs/architecture/source_text_assertion_inventory.json" not in paths
     assert "docs/runbooks/GUARD_CATALOGUE.md" not in paths
+    assert "tests_v9/test_live_gap_closure_runbook_contract.py" not in paths
+    assert "tests_v9/test_nats_subject_ownership_contract.py" not in paths
 
 
 def test_legitimate_architecture_evidence_remains_discoverable() -> None:

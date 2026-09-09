@@ -5,7 +5,12 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-from shared.contracts.soil import SoilObservation, SoilObservationQuality, SoilObservationSource
+from shared.contracts.soil import (
+    SoilObservation,
+    SoilObservationQuality,
+    SoilObservationSource,
+    require_soil_moisture_measurement,
+)
 
 UNITS = {
     "ph": "pH",
@@ -20,9 +25,21 @@ UNITS = {
     "sand": "%",
     "silt": "%",
     "texture": None,
+    # SOIL-MOISTURE-UNIT-IDENTITY-01: `%` العارية **غيرُ مُعلَنة** — لا تقول أهي رطوبةٌ
+    # حجميّة (VWC) أم نسبةُ ماءٍ متاح. المُنتِجُ الذي يعرف ما يُخرِجه حسّاسُه يمرّر
+    # `units={"soil_moisture": "vwc_pct"}` (أو `available_pct`)، ولا يُخمَّن عنه هنا.
     "soil_moisture": "%",
     "soil_temperature": "degC",
 }
+
+#: الوحداتُ التي يقبلها المستهلكُ (`sahool-platform/api/soil_telemetry.py`) مُعلَنةً.
+DECLARED_SOIL_MOISTURE_UNITS = frozenset({"vwc_pct", "available_pct", "m3/m3"})
+
+
+#: تحقّقُ الرطوبة يعيش في **العقد** (`shared/contracts/soil/observation.py`) فيبلغه كلُّ
+#: بابٍ يبني `SoilObservation` — لا نسخةَ ثانية هنا. يُستدعى مبكّراً ليُسمّى الخطأُ قبل
+#: بناء الكائن، والعقدُ يكرّره عند البناء فلا يُتجاوَز من بابٍ لا يمرّ بهذا الملفّ.
+_require_soil_moisture_measurement = require_soil_moisture_measurement
 
 
 def observations_from_properties(
@@ -40,8 +57,13 @@ def observations_from_properties(
     provenance: dict[str, Any] | None = None,
     supersedes_observation_ids: dict[str, str] | None = None,
     supersession_reason: str | None = None,
+    units: dict[str, str] | None = None,
 ) -> list[SoilObservation]:
+    """يحوّل خصائصَ شاهدٍ إلى سجلّات قانونيّة. ``units`` وحدةٌ **يُعلنها المصدر** لخاصّيّة
+    بعينها فتغلب الافتراضيّ في ``UNITS``؛ ما لم يُعلَن يبقى على افتراضيّه (ولـ`soil_moisture`
+    الافتراضيُّ `%` أي غيرُ مُعلَن — انظر التعليق على ``UNITS``)."""
     observed_at = observed_at or datetime.now(UTC)
+    units = units or {}
     quality = (
         SoilObservationQuality.ACCEPTED
         if approved
@@ -62,6 +84,8 @@ def observations_from_properties(
     for prop, value in properties.items():
         if value is None:
             continue
+        if prop == "soil_moisture":
+            _require_soil_moisture_measurement(value)
         canonical = {
             "ec_dsm": "ec",
             "organic_matter_pct": "organic_matter",
@@ -77,7 +101,7 @@ def observations_from_properties(
                 field_id=field_id,
                 property=canonical,
                 value=value,
-                unit=UNITS.get(canonical),
+                unit=units.get(canonical, units.get(prop, UNITS.get(canonical))),
                 depth_from_cm=depth_from_cm,
                 depth_to_cm=depth_to_cm,
                 observed_at=observed_at,

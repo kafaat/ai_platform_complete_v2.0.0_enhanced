@@ -30,6 +30,25 @@ class SoilObservationQuality(StrEnum):
     UNCALIBRATED = "uncalibrated"
 
 
+#: خصائصُ لا يكون فيها `bool` أو NaN/inf قياساً. العقدُ العامّ يُبقي `bool` لخصائصَ
+#: أخرى عمداً؛ التشديدُ هنا **على الخاصّيّة** لا على النوع — وعند العقد نفسِه لا عند
+#: بابٍ واحد من أبواب الابتلاع (مراجعة `b9c5aceb`: `/soil/evidence` كان يرفض
+#: و`/soil/observations` يقبل القيمةَ نفسَها).
+MEASUREMENT_ONLY_PROPERTIES = frozenset({"soil_moisture"})
+
+
+def require_soil_moisture_measurement(value: Any) -> None:
+    """رطوبةُ التربة قياسٌ عدديّ محدود — `float(True) == 1.0` كان يصير قراءةً ثمّ بذرةً."""
+    if isinstance(value, bool):
+        raise ValueError("soil_moisture_value_boolean_not_a_measurement")
+    try:
+        number = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("soil_moisture_value_not_numeric") from exc
+    if number != number or number in (float("inf"), float("-inf")):
+        raise ValueError("soil_moisture_value_not_finite")
+
+
 class SoilObservation(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -67,4 +86,16 @@ class SoilObservation(BaseModel):
             raise ValueError("soil_observation_received_before_observed")
         if self.supersedes_observation_id == self.observation_id:
             raise ValueError("soil_observation_cannot_supersede_itself")
+        if self.property in MEASUREMENT_ONLY_PROPERTIES and self.value is not None:
+            require_soil_moisture_measurement(self.value)
+        # غيابُ إعلان الجودة من حسّاسٍ ليس قبولاً. كان الافتراضُ `accepted` يجعل قراءةَ
+        # `/v1/soil/observations` بلا `quality_status` مؤهّلةً لتهيئة التوأم بينما البابُ
+        # المجمِّع يصنّف الحالةَ نفسَها `uncalibrated` (مراجعة `703607bf`). يُحسَم هنا — عند
+        # الحدّ المشترك — للحالة `sensor` + خاصّيّة قياسٍ فقط؛ الخصائصُ والمصادرُ الأخرى كما هي.
+        if (
+            self.property in MEASUREMENT_ONLY_PROPERTIES
+            and self.source_type == SoilObservationSource.SENSOR
+            and "quality_status" not in self.model_fields_set
+        ):
+            self.quality_status = SoilObservationQuality.UNCALIBRATED
         return self

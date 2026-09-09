@@ -217,15 +217,26 @@ export default function AgronomyConsistencyCard({ fieldId, cropLabel, enabled = 
   const [irEff, setIrEff] = useState(''); // ٪ ⇒ كسر
   const tMin = parseMeasure(irTmin);
   const tMax = parseMeasure(irTmax);
+  const rainRecent = parseMeasure(irRain);
+  const rainForecast = parseMeasure(irForecast);
   const irrigationInput = useMemo(() => {
-    if (tMin == null || tMax == null) return null; // حرارتان إجباريّتان خادميّاً (لا افتراض)
+    // حرارتان **ومطران** إجباريّون خادميّاً (لا افتراض).
+    //
+    // كان المطران يمرّان بـ`?? 0`: حقلٌ فارغٌ يُرسَل «صفر مطر». والصفرُ يُطرَح من
+    // الاحتياج فترتفع الكمّيّة — أي أنّ **ترْكَ الحقل فارغاً كان يُنتِج توصيةً أسخى**،
+    // وهو أسوأُ اتّجاهٍ للانحياز. والخادمُ صار يردّ ٥٠٣ عند غيابهما، فبقاءُ `?? 0` هنا
+    // كان سيُخفي ذلك الفشلَ المُغلَق خلف رقمٍ مُختلَقٍ في المتصفّح.
+    //
+    // والنمطُ ليس جديداً: الملوحةُ والصرفُ أدناه تُمرَّر بلا تصفيرٍ منذ البداية، والحرارةُ
+    // تحجب الطلبَ عند غيابها. فهذا **إلحاقُ المطر بالقاعدة القائمة** لا قاعدةٌ ثانية.
+    if (tMin == null || tMax == null || rainRecent == null || rainForecast == null) return null;
     return {
       crop: (irCrop.trim() || cropLabel) || null,
       stage: irStage,
       t_min_c: tMin,
       t_max_c: tMax,
-      rain_recent_mm: parseMeasure(irRain) ?? 0,
-      forecast_rain_mm: parseMeasure(irForecast) ?? 0,
+      rain_recent_mm: rainRecent,
+      forecast_rain_mm: rainForecast,
       soil_moisture_pct: parseMeasure(irMoist),
       // ملوحة/غسل مشروطة — تُمرَّر فقط عند إدخالها (الغائب لا يُختلق)
       soil_ece: parseMeasure(irEce),
@@ -234,7 +245,7 @@ export default function AgronomyConsistencyCard({ fieldId, cropLabel, enabled = 
       drainage: irDrain.trim() || null,
       irrigation_efficiency: parsePctToFraction(irEff),
     };
-  }, [tMin, tMax, irCrop, cropLabel, irStage, irRain, irForecast, irMoist, irEce, irTol, irWaterEc, irDrain, irEff]);
+  }, [tMin, tMax, rainRecent, rainForecast, irCrop, cropLabel, irStage, irMoist, irEce, irTol, irWaterEc, irDrain, irEff]);
   const irrigationQ = useIrrigationRecommendation(isOpen('irrigation') ? irrigationInput : null);
   const irrFacts = useMemo(() => irrigationRecommendationFacts(irrigationQ.data), [irrigationQ.data]);
 

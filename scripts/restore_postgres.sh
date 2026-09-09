@@ -21,11 +21,15 @@
 
 set -euo pipefail
 
-# ─── Config (من env، نفس قيم backup_postgres.sh) ───────────────
-PGHOST="${PGHOST:-sahool-postgis}"
-PGPORT="${PGPORT:-5432}"
-PGUSER="${PGUSER:-postgres}"
-PGDATABASE="${PGDATABASE:-sahool}"
+# ─── Config ────────────────────────────────────────────────────
+#
+# **كان هنا جدولٌ ثانٍ يقول عن نفسه «نفس قيم `backup_postgres.sh`» — ولم يكن.**
+# كان يقصد `sahool-postgis`/`postgres`، ولا وجودَ لذلك المضيف في
+# `docker-compose.v9.yml`؛ فالاستعادةُ كانت تُوجَّه إلى مضيفٍ ودورٍ معدومين، في
+# اللحظة الوحيدة التي لا تحتمل خطأً. والتفصيل في رأس الملفّ المصدر.
+#
+# shellcheck source=lib/pg_conn_defaults.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/pg_conn_defaults.sh"
 # PGPASSWORD يُمرّر عبر env (لا في السكربت)
 
 PARALLEL_JOBS="${PARALLEL_JOBS:-4}"

@@ -31,6 +31,12 @@ carries status edits (``مفتوحة`` → ``مُغلَقة``, mandated by CLAUD
 snapshot that is rewritten by design. A guard that fires on normal work trains its reader
 to bypass it, so prefix loss is **reported** and size loss **blocks**.
 
+The sole shrink exception is a proven, lossless removal of byte-identical duplicate
+active rows in the duplicate guard's globally unique registry. It preserves the first
+row and every other byte, allows appends only at a line boundary, and does not select between
+conflicting evidence. Both guards can therefore accept the same repair without padding
+or rewriting Git history. Other journals and all non-redundant content remain protected.
+
 The file list is not written here: it is imported from ``resolve_merge_conflicts``, which
 already owns that classification. A second list is a second thing to keep in step.
 
@@ -44,7 +50,9 @@ import argparse
 import importlib.util
 import subprocess
 import sys
+from functools import cache
 from pathlib import Path
+from types import ModuleType
 
 # GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: مخرَجُ هذا الحارس عربيّ،
 # و`print` يُرمّز بلغة الآلة. فتحت `LC_ALL=C` كان يحسب **صحيحاً** ثمّ يموت وهو يطبع
@@ -73,6 +81,67 @@ def append_only_files() -> tuple[str, ...]:
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return tuple(module.APPEND_ONLY)
+
+
+@cache
+def _row_identity_policy() -> ModuleType:
+    """Use the duplicate guard's scope, full identity and fence rules, not a second parser."""
+    path = Path(__file__).resolve().with_name("brain_duplicate_gap_identity_guard.py")
+    spec = importlib.util.spec_from_file_location("_brain_row_identity_policy", path)
+    if not spec or not spec.loader:
+        raise SystemExit(f"Cannot load duplicate-row policy: {path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def is_lossless_row_deduplication(path: str, before: bytes, after: bytes) -> bool:
+    """Prove a shrink removes only redundant, byte-identical active registry rows.
+
+    APPEND-ONLY-GUARD-FORBIDS-ROW-DEDUPLICATION-01: keep the first occurrence of
+    each identity and every other byte in its original order. A conflicting row
+    (same ID, different evidence/status/whitespace) is NOT redundant. Its resolution
+    must preserve both versions in an explicit audit entry, not silently discard one.
+    The candidate must contain that exact retained prefix and be globally unique;
+    new content may be appended at a line boundary. Fenced examples cannot fund a shrink.
+    This is a narrow exception to size monotonicity, not a file-wide exemption.
+    """
+    policy = _row_identity_policy()
+    if path not in policy.GLOBAL_ROW_UNIQUENESS_TARGETS:
+        return False
+    try:
+        parent_text = before.decode("utf-8")
+        child_text = after.decode("utf-8")
+    except UnicodeDecodeError:
+        return False
+
+    kept: list[str] = []
+    seen: dict[str, str] = {}
+    removed = 0
+    raw_lines = parent_text.splitlines(keepends=True)
+    active_lines = policy._strip_fenced_blocks(parent_text.splitlines())
+    for raw, active in zip(raw_lines, active_lines, strict=True):
+        match = policy.ROW_FULL_ID_RE.match(active) if active is not None else None
+        if match:
+            identity = match.group("gap_id")
+            if identity in seen:
+                if raw != seen[identity]:
+                    return False
+                removed += 1
+                continue
+            seen[identity] = raw
+        kept.append(raw)
+
+    if removed == 0:
+        return False
+    retained = "".join(kept).encode("utf-8")
+    if not after.startswith(retained):
+        return False
+    # Do not let a suffix modify the unterminated final row or prose line.
+    if after != retained and not retained.endswith((b"\n", b"\r")):
+        return False
+    return not policy.global_duplicate_row_identities(child_text)
 
 
 def _git(*args: str, root: Path = ROOT) -> subprocess.CompletedProcess[bytes]:
@@ -158,6 +227,20 @@ def check_range(
                             parent,
                             commit,
                             f"موجود عند الوالد ({len(before):,} بايت) ومحذوف عند الابن",
+                        )
+                    )
+                    continue
+                # Keep the shrink-to-advisory mutation anchored to the blocking rule.
+                # The lossless exception is proved before that rule, not inserted into it.
+                if len(after) < len(before) and is_lossless_row_deduplication(path, before, after):
+                    advisory.append(
+                        Finding(
+                            "DUPLICATE_ROWS_DEDUPLICATED",
+                            path,
+                            parent,
+                            commit,
+                            f"{len(before):,} -> {len(after):,} bytes: removed only "
+                            "byte-identical duplicate rows; retained content is unchanged",
                         )
                     )
                     continue

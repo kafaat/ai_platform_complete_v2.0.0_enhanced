@@ -214,7 +214,7 @@ async def devices_fleet_health(
                         device_id=d["device_id"],
                         name=d["name"],
                         device_type=d["type"],
-                        field_id=d["field_id"],
+                        field_id=str(d["field_id"]) if d["field_id"] is not None else None,
                         minutes_since_seen=(
                             float(d["mins_since"]) if d["mins_since"] is not None else None
                         ),
@@ -227,9 +227,12 @@ async def devices_fleet_health(
                 # فلا يُجهضها غياب الجدول (نمط _emit_domain_event نفسه).
                 async with conn.transaction():
                     af = await conn.fetch(
-                        "SELECT DISTINCT field_id FROM field_lifecycle WHERE status = 'active'"
+                        # v10 lifecycle: a standing crop exists from planting until harvest.
+                        # CREATED/PREPARED and HARVESTED/POST_HARVEST do not qualify.
+                        """SELECT DISTINCT field_id FROM field_lifecycle
+                           WHERE current_stage IN ('PLANTED', 'GROWING', 'MATURE')"""
                     )
-                    active_fields = {r["field_id"] for r in af if r["field_id"]}
+                    active_fields = {str(r["field_id"]) for r in af if r["field_id"]}
             except _asyncpg.UndefinedTableError:
                 # غياب جدول دورة الحياة لا يكسر المراقبة (يسقط رفع الحرجيّة فقط).
                 # أيّ خطأ DB آخر (صلاحيّة/SQL/انقطاع) يُترك ليُترجَم إلى 503 خارجيّاً

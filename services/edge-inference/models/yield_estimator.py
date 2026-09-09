@@ -167,7 +167,9 @@ class EdgeYieldEstimator:
         Otherwise fail closed with ModelNotProvisioned; no synthetic yield is returned.
         """
         if not features:
-            return {"yield_kg_ha": 0, "biomass_proxy": 0, "plant_count": 0}
+            # غيابُ القياسات البصريّة ليس غلّةً صفراً — كان يُرجِع `yield_kg_ha: 0`
+            # فيقرؤه المستهلكُ محصولاً معدوماً. مُدخَلٌ غيرُ صالح يُرفَض، لا يُصفَّر.
+            raise ValueError("yield_features_missing")
 
         # ── Conditional REAL ONNX path (dormant unless a model file is provisioned) ──
         model_path = _ml_yield_model_path(self.model_path)

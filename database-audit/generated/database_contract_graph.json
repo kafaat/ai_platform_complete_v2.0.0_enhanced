@@ -227,6 +227,8 @@
       "v226_canonical_nutrient_ledger.sql",
       "v227_decision_learning_runtime.sql",
       "v228_worker_claim_lease.sql",
+      "v229_market_mcp_schema.sql",
+      "v230_drawing_features.sql",
       "v206_rls_final_hardening.sql"
     ],
     "missing": [],
@@ -519,6 +521,13 @@
       "name": "distributed_raster_jobs_tenant_isolation",
       "source": "v116_enterprise_gis_phase7.sql",
       "table": "distributed_raster_jobs"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "tenant_isolation",
+      "source": "v230_drawing_features.sql",
+      "table": "drawing_features"
     },
     {
       "has_using": true,
@@ -1055,6 +1064,48 @@
     {
       "has_using": true,
       "has_with_check": true,
+      "name": "tenant_isolation",
+      "source": "v229_market_mcp_schema.sql",
+      "table": "market_analytics_snapshots"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "tenant_isolation",
+      "source": "v229_market_mcp_schema.sql",
+      "table": "market_price_history"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "tenant_isolation",
+      "source": "v229_market_mcp_schema.sql",
+      "table": "market_procurement_items"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "tenant_isolation",
+      "source": "v229_market_mcp_schema.sql",
+      "table": "market_procurement_orders"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "tenant_isolation",
+      "source": "v229_market_mcp_schema.sql",
+      "table": "market_products"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "tenant_isolation",
+      "source": "v229_market_mcp_schema.sql",
+      "table": "market_suppliers"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
       "name": "marketplace_apps_global_access",
       "source": "v121_marketplace_ecosystem.sql",
       "table": "marketplace_apps"
@@ -1587,17 +1638,17 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 227,
+    "manifest_entries": 229,
     "manifest_missing_count": 0,
-    "policies": 193,
+    "policies": 200,
     "production_certified": false,
-    "rls_enabled": 206,
-    "rls_forced": 187,
+    "rls_enabled": 213,
+    "rls_forced": 194,
     "runtime_verified": false,
-    "sql_files": 229,
-    "tables": 333,
+    "sql_files": 231,
+    "tables": 340,
     "tenant_rls_gaps": 135,
-    "tenant_tables": 313,
+    "tenant_tables": 320,
     "unlisted_sql_count": 0
   },
   "tables": [
@@ -2623,6 +2674,24 @@
       "write_policy_with_check": false
     },
     {
+      "code_readers": [
+        "services/sahool-platform/api/routers/drawing_features.py",
+        "services/sahool-platform/api/routers/field_ai_context.py"
+      ],
+      "code_writers": [
+        "services/sahool-platform/api/routers/drawing_features.py"
+      ],
+      "created_in": "v230_drawing_features.sql",
+      "has_tenant_id": true,
+      "manifest_position": 227,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "drawing_features",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
       "code_readers": [],
       "code_writers": [],
       "created_in": "init_v8.sql",
@@ -3498,6 +3567,7 @@
     },
     {
       "code_readers": [
+        "services/sahool-platform/api/field_models.py",
         "services/sahool-platform/api/field_state_projection.py",
         "services/sahool-platform/storage/lite_store.py"
       ],
@@ -3973,6 +4043,7 @@
         "services/sahool-platform/api/routers/device_twin.py",
         "services/sahool-platform/api/routers/devices.py",
         "services/sahool-platform/api/routers/operations.py",
+        "services/sahool-platform/tests/test_governance_modules.py",
         "services/sahool-platform/tests/test_operations_summary_endpoint.py"
       ],
       "code_writers": [
@@ -4901,6 +4972,83 @@
       "write_policy_with_check": false
     },
     {
+      "code_readers": [],
+      "code_writers": [],
+      "created_in": "v229_market_mcp_schema.sql",
+      "has_tenant_id": true,
+      "manifest_position": 226,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "market_analytics_snapshots",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/mcp_servers/market_server.py"
+      ],
+      "code_writers": [],
+      "created_in": "v229_market_mcp_schema.sql",
+      "has_tenant_id": true,
+      "manifest_position": 226,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "market_price_history",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/mcp_servers/market_server.py"
+      ],
+      "code_writers": [
+        "services/mcp_servers/market_server.py"
+      ],
+      "created_in": "v229_market_mcp_schema.sql",
+      "has_tenant_id": true,
+      "manifest_position": 226,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "market_procurement_items",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/mcp_servers/market_server.py"
+      ],
+      "code_writers": [
+        "services/mcp_servers/market_server.py"
+      ],
+      "created_in": "v229_market_mcp_schema.sql",
+      "has_tenant_id": true,
+      "manifest_position": 226,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "market_procurement_orders",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/mcp_servers/market_server.py"
+      ],
+      "code_writers": [],
+      "created_in": "v229_market_mcp_schema.sql",
+      "has_tenant_id": true,
+      "manifest_position": 226,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "market_products",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
       "code_readers": [
         "services/mcp_servers/market_server.py"
       ],
@@ -4916,6 +5064,21 @@
       "table": "market_sales_listings",
       "tenant_rls_gap": true,
       "write_policy_with_check": false
+    },
+    {
+      "code_readers": [
+        "services/mcp_servers/market_server.py"
+      ],
+      "code_writers": [],
+      "created_in": "v229_market_mcp_schema.sql",
+      "has_tenant_id": true,
+      "manifest_position": 226,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "market_suppliers",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
     },
     {
       "code_readers": [

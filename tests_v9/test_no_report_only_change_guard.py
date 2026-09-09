@@ -90,6 +90,30 @@ def test_a_gate01_adjudication_seal_is_substantive_not_a_report():
     assert result.returncode == 0, result.stderr
 
 
+def test_a_codeowners_identity_change_is_substantive_not_a_report():
+    # `.github/CODEOWNERS` أداةُ تفويضٍ لا تقريرُ تقدّم. وإضافةُ هويّةٍ ثانيةٍ فيه هي
+    # حرفيّاً العلاجُ الذي يطلبه `branch_protection_contract_guard` في رسالته — ومع
+    # ذلك كانت تسقط هنا «تقريراً فقط»، لأنّها تمسّ هذا الملفَّ والمصنوعاتِ المولَّدة
+    # وحدَها. أي أنّ حارساً كان يمنع علاجَ حارسٍ آخر. مقيسٌ على #976.
+    result = _run(
+        ".github/CODEOWNERS",
+        "docs/architecture/source_text_assertion_inventory.json",
+        "release/FILE_CHECKSUMS.sha256",
+    )
+    assert result.returncode == 0, result.stderr
+
+
+def test_the_codeowners_exemption_is_exact_not_a_prefix():
+    # الاستثناءُ على **الاسم الكامل** لا على `.github/`: ملفٌّ آخرُ تحت `.github/`
+    # لا يصير جوهريّاً بالمصادفة. وهو نفسُ تمييز `CVE-LIKE-BUT-NOT` في حارس
+    # الادّعاءات — البادئةُ تبتلع ما لم يُقصَد.
+    result = _run(
+        ".github/CODEOWNERS_BACKUP.md",
+        "docs/architecture/source_text_assertion_inventory.json",
+    )
+    assert result.returncode != 0, "ابتلع الاستثناءُ ملفّاً غيرَ مقصود"
+
+
 def test_the_gate01_prefix_does_not_launder_an_unrelated_report():
     # The prefix is scoped to docs/architecture/gates/ — it must not turn a generated
     # capability report into a substantive change just because some other governance

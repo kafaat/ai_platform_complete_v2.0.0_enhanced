@@ -6,9 +6,11 @@
     "agri_next_closed_loop_contract.json",
     "ai_vllm_jais_runtime_decision.json",
     "authority_cutovers.json",
+    "blocking_surface_additions.json",
     "c8_c13_execution_contract.json",
     "capability_core_consumption_registry.json",
     "certification_acceptance_record.json",
+    "certification_evidence_producers.json",
     "claim_base_registry.json",
     "component_registry.json",
     "compose_auth_sinks.json",
@@ -40,7 +42,8 @@
     "threshold_authority_ledger.json",
     "weather_boundary_allowlist.json",
     "weather_direct_wiring_allowlist.json",
-    "weather_engine_formula_allowlist.json"
+    "weather_engine_formula_allowlist.json",
+    "weather_model_catalogue.json"
   ],
   "decided_base_keys": [
     "adjudicated_on"
@@ -51,12 +54,14 @@
     "api_versioning_legacy_baseline.json",
     "assertion_presence_baseline.json",
     "bidi_control_char_baseline.json",
+    "blocking_surface_baseline.json",
     "brain_deferral_baseline.json",
     "db_writer_ownership_baseline.json",
     "fake_connection_debt.json",
     "generated_chain_known_drift.json",
     "generated_sweep_unmapped_generators.json",
     "generated_write_targets.json",
+    "nats_subject_ownership_contract.json",
     "platform_extraction_map.json",
     "platform_python_module_baseline.json",
     "platform_shrink_ratchet.json",

@@ -32,9 +32,9 @@ from core.farm_operations_ledger import LedgerSummary
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator
 
+from api import main as api_main
 from api.feature_registry import is_enabled
 from api.main import (
-    _DB_POOL,
     Permission,
     UserSchema,
     _assert_field_in_tenant,
@@ -215,7 +215,7 @@ async def create_operation_ledger_record(
 ):
     """يحفظ سجل عمل يوميّاً ومرفقاته الرقابية. لا يزامن ERP ولا يخصم مخزوناً هنا."""
     _require_enabled()
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         raise HTTPException(status_code=503, detail="farm_operations_ledger_database_unavailable")
     if not (req.field_id or req.production_unit_id or req.farm_id):
         raise HTTPException(status_code=422, detail="field_or_production_unit_or_farm_required")
@@ -360,7 +360,7 @@ async def list_operation_ledger_records(
     user: UserSchema = Depends(require_permission(Permission.ACTIVITY_VIEW)),
 ):
     _require_enabled()
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         return {"entries": [], "total": 0, "note_ar": "القاعدة غير مفعلة"}
     clauses = ["tenant_id = $1::uuid"]
     args: list = [str(user.tenant_id)]
@@ -409,7 +409,7 @@ async def farm_ledger_summary(
 ):
     """ملخّص رقابي/تكلفة مبسّط من السجلات. لا يختلق أرقاماً ولا يزامن ERP."""
     _require_enabled()
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         return {"summary": None, "note_ar": "القاعدة غير مفعلة"}
     clauses = ["o.tenant_id = $1::uuid"]
     args: list = [str(user.tenant_id)]
@@ -532,7 +532,7 @@ async def upsert_season_budget_lines(
 ):
     """يحفظ بنود موازنة الموسم حسب المرحلة والتصنيف. كل القيم قابلة للتعديل ولا تُطبق كقرار تلقائي."""
     _require_enabled()
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         raise HTTPException(status_code=503, detail="farm_operations_ledger_database_unavailable")
     if not req.lines:
         raise HTTPException(status_code=422, detail="budget_lines_required")
@@ -612,7 +612,7 @@ async def get_season_budget(
     user: UserSchema = Depends(require_permission(Permission.ANALYTICS_VIEW)),
 ):
     _require_enabled()
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         return {"season_id": season_id, "lines": [], "note_ar": "القاعدة غير مفعلة"}
     try:
         async with tenant_connection(user) as conn:
@@ -640,7 +640,7 @@ async def create_revenue_record(
     user: UserSchema = Depends(require_permission(Permission.ACTIVITY_EXECUTE)),
 ):
     _require_enabled()
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         raise HTTPException(status_code=503, detail="farm_operations_ledger_database_unavailable")
     revenue_id = req.revenue_id or "rev_" + uuid.uuid4().hex[:12]
     amount = req.amount or ((req.quantity or 0.0) * (req.unit_price or 0.0))
@@ -732,7 +732,7 @@ async def get_budget_variance(
     user: UserSchema = Depends(require_permission(Permission.ANALYTICS_VIEW)),
 ):
     _require_enabled()
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         return {
             "season_id": season_id,
             "variance": [],
@@ -762,7 +762,7 @@ async def get_season_profitability(
     user: UserSchema = Depends(require_permission(Permission.ANALYTICS_VIEW)),
 ):
     _require_enabled()
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         return {"season_id": season_id, "profitability": None, "note_ar": "القاعدة غير مفعلة"}
     try:
         async with tenant_connection(user) as conn:
@@ -797,7 +797,7 @@ async def get_erp_projection(
 ):
     """يعرض إسقاطاً مالياً قابلاً للترحيل لاحقاً؛ لا يرسل شيئاً إلى ERP من هذا endpoint."""
     _require_enabled()
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         return {"season_id": season_id, "lines": [], "note_ar": "القاعدة غير مفعلة"}
     try:
         async with tenant_connection(user) as conn:
@@ -883,7 +883,7 @@ async def operation_autowrite_preview(
     endpoint يساعد على الاختبار والاعتماد دون تغيير سلوك الإنتاج.
     """
     _require_enabled()
-    if req.field_id and _DB_POOL is not None:
+    if req.field_id and api_main._DB_POOL is not None:
         async with tenant_connection(user) as conn:
             await _assert_field_in_tenant(conn, req.field_id)
     event = OperationEvent(
@@ -927,7 +927,7 @@ async def get_inventory_projection(
 ):
     """إسقاط خصم مخزون من سجلات المواد فقط. لا يكتب في inventory-service."""
     _require_enabled()
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         return {"season_id": season_id, "lines": [], "note_ar": "القاعدة غير مفعلة"}
     try:
         async with tenant_connection(user) as conn:
@@ -1021,7 +1021,7 @@ async def get_economic_state(
 ):
     """حالة اقتصادية اختيارية من Farm Ledger. لا تُكتب في CanonicalFieldState إلا لاحقاً خلف علم مستقل."""
     _require_enabled()
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         return {"season_id": season_id, "economic_state": None, "note_ar": "القاعدة غير مفعلة"}
     try:
         async with tenant_connection(user) as conn:

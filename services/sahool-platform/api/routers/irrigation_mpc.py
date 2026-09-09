@@ -77,10 +77,10 @@ class MpcPlanRequest(BaseModel):
     submit: bool = False  # إصدار مرشّح محكوم (عمليّ فقط، خلف عَلَم الجسر)
 
 
-async def _latest_ledger_depletion(tenant_id: str, field_id: str) -> float | None:
+async def _latest_ledger_depletion(user: UserSchema, field_id: str) -> float | None:
     """أحدث استنزاف Dr من water_ledger (حقيقة الخادم). None إن لا صفّ/تعذّر."""
     try:
-        async with tenant_connection(tenant_id) as conn:
+        async with tenant_connection(user) as conn:
             row = await conn.fetchrow(
                 "SELECT depletion_mm FROM water_ledger WHERE field_id=$1 "
                 "ORDER BY ledger_date DESC LIMIT 1",
@@ -103,7 +103,7 @@ async def irrigation_mpc_plan(
         depletion = float(req.initial_depletion_mm)  # حقيقة عميل ⇒ محاكاة
         depletion_source = "request_simulation"
     else:
-        ledger_dr = await _latest_ledger_depletion(tenant_id, req.field_id)
+        ledger_dr = await _latest_ledger_depletion(user, req.field_id)
         if ledger_dr is None:
             # fail-closed: لا استنزاف مرجعيّ ⇒ لا صفر مُختلَق ولا قرار قابل للإرسال.
             return {
@@ -193,10 +193,10 @@ def _facts_snapshot_hash(facts: object) -> str:
     ).hexdigest()
 
 
-async def _field_belongs_to_tenant(tenant_id: str, field_id: str) -> bool:
+async def _field_belongs_to_tenant(user: UserSchema, field_id: str) -> bool:
     """تحقّق ملكيّة الحقل للمستأجِر (RLS يحصر النطاق). fail-closed عند تعذّر القراءة."""
     try:
-        async with tenant_connection(tenant_id) as conn:
+        async with tenant_connection(user) as conn:
             row = await conn.fetchrow("SELECT 1 FROM fields WHERE field_id=$1", field_id)
         return row is not None
     except Exception:
@@ -204,10 +204,10 @@ async def _field_belongs_to_tenant(tenant_id: str, field_id: str) -> bool:
         return False  # fail-closed: لا نؤكّد الملكيّة ⇒ نمنع
 
 
-async def _source_current_state(tenant_id: str, field_id: str) -> dict | None:
+async def _source_current_state(user: UserSchema, field_id: str) -> dict | None:
     """Dr + المرحلة من أحدث صفّ water_ledger (حقيقة الخادم). None إن لا صفّ صالح."""
     try:
-        async with tenant_connection(tenant_id) as conn:
+        async with tenant_connection(user) as conn:
             row = await conn.fetchrow(
                 "SELECT depletion_mm, stage, ledger_date FROM water_ledger "
                 "WHERE field_id=$1 ORDER BY ledger_date DESC LIMIT 1",
@@ -264,7 +264,7 @@ class RecommendationRequest(BaseModel):
     submit: bool = False
 
 
-async def _active_field_source_bindings(tenant_id: str, field_id: str) -> list[dict] | None:
+async def _active_field_source_bindings(user: UserSchema, field_id: str) -> list[dict] | None:
     """ربط الحقل بمصادر الماء النشِطة خادميّاً (H5.1) — يُشتَقّ المصدر من SoR لا من العميل.
 
     يفتح اتّصالاً مقيَّداً بالمستأجِر (RLS عبر app.current_tenant) ويستدعي المُحلِّل النقيّ
@@ -274,7 +274,7 @@ async def _active_field_source_bindings(tenant_id: str, field_id: str) -> list[d
     fail-closed: لا نؤكّد حدّ الملوحة فلا نوصي)؛ قائمة فارغة = لا ربط نشِط لهذا الحقل.
     """
     try:
-        async with tenant_connection(tenant_id) as conn:
+        async with tenant_connection(user) as conn:
             return await resolve_active_bindings(conn, field_id, now=datetime.now(UTC))
     except Exception:
         logger.warning(
@@ -326,7 +326,7 @@ async def irrigation_mpc_recommendation(
     الطقس؛ أيّ نقص ⇒ blocked (لا تلفيق). بصمات لقطات لكلّ مصدر (نَسَب). submit خلف عَلَم الجسر.
     """
     tenant_id = user.tenant_id
-    if not await _field_belongs_to_tenant(tenant_id, field_id):
+    if not await _field_belongs_to_tenant(user, field_id):
         return {"status": "blocked", "reason": "field_not_owned", "field_id": field_id}
 
     # H5.1: بوّابة ملوحة fail-closed مبكّرة، **مصدرها مُشتَقّ من الخادم** — قبل أيّ حساب.
@@ -335,7 +335,7 @@ async def irrigation_mpc_recommendation(
     # لكلّ مصدر نشِط تُقيَّم البوّابة على عيّنة **قرار-درجة** (estimated/measured مرفوضة)؛ ECw>الحدّ
     # أو لا عيّنة قرار-درجة أو عيّنة قديمة ⇒ blocked. الخلط: تُحجب التوصية إن حُجِب أيّ مصدر.
     salinity_provenance: dict | None = None
-    bindings = await _active_field_source_bindings(tenant_id, field_id)
+    bindings = await _active_field_source_bindings(user, field_id)
     if bindings is None:
         return {
             "status": "blocked",
@@ -405,7 +405,7 @@ async def irrigation_mpc_recommendation(
             "enforced": False,
         }
 
-    state = await _source_current_state(tenant_id, field_id)
+    state = await _source_current_state(user, field_id)
     soil = await _source_soil_capacity(tenant_id, field_id)
     forecast = await _source_forecast_horizon(tenant_id, field_id, req.horizon_days)
 
@@ -509,9 +509,9 @@ async def irrigation_mpc_hourly_recommendation(
     توصويّ-فقط. أيّ حقيقة ناقصة ⇒ blocked (لا اختلاق). `execution_allowed=False` دائماً.
     """
     tenant_id = user.tenant_id
-    if not await _field_belongs_to_tenant(tenant_id, field_id):
+    if not await _field_belongs_to_tenant(user, field_id):
         return {"status": "blocked", "reason": "field_not_owned", "field_id": field_id}
-    async with tenant_connection(tenant_id) as conn:
+    async with tenant_connection(user) as conn:
         result = await orchestrate_irrigation_recommendation(
             conn,
             tenant_id=tenant_id,
@@ -545,6 +545,6 @@ async def reconcile_irrigation_execution(
     """Derive measured as-applied truth and update the water ledger idempotently."""
     from api.irrigation_closed_loop_runtime import reconcile_irrigation_run
 
-    async with tenant_connection(user.tenant_id) as conn:
+    async with tenant_connection(user) as conn:
         async with conn.transaction():
             return await reconcile_irrigation_run(conn, run_id=req.run_id)

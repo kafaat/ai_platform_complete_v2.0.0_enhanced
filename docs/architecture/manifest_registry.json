@@ -18,11 +18,19 @@
       "kind": "governed"
     },
     {
+      "path": "docs/architecture/blocking_surface_additions.json",
+      "kind": "governed"
+    },
+    {
       "path": "docs/architecture/c8_c13_execution_contract.json",
       "kind": "governed"
     },
     {
       "path": "docs/architecture/certification_acceptance_record.json",
+      "kind": "governed"
+    },
+    {
+      "path": "docs/architecture/certification_evidence_producers.json",
       "kind": "governed"
     },
     {
@@ -127,6 +135,10 @@
     },
     {
       "path": "docs/architecture/threshold_authority_ledger.json",
+      "kind": "governed"
+    },
+    {
+      "path": "docs/architecture/weather_model_catalogue.json",
       "kind": "governed"
     }
   ]

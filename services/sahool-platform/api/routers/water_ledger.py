@@ -29,8 +29,8 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel, Field
 
+from api import main as api_main
 from api.main import (
-    _DB_POOL,
     Permission,
     UserSchema,
     _assert_field_in_tenant,
@@ -92,7 +92,7 @@ async def upsert_water_ledger(
         norm = normalize_ledger_input(req.model_dump())
     except ValueError as e:
         raise HTTPException(status_code=422, detail=f"مدخل دفتر غير صالح: {e}") from e
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         raise HTTPException(
             status_code=503,
             detail="تعذّر حفظ قيد الدفتر (القاعدة غير مفعّلة DATABASE_URL أو الهجرات غير مطبّقة).",
@@ -160,7 +160,7 @@ async def list_water_ledger(
         d_to = parse_ledger_date(date_to) if date_to else None
     except ValueError as e:
         raise HTTPException(status_code=422, detail=f"مدى تاريخ غير صالح: {e}") from e
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         return {
             "field_id": field_id,
             "entries": [],
@@ -213,7 +213,7 @@ async def field_water_efficiency(
         d_to = parse_ledger_date(date_to) if date_to else None
     except ValueError as e:
         raise HTTPException(status_code=422, detail=f"مدى تاريخ غير صالح: {e}") from e
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         return {
             "field_id": field_id,
             "period": {"from": date_from, "to": date_to},

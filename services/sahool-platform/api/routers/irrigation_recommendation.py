@@ -19,6 +19,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from api.canonical_water_stress import canonical_water_stress
+
+# مرحلةُ المرشَّح تُستورَد ولا تُكرَّر: سلسلةٌ ثانيةٌ باسم `"candidate"` هنا كانت ستُطابِق
+# اليوم وتنحرف غداً، وشرطُ الإثبات يقارنها بما يُعيده المُسجِّل.
+from api.crop_decision_bridge import CANDIDATE_STAGE
 from api.decision_service_client import record_decision
 from api.field_context import _field_weather_context
 from api.irrigation_recommendation_policy import recommend_irrigation
@@ -32,6 +36,7 @@ from api.main import (
 )
 from api.soil_enrichment import extract_texture, soil_water_provenance
 from api.soil_water import soil_water_params
+from api.weather_advice import complete_rain_total, precipitation_incomplete_detail
 from api.weather_service_client import get_et0_product, get_weather_forecast
 
 router = APIRouter()
@@ -83,7 +88,11 @@ async def _field_weather_snapshot(latitude_deg: float, longitude_deg: float) -> 
     """
     from datetime import date as _date
 
-    fc = await get_weather_forecast(latitude_deg, longitude_deg, days=1)
+    # ثلاثةُ أيّامٍ لا يوم: المطرُ جزءٌ من المدخَل لا زينة — يومُ اليوم لـ``rain_recent_mm``
+    # واليومان التاليان لـ``forecast_rain_mm``، وهي **نفسُ قسمة** ``routers/fields.py``
+    # (رصدُ اليوم + ``forecast[1:3]``). قسمةٌ ثانيةٌ هنا كانت ستُعطي المزارعَ توصيتين
+    # مختلفتين بحسب أيّ مسارٍ سأل.
+    fc = await get_weather_forecast(latitude_deg, longitude_deg, days=3)
     days = fc.get("days") or []
     if not days:
         raise HTTPException(
@@ -96,12 +105,19 @@ async def _field_weather_snapshot(latitude_deg: float, longitude_deg: float) -> 
         doy = _date.fromisoformat(valid_time).timetuple().tm_yday if valid_time else None
     except (TypeError, ValueError):
         doy = None
+    # مطرُ اليوم + مجموعُ اليومين التاليين. ``complete_rain_total`` هو المصدرُ الواحد
+    # لقاعدة «لا يُجمَع نصفُ سلسلةٍ ويُقدَّم مجموعاً كاملاً» — فترةٌ ناقصةٌ ⇒ ``None``.
+    forecast_rain, _missing = complete_rain_total(
+        [d.get("precipitation_mm") for d in days[1:3]], expected_count=2
+    )
     return {
         "t_min_c": d0.get("temp_min_c"),
         "t_max_c": d0.get("temp_max_c"),
         "wind_2m_ms": d0.get("wind_max_ms"),
         "solar_rad_mj_m2": d0.get("solar_radiation_mj_m2"),
         "rh_mean_pct": None,  # غير متوفّر في التوقّع اليوميّ
+        "rain_recent_mm": d0.get("precipitation_mm"),
+        "forecast_rain_mm": forecast_rain,
         "day_of_year": doy,
         "valid_time": valid_time,
         "source": "weather-engine-forecast",
@@ -135,8 +151,10 @@ class IrrigationRecommendationRequest(BaseModel):
     stage: str = "mid"  # initial|development|mid|late
     t_min_c: float
     t_max_c: float
-    rain_recent_mm: float = 0.0
-    forecast_rain_mm: float = 0.0
+    # **إلزاميّتان بلا افتراضٍ صفريّ.** عميلٌ يُغفِلهما كان يحصل على توصيةٍ محسوبةٍ على
+    # «لا مطر» بلا أن يعلم — وهو الانحياز الذي يُغرِق. الحذفُ الآن ⇒ ٥٠٣ صريحة.
+    rain_recent_mm: float | None = None
+    forecast_rain_mm: float | None = None
     soil_moisture_pct: float | None = None
     kc_override: float | None = None  # Kc دقيق من الفينولوجيا إن توفّر
     # طقس Penman-Monteith (اختياريّ — يسقط إلى Hargreaves عند الغياب)
@@ -177,7 +195,23 @@ async def irrigation_recommendation(
     ``requires_expert_review`` + ``salinity_ks`` + ``evidence`` + ``rationale_ar``.
 
     ET0 من محرّك الطقس (المصدر الوحيد)؛ تعذّره ⇒ 503 صريح (لا حساب محلّيّ بديل).
+    **والمطر إلزاميّ**: حذفُه ⇒ 503 بنفس شكل خطأ نقص المطر في بقيّة المنصّة، لا صفر.
     """
+    # قبل ET0 عمداً: نقصُ المطر عطلُ **مُدخَلٍ** لا عطلُ اعتماديّة، فلا يُنفَق عليه نداءُ
+    # شبكةٍ ولا يُبلَّغ برسالة «المحرّك غير متاح» — تشخيصٌ يسمّي غيرَ سببه يُطيل العطل.
+    missing_rain = [
+        index
+        for index, value in enumerate((req.rain_recent_mm, req.forecast_rain_mm))
+        if value is None
+    ]
+    if missing_rain:
+        raise HTTPException(
+            status_code=503,
+            detail=precipitation_incomplete_detail(
+                context="irrigation_recommendation", missing_intervals=missing_rain
+            ),
+        )
+
     try:
         et0_prod = await _engine_et0(
             t_min_c=req.t_min_c,
@@ -236,6 +270,10 @@ class FieldIrrigationRequest(BaseModel):
     root_depth_m: float | None = None  # عمق الجذور (لاشتقاق TAW)؛ None ⇒ افتراضيّ موسوم
     policy: str | None = None  # سياسة الريّ (water_saving افتراضاً)
     water_price_per_m3: float | None = None
+    # مطرُ التجاوز اليدويّ — يُقرأ **فقط** مع تجاوز الحرارة. المسارُ الأساسيّ يجلبه من
+    # المحرّك، وغيابُه في التجاوز ⇒ ``dependency_unavailable`` لا صفر.
+    rain_recent_mm: float | None = None
+    forecast_rain_mm: float | None = None
     # WS-D.2d: تقديم صريح للمرشَّح إلى خدمة القرار (لا تلقائيّ — احترام حوكمة الموافقة).
     submit_to_decision: bool = False
     yield_value_per_ha: float | None = None
@@ -398,6 +436,11 @@ async def field_irrigation_recommendation(
                 "rh_mean_pct": req.rh_mean_pct,
                 "wind_2m_ms": req.wind_2m_ms,
                 "day_of_year": req.day_of_year if req.day_of_year is not None else 100,
+                # التجاوزُ اليدويّ يحمل مطرَه أيضاً. وإلّا كان «تجاوزُ حرارة» يُسقِط
+                # المطرَ ضمناً إلى صفر — فيصير المسارُ الاحتياطيّ أكثرَ إذناً بالريّ
+                # من الأساسيّ، وهو عكسُ ما يُنتظَر من تجاوزٍ يدويّ.
+                "rain_recent_mm": req.rain_recent_mm,
+                "forecast_rain_mm": req.forecast_rain_mm,
                 "valid_time": None,
                 "source": "manual_override",
             }
@@ -435,6 +478,34 @@ async def field_irrigation_recommendation(
             "confidence": None,
             "evidence_ids": evidence_ids,
             "limitations": [*state["limitations"], "weather snapshot missing temperature"],
+            "calibrated": False,
+        }
+
+    # ومطرٌ ناقصٌ يقف حيث تقف الحرارة. كان هذا المسارُ **لا يمرّر المطرَ أصلاً**، فتأخذه
+    # النواةُ صفراً — والصفرُ يُنقِص المطروحَ من الحاجة فيرفع الكمّيّة: انحيازٌ في اتّجاه
+    # الإذن بالريّ، صامتٌ في المخرَج. وتوثيقُ هذه الدالّة يقول «**صدق:** مفقود ≠ صفر» —
+    # وكان صادقاً عن الاستنزاف والتربة، ساكتاً عن المطر.
+    if wx.get("rain_recent_mm") is None or wx.get("forecast_rain_mm") is None:
+        return {
+            "status": "dependency_unavailable",
+            "field_id": field_id,
+            "season_id": season_id,
+            "inputs": inputs,
+            "recommendation": None,
+            "ownership": "recommendation_candidate → decision-service",
+            "confidence": None,
+            "evidence_ids": evidence_ids,
+            "limitations": [
+                *state["limitations"],
+                precipitation_incomplete_detail(
+                    context="field_irrigation_recommendation",
+                    missing_intervals=[
+                        i
+                        for i, key in enumerate(("rain_recent_mm", "forecast_rain_mm"))
+                        if wx.get(key) is None
+                    ],
+                )["message_ar"],
+            ],
             "calibrated": False,
         }
 
@@ -478,6 +549,8 @@ async def field_irrigation_recommendation(
         et0_mm=et0_mm,
         crop=crop,
         stage=stage,
+        rain_recent_mm=wx["rain_recent_mm"],
+        forecast_rain_mm=wx["forecast_rain_mm"],
         depletion_mm=depletion_mm,
         taw_mm=taw_mm,
         raw_fraction=sw["raw_fraction"],
@@ -503,17 +576,36 @@ async def field_irrigation_recommendation(
     approval_state = "not_submitted"
     decision_id = None
     submit_limitation: str | None = None
-    if req.submit_to_decision:
-        candidate_payload = {
+    if req.submit_to_decision and rec["forecast_hold"] and rec["should_irrigate"] is None:
+        # حجزُ المطر يمنع التقديم. المرشَّحُ الذي لا قرارَ فيه (`should_irrigate=None`)
+        # ليس شيئاً يُعتمَد؛ وتقديمُه كان سيُنتِج سجلَّ موافقةٍ على امتناع.
+        approval_state = "blocked_forecast_rain_hold"
+        submit_limitation = (
+            "forecast_rain_hold_requires_reassessment — لم يُقدَّم: مطرٌ متوقَّعٌ يؤجّل الريّ "
+            "بينما بلغ الاستنزافُ عتبةَ الإطلاق. أعِد التقييم بعد المطر."
+        )
+    elif req.submit_to_decision:
+        # **عقدُ التسجيل هو عقدُ `crop_decision_bridge` نفسُه.** كان هذا المسار يرسل
+        # `recommendation` و`status` — حقلين لا يقرؤهما المُسجِّل — فتُحفَظ قيمةٌ فارغة،
+        # ثمّ يُستنتَج `pending_approval` **محلّيّاً** من غياب استثناء. أي إعلانُ نجاحٍ
+        # بلا شاهدٍ عليه، في مسارٍ يقود إلى ماءٍ يُصرَف.
+        candidate = {
             "decision_type": "irrigation",
             "field_id": field_id,
             "season_id": season_id,
+            "status": "pending_approval",
+            "approval_required": True,
             "recommendation": {
                 "should_irrigate": rec["should_irrigate"],
                 "trigger_reason": rec["trigger_reason"],
                 "net_irrigation_mm": rec["net_irrigation_mm"],
                 "target_refill_mm": rec["target_refill_mm"],
                 "urgency": rec["urgency"],
+                # `timing_ar`/`rationale_ar` هما الموضعان الوحيدان اللذان يذكران المطرَ
+                # المتوقَّع للمزارع. حجبُهما كان يجعل الحجزَ صامتاً: قرارٌ يُمتنَع عنه بلا سبب.
+                "timing_ar": rec["timing_ar"],
+                "rationale_ar": rec["rationale_ar"],
+                "forecast_hold": rec["forecast_hold"],
             },
             "confidence": confidence,
             "evidence_ids": evidence_ids,
@@ -522,15 +614,37 @@ async def field_irrigation_recommendation(
                 "weather": wx.get("valid_time"),
                 "taw_source": taw_source,
             },
-            "status": "pending_approval",
             "calibrated": False,
+        }
+        record_payload = {
+            "field_id": field_id,
+            "decision_type": "irrigation",
+            "stage": CANDIDATE_STAGE,
+            "decision_value": candidate,
+            "created_by": getattr(user, "username", None) or getattr(user, "user_id", None),
         }
         try:
             res = await _submit_candidate_to_decision(
-                candidate_payload, getattr(user, "tenant_id", None)
+                record_payload, getattr(user, "tenant_id", None)
             )
             decision_id = res.get("decision_id") or res.get("id")
-            approval_state = "pending_approval"
+            # شاهدُ الحفظ لا غيابُ الاستثناء: نقطةُ التسجيل لا تُعيد `status`، فاستنتاجُ
+            # `pending_approval` منها محلّيّاً كان يُعلِن نجاحاً لم يُثبَت.
+            proven = (
+                res.get("authoritative") is True
+                and res.get("persisted") is True
+                and bool(decision_id)
+                and res.get("stage") == CANDIDATE_STAGE
+            )
+            if proven:
+                approval_state = "pending_approval"
+            else:
+                decision_id = None
+                approval_state = "submit_unproven"
+                submit_limitation = (
+                    "decision-service did not confirm authoritative persistence of the "
+                    "pending_approval candidate — fail-closed (not submitted)"
+                )
         except HTTPException as exc:
             # فشل مُغلَق: تعذّر خدمة القرار ⇒ لم يُقدَّم (لا اختلاق تقديم ناجح).
             if exc.status_code in _ENGINE_DOWN_CODES:
@@ -552,6 +666,11 @@ async def field_irrigation_recommendation(
             "target_refill_mm": rec["target_refill_mm"],
             "water_stress_class": water_stress_class,
             "urgency": rec["urgency"],
+            # `timing_ar`/`rationale_ar` هما الموضعان الوحيدان اللذان يذكران المطرَ
+            # المتوقَّع للمزارع. حجبُهما كان يجعل الحجزَ صامتاً: قرارٌ يُمتنَع عنه بلا سبب.
+            "timing_ar": rec["timing_ar"],
+            "rationale_ar": rec["rationale_ar"],
+            "forecast_hold": rec["forecast_hold"],
             "policy_knobs": rec["policy_knobs"],
         },
         "et0": _et0_provenance(et0_prod),

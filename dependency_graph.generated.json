@@ -1,5 +1,5 @@
 {
-  "edge_count": 797,
+  "edge_count": 809,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -727,8 +727,58 @@
       "from_kind": "component",
       "protocol": "postgres",
       "relation": "READS",
+      "resource": "db://market_price_history",
+      "to": "db://market_price_history",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/mcp_servers/market_server.py",
+      "from": "mcp_servers",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://market_procurement_items",
+      "to": "db://market_procurement_items",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/mcp_servers/market_server.py",
+      "from": "mcp_servers",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://market_procurement_orders",
+      "to": "db://market_procurement_orders",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/mcp_servers/market_server.py",
+      "from": "mcp_servers",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://market_products",
+      "to": "db://market_products",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/mcp_servers/market_server.py",
+      "from": "mcp_servers",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
       "resource": "db://market_sales_listings",
       "to": "db://market_sales_listings",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/mcp_servers/market_server.py",
+      "from": "mcp_servers",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://market_suppliers",
+      "to": "db://market_suppliers",
       "to_kind": "resource"
     },
     {
@@ -1412,6 +1462,26 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/routers/drawing_features.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://drawing_features",
+      "to": "db://drawing_features",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/routers/field_ai_context.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://drawing_features",
+      "to": "db://drawing_features",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/equipment.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -1999,6 +2069,16 @@
       "relation": "READS",
       "resource": "db://field_lifecycle_transitions",
       "to": "db://field_lifecycle_transitions",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/field_models.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://field_state",
+      "to": "db://field_state",
       "to_kind": "resource"
     },
     {
@@ -2673,6 +2753,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/operations.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://iot_devices",
+      "to": "db://iot_devices",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_governance_modules.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -5537,6 +5627,26 @@
       "from_kind": "component",
       "protocol": "postgres",
       "relation": "WRITES",
+      "resource": "db://market_procurement_items",
+      "to": "db://market_procurement_items",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/mcp_servers/market_server.py",
+      "from": "mcp_servers",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://market_procurement_orders",
+      "to": "db://market_procurement_orders",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/mcp_servers/market_server.py",
+      "from": "mcp_servers",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
       "resource": "db://market_sales_listings",
       "to": "db://market_sales_listings",
       "to_kind": "resource"
@@ -6119,6 +6229,16 @@
       "relation": "WRITES",
       "resource": "db://documents",
       "to": "db://documents",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/routers/drawing_features.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://drawing_features",
+      "to": "db://drawing_features",
       "to_kind": "resource"
     },
     {
@@ -7990,9 +8110,9 @@
     "CALLS": 38,
     "CONSUMES": 1,
     "EMITS": 1,
-    "READS": 408,
+    "READS": 417,
     "ROUTES_TO": 70,
-    "WRITES": 279
+    "WRITES": 282
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -8007,8 +8127,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 688,
-      "resolved": 687,
+      "observed": 700,
+      "resolved": 699,
       "unresolved_component_paths": 0
     }
   }

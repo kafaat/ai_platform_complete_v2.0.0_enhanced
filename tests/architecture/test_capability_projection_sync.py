@@ -201,6 +201,15 @@ def test_meta_governance_tests_are_never_lexical_evidence():
     discovered = linker.discover_files()
     offenders = [f for f in discovered if f.startswith("tests_v9/test_no_report_only_change_guard")]
     assert offenders == [], f"meta-governance witness entered the linker census: {offenders}"
+    named_witnesses = {
+        "docs/architecture/nats_subject_ownership_contract.json",
+        "tests_v9/test_live_gap_closure_runbook_contract.py",
+        "tests_v9/test_nats_subject_ownership_contract.py",
+    }
+    assert named_witnesses.isdisjoint(discovered), (
+        "named gap-closure witnesses entered the linker census: "
+        f"{sorted(named_witnesses.intersection(discovered))}"
+    )
 
     # والمصنوعتان (الإسقاط والقانونيّ) نظيفتان — طبقة ثانية:
     for rel in (
@@ -212,4 +221,7 @@ def test_meta_governance_tests_are_never_lexical_evidence():
             for tpath in cap.get("tests", []):
                 assert not tpath.startswith("tests_v9/test_no_report_only_change_guard"), (
                     f"{rel}: {cap['id']} links a meta-governance CI test: {tpath}"
+                )
+                assert tpath not in named_witnesses, (
+                    f"{rel}: {cap['id']} links a named gap-closure witness: {tpath}"
                 )

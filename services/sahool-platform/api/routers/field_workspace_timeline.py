@@ -15,9 +15,9 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, Query
 
+from api import main as api_main
 from api.field_timeline import assemble_timeline
 from api.main import (
-    _DB_POOL,
     Permission,
     UserSchema,
     _assert_field_in_tenant,
@@ -42,7 +42,7 @@ async def field_unified_timeline_facade(
     ``season_id`` فلتر اختياري: إن وُجد، تُقرأ الأحداث المرتبطة بالموسم من payload.
     عند تعطّل DB تُعاد حالة فارغة مُعلنة بدلاً من أحداث مصطنعة.
     """
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         return {
             "field_id": field_id,
             "season_id": season_id,

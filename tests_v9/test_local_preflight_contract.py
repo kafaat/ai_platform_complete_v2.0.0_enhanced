@@ -119,8 +119,34 @@ def test_skips_are_counted_and_the_summary_refuses_to_overclaim():
     text = _text()
     assert "skipped=$((skipped + 1))" in text, "a skipped gate must be counted, not swallowed"
     assert "لم تُقَس" in text
-    assert "٢٦١" in text and "٨٦" in text, (
-        "the summary must state the measured coverage ratio, not imply completeness"
+    # **الخاصّيّة هي رفضُ الادّعاء، لا سلسلةٌ عدديّة بعينها.**
+    #
+    # كانت هذه الحالة تشترط ورودَ «٢٦١» و«٨٦» حرفيّاً في `preflight.sh`. والعددان
+    # لقطةٌ مؤرَّخة — أي أنّ الاختبار كان **يفرض بقاءَ لقطةٍ بائتةٍ في وثيقةٍ حيّة**،
+    # ويجعل تحديثَها انحداراً. وذاك المسمار هو الحارسُ الثالث الذي كان يُثبّت الأعداد
+    # المنقولة، بعد `CLAUDE.md` والـrunbook.
+    #
+    # فالمقيسُ الآن ما أرادته الحالةُ فعلاً: أن يُقرّ الملخّصُ بأنّ التغطية **جزئيّة**
+    # وأن يُحيل إلى مصدرٍ مولَّد بدل نقل رقمٍ يبيت. واللقطاتُ المؤرَّخة موضعُها
+    # `sahool-brain/reports/guard_surface_ledger.md` مقيَّدةً بـSHA وبصمةِ الكتالوج.
+    # ثلاثُ خصائصَ لا صياغة: **تصنيفٌ** + **مرجعان** + **منعُ اللقطة العدديّة**.
+    # وتثبيتُ جملةٍ كاملةٍ كان سيجعل هذه الحالةَ حارسَ صياغةٍ — أي نفسَ العطل بوجهٍ آخر.
+    assert "أقلّيّة" in text, "الملخّص يجب أن يُصنّف التغطية أقلّيّةً"
+    assert "GUARD_CATALOGUE" in text, "ويُحيل إلى المصدر المولَّد بدل نقل عددٍ يبيت"
+    assert "§٣.١٧" in text, "ويُسمّي القسم الذي يقيس النسبة"
+
+    # والثالثةُ هي التي كانت غائبةً حين أُصلِحت الحالة أوّلَ مرّة: بلاها يبقى الملفُّ
+    # قادراً على استعادة لقطةٍ عدديّةٍ **إلى جانب** التصنيف، فيمرّ الاختبارُ وقد عاد
+    # العطل. والمقيسُ **شكلُ اللقطة** (عددٌ ملاصقٌ لاسم المعدود) لا وجودُ الأرقام:
+    # `§٣.١٧` و`ci.yml:536` و«١٫٦ث» أرقامٌ مشروعة، وحظرُها كان سيجعل الحارسَ إزعاجاً.
+    snapshot = re.compile(
+        r"[٠-٩0-9]{2,}\s*(?:بوّابة|بوّابات|حارس|حارساً)|(?:يغطّي|تغطّي|منها)\s*[٠-٩0-9]{2,}"
+    )
+    found = snapshot.findall(text)
+    assert not found, (
+        f"لقطةٌ عدديّةٌ يدويّةٌ لعدد الحرّاس/التغطية عادت إلى وثيقةٍ حيّة: {found}. "
+        "المصدرُ المُلزِم هو GUARD_CATALOGUE المولَّد، واللقطاتُ المؤرَّخة موضعُها "
+        "sahool-brain/reports/guard_surface_ledger.md مقيَّدةً بـSHA وبصمة الكتالوج"
     )
     assert "ادفع بثقة" not in text
 
@@ -324,6 +350,229 @@ def test_the_locale_decoding_guard_runs_in_the_fast_tier_not_only_inside_the_sui
     assert "tests_v9/test_text_encoding_locale.py" in contract["required_tests"], (
         "حذفُ الحارس يجب أن يُسمّى فقدَ تغطية، لا أن يُقرَأ بوّابةً مارّة"
     )
+
+
+def test_the_duplicate_gap_row_guard_runs_in_the_fast_tier():
+    """DUPLICATE-GAP-ROW-GUARD-ABSENT-FROM-PREFLIGHT-01 — الموضعُ، لا الوجود.
+
+    صفّان بالمعرّف `SOIL-MOISTURE-UNIT-IDENTITY-01` عاشا في `gaps/registry.md` عبر
+    التزامين (`e5b7f39e` ثمّ `a7d64adf`) ومرّ `--fast` أخضرَ عليهما، بينما
+    `brain_duplicate_gap_identity_guard.py` **يراهما**. كان موصولاً في
+    `no-report-only-change.yml` وحدَه — فالسؤالُ لم يُطرَح محلّيّاً قطّ، والتقطه
+    المالكُ بالعين. نفسُ صنف ٠ج و٢د و٢و: حارسٌ قائمٌ لا يُستدعى في الطبقة التي
+    يُشغّلها المطوّر قبل الدفع.
+
+    الإرساءُ على **الاستدعاء** لا على المسار: المسارُ يرد في `require_file` وفي
+    التعليق وفي العقد، فالإرساءُ عليه قد يُطابِق نثراً فوق الخروج المبكر.
+    """
+    text = _text()
+    invocation = "python3 scripts/ci/brain_duplicate_gap_identity_guard.py"
+    assert invocation in text, (
+        "حارسٌ يحجب على PR ولا يُستدعى محلّيّاً يترك الشجرةَ تُدفَع على أخضرِ أداةٍ لم تسأله"
+    )
+    assert text.count(invocation) == 1, "استدعاءان يجعلان فحصَ الموضع يقرأ أوّلَهما — اختر واحداً"
+    fast_exit_at = text.index('if [ "$TIER" = fast ]')
+    assert text.index(invocation) < fast_exit_at, (
+        "يجب أن يعمل في `--fast`: الطبقةُ التي يُشغّلها المطوّر قبل الدفع"
+    )
+    assert (
+        text.index("require_file scripts/ci/brain_duplicate_gap_identity_guard.py") < fast_exit_at
+    ), "غيابُ الحارس يجب أن يُسمّى تقلّصَ تغطية داخل الطبقة التي تُشغّله"
+    contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
+    assert "scripts/ci/brain_duplicate_gap_identity_guard.py" in contract["required_scripts"], (
+        "حذفُ الحارس يجب أن يُسمّى فقدَ تغطية، لا أن يُقرَأ بوّابةً مارّة"
+    )
+
+
+def _shipped_function(name: str) -> str:
+    """يستخرج تعريفَ دالّةٍ من `preflight.sh` **المشحون** — لا نسخةً منه في الاختبار."""
+    text = _text()
+    start = text.index(f"\n{name}() {{") + 1
+    end = text.index("\n}\n", start) + 3
+    return text[start:end]
+
+
+def _shipped_invocation(path: str) -> str:
+    """أسطرُ التنفيذ التي تذكر المسار (مع سطرِ الاستمرار الذي يسبقها) — لا التعليقات."""
+    lines = _text().splitlines()
+    picked: list[str] = []
+    for i, line in enumerate(lines):
+        if line.lstrip().startswith("#") or path not in line:
+            continue
+        if i > 0 and lines[i - 1].rstrip().endswith("\\") and lines[i - 1] not in picked:
+            picked.append(lines[i - 1])
+        picked.append(line)
+    assert picked, f"لا سطرَ تنفيذٍ يذكر {path}"
+    return "\n".join(picked) + "\n"
+
+
+_DUP_GUARD = "scripts/ci/brain_duplicate_gap_identity_guard.py"
+_CLEAN_REGISTRY = "| GAP-AA-01 | حالة |\n| GAP-BB-01 | حالة |\n"
+_DUPLICATE_REGISTRY = (
+    "| GAP-AA-01 | حالة أولى |\n| GAP-BB-01 | فاصل |\n| GAP-AA-01 | حالة ثانية |\n"
+)
+
+
+def _run_shipped_step(tmp_path: Path, registry: str, *, with_guard: bool) -> tuple[int, int, str]:
+    """يُشغّل `require_file`/`run` **المشحونتين** وسطرَ استدعاء ٦د **المشحون** في جذرٍ مؤقّت.
+
+    الجذرُ يحمل نسخةً من الحارس الحقيقيّ (يحلّ جذرَه من موضع ملفّه) والملفّاتِ
+    الأربعةَ التي يفحصها. المقيسُ عدّادا `failures`/`skipped` كما يقرؤهما الملخّص.
+    """
+    import shutil
+    import subprocess as sp
+
+    root = tmp_path / "root"
+    (root / "scripts/ci").mkdir(parents=True)
+    (root / "sahool-brain/gaps").mkdir(parents=True)
+    (root / "sahool-brain/decisions").mkdir(parents=True)
+    if with_guard:
+        shutil.copy(ROOT / _DUP_GUARD, root / _DUP_GUARD)
+    (root / "sahool-brain/gaps/registry.md").write_text(registry, encoding="utf-8")
+    for other in ("sahool-brain/hot.md", "sahool-brain/log.md", "sahool-brain/decisions/ledger.md"):
+        (root / other).write_text("# لا عناوين\n", encoding="utf-8")
+    script = (
+        "set -u\nfailures=0\nskipped=0\n"
+        + _shipped_function("require_file")
+        + _shipped_function("run")
+        + _shipped_invocation(_DUP_GUARD)
+        + 'printf \'COUNTS failures=%s skipped=%s\\n\' "$failures" "$skipped"\n'
+    )
+    python_dir = str(Path(sys.executable).parent)
+    proc = sp.run(
+        ["bash", "-c", script],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env={"PATH": f"{python_dir}:/usr/bin:/bin", "PYTHONIOENCODING": "utf-8", "HOME": str(root)},
+        timeout=120,
+    )
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    counts = re.search(r"COUNTS failures=(\d+) skipped=(\d+)", proc.stdout)
+    assert counts, proc.stdout + proc.stderr
+    return int(counts.group(1)), int(counts.group(2)), proc.stdout
+
+
+def test_a_duplicate_registry_row_reddens_the_fast_tier(tmp_path):
+    """شرطُ الإغلاق الأوّل: الشكلُ المقيس (صفّان غيرُ متلاصقين) يرفع `failures`."""
+    failures, skipped, out = _run_shipped_step(tmp_path, _DUPLICATE_REGISTRY, with_guard=True)
+    assert failures == 1, out
+    assert skipped == 0, out
+    assert "duplicate gap ROW" in out, "سببُ الحمرة يجب أن يظهر في مخرج الخطوة لا في ملفّ جانبيّ"
+
+
+def test_a_missing_duplicate_guard_is_a_coverage_loss_not_a_skip(tmp_path):
+    """شرطُ الإغلاق الثاني: حذفُ السكربت يُحسَب فشلاً مُسمًّى، لا تخطّياً ولا خطأَ تشغيل."""
+    failures, skipped, out = _run_shipped_step(tmp_path, _DUPLICATE_REGISTRY, with_guard=False)
+    assert failures == 1, out
+    assert skipped == 0, "التخطّي يُقرأ «لم يُقَس»؛ الغيابُ تقلّصُ تغطيةٍ ويجب أن يُحمِّر"
+    assert "سكربت بوّابة مفقود" in out, out
+    assert "✗ فشل (" not in out, "فشلُ تشغيلٍ عامّ يُقرأ خطأً برمجيّاً لا تقلّصاً — الغيابُ يُسمّى باسمه"
+
+
+def test_a_clean_registry_passes_the_shipped_step(tmp_path):
+    """شرطُ الإغلاق الثالث: الحالةُ النظيفة تمرّ — وإلّا كان الحارس يُعطَّل في أوّل يوم."""
+    failures, skipped, out = _run_shipped_step(tmp_path, _CLEAN_REGISTRY, with_guard=True)
+    assert (failures, skipped) == (0, 0), out
+    assert "✓" in out
+
+
+def test_the_platform_module_budget_ratchet_runs_in_the_fast_tier():
+    """PREFLIGHT-BLIND-TO-PLATFORM-SERVICE-TESTS-01 — الموضعُ لا الوجود، للمرّة الخامسة.
+
+    وظيفةُ *Platform Unit Tests* المطلوبة تُشغّل `services/sahool-platform/tests`، ولم تكن
+    أيُّ طبقةٍ هنا تُشغّله. مقيس على #985: `--fast` والافتراضيّةُ 0/0 محلّيّاً وCI أحمر
+    لأنّ `api/request_dates.py` رفع عددَ وحدات المنصّة من 680 إلى 681 — راتشِتٌ يعدّ
+    ملفّاتٍ بلا استيراد، أقلُّ من ثانية، وكان محبوساً في جناحٍ لا يُسأل. نفسُ صنف ٢د/٢و.
+    الإرساءُ على الاستدعاء لا المسار (المسارُ يرد في العقد وفي التعليق).
+    """
+    text = _text()
+    invocation = (
+        "python3 -m pytest -q -p no:cacheprovider "
+        "services/sahool-platform/tests/test_p0_platform_module_growth_guard.py"
+    )
+    assert invocation in text, "راتشِتٌ يحجب في CI ولا يُسأل محلّيّاً يترك الشجرةَ تُدفَع على أخضرٍ لم يقسه"
+    assert text.count(invocation) == 1, "استدعاءان يجعلان فحصَ الموضع يقرأ أوّلَهما — اختر واحداً"
+    assert text.index(invocation) < text.index('if [ "$TIER" = fast ]'), (
+        "يجب أن يعمل في `--fast`: الطبقةُ التي يُشغّلها المطوّر قبل الدفع"
+    )
+    contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
+    assert (
+        "services/sahool-platform/tests/test_p0_platform_module_growth_guard.py"
+        in contract["required_tests"]
+    ), "حذفُ الراتشِت يجب أن يُسمّى فقدَ تغطية، لا أن يُقرَأ بوّابةً مارّة"
+
+
+def test_the_platform_suite_runs_in_ci_form_in_the_default_tier():
+    """الجناحُ كاملاً يُشغَّل كما تُشغّله CI (`services/sahool-platform` + `PYTHONPATH=.`)
+    في الطبقة الافتراضيّة — بعد الخروج المبكر لأنّ كلفتَه في CI ~٩٠ ث لا تُناسب `--fast`."""
+    text = _text()
+    executed = [
+        line
+        for line in text.splitlines()
+        if "cd services/sahool-platform && PYTHONPATH=. python3 -m pytest" in line
+    ]
+    assert len(executed) == 1, f"استدعاءٌ منفَّذٌ واحدٌ للجناح — وُجِد {len(executed)}: {executed}"
+    assert text.index(executed[0]) > text.index('if [ "$TIER" = fast ]'), (
+        "الجناحُ الكامل قرارُ كلفةٍ يخصّ الطبقةَ الافتراضيّة لا السريعة"
+    )
+
+
+def _extract_block(marker: str) -> str:
+    """يستخرج كتلة heredoc مشحونة من preflight.sh بعلامتها — لا نسخةً منها."""
+    text = _text()
+    start_at = text.index(f"<<'{marker}'")
+    start = text.index("\n", start_at) + 1
+    end = text.index(f"\n{marker}", start)
+    return text[start:end]
+
+
+def _run_pin_block(
+    tmp_path: Path, pin: str | None, *, write_requirements: bool = True
+) -> subprocess.CompletedProcess[str]:
+    (tmp_path / "services/sahool-platform/api").mkdir(parents=True)
+    if write_requirements:
+        requirements = ["httpx>=0.28", "pydantic==2.13.4"]
+        if pin is not None:
+            requirements.insert(1, f"fastapi=={pin}")
+        (tmp_path / "services/sahool-platform/api/requirements.txt").write_text(
+            "\n".join(requirements) + "\n", encoding="utf-8"
+        )
+    return subprocess.run(
+        [sys.executable, "-"],
+        input=_extract_block("PINPY"),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        cwd=tmp_path,
+        timeout=120,
+    )
+
+
+def test_the_platform_suite_is_skipped_loudly_when_fastapi_differs_from_the_pin(tmp_path):
+    """**الشرطُ مقيسٌ لا احتياط:** FastAPI 0.141 يُدرِج الراوترات كسولةً (`_IncludedRouter`)
+    فيصير `app.routes` معتماً و٣٢ اختبارَ «مسارٌ مُسجَّل» تحمرّ لسببٍ بيئيّ، بينما CI يثبّت
+    إصدارَ `api/requirements.txt`. الكتلةُ المشحونة تُشغَّل على متطلّباتٍ مُختلَقة: تطابقٌ ⇒ 0،
+    اختلافٌ ⇒ غيرُ صفر — فيُعَدّ الجناحُ «لم يُقَس» بدل حمرةٍ تُقرأ شيفريّة."""
+    import fastapi
+
+    assert _run_pin_block(tmp_path / "match", fastapi.__version__).returncode == 0
+    mismatch = _run_pin_block(tmp_path / "mismatch", "0.0.1")
+    assert mismatch.returncode != 0, "إصدارٌ مختلفٌ يجب أن يُخرِج الجناحَ إلى التخطّي المُعلَن لا أن يُشغّله"
+    assert "إصدارُ FastAPI المثبَّت" in mismatch.stderr
+    text = _text()
+    skip_at = text.index('echo "   ⊘ متخطّاة: ${pin_check_reason')
+    assert "skipped=$((skipped + 1))" in text[skip_at : skip_at + 400], (
+        "التخطّي يجب أن يُعَدّ في عدّاد المتخطّاة لا أن يُبتلَع"
+    )
+
+
+def test_the_platform_suite_skip_reason_names_non_version_pin_failures(tmp_path):
+    missing_requirements = _run_pin_block(tmp_path / "missing-reqs", None, write_requirements=False)
+    assert missing_requirements.returncode != 0
+    assert "تعذّرت قراءة" in missing_requirements.stderr
+    assert "إصدارُ FastAPI المثبَّت" not in missing_requirements.stderr
 
 
 def test_the_commit_claim_step_says_it_reads_committed_messages_only():

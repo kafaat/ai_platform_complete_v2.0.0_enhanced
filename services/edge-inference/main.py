@@ -11,6 +11,7 @@ import time
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 
+import model_artifact_gate as artifact_gate
 from fastapi import FastAPI, File, Form, Header, HTTPException, Response, UploadFile
 from models.errors import ModelNotProvisioned
 from models.pest_detector import EdgePestDetector
@@ -87,23 +88,42 @@ def _model_path(env_name: str, default_name: str) -> str:
     return os.getenv(env_name, f"{MODEL_CACHE_DIR}/{default_name}")
 
 
+#: اسمُ الملفّ ⇐ (متغيّرُ المسار · متغيّرُ البصمة المعتمدة). المصدرُ الواحد للحكم.
+_MODEL_ENV = {
+    "pest_detector_int8.onnx": ("PEST_MODEL_PATH", "PEST_MODEL_SHA256"),
+    "yield_estimator_int8.onnx": ("YIELD_MODEL_PATH", "YIELD_MODEL_SHA256"),
+}
+
+
 def _model_capability(env_name: str, default_name: str) -> dict[str, object]:
-    path = _model_path(env_name, default_name)
-    exists = os.path.exists(path)
-    runtime_available = importlib.util.find_spec("onnxruntime") is not None
-    active = bool(exists and runtime_available)
-    reason = None
-    if not exists:
-        reason = "model_file_missing"
-    elif not runtime_available:
-        reason = "onnxruntime_missing"
-    return {
-        "active": active,
-        "model_path": path,
-        "model_file_present": exists,
-        "onnxruntime_available": runtime_available,
-        "reason": reason,
-    }
+    """EDGE-MODEL-ARTIFACT-INTEGRITY-01: الاسمُ لا يُفعِّل؛ البصمةُ المطابقة تُفعِّل."""
+    _, sha_env = _MODEL_ENV[default_name]
+    return artifact_gate.model_capability(
+        path=_model_path(env_name, default_name),
+        sha_env_name=sha_env,
+        runtime_available=importlib.util.find_spec("onnxruntime") is not None,
+    )
+
+
+def _require_approved_model(default_name: str) -> None:
+    """الاستدلالُ نفسُه خلف البوّابة — لا `/capabilities` وحدَها.
+
+    بدونها كان ملفٌّ بالاسم المتوقَّع **يُستدلّ به** ولو أعلنت القدرةُ `inactive`:
+    الكاشفُ يحمّل بالمسار لا بالحكم. 503 بسببٍ مسمًّى، لا كشوفٌ من بايتاتٍ مجهولة.
+    """
+    path_env, _ = _MODEL_ENV[default_name]
+    capability = _model_capability(path_env, default_name)
+    if capability["active"]:
+        return
+    raise HTTPException(
+        503,
+        {
+            "reason": capability["reason"],
+            "model": default_name,
+            "detail_ar": "النموذجُ غيرُ معتمَدٍ على هذه الحافّة — بصمةُ المصنوعة لا تُطابِق أو "
+            "غائبة؛ لا استدلالَ ببايتاتٍ مجهولة الهويّة.",
+        },
+    )
 
 
 def capabilities_payload() -> dict[str, object]:
@@ -212,6 +232,7 @@ async def detect_pest(
         confidence_threshold=confidence_threshold,
         return_image=return_image,
     )
+    _require_approved_model("pest_detector_int8.onnx")
     detector = get_pest_detector()
     image_bytes = await file.read()
     # تحقّق من المدخل: حدّ الحجم (منع DoS) + نوع الملفّ
@@ -250,11 +271,7 @@ async def detect_pest(
         await sync.sync_result("pest_detection", result)
     else:
         sync.queue_result("pest_detection", result)
-    alert = None
-    high_conf = [d for d in detections if d["confidence"] > 0.8]
-    if high_conf:
-        top = high_conf[0]
-        alert = f"🐛 **تنبيه آفة عالية الثقة!**\n\nالآفة المكتشفة: **{top['arabic_name']}**\nالثقة: {top['confidence']:.0%}\nالموقع في الصورة: {top['bbox']}\n\nالإجراء المقترح: {top['recommended_action']}"
+    alert = artifact_gate.high_confidence_alert(detections)
     return {**result, "alert_ar": alert, "sync_status": "synced" if not OFFLINE_MODE else "queued"}
 
 
@@ -271,6 +288,7 @@ async def estimate_yield(
     request = YieldEstimationRequest(
         field_id=field_id, crop=crop, image_count=image_count, growth_stage=growth_stage
     )
+    _require_approved_model("yield_estimator_int8.onnx")
     estimator = get_yield_estimator()
     if len(files) < request.image_count:
         raise HTTPException(
@@ -292,6 +310,9 @@ async def estimate_yield(
         yield_prediction = estimator.predict_yield(
             features=all_features, crop=request.crop, growth_stage=request.growth_stage
         )
+    except ValueError as e:
+        # لا قياساتٌ بصريّة ⇒ مُدخَلٌ غيرُ صالح (422)، لا غلّةٌ صفر ولا 500 خام
+        raise HTTPException(422, "yield_features_invalid_or_empty") from e
     except ModelNotProvisioned as e:
         # لا نموذج ONNX حقيقيّ ⇒ 503 صريح بدل رقم غلّة مُختلَق
         raise HTTPException(
@@ -305,13 +326,8 @@ async def estimate_yield(
         "crop": request.crop,
         "growth_stage": request.growth_stage,
         "sample_images": len(all_features),
-        "estimated_yield_kg_ha": round(yield_prediction["yield_kg_ha"], 2),
-        "confidence_interval": {
-            "lower": round(yield_prediction["yield_kg_ha"] * 0.85, 2),
-            "upper": round(yield_prediction["yield_kg_ha"] * 1.15, 2),
-        },
-        "biomass_proxy": round(yield_prediction.get("biomass_proxy", 0), 2),
-        "plant_count_estimate": int(yield_prediction.get("plant_count", 0)),
+        # لا ±15٪ مُصطنَعة — الفاصلُ يُنشَر إن أنتجه النموذج، وإلّا None بقيدٍ مسمًّى
+        **artifact_gate.shape_yield_result(yield_prediction),
         "inference_time_ms": round(inference_time_ms, 2),
         "device": DEVICE,
         "timestamp": datetime.now(UTC).isoformat(),

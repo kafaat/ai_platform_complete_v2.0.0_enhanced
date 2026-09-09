@@ -146,7 +146,7 @@ def test_row_to_pin_handles_string_created_at(scouting_mod):
 
 async def test_list_pins_db_off_returns_empty_with_reason(scouting_mod, monkeypatch):
     """القاعدة غير مفعّلة ⇒ قائمة فارغة + سبب (لا اختراع مشاهدات)."""
-    monkeypatch.setattr(scouting_mod, "_DB_POOL", None, raising=True)
+    monkeypatch.setattr(scouting_mod.api_main, "_DB_POOL", None, raising=True)
     out = await scouting_mod.list_scouting_pins(field_id="fld-1", user=_FakeUser())
     assert out["pins"] == []
     assert out["total"] == 0
@@ -156,7 +156,7 @@ async def test_list_pins_db_off_returns_empty_with_reason(scouting_mod, monkeypa
 async def test_list_pins_reads_filtered_ordered(scouting_mod, monkeypatch):
     """يُرشِّح بـfield_id ويُرتّب الأحدث أوّلاً ويُحوّل الصفوف — SQL بارامتريّ."""
     conn = _FakeConn(rows=[_sample_row()])
-    monkeypatch.setattr(scouting_mod, "_DB_POOL", object(), raising=True)
+    monkeypatch.setattr(scouting_mod.api_main, "_DB_POOL", object(), raising=True)
     monkeypatch.setattr(
         scouting_mod, "tenant_connection", lambda user: _FakeTenantConn(conn), raising=True
     )
@@ -184,7 +184,7 @@ async def test_list_pins_db_error_raises_503(scouting_mod, monkeypatch):
         async def fetch(self, *a, **k):  # noqa: ANN001
             raise RuntimeError("table missing")
 
-    monkeypatch.setattr(scouting_mod, "_DB_POOL", object(), raising=True)
+    monkeypatch.setattr(scouting_mod.api_main, "_DB_POOL", object(), raising=True)
     monkeypatch.setattr(
         scouting_mod, "tenant_connection", lambda user: _FakeTenantConn(_BoomConn()), raising=True
     )
@@ -200,7 +200,7 @@ async def test_persist_pin_db_off_returns_false(fields_mod, monkeypatch):
     """القاعدة غير مفعّلة ⇒ False (لا استثناء — يبقى المسار offline-first سليماً)."""
     from api.scouting_pins import make_pin
 
-    monkeypatch.setattr(fields_mod, "_DB_POOL", None, raising=True)
+    monkeypatch.setattr(fields_mod.api_main, "_DB_POOL", None, raising=True)
     pin = make_pin("pin-x", "fld-1", 16.0, 45.0, "pest")
     ok = await fields_mod._persist_scouting_pin(_FakeUser(), pin)
     assert ok is False
@@ -211,7 +211,7 @@ async def test_persist_pin_inserts_parameterized(fields_mod, monkeypatch):
     from api.scouting_pins import make_pin
 
     conn = _FakeConn()
-    monkeypatch.setattr(fields_mod, "_DB_POOL", object(), raising=True)
+    monkeypatch.setattr(fields_mod.api_main, "_DB_POOL", object(), raising=True)
     monkeypatch.setattr(
         fields_mod, "tenant_connection", lambda user: _FakeTenantConn(conn), raising=True
     )
@@ -236,7 +236,7 @@ async def test_persist_pin_failure_best_effort(fields_mod, monkeypatch):
         async def execute(self, *a, **k):  # noqa: ANN001
             raise RuntimeError("table missing")
 
-    monkeypatch.setattr(fields_mod, "_DB_POOL", object(), raising=True)
+    monkeypatch.setattr(fields_mod.api_main, "_DB_POOL", object(), raising=True)
     monkeypatch.setattr(
         fields_mod, "tenant_connection", lambda user: _FakeTenantConn(_BoomConn()), raising=True
     )

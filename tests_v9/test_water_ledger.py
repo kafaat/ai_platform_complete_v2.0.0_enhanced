@@ -224,7 +224,7 @@ def wl_mod():
 
 async def test_list_db_off_returns_empty_with_reason(wl_mod, monkeypatch):
     """القاعدة غير مفعّلة ⇒ قائمة فارغة + سبب (لا اختراع قيود)."""
-    monkeypatch.setattr(wl_mod, "_DB_POOL", None, raising=True)
+    monkeypatch.setattr(wl_mod.api_main, "_DB_POOL", None, raising=True)
     out = await wl_mod.list_water_ledger(
         field_id="fld-1", date_from=None, date_to=None, user=_FakeUser()
     )
@@ -236,7 +236,7 @@ async def test_list_db_off_returns_empty_with_reason(wl_mod, monkeypatch):
 async def test_list_reads_filtered_ordered_parameterized(wl_mod, monkeypatch):
     """يُرشِّح بـfield_id + مدى تاريخ، يُرتّب تصاعديّاً، SQL بارامتريّ (لا حقن)."""
     conn = _FakeConn(rows=[_sample_row()])
-    monkeypatch.setattr(wl_mod, "_DB_POOL", object(), raising=True)
+    monkeypatch.setattr(wl_mod.api_main, "_DB_POOL", object(), raising=True)
     monkeypatch.setattr(
         wl_mod, "tenant_connection", lambda user: _FakeTenantConn(conn), raising=True
     )
@@ -261,7 +261,7 @@ async def test_list_rejects_bad_date_range(wl_mod, monkeypatch):
     """تاريخ مدى غير صالح ⇒ 422 (لا 500)."""
     from fastapi import HTTPException
 
-    monkeypatch.setattr(wl_mod, "_DB_POOL", object(), raising=True)
+    monkeypatch.setattr(wl_mod.api_main, "_DB_POOL", object(), raising=True)
     with pytest.raises(HTTPException) as ei:
         await wl_mod.list_water_ledger(
             field_id="fld-1", date_from="bad", date_to=None, user=_FakeUser()
@@ -280,7 +280,7 @@ async def test_list_db_error_raises_503(wl_mod, monkeypatch):
         async def fetch(self, *a, **k):  # noqa: ANN001
             raise RuntimeError("table missing")
 
-    monkeypatch.setattr(wl_mod, "_DB_POOL", object(), raising=True)
+    monkeypatch.setattr(wl_mod.api_main, "_DB_POOL", object(), raising=True)
     monkeypatch.setattr(
         wl_mod, "tenant_connection", lambda user: _FakeTenantConn(_BoomConn()), raising=True
     )
@@ -299,7 +299,7 @@ async def test_upsert_db_off_returns_503(wl_mod, monkeypatch):
     from fastapi import HTTPException
 
     req = wl_mod.WaterLedgerUpsertRequest(ledger_date="2026-06-22", et0_mm=5.4)
-    monkeypatch.setattr(wl_mod, "_DB_POOL", None, raising=True)
+    monkeypatch.setattr(wl_mod.api_main, "_DB_POOL", None, raising=True)
     with pytest.raises(HTTPException) as ei:
         await wl_mod.upsert_water_ledger(req=req, field_id="fld-1", user=_FakeUser())
     assert ei.value.status_code == 503
@@ -310,7 +310,7 @@ async def test_upsert_invalid_date_returns_422(wl_mod, monkeypatch):
     from fastapi import HTTPException
 
     req = wl_mod.WaterLedgerUpsertRequest(ledger_date="not-a-date")
-    monkeypatch.setattr(wl_mod, "_DB_POOL", object(), raising=True)
+    monkeypatch.setattr(wl_mod.api_main, "_DB_POOL", object(), raising=True)
     with pytest.raises(HTTPException) as ei:
         await wl_mod.upsert_water_ledger(req=req, field_id="fld-1", user=_FakeUser())
     assert ei.value.status_code == 422
@@ -319,7 +319,7 @@ async def test_upsert_invalid_date_returns_422(wl_mod, monkeypatch):
 async def test_upsert_idempotent_parameterized(wl_mod, monkeypatch):
     """نجاح الإدامة: INSERT بارامتريّ على water_ledger مع ON CONFLICT DO UPDATE."""
     conn = _FakeConn()
-    monkeypatch.setattr(wl_mod, "_DB_POOL", object(), raising=True)
+    monkeypatch.setattr(wl_mod.api_main, "_DB_POOL", object(), raising=True)
     monkeypatch.setattr(
         wl_mod, "tenant_connection", lambda user: _FakeTenantConn(conn), raising=True
     )
@@ -350,7 +350,7 @@ async def test_upsert_db_error_raises_503(wl_mod, monkeypatch):
         async def execute(self, *a, **k):  # noqa: ANN001
             raise RuntimeError("table missing")
 
-    monkeypatch.setattr(wl_mod, "_DB_POOL", object(), raising=True)
+    monkeypatch.setattr(wl_mod.api_main, "_DB_POOL", object(), raising=True)
     monkeypatch.setattr(
         wl_mod, "tenant_connection", lambda user: _FakeTenantConn(_BoomConn()), raising=True
     )

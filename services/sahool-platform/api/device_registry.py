@@ -48,6 +48,10 @@ class DeviceType:
     telemetry_fields: tuple[str, ...]
     commands: tuple[str, ...] = ()
     description_ar: str = ""
+    #: إيقاعُ الإبلاغ المتوقَّع (ثوانٍ) وسقفُ عمر القراءة المشتقُّ منه — **إعلانٌ لا قياس**:
+    #: لا حقلَ إيقاعٍ في المخطّط اليوم؛ الطزاجةُ تُربَط بإعلانٍ مسمًّى لا برقمٍ سحريّ في المستهلك.
+    expected_report_interval_s: int | None = None
+    max_reading_age_s: int | None = None
 
     def as_dict(self) -> dict:
         """تشكيل JSON لطبقة الـAPI (الصفوف tuple تُسلسَل قوائمَ)."""
@@ -59,6 +63,8 @@ class DeviceType:
             "telemetry_fields": list(self.telemetry_fields),
             "commands": list(self.commands),
             "description_ar": self.description_ar,
+            "expected_report_interval_s": self.expected_report_interval_s,
+            "max_reading_age_s": self.max_reading_age_s,
         }
 
 
@@ -75,9 +81,13 @@ _REGISTRY: dict[str, DeviceType] = {
         telemetry_fields=("soil_moisture",),
         commands=(),
         description_ar=(
-            "يقيس رطوبة التربة (٪ من السعة المتاحة) ويبتلعها كـtelemetry "
-            "(sensor_type='soil_moisture'). يغذّي توصية الريّ وقاعدة low_moisture."
+            "يقيس رطوبة التربة ويبتلعها شاهداً قانونيّاً (property='soil_moisture'). "
+            "وحدةُ القراءة كما يُعلنها المصدر: vwc_pct (حجميّة) أو available_pct (ماء متاح)؛ "
+            "«%» وحدَها غيرُ مُعلَنة. يغذّي توصية الريّ وقاعدة low_moisture ووصلة توأم المياه."
         ),
+        # إعلانٌ: إبلاغٌ كلّ ساعة، وأربعةُ أضعافه سقفُ الطزاجة (٤ ساعات) — يُراجَع بالقياس.
+        expected_report_interval_s=3600,
+        max_reading_age_s=4 * 3600,
     ),
     # محطّة طقس/مناخ — iot_devices.type='weather_station' (v24 CHECK).
     # حقول القياس: air_temp (تعليق v24 الصريح) + air_humidity (تعليق v20_automation).

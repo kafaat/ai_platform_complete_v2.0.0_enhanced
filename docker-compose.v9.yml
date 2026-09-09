@@ -319,6 +319,12 @@ services:
       start_period: 30s
   sahool-nats:
     image: nats:2-alpine
+    # NATS-BROKER-HAS-NO-AUTHENTICATION-…-01: الوسيطُ كان مفتوحاً لكلّ من بلغ
+    # `sahool-internal`. الاعتمادُ يُورَث من البيئة ويستوفيه `nats.conf` بـ`$NATS_USER`
+    # و`$NATS_PASSWORD`؛ و`:?` تمنع سرّاً افتراضيّاً منشوراً وتُفشِل الإقلاعَ مغلقاً.
+    environment:
+      NATS_USER: ${NATS_USER:?NATS_USER مطلوب — الوسيط يرفض الاتّصال بلا اعتماد}
+      NATS_PASSWORD: ${NATS_PASSWORD:?NATS_PASSWORD مطلوب — لا سرَّ افتراضيّ للوسيط}
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
@@ -550,6 +556,7 @@ services:
       # متغيّرات sahool-platform (JWT_PUBLIC_KEY/SAHOOL_ALLOW_HS256_IN_PROD) — عقد مشترَك متماثل.
       JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY:-}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
+      SAHOOL_ENV: ${SAHOOL_ENV:-development}
       SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
       # كوكي مصادقة البلاطات HttpOnly `sahool_at` (تُرسَل تلقائيّاً مع <img> فتُغني عن JWT في
       # الرابط). Secure=1 افتراضاً (صحيح لإنتاج HTTPS). ⚠️ نشرٌ عبر HTTP عاديّ (محلّيّ/staging)
@@ -565,6 +572,8 @@ services:
       # docker-compose.dev.yml (ENFORCE_SENSITIVE_MFA=false)؛ لا تجعل false افتراضاً.
       ENFORCE_SENSITIVE_MFA: ${ENFORCE_SENSITIVE_MFA:-true}
       REQUIRE_MFA_ROLES: ${REQUIRE_MFA_ROLES:-admin}
+      MFA_SECRET_ENCRYPTION_KEY: ${MFA_SECRET_ENCRYPTION_KEY:?MFA_SECRET_ENCRYPTION_KEY required}
+      MFA_SECRET_DECRYPTION_KEYS: ${MFA_SECRET_DECRYPTION_KEYS:-}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER:-}
@@ -614,6 +623,8 @@ services:
         required}@sahool-postgres:5432/sahool}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
+      FEATURE_NATS_PUBLISHERS: ${FEATURE_NATS_PUBLISHERS:-false}
+      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_SERVICE_URL: ${RASTER_SERVICE_URL:-http://sahool-raster-service:8001}
@@ -697,7 +708,7 @@ services:
         required}@sahool-postgres:5432/sahool}
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
-      NATS_URL: nats://sahool-nats:4222
+      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
       WEATHER_HORIZON_HOURS: ${WEATHER_HORIZON_HOURS:-168}
       METNO_WIND_FALLBACK_ENABLED: ${METNO_WIND_FALLBACK_ENABLED:-1}
       METNO_USER_AGENT: ${METNO_USER_AGENT:-SAHOOL-AgriPlatform/1.0 (https://sahool.ye;
@@ -770,14 +781,17 @@ services:
     - 127.0.0.1:8096:8000
     environment:
       DATABASE_URL: ${DATABASE_URL}
-      MCP_SENTINEL_HUB_URL: http://sahool-sentinel-hub-mcp:8000/mcp/v1
-      MCP_WEATHER_URL: http://sahool-weather-mcp:8000/mcp/v1
-      MCP_WOFOST_URL: http://sahool-wofost-mcp:8000/mcp/v1
-      MCP_MARKET_URL: http://sahool-market-mcp:8000/mcp/v1
+      MCP_SENTINEL_HUB_URL: http://sahool-sentinel-hub-mcp:8000
+      MCP_WEATHER_URL: http://sahool-weather-mcp:8000
+      MCP_WOFOST_URL: http://sahool-wofost-mcp:8000
+      MCP_MARKET_URL: http://sahool-market-mcp:8000
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       JWT_SECRET: ${JWT_SECRET}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
+      SAHOOL_ENV: ${SAHOOL_ENV:-development}
+      SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
     depends_on:
       sahool-auth:
         condition: service_healthy
@@ -846,6 +860,10 @@ services:
       SH_CLIENT_ID: ${SH_CLIENT_ID:?SH_CLIENT_ID required}
       SH_CLIENT_SECRET: ${SH_CLIENT_SECRET:?SH_CLIENT_SECRET required}
       JWT_SECRET: ${JWT_SECRET}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
+      SAHOOL_ENV: ${SAHOOL_ENV:-development}
+      SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
+      MCP_SERVER_MODULE: sentinel_hub_server
     networks:
     - sahool-internal
     healthcheck:
@@ -869,6 +887,10 @@ services:
     logging: *id001
     environment:
       JWT_SECRET: ${JWT_SECRET}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
+      SAHOOL_ENV: ${SAHOOL_ENV:-development}
+      SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
+      MCP_SERVER_MODULE: weather_server
       WEATHER_SERVICE_URL: ${WEATHER_SERVICE_URL:-http://sahool-weather-service:8000}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
     networks:
@@ -894,6 +916,10 @@ services:
     logging: *id001
     environment:
       JWT_SECRET: ${JWT_SECRET}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
+      SAHOOL_ENV: ${SAHOOL_ENV:-development}
+      SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
+      MCP_SERVER_MODULE: wofost_server
     networks:
     - sahool-internal
     healthcheck:
@@ -918,6 +944,10 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
+      SAHOOL_ENV: ${SAHOOL_ENV:-development}
+      SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
+      MCP_SERVER_MODULE: market_server
       ERP_BRIDGE_URL: http://sahool-erp-bridge:8126
       ODOO_BRIDGE_URL: http://sahool-erp-bridge:8126
       SAHOOL_API_URL: http://sahool-auth:8000
@@ -948,7 +978,7 @@ services:
     environment:
       JWT_SECRET: ${JWT_SECRET}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
-      NATS_URL: nats://sahool-nats:4222
+      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_SERVICE_URL: http://sahool-raster-service:8001
       INDICATORS_SERVICE_URL: http://sahool-indicators-service:8000
@@ -1424,7 +1454,7 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
-      NATS_URL: nats://sahool-nats:4222
+      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       WEATHER_REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/4
       WEATHER_OPEN_METEO_TIMEOUT_S: ${WEATHER_OPEN_METEO_TIMEOUT_S:-4}
@@ -1988,7 +2018,7 @@ services:
         required}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
-      NATS_URL: nats://sahool-nats:4222
+      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
       EDGE_INFERENCE_URL: http://sahool-edge:8100
       SUPERVISOR_AGENT_URL: http://sahool-supervisor-agent:8000
       SAHOOL_API_URL: http://sahool-auth:8000
@@ -2024,7 +2054,7 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
-      NATS_URL: nats://sahool-nats:4222
+      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
       SMTP_HOST: ${SMTP_HOST}
       SMTP_PORT: ${SMTP_PORT}
       SMTP_USER: ${SMTP_USER}
@@ -2209,7 +2239,7 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
-      NATS_URL: nats://sahool-nats:4222
+      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
@@ -2324,7 +2354,7 @@ services:
         required}@sahool-postgres:5432/sahool}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
-      NATS_URL: ${NATS_URL:-nats://sahool-nats:4222}
+      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
       PHASE_RUNTIME_PERSISTENCE_REQUIRED: ${PHASE_RUNTIME_PERSISTENCE_REQUIRED:-true}
       WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
       OUTBOX_MAX_ATTEMPTS: ${OUTBOX_MAX_ATTEMPTS:-5}
@@ -2398,7 +2428,7 @@ services:
     environment:
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
       PYTHONDONTWRITEBYTECODE: "1"
-      NATS_URL: ${NATS_URL:-nats://sahool-nats:4222}
+      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
       FEATURE_RESERVATION_DISPATCH_RELAY: ${FEATURE_RESERVATION_DISPATCH_RELAY:-0}
@@ -2430,7 +2460,7 @@ services:
         required}@sahool-postgres:5432/sahool}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
-      NATS_URL: ${NATS_URL:-nats://sahool-nats:4222}
+      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
       PHASE_RUNTIME_PERSISTENCE_REQUIRED: ${PHASE_RUNTIME_PERSISTENCE_REQUIRED:-true}
       WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
       OUTBOX_MAX_ATTEMPTS: ${OUTBOX_MAX_ATTEMPTS:-5}
@@ -2474,7 +2504,7 @@ services:
         required}@sahool-postgres:5432/sahool}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
-      NATS_URL: ${NATS_URL:-nats://sahool-nats:4222}
+      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
       PHASE_RUNTIME_PERSISTENCE_REQUIRED: ${PHASE_RUNTIME_PERSISTENCE_REQUIRED:-true}
       WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
       OUTBOX_MAX_ATTEMPTS: ${OUTBOX_MAX_ATTEMPTS:-5}
@@ -2577,7 +2607,7 @@ services:
         required}@sahool-postgres:5432/sahool}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
-      NATS_URL: ${NATS_URL:-nats://sahool-nats:4222}
+      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
       PHASE_RUNTIME_PERSISTENCE_REQUIRED: ${PHASE_RUNTIME_PERSISTENCE_REQUIRED:-true}
       WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
       OUTBOX_MAX_ATTEMPTS: ${OUTBOX_MAX_ATTEMPTS:-5}
@@ -2693,7 +2723,7 @@ services:
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
       PYTHONDONTWRITEBYTECODE: "1"
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD required}@sahool-postgres:5432/sahool}
-      NATS_URL: ${NATS_URL:-nats://sahool-nats:4222}
+      NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
       CANONICAL_LEARNING_DURABLE: ${CANONICAL_LEARNING_DURABLE:-canonical-execution-learning-v1}
     command:
     - python

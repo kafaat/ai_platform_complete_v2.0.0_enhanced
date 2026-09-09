@@ -18,12 +18,15 @@ FieldAggregate ولا استيرادات الاختبارات. الرموز ال
 
 from __future__ import annotations
 
+import json
 import logging
 from datetime import date
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import Response
 from pydantic import BaseModel, Field, field_validator
+
+from api import main as api_main
 
 # validate_field_geometry يُستورَد من مصدره مباشرةً (كان main يعيد تصديره، لكنه صار
 # يتيماً فيه بعد نقل _persist_field إلى هنا — تفكيك B1).
@@ -34,6 +37,7 @@ from api.field_geometry_save_guard import sanitize_boundary_metadata, validate_b
 # من هناك مباشرةً؛ معالِج الحفظ _persist_field يُعرَّف محليّاً أدناه (مستهلِكه الوحيد).
 from api.field_models import (
     _FIELD_DETAIL_SELECT,
+    _FIELD_QUALITY_SELECT,
     _MIN_FIELD_OVERLAP_M2,
     FieldCreateRequest,
     FieldDetail,
@@ -44,6 +48,7 @@ from api.field_models import (
     _row_to_field_detail,
     _row_to_field_summary,
     _significant_overlaps,
+    field_quality_grade,
 )
 
 # رموز صارت يتيمة في api.main بعد نقل المعالِجات — تُستورَد هنا من وحداتها الحقيقيّة
@@ -55,7 +60,6 @@ from api.gis_geometry_guard import geometry_metadata, guard_field_geometry
 # بقيّة التبعيّات/النماذج/المساعِدات المشتركة تبقى في api.main وتُستورَد من هناك.
 from api.main import (
     _ACTIVITY_TYPES,
-    _DB_POOL,
     _SOIL_TEST_SELECT,
     ActivityCreateRequest,
     ActivitySummary,
@@ -320,23 +324,28 @@ async def _insert_field_within_tx(
     # projection columns or a partially-applied migration must not turn a valid field
     # INSERT into 503.  The projection is recomputed by later jobs/events once the
     # schema is complete.
+    quality_state = None
     try:
         from api.field_state_projection import recompute_field_state
 
-        _fs = await recompute_field_state(conn, field_id)
-        if _fs["changed"]:
-            await _emit_domain_event(
-                conn,
-                user,
-                "FIELD_STATE_CHANGED",
-                "field",
-                field_id,
-                {
-                    "validity": _fs["state"]["validity"],
-                    "execution_mode": _fs["state"]["execution_mode"],
-                    "trigger": reason,
-                },
-            )
+        # tenant_connection already owns the transaction. A nested transaction is
+        # a SAVEPOINT: catching SQL errors alone would leave the INSERT aborted.
+        async with conn.transaction():
+            _fs = await recompute_field_state(conn, field_id)
+            if _fs["changed"]:
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    "FIELD_STATE_CHANGED",
+                    "field",
+                    field_id,
+                    {
+                        "validity": _fs["state"]["validity"],
+                        "execution_mode": _fs["state"]["execution_mode"],
+                        "trigger": reason,
+                    },
+                )
+        quality_state = _fs["state"]
     except Exception as fs_err:  # noqa: BLE001 — projection must not break field create
         logging.warning(
             "تخطّي إسقاط حالة الحقل بعد إنشاء %s — سيُعاد حسابه لاحقاً: %s",
@@ -351,7 +360,7 @@ async def _insert_field_within_tx(
         name_ar=name,
         crop=crop or "—",
         area_ha=area_ha,
-        quality_grade="PENDING_LAB",
+        quality_grade=field_quality_grade(quality_state),
         health_summary_ar="حقل جديد — بانتظار قياسات",
         soil_type=soil_type,
         manager=manager,
@@ -579,7 +588,7 @@ async def list_fields(user: UserSchema = Depends(get_current_user)):
             rows = await conn.fetch(
                 "SELECT field_id, farm_id, name, area_ha, crop, soil_type, manager, "
                 "field_code, description, water_source, ownership_type, country, region, "
-                "lat, lon, geometry "
+                f"lat, lon, geometry, {_FIELD_QUALITY_SELECT} "
                 "FROM fields WHERE tenant_id = $1::uuid ORDER BY name",
                 str(user.tenant_id),
             )
@@ -1631,8 +1640,19 @@ async def revert_field_geometry(
             if hrow is None:
                 raise HTTPException(status_code=404, detail="مراجعة الحدود غير موجودة لهذا الحقل")
             raw_geometry = hrow["geometry"]
+            if isinstance(raw_geometry, str):
+                try:
+                    raw_geometry = json.loads(raw_geometry)
+                except json.JSONDecodeError as exc:
+                    logging.getLogger(__name__).warning(
+                        "geometry revert rejected malformed stored JSON field=%s revision=%s",
+                        field_id,
+                        revision,
+                    )
+                    raise HTTPException(status_code=409, detail="stored_geometry_invalid") from exc
+            if not isinstance(raw_geometry, dict):
+                raise HTTPException(status_code=409, detail="stored_geometry_invalid")
             guarded = guard_field_geometry(raw_geometry)
-            import json as _json
 
             await conn.execute(
                 """
@@ -1644,7 +1664,7 @@ async def revert_field_geometry(
                     row_version = row_version + 1
                 WHERE field_id = $5 AND tenant_id = $6::uuid
                 """,
-                _json.dumps(guarded.geometry),
+                json.dumps(guarded.geometry),
                 round(guarded.area_ha, 2),
                 guarded.centroid[0],
                 guarded.centroid[1],
@@ -3767,7 +3787,7 @@ async def field_history(
     يُغذّي memory_adapter في حلقة القرار (Runtime Cohesion). صدق: عند تعطّل
     القاعدة يُرجِع events فارغة (لا تاريخ مخترَع) ويُعلن السبب.
     """
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         return {
             "field_id": field_id,
             "events": [],
@@ -3824,7 +3844,7 @@ async def field_unified_timeline(
     عبر ``tenant_connection`` (RLS — كلّ مستأجر أحداثه فقط). صدق: عند تعطّل القاعدة
     يُرجِع خطّاً فارغاً ويُعلن السبب (لا تاريخ مخترَع).
     """
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         return {
             "field_id": field_id,
             "events": [],
@@ -3920,7 +3940,7 @@ async def _persist_scouting_pin(user: UserSchema, pin) -> bool:
     القاعدة (لا استثناء يصعد — المسار offline-first يبقى سليماً). SQL بارامتريّ
     بالكامل (لا حقن). ``created_at`` يُمرَّر كنصّ ISO من النواة ويُحوَّل بـ``::timestamptz``.
     """
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         return False
     try:
         async with tenant_connection(user) as conn:

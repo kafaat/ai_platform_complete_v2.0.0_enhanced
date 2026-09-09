@@ -151,7 +151,7 @@
       "source_path": "services/local-ai-rag"
     },
     "mcp_servers": {
-      "authority_kind": "stateless_compute",
+      "authority_kind": "system_of_record",
       "component_kind": "service",
       "deployment_units": [
         "sahool-market-mcp",

@@ -3,9 +3,9 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `227641dde69f319566d03e47e1af359e5c545c01083ec0ba366c749eb56ddd3e`
+- fingerprint: `26eeafa1b604c36d3cccc93832d3ed4cf75ced4a77a77e69421be3b9f9c5210b`
 - components: **36** (backend: 32)
-- route rows: **1112** → unique method/path: **998**
+- route rows: **1113** → unique method/path: **998**
 - capabilities (derived, uncurated): **827**
 - cross-service duplicate method/paths: **12**
 - ownership conflicts (incl. TBD/alias): **0**
@@ -30,7 +30,7 @@
 | indicators-service | service | indicators | sahool-indicators-service | 0 | True |
 | knowledge-graph | service | knowledge | sahool-knowledge-graph | 0 | True |
 | local-ai-rag | service | knowledge | sahool-local-ai-rag | 0 | True |
-| mcp_servers | service | agents-mcp | sahool-market-mcp, sahool-sentinel-hub-mcp, sahool-weather-mcp, sahool-wofost-mcp | 0 | True |
+| mcp_servers | service | agents-mcp | sahool-market-mcp, sahool-sentinel-hub-mcp, sahool-weather-mcp, sahool-wofost-mcp | 6 | True |
 | mobile | mobile | user-interface | — | 0 | None |
 | model-registry-adapter | worker_adapter | decision-governance | sahool-model-lifecycle-adapter | 0 | True |
 | notification-agent | worker | notifications | sahool-notification-agent | 0 | None |
@@ -39,7 +39,7 @@
 | raster-service | service | remote-sensing-truth | sahool-raster-backfill-scan-worker, sahool-raster-cache-invalidation-worker, sahool-raster-service | 13 | True |
 | raster-tiler-service | service | remote-sensing-truth | — | 0 | True |
 | remote-sensing-workspace-bff | bff | remote-sensing-workspace | sahool-remote-sensing-workspace-bff | 0 | True |
-| sahool-platform | service | platform-core | sahool-actuator-dispatch-worker, sahool-canonical-execution-learning-worker, sahool-irrigation-reservation-lifecycle-worker, sahool-model-registry-worker, sahool-phase-runtime-outbox-worker, sahool-plugin-runtime-worker, sahool-reservation-dispatch-relay-worker, sahool-water-ledger-worker | 195 | True |
+| sahool-platform | service | platform-core | sahool-actuator-dispatch-worker, sahool-canonical-execution-learning-worker, sahool-irrigation-reservation-lifecycle-worker, sahool-model-registry-worker, sahool-phase-runtime-outbox-worker, sahool-plugin-runtime-worker, sahool-reservation-dispatch-relay-worker, sahool-water-ledger-worker | 196 | True |
 | sam2-inference | service | fields-boundary | sahool-sam2-inference | 0 | True |
 | scout-ingest-service | service | ground-ingest | sahool-scout-ingest, sahool-scout-ingest-projection | 11 | True |
 | soil-service | service | soil | sahool-soil-service | 32 | True |
@@ -55,8 +55,8 @@
 ## Architecture gates
 
 - ARCH-S1a component classification: `PASS`
-- ARCH-S2 dependency truth: `PASS` — edges **797**
-- S2 relations: CALLS=38, CONSUMES=1, EMITS=1, READS=408, ROUTES_TO=70, WRITES=279
+- ARCH-S2 dependency truth: `PASS` — edges **809**
+- S2 relations: CALLS=38, CONSUMES=1, EMITS=1, READS=417, ROUTES_TO=70, WRITES=282
 
 ## Governance gates (U3/U4)
 

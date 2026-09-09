@@ -58,6 +58,33 @@ def test_new_platform_owned_table_is_identity_blocked(tmp_path, monkeypatch):
     )
 
 
+def test_temporary_identity_exception_expiry_removes_its_exemption(tmp_path, monkeypatch):
+    root = _sandbox(tmp_path, monkeypatch)
+    ownership = root / "docs/architecture/db_ownership.yml"
+    ownership.write_text(
+        ownership.read_text(encoding="utf-8")
+        + "\n  s5_expiring_table:\n    owner: sahool-platform\n    writers: [sahool-platform]\n",
+        encoding="utf-8",
+    )
+    pp = root / "docs/architecture/platform_shrink_ratchet.json"
+    pol = json.loads(pp.read_text(encoding="utf-8"))
+    pol["exceptions"].append(
+        {
+            "category": "platform_domain_table_ownership",
+            "identity": "s5_expiring_table",
+            "owner": "architecture",
+            "reason": "mutation witness: temporary ownership must stop passing after expiry",
+            "target_close_by": "2026-09-07",
+        }
+    )
+    pp.write_text(json.dumps(pol), encoding="utf-8")
+
+    assert mod.findings(today=dt.date(2026, 9, 6)) == []
+    findings = mod.findings(today=dt.date(2026, 9, 8))
+    assert "exception expired: platform_domain_table_ownership:s5_expiring_table" in findings
+    assert "NEW platform_domain_table_ownership: s5_expiring_table" in findings
+
+
 def test_tombstoned_imagery_provider_reintroduction_is_blocked(tmp_path, monkeypatch):
     root = _sandbox(tmp_path, monkeypatch)
     resurrected = root / "services/sahool-platform/api/imagery_providers.py"

@@ -129,6 +129,7 @@ def irrigation_advice(
     soil_ece: float | None = None,
     crop_salt_tolerance_ece: float | None = None,
     salt_slope_pct: float | None = None,
+    soil_moisture_unit_kind: str = "available_pct",
 ) -> dict:
     """توصية ريّ بنمط FAO-56 — دالّة نقيّة (تُختبَر offline).
 
@@ -232,7 +233,16 @@ def irrigation_advice(
     recommended_mm = round(net, 1)
 
     # رطوبة التربة (إن توفّرت): التربة الرطبة تخفّض الإلحاح، والجافّة ترفعه.
-    if soil_moisture_pct is not None:
+    # SOIL-MOISTURE-UNIT-IDENTITY-01: العتبتان (٣٠٪/٦٠٪) نسبةُ **ماءٍ متاح**. قراءةٌ
+    # حجميّة (VWC) لا تُقارَن بهما بلا معايرة θFC/θWP فلا تُستعمل؛ ووحدةٌ غيرُ
+    # مُعلَنة تُفسَّر كما كانت تُفسَّر — لكنّ الافتراضَ يُعلَن في الأسباب لا يُخفى.
+    if soil_moisture_pct is not None and soil_moisture_unit_kind == "vwc_pct":
+        reasons.append(
+            "قراءة رطوبة التربة حجميّة (VWC) بلا معايرة إلى ماءٍ متاح — لم تُستعمل في الإلحاح."
+        )
+    elif soil_moisture_pct is not None:
+        if soil_moisture_unit_kind == "undeclared":
+            reasons.append("وحدة قراءة رطوبة التربة غير مُعلَنة — فُسِّرت نسبةَ ماءٍ متاح (افتراضٌ موروث).")
         sm = float(soil_moisture_pct)
         if sm >= _SOIL_COMFORTABLE_PCT and urgency in {"low", "moderate"}:
             urgency = "low" if urgency == "moderate" else "none"
@@ -247,7 +257,13 @@ def irrigation_advice(
             )
 
     # المطر المتوقّع قريباً: يؤجّل الريّ إن كان يغطّي جزءاً معتبراً من الاحتياج.
-    if forecast_rain_mm >= 5 and net > 0 and urgency != "high":
+    #
+    # **و`forecast_hold` استخراجٌ لهذا الحكم عينِه، لا حكمٌ ثانٍ.** الشرطُ والعتبةُ
+    # كما هما منذ كُتِبا؛ المتغيّرُ الوحيد أنّ نتيجتَهما صارت **حقلاً** بدل أن تعيش في
+    # `urgency` و`reasons` وحدَهما. وسببُ الاستخراج أنّ مستهلكاً أعلى (قرارُ الإطلاق
+    # من الاستنزاف) كان يبتلع الإلحاضَ المخفوض فيختفي التأجيلُ بلا أثر.
+    forecast_hold = forecast_rain_mm >= 5 and net > 0 and urgency != "high"
+    if forecast_hold:
         urgency = "low"
         reasons.append(f"مطر متوقّع ({forecast_rain_mm:.0f} مم خلال ٤٨ ساعة) — انتظِر قبل الريّ.")
 
@@ -275,6 +291,7 @@ def irrigation_advice(
         "kc_source": kc_source,
         "salinity_ks": round(salinity_ks, 3),
         "rationale_ar": rationale_ar,
+        "forecast_hold": forecast_hold,
     }
 
 

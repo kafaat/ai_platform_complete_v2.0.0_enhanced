@@ -115,7 +115,7 @@ def test_the_envelope_no_longer_publishes_a_zero_coercion_caveat_for_temperature
     assert "temp_max_c" not in _DAILY_ZERO_COERCED_FIELDS
     assert "temp_min_c" not in _DAILY_ZERO_COERCED_FIELDS
     # والمطر والرياح ما زالا مُصفَّرَين فعلاً ⇒ قيدُهما يبقى صادقاً.
-    assert set(_DAILY_ZERO_COERCED_FIELDS) == {"precipitation_mm", "wind_max_ms"}
+    assert set(_DAILY_ZERO_COERCED_FIELDS) == {"wind_max_ms"}
 
     slot = _daily_slot(_normalized([30.0, 31.0, 32.0], [18.0, 17.0, 19.0]))
     caveat = [lim for lim in slot["limitations"] if "indistinguishable" in lim]

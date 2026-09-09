@@ -43,15 +43,38 @@ ROOT = Path(__file__).resolve().parents[2]
 COMPOSE = ROOT / "docker-compose.v9.yml"
 ENV_EXAMPLE = ROOT / ".env.example"
 
-_INTERPOLATED = re.compile(r"\$\{([A-Z_][A-Z0-9_]*):-([^}]*)\}")
+#: بدايةُ استيفاءٍ ذي افتراض. **ولا يُقرأ الافتراضُ بـ`[^}]*`**: قد يحوي استيفاءً
+#: متداخلاً (`${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}`)،
+#: فيقف النمطُ عند أوّل `}` **داخل** المتداخل ويُنتِج افتراضاً مبتوراً
+#: (`nats://${NATS_USER`) — قيمةً لا تدلّ على شيء، تُقارَن ثمّ تُطبَع في رسالة الحارس.
+#: عطلٌ كامنٌ كشفه أوّلُ افتراضٍ متداخلٍ في هذه الشجرة. فالقراءةُ بموازنة الأقواس.
+_INTERPOLATION_START = re.compile(r"\$\{([A-Z_][A-Z0-9_]*):-")
 _LOOPBACK = re.compile(r"//(localhost|127\.0\.0\.1)\b")
 
 
 def compose_defaults(text: str) -> dict[str, str]:
-    """كلّ `${VAR:-default}` في compose. الأوّل يفوز عند التكرار (القيمة نفسها عمليّاً)."""
+    """كلّ `${VAR:-default}` في compose. الأوّل يفوز عند التكرار (القيمة نفسها عمليّاً).
+
+    والافتراضُ يُقرأ **بموازنة الأقواس** لا بـ`[^}]*`: الاستيفاءُ المتداخل يجعل النمطَ
+    الكسول يقف عند أوّل `}` داخليّ فيبتر القيمة.
+    """
     out: dict[str, str] = {}
-    for match in _INTERPOLATED.finditer(text):
-        out.setdefault(match.group(1), match.group(2))
+    for match in _INTERPOLATION_START.finditer(text):
+        depth = 1
+        index = match.end()
+        while index < len(text) and depth:
+            if text.startswith("${", index):
+                depth += 1
+                index += 2
+                continue
+            if text[index] == "}":
+                depth -= 1
+                if not depth:
+                    break
+            index += 1
+        if depth:  # قوسٌ غيرُ مغلق — لا يُخمَّن
+            continue
+        out.setdefault(match.group(1), text[match.end() : index])
     return out
 
 

@@ -270,7 +270,10 @@ _DAILY_OPTIONAL_DAY_FIELDS = (
 # `temp_max_c`/`temp_min_c` تبقيان `None` عند الغياب، فتُمسَكان أعلاه في
 # `missing_expected` ⇒ `degraded` + تسمية الحقل. وإبقاؤهما هنا كان سينشر قيداً
 # **كاذباً** يصف تصفيراً لم يعد يقع — والقيد الكاذب أسوأ من غيابه لأنّه يُقرأ عذراً.
-_DAILY_ZERO_COERCED_FIELDS = ("precipitation_mm", "wind_max_ms")
+# خرج `precipitation_mm` (2026-09-04) لأنّ الحافّةَ لم تَعُد تُصفّره. وبقاؤه هنا كان
+# سيُنتِج **قيداً يُعلَن ولا وجودَ له** — وقيدٌ كاذبٌ يُعلَّم به منتَجٌ صادق يُدرِّب
+# قارئَه على تجاهل القيود.
+_DAILY_ZERO_COERCED_FIELDS = ("wind_max_ms",)
 
 _DAILY_ENVELOPE_KEYS = (
     "product",

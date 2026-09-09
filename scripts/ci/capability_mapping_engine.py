@@ -78,8 +78,11 @@ SKIP_PARTS = {
 META_GOVERNANCE_FILES = {
     "docs/architecture/guard_mutation_registry.json",
     "docs/architecture/capability_core_consumption_registry.json",
+    "docs/architecture/nats_subject_ownership_contract.json",
     "docs/architecture/source_text_assertion_inventory.json",
     "docs/runbooks/GUARD_CATALOGUE.md",
+    "tests_v9/test_live_gap_closure_runbook_contract.py",
+    "tests_v9/test_nats_subject_ownership_contract.py",
 }
 # Extension point for whole witness classes (e.g. a future registries/ subdir). Empty today:
 # every measured witness is an individual file, and breadth must be argued per entry.

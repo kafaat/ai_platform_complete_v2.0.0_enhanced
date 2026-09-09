@@ -37,6 +37,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import hmac  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+import json
 import logging
 import os
 import secrets
@@ -557,6 +558,7 @@ async def _start_outbox_worker():
     try:
         import nats
         from api.event_bus import OutboxWorker
+        from shared.broker_url import redact_broker_url
 
         nats_url = os.getenv("NATS_URL", "nats://sahool-nats:4222")
         _NATS_CONN = await nats.connect(nats_url, max_reconnect_attempts=-1)
@@ -568,7 +570,9 @@ async def _start_outbox_worker():
         # (sahool_jobs/BYPASSRLS). تحت RLS الجديدة (v72) لا يصلح مسبح التطبيق هنا.
         _OUTBOX_WORKER = OutboxWorker(_JOBS_POOL or _DB_POOL, _publish)
         _OUTBOX_TASK = asyncio.create_task(_OUTBOX_WORKER.run())
-        logging.info("✓ OutboxWorker بدأ — relay الأحداث إلى %s", nats_url)
+        # `NATS_URL` صار يحمل الاعتماد (NATS-BROKER-HAS-NO-AUTHENTICATION-…-01)،
+        # فطباعتُه خاماً تُسرّب كلمةَ المرور إلى سجلٍّ يُجمَع ويُشحَن.
+        logging.info("✓ OutboxWorker بدأ — relay الأحداث إلى %s", redact_broker_url(nats_url))
     except Exception as e:  # noqa: BLE001 — غياب NATS لا يُسقط المنصّة
         logging.warning("OutboxWorker معطّل (NATS؟): %s — الأحداث تبقى في outbox", e)
 
@@ -1432,12 +1436,10 @@ def _activity_event_type(activity_type: str, status: str) -> str:
 
 
 def _row_to_activity(r) -> ActivitySummary:
-    import json as _json
-
     def _obj(v):
         if isinstance(v, str):
             try:
-                return _json.loads(v)
+                return json.loads(v)
             except (ValueError, TypeError):
                 return {}
         return v or {}
@@ -1507,12 +1509,10 @@ _SOIL_TEST_SELECT = (
 
 
 def _row_to_soil_test(r) -> SoilLabTestSummary:
-    import json as _json
-
     def _obj(v):
         if isinstance(v, str):
             try:
-                return _json.loads(v)
+                return json.loads(v)
             except (ValueError, TypeError):
                 return {}
         return v or {}
@@ -1575,10 +1575,8 @@ def _row_to_prefs(r) -> NotificationPreferences:
     """يطبّع صفّ notification_preferences إلى نموذج الاستجابة (event_types قائمة)."""
     raw_events = r["event_types"]
     if isinstance(raw_events, str):
-        import json as _json
-
         try:
-            raw_events = _json.loads(raw_events)
+            raw_events = json.loads(raw_events)
         except (ValueError, TypeError):
             raw_events = []
     return NotificationPreferences(
@@ -1724,9 +1722,7 @@ async def _evaluate_field_alerts_persist(
                     alert_policy = _policy_row["value"]
                     # القيمة JSONB قد تعود نصّاً — نُحلّله إلى قاموس.
                     if isinstance(alert_policy, str):
-                        import json as _json
-
-                        alert_policy = _json.loads(alert_policy)
+                        alert_policy = json.loads(alert_policy)
             except Exception:  # noqa: BLE001 — best-effort: أيّ خطأ ⇒ None (افتراضات)
                 alert_policy = None
     except HTTPException:
@@ -1746,6 +1742,8 @@ async def _evaluate_field_alerts_persist(
         ) from e
 
     soil_pct = soil_reading.value_pct if soil_reading is not None else None
+    # الوحدةُ تُقرأ من القراءة نفسها؛ غيابُها يُبقي الافتراضَ الموروث مُسمًّى لا صامتاً.
+    soil_unit_kind = soil_reading.unit_kind if soil_reading is not None else "available_pct"
     today = forecast[0] if forecast else None
     # احتياج الريّ الصافي (FAO-56) — يُستخدم لقاعدة low_moisture حين لا قراءة تربة.
     irrigation_need_mm: float | None = None
@@ -1764,6 +1762,7 @@ async def _evaluate_field_alerts_persist(
             forecast_rain_mm=fc_rain_48h,
             soil_moisture_pct=soil_pct,
             kc_override=kc_phen,
+            soil_moisture_unit_kind=soil_unit_kind,
         )
         irrigation_need_mm = advice.get("recommended_mm")
 
@@ -1777,6 +1776,7 @@ async def _evaluate_field_alerts_persist(
     ctx = FieldAlertContext(
         field_id=field_id,
         soil_moisture_pct=soil_pct,  # رطوبة تربة حيّة من telemetry إن وُجدت، وإلّا None.
+        soil_moisture_unit_kind=soil_unit_kind,
         irrigation_need_mm=irrigation_need_mm,
         forecast_rain_mm=rain_fc_3d,
         temp_c=current.temperature_c,

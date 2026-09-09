@@ -53,13 +53,48 @@ def safe_env() -> dict[str, str]:
             "INGEST_DB_PASSWORD": "strong-pass",
             "JOBS_DB_PASSWORD": "strong-pass",
             "JWT_SECRET": "strong-jwt-secret",
+            # Fernet-compatible test value (32 zero bytes, URL-safe base64). The
+            # compose contract remains fail-closed; only this isolated doctor
+            # fixture supplies the value required by `docker compose config`.
+            "MFA_SECRET_ENCRYPTION_KEY": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
             "REDIS_PASSWORD": "strong-pass",
             "ADMIN_PASSWORD": "strong-admin-pass",
             "GRAFANA_PASSWORD": "strong-grafana-pass",
             "TELEGRAM_WEBHOOK_SECRET": "strong-telegram-secret",
+            # NATS-BROKER-HAS-NO-AUTHENTICATION-…-01: صار الوسيطُ يشترط اعتماداً،
+            # فأُلزِم المتغيّران بـ`:?` في compose — ومن غيرهما يسقط
+            # `docker compose config` برسالةٍ عن الاستيفاء لا عن الإعداد.
+            "NATS_USER": "sahool-nats-user",
+            "NATS_PASSWORD": "strong-nats-password",
         }
     )
     return env
+
+
+def test_the_fixture_covers_every_required_compose_interpolation():
+    """التعليقُ أعلاه يُعلِن الشرطَ — وهذا يفرضه.
+
+    **العطلُ مقيسٌ لا مُتوقَّع:** أُلزِم `NATS_USER`/`NATS_PASSWORD` بـ`:?` في
+    `docker-compose.v9.yml`، فسقط `test_runtime_doctor_preflight_json_contract`
+    برسالةٍ عن **فشل `docker compose config`** — لا عن متغيّرٍ ناقصٍ في هذه الأداة.
+    أي أنّ السببَ الحقيقيّ (تجهيزةٌ صارت ناقصة) يصل القارئَ متنكّراً في عَرَضٍ آخر،
+    وهو الصنفُ الذي يُضيّع جولةَ CI كاملة.
+
+    فالشرطُ يُقاس من الشجرة: كلُّ `${VAR:?…}` في compose يجب أن تضبطه `safe_env`.
+    """
+    import re
+
+    compose = (ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8")
+    required = set(re.findall(r"\$\{([A-Z0-9_]+):\?", compose))
+    assert len(required) > 20, "انهار الاستخراج — شرطٌ يُقاس على لا شيء يمرّ دائماً"
+    env = safe_env()
+    missing = sorted(v for v in required if not env.get(v))
+    assert not missing, (
+        "متغيّراتٌ يُلزِمها compose بـ`:?` ولا تضبطها `safe_env`: "
+        + ", ".join(missing)
+        + "\n  أضِفها أعلاه، وإلّا سقط فحصُ `docker-compose-config` على أيّ آلةٍ نظيفة "
+        "برسالةٍ عن الاستيفاء لا عن سببها."
+    )
 
 
 def test_phase17_assets_exist():

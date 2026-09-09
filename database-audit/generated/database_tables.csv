@@ -61,6 +61,7 @@ digital_twin_scenarios,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True,
 dispatch_decisions,v66_dispatch_decisions.sql,71,True,False,False,0,False,True,6,4
 distributed_raster_jobs,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True,False,0,0
 documents,v29_documents.sql,33,True,False,False,0,False,True,2,1
+drawing_features,v230_drawing_features.sql,227,True,True,True,1,True,False,2,1
 drone_missions,init_v8.sql,0,True,True,False,0,False,True,0,0
 edge_results,v9_new_tables.sql,3,True,False,False,0,False,True,0,1
 equipment,v23_equipment.sql,27,True,False,False,0,False,True,3,1
@@ -114,7 +115,7 @@ field_indicators,init_v8.sql,0,True,True,False,0,False,True,1,0
 field_irrigation_source_assignments,v214_field_irrigation_source_assignments.sql,218,True,True,True,1,True,False,1,0
 field_lifecycle,v10_command_store_lifecycle.sql,12,True,True,False,1,False,True,5,1
 field_lifecycle_transitions,v10_command_store_lifecycle.sql,12,False,True,True,1,True,False,2,1
-field_state,v104_fields_create_contract.sql,109,True,True,True,2,True,False,2,2
+field_state,v104_fields_create_contract.sql,109,True,True,True,2,True,False,3,2
 field_state_snapshots,v60_event_snapshots.sql,65,True,False,False,0,False,True,1,1
 field_submissions,v204_field_forms.sql,209,True,True,True,1,True,False,1,1
 field_tasks,v9_new_tables.sql,3,True,False,False,0,False,True,5,2
@@ -140,7 +141,7 @@ inventory_batches,v22_inventory.sql,26,True,False,False,0,False,True,2,1
 inventory_items,v22_inventory.sql,26,True,False,False,0,False,True,1,1
 invitations,v89_invitations.sql,94,True,True,True,1,True,False,1,1
 iot_command_dispatch,v109_phase9_iot_execution_adapters.sql,115,True,True,True,2,True,False,0,1
-iot_devices,v24_iot_devices.sql,28,True,False,False,0,False,True,6,1
+iot_devices,v24_iot_devices.sql,28,True,False,False,0,False,True,7,1
 irrigation_battery_systems,v174_energy_agricultural_microgrid_capability.sql,179,True,False,False,0,False,True,0,0
 irrigation_capability_graph_edges,v175_unified_irrigation_capability_graph.sql,180,True,False,False,0,False,True,0,0
 irrigation_capability_graph_nodes,v175_unified_irrigation_capability_graph.sql,180,True,False,False,0,False,True,0,0
@@ -204,7 +205,13 @@ machine_control_profiles,v216_machinery_export.sql,220,True,True,True,1,True,Fal
 machinery_export_artifacts,v216_machinery_export.sql,220,True,True,True,1,True,False,1,1
 management_zone_sets,v115_precision_agriculture_phase6.sql,121,True,True,True,1,True,False,0,0
 management_zones,v14_imagery_storage.sql,17,True,True,False,1,False,True,0,0
+market_analytics_snapshots,v229_market_mcp_schema.sql,226,True,True,True,1,True,False,0,0
+market_price_history,v229_market_mcp_schema.sql,226,True,True,True,1,True,False,1,0
+market_procurement_items,v229_market_mcp_schema.sql,226,True,True,True,1,True,False,1,1
+market_procurement_orders,v229_market_mcp_schema.sql,226,True,True,True,1,True,False,1,1
+market_products,v229_market_mcp_schema.sql,226,True,True,True,1,True,False,1,0
 market_sales_listings,v9_market.sql,5,True,False,False,0,False,True,1,1
+market_suppliers,v229_market_mcp_schema.sql,226,True,True,True,1,True,False,1,0
 marketplace_apps,v121_marketplace_ecosystem.sql,127,False,True,True,1,True,False,1,1
 marketplace_installations,v121_marketplace_ecosystem.sql,127,True,True,True,0,False,False,0,1
 marketplace_plugin_execution_runs,v110_phase12_plugin_sandbox_runtime.sql,116,True,True,True,2,True,False,0,0

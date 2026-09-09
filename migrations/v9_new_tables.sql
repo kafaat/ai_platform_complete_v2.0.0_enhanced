@@ -162,10 +162,13 @@ BEGIN
         CREATE INDEX IF NOT EXISTS idx_market_listings_tenant_status
             ON market_sales_listings(tenant_id, status);
     END IF;
-    IF to_regclass('market_price_history') IS NOT NULL THEN
-        CREATE INDEX IF NOT EXISTS idx_market_price_history_crop_date
-            ON market_price_history(crop_type, recorded_at DESC);
-    END IF;
+    -- MIGRATION-INDEX-NAMES-A-COLUMN-NO-TABLE-DEFINES-01: كان هنا فهرسٌ على
+    -- market_price_history(crop_type, recorded_at) — وعمودان لا يُعرِّفهما أيُّ تعريفٍ
+    -- للجدول في الشجرة (v229_market_mcp_schema.sql:35 أعمدتُه category/recorded_date،
+    -- وفهرسُه الصحيح هناك في السطر 87). حارسُ to_regclass يمرّ على قاعدةٍ جديدة (الجدول
+    -- غائب عند القراءة) ويُسقِط التمهيدَ على قاعدةٍ قائمة (`column "crop_type" does not
+    -- exist` ⇒ sahool-migrate exit 3 — مقيس على مكدّس المالك 2026-09-07). حُذِف؛ الحارسُ
+    -- الساكن tests/test_migration_index_columns_exist.py يمنع عودةَ الصنف.
     IF to_regclass('workflow_instances') IS NOT NULL THEN
         CREATE INDEX IF NOT EXISTS idx_workflow_instances_tenant_status
             ON workflow_instances(tenant_id, status) WHERE status != 'completed';

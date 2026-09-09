@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from math import isfinite
 from typing import Any
 
 SUPPORTED_OPERATIONS = {"spraying", "harvesting", "sowing", "fertilizing", "irrigation"}
@@ -8,7 +9,8 @@ SUPPORTED_OPERATIONS = {"spraying", "harvesting", "sowing", "fertilizing", "irri
 def _num(sample: dict[str, Any], key: str, default: float | None = None) -> float | None:
     value = sample.get(key)
     try:
-        return float(value)
+        number = float(value)
+        return number if isfinite(number) else default
     except (TypeError, ValueError):
         return default
 

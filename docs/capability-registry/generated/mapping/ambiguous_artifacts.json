@@ -4007,6 +4007,16 @@
         ]
       },
       {
+        "capability_id": "INT-002",
+        "score": 32,
+        "signals": [
+          "content:event bus",
+          "content:jetstream",
+          "content:nats",
+          "explicit_id"
+        ]
+      },
+      {
         "capability_id": "FM-007",
         "score": 32,
         "signals": [
@@ -5651,20 +5661,20 @@
     "kind": "backend",
     "candidates": [
       {
+        "capability_id": "WX-005",
+        "score": 13,
+        "signals": [
+          "content:VPD",
+          "content:vapour pressure deficit",
+          "content:vpd"
+        ]
+      },
+      {
         "capability_id": "WX-004",
         "score": 12,
         "signals": [
           "content:ET0",
           "content:et0"
-        ]
-      },
-      {
-        "capability_id": "WX-005",
-        "score": 11,
-        "signals": [
-          "content:VPD",
-          "content:vapour pressure deficit",
-          "content:vpd"
         ]
       }
     ]
@@ -8541,29 +8551,6 @@
     ]
   },
   {
-    "path": "services/supervisor-agent/skills/crop_model_skill.py",
-    "kind": "backend",
-    "candidates": [
-      {
-        "capability_id": "WX-004",
-        "score": 12,
-        "signals": [
-          "content:ET0",
-          "content:et0"
-        ]
-      },
-      {
-        "capability_id": "WX-002",
-        "score": 12,
-        "signals": [
-          "content:Weather forecast",
-          "content:forecast",
-          "content:weather forecast"
-        ]
-      }
-    ]
-  },
-  {
     "path": "services/supervisor-agent/skills/remote_sensing_skill.py",
     "kind": "backend",
     "candidates": [
@@ -9578,6 +9565,29 @@
         "signals": [
           "content:NDVI",
           "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_e2e_findings_regressions.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-004",
+        "score": 12,
+        "signals": [
+          "content:MFA",
+          "content:mfa"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 10,
+        "signals": [
+          "content:rls",
+          "content:row level security",
+          "content:tenant isolation"
         ]
       }
     ]

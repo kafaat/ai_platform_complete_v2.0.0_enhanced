@@ -10,7 +10,9 @@ from api.irrigation_recommendation_policy import recommend_irrigation
 
 
 def _base(**over) -> dict:
-    kw = dict(et0_mm=6.0, crop="wheat", stage="mid")
+    # مطرٌ مُصرَّحٌ به صفراً: هذه الحالات تقيس قرارَ الإطلاق من الاستنزاف، والنواةُ لم
+    # تَعُد تقبل `None` في قناتَي المطر — فالصفرُ هنا دعوى مقصودة لا افتراضٌ موروث.
+    kw = dict(et0_mm=6.0, crop="wheat", stage="mid", rain_recent_mm=0.0, forecast_rain_mm=0.0)
     kw.update(over)
     return recommend_irrigation(**kw)
 

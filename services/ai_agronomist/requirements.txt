@@ -2,3 +2,5 @@ fastapi==0.136.3
 uvicorn[standard]==0.30.6
 pydantic==2.13.4
 httpx==0.28.1
+# agent_stores.py يحتاج Redis في الإنتاج ويفشل مغلقاً عند غيابه.
+redis==5.3.1

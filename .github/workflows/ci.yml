@@ -1071,6 +1071,20 @@ jobs:
           echo "هجرات مُعلَنة=$declared . جداول مُنشأة=$tables"
           [ "$tables" -gt 0 ] || {
             echo "::error::MIGRATIONS_APPLIED_NOTHING - الخطوة مرّت والمخطَّط فارغ"; exit 1; }
+      # MIGRATION-REAPPLY-IDEMPOTENCY-UNMEASURED-01 — «idempotent — آمنة على التكرار»
+      # كان يُطبَع ولا يُقاس: الخطوةُ أعلاه تطبّق البيان على الفراغ **مرّةً واحدة**، فكلُّ
+      # هجرةٍ تمرّ على قاعدةٍ جديدة وتنكسر على قاعدةٍ قائمة (حارسُ `to_regclass` يحمي من
+      # «لم يُنشأ بعد» ويعمى عن «موجودٌ بشكلٍ آخر») غيرُ مرئيّةٍ هنا. مقيس على مكدّس
+      # المالك 2026-09-07: `up --force-recreate` ⇒ sahool-migrate exit 3 على فهرسٍ يسمّي
+      # عموداً لا يُعرِّفه الجدول (v9_new_tables.sql:165 ↔ v229). التطبيقُ الثاني على القاعدة
+      # نفسِها هو القياسُ الحقيقيّ للادّعاء، بالمُشغِّل القانونيّ نفسِه (لا حلقةٌ منسوخة)،
+      # ويُفشِل على أوّل خطأ (ON_ERROR_STOP) ويتحقّق من عدّ ما طُبِّق. نُفِّذ بإذن المالك.
+      - name: Migrations must re-apply cleanly on the already-migrated DB (idempotency measured, not printed)
+        env:
+          PGPASSWORD: test_password
+        run: |
+          bash scripts/ci/apply_migration_manifest.sh \
+            --port 5433 --user sahool_test --db sahool_test
       - env:
           TEST_DATABASE_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_REDIS_URL: redis://localhost:6380/0
@@ -1078,6 +1092,8 @@ jobs:
           # البرهانُ الحيّ لـ§6-11 يُتخطّى بلا DSN. وبلا هذا العَلَم يصير نزعُ
           # `TEST_DATABASE_URL` يوماً ما تحويلاً صامتاً للشهادة إلى تخطٍّ أخضر.
           CLAIM_LEASE_CERTIFICATION_REQUIRED: "1"
+          # HIL must not skip its durable write/read and restricted-role proof on DB failure.
+          HIL_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration --tb=short
       # ── IRR-F01 live certification ─────────────────────────────────────────────────
       # The shared run above connects as the superuser sahool_test, so the live reservation

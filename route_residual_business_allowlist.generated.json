@@ -669,7 +669,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 200,
+      "line": 220,
       "method": "POST",
       "path": "/v1/inference/pest-detect",
       "function": "detect_pest"
@@ -677,7 +677,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 262,
+      "line": 279,
       "method": "POST",
       "path": "/v1/inference/yield-estimate",
       "function": "estimate_yield"
@@ -685,7 +685,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 328,
+      "line": 344,
       "method": "POST",
       "path": "/v1/sync/trigger",
       "function": "trigger_sync"
@@ -837,7 +837,7 @@
     {
       "service": "soil-service",
       "file": "services/soil-service/main.py",
-      "line": 198,
+      "line": 208,
       "method": "GET",
       "path": "/runtime-identity",
       "function": "runtime_evidence_identity"

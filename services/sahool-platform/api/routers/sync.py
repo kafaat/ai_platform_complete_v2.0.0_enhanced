@@ -26,8 +26,8 @@ from core.offline_first import (
 )
 from fastapi import APIRouter, Depends, HTTPException
 
+from api import main as api_main
 from api.main import (
-    _DB_POOL,
     _OFFLINE_QUEUE,
     SyncBatchRequest,
     UserSchema,
@@ -73,7 +73,7 @@ async def sync_status(user: UserSchema = Depends(get_current_user)):
     تستخدم الذاكرة دائماً، وتضيف pending durable من Postgres عند توفره.
     """
     durable_pending = None
-    if _DB_POOL is not None:
+    if api_main._DB_POOL is not None:
         try:
             from api.offline_pending_db import fetch_pending
 
@@ -179,7 +179,7 @@ async def sync(
     # حالة لكلّ عمليّة (op_id → applied/conflict/synced/queued) لتعرفها الواجهة وتحسم
     # تعارض field.update (409) محلّياً بدل تخمين عامّ من العدّادات الكلّيّة.
     op_status: dict[str, str] = {}
-    if _DB_POOL is not None:
+    if api_main._DB_POOL is not None:
         from api.offline_pending_db import (
             claim_pending,
             enqueue_pending,

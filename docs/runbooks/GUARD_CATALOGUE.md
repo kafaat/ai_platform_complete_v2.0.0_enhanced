@@ -10,24 +10,24 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **267**
-- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **48**
-- إجماليّ الطفرات المُسجَّلة: **343**
-- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **181** على 60 مصدراً
+- حرّاس تحجب في CI: **272**
+- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **49**
+- إجماليّ الطفرات المُسجَّلة: **368**
+- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **288** على 104 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
 أنّ المسار يستشير مفتاح الطوارئ مثلاً — ويمرّ أخضر على مسارٍ يستشيره ثمّ يتجاهل
 نتيجته، أو يستشيره بنطاقٍ أضيق فلا يُطابِق. فتلك تُزرَع في المصدر الفيزيائيّ
 ويجب أن يحمرّ اختبارُ **أثرها**.
 
-أي أنّ **219** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **223** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
 
 ---
 
-## الحرّاس المُثبَتة بالتكذيب (48)
+## الحرّاس المُثبَتة بالتكذيب (49)
 
 لكلٍّ منها عطلٌ يُزرَع في مصدرها فعليّاً (`guard_mutation_guard --run`) واختبارٌ
 **مُسمّى** يجب أن يحمرّ عندها. حمرةٌ باختبار آخر ليست دليلاً.
@@ -77,6 +77,13 @@
 - جعلُ التقلّص إرشاديّاً ⇒ يعود ١٬٣٨٣٬٣٦٨ بايت إلى صفر بلا حجب، وهي الواقعة الأصليّة. والاختبار المُسمّى **اصطناعيّ عمداً**: اختبار الواقعة الحقيقيّة (test_the_guard_fails_on_the_truncation_that_created_it) يحتاج التاريخ الكامل ويُتخطّى في استنساخ CI الضحل — وطفرةٌ تُسمّي اختباراً مُتخطّى ليست تكذيباً بل صمتاً. — يُسقِط `test_a_merge_that_takes_the_empty_side_is_caught`
 - إسقاطُ فحص الغياب ⇒ شجرةٌ بلا سجلّات تُنتِج صفر أزواج وتطبع ok — «لا شيء للمقارنة» يُقرأ نجاحاً، وهو صنف الفجوة نفسه داخل علاجها — يُسقِط `test_a_missing_journal_at_head_blocks_even_with_nothing_to_compare`
 - تصليبُ القائمة ⇒ فهرس ثانٍ ينحرف عن `resolve_merge_conflicts`، وهو صنف «قائمتان تصفان الشيء نفسه» — يُسقِط `test_the_file_list_comes_from_the_existing_classifier`
+- إسقاطُ قيد النطاق ⇒ يصير استثناءُ إزالة الصفوف المكرّرة إعفاءً ملفّيّاً عاماً، فتُمحى بايتاتٌ من `log`/`hot` أو من سجلٍّ شبيه بلا أن يحجب الحارس — يُسقِط `test_lossless_row_deduplication_does_not_exempt_other_files`
+- تركُ المعرّف يحكم وحده بلا بايتات الصفّ كاملةً ⇒ صفّان بالهوية نفسها لكن بدليلٍ أو حالةٍ أو مسافاتٍ مختلفة يُقرأان «نسخةً زائدة»، فيُفقد أحد النصّين المتعارضين صامتاً — يُسقِط `test_lossless_row_deduplication_rejects_information_loss`
+- إسقاطُ شرط البادئة المحفوظة ⇒ إعادةُ ترتيب الصفوف أو ملءُ الحذف بحشوٍ جديد تُقرأ «ضمّاً lossless»، مع أنّ النصّ المحفوظ لم يبقَ بادئةً كما كان — يُسقِط `test_lossless_row_deduplication_rejects_information_loss`
+- قراءةُ أمثلة الكتل المسوّرة كسجلّ حيّ ⇒ صفوفُ الشرح تموّل التقلّص، فيُحذَف مثالٌ موثّق ويُقال إنّه صفٌّ زائد — يُسقِط `test_lossless_row_deduplication_preserves_fenced_examples`
+- إسقاطُ حدّ السطر ⇒ لاحقةٌ جديدة تعيد كتابة السطر الأخير غير المنتهي بدل أن تُلحَق بعده، فيُمحى نثرٌ قائم ويُسمّى ذلك إضافة — يُسقِط `test_lossless_row_deduplication_rejects_information_loss`
+- تركُ الابن يحمل التكرار بعد «الإصلاح» ⇒ الحارس يقبل تقلّصاً لم يحقق التفرّد العالميّ أصلاً، فيبقى الصفّ المكرّر أو يعود في اللاحقة — يُسقِط `test_lossless_row_deduplication_rejects_information_loss`
+- إبطالُ مسار القبول الضيّق نفسه ⇒ الشاهدُ الذي يجعل الحارسين يحكمان المرشّحَ نفسه يحمَرّ، ويعود الإصلاح lossless إلى `JOURNAL_SHRANK` رغم أنه أزال النسخ المتطابقة فقط — يُسقِط `test_lossless_row_deduplication_satisfies_both_real_guards`
 
 ### `brain_commit_claim_guard.py`
 
@@ -95,6 +102,8 @@
 - استثناء الاستشارات يبتلع كلّ معرّف ⇒ الحارس يمرّ على كلّ شيء صامتاً، وهو أخطر من سقوطه لأنّه يُقرأ خضرةً. — يُسقِط `test_the_advisory_exemption_did_not_swallow_real_gap_ids`
 - قصرُ القراءة على العناوين يُعيد الإيجابيّة الكاذبة المشحونة: ٢٢ فجوة مسجَّلة كصفوف تُعامَل كغير مسجَّلة، فتسقط PR تذكر ما هو مسجَّل سلفاً. — يُسقِط `test_table_row_ids_count_as_registered`
 - حدُّ الكلمة يقتطع المعرّف الملتصق بالعربيّة فيخترع وهميّاً (`E2E-UNDER-…`) ويُفوّت الحقيقيّ (`AUTH-E2E-…`) في آنٍ — عطبان متعاكسان من سببٍ واحد. — يُسقِط `test_an_id_glued_to_arabic_text_is_read_whole_not_from_its_middle`
+- معرّف حاجبِ اعتمادٍ يُطالَب بقسمٍ في سجلّ الفجوات ⇒ إمّا إدخالٌ كاذب (الحاجبُ بندُ اعتمادٍ حالتُه pending/verified، لا عطلٌ حالتُه open/fixed) أو حذفُ المعرّف من الرسالة، أي كتمانُ أيّ حاجبٍ يُذكَر — نفس متّجه التفويض والاستشارة — يُسقِط `test_a_certification_blocker_id_is_not_demanded_as_a_gap_section`
+- الصنفُ يصير استثناءً بدل تحقّق ⇒ P-CERT-9 الملفَّق يمرّ. والقائمةُ في هذه الشجرة فتُقرأ، وهذا أقوى من الاستثناء لا أضعف — يُسقِط `test_a_fabricated_certification_blocker_id_is_still_rejected`
 
 ### `brain_duplicate_gap_identity_guard.py`
 
@@ -158,6 +167,8 @@
 - إسقاط اتّجاه «سياقٌ في العقد وليس مفروضاً» ⇒ بوّابةٌ تسقط من الـRuleset تصير إرشاديّةً صامتة بلا أن يحمرّ شيء — وهو العطل الأصليّ الذي فُتِح العقد لأجله — يُسقِط `test_a_context_missing_from_enforcement_is_a_silent_advisory_gate`
 - إسقاط الاتّجاه الآخر ⇒ اسمٌ مفروضٌ لا تُبلِّغه وظيفة يُعلِّق كلّ PR إلى الأبد، أو وظيفةٌ حاجبة تبقى غير مُسجَّلة — يُسقِط `test_an_enforced_context_absent_from_the_contract_is_a_failure`
 - غيابُ قاعدة required_status_checks يُقرأ مساواةً فارغة صحيحة ⇒ «لا فحص يحجب» يمرّ أخضر: أخطر صور الخضرة الكاذبة — يُسقِط `test_no_required_status_checks_rule_means_nothing_blocks`
+- نزعُ البند الثالث يُعيد `dismiss_stale_reviews_on_push` إلى ما كان: **مُفعَّلٌ بلا تكذيب**، فحمايةٌ قائمةٌ تُقرأ عقداً وهي إعدادٌ يزول بنقرة. والأثرُ يمسّ صدقَ الاعتماد نفسِه — يعتمد المراجعُ بايتاتٍ ثمّ يُدفَع غيرُها فيبقى الاعتمادُ سارياً على شيفرةٍ لم يرَها أحد، ولا تُغني `required_status_checks` لأنّها تشهد للآلة لا لأنّ إنساناً قرأ — يُسقِط `test_a_stale_approval_that_survives_a_new_head_is_a_failure`
+- نزعُ الرجوع الصامت يُسقِط الحالةَ إلى فرع «غير مُفعَّل» فيطبع `dismiss_stale_reviews_on_push = []` وكأنّ القيمة رُصِدت وهي لم تُقرأ أصلاً — ملاحظةٌ ثانيةٌ مُضلِّلة عن عطلٍ واحد تدفع المُشخِّص إلى مطاردة إعدادٍ سليم. والحكمُ لا يتغيّر، فالتكذيبُ بالمخرَج لا برمز الخروج — يُسقِط `test_an_unreadable_parameters_block_is_diagnosed_once_not_twice`
 
 ### `canonical_consumer_bypass_guard.py`
 
@@ -232,6 +243,21 @@
 - عودةُ سطر كتابة canonical في الرابط تعبر ⇒ قفل A′-4b النصّيّ يفقد نسخته المصدريّة AST — وهي النسخة التي لا يخدعها تنويع التنسيق أصلاً — يُسقِط `test_linker_reacquiring_canonical_owner_is_blocked`
 - كاتب التشغيل يكتب production_certified ⇒ قرارُ الإطلاق الخارجيّ للمالك يُشتَقّ آليّاً من التحقّق — الخلط الذي حرّمه العقد نصّاً («لا يُشتقّ من L5») — يُسقِط `test_runtime_apply_cannot_write_production_certified`
 - فهرسة policy["field_authority"] على شكلٍ مشوّه ترمي KeyError/TypeError بلا اسم مخالفة — التحقّق من الشكل قبل القاعدة يجعل الفشل قابلاً للإصلاح من رسالته — يُسقِط `test_a_malformed_policy_is_a_named_finding_not_a_stack_trace`
+
+### `certification_evidence_producer_guard.py`
+
+**يفرض:** كلُّ حاجبِ اعتمادٍ له مُنتِجُ دليلٍ مُسمّى، أو غيابٌ **مُعلَنٌ بسببه**. لا صمت.
+
+**يحجب في:** `production-evidence-pack.yml` → `evidence-pack`
+
+**الاختبار الشاهد:** `tests_v9/test_certification_evidence_is_produced_not_assumed.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- هذا هو الحاجزُ الفعليّ في العقد: بدونه يبقى «مُعلَنٌ بلا مُنتِجٍ صادق» نصّاً يُخالِفه العمل — تُضاف خطوةُ انبعاثٍ لـP-CERT-3 (وهو مُعلَنٌ بلا مُنتِج لأنّ سكربتَه يتجاهل السرّ ويُثبِّت رابطَ حاوٍ محلّيّ) فيمرّ ختمُ verified على «Redis الحيّ» بينما المقيسُ حاوٍ زائل — يُسقِط `test_declaring_no_honest_producer_while_emitting_is_rejected`
+- الوجهُ المقابل: إعلانُ produced بلا انبعاثٍ على المسار المُعلَن ادّعاءُ إنتاجٍ لا إنتاج. نجا هذا وحدَه من أوّل مسحِ طفراتٍ بينما ماتت الثلاث الأخرى — أي أنّ نصفَ القاعدة كان بلا شاهد، ولم تلتقطه المراجعة — يُسقِط `test_declaring_produced_without_any_emission_is_rejected`
+- سكربتٌ مُعلَنٌ محذوف **تقلّصُ تغطية** لا خطأُ مسار: يبقى العقدُ يقول «لهذا الحاجب مُنتِج» بعد زوال المُنتِج، فيُقرأ الحاجبُ مُغطّى وهو مكشوف — نفس تمييز require_file في preflight — يُسقِط `test_a_declared_producer_that_no_longer_exists_is_rejected`
+- إعلانُ غيابٍ بلا سببٍ صمتٌ بصيغةٍ أخرى — والعقدُ كلُّه وُجِد لأنّ الصمتَ عن «لا مُنتِج لهذا الحاجب» جعل خمسةَ حواجزَ pending تُقرأ عجزاً في القياس لا غياباً في الإنتاج — يُسقِط `test_an_empty_reason_is_rejected`
 
 ### `ci_unbounded_wait_guard.py`
 
@@ -459,7 +485,7 @@
 
 **يفرض:** لا حارس بلا عطلٍ مزروع يُثبِت أنّه يُطلِق — GUARDS-WITHOUT-A-PLANTED-DEFECT-01.
 
-**يحجب في:** `ci.yml` → `lint` · `ci.yml` → `mutation-sweep` · `ci.yml` → `unit-tests`
+**يحجب في:** `capability-governance.yml` → `blocking-surface-advisory` · `ci.yml` → `lint` · `ci.yml` → `mutation-sweep` · `ci.yml` → `unit-tests`
 
 **الاختبار الشاهد:** `tests_v9/test_guard_mutation_guard.py`
 
@@ -487,6 +513,12 @@
 - إهمالُ جناح الطفرة يُشغّل جناحاً لا يمسّ المصدر، فيمرّ العطل المزروع أخضر — و«حارسٌ يُبلِّغ نتيجةً عن سؤال لم يطرحه» يصير هنا «طفرةٌ تُحاكَم بجناحٍ لا يخصّها». — يُسقِط `test_a_mutation_may_name_its_own_test_file`
 - تحييد المسار السريع ⇒ كلّ زرعة تعود تشغّل الملفّ كاملاً — عودة صنف MUT-SWEEP-RUNS-THE-WHOLE-FILE-PER-PLANT-01 صامتةً (انحدار أداء لا صحّة، يُمسَك بعدّ الاستدعاءات) — يُسقِط `test_a_narrow_kill_skips_the_full_file_run`
 - إسقاط التراجع إلى الملفّ الكامل ⇒ مرورُ المتوقَّع وحده يُختَم unexpected_green/survived من مشهدٍ ناقص، وتصنيفا wrong_test/التشخيص يفقدان مصدرهما — يُسقِط `test_a_passing_narrow_run_falls_back_to_the_full_file`
+- نزعُ كشفِ الزيادة غير المُقرَّة ⇒ تجميدُ سطح الحجب يصير اسماً بلا قياس: ينمو السطحُ صامتاً وتبقى الوظيفةُ خضراء، وهو صنفُ «الحارس الذي لا يرى العطل أصلاً» — يُسقِط `test_an_undeclared_addition_is_reported`
+- نزعُ شرطِ «الاسمُ مسجَّلٌ لهذا الحارس» يُعيد `mutation` حقلاً نثريّاً: يُستوفى بالكتابة لا بالتسجيل، فيمرّ إقرارٌ يسمّي تكذيباً لا وجودَ له. وهو صنفُ «بوّابةٌ تُغلَق بالنثر» — قِيس على أوّل إقرارٍ كُتِب في هذه الشجرة، إذ حمل اسمَ الاختبار داخل جملةٍ وكان الحقلُ سيقبل «طفرةٌ ما» بالقدر نفسِه — يُسقِط `test_a_mutation_naming_an_unregistered_test_is_reported`
+- `expect` اسمُ الحالة و`test` ملفُّ الجناح؛ وقراءةُ الثاني مكانَ الأوّل تجعل الفحصَ يُبلِّغ عن طفرةٍ **مسجَّلةٍ** بأنّها غيرُ مسجَّلة — إنذارٌ كاذبٌ يدفع كاتبَ الإقرار إلى تعطيل الفحص لا إلى تسجيل طفرة. وقعت فعلاً عند كتابة هذه الشريحة وكشفها تشغيلٌ لا قراءة — يُسقِط `test_the_registry_reader_reads_the_expected_test_not_the_suite_file`
+- نزعُ الاتّجاه الرابع يُعيد **الصمت المقيس**: نُزِع استدعاءُ حارسٍ من `ci.yml` على `a3124ccf` فهبط السطحُ ٣٠١ ⇒ ٣٠٠، ولم يشتكِ إلّا فحصُ انحراف الكتالوج — وعلاجُه المنصوصُ عليه إعادةُ التوليد، فإذا فُعِل قال الاثنان أوكيه. أي أنّ العلاجَ الذي يأمر به النظامُ هو ما يمحو الدليل، ويبقى ملفُّ الحارس يبدو حمايةً ولا يُشغّله شيء — يُسقِط `test_a_blocker_that_vanished_is_reported`
+- إقرارُ تقاعدٍ لحاجبٍ يعمل بابُ إسكاتٍ دائم: يُعلَن التقاعدُ اليومَ ويُعاد الاستدعاءُ غداً فلا يُبلَّغ عن نزعِه ثانيةً — أي أنّ سطراً واحداً في السجلّ يشتري صمتاً دائماً عن ثلاثيّة — يُسقِط `test_a_retirement_declared_for_a_blocker_still_running_is_reported`
+- نزعُ فحص اليُتم يُعيد `retired` حقلاً يقبل أيّ مفتاح، فتتراكم فيه أسماءٌ لا تخصّ ثلاثيّةً كانت في الأساس قطّ — سجلٌّ يبدو نظيفاً وهو يحمل ما لا وجودَ له، وهو الصنفُ نفسُه المُغلَق للإقرارات في الاتّجاه الثالث. أصابت مراجعةٌ آليّة على #983 — يُسقِط `test_a_retirement_for_a_triple_never_in_the_baseline_is_reported`
 
 ### `json_duplicate_key_guard.py`
 
@@ -876,7 +908,7 @@
 
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (219)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (223)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -921,6 +953,8 @@
 | `capability_runtime_evidence.py` | Extract conservative runtime observability evidence for SAHOOL capabilities. | `capability-registry` |
 | `capability_shadow_reconciliation.py` | Shadow reconciliation between the canonical registry and the legacy projection. | `capability-registry` |
 | `certify_artifact_contract.py` | عقدُ مصنوعة الاعتماد: اسمٌ مشتقٌّ من ``head_sha``، وexactly-one، وهويّةٌ تُسجَّل. | `certify` |
+| `collect_full_branch_ci_evidence.py` | يجمع شاهدَ `P-CERT-1` من **عدّاء CI الحقيقيّ على هذه البصمة**، لا من مِسبارِ دخان. | `full-branch-ci-evidence` |
+| `collect_guard_surface_evidence.py` | شاهدُ `GUARDS`: أيُّ حارسٍ حاجبٍ **شُغِّل فعلاً** على هذه البصمة — والفارقُ لا العدد. | `guard-surface-evidence` |
 | `compose_env_contract_gate.py` | Fail-closed contract gate for docker-compose ↔ .env compatibility. | `structural-lint` |
 | `compose_runtime_target_resolver.py` | Resolve runtime probe targets to internal Docker Compose service URLs. | `capability-registry` |
 | `consumer_contract_gate.py` | WS-E — CI consumer-contract gate. | `structural-lint` |
@@ -946,6 +980,7 @@
 | `edge_inference_service_contract_gate.py` | CI guard for edge-inference service runtime/config contracts. | `field-workspace-closure` |
 | `edge_model_contract_guard.py` | Guard the edge-inference model contract. | `edge-model-contract` · `model-provisioning-evidence` |
 | `edge_production_readiness_guard.py` | Guard Edge production-readiness policy. | `edge-production-readiness` · `model-provisioning-evidence` |
+| `emit_certification_evidence.py` | يكتب ملفَّ دليلِ حاجبٍ واحدٍ **من بيئة التشغيل**، لا من وسائطِ المُنادي. | `certification-verdict` · `full-branch-ci-evidence` |
 | `endpoint_ui_coverage_gate.py` | SAHOOL endpoint-ui-coverage-gate. | `structural-lint` |
 | `env_compose_drift_guard.py` | حارس انجراف env↔compose (السجل التشغيليّ #3) — صنف عضّ مرتين، فأُغلِق بحارس. | `structural-lint` |
 | `event_contract_graph.py` | Generate a conservative static NATS/JetStream event contract graph. | `capability-registry` |
@@ -1028,9 +1063,9 @@
 | `platform_route_placement_guard.py` | Enforce machine-readable source placement for governed platform routes. | `platform-route-budget` |
 | `pr_capability_impact_gate.py` | Compute and enforce pull-request capability impact declarations. | `capability-registry` |
 | `prepare_attested_runtime_images.py` | Validate an externally built image manifest and generate a pull-by-digest Compose override. | `runtime-producer` · `trusted-signer` |
-| `production_certification_blockers_status.py` | Print the current status of the four production certification blockers. | `certification-verdict` · `full-branch-ci-evidence` |
+| `production_certification_blockers_status.py` | Print the current status of the production certification blockers. | `certification-verdict` |
 | `production_certification_checklist_guard.py` | Production certification checklist inventory/guard. | `guard` |
-| `production_evidence_pack_guard.py` | Production evidence pack guard. | `transitive-locks-evidence` · `evidence-pack` |
+| `production_evidence_pack_guard.py` | Production evidence pack guard. | `certification-verdict` · `transitive-locks-evidence` |
 | `production_honesty_guard.py` | Production honesty guard. | `honesty` |
 | `production_truth_readiness_gate.py` | Production truth/readiness gate: no synthetic serving paths; honest readiness. | `structural-lint` · `contract` |
 | `provenance_receipt.py` | Create/validate the external provenance receipt required by the read-only bridge. | `verify-and-evaluate` |
@@ -1093,6 +1128,7 @@
 | `vegetation_container_contract_guard.py` | Guard vegetation-analysis-service container/runtime contract. | `guard` |
 | `vegetation_runtime_truth_guard.py` | Fail closed when vegetation runtime regains synthetic field/provider ownership. | `structural-lint` |
 | `verify_all_generated.py` | يشغّل **كلّ** خطوات ``--check`` المولَّدة بأمر واحد — وبالترتيب الذي تتطلّبه التبعيّات. | `capability-registry` |
+| `verify_certification_evidence_digests.py` | يقارن بصمةَ كلّ ملفِّ دليلٍ **مجلوب** ببصمةٍ سجّلها مُنتِجُه على قناةٍ أخرى. | `certification-verdict` |
 | `waiver_expiry_guard.py` | WAIVER-EXPIRY-GUARD — fail CI once a governance waiver has expired. | `structural-lint` |
 | `weather_engine_formula_guard.py` | Guard: vapour-pressure / ET0 formulas live only in the Weather Engine (WS-C.1b boundary). | `structural-lint` |
 | `weather_hourly_etc_wx_i1_guard.py` | — | `structural-lint` |
@@ -1105,7 +1141,7 @@
 
 ---
 
-## مُواصَفة بطفرات ولا يستدعيها أيّ workflow (9)
+## مُواصَفة بطفرات ولا يستدعيها أيّ workflow (10)
 
 أداة غير موصولة لا تحرس شيئاً (§٣.٢). وجودها هنا سؤالٌ لا اتّهام.
 
@@ -1118,6 +1154,7 @@
 - `scripts/architecture/rag_corpus_audit_receipt_guard.py`
 - `scripts/architecture/rag_cutover_admission_guard.py`
 - `scripts/architecture/rag_live_parity_receipt_guard.py`
+- `tenant_connection_call_shape_guard.py`
 
 ---
 

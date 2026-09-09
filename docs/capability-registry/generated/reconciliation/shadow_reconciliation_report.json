@@ -11,7 +11,7 @@
       "ratchet_identity": "DEC-001:declared_above_evidence:evidence-maturity"
     },
     {
-      "assessed_maturity": 1,
+      "assessed_maturity": 2,
       "capability_id": "DEC-003",
       "declared_maturity": 3,
       "finding_id": "DEC-003:declared_above_evidence",

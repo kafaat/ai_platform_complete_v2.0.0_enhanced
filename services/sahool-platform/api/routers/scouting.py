@@ -21,8 +21,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from api import main as api_main
 from api.main import (
-    _DB_POOL,
     Permission,
     UserSchema,
     _assert_field_in_tenant,
@@ -87,7 +87,7 @@ async def list_scouting_pins(
     غير مفعّلة (``DATABASE_URL``) ⇒ قائمة فارغة + سبب (لا مشاهدات مخترَعة)؛ تعذّر
     القاعدة أثناء التنفيذ ⇒ 503 موثَّق.
     """
-    if _DB_POOL is None:
+    if api_main._DB_POOL is None:
         return {
             "field_id": field_id,
             "pins": [],

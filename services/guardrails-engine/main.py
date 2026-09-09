@@ -20,12 +20,15 @@ from datetime import UTC, datetime
 from typing import Any, Literal
 
 import jwt as _jwt
+from contracts import ECONOMIC_ACTIONS, contract_violations
 from diff_generator import ActionDiffGenerator
 from fastapi import FastAPI, HTTPException
 from fastapi import Header as _Header
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from human_in_loop import HumanApprovalWorkflow
-from pydantic import BaseModel, Field
+from fastapi.responses import JSONResponse
+from human_in_loop import APPROVER_ROLES, HumanApprovalWorkflow, WorkflowUnavailable
+from pydantic import BaseModel, Field, field_validator, model_validator
 from tiers.chemical_tier import ChemicalSafetyTier
 from tiers.economic_tier import EconomicSafetyTier
 from tiers.environmental_tier import EnvironmentalSafetyTier
@@ -39,10 +42,33 @@ class GuardrailsRequest(BaseModel):
     ]
     action_data: dict[str, Any] = Field(..., description="Action parameters")
     farm_context: dict[str, Any] = Field(..., description="Current farm state")
-    user_id: str
+    user_id: int = Field(gt=0, le=2147483647)
     tenant_id: str
     request_source: Literal["agent", "user", "system", "edge"] = "agent"
     auto_approve_low_risk: bool = Field(default=True)
+
+    @field_validator("user_id", mode="before")
+    @classmethod
+    def canonical_user_id(cls, value):
+        if isinstance(value, str) and value.isascii() and value.isdecimal():
+            value = int(value)
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise ValueError("user_id must be a positive users.id integer")
+        return value
+
+    @field_validator("tenant_id")
+    @classmethod
+    def canonical_tenant_id(cls, value):
+        from uuid import UUID
+
+        return str(UUID(value))
+
+    @model_validator(mode="after")
+    def validate_evidence(self):
+        invalid = contract_violations(self.action_type, self.action_data, self.farm_context)
+        if invalid:
+            raise ValueError("Missing or invalid guardrails evidence: " + ", ".join(invalid))
+        return self
 
 
 class GuardrailsResult(BaseModel):
@@ -51,42 +77,12 @@ class GuardrailsResult(BaseModel):
     overall_risk: Literal["LOW", "MEDIUM", "HIGH", "CRITICAL"]
     requires_human_approval: bool
     approval_workflow_id: str | None = None
+    notification_delivery: Literal["not_configured"] | None = None
     diff: dict[str, Any] | None = None  # Diff vs safe alternative
     arabic_explanation: str
     english_explanation: str | None = None
     suggested_modifications: list[dict[str, Any]] = Field(default_factory=list)
     processing_time_ms: int
-
-
-# عقد اكتمال السياق (fail-closed): الحقول الجوهريّة دنيا لكلّ نوع إجراء. غيابها كان
-# يُقرأ .get(key, 0) فيمرّ كصفر صامت ⇒ حوكمة شكليّة (LOW/allowed). نرفض النقص بدل
-# تقييم أعمى. نقتصر على الحالات المُبرهَنة بيقين من منطق الطبقات (جرعة المبيد، الإيراد
-# السنويّ الذي تُشترَط `>0` لكلّ الفحص الاقتصاديّ، وماء الريّ). نميّز «غياب المفتاح/None»
-# (نقص سياق ⇒ يُرفَض) عن «قيمة 0 صريحة» (مشروعة ⇒ تُفحَص).
-_REQUIRED_CONTEXT: dict[str, dict[str, list[str]]] = {
-    "pesticide": {"action_data": ["chemical", "dosage_kg_ha"], "farm_context": []},
-    "irrigation": {"action_data": ["water_m3"], "farm_context": []},
-    "loan": {"action_data": [], "farm_context": ["annual_revenue_usd"]},
-    "contract": {"action_data": [], "farm_context": ["annual_revenue_usd"]},
-    "investment": {"action_data": [], "farm_context": ["annual_revenue_usd"]},
-}
-
-
-def contract_violations(action_type: str, action_data: dict, farm_context: dict) -> list[str]:
-    """أسماء الحقول الجوهريّة الغائبة (أو None) لنوع الإجراء — [] إن اكتمل السياق.
-
-    «غياب المفتاح أو None» فقط = نقص (يُرفَض)؛ القيمة 0 الصريحة مشروعة (لا تُرفَض).
-    دالّة نقيّة قابلة للاختبار وحدويّاً.
-    """
-    spec = _REQUIRED_CONTEXT.get(action_type)
-    if not spec:
-        return []
-    sources = {"action_data": action_data or {}, "farm_context": farm_context or {}}
-    missing: list[str] = []
-    for src_name, keys in spec.items():
-        src = sources[src_name]
-        missing.extend(f"{src_name}.{k}" for k in keys if src.get(k) is None)
-    return missing
 
 
 class SAHOOLGuardrailsEngine:
@@ -163,7 +159,7 @@ class SAHOOLGuardrailsEngine:
         checks.append(env_check)
 
         # Tier 3: Economic Safety (investment/contract/loan actions)
-        if request.action_type in ["investment", "contract", "loan", "irrigation", "fertilization"]:
+        if request.action_type in ECONOMIC_ACTIONS:
             econ_check = await self.economic_tier.validate(
                 action_type=request.action_type,
                 action_data=request.action_data,
@@ -174,14 +170,14 @@ class SAHOOLGuardrailsEngine:
         # Calculate overall risk
         overall_risk = self._calculate_overall_risk(checks)
 
-        # Determine if human approval required
-        requires_human = overall_risk in self.human_required_risk
-
-        # Auto-approve low risk if enabled
-        allowed = overall_risk in self.auto_approve_risk
-        if request.auto_approve_low_risk and overall_risk == "MEDIUM":
-            # Medium risk: check if all tiers pass with warnings
-            allowed = all(c["passed"] for c in checks)
+        # Only LOW can be automatically approved, and only when the caller opted in.
+        # Warnings and an explicit request for manual review create a durable workflow.
+        allowed = (
+            request.auto_approve_low_risk
+            and overall_risk == "LOW"
+            and all(check["passed"] for check in checks)
+        )
+        requires_human = not allowed
 
         # If not allowed and human required, create approval workflow
         workflow_id = None
@@ -216,6 +212,7 @@ class SAHOOLGuardrailsEngine:
             overall_risk=overall_risk,
             requires_human_approval=requires_human,
             approval_workflow_id=workflow_id,
+            notification_delivery="not_configured" if workflow_id else None,
             diff=diff,
             arabic_explanation=arabic_exp,
             suggested_modifications=suggestions,
@@ -274,7 +271,7 @@ class SAHOOLGuardrailsEngine:
                 return f"⚠️ **تمت الموافقة مع تحذير**\n\nإجراء {action_name} مسموح به لكن يوجد ملاحظات:\n{self._format_findings(checks)}"
 
         if requires_human:
-            return f"🛑 **يتطلب موافقة بشرية**\n\nإجراء {action_name} يحمل مخاطر **{overall_risk}** ويتطلب مراجعة خبير زراعي قبل التنفيذ.\n\n**الأسباب:**\n{self._format_findings(checks)}\n\nسيتم إرسال طلب موافقة إلى المشرف المختص."
+            return f"🛑 **يتطلب موافقة بشرية**\n\nإجراء {action_name} يحمل مخاطر **{overall_risk}** ويتطلب مراجعة خبير زراعي قبل التنفيذ.\n\n**الأسباب:**\n{self._format_findings(checks)}\n\nحُفظ طلب المراجعة. تسليم إشعارات الخبراء غير مهيّأ؛ تابع حالة الطلب عبر بوابة الموافقات."
 
         return f"❌ **تم الرفض**\n\nإجراء {action_name} مرفوض لأسباب السلامة.\n\n**الأسباب:**\n{self._format_findings(checks)}\n\n**البدائل المقترحة:**\n{self._format_suggestions(checks)}"
 
@@ -344,6 +341,27 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
+@app.exception_handler(RequestValidationError)
+async def invalid_request_handler(_request, exc):
+    # Do not echo untrusted amounts (including NaN/Infinity) into JSON error bodies.
+    errors = [{"type": e["type"], "loc": e["loc"], "msg": e["msg"]} for e in exc.errors()]
+    return JSONResponse(status_code=422, content={"detail": errors})
+
+
+@app.exception_handler(WorkflowUnavailable)
+async def workflow_unavailable_handler(_request, _exc):
+    return JSONResponse(
+        status_code=503,
+        content={
+            "detail": {
+                "code": "approval_store_unavailable",
+                "message_ar": "تعذّر حفظ أو قراءة طلب الموافقة؛ الإجراء غير معتمد.",
+            }
+        },
+    )
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=parse_cors_origins(os.getenv("CORS_ORIGINS"), allow_credentials=True),
@@ -409,11 +427,17 @@ def _gr_verify(authorization: str = _Header(None)) -> dict:
     # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
     if payload.get("iss") not in _ALLOWED_ISS:
         raise HTTPException(401, "مُصدِر التوكن غير مسموح")
-    # الموافقة تتطلّب دور expert أو admin (بوابة بشريّة)
-    if payload.get("role") not in ("expert", "admin"):
+    # Authenticated specialist roles must match the workflow role at mutation time.
+    if payload.get("role") not in APPROVER_ROLES:
         raise HTTPException(403, "الموافقة تتطلّب صلاحيّة خبير أو مدير")
     if not payload.get("sub"):
         raise HTTPException(401, "توكن ناقص الهويّة")
+    try:
+        from uuid import UUID
+
+        payload["tenant_id"] = str(UUID(payload.get("tenant_id", "")))
+    except (ValueError, TypeError, AttributeError):
+        raise HTTPException(401, "توكن ناقص المستأجر") from None
     return payload
 
 
@@ -441,6 +465,12 @@ def _gr_authn(authorization: str = _Header(None)) -> dict:
         raise HTTPException(401, "مُصدِر التوكن غير مسموح")
     if not payload.get("sub"):
         raise HTTPException(401, "توكن ناقص الهويّة")
+    try:
+        from uuid import UUID
+
+        payload["tenant_id"] = str(UUID(payload.get("tenant_id", "")))
+    except (ValueError, TypeError, AttributeError):
+        raise HTTPException(401, "توكن ناقص المستأجر") from None
     return payload
 
 

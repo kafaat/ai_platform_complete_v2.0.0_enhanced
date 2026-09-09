@@ -20,8 +20,9 @@
 # **حقائق محلّيّة قابلة لإعادة الإنتاج** وحدها.
 #
 # ── ما لا يفعله هذا السكربت (اقرأه قبل أن تثق بأخضره) ──────────────────────
-# الأخضر هنا يعني «ما قِيس مرّ»، لا «CI ستخضرّ». §٣.١٧ تقيس أنّ workflows تستدعي
-# **٢٦١** بوّابة و§٢ تغطّي **٨٦** منها (تسميةً مباشرة أو عبر المكنسة). الباقي عقود
+# الأخضر هنا يعني «ما قِيس مرّ»، لا «CI ستخضرّ». §٣.١٧ تقيس أنّ §٢ تغطّي **أقلّيّة**
+# البوّابات (تسميةً مباشرة أو عبر المكنسة) — والعددُ الحيُّ في رأس
+# `docs/runbooks/GUARD_CATALOGUE.md` المولَّد، لا منقولاً هنا فيبيت. الباقي عقود
 # نطاق (raster · weather · edge ·
 # mobile · vegetation …) تُسقِطها تغييرات نطاقها وحدها، ولا يمكن لسكربت واحد أن
 # يخمّن نطاقك. اشتقّ بوّاباتك من مساراتك المُعدَّلة — والقسم الأخير هنا يطبع
@@ -363,8 +364,27 @@ run "٤ز) db_writer_ownership"     python3 scripts/ci/db_writer_ownership_guard
 run "٥أ) arch_test_ci_coverage"   python3 scripts/ci/arch_test_ci_coverage_guard.py
 run "٥ب) marker_coverage"         python3 scripts/ci/test_marker_coverage_guard.py --check
 
+# ── ٥ج) راتشِت ميزانية وحدات المنصّة — في الطبقة السريعة عمداً ─────────────
+# PREFLIGHT-BLIND-TO-PLATFORM-SERVICE-TESTS-01: وظيفةُ *Platform Unit Tests* (مطلوبة)
+# تُشغّل `services/sahool-platform/tests`، ولم تكن أيُّ طبقةٍ هنا تُشغّله. مقيس على #985:
+# `--fast` والافتراضيّةُ 0/0 محلّيّاً بينما CI أحمر لأنّ وحدةً جديدة في المنصّة رفعت
+# العدَّ من 680 إلى 681. الراتشِت يعدّ ملفّاتٍ على القرص بلا استيراد — أقلّ من ثانية،
+# حتميٌّ في كلّ بيئة، فموضعُه الطبقةُ الأرخص. الجناحُ كلُّه في ٨ج بشرطه.
+run "٥ج) platform_module_budget"  python3 -m pytest -q -p no:cacheprovider services/sahool-platform/tests/test_p0_platform_module_growth_guard.py
+
 # ── ٦) حرّاس الدماغ — على مدى الـPR لا على الشجرة ─────────────────────────
 run "٦أ) brain_deferral"          python3 scripts/ci/brain_deferral_registry_guard.py
+
+# ── ٦د) صفٌّ مكرَّر لهويّة فجوة — على الشجرة لا على المدى ─────────────────
+# DUPLICATE-GAP-ROW-GUARD-ABSENT-FROM-PREFLIGHT-01: صفّان بالمعرّف نفسه عاشا في
+# `gaps/registry.md` عبر التزامين، ومرّ هذا السكربت أخضرَ عليهما — بينما الحارس
+# **يراهما** (`global_duplicate_row_identities` على سجلّ `a7d64adf` ⇒ سطران). كان
+# موصولاً في `no-report-only-change.yml` وحدَه، فيُكتشَف التكرارُ على PR لا هنا —
+# والتقطه المالكُ بالعين قبل أيّ بوّابة. Python صرف على أربعة ملفّات، أقلّ من ثانية.
+# وغيابُ سكربته يُسمّى تقلّصَ تغطيةٍ (`require_file`) لا تخطّياً ولا خطأَ تشغيل.
+require_file scripts/ci/brain_duplicate_gap_identity_guard.py "٦د) brain_duplicate_gap_identity" \
+  && run "٦د) brain_duplicate_gap_identity" python3 scripts/ci/brain_duplicate_gap_identity_guard.py
+
 if git rev-parse --verify "$BASE" >/dev/null 2>&1; then
   run "٦ب) brain_state_transition" python3 scripts/ci/brain_state_transition_guard.py --base "$BASE" --head HEAD
   run "٦ج) brain_commit_claim"     python3 scripts/ci/brain_commit_claim_guard.py --base "$BASE" --head HEAD
@@ -413,6 +433,56 @@ fi
 # `-m unit` (§٢/٧ب) — أُغفِلت من الكتلة الأصليّة حتّى أسقطت بناءً.
 run "٨أ) pytest -m unit"  python3 -m pytest -q -m unit
 run "٨ب) pytest tests/"   python3 -m pytest -q tests/
+
+# ── ٨ج) جناحُ المنصّة كما تُشغّله CI — بشرط تطابق إصدار FastAPI ─────────────
+# PREFLIGHT-BLIND-TO-PLATFORM-SERVICE-TESTS-01: الوظيفةُ تعمل من `services/sahool-platform`
+# بـ`PYTHONPATH=.`، والشكلُ يُنسَخ لا يُقارَب. **والشرطُ مقيسٌ لا احتياط:** FastAPI 0.141
+# يُدرِج الراوترات كسولةً (`_IncludedRouter`) فيصير `app.routes` معتماً، واختباراتُ
+# «مسارٌ مُسجَّل» تحمرّ لسببٍ بيئيّ لا شيفريّ بينما CI يثبّت الإصدارَ الذي في
+# `api/requirements.txt`. حمرةٌ بيئيّة تُقرأ شيفريّةً أسوأ من تخطٍّ مُعلَن — فعند اختلاف
+# الإصدار يُتخطّى بصوتٍ عالٍ ويُعَدّ «لم يُقَس»، لا أخضرَ ولا أحمرَ كاذبين.
+pin_check_reason="$(
+python3 - <<'PINPY' 2>&1
+import re, sys
+from pathlib import Path
+
+requirements = Path("services/sahool-platform/api/requirements.txt")
+try:
+    lines = requirements.read_text(encoding="utf-8").splitlines()
+except Exception as exc:
+    print(f"تعذّرت قراءة {requirements}: {exc}", file=sys.stderr)
+    sys.exit(2)
+
+pin = None
+for line in lines:
+    m = re.match(r"\s*fastapi==([0-9][0-9A-Za-z.]*)", line)
+    if m:
+        pin = m.group(1)
+if pin is None:
+    print(f"لم يُعثر على تثبيت fastapi==… في {requirements}", file=sys.stderr)
+    sys.exit(3)
+try:
+    import fastapi
+except Exception as exc:
+    print(f"تعذّر استيراد FastAPI المثبَّت: {exc}", file=sys.stderr)
+    sys.exit(4)
+if fastapi.__version__ != pin:
+    print(
+        f"إصدارُ FastAPI المثبَّت ({fastapi.__version__}) ≠ المثبَّت في {requirements} ({pin})",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+PINPY
+)"
+pin_check_rc=$?
+if [ "$pin_check_rc" -eq 0 ]; then
+  run "٨ج) pytest services/sahool-platform/tests (شكل CI)" \
+    bash -c 'cd services/sahool-platform && PYTHONPATH=. python3 -m pytest -q -p no:cacheprovider tests'
+else
+  echo "── ٨ج) pytest services/sahool-platform/tests (شكل CI)"
+  echo "   ⊘ متخطّاة: ${pin_check_reason:-تعذّر التحقّق من شرط FastAPI} — هذه البوّابة **لم تُقَس**"
+  skipped=$((skipped + 1))
+fi
 
 if [ "$TIER" = full ]; then
   # ── ٩) الأمن — bandit يحجب على HIGH وحده؛ الباقي إرشاديّ ────────────────
@@ -495,7 +565,7 @@ if [ "$skipped" -gt 0 ]; then
   echo "⚠ $skipped بوّابة لم تُقَس — «لم أنظر» ليس «لا يوجد»."
 fi
 if [ "$failures" -eq 0 ]; then
-  echo "أخضر على ما قِيس. §٣.١٧: workflows تستدعي ٢٦١ بوّابة وهذا يغطّي ٨٦."
+  echo "أخضر على ما قِيس — وهي أقلّيّةُ البوّابات (§٣.١٧؛ العددُ الحيّ في GUARD_CATALOGUE)."
   echo "اشتقّ عقود نطاقك من مساراتك المُعدَّلة قبل الدفع."
 else
   echo "أصلِح ما فوق. كلّ فشل هنا كان سيكلّف جولة CI كاملة."

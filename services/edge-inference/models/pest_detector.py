@@ -95,61 +95,51 @@ class EdgePestDetector:
         "aphid": {
             "arabic": "منّ",
             "crops": ["wheat", "barley", "maize", "tomato"],
-            "action": "رش زيت النيم أو Imidacloprid",
             "severity": "medium",
         },
         "armyworm": {
             "arabic": "دودة الحشد",
             "crops": ["maize", "sorghum", "millet"],
-            "action": "Bacillus thuringiensis أو Chlorpyrifos",
             "severity": "high",
         },
         "leaf_miner": {
             "arabic": "حفار الأوراق",
             "crops": ["tomato", "potato"],
-            "action": "Abamectin أو Spinosad",
             "severity": "medium",
         },
         "red_spider_mite": {
             "arabic": "عنكبوت أحمر",
             "crops": ["tomato", "potato", "coffee"],
-            "action": "صابون زراعي أو Abamectin",
             "severity": "medium",
         },
         "stem_borer": {
             "arabic": "حفار الساق",
             "crops": ["maize", "sorghum"],
-            "action": "زراعة مبكرة + فخوم فرمونية",
             "severity": "high",
         },
         "rust": {
             "arabic": "صدأ",
             "crops": ["wheat", "barley"],
-            "action": "Mancozeb أو Propiconazole",
             "severity": "high",
         },
         "blight": {
             "arabic": "لفحة",
             "crops": ["potato", "tomato"],
-            "action": "Mancozeb + Copper oxychloride",
             "severity": "high",
         },
         "bacterial_wilt": {
             "arabic": "ذبول بكتيري",
             "crops": ["tomato", "potato"],
-            "action": "تناوب المحاصيل + مقاومة الأصناف",
             "severity": "high",
         },
         "coffee_borer": {
             "arabic": "حفار القهوة",
             "crops": ["coffee"],
-            "action": "Beauveria bassiana أو Endosulfan (محظور)",
             "severity": "high",
         },
         "coffee_rust": {
             "arabic": "صدأ القهوة",
             "crops": ["coffee"],
-            "action": "Copper fungicides",
             "severity": "high",
         },
     }
@@ -284,7 +274,7 @@ class EdgePestDetector:
                         "height": round(h, 3),
                     },
                     "affected_crops": pest_info["crops"],
-                    "recommended_action": pest_info["action"],
+                    "action_policy": "observation_only",
                     "severity": pest_info["severity"],
                 }
             )
@@ -335,7 +325,7 @@ class EdgePestDetector:
                         "height": round(h, 3),
                     },
                     "affected_crops": pest_info["crops"],
-                    "recommended_action": pest_info["action"],
+                    "action_policy": "observation_only",
                     "severity": pest_info["severity"],
                 }
             )
