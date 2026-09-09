@@ -7710,3 +7710,11 @@ Audited base `7407eae2`; implementation `f8086c1ff`. The real asyncpg JSONB repr
 `655903768` isolates the raster fallback tests from the live indicators adapter. `cb0dc6cbd` stamps the existing drawing-schema authorization CONSUMED after verifying #990 and both authorized blob hashes at merge `7407eae2`. Default preflight on `bd7bca34b` completed: 6,610 unit passes (30 skips), 752 repository passes (8 skips), and one platform failure among 4,306 tests. That failure was a provider name in a comment, caught by a lexical boundary guard. `73a67e3bd` corrects the comment with an identical Python AST; the entire platform suite then passed 4,306 tests. The completed one-failure preflight log is retained honestly, alongside the successful platform rerun. Bandit reported no HIGH-severity issues.
 
 Direct Git push lacks credentials (the dry run failed before writing a branch). The handoff preserves original commits in a Git bundle and supplies the evidence and prepared PR body. No remote branch, PR, merge, live execution or production certification is claimed. See [main repair report](../docs/testing/main_irrigation_guardrails_repairs_20260909.md).
+
+
+## 2026-09-09 — استئناف البحث الزراعي بإصلاح عقد اتصال القرار
+
+- المصدر: `b15871f9c` · [تقرير الإصلاح](../docs/testing/decision_transport_auth_repairs_20260909.md).
+- السبب: A02 كشف أن اعتماد العملاء لا يطابق Bearer المطلوب، وتصحيح الاتصال يستلزم منع منح سلطة خدمة إلى مستأجر أو مراجع مأخوذ من العميل.
+- التنفيذ: helper مشترك، حقن Compose، session/RBAC للمجمع، ومسار المنصة القائم لنتائج الصور. فحوص مركزة 60 + مستقبل 10 + مجموعة CI 61؛ لا جمع لهذه الأعداد كحالات فريدة. التحقق النهائي قيد الاستكمال.
+- لم يتغير وضع SoR أو أعلام التنفيذ؛ فحوص PostgreSQL/NATS والأجهزة ليست مقيسة بهذه الشريحة.

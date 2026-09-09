@@ -5765,3 +5765,10 @@ Timing follow-up: final source registry656; run34281851595 measured654 in five s
 ## VEGETATION-RASTER-UNIT-REACHES-LIVE-INDICATORS-01 — FIXED_IN_CODE (2026-09-09)
 
 `655903768`: `tests_v9/test_vegetation_raster_ndvi.py` controlled the raster adapter but left the preceding canonical adapter live, interrupting local unit execution with an attempted indicators-service request. The function-scoped fixture now returns an unavailable canonical bundle and asserts that adapter was awaited, so both raster fallback paths are deterministic. Six focused tests and the complete unit suite passed. Production vegetation behavior and static boundary assertions are unchanged.
+
+
+## DECISION-CLIENT-AUTH-CONTRACT-01 — open (deployment verification pending)
+
+- المصدر: `services/sahool-platform/api/decision_service_client.py`، `services/decision-service/main.py::_service_token_guard`، `services/remote-sensing-workspace-bff/main.py`، وتقرير `docs/testing/decision_transport_auth_repairs_20260909.md`.
+- إصلاح الكود: `b15871f9c` يعالج عدم تطابق اعتماد الخدمة، ويستمد tenant وصلاحيات المجمع من جلسة موثقة، ويوجه تحقق النتيجة والتعلم إلى تفويض المنصة. 60 شاهداً مركزاً + 10 لحارس المستقبل + 61 في مجموعة CI، مع تداخل بينها.
+- شرط الإغلاق المتبقي: نشر الإعداد المتطابق والتحقق من التسليم والعزل على خدمات وقاعدة بيانات حية في الوضع المصرح به؛ التوكن المشترك لا يثبت وحده RLS أو ملكية كل خدمة، ولا يجيز قلب SoR.

@@ -2483,3 +2483,9 @@ Decision implemented in `f8086c1ff`, based on review of `7407eae2`: retain legac
 `655903768` controls the canonical adapter in raster-fallback unit tests because unit execution must not depend on a live indicators service. `cb0dc6cbd` consumes an already-used authorization only after verifying the actual #990 merge and matching authorized bytes; it grants no new scope. `73a67e3bd` names weather-service in the canonical-water comment because this consumer depends on that facade, not a provider; AST equality and 4,306 passing platform tests verify the correction.
 
 Unit and repository suites passed on `bd7bca34b`; the platform-only rerun resolves its sole failure without relabeling the earlier log or lowering a guard. Direct Git publication is unavailable, so a bundle retains the original tested commits rather than recreating a different history through the API. Source/test mapping and delivery state: [main repair report](../../docs/testing/main_irrigation_guardrails_repairs_20260909.md).
+
+
+## 2026-09-09 — اعتماد القرار لا يحل محل هوية المستخدم
+
+- القرار (`b15871f9c`): credential resolution واحد لاتصال القرار؛ مصدر tenant وصلاحيات القراءة هو جلسة المنصة وسياسة has_permission القائمة. عمليات تحقق النتيجة وإسناد التعلم تمر بحد RBAC نفسه، دون خريطة أدوار أخرى في النبات.
+- السبب: مجرد استبدال JWT المستخدم بتوكن خدمة يفتح انتحال tenant/actor إن لم يسبق التفويض. [الدليل والحدود](../../docs/testing/decision_transport_auth_repairs_20260909.md).
