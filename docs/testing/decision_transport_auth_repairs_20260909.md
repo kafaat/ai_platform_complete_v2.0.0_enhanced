@@ -25,6 +25,8 @@ Configure `DECISION_SERVICE_AUTH_TOKEN` at the deployment boundary. Compose maps
 
 Deploy the platform session response before the updated workspace BFF: the BFF requires the explicit permission projection and fails closed if an older platform omits it. Preserve each service's existing JWT issuer/key configuration. Service URL/auth configuration does not prove connectivity or database readiness.
 
+Vegetation outcome and attribution routes now expose the existing platform boundary response. Outcome verification uses `state` and `replay`; the earlier direct decision-service response used a different projection. Consumers of these routes must use the platform response contract. The bridge does not fabricate the receiver's persistence/actor fields to imitate the former response.
+
 Development without required auth remains compatible with the receiver's unconfigured mirror mode. Production or DECISION_REQUIRE_AUTH_TOKEN requires the decision credential. Water-ledger's existing explicit identity flag also requires it. No feature or SoR flag is enabled by this patch.
 
 ## Validation evidence
@@ -34,6 +36,14 @@ Development without required auth remains compatible with the receiver's unconfi
 - Receiver middleware tests passed **10 tests**, including correct and incorrect client credentials against the real decision-service guard.
 - The CI vegetation/advisory group, extended to include workspace and outcome bridge regressions, passed **61 tests** in its actual CI working directory.
 - Repository-wide Ruff checks and formatting passed. Final generation/preflight results are recorded in the delivery evidence after completion.
+
+### Completed repository verification
+
+The default preflight completed on `a15f176cc` with **6,611 unit passes, 30 skips and 430 deselections** (588.01 s), and **752 repository passes, 8 skips** (487.12 s). It reported one platform failure among 4,321 tests: `test_p4_5_legacy_decision_write_routers_facade_guard.py` still required the obsolete `X-Agent-Token` literal in the client.
+
+`fb1d4ed3d` replaces that obsolete expectation with execution of `decision_service_headers`: the real output must contain the dedicated Bearer credential and preserve tenant/actor context, while excluding the general agent header. All existing ownership/mirroring assertions remain. The **entire platform suite then passed 4,321 tests** (57.34 s). Only that platform test file changed between the two test runs; production code did not change. The unit/repository suites were not repeated for the test-only correction. The original one-failure preflight log is retained alongside the successful platform rerun, not relabeled as a zero-failure run.
+
+The review base is pinned to `7407eae2ba006a4c4c07018988a0f680e176abea`. An initial preflight instead resolved the local `origin/main` alias to the older `82e56b05` and was interrupted when the partial clone attempted a blocked network fetch for brain history. A direct GitHub compare confirmed that live `main` still matched `7407eae2`; the completed run used `BASE=7407eae2ba006a4c4c07018988a0f680e176abea`, `--no-fetch` and `GIT_NO_LAZY_FETCH=1`. No missing-history check was waived and the shared remote-tracking reference was not rewritten. Final generated/release integrity and range-dependent governance evidence accompany the handoff.
 
 HTTP guards and production functions ran with controlled transports and data; this is not a live PostgreSQL/NATS/device certification. Permission/tenant rejection was tested before domain calls. The receiver probe reaches routing after authentication; it does not establish tenant RLS or decision persistence.
 
