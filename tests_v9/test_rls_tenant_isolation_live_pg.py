@@ -207,3 +207,101 @@ async def test_the_isolation_assertion_is_not_vacuous_when_rls_is_off():
         )
     finally:
         await _drop()
+
+
+@pytest.mark.asyncio
+async def test_drawing_migration_reapplies_and_isolates_runtime_dml():
+    """Apply the real migration twice, including adoption of a legacy app-owned table.
+
+    The temporary schema keeps this probe away from production tables. Ownership,
+    catalog protection, tenant writes, and connection reuse are all tested on PG.
+    """
+    from pathlib import Path
+
+    schema = "drawing_witness_" + uuid.uuid4().hex
+    table = f"{schema}.drawing_features"
+    migration = (
+        Path(__file__).resolve().parents[1] / "migrations/v230_drawing_features.sql"
+    ).read_text(encoding="utf-8")
+    app = await asyncpg.connect(_APP_DSN)
+    admin = await asyncpg.connect(_ADMIN_DSN)
+    try:
+        await _assert_role_is_actually_restricted(app)
+        role = await _app_role_name(app)
+        quoted_role = '"' + role.replace('"', '""') + '"'
+        owner = await admin.fetchval("SELECT current_user")
+        await admin.execute(f"CREATE SCHEMA {schema}")
+        await admin.execute(f"SET search_path TO {schema}, public")
+        await admin.execute(migration)
+        await admin.execute(f"ALTER TABLE {table} OWNER TO {quoted_role}")
+        await admin.execute(migration)
+        catalog = await admin.fetchrow(
+            "SELECT relrowsecurity, relforcerowsecurity, pg_get_userbyid(relowner) AS owner "
+            "FROM pg_class WHERE oid = $1::regclass",
+            table,
+        )
+        assert dict(catalog) == {
+            "relrowsecurity": True,
+            "relforcerowsecurity": True,
+            "owner": owner,
+        }
+        await admin.execute(f"GRANT USAGE ON SCHEMA {schema} TO {quoted_role}")
+        # These are the grants apply_in_compose.sh supplies to its APP_DB_ROLE.
+        await admin.execute(f"GRANT SELECT, INSERT, UPDATE, DELETE ON {table} TO {quoted_role}")
+        await admin.executemany(
+            f"INSERT INTO {table} (feature_id, tenant_id, kind, geometry) VALUES ($1, $2, 'scout-pin', '{{}}')",
+            [("a", uuid.UUID(_TENANT_A)), ("b", uuid.UUID(_TENANT_B))],
+        )
+        assert not await app.fetchval(
+            "SELECT has_schema_privilege(current_user, $1, 'CREATE')", schema
+        )
+        for tenant, own_id, other_id in [(_TENANT_A, "a", "b"), (_TENANT_B, "b", "a")]:
+            # Reuse one connection and transaction-local GUC, as tenant_connection does.
+            async with app.transaction():
+                await app.execute("SELECT set_config('app.current_tenant', $1, true)", tenant)
+                assert await app.fetchval(f"SELECT feature_id FROM {table}") == own_id
+                assert (
+                    await app.execute(
+                        f"UPDATE {table} SET draft = false WHERE feature_id = $1", other_id
+                    )
+                    == "UPDATE 0"
+                )
+                assert (
+                    await app.execute(
+                        f"UPDATE {table} SET draft = false WHERE feature_id = $1", own_id
+                    )
+                    == "UPDATE 1"
+                )
+                await app.execute(
+                    f"INSERT INTO {table} (feature_id, tenant_id, kind, geometry) VALUES ('own-insert', $1, 'scout-pin', '{{}}')",
+                    uuid.UUID(tenant),
+                )
+                assert (
+                    await app.execute(f"DELETE FROM {table} WHERE feature_id = 'own-insert'")
+                    == "DELETE 1"
+                )
+                with pytest.raises(asyncpg.InsufficientPrivilegeError):
+                    async with app.transaction():
+                        await app.execute(
+                            f"INSERT INTO {table} (feature_id, tenant_id, kind, geometry) VALUES ('bad', $1, 'scout-pin', '{{}}')",
+                            uuid.UUID(_TENANT_B if tenant == _TENANT_A else _TENANT_A),
+                        )
+                with pytest.raises(asyncpg.InsufficientPrivilegeError):
+                    async with app.transaction():
+                        await app.execute(
+                            f"UPDATE {table} SET tenant_id = $1 WHERE feature_id = $2",
+                            uuid.UUID(_TENANT_B if tenant == _TENANT_A else _TENANT_A),
+                            own_id,
+                        )
+            assert await app.fetchval(f"SELECT count(*) FROM {table}") == 0
+        with pytest.raises(asyncpg.InsufficientPrivilegeError):
+            await app.execute(
+                f"INSERT INTO {table} (feature_id, tenant_id, kind, geometry) VALUES ('no-context', $1, 'scout-pin', '{{}}')",
+                uuid.UUID(_TENANT_A),
+            )
+    finally:
+        await app.close()
+        try:
+            await admin.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE")
+        finally:
+            await admin.close()

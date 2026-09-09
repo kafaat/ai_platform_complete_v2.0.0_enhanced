@@ -13,7 +13,7 @@ from typing import Any
 import httpx
 from fastapi import Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
-from shared.oauth_middleware import require_scope
+from shared.oauth_middleware import idempotency_key, require_scope
 from shared.streamable_http import StreamableHTTPTransport
 
 from shared.field_change_summary import InsufficientObservations, summarize_field_change
@@ -282,17 +282,18 @@ async def list_tools() -> dict[str, Any]:
     }
 
 
-@app.post("/v1/mcp/tools/call", dependencies=[Depends(require_scope("satellite:read"))])
-async def call_tool(request: Request):
+@app.post("/v1/mcp/tools/call")
+async def call_tool(request: Request, user: dict = Depends(require_scope("satellite:read"))):
     body = await request.json()
     tool_input = ToolInput(**body)
-    if tool_input.request_id:
-        cached = IDEMPOTENCY_CACHE.get(tool_input.request_id)
+    cache_key = idempotency_key(user, tool_input.request_id, tool_input.name, tool_input.arguments)
+    if cache_key:
+        cached = IDEMPOTENCY_CACHE.get(cache_key)
         if cached and datetime.now(UTC) < cached["expires_at"]:
             return cached["result"]
     result = await _execute_tool(tool_input)
-    if tool_input.request_id:
-        IDEMPOTENCY_CACHE[tool_input.request_id] = {
+    if cache_key:
+        IDEMPOTENCY_CACHE[cache_key] = {
             "result": result,
             "expires_at": datetime.now(UTC) + timedelta(seconds=CACHE_TTL_SECONDS),
         }

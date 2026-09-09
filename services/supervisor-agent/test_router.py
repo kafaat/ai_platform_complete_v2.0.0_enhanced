@@ -132,3 +132,21 @@ if __name__ == "__main__":
             print(f"  \u2717 {fn.__name__}: {e}")
     print(f"\n{passed}/{len(fns)} \u0646\u062c\u0627\u062d")
     sys.exit(0 if passed == len(fns) else 1)
+
+
+def test_arabic_observed_intents_respect_word_boundaries_and_specificity():
+    cases = [
+        ("متى أروي القمح؟", "crop_model", "irrigation_advice"),
+        ("متى أَرْوِي القمح؟", "crop_model", "irrigation_advice"),
+        ("متى أــروي القمح؟", "crop_model", "irrigation_advice"),
+        ("ما حالة النمو في حقلي؟", "remote_sensing", "full_analysis"),
+        ("ظهرت بقع صفراء على القمح", "advisory", "disease_id"),
+        ("مرض مع بقع صفراء على القمح", "advisory", "disease_id"),
+        ("الرياح قوية اليوم", "advisory", "general_advice"),
+        ("حالة حقل متضرر بسبب الرياح", "remote_sensing", "full_analysis"),
+        ("ما سعر القمح الشهر القادم؟", "market", "price_forecast"),
+        ("توقع سعر القمح الشهر القادم", "market", "price_forecast"),
+        ("what is the wheat price next month?", "market", "price_forecast"),
+    ]
+    for query, domain, intent in cases:
+        assert _classify(query)[:2] == (domain, intent), query

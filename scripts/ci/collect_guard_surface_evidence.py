@@ -209,9 +209,11 @@ def evaluate(sites: list[dict], runs: dict[str, dict]) -> dict:
                 }
             )
             continue
-        reasons = sorted({str(s["status"]) for s in sites_judged})
+        # الموضع المستثنى ليس إخفاقاً؛ الحارس المختلط يُشخَّص بمواضعه المطلوبة فقط.
+        failed_sites = [s for s in sites_judged if s["status"] != "self_witnessing_excluded"]
+        reasons = sorted({str(s["status"]) for s in failed_sites})
         guards.append({"guard": guard, "status": "not_proven", "reasons": reasons})
-        unproven.append({"guard": guard, "reasons": reasons, "sites": sites_judged})
+        unproven.append({"guard": guard, "reasons": reasons, "sites": failed_sites})
 
     return {
         "guards": guards,

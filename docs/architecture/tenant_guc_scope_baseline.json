@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "d44b9ad1d17df977b1b8781b6c6417780b6c01ae",
+  "measured_on": "0faacfc52f9746f396c806c23b4aa4777ca0dff7",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "bf9b334e86e3c01644c27adf63747d6d6b5f9120693da44022d8885ffaca7b77",
+  "measurement_input_digest": "9bbbc8fe30431b78f02c760425dbbc0be9345eeebed2198eeb0069fb246ed31d",
   "measurement_algorithm_digest": "5e1674674f2856600b7a8a67f9e383a7f122d1f39acd605826ec75bd98fc4641",
-  "measurement_basis_digest": "947faca3ec8a45d07f56216350caaba2a48cb3d685cd6f3d05fbeb71b48c1fe4",
+  "measurement_basis_digest": "57d7de260cd96d50ae3d74a510fc0cdb3e6d86dbc38fef3adb31bd07bc63dedc",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -44,7 +44,7 @@
     },
     {
       "path": "services/auth/main.py",
-      "sha256": "4ce2ddec775492f197f6a4a39edd3cf5e0b5ccf56fdb22efa2f503d519562d22"
+      "sha256": "6764e26455c0bce1f708833f203ebe087a29a9b3d6ed114efd679b3306b4cc04"
     },
     {
       "path": "services/decision-service/persistence.py",
@@ -55,16 +55,20 @@
       "sha256": "8a9530ee4d9cb100821ad620a2e80380c2e444281e890b3af1e376a7ab8c9f2c"
     },
     {
+      "path": "services/guardrails-engine/human_in_loop.py",
+      "sha256": "96324fc529d329b568f5eb963eb7eceeaae8c5c1ccac6eb7d99209cf6d3c4499"
+    },
+    {
       "path": "services/mcp_servers/market_db_authz.py",
       "sha256": "2b8b92cf3bd49a18f4d4749f2b9b4885ad77e944473e109b66df5235153c6986"
     },
     {
       "path": "services/mcp_servers/market_server.py",
-      "sha256": "c751c5046c282971786767908355c008e31631ee3dc12dbf971abb8d54ee65b9"
+      "sha256": "e33d39ab26cf0c63f5561d4aba01abbcd99ae64aeba4572baa0d7177d97b13ec"
     },
     {
       "path": "services/mcp_servers/shared/oauth_middleware.py",
-      "sha256": "f43d99a2abca6599e274b6650e3d660e381bffc79b5fcdafba082cb95b9d8a7e"
+      "sha256": "2f987372cc4e5d195d4779771e969353b1c3e5a3280fcbdddd10d4e8b6e91069"
     },
     {
       "path": "services/raster-service/backfill_scan_worker.py",
@@ -170,9 +174,9 @@
   "baseline": "GUC-SCOPE-GUARD-SEES-ONE-FILE-01",
   "offenders": [
     "agents/base_agent.py:50",
-    "services/auth/main.py:983",
-    "services/mcp_servers/shared/oauth_middleware.py:34",
-    "services/mcp_servers/shared/oauth_middleware.py:38",
+    "services/auth/main.py:990",
+    "services/mcp_servers/shared/oauth_middleware.py:36",
+    "services/mcp_servers/shared/oauth_middleware.py:40",
     "services/raster-service/backfill_scan_worker.py:101",
     "services/raster-service/cache_invalidation_worker.py:87",
     "services/sahool-platform/api/imagery_automation.py:178",

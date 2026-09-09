@@ -473,7 +473,9 @@ def normalize_daily(
 async def fetch_tile_sample(
     lat: float, lon: float, *, time_key: str = "now", model: str = "best_match"
 ) -> dict[str, Any]:
-    forecast_days = 3
+    # Include the current local day plus the complete requested offset. The
+    # operation-window contract permits up to 168h; three days cannot cover it.
+    forecast_days = max(3, (_hour_offset(time_key) + 23) // 24 + 1)
     params = {
         "latitude": lat,
         "longitude": lon,

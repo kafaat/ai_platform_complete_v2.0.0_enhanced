@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c66ccbc9ab80593cc0e5977cab9e3e17fd54ef448a36c5ee18eb3a952ce550bf"
+          "content": "abab404a84949a78bda34ace328c1ad55f401c3cde700d6ccde6b7bc5a397960"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4415,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e2d60bbbfdd918236d4f5d83933c73d08d9135f0f1fce40f1bf89ab3509eab5e"
+          "content": "70ce3e51f2b5add864dc91d6ba30a6a1fef18e588bcbd0cb858ac4101c173929"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6705,7 +6705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1e7f68b59f7f34ef628c523dbf89d97ae9c589cfca8b9a7e505d9468832b1129"
+          "content": "93c9380ae36bb29008b596e001a83cb5993075dc9ae147d0541260ce54c6dea1"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -8099,6 +8099,16 @@
         }
       ],
       "name": "migrations/v22_inventory.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "97039ae9910bbb714a4a1399bc508c411ad67b0af5c93357e83e7a44cfaea3cd"
+        }
+      ],
+      "name": "migrations/v230_drawing_features.sql",
       "type": "file"
     },
     {
@@ -10105,7 +10115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "93175cd63bdefc94c0209ea4797c1e75fddefc7c5f9c7085749f41e2a367f38f"
+          "content": "ba2d0d234305995a1e8e060a025e3eca57ecc3e18fb429fe5b79fe65882d5edb"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -10565,7 +10575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4ce2ddec775492f197f6a4a39edd3cf5e0b5ccf56fdb22efa2f503d519562d22"
+          "content": "6764e26455c0bce1f708833f203ebe087a29a9b3d6ed114efd679b3306b4cc04"
         }
       ],
       "name": "services/auth/main.py",
@@ -12345,10 +12355,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "3d101d5daa007913c17571424872388057466371fcbf535e38b18c884e796a7c"
+        }
+      ],
+      "name": "services/guardrails-engine/README.md",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "facd86d04e573ca6555bbe5b0b9acddc7db7e46dc9bb6af187bf670aa415fbe0"
         }
       ],
       "name": "services/guardrails-engine/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d360e75037c36d80c4456ca99701b0d0e19ea150b8601b736f641bed03bb4fdc"
+        }
+      ],
+      "name": "services/guardrails-engine/contracts.py",
       "type": "file"
     },
     {
@@ -12365,7 +12395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9b0a394988f2045b5cf445219ee7cda7b3abe9756633150e862d17591cf64b4d"
+          "content": "96324fc529d329b568f5eb963eb7eceeaae8c5c1ccac6eb7d99209cf6d3c4499"
         }
       ],
       "name": "services/guardrails-engine/human_in_loop.py",
@@ -12375,7 +12405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "25a228e3b3e44fedd75c92631172f1576a58942de5a96bbbf7d93439c2f2e67f"
+          "content": "b6f7a5a7694fa0f946a4539d8853f59f02c42c1f649d6f7c87e48987660b0c0a"
         }
       ],
       "name": "services/guardrails-engine/main.py",
@@ -12425,7 +12455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e430ee6731c764b8ed619a5e691c810827b9e7e4ae6fd83992f3acce0e1be270"
+          "content": "eee5b4d6af3f5a7fbc12ac1786e65b44b872005c62cfcfec3e74bfdad4abcbe4"
         }
       ],
       "name": "services/guardrails-engine/routers/validation.py",
@@ -12465,7 +12495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e3cff6e362e5d579abac6b7883dc3878167c08f3a1ae72324d8bd3d5e59ba58e"
+          "content": "04c5db78276032db3772a37f830c05de2ed5fe9aa0328151c5ccf7ea008f7f83"
         }
       ],
       "name": "services/guardrails-engine/tiers/economic_tier.py",
@@ -12735,7 +12765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c751c5046c282971786767908355c008e31631ee3dc12dbf971abb8d54ee65b9"
+          "content": "e33d39ab26cf0c63f5561d4aba01abbcd99ae64aeba4572baa0d7177d97b13ec"
         }
       ],
       "name": "services/mcp_servers/market_server.py",
@@ -12755,7 +12785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bba55ce8c1a99224fb30865f5273ed0e83239033c43ddad7964f31b4550e4c53"
+          "content": "ef64bcd7ab2b05eb11eab55d8e5b02aa9182010a1b981ce3c44c8d078fdbaac8"
         }
       ],
       "name": "services/mcp_servers/sentinel_hub_server.py",
@@ -12775,7 +12805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f43d99a2abca6599e274b6650e3d660e381bffc79b5fcdafba082cb95b9d8a7e"
+          "content": "2f987372cc4e5d195d4779771e969353b1c3e5a3280fcbdddd10d4e8b6e91069"
         }
       ],
       "name": "services/mcp_servers/shared/oauth_middleware.py",
@@ -12805,7 +12835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "805fa32ff4ec0bda2f4ccaa1255f73758e00ea9364bb64320cc1c10788a65e14"
+          "content": "867b5f7a89728459586afaddcf8b7829576df6d52850a9ad78c8e546fdf9bbb2"
         }
       ],
       "name": "services/mcp_servers/weather_server.py",
@@ -12815,7 +12845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "050f4aec0e9f6efae13e05ef9b1921efcb67d99334c94b4924e292c1ccee3305"
+          "content": "f91bc65ea532ac5be990071d9f2b362ced70b76eda98369dc1dea06ed0244c33"
         }
       ],
       "name": "services/mcp_servers/wofost_server.py",
@@ -15955,7 +15985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "134de7374a6aac9d7fd54097054a08a790fb1204a790f8a362271f1a2ee85aa6"
+          "content": "36ef84be972e34df127c2c43035c718aa944230a0629f349844bf1b2962fc150"
         }
       ],
       "name": "services/sahool-platform/api/field_models.py",
@@ -17445,7 +17475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e84005183be8050c5ba4ff760b61556114dbc56c5e3fcf88e54a65d1468f612d"
+          "content": "d492dfc6257d58f3f838965a75b33725957e4d26329d2cdd2c0c4ea06bf7613f"
         }
       ],
       "name": "services/sahool-platform/api/routers/devices.py",
@@ -17485,7 +17515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3b791b2a0c6a5ec1476c22a537688e3de290ca5ec2598df1259983035382d6ee"
+          "content": "d1944204664b03a9fa6e4d05ace33da07f556e271d5eedbe7783d0a510d51bb2"
         }
       ],
       "name": "services/sahool-platform/api/routers/drawing_features.py",
@@ -17745,7 +17775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aee73e489f1f1061ce03b35040ac97170ab5fae59d8d2eee5d6bfb02b71e4912"
+          "content": "a25dcd6bfb7a43e4d6499d6077182b2346e9816f39fe08b54407f3d8c14a730e"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -17795,7 +17825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5a4e217a9317a8bc2faf2635c52c700dae5f83e259d5da39af3e37d3891e2446"
+          "content": "1d839772323c3d876f9eb137d92abf7fd24b45a556dbaaff31b3f7e78e9e2a63"
         }
       ],
       "name": "services/sahool-platform/api/routers/gis_cloud_native.py",
@@ -18415,7 +18445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9535d09542990f6e7e9ad76c0bb028f8b59d6b3a357d2451baaf29bf1c3c63d0"
+          "content": "70345c7ef2b6fea4cce5fb2a7993f42763d0497362aeaa2502419e8ca6965596"
         }
       ],
       "name": "services/sahool-platform/api/routers/season_workspace.py",
@@ -19165,7 +19195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f22c449935af7982cc167b83e6047a7f0aa09f4580ced9cec030c091e1d5a087"
+          "content": "8baeaf263aa5c4724d0ad06dcc9ab2dff06df14ecb7bfbd3fbb75af77ea04b83"
         }
       ],
       "name": "services/sahool-platform/api/weather_service_client.py",
@@ -24285,7 +24315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "37f89a9cc9fb2366d02eee568015505953909dac169b4681972c8811a2933de2"
+          "content": "5d14c60d79a9cacc8038dbd873b5d8d2a36663b751582fb461d6e8b5404184da"
         }
       ],
       "name": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
@@ -25075,7 +25105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1b1dc7da7c9185e78a551048a07814bfe16a8302e905c9d506c2a2e62e3e9c5b"
+          "content": "2df8b7bcfc753d5b784687bd95043eb3e779dbeac87840739628d6928c4554c3"
         }
       ],
       "name": "services/sahool-platform/tests/test_governance_modules.py",
@@ -27425,7 +27455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "30e1f334b32155dcce34a7094056ce5f5ee232092e38b3efbf61a9b5ca9f1f03"
+          "content": "d3f20070073e3b268c03684535d8287ac14f32b10971e180f5c2c52e7edc241d"
         }
       ],
       "name": "services/sahool-platform/tests/test_weather_et0_client.py",
@@ -28385,7 +28415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f9b8c0b4aaaaf6a2592f96f40df56ded0de60a5f7549dcbd1b43416547ae49e8"
+          "content": "0ac59d4a411f356158b0eb16475623b03be210df9b3a574369b6b9515c408c4a"
         }
       ],
       "name": "services/supervisor-agent/main.py",
@@ -28395,7 +28425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2f1db79cc01dee1ddb45ad362502cd11b9c4accc82656ba3d4e2b1b6d0aab914"
+          "content": "95792cf78d7e352219b2d554b76692b16d18376573e2b2be469a4b22e969c496"
         }
       ],
       "name": "services/supervisor-agent/mcp_client.py",
@@ -28415,7 +28445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "02677a5215acb7c6a055bdb1d63b229905354717f10c443d641f47c5e332971e"
+          "content": "05b6de37305bb200f117e2ed91c76ca0430fc7c07a5ece289f56c250d760e1bc"
         }
       ],
       "name": "services/supervisor-agent/router.py",
@@ -28445,7 +28475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a139fb34477bf1046aba3ddb837bdfb1ddc3925be42cc7074e16b68687bd2446"
+          "content": "b76d1f50f602774c6407554b7c4fa2400ecd704ad35b30e5db383e4fa155775b"
         }
       ],
       "name": "services/supervisor-agent/routers/agent.py",
@@ -28485,7 +28515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "846823540f142a68f4f693361465be215e97203f1956b6de677892f45c743626"
+          "content": "64af2eb35dd5da397f3c7626e8f9404386de495754701b76f81e5abdcb087751"
         }
       ],
       "name": "services/supervisor-agent/skills/crop_model_skill.py",
@@ -28495,7 +28525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f9288df7db7eaa585778460f41a882dfb0fcf7596e9e02206484cded4b8ebd49"
+          "content": "6158549cc72e8740c1988b48c64c2c08b44090b5e3481c6deefb12025add6fa5"
         }
       ],
       "name": "services/supervisor-agent/skills/market_skill.py",
@@ -28515,7 +28545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "96c855ff0e07164b0258f2e7f01a0ba1c96c7f2e78bb261aecc2f5983b343d1d"
+          "content": "ea17f7c6407086e0953c9df3697a760e583b99ae0ae037dd566627b6fae30d55"
         }
       ],
       "name": "services/supervisor-agent/test_ai_orchestration_forensic.py",
@@ -28565,7 +28595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ba072f1c018c1f5b667336d96cadb311b0aa2217065e6ebd62f6dbc48c401bcd"
+          "content": "fa4ea8b7bf9053d2e154075e44d8562a7949d05d9226c48f983b20cb6ad99300"
         }
       ],
       "name": "services/supervisor-agent/test_router.py",
@@ -29415,7 +29445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ce2d0e42800ffb14c7394ec4bae330a499802cbe9403e1b2055e92746d0c41ce"
+          "content": "81e91f27734dc5a3a3ebf0a9cc0bd59231cba63b6e30ae7e7a2a31f48a998bbf"
         }
       ],
       "name": "services/weather-service/open_meteo.py",
@@ -29425,7 +29455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "92aa18c691fd869e58a83ca7fed76dbb20a1dc9bce60668b29b31c290981e406"
+          "content": "519873a24a3be686274725959974a314bd0c79a1860dc019f82be8a4eb69087f"
         }
       ],
       "name": "services/weather-service/operations.py",
@@ -29615,7 +29645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fc6bde68b1930a4faca7bf46c3c0a87aa0d9cd23cd927f17108666e57229b60a"
+          "content": "f08c5f2208720f1f79308e09f34bb198babed67ed69f01a95a6f97e695f9a174"
         }
       ],
       "name": "services/weather-service/tests/test_operation_fail_closed.py",
@@ -29625,7 +29655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "91ec5ca02d3dd4719a636de08013ef5df60ed1174ee3be54e3805d0f83dfb403"
+          "content": "2c1d09f62bfab9cb782fb6f00b4d2fbe739b4781d54795a6a0e0e0ea40d95a22"
         }
       ],
       "name": "services/weather-service/tests/test_p3_4_weather_service_runtime_coverage.py",
@@ -29745,7 +29775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fefb6ad7e179e9858bdda12c4394af10bb0ccb7568335c6257fbc2c6173cc165"
+          "content": "fb2e1ccfd2146f49a2cf062eb0b27fdad3bae7366c21d7a3eb3ec0f265ee89e5"
         }
       ],
       "name": "services/weather-service/tiles.py",
@@ -29775,7 +29805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "eb10bcee090fb8799212e6451033e94d97b6a1172310a495475a77a9917ba65c"
+          "content": "36ada07d0ede6d93729850604b42dce6ebe6639612d0f38f3aec06be82da09ef"
         }
       ],
       "name": "services/weather-service/weather_runtime.py",

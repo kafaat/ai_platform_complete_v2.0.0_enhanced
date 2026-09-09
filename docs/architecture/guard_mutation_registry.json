@@ -83,6 +83,13 @@
           "find": "      - name: guard-mutation guard (plant the defects)\n        run: python scripts/ci/guard_mutation_guard.py --run\n",
           "replace": "      - name: guard-mutation guard (plant the defects)\n        run: echo skipped  # mutated: المكنسة تخرج من الوظيفة الحاجبة\n",
           "why": "نقلُ المكنسة خارج *Unit Tests* بلا إضافةِ اسمِ الوظيفة الجديدة إلى الفحوص المطلوبة في الـRuleset يجعلها إرشاديّةً **صامتاً**. و`branch_protection_contract_guard` يفرض حلَّ المحادثات وحده ولا يُعدّد الفحوصَ بالاسم، فلا شيءَ في الشجرة يمنع ذلك. وهو صنفُ «حارسٌ كفّ عن الحجب بلا أن يحمرّ» بعينه. والمَرسى يضمّ سطرَ اسمِ الخطوة لا سطرَ `run` وحده: بعد MUT-SHARD-JOB-01 صار `--run` يظهر مرّتين (المكنسة الكاملة وحزمة المصفوفة)، فالمَرسى القصير يزرع في موضعٍ غير محدَّد."
+        },
+        {
+          "expect": "test_hil_ci_requires_the_live_database_certificate",
+          "find": "          HIL_CERTIFICATION_REQUIRED: \"1\"\n",
+          "replace": "          HIL_CERTIFICATION_REQUIRED: \"0\"  # mutated: permit silent HIL DB skip\n",
+          "why": "HIL runtime persistence must not appear certified when its database fixture skipped; the real CI invocation must require the witness.",
+          "test": "tests_v9/test_guardrails_contract.py"
         }
       ],
       "test": "tests_v9/test_mutation_sweep_headroom.py"
@@ -1596,6 +1603,13 @@
           "find": "    for i, t in parsed:\n        if t == target:",
           "replace": "    for i, t in parsed:\n        if False:",
           "why": "بلا المطابقة الدقيقة يسقط الحلُّ إلى «الأقرب» دائماً فيُعلَن قيدٌ على سلسلةٍ ساعيّةٍ تامّة؛ والاختبارُ يطلب `exact` عند 16:00 لا `nearest` — فالطفرةُ تُميّز بين حلٍّ بالطابع وحلٍّ تقريبيّ يصادف الصواب"
+        },
+        {
+          "test": "services/weather-service/tests/test_p3_4_weather_service_runtime_coverage.py",
+          "expect": "test_requested_horizon_is_sent_to_provider",
+          "find": "    forecast_days = max(3, (_hour_offset(time_key) + 23) // 24 + 1)\n",
+          "replace": "    forecast_days = 3\n",
+          "why": "A 168h operation window cannot be backed by a three-day provider request."
         }
       ]
     },
@@ -1843,6 +1857,20 @@
           "find": "    if fields[\"guards_unproven\"]:",
           "replace": "    if False:",
           "why": "فارقٌ غيرُ خالٍ يخرج بصفر ⇒ تُبلَغ خطوةُ الانبعاث فيُختَم `verified` فوق حرّاسٍ لم تُشغَّل. وشرطُ الوصول (خطوةٌ لا تُنفَّذ بعد ساقطة) هو الآليّةُ الوحيدة التي تحدّد `status`، فإسقاطُه يُسقِط الحاجبَ كلَّه"
+        },
+        {
+          "expect": "test_the_exclusion_does_not_leak_to_a_guard_that_also_runs_elsewhere",
+          "test": "tests_v9/test_collect_guard_surface_evidence.py",
+          "find": "        reasons = sorted({str(s[\"status\"]) for s in failed_sites})",
+          "replace": "        reasons = sorted({str(s[\"status\"]) for s in sites_judged})",
+          "why": "#990 / discussion_r3952828845: إعادة المواضع المستثناة إلى أسباب الحارس المختلط تجعل الاستثناء سبب إخفاق مضللاً؛ الحكم يبقى not_proven لكن التشخيص يجب أن يسمّي الإخفاق الفعلي وحده."
+        },
+        {
+          "expect": "test_the_exclusion_does_not_leak_to_a_guard_that_also_runs_elsewhere",
+          "test": "tests_v9/test_collect_guard_surface_evidence.py",
+          "find": "        unproven.append({\"guard\": guard, \"reasons\": reasons, \"sites\": failed_sites})",
+          "replace": "        unproven.append({\"guard\": guard, \"reasons\": reasons, \"sites\": sites_judged})",
+          "why": "#990 / discussion_r3952828845: تصحيح reasons وحده يترك مواقع مستثناة في sites؛ الشاهد يثبت تفاصيل الإخفاق كاملة كي لا يبقى نصف التشخيص ملوثاً."
         }
       ]
     },
@@ -1914,6 +1942,14 @@
           "find": "NATS_PASSWORD: ${NATS_PASSWORD:?NATS_PASSWORD مطلوب — لا سرَّ افتراضيّ للوسيط}",
           "replace": "NATS_PASSWORD: ${NATS_PASSWORD:-changeme}",
           "why": "سرٌّ افتراضيّ للوسيط ⇒ كلُّ مكدّسٍ أُقلع بلا ضبطٍ صريح يعمل بكلمةٍ يعرفها كلُّ من قرأ المستودع، فتصير المصادقةُ زينةً"
+        },
+        {
+          "id": "MCP-COMPOSE-MODULE-SELECTION",
+          "test": "tests_v9/test_mcp_auth_first_contract.py",
+          "expect": "test_compose_starts_each_distinct_mcp_module",
+          "find": "MCP_SERVER_MODULE: weather_server",
+          "replace": "MCP_SERVER_MODULE: sentinel_hub_server",
+          "why": "All MCP containers share one Dockerfile; compose must select each actual server module."
         }
       ]
     },
@@ -1926,6 +1962,474 @@
           "find": "    if not parts.netloc or \"@\" not in parts.netloc:",
           "replace": "    if True:",
           "why": "التنقيةُ تُعيد العنوانَ كما هو ⇒ تبدو مطبَّقةً وتُسرّب كلمةَ المرور — احتياطٌ لا يمنع شيئاً أسوأُ من غيابه لأنّه يُقرأ ضماناً"
+        }
+      ]
+    },
+    "services/auth/main.py": {
+      "mutations": [
+        {
+          "test": "tests_v9/test_auth_service.py",
+          "expect": "test_real_token_issuer_grants_only_tenant_bound_mcp_reads",
+          "find": "        \"scope\": _MCP_READ_SCOPES if role in _MCP_READ_ROLES and tenant_id else \"\",\n",
+          "replace": "        \"scope\": \"\",\n",
+          "why": "Removing the issuer grant must break authenticated read access to scoped MCP services."
+        }
+      ]
+    },
+    "services/sahool-platform/api/routers/gis_cloud_native.py": {
+      "mutations": [
+        {
+          "test": "services/sahool-platform/tests/test_governance_modules.py",
+          "expect": "test_gis_database_failures_remain_503",
+          "find": "raise _db_unavailable(\"قراءة مجموعات STAC\", exc) from exc",
+          "replace": "raise _db_unavailable(exc) from exc",
+          "why": "Restores the original missing argument: injected DB connection failure must produce 503, not HTTP 500."
+        }
+      ]
+    },
+    "services/sahool-platform/api/routers/drawing_features.py": {
+      "mutations": [
+        {
+          "test": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
+          "expect": "test_drawing_endpoints_work_with_dml_only_connection",
+          "find": "            await _assert_field_owner(conn, user=user, field_id=field_id)\n            rows = await conn.fetch(",
+          "replace": "            await conn.execute(\"CREATE TABLE IF NOT EXISTS drawing_features (feature_id TEXT)\")\n            await _assert_field_owner(conn, user=user, field_id=field_id)\n            rows = await conn.fetch(",
+          "why": "Reintroduces runtime schema creation in list route. The DML-only positive HTTP witness must fail."
+        }
+      ]
+    },
+    "services/sahool-platform/api/routers/devices.py": {
+      "mutations": [
+        {
+          "test": "services/sahool-platform/tests/test_governance_modules.py",
+          "expect": "test_fleet_health_reads_standing_crop_stages_and_preserves_db_errors",
+          "find": "WHERE current_stage IN ('PLANTED', 'GROWING', 'MATURE')",
+          "replace": "WHERE status = 'active'",
+          "why": "Restores a query against a nonexistent lifecycle column; the valid fleet response must fail."
+        },
+        {
+          "test": "services/sahool-platform/tests/test_governance_modules.py",
+          "expect": "test_fleet_health_reads_standing_crop_stages_and_preserves_db_errors",
+          "find": "active_fields = {str(r[\"field_id\"]) for r in af if r[\"field_id\"]}",
+          "replace": "active_fields = {r[\"field_id\"] for r in af if r[\"field_id\"]}",
+          "why": "Without normalization asyncpg UUIDs do not match IoT text identifiers, so a standing crop silently loses the active-field warning."
+        }
+      ]
+    },
+    "migrations/v230_drawing_features.sql": {
+      "mutations": [
+        {
+          "test": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
+          "expect": "test_drawing_migration_declares_owner_and_fail_closed_tenant_policy",
+          "find": "WITH CHECK (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), ''))",
+          "replace": "WITH CHECK (true)",
+          "why": "The always-running schema declaration test detects removal of tenant write checks; live PG isolation is a separate integration witness."
+        },
+        {
+          "test": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
+          "expect": "test_drawing_migration_declares_owner_and_fail_closed_tenant_policy",
+          "find": "ALTER TABLE drawing_features OWNER TO CURRENT_USER;",
+          "replace": "-- mutation: legacy runtime ownership is preserved",
+          "why": "The migration must adopt preexisting runtime-owned tables as well as create fresh ones under the migration owner."
+        }
+      ]
+    },
+    "services/sahool-platform/api/field_models.py": {
+      "mutations": [
+        {
+          "test": "tests_v9/test_season_workspace.py",
+          "expect": "test_list_and_detail_share_canonical_quality",
+          "find": "quality_grade=field_quality_grade(_opt(\"quality_state\")),",
+          "replace": "quality_grade=\"READY\",",
+          "why": "Reintroducing unconditional READY must fail for absent and invalid canonical state."
+        },
+        {
+          "test": "tests_v9/test_season_workspace.py",
+          "expect": "test_complete_data_does_not_override_canonical_restriction",
+          "find": "if validity == \"valid\" and mode == \"auto\":",
+          "replace": "if validity:",
+          "why": "A nonempty validity label must not override invalidity or required human review."
+        }
+      ]
+    },
+    "services/sahool-platform/api/routers/season_workspace.py": {
+      "mutations": [
+        {
+          "test": "tests_v9/test_season_workspace.py",
+          "expect": "test_unpublished_lab_cannot_supply_accepted_soil",
+          "find": "if t.get(\"status\") == \"published\" and isinstance(t.get(\"result\"), dict):",
+          "replace": "if isinstance(t.get(\"result\"), dict):",
+          "why": "Draft/rejected/approved results are not published evidence for workspace readiness."
+        },
+        {
+          "test": "tests_v9/test_season_workspace.py",
+          "expect": "test_required_ec_must_be_a_finite_accepted_number",
+          "find": "if score >= 85 and operational_ready:",
+          "replace": "if score >= 85:",
+          "why": "Optional points must not compensate for missing or invalid required EC."
+        },
+        {
+          "test": "tests_v9/test_season_workspace.py",
+          "expect": "test_inactive_or_out_of_date_season_is_not_ready",
+          "find": "if not season or season.get(\"status\") != \"active\":",
+          "replace": "if not season:",
+          "why": "Closed or planned seasons must not be treated as active."
+        },
+        {
+          "test": "tests_v9/test_season_workspace.py",
+          "expect": "test_inactive_or_out_of_date_season_is_not_ready",
+          "find": "return sowing <= today and (end is None or today <= end)",
+          "replace": "return end is None or today <= end",
+          "why": "A future sowing date cannot satisfy the current growing-season prerequisite."
+        },
+        {
+          "test": "tests_v9/test_season_workspace.py",
+          "expect": "test_workspace_projection_failure_does_not_poison_context_query",
+          "find": "\"requires_review\": not readiness[\"operational_ready\"],",
+          "replace": "\"requires_review\": (state or {}).get(\"execution_mode\") != \"auto\",",
+          "why": "A valid canonical snapshot alone cannot authorize recommendations without season/lab data."
+        },
+        {
+          "test": "tests_v9/test_season_workspace.py",
+          "expect": "test_next_actions_accepts_real_recommendation_priority_vocabulary",
+          "find": "\"priority\": priority(rec.get(\"priority\", 3)),",
+          "replace": "\"priority\": rec.get(\"priority\", 3),",
+          "why": "Canonical high/medium/low recommendation priorities must be normalized before mixed task sorting."
+        },
+        {
+          "test": "tests_v9/test_season_workspace.py",
+          "expect": "test_workspace_projection_failure_does_not_poison_context_query",
+          "find": "                async with conn.transaction():\n                    state = _jsonable((await recompute_field_state(conn, field_id))[\"state\"])\n",
+          "replace": "                state = _jsonable((await recompute_field_state(conn, field_id))[\"state\"])\n",
+          "why": "Removing the nested transaction leaves PostgreSQL aborted after optional SQL failure."
+        },
+        {
+          "test": "tests_v9/test_season_workspace.py",
+          "expect": "test_workspace_projection_failure_does_not_poison_context_query",
+          "find": "                async with conn.transaction():\n                    lat, lon, crop, stage, sowing_date = await _field_season_context(conn, field_id)\n                    enabled_ids = await _load_recommendation_policy(conn)\n",
+          "replace": "                lat, lon, crop, stage, sowing_date = await _field_season_context(conn, field_id)\n                enabled_ids = await _load_recommendation_policy(conn)\n",
+          "why": "Removing the nested transaction leaves PostgreSQL aborted after optional SQL failure."
+        }
+      ]
+    },
+    "services/sahool-platform/api/routers/fields.py": {
+      "mutations": [
+        {
+          "test": "tests_v9/test_season_workspace.py",
+          "expect": "test_create_quality_and_projection_savepoint",
+          "find": "        async with conn.transaction():\n            _fs = await recompute_field_state(conn, field_id)\n            if _fs[\"changed\"]:\n                await _emit_domain_event(\n                    conn,\n                    user,\n                    \"FIELD_STATE_CHANGED\",\n                    \"field\",\n                    field_id,\n                    {\n                        \"validity\": _fs[\"state\"][\"validity\"],\n                        \"execution_mode\": _fs[\"state\"][\"execution_mode\"],\n                        \"trigger\": reason,\n                    },\n                )\n",
+          "replace": "        _fs = await recompute_field_state(conn, field_id)\n        if _fs[\"changed\"]:\n            await _emit_domain_event(\n                conn,\n                user,\n                \"FIELD_STATE_CHANGED\",\n                \"field\",\n                field_id,\n                {\n                    \"validity\": _fs[\"state\"][\"validity\"],\n                    \"execution_mode\": _fs[\"state\"][\"execution_mode\"],\n                    \"trigger\": reason,\n                },\n            )\n",
+          "why": "Removing the nested transaction leaves PostgreSQL aborted after optional SQL failure."
+        }
+      ]
+    },
+    "services/guardrails-engine/tiers/economic_tier.py": {
+      "mutations": [
+        {
+          "test": "tests_v9/test_guardrails_contract.py",
+          "expect": "test_excessive_spending_runs_economic_tier",
+          "find": "        if action_type in SPENDING_ACTIONS:\n",
+          "replace": "        if action_type in SPENDING_ACTIONS - {\"investment\"}:\n",
+          "why": "Dropping investment from the spending branch must turn the real excessive-investment behavior test red."
+        }
+      ]
+    },
+    "services/guardrails-engine/main.py": {
+      "mutations": [
+        {
+          "test": "tests_v9/test_guardrails_contract.py",
+          "expect": "test_user_id_contract_matches_integer_column",
+          "find": "        if isinstance(value, bool) or not isinstance(value, int):\n",
+          "replace": "        if not isinstance(value, int):\n",
+          "why": "Pydantic must not coerce boolean identities into users.id integers."
+        },
+        {
+          "test": "tests_v9/test_guardrails_contract.py",
+          "expect": "test_validate_rejects_incomplete",
+          "find": "        if missing:\n",
+          "replace": "        if False:\n",
+          "why": "Removing the engine completeness gate lets request dictionaries mutated after model validation reach safety tiers. The restored witness requires incomplete_context and no tier or human-review call."
+        },
+        {
+          "test": "tests_v9/test_guardrails_contract.py",
+          "expect": "test_validate_passes_complete_past_contract",
+          "find": "        if missing:\n",
+          "replace": "        if True:\n",
+          "why": "An unconditional incomplete_context refusal blocks complete requests; the restored witness requires real environmental and economic tier execution."
+        }
+      ]
+    },
+    "services/guardrails-engine/human_in_loop.py": {
+      "mutations": [
+        {
+          "test": "tests_v9/test_guardrails_contract.py",
+          "expect": "test_hil_create_read_isolation_and_pool_context_reset",
+          "find": "            await conn.execute(\"SELECT set_config('app.tenant_id', $1, true)\", tenant_id)\n",
+          "replace": "            # mutated: tenant_id GUC not bound\n",
+          "why": "Omitting transaction-local tenant binding must fail persistence/read isolation, not silently return an ID."
+        },
+        {
+          "test": "tests_v9/test_guardrails_contract.py",
+          "expect": "test_hil_storage_failure_returns_503_without_phantom_workflow",
+          "find": "        if not required_experts:\n            required_experts.update(self._expert_roles[\"general\"])\n        async with _tenant_connection(tenant_id) as conn:\n",
+          "replace": "        if not required_experts:\n            required_experts.update(self._expert_roles[\"general\"])\n        return workflow_id  # mutated: no durable insert\n        async with _tenant_connection(tenant_id) as conn:\n",
+          "why": "Returning an unpersisted ID must fail the real HTTP unavailable-storage test."
+        }
+      ]
+    },
+    "services/sahool-platform/api/weather_service_client.py": {
+      "mutations": [
+        {
+          "test": "services/sahool-platform/tests/test_weather_et0_client.py",
+          "expect": "test_weather_boundary_errors_are_stable_and_nonleaking",
+          "find": "            resp = await client.get(\n                url,\n                params=params or {},\n                headers=weather_service_headers(tenant_id=tenant_id, authorization=authorization),\n            )\n    except (TimeoutError, httpx.TimeoutException) as exc:\n        raise HTTPException(\n            status_code=504,\n            detail={\n                \"reason_code\": \"weather_service_timeout\",\n                \"message_ar\": \"انتهت مهلة انتظار خدمة الطقس؛ أعد المحاولة لاحقاً.\",\n            },\n        ) from exc\n",
+          "replace": "            resp = await client.get(\n                url,\n                params=params or {},\n                headers=weather_service_headers(tenant_id=tenant_id, authorization=authorization),\n            )\n    except (TimeoutError, httpx.TimeoutException) as exc:\n        raise HTTPException(\n            status_code=504,\n            detail={\n                \"reason_code\": \"\",\n                \"message_ar\": \"انتهت مهلة انتظار خدمة الطقس؛ أعد المحاولة لاحقاً.\",\n            },\n        ) from exc\n",
+          "why": "An empty timeout reason must not pass as a usable dependency error."
+        },
+        {
+          "test": "services/sahool-platform/tests/test_weather_et0_client.py",
+          "expect": "test_weather_timeout_bounds_whole_request_and_cancels_transport",
+          "find": "async def weather_get_json(\n    path: str,\n    *,\n    tenant_id: str | None = None,\n    authorization: str | None = None,\n    params: dict[str, Any] | None = None,\n    timeout_s: float = 20.0,\n) -> dict[str, Any]:\n    \"\"\"GET JSON from weather-service with service token + optional tenant/auth forwarding.\"\"\"\n    import httpx\n    from fastapi import HTTPException\n\n    url = f\"{weather_service_url()}/{path.lstrip('/')}\"\n    try:\n        async with asyncio.timeout(timeout_s), httpx.AsyncClient(timeout=timeout_s) as client:\n            resp = await client.get(\n                url,\n                params=params or {},\n                headers=weather_service_headers(tenant_id=tenant_id, authorization=authorization),\n            )\n    except (TimeoutError, httpx.TimeoutException) as exc:\n        raise HTTPException(\n            status_code=504,\n            detail={\n                \"reason_code\": \"weather_service_timeout\",\n                \"message_ar\": \"انتهت مهلة انتظار خدمة الطقس؛ أعد المحاولة لاحقاً.\",\n            },\n        ) from exc\n    except httpx.HTTPError as exc:\n        raise HTTPException(\n            status_code=502,\n            detail={\n                \"reason_code\": \"weather_service_unavailable\",\n                \"message_ar\": \"تعذّر الاتصال بخدمة الطقس؛ أعد المحاولة لاحقاً.\",\n            },\n        ) from exc\n    if resp.status_code >= 400:\n        raise HTTPException(status_code=resp.status_code, detail=_detail_from_response(resp))\n    try:\n        data = resp.json()\n    except ValueError as exc:\n        raise HTTPException(\n            status_code=502,\n            detail={\n                \"reason_code\": \"weather_service_invalid_response\",\n                \"message_ar\": \"تعذّر قراءة استجابة خدمة الطقس.\",\n            },\n        ) from exc\n    return data if isinstance(data, dict) else {\"value\": data}\n",
+          "replace": "async def weather_get_json(\n    path: str,\n    *,\n    tenant_id: str | None = None,\n    authorization: str | None = None,\n    params: dict[str, Any] | None = None,\n    timeout_s: float = 20.0,\n) -> dict[str, Any]:\n    \"\"\"GET JSON from weather-service with service token + optional tenant/auth forwarding.\"\"\"\n    import httpx\n    from fastapi import HTTPException\n\n    url = f\"{weather_service_url()}/{path.lstrip('/')}\"\n    try:\n        async with httpx.AsyncClient(timeout=timeout_s) as client:\n            resp = await client.get(\n                url,\n                params=params or {},\n                headers=weather_service_headers(tenant_id=tenant_id, authorization=authorization),\n            )\n    except (TimeoutError, httpx.TimeoutException) as exc:\n        raise HTTPException(\n            status_code=504,\n            detail={\n                \"reason_code\": \"weather_service_timeout\",\n                \"message_ar\": \"انتهت مهلة انتظار خدمة الطقس؛ أعد المحاولة لاحقاً.\",\n            },\n        ) from exc\n    except httpx.HTTPError as exc:\n        raise HTTPException(\n            status_code=502,\n            detail={\n                \"reason_code\": \"weather_service_unavailable\",\n                \"message_ar\": \"تعذّر الاتصال بخدمة الطقس؛ أعد المحاولة لاحقاً.\",\n            },\n        ) from exc\n    if resp.status_code >= 400:\n        raise HTTPException(status_code=resp.status_code, detail=_detail_from_response(resp))\n    try:\n        data = resp.json()\n    except ValueError as exc:\n        raise HTTPException(\n            status_code=502,\n            detail={\n                \"reason_code\": \"weather_service_invalid_response\",\n                \"message_ar\": \"تعذّر قراءة استجابة خدمة الطقس.\",\n            },\n        ) from exc\n    return data if isinstance(data, dict) else {\"value\": data}\n",
+          "why": "Removing the total deadline reintroduces the unbounded trickling/blocked response despite per-read timeouts."
+        }
+      ]
+    },
+    "services/weather-service/weather_runtime.py": {
+      "mutations": [
+        {
+          "test": "services/weather-service/tests/test_p3_4_weather_service_runtime_coverage.py",
+          "expect": "test_concurrent_windows_share_fetches_and_one_cancellation_keeps_other_waiter",
+          "find": "    flight = pool.flights.get(key)\n",
+          "replace": "    flight = None\n",
+          "why": "Concurrent windows must share one provider request; removing singleflight duplicates work and breaks cancellation isolation."
+        },
+        {
+          "test": "services/weather-service/tests/test_p3_4_weather_service_runtime_coverage.py",
+          "expect": "test_plan_reuses_each_frame_across_operations_and_warm_and_expired_cache",
+          "find": "_SAMPLE_CONCURRENCY = 3\n",
+          "replace": "_SAMPLE_CONCURRENCY = 100\n",
+          "why": "A single cold plan must not fan out every provider request without a concurrency bound."
+        },
+        {
+          "test": "services/weather-service/tests/test_p3_4_weather_service_runtime_coverage.py",
+          "expect": "test_whole_plan_deadline_cancels_all_unused_provider_work",
+          "find": "        await asyncio.wait(tasks.values(), timeout=_OPERATION_DEADLINE_S)\n",
+          "replace": "        await asyncio.wait(tasks.values())\n",
+          "why": "The complete plan must be bounded independently of the number of frames/operations."
+        },
+        {
+          "test": "services/weather-service/tests/test_p3_4_weather_service_runtime_coverage.py",
+          "expect": "test_plan_propagates_partial_frames_and_does_not_fill_missing_rain",
+          "find": "        \"source\": \"open-meteo+sahool-operation-plan\",\n        \"partial\": bool(errors),",
+          "replace": "        \"source\": \"open-meteo+sahool-operation-plan\",\n        \"partial\": False,",
+          "why": "Frame failures must remain visible at the aggregate operation-plan boundary."
+        },
+        {
+          "test": "services/weather-service/tests/test_p3_4_weather_service_runtime_coverage.py",
+          "expect": "test_plan_propagates_partial_frames_and_does_not_fill_missing_rain",
+          "find": "        decision = operation_suitability(sample[\"sample\"], operation)\n",
+          "replace": "        decision = operation_suitability({**sample[\"sample\"], \"precipitation_mm\": sample[\"sample\"].get(\"precipitation_mm\") or 0.0}, operation)\n",
+          "why": "Absent precipitation must never become observed zero rainfall and a recommended operation."
+        }
+      ]
+    },
+    "services/weather-service/tiles.py": {
+      "mutations": [
+        {
+          "test": "services/weather-service/tests/test_p3_4_weather_service_runtime_coverage.py",
+          "expect": "test_operation_cache_preserves_hour_and_model_identity",
+          "find": "    if time not in ALLOWED_TIMES and not (offset.isdigit() and int(offset) <= MAX_SERIES_HOUR):\n",
+          "replace": "    if time not in ALLOWED_TIMES:\n",
+          "why": "Restoring the fixed offset allowlist silently samples now for +72h/+168h."
+        }
+      ]
+    },
+    "services/ai_agronomist/ai_evidence_runtime.py": {
+      "mutations": [
+        {
+          "test": "tests_v9/test_semantic_convergence_01.py",
+          "expect": "test_advisory_dependency_transport_failure_is_an_explicit_boundary_error",
+          "find": "    except (TimeoutError, httpx.TimeoutException) as exc:\n",
+          "replace": "    except TimeoutError as exc:\n",
+          "why": "Both KG and RAG HTTP timeouts need an explicit dependency timeout rather than generic transport failure or 500."
+        }
+      ]
+    },
+    "services/weather-service/operations.py": {
+      "mutations": [
+        {
+          "test": "services/weather-service/tests/test_operation_fail_closed.py",
+          "expect": "test_nonfinite_safety_readings_fail_closed",
+          "find": "        return number if isfinite(number) else default\n",
+          "replace": "        return number\n",
+          "why": "NaN/infinite precipitation or wind is not a measurement; it must not bypass the missing-input safety gate."
+        }
+      ]
+    },
+    "services/supervisor-agent/mcp_client.py": {
+      "mutations": [
+        {
+          "id": "MCP-HTTP200-LOGICAL-ERROR",
+          "test": "tests_v9/test_mcp_auth_first_contract.py",
+          "expect": "test_mcp_http200_tool_error_is_failure",
+          "find": "if result.get(\"isError\") is True or result.get(\"error\"):",
+          "replace": "if result.get(\"error\"):",
+          "why": "A transport-success envelope with isError=true must never become a price/tool success."
+        },
+        {
+          "id": "MCP-REQUEST-CREDENTIAL-RESET",
+          "test": "tests_v9/test_mcp_auth_first_contract.py",
+          "expect": "test_mcp_client_urls_credentials_and_cleanup",
+          "find": "self._credentials.reset(marker)",
+          "replace": "pass  # mutant: credentials survive the caller",
+          "why": "Caller credentials must be reset on exit, isolated across concurrent tenants, never stored on pooled HTTP clients."
+        },
+        {
+          "id": "MCP-POST-NO-AMBIGUOUS-REPLAY",
+          "test": "tests_v9/test_mcp_auth_first_contract.py",
+          "expect": "test_mcp_tool_transport_failure_is_not_replayed",
+          "find": "max_attempts=1,",
+          "replace": "max_attempts=3,",
+          "why": "Market writes do not have durable idempotency, so a lost reply must not cause duplicate writes."
+        }
+      ]
+    },
+    "services/mcp_servers/shared/oauth_middleware.py": {
+      "mutations": [
+        {
+          "id": "MCP-IDEMPOTENCY-CALLER-NAMESPACE",
+          "test": "tests_v9/test_mcp_auth_first_contract.py",
+          "expect": "test_mcp_idempotency_cannot_cross_callers",
+          "find": "identity = [user[\"tenant_id\"], user.get(\"sub\"), request_id, name, arguments]",
+          "replace": "identity = [request_id, name, arguments]",
+          "why": "An authenticated tenant or second user cannot reuse a public request_id to retrieve another caller result."
+        }
+      ]
+    },
+    "services/mcp_servers/weather_server.py": {
+      "mutations": [
+        {
+          "id": "MCP-WEATHER-AUTH-BEFORE-BODY",
+          "test": "tests_v9/test_mcp_auth_first_contract.py",
+          "expect": "test_mcp_auth_precedes_body_read",
+          "find": "async def call_tool(request: Request,",
+          "replace": "async def call_tool(request: dict,",
+          "why": "A typed FastAPI body restores unauthenticated body reads before the weather scope dependency; rejected callers must never reach body decoding."
+        }
+      ]
+    },
+    "services/mcp_servers/wofost_server.py": {
+      "mutations": [
+        {
+          "id": "MCP-WOFOST-AUTH-BEFORE-BODY",
+          "test": "tests_v9/test_mcp_auth_first_contract.py",
+          "expect": "test_mcp_auth_precedes_body_read",
+          "find": "async def call_tool(request: Request,",
+          "replace": "async def call_tool(request: dict,",
+          "why": "A typed FastAPI body restores unauthenticated body reads before the crop scope dependency; rejected callers must never reach body decoding."
+        }
+      ]
+    },
+    "services/mcp_servers/market_server.py": {
+      "mutations": [
+        {
+          "id": "MCP-MARKET-MISSING-PRICE",
+          "test": "tests_v9/test_mcp_auth_first_contract.py",
+          "expect": "test_market_no_observation_cannot_become_zero_price",
+          "find": "if not math.isfinite(price) or price <= 0:",
+          "replace": "if False:  # mutant: absent or invalid prices pass",
+          "why": "Zero/nonfinite/missing observations must be unavailable rather than a fabricated market price."
+        }
+      ]
+    },
+    "services/supervisor-agent/skills/crop_model_skill.py": {
+      "mutations": [
+        {
+          "test": "services/supervisor-agent/test_ai_orchestration_forensic.py",
+          "expect": "test_irrigation_and_fertilizer_do_not_invent_missing_canonical_evidence",
+          "find": "            return await self._irrigation_advice(field_id, context or {})",
+          "replace": "            return {\"type\": \"irrigation_advice\", \"amount_mm\": 29.8, \"sources\": [\"FAO-56\"]}",
+          "why": "Returning the old fixed irrigation quantity without canonical evidence must fail."
+        },
+        {
+          "test": "services/supervisor-agent/test_ai_orchestration_forensic.py",
+          "expect": "test_irrigation_consumes_canonical_owner_and_converts_observed_area",
+          "find": "                water_m3=net_water_m3 / evidence.irrigation_efficiency_pct * 100,",
+          "replace": "                water_m3=net_water_m3,",
+          "why": "Net crop demand must not masquerade as gross withdrawal when checking water limits; 240 m3 net at80% efficiency requires300 m3 gross."
+        },
+        {
+          "test": "services/supervisor-agent/test_ai_orchestration_forensic.py",
+          "expect": "test_irrigation_requires_explicit_canonical_efficiency_for_gross_withdrawal",
+          "find": "                irrigation_efficiency_pct=field.get(\"irrigation_efficiency_pct\"),",
+          "replace": "                irrigation_efficiency_pct=field.get(\"irrigation_efficiency_pct\", 100.0),",
+          "why": "Missing canonical efficiency must stay unavailable instead of assuming100% and understating withdrawal."
+        }
+      ]
+    },
+    "services/supervisor-agent/routers/agent.py": {
+      "mutations": [
+        {
+          "test": "services/supervisor-agent/test_ai_orchestration_forensic.py",
+          "expect": "test_query_withholds_quantity_and_actions_until_governance_allows",
+          "find": "        if governance.get(\"allowed\") is not True or governance.get(\"requires_human_approval\"):",
+          "replace": "        if False:  # mutated: ignore the central governance decision",
+          "why": "Unknown, denied or human-pending decisions must withhold quantities, English alternatives and execution claims."
+        }
+      ]
+    },
+    "services/supervisor-agent/main.py": {
+      "mutations": [
+        {
+          "test": "services/supervisor-agent/test_ai_orchestration_forensic.py",
+          "expect": "test_field_context_cannot_forge_server_evidence_or_credentials",
+          "find": "    out = {k: v for k, v in (context or {}).items() if not k.startswith(\"_\") and k != \"field_state\"}",
+          "replace": "    out = dict(context or {})",
+          "why": "Body-supplied field_state and private credential fields are not canonical evidence."
+        }
+      ]
+    },
+    "services/supervisor-agent/router.py": {
+      "mutations": [
+        {
+          "test": "services/supervisor-agent/test_router.py",
+          "expect": "test_arabic_observed_intents_respect_word_boundaries_and_specificity",
+          "find": "    return re.search(r\"(?<!\\w)(?:\" + \"|\".join(alternatives) + r\")(?!\\w)\", query) is not None",
+          "replace": "    return re.search(\"|\".join(alternatives), query) is not None",
+          "why": "Removing word boundaries makes ري inside الرياح and بق inside بقع win unrelated intents."
+        }
+      ]
+    },
+    "services/guardrails-engine/contracts.py": {
+      "mutations": [
+        {
+          "test": "tests_v9/test_guardrails_contract.py",
+          "expect": "test_contract_accepts_explicit_zero_and_uncontracted_harvest",
+          "find": "                    or value < 0\n",
+          "replace": "                    or value <= 0\n",
+          "why": "Rejecting an explicitly observed zero as invalid loses the distinction between zero and missing evidence. Positive field area and all other mandatory context remain supplied."
+        },
+        {
+          "test": "tests_v9/test_guardrails_contract.py",
+          "expect": "test_contract_accepts_explicit_zero_and_uncontracted_harvest",
+          "find": "    if action_type in ECONOMIC_ACTIONS:\n",
+          "replace": "    if action_type in ECONOMIC_ACTIONS or action_type == \"harvest\":\n",
+          "why": "Adding a financial completeness obligation to harvest invents a contract for an action outside the economic set."
+        },
+        {
+          "test": "tests_v9/test_guardrails_contract.py",
+          "expect": "test_contract_requires_pesticide_dosage_and_loan_revenue",
+          "find": "        required[\"action_data\"].extend([\"chemical\", \"dosage_kg_ha\"])\n",
+          "replace": "        required[\"action_data\"].extend([\"chemical\"])\n",
+          "why": "Omitting the required pesticide dose lets downstream safety tiers interpret an absent dose as zero; all other required evidence is complete in the witness."
+        },
+        {
+          "test": "tests_v9/test_guardrails_contract.py",
+          "expect": "test_contract_requires_pesticide_dosage_and_loan_revenue",
+          "find": "    if action_type in ECONOMIC_ACTIONS:\n",
+          "replace": "    if action_type in ECONOMIC_ACTIONS and action_type != \"loan\":\n",
+          "why": "Exempting loans from annual revenue completeness hides missing financial evidence; the witness removes only annual_revenue_usd from a complete loan context."
         }
       ]
     }

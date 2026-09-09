@@ -7648,3 +7648,53 @@ no_third_value_registry نصّاً)، GATE-01 نظيف، 33 اختباراً، r
 - **⚠ والصنفُ الجامع بلغ خمسَ تكرارات في هذه الجلسة:** *اختبارٌ يُسمّي ما كان يجب أن يشتقّه، فيكسره عملٌ صحيح.* والعلاجُ في كلٍّ اشتقاقٌ من الشجرة **مع أرضيّةٍ تمنع المرور على لا شيء** — لا إضافةُ اسمٍ ثانٍ إلى قائمة. وفي ① بلغ الصنفُ حدَّه: الاختبارُ يحمل العطلَ **عقداً**.
 - **⚠ وخطأٌ لي، ثانيةَ مرّةٍ من نوعه:** أوّلُ طفرةٍ صغتُها للمُحلِّل (نظرةٌ أماميّة) لم تُعطِّل الماسحَ المتوازن، فمرّ الجناحُ وبدا الحارسُ ضعيفاً. أُعيدت بإرجاع الاستخراج الكسول كاملاً فاحمرّت حالتان. **«الطفرةُ نجت» ليست حكماً على الحارس قبل قراءة الطفرة.**
 - **والدرسُ التشغيليّ:** التشغيلُ الموجَّه على الملفّات المتأثّرة **لا يكفي** حين يمسّ التغييرُ عقداً مشترَكاً (compose · ملفّ إعداد · عقد ملكيّة مواضيع). نطاقُ الأثر المقيس أنقذني في `Repository Tests`، وأخطأ هنا لأنّ المتأثّرين لم يكونوا يستوردون شيئاً مشترَكاً بل **يقرأون الملفّ نفسه**.
+
+
+### 2026-09-08 — تنفيذ مراجعة التشغيل بشرائح متوازية
+
+أمر المالك: «قوم بعمل الإصلاحات اللازمة و الإغلاقات للشرائح بعدد من الوكلاء بشكل متوازي على شكل commits». ستة worktrees، أساس `799842d3`، دمج الشيفرة حتى `5d770f22` والطفرات حتى `59c4eb8f`. تحديث hot/sجل الفجوات/القرارات وربط [تقرير الشرائح](../docs/testing/runtime_slice_closures_20260908.md). قياس مترابط 123 passed وسلسلة المصنوعات متسقة؛ PG الحي غير متاح. لا رفع لادعاءات التحقق التشغيلي أو الاعتماد الإنتاجي.
+
+
+### 2026-09-08 — متابعة شرائح التشغيل: فحوص أوسع وحد إغلاق معلن
+
+على `1ff4a88f` اكتمل جناح الوحدة: 6466 ناجحة و8 مخفقة؛ جناح المستودع: 747 ناجحة و5 مخفقة؛ المنصة: 4283 ناجحة و11 مخفقة من اعتماد SOCKS الناقص. بعد التشخيص نُفذت commits حتى `0d1d2eaa`، ونجحت 82 حالة معادة للعقود و16 حالة لملفات المنصة المتأثرة. حدود عد الطفرات لم تُخفَّف: 645 تجاوزت 642 و610، والقياس الحي السابق 31m58s عند600 لا يغلق حد الانجراف. يلزم CI جديد؛ لا ادعاء جناح كامل أخضر أو preflight مكتمل. التفاصيل ومراجع الجولات في [تقرير الإغلاق](../docs/testing/runtime_slice_closures_20260908.md).
+
+
+### 2026-09-08 — استكمال شاهد HIL وتسليم الدليل القابل للتشغيل
+
+`8078bda3` أغلق تخطي قياس HIL المطلوب في CI عند غياب قاعدة البيانات؛ 47 حالة ناجحة، منها11 جديدة، وستة أعطال مزروعة أفشلت شهودها. أضيفت طفرة CI واحدة (646 إجمالاً). تعذر PG محلياً بقيود الهوية، وgit push --dry-run فشل لغياب اعتماد الدفع. قواعد حماية main المقروءة لا تطلب الشظايا الخمس؛ لا نقل للمكنسة. أُعيد تدقيق مصادر المال والماء، فلم يُختلق احتياطي من تغير نقدي ولا استهلاك كامل من SUM فارغ. [التقرير](../docs/testing/runtime_slice_closures_20260908.md) يربط المصدر والحدود وطريقة نقل حزمة Git وتشغيل قياس مستقل.
+
+
+### 2026-09-08 — اكتمال preflight الافتراضي مع بوابة زمن معلقة
+
+على `fb82eff6` اكتملت جميع أجنحة `scripts/ci/preflight.sh --no-fetch` بوضعه الافتراضي: exit1، مجموعة إخفاق واحدة وصفر مجموعات متخطاة. الوحدة6473 ناجحة وحالتا headroom مخفقتان، والمستودع ناجح، والمنصة4294 ناجحة؛75 فحص اتساق ناجح. هذا القياس اللاحق لا يمحو واقعة التشغيل السابق المنقطع، ولا يُنسب إلى تعديل HIL اللاحق `8078bda3` الذي يملك47 حالة موجهة ناجحة.45 طفرة أصلية وطفرة HIL إضافية تعني46 إضافة وإجمالي646. [تقرير الإغلاق](../docs/testing/runtime_slice_closures_20260908.md) يسجل الشهود وحدودها؛ لم تُرفع أي مرساة أو حالة اعتماد تشغيلي.
+
+
+### 2026-09-08 — متابعة ملاحظة مراجعة #990
+
+`4163de82` يصحح إدراج المواضع المستثناة في أسباب وتفاصيل الحارس غير المثبت. عيب تشخيصي أُعيد إنتاجه في3 حرّاس فعلية؛86 اختباراً و10/10 طفرات، ومقارنة مستقلة عبر7 سيناريوهات تحفظ الأحكام والعدّادات. أُضيفت طفرتان ليصبح الإجمالي648؛ اختبارا حد الزمن ما زالا أحمرين دون تخفيف. حُدثت hot والفجوة والقرارات و[تقرير الإغلاق](../docs/testing/runtime_slice_closures_20260908.md). لا إغلاق لتعليق GitHub أو ادعاء دفع/CI/قياس تشغيلي جديد.
+
+
+### 2026-09-08 — استعادة شهود حوكمة حُذفت أثناء الإصلاح
+
+مراجعة المالك للحزمةe1c28fc0 كشفت حذف شاهدي incomplete_context وتضييق اختبار العقد في36faa270؛ انحدار حقيقي أغفله تقريرنا.87518ec9 يعيد أربع دوال بست دلالات ويزرع6 طفرات جديدة؛51 حالة Guardrails ناجحة و7/7 طفرات مقيسة. الإجمالي654، وقياس headroom المشترك54 ناجحة وحالتان مخفقتان بلا تخفيف. لا تغيير في الإنتاج أوci.yml؛ حُدثت hot والفجوة والقرارات و[تقرير الإغلاق](../docs/testing/runtime_slice_closures_20260908.md). نتيجة preflight لدى المالك لا تزال منتظرة.
+
+
+### 2026-09-08 — HIL SQL parameter typing, PR #991
+
+`83e8c187` fixes the live CI failure reported at 20:49 UTC: approval UPDATE inferred parameter $1 as both text and varchar. Both uses now explicitly cast to varchar, matching migrations/v9_new_tables.sql. tests_v9/test_db_wiring.py also checks unresolved/resolved timestamps and refusal of a late rejection. Guardrails unit suite: 51 passed. PostgreSQL is unavailable locally; the corrected integration test remains NOT_MEASURED until CI reruns it. The supplied CI result was 1 failed, 131 passed, 92 skipped, 2 xfailed, 1 xpassed; this supersedes the earlier claim that only mutation headroom blocks the PR. No skip, role bypass or certification flag was weakened.
+
+### 2026-09-08 — merge and MCP auth ordering
+
+`4456cea6` preserves both histories after remote44a4cbcf; `48991e6d` repairs the economic module header; `ab240e46` checks durable HIL decisions. `531efe47` moves MCP JSON decoding after authentication, with 2/2 new mutants detected and 106 merged Guardrails/MCP cases passing. The registry now holds656 mutations; full local gates and a valid new timing pair are pending. Corrected HIL live SQL is NOT_MEASURED. See docs/testing/runtime_slice_closures_20260908.md for source and CI evidence.
+
+
+### 2026-09-08 — PR 991 review and timing closure prepared
+
+`da71cc0f` merges remote `d96bbacd` with the local Copilot repairs, preserving both histories. The remote HIL `::text` casts are retained; the stronger durable-decision tests from `ab240e46` remain. Remote Integration Tests job102257332285 passed132 cases, skipped92, on d96bbacd. That result does not certify the later local witness additions.
+
+`d5c91477` preserves authenticated JSON media types, restores the OpenAPI422 response, and makes WOFOST non-finite validation errors serializable. Together with `531efe47` and `48991e6d`, all three Copilot findings have code fixes. Review threads remain open until the repaired head is published and checked.
+
+`639bde28` uses the observed pair45.30 minutes/654 mutations from run34284639549/job102257332191 (22:12:12–22:57:30 UTC). Planting succeeded in29:42; pytest completed with6495 passed,25 skipped, and only the two headroom failures; coverage50.87%. Codecov and Field-forms were skipped after that failure. The same formula yields watermark711 and drift682, keeping the90-minute timeout and0.775 marginal-cost assumption. The current656-mutation registry is not substituted for the measured654 count.
+
+The merged targeted suite passed130 tests. Final generated checks, default preflight and publication remain pending. No production certification is claimed.

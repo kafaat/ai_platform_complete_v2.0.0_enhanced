@@ -2412,3 +2412,62 @@ SHAs من `git log --oneline origin/main`.
 - **القرار ⑤:** الثلاثةُ المكتشَفة بتعميم الحالة تُسمّى في راتشِتٍ مسقوف ولا تُصلَح هنا.
 - **السبب:** إصلاحُها توسيعٌ إلى نظامَين (خدمةُ النماذج · تنفيذُ الملحقات) بلا قياسٍ لهما — والشريحةُ تُقاس بما قاست. وإسقاطُها صمتٌ، وهو ما يرفضه هذا المستودع.
 - **المصدر:** `nats/nats.conf` · `docker-compose.v9.yml` · `.env.example` · `shared/broker_url.py` · `services/sahool-platform/api/{main.py,irrigation_dispatch_relay_worker.py}` · `tests_v9/test_nats_broker_authentication.py` (١٠ حالات) · `guard_mutation_registry.json` (٦ طفرات سلوكيّة على ثلاثة مصادر).
+
+
+### 2026-09-08 — عقود صريحة وإغلاق مقيد بالدليل
+
+- `36faa270`: `users.id` الصحيح مرجع الهوية؛ البيانات المالية المطلوبة لا تُستبدل بأصفار. السبب: 422 عند فساد العقد أصدق من قبول اقتصادي منخفض الخطر أو خطأ إدراج.
+- `515bd392` + `612bd2dc`: توكن المستخدم المحدد بالمستأجر وصلاحيات القراءة الصريحة مرجع MCP؛ لا منحة كتابة أو admin عام. السبب: إزالة خطأ المسار وحده لا يصلح الاعتماد ولا العزل.
+- `36b1a6b9`: DDL الرسم ملك الهجرات، وكتابة بياناته للمنصة. التسجيل في MANIFEST والملكية موثقان بتفويض بايتات محدود `GATE01-ADJ-2026-09-08-001` يستند إلى طلب الإصلاح الصريح؛ لا توقيع مستقل ولا دمج مدّعى.
+- `7dcb9097` + `5d770f22`: لا جرعة بلا مصدر قانوني وكفاءة صريحة وحوكمة إيجابية؛ الصافي غير السحب الإجمالي. السبب: منع توصية تبدو مقاسة وهي افتراضية. استكمال مصادر المال والماء والوصفة يبقى open.
+- `ba51967d`: الجودة إسقاط للحالة القانونية والجاهزية تتطلب شروطها؛ إصلاح أولوية high لا يثبت سبب PDF الأصلي. السبب: الفصل بين عطل معاد إنتاجه ونسبة واقعة تاريخية.
+
+
+### 2026-09-08 — التحقق لا يبرر تخفيف بوابته
+
+- `3e186968`: هجرة v230 مسجلة في مشغّل SQL الآخر قبل تقوية RLS النهائية؛ 16 اختبار هجرات في الشريحة و82 اختبار عقود في إعادة الدمج نجحت.
+- `45dad915`: استثناء هوية drawing_features ينتهي 2026-11-30 ويصف الكاتب القائم؛ لا زيادة للأساس ولا ادعاء استخراج ملكيته من المنصة. اختبار انتهاء عام وطفرة مقتولة يحرسانه.
+- `52003234`: تعليل منع DDL بدلاً من حذف الشاهد أو رفع حد المحظورات غير المعللة؛ العدد99 كما في الأساس.
+- الطفرات الـ45 الجديدة تبقى مسجلة. لا تعديل لمرساة41.17/579 أو حدود642/610 بوقت محلي أو بزوج أسرع مريح؛ الأحدث المقيس31m58s/600 لا يكفي أيضاً لحد الانجراف عند645. الإغلاق يحتاج CI صالحاً وفق العقد القائم.
+
+
+### 2026-09-08 — غياب القياس يفشل الشهادة المطلوبة
+
+- `8078bda3`: HIL_CERTIFICATION_REQUIRED علم صريح في CI، مع fixture خاص بـHIL، كي يفشل غياب الاتصال دون تغيير اختبارات التكامل المحلية كلها.
+- لا تُستبدل هوية root بهوية مزيفة ولا يُنزع فحص PostgreSQL؛ الدليل الحي يحتاج منفذاً صالحاً.
+- قرئت ruleset20645828: الأسماء الخمسة غير مطلوبة. يبقى النقل خارج Unit Tests غير مستوفٍ لشرطه؛ السقوف لم تتغير.
+- حزمة Git هي وسيلة تسليم commits المحلية عند غياب اعتماد git push؛ تحفظ البصمات ولا تعيد إنشاء تاريخ ببصمات أخرى عبر API.
+
+
+### 2026-09-08 — استثناء الشاهد ليس سبب إخفاق
+
+- `4163de82` / #990: ترشيح `reasons` و`sites` للحارس غير المثبت بعد فصل النجاح والاستثناء الكامل؛ السبب أن الموضع المستثنى خارج القياس المطلوب، وإدراجه يوجّه التشخيص إلى إخفاق غير موجود.
+- إبقاء قائمة الاستثناء العليا للحرّاس المستثناة بالكامل؛ السبب أن إضافتها للحارس المختلط تغيّر عدّاد المثبت خطأً. الحكم والعدّادات ثابتة في المقارنة المحكومة.
+- طفرتان مستقلتان ترجعان العطل إلى أسباب الإخفاق وتفاصيله؛ لا خفض لعدد الطفرات ولا رفع للمرساة لإخفاء حد الزمن المفتوح. تعليق المراجعة يبقى معلقاً عن بُعد حتى وصول الإصلاح ومراجعته.
+
+
+### 2026-09-08 — الشهود تتكيف مع العقد ولا تُحذف
+
+- `87518ec9`: إعادة شاهدَي incomplete_context وتثبيت الصفر وharvest وجرعة المبيد وإيراد القرض بأربع دوال؛ السبب أن إعادة كتابة36faa270 أسقطت دلالات حراسة رغم ارتفاع عدد الاختبارات الناجحة.
+- الطلب الناقص يُختبر بعد حذف حقل من طلب صحيح، مع إثبات رفض النموذج أيضاً؛ السبب أن model_validator صار يرفض النقص قبل وصوله إلى المحرك، وأن القواميس المتداخلة ما زالت قابلة للتعديل.
+- ست طفرات إضافية تبقى مع جميع المواصفات القديمة، ولا يتغير سقف الزمن أو مسار الإنتاج لإرضاء الاختبارات. حزمةe1c28fc0 الأصلية محفوظة، وتصحيحها يُسلّم امتداداً لها.
+
+
+### 2026-09-08 — HIL SQL parameter typing, PR #991
+
+`83e8c187` fixes the live CI failure reported at 20:49 UTC: approval UPDATE inferred parameter $1 as both text and varchar. Both uses now explicitly cast to varchar, matching migrations/v9_new_tables.sql. tests_v9/test_db_wiring.py also checks unresolved/resolved timestamps and refusal of a late rejection. Guardrails unit suite: 51 passed. PostgreSQL is unavailable locally; the corrected integration test remains NOT_MEASURED until CI reruns it. The supplied CI result was 1 failed, 131 passed, 92 skipped, 2 xfailed, 1 xpassed; this supersedes the earlier claim that only mutation headroom blocks the PR. No skip, role bypass or certification flag was weakened.
+
+### 2026-09-08 — merge and MCP auth ordering
+
+`4456cea6` preserves both histories after remote44a4cbcf; `48991e6d` repairs the economic module header; `ab240e46` checks durable HIL decisions. `531efe47` moves MCP JSON decoding after authentication, with 2/2 new mutants detected and 106 merged Guardrails/MCP cases passing. The registry now holds656 mutations; full local gates and a valid new timing pair are pending. Corrected HIL live SQL is NOT_MEASURED. See docs/testing/runtime_slice_closures_20260908.md for source and CI evidence.
+
+
+### 2026-09-08 — PR 991 review and timing closure prepared
+
+`da71cc0f` merges remote `d96bbacd` with the local Copilot repairs, preserving both histories. The remote HIL `::text` casts are retained; the stronger durable-decision tests from `ab240e46` remain. Remote Integration Tests job102257332285 passed132 cases, skipped92, on d96bbacd. That result does not certify the later local witness additions.
+
+`d5c91477` preserves authenticated JSON media types, restores the OpenAPI422 response, and makes WOFOST non-finite validation errors serializable. Together with `531efe47` and `48991e6d`, all three Copilot findings have code fixes. Review threads remain open until the repaired head is published and checked.
+
+`639bde28` uses the observed pair45.30 minutes/654 mutations from run34284639549/job102257332191 (22:12:12–22:57:30 UTC). Planting succeeded in29:42; pytest completed with6495 passed,25 skipped, and only the two headroom failures; coverage50.87%. Codecov and Field-forms were skipped after that failure. The same formula yields watermark711 and drift682, keeping the90-minute timeout and0.775 marginal-cost assumption. The current656-mutation registry is not substituted for the measured654 count.
+
+The merged targeted suite passed130 tests. Final generated checks, default preflight and publication remain pending. No production certification is claimed.

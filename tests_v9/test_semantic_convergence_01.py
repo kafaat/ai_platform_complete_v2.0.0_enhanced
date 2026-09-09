@@ -234,3 +234,65 @@ def test_evidence_authority_is_not_declared_none_while_kg_shapes_evidence():
     assert '"decision_authority": "none"' in _RUNTIME_SRC
     # والأثر القائم مقيسٌ على المصدر لا مفترَض:
     assert "EvidenceStrength.KG" in _RUNTIME_SRC
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("dependency", ["knowledge-graph", "rag-retrieval"])
+@pytest.mark.parametrize("failure", ["timeout", "network"])
+async def test_advisory_dependency_transport_failure_is_an_explicit_boundary_error(
+    monkeypatch, dependency, failure
+):
+    from types import SimpleNamespace
+
+    import httpx
+    from fastapi import HTTPException
+
+    from services.ai_agronomist import ai_evidence_runtime as runtime
+
+    original_client = httpx.AsyncClient
+    calls = []
+    tenant_id = "ad063907-fc11-4314-b639-e1c91d820960"
+
+    async def transport(request):
+        current = "knowledge-graph" if request.url.path == "/v1/edges" else "rag-retrieval"
+        calls.append(current)
+        assert request.headers["X-Tenant-Id"] == tenant_id
+        if current == dependency:
+            if failure == "timeout":
+                raise httpx.ReadTimeout("")
+            raise httpx.ConnectError("secret credentials and internal hostname")
+        return httpx.Response(200, json={"edges": []})
+
+    monkeypatch.setattr(
+        httpx,
+        "AsyncClient",
+        lambda **kwargs: original_client(transport=httpx.MockTransport(transport), **kwargs),
+    )
+    req = SimpleNamespace(
+        tenant_id=tenant_id,
+        current_field_state=None,
+        field_id=None,
+        crop="wheat",
+        question="ما حالة القمح؟",
+        region=None,
+        final_k=5,
+    )
+    with pytest.raises(HTTPException) as error:
+        await runtime.build_evidence_response(
+            req,
+            endpoint_mode="evidence",
+            x_tenant_id=tenant_id,
+            save_agent_tool_audit=lambda value: None,
+            save_pending_approval=lambda value: None,
+        )
+    assert error.value.status_code == (504 if failure == "timeout" else 502)
+    assert error.value.detail["dependency"] == dependency
+    assert error.value.detail["reason_code"] == (
+        "advisory_dependency_timeout" if failure == "timeout" else "advisory_dependency_unavailable"
+    )
+    assert "secret" not in str(error.value.detail)
+    assert calls == (
+        ["knowledge-graph"]
+        if dependency == "knowledge-graph"
+        else ["knowledge-graph", "rag-retrieval"]
+    )

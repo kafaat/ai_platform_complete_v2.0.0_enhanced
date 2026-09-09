@@ -17,7 +17,7 @@
 
 | Domain | Capabilities | Benchmarked | Coverage | Repository maturity | Leader | Parity | Behind | Missing |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| decision | 10 | 0 | 0.0% | 2.4 | 0 | 0 | 0 | 0 |
+| decision | 10 | 0 | 0.0% | 2.5 | 0 | 0 | 0 | 0 |
 | farm_management | 10 | 1 | 10.0% | 2.2 | 0 | 0 | 1 | 0 |
 | gis | 4 | 0 | 0.0% | 2.0 | 0 | 0 | 0 | 0 |
 | irrigation | 11 | 1 | 9.1% | 1.64 | 1 | 0 | 0 | 0 |

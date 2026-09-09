@@ -56,3 +56,78 @@ async def test_get_et0_product_propagates_engine_down(monkeypatch):
     with pytest.raises(HTTPException) as ei:
         await wsc.get_et0_product(t_max_c=30.0, t_min_c=18.0, lat_deg=15.5, day_of_year=100)
     assert ei.value.status_code == 502
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("method", ["get", "post"])
+@pytest.mark.parametrize(
+    "failure, status, reason",
+    [
+        ("timeout", 504, "weather_service_timeout"),
+        ("network", 502, "weather_service_unavailable"),
+        ("invalid_json", 502, "weather_service_invalid_response"),
+    ],
+)
+async def test_weather_boundary_errors_are_stable_and_nonleaking(
+    monkeypatch, method, failure, status, reason
+):
+    import httpx
+
+    original_client = httpx.AsyncClient
+
+    async def transport(request):
+        if failure == "timeout":
+            raise httpx.ReadTimeout("")
+        if failure == "network":
+            raise httpx.ConnectError("secret URL and credentials")
+        return httpx.Response(200, text="<html>secret upstream response</html>")
+
+    monkeypatch.setattr(
+        httpx,
+        "AsyncClient",
+        lambda **kwargs: original_client(transport=httpx.MockTransport(transport), **kwargs),
+    )
+    with pytest.raises(HTTPException) as error:
+        if method == "get":
+            await wsc.weather_get_json("/v1/weather/current")
+        else:
+            await wsc.weather_post_json("/v1/weather/agro/et0", json_body={})
+    assert error.value.status_code == status
+    assert error.value.detail["reason_code"] == reason
+    assert error.value.detail["message_ar"]
+    assert "secret" not in str(error.value.detail)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("method", ["get", "post"])
+async def test_weather_timeout_bounds_whole_request_and_cancels_transport(monkeypatch, method):
+    import asyncio
+
+    import httpx
+
+    original_client = httpx.AsyncClient
+    cancelled = False
+
+    async def transport(request):
+        nonlocal cancelled
+        try:
+            await asyncio.Event().wait()
+        except asyncio.CancelledError:
+            cancelled = True
+            raise
+
+    monkeypatch.setattr(
+        httpx,
+        "AsyncClient",
+        lambda **kwargs: original_client(transport=httpx.MockTransport(transport), **kwargs),
+    )
+    request = (
+        wsc.weather_get_json("/v1/weather/current", timeout_s=0.01)
+        if method == "get"
+        else wsc.weather_post_json("/v1/weather/agro/et0", json_body={}, timeout_s=0.01)
+    )
+    with pytest.raises(HTTPException) as error:
+        await asyncio.wait_for(request, timeout=1)
+    assert error.value.status_code == 504
+    assert error.value.detail["reason_code"] == "weather_service_timeout"
+    assert cancelled

@@ -599,5 +599,7 @@
 \i migrations/v228_worker_claim_lease.sql
 \echo '═══ 227. v229_market_mcp_schema.sql ═══'
 \i migrations/v229_market_mcp_schema.sql
-\echo '═══ 228. v206_rls_final_hardening.sql ═══'
+\echo '═══ 228. v230_drawing_features.sql ═══'
+\i migrations/v230_drawing_features.sql
+\echo '═══ 229. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

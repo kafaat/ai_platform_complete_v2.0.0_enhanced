@@ -461,7 +461,7 @@
         "services/sahool-platform"
       ],
       "kind": "service",
-      "incoming": 2,
+      "incoming": 3,
       "outgoing": 80,
       "orphan": false
     },
@@ -1168,7 +1168,7 @@
       ],
       "kind": "service",
       "incoming": 3,
-      "outgoing": 18,
+      "outgoing": 19,
       "orphan": false
     },
     {
@@ -6733,6 +6733,12 @@
     },
     {
       "source": "supervisor-agent",
+      "target": "platform",
+      "kind": "code-reference",
+      "evidence": "services/supervisor-agent/skills/crop_model_skill.py"
+    },
+    {
+      "source": "supervisor-agent",
       "target": "redis",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.light.yml"
@@ -6987,11 +6993,11 @@
   "cycles": [],
   "summary": {
     "nodes": 153,
-    "edges": 949,
+    "edges": 950,
     "orphans": 6,
     "cycles": 0,
-    "code_edges": 114,
+    "code_edges": 115,
     "compose_edges": 835
   },
-  "content_sha256": "eb45eb18b075012e9a7306410dc651627b2a0020d8b7f378e1a0baa889817a84"
+  "content_sha256": "ceebabca65b736a2f26754feef5f604f1be9a2dba0b7b7814a66605993f25072"
 }

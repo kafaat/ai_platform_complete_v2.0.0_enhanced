@@ -5,6 +5,8 @@ FIX: FastAPI dependency-based OAuth 2.1 middleware with proper JWT validation
 
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 import re
 
@@ -24,7 +26,7 @@ security = HTTPBearer(auto_error=False)
 
 
 def _validate_tenant_id(tenant_id: str) -> str:
-    if not tenant_id or not _TENANT_RE.match(tenant_id):
+    if not isinstance(tenant_id, str) or not _TENANT_RE.fullmatch(tenant_id):
         raise ValueError(f"Invalid tenant_id: {tenant_id!r}")
     return tenant_id
 
@@ -41,18 +43,36 @@ async def clear_tenant_context(conn) -> None:
 def _authenticate_token(token: str, required_scope: str) -> dict:
     """Validate one bearer token; shared by dependency and pre-body middleware."""
     secret = os.getenv("JWT_SECRET", "")
-    if len(secret) < 32:
+    public_key = os.getenv("JWT_PUBLIC_KEY", "").strip()
+    production = os.getenv("SAHOOL_ENV", "development").strip().lower() == "production"
+    allow_hs256 = os.getenv("SAHOOL_ALLOW_HS256_IN_PROD", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    if not public_key and production and not allow_hs256:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "RS256 verification required")
+    if not public_key and len(secret) < 32:
         raise HTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
             "JWT_SECRET not configured or too weak (min 32 chars)",
         )
     try:
-        payload = jwt.decode(token, secret, algorithms=["HS256"], audience="sahool")
+        payload = jwt.decode(
+            token,
+            public_key or secret,
+            algorithms=["RS256" if public_key else "HS256"],
+            audience="sahool",
+        )
     except jwt.InvalidTokenError as e:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token") from e
     if payload.get("iss") not in _ALLOWED_ISS:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token issuer")
-    scopes = payload.get("scope", "").split()
+    scope = payload.get("scope", "")
+    if not isinstance(scope, str):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Invalid token scope")
+    scopes = scope.split()
     if required_scope not in scopes and "admin" not in scopes:
         raise HTTPException(status.HTTP_403_FORBIDDEN, f"Scope '{required_scope}' required")
     tid = payload.get("tenant_id")
@@ -63,6 +83,16 @@ def _authenticate_token(token: str, required_scope: str) -> dict:
     except ValueError as e:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid tenant_id") from e
     return payload
+
+
+def idempotency_key(user: dict, request_id: str | None, name: str, arguments: dict) -> str | None:
+    """A caller's key cannot select another tenant/user/tool/input's result."""
+    if not request_id:
+        return None
+    identity = [user["tenant_id"], user.get("sub"), request_id, name, arguments]
+    return hashlib.sha256(
+        json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
 
 
 def _bearer_from_header(value: str | None) -> str:

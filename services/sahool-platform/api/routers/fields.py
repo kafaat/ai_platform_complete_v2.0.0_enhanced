@@ -37,6 +37,7 @@ from api.field_geometry_save_guard import sanitize_boundary_metadata, validate_b
 # من هناك مباشرةً؛ معالِج الحفظ _persist_field يُعرَّف محليّاً أدناه (مستهلِكه الوحيد).
 from api.field_models import (
     _FIELD_DETAIL_SELECT,
+    _FIELD_QUALITY_SELECT,
     _MIN_FIELD_OVERLAP_M2,
     FieldCreateRequest,
     FieldDetail,
@@ -47,6 +48,7 @@ from api.field_models import (
     _row_to_field_detail,
     _row_to_field_summary,
     _significant_overlaps,
+    field_quality_grade,
 )
 
 # رموز صارت يتيمة في api.main بعد نقل المعالِجات — تُستورَد هنا من وحداتها الحقيقيّة
@@ -322,23 +324,28 @@ async def _insert_field_within_tx(
     # projection columns or a partially-applied migration must not turn a valid field
     # INSERT into 503.  The projection is recomputed by later jobs/events once the
     # schema is complete.
+    quality_state = None
     try:
         from api.field_state_projection import recompute_field_state
 
-        _fs = await recompute_field_state(conn, field_id)
-        if _fs["changed"]:
-            await _emit_domain_event(
-                conn,
-                user,
-                "FIELD_STATE_CHANGED",
-                "field",
-                field_id,
-                {
-                    "validity": _fs["state"]["validity"],
-                    "execution_mode": _fs["state"]["execution_mode"],
-                    "trigger": reason,
-                },
-            )
+        # tenant_connection already owns the transaction. A nested transaction is
+        # a SAVEPOINT: catching SQL errors alone would leave the INSERT aborted.
+        async with conn.transaction():
+            _fs = await recompute_field_state(conn, field_id)
+            if _fs["changed"]:
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    "FIELD_STATE_CHANGED",
+                    "field",
+                    field_id,
+                    {
+                        "validity": _fs["state"]["validity"],
+                        "execution_mode": _fs["state"]["execution_mode"],
+                        "trigger": reason,
+                    },
+                )
+        quality_state = _fs["state"]
     except Exception as fs_err:  # noqa: BLE001 — projection must not break field create
         logging.warning(
             "تخطّي إسقاط حالة الحقل بعد إنشاء %s — سيُعاد حسابه لاحقاً: %s",
@@ -353,7 +360,7 @@ async def _insert_field_within_tx(
         name_ar=name,
         crop=crop or "—",
         area_ha=area_ha,
-        quality_grade="PENDING_LAB",
+        quality_grade=field_quality_grade(quality_state),
         health_summary_ar="حقل جديد — بانتظار قياسات",
         soil_type=soil_type,
         manager=manager,
@@ -581,7 +588,7 @@ async def list_fields(user: UserSchema = Depends(get_current_user)):
             rows = await conn.fetch(
                 "SELECT field_id, farm_id, name, area_ha, crop, soil_type, manager, "
                 "field_code, description, water_source, ownership_type, country, region, "
-                "lat, lon, geometry "
+                f"lat, lon, geometry, {_FIELD_QUALITY_SELECT} "
                 "FROM fields WHERE tenant_id = $1::uuid ORDER BY name",
                 str(user.tenant_id),
             )

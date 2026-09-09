@@ -5674,3 +5674,70 @@ scripts/ci/capability_mapping_engine.py:270      ["git","ls-files","-z"]
 - **المقيس:** زُرِع العطلُ فيه فبقي الاختبارُ **أخضر**. والسببُ أنّه **غيرُ بالغٍ أصلاً**: `violations` تُبلِّغ السببَ الجذريّ نفسَه وتخرج بـ1 قبل أن يُغيّر هذا الفرعُ حكماً، ولا مُدخَلَ تمرّ منه تلك ويسقط فيه هذا.
 - **العلاج: الحذف لا التوسيع.** دفاعٌ لا يُكذَّب **يبدو حمايةً وليس بها**، وإبقاؤه يُضخِّم عددَ ما يبدو محروساً بلا زيادةِ حراسة.
 - **وكيف كُشِف:** تشغيلُ المكنسة على أساسٍ أخضر — لا قراءةُ الرمز. وأوّلُ تشغيلٍ أعطى `✓` كاذبةً لأنّ الأساسَ كان أحمرَ بـ`NameError`؛ **المكنسةُ تتحقّق من الحمرة بعد الزرع ولا تشترط الخضرةَ قبله**، فتُقرأ نتيجتُها قتلاً وهي حمرةٌ سابقة. يُسجَّل بنداً للمكنسة نفسِها.
+
+
+## شرائح مراجعة التشغيل 2026-09-08
+
+| المعرّف | الحالة | المصدر والحكم |
+|---|---|---|
+| LIVE-20260908-MCP-CONTRACT-01 | fixed (code) / runtime pending | `515bd392` + `612bd2dc` + `1c7b45fb`؛ `tests_v9/test_mcp_auth_first_contract.py`؛ مسار واعتماد وإقلاع واكتشاف وأخطاء وهوية cache. النشر الحي غير مقاس. |
+| LIVE-20260908-GUARDRAILS-HIL-01 | fixed (code) / runtime pending | `36faa270`؛ `tests_v9/test_guardrails_contract.py`؛ النوع والمالية والحفظ ومعاملات المستأجر. تشغيل PG وتوفير تخصصات المراجعين وتسليم الإشعارات يبقى open. |
+| LIVE-20260908-DRAWING-SCHEMA-01 | fixed (code) / runtime pending | `36b1a6b9`؛ `migrations/v230_drawing_features.sql` + `tests_v9/test_rls_tenant_isolation_live_pg.py`؛ نقل DDL وعزل RLS؛ لا شهادة تطبيق الهجرة. |
+| LIVE-20260908-GIS-DEVICES-01 | fixed (code) | `36b1a6b9`؛ `services/sahool-platform/tests/test_governance_modules.py`؛ أخطاء DB المقيسة 503 واستعلام current_stage وتطبيع UUID. |
+| LIVE-20260908-FIELD-READINESS-01 | fixed (code) / original trace pending | `ba51967d`؛ `tests_v9/test_season_workspace.py`؛ الحالة القانونية والمختبر والموسم والأولويات. سبب PDF الأصلي غير منسوب دون traceback. |
+| LIVE-20260908-WEATHER-BOUNDARIES-01 | fixed (code) / deployment pending | `ed49c948` + `dc7b0901`؛ اختبارات weather runtime وKG/RAG؛ المشاركة والمهلات والغياب. Redis المتزامن وسياسة البيانات القديمة لم يُغيّرا. |
+| LIVE-20260908-AGENT-UNSUPPORTED-ADVICE-01 | fixed (unsafe defaults) / capability open | `7dcb9097` + `5d770f22`؛ `services/supervisor-agent/test_ai_orchestration_forensic.py`؛ منع كمية بلا دليل/حوكمة وفصل الصافي والإجمالي. الأدلة المالية والمائية والوصفة المعتمدة لازمة لإتاحة القدرة. |
+| LIVE-20260908-ARABIC-INTENTS-01 | fixed (code) | `d374c7c1`؛ `services/supervisor-agent/test_router.py`؛ تطبيع وحدود وأولوية، لا ادعاء شمول كل الصيغ. |
+
+تفاصيل الشهود والحدود في [تقرير الشرائح](../../docs/testing/runtime_slice_closures_20260908.md). ادعاء P2-8 بفقد الراستر عند استبدال الحاوية مردود بوجود named volume؛ لا إغلاق لنسخ المضيف واستعادته بلا قياس.
+
+
+### متابعة التحقق 2026-09-08 — زمن الطفرات بعد شرائح التشغيل
+
+| الهوية | الحالة | الدليل وحد الإغلاق |
+|---|---|---|
+| LIVE-20260908-MUTATION-TIMING-01 | open / CI evidence required | `tests_v9/test_mutation_sweep_headroom.py`؛645 طفرة تتجاوز642 و610. قياس799842d3 في job101913721185 هو31m58s/600؛ أقدم من الكون الجديد وأسرع من المرساة المعتمدة41.17/579، فلا يُستعمل لتليينها. يُغلق بقياس CI صالح يقرن العدد والزمن وإعادة الاشتقاق وفق السياسة، لا حذف الطفرات أو رفع الحدود منفردة. |
+
+
+### متابعة شاهد HIL 2026-09-08
+
+| الهوية | الحالة | الدليل وحد الإغلاق |
+|---|---|---|
+| LIVE-20260908-HIL-CERTIFICATE-SKIP-01 | fixed (proof contract) / live pending | `8078bda3`؛ tests_v9/test_db_wiring.py وtest_guardrails_contract.py؛ اشتراط قاعدة معلنة وفشل اتصال/دور غير مقاس، وCI يفرض العلم.47 حالة ناجحة؛ لا PG حي محلي. |
+
+متابعة LIVE-20260908-MUTATION-TIMING-01: الإجمالي646 بعد طفرة CI الجديدة؛ تبقى العلامة642 وحد الانجراف610 بلا تغيير. إصدار مصدر كامل محفوظ، وCI على هذا الكون لم يقس بعد بسبب اعتماد الدفع المفقود.
+
+
+### متابعة تشخيص شاهد GUARDS في #990 — 2026-09-08
+
+| الهوية | الحالة | الدليل وحد الإغلاق |
+|---|---|---|
+| GUARDS-MIXED-SELF-WITNESS-DIAGNOSTICS-01 | fixed locally / remote review pending | `4163de82`؛ #990 / discussion_r3952828845؛ `scripts/ci/collect_guard_surface_evidence.py:212` و`tests_v9/test_collect_guard_surface_evidence.py:208`. استبعاد مواضع الشهادة الذاتية من أسباب وتفاصيل الإخفاق المختلط؛86 اختباراً و10/10 طفرات، وثبات الأحكام والعدّادات بمقارنة مستقلة. تعليق GitHub غير محلول، وCI على الرأس الجديد غير مقاس. |
+
+متابعة LIVE-20260908-MUTATION-TIMING-01 عند `4163de82`: الإجمالي648 بعد طفرتي مراجعة #990؛3 حالات headroom ناجحة وحالتان مخفقتان مقابل642 و610 دون تعديل الحدود.
+
+
+### تصحيح انحدار شهود عقد Guardrails — 2026-09-08
+
+| الهوية | الحالة | الدليل وحد الإغلاق |
+|---|---|---|
+| GUARDRAILS-CONTRACT-WITNESSES-REMOVED-01 | fixed locally / CI pending | `36faa270` حذف شاهدي incomplete_context وضيّق العقد النقي؛ `87518ec9` يستعيد أربع دوال في tests_v9/test_guardrails_contract.py ويضيف6 طفرات على main.py/contracts.py.51 حالة ناجحة و7/7 طفرات مقيسة، دون تعديل الإنتاج. أعداد النجاح السابقة لم تكن دليلاً على حفظ الدلالات. |
+
+متابعة LIVE-20260908-MUTATION-TIMING-01 عند87518ec9:654=368+286، مقابل642 و610؛ الحالتان ما زالتا مخفقتين. نتيجة preflight لدى المالك علىe1c28fc0 لم تصل بعد.
+
+
+### HIL SQL follow-up 2026-09-08
+
+| Gap | Status | Evidence |
+|---|---|---|
+| HIL-STATUS-PARAMETER-TYPE-01 | fixed (code) / live pending | `83e8c187`; services/guardrails-engine/human_in_loop.py approval UPDATE, tests_v9/test_db_wiring.py. PR #991 CI failed with AmbiguousParameterError; rerun required. |
+
+### MCP review follow-up 2026-09-08
+
+| Gap | Status | Evidence |
+|---|---|---|
+| MCP-BODY-BEFORE-AUTH-991-01 | fixed (code) / CI pending | `531efe47`; weather_server.py and wofost_server.py authenticate before body reads; tests_v9/test_mcp_auth_first_contract.py, 2/2 new mutants detected. |
+
+Timing follow-up: final source registry656; run34281851595 measured654 in five successful shards but the complete Unit Tests duration is still pending. No timing limit changed.
+
+2026-09-08 timing update: `639bde28` supersedes the pending timing note with run34284639549/job102257332191,45.30 minutes/654 mutations. The same formula yields711/682; Codecov and Field-forms skipped after the two headroom failures, so the later full green pipeline remains unmeasured. `da71cc0f` retains remote HIL casts proven by integration job102257332285; local stronger live witnesses still await CI. MCP review fixes include `d5c91477`; publication and remote thread closure remain pending. See docs/testing/runtime_slice_closures_20260908.md.

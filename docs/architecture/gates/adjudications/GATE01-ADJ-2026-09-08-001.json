@@ -1,0 +1,48 @@
+{
+  "schema": "sahool.gate01_adjudication/v1",
+  "version": 1,
+  "adjudication_id": "GATE01-ADJ-2026-09-08-001",
+  "gate_id": "GATE-01",
+  "status": "ISSUED",
+  "approved_by": "owner",
+  "adjudicated_on": "2026-09-08",
+  "one_time": true,
+  "phase0_baseline_ref": {
+    "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
+    "must_match_policy": true
+  },
+  "allowed_paths": [
+    "docs/architecture/db_ownership.yml",
+    "migrations/MANIFEST.txt"
+  ],
+  "allowed_gap_closures": [
+    "LIVE-20260908-DRAWING-SCHEMA-01"
+  ],
+  "authorized_patch_sha256": "0950d38fa7a4041bf85c89a6d0b7a57e025b7b19cba85161469262edeb3b0b90",
+  "authorized_blobs": {
+    "docs/architecture/db_ownership.yml": "b73cabdcd744d19c48a57ea241d86e7f848bca92",
+    "migrations/MANIFEST.txt": "9625e309c6b72c6a3eba99165bb67f2f66fbbfda"
+  },
+  "bindings": {
+    "require_patch_digest": true,
+    "require_paths_subset": true,
+    "require_baseline_match": true,
+    "require_exact_head_sha": false,
+    "observed_head_sha_at_issue": "36b1a6b96d2275ab7508647845db0b2de555508e"
+  },
+  "authorization_source": {
+    "kind": "current_user_instruction",
+    "text_ar": "قوم بعمل الإصلاحات اللازمة و الإغلاقات للشرائح بعدد من الوكلاء بشكل متوازي على شكل commits",
+    "context_ar": "تعليمة تنفيذ الإصلاحات بعد مراجعة تنص صراحة على نقل DDL drawing_features إلى هجرة. التسجيل في MANIFEST وإسناد الملكية لازمان لتلك الهجرة. لا تفويض دفع أو دمج مستنتج هنا."
+  },
+  "scope_limit_ar": "يسجل v230 وحدها قبل هجرة التقوية النهائية، ويضيف مالك drawing_features القائم sahool-platform. لا تغيير لمسارات التشغيل الفيزيائي أو حالة GATE-01 العالمية.",
+  "provenance_honesty": {
+    "record_authored_by": "agent-for-current-user-instruction",
+    "independently_signed": false,
+    "guard_binds": "bytes_only",
+    "note_ar": "سجل للطلب الصريح في الجلسة، لا توقيع مستقل ولا شهادة صحة تشغيلية. المراجعة المستقلة وقرار الدمج خارج هذا السجل."
+  },
+  "consumption": {
+    "note_ar": "بعد الدمج فقط يضاف merge_sha وconsumed_on وتصبح الحالة CONSUMED؛ لا ادعاء دمج الآن."
+  }
+}

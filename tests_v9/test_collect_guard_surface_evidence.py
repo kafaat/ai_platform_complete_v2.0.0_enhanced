@@ -214,6 +214,67 @@ def test_the_exclusion_does_not_leak_to_a_guard_that_also_runs_elsewhere():
     job = _job("Lint & Format", steps=[{"name": "claim-base guard", "conclusion": "skipped"}])
     result = WITNESS.evaluate(sites, {"ci.yml": _run(job)})
     assert _status_of(result) == "not_proven"
+    assert result["guards"][0]["reasons"] == ["step_skipped"]
+    assert result["guards_unproven"] == [
+        {
+            "guard": GUARD,
+            "reasons": ["step_skipped"],
+            "sites": [
+                {
+                    "workflow": "ci.yml",
+                    "job": "lint",
+                    "step_name": "claim-base guard",
+                    "run_id": "42",
+                    "status": "step_skipped",
+                    "detail": "Lint & Format",
+                }
+            ],
+        }
+    ]
+    assert result["guards_declared"] == 1
+    assert result["guards_proven_run"] == 0
+    assert result["self_witnessing_excluded"] == []
+
+
+def test_excluded_sites_do_not_obscure_multiple_external_failure_reasons():
+    sites = [
+        _site(workflow=WITNESS.SELF_WITNESSING_WORKFLOW, job="certification-verdict"),
+        _site(),
+        _site(workflow="other.yml"),
+        _site(workflow=WITNESS.SELF_WITNESSING_WORKFLOW, job="evidence-pack"),
+    ]
+    result = WITNESS.evaluate(sites, {"ci.yml": _run(_job("Other Job"))})
+    reasons = ["job_missing", "workflow_not_run_on_this_commit"]
+    assert result["guards"] == [{"guard": GUARD, "status": "not_proven", "reasons": reasons}]
+    gap = result["guards_unproven"][0]
+    assert gap["reasons"] == reasons
+    assert [(site["workflow"], site["status"]) for site in gap["sites"]] == [
+        ("ci.yml", "job_missing"),
+        ("other.yml", "workflow_not_run_on_this_commit"),
+    ]
+    assert result["guards_declared"] == 1
+    assert result["guards_proven_run"] == 0
+    assert result["self_witnessing_excluded"] == []
+
+
+def test_external_success_proves_a_guard_with_multiple_excluded_sites():
+    sites = [
+        _site(workflow=WITNESS.SELF_WITNESSING_WORKFLOW, job="certification-verdict"),
+        _site(),
+        _site(workflow=WITNESS.SELF_WITNESSING_WORKFLOW, job="evidence-pack"),
+    ]
+    result = WITNESS.evaluate(sites, {"ci.yml": _run(_job("Lint & Format"))})
+    assert result["guards"] == [
+        {
+            "guard": GUARD,
+            "status": "ran",
+            "proven_by": ["ci.yml → lint → claim-base guard"],
+        }
+    ]
+    assert result["guards_unproven"] == []
+    assert result["guards_declared"] == 1
+    assert result["guards_proven_run"] == 1
+    assert result["self_witnessing_excluded"] == []
 
 
 def test_the_self_witnessing_membership_is_pinned_not_open_ended():

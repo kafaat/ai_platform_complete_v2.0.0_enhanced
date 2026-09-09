@@ -150,7 +150,7 @@
         },
         {
           "function": "health",
-          "line": 672,
+          "line": 709,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/health",
@@ -158,7 +158,7 @@
         },
         {
           "function": "healthz",
-          "line": 487,
+          "line": 488,
           "method": "GET",
           "module": "services/mcp_servers/sentinel_hub_server.py",
           "path": "/health",
@@ -166,7 +166,7 @@
         },
         {
           "function": "healthz",
-          "line": 335,
+          "line": 368,
           "method": "GET",
           "module": "services/mcp_servers/weather_server.py",
           "path": "/health",
@@ -174,7 +174,7 @@
         },
         {
           "function": "healthz",
-          "line": 286,
+          "line": 316,
           "method": "GET",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/health",
@@ -349,7 +349,7 @@
         },
         {
           "function": "health",
-          "line": 672,
+          "line": 709,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/healthz",
@@ -357,7 +357,7 @@
         },
         {
           "function": "healthz",
-          "line": 487,
+          "line": 488,
           "method": "GET",
           "module": "services/mcp_servers/sentinel_hub_server.py",
           "path": "/healthz",
@@ -365,7 +365,7 @@
         },
         {
           "function": "healthz",
-          "line": 335,
+          "line": 368,
           "method": "GET",
           "module": "services/mcp_servers/weather_server.py",
           "path": "/healthz",
@@ -373,7 +373,7 @@
         },
         {
           "function": "healthz",
-          "line": 286,
+          "line": 316,
           "method": "GET",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/healthz",
@@ -691,7 +691,7 @@
         },
         {
           "function": "readyz",
-          "line": 685,
+          "line": 722,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/readyz",
@@ -699,7 +699,7 @@
         },
         {
           "function": "readyz",
-          "line": 492,
+          "line": 493,
           "method": "GET",
           "module": "services/mcp_servers/sentinel_hub_server.py",
           "path": "/readyz",
@@ -707,7 +707,7 @@
         },
         {
           "function": "readyz",
-          "line": 340,
+          "line": 373,
           "method": "GET",
           "module": "services/mcp_servers/weather_server.py",
           "path": "/readyz",
@@ -715,7 +715,7 @@
         },
         {
           "function": "readyz",
-          "line": 291,
+          "line": 321,
           "method": "GET",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/readyz",
@@ -920,6 +920,14 @@
           "receiver": "app"
         },
         {
+          "function": "mcp_tools_list",
+          "line": 557,
+          "method": "GET",
+          "module": "services/mcp_servers/market_server.py",
+          "path": "/v1/mcp/tools",
+          "receiver": "app"
+        },
+        {
           "function": "list_tools",
           "line": 199,
           "method": "GET",
@@ -929,7 +937,7 @@
         },
         {
           "function": "list_tools",
-          "line": 85,
+          "line": 92,
           "method": "GET",
           "module": "services/mcp_servers/weather_server.py",
           "path": "/v1/mcp/tools",
@@ -937,7 +945,7 @@
         },
         {
           "function": "list_tools",
-          "line": 51,
+          "line": 58,
           "method": "GET",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/v1/mcp/tools",
@@ -952,7 +960,7 @@
       "registrations": [
         {
           "function": "api_search_products",
-          "line": 606,
+          "line": 643,
           "method": "GET",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/products",
@@ -1068,7 +1076,7 @@
         },
         {
           "function": "mcp_tools_call",
-          "line": 552,
+          "line": 589,
           "method": "POST",
           "module": "services/mcp_servers/market_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1084,7 +1092,7 @@
         },
         {
           "function": "call_tool",
-          "line": 148,
+          "line": 164,
           "method": "POST",
           "module": "services/mcp_servers/weather_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1092,7 +1100,7 @@
         },
         {
           "function": "call_tool",
-          "line": 114,
+          "line": 130,
           "method": "POST",
           "module": "services/mcp_servers/wofost_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1150,8 +1158,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1096,
-  "route_inventory_sha256": "b81172fba5a94f469c0399a37d920a8f620c3fc4e83cd5c27304a2486b74a003",
+  "route_count": 1097,
+  "route_inventory_sha256": "9db130f5a6427ed125827f71d25989518af28462edb156cb1cfa769de1be8055",
   "runtime_verified": false,
   "schema_version": 1
 }
