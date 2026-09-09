@@ -139,9 +139,9 @@ rag-retrieval,services/rag-retrieval/main.py,164,POST,/v1/ingest,ingest,business
 rag-retrieval,services/rag-retrieval/main.py,207,POST,/v1/search,search,business_endpoint
 raster-service,services/raster-service/main.py,64,GET,/runtime-identity,runtime_evidence_identity,business_endpoint
 raster-tiler-service,services/raster-tiler-service/main.py,11,GET,/runtime-identity,runtime_identity,business_endpoint
-remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,33,GET,/healthz,healthz,health
-remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,38,GET,/readyz,readyz,readiness
-remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,69,GET,/v1/fields/{field_id}/remote-sensing-workspace,workspace,business_endpoint
+remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,39,GET,/healthz,healthz,health
+remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,44,GET,/readyz,readyz,readiness
+remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,109,GET,/v1/fields/{field_id}/remote-sensing-workspace,workspace,business_endpoint
 sam2-inference,services/sam2-inference/main.py,24,POST,/v1/predict,predict,business_endpoint
 sam2-inference,services/sam2-inference/main.py,105,GET,/healthz,healthz,health
 sam2-inference,services/sam2-inference/main.py,110,GET,/health,legacy_health,health

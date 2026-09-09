@@ -16527,6 +16527,7 @@
         "services": [
           "decision-service",
           "indicators-service",
+          "sahool-platform",
           "sahool-vegetation-analysis"
         ]
       },
@@ -17757,7 +17758,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "a8e118971b25753d8936dcac48abc3b5227f0b2ea986c9af0e4b1e59da7298e1",
+  "fingerprint": "09017ae65589f34c78c681f2573c091265535c9431f437a96e4ab83bf201abaa",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17807,11 +17808,11 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 810,
+      "edge_count": 811,
       "failures": [],
       "passed": true,
       "relation_counts": {
-        "CALLS": 38,
+        "CALLS": 39,
         "CONSUMES": 1,
         "EMITS": 1,
         "READS": 418,

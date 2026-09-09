@@ -64,12 +64,14 @@ class _CapturingClient:
 
 
 def test_push_contract_url_tenant_and_content_addressed_body(monkeypatch):
+    monkeypatch.setenv("DECISION_SERVICE_TOKEN", "decision-only-secret")
     monkeypatch.setattr(vr.httpx, "AsyncClient", _CapturingClient)
     out = asyncio.run(vr._push_vegetation_evidence(_snapshot(), TENANT))
     assert out == {"pushed": True, "snapshot_id": "veg_x", "created": True}
     cap = _CapturingClient.captured
     assert cap["url"].endswith("/v1/evidence/vegetation-snapshots")
     assert cap["headers"]["X-Tenant-Id"] == TENANT
+    assert cap["headers"]["Authorization"] == "Bearer decision-only-secret"
     body = cap["json"]
     assert body["snapshot_hash"] == "a" * 64  # the hash IS the idempotency key
     assert body["acquisition_at"] == "2026-07-01T00:00:00Z"
@@ -116,3 +118,17 @@ def test_mirror_mode_503_is_reported_not_hidden(monkeypatch):
 def test_push_is_opt_in_and_off_by_default():
     assert os.getenv("VEGETATION_EVIDENCE_PUSH_ENABLED") is None
     assert vr.VEGETATION_EVIDENCE_PUSH_ENABLED is False
+
+
+def test_missing_production_credential_reports_no_push_without_network(monkeypatch):
+    monkeypatch.setenv("SAHOOL_ENV", "production")
+    monkeypatch.delenv("DECISION_SERVICE_TOKEN", raising=False)
+
+    def forbidden_client(*args, **kwargs):
+        raise AssertionError("must reject missing credentials before opening transport")
+
+    monkeypatch.setattr(vr.httpx, "AsyncClient", forbidden_client)
+    assert asyncio.run(vr._push_vegetation_evidence(_snapshot(), TENANT)) == {
+        "pushed": False,
+        "reason": "decision_service_auth_unavailable",
+    }

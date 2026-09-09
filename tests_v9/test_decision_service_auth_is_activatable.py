@@ -131,11 +131,35 @@ def test_without_the_variable_the_platform_sends_no_bearer_and_the_service_refus
     assert _guard_verdict(module, headers, required=TOKEN, monkeypatch=monkeypatch) == "401"
 
 
-def test_a_caller_supplied_authorization_is_not_overwritten_by_the_service_token(monkeypatch):
-    """رمزُ الخدمة بديلٌ عند الغياب لا سارقٌ للترويسة: تفويضٌ صريح يبقى كما مُرّر."""
+def test_the_service_hop_never_forwards_a_user_jwt_in_place_of_service_credentials(monkeypatch):
+    """رمزُ المستخدم **ليس** اعتماداً لهذه القفزة، وتمريرُه يكسر المصادقة لا يُتمّها.
+
+    كانت صياغتي الأولى تشترط العكس («تفويضٌ صريح يبقى كما مُرّر»)، وهي خاصّيّةٌ خاطئة:
+    الوسيطُ يقارن المُقدَّم بالرمز الخدميّ المشترَك، فرمزُ مستخدمٍ صحيحٌ تماماً يرتدّ 401.
+    صحّحته المراجعةُ المتوازية، وهذا الشاهدُ يمنع «إصلاحاً» يُعيد تمريرَ الرمز.
+    """
     monkeypatch.setenv("DECISION_SERVICE_TOKEN", TOKEN)
-    headers = decision_service_headers(tenant_id="t1", authorization="Bearer caller-jwt")
-    assert headers["Authorization"] == "Bearer caller-jwt"
+    module = _decision_service()
+    headers = decision_service_headers(tenant_id="t1", authorization="Bearer user-jwt")
+    assert headers["Authorization"] == f"Bearer {TOKEN}"
+    assert _guard_verdict(module, headers, required=TOKEN, monkeypatch=monkeypatch) == "accepted"
+
+
+def test_production_without_a_service_token_fails_closed_instead_of_calling_unauthenticated(
+    monkeypatch,
+):
+    """غيابُ الاعتماد في الإنتاج فشلٌ معلَن (503) لا نداءٌ بلا ترويسة.
+
+    بلا ذلك يمضي النداءُ عارياً فيرتدّ 401 من الخدمة، ويبتلعه المُنادي — فيصير
+    «الأمانُ مُفعَّل» و«النظامُ يعمل» ادّعاءَين لا يجتمعان ولا يظهر أيُّهما كاذب.
+    """
+    from fastapi import HTTPException
+
+    monkeypatch.delenv("DECISION_SERVICE_TOKEN", raising=False)
+    monkeypatch.setenv("SAHOOL_ENV", "production")
+    with pytest.raises(HTTPException) as caught:
+        decision_service_headers(tenant_id="t1")
+    assert caught.value.status_code == 503
 
 
 def test_compose_hands_the_platform_the_same_variable_the_service_enforces():

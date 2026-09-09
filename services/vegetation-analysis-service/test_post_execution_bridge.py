@@ -74,5 +74,45 @@ def test_outcome_delegates_to_decision_service(monkeypatch):
         )
     )
     assert result["accepted"] is True
-    assert captured["url"].endswith("/v1/execution-requests/exe_1/verify-outcome")
-    assert captured["headers"]["X-Verified-By"] == "usr_1"
+    assert (
+        captured["url"]
+        == "http://sahool-platform:8000/api/v1/execution-requests/exe_1/verify-outcome"
+    )
+    assert captured["headers"]["Authorization"] == "Bearer x"
+    assert "X-Verified-By" not in captured["headers"]
+    assert "X-Tenant-Id" not in captured["headers"]
+
+
+def test_attribution_uses_session_boundary_without_caller_actor(monkeypatch):
+    captured = []
+
+    def handler(request):
+        captured.append(request)
+        return httpx.Response(403, json={"detail": "permission denied"})
+
+    original_client = httpx.AsyncClient
+    monkeypatch.setattr(
+        mod.httpx,
+        "AsyncClient",
+        lambda **kwargs: original_client(transport=httpx.MockTransport(handler), **kwargs),
+    )
+    monkeypatch.setenv("DECISION_SERVICE_TOKEN", "must-not-reach-user-boundary")
+    with pytest.raises(RuntimeError, match="learning_attribution_rejected:403"):
+        asyncio.run(
+            mod.PostExecutionBridge().attribute_learning(
+                outcome_id="out_1",
+                authorization="Bearer user-jwt",
+                tenant_id="t",
+                attributed_by="forged-owner",
+                payload={"idempotency_key": "request-1"},
+            )
+        )
+    assert len(captured) == 1
+    request = captured[0]
+    assert (
+        str(request.url) == "http://sahool-platform:8000/api/v1/outcomes/out_1/learning-attribution"
+    )
+    assert request.headers["Authorization"] == "Bearer user-jwt"
+    assert "X-Attributed-By" not in request.headers
+    assert "X-Tenant-Id" not in request.headers
+    assert "must-not-reach-user-boundary" not in str(request.headers)

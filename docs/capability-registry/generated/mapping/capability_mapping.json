@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5276,
+    "files_scanned": 5278,
     "files_by_kind": {
       "backend": 1207,
       "database": 277,
       "governance": 62,
       "mobile": 51,
-      "other": 1450,
+      "other": 1452,
       "tests": 1772,
       "web": 457
     },
     "unmapped_artifacts": 2149,
-    "ambiguous_artifacts": 416
+    "ambiguous_artifacts": 417
   },
   "capabilities": [
     {
@@ -2327,6 +2327,10 @@
         {
           "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:1177",
           "score": 12
+        },
+        {
+          "value": "post_execution_bridge.py @ services/vegetation-analysis-service/test_post_execution_bridge.py:8",
+          "score": 8
         }
       ],
       "web": [],
@@ -2339,6 +2343,14 @@
             "path:Learning attribution",
             "content:Learning attribution",
             "path:learning attribution",
+            "content:learning attribution"
+          ]
+        },
+        {
+          "path": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+          "score": 8,
+          "signals": [
+            "content:Learning attribution",
             "content:learning attribution"
           ]
         },
@@ -2416,10 +2428,10 @@
         "backend": 5,
         "routes": 94,
         "database": 14,
-        "events": 4,
+        "events": 5,
         "web": 0,
         "mobile": 0,
-        "tests": 2,
+        "tests": 3,
         "governance": 1,
         "other_evidence": 5
       },
@@ -26610,14 +26622,6 @@
             "content:Service token guard",
             "content:service token"
           ]
-        },
-        {
-          "path": "services/sahool-platform/api/decision_service_client.py",
-          "score": 9,
-          "signals": [
-            "content:Service token guard",
-            "content:service token"
-          ]
         }
       ],
       "routes": [
@@ -26653,7 +26657,11 @@
       "database": [],
       "events": [
         {
-          "value": "decision_service_client.py @ tests_v9/test_decision_service_auth_is_activatable.py:175",
+          "value": "decision_service_client.py @ services/decision-service/tests/test_service_token_guard.py:106",
+          "score": 25
+        },
+        {
+          "value": "decision_service_client.py @ tests_v9/test_decision_service_auth_is_activatable.py:199",
           "score": 11
         },
         {
@@ -26666,7 +26674,7 @@
       "tests": [
         {
           "path": "services/decision-service/tests/test_service_token_guard.py",
-          "score": 23,
+          "score": 25,
           "signals": [
             "path:Service token guard",
             "content:Service token guard",
@@ -26763,10 +26771,10 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 3,
+        "backend": 2,
         "routes": 7,
         "database": 0,
-        "events": 2,
+        "events": 3,
         "web": 0,
         "mobile": 0,
         "tests": 9,
@@ -49640,14 +49648,6 @@
             "content:Dispatch authorization",
             "content:dispatch authorization"
           ]
-        },
-        {
-          "capability_id": "SEC-006",
-          "score": 9,
-          "signals": [
-            "content:Service token guard",
-            "content:service token"
-          ]
         }
       ]
     },
@@ -52494,6 +52494,28 @@
         {
           "capability_id": "DEC-008",
           "score": 10,
+          "signals": [
+            "content:Learning attribution",
+            "content:learning attribution"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "DEC-004",
+          "score": 10,
+          "signals": [
+            "content:Execution request",
+            "content:execution request"
+          ]
+        },
+        {
+          "capability_id": "DEC-008",
+          "score": 8,
           "signals": [
             "content:Learning attribution",
             "content:learning attribution"

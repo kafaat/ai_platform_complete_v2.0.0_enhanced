@@ -1809,6 +1809,7 @@
       "configuration": [
         "DECISION_SERVICE_URL",
         "INDICATORS_SERVICE_URL",
+        "PLATFORM_API_URL",
         "TASK_SERVICE_URL",
         "VEGETATION_SERVICE_URL",
         "WORKSPACE_BFF_TIMEOUT_S"

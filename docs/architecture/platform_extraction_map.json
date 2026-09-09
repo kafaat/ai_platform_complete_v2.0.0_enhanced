@@ -886,7 +886,7 @@
       "function": "auth_me",
       "method": "GET",
       "path": "/api/v1/auth/me",
-      "line": 90,
+      "line": 91,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/auth.py::GET /api/v1/auth/me::auth_me"
@@ -896,7 +896,7 @@
       "function": "login",
       "method": "POST",
       "path": "/api/v1/auth/login",
-      "line": 46,
+      "line": 47,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/auth.py::POST /api/v1/auth/login::login"
@@ -906,7 +906,7 @@
       "function": "auth_logout",
       "method": "POST",
       "path": "/api/v1/auth/logout",
-      "line": 103,
+      "line": 105,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/auth.py::POST /api/v1/auth/logout::auth_logout"
@@ -916,7 +916,7 @@
       "function": "auth_signup",
       "method": "POST",
       "path": "/api/v1/auth/signup",
-      "line": 131,
+      "line": 133,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/auth.py::POST /api/v1/auth/signup::auth_signup"

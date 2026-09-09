@@ -11,6 +11,11 @@ from __future__ import annotations
 import os
 from typing import Any
 
+from shared.security.decision_service_auth import (
+    DecisionServiceAuthUnavailable,
+    decision_service_auth_headers,
+)
+
 # NOTE: fastapi is imported lazily inside the functions that raise/catch HTTPException.
 
 DEFAULT_DECISION_SERVICE_URL = "http://sahool-decision-service:8160"
@@ -34,21 +39,16 @@ def decision_service_headers(
     requested_by: str | None = None,
     recorded_by: str | None = None,
 ) -> dict[str, str]:
-    headers = {"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")}
+    # The legacy authorization argument is accepted for caller compatibility.
+    # End-user JWTs are verified at the API boundary; this hop uses service auth.
+    try:
+        headers = decision_service_auth_headers()
+    except DecisionServiceAuthUnavailable as exc:
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     if tenant_id:
         headers["X-Tenant-Id"] = str(tenant_id)
-    # وسيطُ الخدمة يقرأ `Authorization: Bearer` **وحدَه** ولا يقرأ `X-Agent-Token`
-    # (`services/decision-service/main.py::_service_token_guard`). فبلا هذا السطر كان
-    # التشديدُ غيرَ قابلٍ للتفعيل لا معطَّلاً فحسب: لحظةَ يضبط المشغّل
-    # `DECISION_SERVICE_AUTH_TOKEN` ترتدّ **كلُّ** نداءات المنصّة 401، ويبتلعها
-    # `lexicographic_mpc_bridge` في `try` عريض فتسقط التوصيةُ الصالحة معها.
-    # والاصطلاحُ قائمٌ لا مُخترَع: `actuator_runtime.py` يرسله هكذا، وcompose يمرّر
-    # المتغيّر نفسَه إلى ثلاث خدمات — والمنصّةُ وحدَها كانت خارجه.
-    service_token = os.getenv("DECISION_SERVICE_TOKEN", "").strip()
-    if authorization:
-        headers["Authorization"] = authorization
-    elif service_token:
-        headers["Authorization"] = f"Bearer {service_token}"
     if reviewed_by:
         headers["X-Reviewed-By"] = str(reviewed_by)
     if created_by:
@@ -90,7 +90,7 @@ async def decision_get_json(
 
     url = f"{decision_service_url()}/{path.lstrip('/')}"
     try:
-        async with httpx.AsyncClient(timeout=timeout_s) as client:
+        async with httpx.AsyncClient(timeout=timeout_s, trust_env=False) as client:
             resp = await client.get(
                 url,
                 params=params or {},
@@ -126,7 +126,7 @@ async def decision_post_json(
 
     url = f"{decision_service_url()}/{path.lstrip('/')}"
     try:
-        async with httpx.AsyncClient(timeout=timeout_s) as client:
+        async with httpx.AsyncClient(timeout=timeout_s, trust_env=False) as client:
             resp = await client.post(
                 url,
                 json=payload,

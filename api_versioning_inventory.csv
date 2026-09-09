@@ -306,9 +306,9 @@ raster-service,services/raster-service/routers/timeseries_routes.py,24,GET,/v1/i
 raster-service,services/raster-service/routers/timeseries_routes.py,77,POST,/v1/imagery/timeseries/analyze,imagery_timeseries_analyze,versioned
 raster-service,services/raster-service/routers/timeseries_routes.py,92,POST,/v1/imagery/timeseries/parallel,imagery_timeseries_parallel,versioned
 raster-tiler-service,services/raster-tiler-service/main.py,11,GET,/runtime-identity,runtime_identity,infra
-remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,33,GET,/healthz,healthz,infra
-remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,38,GET,/readyz,readyz,infra
-remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,69,GET,/v1/fields/{field_id}/remote-sensing-workspace,workspace,versioned
+remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,39,GET,/healthz,healthz,infra
+remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,44,GET,/readyz,readyz,infra
+remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,109,GET,/v1/fields/{field_id}/remote-sensing-workspace,workspace,versioned
 sahool-platform,services/sahool-platform/api/phase10_continuous_learning.py,147,POST,/v1/phase10/learning/feature-schema,feature_schema,versioned
 sahool-platform,services/sahool-platform/api/phase10_continuous_learning.py,152,POST,/v1/phase10/learning/dataset,dataset,versioned
 sahool-platform,services/sahool-platform/api/phase10_continuous_learning.py,162,POST,/v1/phase10/learning/models/promote,model_promotion,versioned
@@ -396,10 +396,10 @@ sahool-platform,services/sahool-platform/api/routers/analytics.py,57,GET,/api/v1
 sahool-platform,services/sahool-platform/api/routers/aromatic_crops.py,25,GET,/api/v1/aromatic-crops/list,aromatic_crops_list_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/astronomical_timing.py,29,GET,/api/v1/astronomical-timing/stars,astronomical_stars,versioned
 sahool-platform,services/sahool-platform/api/routers/astronomical_timing.py,35,POST,/api/v1/astronomical-timing/cross-check,astronomical_cross_check,versioned
-sahool-platform,services/sahool-platform/api/routers/auth.py,47,POST,/api/v1/auth/login,login,versioned
-sahool-platform,services/sahool-platform/api/routers/auth.py,91,GET,/api/v1/auth/me,auth_me,versioned
-sahool-platform,services/sahool-platform/api/routers/auth.py,104,POST,/api/v1/auth/logout,auth_logout,versioned
-sahool-platform,services/sahool-platform/api/routers/auth.py,132,POST,/api/v1/auth/signup,auth_signup,versioned
+sahool-platform,services/sahool-platform/api/routers/auth.py,48,POST,/api/v1/auth/login,login,versioned
+sahool-platform,services/sahool-platform/api/routers/auth.py,92,GET,/api/v1/auth/me,auth_me,versioned
+sahool-platform,services/sahool-platform/api/routers/auth.py,106,POST,/api/v1/auth/logout,auth_logout,versioned
+sahool-platform,services/sahool-platform/api/routers/auth.py,134,POST,/api/v1/auth/signup,auth_signup,versioned
 sahool-platform,services/sahool-platform/api/routers/automation.py,42,GET,/api/v1/automation/scheduler-status,scheduler_status_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/automation.py,57,GET,/api/v1/automation/runs,automation_runs_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/automation.py,76,POST,/api/v1/automation/weather/register,weather_register_endpoint,versioned

@@ -2495,21 +2495,21 @@
       ]
     },
     "services/sahool-platform/api/decision_service_client.py": {
-      "$gap_ar": "DECISION-SERVICE-HARDENING-IS-NOT-ACTIVATABLE-01 — وسيطُ `_service_token_guard` يقرأ `Authorization: Bearer` وحدَه، والعميلُ كان يرسل `X-Agent-Token` الذي لا يقرؤه أحد: **صفرٌ من ٢٧ نداءً داخليّاً** يمرّر تفويضاً. فما كان التشديدُ معطَّلاً بل غيرَ قابلٍ للتفعيل — ضبطُ `DECISION_SERVICE_AUTH_TOKEN` كما توصي الوثيقة يردّ كلَّ نداءات المنصّة 401، ويبتلعها `lexicographic_mpc_bridge` في `try` عريض فتسقط التوصيةُ الصالحة معها. وحتّى ذلك الحين تبقى موافقةُ الإنسان — آخرُ حاجزٍ قبل التنفيذ — بلا مصادقةٍ على الشبكة الداخليّة. ولم يمسكه اختبارٌ لأنّ لكلّ طرفٍ اختباراتِه وكلاهما أخضر: لا أحد ركّب ما يرسله العميلُ فعلاً على ما يفرضه الوسيطُ فعلاً.",
+      "$gap_ar": "DECISION-SERVICE-HARDENING-IS-NOT-ACTIVATABLE-01 — وسيطُ `_service_token_guard` يقرأ `Authorization: Bearer` وحدَه، والعميلُ كان يرسل `X-Agent-Token` الذي لا يقرؤه أحد: **صفرٌ من ٢٧ نداءً داخليّاً** يمرّر تفويضاً. فما كان التشديدُ معطَّلاً بل غيرَ قابلٍ للتفعيل — ضبطُ `DECISION_SERVICE_AUTH_TOKEN` كما توصي الوثيقة يردّ كلَّ نداءات المنصّة 401، ويبتلعها `lexicographic_mpc_bridge` في `try` عريض فتسقط التوصيةُ الصالحة معها. وحتّى ذلك الحين تبقى موافقةُ الإنسان — آخرُ حاجزٍ قبل التنفيذ — بلا مصادقةٍ على الشبكة الداخليّة. ولم يمسكه اختبارٌ لأنّ لكلّ طرفٍ اختباراتِه وكلاهما أخضر: لا أحد ركّب ما يرسله العميلُ فعلاً على ما يفرضه الوسيطُ فعلاً. والإصلاحُ النهائيّ من المراجعة المتوازية (`b15871f9`): وحدةٌ مشتركة `shared/security/decision_service_auth.py` يستعملها كلُّ المستهلكين لا المنصّةُ وحدَها، وتفشل **مغلقةً** (503) في الإنتاج عند غياب الرمز بدل نداءٍ عارٍ يرتدّ 401 فيُبتلَع، وترفض رموزاً تحوي `\\r\\n`، و`trust_env=False` يمنع إعادةَ توجيه نداءٍ داخليّ عبر وكيل بيئيّ. وصحّحت خاصّيّةً كنتُ أشترطها خطأً: رمزُ المستخدم ليس اعتماداً لهذه القفزة.",
       "mutations": [
         {
           "expect": "test_what_the_platform_sends_is_what_the_service_accepts",
-          "find": "    service_token = os.getenv(\"DECISION_SERVICE_TOKEN\", \"\").strip()\n    if authorization:\n        headers[\"Authorization\"] = authorization\n    elif service_token:\n        headers[\"Authorization\"] = f\"Bearer {service_token}\"",
-          "replace": "    if authorization:\n        headers[\"Authorization\"] = authorization  # mutated: العطلُ الأصليّ — بلا رمزٍ خدميّ",
+          "find": "        headers = decision_service_auth_headers()",
+          "replace": "        headers = {\"X-Agent-Token\": os.getenv(\"SAHOOL_AGENT_TOKEN\", \"\")}  # mutated: العطلُ الأصليّ",
           "test": "tests_v9/test_decision_service_auth_is_activatable.py",
-          "why": "يُعيد الصياغةَ التي كانت في `main` حرفيّاً. الشاهدُ يستدعي الوسيطَ الحقيقيّ على الترويسة الحقيقيّة، فلا يمرّ على «العميل يضع ما نضعه له»."
+          "why": "يُعيد الصياغةَ التي كانت في `main` حرفيّاً: ترويسةٌ لا يقرؤها الوسيطُ أصلاً. الشاهدُ يستدعي الوسيطَ الحقيقيّ على الترويسة الحقيقيّة، فلا يمرّ على «العميل يضع ما نضعه له»."
         },
         {
-          "expect": "test_a_caller_supplied_authorization_is_not_overwritten_by_the_service_token",
-          "find": "    if authorization:\n        headers[\"Authorization\"] = authorization\n    elif service_token:\n        headers[\"Authorization\"] = f\"Bearer {service_token}\"",
-          "replace": "    if service_token:  # mutated: رمزُ الخدمة يسرق ترويسةَ المُتّصِل\n        headers[\"Authorization\"] = f\"Bearer {service_token}\"\n    elif authorization:\n        headers[\"Authorization\"] = authorization",
+          "expect": "test_the_service_hop_never_forwards_a_user_jwt_in_place_of_service_credentials",
+          "find": "    if tenant_id:\n        headers[\"X-Tenant-Id\"] = str(tenant_id)",
+          "replace": "    if authorization:\n        headers[\"Authorization\"] = authorization  # mutated: رمزُ المستخدم يُزيح رمزَ الخدمة\n    if tenant_id:\n        headers[\"X-Tenant-Id\"] = str(tenant_id)",
           "test": "tests_v9/test_decision_service_auth_is_activatable.py",
-          "why": "العلاجُ ليس نقلَ العطل: رمزُ الخدمة بديلٌ عند الغياب لا سارقٌ لتفويضٍ صريح. بلا هذا الاتّجاه يمرّ إصلاحٌ يُصادِر هُويّةَ المُتّصِل الحقيقيّة ويُوحِّد الفاعلين."
+          "why": "«إصلاحٌ» يبدو لطيفاً — تمريرُ تفويض المُتّصِل — يكسر المصادقةَ فعليّاً: الوسيطُ يقارن المُقدَّم بالرمز الخدميّ المشترَك، فرمزُ مستخدمٍ صحيحٌ تماماً يرتدّ 401. وهي الخاصّيّةُ التي كنتُ أشترط عكسَها قبل المراجعة المتوازية."
         }
       ]
     },
@@ -2555,6 +2555,18 @@
           "replace": "        \"raw_fraction\": req.raw_fraction,  # mutated: حقيقةُ عميلٍ تُزيح اللقطة",
           "test": "tests_v9/test_lexicographic_mpc_bridge.py",
           "why": "`RecommendationRequest` ما زال يحمل `raw_fraction`، فتوجيهُ العميل قد يعود من بابٍ خلفيّ بينما يبقى النَّسَبُ يقول «قانونيّ» — وهو أخطرُ من الحقيقة المكشوفة."
+        }
+      ]
+    },
+    "shared/security/decision_service_auth.py": {
+      "$gap_ar": "DECISION-SERVICE-CREDENTIAL-ABSENCE-IS-SILENT-01 — عقدُ الاعتماد الصادر إلى decision-service. من `b15871f9`: مصدرٌ واحد لكلّ المستهلكين (المنصّة · جسر الماء · التحليل النباتيّ · BFF · raster)، يفشل **مغلقاً** في الإنتاج عند غياب الرمز بدل نداءٍ عارٍ يرتدّ 401 فيُبتلَع، ويرفض رموزاً تحمل `\\r\\n` (حقنُ ترويسة).",
+      "mutations": [
+        {
+          "expect": "test_production_without_a_service_token_fails_closed_instead_of_calling_unauthenticated",
+          "find": "    if (required and not token) or any(c in token for c in \"\\r\\n\"):\n        raise DecisionServiceAuthUnavailable()",
+          "replace": "    pass  # mutated: الغيابُ يمضي نداءً عارياً بدل فشلٍ معلَن",
+          "test": "tests_v9/test_decision_service_auth_is_activatable.py",
+          "why": "بلا الفشل المُغلَق يمضي النداءُ بلا ترويسة فيرتدّ 401 ويُبتلَع عند المُنادي، فيصير «الأمانُ مُفعَّل» و«النظامُ يعمل» ادّعاءَين لا يجتمعان ولا يظهر أيُّهما كاذب."
         }
       ]
     }

@@ -52,8 +52,11 @@ reads to the not-yet-SoR `decision-service` returned empty data.
    `resolve_learning_source` runs before the authoritative write; a learning update is never
    silently trusted.
 3. Outcome reconciliation keeps reading both `outcome_record` and `recommendation_outcomes`.
-4. The mirror transport (`X-Tenant-Id` / `X-Agent-Token` forwarding) stays centralized in
-   `api/decision_service_client.py`.
+4. The mirror transport stays centralized in `api/decision_service_client.py`.
+   `shared/security/decision_service_auth.py` supplies the decision-service Bearer credential;
+   `X-Tenant-Id` and actor headers come from the authenticated API context. A user JWT or
+   `SAHOOL_AGENT_TOKEN` cannot substitute for this service credential. Compose maps the
+   operator's `DECISION_SERVICE_AUTH_TOKEN` to callers' `DECISION_SERVICE_TOKEN`.
 5. `decision-service` write endpoints must never return `persisted: true` (mirror sink only).
 
 ## History (superseded by the interim bridge)

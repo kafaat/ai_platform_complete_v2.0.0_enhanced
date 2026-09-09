@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 631
   },
-  "inventory_sha256": "5bea90c781e6dbb2b272524e126efb6683569ba298762b401ec2e1b468b06ed4",
+  "inventory_sha256": "b30dd2dab0d06557b8c00d911e2a2865e5501c2d5a6eceae0b36ccbed0f0841c",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "3361979110331241748873f941ed7bb79941cd89b15c1671a965b1113384278b"
+    "policy_sha256": "c35594cdfa24f171146ddf14b693ad1c8bd8b8bf42f4bf0a42b84b93e8dcea11"
   },
   "routes": [
     {
@@ -282,7 +282,7 @@
     {
       "classification": "domain",
       "function": "auth_me",
-      "line": 90,
+      "line": 91,
       "method": "GET",
       "path": "/api/v1/auth/me",
       "source": "api/routers/auth.py"
@@ -2970,7 +2970,7 @@
     {
       "classification": "domain",
       "function": "login",
-      "line": 46,
+      "line": 47,
       "method": "POST",
       "path": "/api/v1/auth/login",
       "source": "api/routers/auth.py"
@@ -2978,7 +2978,7 @@
     {
       "classification": "domain",
       "function": "auth_logout",
-      "line": 103,
+      "line": 105,
       "method": "POST",
       "path": "/api/v1/auth/logout",
       "source": "api/routers/auth.py"
@@ -2986,7 +2986,7 @@
     {
       "classification": "domain",
       "function": "auth_signup",
-      "line": 131,
+      "line": 133,
       "method": "POST",
       "path": "/api/v1/auth/signup",
       "source": "api/routers/auth.py"

@@ -5764,14 +5764,6 @@
           "content:Dispatch authorization",
           "content:dispatch authorization"
         ]
-      },
-      {
-        "capability_id": "SEC-006",
-        "score": 9,
-        "signals": [
-          "content:Service token guard",
-          "content:service token"
-        ]
       }
     ]
   },
@@ -8618,6 +8610,28 @@
       {
         "capability_id": "DEC-008",
         "score": 10,
+        "signals": [
+          "content:Learning attribution",
+          "content:learning attribution"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "DEC-004",
+        "score": 10,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      },
+      {
+        "capability_id": "DEC-008",
+        "score": 8,
         "signals": [
           "content:Learning attribution",
           "content:learning attribution"

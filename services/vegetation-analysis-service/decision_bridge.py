@@ -17,6 +17,7 @@ from shared.contracts.remote_sensing.decision_referral_v1 import (
     SuggestedActionClassV1,
     ValidityContextV1,
 )
+from shared.security.decision_service_auth import decision_service_auth_headers
 
 
 class DecisionBridge:
@@ -44,7 +45,7 @@ class DecisionBridge:
             + hashlib.sha256(f"{diagnosis.diagnosis_ref}|{snapshot_hash}".encode()).hexdigest()
         )
         headers = {
-            "Authorization": authorization,
+            **decision_service_auth_headers(),
             "X-Tenant-Id": str(diagnosis.tenant_id),
             "Content-Type": "application/json",
             "Idempotency-Key": snapshot_idempotency,
@@ -63,7 +64,7 @@ class DecisionBridge:
             },
             "payload": body,
         }
-        async with httpx.AsyncClient(timeout=self.timeout_s) as client:
+        async with httpx.AsyncClient(timeout=self.timeout_s, trust_env=False) as client:
             snap = await client.post(
                 f"{self.base_url}/v1/evidence/vegetation-snapshots",
                 headers=headers,

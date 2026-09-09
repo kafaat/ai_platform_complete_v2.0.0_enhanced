@@ -667,6 +667,11 @@ async def _push_vegetation_evidence(snapshot: dict, tenant_id: str) -> dict:
     unreachable/mirror-mode (503) decision-service must never break the analysis —
     but the outcome is always reported, never silent.
     """
+    from shared.security.decision_service_auth import (
+        DecisionServiceAuthUnavailable,
+        decision_service_auth_headers,
+    )
+
     tenant = str(tenant_id or "").strip()
     try:
         UUID(tenant)
@@ -687,11 +692,15 @@ async def _push_vegetation_evidence(snapshot: dict, tenant_id: str) -> dict:
         "payload": {"indices": snapshot["indices"], "source": snapshot["source"]},
     }
     try:
-        async with httpx.AsyncClient(timeout=10) as c:
+        headers = {**decision_service_auth_headers(), "X-Tenant-Id": tenant}
+    except DecisionServiceAuthUnavailable as exc:
+        return {"pushed": False, "reason": str(exc)}
+    try:
+        async with httpx.AsyncClient(timeout=10, trust_env=False) as c:
             r = await c.post(
                 f"{DECISION_SERVICE_URL}/v1/evidence/vegetation-snapshots",
                 json=body,
-                headers={"X-Tenant-Id": tenant},
+                headers=headers,
             )
         if r.status_code == 200:
             data = r.json()

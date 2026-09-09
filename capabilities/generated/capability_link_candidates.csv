@@ -240,7 +240,7 @@ DEC-010,test,services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promot
 DEC-010,test,services/sahool-platform/tests/test_practice_promotion.py,3,applied
 DEC-010,test,tests/architecture/test_runtime_verification_promotion_workflow.py,3,applied
 FM-001,api,DELETE /v1/auth/invitations/{invitation_id} @ services/auth/routers/invitations.py:195,3,applied
-FM-001,api,GET /api/v1/auth/me @ services/sahool-platform/api/routers/auth.py:91,2,applied
+FM-001,api,GET /api/v1/auth/me @ services/sahool-platform/api/routers/auth.py:92,2,applied
 FM-001,api,GET /api/v1/tenant/config @ services/sahool-platform/api/routers/tenant.py:29,2,applied
 FM-001,api,GET /health @ services/auth/routers/ops.py:27,3,applied
 FM-001,api,GET /healthz @ services/auth/routers/ops.py:27,3,applied
@@ -256,9 +256,9 @@ FM-001,api,GET /v1/auth/verify @ services/auth/routers/email_verify.py:97,3,appl
 FM-001,api,GET /v1/auth/verify/status @ services/auth/routers/email_verify.py:107,3,applied
 FM-001,api,PATCH /v1/auth/users/{user_id}/deactivate @ services/auth/routers/users.py:73,3,applied
 FM-001,api,PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:31,3,applied
-FM-001,api,POST /api/v1/auth/login @ services/sahool-platform/api/routers/auth.py:47,2,applied
-FM-001,api,POST /api/v1/auth/logout @ services/sahool-platform/api/routers/auth.py:104,2,applied
-FM-001,api,POST /api/v1/auth/signup @ services/sahool-platform/api/routers/auth.py:132,2,applied
+FM-001,api,POST /api/v1/auth/login @ services/sahool-platform/api/routers/auth.py:48,2,applied
+FM-001,api,POST /api/v1/auth/logout @ services/sahool-platform/api/routers/auth.py:106,2,applied
+FM-001,api,POST /api/v1/auth/signup @ services/sahool-platform/api/routers/auth.py:134,2,applied
 FM-001,api,POST /v1/auth/change-password @ services/auth/routers/registration.py:74,3,applied
 FM-001,api,POST /v1/auth/invitations @ services/auth/routers/invitations.py:25,3,applied
 FM-001,api,POST /v1/auth/invitations/accept @ services/auth/routers/invitations.py:115,3,applied
@@ -278,6 +278,7 @@ FM-001,api,POST /v1/learning/runtime-workers/{worker_id}/tenants @ services/deci
 FM-001,mobile,mobile/sahool_app/lib/services/auth_service.dart,2,applied
 FM-001,service,services/auth/main.py,10,applied
 FM-001,service,services/field-management-service/main.py,10,applied
+FM-001,test,docs/testing/decision_transport_auth_repairs_20260909.md,3,applied
 FM-001,test,mobile/sahool_app/test/auth_service_test.dart,3,applied
 FM-001,test,scripts_v9/test_tenant_isolation.sql,3,applied
 FM-001,test,services/auth/tests/__init__.py,3,applied
@@ -475,7 +476,7 @@ FM-003,api,GET /v1/fields/{field_id}/lineage @ services/decision-service/main.py
 FM-003,api,GET /v1/fields/{field_id}/observation-timeline @ services/indicators-service/main.py:196,4,applied
 FM-003,api,GET /v1/fields/{field_id}/observations @ services/indicators-service/main.py:165,4,applied
 FM-003,api,GET /v1/fields/{field_id}/pixel @ services/raster-service/routers/fields.py:971,4,applied
-FM-003,api,GET /v1/fields/{field_id}/remote-sensing-workspace @ services/remote-sensing-workspace-bff/main.py:69,4,applied
+FM-003,api,GET /v1/fields/{field_id}/remote-sensing-workspace @ services/remote-sensing-workspace-bff/main.py:109,4,applied
 FM-003,api,GET /v1/fields/{field_id}/signal-anomalies @ services/vegetation-analysis-service/routers/anomalies.py:123,4,applied
 FM-003,api,GET /v1/fields/{field_id}/soil/analog-estimate @ services/soil-service/routers/p3_products.py:173,4,applied
 FM-003,api,GET /v1/fields/{field_id}/soil/bare-soil-composite @ services/soil-service/routers/p2_products.py:139,4,applied
