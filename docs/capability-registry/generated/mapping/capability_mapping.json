@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5272,
+    "files_scanned": 5273,
     "files_by_kind": {
       "backend": 1207,
       "database": 277,
       "governance": 62,
       "mobile": 51,
-      "other": 1448,
+      "other": 1449,
       "tests": 1770,
       "web": 457
     },
@@ -25426,6 +25426,14 @@
           ]
         },
         {
+          "path": "docs/runbooks/LOCAL_LIVE_EVIDENCE_RUNBOOK.md",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "docs/runbooks/REAL_ENV_VERIFICATION_RUNBOOK.md",
           "score": 9,
           "signals": [
@@ -25595,7 +25603,7 @@
         "mobile": 0,
         "tests": 64,
         "governance": 0,
-        "other_evidence": 71
+        "other_evidence": 72
       },
       "coverage_dimensions": 5,
       "mapped": true
