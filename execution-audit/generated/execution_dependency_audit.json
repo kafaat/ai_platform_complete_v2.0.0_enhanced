@@ -5,8 +5,8 @@
   "runtime_verified": false,
   "python_files_parsed": 1886,
   "route_handlers": 1049,
-  "call_edges": 77342,
-  "dead_code_candidates": 627,
+  "call_edges": 77341,
+  "dead_code_candidates": 629,
   "duplicate_function_groups": 60,
   "route_owners": 27,
   "automatic_deletions": 0
@@ -5615,7 +5615,7 @@
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "line": 93,
+   "line": 98,
    "handler": "irrigation_mpc_plan",
    "method": "POST",
    "path": "/api/v1/irrigation/mpc/plan"
@@ -5623,7 +5623,7 @@
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "line": 160,
+   "line": 165,
    "handler": "irrigation_mpc_capabilities",
    "method": "GET",
    "path": "/api/v1/irrigation/mpc/capabilities"
@@ -5631,7 +5631,7 @@
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "line": 283,
+   "line": 296,
    "handler": "irrigation_mpc_simulate",
    "method": "POST",
    "path": "/api/v1/irrigation/mpc/simulate"
@@ -5639,7 +5639,7 @@
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "line": 316,
+   "line": 329,
    "handler": "irrigation_mpc_recommendation",
    "method": "POST",
    "path": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation"
@@ -5647,7 +5647,7 @@
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "line": 496,
+   "line": 528,
    "handler": "irrigation_mpc_hourly_recommendation",
    "method": "POST",
    "path": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation"
@@ -5655,7 +5655,7 @@
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "line": 537,
+   "line": 569,
    "handler": "reconcile_irrigation_execution",
    "method": "POST",
    "path": "/api/v1/irrigation/executions/reconcile"
@@ -270750,581 +270750,574 @@
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "_latest_ledger_depletion",
    "target": "tenant_connection",
-   "line": 80
+   "line": 85
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "_latest_ledger_depletion",
    "target": "fetchrow",
-   "line": 81
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "_latest_ledger_depletion",
-   "target": "float",
    "line": 86
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "_latest_ledger_depletion",
+   "target": "float",
+   "line": 91
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "_latest_ledger_depletion",
    "target": "warning",
-   "line": 88
+   "line": 93
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_plan",
    "target": "post",
-   "line": 92
+   "line": 97
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_plan",
    "target": "Depends",
-   "line": 94
+   "line": 99
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_plan",
    "target": "float",
-   "line": 100
+   "line": 105
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_plan",
    "target": "_latest_ledger_depletion",
-   "line": 103
+   "line": 108
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_plan",
    "target": "solve_lexicographic_irrigation",
-   "line": 119
+   "line": 124
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_plan",
    "target": "ForecastDay",
-   "line": 121
+   "line": 126
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_plan",
    "target": "to_dict",
-   "line": 141
+   "line": 146
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_capabilities",
    "target": "get",
-   "line": 159
+   "line": 164
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_capabilities",
    "target": "Depends",
-   "line": 160
+   "line": 165
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_capabilities",
    "target": "list",
-   "line": 170
+   "line": 175
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_capabilities",
    "target": "list",
-   "line": 171
+   "line": 176
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "_facts_snapshot_hash",
    "target": "hexdigest",
-   "line": 187
+   "line": 192
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "_facts_snapshot_hash",
    "target": "sha256",
-   "line": 187
+   "line": 192
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "_facts_snapshot_hash",
    "target": "dumps",
-   "line": 188
+   "line": 193
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "_facts_snapshot_hash",
    "target": "encode",
-   "line": 188
+   "line": 193
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "_field_belongs_to_tenant",
    "target": "tenant_connection",
-   "line": 195
+   "line": 200
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "_field_belongs_to_tenant",
    "target": "fetchrow",
-   "line": 196
+   "line": 201
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "_field_belongs_to_tenant",
    "target": "warning",
-   "line": 199
+   "line": 204
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "_source_current_state",
    "target": "tenant_connection",
-   "line": 206
+   "line": 211
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "_source_current_state",
    "target": "fetchrow",
-   "line": 207
+   "line": 212
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "_source_current_state",
    "target": "float",
-   "line": 215
+   "line": 220
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "_source_current_state",
    "target": "str",
-   "line": 217
+   "line": 222
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "_source_current_state",
    "target": "warning",
-   "line": 220
+   "line": 225
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "_source_canonical_water",
+   "target": "tenant_connection",
+   "line": 246
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "_source_canonical_water",
+   "target": "resolve_canonical_water_state",
+   "line": 247
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "_active_field_source_bindings",
    "target": "tenant_connection",
-   "line": 273
+   "line": 286
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "_active_field_source_bindings",
    "target": "now",
-   "line": 274
+   "line": 287
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "_active_field_source_bindings",
    "target": "resolve_active_bindings",
-   "line": 274
+   "line": 287
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "_active_field_source_bindings",
    "target": "warning",
-   "line": 276
+   "line": 289
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_simulate",
    "target": "post",
-   "line": 282
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_simulate",
-   "target": "Depends",
-   "line": 284
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_simulate",
-   "target": "solve_lexicographic_irrigation",
-   "line": 288
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_simulate",
-   "target": "ForecastDay",
-   "line": 290
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_simulate",
-   "target": "float",
    "line": 295
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_simulate",
+   "target": "Depends",
+   "line": 297
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_simulate",
+   "target": "solve_lexicographic_irrigation",
+   "line": 301
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_simulate",
+   "target": "ForecastDay",
+   "line": 303
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_simulate",
+   "target": "float",
+   "line": 308
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_simulate",
    "target": "to_dict",
-   "line": 309
+   "line": 322
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_recommendation",
    "target": "post",
-   "line": 315
+   "line": 328
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_recommendation",
    "target": "Depends",
-   "line": 317
+   "line": 330
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_recommendation",
    "target": "_field_belongs_to_tenant",
-   "line": 325
+   "line": 338
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_recommendation",
    "target": "_active_field_source_bindings",
-   "line": 334
+   "line": 347
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_recommendation",
    "target": "sorted",
-   "line": 351
+   "line": 364
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_recommendation",
    "target": "evaluate_water_salinity_gate",
-   "line": 359
+   "line": 372
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_recommendation",
    "target": "append",
-   "line": 365
+   "line": 378
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_recommendation",
-   "target": "_source_current_state",
-   "line": 404
+   "target": "_source_canonical_water",
+   "line": 417
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_recommendation",
-   "target": "_source_soil_capacity",
-   "line": 405
+   "target": "isinstance",
+   "line": 418
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_recommendation",
-   "target": "_source_forecast_horizon",
-   "line": 406
+   "target": "dict",
+   "line": 422
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_recommendation",
-   "target": "append",
-   "line": 410
+   "target": "update",
+   "line": 423
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_recommendation",
-   "target": "append",
-   "line": 412
+   "target": "setdefault",
+   "line": 424
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_recommendation",
-   "target": "append",
-   "line": 414
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_recommendation",
-   "target": "_facts_snapshot_hash",
-   "line": 427
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_recommendation",
-   "target": "_facts_snapshot_hash",
-   "line": 428
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_recommendation",
-   "target": "_facts_snapshot_hash",
-   "line": 429
+   "target": "setdefault",
+   "line": 425
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_recommendation",
    "target": "solve_lexicographic_irrigation",
-   "line": 431
+   "line": 463
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_recommendation",
    "target": "ForecastDay",
-   "line": 433
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_recommendation",
-   "target": "float",
-   "line": 434
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_recommendation",
-   "target": "float",
-   "line": 435
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_recommendation",
-   "target": "float",
-   "line": 436
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_recommendation",
-   "target": "get",
-   "line": 436
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_recommendation",
-   "target": "float",
-   "line": 437
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_recommendation",
-   "target": "get",
-   "line": 437
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_recommendation",
-   "target": "float",
-   "line": 441
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_recommendation",
-   "target": "float",
-   "line": 442
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_recommendation",
-   "target": "get",
-   "line": 442
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_recommendation",
-   "target": "float",
-   "line": 443
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_recommendation",
-   "target": "get",
-   "line": 447
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_recommendation",
-   "target": "get",
-   "line": 448
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_recommendation",
-   "target": "to_dict",
-   "line": 458
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_recommendation",
-   "target": "get",
    "line": 465
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_recommendation",
-   "target": "bridge_enabled",
+   "target": "float",
+   "line": 466
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_recommendation",
+   "target": "float",
+   "line": 467
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_recommendation",
+   "target": "float",
+   "line": 468
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_recommendation",
+   "target": "get",
+   "line": 468
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_recommendation",
+   "target": "float",
+   "line": 469
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_recommendation",
+   "target": "get",
+   "line": 469
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_recommendation",
+   "target": "float",
    "line": 473
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_recommendation",
+   "target": "float",
+   "line": 474
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_recommendation",
+   "target": "get",
+   "line": 474
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_recommendation",
+   "target": "float",
+   "line": 475
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_recommendation",
+   "target": "get",
+   "line": 479
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_recommendation",
+   "target": "get",
+   "line": 480
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_recommendation",
+   "target": "to_dict",
+   "line": 490
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_recommendation",
+   "target": "get",
+   "line": 497
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_recommendation",
+   "target": "bridge_enabled",
+   "line": 505
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_recommendation",
    "target": "emit_mpc_candidate",
-   "line": 476
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_hourly_recommendation",
-   "target": "post",
-   "line": 495
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_hourly_recommendation",
-   "target": "Depends",
-   "line": 499
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-   "source": "irrigation_mpc_hourly_recommendation",
-   "target": "_field_belongs_to_tenant",
    "line": 508
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_hourly_recommendation",
+   "target": "post",
+   "line": 527
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_hourly_recommendation",
+   "target": "Depends",
+   "line": 531
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_hourly_recommendation",
+   "target": "_field_belongs_to_tenant",
+   "line": 540
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "source": "irrigation_mpc_hourly_recommendation",
    "target": "tenant_connection",
-   "line": 510
+   "line": 542
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_hourly_recommendation",
    "target": "orchestrate_irrigation_recommendation",
-   "line": 511
+   "line": 543
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_hourly_recommendation",
    "target": "setdefault",
-   "line": 519
+   "line": 551
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "irrigation_mpc_hourly_recommendation",
    "target": "setdefault",
-   "line": 520
+   "line": 552
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "reconcile_irrigation_execution",
    "target": "post",
-   "line": 536
+   "line": 568
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "reconcile_irrigation_execution",
    "target": "Depends",
-   "line": 539
+   "line": 571
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "reconcile_irrigation_execution",
    "target": "tenant_connection",
-   "line": 544
+   "line": 576
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "reconcile_irrigation_execution",
    "target": "transaction",
-   "line": 545
+   "line": 577
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
    "source": "reconcile_irrigation_execution",
    "target": "reconcile_irrigation_run",
-   "line": 546
+   "line": 578
   },
   {
    "owner": "sahool-platform",
@@ -549928,6 +549921,28 @@
    "kind": "function",
    "file": "services/sahool-platform/api/routers/fields.py",
    "line": 1244,
+   "owner": "sahool-platform",
+   "decorated_route": false,
+   "reference_count": 0,
+   "confidence": "high",
+   "action": "review_before_delete"
+  },
+  {
+   "symbol": "_facts_snapshot_hash",
+   "kind": "function",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "line": 190,
+   "owner": "sahool-platform",
+   "decorated_route": false,
+   "reference_count": 0,
+   "confidence": "high",
+   "action": "review_before_delete"
+  },
+  {
+   "symbol": "_source_current_state",
+   "kind": "function",
+   "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+   "line": 208,
    "owner": "sahool-platform",
    "decorated_route": false,
    "reference_count": 0,

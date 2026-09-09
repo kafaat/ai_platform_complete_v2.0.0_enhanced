@@ -12181,27 +12181,27 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:495",
+          "value": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:527",
           "score": 9
         },
         {
-          "value": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:315",
+          "value": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:328",
           "score": 9
         },
         {
-          "value": "/api/v1/irrigation/executions/reconcile @ services/sahool-platform/api/routers/irrigation_mpc.py:536",
+          "value": "/api/v1/irrigation/executions/reconcile @ services/sahool-platform/api/routers/irrigation_mpc.py:568",
           "score": 9
         },
         {
-          "value": "/api/v1/irrigation/mpc/capabilities @ services/sahool-platform/api/routers/irrigation_mpc.py:159",
+          "value": "/api/v1/irrigation/mpc/capabilities @ services/sahool-platform/api/routers/irrigation_mpc.py:164",
           "score": 9
         },
         {
-          "value": "/api/v1/irrigation/mpc/plan @ services/sahool-platform/api/routers/irrigation_mpc.py:92",
+          "value": "/api/v1/irrigation/mpc/plan @ services/sahool-platform/api/routers/irrigation_mpc.py:97",
           "score": 9
         },
         {
-          "value": "/api/v1/irrigation/mpc/simulate @ services/sahool-platform/api/routers/irrigation_mpc.py:282",
+          "value": "/api/v1/irrigation/mpc/simulate @ services/sahool-platform/api/routers/irrigation_mpc.py:295",
           "score": 9
         }
       ],
@@ -12245,7 +12245,7 @@
       ],
       "events": [
         {
-          "value": "sahool.irrigation_mpc @ services/sahool-platform/api/routers/irrigation_mpc.py:42",
+          "value": "sahool.irrigation_mpc @ services/sahool-platform/api/routers/irrigation_mpc.py:47",
           "score": 9
         }
       ],
@@ -23067,6 +23067,14 @@
           "score": 14
         },
         {
+          "value": "irrigation_mpc.py @ tests_v9/test_lexicographic_mpc_bridge.py:568",
+          "score": 14
+        },
+        {
+          "value": "sahool.canonical_water_state.v1 @ tests_v9/test_lexicographic_mpc_bridge.py:188",
+          "score": 14
+        },
+        {
           "value": "fields.geoparquet @ shared/gis/test_cloud_native_runtime.py:61",
           "score": 12
         },
@@ -23490,7 +23498,7 @@
         "backend": 12,
         "routes": 68,
         "database": 0,
-        "events": 12,
+        "events": 14,
         "web": 1,
         "mobile": 0,
         "tests": 22,
@@ -31296,11 +31304,11 @@
           "score": 12
         },
         {
-          "value": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:495",
+          "value": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:527",
           "score": 12
         },
         {
-          "value": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:315",
+          "value": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:328",
           "score": 12
         },
         {
@@ -31320,19 +31328,19 @@
           "score": 12
         },
         {
-          "value": "/api/v1/irrigation/executions/reconcile @ services/sahool-platform/api/routers/irrigation_mpc.py:536",
+          "value": "/api/v1/irrigation/executions/reconcile @ services/sahool-platform/api/routers/irrigation_mpc.py:568",
           "score": 12
         },
         {
-          "value": "/api/v1/irrigation/mpc/capabilities @ services/sahool-platform/api/routers/irrigation_mpc.py:159",
+          "value": "/api/v1/irrigation/mpc/capabilities @ services/sahool-platform/api/routers/irrigation_mpc.py:164",
           "score": 12
         },
         {
-          "value": "/api/v1/irrigation/mpc/plan @ services/sahool-platform/api/routers/irrigation_mpc.py:92",
+          "value": "/api/v1/irrigation/mpc/plan @ services/sahool-platform/api/routers/irrigation_mpc.py:97",
           "score": 12
         },
         {
-          "value": "/api/v1/irrigation/mpc/simulate @ services/sahool-platform/api/routers/irrigation_mpc.py:282",
+          "value": "/api/v1/irrigation/mpc/simulate @ services/sahool-platform/api/routers/irrigation_mpc.py:295",
           "score": 12
         },
         {
@@ -31599,6 +31607,10 @@
           "score": 12
         },
         {
+          "value": "irrigation_mpc.py @ tests_v9/test_lexicographic_mpc_bridge.py:568",
+          "score": 12
+        },
+        {
           "value": "sahool.actuator.dispatch.requested @ services/sahool-platform/api/phase_runtime_workers.py:507",
           "score": 12
         },
@@ -31611,11 +31623,15 @@
           "score": 12
         },
         {
+          "value": "sahool.canonical_water_state.v1 @ tests_v9/test_lexicographic_mpc_bridge.py:188",
+          "score": 12
+        },
+        {
           "value": "sahool.field_state @ services/sahool-platform/api/field_state_projection.py:53",
           "score": 12
         },
         {
-          "value": "sahool.irrigation_mpc @ services/sahool-platform/api/routers/irrigation_mpc.py:42",
+          "value": "sahool.irrigation_mpc @ services/sahool-platform/api/routers/irrigation_mpc.py:47",
           "score": 12
         },
         {
@@ -32673,7 +32689,7 @@
         "backend": 58,
         "routes": 48,
         "database": 0,
-        "events": 88,
+        "events": 90,
         "web": 19,
         "mobile": 0,
         "tests": 59,

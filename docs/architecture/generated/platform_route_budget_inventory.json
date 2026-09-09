@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 631
   },
-  "inventory_sha256": "7dd97a8b61d1e5e709472d604d112f5edaa2a659aaf57406aa5d88bf0eaf5dc9",
+  "inventory_sha256": "5bea90c781e6dbb2b272524e126efb6683569ba298762b401ec2e1b468b06ed4",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "d23914010d783747eb8f8c28569873e478d2647fcd7ad3a5bc8961f7d0b4c9b7"
+    "policy_sha256": "3361979110331241748873f941ed7bb79941cd89b15c1671a965b1113384278b"
   },
   "routes": [
     {
@@ -1626,7 +1626,7 @@
     {
       "classification": "domain",
       "function": "irrigation_mpc_capabilities",
-      "line": 159,
+      "line": 164,
       "method": "GET",
       "path": "/api/v1/irrigation/mpc/capabilities",
       "source": "api/routers/irrigation_mpc.py"
@@ -3618,7 +3618,7 @@
     {
       "classification": "domain",
       "function": "irrigation_mpc_hourly_recommendation",
-      "line": 495,
+      "line": 527,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
       "source": "api/routers/irrigation_mpc.py"
@@ -3626,7 +3626,7 @@
     {
       "classification": "domain",
       "function": "irrigation_mpc_recommendation",
-      "line": 315,
+      "line": 328,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation",
       "source": "api/routers/irrigation_mpc.py"
@@ -3898,7 +3898,7 @@
     {
       "classification": "domain",
       "function": "reconcile_irrigation_execution",
-      "line": 536,
+      "line": 568,
       "method": "POST",
       "path": "/api/v1/irrigation/executions/reconcile",
       "source": "api/routers/irrigation_mpc.py"
@@ -3906,7 +3906,7 @@
     {
       "classification": "domain",
       "function": "irrigation_mpc_plan",
-      "line": 92,
+      "line": 97,
       "method": "POST",
       "path": "/api/v1/irrigation/mpc/plan",
       "source": "api/routers/irrigation_mpc.py"
@@ -3914,7 +3914,7 @@
     {
       "classification": "domain",
       "function": "irrigation_mpc_simulate",
-      "line": 282,
+      "line": 295,
       "method": "POST",
       "path": "/api/v1/irrigation/mpc/simulate",
       "source": "api/routers/irrigation_mpc.py"

@@ -17955,7 +17955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "48da017def24cb0e3e5a09eb3435808fd80a53057c99ca6541b8b68169030c21"
+          "content": "578f4ba57097bfb818e30b98fdb979e3eca5d64a42b148329e6ee29223fbb78d"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_mpc.py",

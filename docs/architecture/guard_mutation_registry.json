@@ -2534,6 +2534,27 @@
           "replace": "        out[\"emit\"] = await emit_mpc_candidate(decision, tenant_id=tenant_id)  # mutated: نقطةُ إصدارٍ ثانية بلا بوّابة ملوحة\n        out[\"emit_simulation_note\"] = {\n            \"status\": \"rejected_simulation\",",
           "test": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
           "why": "تزرع نقطةَ إصدارٍ ثانية في دالّةٍ لا تستدعي البوّابة — وهو العطلُ الذي كان الحارسُ النصّيّ يمرّ عليه أخضرَ حرفيّاً، لأنّ السلاسلَ الثلاثَ تبقى موجودةً في الملفّ بفضل النقطة المُحكَمة. الجردُ المُشتقّ من `ast` يراها."
+        },
+        {
+          "expect": "test_the_hardened_route_has_no_unconditionally_disabled_fact_source",
+          "find": "    async with tenant_connection(user) as conn:\n        return await resolve_canonical_water_state(",
+          "replace": "    return None  # mutated: المصدرُ يعود مُعطَّلاً بنيويّاً\n    async with tenant_connection(user) as conn:\n        return await resolve_canonical_water_state(",
+          "test": "tests_v9/test_lexicographic_mpc_bridge.py",
+          "why": "يُعيد العطلَ الأصليّ: مصدرُ حقائقَ يُرجِع `None` بلا شرط، فتُرجِع النقطةُ المُحكَمة blocked دائماً ويبقى المسارُ الوحيدُ المُصدِر هو الذي لا يفحص شيئاً. والحارسُ مُشتقٌّ من `ast` فلا يُخدَع بتعليقٍ ولا يبيت باسمٍ جديد."
+        },
+        {
+          "expect": "test_a_degraded_canonical_snapshot_cannot_become_an_operational_candidate",
+          "find": "    if not canonical.operational_eligible:",
+          "replace": "    if False:  # mutated: حكمُ المُنتِج على لقطتِه يُتجاهَل",
+          "test": "tests_v9/test_lexicographic_mpc_bridge.py",
+          "why": "لقطةٌ صالحةُ الشكل من دفترٍ بائت تُصدِر مرشّحاً محكوماً بسلطةٍ أقوى من دليلها — وهو بعينه سببُ قطعِ الإصدار عن `/plan`. الوصلُ لا يجوز أن يُعيده من الباب الآخر."
+        },
+        {
+          "expect": "test_the_decision_is_built_from_the_canonical_snapshot_not_from_request_fields",
+          "find": "        \"raw_fraction\": canonical.raw_fraction,",
+          "replace": "        \"raw_fraction\": req.raw_fraction,  # mutated: حقيقةُ عميلٍ تُزيح اللقطة",
+          "test": "tests_v9/test_lexicographic_mpc_bridge.py",
+          "why": "`RecommendationRequest` ما زال يحمل `raw_fraction`، فتوجيهُ العميل قد يعود من بابٍ خلفيّ بينما يبقى النَّسَبُ يقول «قانونيّ» — وهو أخطرُ من الحقيقة المكشوفة."
         }
       ]
     }
