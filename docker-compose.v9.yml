@@ -633,6 +633,10 @@ services:
       # Best-effort mirror target (dual-path): platform writes are authoritative; the facade
       # mirrors to this URL and swallows failures. Unreachable mirror ⇒ logged warning, never data loss.
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
+      # الرمزُ الخدميّ نفسُه الذي يفرضه `_service_token_guard` هناك. بدونه كان تفعيلُ
+      # `DECISION_SERVICE_AUTH_TOKEN` يردّ كلَّ نداءات المنصّة 401 — تشديدٌ يُعطِّل بدل
+      # أن يحمي. ويُمرَّر إلى ثلاث خدمات أخرى بالاسم نفسِه؛ المنصّةُ كانت الاستثناء.
+      DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}

@@ -37,8 +37,18 @@ def decision_service_headers(
     headers = {"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")}
     if tenant_id:
         headers["X-Tenant-Id"] = str(tenant_id)
+    # وسيطُ الخدمة يقرأ `Authorization: Bearer` **وحدَه** ولا يقرأ `X-Agent-Token`
+    # (`services/decision-service/main.py::_service_token_guard`). فبلا هذا السطر كان
+    # التشديدُ غيرَ قابلٍ للتفعيل لا معطَّلاً فحسب: لحظةَ يضبط المشغّل
+    # `DECISION_SERVICE_AUTH_TOKEN` ترتدّ **كلُّ** نداءات المنصّة 401، ويبتلعها
+    # `lexicographic_mpc_bridge` في `try` عريض فتسقط التوصيةُ الصالحة معها.
+    # والاصطلاحُ قائمٌ لا مُخترَع: `actuator_runtime.py` يرسله هكذا، وcompose يمرّر
+    # المتغيّر نفسَه إلى ثلاث خدمات — والمنصّةُ وحدَها كانت خارجه.
+    service_token = os.getenv("DECISION_SERVICE_TOKEN", "").strip()
     if authorization:
         headers["Authorization"] = authorization
+    elif service_token:
+        headers["Authorization"] = f"Bearer {service_token}"
     if reviewed_by:
         headers["X-Reviewed-By"] = str(reviewed_by)
     if created_by:

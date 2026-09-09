@@ -8511,6 +8511,7 @@
         "services/decision-service/tests/test_loop_tables_and_ws_guard.py",
         "services/decision-service/tests/test_service_token_guard.py",
         "tests/irrigation/test_irr_f01_activation_gate_prod_guard.py",
+        "tests_v9/test_decision_service_auth_is_activatable.py",
         "tests_v9/test_internal_field_read_channel.py",
         "tests_v9/test_sensing_adapter_service_token.py",
         "tests_v9/test_service_token_constant_time.py"

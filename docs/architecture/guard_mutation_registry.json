@@ -2493,6 +2493,49 @@
           "why": "من المراجعة المتوازية: الشاهدُ يقيس على **حدّ HTTP** أنّ الردّ 200 محجوبٌ لا خمسمئة، وأنّ الطقسَ لم يُنتظَر وأنّ شيئاً لم يُكتَب. الطفرةُ تُبقي الفكَّ سليماً وتنزع التسميةَ وحدَها، فتفصل «فُكَّ الترميز» عن «حُجِب بسببٍ مفهوم»."
         }
       ]
+    },
+    "services/sahool-platform/api/decision_service_client.py": {
+      "$gap_ar": "DECISION-SERVICE-HARDENING-IS-NOT-ACTIVATABLE-01 — وسيطُ `_service_token_guard` يقرأ `Authorization: Bearer` وحدَه، والعميلُ كان يرسل `X-Agent-Token` الذي لا يقرؤه أحد: **صفرٌ من ٢٧ نداءً داخليّاً** يمرّر تفويضاً. فما كان التشديدُ معطَّلاً بل غيرَ قابلٍ للتفعيل — ضبطُ `DECISION_SERVICE_AUTH_TOKEN` كما توصي الوثيقة يردّ كلَّ نداءات المنصّة 401، ويبتلعها `lexicographic_mpc_bridge` في `try` عريض فتسقط التوصيةُ الصالحة معها. وحتّى ذلك الحين تبقى موافقةُ الإنسان — آخرُ حاجزٍ قبل التنفيذ — بلا مصادقةٍ على الشبكة الداخليّة. ولم يمسكه اختبارٌ لأنّ لكلّ طرفٍ اختباراتِه وكلاهما أخضر: لا أحد ركّب ما يرسله العميلُ فعلاً على ما يفرضه الوسيطُ فعلاً.",
+      "mutations": [
+        {
+          "expect": "test_what_the_platform_sends_is_what_the_service_accepts",
+          "find": "    service_token = os.getenv(\"DECISION_SERVICE_TOKEN\", \"\").strip()\n    if authorization:\n        headers[\"Authorization\"] = authorization\n    elif service_token:\n        headers[\"Authorization\"] = f\"Bearer {service_token}\"",
+          "replace": "    if authorization:\n        headers[\"Authorization\"] = authorization  # mutated: العطلُ الأصليّ — بلا رمزٍ خدميّ",
+          "test": "tests_v9/test_decision_service_auth_is_activatable.py",
+          "why": "يُعيد الصياغةَ التي كانت في `main` حرفيّاً. الشاهدُ يستدعي الوسيطَ الحقيقيّ على الترويسة الحقيقيّة، فلا يمرّ على «العميل يضع ما نضعه له»."
+        },
+        {
+          "expect": "test_a_caller_supplied_authorization_is_not_overwritten_by_the_service_token",
+          "find": "    if authorization:\n        headers[\"Authorization\"] = authorization\n    elif service_token:\n        headers[\"Authorization\"] = f\"Bearer {service_token}\"",
+          "replace": "    if service_token:  # mutated: رمزُ الخدمة يسرق ترويسةَ المُتّصِل\n        headers[\"Authorization\"] = f\"Bearer {service_token}\"\n    elif authorization:\n        headers[\"Authorization\"] = authorization",
+          "test": "tests_v9/test_decision_service_auth_is_activatable.py",
+          "why": "العلاجُ ليس نقلَ العطل: رمزُ الخدمة بديلٌ عند الغياب لا سارقٌ لتفويضٍ صريح. بلا هذا الاتّجاه يمرّ إصلاحٌ يُصادِر هُويّةَ المُتّصِل الحقيقيّة ويُوحِّد الفاعلين."
+        }
+      ]
+    },
+    "services/sahool-platform/api/canonical_water_state.py": {
+      "$gap_ar": "CANONICAL-WATER-FABRICATES-WHAT-IT-DOES-NOT-MODEL-01 — الجريانُ السطحيّ غيرُ منمذَجٍ في هذا المُنتِج، وكان يُكتَب `runoff_mm: 0.0` حرفيّاً لكلّ يوم فيُقرأ قياساً لا غياباً؛ ويمرّ إلى المنسّق ثمّ إلى حساب المطر الفعّال.",
+      "mutations": [
+        {
+          "expect": "test_unmodelled_runoff_is_declared_not_reported_as_a_measured_zero",
+          "find": "                \"rain_mm\": float(rain),\n                \"source\": \"weather-engine-et0-series+season-phenology\",",
+          "replace": "                \"rain_mm\": float(rain),\n                \"runoff_mm\": 0.0,  # mutated: صفرٌ مختلَق يُقرأ قياساً\n                \"source\": \"weather-engine-et0-series+season-phenology\",",
+          "test": "tests_v9/test_canonical_water_state_mpc.py",
+          "why": "الصفرُ المختلَق يمرّ إلى `daily_runoff_mm_by_date` في المنسّق فيدخل حسابَ `effective_rain_mm` بوصفه قياساً. والأثرُ اتّجاهيّ: نقصُ ريٍّ على المنحدرات. والمُنتِجُ القانونيّ للجريان قائمٌ ومُسجَّل — بلا مستهلكٍ واحد في شجرة الإنتاج."
+        }
+      ]
+    },
+    "services/sahool-platform/api/routers/irrigation_mpc.py": {
+      "$gap_ar": "SALINITY-GUARD-MEASURES-TEXT-NOT-TRAVERSAL-01 — حارسُ H5.1 يشترط سلاسلَ نصّ في `ROUTE_SRC`، و`ROUTE_SRC` هو الملفُّ كلُّه وفيه أكثرُ من نقطة إصدار. فما دام أيُّ مسارٍ يستدعي `evaluate_water_salinity_gate` يبقى الحارسُ أخضرَ ولو أصدرت النقاطُ الأخرى مرشّحاتٍ محكومة بلا فحصِ ملوحة. وهو الصنفُ الذي يصفه كتالوجُ الحرّاس: يمرّ على شجرةٍ سليمة، ولم يُقَس قطّ أنّه يحمرّ حين يوجد العطل.",
+      "mutations": [
+        {
+          "expect": "test_every_candidate_emission_point_is_gated_on_the_salinity_verdict",
+          "find": "        out[\"emit\"] = {\n            \"status\": \"rejected_simulation\",",
+          "replace": "        out[\"emit\"] = await emit_mpc_candidate(decision, tenant_id=tenant_id)  # mutated: نقطةُ إصدارٍ ثانية بلا بوّابة ملوحة\n        out[\"emit_simulation_note\"] = {\n            \"status\": \"rejected_simulation\",",
+          "test": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+          "why": "تزرع نقطةَ إصدارٍ ثانية في دالّةٍ لا تستدعي البوّابة — وهو العطلُ الذي كان الحارسُ النصّيّ يمرّ عليه أخضرَ حرفيّاً، لأنّ السلاسلَ الثلاثَ تبقى موجودةً في الملفّ بفضل النقطة المُحكَمة. الجردُ المُشتقّ من `ast` يراها."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

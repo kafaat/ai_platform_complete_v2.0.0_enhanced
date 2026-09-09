@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5275,
+    "files_scanned": 5276,
     "files_by_kind": {
       "backend": 1207,
       "database": 277,
       "governance": 62,
       "mobile": 51,
       "other": 1450,
-      "tests": 1771,
+      "tests": 1772,
       "web": 457
     },
     "unmapped_artifacts": 2149,
@@ -26602,6 +26602,14 @@
             "content:Service token guard",
             "content:service token"
           ]
+        },
+        {
+          "path": "services/sahool-platform/api/decision_service_client.py",
+          "score": 9,
+          "signals": [
+            "content:Service token guard",
+            "content:service token"
+          ]
         }
       ],
       "routes": [
@@ -26637,6 +26645,10 @@
       "database": [],
       "events": [
         {
+          "value": "decision_service_client.py @ tests_v9/test_decision_service_auth_is_activatable.py:147",
+          "score": 11
+        },
+        {
           "value": "decision_sor_role_certify.py @ services/decision-service/tests/test_loop_tables_and_ws_guard.py:156",
           "score": 11
         }
@@ -26664,6 +26676,14 @@
         },
         {
           "path": "services/decision-service/tests/test_loop_tables_and_ws_guard.py",
+          "score": 11,
+          "signals": [
+            "content:Service token guard",
+            "content:service token"
+          ]
+        },
+        {
+          "path": "tests_v9/test_decision_service_auth_is_activatable.py",
           "score": 11,
           "signals": [
             "content:Service token guard",
@@ -26735,13 +26755,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 2,
+        "backend": 3,
         "routes": 7,
         "database": 0,
-        "events": 1,
+        "events": 2,
         "web": 0,
         "mobile": 0,
-        "tests": 8,
+        "tests": 9,
         "governance": 0,
         "other_evidence": 2
       },
@@ -49603,6 +49623,14 @@
           "signals": [
             "content:Dispatch authorization",
             "content:dispatch authorization"
+          ]
+        },
+        {
+          "capability_id": "SEC-006",
+          "score": 9,
+          "signals": [
+            "content:Service token guard",
+            "content:service token"
           ]
         }
       ]

@@ -5,7 +5,7 @@
   "runtime_verified": false,
   "python_files_parsed": 1886,
   "route_handlers": 1049,
-  "call_edges": 77324,
+  "call_edges": 77342,
   "dead_code_candidates": 627,
   "duplicate_function_groups": 60,
   "route_owners": 27,
@@ -177230,140 +177230,119 @@
    "file": "services/sahool-platform/api/canonical_water_state.py",
    "source": "resolve_canonical_water_state",
    "target": "append",
-   "line": 241
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/canonical_water_state.py",
-   "source": "resolve_canonical_water_state",
-   "target": "get",
-   "line": 243
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/canonical_water_state.py",
-   "source": "resolve_canonical_water_state",
-   "target": "float",
    "line": 244
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/canonical_water_state.py",
    "source": "resolve_canonical_water_state",
-   "target": "float",
-   "line": 245
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/canonical_water_state.py",
-   "source": "resolve_canonical_water_state",
-   "target": "float",
+   "target": "get",
    "line": 246
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/canonical_water_state.py",
    "source": "resolve_canonical_water_state",
-   "target": "list",
-   "line": 252
+   "target": "float",
+   "line": 247
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/canonical_water_state.py",
    "source": "resolve_canonical_water_state",
-   "target": "append",
+   "target": "float",
+   "line": 248
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/canonical_water_state.py",
+   "source": "resolve_canonical_water_state",
+   "target": "float",
+   "line": 249
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/canonical_water_state.py",
+   "source": "resolve_canonical_water_state",
+   "target": "list",
    "line": 254
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/canonical_water_state.py",
    "source": "resolve_canonical_water_state",
-   "target": "float",
-   "line": 255
+   "target": "append",
+   "line": 258
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/canonical_water_state.py",
+   "source": "resolve_canonical_water_state",
+   "target": "append",
+   "line": 260
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/canonical_water_state.py",
    "source": "resolve_canonical_water_state",
    "target": "float",
-   "line": 255
+   "line": 261
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/canonical_water_state.py",
+   "source": "resolve_canonical_water_state",
+   "target": "float",
+   "line": 261
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/canonical_water_state.py",
    "source": "resolve_canonical_water_state",
    "target": "_rowdict",
-   "line": 264
+   "line": 270
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/canonical_water_state.py",
    "source": "resolve_canonical_water_state",
    "target": "get",
-   "line": 278
+   "line": 284
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/canonical_water_state.py",
    "source": "resolve_canonical_water_state",
    "target": "float",
-   "line": 279
+   "line": 285
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/canonical_water_state.py",
    "source": "resolve_canonical_water_state",
    "target": "float",
-   "line": 279
+   "line": 285
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/canonical_water_state.py",
    "source": "resolve_canonical_water_state",
    "target": "float",
-   "line": 279
+   "line": 285
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/canonical_water_state.py",
    "source": "resolve_canonical_water_state",
    "target": "_digest",
-   "line": 281
+   "line": 287
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/canonical_water_state.py",
    "source": "resolve_canonical_water_state",
    "target": "_digest",
-   "line": 283
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/canonical_water_state.py",
-   "source": "resolve_canonical_water_state",
-   "target": "str",
-   "line": 291
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/canonical_water_state.py",
-   "source": "resolve_canonical_water_state",
-   "target": "str",
-   "line": 292
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/canonical_water_state.py",
-   "source": "resolve_canonical_water_state",
-   "target": "float",
-   "line": 293
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/canonical_water_state.py",
-   "source": "resolve_canonical_water_state",
-   "target": "float",
-   "line": 296
+   "line": 289
   },
   {
    "owner": "sahool-platform",
@@ -177376,7 +177355,7 @@
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/canonical_water_state.py",
    "source": "resolve_canonical_water_state",
-   "target": "round",
+   "target": "str",
    "line": 298
   },
   {
@@ -177391,35 +177370,63 @@
    "file": "services/sahool-platform/api/canonical_water_state.py",
    "source": "resolve_canonical_water_state",
    "target": "float",
-   "line": 300
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/canonical_water_state.py",
-   "source": "resolve_canonical_water_state",
-   "target": "float",
-   "line": 301
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/canonical_water_state.py",
-   "source": "resolve_canonical_water_state",
-   "target": "float",
    "line": 302
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/canonical_water_state.py",
    "source": "resolve_canonical_water_state",
+   "target": "str",
+   "line": 303
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/canonical_water_state.py",
+   "source": "resolve_canonical_water_state",
+   "target": "round",
+   "line": 304
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/canonical_water_state.py",
+   "source": "resolve_canonical_water_state",
+   "target": "float",
+   "line": 305
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/canonical_water_state.py",
+   "source": "resolve_canonical_water_state",
+   "target": "float",
+   "line": 306
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/canonical_water_state.py",
+   "source": "resolve_canonical_water_state",
+   "target": "float",
+   "line": 307
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/canonical_water_state.py",
+   "source": "resolve_canonical_water_state",
+   "target": "float",
+   "line": 308
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/canonical_water_state.py",
+   "source": "resolve_canonical_water_state",
    "target": "_digest",
-   "line": 313
+   "line": 319
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/canonical_water_state.py",
    "source": "resolve_canonical_water_state",
    "target": "CanonicalWaterState",
-   "line": 314
+   "line": 320
   },
   {
    "owner": "sahool-platform",
@@ -187344,36 +187351,15 @@
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_service_headers",
-   "target": "str",
-   "line": 43
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/decision_service_client.py",
-   "source": "decision_service_headers",
-   "target": "str",
-   "line": 45
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/decision_service_client.py",
-   "source": "decision_service_headers",
-   "target": "str",
+   "target": "getenv",
    "line": 47
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_service_headers",
-   "target": "str",
-   "line": 49
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/decision_service_client.py",
-   "source": "decision_service_headers",
-   "target": "str",
-   "line": 51
+   "target": "strip",
+   "line": 47
   },
   {
    "owner": "sahool-platform",
@@ -187406,345 +187392,380 @@
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_service_headers",
+   "target": "str",
+   "line": 61
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_service_headers",
+   "target": "str",
+   "line": 63
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_service_headers",
+   "target": "str",
+   "line": 65
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_service_headers",
+   "target": "str",
+   "line": 67
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_service_headers",
+   "target": "str",
+   "line": 69
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "_detail_from_response",
    "target": "json",
-   "line": 65
+   "line": 75
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "_detail_from_response",
    "target": "getattr",
-   "line": 67
+   "line": 77
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_get_json",
    "target": "decision_service_url",
-   "line": 81
+   "line": 91
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_get_json",
    "target": "lstrip",
-   "line": 81
+   "line": 91
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_get_json",
    "target": "AsyncClient",
-   "line": 83
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/decision_service_client.py",
-   "source": "decision_get_json",
-   "target": "get",
-   "line": 84
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/decision_service_client.py",
-   "source": "decision_get_json",
-   "target": "decision_service_headers",
-   "line": 87
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/decision_service_client.py",
-   "source": "decision_get_json",
-   "target": "HTTPException",
-   "line": 90
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/decision_service_client.py",
-   "source": "decision_get_json",
-   "target": "HTTPException",
-   "line": 92
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/decision_service_client.py",
-   "source": "decision_get_json",
-   "target": "_detail_from_response",
-   "line": 92
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/decision_service_client.py",
-   "source": "decision_get_json",
-   "target": "json",
    "line": 93
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_get_json",
-   "target": "isinstance",
+   "target": "get",
    "line": 94
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_get_json",
+   "target": "decision_service_headers",
+   "line": 97
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_get_json",
+   "target": "HTTPException",
+   "line": 100
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_get_json",
+   "target": "HTTPException",
+   "line": 102
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_get_json",
+   "target": "_detail_from_response",
+   "line": 102
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_get_json",
+   "target": "json",
+   "line": 103
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_get_json",
+   "target": "isinstance",
+   "line": 104
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_post_json",
    "target": "decision_service_url",
-   "line": 117
+   "line": 127
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_post_json",
    "target": "lstrip",
-   "line": 117
+   "line": 127
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_post_json",
    "target": "AsyncClient",
-   "line": 119
+   "line": 129
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_post_json",
    "target": "post",
-   "line": 120
+   "line": 130
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_post_json",
    "target": "decision_service_headers",
-   "line": 123
+   "line": 133
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_post_json",
    "target": "HTTPException",
-   "line": 138
+   "line": 148
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_post_json",
    "target": "HTTPException",
-   "line": 140
+   "line": 150
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_post_json",
    "target": "_detail_from_response",
-   "line": 140
+   "line": 150
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_post_json",
    "target": "json",
-   "line": 141
+   "line": 151
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_post_json",
    "target": "isinstance",
-   "line": 142
+   "line": 152
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "record_decision",
    "target": "decision_post_json",
-   "line": 148
+   "line": 158
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "compose_context_snapshot",
    "target": "decision_post_json",
-   "line": 158
+   "line": 168
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "list_review_queue",
    "target": "decision_get_json",
-   "line": 169
+   "line": 179
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "get_decision_agronomic_evidence",
    "target": "decision_get_json",
-   "line": 182
+   "line": 192
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "review_decision",
    "target": "decision_post_json",
-   "line": 198
+   "line": 208
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "create_execution_plan",
    "target": "decision_post_json",
-   "line": 214
+   "line": 224
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "authorize_dispatch",
    "target": "decision_post_json",
-   "line": 230
+   "line": 240
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "create_execution_request",
    "target": "decision_post_json",
-   "line": 246
+   "line": 256
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "verify_execution_outcome",
    "target": "decision_post_json",
-   "line": 262
+   "line": 272
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "create_learning_attribution",
    "target": "decision_post_json",
-   "line": 278
+   "line": 288
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "record_dispatch_decision",
    "target": "decision_post_json",
-   "line": 289
+   "line": 299
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "record_outcome",
    "target": "decision_post_json",
-   "line": 295
+   "line": 305
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "record_recommendation_outcome",
    "target": "decision_post_json",
-   "line": 301
+   "line": 311
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "record_learning_update",
    "target": "decision_post_json",
-   "line": 307
+   "line": 317
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "get_learning_summary",
    "target": "decision_get_json",
-   "line": 313
+   "line": 323
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "get_decision_lineage",
    "target": "decision_get_json",
-   "line": 321
+   "line": 331
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "list_decisions",
    "target": "decision_get_json",
-   "line": 333
+   "line": 343
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "get_field_lineage",
    "target": "decision_get_json",
-   "line": 343
+   "line": 353
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "get_reconciled_outcomes",
    "target": "decision_get_json",
-   "line": 351
+   "line": 361
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "get_calibration_dataset",
    "target": "decision_get_json",
-   "line": 368
+   "line": 378
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "create_model_evaluation_run",
    "target": "decision_post_json",
-   "line": 385
+   "line": 395
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "create_model_promotion_decision",
    "target": "decision_post_json",
-   "line": 394
+   "line": 404
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "create_model_activation_request",
    "target": "decision_post_json",
-   "line": 403
+   "line": 413
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "review_model_activation_request",
    "target": "decision_post_json",
-   "line": 416
+   "line": 426
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "claim_model_registry_activation_command",
    "target": "decision_post_json",
-   "line": 427
+   "line": 437
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "record_model_registry_activation_receipt",
    "target": "decision_post_json",
-   "line": 439
+   "line": 449
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "create_model_registry_rollback_command",
    "target": "decision_post_json",
-   "line": 454
+   "line": 464
   },
   {
    "owner": "sahool-platform",
@@ -410957,6 +410978,111 @@
   },
   {
    "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+   "source": "_emitting_functions",
+   "target": "parse",
+   "line": 280
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+   "source": "_emitting_functions",
+   "target": "walk",
+   "line": 280
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+   "source": "_emitting_functions",
+   "target": "isinstance",
+   "line": 281
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+   "source": "_emitting_functions",
+   "target": "getattr",
+   "line": 284
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+   "source": "_emitting_functions",
+   "target": "getattr",
+   "line": 284
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+   "source": "_emitting_functions",
+   "target": "walk",
+   "line": 285
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+   "source": "_emitting_functions",
+   "target": "isinstance",
+   "line": 286
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+   "source": "test_every_candidate_emission_point_is_gated_on_the_salinity_verdict",
+   "target": "_emitting_functions",
+   "line": 294
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+   "source": "test_every_candidate_emission_point_is_gated_on_the_salinity_verdict",
+   "target": "sorted",
+   "line": 299
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+   "source": "test_every_candidate_emission_point_is_gated_on_the_salinity_verdict",
+   "target": "items",
+   "line": 300
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+   "source": "test_the_gate_verdict_is_read_not_merely_invoked",
+   "target": "parse",
+   "line": 316
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+   "source": "test_the_gate_verdict_is_read_not_merely_invoked",
+   "target": "walk",
+   "line": 316
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+   "source": "test_the_gate_verdict_is_read_not_merely_invoked",
+   "target": "isinstance",
+   "line": 317
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+   "source": "test_the_gate_verdict_is_read_not_merely_invoked",
+   "target": "_emitting_functions",
+   "line": 318
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+   "source": "test_the_gate_verdict_is_read_not_merely_invoked",
+   "target": "get_source_segment",
+   "line": 320
+  },
+  {
+   "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_historical_loader.py",
    "source": "test_valid_row_accepted",
    "target": "load_csv",
@@ -550989,7 +551115,7 @@
    "symbol": "record_dispatch_decision",
    "kind": "function",
    "file": "services/sahool-platform/api/decision_service_client.py",
-   "line": 286,
+   "line": 296,
    "owner": "sahool-platform",
    "decorated_route": false,
    "reference_count": 0,
@@ -551000,7 +551126,7 @@
    "symbol": "record_recommendation_outcome",
    "kind": "function",
    "file": "services/sahool-platform/api/decision_service_client.py",
-   "line": 298,
+   "line": 308,
    "owner": "sahool-platform",
    "decorated_route": false,
    "reference_count": 0,
@@ -551011,7 +551137,7 @@
    "symbol": "record_learning_update",
    "kind": "function",
    "file": "services/sahool-platform/api/decision_service_client.py",
-   "line": 304,
+   "line": 314,
    "owner": "sahool-platform",
    "decorated_route": false,
    "reference_count": 0,
@@ -551022,7 +551148,7 @@
    "symbol": "get_decision_lineage",
    "kind": "function",
    "file": "services/sahool-platform/api/decision_service_client.py",
-   "line": 320,
+   "line": 330,
    "owner": "sahool-platform",
    "decorated_route": false,
    "reference_count": 0,
@@ -551033,7 +551159,7 @@
    "symbol": "list_decisions",
    "kind": "function",
    "file": "services/sahool-platform/api/decision_service_client.py",
-   "line": 326,
+   "line": 336,
    "owner": "sahool-platform",
    "decorated_route": false,
    "reference_count": 0,
@@ -551044,7 +551170,7 @@
    "symbol": "get_field_lineage",
    "kind": "function",
    "file": "services/sahool-platform/api/decision_service_client.py",
-   "line": 340,
+   "line": 350,
    "owner": "sahool-platform",
    "decorated_route": false,
    "reference_count": 0,
@@ -551055,7 +551181,7 @@
    "symbol": "get_reconciled_outcomes",
    "kind": "function",
    "file": "services/sahool-platform/api/decision_service_client.py",
-   "line": 348,
+   "line": 358,
    "owner": "sahool-platform",
    "decorated_route": false,
    "reference_count": 0,

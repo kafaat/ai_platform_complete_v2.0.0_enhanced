@@ -5764,6 +5764,14 @@
           "content:Dispatch authorization",
           "content:dispatch authorization"
         ]
+      },
+      {
+        "capability_id": "SEC-006",
+        "score": 9,
+        "signals": [
+          "content:Service token guard",
+          "content:service token"
+        ]
       }
     ]
   },

@@ -132,6 +132,29 @@ def test_canonical_state_uses_server_truth_and_digests(canonical_patches):
     assert len(out.weather_snapshot_digest) == 64
 
 
+def test_unmodelled_runoff_is_declared_not_reported_as_a_measured_zero(canonical_patches):
+    """صفرٌ صريح يُقرأ قياساً، والجريانُ غيرُ منمذَجٍ أصلاً في هذا المُنتِج.
+
+    والأثرُ اتّجاهيّ لا عشوائيّ: كلُّ المطر يُحتسَب فعّالاً ⇒ يُبخَس الاستنزافُ ويُنقَص
+    الريّ، وأشدُّه على المنحدرات. والمستهلكون يُبدِلون صفراً عند الغياب، فالحسابُ لا
+    يتغيّر — يتغيّر ادّعاؤه، ويصير النقصُ ظاهراً في `limitations` بدل أن يختفي في رقم.
+    """
+    from api.canonical_water_state import resolve_canonical_water_state
+
+    out = asyncio.run(
+        resolve_canonical_water_state(
+            FakeConn(), tenant_id="tenant-1", field_id="fld-1", horizon_days=3
+        )
+    )
+    assert all("runoff_mm" not in day for day in out.forecast), (
+        "عاد الصفرُ المختلَق إلى التنبّؤ القانونيّ — وهو يمرّ إلى "
+        "`daily_runoff_mm_by_date` فيدخل حسابَ المطر الفعّال بوصفه قياساً."
+    )
+    assert any("runoff" in limitation for limitation in out.limitations), (
+        "الجريانُ غيرُ منمذَج ولا يُعلَن — وهو النقصُ الذي يُخفيه الصفر."
+    )
+
+
 @pytest.mark.parametrize("bad", [None, -1, True, "0", float("nan"), float("inf")])
 @pytest.mark.parametrize("source", ["rain", "et0"])
 def test_invalid_weather_cannot_be_verified(monkeypatch, canonical_patches, source, bad):

@@ -238,18 +238,24 @@ async def resolve_canonical_water_state(
                 "field_id": field_id,
                 "season_id": season_id,
             }
+        # لا `runoff_mm` هنا: الجريانُ السطحيّ **غيرُ منمذَج** في هذا المُنتِج، وصفرٌ
+        # صريح كان يُقرأ قياساً. والمستهلكون يُبدِلون صفراً عند الغياب
+        # (`.get("runoff_mm", 0.0)`)، فالحسابُ لا يتغيّر — يتغيّر **ادّعاؤه**.
         forecast.append(
             {
                 "date": d.get("date"),
                 "et0_mm": float(et0_days[i]),
                 "kc": float(kc),
                 "rain_mm": float(rain),
-                "runoff_mm": 0.0,
                 "source": "weather-engine-et0-series+season-phenology",
             }
         )
 
     limitations = list(root_zone.limitations)
+    # اتّجاهيٌّ لا عشوائيّ: كلُّ المطر يُحتسَب فعّالاً ⇒ يُبخَس الاستنزافُ ويُنقَص الريّ،
+    # وأشدُّه على المنحدرات. يُعلَن حتّى يُبنى المستهلِكُ الغائب
+    # لـ`canonical_sprinkler_runoff_capability` (مُنتِجٌ قائمٌ بلا مستهلك).
+    limitations.append("surface runoff not modelled: rain counted as fully effective")
     if age_hours > MAX_LEDGER_AGE_HOURS:
         limitations.append(f"water ledger stale: {age_hours:.1f}h > {MAX_LEDGER_AGE_HOURS:.0f}h")
     if float(ledger["depletion_mm"]) > float(root_zone.taw_mm):
