@@ -7710,3 +7710,32 @@ Audited base `7407eae2`; implementation `f8086c1ff`. The real asyncpg JSONB repr
 `655903768` isolates the raster fallback tests from the live indicators adapter. `cb0dc6cbd` stamps the existing drawing-schema authorization CONSUMED after verifying #990 and both authorized blob hashes at merge `7407eae2`. Default preflight on `bd7bca34b` completed: 6,610 unit passes (30 skips), 752 repository passes (8 skips), and one platform failure among 4,306 tests. That failure was a provider name in a comment, caught by a lexical boundary guard. `73a67e3bd` corrects the comment with an identical Python AST; the entire platform suite then passed 4,306 tests. The completed one-failure preflight log is retained honestly, alongside the successful platform rerun. Bandit reported no HIGH-severity issues.
 
 Direct Git push lacks credentials (the dry run failed before writing a branch). The handoff preserves original commits in a Git bundle and supplies the evidence and prepared PR body. No remote branch, PR, merge, live execution or production certification is claimed. See [main repair report](../docs/testing/main_irrigation_guardrails_repairs_20260909.md).
+
+
+### 2026-09-09 — استيرادُ حزمةٍ متوازية، ثمّ ثلاثُ شرائح من المراجعة الثانية
+
+**الاستيراد (`b1d75473`):** حزمةُ `fix/main-irrigation-guardrails-20260909` (٧ التزامات، ٢٥ ملفّاً
+كلُّها مطابقةُ البصمة). التداخلُ الوحيد كان إصلاحَ JSONB — أُنتِج مرّتين مستقلّتين، وكشفت
+المقارنةُ **عطلاً في صياغتي**: `decode_jsonb` يستدعي `json.loads`، فعمودٌ مبتور (`"{"`) يرفع
+`JSONDecodeError` لا يلتقطها `except _MalformedCanonicalRow` فتهرب خمسمئةً عارية. حالةُ اختبارهم
+على حدّ HTTP وجدتها. أُخِذ منهم ذلك واشتراطُ نوع كلّ عنصر في `blocking_reasons`، وأُبقيت بنيتي
+حيث تحمل أكثر (الحجبُ يُسمّي العمود لا المصدرَ وحدَه)، وأُخِذ ملفُّ اختبارهم كاملاً لأنّه أقوى.
+الطفرات ٦ ← ٨، كلُّها مُكذَّبة.
+
+**الشرائح (`6f7d621b`):** GOV-01 تشديدٌ غيرُ قابلٍ للتفعيل (صفرٌ من ٢٧ نداءً يمرّر تفويضاً) ·
+GUARD-01 حارسُ ملوحةٍ نصّيّ صار جرداً مُشتقّاً من `ast`، **والفرقُ مقيس**: على شجرةٍ فيها نقطةُ
+إصدارٍ بلا بوّابة يمرّ النصّيّان أخضرَين ويحمرّ المُشتقّ · WB-01 `runoff_mm: 0.0` مختلَقٌ حُذِف
+وأُعلِن نقصاً.
+
+**وخطأٌ لي كشفه الجناحُ الكامل (`359be662`):** اختبارُ GOV-01 نجح منفرداً وأسقط الجناح. أدخلتُ
+مجلَّد `decision-service` في `sys.path` **دائماً**، وفيه `agronomic_context/` حزمة بينما
+`agriai-engine/agronomic_context.py` وحدة — فأيُّهما خُبِّئ أوّلاً حجب الآخر؛ وضبطتُ البيئةَ في
+`os.environ` مباشرةً فتسرّبت. صار التحميلُ محصوراً و`sys.path`/`sys.modules` يُعادان حرفيّاً.
+أُعيد القياسُ حيث أخفق: **6634 ناجحاً · 25 متخطّى · صفر إخفاق**.
+
+**درسٌ متكرّرٌ مرّتين اليوم:** `--fast` والأخضرُ المنفرد لا يُغنيان عن السُّلَّم الكامل. أوّلاً
+٩ إخفاقاتِ انحرافِ مصنوعات، وثانياً اختبارٌ يكسر استيراداتٍ لا صلةَ لها به — وهو أصعبُ
+الأصناف نسبةً لأنّ الضحيّة ليست الجاني.
+
+**ولم يُقَس:** لا PostgreSQL حيّة ولا مكدّس مرفوع؛ `runtime_verified=0` و`production_certified`
+تبقى `false`.

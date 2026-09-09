@@ -5765,3 +5765,64 @@ Timing follow-up: final source registry656; run34281851595 measured654 in five s
 ## VEGETATION-RASTER-UNIT-REACHES-LIVE-INDICATORS-01 — FIXED_IN_CODE (2026-09-09)
 
 `655903768`: `tests_v9/test_vegetation_raster_ndvi.py` controlled the raster adapter but left the preceding canonical adapter live, interrupting local unit execution with an attempted indicators-service request. The function-scoped fixture now returns an unavailable canonical bundle and asserts that adapter was awaited, so both raster fallback paths are deterministic. Six focused tests and the complete unit suite passed. Production vegetation behavior and static boundary assertions are unchanged.
+
+
+## DECISION-SERVICE-HARDENING-NOT-ACTIVATABLE-01 — FIXED_IN_CODE (2026-09-09)
+
+`6f7d621b`: `services/decision-service/main.py::_service_token_guard` يفرض `Authorization: Bearer`
+وحدَه، وكان عميلُ المنصّة يرسل `X-Agent-Token` الذي لا يقرؤه أحد. قِيس: **صفرٌ من ٢٧** نداءً
+داخليّاً في `api/decision_service_client.py` يمرّر تفويضاً، فما كان التشديدُ معطَّلاً بل **غيرَ
+قابلٍ للتفعيل** — ضبطُ `DECISION_SERVICE_AUTH_TOKEN` يردّ نداءات المنصّة كلَّها 401،
+ويبتلعها `lexicographic_mpc_bridge.py:82` في `try` عريض فتسقط التوصيةُ الصالحة معها. وحتّى
+التفعيل تبقى `POST /v1/decisions/{id}/review` — آخرُ حاجزٍ بشريّ قبل التنفيذ — بلا مصادقةٍ على
+الشبكة الداخليّة، وتقبل أيَّ `X-Reviewed-By` وأيَّ `X-Tenant-Id`.
+
+العلاج في المُنشِئ الواحد (`decision_service_headers`) لا عند مواضع النداء، وإلّا بقي أيُّ نداءٍ
+جديد بلا تفويضٍ صامتاً؛ و`docker-compose.v9.yml` يمرّر `DECISION_SERVICE_TOKEN` إلى
+`sahool-platform` كما يمرّره إلى ثلاث خدماتٍ أخرى أصلاً. الشاهد
+`tests_v9/test_decision_service_auth_is_activatable.py` يقيس **الوصلة**: يستدعي الوسيطَ الحقيقيّ
+على الترويسة التي يبنيها العميلُ فعلاً؛ طفرتان مُكذَّبتان.
+
+**ولم يُقَس حيّاً:** لا مكدّس مرفوع بالرمز مضبوطاً. و`SAHOOL_ENV` ما زال **غيرَ ممرَّر** إلى
+`sahool-decision-service` في compose، فـ`service_auth_required()` لا ترى الإنتاج ولا تفرض 503 على
+الرمز الغائب — بندٌ مفتوح خارج هذه الشريحة.
+
+## SALINITY-GUARD-MEASURES-TEXT-NOT-TRAVERSAL-01 — FIXED_IN_CODE (2026-09-09)
+
+`6f7d621b`: `services/sahool-platform/tests/test_h5_salinity_ecw_binding.py:241` يشترط سلاسلَ نصّ
+في `ROUTE_SRC`، وهو **الملفُّ كلُّه**. فما دام أيُّ مسارٍ يستدعي `evaluate_water_salinity_gate`
+يبقى أخضرَ ولو أصدرت النقاطُ الأخرى مرشّحاتٍ محكومة بلا فحصِ ملوحة — وهو صنفُ
+`GUARD_CATALOGUE`: يمرّ على شجرةٍ سليمة ولم يُقَس أنّه يحمرّ حين يوجد العطل.
+
+أُضيف جردٌ مُشتَقٌّ من `ast` يشترط على كلّ دالّةٍ تستدعي `emit_mpc_candidate` أن تستدعي البوّابة
+وأن تحمل سببَ حجبها. **والفرقُ مقيسٌ لا مُدَّعى:** بنقطةِ إصدارٍ ثانية مزروعة بلا بوّابة،
+الحارسان النصّيّان يمرّان أخضرَين (2 passed) والجردُ المُشتقّ يحمرّ مُسمّياً `irrigation_mpc_plan`.
+
+## CANONICAL-WATER-FABRICATES-UNMODELLED-RUNOFF-01 — FIXED_IN_CODE (2026-09-09)
+
+`6f7d621b`: `canonical_water_state.py` كان يكتب `runoff_mm: 0.0` حرفيّاً لكلّ يوم، فيُقرأ قياساً
+لا غياباً، ويمرّ إلى `irrigation_runtime_orchestrator.py` ثمّ إلى `daily_runoff_mm_by_date` فيدخل
+حسابَ `effective_rain_mm` في الجدول الساعيّ العمليّ. الأثرُ اتّجاهيّ: كلُّ المطر يُحتسَب فعّالاً
+⇒ يُبخَس الاستنزافُ ويُنقَص الريّ، وأشدُّه على المنحدرات.
+
+حُذِف المفتاحُ وأُعلِن نقصاً في `limitations`؛ والمستهلكون يُبدِلون صفراً عند الغياب فالحسابُ لا
+يتغيّر — يتغيّر **ادّعاؤه**. طفرةٌ مُكذَّبة.
+
+**ويبقى مفتوحاً:** `canonical_sprinkler_runoff_capability.py` مُنتِجٌ قانونيٌّ مُسجَّل في
+`docs/architecture/knowledge_source_registry.json` وله جدولٌ في `migrations/v173` — **وصفرُ
+مستهلكين** في شجرة الإنتاج. ولا يلتقط ذلك `canonical_consumer_bypass_guard`: قاعدتُه تمنع
+الارتداد إلى مدخلٍ خام في مستهلِكٍ مُسجَّل، لا تثبيتاً حرفيّاً في مُنتِجٍ يسبق المستهلِك.
+
+## GOVERNED-CANDIDATE-HAS-NO-EMITTING-PATH-01 — OPEN (2026-09-09)
+
+بعد `b1d75473` **لا مسارَ يُصدِر مرشّحاً محكوماً إلى مركز القرار**. قِيست الثلاثة على الشجرة:
+`/api/v1/irrigation/mpc/plan` صار يرفض الإصدارَ دائماً (`f8086c1ff`) · و`/recommendation` يحمل
+النداءَ الوحيد الباقي لـ`emit_mpc_candidate` (`irrigation_mpc.py:476`) لكنّ
+`_source_soil_capacity:224` و`_source_forecast_horizon:232` كلاهما `return None` بلا شرط، فتُرجِع
+`insufficient_ground_truth` قبل بلوغه · و`/hourly-recommendation` يعمل خادميّاً بالكامل ولا
+يستدعي المُصدِرَ أصلاً.
+
+الاتّجاهُ صحيح — مرشّحٌ مبنيٌّ على TAW وET0 من العميل سلطةٌ مختلَقة — لكنّه **تعطيلُ قدرةٍ لا
+تشديدٌ فحسب**، وتقريرُ الحزمة الواردة يقول إنّ العملاء «يستعملون مسارَ التوصية الخادميّ» وهو ما
+لا يُصدِر شيئاً اليوم. الإغلاقُ ببند العمل ٣: استبدالُ الـ`None` بقراءةٍ من
+`resolve_canonical_water_state` — المُنتِجُ قائمٌ ومُستهلَكٌ فعلاً في المسار الساعيّ.
