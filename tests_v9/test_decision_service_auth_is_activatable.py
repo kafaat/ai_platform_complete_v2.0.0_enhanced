@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import importlib.util
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -32,28 +33,54 @@ TOKEN = "s3rv1ce-t0ken-for-the-join"
 DECISION_SERVICE_DIR = ROOT / "services" / "decision-service"
 
 
+@contextmanager
+def _decision_service_namespace():
+    """تُحمَّل الخدمةُ في فضاءِ أسمائها ثمّ يُعاد كلُّ شيء كما كان.
+
+    جيرانُ `main.py` يُستورَدون بأسماءٍ عليا (`activation_gate`,
+    `agronomic_context.contracts`…)، فلا بدّ من مجلّدها على `sys.path`. لكنّ إدخالاً
+    دائماً **يلوّث الجلسةَ كلَّها**: خدماتٌ أخرى تحمل الأسماءَ نفسَها بأشكالٍ مختلفة
+    (`agriai-engine/agronomic_context.py` وحدةٌ، وهنا حزمة)، فيُحجَب أحدهما بالآخر.
+    قِيس ذلك: هذا الملفّ نجح منفرداً وأسقط الجناحَ الكامل حتّى صار التحميلُ محصوراً.
+    """
+    saved_path, saved_modules = list(sys.path), dict(sys.modules)
+    owned = {p.stem for p in DECISION_SERVICE_DIR.glob("*.py")} | {
+        p.name for p in DECISION_SERVICE_DIR.iterdir() if (p / "__init__.py").exists()
+    }
+    for name in list(sys.modules):  # نسخةُ خدمةٍ أخرى من الاسم نفسِه تحجب هذه
+        if name.split(".", 1)[0] in owned:
+            del sys.modules[name]
+    sys.path.insert(0, str(DECISION_SERVICE_DIR))
+    try:
+        yield
+    finally:
+        sys.path[:] = saved_path
+        for name in list(sys.modules):
+            if name not in saved_modules:
+                del sys.modules[name]
+        sys.modules.update(saved_modules)
+
+
 def _decision_service():
     """تُحمَّل الوحدةُ الحقيقيّة بمسارها: `services/decision-service` ليس حزمةً مستورَدة."""
-    if str(DECISION_SERVICE_DIR) not in sys.path:  # جيرانُها تُستورَد بأسماءٍ عليا
-        sys.path.insert(0, str(DECISION_SERVICE_DIR))
-    spec = importlib.util.spec_from_file_location(
-        "_decision_service_main", DECISION_SERVICE_DIR / "main.py"
-    )
-    assert spec and spec.loader
-    module = importlib.util.module_from_spec(spec)
-    sys.modules["_decision_service_main"] = module
-    spec.loader.exec_module(module)
-    return module
+    with _decision_service_namespace():
+        spec = importlib.util.spec_from_file_location(
+            "_decision_service_main", DECISION_SERVICE_DIR / "main.py"
+        )
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        sys.modules["_decision_service_main"] = module
+        spec.loader.exec_module(module)
+        return module
 
 
-def _guard_verdict(module, headers: dict[str, str], *, required: str) -> str:
+def _guard_verdict(module, headers: dict[str, str], *, required: str, monkeypatch) -> str:
     """يُستدعى **الوسيطُ نفسُه** على ترويسةٍ كما يبنيها العميل — «مقبول» أو «401».
 
     ولا تُعاد كتابةُ قاعدته هنا عمداً: نسخةٌ من الشرط تنجح حين ينحرف الأصلُ عنها،
     وهي بالضبط طبقةُ الوهم التي جعلت الطرفَين أخضرَين والوصلةَ مكسورة.
     """
     import asyncio
-    import os
 
     class _Request:
         def __init__(self) -> None:
@@ -65,7 +92,8 @@ def _guard_verdict(module, headers: dict[str, str], *, required: str) -> str:
     async def _call_next(_request):
         return "reached_the_route"
 
-    os.environ["DECISION_SERVICE_AUTH_TOKEN"] = required
+    monkeypatch.setenv("DECISION_SERVICE_AUTH_TOKEN", required)
+
     result = asyncio.run(module._service_token_guard(_Request(), _call_next))
     return "accepted" if result == "reached_the_route" else f"{result.status_code}"
 
@@ -87,7 +115,7 @@ def test_what_the_platform_sends_is_what_the_service_accepts(monkeypatch):
     module = _decision_service()
     headers = decision_service_headers(tenant_id="t1")
     assert headers["Authorization"] == f"Bearer {TOKEN}"
-    assert _guard_verdict(module, headers, required=TOKEN) == "accepted"
+    assert _guard_verdict(module, headers, required=TOKEN, monkeypatch=monkeypatch) == "accepted"
 
 
 def test_without_the_variable_the_platform_sends_no_bearer_and_the_service_refuses(monkeypatch):
@@ -100,7 +128,7 @@ def test_without_the_variable_the_platform_sends_no_bearer_and_the_service_refus
     module = _decision_service()
     headers = decision_service_headers(tenant_id="t1")
     assert "Authorization" not in headers
-    assert _guard_verdict(module, headers, required=TOKEN) == "401"
+    assert _guard_verdict(module, headers, required=TOKEN, monkeypatch=monkeypatch) == "401"
 
 
 def test_a_caller_supplied_authorization_is_not_overwritten_by_the_service_token(monkeypatch):
