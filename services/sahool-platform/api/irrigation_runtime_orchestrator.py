@@ -15,6 +15,7 @@ from typing import Any
 from api.canonical_water_state import resolve_canonical_water_state
 from api.field_context import _field_weather_context
 from api.hourly_energy_aware_irrigation_mpc import solve_hourly_energy_aware_mpc
+from api.persisted_canonical_repositories import decode_jsonb
 from api.weather_service_client import get_hourly_etc_product
 from shared.knowledge.context_resolver import ContextResolver
 from shared.knowledge.irrigation_context import IRRIGATION_RECOMMENDATION_CONTEXT
@@ -56,7 +57,10 @@ async def _latest_capability_graph(conn, *, field_id: str, season_id: str) -> di
     )
     if row is None:
         return None
-    payload = dict(row["payload"] or {})
+    payload = decode_jsonb(row["payload"], None)
+    if not isinstance(payload, dict):
+        raise ValueError("capability payload must be a JSON object")
+    payload = dict(payload)
     payload.setdefault("irrigation_capability_digest", str(row["capability_digest"]))
     payload.setdefault("capability_digest", str(row["capability_digest"]))
     payload.setdefault("status", str(row["status"]))
@@ -83,7 +87,15 @@ async def _latest_executability_gate(
     )
     if row is None:
         return None
-    payload = dict(row["snapshot"] or {})
+    payload = decode_jsonb(row["snapshot"], None)
+    reasons = decode_jsonb(row["blocking_reasons"], None)
+    if (
+        not isinstance(payload, dict)
+        or not isinstance(reasons, list)
+        or not all(isinstance(reason, str) for reason in reasons)
+    ):
+        raise ValueError("gate snapshot/reasons have invalid JSON shapes")
+    payload = dict(payload)
     valid_until = row["valid_until"]
     expired = valid_until is not None and valid_until <= datetime.now(UTC)
     allowed = bool(row["execution_allowed"]) and not expired
@@ -92,7 +104,7 @@ async def _latest_executability_gate(
             "status": "executable" if allowed else "blocked",
             "execution_allowed": allowed,
             "valid_until": None if valid_until is None else valid_until.isoformat(),
-            "blocking_reasons": list(row["blocking_reasons"] or [])
+            "blocking_reasons": list(reasons)
             + (["COMMISSIONING_CERTIFICATION_EXPIRED"] if expired else []),
             "executability_digest": str(row["executability_digest"]),
             "commissioning_certification_digest": str(row["commissioning_certification_digest"]),
@@ -292,15 +304,21 @@ async def orchestrate_irrigation_recommendation(
     if area is None or float(area) <= 0:
         return _blocked(field_id=field_id, reason="valid_field_area_required")
 
-    capability = await _latest_capability_graph(conn, field_id=field_id, season_id=season_id)
+    try:
+        capability = await _latest_capability_graph(conn, field_id=field_id, season_id=season_id)
+    except (ValueError, TypeError):
+        return _blocked(field_id=field_id, reason="canonical_irrigation_capability_graph_invalid")
     if capability is None:
         return _blocked(field_id=field_id, reason="canonical_irrigation_capability_graph_missing")
     capability_digest = str(
         capability.get("irrigation_capability_digest") or capability.get("capability_digest") or ""
     )
-    gate = await _latest_executability_gate(
-        conn, field_id=field_id, season_id=season_id, capability_digest=capability_digest
-    )
+    try:
+        gate = await _latest_executability_gate(
+            conn, field_id=field_id, season_id=season_id, capability_digest=capability_digest
+        )
+    except (ValueError, TypeError):
+        return _blocked(field_id=field_id, reason="commissioning_executability_gate_invalid")
     if gate is None:
         return _blocked(field_id=field_id, reason="commissioning_executability_gate_missing")
 

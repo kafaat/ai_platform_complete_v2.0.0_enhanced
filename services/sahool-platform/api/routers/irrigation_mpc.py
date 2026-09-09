@@ -1,16 +1,14 @@
 """api/routers/irrigation_mpc.py — نقطة متحكّم الريّ الهرميّ المعجميّ (Lexicographic MPC).
 
-P1.1b: أوّل **مستهلك إنتاجيّ** لـ`solve_lexicographic_irrigation` — يقرأ حقيقة الخادم
-(أحدث استنزاف من `water_ledger`) عند غيابها، يحلّ القرار المعجميّ، ويعيده كاملاً بنَسَبه
-(`content_digest`/`idempotency_key`/`objective_trace`). **توصية-فقط**: لا أمر مضخّة؛
-`submit=true` (خلف عَلَم الجسر) يُصدِر مرشّحاً محكوماً إلى مركز القرار فقط.
+المساران `/plan` و`/simulate` يقبلان حقائق العميل، ولذلك يعيدان محاكاة فقط ولا
+يُصدران مرشّحاً محكوماً، حتى عند قراءة استنزاف البداية من `water_ledger`.
+مصدر Dr الخادمي لا يغيّر مصدر TAW والطقس وبقيّة حقائق العميل.
 
 `tenant_id` من المستخدم المُصادَق (لا من الجسم) — عزل المستأجِر. الحساب نقيّ فيُختبَر
 باستدعاء المعالِج.
 
-**P1.1c (تصلّب fail-closed + فصل المحاكاة/العمليّ):** تمرير `initial_depletion_mm` صريحاً
-⇒ **محاكاة** (حقيقة عميل) لا تُصدَر مرشّحاً محكوماً. غيابه ⇒ يُقرأ Dr من `water_ledger`
-(حقيقة الخادم) = **عمليّ** قابل للإصدار؛ وغياب صفّ الدفتر ⇒ **blocked** (لا اختلاق Dr=0).
+غياب `initial_depletion_mm` في `/plan` يسمح بقراءة Dr كبداية للمحاكاة فقط؛
+وغياب صفّ الدفتر ⇒ **blocked** (لا اختلاق Dr=0).
 حدود صارمة على العقد (422 على القيم السالبة/خارج المدى).
 
 **P1.1c-b (مصدرة الحقائق الخادميّة + فصل المسارات):** مساران منفصلان —
@@ -55,10 +53,9 @@ class ForecastDayIn(BaseModel):
 class MpcPlanRequest(BaseModel):
     """مدخلات خطّة الريّ المعجميّة.
 
-    **دلالة المدخلات (P1.1c):** تمرير `initial_depletion_mm` صريحاً ⇒ **محاكاة** (حقيقة
-    عميل، لا تُصدِر مرشّحاً محكوماً). غيابه ⇒ يُقرأ Dr من `water_ledger` (حقيقة الخادم) =
-    **عمليّ** قابل للإصدار؛ وغياب صفّ الدفتر ⇒ **fail-closed** (لا اختلاق صفر). الحدود
-    الصارمة أدناه ترفض القيم غير القانونيّة بـ422.
+    جميع هذه المدخلات للمحاكاة فقط. عند غياب `initial_depletion_mm` يُقرأ Dr من
+    `water_ledger` كبداية للمحاكاة، ويُحجب الحساب إن غاب صفّ الدفتر. مدخلات TAW والطقس
+    تبقى حقائق عميل، ولا يُسمح بإصدار مرشّح منها. الحدود أدناه تُفرَض بـ422.
     """
 
     field_id: str = Field(min_length=1)
@@ -74,7 +71,7 @@ class MpcPlanRequest(BaseModel):
     season_budget_mm: float | None = Field(default=None, ge=0)
     water_price_per_m3: float | None = Field(default=None, ge=0)
     depletion_confidence: float | None = Field(default=None, ge=0, le=1)
-    submit: bool = False  # إصدار مرشّح محكوم (عمليّ فقط، خلف عَلَم الجسر)
+    submit: bool = False  # Legacy compatibility: simulation submissions are rejected.
 
 
 async def _latest_ledger_depletion(user: UserSchema, field_id: str) -> float | None:
@@ -97,7 +94,7 @@ async def irrigation_mpc_plan(
     req: MpcPlanRequest, user: UserSchema = Depends(get_current_user)
 ) -> dict:
     tenant_id = user.tenant_id
-    # P1.1c: فصل المحاكاة عن العمليّ + fail-closed على غياب الحقيقة (لا اختلاق Dr=0).
+    # The entire request remains a simulation, including when only Dr is server-owned.
     manual_depletion = req.initial_depletion_mm is not None
     if manual_depletion:
         depletion = float(req.initial_depletion_mm)  # حقيقة عميل ⇒ محاكاة
@@ -140,23 +137,22 @@ async def irrigation_mpc_plan(
         data_degraded=False,
     )
 
-    # وضع صريح: المحاكاة (حقائق عميل) لا تُصدَر مرشّحاً محكوماً؛ العمليّ (حقيقة خادم) يُصدَر.
-    mode = "simulation" if manual_depletion else "operational"
-    out: dict = {"decision": decision.to_dict(), "depletion_source": depletion_source, "mode": mode}
+    out: dict = {
+        "decision": decision.to_dict(),
+        "depletion_source": depletion_source,
+        "mode": "simulation",
+        "execution_allowed": False,
+        "recommendation_only": True,
+    }
 
     if req.submit:
-        if manual_depletion:
-            out["emit"] = {
-                "status": "rejected_simulation",
-                "detail": (
-                    "لا يُصدَر مرشّح محكوم من محاكاة (حقائق عميل). الإصدار العمليّ يتطلّب "
-                    "استنزافاً مرجعيّاً من الخادم (water_ledger)."
-                ),
-            }
-        elif not bridge_enabled():
-            out["emit"] = {"status": "disabled"}
-        else:
-            out["emit"] = await emit_mpc_candidate(decision, tenant_id=tenant_id)
+        out["emit"] = {
+            "status": "rejected_simulation",
+            "detail": (
+                "لا يُصدَر مرشّح محكوم من محاكاة. استخدم مسار التوصية الخادمي الذي "
+                "يتحقق من جميع الحقائق؛ قراءة Dr من water_ledger وحدها لا تكفي."
+            ),
+        }
     return out
 
 

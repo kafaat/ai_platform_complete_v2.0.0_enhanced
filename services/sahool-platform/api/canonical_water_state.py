@@ -8,9 +8,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta
+from decimal import Decimal
 from typing import Any
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from core.season_phenology import crop_kc_profile, resolve_crop_id, stage_kc
 
@@ -29,6 +32,16 @@ def _digest(payload: Any) -> str:
 
 def _rowdict(row: Any) -> dict | None:
     return None if row is None else dict(row)
+
+
+def _finite_number(value: Any) -> bool:
+    # PostgreSQL NUMERIC may be Decimal; client/provider strings and bools are not quantities.
+    if isinstance(value, bool) or not isinstance(value, (int, float, Decimal)):
+        return False
+    try:
+        return math.isfinite(value)
+    except (OverflowError, ValueError):
+        return False
 
 
 @dataclass(frozen=True)
@@ -81,6 +94,10 @@ async def resolve_canonical_water_state(
     if season is None:
         return {"status": "blocked", "reason": "no_active_season", "field_id": field_id}
     season_id = str(season["season_id"])
+
+    def blocked(reason: str) -> dict:
+        return {"status": "blocked", "reason": reason, "field_id": field_id, "season_id": season_id}
+
     # Variety source contract: seasons.cultivar is the canonical variety identifier
     # (v32: «الصنف / variety»). seasons.seed_variety_source is deliberately NOT a
     # fallback — v42 defines it as the seed supplier/origin, not a variety name.
@@ -106,9 +123,20 @@ async def resolve_canonical_water_state(
             "season_id": season_id,
         }
 
+    depletion = ledger["depletion_mm"]
+    if not _finite_number(depletion) or depletion < 0:
+        return blocked("invalid_ground_truth_depletion")
+    confidence = ledger["confidence"]
+    if confidence is not None and (not _finite_number(confidence) or not 0 <= confidence <= 1):
+        return blocked("invalid_depletion_confidence")
     ledger_date = ledger["ledger_date"]
+    if not isinstance(ledger_date, date) or isinstance(ledger_date, datetime):
+        return blocked("invalid_water_ledger_date")
+    now = datetime.now(UTC)
+    if ledger_date > now.date():
+        return blocked("water_ledger_date_in_future")
     ledger_dt = datetime.combine(ledger_date, datetime.min.time(), tzinfo=UTC)
-    age_hours = max(0.0, (datetime.now(UTC) - ledger_dt).total_seconds() / 3600.0)
+    age_hours = (now - ledger_dt).total_seconds() / 3600.0
 
     crop_id = resolve_crop_id(crop)
     kc_profile = crop_kc_profile(crop_id)
@@ -141,13 +169,37 @@ async def resolve_canonical_water_state(
 
     fc = await get_weather_forecast(lat, lon, days=horizon_days)
     days = fc.get("days") or []
-    if len(days) < horizon_days:
+    if not isinstance(days, list) or len(days) < horizon_days:
         return {
             "status": "blocked",
             "reason": "weather_forecast_incomplete",
             "field_id": field_id,
             "season_id": season_id,
         }
+
+    # Daily weather uses the provider's local calendar (Open-Meteo timezone=auto).
+    # Missing legacy timezone metadata retains the UTC calendar; invalid metadata blocks.
+    try:
+        zone = fc.get("timezone")
+        weather_tz = UTC if zone is None else ZoneInfo(zone)
+        first_date = now.astimezone(weather_tz).date()
+        for i, day in enumerate(days[:horizon_days]):
+            expected_date = (first_date + timedelta(days=i)).isoformat()
+            if not isinstance(day, dict) or day.get("date") != expected_date:
+                return blocked("weather_forecast_dates_invalid")
+    except (TypeError, ValueError, ZoneInfoNotFoundError):
+        return blocked("weather_forecast_dates_invalid")
+    if any(
+        not _finite_number(d.get("precipitation_mm")) or d["precipitation_mm"] < 0
+        for d in days[:horizon_days]
+    ):
+        return blocked("canonical_rain_incomplete")
+
+    # An operational calculation must use field elevation, never a fixed 2000 m or
+    # Weather Engine's implicit sea-level default when elevation is absent.
+    elevation = await conn.fetchval("SELECT elevation_m FROM fields WHERE field_id=$1", field_id)
+    if not _finite_number(elevation):
+        return blocked("canonical_field_elevation_missing")
 
     # ET0 is produced only by Weather Engine; the forecast endpoint supplies meteorology.
     series = await get_et0_series(
@@ -157,13 +209,17 @@ async def resolve_canonical_water_state(
         daily_rh_mean_pct=[d.get("humidity_mean_pct") for d in days[:horizon_days]],
         daily_wind_2m_ms=[d.get("wind_max_ms") for d in days[:horizon_days]],
         lat_deg=lat,
-        elevation_m=2000.0,
+        elevation_m=float(elevation),
         daily_dates=[d.get("date") for d in days[:horizon_days]],
         tenant_id=tenant_id,
         valid_period={"start": days[0].get("date"), "end": days[horizon_days - 1].get("date")},
     )
     et0_days = series.get("daily_et0_mm") or []
-    if len(et0_days) < horizon_days or any(v is None for v in et0_days[:horizon_days]):
+    if (
+        not isinstance(et0_days, list)
+        or len(et0_days) < horizon_days
+        or any(not _finite_number(v) or v < 0 for v in et0_days[:horizon_days])
+    ):
         return {
             "status": "blocked",
             "reason": "canonical_et0_incomplete",
@@ -173,7 +229,7 @@ async def resolve_canonical_water_state(
 
     forecast: list[dict] = []
     for i, d in enumerate(days[:horizon_days]):
-        rain = d.get("precipitation_mm", 0.0)
+        rain = d["precipitation_mm"]
         kc = stage_kc(crop_id, None if days_since_sowing is None else days_since_sowing + i)
         if kc is None:
             return {
@@ -187,7 +243,7 @@ async def resolve_canonical_water_state(
                 "date": d.get("date"),
                 "et0_mm": float(et0_days[i]),
                 "kc": float(kc),
-                "rain_mm": float(rain or 0.0),
+                "rain_mm": float(rain),
                 "runoff_mm": 0.0,
                 "source": "weather-engine-et0-series+season-phenology",
             }
@@ -220,7 +276,7 @@ async def resolve_canonical_water_state(
             "days_since_sowing": days_since_sowing,
         },
         "weather_source": fc.get("source") or "weather-engine",
-        "location": {"lat": float(lat), "lon": float(lon)},
+        "location": {"lat": float(lat), "lon": float(lon), "elevation_m": float(elevation)},
     }
     weather_digest = _digest(forecast)
     soil_digest = root_zone.profile_digest
