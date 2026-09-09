@@ -389,6 +389,40 @@
     ]
   },
   {
+    "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SEC-003",
+        "score": 20,
+        "signals": [
+          "explicit_id"
+        ]
+      },
+      {
+        "capability_id": "IRR-010",
+        "score": 20,
+        "signals": [
+          "explicit_id"
+        ]
+      },
+      {
+        "capability_id": "IRR-009",
+        "score": 20,
+        "signals": [
+          "explicit_id"
+        ]
+      },
+      {
+        "capability_id": "IRR-008",
+        "score": 20,
+        "signals": [
+          "explicit_id"
+        ]
+      }
+    ]
+  },
+  {
     "path": "config/endpoint_ui_coverage.json",
     "kind": "other",
     "candidates": [

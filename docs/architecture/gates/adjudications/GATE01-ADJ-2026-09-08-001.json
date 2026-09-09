@@ -3,7 +3,7 @@
   "version": 1,
   "adjudication_id": "GATE01-ADJ-2026-09-08-001",
   "gate_id": "GATE-01",
-  "status": "ISSUED",
+  "status": "CONSUMED",
   "approved_by": "owner",
   "adjudicated_on": "2026-09-08",
   "one_time": true,
@@ -43,6 +43,8 @@
     "note_ar": "سجل للطلب الصريح في الجلسة، لا توقيع مستقل ولا شهادة صحة تشغيلية. المراجعة المستقلة وقرار الدمج خارج هذا السجل."
   },
   "consumption": {
-    "note_ar": "بعد الدمج فقط يضاف merge_sha وconsumed_on وتصبح الحالة CONSUMED؛ لا ادعاء دمج الآن."
+    "merge_sha": "7407eae2ba006a4c4c07018988a0f680e176abea",
+    "consumed_on": "2026-09-09",
+    "note_ar": "دخلت البايتات المأذونة إلى main عبر PR #990 بعد إدماج إصلاحات PR #991. طوبقت بصمتا authorized_blobs مع شجرة الدمج المذكور قبل ختم الاستهلاك؛ لا يوسّع هذا الختم التفويض ولا يغيّر حالة GATE-01 العالمية."
   }
 }
