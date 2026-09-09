@@ -505,7 +505,7 @@
     },
     {
       "kind": "app",
-      "line": 18,
+      "line": 23,
       "module": "services.remote-sensing-workspace-bff.main",
       "node_id": "services.remote-sensing-workspace-bff.main:app",
       "route_count": 3,
@@ -640,7 +640,7 @@
     },
     {
       "kind": "router",
-      "line": 43,
+      "line": 44,
       "module": "services.sahool-platform.api.routers.auth",
       "node_id": "services.sahool-platform.api.routers.auth:router",
       "route_count": 4,
@@ -2613,7 +2613,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "c72791c9f39bc8b82ce61de6722dfb17657d6b4574066a23010358c50f6699f5",
+  "inventory_sha256": "2fb06f206b44d8a3254105e397c477e172856dbd39688ea42c279b0d7cb2c122",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {
@@ -3079,7 +3079,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 43,
+      "line": 44,
       "module": "services.sahool-platform.api.routers.auth",
       "node_id": "services.sahool-platform.api.routers.auth:router",
       "route_count": 4,

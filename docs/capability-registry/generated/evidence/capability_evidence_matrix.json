@@ -1034,6 +1034,7 @@
       "title": "Learning attribution",
       "unit_test_paths": [
         "services/decision-service/tests/test_wx10_13_learning_attribution.py",
+        "services/vegetation-analysis-service/test_post_execution_bridge.py",
         "tests_v9/test_closed_agronomic_loop_authority_guard.py"
       ]
     },

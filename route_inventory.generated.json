@@ -2466,7 +2466,7 @@
   {
     "service": "remote-sensing-workspace-bff",
     "file": "services/remote-sensing-workspace-bff/main.py",
-    "line": 33,
+    "line": 39,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -2474,7 +2474,7 @@
   {
     "service": "remote-sensing-workspace-bff",
     "file": "services/remote-sensing-workspace-bff/main.py",
-    "line": 38,
+    "line": 44,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -2482,7 +2482,7 @@
   {
     "service": "remote-sensing-workspace-bff",
     "file": "services/remote-sensing-workspace-bff/main.py",
-    "line": 69,
+    "line": 109,
     "method": "GET",
     "path": "/v1/fields/{field_id}/remote-sensing-workspace",
     "function": "workspace"
@@ -3194,7 +3194,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/auth.py",
-    "line": 47,
+    "line": 48,
     "method": "POST",
     "path": "/api/v1/auth/login",
     "function": "login"
@@ -3202,7 +3202,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/auth.py",
-    "line": 91,
+    "line": 92,
     "method": "GET",
     "path": "/api/v1/auth/me",
     "function": "auth_me"
@@ -3210,7 +3210,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/auth.py",
-    "line": 104,
+    "line": 106,
     "method": "POST",
     "path": "/api/v1/auth/logout",
     "function": "auth_logout"
@@ -3218,7 +3218,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/auth.py",
-    "line": 132,
+    "line": 134,
     "method": "POST",
     "path": "/api/v1/auth/signup",
     "function": "auth_signup"

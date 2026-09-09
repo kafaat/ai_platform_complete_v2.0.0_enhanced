@@ -8618,6 +8618,28 @@
     ]
   },
   {
+    "path": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "DEC-004",
+        "score": 10,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      },
+      {
+        "capability_id": "DEC-008",
+        "score": 8,
+        "signals": [
+          "content:Learning attribution",
+          "content:learning attribution"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/vegetation-analysis-service/test_vegetation_logic.py",
     "kind": "tests",
     "candidates": [

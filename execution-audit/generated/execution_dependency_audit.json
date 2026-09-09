@@ -3,9 +3,9 @@
   "schema_version": 1,
   "evidence_scope": "static_repository_only",
   "runtime_verified": false,
-  "python_files_parsed": 1886,
+  "python_files_parsed": 1887,
   "route_handlers": 1049,
-  "call_edges": 77322,
+  "call_edges": 77431,
   "dead_code_candidates": 627,
   "duplicate_function_groups": 60,
   "route_owners": 27,
@@ -2391,7 +2391,7 @@
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
-   "line": 33,
+   "line": 39,
    "handler": "healthz",
    "method": "GET",
    "path": "/healthz"
@@ -2399,7 +2399,7 @@
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
-   "line": 38,
+   "line": 44,
    "handler": "readyz",
    "method": "GET",
    "path": "/readyz"
@@ -2407,7 +2407,7 @@
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
-   "line": 69,
+   "line": 109,
    "handler": "workspace",
    "method": "GET",
    "path": "/v1/fields/{field_id}/remote-sensing-workspace"
@@ -2975,7 +2975,7 @@
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
-   "line": 47,
+   "line": 48,
    "handler": "login",
    "method": "POST",
    "path": "/api/v1/auth/login"
@@ -2983,7 +2983,7 @@
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
-   "line": 91,
+   "line": 92,
    "handler": "auth_me",
    "method": "GET",
    "path": "/api/v1/auth/me"
@@ -2991,7 +2991,7 @@
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
-   "line": 104,
+   "line": 106,
    "handler": "auth_logout",
    "method": "POST",
    "path": "/api/v1/auth/logout"
@@ -2999,7 +2999,7 @@
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
-   "line": 132,
+   "line": 134,
    "handler": "auth_signup",
    "method": "POST",
    "path": "/api/v1/auth/signup"
@@ -70852,6 +70852,69 @@
    "source": "test_production_restricts_exemptions_to_probes",
    "target": "get",
    "line": 99
+  },
+  {
+   "owner": "decision-service",
+   "file": "services/decision-service/tests/test_service_token_guard.py",
+   "source": "test_platform_facade_headers_pass_the_real_receiver_guard",
+   "target": "parametrize",
+   "line": 102
+  },
+  {
+   "owner": "decision-service",
+   "file": "services/decision-service/tests/test_service_token_guard.py",
+   "source": "test_platform_facade_headers_pass_the_real_receiver_guard",
+   "target": "spec_from_file_location",
+   "line": 107
+  },
+  {
+   "owner": "decision-service",
+   "file": "services/decision-service/tests/test_service_token_guard.py",
+   "source": "test_platform_facade_headers_pass_the_real_receiver_guard",
+   "target": "module_from_spec",
+   "line": 108
+  },
+  {
+   "owner": "decision-service",
+   "file": "services/decision-service/tests/test_service_token_guard.py",
+   "source": "test_platform_facade_headers_pass_the_real_receiver_guard",
+   "target": "exec_module",
+   "line": 109
+  },
+  {
+   "owner": "decision-service",
+   "file": "services/decision-service/tests/test_service_token_guard.py",
+   "source": "test_platform_facade_headers_pass_the_real_receiver_guard",
+   "target": "_client",
+   "line": 110
+  },
+  {
+   "owner": "decision-service",
+   "file": "services/decision-service/tests/test_service_token_guard.py",
+   "source": "test_platform_facade_headers_pass_the_real_receiver_guard",
+   "target": "setenv",
+   "line": 111
+  },
+  {
+   "owner": "decision-service",
+   "file": "services/decision-service/tests/test_service_token_guard.py",
+   "source": "test_platform_facade_headers_pass_the_real_receiver_guard",
+   "target": "setenv",
+   "line": 112
+  },
+  {
+   "owner": "decision-service",
+   "file": "services/decision-service/tests/test_service_token_guard.py",
+   "source": "test_platform_facade_headers_pass_the_real_receiver_guard",
+   "target": "decision_service_headers",
+   "line": 114
+  },
+  {
+   "owner": "decision-service",
+   "file": "services/decision-service/tests/test_service_token_guard.py",
+   "source": "test_platform_facade_headers_pass_the_real_receiver_guard",
+   "target": "get",
+   "line": 119
   },
   {
    "owner": "decision-service",
@@ -162761,553 +162824,861 @@
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "healthz",
    "target": "get",
-   "line": 32
+   "line": 38
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "readyz",
    "target": "get",
-   "line": 37
+   "line": 43
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "readyz",
    "target": "items",
-   "line": 44
+   "line": 51
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "readyz",
    "target": "sorted",
-   "line": 44
+   "line": 51
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "readyz",
+   "target": "decision_service_auth_headers",
+   "line": 53
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "readyz",
+   "target": "append",
+   "line": 55
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "readyz",
    "target": "HTTPException",
-   "line": 46
+   "line": 57
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "readyz",
    "target": "bool",
-   "line": 52
+   "line": 63
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "_get",
    "target": "get",
-   "line": 62
+   "line": 73
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "_get",
    "target": "RuntimeError",
-   "line": 64
+   "line": 75
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "_get",
    "target": "json",
-   "line": 65
+   "line": 76
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "_workspace_identity",
+   "target": "get",
+   "line": 88
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "_workspace_identity",
+   "target": "HTTPException",
+   "line": 92
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "_workspace_identity",
+   "target": "raise_for_status",
+   "line": 93
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "_workspace_identity",
+   "target": "json",
+   "line": 94
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "_workspace_identity",
+   "target": "fullmatch",
+   "line": 97
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "_workspace_identity",
+   "target": "isinstance",
+   "line": 97
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "_workspace_identity",
+   "target": "ValueError",
+   "line": 98
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "_workspace_identity",
+   "target": "all",
+   "line": 99
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "_workspace_identity",
+   "target": "isinstance",
+   "line": 99
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "_workspace_identity",
+   "target": "isinstance",
+   "line": 99
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "_workspace_identity",
+   "target": "ValueError",
+   "line": 100
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "_workspace_identity",
+   "target": "HTTPException",
+   "line": 102
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "_workspace_identity",
+   "target": "HTTPException",
+   "line": 104
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
    "target": "get",
-   "line": 68
+   "line": 108
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
    "target": "Query",
-   "line": 72
+   "line": 112
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
    "target": "Header",
-   "line": 73
+   "line": 113
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
    "target": "Header",
-   "line": 74
+   "line": 114
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
    "target": "split",
-   "line": 76
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "strip",
-   "line": 76
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "strip",
-   "line": 76
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "sorted",
-   "line": 77
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "HTTPException",
-   "line": 79
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "len",
-   "line": 80
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "strip",
-   "line": 80
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "HTTPException",
-   "line": 81
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "fullmatch",
-   "line": 82
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "HTTPException",
-   "line": 83
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "fullmatch",
-   "line": 84
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "HTTPException",
-   "line": 85
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "fullmatch",
-   "line": 86
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "HTTPException",
-   "line": 87
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "AsyncClient",
-   "line": 99
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "_get",
-   "line": 102
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "_get",
-   "line": 109
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "_get",
    "line": 116
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
-   "target": "_get",
+   "target": "strip",
+   "line": 116
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "strip",
+   "line": 116
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "sorted",
+   "line": 117
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "HTTPException",
+   "line": 119
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "len",
+   "line": 120
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "strip",
+   "line": 120
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "HTTPException",
+   "line": 121
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "fullmatch",
+   "line": 122
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "HTTPException",
    "line": 123
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
-   "target": "_get",
-   "line": 130
+   "target": "fullmatch",
+   "line": 124
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
-   "target": "list",
-   "line": 137
+   "target": "HTTPException",
+   "line": 125
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
-   "target": "gather",
+   "target": "fullmatch",
+   "line": 126
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "HTTPException",
+   "line": 127
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "AsyncClient",
    "line": 138
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
-   "target": "zip",
-   "line": 141
+   "target": "_workspace_identity",
+   "line": 139
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
-   "target": "isinstance",
-   "line": 142
+   "target": "decision_service_auth_headers",
+   "line": 144
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "HTTPException",
+   "line": 146
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
    "target": "str",
-   "line": 143
+   "line": 146
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
-   "target": "startswith",
-   "line": 145
+   "target": "_get",
+   "line": 149
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
-   "target": "get",
-   "line": 151
+   "target": "_get",
+   "line": 156
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
-   "target": "get",
-   "line": 153
+   "target": "_get",
+   "line": 163
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
-   "target": "get",
-   "line": 155
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "get",
-   "line": 157
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "get",
-   "line": 160
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "get",
-   "line": 168
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "get",
+   "target": "_get",
    "line": 170
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
-   "target": "get",
-   "line": 171
+   "target": "_get",
+   "line": 177
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
-   "target": "get",
-   "line": 174
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "get",
-   "line": 175
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "get",
-   "line": 175
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "get",
-   "line": 176
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "get",
-   "line": 176
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "get",
-   "line": 179
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "get",
-   "line": 180
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "len",
-   "line": 180
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "get",
-   "line": 181
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "sum",
-   "line": 181
-  },
-  {
-   "owner": "remote-sensing-workspace-bff",
-   "file": "services/remote-sensing-workspace-bff/main.py",
-   "source": "workspace",
-   "target": "len",
+   "target": "list",
    "line": 184
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
-   "target": "bool",
+   "target": "gather",
    "line": 185
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
-   "target": "get",
-   "line": 186
+   "target": "zip",
+   "line": 188
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "isinstance",
+   "line": 189
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "str",
+   "line": 190
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "startswith",
+   "line": 192
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/main.py",
    "source": "workspace",
    "target": "get",
-   "line": 186
+   "line": 198
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "get",
+   "line": 200
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "get",
+   "line": 202
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "get",
+   "line": 204
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "get",
+   "line": 207
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "get",
+   "line": 215
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "get",
+   "line": 217
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "get",
+   "line": 218
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "get",
+   "line": 221
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "get",
+   "line": 222
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "get",
+   "line": 222
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "get",
+   "line": 223
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "get",
+   "line": 223
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "get",
+   "line": 226
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "get",
+   "line": 227
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "len",
+   "line": 227
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "get",
+   "line": 228
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "sum",
+   "line": 228
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "len",
+   "line": 231
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "bool",
+   "line": 232
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "get",
+   "line": 233
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/main.py",
+   "source": "workspace",
+   "target": "get",
+   "line": 233
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "platform_identity",
+   "target": "fixture",
+   "line": 18
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "handler",
+   "target": "append",
+   "line": 27
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "platform_identity",
+   "target": "append",
+   "line": 27
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "handler",
+   "target": "Response",
+   "line": 29
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "platform_identity",
+   "target": "Response",
+   "line": 29
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "handler",
+   "target": "Response",
+   "line": 30
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "platform_identity",
+   "target": "Response",
+   "line": 30
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "platform_identity",
+   "target": "setattr",
+   "line": 33
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "platform_identity",
+   "target": "original",
+   "line": 36
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "platform_identity",
+   "target": "MockTransport",
+   "line": 37
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "platform_identity",
+   "target": "setenv",
+   "line": 41
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
    "source": "test_health",
    "target": "get",
-   "line": 15
+   "line": 46
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
    "source": "test_unknown_section_fails_before_upstream_calls",
    "target": "get",
-   "line": 19
+   "line": 50
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
    "source": "test_ground_section_is_honest_when_task_service_missing",
    "target": "setattr",
-   "line": 28
+   "line": 59
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
    "source": "test_ground_section_is_honest_when_task_service_missing",
    "target": "get",
-   "line": 29
+   "line": 60
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
    "source": "test_ground_section_is_honest_when_task_service_missing",
    "target": "json",
-   "line": 35
+   "line": 66
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
    "source": "test_readyz_reports_optional_task_service",
    "target": "get",
-   "line": 43
+   "line": 74
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
    "source": "test_readyz_reports_optional_task_service",
    "target": "json",
-   "line": 45
+   "line": 76
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
    "source": "fake_get",
    "target": "endswith",
-   "line": 58
+   "line": 89
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
    "source": "test_overview_counts_use_real_upstream_keys",
    "target": "endswith",
-   "line": 58
+   "line": 89
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
    "source": "fake_get",
    "target": "AssertionError",
-   "line": 62
+   "line": 93
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
    "source": "test_overview_counts_use_real_upstream_keys",
    "target": "AssertionError",
-   "line": 62
+   "line": 93
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
    "source": "test_overview_counts_use_real_upstream_keys",
    "target": "setattr",
-   "line": 64
+   "line": 95
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
    "source": "test_overview_counts_use_real_upstream_keys",
    "target": "get",
-   "line": 65
+   "line": 96
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
    "source": "test_overview_counts_use_real_upstream_keys",
    "target": "json",
-   "line": 71
+   "line": 102
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
    "source": "test_overview_counts_use_real_upstream_keys",
    "target": "len",
-   "line": 83
+   "line": 114
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
    "source": "test_malformed_identifiers_rejected",
    "target": "get",
-   "line": 90
+   "line": 121
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
    "source": "test_malformed_identifiers_rejected",
    "target": "json",
-   "line": 96
+   "line": 127
   },
   {
    "owner": "remote-sensing-workspace-bff",
    "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
    "source": "test_malformed_identifiers_rejected",
    "target": "get",
-   "line": 98
+   "line": 129
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "test_identity_failure_blocks_before_domain_calls",
+   "target": "parametrize",
+   "line": 137
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "test_identity_failure_blocks_before_domain_calls",
+   "target": "get",
+   "line": 140
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "test_identity_failure_blocks_before_domain_calls",
+   "target": "len",
+   "line": 146
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "test_tenant_spoof_and_unprivileged_role_are_rejected",
+   "target": "parametrize",
+   "line": 149
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "test_tenant_spoof_and_unprivileged_role_are_rejected",
+   "target": "get",
+   "line": 158
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "test_tenant_spoof_and_unprivileged_role_are_rejected",
+   "target": "len",
+   "line": 164
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "test_verified_tenant_and_service_credential_only_on_decision_calls",
+   "target": "get",
+   "line": 168
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "test_verified_tenant_and_service_credential_only_on_decision_calls",
+   "target": "json",
+   "line": 174
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "test_verified_tenant_and_service_credential_only_on_decision_calls",
+   "target": "len",
+   "line": 176
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "test_missing_production_service_token_never_uses_user_token",
+   "target": "setenv",
+   "line": 190
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "test_missing_production_service_token_never_uses_user_token",
+   "target": "delenv",
+   "line": 191
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "test_missing_production_service_token_never_uses_user_token",
+   "target": "get",
+   "line": 192
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "test_missing_production_service_token_never_uses_user_token",
+   "target": "len",
+   "line": 198
+  },
+  {
+   "owner": "remote-sensing-workspace-bff",
+   "file": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+   "source": "test_missing_production_service_token_never_uses_user_token",
+   "target": "json",
+   "line": 199
   },
   {
    "owner": "sahool-platform",
@@ -187317,49 +187688,28 @@
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_service_url",
    "target": "getenv",
-   "line": 20
+   "line": 25
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_service_url",
    "target": "rstrip",
-   "line": 20
+   "line": 25
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_service_headers",
-   "target": "getenv",
-   "line": 37
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/decision_service_client.py",
-   "source": "decision_service_headers",
-   "target": "str",
-   "line": 39
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/decision_service_client.py",
-   "source": "decision_service_headers",
-   "target": "str",
-   "line": 43
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/decision_service_client.py",
-   "source": "decision_service_headers",
-   "target": "str",
+   "target": "decision_service_auth_headers",
    "line": 45
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_service_headers",
-   "target": "str",
-   "line": 47
+   "target": "HTTPException",
+   "line": 49
   },
   {
    "owner": "sahool-platform",
@@ -187406,345 +187756,380 @@
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_service_headers",
+   "target": "str",
+   "line": 61
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_service_headers",
+   "target": "str",
+   "line": 63
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_service_headers",
+   "target": "str",
+   "line": 65
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_service_headers",
+   "target": "str",
+   "line": 67
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_service_headers",
+   "target": "str",
+   "line": 69
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "_detail_from_response",
    "target": "json",
-   "line": 65
+   "line": 75
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "_detail_from_response",
    "target": "getattr",
-   "line": 67
+   "line": 77
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_get_json",
    "target": "decision_service_url",
-   "line": 81
+   "line": 91
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_get_json",
    "target": "lstrip",
-   "line": 81
+   "line": 91
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_get_json",
    "target": "AsyncClient",
-   "line": 83
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/decision_service_client.py",
-   "source": "decision_get_json",
-   "target": "get",
-   "line": 84
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/decision_service_client.py",
-   "source": "decision_get_json",
-   "target": "decision_service_headers",
-   "line": 87
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/decision_service_client.py",
-   "source": "decision_get_json",
-   "target": "HTTPException",
-   "line": 90
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/decision_service_client.py",
-   "source": "decision_get_json",
-   "target": "HTTPException",
-   "line": 92
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/decision_service_client.py",
-   "source": "decision_get_json",
-   "target": "_detail_from_response",
-   "line": 92
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/decision_service_client.py",
-   "source": "decision_get_json",
-   "target": "json",
    "line": 93
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_get_json",
-   "target": "isinstance",
+   "target": "get",
    "line": 94
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_get_json",
+   "target": "decision_service_headers",
+   "line": 97
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_get_json",
+   "target": "HTTPException",
+   "line": 100
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_get_json",
+   "target": "HTTPException",
+   "line": 102
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_get_json",
+   "target": "_detail_from_response",
+   "line": 102
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_get_json",
+   "target": "json",
+   "line": 103
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/decision_service_client.py",
+   "source": "decision_get_json",
+   "target": "isinstance",
+   "line": 104
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_post_json",
    "target": "decision_service_url",
-   "line": 117
+   "line": 127
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_post_json",
    "target": "lstrip",
-   "line": 117
+   "line": 127
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_post_json",
    "target": "AsyncClient",
-   "line": 119
+   "line": 129
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_post_json",
    "target": "post",
-   "line": 120
+   "line": 130
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_post_json",
    "target": "decision_service_headers",
-   "line": 123
+   "line": 133
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_post_json",
    "target": "HTTPException",
-   "line": 138
+   "line": 148
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_post_json",
    "target": "HTTPException",
-   "line": 140
+   "line": 150
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_post_json",
    "target": "_detail_from_response",
-   "line": 140
+   "line": 150
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_post_json",
    "target": "json",
-   "line": 141
+   "line": 151
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "decision_post_json",
    "target": "isinstance",
-   "line": 142
+   "line": 152
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "record_decision",
    "target": "decision_post_json",
-   "line": 148
+   "line": 158
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "compose_context_snapshot",
    "target": "decision_post_json",
-   "line": 158
+   "line": 168
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "list_review_queue",
    "target": "decision_get_json",
-   "line": 169
+   "line": 179
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "get_decision_agronomic_evidence",
    "target": "decision_get_json",
-   "line": 182
+   "line": 192
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "review_decision",
    "target": "decision_post_json",
-   "line": 198
+   "line": 208
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "create_execution_plan",
    "target": "decision_post_json",
-   "line": 214
+   "line": 224
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "authorize_dispatch",
    "target": "decision_post_json",
-   "line": 230
+   "line": 240
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "create_execution_request",
    "target": "decision_post_json",
-   "line": 246
+   "line": 256
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "verify_execution_outcome",
    "target": "decision_post_json",
-   "line": 262
+   "line": 272
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "create_learning_attribution",
    "target": "decision_post_json",
-   "line": 278
+   "line": 288
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "record_dispatch_decision",
    "target": "decision_post_json",
-   "line": 289
+   "line": 299
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "record_outcome",
    "target": "decision_post_json",
-   "line": 295
+   "line": 305
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "record_recommendation_outcome",
    "target": "decision_post_json",
-   "line": 301
+   "line": 311
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "record_learning_update",
    "target": "decision_post_json",
-   "line": 307
+   "line": 317
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "get_learning_summary",
    "target": "decision_get_json",
-   "line": 313
+   "line": 323
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "get_decision_lineage",
    "target": "decision_get_json",
-   "line": 321
+   "line": 331
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "list_decisions",
    "target": "decision_get_json",
-   "line": 333
+   "line": 343
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "get_field_lineage",
    "target": "decision_get_json",
-   "line": 343
+   "line": 353
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "get_reconciled_outcomes",
    "target": "decision_get_json",
-   "line": 351
+   "line": 361
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "get_calibration_dataset",
    "target": "decision_get_json",
-   "line": 368
+   "line": 378
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "create_model_evaluation_run",
    "target": "decision_post_json",
-   "line": 385
+   "line": 395
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "create_model_promotion_decision",
    "target": "decision_post_json",
-   "line": 394
+   "line": 404
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "create_model_activation_request",
    "target": "decision_post_json",
-   "line": 403
+   "line": 413
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "review_model_activation_request",
    "target": "decision_post_json",
-   "line": 416
+   "line": 426
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "claim_model_registry_activation_command",
    "target": "decision_post_json",
-   "line": 427
+   "line": 437
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "record_model_registry_activation_receipt",
    "target": "decision_post_json",
-   "line": 439
+   "line": 449
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/decision_service_client.py",
    "source": "create_model_registry_rollback_command",
    "target": "decision_post_json",
-   "line": 454
+   "line": 464
   },
   {
    "owner": "sahool-platform",
@@ -234147,112 +234532,112 @@
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "login",
    "target": "post",
-   "line": 46
+   "line": 47
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "login",
    "target": "HTTPException",
-   "line": 55
+   "line": 56
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "login",
    "target": "UserRole",
-   "line": 61
+   "line": 62
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "login",
    "target": "HTTPException",
-   "line": 63
+   "line": 64
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "login",
    "target": "UserSchema",
-   "line": 65
+   "line": 66
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "login",
    "target": "create_token",
-   "line": 71
+   "line": 72
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "login",
    "target": "TokenResponse",
-   "line": 73
+   "line": 74
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "auth_me",
    "target": "get",
-   "line": 90
+   "line": 91
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "auth_me",
    "target": "Depends",
-   "line": 91
+   "line": 92
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/auth.py",
+   "source": "auth_me",
+   "target": "has_permission",
+   "line": 100
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/auth.py",
+   "source": "auth_me",
+   "target": "sorted",
+   "line": 100
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "auth_logout",
    "target": "post",
-   "line": 103
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/auth.py",
-   "source": "auth_logout",
-   "target": "Header",
    "line": 105
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "auth_logout",
+   "target": "Header",
+   "line": 107
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/auth.py",
+   "source": "auth_logout",
    "target": "Depends",
-   "line": 106
+   "line": 108
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "auth_logout",
    "target": "replace",
-   "line": 113
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/auth.py",
-   "source": "auth_logout",
-   "target": "decode",
    "line": 115
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "auth_logout",
-   "target": "get",
-   "line": 119
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/auth.py",
-   "source": "auth_logout",
-   "target": "InvalidTokenError",
-   "line": 120
+   "target": "decode",
+   "line": 117
   },
   {
    "owner": "sahool-platform",
@@ -234265,14 +234650,21 @@
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "auth_logout",
-   "target": "get",
+   "target": "InvalidTokenError",
    "line": 122
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "auth_logout",
-   "target": "int",
+   "target": "get",
+   "line": 123
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/auth.py",
+   "source": "auth_logout",
+   "target": "get",
    "line": 124
   },
   {
@@ -234280,84 +234672,91 @@
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "auth_logout",
    "target": "int",
-   "line": 124
+   "line": 126
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/auth.py",
+   "source": "auth_logout",
+   "target": "int",
+   "line": 126
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "auth_logout",
    "target": "max",
-   "line": 124
+   "line": 126
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "auth_logout",
    "target": "time",
-   "line": 124
+   "line": 126
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "auth_logout",
    "target": "revoke",
-   "line": 125
+   "line": 127
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "auth_logout",
    "target": "warning",
-   "line": 127
+   "line": 129
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "auth_signup",
    "target": "post",
-   "line": 131
+   "line": 133
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "auth_signup",
    "target": "HTTPException",
-   "line": 140
+   "line": 142
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "auth_signup",
    "target": "UserRole",
-   "line": 145
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/routers/auth.py",
-   "source": "auth_signup",
-   "target": "HTTPException",
    "line": 147
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "auth_signup",
+   "target": "HTTPException",
+   "line": 149
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/routers/auth.py",
+   "source": "auth_signup",
    "target": "UserSchema",
-   "line": 148
+   "line": 150
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "auth_signup",
    "target": "create_token",
-   "line": 154
+   "line": 156
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/routers/auth.py",
    "source": "auth_signup",
    "target": "TokenResponse",
-   "line": 155
+   "line": 157
   },
   {
    "owner": "sahool-platform",
@@ -303034,139 +303433,104 @@
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "_bool",
    "target": "getenv",
-   "line": 17
+   "line": 22
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "_bool",
    "target": "lower",
-   "line": 17
+   "line": 22
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "_bool",
    "target": "str",
-   "line": 17
+   "line": 22
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "_bool",
    "target": "strip",
-   "line": 17
+   "line": 22
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "_stable",
    "target": "join",
-   "line": 21
+   "line": 26
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "_stable",
    "target": "str",
-   "line": 21
+   "line": 26
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "_stable",
    "target": "encode",
-   "line": 22
+   "line": 27
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "_stable",
    "target": "hexdigest",
-   "line": 22
+   "line": 27
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "_stable",
    "target": "sha256",
-   "line": 22
+   "line": 27
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "bridge_enabled",
    "target": "_bool",
-   "line": 26
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "_is_production",
-   "target": "getenv",
-   "line": 30
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "_is_production",
-   "target": "lower",
-   "line": 30
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "_is_production",
-   "target": "strip",
-   "line": 30
+   "line": 31
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "water_ledger_identity_startup_error",
    "target": "getenv",
-   "line": 44
+   "line": 45
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "water_ledger_identity_startup_error",
    "target": "lower",
-   "line": 44
+   "line": 45
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "water_ledger_identity_startup_error",
    "target": "strip",
-   "line": 44
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "water_ledger_identity_startup_error",
-   "target": "_is_production",
-   "line": 50
+   "line": 45
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "water_ledger_identity_startup_error",
    "target": "bridge_enabled",
-   "line": 52
+   "line": 51
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "water_ledger_identity_startup_error",
-   "target": "getenv",
-   "line": 54
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "water_ledger_identity_startup_error",
-   "target": "strip",
+   "target": "decision_service_auth_headers",
    "line": 54
   },
   {
@@ -303174,104 +303538,76 @@
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "auto_execution_enabled",
    "target": "_bool",
-   "line": 65
+   "line": 69
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "deficit_threshold_mm",
    "target": "float",
-   "line": 70
+   "line": 74
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "deficit_threshold_mm",
    "target": "getenv",
-   "line": 70
+   "line": 74
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "deficit_threshold_mm",
    "target": "max",
-   "line": 70
+   "line": 74
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "build_candidate",
    "target": "_stable",
-   "line": 84
+   "line": 88
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "build_candidate",
    "target": "isoformat",
-   "line": 84
+   "line": 88
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "build_candidate",
    "target": "_stable",
-   "line": 85
+   "line": 89
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "build_candidate",
    "target": "isoformat",
-   "line": 85
+   "line": 89
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "build_candidate",
    "target": "get",
-   "line": 92
+   "line": 96
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "build_candidate",
    "target": "isoformat",
-   "line": 98
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "build_candidate",
-   "target": "isoformat",
-   "line": 99
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "build_candidate",
-   "target": "get",
-   "line": 100
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "build_candidate",
-   "target": "get",
-   "line": 101
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "build_candidate",
-   "target": "get",
    "line": 102
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "build_candidate",
-   "target": "get",
+   "target": "isoformat",
    "line": 103
   },
   {
@@ -303285,106 +303621,120 @@
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "build_candidate",
-   "target": "auto_execution_enabled",
+   "target": "get",
    "line": 105
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/water_decision_bridge.py",
+   "source": "build_candidate",
+   "target": "get",
+   "line": 106
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/water_decision_bridge.py",
+   "source": "build_candidate",
+   "target": "get",
+   "line": 107
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/water_decision_bridge.py",
+   "source": "build_candidate",
+   "target": "get",
+   "line": 108
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/water_decision_bridge.py",
+   "source": "build_candidate",
+   "target": "auto_execution_enabled",
+   "line": 109
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
    "target": "bridge_enabled",
-   "line": 119
+   "line": 123
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
    "target": "get",
-   "line": 121
+   "line": 125
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
    "target": "deficit_threshold_mm",
-   "line": 122
+   "line": 126
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
    "target": "float",
-   "line": 122
+   "line": 126
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
    "target": "getenv",
-   "line": 133
+   "line": 137
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
    "target": "build_candidate",
-   "line": 134
+   "line": 138
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
    "target": "record_decision",
-   "line": 142
+   "line": 146
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
    "target": "get",
-   "line": 143
+   "line": 147
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
    "target": "get",
-   "line": 143
+   "line": 147
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
    "target": "auto_execution_enabled",
-   "line": 151
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "process_water_deficit",
-   "target": "getenv",
-   "line": 154
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "process_water_deficit",
-   "target": "strip",
-   "line": 154
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "process_water_deficit",
-   "target": "getenv",
    "line": 155
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
+   "target": "getenv",
+   "line": 158
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/water_decision_bridge.py",
+   "source": "process_water_deficit",
    "target": "strip",
-   "line": 155
+   "line": 158
   },
   {
    "owner": "sahool-platform",
@@ -303397,155 +303747,169 @@
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
+   "target": "strip",
+   "line": 159
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/water_decision_bridge.py",
+   "source": "process_water_deficit",
+   "target": "getenv",
+   "line": 163
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/water_decision_bridge.py",
+   "source": "process_water_deficit",
    "target": "review_decision",
-   "line": 160
+   "line": 164
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
    "target": "_stable",
-   "line": 167
+   "line": 171
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
    "target": "get",
-   "line": 173
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "process_water_deficit",
-   "target": "now",
    "line": 177
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
+   "target": "now",
+   "line": 181
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/water_decision_bridge.py",
+   "source": "process_water_deficit",
    "target": "create_execution_plan",
-   "line": 178
+   "line": 182
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
    "target": "isoformat",
-   "line": 184
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "process_water_deficit",
-   "target": "isoformat",
-   "line": 185
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "process_water_deficit",
-   "target": "timedelta",
-   "line": 185
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "process_water_deficit",
-   "target": "float",
    "line": 188
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
-   "target": "_stable",
-   "line": 190
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "process_water_deficit",
-   "target": "get",
-   "line": 195
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "process_water_deficit",
-   "target": "authorize_dispatch",
-   "line": 199
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "process_water_deficit",
    "target": "isoformat",
-   "line": 207
+   "line": 189
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
-   "target": "isoformat",
-   "line": 208
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "process_water_deficit",
-   "target": "_stable",
-   "line": 210
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "process_water_deficit",
-   "target": "get",
-   "line": 215
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "process_water_deficit",
-   "target": "create_execution_request",
-   "line": 219
+   "target": "timedelta",
+   "line": 189
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
    "target": "float",
-   "line": 238
+   "line": 192
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
    "target": "_stable",
-   "line": 240
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "process_water_deficit",
-   "target": "_stable",
-   "line": 243
-  },
-  {
-   "owner": "sahool-platform",
-   "file": "services/sahool-platform/api/water_decision_bridge.py",
-   "source": "process_water_deficit",
-   "target": "_stable",
-   "line": 245
+   "line": 194
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/api/water_decision_bridge.py",
    "source": "process_water_deficit",
    "target": "get",
-   "line": 256
+   "line": 199
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/water_decision_bridge.py",
+   "source": "process_water_deficit",
+   "target": "authorize_dispatch",
+   "line": 203
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/water_decision_bridge.py",
+   "source": "process_water_deficit",
+   "target": "isoformat",
+   "line": 211
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/water_decision_bridge.py",
+   "source": "process_water_deficit",
+   "target": "isoformat",
+   "line": 212
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/water_decision_bridge.py",
+   "source": "process_water_deficit",
+   "target": "_stable",
+   "line": 214
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/water_decision_bridge.py",
+   "source": "process_water_deficit",
+   "target": "get",
+   "line": 219
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/water_decision_bridge.py",
+   "source": "process_water_deficit",
+   "target": "create_execution_request",
+   "line": 223
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/water_decision_bridge.py",
+   "source": "process_water_deficit",
+   "target": "float",
+   "line": 242
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/water_decision_bridge.py",
+   "source": "process_water_deficit",
+   "target": "_stable",
+   "line": 244
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/water_decision_bridge.py",
+   "source": "process_water_deficit",
+   "target": "_stable",
+   "line": 247
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/water_decision_bridge.py",
+   "source": "process_water_deficit",
+   "target": "_stable",
+   "line": 249
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/api/water_decision_bridge.py",
+   "source": "process_water_deficit",
+   "target": "get",
+   "line": 260
   },
   {
    "owner": "sahool-platform",
@@ -388089,30 +388453,170 @@
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
+   "source": "test_decision_transport_uses_service_bearer_and_preserves_actor",
+   "target": "setenv",
+   "line": 41
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
+   "source": "test_decision_transport_uses_service_bearer_and_preserves_actor",
+   "target": "setenv",
+   "line": 42
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
+   "source": "test_decision_transport_uses_service_bearer_and_preserves_actor",
+   "target": "decision_service_headers",
+   "line": 43
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
+   "source": "test_decision_transport_uses_service_bearer_and_preserves_actor",
+   "target": "repr",
+   "line": 50
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
+   "source": "test_missing_decision_credential_cannot_fall_back_to_user_or_agent",
+   "target": "parametrize",
+   "line": 53
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
+   "source": "test_missing_decision_credential_cannot_fall_back_to_user_or_agent",
+   "target": "setenv",
+   "line": 57
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
+   "source": "test_missing_decision_credential_cannot_fall_back_to_user_or_agent",
+   "target": "delenv",
+   "line": 58
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
+   "source": "test_missing_decision_credential_cannot_fall_back_to_user_or_agent",
+   "target": "setenv",
+   "line": 59
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
+   "source": "test_missing_decision_credential_cannot_fall_back_to_user_or_agent",
+   "target": "raises",
+   "line": 60
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
+   "source": "test_missing_decision_credential_cannot_fall_back_to_user_or_agent",
+   "target": "decision_service_headers",
+   "line": 61
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
+   "source": "test_missing_decision_credential_cannot_fall_back_to_user_or_agent",
+   "target": "str",
+   "line": 63
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
+   "source": "test_missing_decision_credential_cannot_fall_back_to_user_or_agent",
+   "target": "str",
+   "line": 64
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
+   "source": "test_session_permission_projection_uses_canonical_policy",
+   "target": "list",
+   "line": 67
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
+   "source": "test_session_permission_projection_uses_canonical_policy",
+   "target": "parametrize",
+   "line": 67
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
+   "source": "test_session_permission_projection_uses_canonical_policy",
+   "target": "parametrize",
+   "line": 68
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
+   "source": "test_session_permission_projection_uses_canonical_policy",
+   "target": "_user",
+   "line": 74
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
+   "source": "test_session_permission_projection_uses_canonical_policy",
+   "target": "replace",
+   "line": 74
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
+   "source": "test_session_permission_projection_uses_canonical_policy",
+   "target": "auth_me",
+   "line": 75
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
+   "source": "test_session_permission_projection_uses_canonical_policy",
+   "target": "sorted",
+   "line": 77
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
+   "source": "test_session_permission_projection_uses_canonical_policy",
+   "target": "has_permission",
+   "line": 78
+  },
+  {
+   "owner": "sahool-platform",
+   "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
    "source": "fake_post",
    "target": "update",
-   "line": 45
+   "line": 89
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
    "source": "test_facade_review_posts_to_review_path",
    "target": "update",
-   "line": 45
+   "line": 89
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
    "source": "test_facade_review_posts_to_review_path",
    "target": "setattr",
-   "line": 48
+   "line": 92
   },
   {
    "owner": "sahool-platform",
    "file": "services/sahool-platform/tests/test_decision_approve_permission.py",
    "source": "test_facade_review_posts_to_review_path",
    "target": "review_decision",
-   "line": 49
+   "line": 93
   },
   {
    "owner": "sahool-platform",
@@ -489360,55 +489864,34 @@
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "__init__",
    "target": "getenv",
-   "line": 24
+   "line": 25
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "__init__",
    "target": "rstrip",
-   "line": 24
+   "line": 25
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
    "target": "RuntimeError",
-   "line": 37
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/decision_bridge.py",
-   "source": "refer",
-   "target": "model_dump",
    "line": 38
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
+   "target": "model_dump",
+   "line": 39
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/decision_bridge.py",
+   "source": "refer",
    "target": "dumps",
-   "line": 39
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/decision_bridge.py",
-   "source": "refer",
-   "target": "encode",
-   "line": 39
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/decision_bridge.py",
-   "source": "refer",
-   "target": "hexdigest",
-   "line": 40
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/decision_bridge.py",
-   "source": "refer",
-   "target": "sha256",
    "line": 40
   },
   {
@@ -489416,42 +489899,63 @@
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
    "target": "encode",
-   "line": 44
+   "line": 40
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
    "target": "hexdigest",
-   "line": 44
+   "line": 41
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
    "target": "sha256",
-   "line": 44
+   "line": 41
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
-   "target": "str",
+   "target": "encode",
+   "line": 45
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/decision_bridge.py",
+   "source": "refer",
+   "target": "hexdigest",
+   "line": 45
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/decision_bridge.py",
+   "source": "refer",
+   "target": "sha256",
+   "line": 45
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/decision_bridge.py",
+   "source": "refer",
+   "target": "decision_service_auth_headers",
    "line": 48
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
-   "target": "now",
-   "line": 52
+   "target": "str",
+   "line": 49
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
-   "target": "isoformat",
-   "line": 57
+   "target": "now",
+   "line": 53
   },
   {
    "owner": "vegetation-analysis-service",
@@ -489464,134 +489968,141 @@
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
-   "target": "AsyncClient",
-   "line": 66
+   "target": "isoformat",
+   "line": 59
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
-   "target": "post",
+   "target": "AsyncClient",
    "line": 67
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
-   "target": "RuntimeError",
-   "line": 73
+   "target": "post",
+   "line": 68
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
-   "target": "json",
+   "target": "RuntimeError",
    "line": 74
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
-   "target": "float",
-   "line": 83
+   "target": "json",
+   "line": 75
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
    "target": "float",
-   "line": 86
+   "line": 84
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/decision_bridge.py",
+   "source": "refer",
+   "target": "float",
+   "line": 87
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
    "target": "post",
-   "line": 90
+   "line": 91
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
    "target": "RuntimeError",
-   "line": 96
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/decision_bridge.py",
-   "source": "refer",
-   "target": "json",
    "line": 97
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
+   "target": "json",
+   "line": 98
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/decision_bridge.py",
+   "source": "refer",
    "target": "encode",
-   "line": 99
+   "line": 100
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
    "target": "hexdigest",
-   "line": 99
+   "line": 100
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
    "target": "sha256",
-   "line": 99
+   "line": 100
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
    "target": "DiagnosisDecisionReferralV1",
-   "line": 102
+   "line": 103
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
    "target": "FieldContextRefV1",
-   "line": 108
+   "line": 109
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
    "target": "SuggestedActionClassV1",
-   "line": 114
+   "line": 115
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
    "target": "Decimal",
-   "line": 116
+   "line": 117
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
    "target": "ValidityContextV1",
-   "line": 118
+   "line": 119
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
    "target": "timedelta",
-   "line": 120
+   "line": 121
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/decision_bridge.py",
    "source": "refer",
    "target": "model_dump",
-   "line": 126
+   "line": 127
   },
   {
    "owner": "vegetation-analysis-service",
@@ -490235,14 +490746,14 @@
    "file": "services/vegetation-analysis-service/post_execution_bridge.py",
    "source": "__init__",
    "target": "getenv",
-   "line": 23
+   "line": 25
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/post_execution_bridge.py",
    "source": "__init__",
    "target": "rstrip",
-   "line": 23
+   "line": 25
   },
   {
    "owner": "vegetation-analysis-service",
@@ -492663,162 +493174,225 @@
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "test_push_contract_url_tenant_and_content_addressed_body",
-   "target": "setattr",
+   "target": "setenv",
    "line": 67
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "test_push_contract_url_tenant_and_content_addressed_body",
-   "target": "_push_vegetation_evidence",
+   "target": "setattr",
    "line": 68
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
+   "source": "test_push_contract_url_tenant_and_content_addressed_body",
+   "target": "_push_vegetation_evidence",
+   "line": 69
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "test_push_contract_url_tenant_and_content_addressed_body",
    "target": "_snapshot",
-   "line": 68
+   "line": 69
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "test_push_contract_url_tenant_and_content_addressed_body",
    "target": "run",
-   "line": 68
+   "line": 69
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "test_push_contract_url_tenant_and_content_addressed_body",
    "target": "endswith",
-   "line": 71
+   "line": 72
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "test_non_uuid_tenant_is_honestly_skipped",
    "target": "setattr",
-   "line": 82
+   "line": 84
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "test_non_uuid_tenant_is_honestly_skipped",
    "target": "_push_vegetation_evidence",
-   "line": 83
+   "line": 85
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "test_non_uuid_tenant_is_honestly_skipped",
    "target": "_snapshot",
-   "line": 83
+   "line": 85
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "test_non_uuid_tenant_is_honestly_skipped",
    "target": "run",
-   "line": 83
+   "line": 85
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "__aenter__",
    "target": "ConnectionError",
-   "line": 93
+   "line": 95
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "test_unreachable_store_is_fail_soft",
    "target": "ConnectionError",
-   "line": 93
+   "line": 95
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "test_unreachable_store_is_fail_soft",
    "target": "setattr",
-   "line": 98
+   "line": 100
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "test_unreachable_store_is_fail_soft",
    "target": "_push_vegetation_evidence",
-   "line": 99
+   "line": 101
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "test_unreachable_store_is_fail_soft",
    "target": "_snapshot",
-   "line": 99
+   "line": 101
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "test_unreachable_store_is_fail_soft",
    "target": "run",
-   "line": 99
+   "line": 101
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "test_unreachable_store_is_fail_soft",
    "target": "startswith",
-   "line": 100
+   "line": 102
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "post",
    "target": "_R",
-   "line": 109
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
-   "source": "test_mirror_mode_503_is_reported_not_hidden",
-   "target": "_R",
-   "line": 109
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
-   "source": "test_mirror_mode_503_is_reported_not_hidden",
-   "target": "setattr",
    "line": 111
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "test_mirror_mode_503_is_reported_not_hidden",
+   "target": "_R",
+   "line": 111
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
+   "source": "test_mirror_mode_503_is_reported_not_hidden",
+   "target": "setattr",
+   "line": 113
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
+   "source": "test_mirror_mode_503_is_reported_not_hidden",
    "target": "_push_vegetation_evidence",
-   "line": 112
+   "line": 114
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "test_mirror_mode_503_is_reported_not_hidden",
    "target": "_snapshot",
-   "line": 112
+   "line": 114
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "test_mirror_mode_503_is_reported_not_hidden",
    "target": "run",
-   "line": 112
+   "line": 114
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
    "source": "test_push_is_opt_in_and_off_by_default",
    "target": "getenv",
-   "line": 117
+   "line": 119
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
+   "source": "test_missing_production_credential_reports_no_push_without_network",
+   "target": "setenv",
+   "line": 124
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
+   "source": "test_missing_production_credential_reports_no_push_without_network",
+   "target": "delenv",
+   "line": 125
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
+   "source": "forbidden_client",
+   "target": "AssertionError",
+   "line": 128
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
+   "source": "test_missing_production_credential_reports_no_push_without_network",
+   "target": "AssertionError",
+   "line": 128
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
+   "source": "test_missing_production_credential_reports_no_push_without_network",
+   "target": "setattr",
+   "line": 130
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
+   "source": "test_missing_production_credential_reports_no_push_without_network",
+   "target": "_push_vegetation_evidence",
+   "line": 131
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
+   "source": "test_missing_production_credential_reports_no_push_without_network",
+   "target": "_snapshot",
+   "line": 131
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
+   "source": "test_missing_production_credential_reports_no_push_without_network",
+   "target": "run",
+   "line": 131
   },
   {
    "owner": "vegetation-analysis-service",
@@ -493159,9 +493733,107 @@
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/test_post_execution_bridge.py",
-   "source": "test_outcome_delegates_to_decision_service",
-   "target": "endswith",
-   "line": 77
+   "source": "handler",
+   "target": "append",
+   "line": 90
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+   "source": "test_attribution_uses_session_boundary_without_caller_actor",
+   "target": "append",
+   "line": 90
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+   "source": "handler",
+   "target": "Response",
+   "line": 91
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+   "source": "test_attribution_uses_session_boundary_without_caller_actor",
+   "target": "Response",
+   "line": 91
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+   "source": "test_attribution_uses_session_boundary_without_caller_actor",
+   "target": "setattr",
+   "line": 94
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+   "source": "test_attribution_uses_session_boundary_without_caller_actor",
+   "target": "MockTransport",
+   "line": 97
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+   "source": "test_attribution_uses_session_boundary_without_caller_actor",
+   "target": "original_client",
+   "line": 97
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+   "source": "test_attribution_uses_session_boundary_without_caller_actor",
+   "target": "setenv",
+   "line": 99
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+   "source": "test_attribution_uses_session_boundary_without_caller_actor",
+   "target": "raises",
+   "line": 100
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+   "source": "test_attribution_uses_session_boundary_without_caller_actor",
+   "target": "run",
+   "line": 101
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+   "source": "test_attribution_uses_session_boundary_without_caller_actor",
+   "target": "PostExecutionBridge",
+   "line": 102
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+   "source": "test_attribution_uses_session_boundary_without_caller_actor",
+   "target": "attribute_learning",
+   "line": 102
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+   "source": "test_attribution_uses_session_boundary_without_caller_actor",
+   "target": "len",
+   "line": 110
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+   "source": "test_attribution_uses_session_boundary_without_caller_actor",
+   "target": "str",
+   "line": 113
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+   "source": "test_attribution_uses_session_boundary_without_caller_actor",
+   "target": "str",
+   "line": 118
   },
   {
    "owner": "vegetation-analysis-service",
@@ -495464,27 +496136,20 @@
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_push_vegetation_evidence",
    "target": "str",
-   "line": 670
+   "line": 675
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_push_vegetation_evidence",
    "target": "strip",
-   "line": 670
+   "line": 675
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_push_vegetation_evidence",
    "target": "UUID",
-   "line": 672
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "_push_vegetation_evidence",
-   "target": "get",
    "line": 677
   },
   {
@@ -495492,21 +496157,14 @@
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_push_vegetation_evidence",
    "target": "get",
-   "line": 680
+   "line": 682
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_push_vegetation_evidence",
    "target": "get",
-   "line": 681
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "_push_vegetation_evidence",
-   "target": "str",
-   "line": 683
+   "line": 685
   },
   {
    "owner": "vegetation-analysis-service",
@@ -495519,315 +496177,280 @@
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_push_vegetation_evidence",
-   "target": "AsyncClient",
-   "line": 690
+   "target": "str",
+   "line": 688
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_push_vegetation_evidence",
-   "target": "post",
+   "target": "get",
    "line": 691
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_push_vegetation_evidence",
-   "target": "json",
+   "target": "decision_service_auth_headers",
+   "line": 695
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "_push_vegetation_evidence",
+   "target": "str",
    "line": 697
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_push_vegetation_evidence",
-   "target": "get",
+   "target": "AsyncClient",
+   "line": 699
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "_push_vegetation_evidence",
+   "target": "post",
    "line": 700
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_push_vegetation_evidence",
+   "target": "json",
+   "line": 706
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "_push_vegetation_evidence",
    "target": "get",
-   "line": 701
+   "line": 709
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "_push_vegetation_evidence",
+   "target": "get",
+   "line": 710
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_push_vegetation_evidence",
    "target": "warning",
-   "line": 705
+   "line": 714
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_push_vegetation_evidence",
    "target": "type",
-   "line": 706
+   "line": 715
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "load_field",
-   "line": 712
+   "line": 721
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "HTTPException",
-   "line": 714
+   "line": 723
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "labels",
-   "line": 715
+   "line": 724
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "time",
-   "line": 715
+   "line": 724
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "_canonical_observation_bundle_from_indicators",
-   "line": 727
+   "line": 736
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "_real_observation_bundle_from_raster",
-   "line": 732
+   "line": 741
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "get",
-   "line": 738
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
-   "line": 738
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
-   "line": 738
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
-   "line": 738
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
-   "line": 743
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
-   "line": 743
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
-   "line": 743
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
-   "line": 743
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "isinstance",
    "line": 747
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
-   "target": "isinstance",
+   "target": "get",
    "line": 747
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "get",
+   "line": 747
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "get",
+   "line": 747
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "get",
+   "line": 752
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "get",
+   "line": 752
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "get",
+   "line": 752
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "get",
+   "line": 752
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "isinstance",
+   "line": 756
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "isinstance",
+   "line": 756
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "abs",
-   "line": 748
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "float",
-   "line": 748
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "float",
-   "line": 748
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "float",
-   "line": 749
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "getenv",
-   "line": 749
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "warning",
-   "line": 750
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "HTTPException",
-   "line": 754
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
-   "line": 755
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "str",
-   "line": 755
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
-   "line": 756
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "list",
-   "line": 756
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
    "line": 757
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
-   "target": "zip",
-   "line": 758
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
-   "line": 759
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
-   "line": 762
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
-   "line": 763
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
-   "line": 763
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "isinstance",
-   "line": 764
+   "target": "float",
+   "line": 757
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "float",
-   "line": 766
+   "line": 757
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
-   "target": "round",
-   "line": 766
+   "target": "float",
+   "line": 758
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "getenv",
+   "line": 758
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "warning",
+   "line": 759
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "HTTPException",
+   "line": 763
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "get",
-   "line": 767
+   "line": 764
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "str",
+   "line": 764
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "get",
+   "line": 765
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "list",
+   "line": 765
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "get",
+   "line": 766
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "zip",
    "line": 767
   },
   {
@@ -495842,34 +496465,41 @@
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "get",
-   "line": 769
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
    "line": 771
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
-   "target": "float",
+   "target": "get",
+   "line": 772
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "get",
+   "line": 772
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "isinstance",
    "line": 773
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "float",
+   "line": 775
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "round",
-   "line": 773
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
    "line": 775
   },
   {
@@ -495877,35 +496507,49 @@
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "get",
-   "line": 775
+   "line": 776
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
-   "target": "HTTPException",
+   "target": "str",
+   "line": 776
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "get",
+   "line": 777
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "get",
    "line": 778
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
-   "target": "max",
-   "line": 779
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "derive_lai_from_ndvi",
+   "target": "get",
    "line": 780
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
-   "target": "get",
-   "line": 784
+   "target": "float",
+   "line": 782
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "round",
+   "line": 782
   },
   {
    "owner": "vegetation-analysis-service",
@@ -495918,15 +496562,29 @@
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
-   "target": "_derive_water_stress_from_observed",
+   "target": "get",
+   "line": 784
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "HTTPException",
+   "line": 787
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "max",
    "line": 788
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
-   "target": "min",
-   "line": 791
+   "target": "derive_lai_from_ndvi",
+   "line": 789
   },
   {
    "owner": "vegetation-analysis-service",
@@ -495939,78 +496597,71 @@
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
+   "target": "get",
+   "line": 793
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "_derive_water_stress_from_observed",
+   "line": 797
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "min",
+   "line": 800
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "get",
+   "line": 802
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
    "target": "items",
-   "line": 794
+   "line": 803
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "get",
-   "line": 795
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
-   "line": 797
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
-   "line": 797
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "_health_classification",
    "line": 804
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
-   "target": "_recommendations_ar",
-   "line": 805
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
    "target": "get",
-   "line": 805
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "_publish_analysis",
    "line": 806
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
-   "target": "inc",
-   "line": 807
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "labels",
-   "line": 807
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
    "target": "get",
+   "line": 806
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "_health_classification",
    "line": 813
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "_recommendations_ar",
+   "line": 814
   },
   {
    "owner": "vegetation-analysis-service",
@@ -496023,29 +496674,22 @@
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
-   "target": "get",
-   "line": 817
+   "target": "_publish_analysis",
+   "line": 815
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
-   "target": "get",
-   "line": 818
+   "target": "inc",
+   "line": 816
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
-   "target": "get",
-   "line": 819
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
-   "line": 820
+   "target": "labels",
+   "line": 816
   },
   {
    "owner": "vegetation-analysis-service",
@@ -496065,50 +496709,71 @@
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
-   "target": "items",
+   "target": "get",
+   "line": 826
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "get",
+   "line": 827
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "get",
+   "line": 828
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "get",
+   "line": 829
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "get",
    "line": 831
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
+   "target": "get",
+   "line": 832
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "items",
+   "line": 840
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
    "target": "quality_gate",
-   "line": 833
+   "line": 842
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "HTTPException",
-   "line": 835
+   "line": 844
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "build_snapshot",
-   "line": 836
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
-   "line": 844
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "get",
-   "line": 844
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "run_analysis",
-   "target": "_push_vegetation_evidence",
-   "line": 847
+   "line": 845
   },
   {
    "owner": "vegetation-analysis-service",
@@ -496122,252 +496787,238 @@
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "get",
-   "line": 854
+   "line": 853
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "_push_vegetation_evidence",
+   "line": 856
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "get",
-   "line": 855
+   "line": 862
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "get",
+   "line": 863
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "run_analysis",
+   "target": "get",
+   "line": 864
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "isoformat",
-   "line": 885
+   "line": 894
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "run_analysis",
    "target": "now",
-   "line": 885
+   "line": 894
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_ndvi_unavailable_detail",
    "target": "get",
-   "line": 924
+   "line": 933
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_real_timeseries_from_raster",
    "target": "str",
-   "line": 951
+   "line": 960
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_real_timeseries_from_raster",
    "target": "AsyncClient",
-   "line": 954
+   "line": 963
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_real_timeseries_from_raster",
    "target": "get",
-   "line": 955
+   "line": 964
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_real_timeseries_from_raster",
    "target": "warning",
-   "line": 961
+   "line": 970
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_real_timeseries_from_raster",
    "target": "json",
-   "line": 968
+   "line": 977
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_real_timeseries_from_raster",
    "target": "get",
-   "line": 971
+   "line": 980
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_real_timeseries_from_raster",
    "target": "get",
-   "line": 971
+   "line": 980
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_real_timeseries_from_raster",
    "target": "get",
-   "line": 973
+   "line": 982
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_real_timeseries_from_raster",
    "target": "list",
-   "line": 973
+   "line": 982
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_real_timeseries_from_raster",
    "target": "timedelta",
-   "line": 974
+   "line": 983
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_real_timeseries_from_raster",
    "target": "today",
-   "line": 974
+   "line": 983
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_real_timeseries_from_raster",
    "target": "get",
-   "line": 975
+   "line": 984
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_real_timeseries_from_raster",
    "target": "isoformat",
-   "line": 975
+   "line": 984
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_real_timeseries_from_raster",
    "target": "str",
-   "line": 975
+   "line": 984
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_current_ndvi_from_raster",
    "target": "_real_timeseries_from_raster",
-   "line": 989
+   "line": 998
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_current_ndvi_from_raster",
    "target": "get",
-   "line": 992
+   "line": 1001
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_current_ndvi_from_raster",
    "target": "isinstance",
-   "line": 992
+   "line": 1001
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_current_ndvi_from_raster",
    "target": "get",
-   "line": 996
+   "line": 1005
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_current_ndvi_from_raster",
    "target": "get",
-   "line": 996
+   "line": 1005
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_current_ndvi_from_raster",
    "target": "sort",
-   "line": 996
+   "line": 1005
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_current_ndvi_from_raster",
    "target": "str",
-   "line": 996
+   "line": 1005
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_current_ndvi_from_raster",
    "target": "get",
-   "line": 998
+   "line": 1007
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_current_ndvi_from_raster",
    "target": "get",
-   "line": 998
+   "line": 1007
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_current_ndvi_from_raster",
    "target": "float",
-   "line": 1000
+   "line": 1009
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_current_ndvi_from_raster",
    "target": "isfinite",
-   "line": 1003
+   "line": 1012
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_current_ndvi_from_raster",
    "target": "get",
-   "line": 1005
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "_current_ndvi_from_raster",
-   "target": "get",
-   "line": 1005
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "_current_ndvi_from_raster",
-   "target": "get",
-   "line": 1006
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "_current_ndvi_from_raster",
-   "target": "get",
-   "line": 1006
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "_current_ndvi_from_raster",
-   "target": "get",
-   "line": 1013
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "_current_ndvi_from_raster",
-   "target": "get",
-   "line": 1013
+   "line": 1014
   },
   {
    "owner": "vegetation-analysis-service",
@@ -496388,77 +497039,63 @@
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_current_ndvi_from_raster",
    "target": "get",
-   "line": 1016
+   "line": 1015
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_current_ndvi_from_raster",
    "target": "get",
-   "line": 1016
+   "line": 1022
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_current_ndvi_from_raster",
    "target": "get",
-   "line": 1017
+   "line": 1022
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_current_ndvi_from_raster",
    "target": "get",
-   "line": 1017
+   "line": 1023
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "_current_ndvi_payload",
+   "source": "_current_ndvi_from_raster",
    "target": "get",
-   "line": 1030
+   "line": 1024
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "_current_ndvi_payload",
+   "source": "_current_ndvi_from_raster",
    "target": "get",
-   "line": 1031
+   "line": 1025
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "_current_ndvi_payload",
+   "source": "_current_ndvi_from_raster",
    "target": "get",
-   "line": 1031
+   "line": 1025
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "_current_ndvi_payload",
+   "source": "_current_ndvi_from_raster",
    "target": "get",
-   "line": 1034
+   "line": 1026
   },
   {
    "owner": "vegetation-analysis-service",
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "_current_ndvi_payload",
+   "source": "_current_ndvi_from_raster",
    "target": "get",
-   "line": 1035
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "_current_ndvi_payload",
-   "target": "get",
-   "line": 1037
-  },
-  {
-   "owner": "vegetation-analysis-service",
-   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
-   "source": "_current_ndvi_payload",
-   "target": "get",
-   "line": 1038
+   "line": 1026
   },
   {
    "owner": "vegetation-analysis-service",
@@ -496479,7 +497116,56 @@
    "file": "services/vegetation-analysis-service/vegetation_runtime.py",
    "source": "_current_ndvi_payload",
    "target": "get",
-   "line": 1041
+   "line": 1040
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "_current_ndvi_payload",
+   "target": "get",
+   "line": 1043
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "_current_ndvi_payload",
+   "target": "get",
+   "line": 1044
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "_current_ndvi_payload",
+   "target": "get",
+   "line": 1046
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "_current_ndvi_payload",
+   "target": "get",
+   "line": 1047
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "_current_ndvi_payload",
+   "target": "get",
+   "line": 1048
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "_current_ndvi_payload",
+   "target": "get",
+   "line": 1049
+  },
+  {
+   "owner": "vegetation-analysis-service",
+   "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+   "source": "_current_ndvi_payload",
+   "target": "get",
+   "line": 1050
   },
   {
    "owner": "video-processor",
@@ -546211,6 +546897,83 @@
   },
   {
    "owner": "shared",
+   "file": "shared/security/decision_service_auth.py",
+   "source": "__init__",
+   "target": "super",
+   "line": 18
+  },
+  {
+   "owner": "shared",
+   "file": "shared/security/decision_service_auth.py",
+   "source": "decision_service_auth_headers",
+   "target": "getenv",
+   "line": 23
+  },
+  {
+   "owner": "shared",
+   "file": "shared/security/decision_service_auth.py",
+   "source": "decision_service_auth_headers",
+   "target": "strip",
+   "line": 23
+  },
+  {
+   "owner": "shared",
+   "file": "shared/security/decision_service_auth.py",
+   "source": "decision_service_auth_headers",
+   "target": "getenv",
+   "line": 26
+  },
+  {
+   "owner": "shared",
+   "file": "shared/security/decision_service_auth.py",
+   "source": "decision_service_auth_headers",
+   "target": "lower",
+   "line": 26
+  },
+  {
+   "owner": "shared",
+   "file": "shared/security/decision_service_auth.py",
+   "source": "decision_service_auth_headers",
+   "target": "strip",
+   "line": 26
+  },
+  {
+   "owner": "shared",
+   "file": "shared/security/decision_service_auth.py",
+   "source": "decision_service_auth_headers",
+   "target": "getenv",
+   "line": 27
+  },
+  {
+   "owner": "shared",
+   "file": "shared/security/decision_service_auth.py",
+   "source": "decision_service_auth_headers",
+   "target": "lower",
+   "line": 27
+  },
+  {
+   "owner": "shared",
+   "file": "shared/security/decision_service_auth.py",
+   "source": "decision_service_auth_headers",
+   "target": "strip",
+   "line": 27
+  },
+  {
+   "owner": "shared",
+   "file": "shared/security/decision_service_auth.py",
+   "source": "decision_service_auth_headers",
+   "target": "any",
+   "line": 30
+  },
+  {
+   "owner": "shared",
+   "file": "shared/security/decision_service_auth.py",
+   "source": "decision_service_auth_headers",
+   "target": "DecisionServiceAuthUnavailable",
+   "line": 31
+  },
+  {
+   "owner": "shared",
    "file": "shared/security/gateway_deps.py",
    "source": "require_trusted_tenant",
    "target": "Header",
@@ -550975,7 +551738,7 @@
    "symbol": "record_dispatch_decision",
    "kind": "function",
    "file": "services/sahool-platform/api/decision_service_client.py",
-   "line": 286,
+   "line": 296,
    "owner": "sahool-platform",
    "decorated_route": false,
    "reference_count": 0,
@@ -550986,7 +551749,7 @@
    "symbol": "record_recommendation_outcome",
    "kind": "function",
    "file": "services/sahool-platform/api/decision_service_client.py",
-   "line": 298,
+   "line": 308,
    "owner": "sahool-platform",
    "decorated_route": false,
    "reference_count": 0,
@@ -550997,7 +551760,7 @@
    "symbol": "record_learning_update",
    "kind": "function",
    "file": "services/sahool-platform/api/decision_service_client.py",
-   "line": 304,
+   "line": 314,
    "owner": "sahool-platform",
    "decorated_route": false,
    "reference_count": 0,
@@ -551008,7 +551771,7 @@
    "symbol": "get_decision_lineage",
    "kind": "function",
    "file": "services/sahool-platform/api/decision_service_client.py",
-   "line": 320,
+   "line": 330,
    "owner": "sahool-platform",
    "decorated_route": false,
    "reference_count": 0,
@@ -551019,7 +551782,7 @@
    "symbol": "list_decisions",
    "kind": "function",
    "file": "services/sahool-platform/api/decision_service_client.py",
-   "line": 326,
+   "line": 336,
    "owner": "sahool-platform",
    "decorated_route": false,
    "reference_count": 0,
@@ -551030,7 +551793,7 @@
    "symbol": "get_field_lineage",
    "kind": "function",
    "file": "services/sahool-platform/api/decision_service_client.py",
-   "line": 340,
+   "line": 350,
    "owner": "sahool-platform",
    "decorated_route": false,
    "reference_count": 0,
@@ -551041,7 +551804,7 @@
    "symbol": "get_reconciled_outcomes",
    "kind": "function",
    "file": "services/sahool-platform/api/decision_service_client.py",
-   "line": 348,
+   "line": 358,
    "owner": "sahool-platform",
    "decorated_route": false,
    "reference_count": 0,
