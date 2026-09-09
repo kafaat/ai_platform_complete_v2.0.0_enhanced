@@ -2432,6 +2432,53 @@
           "why": "Exempting loans from annual revenue completeness hides missing financial evidence; the witness removes only annual_revenue_usd from a complete loan context."
         }
       ]
+    },
+    "services/sahool-platform/api/irrigation_runtime_orchestrator.py": {
+      "$gap_ar": "ORCHESTRATOR-READS-JSONB-AS-IF-DECODED-01 — `asyncpg` يُسلّم `jsonb` **نصّاً** ما لم يُسجَّل مُرمِّز، ومسبحُ `api/main.py` لا يُسجّله (يقيسه `tests_v9/test_live_pg_fake_connection_debt.py::test_asyncpg_really_returns_jsonb_as_str_without_a_codec`). فكان المنسّق يقرأ ثلاثة أعمدة بـ`dict(row[...])`/`list(row[...])`: الأوّل يرفع `ValueError` عند أوّل صفٍّ حقيقيّ فيسقط المسارُ الساعيّ كلُّه بـ500، والثاني يُحوّل `\"[]\"` إلى `['[', ']']` **بلا خطأ** فيصير سببا حجبٍ مختلقان من قوسين. ونجا العطلُ من الجناح لأنّ بديلَ `fetchrow` كان يبني الصفَّ بكائناتٍ مفكوكةٍ أصلاً — فيفترض الجوابَ الذي يدّعي قياسه. والعطلُ نفسُه أُصلح مرّةً في العامل ووُثّق حرفيّاً في docstring الدالّة `decode_jsonb`، وبقي هذا الموضعُ عليه.",
+      "mutations": [
+        {
+          "expect": "test_a_jsonb_object_arriving_as_text_is_decoded_not_crashed",
+          "find": "    decoded = decode_jsonb(value, {})\n    if not isinstance(decoded, dict):\n        raise _MalformedCanonicalRow(column)\n    return dict(decoded)",
+          "replace": "    return dict(value or {})  # mutated: العطلُ الأصليّ — قراءةٌ بلا فكّ",
+          "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
+          "why": "هذه هي الصياغةُ التي كانت في المصدر حرفيّاً. `dict('{\"a\": 1}')` يرفع `ValueError`، فالمسارُ الساعيّ يسقط عند أوّل صفٍّ تُعيده قاعدةٌ حقيقيّة. الاختبارُ المُسمّى يمرّر نصّاً — وهو الشكلُ الوحيدُ الذي يفصل الإصلاح عن العطل."
+        },
+        {
+          "expect": "test_a_jsonb_array_arriving_as_text_is_a_list_not_its_characters",
+          "find": "    decoded = decode_jsonb(value, [])\n    if not isinstance(decoded, list):\n        raise _MalformedCanonicalRow(column)\n    return list(decoded)",
+          "replace": "    return list(value or [])  # mutated: العطلُ الصامت — النصُّ يصير حروفاً",
+          "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
+          "why": "أخطرُ الشقّين لأنّه **لا يرفع**: `list('[\"A\", \"B\"]')` يُعيد حروفاً، فتظهر أسبابُ حجبٍ مختلقة في `blocking_reasons` ولا يحمرّ شيء. طفرةٌ تُعيد الصمتَ يجب أن تجد اختباراً يقيس **المحتوى** لا مجرّد عدم السقوط."
+        },
+        {
+          "expect": "test_a_wrong_shape_names_its_column_instead_of_escaping_as_500",
+          "find": "    if not isinstance(decoded, dict):\n        raise _MalformedCanonicalRow(column)",
+          "replace": "    if not isinstance(decoded, dict):\n        decoded = {}  # mutated: البنيةُ الفاسدة تُبتلَع بصمت",
+          "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
+          "why": "الفكُّ وحدَه لا يكفي: صفٌّ مخزَّنٌ بمصفوفةٍ حيث يُنتظَر كائن يمرّ فارغاً فيُحسَب «غيابَ قدرة» بدل «صفّاً فاسداً». اشتراطُ البنية هو ما يجعل الحجبَ يُسمّي عمودَه، ومن يقرأه يعرف أيّ عمودٍ يُصلح."
+        },
+        {
+          "expect": "test_every_jsonb_column_the_orchestrator_reads_goes_through_a_decoder",
+          "find": "    payload = _jsonb_object(row[\"payload\"], column=\"canonical_irrigation_capability_graphs.payload\")",
+          "replace": "    payload = dict(row[\"payload\"] or {})  # mutated: عمودٌ يعود إلى القراءة المباشرة",
+          "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
+          "why": "الدالّتان قد تبقيان سليمتين ويُضاف عمودٌ جديد يُقرأ مباشرةً — فيعود العطلُ من بابٍ آخر. حارسُ الانحدار يُشتقّ من المصدر لا من قائمةٍ مكتوبة، فلا يبيت."
+        },
+        {
+          "expect": "test_the_hourly_path_survives_the_shape_a_real_database_returns",
+          "find": "    payload = _jsonb_object(row[\"snapshot\"], column=\"irrigation_executability_gates.snapshot\")",
+          "replace": "    payload = dict(row[\"snapshot\"] or {})  # mutated: العطلُ في بوّابة القابليّة",
+          "test": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+          "why": "شاهدٌ من طرفٍ إلى طرف لا وحدة: يُشغّل `orchestrate_irrigation_recommendation` على بديلٍ يُسلّم `jsonb` نصّاً كما تُسلّمه القاعدة. لو بقي `FakeConn` وحدَه لمرّت الطفرةُ خضراء — وهو بالضبط سببُ نجاة العطل الأصليّ من الجناح."
+        },
+        {
+          "expect": "test_a_stored_row_with_a_wrong_shape_is_a_named_block_not_a_500",
+          "find": "    except _MalformedCanonicalRow as exc:\n        return _blocked(",
+          "replace": "    except _MalformedCanonicalRow:  # mutated: الاستثناء يهرب 500\n        raise\n    if False:\n        return _blocked(",
+          "test": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+          "why": "بلا الالتقاط يخرج الصفُّ الفاسد خمسُمئةً عاريةً من طبقة الـAPI: خبرٌ عن الخدمة لا عن الصفّ، ولا يُسمّي عموداً. الطفرةُ تُبقي الفكَّ سليماً وتنزع التسميةَ وحدَها، فتفصل «فُكَّ الترميز» عن «حُجِب بسببٍ مفهوم»."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

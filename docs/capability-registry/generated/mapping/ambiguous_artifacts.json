@@ -8208,36 +8208,6 @@
     ]
   },
   {
-    "path": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
-    "kind": "tests",
-    "candidates": [
-      {
-        "capability_id": "WX-004",
-        "score": 8,
-        "signals": [
-          "content:ET0",
-          "content:et0"
-        ]
-      },
-      {
-        "capability_id": "SOIL-001",
-        "score": 8,
-        "signals": [
-          "content:Soil profile",
-          "content:soil profile"
-        ]
-      },
-      {
-        "capability_id": "IRR-005",
-        "score": 8,
-        "signals": [
-          "content:Irrigation recommendation",
-          "content:irrigation recommendation"
-        ]
-      }
-    ]
-  },
-  {
     "path": "services/sahool-platform/tests/test_map_layer.py",
     "kind": "tests",
     "candidates": [

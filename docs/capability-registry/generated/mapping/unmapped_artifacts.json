@@ -7596,6 +7596,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_irrigation_policy.py",
     "kind": "tests"
   },
