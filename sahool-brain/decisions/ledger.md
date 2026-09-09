@@ -2471,3 +2471,7 @@ SHAs من `git log --oneline origin/main`.
 `639bde28` uses the observed pair45.30 minutes/654 mutations from run34284639549/job102257332191 (22:12:12–22:57:30 UTC). Planting succeeded in29:42; pytest completed with6495 passed,25 skipped, and only the two headroom failures; coverage50.87%. Codecov and Field-forms were skipped after that failure. The same formula yields watermark711 and drift682, keeping the90-minute timeout and0.775 marginal-cost assumption. The current656-mutation registry is not substituted for the measured654 count.
 
 The merged targeted suite passed130 tests. Final generated checks, default preflight and publication remain pending. No production certification is claimed.
+
+## 2026-09-09 — Record consumption after PR #990, preserve Gate01 enforcement
+
+Under the user request to monitor PR #974 and repair failures, stamp GATE01-ADJ-2026-09-08-001 CONSUMED using the observed main merge `7407eae2ba006a4c4c07018988a0f680e176abea`. Both authorized blob IDs were verified against that commit. Reason: the one-time authorization was spent, while its stale ISSUED state correctly blocked an unrelated dependency PR. Keep approved_by, allowed paths, patch digest, guard logic and global Gate01 state unchanged. Existing Gate01 tests: 50 passed. Regenerate release checksums after the dependency update; final CI remains pending.
