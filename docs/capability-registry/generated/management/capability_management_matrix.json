@@ -1105,7 +1105,7 @@
         "mobile": false,
         "tests": true,
         "governance": false,
-        "other_evidence": false
+        "other_evidence": true
       },
       "coverage_dimension_count": 3,
       "dependency_count": 2,

@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5272,
+    "files_scanned": 5273,
     "files_by_kind": {
       "backend": 1207,
       "database": 277,
       "governance": 62,
       "mobile": 51,
-      "other": 1448,
+      "other": 1449,
       "tests": 1770,
       "web": 457
     },
     "unmapped_artifacts": 2148,
-    "ambiguous_artifacts": 417
+    "ambiguous_artifacts": 418
   },
   "capabilities": [
     {
@@ -13027,6 +13027,13 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "shared/autonomous_farm_os_phase9.py",
           "score": 12,
           "signals": [
@@ -13048,7 +13055,7 @@
         "mobile": 0,
         "tests": 0,
         "governance": 0,
-        "other_evidence": 1
+        "other_evidence": 2
       },
       "coverage_dimensions": 1,
       "mapped": true
@@ -13309,6 +13316,13 @@
           ]
         },
         {
+          "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "docs/capabilities/SALINITY_CAPABILITY.md",
           "score": 14,
           "signals": [
@@ -13362,7 +13376,7 @@
         "mobile": 0,
         "tests": 10,
         "governance": 0,
-        "other_evidence": 6
+        "other_evidence": 7
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -13379,7 +13393,15 @@
       "mobile": [],
       "tests": [],
       "governance": [],
-      "other_evidence": [],
+      "other_evidence": [
+        {
+          "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        }
+      ],
       "ambiguous": [],
       "static_evidence_only": true,
       "runtime_verified": false,
@@ -13393,7 +13415,7 @@
         "mobile": 0,
         "tests": 0,
         "governance": 0,
-        "other_evidence": 0
+        "other_evidence": 1
       },
       "coverage_dimensions": 0,
       "mapped": false
@@ -25692,6 +25714,13 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "scripts/ci/wx12_runtime_multitenancy_gate.py",
           "score": 12,
           "signals": [
@@ -25722,7 +25751,7 @@
         "mobile": 0,
         "tests": 1,
         "governance": 0,
-        "other_evidence": 2
+        "other_evidence": 3
       },
       "coverage_dimensions": 2,
       "mapped": true
@@ -44160,6 +44189,40 @@
           "signals": [
             "content:NDVI",
             "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SEC-003",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
+          "capability_id": "IRR-010",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
+          "capability_id": "IRR-009",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
+          "capability_id": "IRR-008",
+          "score": 20,
+          "signals": [
+            "explicit_id"
           ]
         }
       ]

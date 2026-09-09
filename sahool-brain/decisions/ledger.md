@@ -2475,3 +2475,5 @@ The merged targeted suite passed130 tests. Final generated checks, default prefl
 ## 2026-09-09 — Record consumption after PR #990, preserve Gate01 enforcement
 
 Under the user request to monitor PR #974 and repair failures, stamp GATE01-ADJ-2026-09-08-001 CONSUMED using the observed main merge `7407eae2ba006a4c4c07018988a0f680e176abea`. Both authorized blob IDs were verified against that commit. Reason: the one-time authorization was spent, while its stale ISSUED state correctly blocked an unrelated dependency PR. Keep approved_by, allowed paths, patch digest, guard logic and global Gate01 state unchanged. Existing Gate01 tests: 50 passed. Regenerate release checksums after the dependency update; final CI remains pending.
+
+2026-09-09 — PR #974 measured follow-up: [the recorded observation](../../certification/evidence/pr974_ci_repair_62751f9e.json) contains the 54 targeted test results, the original preflight output and its git-range limitation, and the published CI results on 62751f9e. Package checks and Gate01 passed in CI; branch-protection reads returned HTTP401. Final CI and production certification remain unasserted.
