@@ -177,7 +177,7 @@ async def resolve_canonical_water_state(
             "season_id": season_id,
         }
 
-    # Daily weather uses the provider's local calendar (Open-Meteo timezone=auto).
+    # Daily weather follows the local calendar declared by weather-service.
     # Missing legacy timezone metadata retains the UTC calendar; invalid metadata blocks.
     try:
         zone = fc.get("timezone")
