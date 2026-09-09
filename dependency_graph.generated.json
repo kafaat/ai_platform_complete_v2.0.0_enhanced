@@ -1,5 +1,5 @@
 {
-  "edge_count": 809,
+  "edge_count": 810,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -2159,6 +2159,16 @@
       "relation": "READS",
       "resource": "db://field_tasks",
       "to": "db://field_tasks",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/canonical_water_state.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
       "to_kind": "resource"
     },
     {
@@ -8110,7 +8120,7 @@
     "CALLS": 38,
     "CONSUMES": 1,
     "EMITS": 1,
-    "READS": 417,
+    "READS": 418,
     "ROUTES_TO": 70,
     "WRITES": 282
   },
@@ -8127,8 +8137,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 700,
-      "resolved": 699,
+      "observed": 701,
+      "resolved": 700,
       "unresolved_component_paths": 0
     }
   }

@@ -7698,3 +7698,15 @@ no_third_value_registry نصّاً)، GATE-01 نظيف، 33 اختباراً، r
 `639bde28` uses the observed pair45.30 minutes/654 mutations from run34284639549/job102257332191 (22:12:12–22:57:30 UTC). Planting succeeded in29:42; pytest completed with6495 passed,25 skipped, and only the two headroom failures; coverage50.87%. Codecov and Field-forms were skipped after that failure. The same formula yields watermark711 and drift682, keeping the90-minute timeout and0.775 marginal-cost assumption. The current656-mutation registry is not substituted for the measured654 count.
 
 The merged targeted suite passed130 tests. Final generated checks, default preflight and publication remain pending. No production certification is claimed.
+
+
+### 2026-09-09 — four main review findings repaired
+
+Audited base `7407eae2`; implementation `f8086c1ff`. The real asyncpg JSONB representation no longer crashes hourly MPC; ledger-seeded client plans cannot emit; canonical water rejects absent/invalid rain and dates and uses field elevation; fertilizer safety requires the actual recipe and cumulative use. See [docs/testing/main_irrigation_guardrails_repairs_20260909.md](../docs/testing/main_irrigation_guardrails_repairs_20260909.md) for the four source/test mappings, red/green evidence and client implications. Initial regression run: 53 failed, 111 passed, 1 skipped. After implementation: 164 passed, 1 skipped. Fast preflight: 0 failures, 0 skipped gates. Default preflight and publication remain pending. No live deployment or certification is claimed.
+
+
+### 2026-09-09 — main repair validation completed and exact-commit handoff
+
+`655903768` isolates the raster fallback tests from the live indicators adapter. `cb0dc6cbd` stamps the existing drawing-schema authorization CONSUMED after verifying #990 and both authorized blob hashes at merge `7407eae2`. Default preflight on `bd7bca34b` completed: 6,610 unit passes (30 skips), 752 repository passes (8 skips), and one platform failure among 4,306 tests. That failure was a provider name in a comment, caught by a lexical boundary guard. `73a67e3bd` corrects the comment with an identical Python AST; the entire platform suite then passed 4,306 tests. The completed one-failure preflight log is retained honestly, alongside the successful platform rerun. Bandit reported no HIGH-severity issues.
+
+Direct Git push lacks credentials (the dry run failed before writing a branch). The handoff preserves original commits in a Git bundle and supplies the evidence and prepared PR body. No remote branch, PR, merge, live execution or production certification is claimed. See [main repair report](../docs/testing/main_irrigation_guardrails_repairs_20260909.md).

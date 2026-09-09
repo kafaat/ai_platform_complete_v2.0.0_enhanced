@@ -43,8 +43,8 @@ def test_a_jsonb_array_arriving_as_text_is_a_list_not_its_characters():
 
     لو بقي العطلُ لصار سببا حجبٍ مختلقان من قوسين، ولا يحمرّ شيء.
     """
-    assert orchestrator._jsonb_list('["A", "B"]', column="t.c") == ["A", "B"]
-    assert orchestrator._jsonb_list("[]", column="t.c") == []
+    assert orchestrator._jsonb_reasons('["A", "B"]', column="t.c") == ["A", "B"]
+    assert orchestrator._jsonb_reasons("[]", column="t.c") == []
 
 
 # ── والاتّجاه المقابل: ما كان يعمل لا ينكسر ─────────────────────────────────
@@ -56,12 +56,12 @@ def test_an_already_decoded_value_still_passes_through():
     بلا هذا الاتّجاه يمرّ إصلاحٌ يفكّ النصَّ ويكسر المفكوك.
     """
     assert orchestrator._jsonb_object({"a": 1}, column="t.c") == {"a": 1}
-    assert orchestrator._jsonb_list(["A"], column="t.c") == ["A"]
+    assert orchestrator._jsonb_reasons(["A"], column="t.c") == ["A"]
 
 
 def test_a_null_column_falls_back_to_its_empty_shape():
     assert orchestrator._jsonb_object(None, column="t.c") == {}
-    assert orchestrator._jsonb_list(None, column="t.c") == []
+    assert orchestrator._jsonb_reasons(None, column="t.c") == []
 
 
 # ── والبنيةُ الفاسدة حجبٌ مسمّى لا خمسُمئة عارية ────────────────────────────
@@ -72,14 +72,37 @@ def test_a_null_column_falls_back_to_its_empty_shape():
     [
         ("[1, 2]", "_jsonb_object"),
         ('"نصّ"', "_jsonb_object"),
-        ('{"a": 1}', "_jsonb_list"),
-        ("3", "_jsonb_list"),
+        ('{"a": 1}', "_jsonb_reasons"),
+        ("3", "_jsonb_reasons"),
     ],
 )
 def test_a_wrong_shape_names_its_column_instead_of_escaping_as_500(value, decoder):
     with pytest.raises(orchestrator._MalformedCanonicalRow) as caught:
         getattr(orchestrator, decoder)(value, column="canonical_x.payload")
     assert caught.value.column == "canonical_x.payload"
+
+
+@pytest.mark.parametrize("decoder", ["_jsonb_object", "_jsonb_reasons"])
+def test_truncated_json_blocks_by_name_instead_of_escaping_as_500(decoder):
+    """عمودٌ محفوظٌ مبتوراً يرفع ``JSONDecodeError`` من ``json.loads``.
+
+    وهي ``ValueError`` **لا** يلتقطها اشتراطُ البنية وحدَه، فتهرب خمسمئةً عارية —
+    وهو ثغرةُ الصياغة الأولى لهذا الإصلاح، سدّها ``_decode_or_block``.
+    """
+    with pytest.raises(orchestrator._MalformedCanonicalRow) as caught:
+        getattr(orchestrator, decoder)("{", column="canonical_x.payload")
+    assert caught.value.column == "canonical_x.payload"
+
+
+def test_a_reason_list_of_non_strings_is_malformed_not_a_numeric_block_reason():
+    """``[1]`` قائمةٌ صحيحة البنية، لكنّها تُنتِج سببَ حجبٍ رقميّاً يقرؤه إنسان.
+
+    اشتراطُ نوع العنصر لا يزيد على اشتراط القائمة — وهو ما أضافته المراجعة المتوازية.
+    """
+    with pytest.raises(orchestrator._MalformedCanonicalRow):
+        orchestrator._jsonb_reasons("[1]", column="t.blocking_reasons")
+    with pytest.raises(orchestrator._MalformedCanonicalRow):
+        orchestrator._jsonb_reasons('["ok", 2]', column="t.blocking_reasons")
 
 
 def test_every_jsonb_column_the_orchestrator_reads_goes_through_a_decoder():
@@ -91,5 +114,5 @@ def test_every_jsonb_column_the_orchestrator_reads_goes_through_a_decoder():
     for raw in ('dict(row["', 'list(row["'):
         assert raw not in source, (
             f"قراءةٌ مباشرة {raw}…) عادت إلى المنسّق — وهي العطلُ نفسُه: "
-            "asyncpg يُسلّم jsonb نصّاً. مرّرها عبر _jsonb_object/_jsonb_list."
+            "asyncpg يُسلّم jsonb نصّاً. مرّرها عبر _jsonb_object/_jsonb_reasons."
         )

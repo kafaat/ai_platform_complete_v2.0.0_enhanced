@@ -2008,7 +2008,6 @@
         "services/sahool-platform/tests/test_fields_endpoint.py",
         "services/sahool-platform/tests/test_variety_suitability.py",
         "services/sahool-platform/tests/test_yield_analysis.py",
-        "tests_v9/test_canonical_water_state_mpc.py",
         "tests_v9/test_variety_catalog_reference_only_barrier.py",
         "tests_v9/test_variety_policy_resolution.py"
       ]
@@ -8910,6 +8909,7 @@
         "services/agriai-engine/tests/test_agronomic_adapters.py",
         "services/decision-service/tests/test_soil_profile_context_gate.py",
         "services/sahool-platform/tests/test_canonical_soil_state.py",
+        "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
         "services/soil-service/test_canonical_soil_profile.py",
         "services/soil-service/test_soil_snapshot_identity.py",
         "tests_v9/test_api_versioning_policy_guard.py",
@@ -9966,6 +9966,7 @@
         "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
         "services/sahool-platform/tests/test_irrigation_engineering_workspace.py",
         "services/sahool-platform/tests/test_irrigation_plan_endpoint.py",
+        "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
         "services/sahool-platform/tests/test_kc_extraction_engine.py",
         "services/sahool-platform/tests/test_missing_rain_is_not_no_rain.py",
         "services/sahool-platform/tests/test_platform_agri_full_lifecycle_forensic.py",
@@ -9989,7 +9990,6 @@
         "services/weather-service/tests/test_p3_weather_service_runtime.py",
         "tests/test_real_data.py",
         "tests_v9/test_canonical_water.py",
-        "tests_v9/test_canonical_water_state_mpc.py",
         "tests_v9/test_confidence_failures.py",
         "tests_v9/test_crop_twin.py",
         "tests_v9/test_etc_dual_canonical.py",

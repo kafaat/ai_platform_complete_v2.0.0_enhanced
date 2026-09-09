@@ -2438,45 +2438,59 @@
       "mutations": [
         {
           "expect": "test_a_jsonb_object_arriving_as_text_is_decoded_not_crashed",
-          "find": "    decoded = decode_jsonb(value, {})\n    if not isinstance(decoded, dict):\n        raise _MalformedCanonicalRow(column)\n    return dict(decoded)",
+          "find": "    decoded = _decode_or_block(value, {}, column=column)\n    if not isinstance(decoded, dict):\n        raise _MalformedCanonicalRow(column)\n    return dict(decoded)",
           "replace": "    return dict(value or {})  # mutated: العطلُ الأصليّ — قراءةٌ بلا فكّ",
           "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
-          "why": "هذه هي الصياغةُ التي كانت في المصدر حرفيّاً. `dict('{\"a\": 1}')` يرفع `ValueError`، فالمسارُ الساعيّ يسقط عند أوّل صفٍّ تُعيده قاعدةٌ حقيقيّة. الاختبارُ المُسمّى يمرّر نصّاً — وهو الشكلُ الوحيدُ الذي يفصل الإصلاح عن العطل."
+          "why": "هذه هي الصياغةُ التي كانت في المصدر حرفيّاً. `dict('{\"a\": 1}')` يرفع `ValueError`، فالمسارُ الساعيّ يسقط عند أوّل صفٍّ تُعيده قاعدةٌ حقيقيّة."
         },
         {
           "expect": "test_a_jsonb_array_arriving_as_text_is_a_list_not_its_characters",
-          "find": "    decoded = decode_jsonb(value, [])\n    if not isinstance(decoded, list):\n        raise _MalformedCanonicalRow(column)\n    return list(decoded)",
+          "find": "    decoded = _decode_or_block(value, [], column=column)\n    if not isinstance(decoded, list) or not all(isinstance(item, str) for item in decoded):\n        raise _MalformedCanonicalRow(column)\n    return list(decoded)",
           "replace": "    return list(value or [])  # mutated: العطلُ الصامت — النصُّ يصير حروفاً",
           "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
-          "why": "أخطرُ الشقّين لأنّه **لا يرفع**: `list('[\"A\", \"B\"]')` يُعيد حروفاً، فتظهر أسبابُ حجبٍ مختلقة في `blocking_reasons` ولا يحمرّ شيء. طفرةٌ تُعيد الصمتَ يجب أن تجد اختباراً يقيس **المحتوى** لا مجرّد عدم السقوط."
+          "why": "أخطرُ الشقّين لأنّه **لا يرفع**: `list('[\"A\", \"B\"]')` يُعيد حروفاً، فتظهر أسبابُ حجبٍ مختلقة في `blocking_reasons` ولا يحمرّ شيء."
         },
         {
           "expect": "test_a_wrong_shape_names_its_column_instead_of_escaping_as_500",
           "find": "    if not isinstance(decoded, dict):\n        raise _MalformedCanonicalRow(column)",
           "replace": "    if not isinstance(decoded, dict):\n        decoded = {}  # mutated: البنيةُ الفاسدة تُبتلَع بصمت",
           "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
-          "why": "الفكُّ وحدَه لا يكفي: صفٌّ مخزَّنٌ بمصفوفةٍ حيث يُنتظَر كائن يمرّ فارغاً فيُحسَب «غيابَ قدرة» بدل «صفّاً فاسداً». اشتراطُ البنية هو ما يجعل الحجبَ يُسمّي عمودَه، ومن يقرأه يعرف أيّ عمودٍ يُصلح."
+          "why": "الفكُّ وحدَه لا يكفي: صفٌّ بمصفوفةٍ حيث يُنتظَر كائن يمرّ فارغاً فيُحسَب «غيابَ قدرة» بدل «صفّاً فاسداً»."
+        },
+        {
+          "expect": "test_truncated_json_blocks_by_name_instead_of_escaping_as_500",
+          "find": "    try:\n        return decode_jsonb(value, default)\n    except ValueError as exc:  # JSONDecodeError من json.loads\n        raise _MalformedCanonicalRow(column) from exc",
+          "replace": "    return decode_jsonb(value, default)  # mutated: JSONDecodeError يهرب خمسمئةً",
+          "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
+          "why": "ثغرةُ الصياغة الأولى لهذا الإصلاح، وجدتها المراجعةُ المتوازية بحالة `\"{\"`: اشتراطُ البنية يلتقط الشكلَ الخاطئ ولا يلتقط النصَّ **غيرَ الصالح** — `json.loads` يرفع قبل أن تصل القيمةُ إلى `isinstance`."
+        },
+        {
+          "expect": "test_a_reason_list_of_non_strings_is_malformed_not_a_numeric_block_reason",
+          "find": "not isinstance(decoded, list) or not all(isinstance(item, str) for item in decoded)",
+          "replace": "not isinstance(decoded, list)",
+          "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
+          "why": "من المراجعة المتوازية: `[1]` قائمةٌ صحيحةُ البنية تُنتج سببَ حجبٍ رقميّاً في حمولةٍ يقرؤها إنسان. اشتراطُ القائمة وحدَه يمرّ عليها."
         },
         {
           "expect": "test_every_jsonb_column_the_orchestrator_reads_goes_through_a_decoder",
           "find": "    payload = _jsonb_object(row[\"payload\"], column=\"canonical_irrigation_capability_graphs.payload\")",
           "replace": "    payload = dict(row[\"payload\"] or {})  # mutated: عمودٌ يعود إلى القراءة المباشرة",
           "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
-          "why": "الدالّتان قد تبقيان سليمتين ويُضاف عمودٌ جديد يُقرأ مباشرةً — فيعود العطلُ من بابٍ آخر. حارسُ الانحدار يُشتقّ من المصدر لا من قائمةٍ مكتوبة، فلا يبيت."
+          "why": "الدالّتان قد تبقيان سليمتين ويُضاف عمودٌ يُقرأ مباشرةً، فيعود العطلُ من بابٍ آخر. حارسُ الانحدار يُشتقّ من المصدر لا من قائمةٍ مكتوبة."
         },
         {
-          "expect": "test_the_hourly_path_survives_the_shape_a_real_database_returns",
+          "expect": "test_server_owned_orchestrator_builds_and_persists",
           "find": "    payload = _jsonb_object(row[\"snapshot\"], column=\"irrigation_executability_gates.snapshot\")",
           "replace": "    payload = dict(row[\"snapshot\"] or {})  # mutated: العطلُ في بوّابة القابليّة",
           "test": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
-          "why": "شاهدٌ من طرفٍ إلى طرف لا وحدة: يُشغّل `orchestrate_irrigation_recommendation` على بديلٍ يُسلّم `jsonb` نصّاً كما تُسلّمه القاعدة. لو بقي `FakeConn` وحدَه لمرّت الطفرةُ خضراء — وهو بالضبط سببُ نجاة العطل الأصليّ من الجناح."
+          "why": "شاهدٌ من طرفٍ إلى طرف: البديلُ مُعامَلٌ على حالتَي `codec`/`asyncpg-default`، فالحالةُ الثانية تُسلّم `jsonb` نصّاً كما تُسلّمه القاعدة. ولو بقي البديلُ المفكوكُ وحدَه لمرّت الطفرةُ خضراء — وهو سببُ نجاة العطل الأصليّ من الجناح."
         },
         {
-          "expect": "test_a_stored_row_with_a_wrong_shape_is_a_named_block_not_a_500",
+          "expect": "test_invalid_persisted_jsonb_blocks_at_http_boundary",
           "find": "    except _MalformedCanonicalRow as exc:\n        return _blocked(",
-          "replace": "    except _MalformedCanonicalRow:  # mutated: الاستثناء يهرب 500\n        raise\n    if False:\n        return _blocked(",
+          "replace": "    except _MalformedCanonicalRow:  # mutated: الاستثناء يهرب خمسمئةً\n        raise\n    if False:\n        return _blocked(",
           "test": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
-          "why": "بلا الالتقاط يخرج الصفُّ الفاسد خمسُمئةً عاريةً من طبقة الـAPI: خبرٌ عن الخدمة لا عن الصفّ، ولا يُسمّي عموداً. الطفرةُ تُبقي الفكَّ سليماً وتنزع التسميةَ وحدَها، فتفصل «فُكَّ الترميز» عن «حُجِب بسببٍ مفهوم»."
+          "why": "من المراجعة المتوازية: الشاهدُ يقيس على **حدّ HTTP** أنّ الردّ 200 محجوبٌ لا خمسمئة، وأنّ الطقسَ لم يُنتظَر وأنّ شيئاً لم يُكتَب. الطفرةُ تُبقي الفكَّ سليماً وتنزع التسميةَ وحدَها، فتفصل «فُكَّ الترميز» عن «حُجِب بسببٍ مفهوم»."
         }
       ]
     }

@@ -40,6 +40,19 @@ class _MalformedCanonicalRow(Exception):
         self.column = column
 
 
+def _decode_or_block(value: Any, default: Any, *, column: str) -> Any:
+    """يفكّ، ويحوّل **نصّاً غيرَ صالح** إلى الحجب المسمّى نفسِه.
+
+    ``decode_jsonb`` يستدعي ``json.loads``، فعمودٌ محفوظٌ مبتوراً (``"{"``) يرفع
+    ``JSONDecodeError``. وهي ``ValueError`` تهرب من المنسّق خمسمئةً عاريةً لو لم
+    تُلتقَط هنا — والصفُّ المبتور خبرٌ عن الصفّ كالبنية الفاسدة سواءً بسواء.
+    """
+    try:
+        return decode_jsonb(value, default)
+    except ValueError as exc:  # JSONDecodeError من json.loads
+        raise _MalformedCanonicalRow(column) from exc
+
+
 def _jsonb_object(value: Any, *, column: str) -> dict[str, Any]:
     """يفكّ عمودَ ``jsonb`` ويشترط أنّه كائن.
 
@@ -48,20 +61,23 @@ def _jsonb_object(value: Any, *, column: str) -> dict[str, Any]:
     فـ``dict(<نصّ>)`` يرفع ``ValueError`` — وهو العطلُ نفسُه الذي وثّقه
     ``decode_jsonb`` حين أُصلح في العامل، وبقي هنا.
     """
-    decoded = decode_jsonb(value, {})
+    decoded = _decode_or_block(value, {}, column=column)
     if not isinstance(decoded, dict):
         raise _MalformedCanonicalRow(column)
     return dict(decoded)
 
 
-def _jsonb_list(value: Any, *, column: str) -> list[Any]:
-    """يفكّ عمودَ ``jsonb`` ويشترط أنّه قائمة.
+def _jsonb_reasons(value: Any, *, column: str) -> list[str]:
+    """يفكّ عمودَ ``jsonb`` ويشترط أنّه قائمةُ **نصوص**.
 
     ``list("[]")`` يُعيد ``['[', ']']`` **بلا خطأ** — فيصير سببا حجبٍ مختلقان من
     قوسين. الصمتُ هنا أخطرُ من الرفع، فتُشترَط البنية صراحةً.
+
+    واشتراطُ نوع كلّ عنصر لا يزيد على اشتراط القائمة: ``[1]`` يمرّ قائمةً ثمّ يصير
+    سببَ حجبٍ رقميّاً في حمولةٍ يقرؤها إنسان.
     """
-    decoded = decode_jsonb(value, [])
-    if not isinstance(decoded, list):
+    decoded = _decode_or_block(value, [], column=column)
+    if not isinstance(decoded, list) or not all(isinstance(item, str) for item in decoded):
         raise _MalformedCanonicalRow(column)
     return list(decoded)
 
@@ -131,7 +147,7 @@ async def _latest_executability_gate(
             "status": "executable" if allowed else "blocked",
             "execution_allowed": allowed,
             "valid_until": None if valid_until is None else valid_until.isoformat(),
-            "blocking_reasons": _jsonb_list(
+            "blocking_reasons": _jsonb_reasons(
                 row["blocking_reasons"], column="irrigation_executability_gates.blocking_reasons"
             )
             + (["COMMISSIONING_CERTIFICATION_EXPIRED"] if expired else []),

@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5274,
+    "files_scanned": 5275,
     "files_by_kind": {
       "backend": 1207,
       "database": 277,
       "governance": 62,
       "mobile": 51,
-      "other": 1449,
+      "other": 1450,
       "tests": 1771,
       "web": 457
     },
@@ -270,7 +270,7 @@
       "tests": [
         {
           "path": "tests_v9/test_guardrails_contract.py",
-          "score": 9,
+          "score": 10,
           "signals": [
             "content:Human approval",
             "content:approval workflow"
@@ -8162,14 +8162,6 @@
           ]
         },
         {
-          "path": "tests_v9/test_canonical_water_state_mpc.py",
-          "score": 12,
-          "signals": [
-            "content:cultivar",
-            "content:variety"
-          ]
-        },
-        {
           "path": "services/sahool-platform/tests/test_yield_analysis.py",
           "score": 10,
           "signals": [
@@ -8200,7 +8192,7 @@
         "events": 7,
         "web": 3,
         "mobile": 1,
-        "tests": 7,
+        "tests": 6,
         "governance": 0,
         "other_evidence": 1
       },
@@ -12189,27 +12181,27 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:499",
+          "value": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:495",
           "score": 9
         },
         {
-          "value": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:319",
+          "value": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:315",
           "score": 9
         },
         {
-          "value": "/api/v1/irrigation/executions/reconcile @ services/sahool-platform/api/routers/irrigation_mpc.py:540",
+          "value": "/api/v1/irrigation/executions/reconcile @ services/sahool-platform/api/routers/irrigation_mpc.py:536",
           "score": 9
         },
         {
-          "value": "/api/v1/irrigation/mpc/capabilities @ services/sahool-platform/api/routers/irrigation_mpc.py:163",
+          "value": "/api/v1/irrigation/mpc/capabilities @ services/sahool-platform/api/routers/irrigation_mpc.py:159",
           "score": 9
         },
         {
-          "value": "/api/v1/irrigation/mpc/plan @ services/sahool-platform/api/routers/irrigation_mpc.py:95",
+          "value": "/api/v1/irrigation/mpc/plan @ services/sahool-platform/api/routers/irrigation_mpc.py:92",
           "score": 9
         },
         {
-          "value": "/api/v1/irrigation/mpc/simulate @ services/sahool-platform/api/routers/irrigation_mpc.py:286",
+          "value": "/api/v1/irrigation/mpc/simulate @ services/sahool-platform/api/routers/irrigation_mpc.py:282",
           "score": 9
         }
       ],
@@ -12253,7 +12245,7 @@
       ],
       "events": [
         {
-          "value": "sahool.irrigation_mpc @ services/sahool-platform/api/routers/irrigation_mpc.py:44",
+          "value": "sahool.irrigation_mpc @ services/sahool-platform/api/routers/irrigation_mpc.py:42",
           "score": 9
         }
       ],
@@ -12666,23 +12658,19 @@
           "score": 28
         },
         {
-          "value": "canonical_irrigation_capability_graphs.payload @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:98",
+          "value": "canonical_irrigation_capability_graphs.payload @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:114",
           "score": 12
         },
         {
-          "value": "canonical_irrigation_capability_graphs.payload @ services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py:209",
+          "value": "irrigation.maximum_safe_depth_mm_event @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:393",
           "score": 12
         },
         {
-          "value": "irrigation.maximum_safe_depth_mm_event @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:377",
+          "value": "irrigation.maximum_safe_depth_mm_event @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:430",
           "score": 12
         },
         {
-          "value": "irrigation.maximum_safe_depth_mm_event @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:414",
-          "score": 12
-        },
-        {
-          "value": "irrigation.maximum_safe_depth_mm_event @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:415",
+          "value": "irrigation.maximum_safe_depth_mm_event @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:431",
           "score": 12
         },
         {
@@ -12694,11 +12682,11 @@
           "score": 12
         },
         {
-          "value": "irrigation_executability_gates.blocking_reasons @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:135",
+          "value": "irrigation_executability_gates.blocking_reasons @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:151",
           "score": 12
         },
         {
-          "value": "irrigation_executability_gates.snapshot @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:125",
+          "value": "irrigation_executability_gates.snapshot @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:141",
           "score": 12
         },
         {
@@ -12711,6 +12699,18 @@
         },
         {
           "value": "IrrigationDecisionCard.tsx @ frontend/src/hooks/useFieldIrrigationRecommendation.static.test.ts:11",
+          "score": 8
+        },
+        {
+          "value": "canonical_irrigation_capability_graphs.payload @ services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py:187",
+          "score": 8
+        },
+        {
+          "value": "irrigation_executability_gates.blocking_reasons @ services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py:189",
+          "score": 8
+        },
+        {
+          "value": "irrigation_executability_gates.snapshot @ services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py:188",
           "score": 8
         },
         {
@@ -12775,14 +12775,6 @@
           ]
         },
         {
-          "path": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
-          "score": 12,
-          "signals": [
-            "content:Irrigation recommendation",
-            "content:irrigation recommendation"
-          ]
-        },
-        {
           "path": "tests_v9/test_knowledge_providers_and_adoption.py",
           "score": 12,
           "signals": [
@@ -12808,6 +12800,14 @@
         },
         {
           "path": "services/sahool-platform/tests/test_irrigation_depletion_wiring_guard.py",
+          "score": 8,
+          "signals": [
+            "content:Irrigation recommendation",
+            "content:irrigation recommendation"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
           "score": 8,
           "signals": [
             "content:Irrigation recommendation",
@@ -12866,7 +12866,7 @@
         "backend": 3,
         "routes": 2,
         "database": 0,
-        "events": 16,
+        "events": 18,
         "web": 3,
         "mobile": 0,
         "tests": 8,
@@ -27946,7 +27946,19 @@
           "score": 10
         },
         {
+          "value": "canonical_irrigation_capability_graphs.payload @ services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py:187",
+          "score": 8
+        },
+        {
           "value": "hourly_energy_aware_irrigation_mpc.v1 @ services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py:18",
+          "score": 8
+        },
+        {
+          "value": "irrigation_executability_gates.blocking_reasons @ services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py:189",
+          "score": 8
+        },
+        {
+          "value": "irrigation_executability_gates.snapshot @ services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py:188",
           "score": 8
         },
         {
@@ -28105,6 +28117,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+          "score": 8,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
           "path": "tests_v9/test_hourly_energy_aware_irrigation_mpc.py",
           "score": 8,
           "signals": [
@@ -28252,10 +28272,10 @@
         "backend": 13,
         "routes": 92,
         "database": 14,
-        "events": 36,
+        "events": 39,
         "web": 1,
         "mobile": 0,
-        "tests": 16,
+        "tests": 17,
         "governance": 1,
         "other_evidence": 14
       },
@@ -29367,6 +29387,15 @@
       "title": "Weather forecast",
       "backend": [
         {
+          "path": "services/sahool-platform/api/canonical_water_state.py",
+          "score": 18,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/confidence_aggregation.py",
           "score": 18,
           "signals": [
@@ -29387,15 +29416,6 @@
         {
           "path": "services/weather-polygon-worker/src/main.py",
           "score": 18,
-          "signals": [
-            "content:Weather forecast",
-            "content:forecast",
-            "content:weather forecast"
-          ]
-        },
-        {
-          "path": "services/sahool-platform/api/canonical_water_state.py",
-          "score": 16,
           "signals": [
             "content:Weather forecast",
             "content:forecast",
@@ -30175,6 +30195,15 @@
       "mobile": [],
       "tests": [
         {
+          "path": "tests_v9/test_canonical_water_state_mpc.py",
+          "score": 18,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
           "path": "tests_v9/test_capabilities.py",
           "score": 18,
           "signals": [
@@ -30261,15 +30290,6 @@
           "signals": [
             "path:forecast",
             "content:forecast"
-          ]
-        },
-        {
-          "path": "tests_v9/test_canonical_water_state_mpc.py",
-          "score": 12,
-          "signals": [
-            "content:Weather forecast",
-            "content:forecast",
-            "content:weather forecast"
           ]
         },
         {
@@ -31256,11 +31276,11 @@
           "score": 12
         },
         {
-          "value": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:499",
+          "value": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:495",
           "score": 12
         },
         {
-          "value": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:319",
+          "value": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:315",
           "score": 12
         },
         {
@@ -31280,19 +31300,19 @@
           "score": 12
         },
         {
-          "value": "/api/v1/irrigation/executions/reconcile @ services/sahool-platform/api/routers/irrigation_mpc.py:540",
+          "value": "/api/v1/irrigation/executions/reconcile @ services/sahool-platform/api/routers/irrigation_mpc.py:536",
           "score": 12
         },
         {
-          "value": "/api/v1/irrigation/mpc/capabilities @ services/sahool-platform/api/routers/irrigation_mpc.py:163",
+          "value": "/api/v1/irrigation/mpc/capabilities @ services/sahool-platform/api/routers/irrigation_mpc.py:159",
           "score": 12
         },
         {
-          "value": "/api/v1/irrigation/mpc/plan @ services/sahool-platform/api/routers/irrigation_mpc.py:95",
+          "value": "/api/v1/irrigation/mpc/plan @ services/sahool-platform/api/routers/irrigation_mpc.py:92",
           "score": 12
         },
         {
-          "value": "/api/v1/irrigation/mpc/simulate @ services/sahool-platform/api/routers/irrigation_mpc.py:286",
+          "value": "/api/v1/irrigation/mpc/simulate @ services/sahool-platform/api/routers/irrigation_mpc.py:282",
           "score": 12
         },
         {
@@ -31575,7 +31595,7 @@
           "score": 12
         },
         {
-          "value": "sahool.irrigation_mpc @ services/sahool-platform/api/routers/irrigation_mpc.py:44",
+          "value": "sahool.irrigation_mpc @ services/sahool-platform/api/routers/irrigation_mpc.py:42",
           "score": 12
         },
         {
@@ -31635,7 +31655,7 @@
           "score": 12
         },
         {
-          "value": "canonical_irrigation_capability_graphs.payload @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:98",
+          "value": "canonical_irrigation_capability_graphs.payload @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:114",
           "score": 10
         },
         {
@@ -31643,23 +31663,23 @@
           "score": 10
         },
         {
-          "value": "irrigation.maximum_safe_depth_mm_event @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:377",
+          "value": "irrigation.maximum_safe_depth_mm_event @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:393",
           "score": 10
         },
         {
-          "value": "irrigation.maximum_safe_depth_mm_event @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:414",
+          "value": "irrigation.maximum_safe_depth_mm_event @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:430",
           "score": 10
         },
         {
-          "value": "irrigation.maximum_safe_depth_mm_event @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:415",
+          "value": "irrigation.maximum_safe_depth_mm_event @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:431",
           "score": 10
         },
         {
-          "value": "irrigation_executability_gates.blocking_reasons @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:135",
+          "value": "irrigation_executability_gates.blocking_reasons @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:151",
           "score": 10
         },
         {
-          "value": "irrigation_executability_gates.snapshot @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:125",
+          "value": "irrigation_executability_gates.snapshot @ services/sahool-platform/api/irrigation_runtime_orchestrator.py:141",
           "score": 10
         },
         {
@@ -31673,6 +31693,10 @@
         {
           "value": "weather.read @ docs/history/REVIEW_RESPONSE_10_11.md:166",
           "score": 10
+        },
+        {
+          "value": "canonical_irrigation_capability_graphs.payload @ services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py:187",
+          "score": 8
         },
         {
           "value": "field_workspace_weather.py @ tests_v9/test_weather_views_survive_the_hop_to_the_platform.py:40",
@@ -31764,6 +31788,14 @@
         },
         {
           "value": "irrigation.verify @ services/sahool-platform/api/workflow_definitions.py:533",
+          "score": 8
+        },
+        {
+          "value": "irrigation_executability_gates.blocking_reasons @ services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py:189",
+          "score": 8
+        },
+        {
+          "value": "irrigation_executability_gates.snapshot @ services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py:188",
           "score": 8
         }
       ],
@@ -32153,14 +32185,6 @@
           ]
         },
         {
-          "path": "tests_v9/test_canonical_water_state_mpc.py",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
           "path": "tests_v9/test_confidence_failures.py",
           "score": 12,
           "signals": [
@@ -32362,6 +32386,14 @@
         },
         {
           "path": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
+          "score": 8,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
           "score": 8,
           "signals": [
             "content:ET0",
@@ -32589,6 +32621,14 @@
           ]
         },
         {
+          "path": "docs/testing/main_irrigation_guardrails_repairs_20260909.md",
+          "score": 8,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "shared/knowledge/contracts.py",
           "score": 8,
           "signals": [
@@ -32613,12 +32653,12 @@
         "backend": 58,
         "routes": 48,
         "database": 0,
-        "events": 85,
+        "events": 88,
         "web": 19,
         "mobile": 0,
         "tests": 59,
         "governance": 0,
-        "other_evidence": 24
+        "other_evidence": 25
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -52008,6 +52048,36 @@
       ]
     },
     {
+      "path": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "WX-004",
+          "score": 8,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
+          "capability_id": "SOIL-001",
+          "score": 8,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
+          "capability_id": "IRR-005",
+          "score": 8,
+          "signals": [
+            "content:Irrigation recommendation",
+            "content:irrigation recommendation"
+          ]
+        }
+      ]
+    },
+    {
       "path": "services/sahool-platform/tests/test_map_layer.py",
       "kind": "tests",
       "candidates": [
@@ -53118,37 +53188,6 @@
           "signals": [
             "content:slope",
             "content:terrain"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "tests_v9/test_canonical_water_state_mpc.py",
-      "kind": "tests",
-      "candidates": [
-        {
-          "capability_id": "WX-004",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
-          "capability_id": "WX-002",
-          "score": 12,
-          "signals": [
-            "content:Weather forecast",
-            "content:forecast",
-            "content:weather forecast"
-          ]
-        },
-        {
-          "capability_id": "FM-005",
-          "score": 12,
-          "signals": [
-            "content:cultivar",
-            "content:variety"
           ]
         }
       ]

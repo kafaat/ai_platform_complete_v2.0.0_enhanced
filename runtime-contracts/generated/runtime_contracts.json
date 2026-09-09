@@ -2541,6 +2541,7 @@
           "services/sahool-platform/tests/test_food_grain_varieties_catalog.py",
           "services/sahool-platform/tests/test_index_registry.py",
           "services/sahool-platform/tests/test_indicators_dashboard.py",
+          "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
           "services/sahool-platform/tests/test_lab_sampling_router.py",
           "services/sahool-platform/tests/test_learn_from_harvest.py",
           "services/sahool-platform/tests/test_machinery_export.py",

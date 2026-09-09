@@ -201,7 +201,7 @@ def test_route_plan_blocks_when_no_ground_truth_depletion(monkeypatch):
 
 @_requires_fastapi
 def test_route_plan_reads_ledger_when_depletion_absent(monkeypatch):
-    """غياب initial_depletion + وجود صفّ دفتر ⇒ عمليّ بحقيقة الخادم، والمستأجِر من المستخدم."""
+    """Ledger Dr seeds a simulation; client TAW/weather never become operational facts."""
     import api.routers.irrigation_mpc as route
 
     async def _ledger(tenant_id, field_id):
@@ -216,7 +216,7 @@ def test_route_plan_reads_ledger_when_depletion_absent(monkeypatch):
     )
     out = asyncio.run(route.irrigation_mpc_plan(req, user=_User()))
     assert out["depletion_source"] == "water_ledger"
-    assert out["mode"] == "operational"
+    assert out["mode"] == "simulation"
     assert out["decision"]["tenant_id"] == "tenant-42"  # من المستخدم لا الجسم
 
 
@@ -268,23 +268,32 @@ def test_route_plan_rejects_illegal_bounds():
 
 
 @_requires_fastapi
-def test_route_plan_submit_without_bridge_is_disabled(monkeypatch):
+@pytest.mark.parametrize("enabled", ["false", "true"])
+@pytest.mark.parametrize("taw,et0", [(120.0, 0.0), (60.0, 20.0)])
+def test_route_plan_ledger_seed_cannot_emit_client_facts(monkeypatch, enabled, taw, et0):
+    from unittest.mock import AsyncMock
+
     import api.routers.irrigation_mpc as route
 
     async def _ledger(tenant_id, field_id):
-        return 45.0
+        return 55.0
 
     monkeypatch.setattr(route, "_latest_ledger_depletion", _ledger)
-    monkeypatch.delenv("LEXICOGRAPHIC_MPC_BRIDGE_ENABLED", raising=False)
+    monkeypatch.setenv("LEXICOGRAPHIC_MPC_BRIDGE_ENABLED", enabled)
+    emit = AsyncMock()
+    monkeypatch.setattr(route, "emit_mpc_candidate", emit)
 
     req = route.MpcPlanRequest(
         field_id="fld_a",
-        forecast=[route.ForecastDayIn(et0_mm=10.0, kc=1.0)],
-        taw_mm=100.0,
+        forecast=[route.ForecastDayIn(et0_mm=et0, kc=1.0)],
+        taw_mm=taw,
         submit=True,
     )
     out = asyncio.run(route.irrigation_mpc_plan(req, user=_User()))
-    assert out["emit"] == {"status": "disabled"}
+    assert out["mode"] == "simulation"
+    assert out["execution_allowed"] is False
+    assert out["emit"]["status"] == "rejected_simulation"
+    emit.assert_not_awaited()
 
 
 @_requires_fastapi
