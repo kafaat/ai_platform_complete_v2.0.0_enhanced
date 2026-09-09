@@ -979,6 +979,7 @@
           "services/guardrails-engine/routers/health.py"
         ],
         "routes": [
+          "services/guardrails-engine/contracts.py",
           "services/guardrails-engine/diff_generator.py",
           "services/guardrails-engine/human_in_loop.py",
           "services/guardrails-engine/main.py",
@@ -1225,10 +1226,13 @@
       "configuration": [
         "DATABASE_URL",
         "ERP_BRIDGE_URL",
+        "JWT_PUBLIC_KEY",
         "MCP_SERVICE",
         "ODOO_BRIDGE_URL",
         "RASTER_SERVICE_URL",
+        "SAHOOL_ALLOW_HS256_IN_PROD",
         "SAHOOL_API_URL",
+        "SAHOOL_ENV",
         "SH_CLIENT_ID",
         "SH_INSTANCE_ID",
         "WEATHER_SERVICE_URL"
@@ -2154,6 +2158,7 @@
           "services/sahool-platform/api/field_boundary_pipeline.py",
           "services/sahool-platform/api/field_context.py",
           "services/sahool-platform/api/field_geometry_save_guard.py",
+          "services/sahool-platform/api/field_models.py",
           "services/sahool-platform/api/field_readiness.py",
           "services/sahool-platform/api/field_season_projection.py",
           "services/sahool-platform/api/field_state_projection.py",
@@ -2945,6 +2950,7 @@
         "configuration": [
           "services/supervisor-agent/main.py",
           "services/supervisor-agent/skills/advisory_skill.py",
+          "services/supervisor-agent/skills/crop_model_skill.py",
           "services/supervisor-agent/skills/remote_sensing_skill.py"
         ],
         "metrics": [

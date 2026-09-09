@@ -27,7 +27,10 @@ ALLOWED_LAYERS = {
 def validate_time_model(time: str, model: str) -> tuple[str, str]:
     time = (time or "now").strip()
     model = (model or "best_match").strip()
-    if time not in ALLOWED_TIMES:
+    # Operation windows accept every bounded hour, including horizons beyond 48h.
+    # Do not relabel a current sample as a requested future frame.
+    offset = time[1:-1] if time.startswith("+") and time.endswith("h") else ""
+    if time not in ALLOWED_TIMES and not (offset.isdigit() and int(offset) <= MAX_SERIES_HOUR):
         time = "now"
     if model not in ALLOWED_MODELS:
         model = "best_match"
@@ -42,7 +45,7 @@ DEFAULT_SERIES_HOURS = (0, 1, 3, 6, 12, 24, 48)
 # أقصى أفقٍ تقبله الخدمة — مطابقٌ لِما تُعلنه المنصّة في `horizon_hours` (`le=168`).
 MAX_SERIES_HOUR = 168
 # سقفُ الإطارات يحدّ الكلفة: كلُّ إطارٍ عيّنةُ مزوّدٍ واحدة، و`operation_plan`
-# يضربها في عدد العمليّات (خمس) — فبلا سقفٍ يصير طلبٌ واحد مئاتِ النداءات.
+# يعيد استعمالها بين العمليّات — ويبقى السقف حدّاً لكلفة الطلب الواحد.
 MAX_SERIES_FRAMES = 16
 
 

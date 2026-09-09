@@ -2728,7 +2728,15 @@
     "kind": "backend"
   },
   {
+    "path": "services/guardrails-engine/README.md",
+    "kind": "backend"
+  },
+  {
     "path": "services/guardrails-engine/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/guardrails-engine/contracts.py",
     "kind": "backend"
   },
   {
@@ -5468,10 +5476,6 @@
     "kind": "tests"
   },
   {
-    "path": "services/sahool-platform/tests/test_governance_modules.py",
-    "kind": "tests"
-  },
-  {
     "path": "services/sahool-platform/tests/test_guardrails.py",
     "kind": "tests"
   },
@@ -7036,6 +7040,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_collect_guard_surface_evidence.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_command_dispatch_race_v65.py",
     "kind": "tests"
   },
@@ -7496,10 +7504,6 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/test_guardrails_contract.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests_v9/test_harvest_traceability_v65.py",
     "kind": "tests"
   },
@@ -7701,10 +7705,6 @@
   },
   {
     "path": "tests_v9/test_master_data.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests_v9/test_mcp_auth_first_contract.py",
     "kind": "tests"
   },
   {

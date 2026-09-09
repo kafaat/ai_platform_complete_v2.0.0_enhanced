@@ -48,24 +48,91 @@ def _first_docstring_line(path: Path) -> str:
     return doc.splitlines()[0].strip() if doc else ""
 
 
-def discover_invocations() -> dict[str, set[tuple[str, str]]]:
-    """guard path -> {(workflow, job)} — where each guard actually blocks."""
-    found: dict[str, set[tuple[str, str]]] = {}
-    for workflow in sorted(WORKFLOWS.glob("*.y*ml")):
-        text = workflow.read_text(encoding="utf-8")
-        # Job attribution without a YAML parser would be guesswork, so parse it.
-        import yaml
+#: ``${{ matrix.<key> }}`` inside a job's display name. A matrix job reaches the Actions
+#: API under its *expanded* name, so a consumer that matches API jobs by name has to
+#: expand it — from ``strategy.matrix.include``, which is data, not a guess.
+_MATRIX_REF = re.compile(r"\$\{\{\s*matrix\.([A-Za-z_][\w-]*)\s*\}\}")
 
-        document = yaml.safe_load(text) or {}
-        for job_name, job in (document.get("jobs") or {}).items():
+
+def _job_display_names(job_key: str, job: dict) -> list[str]:
+    """The names this job reports to the Actions API — one, or one per matrix leg.
+
+    An unnamed job reports its key. A named job reports its name. A *matrix* job reports
+    the name once per leg with ``${{ matrix.* }}`` substituted, so a single YAML job is
+    several API jobs — and a consumer that expects one silently proves nothing about the
+    other four. An expression this function cannot resolve yields **no** name rather than
+    a guessed one: an unresolvable name is a measurement gap, and naming it wrongly would
+    turn that gap into a false match.
+    """
+    declared = job.get("name")
+    if not isinstance(declared, str) or not declared.strip():
+        return [job_key]
+    declared = declared.strip()
+    if "${{" not in declared:
+        return [declared]
+    include = ((job.get("strategy") or {}).get("matrix") or {}).get("include")
+    if not isinstance(include, list):
+        return []
+    names: list[str] = []
+    for leg in include:
+        if not isinstance(leg, dict):
+            continue
+        rendered = _MATRIX_REF.sub(
+            lambda m, leg=leg: str(leg.get(m.group(1), m.group(0))), declared
+        )
+        if "${{" not in rendered:
+            names.append(rendered)
+    return names
+
+
+def discover_invocation_sites() -> list[dict]:
+    """Every place a guard is invoked, down to the step — the one parse, richest view.
+
+    ``discover_invocations`` below is a projection of this, so the catalogue and any
+    consumer that needs step-level detail (``collect_guard_surface_evidence``) read the
+    **same** parse. Two parsers agreeing today is the drift class this repository keeps
+    measuring; one parse with two views cannot drift.
+    """
+    import yaml  # Job attribution without a YAML parser would be guesswork, so parse it.
+
+    sites: list[dict] = []
+    for workflow in sorted(WORKFLOWS.glob("*.y*ml")):
+        document = yaml.safe_load(workflow.read_text(encoding="utf-8")) or {}
+        for job_key, job in (document.get("jobs") or {}).items():
             if not isinstance(job, dict):
                 continue
-            for step in job.get("steps") or []:
+            job_names = _job_display_names(job_key, job)
+            for index, step in enumerate(job.get("steps") or []):
+                if not isinstance(step, dict):
+                    continue
                 run = step.get("run")
                 if not isinstance(run, str):
                     continue
-                for match in _INVOCATION.finditer(run):
-                    found.setdefault(match.group(1), set()).add((workflow.name, job_name))
+                guards = sorted({match.group(1) for match in _INVOCATION.finditer(run)})
+                if not guards:
+                    continue
+                name = step.get("name")
+                sites.append(
+                    {
+                        "workflow": workflow.name,
+                        "job": job_key,
+                        "job_names": job_names,
+                        "step_index": index,
+                        "step_name": name.strip() if isinstance(name, str) else None,
+                        "step_if": step.get("if"),
+                        "continue_on_error": bool(step.get("continue-on-error")),
+                        "guards": guards,
+                    }
+                )
+    return sites
+
+
+def discover_invocations() -> dict[str, set[tuple[str, str]]]:
+    """guard path -> {(workflow, job)} — where each guard actually blocks."""
+    found: dict[str, set[tuple[str, str]]] = {}
+    for site in discover_invocation_sites():
+        for guard in site["guards"]:
+            found.setdefault(guard, set()).add((site["workflow"], site["job"]))
     return found
 
 

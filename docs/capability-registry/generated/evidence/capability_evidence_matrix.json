@@ -258,9 +258,10 @@
       ]
     },
     {
-      "assessed_maturity": 1,
+      "assessed_maturity": 2,
       "assessment_reasons": [
         "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -292,7 +293,7 @@
         "database": false,
         "documentation": true,
         "events": false,
-        "integration_tests": false,
+        "integration_tests": true,
         "mobile": false,
         "production": false,
         "runtime": false,
@@ -327,7 +328,7 @@
           "type": "events"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "integration_tests"
         },
@@ -362,17 +363,19 @@
           "type": "web"
         }
       ],
-      "evidence_score": 4,
+      "evidence_score": 5,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
         "production_certified": "false_as_required",
         "runtime_verified": "consistent_with_authority"
       },
-      "integration_test_paths": [],
+      "integration_test_paths": [
+        "tests_v9/test_guardrails_contract.py"
+      ],
       "learning_linked": false,
       "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -2,
+      "maturity_delta": -1,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
@@ -3174,6 +3177,7 @@
         "tests_v9/test_canonical_execution_learning_worker_subscriptions.py",
         "tests_v9/test_event_bus_invariants.py",
         "tests_v9/test_h2_nats_publishers_flag.py",
+        "tests_v9/test_nats_broker_authentication.py",
         "tests_v9/test_nats_publisher_coverage.py",
         "tests_v9/test_outbox_delivery_attempts_v19_5.py",
         "tests_v9/test_outbox_idempotent_consumption.py",
@@ -9664,6 +9668,7 @@
       "integration_test_paths": [
         "services/sahool-platform/tests/test_p0_weather_service_real_contract_guard.py",
         "tests_v9/test_cross_service_path_contract_guard.py",
+        "tests_v9/test_mcp_auth_first_contract.py",
         "tests_v9/test_mobile_backend_contract.py",
         "tests_v9/test_tool_contracts.py"
       ],
@@ -10825,7 +10830,7 @@
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
     "aligned": 28,
-    "average_assessed_maturity": 2.04,
+    "average_assessed_maturity": 2.05,
     "capability_count": 81,
     "declared_above_evidence": 50,
     "evidence_above_declared": 3,

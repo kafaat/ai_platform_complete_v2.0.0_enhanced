@@ -367,9 +367,32 @@ def test_a_declared_producer_that_no_longer_exists_is_rejected(tmp_path: Path) -
 
 @pytest.mark.unit
 def test_an_empty_reason_is_rejected(tmp_path: Path) -> None:
-    """إعلانُ غيابٍ بلا سببٍ صمتٌ بصيغةٍ أخرى — وهو ما بُني العقدُ لمنعه."""
+    """إعلانُ غيابٍ بلا سببٍ صمتٌ بصيغةٍ أخرى — وهو ما بُني العقدُ لمنعه.
+
+    **والهدفُ يُشتقّ ولا يُسمّى.** كان مثبَّتاً على `GUARDS`، فلمّا بُني مُنتِجُه
+    وانتقل إلى `produced` صار تعديلُ `reason` عليه بلا أثر — ومرّ الاختبارُ وهو لا
+    يقيس شيئاً… لولا أنّ `check()` أعادت `0` فاحمرّ. أي أنّ **نجاحَ عملٍ صحيح كسر
+    اختباراً يفترض بقاءَ الشجرة كما كانت**، وهو صنفٌ مقيسٌ في هذا المستودع مرّتين
+    (لقطةٌ عدديّةٌ بائتة · حارسٌ يمنع علاجَ حارسٍ آخر).
+
+    فيُختار أوّلُ إعلانِ غيابٍ قائم، ويُشترَط وجودُ واحدٍ صراحةً: يومَ يصير لكلّ
+    حاجبٍ مُنتِجٌ صادق يجب أن **يقول** هذا الاختبار إنّه لم يعد له ما يقيس، لا أن
+    يخضرّ على فراغ.
+    """
     contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
-    contract["producers"]["GUARDS"]["reason"] = []
+    target = next(
+        (
+            blocker
+            for blocker, entry in contract["producers"].items()
+            if entry.get("state") == "no_honest_producer"
+        ),
+        None,
+    )
+    assert target is not None, (
+        "لا إعلانَ غيابٍ في العقد — فلا `reason` يُفرَّغ. إن صار لكلّ حاجبٍ مُنتِجٌ "
+        "صادق فهذه الحالةُ بلا موضوع، وحذفُها قرارٌ يُتَّخذ لا يُتخطّى بخضرةٍ فارغة."
+    )
+    contract["producers"][target]["reason"] = []
     mutated = tmp_path / "contract.json"
     mutated.write_text(json.dumps(contract, ensure_ascii=False), encoding="utf-8")
 
@@ -656,15 +679,32 @@ def test_only_the_job_that_queries_the_actions_api_declares_that_scope() -> None
     بلا اختبار، لأنّه يجعل تضييقَه انحداراً.
 
     فالمقيسُ الآن الخاصّيّةُ في اتّجاهيها: مَن يسأل يُعلِن، ومَن لا يسأل لا يُعلِن.
+
+    **و«مَن يسأل» يُشتقّ من المصدر لا من اسمٍ مثبَّت.** كانت الصياغةُ تسمّي
+    `collect_full_branch_ci_evidence` وحدَه، فلمّا أُضيف جامعٌ ثانٍ يسأل الواجهةَ
+    فعلاً (`collect_guard_surface_evidence`) قال الاختبارُ إنّ وظيفتَه تُعلِن
+    صلاحيّةً زائدة — وهو **مقلوبُ الحقيقة**. والأخطرُ أنّ الاتّجاه الآخر كان مفتوحاً:
+    جامعٌ جديدٌ في وظيفةٍ **بلا** النطاق كان يمرّ صامتاً ثمّ يسقط في العدّاء.
+    فيُقرأ مصدرُ كلّ سكربتٍ يستدعيه الأمر، ويُعَدّ سائلاً إن مسّ `GITHUB_API_URL` —
+    الحقيقةُ نفسُها في الاتّجاهين، بلا قائمةِ أسماءٍ تبيت.
     """
+    import re
+
     import yaml
+
+    def _asks_the_api(run: str) -> bool:
+        for path in re.findall(r"scripts/ci/[\w./-]+\.py", run):
+            source = ROOT / path
+            if source.is_file() and "GITHUB_API_URL" in source.read_text(encoding="utf-8"):
+                return True
+        return False
 
     workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
     for job_id, job in workflow["jobs"].items():
         steps = job.get("steps") or []
         # سؤالُ الواجهة يُقاس بمن يستدعيها فعلاً، أو بجلبٍ من عدّاءٍ **آخر** (`run-id`).
         queries_api = any(
-            "collect_full_branch_ci_evidence" in str(step.get("run", ""))
+            _asks_the_api(str(step.get("run", "")))
             or (
                 "actions/download-artifact" in str(step.get("uses", ""))
                 and (step.get("with") or {}).get("run-id")

@@ -8,11 +8,12 @@ It does not fabricate values: every unavailable source is returned in `gaps`.
 from __future__ import annotations
 
 from datetime import date, datetime
+from math import isfinite
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.field_models import _FIELD_DETAIL_SELECT, _row_to_field_detail
+from api.field_models import _FIELD_DETAIL_SELECT, _row_to_field_detail, field_quality_grade
 from api.main import (
     _SOIL_TEST_SELECT,
     _TASK_COLS,
@@ -50,15 +51,42 @@ def _jsonable(value: Any) -> Any:
 
 
 def _truthy(v: Any) -> bool:
-    return v is not None and str(v).strip() not in {"", "[]", "{}", "null", "None"}
+    return (
+        v is not None
+        and v is not False
+        and str(v).strip() not in {"", "[]", "{}", "null", "None", "—"}
+    )
+
+
+def _number(value: Any, *, minimum: float = 0, maximum: float | None = None) -> bool:
+    if value is None or isinstance(value, bool):
+        return False
+    try:
+        number = float(value)
+    except (ValueError, TypeError):
+        return False
+    return isfinite(number) and number >= minimum and (maximum is None or number <= maximum)
+
+
+def _first_present(*values: Any) -> Any:
+    return next((value for value in values if value is not None), None)
+
+
+def _current_season(season: dict | None, today: date | None = None) -> bool:
+    if not season or season.get("status") != "active":
+        return False
+    today = today or date.today()
+    try:
+        sowing = date.fromisoformat(str(season.get("sowing_date")))
+        end = date.fromisoformat(str(season["season_end"])) if season.get("season_end") else None
+    except (TypeError, ValueError):
+        return False
+    return sowing <= today and (end is None or today <= end)
 
 
 def _latest_published_soil(soil_tests: list[dict]) -> dict | None:
     for t in soil_tests:
         if t.get("status") == "published" and isinstance(t.get("result"), dict):
-            return t["result"]
-    for t in soil_tests:
-        if isinstance(t.get("result"), dict) and t["result"]:
             return t["result"]
     return None
 
@@ -66,7 +94,7 @@ def _latest_published_soil(soil_tests: list[dict]) -> dict | None:
 def _readiness(
     field: dict, season: dict | None, soil_tests: list[dict], state: dict | None
 ) -> dict:
-    """Compute a transparent data-readiness score for full-season guidance."""
+    """Score accepted data; operational readiness also requires canonical permission."""
     checks: list[dict] = []
 
     def add(key: str, label_ar: str, ok: bool, required: bool = True, action_ar: str = "") -> None:
@@ -84,14 +112,17 @@ def _readiness(
     add(
         "boundary",
         "حدود الحقل مرسومة",
-        _truthy(field.get("geometry")),
+        isinstance(field.get("geometry"), dict)
+        and field["geometry"].get("type") in {"Polygon", "MultiPolygon"}
+        and bool(field["geometry"].get("coordinates")),
         True,
         "ارسم حدود الحقل أو استورد GeoJSON/KML.",
     )
     add(
         "location",
         "مركز الحقل متوفر",
-        _truthy(field.get("lat")) and _truthy(field.get("lon")),
+        _number(field.get("lat"), minimum=-90, maximum=90)
+        and _number(field.get("lon"), minimum=-180, maximum=180),
         True,
         "أضف موقع الحقل لتفعيل الطقس والاستشعار.",
     )
@@ -105,58 +136,57 @@ def _readiness(
     add(
         "season",
         "موسم نشط موجود",
-        season is not None,
+        _current_season(season),
         True,
         "أنشئ الموسم الحالي مع تواريخ الزراعة والحصاد.",
     )
     add(
         "sowing_date",
         "تاريخ الزراعة",
-        _truthy((season or {}).get("sowing_date")),
+        _current_season(season),
         True,
         "أدخل تاريخ الزراعة لحساب مرحلة النمو و Kc.",
     )
     add(
         "target_yield",
         "هدف الإنتاج",
-        _truthy((season or {}).get("target_yield_kg_ha")),
+        _number((season or {}).get("target_yield_kg_ha"))
+        and float((season or {})["target_yield_kg_ha"]) > 0,
         False,
         "أدخل هدف الإنتاج للمقارنة أثناء الإغلاق.",
     )
     add(
         "soil_ph",
         "pH التربة",
-        _truthy(soil.get("ph") or soil.get("soil_ph") or field.get("soil_ph")),
+        _number(_first_present(soil.get("ph"), soil.get("soil_ph")), maximum=14),
         False,
         "أضف نتيجة pH من المختبر.",
     )
     add(
         "soil_ec",
         "EC/ملوحة التربة",
-        _truthy(
-            soil.get("ec_ds_m") or soil.get("ec") or soil.get("soil_ec") or field.get("soil_ec")
-        ),
+        _number(_first_present(soil.get("ec_ds_m"), soil.get("ec"), soil.get("soil_ec"))),
         True,
         "أضف EC لأنها تحكم ملوحة القرار.",
     )
     add(
         "water_ec",
         "EC ماء الري",
-        _truthy(soil.get("water_ec_ds_m") or soil.get("water_ec") or field.get("water_ec")),
+        _number(_first_present(soil.get("water_ec_ds_m"), soil.get("water_ec"))),
         False,
         "أضف ملوحة ماء الري لتحسين الري والغسيل.",
     )
     add(
         "nutrients",
         "N/P/K",
-        any(_truthy(soil.get(k)) for k in ("n_ppm", "p_ppm", "k_ppm", "n", "p", "k")),
+        all(_number(_first_present(soil.get(f"{k}_ppm"), soil.get(k))) for k in ("n", "p", "k")),
         False,
         "أضف N/P/K لتحسين التسميد.",
     )
     add(
         "field_state",
-        "الحالة الموحدة محسوبة",
-        state is not None and _truthy(state.get("validity")),
+        "الحالة الموحدة صالحة وتسمح بالتوصيات",
+        field_quality_grade(state) == "READY",
         True,
         "أعد حساب حالة الحقل.",
     )
@@ -165,19 +195,41 @@ def _readiness(
     ok_weight = sum((2 if c["required"] else 1) for c in checks if c["ok"])
     score = round((ok_weight / total_weight) * 100) if total_weight else 0
     missing = [c for c in checks if not c["ok"]]
-    if score >= 85:
-        label = "جاهز لتوصيات دقيقة"
+    data_complete = all(c["ok"] for c in checks if c["required"] and c["key"] != "field_state")
+    operational_ready = data_complete and field_quality_grade(state) == "READY"
+    if score >= 85 and operational_ready:
+        label = "البيانات المقبولة مكتملة — الحالة تسمح بالتوصيات"
         level = "ready"
     elif score >= 60:
-        label = "جاهز جزئياً — توصيات استرشادية"
+        label = "بيانات متوفرة جزئياً — يلزم استكمال أو مراجعة"
         level = "partial"
     else:
         label = "بيانات ناقصة — يلزم استكمال ملف الحقل"
         level = "insufficient"
-    return {"score": score, "level": level, "label_ar": label, "checks": checks, "missing": missing}
+    return {
+        "score": score,
+        "level": level,
+        "label_ar": label,
+        "checks": checks,
+        "missing": missing,
+        "data_complete": data_complete,
+        "operational_ready": operational_ready,
+        "quality_grade": field_quality_grade(state),
+    }
 
 
 def _next_actions(readiness: dict, recommendations: dict | None, tasks: list[dict]) -> list[dict]:
+    def priority(value: Any) -> int:
+        # recommendations_hub publishes high/medium/low; tasks use integer ranks.
+        if isinstance(value, str) and value in {"high", "medium", "low"}:
+            return {"high": 1, "medium": 2, "low": 3}[value]
+        if isinstance(value, bool):
+            return 3
+        try:
+            return max(1, int(value))
+        except (TypeError, ValueError, OverflowError):
+            return 3
+
     actions: list[dict] = []
     for gap in readiness.get("missing", [])[:4]:
         actions.append(
@@ -193,7 +245,7 @@ def _next_actions(readiness: dict, recommendations: dict | None, tasks: list[dic
         actions.append(
             {
                 "type": "recommendation",
-                "priority": rec.get("priority", 3),
+                "priority": priority(rec.get("priority", 3)),
                 "title_ar": rec.get("title_ar") or rec.get("title") or rec.get("kind", "توصية"),
                 "action_ar": rec.get("action_ar")
                 or rec.get("rationale_ar")
@@ -206,14 +258,14 @@ def _next_actions(readiness: dict, recommendations: dict | None, tasks: list[dic
         actions.append(
             {
                 "type": "task",
-                "priority": task.get("priority", 3),
+                "priority": priority(task.get("priority", 3)),
                 "title_ar": task.get("notes") or task.get("task_type") or "مهمة ميدانية",
                 "action_ar": task.get("status"),
                 "task_id": task.get("task_id"),
                 "executable": True,
             }
         )
-    return sorted(actions, key=lambda a: int(a.get("priority") or 3))[:8]
+    return sorted(actions, key=lambda a: a["priority"])[:8]
 
 
 @router.get("/api/v1/fields/{field_id}/season-workspace")
@@ -249,7 +301,9 @@ async def season_workspace(
 
             season_row = await conn.fetchrow(
                 f"SELECT {_SEASON_SELECT_COLS} FROM seasons WHERE field_id = $1 "
-                "ORDER BY CASE WHEN status='active' THEN 0 ELSE 1 END, created_at DESC LIMIT 1",
+                "AND status = 'active' AND sowing_date <= CURRENT_DATE "
+                "AND (season_end IS NULL OR season_end >= CURRENT_DATE) "
+                "ORDER BY created_at DESC LIMIT 1",
                 field_id,
             )
             season = _jsonable(_row_to_season(season_row)) if season_row else None
@@ -277,7 +331,8 @@ async def season_workspace(
             tasks = [_jsonable(_row_to_task(r)) for r in task_rows]
 
             try:
-                state = _jsonable((await recompute_field_state(conn, field_id))["state"])
+                async with conn.transaction():
+                    state = _jsonable((await recompute_field_state(conn, field_id))["state"])
             except Exception as e:  # noqa: BLE001
                 state = None
                 gaps.append(
@@ -286,10 +341,12 @@ async def season_workspace(
                         "message_ar": f"تعذّر حساب الحالة الموحدة: {type(e).__name__}",
                     }
                 )
+            field["quality_grade"] = field_quality_grade(state)
 
             try:
-                lat, lon, crop, stage, sowing_date = await _field_season_context(conn, field_id)
-                enabled_ids = await _load_recommendation_policy(conn)
+                async with conn.transaction():
+                    lat, lon, crop, stage, sowing_date = await _field_season_context(conn, field_id)
+                    enabled_ids = await _load_recommendation_policy(conn)
             except Exception as e:  # noqa: BLE001
                 lat = lon = None
                 crop = field.get("crop") or ((season or {}).get("crops") or [None])[0]
@@ -303,6 +360,7 @@ async def season_workspace(
                     }
                 )
 
+        readiness = _readiness(field, season, soil_tests, state)
         # Recommendations use live weather best-effort after releasing DB connection.
         try:
             ctx = RecommendationContext(
@@ -345,7 +403,7 @@ async def season_workspace(
                     "confidence_level": (state or {}).get("confidence_level"),
                     "reasons_ar": (state or {}).get("reasons_ar", []),
                 },
-                "requires_review": (state or {}).get("execution_mode") != "auto",
+                "requires_review": not readiness["operational_ready"],
                 "recommendations": recs,
             }
         except Exception as e:  # noqa: BLE001
@@ -371,7 +429,6 @@ async def season_workspace(
             ],
             "source": "activities_snapshot",
         }
-        readiness = _readiness(field, season, soil_tests, state)
         return {
             "field_id": field_id,
             "field": field,

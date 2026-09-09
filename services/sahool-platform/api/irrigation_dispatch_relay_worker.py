@@ -144,9 +144,11 @@ async def run_relay(*, post_fn: PostFn | None = None) -> None:
     post = post_fn or _default_post
 
     import nats  # type: ignore
+    from shared.broker_url import redact_broker_url
 
     nc = await nats.connect(nats_url, max_reconnect_attempts=-1)
-    logger.info("reservation dispatch relay connected to NATS at %s", nats_url)
+    # `NATS_URL` صار يحمل الاعتماد — يُطبَع مُنقّى (NATS-BROKER-HAS-NO-AUTHENTICATION-…-01).
+    logger.info("reservation dispatch relay connected to NATS at %s", redact_broker_url(nats_url))
 
     async def _on_message(msg: Any) -> None:
         try:

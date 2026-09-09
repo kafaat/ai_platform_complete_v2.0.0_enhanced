@@ -8,6 +8,7 @@ P3.4 Platform Weather Facade:
 
 from __future__ import annotations
 
+import asyncio
 import os
 from typing import Any
 
@@ -55,17 +56,40 @@ async def weather_get_json(
 
     url = f"{weather_service_url()}/{path.lstrip('/')}"
     try:
-        async with httpx.AsyncClient(timeout=timeout_s) as client:
+        async with asyncio.timeout(timeout_s), httpx.AsyncClient(timeout=timeout_s) as client:
             resp = await client.get(
                 url,
                 params=params or {},
                 headers=weather_service_headers(tenant_id=tenant_id, authorization=authorization),
             )
+    except (TimeoutError, httpx.TimeoutException) as exc:
+        raise HTTPException(
+            status_code=504,
+            detail={
+                "reason_code": "weather_service_timeout",
+                "message_ar": "انتهت مهلة انتظار خدمة الطقس؛ أعد المحاولة لاحقاً.",
+            },
+        ) from exc
     except httpx.HTTPError as exc:
-        raise HTTPException(status_code=502, detail=f"weather-service غير متاح: {exc}") from exc
+        raise HTTPException(
+            status_code=502,
+            detail={
+                "reason_code": "weather_service_unavailable",
+                "message_ar": "تعذّر الاتصال بخدمة الطقس؛ أعد المحاولة لاحقاً.",
+            },
+        ) from exc
     if resp.status_code >= 400:
         raise HTTPException(status_code=resp.status_code, detail=_detail_from_response(resp))
-    data = resp.json()
+    try:
+        data = resp.json()
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail={
+                "reason_code": "weather_service_invalid_response",
+                "message_ar": "تعذّر قراءة استجابة خدمة الطقس.",
+            },
+        ) from exc
     return data if isinstance(data, dict) else {"value": data}
 
 
@@ -87,17 +111,40 @@ async def weather_post_json(
 
     url = f"{weather_service_url()}/{path.lstrip('/')}"
     try:
-        async with httpx.AsyncClient(timeout=timeout_s) as client:
+        async with asyncio.timeout(timeout_s), httpx.AsyncClient(timeout=timeout_s) as client:
             resp = await client.post(
                 url,
                 json=json_body,
                 headers=weather_service_headers(tenant_id=tenant_id, authorization=authorization),
             )
+    except (TimeoutError, httpx.TimeoutException) as exc:
+        raise HTTPException(
+            status_code=504,
+            detail={
+                "reason_code": "weather_service_timeout",
+                "message_ar": "انتهت مهلة انتظار خدمة الطقس؛ أعد المحاولة لاحقاً.",
+            },
+        ) from exc
     except httpx.HTTPError as exc:
-        raise HTTPException(status_code=502, detail=f"weather-service غير متاح: {exc}") from exc
+        raise HTTPException(
+            status_code=502,
+            detail={
+                "reason_code": "weather_service_unavailable",
+                "message_ar": "تعذّر الاتصال بخدمة الطقس؛ أعد المحاولة لاحقاً.",
+            },
+        ) from exc
     if resp.status_code >= 400:
         raise HTTPException(status_code=resp.status_code, detail=_detail_from_response(resp))
-    data = resp.json()
+    try:
+        data = resp.json()
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail={
+                "reason_code": "weather_service_invalid_response",
+                "message_ar": "تعذّر قراءة استجابة خدمة الطقس.",
+            },
+        ) from exc
     return data if isinstance(data, dict) else {"value": data}
 
 

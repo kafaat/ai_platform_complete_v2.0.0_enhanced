@@ -208,7 +208,7 @@ async def list_stac_collections(
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
-        raise _db_unavailable(exc) from exc
+        raise _db_unavailable("قراءة مجموعات STAC", exc) from exc
 
 
 @router.post("/stac/search")
@@ -238,7 +238,7 @@ async def stac_search_post(
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
-        raise _db_unavailable(exc) from exc
+        raise _db_unavailable("البحث في مشاهد STAC", exc) from exc
 
 
 @router.get("/scene-ranking")
@@ -255,7 +255,7 @@ async def scene_ranking(
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
-        raise _db_unavailable(exc) from exc
+        raise _db_unavailable("ترتيب المشاهد", exc) from exc
 
 
 @router.get("/scene-processing-plan")
@@ -272,7 +272,7 @@ async def scene_processing_plan(
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
-        raise _db_unavailable(exc) from exc
+        raise _db_unavailable("قراءة خطة معالجة المشاهد", exc) from exc
 
 
 @router.get("/tile-cache-plan")
@@ -288,7 +288,7 @@ async def get_tile_cache_plan(
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
-        raise _db_unavailable(exc) from exc
+        raise _db_unavailable("قراءة خطة تخزين البلاطات", exc) from exc
 
 
 @router.get("/ogc")
@@ -335,7 +335,7 @@ async def ogc_field_items(
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
-        raise _db_unavailable(exc) from exc
+        raise _db_unavailable("قراءة معالم الحقول", exc) from exc
 
 
 @router.post("/ai-boundary/plan")
@@ -413,7 +413,7 @@ async def editing_session_undo_redo(
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
-        raise _db_unavailable(exc) from exc
+        raise _db_unavailable("تحديث سجل تحرير الهندسة", exc) from exc
 
 
 @router.post("/cog-registry")
@@ -469,7 +469,7 @@ async def register_cog(
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
-        raise _db_unavailable(exc) from exc
+        raise _db_unavailable("تسجيل الراستر", exc) from exc
 
 
 @router.get("/stac/search")
@@ -490,7 +490,7 @@ async def stac_search(
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
-        raise _db_unavailable(exc) from exc
+        raise _db_unavailable("البحث في مشاهد STAC", exc) from exc
 
 
 @router.get("/stac/collections/{collection_id}")
@@ -506,7 +506,7 @@ async def get_collection(
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
-        raise _db_unavailable(exc) from exc
+        raise _db_unavailable("قراءة مجموعة STAC", exc) from exc
 
 
 @router.get("/mosaicjson")
@@ -525,7 +525,7 @@ async def mosaicjson(
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
-        raise _db_unavailable(exc) from exc
+        raise _db_unavailable("قراءة فسيفساء الراستر", exc) from exc
 
 
 @router.get("/rasters/{raster_id}/tilejson.json")
@@ -550,7 +550,7 @@ async def raster_tilejson(
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
-        raise _db_unavailable(exc) from exc
+        raise _db_unavailable("قراءة بلاطات الراستر", exc) from exc
 
 
 @router.post("/editing-sessions")
@@ -585,7 +585,7 @@ async def upsert_editing_session(
             )
         return dict(row)
     except Exception as exc:  # noqa: BLE001
-        raise _db_unavailable(exc) from exc
+        raise _db_unavailable("حفظ جلسة تحرير الهندسة", exc) from exc
 
 
 @router.post("/locks")
@@ -621,7 +621,7 @@ async def acquire_geometry_lock(
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
-        raise _db_unavailable(exc) from exc
+        raise _db_unavailable("قفل تحرير الهندسة", exc) from exc
 
 
 @router.delete("/locks/{field_id}")
@@ -639,7 +639,7 @@ async def release_geometry_lock(
             )
         return {"released": bool(deleted)}
     except Exception as exc:  # noqa: BLE001
-        raise _db_unavailable(exc) from exc
+        raise _db_unavailable("تحرير قفل الهندسة", exc) from exc
 
 
 @router.post("/geoparquet/export")
@@ -662,7 +662,7 @@ async def export_geoparquet(
         payload = [dict(r) for r in rows]
         return export_records_to_geoparquet(payload, out_dir / "fields.geoparquet")
     except Exception as exc:  # noqa: BLE001
-        raise _db_unavailable(exc) from exc
+        raise _db_unavailable("تصدير هندسات الحقول", exc) from exc
 
 
 # ---------------- Phase 6: Precision Agriculture Intelligence ----------------

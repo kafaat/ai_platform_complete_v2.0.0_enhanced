@@ -11,6 +11,7 @@
 وطبقة التكييف الاقتصادي وحدها توصية فعليّة تُبقي كلّ الخيارات مرئيّة.
 """
 
+import pytest
 from core.decision_regression import (
     GOLDEN_CASES,
     evaluate_threshold_change,
@@ -431,3 +432,125 @@ def test_assess_fleet_healthy_when_all_active():
     out = assess_fleet(records)
     assert out["silent"] == 0
     assert "🟢" in out["fleet_status_ar"]
+
+
+# The HTTP boundary exercises the real error adapter. A DB outage must not turn
+# into TypeError/500 because an endpoint omitted the action label.
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("method", "path", "body"),
+    [
+        ("GET", "/stac/collections", None),
+        ("POST", "/stac/search", {}),
+        ("GET", "/scene-ranking", None),
+        ("GET", "/scene-processing-plan", None),
+        ("GET", "/tile-cache-plan", None),
+        ("GET", "/ogc/collections/fields/items", None),
+        ("POST", "/editing-sessions/undo-redo", {"field_id": "f1", "action": "undo"}),
+        (
+            "POST",
+            "/cog-registry",
+            {"product_date": "2026-09-08", "index_type": "ndvi", "cog_url": "file:///ndvi.tif"},
+        ),
+        ("GET", "/stac/search", None),
+        ("GET", "/stac/collections/sahool-ndvi", None),
+        ("GET", "/mosaicjson", None),
+        ("GET", "/rasters/r1/tilejson.json", None),
+        ("POST", "/editing-sessions", {"field_id": "f1"}),
+        ("POST", "/locks", {"field_id": "f1"}),
+        ("DELETE", "/locks/f1", None),
+        ("POST", "/geoparquet/export", None),
+    ],
+)
+def test_gis_database_failures_remain_503(monkeypatch, method, path, body):
+    from contextlib import asynccontextmanager
+
+    from api.main import UserSchema, get_current_user
+    from api.routers import gis_cloud_native
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    @asynccontextmanager
+    async def unavailable(_user):
+        raise ConnectionError("private-db-host must not leak")
+        yield  # pragma: no cover - marks this as an async context manager
+
+    monkeypatch.setattr(gis_cloud_native, "tenant_connection", unavailable)
+    app = FastAPI()
+    app.include_router(gis_cloud_native.router)
+    app.dependency_overrides[get_current_user] = lambda: UserSchema(
+        user_id="42",
+        tenant_id="11111111-1111-1111-1111-111111111111",
+        role="owner",
+        name_ar="اختبار",
+    )
+    with TestClient(app, raise_server_exceptions=False) as client:
+        response = client.request(method, "/api/v1/gis/cloud-native" + path, json=body)
+    assert response.status_code == 503, response.text
+    assert "private-db-host" not in response.text
+    assert "تعذّر" in response.json()["detail"]
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("lifecycle_failure", [None, "missing_table", "bad_column"])
+def test_fleet_health_reads_standing_crop_stages_and_preserves_db_errors(
+    monkeypatch, lifecycle_failure
+):
+    import asyncio
+    import uuid
+    from contextlib import asynccontextmanager
+
+    import asyncpg
+    from api.main import UserSchema
+    from api.routers import devices
+    from fastapi import HTTPException
+
+    field_id = uuid.uuid4()
+
+    class Connection:
+        def transaction(self):
+            return transaction()
+
+        async def fetch(self, sql):
+            if "FROM iot_devices" in sql:
+                return [
+                    {
+                        "device_id": "d1",
+                        "name": "sensor",
+                        "type": "soil_moisture",
+                        "field_id": str(field_id),
+                        "mins_since": 100,
+                    }
+                ]
+            assert "status" not in sql
+            assert "current_stage IN ('PLANTED', 'GROWING', 'MATURE')" in sql
+            if lifecycle_failure == "missing_table":
+                raise asyncpg.UndefinedTableError("field_lifecycle")
+            if lifecycle_failure == "bad_column":
+                raise asyncpg.UndefinedColumnError("current_stage")
+            return [{"field_id": field_id}]  # asyncpg UUID versus iot_devices text
+
+    @asynccontextmanager
+    async def transaction():
+        yield
+
+    @asynccontextmanager
+    async def connection(_user):
+        yield Connection()
+
+    monkeypatch.setattr(devices, "tenant_connection", connection)
+    user = UserSchema(user_id="42", tenant_id=str(uuid.uuid4()), role="owner", name_ar="اختبار")
+    if lifecycle_failure == "bad_column":
+        with pytest.raises(HTTPException) as raised:
+            asyncio.run(devices.devices_fleet_health(user))
+        assert raised.value.status_code == 503
+        return
+    result = asyncio.run(devices.devices_fleet_health(user))
+    assert result["total_devices"] == 1
+    note = result["silent_devices"][0]["criticality_note_ar"]
+    if lifecycle_failure is None:
+        assert "حقل نشط يعتمد" in note
+    else:
+        assert "غير نشط" in note
