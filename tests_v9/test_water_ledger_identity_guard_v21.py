@@ -1,7 +1,7 @@
 """حارس هويّة عامل دفتر المياه في الإنتاج (CT-03 · تدقيق الحاويات V21).
 
 يقفل مساراً مُثبَتاً: عامل ``water_ledger`` كان يُقلع بلا هويّة خدمة حتى مع تفعيل جسر
-عجز الماء المحكوم في الإنتاج — فيطرق باب decision-service بلا ``SAHOOL_AGENT_TOKEN``
+عجز الماء المحكوم في الإنتاج — فيطرق باب decision-service بلا ``DECISION_SERVICE_TOKEN``
 فيُرفَض (401) بينما العامل نفسه لا يفشل مُغلَقاً. الحارس يفرض:
 
   (1) الجسر مُفعّل + إنتاج + توكن فارغ ⇒ رسالة رفض تذكر المتغيّر المطلوب؛
@@ -33,7 +33,9 @@ WORKER = ROOT / "services" / "sahool-platform" / "api" / "phase_runtime_workers.
 # متغيّرات قد تُسرّب من بيئة المُشغّل وتُفسد الحتميّة — نُزيلها ما لم يضبطها الاختبار.
 _VOLATILE = (
     "SAHOOL_ENV",
+    "DECISION_SERVICE_TOKEN",
     "SAHOOL_AGENT_TOKEN",
+    "DECISION_REQUIRE_AUTH_TOKEN",
     "WATER_DEFICIT_DECISION_BRIDGE_ENABLED",
     "WATER_LEDGER_REQUIRE_IDENTITY",
 )
@@ -75,7 +77,7 @@ def test_bridge_on_production_empty_token_refuses_start():
     msg = _identity_error(
         {"SAHOOL_ENV": "production", "WATER_DEFICIT_DECISION_BRIDGE_ENABLED": "true"}
     )
-    assert msg and "SAHOOL_AGENT_TOKEN" in msg
+    assert msg and "DECISION_SERVICE_TOKEN" in msg
 
 
 def test_development_stays_runnable():
@@ -106,7 +108,7 @@ def test_token_present_is_ok():
             {
                 "SAHOOL_ENV": "production",
                 "WATER_DEFICIT_DECISION_BRIDGE_ENABLED": "true",
-                "SAHOOL_AGENT_TOKEN": "a-real-agent-token",
+                "DECISION_SERVICE_TOKEN": "a-real-agent-token",
             }
         )
         == ""
@@ -122,7 +124,7 @@ def test_explicit_flag_arms_check_outside_production():
             "WATER_LEDGER_REQUIRE_IDENTITY": "true",
         }
     )
-    assert msg and "SAHOOL_AGENT_TOKEN" in msg
+    assert msg and "DECISION_SERVICE_TOKEN" in msg
 
 
 def test_error_never_leaks_token_value():
@@ -134,7 +136,7 @@ def test_error_never_leaks_token_value():
             {
                 "SAHOOL_ENV": "production",
                 "WATER_DEFICIT_DECISION_BRIDGE_ENABLED": "true",
-                "SAHOOL_AGENT_TOKEN": secret,
+                "DECISION_SERVICE_TOKEN": secret,
             }
         )
         == ""
@@ -151,3 +153,15 @@ def test_worker_startup_wires_hard_fail():
     src = WORKER.read_text(encoding="utf-8")
     assert "water_ledger_identity_startup_error" in src
     assert "raise RuntimeError(identity_error)" in src
+
+
+def test_agent_credential_alone_does_not_identify_decision_caller():
+    msg = _identity_error(
+        {
+            "SAHOOL_ENV": "production",
+            "WATER_DEFICIT_DECISION_BRIDGE_ENABLED": "true",
+            "SAHOOL_AGENT_TOKEN": "agent-token-is-not-a-decision-token",
+        }
+    )
+    assert "DECISION_SERVICE_TOKEN" in msg
+    assert "agent-token-is-not-a-decision-token" not in msg
