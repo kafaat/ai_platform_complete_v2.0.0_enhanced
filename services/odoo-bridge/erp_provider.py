@@ -421,11 +421,12 @@ def get_erp_provider(odoo_client=None) -> ERPProvider:
         return NullProvider()
 
     if provider == "erpnext":
-        url = os.getenv("ERPNEXT_URL", "http://sahool-erpnext:8000")
+        # ERPNext is externally provisioned in v9. Never invent a Docker target.
+        url = os.getenv("ERPNEXT_URL", "").strip()
         key = os.getenv("ERPNEXT_API_KEY", "")
         secret = os.getenv("ERPNEXT_API_SECRET", "")
-        if not key or not secret:
-            logger.warning("ERPNext مختار لكن المفاتيح فارغة → none (صدق: لا اتّصال وهمي)")
+        if not url or not key or not secret:
+            logger.warning("ERPNext requires an explicit URL and both API credentials")
             return NullProvider()
         logger.info("ERP_PROVIDER=erpnext")
         # ربط حسابات Journal Entry (اختياري — push_field_cost يبقى معطّلاً

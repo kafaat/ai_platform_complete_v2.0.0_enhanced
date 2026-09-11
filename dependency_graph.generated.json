@@ -1,5 +1,5 @@
 {
-  "edge_count": 809,
+  "edge_count": 811,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -233,6 +233,16 @@
     },
     {
       "evidence": "docker-compose.v9.yml",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "http",
+      "relation": "CALLS",
+      "resource": "compose-env-url",
+      "to": "raster-tiler-service",
+      "to_kind": "component"
+    },
+    {
+      "evidence": "docker-compose.v9.yml",
       "from": "remote-sensing-workspace-bff",
       "from_kind": "component",
       "protocol": "http",
@@ -299,6 +309,16 @@
       "relation": "CALLS",
       "resource": "compose-env-url",
       "to": "raster-service",
+      "to_kind": "component"
+    },
+    {
+      "evidence": "docker-compose.v9.yml",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "http",
+      "relation": "CALLS",
+      "resource": "compose-env-url",
+      "to": "raster-tiler-service",
       "to_kind": "component"
     },
     {
@@ -8107,7 +8127,7 @@
     "DB ownership alone is not treated as a READS/WRITES access edge"
   ],
   "relation_counts": {
-    "CALLS": 38,
+    "CALLS": 40,
     "CONSUMES": 1,
     "EMITS": 1,
     "READS": 417,

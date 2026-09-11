@@ -43,7 +43,7 @@ OPS-005,operations,Offline mobile,True,6,2,2,9,6,1,0,1,0
 OPS-006,operations,Equipment registry,True,1,1,0,0,0,0,0,0,0
 OPS-007,operations,Maintenance,True,3,0,0,3,1,0,0,2,0
 OPS-008,operations,Workforce and worker identity,False,0,0,0,0,0,0,0,0,0
-PA-001,precision,Management zones,True,5,9,33,8,1,0,0,7,0
+PA-001,precision,Management zones,True,5,9,34,8,1,0,0,7,0
 PA-002,precision,Variable rate prescription,True,1,1,0,0,0,0,0,0,0
 PA-003,precision,Yield map ingestion,True,5,4,4,9,2,0,0,4,0
 PA-004,precision,As-applied data,True,4,1,0,18,2,0,0,1,0
@@ -56,7 +56,7 @@ SAT-005,satellite,Cloud screening,True,4,8,24,0,1,0,0,9,0
 SAT-006,satellite,Historical imagery timeline,True,3,1,0,0,1,0,0,3,0
 SAT-007,satellite,Change detection,True,3,2,1,0,0,0,0,3,0
 SAT-008,satellite,Stress zones,True,5,3,1,7,4,0,0,6,0
-SAT-009,satellite,COG persistence and tiling,True,5,12,68,0,12,1,0,22,0
+SAT-009,satellite,COG persistence and tiling,True,5,12,69,0,12,1,0,23,0
 SEC-001,security,Tenant RLS,True,5,13,30,100,46,0,0,64,0
 SEC-002,security,Signed tenant assertion,True,1,0,0,0,0,0,0,1,0
 SEC-003,security,Worker identity binding,True,2,1,0,0,0,0,0,1,0

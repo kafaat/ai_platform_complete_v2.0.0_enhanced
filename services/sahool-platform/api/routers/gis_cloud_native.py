@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from api.main import Permission, UserSchema, _db_unavailable, require_permission, tenant_connection
@@ -25,6 +26,7 @@ from shared.gis.cloud_native_runtime import (
     stac_item_from_record,
     tilejson_for_cog,
 )
+from shared.gis.cog_tile_proxy import fetch_registered_cog_tile
 from shared.gis.phase5_runtime import (
     OGC_CONFORMANCE,
     STAC_CONFORMANCE,
@@ -551,6 +553,32 @@ async def raster_tilejson(
         raise
     except Exception as exc:  # noqa: BLE001
         raise _db_unavailable("قراءة بلاطات الراستر", exc) from exc
+
+
+@router.get("/rasters/{raster_id}/tiles/{z}/{x}/{y}.png")
+async def raster_cog_tile(
+    raster_id: str,
+    z: int,
+    x: int,
+    y: int,
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
+):
+    """Resolve the COG under tenant RLS before contacting the internal tile service."""
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                "SELECT cog_url FROM raster_registry WHERE id::text = $1", raster_id
+            )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise _db_unavailable("قراءة مصدر بلاطة الراستر", exc) from exc
+    if row is None:
+        raise HTTPException(404, "Raster not found")
+    content = await fetch_registered_cog_tile(
+        row["cog_url"], z, x, y, base_url=os.getenv("TITILER_URL", "")
+    )
+    return Response(content, media_type="image/png", headers={"Cache-Control": "private, no-store"})
 
 
 @router.post("/editing-sessions")

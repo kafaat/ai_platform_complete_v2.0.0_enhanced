@@ -5741,3 +5741,10 @@ scripts/ci/capability_mapping_engine.py:270      ["git","ls-files","-z"]
 Timing follow-up: final source registry656; run34281851595 measured654 in five successful shards but the complete Unit Tests duration is still pending. No timing limit changed.
 
 2026-09-08 timing update: `639bde28` supersedes the pending timing note with run34284639549/job102257332191,45.30 minutes/654 mutations. The same formula yields711/682; Codecov and Field-forms skipped after the two headroom failures, so the later full green pipeline remains unmeasured. `da71cc0f` retains remote HIL casts proven by integration job102257332285; local stronger live witnesses still await CI. MCP review fixes include `d5c91477`; publication and remote thread closure remain pending. See docs/testing/runtime_slice_closures_20260908.md.
+
+
+### 2026-09-10 connectivity audit follow-up
+
+| ID | Gap | Owner | Evidence | Status |
+| --- | --- | --- | --- | --- |
+| CONNECTIVITY-AUDIT-20260910 | NATS identity/TLS and frozen producer subjects; native mobile builds; live Compose/DNS validation | platform/runtime | [Repair report](../../docs/testing/connectivity_repairs_20260910.md), base `7407eae2` | **OPEN** — targeted code repairs only; no runtime or production closure |

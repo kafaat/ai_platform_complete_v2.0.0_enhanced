@@ -1975,6 +1975,7 @@
         "SMTP_PORT",
         "SMTP_USER",
         "SOIL_SERVICE_URL",
+        "TITILER_URL",
         "VEGETATION_SERVICE_URL",
         "VLLM_BASE_URL",
         "VLLM_MODEL",

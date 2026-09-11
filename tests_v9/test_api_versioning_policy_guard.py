@@ -857,7 +857,8 @@ def test_raster_service_pr_r4_routes_are_versioned():
     tiles = (guard.ROOT / "services" / "raster-service" / "routers" / "tiles.py").read_text(
         encoding="utf-8"
     )
-    assert 'f"/v1/tiles/{layer_id}/{{z}}/{{x}}/{{y}}.png"' in tiles
+    # Browser URLs include the nginx gateway prefix; backend decorators remain /v1.
+    assert "f\"/api/raster/v1/tiles/{quote(layer_id, safe='')}/{{z}}/{{x}}/{{y}}.png\"" in tiles
     assert 'f"/tiles/{layer_id}/{{z}}/{{x}}/{{y}}.png"' not in tiles
 
     raster_service_routes = {

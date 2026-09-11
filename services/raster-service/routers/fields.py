@@ -1706,9 +1706,7 @@ async def field_tilejson(
     # عامّ http(s) فقط — لا نكشف مسارات التخزين الداخليّة (file://، s3://، مضيف داخليّ).
     cog_url = _public_cog_url(layer.get("cog_url") if layer else None)
     if TITILER_URL and cog_url:
-        internal = _normalize_index(index)
-        colormap = "RdYlGn_r" if internal in ("ndsi", "salinity") else "RdYlGn"
-        tj["titiler_tiles"] = [
-            f"{TITILER_URL}/cog/tiles/{{z}}/{{x}}/{{y}}.png?url={cog_url}&colormap_name={colormap}"
-        ]
+        # Compatibility metadata uses the already authorized field tile route.
+        # The private TiTiler host and COG source must not become browser URLs.
+        tj["titiler_tiles"] = list(tj["tiles"])
     return tj

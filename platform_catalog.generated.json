@@ -8840,7 +8840,8 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /api/v1/gis/cloud-native/rasters/{raster_id}/tilejson.json"
+        "GET /api/v1/gis/cloud-native/rasters/{raster_id}/tilejson.json",
+        "GET /api/v1/gis/cloud-native/rasters/{raster_id}/tiles/{z}/{x}/{y}.png"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -15550,7 +15551,6 @@
       },
       "consumes": {
         "services": [
-          "sahool-erpnext",
           "sahool-odoo"
         ]
       },
@@ -16403,7 +16403,7 @@
       "consumes": {
         "services": [
           "decision-service",
-          "sahool-titiler"
+          "raster-tiler-service"
         ]
       },
       "deployment_units": [
@@ -16481,7 +16481,7 @@
         "tables": []
       },
       "runtime": {
-        "compose_reachable": false,
+        "compose_reachable": true,
         "compose_services": [
           "raster-tiler-service"
         ],
@@ -16593,6 +16593,7 @@
           "knowledge-graph",
           "rag-retrieval",
           "raster-service",
+          "raster-tiler-service",
           "sahool-ai-agronomist",
           "sahool-ollama",
           "sahool-scout-ingest",
@@ -17499,9 +17500,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1113,
+    "route_rows": 1114,
     "ui_waivers": 52,
-    "unique_method_path": 998
+    "unique_method_path": 999
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -17757,7 +17758,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "26eeafa1b604c36d3cccc93832d3ed4cf75ced4a77a77e69421be3b9f9c5210b",
+  "fingerprint": "1d2dcc085f1fdd231eef3c3330511f057e5f57eacfbae2fdd781a3e50172f161",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17807,11 +17808,11 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 809,
+      "edge_count": 811,
       "failures": [],
       "passed": true,
       "relation_counts": {
-        "CALLS": 38,
+        "CALLS": 40,
         "CONSUMES": 1,
         "EMITS": 1,
         "READS": 417,

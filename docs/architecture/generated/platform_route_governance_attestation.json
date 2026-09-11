@@ -6,29 +6,29 @@
     },
     {
       "path": "docs/architecture/platform_extraction_map.json",
-      "sha256": "e319195728abe2343a0fa344b8dc760789826c9d43244c3cae6109de93eff404"
+      "sha256": "353a676c97db6f6ce7f145d0a8ad54d5c97df8c23921a071ee5eb538d9cf0f83"
     },
     {
       "path": "docs/architecture/generated/platform_route_budget_inventory.json",
-      "sha256": "dfff0eb6becef86274c249650185742db20264c891023fd3e0c803d2ab6b78bd"
+      "sha256": "662c77499f6f397811e08ffb717eda6eab81d8fe2d8908a2aba3d627ff224034"
     },
     {
       "path": "docs/architecture/generated/platform_route_ownership_inventory.json",
-      "sha256": "67de0e17681955b45f85b46457cf596177a5c78f1ca35c0effd6fbca46d06bec"
+      "sha256": "4d92ad063b6bec92bf1297728d8947f191bc5719f89bc63745cc1205409abb86"
     }
   ],
   "schema_version": "sahool.platform-route-governance-attestation.v1",
   "statement": {
     "api_route_declarations": 4,
-    "budget_inventory_sha256": "ebdd9515a8dd59d3e7985767ac3f927eb89241b8e4b12fb1a088eabf1d5a1860",
+    "budget_inventory_sha256": "bbb01a846905f93e57c1143c4ca2d8e66c7c14f11c53247b4cf563d097ba989f",
     "classification_sha256": "c8a152411892b5aa921e717ade91f6235f80e62da01cad148bda7de686b6971f",
-    "domain_budget_routes": 627,
+    "domain_budget_routes": 628,
     "domain_route_budget": 629,
-    "full_ownership_surface": 635,
+    "full_ownership_surface": 636,
     "infrastructure_routes": 4,
-    "map_sha256": "e319195728abe2343a0fa344b8dc760789826c9d43244c3cae6109de93eff404",
-    "ownership_inventory_sha256": "cddf10472d307ae5c350a969c474e9f9f2f224445d50091301bdb58e6ff9ce21",
-    "raw_routes": 631
+    "map_sha256": "353a676c97db6f6ce7f145d0a8ad54d5c97df8c23921a071ee5eb538d9cf0f83",
+    "ownership_inventory_sha256": "04d517aab57ad164a5312a53ecfe1df17d8c14a038fae5d465d6e4ac45dfedb0",
+    "raw_routes": 632
   },
-  "statement_sha256": "4aa07e07d3d9c836d3b156d455d9beb46d9d8d8ada8422bec8d11818adad1bd5"
+  "statement_sha256": "bac93f18b84a009495eb28461abd834195b3592361007c9af015ac13fca6203b"
 }

@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "abab404a84949a78bda34ace328c1ad55f401c3cde700d6ccde6b7bc5a397960"
+          "content": "60dd99cbce431979ff0e33a102368aa74ce79aaf79fe6f54db251b8a4366e09a"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4415,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "70ce3e51f2b5add864dc91d6ba30a6a1fef18e588bcbd0cb858ac4101c173929"
+          "content": "4402e1a6d53ec15de58349ce9df49a05a4e52e0166f60f824f70d460ba8b2ce9"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -12945,7 +12945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4a6baff9ed1107ab255d73beb4081cea258007a96dc9f8f1980286cc6d4c8a97"
+          "content": "6bbb832605506cbf0cf6432448acecfd8ae6cadad56c5fde9c7985e7fed436fd"
         }
       ],
       "name": "services/odoo-bridge/erp_provider.py",
@@ -13795,7 +13795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cf4c334f01cdd2d709a7d59f685c649d886a096f23d490a44b0a4b77c13312db"
+          "content": "c0d17c6387e83d5db6bdcd0f7cbd725dbcd2a8ce0c274553d152492e43cafcbe"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -13895,7 +13895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "59402e668b40b1e3a04ffad0a744146e432879996f66c14c5f0539b8019b9a43"
+          "content": "8996f1a0a039f87181ba6e876f105e66f0425ccf425d2649898dbed14800006b"
         }
       ],
       "name": "services/raster-service/routers/tiles.py",
@@ -14845,7 +14845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6e14b7f54901b7a535a16b2b54e4f67a29e27e26d9312c08e3ba495e9354a888"
+          "content": "5294bc3fbb4e85cb80f089f38016e06df69c8e09ca0773798eb781e28763ffbc"
         }
       ],
       "name": "services/raster-tiler-service/README.md",
@@ -17825,7 +17825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1d839772323c3d876f9eb137d92abf7fd24b45a556dbaaff31b3f7e78e9e2a63"
+          "content": "c47c34e4b4ff2e4d4a9c27ccc933eead2eb790fbeb16d7272f4c33d3dee20660"
         }
       ],
       "name": "services/sahool-platform/api/routers/gis_cloud_native.py",
@@ -26005,7 +26005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4dfb466499dd1e53040695c0899b98cec75fa84d1dc6aed1b539e5c076c8caa9"
+          "content": "8a315145eca04bb2b94d1a68323ec19bbcf65e834fc2937d8c93b5f97e638305"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
@@ -30705,10 +30705,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f466632de7d8e39ed91f9f1d6d6d86c23eda0dfcd03d9c9425ce8fa3601675dd"
+          "content": "046b6b344be5ccbb91def4ff1aa1bb44dffe1065369534d77f4d983e9d8c7a3b"
         }
       ],
       "name": "shared/gis/cloud_native_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "548b46f1e8de2dca39fea5e1d03f0a6518d6c35ccc9fd81765c167291eb6022d"
+        }
+      ],
+      "name": "shared/gis/cog_tile_proxy.py",
       "type": "file"
     },
     {
@@ -30745,7 +30755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7d34a2f8454e38a658ad1d3aca994659bab3a4001e576ac61a37ee5cdca37b8e"
+          "content": "1dcf49f1f19c89cbc80f664ffd6c51def8a5a88bc23d59b452b326d3af9c6cfb"
         }
       ],
       "name": "shared/gis/test_cloud_native_runtime.py",

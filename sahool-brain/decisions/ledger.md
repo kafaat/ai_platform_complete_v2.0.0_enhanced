@@ -2471,3 +2471,10 @@ SHAs من `git log --oneline origin/main`.
 `639bde28` uses the observed pair45.30 minutes/654 mutations from run34284639549/job102257332191 (22:12:12–22:57:30 UTC). Planting succeeded in29:42; pytest completed with6495 passed,25 skipped, and only the two headroom failures; coverage50.87%. Codecov and Field-forms were skipped after that failure. The same formula yields watermark711 and drift682, keeping the90-minute timeout and0.775 marginal-cost assumption. The current656-mutation registry is not substituted for the measured654 count.
 
 The merged targeted suite passed130 tests. Final generated checks, default preflight and publication remain pending. No production certification is claimed.
+
+
+### 2026-09-10 — connectivity repair branch
+
+Base `7407eae2`: authenticated registry/layer tile paths, bounded public COG transport, canonical Compose tiler dependencies and explicit ERPNext configuration. 74 targeted tests pass; production auth/database/backend are not measured. CONN-03/04/07 remain open, with the producer protected by GATE-01. See [evidence](../../docs/testing/connectivity_repairs_20260910.md). Full preflight/publication results belong to the report; no runtime certification.
+
+Decision: route by authorized registry ID; do not expose a generic URL-taking tiler endpoint. Preserve GATE-01 and require explicit public-source configuration.
