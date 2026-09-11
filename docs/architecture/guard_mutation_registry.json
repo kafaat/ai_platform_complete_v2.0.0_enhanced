@@ -1984,8 +1984,23 @@
           "find": "raise _db_unavailable(\"قراءة مجموعات STAC\", exc) from exc",
           "replace": "raise _db_unavailable(exc) from exc",
           "why": "Restores the original missing argument: injected DB connection failure must produce 503, not HTTP 500."
+        },
+        {
+          "expect": "test_registry_tile_route_authorizes_before_contacting_backend",
+          "find": "    y: int,\n    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),",
+          "replace": "    y: int,\n    user: UserSchema = UserSchema(tenant_id=\"anonymous\"),  # mutated: بلا مصادقة",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "البلاطاتُ تُحمَّل كـ`<img>` بلا ترويسة Authorization، فالإغراءُ قائمٌ لإعفاء هذه النقطة من البوّابة. الشاهدُ يشترط 401 على نداءٍ بلا هُويّة."
+        },
+        {
+          "expect": "test_registry_tile_route_authorizes_before_contacting_backend",
+          "find": "        async with tenant_connection(user) as conn:\n            row = await conn.fetchrow(\n                \"SELECT cog_url FROM raster_registry WHERE id::text = $1\", raster_id",
+          "replace": "        async with tenant_connection(None) as conn:  # mutated: اتّصالٌ غيرُ مُنسَب\n            row = await conn.fetchrow(\n                \"SELECT cog_url FROM raster_registry WHERE id::text = $1\", raster_id",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "العزلُ هنا ليس في جملة SQL — لا `tenant_id` فيها — بل في **نَسَب الاتّصال** إلى المستخدم المُصادَق؛ فنزعُ الهُويّة من `tenant_connection` ينزع RLS كلَّه. الشاهدُ يشترط 404 لمستأجِرٍ آخر و`transport == []`، أي أنّ بلاطةً لا تُطلَب لسجلٍّ لا يُقرأ."
         }
-      ]
+      ],
+      "$verified_on_sha_tile_route": "d1328d681b3a941a757aaf94e44285c3cb87b483"
     },
     "services/sahool-platform/api/routers/drawing_features.py": {
       "mutations": [
@@ -2430,6 +2445,46 @@
           "find": "    if action_type in ECONOMIC_ACTIONS:\n",
           "replace": "    if action_type in ECONOMIC_ACTIONS and action_type != \"loan\":\n",
           "why": "Exempting loans from annual revenue completeness hides missing financial evidence; the witness removes only annual_revenue_usd from a complete loan context."
+        }
+      ]
+    },
+    "shared/gis/cloud_native_runtime.py": {
+      "$gap_ar": "TILEJSON-CROSSED-THE-BROWSER-BOUNDARY-WITH-A-URL-01 — كان `tilejson_for_cog` يُعيد `/tiler` (مساراً غيرَ موجود في أيّ بوّابة)، ثمّ صار يُعيد **هُويّةَ سجلّ** لا عنوانَ COG. والخاصّيّةُ المحروسة ليست شكلَ المسار بل أنّ ما يعبُر إلى المتصفّح **لا يحمل عنوان المصدر** — فالعميل لا يستطيع اختيارَ ما يُقرأ، وهو ما يُغلق شكلَ SSRF لا يُخفيه.",
+      "$verified_on_sha": "d1328d681b3a941a757aaf94e44285c3cb87b483",
+      "mutations": [
+        {
+          "expect": "test_record_stac_tilejson_are_db_backed_contracts",
+          "find": "    base = f\"/api/v1/gis/cloud-native/rasters/{quote(record.id, safe='')}/tiles\"\n    tiles = [f\"{base}/{{z}}/{{x}}/{{y}}.png\"]",
+          "replace": "    tiles = [f\"{record.cog_url}/{{z}}/{{x}}/{{y}}.png\"]  # mutated: العنوانُ يعبُر",
+          "test": "shared/gis/test_cloud_native_runtime.py",
+          "why": "تُعيد العطلَ الأخطر بأثرٍ رجعيّ: عنوانُ COG يعبُر إلى المتصفّح فيصير المصدرُ اختيارَ العميل. الشاهدُ يشترط `rec.cog_url not in str(tilejson)` — أي غيابَ العنوان نفسِه لا مجرّد شكلِ مسارٍ نسبيّ."
+        }
+      ]
+    },
+    "shared/gis/cog_tile_proxy.py": {
+      "$gap_ar": "COG-TILE-TRANSPORT-IS-AN-UNBOUNDED-FETCH-01 — ناقلٌ يقرأ من مضيفٍ خارجيّ بأمر مستهلِك. ثلاثُ خاصّيّات تفصل «ناقلاً محدوداً» عن «وكيلٍ مفتوح»: قائمةُ مضيفين مسموحين، وسقفُ حجم، وتحقّقٌ من النوع **بالبايتات** لا بترويسة `content-type` التي يملكها الطرفُ الآخر. وكلُّها تمرّ صامتةً على شجرةٍ سليمة، فتُزرَع واحدةً واحدة.",
+      "$verified_on_sha": "d1328d681b3a941a757aaf94e44285c3cb87b483",
+      "mutations": [
+        {
+          "expect": "test_untrusted_source_is_rejected_before_transport",
+          "find": "            and source.hostname in allowed\n",
+          "replace": "",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "بلا القائمة يصير الناقلُ وكيلاً مفتوحاً (SSRF): أيُّ مضيفٍ يُقرأ من داخل الشبكة. والشاهدُ يشترط الرفضَ **قبل** أيّ نداءٍ شبكيّ (`requests == []`)، فلا يمرّ على رفضٍ متأخّرٍ بعد أن وقع الاتّصال."
+        },
+        {
+          "expect": "test_bad_backend_response_is_not_a_successful_tile",
+          "find": "                    if len(content) > MAX_TILE_BYTES:\n                        raise HTTPException(502, \"cog_tile_backend_response_too_large\")",
+          "replace": "                    pass  # mutated: لا سقفَ — الذاكرةُ بيد الطرف الآخر",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "السقفُ يُقاس **أثناء** البثّ لا بعده؛ نزعُه يجعل حجمَ الاستجابة قرارَ الخادم البعيد. حالةُ الشاهد تبدأ ببصمة PNG صحيحة وتتجاوز السقف، فلا يلتقطها فحصُ النوع."
+        },
+        {
+          "expect": "test_bad_backend_response_is_not_a_successful_tile",
+          "find": "    if not content.startswith(PNG_SIGNATURE):\n        raise HTTPException(502, \"cog_tile_backend_not_png\")\n    return bytes(content)",
+          "replace": "    return bytes(content)  # mutated: الترويسةُ وحدَها تُصدّق النوع",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "يبقى فحصُ `content-type` فيبدو النوعُ محروساً — لكنّ الترويسةَ يملكها الطرفُ البعيد. حالةُ الشاهد `(200, b\"not a png\", \"image/png\")` تفصل تصديقَ البايتات عن تصديق الترويسة بالضبط."
         }
       ]
     }
