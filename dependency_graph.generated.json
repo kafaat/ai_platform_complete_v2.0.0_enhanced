@@ -1,5 +1,5 @@
 {
-  "edge_count": 809,
+  "edge_count": 811,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -249,6 +249,16 @@
       "relation": "CALLS",
       "resource": "compose-env-url",
       "to": "indicators-service",
+      "to_kind": "component"
+    },
+    {
+      "evidence": "docker-compose.v9.yml",
+      "from": "remote-sensing-workspace-bff",
+      "from_kind": "component",
+      "protocol": "http",
+      "relation": "CALLS",
+      "resource": "compose-env-url",
+      "to": "sahool-platform",
       "to_kind": "component"
     },
     {
@@ -2159,6 +2169,16 @@
       "relation": "READS",
       "resource": "db://field_tasks",
       "to": "db://field_tasks",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/canonical_water_state.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
       "to_kind": "resource"
     },
     {
@@ -8107,10 +8127,10 @@
     "DB ownership alone is not treated as a READS/WRITES access edge"
   ],
   "relation_counts": {
-    "CALLS": 38,
+    "CALLS": 39,
     "CONSUMES": 1,
     "EMITS": 1,
-    "READS": 417,
+    "READS": 418,
     "ROUTES_TO": 70,
     "WRITES": 282
   },
@@ -8127,8 +8147,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 700,
-      "resolved": 699,
+      "observed": 701,
+      "resolved": 700,
       "unresolved_component_paths": 0
     }
   }

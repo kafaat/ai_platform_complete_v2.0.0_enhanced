@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "abab404a84949a78bda34ace328c1ad55f401c3cde700d6ccde6b7bc5a397960"
+          "content": "6a851cb3107d2bd1fdf71aaa0858dbb3b545c0fec68d87cd6ba7ab60aae9d9ed"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4415,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "70ce3e51f2b5add864dc91d6ba30a6a1fef18e588bcbd0cb858ac4101c173929"
+          "content": "964dfa7b1b9e90d150477bc7bb40cf8e13159dbd50338fe173da5d50dc6237a3"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -11635,7 +11635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b57c7f4697e180ebc92825be79d21b335bc5d0987a7b9e55d780c54e3c3bc8f7"
+          "content": "10578eb0aa93e7d10a81d85124146a3b5fd110aee82f6a28824a363f0145725c"
         }
       ],
       "name": "services/decision-service/tests/test_service_token_guard.py",
@@ -12375,7 +12375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d360e75037c36d80c4456ca99701b0d0e19ea150b8601b736f641bed03bb4fdc"
+          "content": "f46667662859be333d8dce685748a5fb0a2df1ca2e3bcaeef18a8ccd3e076c0e"
         }
       ],
       "name": "services/guardrails-engine/contracts.py",
@@ -14865,7 +14865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ada03f564b8bb2939ea339eaead91efa12f48df0c142c60fa567aef32b16aa1a"
+          "content": "505ce900af46fea68bd4bb7c92b4262c2e8ca4ead10a30e1ce7e2c24debe3d1e"
         }
       ],
       "name": "services/remote-sensing-workspace-bff/Dockerfile",
@@ -14875,7 +14875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9d1b1d0129db37e8e247e1616e3712c01369ed29c086f87fd759bb9948c75413"
+          "content": "506a842977fb7d829e54d7b72269aef266faad3ffc410d1fbcce6e37df79023d"
         }
       ],
       "name": "services/remote-sensing-workspace-bff/main.py",
@@ -14895,7 +14895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cf863b1a53e934835ed15b10f2904bcfa047ddceb39488a25834442a39ddfcf7"
+          "content": "208c06322121a572571fba28ccded954fe35b73237825b1410b343a018ffa73a"
         }
       ],
       "name": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
@@ -15285,7 +15285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "65bdb9712339e938b09a7e47be8d313c7d94631a399f5c12e4551b1c76cc3586"
+          "content": "94862c8b49ad8da494e6f5fd5077ce8da6fcdc6f9bb382d9f34703f5b646868f"
         }
       ],
       "name": "services/sahool-platform/api/canonical_water_state.py",
@@ -15665,7 +15665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "46cc6ab07d106ea3086da7ca18871d55b99b2f6acc7a45766a6ff681265de7d5"
+          "content": "240b0dc22c467104355280c7f5b31cb3e53b1e392f97ecaf9fb0b1f544a49e35"
         }
       ],
       "name": "services/sahool-platform/api/decision_service_client.py",
@@ -16595,7 +16595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "08112c6cf166bb3b9906abc011d3565934c4eb381653e4778e3525a9dfb4aae3"
+          "content": "d4bec61a0b03ddaee12741f10779f63295827394d77ae89cac26e69d97720e02"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
@@ -17155,7 +17155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4455f6b09854577bfc63c948e4496b51d553ad1ce88766269ce618a894eb269a"
+          "content": "80c3ff19b394af45a99386253f24f49b18fdd9614b3f767272b3ce0bc3f0403d"
         }
       ],
       "name": "services/sahool-platform/api/routers/auth.py",
@@ -17955,7 +17955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aa3b21fe9c72ad615c93ecf02bca53bb4eb11141bf3e11041189f8c8602c758e"
+          "content": "578f4ba57097bfb818e30b98fdb979e3eca5d64a42b148329e6ee29223fbb78d"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_mpc.py",
@@ -19085,7 +19085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8ccc42c1c131cf8265b49502a9e497174854d8a49babfb866f891edf9aaa601b"
+          "content": "5785b7afbb7a63d23e69b36657eafb1750469fdd2c132ac0c9629122ebff89ae"
         }
       ],
       "name": "services/sahool-platform/api/water_decision_bridge.py",
@@ -24065,7 +24065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4729562fbb5a820ff40f68742ef39dc0e2e9835c838bb39e3f83af26859d17ed"
+          "content": "39eeb3783029533726c730e470c771e44f8d0786659162d552565c25a3b7c0d8"
         }
       ],
       "name": "services/sahool-platform/tests/test_decision_approve_permission.py",
@@ -25125,7 +25125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "704ebee64a81c0f77e954bc1a6d01a8a46434fdc9c99b15e6507b484da267d39"
+          "content": "faf77f1e10154120443b3296d5e478763b2ae1d04eb65e74481176f334de1cba"
         }
       ],
       "name": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
@@ -25395,7 +25395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "19da79fdca4f2618f766cff69ce0bfb1c9e6d666c6bcc138cfb6eb8ab1a06cb2"
+          "content": "60de0210970785e6a2e70a952231c2d788cf96a130dc60b491108e4f0474cfe5"
         }
       ],
       "name": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
@@ -26065,7 +26065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4134aafe26d61212334bf610ac7697429a8c0e9129273b90027e54fb78f7cb33"
+          "content": "88aaeef6ae9e048e3a4f94e03c0625cc90f0d16804b416ba135527929ea5e059"
         }
       ],
       "name": "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
@@ -26095,7 +26095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ac215f1f4bc91682e04135ee0163fb7af04cada15330536205484d2bb5a3a613"
+          "content": "5cd2534cba7eeb31ecd02f68c990ace382ff97b55ae5eef72f77610520ed21bc"
         }
       ],
       "name": "services/sahool-platform/tests/test_p4_decision_boundary_extraction_guard.py",
@@ -28825,7 +28825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e804b3033948b7e7f34eab68c44e3561bc28a4d2bdb36a3671418f74779928b8"
+          "content": "74c9f5cea86e1723ee2be7770be990554cbefe02583169899f2b27f60a2e04c1"
         }
       ],
       "name": "services/vegetation-analysis-service/decision_bridge.py",
@@ -28885,7 +28885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e6665f0a644f7213db2af18105a31bee161f2d39219a5c3daee30158abed546b"
+          "content": "76d172dd1b286406525fd829f20a78f91e85bbbe873bb7058c2ff034631a8cd9"
         }
       ],
       "name": "services/vegetation-analysis-service/post_execution_bridge.py",
@@ -29025,7 +29025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3df6529e6821bd51bde6b235b51c67fd3638d6fce5461bbd827a3074d8230d77"
+          "content": "876419eab6910a919cde11be53a9c3ee01f0f7dec6ed33d1a2ed226337b57ddd"
         }
       ],
       "name": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
@@ -29065,7 +29065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "523a6a5dca801cae906f9f28a3bea2759f81594ee1cd9f4e74f8993b589d2363"
+          "content": "cb1017d82e09d590e753a1e180426e70901b4d04932a4075fe5117d43cdd5f03"
         }
       ],
       "name": "services/vegetation-analysis-service/test_post_execution_bridge.py",
@@ -29165,7 +29165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0fed885deb9be0e7044f2d45a1300d700418d22d509e1c361a9b8c90a926589a"
+          "content": "b0811e8d20b5bd0be4779ca1860e11b909b525cabc1ad15249f591420ebdac45"
         }
       ],
       "name": "services/vegetation-analysis-service/vegetation_runtime.py",
@@ -31109,6 +31109,16 @@
         }
       ],
       "name": "shared/security/cors_policy.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e8e5f7c1ea956bb8fc962be571ca8e9b89d08ba09ce712a750428868b8ee6eac"
+        }
+      ],
+      "name": "shared/security/decision_service_auth.py",
       "type": "file"
     },
     {

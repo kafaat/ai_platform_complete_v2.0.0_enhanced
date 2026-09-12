@@ -3662,6 +3662,7 @@
       "code_readers": [
         "services/field-management-service/main.py",
         "services/raster-service/db_persist.py",
+        "services/sahool-platform/api/canonical_water_state.py",
         "services/sahool-platform/api/field_aggregate_ports.py",
         "services/sahool-platform/api/field_context.py",
         "services/sahool-platform/api/field_state_projection.py",

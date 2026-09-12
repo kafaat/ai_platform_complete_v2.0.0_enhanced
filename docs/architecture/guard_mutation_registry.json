@@ -2432,6 +2432,143 @@
           "why": "Exempting loans from annual revenue completeness hides missing financial evidence; the witness removes only annual_revenue_usd from a complete loan context."
         }
       ]
+    },
+    "services/sahool-platform/api/irrigation_runtime_orchestrator.py": {
+      "$gap_ar": "ORCHESTRATOR-READS-JSONB-AS-IF-DECODED-01 — `asyncpg` يُسلّم `jsonb` **نصّاً** ما لم يُسجَّل مُرمِّز، ومسبحُ `api/main.py` لا يُسجّله (يقيسه `tests_v9/test_live_pg_fake_connection_debt.py::test_asyncpg_really_returns_jsonb_as_str_without_a_codec`). فكان المنسّق يقرأ ثلاثة أعمدة بـ`dict(row[...])`/`list(row[...])`: الأوّل يرفع `ValueError` عند أوّل صفٍّ حقيقيّ فيسقط المسارُ الساعيّ كلُّه بـ500، والثاني يُحوّل `\"[]\"` إلى `['[', ']']` **بلا خطأ** فيصير سببا حجبٍ مختلقان من قوسين. ونجا العطلُ من الجناح لأنّ بديلَ `fetchrow` كان يبني الصفَّ بكائناتٍ مفكوكةٍ أصلاً — فيفترض الجوابَ الذي يدّعي قياسه. والعطلُ نفسُه أُصلح مرّةً في العامل ووُثّق حرفيّاً في docstring الدالّة `decode_jsonb`، وبقي هذا الموضعُ عليه.",
+      "mutations": [
+        {
+          "expect": "test_a_jsonb_object_arriving_as_text_is_decoded_not_crashed",
+          "find": "    decoded = _decode_or_block(value, {}, column=column)\n    if not isinstance(decoded, dict):\n        raise _MalformedCanonicalRow(column)\n    return dict(decoded)",
+          "replace": "    return dict(value or {})  # mutated: العطلُ الأصليّ — قراءةٌ بلا فكّ",
+          "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
+          "why": "هذه هي الصياغةُ التي كانت في المصدر حرفيّاً. `dict('{\"a\": 1}')` يرفع `ValueError`، فالمسارُ الساعيّ يسقط عند أوّل صفٍّ تُعيده قاعدةٌ حقيقيّة."
+        },
+        {
+          "expect": "test_a_jsonb_array_arriving_as_text_is_a_list_not_its_characters",
+          "find": "    decoded = _decode_or_block(value, [], column=column)\n    if not isinstance(decoded, list) or not all(isinstance(item, str) for item in decoded):\n        raise _MalformedCanonicalRow(column)\n    return list(decoded)",
+          "replace": "    return list(value or [])  # mutated: العطلُ الصامت — النصُّ يصير حروفاً",
+          "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
+          "why": "أخطرُ الشقّين لأنّه **لا يرفع**: `list('[\"A\", \"B\"]')` يُعيد حروفاً، فتظهر أسبابُ حجبٍ مختلقة في `blocking_reasons` ولا يحمرّ شيء."
+        },
+        {
+          "expect": "test_a_wrong_shape_names_its_column_instead_of_escaping_as_500",
+          "find": "    if not isinstance(decoded, dict):\n        raise _MalformedCanonicalRow(column)",
+          "replace": "    if not isinstance(decoded, dict):\n        decoded = {}  # mutated: البنيةُ الفاسدة تُبتلَع بصمت",
+          "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
+          "why": "الفكُّ وحدَه لا يكفي: صفٌّ بمصفوفةٍ حيث يُنتظَر كائن يمرّ فارغاً فيُحسَب «غيابَ قدرة» بدل «صفّاً فاسداً»."
+        },
+        {
+          "expect": "test_truncated_json_blocks_by_name_instead_of_escaping_as_500",
+          "find": "    try:\n        return decode_jsonb(value, default)\n    except ValueError as exc:  # JSONDecodeError من json.loads\n        raise _MalformedCanonicalRow(column) from exc",
+          "replace": "    return decode_jsonb(value, default)  # mutated: JSONDecodeError يهرب خمسمئةً",
+          "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
+          "why": "ثغرةُ الصياغة الأولى لهذا الإصلاح، وجدتها المراجعةُ المتوازية بحالة `\"{\"`: اشتراطُ البنية يلتقط الشكلَ الخاطئ ولا يلتقط النصَّ **غيرَ الصالح** — `json.loads` يرفع قبل أن تصل القيمةُ إلى `isinstance`."
+        },
+        {
+          "expect": "test_a_reason_list_of_non_strings_is_malformed_not_a_numeric_block_reason",
+          "find": "not isinstance(decoded, list) or not all(isinstance(item, str) for item in decoded)",
+          "replace": "not isinstance(decoded, list)",
+          "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
+          "why": "من المراجعة المتوازية: `[1]` قائمةٌ صحيحةُ البنية تُنتج سببَ حجبٍ رقميّاً في حمولةٍ يقرؤها إنسان. اشتراطُ القائمة وحدَه يمرّ عليها."
+        },
+        {
+          "expect": "test_every_jsonb_column_the_orchestrator_reads_goes_through_a_decoder",
+          "find": "    payload = _jsonb_object(row[\"payload\"], column=\"canonical_irrigation_capability_graphs.payload\")",
+          "replace": "    payload = dict(row[\"payload\"] or {})  # mutated: عمودٌ يعود إلى القراءة المباشرة",
+          "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
+          "why": "الدالّتان قد تبقيان سليمتين ويُضاف عمودٌ يُقرأ مباشرةً، فيعود العطلُ من بابٍ آخر. حارسُ الانحدار يُشتقّ من المصدر لا من قائمةٍ مكتوبة."
+        },
+        {
+          "expect": "test_server_owned_orchestrator_builds_and_persists",
+          "find": "    payload = _jsonb_object(row[\"snapshot\"], column=\"irrigation_executability_gates.snapshot\")",
+          "replace": "    payload = dict(row[\"snapshot\"] or {})  # mutated: العطلُ في بوّابة القابليّة",
+          "test": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+          "why": "شاهدٌ من طرفٍ إلى طرف: البديلُ مُعامَلٌ على حالتَي `codec`/`asyncpg-default`، فالحالةُ الثانية تُسلّم `jsonb` نصّاً كما تُسلّمه القاعدة. ولو بقي البديلُ المفكوكُ وحدَه لمرّت الطفرةُ خضراء — وهو سببُ نجاة العطل الأصليّ من الجناح."
+        },
+        {
+          "expect": "test_invalid_persisted_jsonb_blocks_at_http_boundary",
+          "find": "    except _MalformedCanonicalRow as exc:\n        return _blocked(",
+          "replace": "    except _MalformedCanonicalRow:  # mutated: الاستثناء يهرب خمسمئةً\n        raise\n    if False:\n        return _blocked(",
+          "test": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+          "why": "من المراجعة المتوازية: الشاهدُ يقيس على **حدّ HTTP** أنّ الردّ 200 محجوبٌ لا خمسمئة، وأنّ الطقسَ لم يُنتظَر وأنّ شيئاً لم يُكتَب. الطفرةُ تُبقي الفكَّ سليماً وتنزع التسميةَ وحدَها، فتفصل «فُكَّ الترميز» عن «حُجِب بسببٍ مفهوم»."
+        }
+      ]
+    },
+    "services/sahool-platform/api/decision_service_client.py": {
+      "$gap_ar": "DECISION-SERVICE-HARDENING-IS-NOT-ACTIVATABLE-01 — وسيطُ `_service_token_guard` يقرأ `Authorization: Bearer` وحدَه، والعميلُ كان يرسل `X-Agent-Token` الذي لا يقرؤه أحد: **صفرٌ من ٢٧ نداءً داخليّاً** يمرّر تفويضاً. فما كان التشديدُ معطَّلاً بل غيرَ قابلٍ للتفعيل — ضبطُ `DECISION_SERVICE_AUTH_TOKEN` كما توصي الوثيقة يردّ كلَّ نداءات المنصّة 401، ويبتلعها `lexicographic_mpc_bridge` في `try` عريض فتسقط التوصيةُ الصالحة معها. وحتّى ذلك الحين تبقى موافقةُ الإنسان — آخرُ حاجزٍ قبل التنفيذ — بلا مصادقةٍ على الشبكة الداخليّة. ولم يمسكه اختبارٌ لأنّ لكلّ طرفٍ اختباراتِه وكلاهما أخضر: لا أحد ركّب ما يرسله العميلُ فعلاً على ما يفرضه الوسيطُ فعلاً. والإصلاحُ النهائيّ من المراجعة المتوازية (`b15871f9`): وحدةٌ مشتركة `shared/security/decision_service_auth.py` يستعملها كلُّ المستهلكين لا المنصّةُ وحدَها، وتفشل **مغلقةً** (503) في الإنتاج عند غياب الرمز بدل نداءٍ عارٍ يرتدّ 401 فيُبتلَع، وترفض رموزاً تحوي `\\r\\n`، و`trust_env=False` يمنع إعادةَ توجيه نداءٍ داخليّ عبر وكيل بيئيّ. وصحّحت خاصّيّةً كنتُ أشترطها خطأً: رمزُ المستخدم ليس اعتماداً لهذه القفزة.",
+      "mutations": [
+        {
+          "expect": "test_what_the_platform_sends_is_what_the_service_accepts",
+          "find": "        headers = decision_service_auth_headers()",
+          "replace": "        headers = {\"X-Agent-Token\": os.getenv(\"SAHOOL_AGENT_TOKEN\", \"\")}  # mutated: العطلُ الأصليّ",
+          "test": "tests_v9/test_decision_service_auth_is_activatable.py",
+          "why": "يُعيد الصياغةَ التي كانت في `main` حرفيّاً: ترويسةٌ لا يقرؤها الوسيطُ أصلاً. الشاهدُ يستدعي الوسيطَ الحقيقيّ على الترويسة الحقيقيّة، فلا يمرّ على «العميل يضع ما نضعه له»."
+        },
+        {
+          "expect": "test_the_service_hop_never_forwards_a_user_jwt_in_place_of_service_credentials",
+          "find": "    if tenant_id:\n        headers[\"X-Tenant-Id\"] = str(tenant_id)",
+          "replace": "    if authorization:\n        headers[\"Authorization\"] = authorization  # mutated: رمزُ المستخدم يُزيح رمزَ الخدمة\n    if tenant_id:\n        headers[\"X-Tenant-Id\"] = str(tenant_id)",
+          "test": "tests_v9/test_decision_service_auth_is_activatable.py",
+          "why": "«إصلاحٌ» يبدو لطيفاً — تمريرُ تفويض المُتّصِل — يكسر المصادقةَ فعليّاً: الوسيطُ يقارن المُقدَّم بالرمز الخدميّ المشترَك، فرمزُ مستخدمٍ صحيحٌ تماماً يرتدّ 401. وهي الخاصّيّةُ التي كنتُ أشترط عكسَها قبل المراجعة المتوازية."
+        }
+      ]
+    },
+    "services/sahool-platform/api/canonical_water_state.py": {
+      "$gap_ar": "CANONICAL-WATER-FABRICATES-WHAT-IT-DOES-NOT-MODEL-01 — الجريانُ السطحيّ غيرُ منمذَجٍ في هذا المُنتِج، وكان يُكتَب `runoff_mm: 0.0` حرفيّاً لكلّ يوم فيُقرأ قياساً لا غياباً؛ ويمرّ إلى المنسّق ثمّ إلى حساب المطر الفعّال.",
+      "mutations": [
+        {
+          "expect": "test_unmodelled_runoff_is_declared_not_reported_as_a_measured_zero",
+          "find": "                \"rain_mm\": float(rain),\n                \"source\": \"weather-engine-et0-series+season-phenology\",",
+          "replace": "                \"rain_mm\": float(rain),\n                \"runoff_mm\": 0.0,  # mutated: صفرٌ مختلَق يُقرأ قياساً\n                \"source\": \"weather-engine-et0-series+season-phenology\",",
+          "test": "tests_v9/test_canonical_water_state_mpc.py",
+          "why": "الصفرُ المختلَق يمرّ إلى `daily_runoff_mm_by_date` في المنسّق فيدخل حسابَ `effective_rain_mm` بوصفه قياساً. والأثرُ اتّجاهيّ: نقصُ ريٍّ على المنحدرات. والمُنتِجُ القانونيّ للجريان قائمٌ ومُسجَّل — بلا مستهلكٍ واحد في شجرة الإنتاج."
+        }
+      ]
+    },
+    "services/sahool-platform/api/routers/irrigation_mpc.py": {
+      "$gap_ar": "SALINITY-GUARD-MEASURES-TEXT-NOT-TRAVERSAL-01 — حارسُ H5.1 يشترط سلاسلَ نصّ في `ROUTE_SRC`، و`ROUTE_SRC` هو الملفُّ كلُّه وفيه أكثرُ من نقطة إصدار. فما دام أيُّ مسارٍ يستدعي `evaluate_water_salinity_gate` يبقى الحارسُ أخضرَ ولو أصدرت النقاطُ الأخرى مرشّحاتٍ محكومة بلا فحصِ ملوحة. وهو الصنفُ الذي يصفه كتالوجُ الحرّاس: يمرّ على شجرةٍ سليمة، ولم يُقَس قطّ أنّه يحمرّ حين يوجد العطل.",
+      "mutations": [
+        {
+          "expect": "test_every_candidate_emission_point_is_gated_on_the_salinity_verdict",
+          "find": "        out[\"emit\"] = {\n            \"status\": \"rejected_simulation\",",
+          "replace": "        out[\"emit\"] = await emit_mpc_candidate(decision, tenant_id=tenant_id)  # mutated: نقطةُ إصدارٍ ثانية بلا بوّابة ملوحة\n        out[\"emit_simulation_note\"] = {\n            \"status\": \"rejected_simulation\",",
+          "test": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+          "why": "تزرع نقطةَ إصدارٍ ثانية في دالّةٍ لا تستدعي البوّابة — وهو العطلُ الذي كان الحارسُ النصّيّ يمرّ عليه أخضرَ حرفيّاً، لأنّ السلاسلَ الثلاثَ تبقى موجودةً في الملفّ بفضل النقطة المُحكَمة. الجردُ المُشتقّ من `ast` يراها."
+        },
+        {
+          "expect": "test_the_hardened_route_has_no_unconditionally_disabled_fact_source",
+          "find": "    async with tenant_connection(user) as conn:\n        return await resolve_canonical_water_state(",
+          "replace": "    return None  # mutated: المصدرُ يعود مُعطَّلاً بنيويّاً\n    async with tenant_connection(user) as conn:\n        return await resolve_canonical_water_state(",
+          "test": "tests_v9/test_lexicographic_mpc_bridge.py",
+          "why": "يُعيد العطلَ الأصليّ: مصدرُ حقائقَ يُرجِع `None` بلا شرط، فتُرجِع النقطةُ المُحكَمة blocked دائماً ويبقى المسارُ الوحيدُ المُصدِر هو الذي لا يفحص شيئاً. والحارسُ مُشتقٌّ من `ast` فلا يُخدَع بتعليقٍ ولا يبيت باسمٍ جديد."
+        },
+        {
+          "expect": "test_a_degraded_canonical_snapshot_cannot_become_an_operational_candidate",
+          "find": "    if not canonical.operational_eligible:",
+          "replace": "    if False:  # mutated: حكمُ المُنتِج على لقطتِه يُتجاهَل",
+          "test": "tests_v9/test_lexicographic_mpc_bridge.py",
+          "why": "لقطةٌ صالحةُ الشكل من دفترٍ بائت تُصدِر مرشّحاً محكوماً بسلطةٍ أقوى من دليلها — وهو بعينه سببُ قطعِ الإصدار عن `/plan`. الوصلُ لا يجوز أن يُعيده من الباب الآخر."
+        },
+        {
+          "expect": "test_the_decision_is_built_from_the_canonical_snapshot_not_from_request_fields",
+          "find": "        \"raw_fraction\": canonical.raw_fraction,",
+          "replace": "        \"raw_fraction\": req.raw_fraction,  # mutated: حقيقةُ عميلٍ تُزيح اللقطة",
+          "test": "tests_v9/test_lexicographic_mpc_bridge.py",
+          "why": "`RecommendationRequest` ما زال يحمل `raw_fraction`، فتوجيهُ العميل قد يعود من بابٍ خلفيّ بينما يبقى النَّسَبُ يقول «قانونيّ» — وهو أخطرُ من الحقيقة المكشوفة."
+        }
+      ]
+    },
+    "shared/security/decision_service_auth.py": {
+      "$gap_ar": "DECISION-SERVICE-CREDENTIAL-ABSENCE-IS-SILENT-01 — عقدُ الاعتماد الصادر إلى decision-service. من `b15871f9`: مصدرٌ واحد لكلّ المستهلكين (المنصّة · جسر الماء · التحليل النباتيّ · BFF · raster)، يفشل **مغلقاً** في الإنتاج عند غياب الرمز بدل نداءٍ عارٍ يرتدّ 401 فيُبتلَع، ويرفض رموزاً تحمل `\\r\\n` (حقنُ ترويسة).",
+      "mutations": [
+        {
+          "expect": "test_production_without_a_service_token_fails_closed_instead_of_calling_unauthenticated",
+          "find": "    if (required and not token) or any(c in token for c in \"\\r\\n\"):\n        raise DecisionServiceAuthUnavailable()",
+          "replace": "    pass  # mutated: الغيابُ يمضي نداءً عارياً بدل فشلٍ معلَن",
+          "test": "tests_v9/test_decision_service_auth_is_activatable.py",
+          "why": "بلا الفشل المُغلَق يمضي النداءُ بلا ترويسة فيرتدّ 401 ويُبتلَع عند المُنادي، فيصير «الأمانُ مُفعَّل» و«النظامُ يعمل» ادّعاءَين لا يجتمعان ولا يظهر أيُّهما كاذب."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

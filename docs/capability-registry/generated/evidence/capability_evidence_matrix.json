@@ -1034,6 +1034,7 @@
       "title": "Learning attribution",
       "unit_test_paths": [
         "services/decision-service/tests/test_wx10_13_learning_attribution.py",
+        "services/vegetation-analysis-service/test_post_execution_bridge.py",
         "tests_v9/test_closed_agronomic_loop_authority_guard.py"
       ]
     },
@@ -2008,7 +2009,6 @@
         "services/sahool-platform/tests/test_fields_endpoint.py",
         "services/sahool-platform/tests/test_variety_suitability.py",
         "services/sahool-platform/tests/test_yield_analysis.py",
-        "tests_v9/test_canonical_water_state_mpc.py",
         "tests_v9/test_variety_catalog_reference_only_barrier.py",
         "tests_v9/test_variety_policy_resolution.py"
       ]
@@ -8512,6 +8512,7 @@
         "services/decision-service/tests/test_loop_tables_and_ws_guard.py",
         "services/decision-service/tests/test_service_token_guard.py",
         "tests/irrigation/test_irr_f01_activation_gate_prod_guard.py",
+        "tests_v9/test_decision_service_auth_is_activatable.py",
         "tests_v9/test_internal_field_read_channel.py",
         "tests_v9/test_sensing_adapter_service_token.py",
         "tests_v9/test_service_token_constant_time.py"
@@ -9991,7 +9992,6 @@
         "services/weather-service/tests/test_p3_weather_service_runtime.py",
         "tests/test_real_data.py",
         "tests_v9/test_canonical_water.py",
-        "tests_v9/test_canonical_water_state_mpc.py",
         "tests_v9/test_confidence_failures.py",
         "tests_v9/test_crop_twin.py",
         "tests_v9/test_etc_dual_canonical.py",

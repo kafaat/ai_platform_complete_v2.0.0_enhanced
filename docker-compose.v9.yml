@@ -633,6 +633,11 @@ services:
       # Best-effort mirror target (dual-path): platform writes are authoritative; the facade
       # mirrors to this URL and swallows failures. Unreachable mirror ⇒ logged warning, never data loss.
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
+      # الرمزُ الخدميّ نفسُه الذي يفرضه `_service_token_guard` هناك. بدونه كان تفعيلُ
+      # `DECISION_SERVICE_AUTH_TOKEN` يردّ كلَّ نداءات المنصّة 401 — تشديدٌ يُعطِّل بدل
+      # أن يحمي؛ و`DECISION_REQUIRE_AUTH_TOKEN` يجعل غيابَه فشلاً معلَناً لا صمتاً.
+      DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
+      DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
@@ -1010,6 +1015,7 @@ services:
       # خدمة compose الفعليّة (sahool-decision-service:8160) بدل الافتراض الوهميّ في الكود.
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
       DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
+      DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
     volumes:
     - vegetation-anomaly-data:/data/vegetation
     networks:
@@ -1162,9 +1168,13 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      PLATFORM_API_URL: http://sahool-platform:8000
       INDICATORS_SERVICE_URL: http://sahool-indicators-service:8000
       VEGETATION_SERVICE_URL: http://sahool-vegetation-analysis:8000
       DECISION_SERVICE_URL: http://sahool-decision-service:8160
+      DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
+      DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
       TASK_SERVICE_URL: ${TASK_SERVICE_URL:-}
       WORKSPACE_BFF_TIMEOUT_S: ${WORKSPACE_BFF_TIMEOUT_S:-6}
     depends_on:
@@ -1207,6 +1217,7 @@ services:
       # عند التفعيل يستشير raster-service قرار decision-service (/v1/activation/satellite_cdse/source)
       # قبل اختيار CDSE، ويسقط مُغلَقاً إلى element84 عند أيّ تعذُّر. environment_id يطابق جانب البوّابة.
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
+      DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
       RASTER_ACTIVATION_GATE_ENFORCE: ${RASTER_ACTIVATION_GATE_ENFORCE:-0}
       ACTIVATION_ENVIRONMENT_ID: ${ACTIVATION_ENVIRONMENT_ID:-default}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
@@ -2430,6 +2441,8 @@ services:
       PYTHONDONTWRITEBYTECODE: "1"
       NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
+      DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
+      DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
       FEATURE_RESERVATION_DISPATCH_RELAY: ${FEATURE_RESERVATION_DISPATCH_RELAY:-0}
     command:
@@ -2564,9 +2577,11 @@ services:
       WATER_DEFICIT_EXECUTION_TARGET_ID: ${WATER_DEFICIT_EXECUTION_TARGET_ID:-}
       WATER_DEFICIT_POLICY_ACTOR: ${WATER_DEFICIT_POLICY_ACTOR:-water-deficit-policy}
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
-      # هويّة الجسر أمام decision-service (X-Agent-Token) — بدونها تُرفَض مرشّحات العجز.
+      DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
+      DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
+      # قرار الخدمة يتطلب Bearer من DECISION_SERVICE_TOKEN؛ SAHOOL_AGENT_TOKEN لا يحل محله.
       # CT-03: في الإنتاج (SAHOOL_ENV=production) متى فُعّل الجسر أعلاه يرفض العامل الإقلاع
-      # إن بقي هذا فارغاً (fail-closed، انظر water_ledger_identity_startup_error) — على
+      # إن بقي توكن القرار فارغاً (انظر water_ledger_identity_startup_error) — على
       # المشغّل حقنه من مدير الأسرار؛ الافتراض الفارغ يخدم التطوير/الجسر المُعطَّل فقط.
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
       WORKER_POLL_SECONDS: ${WATER_LEDGER_POLL_SECONDS:-3600}

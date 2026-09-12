@@ -14,6 +14,7 @@ from __future__ import annotations
 import importlib.util
 import os
 import re
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -122,6 +123,14 @@ def veg():
     return m
 
 
+@pytest.fixture
+def canonical_unavailable(veg, monkeypatch):
+    """Exercise the raster fallback with a controlled unavailable canonical service."""
+    adapter = AsyncMock(return_value=None)
+    monkeypatch.setattr(veg, "_canonical_observation_bundle_from_indicators", adapter)
+    return adapter
+
+
 # runtime-truth (20260712): FIELD_REGISTRY is empty and load_field returns None unless the
 # tenant-scoped platform catalog is reachable — the behavioral tests inject the field fixture
 # explicitly via monkeypatch (function-scoped, so it never leaks to other test modules that
@@ -160,7 +169,7 @@ def _bundle(mean: float = 0.77) -> dict:
     }
 
 
-async def test_indices_labeled_raster_source_from_bundle(veg, monkeypatch):
+async def test_indices_labeled_raster_source_from_bundle(veg, monkeypatch, canonical_unavailable):
     monkeypatch.setattr(veg, "load_field", _fixture_field)
 
     async def _b(field_id, tenant_id, raster_indices):
@@ -168,6 +177,7 @@ async def test_indices_labeled_raster_source_from_bundle(veg, monkeypatch):
 
     monkeypatch.setattr(veg, "_real_observation_bundle_from_raster", _b)
     res = await veg.run_analysis("field_01", "t1", "2026-06-01", "2026-06-10")
+    canonical_unavailable.assert_awaited_once()
     for public_idx in ("ndvi", "evi", "savi", "ndmi"):
         assert res["indices"][public_idx]["value"] == 0.77
         assert res["indices"][public_idx]["source"] == "raster-service"
@@ -178,7 +188,7 @@ async def test_indices_labeled_raster_source_from_bundle(veg, monkeypatch):
     assert res["data_source"] == "raster-service"
 
 
-async def test_fails_closed_424_when_bundle_absent(veg, monkeypatch):
+async def test_fails_closed_424_when_bundle_absent(veg, monkeypatch, canonical_unavailable):
     """غياب/عدم اتّساق الحزمة ⇒ 424 فشلاً مُغلَقاً — لا ارتداد تقديريّاً."""
     from fastapi import HTTPException
 
@@ -191,3 +201,4 @@ async def test_fails_closed_424_when_bundle_absent(veg, monkeypatch):
     with pytest.raises(HTTPException) as exc:
         await veg.run_analysis("field_01", "t1", "2026-06-01", "2026-06-10")
     assert exc.value.status_code == 424
+    canonical_unavailable.assert_awaited_once()

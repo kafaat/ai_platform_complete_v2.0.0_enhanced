@@ -1,6 +1,6 @@
 import asyncio
 from contextlib import asynccontextmanager
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 from importlib.util import find_spec
 
 import pytest
@@ -11,9 +11,15 @@ class Row(dict):
 
 
 class FakeConn:
-    def __init__(self, *, ledger=True, soil=True):
+    def __init__(self, *, ledger=True, soil=True, ledger_values=None, elevation=350.0):
         self.ledger = ledger
         self.soil = soil
+        self.ledger_values = ledger_values or {}
+        self.elevation = elevation
+
+    async def fetchval(self, sql, *args):
+        assert "SELECT elevation_m FROM fields" in sql
+        return self.elevation
 
     async def fetchrow(self, sql, *args):
         if "SELECT lat, lon, crop FROM fields" in sql:
@@ -25,13 +31,16 @@ class FakeConn:
         if "FROM water_ledger" in sql:
             return (
                 Row(
-                    ledger_date=date.today(),
-                    depletion_mm=20.0,
-                    confidence=0.9,
-                    et0_mm=5.0,
-                    kc=0.4,
-                    etc_mm=2.0,
-                    rain_mm=0.0,
+                    dict(
+                        ledger_date=datetime.now(UTC).date(),
+                        depletion_mm=20.0,
+                        confidence=0.9,
+                        et0_mm=5.0,
+                        kc=0.4,
+                        etc_mm=2.0,
+                        rain_mm=0.0,
+                    ),
+                    **self.ledger_values,
                 )
                 if self.ledger
                 else None
@@ -51,7 +60,7 @@ def canonical_patches(monkeypatch):
             "source": "weather-engine",
             "days": [
                 {
-                    "date": f"2026-07-{i + 1:02d}",
+                    "date": (datetime.now(UTC).date() + timedelta(days=i)).isoformat(),
                     "temp_min_c": 18,
                     "temp_max_c": 32,
                     "precipitation_mm": 0,
@@ -121,6 +130,225 @@ def test_canonical_state_uses_server_truth_and_digests(canonical_patches):
     assert len(out.forecast) == 3
     assert len(out.water_state_digest) == 64
     assert len(out.weather_snapshot_digest) == 64
+
+
+def test_unmodelled_runoff_is_declared_not_reported_as_a_measured_zero(canonical_patches):
+    """صفرٌ صريح يُقرأ قياساً، والجريانُ غيرُ منمذَجٍ أصلاً في هذا المُنتِج.
+
+    والأثرُ اتّجاهيّ لا عشوائيّ: كلُّ المطر يُحتسَب فعّالاً ⇒ يُبخَس الاستنزافُ ويُنقَص
+    الريّ، وأشدُّه على المنحدرات. والمستهلكون يُبدِلون صفراً عند الغياب، فالحسابُ لا
+    يتغيّر — يتغيّر ادّعاؤه، ويصير النقصُ ظاهراً في `limitations` بدل أن يختفي في رقم.
+    """
+    from api.canonical_water_state import resolve_canonical_water_state
+
+    out = asyncio.run(
+        resolve_canonical_water_state(
+            FakeConn(), tenant_id="tenant-1", field_id="fld-1", horizon_days=3
+        )
+    )
+    assert all("runoff_mm" not in day for day in out.forecast), (
+        "عاد الصفرُ المختلَق إلى التنبّؤ القانونيّ — وهو يمرّ إلى "
+        "`daily_runoff_mm_by_date` فيدخل حسابَ المطر الفعّال بوصفه قياساً."
+    )
+    assert any("runoff" in limitation for limitation in out.limitations), (
+        "الجريانُ غيرُ منمذَج ولا يُعلَن — وهو النقصُ الذي يُخفيه الصفر."
+    )
+
+
+@pytest.mark.parametrize("bad", [None, -1, True, "0", float("nan"), float("inf")])
+@pytest.mark.parametrize("source", ["rain", "et0"])
+def test_invalid_weather_cannot_be_verified(monkeypatch, canonical_patches, source, bad):
+    import api.canonical_water_state as c
+
+    forecast, et0 = c.get_weather_forecast, c.get_et0_series
+
+    async def weather(*args, **kwargs):
+        out = await forecast(*args, **kwargs)
+        out["days"][0]["precipitation_mm"] = bad
+        return out
+
+    async def series(**kwargs):
+        out = await et0(**kwargs)
+        out["daily_et0_mm"][0] = bad
+        return out
+
+    monkeypatch.setattr(
+        c,
+        "get_weather_forecast" if source == "rain" else "get_et0_series",
+        weather if source == "rain" else series,
+    )
+    out = asyncio.run(
+        c.resolve_canonical_water_state(
+            FakeConn(), tenant_id="tenant-1", field_id="fld-1", horizon_days=1
+        )
+    )
+    assert out["status"] == "blocked"
+    assert out["reason"] == (
+        "canonical_rain_incomplete" if source == "rain" else "canonical_et0_incomplete"
+    )
+
+
+def test_missing_rain_is_not_a_dry_day(monkeypatch, canonical_patches):
+    import api.canonical_water_state as c
+
+    forecast = c.get_weather_forecast
+
+    async def weather(*args, **kwargs):
+        out = await forecast(*args, **kwargs)
+        del out["days"][0]["precipitation_mm"]
+        return out
+
+    monkeypatch.setattr(c, "get_weather_forecast", weather)
+    out = asyncio.run(
+        c.resolve_canonical_water_state(
+            FakeConn(), tenant_id="tenant-1", field_id="fld-1", horizon_days=1
+        )
+    )
+    assert out["status"] == "blocked"
+    assert out["reason"] == "canonical_rain_incomplete"
+
+
+def test_explicit_zero_weather_and_real_elevation_survive(monkeypatch, canonical_patches):
+    import api.canonical_water_state as c
+
+    async def et0(**kwargs):
+        assert kwargs["elevation_m"] == -50.0
+        return {"daily_et0_mm": [0.0]}
+
+    monkeypatch.setattr(c, "get_et0_series", et0)
+    out = asyncio.run(
+        c.resolve_canonical_water_state(
+            FakeConn(elevation=-50.0), tenant_id="tenant-1", field_id="fld-1", horizon_days=1
+        )
+    )
+    assert out.operational_eligible is True
+    assert out.forecast[0]["rain_mm"] == 0.0
+    assert out.forecast[0]["et0_mm"] == 0.0
+    assert out.evidence["location"]["elevation_m"] == -50.0
+
+
+@pytest.mark.parametrize("bad", [None, True, "2000", float("nan"), float("inf")])
+def test_elevation_is_never_invented(canonical_patches, bad):
+    from api.canonical_water_state import resolve_canonical_water_state
+
+    out = asyncio.run(
+        resolve_canonical_water_state(
+            FakeConn(elevation=bad), tenant_id="tenant-1", field_id="fld-1", horizon_days=1
+        )
+    )
+    assert out["status"] == "blocked"
+    assert out["reason"] == "canonical_field_elevation_missing"
+
+
+@pytest.mark.parametrize("offsets", [[-1, 0], [1, 2], [0, 0], [0, 2], [0, None]])
+def test_forecast_must_cover_current_contiguous_dates(monkeypatch, canonical_patches, offsets):
+    import api.canonical_water_state as c
+
+    forecast = c.get_weather_forecast
+
+    async def weather(*args, **kwargs):
+        out = await forecast(*args, **kwargs)
+        for day, offset in zip(out["days"], offsets, strict=True):
+            day["date"] = (
+                None
+                if offset is None
+                else (datetime.now(UTC).date() + timedelta(days=offset)).isoformat()
+            )
+        return out
+
+    monkeypatch.setattr(c, "get_weather_forecast", weather)
+    out = asyncio.run(
+        c.resolve_canonical_water_state(
+            FakeConn(), tenant_id="tenant-1", field_id="fld-1", horizon_days=2
+        )
+    )
+    assert out["status"] == "blocked"
+    assert out["reason"] == "weather_forecast_dates_invalid"
+
+
+def test_forecast_uses_provider_calendar_at_utc_date_boundary(monkeypatch, canonical_patches):
+    import api.canonical_water_state as c
+
+    today = datetime.now(UTC).date()
+
+    class Clock(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime.combine(today, datetime.min.time(), tzinfo=UTC).replace(hour=22)
+
+    forecast = c.get_weather_forecast
+
+    async def weather(*args, **kwargs):
+        out = await forecast(*args, **kwargs)
+        out["timezone"] = "Asia/Aden"
+        out["days"][0]["date"] = (today + timedelta(days=1)).isoformat()
+        return out
+
+    monkeypatch.setattr(c, "datetime", Clock)
+    monkeypatch.setattr(c, "get_weather_forecast", weather)
+    out = asyncio.run(
+        c.resolve_canonical_water_state(
+            FakeConn(), tenant_id="tenant-1", field_id="fld-1", horizon_days=1
+        )
+    )
+    assert out.operational_eligible is True
+    assert out.forecast[0]["date"] == (today + timedelta(days=1)).isoformat()
+
+
+@pytest.mark.parametrize(
+    "key,bad,reason",
+    [
+        ("depletion_mm", -1, "invalid_ground_truth_depletion"),
+        ("depletion_mm", float("nan"), "invalid_ground_truth_depletion"),
+        ("depletion_mm", float("inf"), "invalid_ground_truth_depletion"),
+        ("confidence", float("nan"), "invalid_depletion_confidence"),
+        ("confidence", 1.1, "invalid_depletion_confidence"),
+        ("ledger_date", None, "invalid_water_ledger_date"),
+    ],
+)
+def test_invalid_ledger_is_blocked(canonical_patches, key, bad, reason):
+    from api.canonical_water_state import resolve_canonical_water_state
+
+    out = asyncio.run(
+        resolve_canonical_water_state(
+            FakeConn(ledger_values={key: bad}),
+            tenant_id="tenant-1",
+            field_id="fld-1",
+            horizon_days=1,
+        )
+    )
+    assert out["status"] == "blocked"
+    assert out["reason"] == reason
+
+
+def test_future_ledger_is_not_fresh(canonical_patches):
+    from api.canonical_water_state import resolve_canonical_water_state
+
+    out = asyncio.run(
+        resolve_canonical_water_state(
+            FakeConn(ledger_values={"ledger_date": datetime.now(UTC).date() + timedelta(days=20)}),
+            tenant_id="tenant-1",
+            field_id="fld-1",
+            horizon_days=1,
+        )
+    )
+    assert out["status"] == "blocked"
+    assert out["reason"] == "water_ledger_date_in_future"
+
+
+def test_stale_ledger_remains_degraded(canonical_patches):
+    from api.canonical_water_state import resolve_canonical_water_state
+
+    out = asyncio.run(
+        resolve_canonical_water_state(
+            FakeConn(ledger_values={"ledger_date": datetime.now(UTC).date() - timedelta(days=4)}),
+            tenant_id="tenant-1",
+            field_id="fld-1",
+            horizon_days=1,
+        )
+    )
+    assert out.operational_eligible is False
+    assert out.quality_status == "degraded"
 
 
 def test_canonical_state_blocks_without_ledger(canonical_patches):

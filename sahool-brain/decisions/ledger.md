@@ -2471,3 +2471,67 @@ SHAs من `git log --oneline origin/main`.
 `639bde28` uses the observed pair45.30 minutes/654 mutations from run34284639549/job102257332191 (22:12:12–22:57:30 UTC). Planting succeeded in29:42; pytest completed with6495 passed,25 skipped, and only the two headroom failures; coverage50.87%. Codecov and Field-forms were skipped after that failure. The same formula yields watermark711 and drift682, keeping the90-minute timeout and0.775 marginal-cost assumption. The current656-mutation registry is not substituted for the measured654 count.
 
 The merged targeted suite passed130 tests. Final generated checks, default preflight and publication remain pending. No production certification is claimed.
+
+
+### 2026-09-09 — require complete decision evidence at existing boundaries
+
+Decision implemented in `f8086c1ff`, based on review of `7407eae2`: retain legacy MPC as simulation because its TAW/weather remain client facts even when Dr comes from the ledger. Reuse the existing JSONB decoder at persisted-evidence reads instead of changing pool-wide codecs. Require explicit precipitation, valid dates and stored elevation before operational water truth; require fertilizer N/P/K and cumulative-use inputs before safety tiers. These choices close the demonstrated failure paths without inventing farm data or changing agronomic thresholds. Source/test mapping and limits: [docs/testing/main_irrigation_guardrails_repairs_20260909.md](../../docs/testing/main_irrigation_guardrails_repairs_20260909.md).
+
+
+### 2026-09-09 — preserve boundaries and validation provenance
+
+`655903768` controls the canonical adapter in raster-fallback unit tests because unit execution must not depend on a live indicators service. `cb0dc6cbd` consumes an already-used authorization only after verifying the actual #990 merge and matching authorized bytes; it grants no new scope. `73a67e3bd` names weather-service in the canonical-water comment because this consumer depends on that facade, not a provider; AST equality and 4,306 passing platform tests verify the correction.
+
+Unit and repository suites passed on `bd7bca34b`; the platform-only rerun resolves its sole failure without relabeling the earlier log or lowering a guard. Direct Git publication is unavailable, so a bundle retains the original tested commits rather than recreating a different history through the API. Source/test mapping and delivery state: [main repair report](../../docs/testing/main_irrigation_guardrails_repairs_20260909.md).
+
+
+### 2026-09-09 — التداخلُ يُحسَم بالأقوى لا بالأسبق، والتشديدُ يُقاس على وصلته
+
+`b1d75473` يدمج الحزمةَ المتوازية. **السبب:** الإصلاحان لـJSONB أُنتِجا مستقلَّين، والمقارنةُ
+وحدَها كشفت أنّ صياغتي تترك `JSONDecodeError` يهرب خمسمئةً — فأُخِذت تغطيتُهم لذلك واشتراطُهم
+لنوع عناصر `blocking_reasons`، وأُبقيت بنيتي لأنّ حجبَها يُسمّي العمود لا المصدرَ وحدَه، وأُخِذ
+ملفُّ اختبارهم كاملاً لأنّ بديلَه المُعامَل على `codec`/`asyncpg-default` وشواهدَه على حدّ HTTP
+أقوى من صنفي المنفصل. المعيارُ: ما يقيس أكثر يبقى، لا ما كُتِب أوّلاً.
+
+`6f7d621b`: رمزُ الخدمة يُضاف في `decision_service_headers` **وحدَه** لأنّ ٢٧ نداءً داخليّاً
+تمرّ به؛ وضعُه عند مواضع النداء يترك أيَّ نداءٍ جديد بلا تفويضٍ صامتاً. وهو بديلٌ عند غياب
+تفويضٍ صريح لا سارقٌ له — وإلّا صُودِرت هُويّةُ المُتّصِل ووُحِّد الفاعلون. وحارسُ الملوحة
+يُقلَب من اشتراطِ نصٍّ في الملفّ إلى جردٍ مُشتقٍّ من `ast`، لأنّ النصَّ يبقى موجوداً بفضل
+النقطة المُحكَمة بينما تُصدِر غيرُها بلا فحص. و`runoff_mm` يُحذَف بدل أن يُصفَّر: العددُ نفسُه
+لا يتغيّر عند المستهلكين، والذي يتغيّر ادّعاءُ القياس.
+
+`359be662` يصحّح اختباري: تحميلُ خدمةٍ أخرى محصورٌ في سياقه، لأنّ إدخالاً دائماً في `sys.path`
+يحجب حزماً متجانسةَ الاسم في خدماتٍ أخرى — قِيس بإخفاقٍ لم يظهر إلّا في الجناح الكامل.
+
+**وما لم يُفعَل عمداً:** وصلُ `/recommendation` بـ`resolve_canonical_water_state`. هو ما يُعيد
+إصدارَ المرشّحين بعد قطعِه عن `/plan`، لكنّه يغيّر مسارَ القرار العمليّ ووصلٌ متعجّل يُعيد
+المرشّحَ المبنيَّ على سلطةٍ مختلَقة — وهو بعينه ما أُزيل. مُسجَّلٌ فجوةً مفتوحة
+`GOVERNED-CANDIDATE-HAS-NO-EMITTING-PATH-01` لا ملاحظةً في محادثة.
+## 2026-09-09 — اعتماد القرار لا يحل محل هوية المستخدم
+
+- القرار (`b15871f9c`): credential resolution واحد لاتصال القرار؛ مصدر tenant وصلاحيات القراءة هو جلسة المنصة وسياسة has_permission القائمة. عمليات تحقق النتيجة وإسناد التعلم تمر بحد RBAC نفسه، دون خريطة أدوار أخرى في النبات.
+- السبب: مجرد استبدال JWT المستخدم بتوكن خدمة يفتح انتحال tenant/actor إن لم يسبق التفويض. [الدليل والحدود](../../docs/testing/decision_transport_auth_repairs_20260909.md).
+
+
+## 2026-09-09 — إثبات عقد المصادقة بسلوك العميل وتثبيت أساس المراجعة
+
+- القرار (`fb1d4ed3d`): تصحيح شاهد المرآة إلى استدعاء العميل وقياس Bearer وسياق المستأجر وصاحب الطلب، لأن وجود النص القديم كان يفرض اعتماداً يرفضه المستقبل. تبقى شروط الكتابة المحلية والمرايا المحكومة كما هي؛ 4,321 اختبار منصة ناجحة بعد التصحيح.
+- الدليل (`a15f176cc`): preflight اكتمل مع نجاح الوحدة والمستودع وإخفاق الشاهد القديم؛ لا يعاد وصف سجل فاشل بأنه ناجح. لم تتغير شيفرة الإنتاج بعد قياس الجناحين.
+- السبب لتثبيت `BASE=7407eae2`: المرجع المشترك origin/main أشار محلياً إلى `82e56b05` رغم مطابقة main الحي للأساس المحقق. المقارنة بمحتوى ثابت تحمي حدود المراجعة دون جلب تاريخ غير لازم أو تغيير مراجع الآخرين. [التفصيل](../../docs/testing/decision_transport_auth_repairs_20260909.md).
+
+
+### 2026-09-09 — الوصلُ يسبق التوسّع، والخاصّيّةُ المقلوبة تُستبدَل لا تُدافَع عنها
+
+`fb0f2c97`: وُصِل `/recommendation` بالمُنتِج القانونيّ القائم بدل بناء مصدرٍ جديد — **السبب:**
+`resolve_canonical_water_state` مُستهلَكٌ فعلاً في المسار الساعيّ، فالفجوةُ كانت وصلاً لا نقصَ
+مُنتِج. ولقطةٌ واحدة لا ثلاثةُ مصادر، كي لا يُركَّب قرارٌ من لحظاتٍ مختلفة ويبقى النَّسَبُ
+مطابقاً لِما بُني عليه القرار. و`operational_eligible` يُفرَض: تجاهلُ حكمِ المُنتِج على لقطتِه
+يُعيد من الباب الآخر ما أُزيل من `/plan`.
+
+`ef733569`: أُخِذ إصلاحُ الحزمة لـGOV-01 مكانَ إصلاحي — **السبب:** يغطّي خمسة مستهلكين بوحدةٍ
+مشتركة، ويفشل مغلقاً في الإنتاج، ويسدّ حقنَ الترويسة واختطافَ الوكيل البيئيّ. المعيارُ نفسُه
+المُعلَن في الدمج السابق: ما يقيس ويحمي أكثر يبقى، لا ما كُتِب أوّلاً.
+
+**وخاصّيّةٌ لي سقطت بالدليل:** كنتُ أشترط بقاءَ تفويضٍ صريح فوق الرمز الخدميّ. الوسيطُ يقارن
+المُقدَّم بالرمز المشترَك، فرمزُ المستخدم يرتدّ 401 — فالشاهدُ كان يحرس كسرَ المصادقة. لم
+يُدافَع عنه: استُبدل بالعكس وسُجِّلت طفرةٌ تزرع العطلَ الذي كنتُ أحرسه.
