@@ -85,7 +85,7 @@
         "services/auth"
       ],
       "kind": "service",
-      "incoming": 0,
+      "incoming": 1,
       "outgoing": 3,
       "orphan": false
     },
@@ -93,7 +93,7 @@
       "id": "auth-service",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 2,
+      "incoming": 3,
       "outgoing": 6,
       "orphan": false
     },
@@ -151,7 +151,7 @@
         "services/decision-service"
       ],
       "kind": "service",
-      "incoming": 13,
+      "incoming": 12,
       "outgoing": 3,
       "orphan": false
     },
@@ -461,8 +461,8 @@
         "services/sahool-platform"
       ],
       "kind": "service",
-      "incoming": 4,
-      "outgoing": 81,
+      "incoming": 5,
+      "outgoing": 83,
       "orphan": false
     },
     {
@@ -552,7 +552,7 @@
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 2,
+      "outgoing": 3,
       "orphan": false
     },
     {
@@ -1212,7 +1212,7 @@
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 12,
+      "outgoing": 11,
       "orphan": false
     },
     {
@@ -1897,6 +1897,18 @@
     },
     {
       "source": "platform",
+      "target": "auth",
+      "kind": "code-reference",
+      "evidence": "services/sahool-platform/tests/test_decision_approve_permission.py"
+    },
+    {
+      "source": "platform",
+      "target": "auth-service",
+      "kind": "code-reference",
+      "evidence": "services/sahool-platform/tests/test_decision_approve_permission.py"
+    },
+    {
+      "source": "platform",
       "target": "capabilities",
       "kind": "code-reference",
       "evidence": "services/sahool-platform/api/routers/capabilities.py"
@@ -2456,6 +2468,12 @@
     {
       "source": "remote-sensing-workspace-bff",
       "target": "indicators-service",
+      "kind": "code-reference",
+      "evidence": "services/remote-sensing-workspace-bff/main.py"
+    },
+    {
+      "source": "remote-sensing-workspace-bff",
+      "target": "platform",
       "kind": "code-reference",
       "evidence": "services/remote-sensing-workspace-bff/main.py"
     },
@@ -6951,12 +6969,6 @@
       "source": "vegetation-analysis-service",
       "target": "decision-service",
       "kind": "code-reference",
-      "evidence": "services/vegetation-analysis-service/post_execution_bridge.py"
-    },
-    {
-      "source": "vegetation-analysis-service",
-      "target": "decision-service",
-      "kind": "code-reference",
       "evidence": "services/vegetation-analysis-service/vegetation_runtime.py"
     },
     {
@@ -7107,11 +7119,11 @@
   "cycles": [],
   "summary": {
     "nodes": 153,
-    "edges": 969,
+    "edges": 971,
     "orphans": 5,
     "cycles": 0,
-    "code_edges": 115,
+    "code_edges": 117,
     "compose_edges": 854
   },
-  "content_sha256": "a6d4ddfbce1a7d122c630c9f8128eecc9bd6898c8e5adf26b76d7fbd373225d9"
+  "content_sha256": "f603d91cd5de049521a8b1f634a98a06fb23b0d3620843162cb39ef381397cc4"
 }

@@ -3700,6 +3700,8 @@ RLS يمرّ الفحص لأيّ مستأجِر، وتحته لا يمرّ لأ�
   وإمّا تصديقاً مستقلّاً يفحصه الحارس. وكلاهما يلزمه طفرةٌ تُكذّبه.
 ## GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01 — `fixed` (2026-08-13 · رصده المالك)
 
+**2026-09-09 recurrence:** `cb0dc6cbd` consumes `GATE01-ADJ-2026-09-08-001` after #990 merged at `7407eae2`. Both authorized blob hashes were verified against that merge tree. The existing guard correctly blocked unrelated changes until the record was stamped; its policy and byte bindings were not changed. Evidence: [main repair report](../../docs/testing/main_irrigation_guardrails_repairs_20260909.md).
+
 **الوعد كُتِب وفُرِض عند الاستعمال، ولم يُنهَ عند الدمج.** التفويض يحمل `one_time: true`
 و`_authorization_errors` يشترط `status == "ISSUED"` — فالمُستهلَك يُرفَض بحقّ. لكن **لا
 شيء في المستودع يُحوِّل `ISSUED` إلى `CONSUMED` بعد الدمج**، فبقيت الحالة الابتدائيّة
@@ -5748,3 +5750,127 @@ Timing follow-up: final source registry656; run34281851595 measured654 in five s
 | ID | Gap | Owner | Evidence | Status |
 | --- | --- | --- | --- | --- |
 | CONNECTIVITY-AUDIT-20260910 | NATS identity/TLS and frozen producer subjects; native mobile builds; live Compose/DNS validation | platform/runtime | [Repair report](../../docs/testing/connectivity_repairs_20260910.md), base `7407eae2` | **OPEN** — targeted code repairs only; no runtime or production closure |
+## HOURLY-MPC-JSONB-STRING-CRASH-01 — FIXED_IN_CODE (2026-09-09)
+
+`f8086c1ff`: `services/sahool-platform/api/irrigation_runtime_orchestrator.py` decodes capability/gate JSONB with the shared decoder and validates object/list shapes. `services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py` proves default string and decoded representations, plus blocked HTTP results for malformed evidence. Live PostgreSQL on this repaired branch is not measured.
+
+## LEGACY-MPC-CLIENT-FACTS-EMITTED-01 — FIXED_IN_CODE (2026-09-09)
+
+`f8086c1ff`: `services/sahool-platform/api/routers/irrigation_mpc.py::irrigation_mpc_plan` always returns simulation and rejects submission. `tests_v9/test_lexicographic_mpc_bridge.py` holds ledger Dr constant while varying client TAW/ET0 and asserts no emitter call for either bridge flag. The separate daily recommendation adapters remain deferred as documented in the source.
+
+## CANONICAL-WATER-ABSENCE-VERIFIED-AS-ZERO-01 — FIXED_IN_CODE (2026-09-09)
+
+`f8086c1ff`: `services/sahool-platform/api/canonical_water_state.py` rejects missing/invalid rain, ET0, depletion and confidence, future ledger dates and incorrect forecast coverage. Field elevation replaces the fixed 2000 m assumption; missing elevation blocks. `tests_v9/test_canonical_water_state_mpc.py` checks explicit zero, valid signed elevation, stale ledger degradation and the provider calendar at a UTC date boundary. Operational field/weather execution is not certified.
+
+## FERTILIZER-MISSING-RECIPE-AUTOAPPROVED-01 — FIXED_IN_CODE (2026-09-09)
+
+`f8086c1ff`: `services/guardrails-engine/contracts.py` requires N/P/K doses, annual nitrogen and accumulated carbon. `tests_v9/test_guardrails_contract.py` rejects each absent/invalid quantity at HTTP and after nested-dict mutation, and verifies complete inputs still reach the real tiers. Dose and cumulative-use threshold violations still require human review. Validation details: [docs/testing/main_irrigation_guardrails_repairs_20260909.md](../../docs/testing/main_irrigation_guardrails_repairs_20260909.md).
+
+
+## VEGETATION-RASTER-UNIT-REACHES-LIVE-INDICATORS-01 — FIXED_IN_CODE (2026-09-09)
+
+`655903768`: `tests_v9/test_vegetation_raster_ndvi.py` controlled the raster adapter but left the preceding canonical adapter live, interrupting local unit execution with an attempted indicators-service request. The function-scoped fixture now returns an unavailable canonical bundle and asserts that adapter was awaited, so both raster fallback paths are deterministic. Six focused tests and the complete unit suite passed. Production vegetation behavior and static boundary assertions are unchanged.
+
+
+## DECISION-SERVICE-HARDENING-NOT-ACTIVATABLE-01 — FIXED_IN_CODE (2026-09-09)
+
+`6f7d621b`: `services/decision-service/main.py::_service_token_guard` يفرض `Authorization: Bearer`
+وحدَه، وكان عميلُ المنصّة يرسل `X-Agent-Token` الذي لا يقرؤه أحد. قِيس: **صفرٌ من ٢٧** نداءً
+داخليّاً في `api/decision_service_client.py` يمرّر تفويضاً، فما كان التشديدُ معطَّلاً بل **غيرَ
+قابلٍ للتفعيل** — ضبطُ `DECISION_SERVICE_AUTH_TOKEN` يردّ نداءات المنصّة كلَّها 401،
+ويبتلعها `lexicographic_mpc_bridge.py:82` في `try` عريض فتسقط التوصيةُ الصالحة معها. وحتّى
+التفعيل تبقى `POST /v1/decisions/{id}/review` — آخرُ حاجزٍ بشريّ قبل التنفيذ — بلا مصادقةٍ على
+الشبكة الداخليّة، وتقبل أيَّ `X-Reviewed-By` وأيَّ `X-Tenant-Id`.
+
+العلاج في المُنشِئ الواحد (`decision_service_headers`) لا عند مواضع النداء، وإلّا بقي أيُّ نداءٍ
+جديد بلا تفويضٍ صامتاً؛ و`docker-compose.v9.yml` يمرّر `DECISION_SERVICE_TOKEN` إلى
+`sahool-platform` كما يمرّره إلى ثلاث خدماتٍ أخرى أصلاً. الشاهد
+`tests_v9/test_decision_service_auth_is_activatable.py` يقيس **الوصلة**: يستدعي الوسيطَ الحقيقيّ
+على الترويسة التي يبنيها العميلُ فعلاً؛ طفرتان مُكذَّبتان.
+
+**ولم يُقَس حيّاً:** لا مكدّس مرفوع بالرمز مضبوطاً. و`SAHOOL_ENV` ما زال **غيرَ ممرَّر** إلى
+`sahool-decision-service` في compose، فـ`service_auth_required()` لا ترى الإنتاج ولا تفرض 503 على
+الرمز الغائب — بندٌ مفتوح خارج هذه الشريحة.
+
+## SALINITY-GUARD-MEASURES-TEXT-NOT-TRAVERSAL-01 — FIXED_IN_CODE (2026-09-09)
+
+`6f7d621b`: `services/sahool-platform/tests/test_h5_salinity_ecw_binding.py:241` يشترط سلاسلَ نصّ
+في `ROUTE_SRC`، وهو **الملفُّ كلُّه**. فما دام أيُّ مسارٍ يستدعي `evaluate_water_salinity_gate`
+يبقى أخضرَ ولو أصدرت النقاطُ الأخرى مرشّحاتٍ محكومة بلا فحصِ ملوحة — وهو صنفُ
+`GUARD_CATALOGUE`: يمرّ على شجرةٍ سليمة ولم يُقَس أنّه يحمرّ حين يوجد العطل.
+
+أُضيف جردٌ مُشتَقٌّ من `ast` يشترط على كلّ دالّةٍ تستدعي `emit_mpc_candidate` أن تستدعي البوّابة
+وأن تحمل سببَ حجبها. **والفرقُ مقيسٌ لا مُدَّعى:** بنقطةِ إصدارٍ ثانية مزروعة بلا بوّابة،
+الحارسان النصّيّان يمرّان أخضرَين (2 passed) والجردُ المُشتقّ يحمرّ مُسمّياً `irrigation_mpc_plan`.
+
+## CANONICAL-WATER-FABRICATES-UNMODELLED-RUNOFF-01 — FIXED_IN_CODE (2026-09-09)
+
+`6f7d621b`: `canonical_water_state.py` كان يكتب `runoff_mm: 0.0` حرفيّاً لكلّ يوم، فيُقرأ قياساً
+لا غياباً، ويمرّ إلى `irrigation_runtime_orchestrator.py` ثمّ إلى `daily_runoff_mm_by_date` فيدخل
+حسابَ `effective_rain_mm` في الجدول الساعيّ العمليّ. الأثرُ اتّجاهيّ: كلُّ المطر يُحتسَب فعّالاً
+⇒ يُبخَس الاستنزافُ ويُنقَص الريّ، وأشدُّه على المنحدرات.
+
+حُذِف المفتاحُ وأُعلِن نقصاً في `limitations`؛ والمستهلكون يُبدِلون صفراً عند الغياب فالحسابُ لا
+يتغيّر — يتغيّر **ادّعاؤه**. طفرةٌ مُكذَّبة.
+
+**ويبقى مفتوحاً:** `canonical_sprinkler_runoff_capability.py` مُنتِجٌ قانونيٌّ مُسجَّل في
+`docs/architecture/knowledge_source_registry.json` وله جدولٌ في `migrations/v173` — **وصفرُ
+مستهلكين** في شجرة الإنتاج. ولا يلتقط ذلك `canonical_consumer_bypass_guard`: قاعدتُه تمنع
+الارتداد إلى مدخلٍ خام في مستهلِكٍ مُسجَّل، لا تثبيتاً حرفيّاً في مُنتِجٍ يسبق المستهلِك.
+
+## GOVERNED-CANDIDATE-HAS-NO-EMITTING-PATH-01 — OPEN (2026-09-09)
+
+بعد `b1d75473` **لا مسارَ يُصدِر مرشّحاً محكوماً إلى مركز القرار**. قِيست الثلاثة على الشجرة:
+`/api/v1/irrigation/mpc/plan` صار يرفض الإصدارَ دائماً (`f8086c1ff`) · و`/recommendation` يحمل
+النداءَ الوحيد الباقي لـ`emit_mpc_candidate` (`irrigation_mpc.py:476`) لكنّ
+`_source_soil_capacity:224` و`_source_forecast_horizon:232` كلاهما `return None` بلا شرط، فتُرجِع
+`insufficient_ground_truth` قبل بلوغه · و`/hourly-recommendation` يعمل خادميّاً بالكامل ولا
+يستدعي المُصدِرَ أصلاً.
+
+الاتّجاهُ صحيح — مرشّحٌ مبنيٌّ على TAW وET0 من العميل سلطةٌ مختلَقة — لكنّه **تعطيلُ قدرةٍ لا
+تشديدٌ فحسب**، وتقريرُ الحزمة الواردة يقول إنّ العملاء «يستعملون مسارَ التوصية الخادميّ» وهو ما
+لا يُصدِر شيئاً اليوم. الإغلاقُ ببند العمل ٣: استبدالُ الـ`None` بقراءةٍ من
+`resolve_canonical_water_state` — المُنتِجُ قائمٌ ومُستهلَكٌ فعلاً في المسار الساعيّ.
+## DECISION-CLIENT-AUTH-CONTRACT-01 — open (deployment verification pending)
+
+- المصدر: `services/sahool-platform/api/decision_service_client.py`، `services/decision-service/main.py::_service_token_guard`، `services/remote-sensing-workspace-bff/main.py`، وتقرير `docs/testing/decision_transport_auth_repairs_20260909.md`.
+- إصلاح الكود: `b15871f9c` يعالج عدم تطابق اعتماد الخدمة، ويستمد tenant وصلاحيات المجمع من جلسة موثقة، ويوجه تحقق النتيجة والتعلم إلى تفويض المنصة. 60 شاهداً مركزاً + 10 لحارس المستقبل + 61 في مجموعة CI، مع تداخل بينها.
+- شرط الإغلاق المتبقي: نشر الإعداد المتطابق والتحقق من التسليم والعزل على خدمات وقاعدة بيانات حية في الوضع المصرح به؛ التوكن المشترك لا يثبت وحده RLS أو ملكية كل خدمة، ولا يجيز قلب SoR.
+
+- تحديث التحقق المحلي (2026-09-09، `a15f176cc` ثم `fb1d4ed3d`): 6,611 وحدة و752 مستودع ناجحة؛ 4,321 منصة ناجحة بعد تحديث شاهد المصادقة القديم. التصحيح الأخير اختبار فقط؛ لم يتغير كود الإنتاج. بقيت حالة هذا المدخل open لأن دليل الخدمات/قاعدة البيانات الحي وشرط النشر لم يُقاسا. تفاصيل حدود الاختبار وسجل الإخفاق المعالج في `docs/testing/decision_transport_auth_repairs_20260909.md`.
+
+
+## GOVERNED-CANDIDATE-HAS-NO-EMITTING-PATH-01 — FIXED_IN_CODE (2026-09-09)
+
+`fb0f2c97`: `_source_soil_capacity` و`_source_forecast_horizon` كانتا `return None` بلا شرط،
+فأُبدِلتا بـ`_source_canonical_water` الذي يقرأ `resolve_canonical_water_state` — مُنتِجٌ قائمٌ
+يستهلكه المسارُ الساعيّ فعلاً، فكان المطلوبُ وصلاً لا مصدراً جديداً. ومصدرٌ **واحد** لا ثلاثة:
+الاستنزافُ والمرحلة وTAW/RAW والتنبّؤ من لقطةٍ واحدة متّسقة ببصماتها، والنَّسَبُ صار يشير إلى
+اللقطة التي بُني عليها القرارُ فعلاً.
+
+ثلاثةُ شواهد وثلاثُ طفراتٍ مُكذَّبة: `operational_eligible=False` ⇒ حجب (دفترٌ بائت يُنتِج لقطةً
+صالحةَ الشكل، ومرورُها يُصدِر مرشّحاً بسلطةٍ أقوى من دليلها) · `raw_fraction` من الطلب يُتجاهَل
+(شاهدٌ يمرّر 0.9 ويشترط 0.5) · وحارسُ انحدارٍ مُشتقٌّ من `ast` يمنع عودةَ أيّ `_source_*` يبدأ
+بـ`return None` غيرِ مشروط.
+
+**والتكذيبُ كشف ضعفاً في الحارس نفسِه:** صياغتُه الأولى اشترطت أن يكون الجسدُ جملةً واحدة،
+فمرّت عليها طفرةٌ تضع `return None` **قبل** جسدٍ سليم — عطلٌ مزروع واختبارٌ أخضر. فصار الشرطُ
+على **أوّل** جملة. أُصلح الحارسُ لا الطفرة.
+
+**وحدٌّ يُقال:** الإصدارُ لم يُستعَد للجميع. المُنتِجُ يحجب على `fields.elevation_m` الغائب، أو
+مطرٍ غيرِ صريح، أو تواريخَ تنبّؤٍ غيرِ متّصلة، أو غياب صفّ الدفتر — فالمرشّحون يتدفّقون للحقول
+ذات الدليل الكامل وحدَها، بسببٍ مُسمّى بدل `insufficient_ground_truth` عامّاً. ولم يُقَس حيّاً.
+
+## DECISION-SERVICE-HARDENING-NOT-ACTIVATABLE-01 — تحديث الإغلاق (2026-09-09)
+
+`ef733569` يستبدل إصلاحي بإصلاح الحزمة المتوازية (`b15871f9`) لأنّه أوسع: وحدةٌ مشتركة
+`shared/security/decision_service_auth.py` لخمسة مستهلكين لا للمنصّة وحدَها · فشلٌ **مغلق**
+(503) في الإنتاج عند غياب الرمز بدل نداءٍ عارٍ يرتدّ 401 فيُبتلَع · رفضُ رموزٍ تحمل `\r\n` ·
+و`trust_env=False` يمنع اختطافَ نداءٍ داخليّ بوكيلٍ بيئيّ.
+
+**وصحّحت الحزمةُ خاصّيّةً كنتُ أشترطها مقلوبة:** كان شاهدي يشترط أن يسود تفويضٌ صريح على الرمز
+الخدميّ، وهي خاطئة — الوسيطُ يقارن المُقدَّم بالرمز المشترَك، فرمزُ مستخدمٍ صحيحٌ تماماً يرتدّ
+401. كنتُ أحرس سلوكاً يكسر المصادقة. استُبدل بالعكس وبطفرةٍ تزرع تمريرَ رمز المستخدم.
+
+**ويبقى مفتوحاً:** `SAHOOL_ENV` غيرُ ممرَّر إلى `sahool-decision-service` في compose، فلا
+تفرض `service_auth_required()` الـ503 على رمزٍ غائب في الإنتاج. ولم يُقَس مكدّسٌ حيّ بالرمز مضبوطاً.

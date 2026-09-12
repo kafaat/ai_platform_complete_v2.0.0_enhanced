@@ -13,6 +13,11 @@ from typing import Any
 import httpx
 from fastapi import FastAPI, Header, HTTPException, Query
 
+from shared.security.decision_service_auth import (
+    DecisionServiceAuthUnavailable,
+    decision_service_auth_headers,
+)
+
 _ID_RE = re.compile(r"^[A-Za-z0-9_.:-]{1,128}$")
 
 app = FastAPI(title="SAHOOL Remote Sensing Workspace BFF", version="1.0.0")
@@ -24,6 +29,7 @@ VEGETATION_URL = os.getenv(
     "VEGETATION_SERVICE_URL", "http://sahool-vegetation-analysis:8000"
 ).rstrip("/")
 DECISION_URL = os.getenv("DECISION_SERVICE_URL", "http://sahool-decision-service:8160").rstrip("/")
+PLATFORM_URL = os.getenv("PLATFORM_API_URL", "http://sahool-platform:8000").rstrip("/")
 TASK_URL = os.getenv("TASK_SERVICE_URL", "").rstrip("/")
 TIMEOUT = float(os.getenv("WORKSPACE_BFF_TIMEOUT_S", "6"))
 _ALLOWED = {"overview", "timeline", "anomalies", "ground", "decisions", "compare", "outcomes"}
@@ -40,8 +46,13 @@ def readyz() -> dict[str, Any]:
         "indicators": INDICATORS_URL,
         "vegetation": VEGETATION_URL,
         "decision": DECISION_URL,
+        "platform": PLATFORM_URL,
     }
     missing = sorted(name for name, value in required.items() if not value)
+    try:
+        decision_service_auth_headers()
+    except DecisionServiceAuthUnavailable:
+        missing.append("decision_auth")
     if missing:
         raise HTTPException(
             503, detail={"code": "workspace_upstream_not_configured", "services": missing}
@@ -65,6 +76,35 @@ async def _get(
     return response.json()
 
 
+async def _workspace_identity(
+    client: httpx.AsyncClient, authorization: str, requested_tenant: str
+) -> str:
+    """Ask the existing session/RBAC owner before using internal service authority.
+
+    Never mint a trusted tenant header from the caller's X-Tenant-Id. The
+    permission list is computed by the platform's canonical has_permission.
+    """
+    try:
+        response = await client.get(
+            f"{PLATFORM_URL}/api/v1/auth/me", headers={"Authorization": authorization}
+        )
+        if response.status_code in {401, 403}:
+            raise HTTPException(response.status_code, detail="workspace_access_denied")
+        response.raise_for_status()
+        user = response.json()["user"]
+        tenant = user["tenant_id"]
+        permissions = user["permissions"]
+        if not isinstance(tenant, str) or not _ID_RE.fullmatch(tenant):
+            raise ValueError("invalid trusted tenant")
+        if not isinstance(permissions, list) or not all(isinstance(p, str) for p in permissions):
+            raise ValueError("invalid permission projection")
+    except (httpx.HTTPError, ValueError, KeyError, TypeError) as exc:
+        raise HTTPException(503, detail="workspace_identity_unavailable") from exc
+    if tenant != requested_tenant or "recommendation:view" not in permissions:
+        raise HTTPException(403, detail="workspace_access_denied")
+    return tenant
+
+
 @app.get("/v1/fields/{field_id}/remote-sensing-workspace")
 async def workspace(
     field_id: str,
@@ -85,7 +125,6 @@ async def workspace(
         raise HTTPException(400, detail={"code": "invalid_field_id"})
     if not _ID_RE.fullmatch(season_id):
         raise HTTPException(400, detail={"code": "invalid_season_id"})
-    headers = {"Authorization": authorization, "X-Tenant-Id": tenant_id}
     result: dict[str, Any] = {
         "field_id": field_id,
         "season_id": season_id,
@@ -97,6 +136,14 @@ async def workspace(
     # proxy variables. This also keeps tenant-scoped upstream traffic inside
     # the SAHOOL network boundary.
     async with httpx.AsyncClient(timeout=TIMEOUT, trust_env=False) as client:
+        tenant = await _workspace_identity(client, authorization, tenant_id)
+        headers = {"Authorization": authorization, "X-Tenant-Id": tenant}
+        decision_headers: dict[str, str] = {}
+        if sections & {"decisions", "outcomes", "overview"}:
+            try:
+                decision_headers = {**decision_service_auth_headers(), "X-Tenant-Id": tenant}
+            except DecisionServiceAuthUnavailable as exc:
+                raise HTTPException(503, detail=str(exc)) from exc
         calls: dict[str, Any] = {}
         if "timeline" in sections or "overview" in sections or "compare" in sections:
             calls["timeline"] = _get(
@@ -116,14 +163,14 @@ async def workspace(
             calls["decisions"] = _get(
                 client,
                 f"{DECISION_URL}/v1/decisions",
-                headers,
+                decision_headers,
                 {"field_id": field_id, "season_id": season_id, "limit": 100},
             )
         if "outcomes" in sections or "overview" in sections:
             calls["outcomes"] = _get(
                 client,
                 f"{DECISION_URL}/v1/outcomes/reconciled",
-                headers,
+                decision_headers,
                 {"field_id": field_id, "season_id": season_id},
             )
         if "ground" in sections and TASK_URL:

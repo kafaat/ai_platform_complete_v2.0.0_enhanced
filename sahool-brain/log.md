@@ -7703,3 +7703,88 @@ The merged targeted suite passed130 tests. Final generated checks, default prefl
 ### 2026-09-10 — connectivity repair branch
 
 Base `7407eae2`: authenticated registry/layer tile paths, bounded public COG transport, canonical Compose tiler dependencies and explicit ERPNext configuration. 74 targeted tests pass; production auth/database/backend are not measured. CONN-03/04/07 remain open, with the producer protected by GATE-01. See [evidence](../docs/testing/connectivity_repairs_20260910.md). Full preflight/publication results belong to the report; no runtime certification.
+### 2026-09-09 — four main review findings repaired
+
+Audited base `7407eae2`; implementation `f8086c1ff`. The real asyncpg JSONB representation no longer crashes hourly MPC; ledger-seeded client plans cannot emit; canonical water rejects absent/invalid rain and dates and uses field elevation; fertilizer safety requires the actual recipe and cumulative use. See [docs/testing/main_irrigation_guardrails_repairs_20260909.md](../docs/testing/main_irrigation_guardrails_repairs_20260909.md) for the four source/test mappings, red/green evidence and client implications. Initial regression run: 53 failed, 111 passed, 1 skipped. After implementation: 164 passed, 1 skipped. Fast preflight: 0 failures, 0 skipped gates. Default preflight and publication remain pending. No live deployment or certification is claimed.
+
+
+### 2026-09-09 — main repair validation completed and exact-commit handoff
+
+`655903768` isolates the raster fallback tests from the live indicators adapter. `cb0dc6cbd` stamps the existing drawing-schema authorization CONSUMED after verifying #990 and both authorized blob hashes at merge `7407eae2`. Default preflight on `bd7bca34b` completed: 6,610 unit passes (30 skips), 752 repository passes (8 skips), and one platform failure among 4,306 tests. That failure was a provider name in a comment, caught by a lexical boundary guard. `73a67e3bd` corrects the comment with an identical Python AST; the entire platform suite then passed 4,306 tests. The completed one-failure preflight log is retained honestly, alongside the successful platform rerun. Bandit reported no HIGH-severity issues.
+
+Direct Git push lacks credentials (the dry run failed before writing a branch). The handoff preserves original commits in a Git bundle and supplies the evidence and prepared PR body. No remote branch, PR, merge, live execution or production certification is claimed. See [main repair report](../docs/testing/main_irrigation_guardrails_repairs_20260909.md).
+
+
+### 2026-09-09 — استيرادُ حزمةٍ متوازية، ثمّ ثلاثُ شرائح من المراجعة الثانية
+
+**الاستيراد (`b1d75473`):** حزمةُ `fix/main-irrigation-guardrails-20260909` (٧ التزامات، ٢٥ ملفّاً
+كلُّها مطابقةُ البصمة). التداخلُ الوحيد كان إصلاحَ JSONB — أُنتِج مرّتين مستقلّتين، وكشفت
+المقارنةُ **عطلاً في صياغتي**: `decode_jsonb` يستدعي `json.loads`، فعمودٌ مبتور (`"{"`) يرفع
+`JSONDecodeError` لا يلتقطها `except _MalformedCanonicalRow` فتهرب خمسمئةً عارية. حالةُ اختبارهم
+على حدّ HTTP وجدتها. أُخِذ منهم ذلك واشتراطُ نوع كلّ عنصر في `blocking_reasons`، وأُبقيت بنيتي
+حيث تحمل أكثر (الحجبُ يُسمّي العمود لا المصدرَ وحدَه)، وأُخِذ ملفُّ اختبارهم كاملاً لأنّه أقوى.
+الطفرات ٦ ← ٨، كلُّها مُكذَّبة.
+
+**الشرائح (`6f7d621b`):** GOV-01 تشديدٌ غيرُ قابلٍ للتفعيل (صفرٌ من ٢٧ نداءً يمرّر تفويضاً) ·
+GUARD-01 حارسُ ملوحةٍ نصّيّ صار جرداً مُشتقّاً من `ast`، **والفرقُ مقيس**: على شجرةٍ فيها نقطةُ
+إصدارٍ بلا بوّابة يمرّ النصّيّان أخضرَين ويحمرّ المُشتقّ · WB-01 `runoff_mm: 0.0` مختلَقٌ حُذِف
+وأُعلِن نقصاً.
+
+**وخطأٌ لي كشفه الجناحُ الكامل (`359be662`):** اختبارُ GOV-01 نجح منفرداً وأسقط الجناح. أدخلتُ
+مجلَّد `decision-service` في `sys.path` **دائماً**، وفيه `agronomic_context/` حزمة بينما
+`agriai-engine/agronomic_context.py` وحدة — فأيُّهما خُبِّئ أوّلاً حجب الآخر؛ وضبطتُ البيئةَ في
+`os.environ` مباشرةً فتسرّبت. صار التحميلُ محصوراً و`sys.path`/`sys.modules` يُعادان حرفيّاً.
+أُعيد القياسُ حيث أخفق: **6634 ناجحاً · 25 متخطّى · صفر إخفاق**.
+
+**درسٌ متكرّرٌ مرّتين اليوم:** `--fast` والأخضرُ المنفرد لا يُغنيان عن السُّلَّم الكامل. أوّلاً
+٩ إخفاقاتِ انحرافِ مصنوعات، وثانياً اختبارٌ يكسر استيراداتٍ لا صلةَ لها به — وهو أصعبُ
+الأصناف نسبةً لأنّ الضحيّة ليست الجاني.
+
+**ولم يُقَس:** لا PostgreSQL حيّة ولا مكدّس مرفوع؛ `runtime_verified=0` و`production_certified`
+تبقى `false`.
+## 2026-09-09 — استئناف البحث الزراعي بإصلاح عقد اتصال القرار
+
+- المصدر: `b15871f9c` · [تقرير الإصلاح](../docs/testing/decision_transport_auth_repairs_20260909.md).
+- السبب: A02 كشف أن اعتماد العملاء لا يطابق Bearer المطلوب، وتصحيح الاتصال يستلزم منع منح سلطة خدمة إلى مستأجر أو مراجع مأخوذ من العميل.
+- التنفيذ: helper مشترك، حقن Compose، session/RBAC للمجمع، ومسار المنصة القائم لنتائج الصور. فحوص مركزة 60 + مستقبل 10 + مجموعة CI 61؛ لا جمع لهذه الأعداد كحالات فريدة. التحقق النهائي قيد الاستكمال.
+- لم يتغير وضع SoR أو أعلام التنفيذ؛ فحوص PostgreSQL/NATS والأجهزة ليست مقيسة بهذه الشريحة.
+
+
+## 2026-09-09 — اكتمال أجنحة اختبار اتصال القرار
+
+- الدليل: `a15f176cc` يشمل الشيفرة والمصنوعات التي اختبرها preflight؛ الوحدة 6,611 ناجحة / 30 متخطاة، والمستودع 752 ناجحة / 8 متخطاة. سجل preflight فيه إخفاق واحد حقيقي في توقع اختبار قديم لاعتماد X-Agent.
+- `fb1d4ed3d` صحح الاختبار إلى مخرجات العميل الفعلية دون تغيير ملكية الكتابة أو شيفرة الإنتاج؛ إعادة جناح المنصة كاملاً أعطت 4,321 نجاحاً. لم يُعد جناحا الوحدة والمستودع لتعديل هذا الاختبار وحده، ولم يُعد وسم السجل السابق.
+- الأساس المحقق من GitHub هو `7407eae2`؛ محاولة أولى استعملت origin/main المحلي الأقدم `82e56b05` وتوقفت على جلب تاريخ محظور. استؤنف الفحص بأساس SHA ثابت دون إعادة كتابة مرجع مشترك أو تخطي فحص.
+- المصدر وخطوات التحديث وحدود الاستجابة: [التقرير](../docs/testing/decision_transport_auth_repairs_20260909.md). اعتماد النشر والعزل الحي يبقى خارج هذا الدليل؛ حزمة التسليم تحفظ الالتزامات الأصلية والفحوص النهائية.
+
+
+### 2026-09-09 — وصلُ البابِ المُحكَم، ثمّ حزمةٌ ثانية تصحّح خاصّيّةً كنتُ أشترطها مقلوبة
+
+**`fb0f2c97` — الوصل:** `/recommendation` كانت مصادرُ حقائقها `return None` بلا شرط، فتحجب
+دائماً ولا تُختبَر إلّا بحقن؛ وبعد قطعِ الإصدار عن `/plan` لم يبقَ مسارٌ يُصدِر مرشّحاً محكوماً.
+وُصِلت بـ`resolve_canonical_water_state` — مصدرٌ **واحد** لا ثلاثة، فلا يُركَّب قرارٌ من لقطاتٍ
+مختلفة الأزمنة. ثلاثةُ شواهد وثلاثُ طفراتٍ مُكذَّبة.
+
+**والتكذيبُ كشف ضعفاً في حارسي:** اشترطتُ أن يكون جسدُ `_source_*` جملةً واحدة، فمرّت طفرةٌ
+تضع `return None` **قبل** جسدٍ سليم. أُصلح الحارسُ لا الطفرة. هذه ثالثُ مرّةٍ اليوم يجد فيها
+التكذيبُ ما لم يجده اختبارٌ ناجح.
+
+**وفخُّ §٣.١٦ بعينه:** مراسي الأسطر في `platform_extraction_map.json` وثيقةُ سياسةٍ لا يُعيد
+`--fix` توليدَها. ستُّ مراسٍ انحرفت بإزاحة أسطري، فحُرِّرت يدويّاً **بتحريرٍ نصّيّ** لا بدورةِ
+json كي تبقى التسلسلةُ حرفاً بحرف. والحزمةُ المتوازية اصطدمت بالجدار نفسِه (`154a8994`،
+`3e595b62`).
+
+**`ef733569` — الحزمة الثانية (`df23724677`):** بصمةُ الملفّ مطابقة و٤١ ملفّاً متحقّقاً.
+إصلاحُهم لـGOV-01 أوسعُ من إصلاحي (وحدةٌ مشتركة لخمسة مستهلكين · فشلٌ مغلق 503 في الإنتاج ·
+رفضُ `\r\n` · `trust_env=False`)، فأُخِذ مكانَه.
+
+**وصحّحوا خاصّيّةً كنتُ أشترطها مقلوبة:** شاهدي كان يشترط أن يسود تفويضٌ صريح على الرمز الخدميّ.
+وهي خاطئة: الوسيطُ يقارن المُقدَّم بالرمز المشترَك، فرمزُ مستخدمٍ صحيحٌ يرتدّ 401 — كنتُ أحرس
+سلوكاً **يكسر** المصادقة. استُبدل بالعكس، وبطفرةٍ تزرع تمريرَ رمز المستخدم كي يحمرّ أمام
+«إصلاحٍ» لطيفِ المظهر يُعيده. وأُضيف شاهدٌ ليس عندهم: الإنتاجُ بلا رمزٍ يرفع 503.
+
+**وقُرِئ ما لا يُقبَل بلا قراءة:** تعديلُهم لـ`ci.yml` **يضيف** ملفَّي اختبار إلى وظيفةٍ قائمة
+— توسيعُ تغطية لا تجاوزُ بوّابة.
+
+السُّلَّم الكامل بعد الدمج: **صفر إخفاق · صفر متخطٍّ**. ولم يُقَس: لا قاعدةَ حيّة ولا مكدّس
+مرفوع؛ `runtime_verified=0`، و`production_certified` تبقى `false`.

@@ -176,6 +176,45 @@ class _User:
     tenant_id = "tenant-42"
 
 
+def _canonical_state(*, horizon_days: int = 7, operational_eligible: bool = True):
+    """لقطةٌ قانونيّة كاملة — من **النوع الحقيقيّ** لا من قاموسٍ يشبهه.
+
+    بديلٌ بقاموسٍ كان سيمرّ على تغيّرِ حقلٍ في `CanonicalWaterState`، وهو بالضبط صنفُ
+    «البديلُ يفترض الجوابَ الذي يدّعي قياسه».
+    """
+    from api.canonical_water_state import CanonicalWaterState
+
+    return CanonicalWaterState(
+        schema_version="sahool.canonical_water_state.v1",
+        tenant_id="tenant-42",
+        field_id="fld_a",
+        season_id="s1",
+        crop="maize",
+        growth_stage="flowering",
+        depletion_mm=45.0,
+        depletion_confidence=None,
+        ledger_date="2026-07-13",
+        ledger_age_hours=3.0,
+        taw_mm=100.0,
+        raw_fraction=0.5,
+        raw_mm=50.0,
+        root_depth_m=0.9,
+        soil_texture="governed_hydraulic_profile",
+        forecast=[
+            {"date": f"2026-07-{13 + i}", "et0_mm": 10.0, "kc": 1.0, "rain_mm": 0.0}
+            for i in range(horizon_days)
+        ],
+        evidence={"location": {"lat": 15.0, "lon": 44.0}},
+        quality_status="verified" if operational_eligible else "degraded",
+        operational_eligible=operational_eligible,
+        limitations=[] if operational_eligible else ["water ledger stale: 96.0h > 48h"],
+        water_state_digest="a" * 64,
+        weather_snapshot_digest="b" * 64,
+        soil_profile_digest="c" * 64,
+        season_state_digest="d" * 64,
+    )
+
+
 @_requires_fastapi
 def test_route_plan_blocks_when_no_ground_truth_depletion(monkeypatch):
     """P1.1c: غياب Dr مرجعيّ ⇒ blocked (لا اختلاق صفر، لا قرار قابل للإرسال)."""
@@ -201,7 +240,7 @@ def test_route_plan_blocks_when_no_ground_truth_depletion(monkeypatch):
 
 @_requires_fastapi
 def test_route_plan_reads_ledger_when_depletion_absent(monkeypatch):
-    """غياب initial_depletion + وجود صفّ دفتر ⇒ عمليّ بحقيقة الخادم، والمستأجِر من المستخدم."""
+    """Ledger Dr seeds a simulation; client TAW/weather never become operational facts."""
     import api.routers.irrigation_mpc as route
 
     async def _ledger(tenant_id, field_id):
@@ -216,7 +255,7 @@ def test_route_plan_reads_ledger_when_depletion_absent(monkeypatch):
     )
     out = asyncio.run(route.irrigation_mpc_plan(req, user=_User()))
     assert out["depletion_source"] == "water_ledger"
-    assert out["mode"] == "operational"
+    assert out["mode"] == "simulation"
     assert out["decision"]["tenant_id"] == "tenant-42"  # من المستخدم لا الجسم
 
 
@@ -268,23 +307,32 @@ def test_route_plan_rejects_illegal_bounds():
 
 
 @_requires_fastapi
-def test_route_plan_submit_without_bridge_is_disabled(monkeypatch):
+@pytest.mark.parametrize("enabled", ["false", "true"])
+@pytest.mark.parametrize("taw,et0", [(120.0, 0.0), (60.0, 20.0)])
+def test_route_plan_ledger_seed_cannot_emit_client_facts(monkeypatch, enabled, taw, et0):
+    from unittest.mock import AsyncMock
+
     import api.routers.irrigation_mpc as route
 
     async def _ledger(tenant_id, field_id):
-        return 45.0
+        return 55.0
 
     monkeypatch.setattr(route, "_latest_ledger_depletion", _ledger)
-    monkeypatch.delenv("LEXICOGRAPHIC_MPC_BRIDGE_ENABLED", raising=False)
+    monkeypatch.setenv("LEXICOGRAPHIC_MPC_BRIDGE_ENABLED", enabled)
+    emit = AsyncMock()
+    monkeypatch.setattr(route, "emit_mpc_candidate", emit)
 
     req = route.MpcPlanRequest(
         field_id="fld_a",
-        forecast=[route.ForecastDayIn(et0_mm=10.0, kc=1.0)],
-        taw_mm=100.0,
+        forecast=[route.ForecastDayIn(et0_mm=et0, kc=1.0)],
+        taw_mm=taw,
         submit=True,
     )
     out = asyncio.run(route.irrigation_mpc_plan(req, user=_User()))
-    assert out["emit"] == {"status": "disabled"}
+    assert out["mode"] == "simulation"
+    assert out["execution_allowed"] is False
+    assert out["emit"]["status"] == "rejected_simulation"
+    emit.assert_not_awaited()
 
 
 @_requires_fastapi
@@ -331,11 +379,9 @@ def test_route_recommendation_blocks_on_missing_sor_facts(monkeypatch):
     async def _state(t, f):
         return {"depletion_mm": 40.0, "stage": "flowering", "as_of": "2026-07-13"}
 
-    async def _no_soil(t, f):
-        return None  # TAW غير مُصدَّر
-
-    async def _no_forecast(t, f, h):
-        return None  # تنبّؤ غير مُصدَّر
+    async def _blocked_canonical(u, f, h):
+        # المُنتِجُ القانونيّ يُرجِع حمولةَ حجبٍ **مُسمّاة** بدل قائمةِ ناقصٍ عامّة.
+        return {"status": "blocked", "reason": "canonical_rain_incomplete", "season_id": "s1"}
 
     async def _no_bindings(t, f):
         return []  # H5.1: unbound field ⇒ no salinity limit, proceed to ground-truth checks
@@ -343,15 +389,13 @@ def test_route_recommendation_blocks_on_missing_sor_facts(monkeypatch):
     monkeypatch.setattr(route, "_field_belongs_to_tenant", _owned)
     monkeypatch.setattr(route, "_active_field_source_bindings", _no_bindings)
     monkeypatch.setattr(route, "_source_current_state", _state)
-    monkeypatch.setattr(route, "_source_soil_capacity", _no_soil)
-    monkeypatch.setattr(route, "_source_forecast_horizon", _no_forecast)
+    monkeypatch.setattr(route, "_source_canonical_water", _blocked_canonical)
 
     req = route.RecommendationRequest(horizon_days=7)
     out = asyncio.run(route.irrigation_mpc_recommendation("fld_a", req, user=_User()))
     assert out["status"] == "blocked"
-    assert out["reason"] == "insufficient_ground_truth"
-    assert "taw(soil_profile)" in out["missing"]
-    assert "forecast(weather_service)" in out["missing"]
+    # السببُ يُمرَّر كما هو: أدقُّ من `insufficient_ground_truth` عامّاً.
+    assert out["reason"] == "canonical_rain_incomplete"
 
 
 @_requires_fastapi
@@ -379,11 +423,8 @@ def test_route_recommendation_operational_with_full_sor_facts(monkeypatch):
     async def _state(t, f):
         return {"depletion_mm": 45.0, "stage": "flowering", "as_of": "2026-07-13"}
 
-    async def _soil(t, f):
-        return {"taw_mm": 100.0, "raw_fraction": 0.5, "crop": "maize"}
-
-    async def _forecast(t, f, h):
-        return [{"et0_mm": 10.0, "kc": 1.0, "rain_mm": 0.0} for _ in range(h)]
+    async def _canonical(u, f, h):
+        return _canonical_state(horizon_days=h)
 
     async def _no_bindings(t, f):
         return []  # H5.1: unbound field ⇒ no salinity limit to enforce
@@ -391,8 +432,7 @@ def test_route_recommendation_operational_with_full_sor_facts(monkeypatch):
     monkeypatch.setattr(route, "_field_belongs_to_tenant", _owned)
     monkeypatch.setattr(route, "_active_field_source_bindings", _no_bindings)
     monkeypatch.setattr(route, "_source_current_state", _state)
-    monkeypatch.setattr(route, "_source_soil_capacity", _soil)
-    monkeypatch.setattr(route, "_source_forecast_horizon", _forecast)
+    monkeypatch.setattr(route, "_source_canonical_water", _canonical)
     monkeypatch.setenv("LEXICOGRAPHIC_MPC_BRIDGE_ENABLED", "true")
 
     captured = {}
@@ -409,9 +449,11 @@ def test_route_recommendation_operational_with_full_sor_facts(monkeypatch):
     out = asyncio.run(route.irrigation_mpc_recommendation("fld_a", req, user=_User()))
     assert out["mode"] == "operational"
     prov = out["facts_provenance"]
-    assert prov["depletion_source"] == "water_ledger"
-    assert prov["taw_source"] == "soil_profile"
-    assert prov["forecast_source"] == "weather_service"
+    # النَّسَبُ يسمّي المُنتِجَ الذي بُني عليه القرارُ فعلاً: لقطةٌ واحدة متّسقة، لا
+    # ثلاثةُ مصادرَ قد تلتقط لحظاتٍ مختلفة.
+    assert prov["depletion_source"] == "canonical_water_state"
+    assert prov["taw_source"] == "canonical_root_zone_profile"
+    assert prov["forecast_source"] == "canonical_water_state"
     # H5.1: unbound field is recorded honestly (governance not applicable, not enforced).
     assert prov["water_salinity"]["mode"] == "unbound_no_active_source_assignment"
     assert prov["water_salinity"]["enforced"] is False
@@ -500,3 +542,129 @@ def test_snapshot_hash_deterministic_and_content_addressed():
     assert a == b  # canonical (sort_keys) ⇒ نفس البصمة
     assert a != c  # محتوى مختلف ⇒ بصمة مختلفة
     assert len(a) == 64
+
+
+# ───────── الوصلُ: النقطةُ المُحكَمة صارت المسارَ الحيّ، وشروطُها لا تُخفَّف ─────────
+# كان مصدرا التربة والطقس `return None` **بلا شرط**، فتُرجِع هذه النقطةُ blocked دائماً
+# ولا تُختبَر إلّا بحقن — أي أنّ البابَ المُحكَم مقفلٌ بنيويّاً والمفتوحَ الوحيدَ هو
+# `/plan` الذي لا يفحص شيئاً. هذه الكتلةُ تحرس ما يجب ألّا ينحلّ بعد الوصل.
+
+
+@_requires_fastapi
+def test_the_hardened_route_has_no_unconditionally_disabled_fact_source():
+    """حارسُ انحدارٍ مُشتقٌّ من `ast`: `return None` بلا شرط يُعيد قفلَ الباب.
+
+    يُقاس على الشجرة النحويّة لا على النصّ، فلا يُخدَع بتعليقٍ ولا يبيت باسمٍ جديد.
+    """
+    import ast
+    from pathlib import Path
+
+    source = (
+        Path(__file__).resolve().parents[1]
+        / "services"
+        / "sahool-platform"
+        / "api"
+        / "routers"
+        / "irrigation_mpc.py"
+    ).read_text(encoding="utf-8")
+
+    dead = []
+    for node in ast.walk(ast.parse(source)):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        if not node.name.startswith("_source_"):
+            continue
+        body = [n for n in node.body if not isinstance(n, ast.Expr)]  # docstring مُستثنى
+        # الشرطُ على **أوّل** جملة لا على كون الجسد جملةً واحدة: صياغتي الأولى اشترطت
+        # `len(body) == 1` فمرّت عليها طفرةٌ تضع `return None` **قبل** جسدٍ سليم —
+        # عطلٌ مزروع واختبارٌ أخضر. كشفها التكذيبُ، فالخاصّيّة: لا عودةَ غيرَ مشروطة أوّلاً.
+        if (
+            body
+            and isinstance(body[0], ast.Return)
+            and isinstance(body[0].value, ast.Constant)
+            and body[0].value.value is None
+        ):
+            dead.append(node.name)
+    assert not dead, (
+        f"مصادرُ حقائقَ مُعطَّلةٌ بنيويّاً: {dead}. كلٌّ منها تجعل التوصيةَ العمليّة "
+        "blocked دائماً، فيبقى المسارُ الوحيدُ المُصدِر هو الذي لا يفحص الحقائق."
+    )
+
+
+@_requires_fastapi
+def test_a_degraded_canonical_snapshot_cannot_become_an_operational_candidate(monkeypatch):
+    """`operational_eligible=False` حكمُ المُنتِج على لقطتِه — وتجاهلُه يُعيد ما أُزيل.
+
+    دفترٌ بائت يُنتِج لقطةً صالحةَ الشكل، فلو مرّت لأصدرت مرشّحاً محكوماً بسلطةٍ أقوى
+    من دليلها — وهو بعينه سببُ قطعِ الإصدار عن `/plan`.
+    """
+    import api.routers.irrigation_mpc as route
+
+    async def _owned(t, f):
+        return True
+
+    async def _no_bindings(t, f):
+        return []
+
+    async def _degraded(u, f, h):
+        return _canonical_state(horizon_days=h, operational_eligible=False)
+
+    emitted = []
+
+    async def _never(*args, **kwargs):
+        emitted.append(args)
+        return {"status": "candidate_created"}
+
+    monkeypatch.setattr(route, "_field_belongs_to_tenant", _owned)
+    monkeypatch.setattr(route, "_active_field_source_bindings", _no_bindings)
+    monkeypatch.setattr(route, "_source_canonical_water", _degraded)
+    monkeypatch.setattr(route, "emit_mpc_candidate", _never)
+    monkeypatch.setenv("LEXICOGRAPHIC_MPC_BRIDGE_ENABLED", "true")
+
+    req = route.RecommendationRequest(horizon_days=7, submit=True)
+    out = asyncio.run(route.irrigation_mpc_recommendation("fld_a", req, user=_User()))
+    assert out["status"] == "blocked"
+    assert out["reason"] == "canonical_water_state_not_operational"
+    assert out["limitations"] == ["water ledger stale: 96.0h > 48h"]
+    assert emitted == [], "أُصدِر مرشّحٌ محكوم من لقطةٍ أعلن مُنتِجُها أنّها غيرُ صالحةٍ للتشغيل"
+
+
+@_requires_fastapi
+def test_the_decision_is_built_from_the_canonical_snapshot_not_from_request_fields(monkeypatch):
+    """الحقائقُ الفيزيائيّة من اللقطة وحدَها: `raw_fraction` في الطلب لا يُزيح TAW/RAW.
+
+    `RecommendationRequest` ما زال يحمل `raw_fraction`، فبلا هذا الشاهد يمكن أن يعود
+    توجيهُ العميل من بابٍ خلفيّ بينما يبقى النَّسَبُ يقول «قانونيّ».
+    """
+    import api.routers.irrigation_mpc as route
+
+    async def _owned(t, f):
+        return True
+
+    async def _no_bindings(t, f):
+        return []
+
+    async def _canonical(u, f, h):
+        return _canonical_state(horizon_days=h)
+
+    captured = {}
+    real_solver = route.solve_lexicographic_irrigation
+
+    def _spy(**kwargs):
+        captured.update(kwargs)
+        return real_solver(**kwargs)
+
+    monkeypatch.setattr(route, "_field_belongs_to_tenant", _owned)
+    monkeypatch.setattr(route, "_active_field_source_bindings", _no_bindings)
+    monkeypatch.setattr(route, "_source_canonical_water", _canonical)
+    monkeypatch.setattr(route, "solve_lexicographic_irrigation", _spy)
+
+    # قيمةٌ مخالفةٌ عمداً للقطة (0.5): لو سُمِع الطلبُ لظهرت 0.9.
+    req = route.RecommendationRequest(horizon_days=7, raw_fraction=0.9)
+    out = asyncio.run(route.irrigation_mpc_recommendation("fld_a", req, user=_User()))
+
+    assert out["mode"] == "operational"
+    assert captured["taw_mm"] == 100.0
+    assert captured["raw_fraction"] == 0.5, "حقيقةٌ فيزيائيّة من العميل أزاحت اللقطة القانونيّة"
+    assert captured["initial_depletion_mm"] == 45.0
+    assert len(captured["forecast"]) == 7

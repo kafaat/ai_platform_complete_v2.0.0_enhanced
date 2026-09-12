@@ -405,7 +405,7 @@
         },
         {
           "function": "healthz",
-          "line": 33,
+          "line": 39,
           "method": "GET",
           "module": "services/remote-sensing-workspace-bff/main.py",
           "path": "/healthz",
@@ -747,7 +747,7 @@
         },
         {
           "function": "readyz",
-          "line": 38,
+          "line": 44,
           "method": "GET",
           "module": "services/remote-sensing-workspace-bff/main.py",
           "path": "/readyz",
@@ -1159,7 +1159,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1098,
-  "route_inventory_sha256": "6926b7ebf81360e83002fee38581375c0c4d982f1f56740142cdfccf17f77438",
+  "route_inventory_sha256": "945a76f3b6c944d9bab60051dd5397b5e95992b390d7116f49b251d5075adaa0",
   "runtime_verified": false,
   "schema_version": 1
 }

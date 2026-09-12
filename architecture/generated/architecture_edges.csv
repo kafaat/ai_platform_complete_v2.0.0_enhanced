@@ -100,6 +100,8 @@ nginx,networks,compose-depends-on,docker-compose.light.yml
 nginx,networks,compose-depends-on,docker-compose.unified.yml
 nginx,supervisor-agent,compose-depends-on,docker-compose.unified.yml
 platform,-f,compose-depends-on,docker-compose.v9.yml
+platform,auth,code-reference,services/sahool-platform/tests/test_decision_approve_permission.py
+platform,auth-service,code-reference,services/sahool-platform/tests/test_decision_approve_permission.py
 platform,capabilities,code-reference,services/sahool-platform/api/routers/capabilities.py
 platform,capabilities,code-reference,services/sahool-platform/tests/test_capabilities_ai_fallbacks.py
 platform,cmd,compose-depends-on,docker-compose.v9.yml
@@ -194,6 +196,7 @@ raster-service,redis,code-reference,services/raster-service/raster_stac_runtime.
 raster-service,redis,code-reference,services/raster-service/stac_client.py
 remote-sensing-workspace-bff,decision-service,code-reference,services/remote-sensing-workspace-bff/main.py
 remote-sensing-workspace-bff,indicators-service,code-reference,services/remote-sensing-workspace-bff/main.py
+remote-sensing-workspace-bff,platform,code-reference,services/remote-sensing-workspace-bff/main.py
 sahool-actuator-dispatch-worker,condition,compose-depends-on,docker-compose.v9.yml
 sahool-actuator-dispatch-worker,healthcheck,compose-depends-on,docker-compose.v9.yml
 sahool-actuator-dispatch-worker,interval,compose-depends-on,docker-compose.v9.yml
@@ -942,7 +945,6 @@ telegram-bot,supervisor-agent,compose-depends-on,docker-compose.light.yml
 telegram-bot,supervisor-agent,compose-depends-on,docker-compose.unified.yml
 tts-service,redis,code-reference,services/tts-service/main.py
 vegetation-analysis-service,decision-service,code-reference,services/vegetation-analysis-service/decision_bridge.py
-vegetation-analysis-service,decision-service,code-reference,services/vegetation-analysis-service/post_execution_bridge.py
 vegetation-analysis-service,decision-service,code-reference,services/vegetation-analysis-service/vegetation_runtime.py
 vegetation-analysis-service,indicators-service,code-reference,services/vegetation-analysis-service/routers/anomalies.py
 vegetation-analysis-service,indicators-service,code-reference,services/vegetation-analysis-service/routers/baselines.py

@@ -15,6 +15,7 @@ from typing import Any
 from api.canonical_water_state import resolve_canonical_water_state
 from api.field_context import _field_weather_context
 from api.hourly_energy_aware_irrigation_mpc import solve_hourly_energy_aware_mpc
+from api.persisted_canonical_repositories import decode_jsonb
 from api.weather_service_client import get_hourly_etc_product
 from shared.knowledge.context_resolver import ContextResolver
 from shared.knowledge.irrigation_context import IRRIGATION_RECOMMENDATION_CONTEXT
@@ -25,6 +26,60 @@ def _digest(payload: Any) -> str:
     return hashlib.sha256(
         json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode()
     ).hexdigest()
+
+
+class _MalformedCanonicalRow(Exception):
+    """عمودُ ``jsonb`` مخزَّنٌ لم يُفكّ إلى الشكل الذي يشترطه مستهلكُه.
+
+    يُرفَع ليصير حجباً **مسمّى** بدل ``ValueError`` عارٍ يخرج 500: البنيةُ الفاسدة
+    خبرٌ عن الصفّ لا عن الخدمة.
+    """
+
+    def __init__(self, column: str) -> None:
+        super().__init__(column)
+        self.column = column
+
+
+def _decode_or_block(value: Any, default: Any, *, column: str) -> Any:
+    """يفكّ، ويحوّل **نصّاً غيرَ صالح** إلى الحجب المسمّى نفسِه.
+
+    ``decode_jsonb`` يستدعي ``json.loads``، فعمودٌ محفوظٌ مبتوراً (``"{"``) يرفع
+    ``JSONDecodeError``. وهي ``ValueError`` تهرب من المنسّق خمسمئةً عاريةً لو لم
+    تُلتقَط هنا — والصفُّ المبتور خبرٌ عن الصفّ كالبنية الفاسدة سواءً بسواء.
+    """
+    try:
+        return decode_jsonb(value, default)
+    except ValueError as exc:  # JSONDecodeError من json.loads
+        raise _MalformedCanonicalRow(column) from exc
+
+
+def _jsonb_object(value: Any, *, column: str) -> dict[str, Any]:
+    """يفكّ عمودَ ``jsonb`` ويشترط أنّه كائن.
+
+    ``asyncpg`` يُسلّم ``jsonb`` **نصّاً** ما لم يُسجَّل مُرمِّز، ومسبحُ التطبيق لا
+    يُسجّله (يقيسه ``test_asyncpg_really_returns_jsonb_as_str_without_a_codec``).
+    فـ``dict(<نصّ>)`` يرفع ``ValueError`` — وهو العطلُ نفسُه الذي وثّقه
+    ``decode_jsonb`` حين أُصلح في العامل، وبقي هنا.
+    """
+    decoded = _decode_or_block(value, {}, column=column)
+    if not isinstance(decoded, dict):
+        raise _MalformedCanonicalRow(column)
+    return dict(decoded)
+
+
+def _jsonb_reasons(value: Any, *, column: str) -> list[str]:
+    """يفكّ عمودَ ``jsonb`` ويشترط أنّه قائمةُ **نصوص**.
+
+    ``list("[]")`` يُعيد ``['[', ']']`` **بلا خطأ** — فيصير سببا حجبٍ مختلقان من
+    قوسين. الصمتُ هنا أخطرُ من الرفع، فتُشترَط البنية صراحةً.
+
+    واشتراطُ نوع كلّ عنصر لا يزيد على اشتراط القائمة: ``[1]`` يمرّ قائمةً ثمّ يصير
+    سببَ حجبٍ رقميّاً في حمولةٍ يقرؤها إنسان.
+    """
+    decoded = _decode_or_block(value, [], column=column)
+    if not isinstance(decoded, list) or not all(isinstance(item, str) for item in decoded):
+        raise _MalformedCanonicalRow(column)
+    return list(decoded)
 
 
 def _blocked(*, field_id: str, reason: str, missing: list[str] | None = None) -> dict[str, Any]:
@@ -56,7 +111,7 @@ async def _latest_capability_graph(conn, *, field_id: str, season_id: str) -> di
     )
     if row is None:
         return None
-    payload = dict(row["payload"] or {})
+    payload = _jsonb_object(row["payload"], column="canonical_irrigation_capability_graphs.payload")
     payload.setdefault("irrigation_capability_digest", str(row["capability_digest"]))
     payload.setdefault("capability_digest", str(row["capability_digest"]))
     payload.setdefault("status", str(row["status"]))
@@ -83,7 +138,7 @@ async def _latest_executability_gate(
     )
     if row is None:
         return None
-    payload = dict(row["snapshot"] or {})
+    payload = _jsonb_object(row["snapshot"], column="irrigation_executability_gates.snapshot")
     valid_until = row["valid_until"]
     expired = valid_until is not None and valid_until <= datetime.now(UTC)
     allowed = bool(row["execution_allowed"]) and not expired
@@ -92,7 +147,9 @@ async def _latest_executability_gate(
             "status": "executable" if allowed else "blocked",
             "execution_allowed": allowed,
             "valid_until": None if valid_until is None else valid_until.isoformat(),
-            "blocking_reasons": list(row["blocking_reasons"] or [])
+            "blocking_reasons": _jsonb_reasons(
+                row["blocking_reasons"], column="irrigation_executability_gates.blocking_reasons"
+            )
             + (["COMMISSIONING_CERTIFICATION_EXPIRED"] if expired else []),
             "executability_digest": str(row["executability_digest"]),
             "commissioning_certification_digest": str(row["commissioning_certification_digest"]),
@@ -292,15 +349,28 @@ async def orchestrate_irrigation_recommendation(
     if area is None or float(area) <= 0:
         return _blocked(field_id=field_id, reason="valid_field_area_required")
 
-    capability = await _latest_capability_graph(conn, field_id=field_id, season_id=season_id)
-    if capability is None:
-        return _blocked(field_id=field_id, reason="canonical_irrigation_capability_graph_missing")
-    capability_digest = str(
-        capability.get("irrigation_capability_digest") or capability.get("capability_digest") or ""
-    )
-    gate = await _latest_executability_gate(
-        conn, field_id=field_id, season_id=season_id, capability_digest=capability_digest
-    )
+    # صفٌّ مخزَّنٌ بِبنيةٍ فاسدة يُحجَب بسببٍ يُسمّي العمود، ولا يخرج 500: الخللُ في
+    # الصفّ لا في الخدمة، ومن يقرأ الحجب يعرف أيّ عمودٍ يُصلح.
+    try:
+        capability = await _latest_capability_graph(conn, field_id=field_id, season_id=season_id)
+        if capability is None:
+            return _blocked(
+                field_id=field_id, reason="canonical_irrigation_capability_graph_missing"
+            )
+        capability_digest = str(
+            capability.get("irrigation_capability_digest")
+            or capability.get("capability_digest")
+            or ""
+        )
+        gate = await _latest_executability_gate(
+            conn, field_id=field_id, season_id=season_id, capability_digest=capability_digest
+        )
+    except _MalformedCanonicalRow as exc:
+        return _blocked(
+            field_id=field_id,
+            reason="canonical_runtime_row_malformed",
+            missing=[exc.column],
+        )
     if gate is None:
         return _blocked(field_id=field_id, reason="commissioning_executability_gate_missing")
 

@@ -3,9 +3,10 @@
   "version": 1,
   "adjudication_id": "GATE01-ADJ-2026-09-08-001",
   "gate_id": "GATE-01",
-  "status": "ISSUED",
+  "status": "CONSUMED",
   "approved_by": "owner",
   "adjudicated_on": "2026-09-08",
+  "pr": 990,
   "one_time": true,
   "phase0_baseline_ref": {
     "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
@@ -43,6 +44,10 @@
     "note_ar": "سجل للطلب الصريح في الجلسة، لا توقيع مستقل ولا شهادة صحة تشغيلية. المراجعة المستقلة وقرار الدمج خارج هذا السجل."
   },
   "consumption": {
-    "note_ar": "بعد الدمج فقط يضاف merge_sha وconsumed_on وتصبح الحالة CONSUMED؛ لا ادعاء دمج الآن."
+    "merge_sha": "7407eae2ba006a4c4c07018988a0f680e176abea",
+    "consumed_on": "2026-09-09",
+    "merged_at": "2026-09-09T13:25:56Z",
+    "merge_evidence_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/990",
+    "note_ar": "خُتم بعد التحقق من دمج #990 ومن تطابق بصمتي الملفين المصرح بهما مع شجرة الدمج. الختم يستهلك التفويض القائم ولا يضيف إذناً جديداً أو يفتح GATE-01."
   }
 }

@@ -64,6 +64,7 @@ def payload(action="investment"):
     data.update({"contract_value_usd": 100} if action == "contract" else {})
     data.update({"water_m3": 10} if action == "irrigation" else {})
     data.update({"chemical": "glyphosate", "dosage_kg_ha": 1} if action == "pesticide" else {})
+    data.update({"N_kg_ha": 0, "P_kg_ha": 0, "K_kg_ha": 0} if action == "fertilization" else {})
     return {
         "action_type": action,
         "action_data": data,
@@ -75,6 +76,8 @@ def payload(action="investment"):
             "field_area_ha": 2,
             "season_water_used_m3_ha": 100,
             "water_source": "groundwater",
+            "annual_N_kg_ha": 0,
+            "season_carbon_kg_co2e": 0,
         },
         "user_id": "42",
         "tenant_id": TENANT,
@@ -113,6 +116,71 @@ def test_contract_requires_pesticide_dosage_and_loan_revenue(gr_mod):
     assert cv("loan", p["action_data"], p["farm_context"]) == []
     p["farm_context"].pop("annual_revenue_usd")
     assert cv("loan", p["action_data"], p["farm_context"]) == ["farm_context.annual_revenue_usd"]
+
+
+@pytest.mark.parametrize(
+    "source,key",
+    [
+        ("action_data", "N_kg_ha"),
+        ("action_data", "P_kg_ha"),
+        ("action_data", "K_kg_ha"),
+        ("farm_context", "annual_N_kg_ha"),
+        ("farm_context", "season_carbon_kg_co2e"),
+    ],
+)
+@pytest.mark.parametrize("bad", ["missing", None, True, -1, "0", float("nan"), float("inf")])
+def test_fertilization_requires_explicit_recipe_and_accumulated_use(
+    gr_mod, monkeypatch, source, key, bad
+):
+    monkeypatch.setattr(gr_mod, "_GR_AGENT_TOKEN", "service-token")
+    p = payload("fertilization")
+    if bad == "missing":
+        del p[source][key]
+    else:
+        p[source][key] = bad
+    response = TestClient(gr_mod.app).post(
+        "/v1/validate",
+        content=json.dumps(p),
+        headers={"X-Agent-Token": "service-token", "Content-Type": "application/json"},
+    )
+    assert response.status_code == 422
+    assert f"{source}.{key}" in response.text
+
+
+@pytest.mark.parametrize("n,annual,carbon", [(0, 0, 0), (100, 0, 0), (10, 145, 0), (10, 0, 490)])
+def test_complete_fertilization_reaches_real_safety_tiers(gr_mod, n, annual, carbon):
+    p = payload("fertilization")
+    p["action_data"]["N_kg_ha"] = n
+    p["farm_context"].update(annual_N_kg_ha=annual, season_carbon_kg_co2e=carbon)
+    request = gr_mod.GuardrailsRequest(**p)
+    eng = gr_mod.SAHOOLGuardrailsEngine()
+    eng.human_workflow.create = AsyncMock(return_value="review-id")
+    result = asyncio.run(eng.validate(request))
+    assert {check["tier"] for check in result.tier_checks} == {
+        "chemical",
+        "environmental",
+        "economic",
+    }
+    if n == annual == carbon == 0:
+        assert result.allowed is True
+        eng.human_workflow.create.assert_not_awaited()
+    else:
+        assert result.allowed is False
+        assert result.requires_human_approval is True
+        eng.human_workflow.create.assert_awaited_once()
+
+
+def test_mutated_fertilizer_recipe_is_rechecked_before_tiers(gr_mod):
+    request = gr_mod.GuardrailsRequest(**payload("fertilization"))
+    del request.action_data["N_kg_ha"]
+    eng = gr_mod.SAHOOLGuardrailsEngine()
+    eng.chemical_tier.validate = AsyncMock()
+    eng.human_workflow.create = AsyncMock()
+    result = asyncio.run(eng.validate(request))
+    assert result.allowed is False
+    assert result.tier_checks[0]["findings"][0]["missing_fields"] == ["action_data.N_kg_ha"]
+    eng.chemical_tier.validate.assert_not_awaited()
+    eng.human_workflow.create.assert_not_awaited()
 
 
 def test_validate_rejects_incomplete(gr_mod):

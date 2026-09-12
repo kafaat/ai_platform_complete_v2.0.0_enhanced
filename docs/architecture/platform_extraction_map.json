@@ -886,7 +886,7 @@
       "function": "auth_me",
       "method": "GET",
       "path": "/api/v1/auth/me",
-      "line": 90,
+      "line": 91,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/auth.py::GET /api/v1/auth/me::auth_me"
@@ -896,7 +896,7 @@
       "function": "login",
       "method": "POST",
       "path": "/api/v1/auth/login",
-      "line": 46,
+      "line": 47,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/auth.py::POST /api/v1/auth/login::login"
@@ -906,7 +906,7 @@
       "function": "auth_logout",
       "method": "POST",
       "path": "/api/v1/auth/logout",
-      "line": 103,
+      "line": 105,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/auth.py::POST /api/v1/auth/logout::auth_logout"
@@ -916,7 +916,7 @@
       "function": "auth_signup",
       "method": "POST",
       "path": "/api/v1/auth/signup",
-      "line": 131,
+      "line": 133,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/auth.py::POST /api/v1/auth/signup::auth_signup"
@@ -4113,7 +4113,7 @@
       "function": "irrigation_mpc_capabilities",
       "method": "GET",
       "path": "/api/v1/irrigation/mpc/capabilities",
-      "line": 163,
+      "line": 164,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::GET /api/v1/irrigation/mpc/capabilities::irrigation_mpc_capabilities"
@@ -4123,7 +4123,7 @@
       "function": "irrigation_mpc_hourly_recommendation",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
-      "line": 499,
+      "line": 527,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation::irrigation_mpc_hourly_recommendation"
@@ -4133,7 +4133,7 @@
       "function": "irrigation_mpc_recommendation",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation",
-      "line": 319,
+      "line": 328,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation::irrigation_mpc_recommendation"
@@ -4143,7 +4143,7 @@
       "function": "reconcile_irrigation_execution",
       "method": "POST",
       "path": "/api/v1/irrigation/executions/reconcile",
-      "line": 540,
+      "line": 568,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/irrigation/executions/reconcile::reconcile_irrigation_execution"
@@ -4153,7 +4153,7 @@
       "function": "irrigation_mpc_plan",
       "method": "POST",
       "path": "/api/v1/irrigation/mpc/plan",
-      "line": 95,
+      "line": 97,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/irrigation/mpc/plan::irrigation_mpc_plan"
@@ -4163,7 +4163,7 @@
       "function": "irrigation_mpc_simulate",
       "method": "POST",
       "path": "/api/v1/irrigation/mpc/simulate",
-      "line": 286,
+      "line": 295,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/irrigation/mpc/simulate::irrigation_mpc_simulate"

@@ -23,4 +23,12 @@ regexes = [
   # a decision-service test, never a credential. Global allowlist (not an inline marker)
   # because the token lives in branch history and the history scan re-reads each commit.
   '''wx106-approve''',
+  # A credential-shaped fixture literal committed once in `6f7d621b` for the
+  # decision-service auth join test. It was never a credential: the test compares the
+  # value only against itself, and the working tree now generates it per run
+  # (`placeholder-<uuid4>`) so no future commit carries a literal at all. Allowlisted for
+  # the same reason as the entry above and no other — the value is immutable in history,
+  # and rewriting that history would rewrite delivered handoff commits whose SHAs are
+  # cited in their own reports. Narrow and literal: it matches this one dead string.
+  '''s3rv1ce-t0ken-for-the-join''',
 ]

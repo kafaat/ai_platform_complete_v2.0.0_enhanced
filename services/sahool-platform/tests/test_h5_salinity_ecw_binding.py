@@ -259,3 +259,66 @@ def test_recommendation_route_does_not_trust_client_ecw():
     # server-authoritative, resolved from SoR (the old buggy client-source query is gone).
     assert "water_ec: float" not in ROUTE_SRC
     assert "WHERE water_source_id=$1" not in ROUTE_SRC  # the removed latent bug must not return
+
+
+# ─────────── من «النصّ موجود في الملفّ» إلى «كلّ مُصدِرٍ مرّ بالبوّابة» ───────────
+# الحارسُ أعلاه يفحص سلاسلَ نصٍّ في `ROUTE_SRC`، و`ROUTE_SRC` هو **الملفّ كلُّه** وفيه
+# أكثرُ من نقطة. فما دام أيُّ مسارٍ يستدعي البوّابة يبقى أخضرَ ولو أصدرت النقاطُ الأخرى
+# مرشّحاتٍ بلا فحص — وهو الصنفُ الذي يصفه كتالوج الحرّاس: يمرّ على شجرةٍ سليمة ولم
+# يُقَس قطّ أنّه يحمرّ حين يوجد العطل. وهذه الكتلةُ تقلب جهةَ القياس: تُعدّد نقاطَ
+# الإصدار من الشجرة النحويّة وتشترط على **كلٍّ** منها بوّابةً سابقة.
+
+
+def _emitting_functions() -> dict[str, set[str]]:
+    """الدوالُّ التي تستدعي `emit_mpc_candidate`، وما تستدعيه كلٌّ منها.
+
+    مُشتَقٌّ من `ast` لا من نصّ: نقطةٌ جديدة تدخل الجردَ تلقائيّاً، فلا يبيت الحارس.
+    """
+    import ast
+
+    found: dict[str, set[str]] = {}
+    for node in ast.walk(ast.parse(ROUTE_SRC)):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        called = {
+            getattr(call.func, "id", None) or getattr(call.func, "attr", None)
+            for call in ast.walk(node)
+            if isinstance(call, ast.Call)
+        }
+        if "emit_mpc_candidate" in called:
+            found[node.name] = called
+    return found
+
+
+def test_every_candidate_emission_point_is_gated_on_the_salinity_verdict():
+    emitters = _emitting_functions()
+    assert emitters, (
+        "لا نقطةَ إصدارٍ واحدة في هذا الملفّ. إن كان ذلك مقصوداً فالحارسُ فقد موضوعَه — "
+        "احذفه عمداً أو انقله حيث انتقل الإصدار؛ ولا تدعه أخضرَ على الفراغ."
+    )
+    ungated = sorted(
+        name for name, called in emitters.items() if "evaluate_water_salinity_gate" not in called
+    )
+    assert not ungated, (
+        f"نقاطُ إصدارٍ تُصدِر مرشّحاً محكوماً بلا بوّابة ملوحة: {ungated}. "
+        "الحدُّ الملحيّ fail-closed لا يُفرَض بوجود نصّه في الملفّ بل بمرور كلّ مُصدِرٍ به."
+    )
+
+
+def test_the_gate_verdict_is_read_not_merely_invoked():
+    """استشارةٌ يُهمَل جوابُها تمرّ على أيّ حارسٍ يقيس **وقوعَ** النداء.
+
+    فيُشترَط أن يكون سببُ الحجب المسمّى حاضراً في الدالّة المُصدِرة نفسِها، لا في
+    مكانٍ ما من الملفّ.
+    """
+    import ast
+
+    for node in ast.walk(ast.parse(ROUTE_SRC)):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name in (
+            _emitting_functions()
+        ):
+            body = ast.get_source_segment(ROUTE_SRC, node) or ""
+            assert "water_salinity_gate_blocked" in body, (
+                f"{node.name} تستدعي البوّابة ولا تحمل سببَ حجبها — "
+                "أي أنّ النتيجة قد تُهمَل، وهو ما لا يراه حارسٌ نصّيّ."
+            )
