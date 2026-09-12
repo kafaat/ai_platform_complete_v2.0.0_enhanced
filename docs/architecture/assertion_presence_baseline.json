@@ -1,7 +1,7 @@
 {
   "$comment": "أساس مُجمَّد لدوالّ الاختبار التي لا يمكن أن تفشل (بلا assert/raises وتُرجِع قيمة — pytest يُهمِل القيمة الراجعة). المجموعة تتقلّص ولا تنمو: أيّ إدخال جديد يُسقِط CI حتى لو انخفض العدد الكلّي (منع استبدال دَين بدَين). إصلاح دالّة = تحويلها إلى assert حقيقيّ ثمّ حذف سطرها هنا.",
   "gap": "TESTS-PASS-WITHOUT-ASSERTING-01",
-  "count": 206,
+  "count": 205,
   "entries": [
     "services/sahool-platform/tests/test_execution_control_plane.py::test_fn",
     "tests_v9/test_chaos_resilience.py::test_concurrent_approval_guard",
@@ -85,7 +85,6 @@
     "tests_v9/test_roadmap_phase23.py::test_documents_layer",
     "tests_v9/test_roadmap_phase23.py::test_economics_and_cultivar_wired",
     "tests_v9/test_roadmap_phase23.py::test_entityid_text_and_tenant_isolation",
-    "tests_v9/test_roadmap_phase23.py::test_erp_provider_switch",
     "tests_v9/test_roadmap_phase23.py::test_erpnext_cost_booking",
     "tests_v9/test_roadmap_phase23.py::test_erpnext_deployment_config",
     "tests_v9/test_roadmap_phase23.py::test_error_audit_fixes",

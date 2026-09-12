@@ -2487,6 +2487,101 @@
           "why": "يبقى فحصُ `content-type` فيبدو النوعُ محروساً — لكنّ الترويسةَ يملكها الطرفُ البعيد. حالةُ الشاهد `(200, b\"not a png\", \"image/png\")` تفصل تصديقَ البايتات عن تصديق الترويسة بالضبط."
         }
       ]
+    },
+    "services/raster-service/raster_security_context.py": {
+      "$gap_ar": "مجموعةُ قبول المُعلِن كانت أوسعَ من مجموعة قبول الناقل: `public_cog_url` يقبل `http://` وأيَّ منفذ، والنقلُ يشترط `https` على المنفذ القياسيّ ⇒ قالبُ بلاطاتٍ مُعلَنٌ تعود كلُّ بلاطةٍ منه 422.",
+      "mutations": [
+        {
+          "expect": "test_every_advertised_source_is_one_the_transport_will_fetch",
+          "find": "    if not low.startswith(\"https://\"):",
+          "replace": "    if not (low.startswith(\"http://\") or low.startswith(\"https://\")):  # mutated",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "يُعيد قبولَ `http://` في المُعلِن وحدَه — وهو الانفصالُ المقيس بعينه: يمرّ الإعلانُ ويحجب النقلُ بـ422."
+        },
+        {
+          "expect": "test_every_advertised_source_is_one_the_transport_will_fetch",
+          "find": "        if parsed.port not in (None, 443):",
+          "replace": "        if parsed.port not in (None, 443, 8443):  # mutated",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "النصفُ الثاني من الانفصال: منفذٌ غيرُ قياسيّ يمرّ المُعلِنَ ويحجبه الناقل. الخاصّيّةُ تُقاس بعرض الرابط على الحاكمين لا بتكرار شرطِ أحدهما."
+        },
+        {
+          "expect": "test_every_advertised_source_is_one_the_transport_will_fetch",
+          "find": "    if parsed.username or parsed.password or parsed.fragment:",
+          "replace": "    if parsed.fragment and False:  # mutated: اعتمادٌ مضمَّنٌ يمرّ",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "اعتمادٌ مضمَّنٌ في الرابط يمرّ المُعلِنَ فيُعلَن قالبٌ يحجبه الناقل — ويُسرِّب الاعتمادَ إلى TileJSON في الطريق."
+        }
+      ]
+    },
+    "services/raster-service/cloud_native_catalog.py": {
+      "$gap_ar": "معاينةُ سجلّ COG كانت تُصدِر `tilejson_url` بشكل TiTiler المباشر حاملاً المصدرَ في الاستعلام — مسارٌ لا توجّهه البوّابة أصلاً، فالرابطُ ميّتٌ ومُسرِّبٌ للشكل معاً، والسجلُّ المُعايَن بلا هويّةٍ فلا مسارَ بلاطاتٍ مُصادَقاً عليه له.",
+      "mutations": [
+        {
+          "expect": "test_cog_registry_preview_scores_quality_without_advertising_a_tile_path",
+          "find": "        \"tilejson_url\": None,",
+          "replace": "        \"tilejson_url\": f\"/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}?url={cog_url}\",  # mutated",
+          "test": "services/raster-service/test_cloud_native_catalog.py",
+          "why": "يُعيد الشكلَ القديم إلى معاينةٍ لا تملك هويّةَ سجلّ؛ الشاهدُ يشترط غيابَ القالب وعلّةً مُسمّاة، ويمنع ظهورَ `WebMercatorQuad` في أيّ حقل."
+        }
+      ]
+    },
+    "services/raster-service/routers/tiles.py": {
+      "$gap_ar": "الفرعُ الديناميكيّ الجديد في مسار بلاطات الطبقة (مصدرٌ عامّ ⇒ نقلٌ محدود) كان بلا شاهدٍ على مستوى نقطة النهاية: عطلُ وصلٍ فيه يمرّ خضراء.",
+      "mutations": [
+        {
+          "expect": "test_a_stale_ownership_cache_does_not_serve_another_tenants_tile",
+          "find": "    await require_layer_tenant_authorized(layer_id, layers=LAYERS, logger=logger)\n    if layer_id not in LAYERS:\n        raise HTTPException(404, \"طبقة غير موجودة\")\n    tile_path = os.path.join(UPLOAD_DIR, layer_id, f\"{z}_{x}_{y}.png\")",
+          "replace": "    if layer_id not in LAYERS:  # mutated: الملكيّةُ من القاعدة لا تُفحَص\n        raise HTTPException(404, \"طبقة غير موجودة\")\n    tile_path = os.path.join(UPLOAD_DIR, layer_id, f\"{z}_{x}_{y}.png\")",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "نزعُ الفحص المدعوم بالقاعدة يجعل **ذاكرةً بائتة** كافيةً لخدمة بلاطةِ مستأجِرٍ آخر. وأوّلُ شاهدٍ سمّيتُه نجا من هذه الطفرة لأنّه كان يُخالِف الذاكرةَ أيضاً فيكفيه الفحصُ السريع؛ فعُزِّز الشاهدُ إلى حالة الذاكرة البائتة بدل حذف الطفرة."
+        },
+        {
+          "expect": "test_layer_tile_endpoint_serves_a_public_cog_through_the_bounded_transport",
+          "find": "            cog_url, z, x, y, base_url=TITILER_URL, colormap=colormap, rescale=rescale",
+          "replace": "            cog_url, z, x, y, base_url=TITILER_URL, rescale=rescale  # mutated: colormap يُسقَط",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "عطلُ وصلٍ صامت: البلاطةُ تُخدَم لكن بلا خريطةِ الألوان المطلوبة. الشاهدُ يقرأ `colormap_name` من طلبِ الخلفيّة الفعليّ."
+        }
+      ]
+    },
+    "services/odoo-bridge/erp_provider.py": {
+      "$gap_ar": "ERPNext صار يشترط عنواناً صريحاً مع الاعتمادين، لكنّ شاهدَ التبديل كان `if … : append` بلا تأكيد — فمسارُ النجاح غيرُ مقيسٍ أصلاً، وحالةُ «بلا مفاتيح» تمرّ لسببٍ آخر ولو حُذِف فحصُ المفاتيح.",
+      "mutations": [
+        {
+          "expect": "test_erp_provider_switch",
+          "find": "        if not url or not key or not secret:",
+          "replace": "        if not key or not secret:  # mutated: هدفٌ مختلَقٌ بلا عنوان",
+          "test": "tests_v9/test_roadmap_phase23.py",
+          "why": "يُعيد اختلاقَ هدفٍ عند غياب العنوان؛ الحالةُ ٣ب تشترط الهبوطَ إلى NullProvider بمفاتيحَ كاملةٍ بلا عنوان."
+        }
+      ]
+    },
+    "nginx/nginx.v9.conf": {
+      "$gap_ar": "القالبُ المُعلَن في TileJSON يشير إلى مسار منصّةٍ مُصادَق، لكنّ `location /api/v1/` لا يشتقّ التوكنَ من كوكي `sahool_at` كما يفعل `/api/raster/` — و`<img>`/MapLibre لا يحمل ترويسة ⇒ 401 على كلّ بلاطة.",
+      "mutations": [
+        {
+          "expect": "test_the_advertised_tile_path_reaches_a_gateway_location_that_bridges_the_cookie",
+          "find": "        location ~ ^/api/v1/gis/cloud-native/rasters/[^/]+/tiles/ {",
+          "replace": "        location ~ ^/api/v1/NEVER-MATCHES/rasters/[^/]+/tiles/ {  # mutated",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "يُعطّل انطباقَ موقع البلاطات فيعود المسارُ إلى مطابقة البادئة العامّة بلا جسرِ كوكي — أي 401 لكلّ <img>. الشاهدُ يحتسب الفائزَ بقواعد nginx نفسِها من مسارٍ مشتقٍّ من `tilejson_for_cog`."
+        },
+        {
+          "expect": "test_the_gateway_configuration_parses_and_the_tile_location_is_well_formed",
+          "find": "            proxy_pass http://platform_backend;                           # بلا مقطع URI: المسارُ يمرّ كما هو.",
+          "replace": "            proxy_pass http://platform_backend/api/v1/;                   # mutated: مقطعُ URI",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "قيدٌ دلاليٌّ لا يراه مُحلّلُ الصياغة: `proxy_pass` بمقطع URI داخل موقعٍ نمطيّ يرفضه nginx **وقت التحميل**، فيسقط المكدّسُ كلُّه لا هذا المسار وحدَه. وكنتُ أدّعي فحصَه بالقراءة، فصار نتيجةً."
+        },
+        {
+          "expect": "test_the_gateway_configuration_parses_and_the_tile_location_is_well_formed",
+          "find": "            auth_request /_auth_verify;                                   # فشله ⇒ رفض، لا تمرير.",
+          "replace": "            auth_request /_auth_verify                                    # mutated: بلا فاصلة منقوطة",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "خطأُ صياغةٍ صرف: بلا nginx ولا Docker في العدّاء، كان يمرّ إلى الدمج ويسقط المكدّسَ عند الإقلاع. `crossplane` يُعيد `status: failed` فيحمرّ الشاهد."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

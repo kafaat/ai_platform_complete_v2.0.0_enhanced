@@ -47,6 +47,8 @@ docker compose -f docker-compose.erpnext.yml --env-file .env up -d
 - ادخل http://localhost:8000 (المستخدم: Administrator، كلمة المرور: ADMIN)
 - User → API Access → Generate Keys → انسخ key + secret
 - ضعهما في .env: ERPNEXT_API_KEY, ERPNEXT_API_SECRET
+- **واضبط `ERPNEXT_URL` معهما** — الثلاثة لازمة. الجسرُ لا يختلق هدفاً داخليّاً، فمفتاحان
+  بلا عنوانٍ صريح يهبطان إلى `NullProvider` صامتاً (erp_provider.py:425-430).
 - أعد تشغيل odoo-bridge: `docker compose restart sahool-odoo-bridge`
 
 ### ٥. تحقّق من التبديل

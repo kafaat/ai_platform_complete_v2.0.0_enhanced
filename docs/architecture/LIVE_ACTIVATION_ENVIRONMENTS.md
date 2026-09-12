@@ -53,7 +53,7 @@
 | S3/MinIO (تخزين COG) | `S3_BUCKET/ENDPOINT/ACCESS_KEY/SECRET_KEY` | raster-service/object_store.py:23-75,109-151 | بلا مفاتيح ⇒ fail-closed إلّا `S3_ALLOW_FILE_FALLBACK=1` ⇒ `file://` غير قابل للخدمة |
 | MQTT (FastBee) | `MQTT_BROKER_URL` | actuator-service/actuator_runtime.py:22,45-50 | فارغ ⇒ MODE disabled (⚠️ أثر ماديّ — راجع C) |
 | NATS | `NATS_URL` | agents/base_agent.py:40-41؛ .env.example:107 | نشر vegetation best-effort؛ العمّال يفقدون fan-out |
-| ERPNext/Odoo | `ERPNEXT_API_KEY/SECRET` أو `ODOO_*` | odoo-bridge/erp_provider.py:398-436 | يهبط لـ`none` بصدق؛ `/health` erp_enabled:false |
+| ERPNext/Odoo | `ERPNEXT_URL` **و**`ERPNEXT_API_KEY/SECRET` (الثلاثة لازمة) أو `ODOO_*` | odoo-bridge/erp_provider.py:425-430 | يهبط لـ`none` بصدق؛ `/health` erp_enabled:false |
 | Qdrant/Ollama | `QDRANT_API_KEY`؛ Ollama URL | local-ai-rag/main.py:269,287,416,509 | RAG/KG غير جاهز |
 | Redis | `REDIS_PASSWORD` | auth session/reset/mfa | refresh/reset/email/mfa يفشل مُغلَقاً |
 | Telegram | `TELEGRAM_BOT_TOKEN` | bots/telegram/main.py | البوت لا يتّصل |

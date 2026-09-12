@@ -5,7 +5,7 @@
   "runtime_verified":false,
   "python_files_parsed":1887,
   "route_handlers":1050,
-  "call_edges":77297,
+  "call_edges":77298,
   "dead_code_candidates":627,
   "duplicate_function_groups":60,
   "route_owners":27,
@@ -127839,203 +127839,210 @@
    "file":"services/raster-service/raster_security_context.py",
    "source":"public_cog_url",
    "target":"lower",
-   "line":174
+   "line":186
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_security_context.py",
    "source":"public_cog_url",
    "target":"strip",
-   "line":174
+   "line":186
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_security_context.py",
    "source":"public_cog_url",
    "target":"startswith",
-   "line":175
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/raster_security_context.py",
-   "source":"public_cog_url",
-   "target":"startswith",
-   "line":175
+   "line":187
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_security_context.py",
    "source":"public_cog_url",
    "target":"any",
-   "line":177
+   "line":189
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/raster_security_context.py",
+   "source":"public_cog_url",
+   "target":"strip",
+   "line":192
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/raster_security_context.py",
+   "source":"public_cog_url",
+   "target":"urlparse",
+   "line":192
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_security_context.py",
    "source":"safe_raster_source",
    "target":"isinstance",
-   "line":184
+   "line":207
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_security_context.py",
    "source":"safe_raster_source",
    "target":"HTTPException",
-   "line":185
+   "line":208
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_security_context.py",
    "source":"safe_raster_source",
    "target":"startswith",
-   "line":186
+   "line":209
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_security_context.py",
    "source":"safe_raster_source",
    "target":"startswith",
-   "line":186
+   "line":209
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_security_context.py",
    "source":"safe_raster_source",
    "target":"len",
-   "line":187
+   "line":210
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_security_context.py",
    "source":"safe_raster_source",
    "target":"startswith",
-   "line":187
+   "line":210
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_security_context.py",
    "source":"safe_raster_source",
    "target":"realpath",
-   "line":188
+   "line":211
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_security_context.py",
    "source":"safe_raster_source",
    "target":"realpath",
-   "line":189
+   "line":212
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_security_context.py",
    "source":"safe_raster_source",
    "target":"startswith",
-   "line":190
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/raster_security_context.py",
-   "source":"safe_raster_source",
-   "target":"HTTPException",
-   "line":191
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/raster_security_context.py",
-   "source":"safe_raster_source",
-   "target":"startswith",
-   "line":193
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/raster_security_context.py",
-   "source":"safe_raster_source",
-   "target":"lower",
-   "line":194
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/raster_security_context.py",
-   "source":"safe_raster_source",
-   "target":"urlparse",
-   "line":194
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/raster_security_context.py",
-   "source":"safe_raster_source",
-   "target":"HTTPException",
-   "line":196
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/raster_security_context.py",
-   "source":"safe_raster_source",
-   "target":"HTTPException",
-   "line":198
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/raster_security_context.py",
-   "source":"assert_readable_size",
-   "target":"int",
-   "line":212
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/raster_security_context.py",
-   "source":"assert_readable_size",
-   "target":"int",
-   "line":212
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/raster_security_context.py",
-   "source":"assert_readable_size",
-   "target":"int",
-   "line":212
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/raster_security_context.py",
-   "source":"assert_readable_size",
-   "target":"int",
    "line":213
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_security_context.py",
-   "source":"assert_readable_size",
+   "source":"safe_raster_source",
    "target":"HTTPException",
    "line":214
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_security_context.py",
+   "source":"safe_raster_source",
+   "target":"startswith",
+   "line":216
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/raster_security_context.py",
+   "source":"safe_raster_source",
+   "target":"lower",
+   "line":217
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/raster_security_context.py",
+   "source":"safe_raster_source",
+   "target":"urlparse",
+   "line":217
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/raster_security_context.py",
+   "source":"safe_raster_source",
+   "target":"HTTPException",
+   "line":219
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/raster_security_context.py",
+   "source":"safe_raster_source",
+   "target":"HTTPException",
+   "line":221
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/raster_security_context.py",
    "source":"assert_readable_size",
    "target":"int",
-   "line":218
+   "line":235
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/raster_security_context.py",
+   "source":"assert_readable_size",
+   "target":"int",
+   "line":235
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/raster_security_context.py",
+   "source":"assert_readable_size",
+   "target":"int",
+   "line":235
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/raster_security_context.py",
+   "source":"assert_readable_size",
+   "target":"int",
+   "line":236
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/raster_security_context.py",
+   "source":"assert_readable_size",
+   "target":"HTTPException",
+   "line":237
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/raster_security_context.py",
+   "source":"assert_readable_size",
+   "target":"int",
+   "line":241
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_security_context.py",
    "source":"require_service_token",
    "target":"HTTPException",
-   "line":226
+   "line":249
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_security_context.py",
    "source":"require_service_token",
    "target":"compare_digest",
-   "line":227
+   "line":250
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/raster_security_context.py",
    "source":"require_service_token",
    "target":"HTTPException",
-   "line":228
+   "line":251
   },
   {
    "owner":"raster-service",
@@ -136834,14 +136841,14 @@
    "file":"services/raster-service/routers/fields.py",
    "source":"field_tilejson",
    "target":"_public_cog_url",
-   "line":1707
+   "line":1709
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/fields.py",
    "source":"field_tilejson",
    "target":"get",
-   "line":1707
+   "line":1709
   },
   {
    "owner":"raster-service",
@@ -150071,35 +150078,35 @@
    "file":"services/raster-service/test_cloud_native_catalog.py",
    "source":"test_stac_landing_links_search_and_collections",
    "target":"stac_landing_page",
-   "line":15
+   "line":16
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_cloud_native_catalog.py",
    "source":"test_stac_landing_links_search_and_collections",
    "target":"issubset",
-   "line":17
+   "line":18
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_cloud_native_catalog.py",
    "source":"test_stac_collections_include_source_and_derived_products",
    "target":"stac_collections",
-   "line":22
+   "line":23
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_cloud_native_catalog.py",
-   "source":"test_cog_registry_preview_record_contains_tilejson_and_quality",
+   "source":"test_cog_registry_preview_scores_quality_without_advertising_a_tile_path",
    "target":"cog_registry_record",
-   "line":29
+   "line":36
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/test_cloud_native_catalog.py",
-   "source":"test_cog_registry_preview_record_contains_tilejson_and_quality",
-   "target":"startswith",
-   "line":38
+   "source":"test_cog_registry_preview_scores_quality_without_advertising_a_tile_path",
+   "target":"dumps",
+   "line":49
   },
   {
    "owner":"raster-service",

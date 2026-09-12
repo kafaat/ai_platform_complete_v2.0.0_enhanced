@@ -25,7 +25,7 @@
       "tests": 1771,
       "web": 457
     },
-    "unmapped_artifacts": 2148,
+    "unmapped_artifacts": 2147,
     "ambiguous_artifacts": 417
   },
   "capabilities": [
@@ -9840,11 +9840,11 @@
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/history @ tests_v9/test_roadmap_phase23.py:5394",
+          "value": "/api/v1/fields/{field_id}/history @ tests_v9/test_roadmap_phase23.py:5407",
           "score": 17
         },
         {
-          "value": "/api/v1/simulate/what-if @ tests_v9/test_roadmap_phase23.py:5407",
+          "value": "/api/v1/simulate/what-if @ tests_v9/test_roadmap_phase23.py:5420",
           "score": 17
         },
         {
@@ -10140,7 +10140,7 @@
           "score": 17
         },
         {
-          "value": "v25_irrigation.sql @ tests_v9/test_roadmap_phase23.py:6148",
+          "value": "v25_irrigation.sql @ tests_v9/test_roadmap_phase23.py:6161",
           "score": 17
         },
         {
@@ -16486,11 +16486,11 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/history @ tests_v9/test_roadmap_phase23.py:5394",
+          "value": "/api/v1/fields/{field_id}/history @ tests_v9/test_roadmap_phase23.py:5407",
           "score": 18
         },
         {
-          "value": "/api/v1/simulate/what-if @ tests_v9/test_roadmap_phase23.py:5407",
+          "value": "/api/v1/simulate/what-if @ tests_v9/test_roadmap_phase23.py:5420",
           "score": 18
         },
         {
@@ -16838,7 +16838,7 @@
           "score": 18
         },
         {
-          "value": "v25_irrigation.sql @ tests_v9/test_roadmap_phase23.py:6148",
+          "value": "v25_irrigation.sql @ tests_v9/test_roadmap_phase23.py:6161",
           "score": 18
         },
         {
@@ -22730,6 +22730,14 @@
           ]
         },
         {
+          "path": "services/raster-service/cloud_native_catalog.py",
+          "score": 11,
+          "signals": [
+            "content:cog",
+            "content:tilejson"
+          ]
+        },
+        {
           "path": "services/raster-tiler-service/main.py",
           "score": 11,
           "signals": [
@@ -22738,7 +22746,7 @@
           ]
         },
         {
-          "path": "services/raster-service/cloud_native_catalog.py",
+          "path": "services/raster-service/raster_job_orchestration.py",
           "score": 9,
           "signals": [
             "content:cog",
@@ -22746,7 +22754,7 @@
           ]
         },
         {
-          "path": "services/raster-service/raster_job_orchestration.py",
+          "path": "services/raster-service/raster_security_context.py",
           "score": 9,
           "signals": [
             "content:cog",
@@ -23505,7 +23513,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 12,
+        "backend": 13,
         "routes": 69,
         "database": 0,
         "events": 12,
@@ -23631,11 +23639,11 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/history @ tests_v9/test_roadmap_phase23.py:5394",
+          "value": "/api/v1/fields/{field_id}/history @ tests_v9/test_roadmap_phase23.py:5407",
           "score": 15
         },
         {
-          "value": "/api/v1/simulate/what-if @ tests_v9/test_roadmap_phase23.py:5407",
+          "value": "/api/v1/simulate/what-if @ tests_v9/test_roadmap_phase23.py:5420",
           "score": 15
         },
         {
@@ -24324,7 +24332,7 @@
           "score": 15
         },
         {
-          "value": "v25_irrigation.sql @ tests_v9/test_roadmap_phase23.py:6148",
+          "value": "v25_irrigation.sql @ tests_v9/test_roadmap_phase23.py:6161",
           "score": 15
         },
         {
@@ -38200,10 +38208,6 @@
       "kind": "backend"
     },
     {
-      "path": "services/raster-service/raster_security_context.py",
-      "kind": "backend"
-    },
-    {
       "path": "services/raster-service/raster_stage_receipt.py",
       "kind": "backend"
     },
@@ -48680,19 +48684,19 @@
       "kind": "backend",
       "candidates": [
         {
+          "capability_id": "SAT-009",
+          "score": 11,
+          "signals": [
+            "content:cog",
+            "content:tilejson"
+          ]
+        },
+        {
           "capability_id": "SAT-001",
           "score": 10,
           "signals": [
             "content:sentinel",
             "content:stac"
-          ]
-        },
-        {
-          "capability_id": "SAT-009",
-          "score": 9,
-          "signals": [
-            "content:cog",
-            "content:tilejson"
           ]
         }
       ]

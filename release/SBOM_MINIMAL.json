@@ -4415,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4402e1a6d53ec15de58349ce9df49a05a4e52e0166f60f824f70d460ba8b2ce9"
+          "content": "c25adc52239b64277484757a569a872d6ccc99fd3fa118dd711d1c4ad601d539"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -13245,7 +13245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3a77a123a47a02232c0165cd794a0960169509c7a57ebaac053f8d8685d6e930"
+          "content": "8255e40ad388d377a0842c3bd084d27ce70bd06dbd40985dc303f07653fd07e0"
         }
       ],
       "name": "services/raster-service/cloud_native_catalog.py",
@@ -13675,7 +13675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2f0430a3963bedaaf50986bb4e44bc894b08844ca2283340bfc619c46507d54b"
+          "content": "15a52694e77ab32002de168b586414b7006c2442aa78220f70b585faff628ca4"
         }
       ],
       "name": "services/raster-service/raster_security_context.py",
@@ -13795,7 +13795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c0d17c6387e83d5db6bdcd0f7cbd725dbcd2a8ce0c274553d152492e43cafcbe"
+          "content": "e084195af37f585d0a2ba3ae70e28adfae43a376a2625fd154655df84c320227"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -14205,7 +14205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "985ef935d84404b1d5949c2fe69463d868a1a0cb78d5a10e11a49096197710a4"
+          "content": "e0369cfda56cc7dc7977baead5cd8d5f6ede4bab84c03e3188de30ee5b970a9e"
         }
       ],
       "name": "services/raster-service/test_cloud_native_catalog.py",
