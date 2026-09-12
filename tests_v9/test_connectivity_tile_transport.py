@@ -109,6 +109,11 @@ async def test_unconfigured_allowlist_fails_closed(monkeypatch, transport):
     assert transport[0] == []
 
 
+#: **المُعرِّفاتُ صريحةٌ لأنّ pytest يشتقّها من القيمة.** الحالةُ الأخيرة حمولةٌ بحجم
+#: ٢ ميغابايت، فكان مُعرِّفُها يحمل مليونَي حرف: تحت `pytest -v` في CI يُطبَع سطرٌ واحد
+#: بحجم ميغابايتات، فيبدو الجناحُ **واقفاً** عند هذا الاختبار وهو يتمّ في ١٠ أجزاءٍ من
+#: الألف من الثانية. مقيس: ٦ ميغابايت مخرَجاً بـ`-v` مقابل ١٤٨٠ بايتاً بـ`-q`،
+#: وأبطأُ نداءٍ ٠٫٠١ث. فالكلفةُ كانت في قراءة السجلّ لا في التنفيذ.
 @pytest.mark.parametrize(
     "status,content,content_type",
     [
@@ -118,6 +123,7 @@ async def test_unconfigured_allowlist_fails_closed(monkeypatch, transport):
         (200, b"not a png", "image/png"),
         (200, PNG + b"x" * (2 * 1024 * 1024), "image/png"),
     ],
+    ids=["redirect", "server_error", "html_body", "not_a_png", "over_size_limit"],
 )
 async def test_bad_backend_response_is_not_a_successful_tile(
     status, content, content_type, transport
