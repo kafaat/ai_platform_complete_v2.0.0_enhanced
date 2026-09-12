@@ -211,6 +211,7 @@ jobs:
             tests/architecture/test_check_steps_are_read_only.py \
             tests/architecture/test_marker_coverage_guard.py \
             tests/architecture/test_arch_test_ci_coverage_guard.py \
+            tests/architecture/test_unenforced_report_list_tests.py \
             tests/architecture/test_brain_commit_claim_guard.py \
             tests/architecture/test_brain_deferral_registry_guard.py \
             tests/architecture/test_brain_state_consistency.py \

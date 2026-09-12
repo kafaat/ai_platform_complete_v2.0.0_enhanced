@@ -7668,6 +7668,7 @@
         "services/raster-service/test_tiles.py",
         "shared/gis/test_cloud_native_runtime.py",
         "tests_v9/test_cdse_and_storage_failclosed_v29_8.py",
+        "tests_v9/test_connectivity_tile_transport.py",
         "tests_v9/test_dev_gateway_raster_tile_auth_guard.py",
         "tests_v9/test_lexicographic_irrigation_mpc.py",
         "tests_v9/test_lexicographic_mpc_bridge.py",

@@ -97,7 +97,14 @@ def cog_registry_record(
         "cloud_pct": float(cloud_pct or 0),
         "resolution_m": float(resolution_m or 10),
         "quality": quality.__dict__,
-        "tilejson_url": f"/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}?url={cog_url}",
+        # **معاينةٌ لا تملك هويّةَ سجلّ، فلا تملك مسارَ بلاطاتٍ مُصادَقاً عليه.** كان هذا
+        # الحقلُ يُصدِر `/tiles/WebMercatorQuad/{z}/{x}/{y}?url=<cog_url>` — شكلَ TiTiler
+        # المباشر حاملاً المصدرَ في الاستعلام. والبوّابةُ لا توجّه ذلك المسار أصلاً (لا
+        # `location /tiler`)، فالرابطُ كان **ميّتاً ومُسرِّباً للشكل** معاً. والمسارُ
+        # القانونيّ يُبنى من **مُعرِّف السجلّ** (`tilejson_for_cog`)، وهو مُعرِّفٌ لا وجودَ
+        # له قبل الكتابة — فتُعلَن العلّةُ بالاسم بدل إصدار قالبٍ لا يُخدَم.
+        "tilejson_url": None,
+        "tilejson_unavailable_reason": "preview_record_has_no_registry_identity",
     }
 
 

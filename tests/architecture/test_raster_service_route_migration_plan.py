@@ -170,6 +170,7 @@ def test_pr_r4_tile_routes_have_no_stale_bare_path_reference():
     )
     assert '@router.get("/v1/tiles/{layer_id}/{z}/{x}/{y}.png")' in tiles
     assert '@router.get("/v1/layers/{layer_id}/tilejson")' in tiles
-    assert 'f"/v1/tiles/{layer_id}/{{z}}/{{x}}/{{y}}.png"' in tiles
+    # Browser URLs include the nginx gateway prefix; backend decorators remain /v1.
+    assert "f\"/api/raster/v1/tiles/{quote(layer_id, safe='')}/{{z}}/{{x}}/{{y}}.png\"" in tiles
     assert '@router.get("/tiles/{layer_id}/{z}/{x}/{y}.png")' not in tiles
     assert '@router.get("/layers/{layer_id}/tilejson")' not in tiles

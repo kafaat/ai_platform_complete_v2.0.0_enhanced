@@ -37,9 +37,11 @@ def test_record_stac_tilejson_are_db_backed_contracts():
     assert item["type"] == "Feature"
     assert item["assets"]["data"]["href"] == "s3://sahool/ndvi.tif"
     assert item["properties"]["sahool:field_id"] == "33333333-3333-3333-3333-333333333333"
-    tilejson = tilejson_for_cog(rec, tiler_base_url="http://tiler")
-    assert tilejson["tiles"][0].startswith("http://tiler/cog/tiles/WebMercatorQuad")
-    assert "url=s3://sahool/ndvi.tif" in tilejson["tiles"][0]
+    tilejson = tilejson_for_cog(rec)
+    assert tilejson["tiles"] == [
+        f"/api/v1/gis/cloud-native/rasters/{rec.id}/tiles/{{z}}/{{x}}/{{y}}.png"
+    ]
+    assert rec.cog_url not in str(tilejson)
 
 
 def test_collection_and_mosaic_from_registry_records():

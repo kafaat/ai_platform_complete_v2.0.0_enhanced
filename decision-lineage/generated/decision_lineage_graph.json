@@ -1339,7 +1339,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 246,
+      "evidence_count": 247,
       "owners": [
         "ai_agronomist",
         "auth",
@@ -1430,6 +1430,7 @@
         "services/guardrails-engine/tiers/economic_tier.py",
         "services/knowledge-graph/kg_store.py",
         "services/knowledge-graph/main.py",
+        "services/raster-service/cloud_native_catalog.py",
         "services/raster-service/raster_scene_model.py",
         "services/raster-service/routers/fields.py",
         "services/raster-service/routers/imagery.py",
@@ -2585,7 +2586,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 172,
-      "target_evidence_count": 246,
+      "target_evidence_count": 247,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2616,7 +2617,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 246,
+      "source_evidence_count": 247,
       "target_evidence_count": 32,
       "static_supported": true,
       "runtime_verified": false
@@ -2774,5 +2775,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "845c8e751929708061a542afc271775aac84e2135df6f54a4aa1455ca1875b84"
+  "content_sha256": "4c84073ee0def4da790a4e00b8ad35e76e0ebff46340822059c369caf0360a93"
 }

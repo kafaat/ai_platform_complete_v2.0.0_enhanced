@@ -3410,10 +3410,20 @@
     },
     {
       "file": "api/routers/gis_cloud_native.py",
+      "function": "raster_cog_tile",
+      "method": "GET",
+      "path": "/rasters/{raster_id}/tiles/{z}/{x}/{y}.png",
+      "line": 558,
+      "target_owner": "raster-service",
+      "owner_type": "compute-store",
+      "route_key": "api/routers/gis_cloud_native.py::GET /rasters/{raster_id}/tiles/{z}/{x}/{y}.png::raster_cog_tile"
+    },
+    {
+      "file": "api/routers/gis_cloud_native.py",
       "function": "release_geometry_lock",
       "method": "DELETE",
       "path": "/locks/{field_id}",
-      "line": 627,
+      "line": 655,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/gis_cloud_native.py::DELETE /locks/{field_id}::release_geometry_lock"
@@ -3423,7 +3433,7 @@
       "function": "mosaicjson",
       "method": "GET",
       "path": "/mosaicjson",
-      "line": 512,
+      "line": 514,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/gis_cloud_native.py::GET /mosaicjson::mosaicjson"
@@ -3433,7 +3443,7 @@
       "function": "ogc_field_items",
       "method": "GET",
       "path": "/ogc/collections/fields/items",
-      "line": 315,
+      "line": 317,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/gis_cloud_native.py::GET /ogc/collections/fields/items::ogc_field_items"
@@ -3443,7 +3453,7 @@
       "function": "get_ogc_collections",
       "method": "GET",
       "path": "/ogc/collections",
-      "line": 308,
+      "line": 310,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/gis_cloud_native.py::GET /ogc/collections::get_ogc_collections"
@@ -3453,7 +3463,7 @@
       "function": "ogc_conformance",
       "method": "GET",
       "path": "/ogc/conformance",
-      "line": 301,
+      "line": 303,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/gis_cloud_native.py::GET /ogc/conformance::ogc_conformance"
@@ -3463,7 +3473,7 @@
       "function": "ogc_root",
       "method": "GET",
       "path": "/ogc",
-      "line": 294,
+      "line": 296,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/gis_cloud_native.py::GET /ogc::ogc_root"
@@ -3473,7 +3483,7 @@
       "function": "raster_tilejson",
       "method": "GET",
       "path": "/rasters/{raster_id}/tilejson.json",
-      "line": 531,
+      "line": 533,
       "target_owner": "raster-service",
       "owner_type": "compute-store",
       "route_key": "api/routers/gis_cloud_native.py::GET /rasters/{raster_id}/tilejson.json::raster_tilejson"
@@ -3483,7 +3493,7 @@
       "function": "scene_processing_plan",
       "method": "GET",
       "path": "/scene-processing-plan",
-      "line": 261,
+      "line": 263,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/gis_cloud_native.py::GET /scene-processing-plan::scene_processing_plan"
@@ -3493,7 +3503,7 @@
       "function": "scene_ranking",
       "method": "GET",
       "path": "/scene-ranking",
-      "line": 244,
+      "line": 246,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/gis_cloud_native.py::GET /scene-ranking::scene_ranking"
@@ -3503,7 +3513,7 @@
       "function": "get_collection",
       "method": "GET",
       "path": "/stac/collections/{collection_id}",
-      "line": 496,
+      "line": 498,
       "target_owner": "raster-service",
       "owner_type": "compute-store",
       "route_key": "api/routers/gis_cloud_native.py::GET /stac/collections/{collection_id}::get_collection"
@@ -3513,7 +3523,7 @@
       "function": "list_stac_collections",
       "method": "GET",
       "path": "/stac/collections",
-      "line": 199,
+      "line": 201,
       "target_owner": "raster-service",
       "owner_type": "compute-store",
       "route_key": "api/routers/gis_cloud_native.py::GET /stac/collections::list_stac_collections"
@@ -3523,7 +3533,7 @@
       "function": "stac_conformance",
       "method": "GET",
       "path": "/stac/conformance",
-      "line": 185,
+      "line": 187,
       "target_owner": "raster-service",
       "owner_type": "compute-store",
       "route_key": "api/routers/gis_cloud_native.py::GET /stac/conformance::stac_conformance"
@@ -3533,7 +3543,7 @@
       "function": "get_stac_queryables",
       "method": "GET",
       "path": "/stac/queryables",
-      "line": 192,
+      "line": 194,
       "target_owner": "raster-service",
       "owner_type": "compute-store",
       "route_key": "api/routers/gis_cloud_native.py::GET /stac/queryables::get_stac_queryables"
@@ -3543,7 +3553,7 @@
       "function": "stac_search",
       "method": "GET",
       "path": "/stac/search",
-      "line": 475,
+      "line": 477,
       "target_owner": "raster-service",
       "owner_type": "compute-store",
       "route_key": "api/routers/gis_cloud_native.py::GET /stac/search::stac_search"
@@ -3553,7 +3563,7 @@
       "function": "stac_root",
       "method": "GET",
       "path": "/stac",
-      "line": 178,
+      "line": 180,
       "target_owner": "raster-service",
       "owner_type": "compute-store",
       "route_key": "api/routers/gis_cloud_native.py::GET /stac::stac_root"
@@ -3563,7 +3573,7 @@
       "function": "get_tile_cache_plan",
       "method": "GET",
       "path": "/tile-cache-plan",
-      "line": 278,
+      "line": 280,
       "target_owner": "raster-service",
       "owner_type": "compute-store",
       "route_key": "api/routers/gis_cloud_native.py::GET /tile-cache-plan::get_tile_cache_plan"
@@ -3573,7 +3583,7 @@
       "function": "plan_ai_boundary_extraction",
       "method": "POST",
       "path": "/ai-boundary/plan",
-      "line": 341,
+      "line": 343,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/gis_cloud_native.py::POST /ai-boundary/plan::plan_ai_boundary_extraction"
@@ -3583,7 +3593,7 @@
       "function": "register_cog",
       "method": "POST",
       "path": "/cog-registry",
-      "line": 419,
+      "line": 421,
       "target_owner": "raster-service",
       "owner_type": "compute-store",
       "route_key": "api/routers/gis_cloud_native.py::POST /cog-registry::register_cog"
@@ -3593,7 +3603,7 @@
       "function": "editing_session_undo_redo",
       "method": "POST",
       "path": "/editing-sessions/undo-redo",
-      "line": 359,
+      "line": 361,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/gis_cloud_native.py::POST /editing-sessions/undo-redo::editing_session_undo_redo"
@@ -3603,7 +3613,7 @@
       "function": "upsert_editing_session",
       "method": "POST",
       "path": "/editing-sessions",
-      "line": 556,
+      "line": 584,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/gis_cloud_native.py::POST /editing-sessions::upsert_editing_session"
@@ -3613,7 +3623,7 @@
       "function": "export_geoparquet",
       "method": "POST",
       "path": "/geoparquet/export",
-      "line": 645,
+      "line": 673,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/gis_cloud_native.py::POST /geoparquet/export::export_geoparquet"
@@ -3623,7 +3633,7 @@
       "function": "acquire_geometry_lock",
       "method": "POST",
       "path": "/locks",
-      "line": 591,
+      "line": 619,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/gis_cloud_native.py::POST /locks::acquire_geometry_lock"
@@ -3633,7 +3643,7 @@
       "function": "summarize_management_zones",
       "method": "POST",
       "path": "/management-zones/summary",
-      "line": 351,
+      "line": 353,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/gis_cloud_native.py::POST /management-zones/summary::summarize_management_zones"
@@ -3643,7 +3653,7 @@
       "function": "phase6_extract_boundary",
       "method": "POST",
       "path": "/phase6/boundaries/extract",
-      "line": 671,
+      "line": 699,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/gis_cloud_native.py::POST /phase6/boundaries/extract::phase6_extract_boundary"
@@ -3653,7 +3663,7 @@
       "function": "phase6_digital_twin_snapshot",
       "method": "POST",
       "path": "/phase6/digital-twin/snapshot",
-      "line": 739,
+      "line": 767,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/gis_cloud_native.py::POST /phase6/digital-twin/snapshot::phase6_digital_twin_snapshot"
@@ -3663,7 +3673,7 @@
       "function": "phase6_generate_management_zones",
       "method": "POST",
       "path": "/phase6/management-zones/generate",
-      "line": 690,
+      "line": 718,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/gis_cloud_native.py::POST /phase6/management-zones/generate::phase6_generate_management_zones"
@@ -3673,7 +3683,7 @@
       "function": "phase6_generate_prescription_map",
       "method": "POST",
       "path": "/phase6/prescriptions/generate",
-      "line": 706,
+      "line": 734,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/gis_cloud_native.py::POST /phase6/prescriptions/generate::phase6_generate_prescription_map"
@@ -3683,7 +3693,7 @@
       "function": "phase6_profitability_map",
       "method": "POST",
       "path": "/phase6/profitability-map",
-      "line": 727,
+      "line": 755,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/gis_cloud_native.py::POST /phase6/profitability-map::phase6_profitability_map"
@@ -3693,7 +3703,7 @@
       "function": "phase6_yield_stability",
       "method": "POST",
       "path": "/phase6/yield-stability",
-      "line": 719,
+      "line": 747,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/gis_cloud_native.py::POST /phase6/yield-stability::phase6_yield_stability"
@@ -3703,7 +3713,7 @@
       "function": "stac_search_post",
       "method": "POST",
       "path": "/stac/search",
-      "line": 214,
+      "line": 216,
       "target_owner": "raster-service",
       "owner_type": "compute-store",
       "route_key": "api/routers/gis_cloud_native.py::POST /stac/search::stac_search_post"

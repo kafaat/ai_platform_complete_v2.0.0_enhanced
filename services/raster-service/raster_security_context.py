@@ -168,13 +168,36 @@ async def require_layer_tenant_authorized(
 
 
 def public_cog_url(cog_url: str | None) -> str | None:
-    """Return cog_url only when it is public http(s); never expose internal storage URLs."""
+    """Return cog_url only when a tile can actually be served from it.
+
+    **The accept-set must stay inside the transport's accept-set.** This predicate
+    decides whether a tile template is *advertised*; `fetch_registered_cog_tile`
+    decides whether that same source may be *fetched*, and it requires `https`
+    on the default port with no embedded credentials or fragment. When this
+    function was the looser of the two — it accepted `http://` and any port — a
+    layer carrying such a source passed here, TileJSON advertised its tiles, and
+    every tile then returned `422 cog_tile_source_not_allowed`: an advertised
+    template that cannot produce one pixel. Widening either side alone restores
+    that split, so the agreement is measured, not restated
+    (`test_every_advertised_source_is_one_the_transport_will_fetch`).
+    """
     if not cog_url:
         return None
     low = cog_url.strip().lower()
-    if not (low.startswith("http://") or low.startswith("https://")):
+    if not low.startswith("https://"):
         return None
     if any(h in low for h in ("sahool-", "minio", "localhost", "127.0.0.1", ":9000", ".internal")):
+        return None
+    try:
+        parsed = urlparse(cog_url.strip())
+    except ValueError:
+        return None
+    if parsed.username or parsed.password or parsed.fragment:
+        return None
+    try:
+        if parsed.port not in (None, 443):
+            return None
+    except ValueError:  # malformed port — not a servable source
         return None
     return cog_url
 

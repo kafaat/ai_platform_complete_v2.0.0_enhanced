@@ -4870,19 +4870,19 @@
     "kind": "backend",
     "candidates": [
       {
+        "capability_id": "SAT-009",
+        "score": 11,
+        "signals": [
+          "content:cog",
+          "content:tilejson"
+        ]
+      },
+      {
         "capability_id": "SAT-001",
         "score": 10,
         "signals": [
           "content:sentinel",
           "content:stac"
-        ]
-      },
-      {
-        "capability_id": "SAT-009",
-        "score": 9,
-        "signals": [
-          "content:cog",
-          "content:tilejson"
         ]
       }
     ]
