@@ -21,6 +21,8 @@ services:
     - no-new-privileges:true
     environment:
     - PORT=8088
+    networks:
+    - sahool-internal
     ports:
     - 127.0.0.1:8088:8088
     healthcheck:
@@ -61,6 +63,16 @@ services:
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
     depends_on:
+      sahool-platform:
+        condition: service_healthy
+      sahool-raster-service:
+        condition: service_healthy
+      sahool-scout-ingest:
+        condition: service_healthy
+      sahool-notification-agent:
+        condition: service_healthy
+      sahool-frontend:
+        condition: service_healthy
       sahool-auth:
         condition: service_healthy
       sahool-supervisor-agent:
@@ -628,6 +640,8 @@ services:
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_SERVICE_URL: ${RASTER_SERVICE_URL:-http://sahool-raster-service:8001}
+      TITILER_URL: ${TITILER_URL:-http://raster-tiler-service:8088}
+      COG_TILE_ALLOWED_HOSTS: ${COG_TILE_ALLOWED_HOSTS:-}
       WEATHER_SERVICE_URL: ${WEATHER_SERVICE_URL:-http://sahool-weather-service:8000}
       SOIL_SERVICE_URL: ${SOIL_SERVICE_URL:-http://sahool-soil-service:8000}
       # Best-effort mirror target (dual-path): platform writes are authoritative; the facade
@@ -680,6 +694,8 @@ services:
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
       SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
     depends_on:
+      raster-tiler-service:
+        condition: service_healthy
       sahool-postgres:
         condition: service_healthy
       sahool-redis:
@@ -1252,7 +1268,8 @@ services:
       CDSE_PROCESS_MAX_RETRIES: ${CDSE_PROCESS_MAX_RETRIES:-5}
       CDSE_PROCESS_RETRY_BASE_SECONDS: ${CDSE_PROCESS_RETRY_BASE_SECONDS:-5}
       CDSE_PROCESS_RETRY_MAX_SECONDS: ${CDSE_PROCESS_RETRY_MAX_SECONDS:-120}
-      TITILER_URL: ${TITILER_URL:-http://sahool-titiler:8000}
+      TITILER_URL: ${TITILER_URL:-http://raster-tiler-service:8088}
+      COG_TILE_ALLOWED_HOSTS: ${COG_TILE_ALLOWED_HOSTS:-}
       FIELD_DEM_PATH: ${FIELD_DEM_PATH:-/data/dem/aljawf_glo30_cog.tif}
       SOILGRIDS_DIR: ${SOILGRIDS_DIR:-/data/soilgrids}
       RASTER_MAX_READ_DIM: ${RASTER_MAX_READ_DIM:-2048}
@@ -1266,6 +1283,9 @@ services:
     - raster-data:/data/rasters
     - ./data/dem:/data/dem:ro
     - ./data/soilgrids:/data/soilgrids:ro
+    depends_on:
+      raster-tiler-service:
+        condition: service_healthy
     networks:
     - sahool-internal
     healthcheck:
@@ -1393,6 +1413,9 @@ services:
       retries: 5
       start_period: 30s
   sahool-titiler:
+    # Compatibility only; the default platform and raster paths share raster-tiler-service.
+    profiles:
+    - legacy-tiler
     image: ${TITILER_IMAGE:-ghcr.io/developmentseed/titiler:0.18.6}
     command: uvicorn titiler.application.main:app --host 0.0.0.0 --port 8000 --workers
       1
@@ -1941,7 +1964,7 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL}
       ERP_PROVIDER: ${ERP_PROVIDER:-erpnext}
-      ERPNEXT_URL: ${ERPNEXT_URL:-http://sahool-erpnext:8000}
+      ERPNEXT_URL: ${ERPNEXT_URL:-}
       ERPNEXT_API_KEY: ${ERPNEXT_API_KEY:-}
       ERPNEXT_API_SECRET: ${ERPNEXT_API_SECRET:-}
       ODOO_URL: ${ODOO_URL:-http://sahool-odoo:8069}

@@ -21,7 +21,7 @@
       "id": "-c",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 3,
+      "incoming": 4,
       "outgoing": 0,
       "orphan": false
     },
@@ -109,7 +109,7 @@
       "id": "cmd",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 22,
+      "incoming": 23,
       "outgoing": 0,
       "orphan": false
     },
@@ -125,7 +125,7 @@
       "id": "condition",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 71,
+      "incoming": 72,
       "outgoing": 0,
       "orphan": false
     },
@@ -361,7 +361,7 @@
       "id": "healthcheck",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 52,
+      "incoming": 53,
       "outgoing": 0,
       "orphan": false
     },
@@ -379,7 +379,7 @@
       "id": "interval",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 52,
+      "incoming": 53,
       "outgoing": 0,
       "orphan": false
     },
@@ -435,7 +435,7 @@
       "id": "networks",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 83,
+      "incoming": 84,
       "outgoing": 0,
       "orphan": false
     },
@@ -461,8 +461,8 @@
         "services/sahool-platform"
       ],
       "kind": "service",
-      "incoming": 4,
-      "outgoing": 82,
+      "incoming": 5,
+      "outgoing": 83,
       "orphan": false
     },
     {
@@ -485,7 +485,7 @@
       "id": "python",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 5,
+      "incoming": 6,
       "outgoing": 0,
       "orphan": false
     },
@@ -533,9 +533,9 @@
         "services/raster-tiler-service"
       ],
       "kind": "service",
-      "incoming": 0,
+      "incoming": 2,
       "outgoing": 0,
-      "orphan": true
+      "orphan": false
     },
     {
       "id": "redis",
@@ -583,7 +583,7 @@
       "id": "retries",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 52,
+      "incoming": 53,
       "outgoing": 0,
       "orphan": false
     },
@@ -687,7 +687,7 @@
       "id": "sahool-frontend",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 1,
+      "incoming": 2,
       "outgoing": 0,
       "orphan": false
     },
@@ -711,7 +711,7 @@
       "id": "sahool-internal",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 59,
+      "incoming": 60,
       "outgoing": 0,
       "orphan": false
     },
@@ -808,14 +808,14 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 51,
+      "outgoing": 56,
       "orphan": false
     },
     {
       "id": "sahool-notification-agent",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 2,
+      "incoming": 3,
       "outgoing": 27,
       "orphan": false
     },
@@ -927,8 +927,8 @@
       "id": "sahool-raster-service",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 0,
-      "outgoing": 13,
+      "incoming": 1,
+      "outgoing": 26,
       "orphan": false
     },
     {
@@ -967,7 +967,7 @@
       "id": "sahool-scout-ingest",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 0,
+      "incoming": 1,
       "outgoing": 14,
       "orphan": false
     },
@@ -1157,7 +1157,7 @@
       "id": "start-period",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 52,
+      "incoming": 53,
       "outgoing": 0,
       "orphan": false
     },
@@ -1183,7 +1183,7 @@
       "id": "test",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 52,
+      "incoming": 53,
       "outgoing": 0,
       "orphan": false
     },
@@ -1191,7 +1191,7 @@
       "id": "timeout",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 52,
+      "incoming": 53,
       "outgoing": 0,
       "orphan": false
     },
@@ -2098,6 +2098,12 @@
       "target": "raster-service",
       "kind": "code-reference",
       "evidence": "services/sahool-platform/tests/test_p2_raster_facade_cleanup_guard.py"
+    },
+    {
+      "source": "platform",
+      "target": "raster-tiler-service",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "platform",
@@ -4267,6 +4273,12 @@
     },
     {
       "source": "sahool-nginx",
+      "target": "platform",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-nginx",
       "target": "retries",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.fixed.yml"
@@ -4318,6 +4330,12 @@
       "target": "sahool-frontend",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.fixed.yml"
+    },
+    {
+      "source": "sahool-nginx",
+      "target": "sahool-frontend",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "sahool-nginx",
@@ -4393,6 +4411,12 @@
     },
     {
       "source": "sahool-nginx",
+      "target": "sahool-notification-agent",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-nginx",
       "target": "sahool-public",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.fixed.yml"
@@ -4411,7 +4435,19 @@
     },
     {
       "source": "sahool-nginx",
+      "target": "sahool-raster-service",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-nginx",
       "target": "sahool-remote-sensing-workspace-bff",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-nginx",
+      "target": "sahool-scout-ingest",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -5251,9 +5287,27 @@
     },
     {
       "source": "sahool-raster-service",
+      "target": "-c",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-raster-service",
+      "target": "cmd",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-raster-service",
       "target": "condition",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.fixed.yml"
+    },
+    {
+      "source": "sahool-raster-service",
+      "target": "condition",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "sahool-raster-service",
@@ -5263,9 +5317,21 @@
     },
     {
       "source": "sahool-raster-service",
+      "target": "healthcheck",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-raster-service",
       "target": "interval",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.fixed.yml"
+    },
+    {
+      "source": "sahool-raster-service",
+      "target": "interval",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "sahool-raster-service",
@@ -5275,7 +5341,37 @@
     },
     {
       "source": "sahool-raster-service",
+      "target": "networks",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-raster-service",
+      "target": "python",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-raster-service",
+      "target": "raster-tiler-service",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-raster-service",
       "target": "retries",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.fixed.yml"
+    },
+    {
+      "source": "sahool-raster-service",
+      "target": "retries",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-raster-service",
+      "target": "sahool-internal",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.fixed.yml"
     },
@@ -5283,7 +5379,7 @@
       "source": "sahool-raster-service",
       "target": "sahool-internal",
       "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
+      "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "sahool-raster-service",
@@ -5311,7 +5407,25 @@
     },
     {
       "source": "sahool-raster-service",
+      "target": "start-period",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-raster-service",
       "target": "test",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.fixed.yml"
+    },
+    {
+      "source": "sahool-raster-service",
+      "target": "test",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-raster-service",
+      "target": "timeout",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.fixed.yml"
     },
@@ -5319,7 +5433,7 @@
       "source": "sahool-raster-service",
       "target": "timeout",
       "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
+      "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "sahool-raster-service",
@@ -7005,11 +7119,11 @@
   "cycles": [],
   "summary": {
     "nodes": 153,
-    "edges": 952,
-    "orphans": 6,
+    "edges": 971,
+    "orphans": 5,
     "cycles": 0,
     "code_edges": 117,
-    "compose_edges": 835
+    "compose_edges": 854
   },
-  "content_sha256": "29a3d82d4970e3be6b3c179d79eda62cfe12c5b8e4f0aefc3b99cdfc3ac619b9"
+  "content_sha256": "f603d91cd5de049521a8b1f634a98a06fb23b0d3620843162cb39ef381397cc4"
 }

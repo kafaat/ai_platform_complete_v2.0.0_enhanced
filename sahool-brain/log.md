@@ -7700,6 +7700,9 @@ no_third_value_registry نصّاً)، GATE-01 نظيف، 33 اختباراً، r
 The merged targeted suite passed130 tests. Final generated checks, default preflight and publication remain pending. No production certification is claimed.
 
 
+### 2026-09-10 — connectivity repair branch
+
+Base `7407eae2`: authenticated registry/layer tile paths, bounded public COG transport, canonical Compose tiler dependencies and explicit ERPNext configuration. 74 targeted tests pass; production auth/database/backend are not measured. CONN-03/04/07 remain open, with the producer protected by GATE-01. See [evidence](../docs/testing/connectivity_repairs_20260910.md). Full preflight/publication results belong to the report; no runtime certification.
 ### 2026-09-09 — four main review findings repaired
 
 Audited base `7407eae2`; implementation `f8086c1ff`. The real asyncpg JSONB representation no longer crashes hourly MPC; ledger-seeded client plans cannot emit; canonical water rejects absent/invalid rain and dates and uses field elevation; fertilizer safety requires the actual recipe and cumulative use. See [docs/testing/main_irrigation_guardrails_repairs_20260909.md](../docs/testing/main_irrigation_guardrails_repairs_20260909.md) for the four source/test mappings, red/green evidence and client implications. Initial regression run: 53 failed, 111 passed, 1 skipped. After implementation: 164 passed, 1 skipped. Fast preflight: 0 failures, 0 skipped gates. Default preflight and publication remain pending. No live deployment or certification is claimed.

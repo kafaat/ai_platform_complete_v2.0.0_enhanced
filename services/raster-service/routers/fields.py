@@ -1702,13 +1702,11 @@ async def field_tilejson(
             else "لا COG مقصوص للحقل — شغّل /process أو backfill أوّلاً (الحدود عالميّة محايدة لا بيانات حقل)"
         ),
     }
-    # اختياري: رابط TiTiler الديناميكي إن توفّر (لا يُلغي الذاتي). cog_url للعميل:
-    # عامّ http(s) فقط — لا نكشف مسارات التخزين الداخليّة (file://، s3://، مضيف داخليّ).
+    # `titiler_tiles` **اسمُ توافقٍ لا رابطٌ مباشرٌ إلى TiTiler**: يحمل نفسَ مسار بلاطات
+    # الحقل المُصادَق عليه أعلاه. ولا يُعاد `cog_url` إلى العميل — لا مضيفُ TiTiler الخاصّ
+    # ولا مصدرُ COG يصير رابطاً في المتصفّح. و`_public_cog_url` هنا **شرطُ توفّرٍ** فقط:
+    # لا يُعلَن القالبُ إلّا لمصدرٍ يستطيع النقلُ جلبَه فعلاً.
     cog_url = _public_cog_url(layer.get("cog_url") if layer else None)
     if TITILER_URL and cog_url:
-        internal = _normalize_index(index)
-        colormap = "RdYlGn_r" if internal in ("ndsi", "salinity") else "RdYlGn"
-        tj["titiler_tiles"] = [
-            f"{TITILER_URL}/cog/tiles/{{z}}/{{x}}/{{y}}.png?url={cog_url}&colormap_name={colormap}"
-        ]
+        tj["titiler_tiles"] = list(tj["tiles"])
     return tj

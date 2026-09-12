@@ -14,7 +14,7 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = '09017ae65589f34c78c681f2573c091265535c9431f437a96e4ab83bf201abaa';
+export const PLATFORM_CATALOG_FINGERPRINT = '12116f918b7b3d28c7e9243c8185914143b1206d90c9264e311343456c255918';
 
 export const PLATFORM_CATALOG_COUNTS = {
   "backend_components": 32,
@@ -29,9 +29,9 @@ export const PLATFORM_CATALOG_COUNTS = {
   "duplicate_groups_classified": 12,
   "indicator_products": 34,
   "ownership_conflicts": 0,
-  "route_rows": 1113,
+  "route_rows": 1114,
   "ui_waivers": 52,
-  "unique_method_path": 998
+  "unique_method_path": 999
 } as const;
 
 export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [

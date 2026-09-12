@@ -2984,10 +2984,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/raster-service/raster_security_context.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/raster-service/raster_stage_receipt.py",
     "kind": "backend"
   },

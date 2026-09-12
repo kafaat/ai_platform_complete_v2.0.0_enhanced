@@ -1,3 +1,4 @@
+import json
 import sys
 from pathlib import Path
 
@@ -25,7 +26,13 @@ def test_stac_collections_include_source_and_derived_products():
     assert "field-cog-products" in ids
 
 
-def test_cog_registry_preview_record_contains_tilejson_and_quality():
+def test_cog_registry_preview_scores_quality_without_advertising_a_tile_path():
+    """تغييرُ عقدٍ مقصود: المعاينةُ لا تُصدِر قالبَ بلاطاتٍ لا يُخدَم.
+
+    كان التأكيدُ السابق يشترط البادئة `/tiles/WebMercatorQuad/` — أي **شكلَ TiTiler
+    المباشر حاملاً `cog_url` في الاستعلام**. وذلك المسارُ غيرُ موجَّهٍ في البوّابة،
+    والسجلُّ المُعايَن بلا هويّةٍ بعد، فلا مسارَ بلاطاتٍ مُصادَقاً عليه له.
+    """
     rec = cnc.cog_registry_record(
         tenant_id="tenant",
         field_id="field",
@@ -35,5 +42,8 @@ def test_cog_registry_preview_record_contains_tilejson_and_quality():
         cloud_pct=6,
     )
     assert rec["quality"]["accepted"] is True
-    assert rec["tilejson_url"].startswith("/tiles/WebMercatorQuad/")
     assert rec["index_type"] == "ndvi"
+    assert rec["tilejson_url"] is None
+    assert rec["tilejson_unavailable_reason"] == "preview_record_has_no_registry_identity"
+    # ولا يُعاد شكلُ TiTiler المباشر في أيّ حقلٍ من المعاينة.
+    assert "WebMercatorQuad" not in json.dumps(rec)

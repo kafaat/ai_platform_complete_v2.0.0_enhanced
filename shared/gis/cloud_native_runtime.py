@@ -8,12 +8,12 @@ API layer is not a static facade and can be exercised with fake rows in tests.
 from __future__ import annotations
 
 import json
-import os
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 
 from shared.gis.cloud_native_gis import score_scene_quality
 
@@ -192,12 +192,11 @@ def mosaicjson_from_records(
     }
 
 
-def tilejson_for_cog(
-    record: RasterRegistryRecord, *, tiler_base_url: str | None = None, tile_scale: int = 1
-) -> dict[str, Any]:
-    base = (tiler_base_url or os.getenv("TITILER_BASE_URL") or "/tiler").rstrip("/")
-    cog = record.cog_url
-    tiles = [f"{base}/cog/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}@{tile_scale}x?url={cog}"]
+def tilejson_for_cog(record: RasterRegistryRecord) -> dict[str, Any]:
+    # Record identity, not a user-controlled COG URL, crosses the browser boundary.
+    # The runtime API has one authorized tile path, not an arbitrary URL proxy.
+    base = f"/api/v1/gis/cloud-native/rasters/{quote(record.id, safe='')}/tiles"
+    tiles = [f"{base}/{{z}}/{{x}}/{{y}}.png"]
     return {
         "tilejson": "3.0.0",
         "name": f"{record.index_type}:{record.id}",

@@ -2473,6 +2473,11 @@ SHAs من `git log --oneline origin/main`.
 The merged targeted suite passed130 tests. Final generated checks, default preflight and publication remain pending. No production certification is claimed.
 
 
+### 2026-09-10 — connectivity repair branch
+
+Base `7407eae2`: authenticated registry/layer tile paths, bounded public COG transport, canonical Compose tiler dependencies and explicit ERPNext configuration. 74 targeted tests pass; production auth/database/backend are not measured. CONN-03/04/07 remain open, with the producer protected by GATE-01. See [evidence](../../docs/testing/connectivity_repairs_20260910.md). Full preflight/publication results belong to the report; no runtime certification.
+
+Decision: route by authorized registry ID; do not expose a generic URL-taking tiler endpoint. Preserve GATE-01 and require explicit public-source configuration.
 ### 2026-09-09 — require complete decision evidence at existing boundaries
 
 Decision implemented in `f8086c1ff`, based on review of `7407eae2`: retain legacy MPC as simulation because its TAW/weather remain client facts even when Dr comes from the ledger. Reuse the existing JSONB decoder at persisted-evidence reads instead of changing pool-wide codecs. Require explicit precipitation, valid dates and stored elevation before operational water truth; require fertilizer N/P/K and cumulative-use inputs before safety tiers. These choices close the demonstrated failure paths without inventing farm data or changing agronomic thresholds. Source/test mapping and limits: [docs/testing/main_irrigation_guardrails_repairs_20260909.md](../../docs/testing/main_irrigation_guardrails_repairs_20260909.md).
