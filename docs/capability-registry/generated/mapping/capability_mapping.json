@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5308,
+    "files_scanned": 5309,
     "files_by_kind": {
       "backend": 1207,
       "database": 277,
       "governance": 62,
       "mobile": 55,
       "other": 1465,
-      "tests": 1785,
+      "tests": 1786,
       "web": 457
     },
-    "unmapped_artifacts": 2162,
+    "unmapped_artifacts": 2163,
     "ambiguous_artifacts": 418
   },
   "capabilities": [
@@ -42915,6 +42915,10 @@
     },
     {
       "path": "tests_v9/test_github_actions_security_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_gitleaks_allowlist_scope.py",
       "kind": "tests"
     },
     {
