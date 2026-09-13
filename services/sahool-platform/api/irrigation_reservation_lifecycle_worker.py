@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import sys
 from uuid import UUID
 
 from api.irrigation_reservation_lifecycle import expire_due
@@ -32,6 +33,25 @@ def poll_seconds() -> float:
     except ValueError:
         value = 15.0
     return max(1.0, value)
+
+
+# المسبارُ يتبع الإعدادَ لا رقماً مكتوباً في compose: `--max-age 120` ثابتٌ كان يُعلن عاملاً
+# سليماً بفاصل كنسٍ مشروع (١٨٠ ث) ميّتاً بعد كلّ دورة (مراجعة Copilot على #995). ثمانيةُ
+# أضعاف الفاصل، بأرضيّةٍ ١٢٠ ث كي لا يضيق المسبارُ على الفواصل القصيرة أثناء إقلاع القاعدة.
+PROBE_MISSED_POLLS = 8
+PROBE_MIN_MAX_AGE_SECONDS = 120.0
+
+
+def probe_max_age_seconds() -> float:
+    """نقيّة: أقصى عمرٍ للنبضة يقبله المسبار، مشتقّاً من فاصل الكنس المُعدّ."""
+    return max(PROBE_MIN_MAX_AGE_SECONDS, PROBE_MISSED_POLLS * poll_seconds())
+
+
+def run_probe() -> int:
+    """نقطةُ دخول healthcheck في compose: `python -m api.irrigation_reservation_lifecycle_worker --probe`."""
+    from api.worker_heartbeat import _cli_check
+
+    return _cli_check(WORKER_NAME, probe_max_age_seconds())
 
 
 async def expire_all_tenants(pool) -> int:
@@ -97,7 +117,10 @@ async def run() -> None:
         await pool.close()
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    args = sys.argv[1:] if argv is None else argv
+    if args == ["--probe"]:
+        return run_probe()
     logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
     asyncio.run(run())
     return 0

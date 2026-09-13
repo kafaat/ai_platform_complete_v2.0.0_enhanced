@@ -27,6 +27,7 @@ import asyncio
 import json
 import logging
 import os
+import time
 from collections.abc import Awaitable, Callable
 from typing import Any
 
@@ -154,15 +155,40 @@ def make_message_handler(
 
     async def _on_message(msg: Any) -> None:
         try:
-            await handle_delivered_message(msg.data, post_fn=post)
+            result = await handle_delivered_message(msg.data, post_fn=post)
         except Exception as exc:  # noqa: BLE001 — a single bad message must not kill the worker
             logger.warning("dispatch relay handler error: %s", exc)
             heartbeat.mark_error(f"{type(exc).__name__}: {exc}")
         else:
-            heartbeat.mark_poll(1)
+            # The structured outcome IS the health signal — a handler that returns is not a
+            # handler that delivered. Only `delivered` counts; a `failed` POST (503 mirror,
+            # SoR-off, 502) is an error the probe must show; `skipped` proves liveness only.
+            outcome = result.get("outcome")
+            if outcome == "delivered":
+                heartbeat.mark_poll(1)
+            elif outcome == "failed":
+                heartbeat.mark_error(
+                    f"inbox_post_not_settled:status={result.get('status')} "
+                    f"event={result.get('source_event_id')}"
+                )
+            else:
+                _touch_alive(heartbeat)
         heartbeat.write()
 
     return _on_message
+
+
+def _touch_alive(heartbeat: HeartbeatState) -> None:
+    """Refresh `last_poll_at` without changing state or counters.
+
+    Used for beats that prove the process is alive but say nothing about delivery: a skipped
+    (foreign) message, or the idle tick. A `failed` state is deliberately preserved — only a
+    `delivered` outcome clears it — so a relay whose last POST failed stays unhealthy until a
+    delivery actually succeeds, instead of turning green sixty seconds later by the clock.
+    """
+    heartbeat.last_poll_at = time.time()
+    if heartbeat.current_state == "starting":
+        heartbeat.current_state = "running"
 
 
 async def idle_with_heartbeat(heartbeat: HeartbeatState, *, state: str) -> None:
@@ -170,10 +196,15 @@ async def idle_with_heartbeat(heartbeat: HeartbeatState, *, state: str) -> None:
 
     ``state`` is what the beat reports (``idle`` when the feature flag is off, ``running`` while
     subscribed) — a disabled relay is healthy *and* visibly idle, never disguised as working.
+    A ``failed`` state set by a message handler is never overwritten here: the clock proves the
+    process is alive, not that delivery recovered.
     """
     while True:
-        heartbeat.mark_poll(0)
-        heartbeat.current_state = state
+        if heartbeat.current_state == "failed":
+            _touch_alive(heartbeat)
+        else:
+            heartbeat.mark_poll(0)
+            heartbeat.current_state = state
         heartbeat.write()
         await asyncio.sleep(IDLE_BEAT_SECONDS)
 

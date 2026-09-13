@@ -25,7 +25,10 @@ pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[2]
 FRONTEND_SRC = "frontend/src"
 API_LAYER = "frontend/src/services/api.ts"
-_FETCH = re.compile(r"(?<![\w.])fetch\(")
+# لا حرفَ كلمةٍ قبلها (فيُستثنى `refetch(`/`prefetch(`/`useFetch(`) — لكنّ النقطةَ **مقبولة**:
+# `window.fetch(`/`globalThis.fetch(` نداءُ شبكةٍ مباشر مثلُ `fetch(` تماماً (مراجعة Copilot
+# على #995 أمسكت أنّ النسخةَ الأولى كانت تستثنيه فتُقنّن التفافاً).
+_FETCH = re.compile(r"(?<!\w)fetch\(")
 
 #: الأساسُ المُجمَّد — مقيسٌ على `9613db9a`. **يُخفَّض عند النقل إلى services/api.ts ولا يُرفَع.**
 FROZEN_SITES: dict[str, int] = {
@@ -49,10 +52,11 @@ def count_fetch_sites(root: Path = ROOT) -> dict[str, int]:
         if rel == API_LAYER or _is_test_path(rel) or rel.endswith(".d.ts"):
             continue
         text = path.read_text(encoding="utf-8")
+        # نداءً نداءً لا سطراً سطراً: نداءان في سطرٍ واحد اثنان، وإلّا التفّ النموُّ على الراتشِت.
         n = sum(
-            1
+            len(_FETCH.findall(line))
             for line in text.splitlines()
-            if not line.lstrip().startswith("//") and _FETCH.search(line)
+            if not line.lstrip().startswith("//")
         )
         if n:
             found[rel] = n
@@ -80,14 +84,22 @@ def test_the_frozen_baseline_is_lowered_when_a_site_is_migrated():
 
 
 def test_the_detector_ignores_refetch_prefetch_comments_tests_and_the_api_layer(tmp_path):
-    """تكذيبٌ ذاتيّ — وهو بعينه الخطأُ الذي أنتج الرقمَ ٦٢: `refetch(` ليس `fetch(`."""
+    """تكذيبٌ ذاتيّ — وهو بعينه الخطأُ الذي أنتج الرقمَ ٦٢: `refetch(` ليس `fetch(`.
+    و`window.fetch(` **هو** `fetch(` (كان يُستثنى)، ونداءان في سطرٍ اثنان (كانا واحداً)."""
     src = tmp_path / "frontend" / "src"
     (src / "services").mkdir(parents=True)
     (src / "hooks").mkdir()
     (src / "services" / "api.ts").write_text("fetch(u)\n", encoding="utf-8")
     (src / "hooks" / "useX.ts").write_text(
-        "q.refetch()\nqueryClient.prefetch(k)\n// fetch(x)\nwindow.fetch(u)\n", encoding="utf-8"
+        "q.refetch()\nqueryClient.prefetch(k)\nuseFetch(k)\n// fetch(x)\nwindow.fetch(u)\n",
+        encoding="utf-8",
     )
     (src / "hooks" / "useX.test.ts").write_text("fetch(u)\n", encoding="utf-8")
-    (src / "hooks" / "raw.ts").write_text("const r = await fetch('/api')\n", encoding="utf-8")
-    assert count_fetch_sites(tmp_path) == {"frontend/src/hooks/raw.ts": 1}
+    (src / "hooks" / "raw.ts").write_text(
+        "const r = await fetch('/api')\nconst [a, b] = [fetch('/a'), globalThis.fetch('/b')]\n",
+        encoding="utf-8",
+    )
+    assert count_fetch_sites(tmp_path) == {
+        "frontend/src/hooks/useX.ts": 1,
+        "frontend/src/hooks/raw.ts": 3,
+    }

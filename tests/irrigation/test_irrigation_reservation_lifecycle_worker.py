@@ -122,6 +122,26 @@ class _AsyncReturn:
         return self.value
 
 
+def test_the_probe_max_age_follows_the_configured_poll_interval(monkeypatch):
+    """Copilot on #995: a fixed `--max-age 120` in compose declared a worker with a legitimate
+    180-second poll interval dead after every sweep. The probe derives its tolerance from the
+    same setting the loop reads, with a floor for short intervals."""
+    monkeypatch.delenv("IRRIGATION_RESERVATION_LIFECYCLE_POLL_SECONDS", raising=False)
+    assert worker.probe_max_age_seconds() == 120.0  # default 15s × 8 = 120 → floor holds
+    monkeypatch.setenv("IRRIGATION_RESERVATION_LIFECYCLE_POLL_SECONDS", "180")
+    assert worker.probe_max_age_seconds() == 8 * 180.0
+    monkeypatch.setenv("IRRIGATION_RESERVATION_LIFECYCLE_POLL_SECONDS", "5")
+    assert worker.probe_max_age_seconds() == 120.0  # floor, not 40
+
+
+def test_the_probe_entrypoint_reads_the_heartbeat_the_worker_writes(tmp_path, monkeypatch):
+    hb, _ = _heartbeat_in(tmp_path, monkeypatch)
+    assert worker.main(["--probe"]) == 1  # nothing written yet → unhealthy, honestly
+    hb.mark_poll(0)
+    hb.write()
+    assert worker.main(["--probe"]) == 0
+
+
 def test_poll_interval_is_fail_safe(monkeypatch):
     monkeypatch.setenv("IRRIGATION_RESERVATION_LIFECYCLE_POLL_SECONDS", "bad")
     assert worker.poll_seconds() == 15.0

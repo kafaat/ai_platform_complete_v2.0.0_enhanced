@@ -2454,11 +2454,12 @@ services:
     - api.irrigation_reservation_lifecycle_worker
     # WORKERS-INHERIT-AN-HTTP-HEALTHCHECK-THEY-CANNOT-ANSWER-01: بلا هذا المفتاح يرث العاملُ
     # `HEALTHCHECK curl :8000/healthz` من Dockerfile المنصّة ولا يخدم HTTP ⇒ unhealthy دائماً.
-    # النبضةُ تُكتَب كلَّ دورة كنس (١٥ ث افتراضاً)؛ ١٢٠ ث = ثماني دورات فائتة.
+    # `--probe` يشتقّ أقصى عمرٍ للنبضة من IRRIGATION_RESERVATION_LIFECYCLE_POLL_SECONDS نفسِه
+    # (ثمانيةُ أضعاف، بأرضيّة ١٢٠ ث) — رقمٌ مكتوبٌ هنا كان يُكذِّب فاصلاً مشروعاً كـ١٨٠ ث.
     healthcheck:
       test:
       - CMD-SHELL
-      - python -m api.worker_heartbeat check --worker irrigation-reservation-lifecycle --max-age 120
+      - python -m api.irrigation_reservation_lifecycle_worker --probe
       interval: 30s
       timeout: 5s
       retries: 3
