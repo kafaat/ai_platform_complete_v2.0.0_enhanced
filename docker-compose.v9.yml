@@ -9,6 +9,8 @@ x-logging: &id001
 # متغيّر، فلم يبقَ أيّ مُشير إلى ``*id002`` وأُزيلت المرساة اليتيمة (لا كتلة ميّتة في المخطّط).
 services:
   raster-tiler-service:
+    # MEM-LIMIT-ABSENT-01 (المراجعة البنيويّة 2026-09-13 §٤.١): كان بلا سقف ذاكرة — مُعايَرٌ على أقرانه في هذا الملفّ.
+    mem_limit: 1024m
     build:
       context: .
       dockerfile: services/raster-tiler-service/Dockerfile
@@ -391,6 +393,8 @@ services:
       retries: 6
       start_period: 60s
   sahool-minio-init:
+    # MEM-LIMIT-ABSENT-01 (المراجعة البنيويّة 2026-09-13 §٤.١): كان بلا سقف ذاكرة — مُعايَرٌ على أقرانه في هذا الملفّ.
+    mem_limit: 128m
     image: ${MINIO_MC_IMAGE:-minio/mc:RELEASE.2025-04-16T18-13-26Z}
     restart: "no"
     security_opt:
@@ -519,6 +523,8 @@ services:
       retries: 10
       start_period: 180s
   sahool-migrate:
+    # MEM-LIMIT-ABSENT-01 (المراجعة البنيويّة 2026-09-13 §٤.١): كان بلا سقف ذاكرة — مُعايَرٌ على أقرانه في هذا الملفّ.
+    mem_limit: 256m
     image: postgis/postgis:15-3.4
     restart: 'no'
     logging: *id001
@@ -717,6 +723,8 @@ services:
       retries: 6
       start_period: 30s
   sahool-weather-polygon-worker:
+    # MEM-LIMIT-ABSENT-01 (المراجعة البنيويّة 2026-09-13 §٤.١): كان بلا سقف ذاكرة — مُعايَرٌ على أقرانه في هذا الملفّ.
+    mem_limit: 512m
     build:
       context: .
       dockerfile: services/weather-polygon-worker/Dockerfile
@@ -754,6 +762,8 @@ services:
       retries: 6
       start_period: 40s
   sahool-weather-signal-engine:
+    # MEM-LIMIT-ABSENT-01 (المراجعة البنيويّة 2026-09-13 §٤.١): كان بلا سقف ذاكرة — مُعايَرٌ على أقرانه في هذا الملفّ.
+    mem_limit: 512m
     build:
       context: .
       dockerfile: services/weather-signal-engine/Dockerfile
@@ -2257,6 +2267,8 @@ services:
       retries: 6
       start_period: 30s
   sahool-soil-service:
+    # MEM-LIMIT-ABSENT-01 (المراجعة البنيويّة 2026-09-13 §٤.١): كان بلا سقف ذاكرة — مُعايَرٌ على أقرانه في هذا الملفّ.
+    mem_limit: 768m
     build:
       context: .
       dockerfile: services/soil-service/Dockerfile
@@ -2693,6 +2705,8 @@ services:
       retries: 5
       start_period: 40s
   sahool-zlmediakit-config:
+    # MEM-LIMIT-ABSENT-01 (المراجعة البنيويّة 2026-09-13 §٤.١): كان بلا سقف ذاكرة — مُعايَرٌ على أقرانه في هذا الملفّ.
+    mem_limit: 128m
     # CT-07 (container-audit V21 §6): pin floating image tags.
     # Upstream zlmediakit/zlmediakit ships ONLY moving branch tags
     # (master / master_py / feature-*) — no semver/date release tag exists
