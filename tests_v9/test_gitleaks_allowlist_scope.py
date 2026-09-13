@@ -54,6 +54,11 @@ def test_every_path_allowlist_entry_names_exactly_one_tracked_file():
         "docs/audits/patches/SUP-09-anything.patch",
         "scripts/ci/some_other_guard.py",
         "scripts/release/scan_release_archive_v2.py",
+        # Copilot على #999: نمطٌ بلا مرساة `^` لاحقةٌ لا مسار — نسخةٌ متداخلة تحت مجلّدٍ
+        # آخر كانت تُعفى أيضاً. مقيسٌ بـgitleaks 8.24.3: نسخةُ SUP-08 تحت `vendor/` تُبلَّغ
+        # الآن (إيجاباها الكاذبان يظهران) بينما ملفُّ الجذر ما زال يُتخطّى.
+        "vendor/docs/audits/patches/SUP-08-actuator-v2-PENDING-GATE-01.patch",
+        "x/scripts/ci/jwt_secret_configuration_guard.py",
     ],
 )
 def test_a_new_file_beside_an_allowlisted_one_is_still_scanned(hypothetical: str):
@@ -61,3 +66,9 @@ def test_a_new_file_beside_an_allowlisted_one_is_still_scanned(hypothetical: str
         assert not re.search(pattern, hypothetical), (
             f"{pattern!r} يُعفي {hypothetical} — مدخلٌ جامع يُخفي سرّاً في ملفٍّ لاحق"
         )
+
+
+def test_every_path_allowlist_entry_is_anchored_at_both_ends():
+    """gitleaks يبحث عن النمط داخل المسار؛ فبلا `^` و`$` يُعفي المدخلُ كلَّ ما ينتهي أو يبدأ به."""
+    for pattern in _allowlist_paths():
+        assert pattern.startswith("^") and pattern.endswith("$"), pattern
