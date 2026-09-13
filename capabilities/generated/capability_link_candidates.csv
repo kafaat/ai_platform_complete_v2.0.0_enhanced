@@ -103,6 +103,7 @@ DEC-003,test,tests_v9/test_ai_rag_pre_adoption_review.py,3,applied
 DEC-003,test,tests_v9/test_copilot_review_876_regressions.py,3,applied
 DEC-003,test,tests_v9/test_decision_review_backfill_verify.py,3,applied
 DEC-003,test,tests_v9/test_decision_review_boundary_guard.py,3,applied
+DEC-003,test,tests_v9/test_practice_dataset_review.py,3,applied
 DEC-003,test,tests_v9/test_security_review_fixes.py,3,applied
 DEC-004,api,GET /v1/execution-requests @ services/decision-service/main.py:1751,5,applied
 DEC-004,api,GET /v1/execution-requests/recovery @ services/decision-service/main.py:1780,5,applied

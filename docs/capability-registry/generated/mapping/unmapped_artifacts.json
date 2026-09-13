@@ -7452,6 +7452,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_fieldview_import.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_fii_chemical_lineage_shared_module.py",
     "kind": "tests"
   },
@@ -7965,6 +7969,10 @@
   },
   {
     "path": "tests_v9/test_portfolio_command_shape.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_practice_dataset_review.py",
     "kind": "tests"
   },
   {
