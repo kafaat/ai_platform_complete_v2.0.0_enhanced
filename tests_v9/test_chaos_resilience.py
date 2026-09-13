@@ -37,8 +37,8 @@ def test_sync_replay_dedup():
     d = tempfile.mkdtemp()
     svc = ss.CloudSyncService("http://x", "t", sync_dir=d)
     # نفس المحتوى مرّتين عبر queue → مفتاحان مختلفان (عنصران مستقلّان)
-    svc.queue_result("ndvi", {"f": "f1"})
-    svc.queue_result("ndvi", {"f": "f1"})
+    svc.queue_result("ndvi", {"field_id": "f1", "device_id": "test-edge"})
+    svc.queue_result("ndvi", {"field_id": "f1", "device_id": "test-edge"})
     keys = [
         json.load(open(os.path.join(d, f)))["idempotency_key"]
         for f in os.listdir(d)
