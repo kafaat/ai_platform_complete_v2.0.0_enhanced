@@ -41,6 +41,49 @@ log()  { echo -e "${GREEN}[restore]${NC} $*"; }
 warn() { echo -e "${YELLOW}[restore]${NC} $*"; }
 err()  { echo -e "${RED}[restore]${NC} $*" >&2; }
 
+prepare_pitr() {
+    local base="${1:?physical base directory required}" target="" wal="" target_time="" dry=0
+    shift
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --target-dir) target="${2:?target directory required}"; shift 2 ;;
+            --wal-dir) wal="${2:?WAL directory required}"; shift 2 ;;
+            --target-time) target_time="${2:?target time required}"; shift 2 ;;
+            --dry-run) dry=1; shift ;;
+            *) err "Unknown PITR argument: $1"; return 1 ;;
+        esac
+    done
+    [[ -f "$base/backup_manifest" && -f "$base/PG_VERSION" ]] || { err "A physical pg_basebackup directory is required"; return 1; }
+    [[ "$(cat "$base/PG_VERSION")" == 16 ]] || { err "This recovery procedure requires PostgreSQL 16"; return 1; }
+    [[ "$target" == /* && ! -L "$target" ]] || { err "Use an absolute, non-symlink target"; return 1; }
+    [[ -n "$target_time" && "$wal" =~ ^/[A-Za-z0-9_./-]+$ && -d "$wal" ]] || { err "WAL directory and target time are required"; return 1; }
+    [[ ! -e "$target" || ( -d "$target" && -z "$(find "$target" -mindepth 1 -maxdepth 1 -print -quit)" ) ]] || { err "Target must be NEW or EMPTY"; return 1; }
+    target_time=$(date -u -d "$target_time" '+%Y-%m-%d %H:%M:%S+00')
+    [[ ! -d "$base/pg_tblspc" || -z "$(find "$base/pg_tblspc" -mindepth 1 -maxdepth 1 -print -quit)" ]] || { err "External tablespaces need an explicit recovery mapping"; return 1; }
+    pg_verifybackup "$base"
+    if [[ "$dry" -eq 1 ]]; then
+        log "Verified base; would prepare $target for recovery to $target_time. No server started."
+        return
+    fi
+    mkdir -p "$target"
+    chmod 700 "$target"
+    cp -a "$base/." "$target/"
+    rm -f "$target/standby.signal"
+    cat >> "$target/postgresql.auto.conf" <<EOF
+restore_command = 'cp $wal/%f %p'
+recovery_target_time = '$target_time'
+recovery_target_action = 'pause'
+EOF
+    touch "$target/recovery.signal"
+    log "Prepared $target. Start an ISOLATED PostgreSQL 16 instance as its OS owner; verify target reached before promotion."
+}
+
+if [[ "${1:-}" == --pitr ]]; then
+    shift
+    prepare_pitr "$@"
+    exit
+fi
+
 # ─── تحليل المعاملات ───────────────────────────────────────────
 BACKUP_FILE="${1:-}"
 TABLE=""
@@ -74,13 +117,13 @@ if ! pg_restore --list "$BACKUP_FILE" > /dev/null 2>&1; then
     exit 1
 fi
 
-TABLE_COUNT=$(pg_restore --list "$BACKUP_FILE" | grep -c "TABLE DATA" || echo 0)
-log "النسخة سليمة — تحوي $TABLE_COUNT جدولاً"
+TABLE_COUNT=$(pg_restore --list "$BACKUP_FILE" | awk '/TABLE DATA/{n++} END {print n+0}')
+log "فهرس النسخة قابل للقراءة — $TABLE_COUNT جدولاً؛ هذا لا يثبت الاستعادة"
 
 # ─── ٢. dry-run: اعرض المحتوى دون تنفيذ ────────────────────────
 if [[ "$DRY_RUN" -eq 1 ]]; then
     warn "وضع dry-run — لن يُنفَّذ شيء. محتوى النسخة:"
-    pg_restore --list "$BACKUP_FILE" | grep "TABLE DATA" | head -30
+    pg_restore --list "$BACKUP_FILE" | awk '/TABLE DATA/ && n++ < 30'
     exit 0
 fi
 
@@ -101,7 +144,7 @@ fi
 # ─── ٤. التنفيذ ────────────────────────────────────────────────
 RESTORE_ARGS=(
     --host="$PGHOST" --port="$PGPORT" --username="$PGUSER"
-    --dbname="$PGDATABASE" --verbose --no-owner --no-privileges
+    --dbname="$PGDATABASE" --verbose --no-owner --no-privileges --exit-on-error
 )
 
 if [[ -n "$TABLE" ]]; then
