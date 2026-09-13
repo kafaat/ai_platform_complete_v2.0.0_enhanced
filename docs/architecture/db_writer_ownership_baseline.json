@@ -1,7 +1,7 @@
 {
   "$comment": "كتاباتٌ لم يأذن بها docs/architecture/db_ownership.yml — مَعدودةٌ لا محكومٌ عليها. لم يُثبَت أنّ كلّاً منها خطأ؛ بعضُها قد يكون العقدُ هو المخطئ فيه. الأساسُ راتشِتٌ ينزل ولا يصعد: يُخفَّض بنقل الكتابة إلى مالكها أو بتصحيح العقد بأساسٍ مُعلَن.",
   "contract": "docs/architecture/db_ownership.yml",
-  "measured_on": "6fb492aa1d65fed4fff727937f60059f55c77a50",
+  "measured_on": "f1112e2aa2f123ecd34aff54395097efb7cb2e02",
   "violation_count": 73,
   "violations": {
     "actuator_command_outbox::sahool-platform": [
@@ -34,16 +34,16 @@
       "services/sahool-platform/api/routers/documents.py"
     ],
     "farm_energy_records::sahool-platform": [
-      "services/sahool-platform/api/routers/farm_operations_ledger.py"
+      "services/sahool-platform/core/farm_operations_ledger.py"
     ],
     "farm_equipment_records::sahool-platform": [
-      "services/sahool-platform/api/routers/farm_operations_ledger.py"
+      "services/sahool-platform/core/farm_operations_ledger.py"
     ],
     "farm_input_records::sahool-platform": [
-      "services/sahool-platform/api/routers/farm_operations_ledger.py"
+      "services/sahool-platform/core/farm_operations_ledger.py"
     ],
     "farm_labor_records::sahool-platform": [
-      "services/sahool-platform/api/routers/farm_operations_ledger.py"
+      "services/sahool-platform/core/farm_operations_ledger.py"
     ],
     "farm_operation_ledger::sahool-platform": [
       "services/sahool-platform/api/routers/farm_operations_ledger.py"
@@ -55,7 +55,7 @@
       "services/sahool-platform/api/routers/farm_operations_ledger.py"
     ],
     "farm_water_records::sahool-platform": [
-      "services/sahool-platform/api/routers/farm_operations_ledger.py"
+      "services/sahool-platform/core/farm_operations_ledger.py"
     ],
     "farms::sahool-platform": [
       "services/sahool-platform/api/routers/farms.py"

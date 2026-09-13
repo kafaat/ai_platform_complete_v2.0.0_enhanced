@@ -3002,7 +3002,7 @@
         "services/sahool-platform/api/routers/farm_operations_ledger.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "created_in": "v100_farm_operations_ledger.sql",
       "has_tenant_id": true,
@@ -3019,7 +3019,7 @@
         "services/sahool-platform/api/routers/farm_operations_ledger.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "created_in": "v100_farm_operations_ledger.sql",
       "has_tenant_id": true,
@@ -3049,7 +3049,7 @@
         "services/sahool-platform/api/routers/farm_operations_ledger.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "created_in": "v100_farm_operations_ledger.sql",
       "has_tenant_id": true,
@@ -3066,7 +3066,7 @@
         "services/sahool-platform/api/routers/farm_operations_ledger.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "created_in": "v100_farm_operations_ledger.sql",
       "has_tenant_id": true,
@@ -3241,7 +3241,7 @@
         "services/sahool-platform/api/routers/farm_operations_ledger.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "created_in": "v100_farm_operations_ledger.sql",
       "has_tenant_id": true,
