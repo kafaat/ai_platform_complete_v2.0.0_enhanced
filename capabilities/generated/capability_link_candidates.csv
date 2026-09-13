@@ -697,6 +697,7 @@ FM-003,test,services/sahool-platform/tests/test_weather_field_timeline_link.py,3
 FM-003,test,services/vegetation-analysis-service/test_platform_field_catalog_boundary.py,5,applied
 FM-003,test,services/vegetation-analysis-service/test_raster_bundle_boundary.py,3,applied
 FM-003,test,shared/test_field_runtime_cohesion.py,3,applied
+FM-003,test,tests/architecture/test_frontend_fetch_boundary_ratchet.py,3,applied
 FM-003,test,tests/test_fields_create_contract_static.py,3,applied
 FM-003,test,tests_v9/test_alerts_field_state_route.py,3,applied
 FM-003,test,tests_v9/test_c4_economics_erp_payment_boundary_guard.py,3,applied
@@ -996,6 +997,7 @@ GIS-001,test,services/sahool-platform/tests/test_spatial_geometry_integrity.py,3
 GIS-001,test,services/sahool-platform/tests/test_wind_geometry.py,3,applied
 GIS-001,test,services/vegetation-analysis-service/test_platform_field_catalog_boundary.py,3,applied
 GIS-001,test,services/vegetation-analysis-service/test_raster_bundle_boundary.py,3,applied
+GIS-001,test,tests/architecture/test_frontend_fetch_boundary_ratchet.py,3,applied
 GIS-001,test,tests_v9/test_c4_economics_erp_payment_boundary_guard.py,3,applied
 GIS-001,test,tests_v9/test_canonical_boundary.py,3,applied
 GIS-001,test,tests_v9/test_canonical_field_geometry_contract.py,3,applied

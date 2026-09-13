@@ -44,10 +44,10 @@ aiosmtplib>=3.0.0
 redis>=5.0.0
 
 # --- services/decision-service/requirements.txt ---
-fastapi==0.115.6
+fastapi==0.136.3
 uvicorn==0.34.0
 httpx==0.28.1
-pydantic==2.10.4
+pydantic==2.13.4
 asyncpg==0.30.0
 redis>=5.0.0
 
