@@ -35,13 +35,21 @@ def _hash(value: Any) -> str:
     ).hexdigest()
 
 
-def _geometry(value: Any) -> dict[str, Any]:
+def _crs(value: dict[str, Any], name: str) -> dict[str, Any] | None:
+    """Validate every explicit legacy CRS declaration, including unknown null."""
+    if "crs" not in value:
+        return None
+    crs = value["crs"]
+    if crs != {"type": "name", "properties": {"name": "EPSG:4326"}}:
+        raise ValueError(f"{name}: only EPSG:4326 is supported")
+    return copy.deepcopy(crs)
+
+
+def _geometry(value: Any, *, inherited_crs: dict[str, Any] | None = None) -> dict[str, Any]:
     """Validate the documented MultiPolygon shape without asserting land rights."""
     if not isinstance(value, dict) or value.get("type") != "MultiPolygon":
         raise ValueError("geometry: MultiPolygon required")
-    crs = value.get("crs")
-    if crs is not None and crs != {"type": "name", "properties": {"name": "EPSG:4326"}}:
-        raise ValueError("geometry: only EPSG:4326 is supported")
+    crs = _crs(value, "geometry") or inherited_crs
     polygons = value.get("coordinates")
     if not isinstance(polygons, list) or not polygons:
         raise ValueError("geometry: empty coordinates")
@@ -82,11 +90,13 @@ def preview_fieldview_planting(
         document.get("features"), list
     ):
         raise ValueError("FeatureCollection required")
+    collection_crs = _crs(document, "collection")
     previews: dict[str, dict[str, Any]] = {}
     duplicates = 0
     for feature in document["features"]:
         if not isinstance(feature, dict) or feature.get("type") != "Feature":
             raise ValueError("Feature required")
+        feature_crs = _crs(feature, "feature") or collection_crs
         properties = feature.get("properties")
         if not isinstance(properties, dict):
             raise ValueError("properties required")
@@ -120,7 +130,7 @@ def preview_fieldview_planting(
         # Whitelist the supported projection. Do not copy resourceOwner/email.
         source_feature = {
             "type": "Feature",
-            "geometry": _geometry(feature.get("geometry")),
+            "geometry": _geometry(feature.get("geometry"), inherited_crs=feature_crs),
             "properties": {
                 "id": export_id,
                 "field": {"id": external_field_id, "name": _text(field.get("name"), "field.name")},

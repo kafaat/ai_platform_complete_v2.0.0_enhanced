@@ -121,12 +121,48 @@ def test_unknown_unit_and_invalid_geometry_are_rejected():
         preview(doc)
 
 
-def test_explicit_coordinate_system_is_preserved_or_rejected():
+def _crs_target(doc, level):
+    if level == "collection":
+        return doc
+    feature = doc["features"][0]
+    return feature if level == "feature" else feature["geometry"]
+
+
+@pytest.mark.parametrize("level", ["collection", "feature", "geometry"])
+def test_explicit_coordinate_system_survives_projection_and_round_trip(level):
     doc = document()
     crs = {"type": "name", "properties": {"name": "EPSG:4326"}}
-    doc["features"][0]["geometry"]["crs"] = crs
-    assert export_fieldview_projection(preview(doc))["features"][0]["geometry"]["crs"] == crs
-    crs["properties"]["name"] = "EPSG:3857"
+    _crs_target(doc, level)["crs"] = crs
+    original = copy.deepcopy(doc)
+    first = preview(doc)
+    exported = export_fieldview_projection(first)
+    assert exported["features"][0]["geometry"]["crs"] == crs
+    assert preview(exported)["previews"] == first["previews"]
+    assert doc == original
+
+
+@pytest.mark.parametrize("level", ["collection", "feature", "geometry"])
+@pytest.mark.parametrize("crs", [None, {"type": "name", "properties": {"name": "EPSG:3857"}}])
+def test_unsupported_or_unknown_crs_at_any_level_is_rejected(level, crs):
+    doc = document()
+    # Small projected coordinates also fit degree ranges: range checks alone
+    # must not establish the coordinate system.
+    _crs_target(doc, level)["crs"] = crs
+    with pytest.raises(ValueError, match="EPSG:4326"):
+        preview(doc)
+
+
+@pytest.mark.parametrize("level", ["collection", "feature"])
+def test_valid_child_crs_does_not_hide_an_unsupported_parent(level):
+    doc = document()
+    _crs_target(doc, level)["crs"] = {"type": "name", "properties": {"name": "EPSG:3857"}}
+    doc["features"][0]["geometry"]["crs"] = {"type": "name", "properties": {"name": "EPSG:4326"}}
+    with pytest.raises(ValueError, match="EPSG:4326"):
+        preview(doc)
+
+
+def test_empty_collection_cannot_bypass_crs_validation():
+    doc = {"type": "FeatureCollection", "features": [], "crs": None}
     with pytest.raises(ValueError, match="EPSG:4326"):
         preview(doc)
 
