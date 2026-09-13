@@ -5,7 +5,7 @@
   "runtime_verified":false,
   "python_files_parsed":1888,
   "route_handlers":1050,
-  "call_edges":77529,
+  "call_edges":77546,
   "dead_code_candidates":629,
   "duplicate_function_groups":60,
   "route_owners":27,
@@ -207597,105 +207597,98 @@
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"relay_enabled",
    "target":"getenv",
-   "line":64
+   "line":65
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"relay_enabled",
    "target":"lower",
-   "line":64
+   "line":65
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"relay_enabled",
    "target":"strip",
-   "line":64
+   "line":65
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"subscribed_subjects",
    "target":"getenv",
-   "line":68
+   "line":69
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"subscribed_subjects",
    "target":"strip",
-   "line":68
+   "line":69
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"subscribed_subjects",
    "target":"split",
-   "line":70
+   "line":71
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"subscribed_subjects",
    "target":"strip",
-   "line":70
+   "line":71
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"subscribed_subjects",
    "target":"strip",
-   "line":70
+   "line":71
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"subscribed_subjects",
    "target":"tuple",
-   "line":70
+   "line":71
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"handle_delivered_message",
    "target":"loads",
-   "line":79
+   "line":80
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"handle_delivered_message",
    "target":"warning",
-   "line":81
+   "line":82
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"handle_delivered_message",
    "target":"isinstance",
-   "line":83
+   "line":84
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"handle_delivered_message",
    "target":"get",
-   "line":86
+   "line":87
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"handle_delivered_message",
    "target":"build_reservation_dispatch_ingest",
-   "line":91
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
-   "source":"handle_delivered_message",
-   "target":"get",
-   "line":93
+   "line":92
   },
   {
    "owner":"sahool-platform",
@@ -207722,393 +207715,484 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"handle_delivered_message",
-   "target":"warning",
-   "line":99
+   "target":"get",
+   "line":97
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"handle_delivered_message",
-   "target":"str",
+   "target":"warning",
    "line":100
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"handle_delivered_message",
-   "target":"get",
-   "line":102
+   "target":"str",
+   "line":101
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"handle_delivered_message",
-   "target":"post_fn",
+   "target":"get",
    "line":103
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"handle_delivered_message",
+   "target":"post_fn",
+   "line":104
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
+   "source":"handle_delivered_message",
    "target":"warning",
-   "line":112
+   "line":113
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"_default_post",
    "target":"decision_service_url",
-   "line":129
+   "line":130
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"_default_post",
    "target":"lstrip",
-   "line":129
+   "line":130
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"_default_post",
    "target":"AsyncClient",
-   "line":131
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
-   "source":"_default_post",
-   "target":"post",
    "line":132
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"_default_post",
+   "target":"post",
+   "line":133
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
+   "source":"_default_post",
    "target":"decision_service_headers",
-   "line":135
+   "line":136
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"_default_post",
    "target":"json",
-   "line":140
+   "line":141
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"_on_message",
    "target":"handle_delivered_message",
-   "line":157
+   "line":158
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"make_message_handler",
    "target":"handle_delivered_message",
-   "line":157
+   "line":158
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"_on_message",
    "target":"warning",
-   "line":159
+   "line":160
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"make_message_handler",
    "target":"warning",
-   "line":159
+   "line":160
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"_on_message",
    "target":"mark_error",
-   "line":160
+   "line":161
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"_on_message",
    "target":"type",
-   "line":160
+   "line":161
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"make_message_handler",
    "target":"mark_error",
-   "line":160
+   "line":161
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"make_message_handler",
    "target":"type",
-   "line":160
+   "line":161
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
+   "source":"_on_message",
+   "target":"get",
+   "line":166
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
+   "source":"make_message_handler",
+   "target":"get",
+   "line":166
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"_on_message",
    "target":"mark_poll",
-   "line":162
+   "line":168
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"make_message_handler",
    "target":"mark_poll",
-   "line":162
+   "line":168
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"_on_message",
-   "target":"write",
-   "line":163
+   "target":"mark_error",
+   "line":170
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"make_message_handler",
-   "target":"write",
-   "line":163
+   "target":"mark_error",
+   "line":170
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
-   "source":"idle_with_heartbeat",
-   "target":"mark_poll",
+   "source":"_on_message",
+   "target":"get",
+   "line":171
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
+   "source":"make_message_handler",
+   "target":"get",
+   "line":171
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
+   "source":"_on_message",
+   "target":"get",
+   "line":172
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
+   "source":"make_message_handler",
+   "target":"get",
+   "line":172
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
+   "source":"_on_message",
+   "target":"_touch_alive",
    "line":175
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
+   "source":"make_message_handler",
+   "target":"_touch_alive",
+   "line":175
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
+   "source":"_on_message",
+   "target":"write",
+   "line":176
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
+   "source":"make_message_handler",
+   "target":"write",
+   "line":176
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
+   "source":"_touch_alive",
+   "target":"time",
+   "line":189
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
+   "source":"idle_with_heartbeat",
+   "target":"_touch_alive",
+   "line":204
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
+   "source":"idle_with_heartbeat",
+   "target":"mark_poll",
+   "line":206
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"idle_with_heartbeat",
    "target":"write",
-   "line":177
+   "line":208
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"idle_with_heartbeat",
    "target":"sleep",
-   "line":178
+   "line":209
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"run_relay",
    "target":"relay_enabled",
-   "line":186
+   "line":217
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"run_relay",
    "target":"info",
-   "line":187
+   "line":218
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"run_relay",
    "target":"getenv",
-   "line":189
+   "line":220
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"run_relay",
    "target":"getenv",
-   "line":189
+   "line":220
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"run_relay",
    "target":"HeartbeatState",
-   "line":191
+   "line":222
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"run_relay",
    "target":"connect",
-   "line":196
+   "line":227
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"run_relay",
    "target":"info",
-   "line":198
+   "line":229
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"run_relay",
    "target":"redact_broker_url",
-   "line":198
+   "line":229
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"run_relay",
    "target":"make_message_handler",
-   "line":200
+   "line":231
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"run_relay",
    "target":"subscribed_subjects",
-   "line":202
+   "line":233
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"run_relay",
    "target":"subscribe",
-   "line":203
+   "line":234
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"run_relay",
    "target":"info",
-   "line":204
+   "line":235
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"run_relay",
    "target":"idle_with_heartbeat",
-   "line":205
+   "line":236
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"run_relay",
    "target":"drain",
-   "line":207
+   "line":238
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"main",
    "target":"basicConfig",
-   "line":211
+   "line":242
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"main",
    "target":"getenv",
-   "line":211
+   "line":242
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"_serve",
    "target":"HeartbeatState",
-   "line":214
+   "line":245
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"main",
    "target":"HeartbeatState",
-   "line":214
+   "line":245
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"_serve",
    "target":"write",
-   "line":215
+   "line":246
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"main",
    "target":"write",
-   "line":215
+   "line":246
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"_serve",
    "target":"relay_enabled",
-   "line":216
+   "line":247
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"main",
    "target":"relay_enabled",
-   "line":216
+   "line":247
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"_serve",
    "target":"info",
-   "line":219
+   "line":250
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"main",
    "target":"info",
-   "line":219
+   "line":250
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"_serve",
    "target":"idle_with_heartbeat",
-   "line":220
+   "line":251
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"main",
    "target":"idle_with_heartbeat",
-   "line":220
+   "line":251
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"_serve",
    "target":"run_relay",
-   "line":221
+   "line":252
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"main",
    "target":"run_relay",
-   "line":221
+   "line":252
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"main",
    "target":"_serve",
-   "line":223
+   "line":254
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
    "source":"main",
    "target":"run",
-   "line":223
+   "line":254
   },
   {
    "owner":"sahool-platform",
@@ -211993,252 +212077,287 @@
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"poll_seconds",
    "target":"getenv",
-   "line":29
+   "line":30
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"poll_seconds",
    "target":"float",
-   "line":31
+   "line":32
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"poll_seconds",
    "target":"max",
-   "line":34
+   "line":35
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
+   "source":"probe_max_age_seconds",
+   "target":"max",
+   "line":47
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
+   "source":"probe_max_age_seconds",
+   "target":"poll_seconds",
+   "line":47
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
+   "source":"run_probe",
+   "target":"_cli_check",
+   "line":54
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
+   "source":"run_probe",
+   "target":"probe_max_age_seconds",
+   "line":54
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"expire_all_tenants",
    "target":"acquire",
-   "line":40
+   "line":60
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"expire_all_tenants",
    "target":"fetch",
-   "line":41
+   "line":61
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"expire_all_tenants",
    "target":"UUID",
-   "line":48
+   "line":68
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"expire_all_tenants",
    "target":"str",
-   "line":48
+   "line":68
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"expire_all_tenants",
    "target":"acquire",
-   "line":49
+   "line":69
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"expire_all_tenants",
    "target":"transaction",
-   "line":50
+   "line":70
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"expire_all_tenants",
    "target":"execute",
-   "line":51
+   "line":71
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"expire_all_tenants",
    "target":"str",
-   "line":52
+   "line":72
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"expire_all_tenants",
    "target":"expire_due",
-   "line":54
+   "line":74
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"sweep_once",
    "target":"expire_all_tenants",
-   "line":66
+   "line":86
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"sweep_once",
    "target":"exception",
-   "line":70
+   "line":90
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"sweep_once",
    "target":"mark_error",
-   "line":71
+   "line":91
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"sweep_once",
    "target":"type",
-   "line":71
+   "line":91
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"sweep_once",
    "target":"write",
-   "line":72
+   "line":92
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"sweep_once",
    "target":"info",
-   "line":75
+   "line":95
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"sweep_once",
    "target":"mark_poll",
-   "line":76
+   "line":96
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"sweep_once",
    "target":"write",
-   "line":77
+   "line":97
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"run",
    "target":"getenv",
-   "line":84
+   "line":104
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"run",
    "target":"getenv",
-   "line":84
+   "line":104
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"run",
    "target":"strip",
-   "line":84
+   "line":104
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"run",
    "target":"RuntimeError",
-   "line":86
+   "line":106
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"run",
    "target":"HeartbeatState",
-   "line":87
+   "line":107
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"run",
    "target":"write",
-   "line":88
+   "line":108
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"run",
    "target":"create_pool",
-   "line":89
+   "line":109
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"run",
    "target":"poll_seconds",
-   "line":90
+   "line":110
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"run",
    "target":"info",
-   "line":91
+   "line":111
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"run",
    "target":"sweep_once",
-   "line":94
+   "line":114
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"run",
    "target":"sleep",
-   "line":95
+   "line":115
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"run",
    "target":"close",
-   "line":97
+   "line":117
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
+   "source":"main",
+   "target":"run_probe",
+   "line":123
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"main",
    "target":"basicConfig",
-   "line":101
+   "line":124
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"main",
    "target":"getenv",
-   "line":101
+   "line":124
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"main",
    "target":"run",
-   "line":102
+   "line":125
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
    "source":"main",
    "target":"run",
-   "line":102
+   "line":125
   },
   {
    "owner":"sahool-platform",
