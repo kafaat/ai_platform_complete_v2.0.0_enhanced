@@ -104,6 +104,9 @@ class FarmerKnowledge:
     data_agreement: bool | None = None  # هل البيانات تطابقها؟
     review_year: int | None = None  # متى نراجع (drift مناخي)
     source_ar: str = "المزارع/الخبرة المتراكمة"
+    # U07: أثرُ التحقّق — طريقةُ القياس ومراجعُه ومَن أجراه (لا Boolean عارٍ).
+    verification_evidence: dict | None = None
+    verified_by: str | None = None
 
     def __post_init__(self):
         # حماية: نوع سببي بلا آلية → يُرفض تلقائياً
@@ -168,18 +171,43 @@ class FarmerKnowledge:
         return d
 
 
+def _evidence_is_referenced(evidence: dict | None) -> bool:
+    """دليلُ التحقّق مرجعيّ حين يحمل طريقةً ومرجعاً واحداً على الأقلّ (معرّف قياس/تجربة)."""
+    if not isinstance(evidence, dict):
+        return False
+    method = evidence.get("method")
+    refs = [r for r in (evidence.get("reference_ids") or []) if r not in (None, "")]
+    return bool(method) and bool(refs)
+
+
 def verify_against_data(
     knowledge: FarmerKnowledge,
     data_supports: bool,
+    *,
+    evidence: dict | None = None,
+    verified_by: str | None = None,
 ) -> FarmerKnowledge:
     """تحديث حالة التحقّق بناءً على مقارنة البيانات (NDVI/مخبري/تجربة).
 
     لا تُرفض المعرفة عند التعارض — تُسجّل للدراسة (قد يكون الحساس مخطئاً،
-    أو المعرفة متقادمة). الشفافية لا الإقصاء."""
+    أو المعرفة متقادمة). الشفافية لا الإقصاء.
+
+    U07 (التدقيق الموحَّد 2026-09-13): كان العقدُ يقبل Boolean فيرفع الحالة إلى «مؤكّدة»
+    بلا أثرٍ لِما أكّدها. الآن ``evidence`` (``{"method": ..., "reference_ids": [...]}``)
+    يُحفَظ على الوحدة، و**التأكيد** يشترط دليلاً مرجعيّاً — تأييدٌ بلا مرجع يبقى
+    ``PENDING`` مع تسجيل ``data_agreement``؛ التعارضُ يُخفِّض بلا هذا الشرط (خفضٌ آمن).
+    """
     if knowledge.verification_status == VerificationStatus.REJECTED:
         return knowledge  # سببية بلا آلية تبقى مرفوضة
     knowledge.data_agreement = data_supports
-    knowledge.verification_status = (
-        VerificationStatus.CONFIRMED if data_supports else VerificationStatus.CONTRADICTED
-    )
+    knowledge.verification_evidence = dict(evidence) if isinstance(evidence, dict) else None
+    knowledge.verified_by = verified_by
+    if not data_supports:
+        knowledge.verification_status = VerificationStatus.CONTRADICTED
+    elif _evidence_is_referenced(evidence):
+        knowledge.verification_status = VerificationStatus.CONFIRMED
+    else:
+        # تأييدٌ بلا مرجع لا يرفع الحالة — يبقى قيد التحقّق ويُعلَن سببُه.
+        knowledge.verification_status = VerificationStatus.PENDING
+        knowledge.verification_evidence = {"basis": "unreferenced_claim"}
     return knowledge

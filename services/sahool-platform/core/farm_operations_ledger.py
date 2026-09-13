@@ -166,7 +166,8 @@ class LedgerSummary:
     indirect_cost: float
     currency: str
     cost_breakdown: dict[str, float]
-    water_volume_m3: float
+    # U04: None حين لا يوجد حجمٌ مقيس — الغائب ليس صفراً (صفر يعني «لم يُستهلك ماء»).
+    water_volume_m3: float | None
     energy_kwh: float
     diesel_liters: float
     equipment_hours: float
@@ -175,6 +176,15 @@ class LedgerSummary:
     record_count: int
     syncable_cost: float
     control_only: bool
+    # اكتمالُ قياس الماء (U04): كم سجلّ ريّ حمل حجماً مقيساً وكم سجلّ بلا حجم.
+    water_records_total: int = 0
+    water_records_measured: int = 0
+    water_records_unmeasured: int = 0
+
+    @property
+    def water_measurement_complete(self) -> bool:
+        """صحيح فقط حين كلُّ سجلّات الماء مقيسة (بلا سجلّات ⇒ لا شيء ليُقاس ⇒ True)."""
+        return self.water_records_unmeasured == 0
 
 
 def _non_negative(value: float | int | None, *, field_name: str) -> float | None:
@@ -232,10 +242,19 @@ def summarize_operational_records(
     indirect = sum(v for k, v in cost_breakdown.items() if k in indirect_keys)
     direct = total - indirect
 
-    water_volume = sum(
-        (_non_negative(r.water_volume_m3, field_name="water_volume_m3") or 0.0)
-        for r in (water or [])
-    )
+    # U04 (التدقيق الموحَّد 2026-09-13): كان الحجمُ الغائب يُجمَع صفراً فتخرج خاصيّةُ
+    # التعلّم water_m3_per_ha=0 عن ريٍّ سُجِّلت ساعاتُه بلا حجم. الآن: يُجمَع المقيسُ
+    # وحدَه، ويُعلَن عددُ المقيس/غير المقيس، وغيابُ أيّ قياس ⇒ None لا 0.
+    measured_volumes = [
+        v
+        for v in (
+            _non_negative(r.water_volume_m3, field_name="water_volume_m3") for r in (water or [])
+        )
+        if v is not None
+    ]
+    water_records_total = len(water or [])
+    water_records_measured = len(measured_volumes)
+    water_volume = sum(measured_volumes) if measured_volumes else None
     energy_kwh = sum((_non_negative(r.kwh, field_name="kwh") or 0.0) for r in (energy or []))
     diesel = sum(
         (_non_negative(r.diesel_liters, field_name="diesel_liters") or 0.0) for r in (energy or [])
@@ -265,26 +284,38 @@ def summarize_operational_records(
         record_count=len(operations),
         syncable_cost=syncable,
         control_only=syncable == 0.0,
+        water_records_total=water_records_total,
+        water_records_measured=water_records_measured,
+        water_records_unmeasured=water_records_total - water_records_measured,
     )
 
 
 def ai_feature_row(summary: LedgerSummary, *, area_ha: float | None = None) -> dict[str, Any]:
-    """صف features آمن للتعلم المستقبلي؛ لا يتنبأ ولا يوصي هنا."""
+    """صف features آمن للتعلم المستقبلي؛ لا يتنبأ ولا يوصي هنا.
+
+    U04: خصائصُ الماء تكون ``None`` حين لا حجمَ مقيساً، ويرافقها اكتمالُ القياس — فلا
+    يتعلّم نموذجٌ أنّ ريّاً بلا عدّاد كان صفر أمتار مكعّبة.
+    """
     area = _non_negative(area_ha, field_name="area_ha") if area_ha is not None else None
+    volume = summary.water_volume_m3
     return {
         "total_cost": summary.total_cost,
         "direct_cost": summary.direct_cost,
         "indirect_cost": summary.indirect_cost,
-        "water_volume_m3": summary.water_volume_m3,
+        "water_volume_m3": volume,
+        "water_measurement": {
+            "records_total": summary.water_records_total,
+            "records_measured": summary.water_records_measured,
+            "records_unmeasured": summary.water_records_unmeasured,
+            "complete": summary.water_measurement_complete,
+        },
         "energy_kwh": summary.energy_kwh,
         "diesel_liters": summary.diesel_liters,
         "equipment_hours": summary.equipment_hours,
         "labor_hours": summary.labor_hours,
         "cost_per_ha": summary.total_cost / area if area else None,
-        "water_m3_per_ha": summary.water_volume_m3 / area if area else None,
-        "kwh_per_m3": summary.energy_kwh / summary.water_volume_m3
-        if summary.water_volume_m3 > 0
-        else None,
+        "water_m3_per_ha": volume / area if (area and volume is not None) else None,
+        "kwh_per_m3": summary.energy_kwh / volume if (volume is not None and volume > 0) else None,
         "provenance": {
             "source": "farm_operations_ledger",
             "prediction": False,

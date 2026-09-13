@@ -30,15 +30,18 @@ const REGIONS: { id: string; ar: string }[] = [
 
 // شارة مستوى الدليل — نفس ألوان CalibrationPage/LineagePage (تناسق بصريّ).
 const EVIDENCE_AR: Record<string, string> = {
-  field_verified:    'مُتحقَّق ميدانيّاً',
-  field_preliminary: 'ميدانيّ أوّليّ',
-  expert_opinion:    'رأي خبير',
-  none:              'لا دليل',
+  field_verified:        'مُتحقَّق ميدانيّاً',
+  // U01: العتبة بلغت لكن لا مراجعة مختصّ — لا تُعرَض شارة «مُتحقَّق» قبل الاعتماد.
+  field_sample_complete: 'عيّنة مكتملة — بانتظار المراجعة',
+  field_preliminary:     'ميدانيّ أوّليّ',
+  expert_opinion:        'رأي خبير',
+  none:                  'لا دليل',
 };
 const evidenceStyle = (level: string): { bg: string; color: string } => {
   switch (level) {
-    case 'field_verified':    return { bg: '#0c2a1a', color: '#4ade80' };
-    case 'field_preliminary': return { bg: '#2a1a00', color: '#fbbf24' };
+    case 'field_verified':        return { bg: '#0c2a1a', color: '#4ade80' };
+    case 'field_sample_complete': return { bg: '#2a1a00', color: '#fbbf24' };
+    case 'field_preliminary':     return { bg: '#2a1a00', color: '#fbbf24' };
     case 'expert_opinion':    return { bg: '#0a1f2e', color: '#38bdf8' };
     case 'none':              return { bg: '#2a0d0d', color: '#f87171' };
     default:                  return { bg: '#1e293b', color: '#94a3b8' };

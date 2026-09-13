@@ -183,7 +183,10 @@ async def internal_ai_advice_event(
         async with main.tenant_connection(actor) as conn:
             if req.field_id:
                 await main._assert_field_in_tenant(conn, req.field_id)
-            await main._emit_domain_event(
+            # غير حرج بالتصميم (تسجيلٌ للأثر لا كتابةُ عمل)، لكنّ الردّ يجب أن يقول ما
+            # حدث فعلاً: كان ``ok: True`` ثابتاً حتّى حين ابتُلع فشلُ الإصدار (التدقيق
+            # الموحَّد 2026-09-13، P0). المُستهلِك (ai_agronomist) يعرض ``persisted``.
+            persisted = await main._emit_domain_event(
                 conn,
                 actor,
                 "AI_SUGGESTION",
@@ -197,7 +200,9 @@ async def internal_ai_advice_event(
     except Exception as e:  # noqa: BLE001
         raise main._db_unavailable("تسجيل حدث مستشار الذكاء", e) from e
     return {
-        "ok": True,
+        "ok": bool(persisted),
+        "persisted": bool(persisted),
+        "reason": None if persisted else "outbox_emit_failed_non_critical",
         "event_type": "ai.suggestion.generated",
         "entity_id": req.field_id or req.tenant_id,
     }

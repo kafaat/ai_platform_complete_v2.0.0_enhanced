@@ -16,10 +16,41 @@ from __future__ import annotations
 _FIELD_VERIFIED_MIN_SAMPLES = 30
 
 
+_INDEPENDENCE_KEYS = ("field_id", "season_id", "farm_id", "tenant_id")
+
+
+def _independence(samples: list[dict]) -> dict:
+    """أعداد الوحدات المستقلّة بين العيّنات (حقول/مواسم/مزارع/مستأجِرون) + مَن بلا هويّة.
+
+    صدق (U01): 30 صفّاً من حقلٍ وموسمٍ واحد ليست 30 شاهداً مستقلّاً. العيّنة بلا أيّ
+    هويّة وحدة تُعَدّ «مجهولة الوحدة» وتُعلَن لا تُخفى.
+    """
+    units: dict[str, set] = {k: set() for k in _INDEPENDENCE_KEYS}
+    unknown = 0
+    for o in samples:
+        seen_any = False
+        for k in _INDEPENDENCE_KEYS:
+            v = o.get(k)
+            if v not in (None, ""):
+                units[k].add(str(v))
+                seen_any = True
+        if not seen_any:
+            unknown += 1
+    return {
+        "fields": len(units["field_id"]),
+        "seasons": len(units["season_id"]),
+        "farms": len(units["farm_id"]),
+        "tenants": len(units["tenant_id"]),
+        "unknown_unit_samples": unknown,
+    }
+
+
 def aggregate_evidence(
     region: str,
     outcomes: list[dict],
     expert_calibrated: bool = False,
+    *,
+    reviewed: bool = False,
 ) -> dict:
     """يجمّع نتائج القياس لمنطقة في دليل تراكميّ — نقيّ حتميّ.
 
@@ -44,24 +75,45 @@ def aggregate_evidence(
     stamps = [o["evaluated_at"] for o in samples if o.get("evaluated_at")]
     last_evaluated_at = max(stamps) if stamps else None
 
+    # U01 (التدقيق الموحَّد 2026-09-13): اكتمالُ العيّنة (عدُّ الصفوف) شيء، والاعتمادُ
+    # الزراعيّ شيء آخر. كان بلوغُ 30 صفّاً — ولو من حقلٍ وموسمٍ واحد وبنسبة نجاح صفر —
+    # يرفع الوصف إلى «مُتحقَّق ميدانيّاً» بلا مراجعة. الآن: العتبة تُنتِج
+    # ``field_sample_complete`` (عيّنة مكتملة بانتظار المراجعة)، و``field_verified`` لا
+    # يُمنَح إلّا مع ``reviewed=True`` (مراجعة مختصّ مُثبَتة عند المُنادي). أعدادُ الوحدات
+    # المستقلّة تُعرَض إلى جانب العدّ الخام.
     if sample_count == 0:
+        sample_completeness = "empty"
         evidence_level = "expert_opinion" if expert_calibrated else "none"
     elif sample_count >= _FIELD_VERIFIED_MIN_SAMPLES:
-        evidence_level = "field_verified"
+        sample_completeness = "threshold_reached"
+        evidence_level = "field_verified" if reviewed else "field_sample_complete"
     else:
+        sample_completeness = "below_threshold"
         evidence_level = "field_preliminary"
 
     samples_to_verified = max(0, _FIELD_VERIFIED_MIN_SAMPLES - sample_count)
+    independence = _independence(samples)
 
     warnings_ar = ["عتبة التحقّق الميدانيّ تقديريّة — تحتاج معايرة"]
     if 0 < sample_count < _FIELD_VERIFIED_MIN_SAMPLES:
         warnings_ar.append(
             f"دليل أوّليّ ({sample_count}/{_FIELD_VERIFIED_MIN_SAMPLES}) — يلزم {samples_to_verified} عيّنة للتحقّق"
         )
+    if evidence_level == "field_sample_complete":
+        warnings_ar.append(
+            "العيّنة بلغت العتبة لكنّ الدليل غير مُعتمَد — يلزم مراجعة مختصّ قبل وصفه «مُتحقَّقاً ميدانيّاً»"
+        )
+    if sample_count > 0 and independence["unknown_unit_samples"] == sample_count:
+        warnings_ar.append("العيّنات بلا هويّة حقل/موسم — استقلالُ الشواهد غير قابل للإثبات")
+    elif sample_count > 1 and max(independence["fields"], independence["seasons"]) <= 1:
+        warnings_ar.append("كلّ العيّنات من حقلٍ وموسمٍ واحد — العدُّ لا يعني شواهد مستقلّة")
 
     return {
         "region": region,
         "sample_count": sample_count,
+        "sample_completeness": sample_completeness,
+        "independence": independence,
+        "review_status": "reviewed" if reviewed else "unreviewed",
         "evidence_level": evidence_level,
         "success_rate": success_rate,
         "success_flag_counts": flag_counts,
@@ -77,6 +129,8 @@ def evidence_from_persisted_outcomes(
     region: str,
     rows: list[dict],
     expert_calibrated: bool = False,
+    *,
+    reviewed: bool = False,
 ) -> dict:
     """يبني الدليل التراكميّ من صفوف outcome_record المُدامة — يُغلق P0-2 (إدامة الدليل).
 
@@ -99,7 +153,9 @@ def evidence_from_persisted_outcomes(
                 "evaluated_at": r.get("created_at"),
             }
         )
-    out = aggregate_evidence(region, outcomes, expert_calibrated=expert_calibrated)
+    out = aggregate_evidence(
+        region, outcomes, expert_calibrated=expert_calibrated, reviewed=reviewed
+    )
     # صدق: نوضّح مصدر الدليل (نتائج مُدامة) وعدد الصفوف المقروءة (قد يفوق العيّنات المُحتسَبة).
     out["source"] = "persisted_outcomes"
     out["persisted_rows"] = len(rows)

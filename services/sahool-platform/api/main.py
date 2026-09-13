@@ -684,9 +684,12 @@ CRITICAL_EVENT_TYPES: frozenset[str] = frozenset(
 
 async def _emit_domain_event(
     conn, user, event_type_name, entity_type, entity_id, payload, *, critical: bool | None = None
-):
+) -> bool:
     """يُصدر حدث domain ضمن نفس معاملة الكتابة (نمط outbox: الحدث + صفّ outbox
     يُكتبان ذرّيّاً مع تغيير الحالة) داخل **savepoint**.
+
+    يُعيد ``True`` حين كُتب الحدث فعلاً، و``False`` حين ابتُلع فشلٌ غير حرج — فيستطيع
+    المُنادي أن يُبلِغ الإدامةَ الحقيقيّة بدل ``ok: True`` ثابتة (التدقيق الموحَّد، P0).
 
     سلوك الفشل يحكمه ``critical``:
       - حرج (``critical=True`` أو نوع ضمن ``CRITICAL_EVENT_TYPES``): فشل الإدراج
@@ -724,6 +727,8 @@ async def _emit_domain_event(
             raise
         # غير حرج: فشل الإصدار (غياب جداول/DB) لا يكسر الكتابة (تصميم متعمّد).
         logger.warning("emit %s تخطّي: %s", event_type_name, e)
+        return False
+    return True
 
 
 # ─── idempotency لنقاط الموبايل (إعادات offline لا تُكرّر الكتابة) ──────────────
@@ -779,6 +784,16 @@ async def _idempotent(store, command_id, do_work, *, command_type, actor_id, ten
         await store.mark_succeeded(command_id, result)
         return result
     existing = await store.get(command_id)  # موجود مسبقاً
+    # U06 (التدقيق الموحَّد 2026-09-13): المفتاحُ نفسه بحمولةٍ مختلفة ليس «إعادةً» بل
+    # تعارضاً يُسمّى — حين يحمل الطرفان ``request_digest`` ويختلفان. المسارات التي لا
+    # تُرسِل بصمةً تبقى على سلوكها (توافق خلفيّ).
+    wanted = (payload or {}).get("request_digest")
+    stored = ((existing.payload if existing is not None else None) or {}).get("request_digest")
+    if wanted and stored and wanted != stored:
+        raise HTTPException(
+            status_code=409,
+            detail="Idempotency-Key أُعيد استعماله بحمولةٍ مختلفة — استعمل مفتاحاً جديداً",
+        )
     if existing is not None and existing.status == CommandStatus.SUCCEEDED:
         return existing.result  # نتيجة مخزّنة — لا إعادة تنفيذ (idempotent)
     raise HTTPException(status_code=409, detail="الأمر قيد المعالجة — أعد المحاولة لاحقاً")

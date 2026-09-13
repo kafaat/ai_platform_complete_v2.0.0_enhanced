@@ -247,7 +247,9 @@ async def _record_ai_advice_event(
         if resp.status_code >= 400:
             return {"status": "failed", "http_status": resp.status_code, "detail": resp.text[:300]}
         payload = resp.json()
-        return {"status": "recorded", **payload}
+        # المنصّة تُعيد ``persisted`` الحقيقيّة (P0): غيابُها (منصّة أقدم) يُقرأ تسجيلاً كما كان.
+        persisted = payload.get("persisted", payload.get("ok", True))
+        return {"status": "recorded" if persisted else "not_persisted", **payload}
     except Exception as exc:  # noqa: BLE001
         return {"status": "failed", "reason": str(exc)}
 
@@ -600,6 +602,37 @@ def _evidence_sources(
     return sources
 
 
+def _generation_is_grounded(annotations: dict[str, Any]) -> bool:
+    """«مؤرَّض» = RAG أعاد مقتطفاً معرفيّاً واحداً على الأقلّ.
+
+    حوافُّ KG وحالةُ الحقل سياقٌ مفيد لكنّها ليست شاهداً نصّيّاً يُسنَد إليه ادّعاءٌ مولَّد؛
+    نصٌّ مولَّد فوق صفر مقتطفات هو توليدٌ حرّ يحمل وسمَ التأريض زوراً (RAG-10).
+    """
+    rag = annotations.get("rag") if isinstance(annotations, dict) else None
+    return bool(rag) and any(isinstance(item, dict) for item in rag)
+
+
+def _guardrail_result(mode: str, generation_status: str) -> dict[str, Any]:
+    """نتيجة حواجز صادقة: لا حاجزَ يُنفَّذ في هذا المسار على أيّ نصّ.
+
+    الفرق المعلَن: جوابُ أدلّة بلا نصّ مولَّد (لا شيء ليُحجَز) مقابل نصٍّ مولَّد أُعيد
+    للمستخدم **بلا** فحص حاجز — الثانية تُسمّى باسمها بدل عبارة «لا قرار» الثابتة.
+    """
+    if mode == "generated_grounded":
+        return {
+            "status": "not_executed",
+            "reason": "generated text returned without guardrail evaluation",
+            "generated_text_checked": False,
+            "generation_status": generation_status,
+        }
+    return {
+        "status": "not_executed",
+        "reason": "evidence-only endpoint; no decision emitted",
+        "generated_text_checked": None,
+        "generation_status": generation_status,
+    }
+
+
 def _grounding_context_text(annotations: dict[str, Any]) -> str:
     """يحوّل أدلّة RAG+KG+حالة الحقل+ذاكرة سنتين إلى نصّ سياق مقتضب للتأريض.
 
@@ -848,6 +881,15 @@ async def build_evidence_response(
             )
             # حُوول التوليد فعلاً: None ⇒ فشل مزوّد/إجابة فارغة (مُدهوَر)، لا تصميم.
             generation_status = "succeeded" if gen is not None else "attempted_failed"
+        # احتواء التوليد غير المؤرَّض (التدقيق الموحَّد 2026-09-13، RAG-10/P0): كان
+        # ``generated_grounded`` يُوسَم لمجرّد أنّ النموذج أجاب — ولو كانت مقتطفات RAG
+        # صفراً (سياقُ KG وحدَه أو لا شيء). النصُّ المولَّد بلا مقتطف معرفيّ يُحجَب ويبقى
+        # جوابُ الأدلّة، ويُعلَن السبب؛ الوسمُ «مؤرَّض» يعني أنّ RAG أعاد شواهد فعلاً.
+        if gen is not None and not _generation_is_grounded(annotations):
+            generation_status = "suppressed_ungrounded"
+            generation_model = gen.model
+            generation_provider = gen.provider
+            gen = None
         if gen is not None:
             answer_ar = gen.text
             mode = "generated_grounded"
@@ -947,10 +989,9 @@ async def build_evidence_response(
         "tool_calls_truncated": bool(tool_result.get("truncated")) or provider_tool_truncated,
         "provider_tool_rounds": provider_tool_rounds,
         "confidence": confidence,
-        "guardrail_result": {
-            "status": "not_executed",
-            "reason": "evidence-only endpoint; no decision emitted",
-        },
+        # صدق: لا حاجزَ يُنفَّذ هنا على أيّ نصّ. حين يُعاد نصٌّ مولَّد يُقال ذلك صراحةً
+        # بدل عبارة ثابتة توحي بأنّ «لا قرار» يعني «لا شيء يحتاج حاجزاً».
+        "guardrail_result": _guardrail_result(mode, generation_status),
         "audit_event": audit_event,
         "decision_authority": "field_intelligence_coordinator",
     }

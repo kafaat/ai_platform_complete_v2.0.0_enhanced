@@ -243,8 +243,18 @@ def assert_readable_size(src, *, what: str, ceiling: int) -> int:
     return band_pixels
 
 
-def require_service_token(x_agent_token: str | None, agent_token: str) -> None:
-    """Service-to-service authentication for write/storage endpoints."""
+def require_service_token(x_agent_token: str | None, agent_token: str | None = None) -> None:
+    """Service-to-service authentication for write/storage endpoints.
+
+    ``agent_token`` اختياريّ: غيابُه يعني «التوكن المضبوط للخدمة» (`raster_settings.AGENT_TOKEN`
+    يُقرأ عند النداء لا عند الاستيراد، فتراه الاختبارات والتهيئة المتأخّرة). كان الوسيط
+    إلزاميّاً بينما 14 نداءً في خمسة راوترات تمرّر الترويسة وحدَها — فكان كلُّ طلب على تلك
+    النقاط يسقط بـTypeError (500) قبل أيّ تحقّق (التدقيق الموحَّد 2026-09-13، P0).
+    """
+    if agent_token is None:
+        import raster_settings as _settings
+
+        agent_token = _settings.AGENT_TOKEN
     if not agent_token:
         raise HTTPException(503, "SAHOOL_AGENT_TOKEN غير مضبوط — الرفع معطّل بأمان")
     if not hmac.compare_digest(x_agent_token or "", agent_token):

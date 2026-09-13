@@ -35,10 +35,14 @@ from pydantic import BaseModel, Field, field_validator
 from api import main as api_main
 from api.feature_registry import is_enabled
 from api.main import (
+    CommandStore,
     Permission,
     UserSchema,
     _assert_field_in_tenant,
     _db_unavailable,
+    _idem_key,
+    _idempotent,
+    get_pool,
     require_permission,
     tenant_connection,
 )
@@ -208,12 +212,29 @@ class OperationLedgerIn(BaseModel):
         return _non_negative_or_none(v, "cost_amount")
 
 
+def _request_digest(req: OperationLedgerIn) -> str:
+    """بصمةُ الحمولة الكاملة (JSON مرتَّب) — تُميِّز الإعادةَ الصادقة عن إعادة استعمال المفتاح."""
+    import hashlib
+    import json
+
+    canonical = json.dumps(req.model_dump(mode="json"), sort_keys=True, ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
 @router.post("/api/v1/farm-ledger/operations", status_code=201)
 async def create_operation_ledger_record(
     req: OperationLedgerIn,
     user: UserSchema = Depends(require_permission(Permission.ACTIVITY_EXECUTE)),
+    idem: str | None = Depends(_idem_key),
 ):
-    """يحفظ سجل عمل يوميّاً ومرفقاته الرقابية. لا يزامن ERP ولا يخصم مخزوناً هنا."""
+    """يحفظ سجل عمل يوميّاً ومرفقاته الرقابية. لا يزامن ERP ولا يخصم مخزوناً هنا.
+
+    U06 (التدقيق الموحَّد 2026-09-13): كان كلُّ طلب يولّد ``operation_id`` جديداً، فإعادةُ
+    طابور الهاتف بعد انقطاع الردّ (بعد COMMIT وقبل الوصول) تُنشئ عمليّتين للمصدر نفسه.
+    الآن ``Idempotency-Key`` (UUID) يُسجِّل الأمر مرّةً في ``commands`` داخل معاملة
+    ``tenant_connection`` نفسها ويُعيد النتيجةَ المخزَّنة حرفيّاً عند الإعادة (بالمعرّف
+    الأصليّ)؛ المفتاحُ نفسه بحمولةٍ مختلفة ⇒ 409. بلا مفتاح ⇒ السلوك القديم.
+    """
     _require_enabled()
     if api_main._DB_POOL is None:
         raise HTTPException(status_code=503, detail="farm_operations_ledger_database_unavailable")
@@ -228,127 +249,146 @@ async def create_operation_ledger_record(
             await _assert_season_in_tenant(conn, tenant_id, req.season_id)
             await _assert_production_unit_in_tenant(conn, tenant_id, req.production_unit_id)
             await _assert_farm_in_tenant(conn, tenant_id, req.farm_id)
-            async with conn.transaction():
-                await conn.execute(
-                    """INSERT INTO farm_operation_ledger
-                       (operation_id, tenant_id, season_id, production_unit_id, farm_id, field_id,
-                        operation_type, operation_date, execution_mode, contractor_id, status,
-                        notes, cost_amount, cost_category, currency, sync_status, created_by,
-                        created_at, updated_at)
-                       VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11,
-                               $12, $13, $14, $15, $16, $17, now(), now())""",
-                    operation_id,
-                    str(user.tenant_id),
-                    req.season_id,
-                    req.production_unit_id,
-                    req.farm_id,
-                    req.field_id,
-                    req.operation_type,
-                    req.operation_date,
-                    req.execution_mode,
-                    req.contractor_id,
-                    req.status,
-                    req.notes,
-                    req.cost_amount,
-                    req.cost_category,
-                    req.currency,
-                    req.sync_status,
-                    user.user_id,
-                )
-                if req.water:
+
+            async def _persist() -> dict:
+                async with conn.transaction():
                     await conn.execute(
-                        """INSERT INTO farm_water_records
-                           (tenant_id, operation_id, record_date, farm_id, field_id, well_id, pump_id,
-                            pivot_id, hours_operated, water_volume_m3, measurement_method, notes)
-                           VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)""",
-                        str(user.tenant_id),
+                        """INSERT INTO farm_operation_ledger
+                           (operation_id, tenant_id, season_id, production_unit_id, farm_id, field_id,
+                            operation_type, operation_date, execution_mode, contractor_id, status,
+                            notes, cost_amount, cost_category, currency, sync_status, created_by,
+                            created_at, updated_at)
+                           VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11,
+                                   $12, $13, $14, $15, $16, $17, now(), now())""",
                         operation_id,
-                        req.operation_date,
+                        str(user.tenant_id),
+                        req.season_id,
+                        req.production_unit_id,
                         req.farm_id,
                         req.field_id,
-                        req.water.well_id,
-                        req.water.pump_id,
-                        req.water.pivot_id,
-                        req.water.hours_operated,
-                        req.water.water_volume_m3,
-                        req.water.measurement_method,
-                        req.water.notes,
-                    )
-                if req.energy:
-                    await conn.execute(
-                        """INSERT INTO farm_energy_records
-                           (tenant_id, operation_id, record_date, energy_source, kwh, diesel_liters,
-                            hours_operated, equipment_id, well_id, pivot_id, notes)
-                           VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)""",
-                        str(user.tenant_id),
-                        operation_id,
+                        req.operation_type,
                         req.operation_date,
-                        req.energy.energy_source,
-                        req.energy.kwh,
-                        req.energy.diesel_liters,
-                        req.energy.hours_operated,
-                        req.energy.equipment_id,
-                        req.energy.well_id,
-                        req.energy.pivot_id,
-                        req.energy.notes,
+                        req.execution_mode,
+                        req.contractor_id,
+                        req.status,
+                        req.notes,
+                        req.cost_amount,
+                        req.cost_category,
+                        req.currency,
+                        req.sync_status,
+                        user.user_id,
                     )
-                for e in req.equipment:
-                    await conn.execute(
-                        """INSERT INTO farm_equipment_records
-                           (tenant_id, operation_id, record_date, equipment_id, operator_id, hours_worked,
-                            fuel_liters, maintenance_cost, notes)
-                           VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9)""",
-                        str(user.tenant_id),
-                        operation_id,
-                        req.operation_date,
-                        e.equipment_id,
-                        e.operator_id,
-                        e.hours_worked,
-                        e.fuel_liters,
-                        e.maintenance_cost,
-                        e.notes,
-                    )
-                for labor in req.labor:
-                    await conn.execute(
-                        """INSERT INTO farm_labor_records
-                           (tenant_id, operation_id, record_date, worker_id, workers_count, hours,
-                            wage_amount, notes)
-                           VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8)""",
-                        str(user.tenant_id),
-                        operation_id,
-                        req.operation_date,
-                        labor.worker_id,
-                        labor.workers_count,
-                        labor.hours,
-                        labor.wage_amount,
-                        labor.notes,
-                    )
-                for i in req.inputs:
-                    await conn.execute(
-                        """INSERT INTO farm_input_records
-                           (tenant_id, operation_id, record_date, input_type, inventory_item_id, quantity,
-                            unit, estimated_cost, notes)
-                           VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9)""",
-                        str(user.tenant_id),
-                        operation_id,
-                        req.operation_date,
-                        i.input_type,
-                        i.inventory_item_id,
-                        i.quantity,
-                        i.unit,
-                        i.estimated_cost,
-                        i.notes,
-                    )
+                    if req.water:
+                        await conn.execute(
+                            """INSERT INTO farm_water_records
+                               (tenant_id, operation_id, record_date, farm_id, field_id, well_id, pump_id,
+                                pivot_id, hours_operated, water_volume_m3, measurement_method, notes)
+                               VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)""",
+                            str(user.tenant_id),
+                            operation_id,
+                            req.operation_date,
+                            req.farm_id,
+                            req.field_id,
+                            req.water.well_id,
+                            req.water.pump_id,
+                            req.water.pivot_id,
+                            req.water.hours_operated,
+                            req.water.water_volume_m3,
+                            req.water.measurement_method,
+                            req.water.notes,
+                        )
+                    if req.energy:
+                        await conn.execute(
+                            """INSERT INTO farm_energy_records
+                               (tenant_id, operation_id, record_date, energy_source, kwh, diesel_liters,
+                                hours_operated, equipment_id, well_id, pivot_id, notes)
+                               VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)""",
+                            str(user.tenant_id),
+                            operation_id,
+                            req.operation_date,
+                            req.energy.energy_source,
+                            req.energy.kwh,
+                            req.energy.diesel_liters,
+                            req.energy.hours_operated,
+                            req.energy.equipment_id,
+                            req.energy.well_id,
+                            req.energy.pivot_id,
+                            req.energy.notes,
+                        )
+                    for e in req.equipment:
+                        await conn.execute(
+                            """INSERT INTO farm_equipment_records
+                               (tenant_id, operation_id, record_date, equipment_id, operator_id, hours_worked,
+                                fuel_liters, maintenance_cost, notes)
+                               VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9)""",
+                            str(user.tenant_id),
+                            operation_id,
+                            req.operation_date,
+                            e.equipment_id,
+                            e.operator_id,
+                            e.hours_worked,
+                            e.fuel_liters,
+                            e.maintenance_cost,
+                            e.notes,
+                        )
+                    for labor in req.labor:
+                        await conn.execute(
+                            """INSERT INTO farm_labor_records
+                               (tenant_id, operation_id, record_date, worker_id, workers_count, hours,
+                                wage_amount, notes)
+                               VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8)""",
+                            str(user.tenant_id),
+                            operation_id,
+                            req.operation_date,
+                            labor.worker_id,
+                            labor.workers_count,
+                            labor.hours,
+                            labor.wage_amount,
+                            labor.notes,
+                        )
+                    for i in req.inputs:
+                        await conn.execute(
+                            """INSERT INTO farm_input_records
+                               (tenant_id, operation_id, record_date, input_type, inventory_item_id, quantity,
+                                unit, estimated_cost, notes)
+                               VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9)""",
+                            str(user.tenant_id),
+                            operation_id,
+                            req.operation_date,
+                            i.input_type,
+                            i.inventory_item_id,
+                            i.quantity,
+                            i.unit,
+                            i.estimated_cost,
+                            i.notes,
+                        )
+                return {
+                    "operation_id": operation_id,
+                    "persisted": True,
+                    "sync_status": req.sync_status,
+                    "message_ar": "حُفظ سجل العملية الزراعية",
+                }
+
+            if idem:
+                result = await _idempotent(
+                    CommandStore(get_pool(), conn=conn),
+                    idem,
+                    _persist,
+                    command_type="farm_ledger.operation.create",
+                    actor_id=str(user.user_id),
+                    tenant_id=tenant_id,
+                    payload={
+                        "operation_id": operation_id,
+                        "request_digest": _request_digest(req),
+                    },
+                )
+            else:
+                result = await _persist()
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("حفظ سجل العمليات الزراعية", e) from e
-    return {
-        "operation_id": operation_id,
-        "persisted": True,
-        "sync_status": req.sync_status,
-        "message_ar": "حُفظ سجل العملية الزراعية",
-    }
+    return result
 
 
 @router.get("/api/v1/farm-ledger/operations")

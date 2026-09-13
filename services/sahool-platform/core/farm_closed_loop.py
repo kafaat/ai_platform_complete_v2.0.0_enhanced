@@ -198,14 +198,12 @@ def build_economic_state(
 ) -> EconomicState:
     area = _non_negative(area_ha, field_name="area_ha") if area_ha is not None else None
     cost_per_ha = summary.total_cost / area if area and area > 0 else None
-    water_per_ha = summary.water_volume_m3 / area if area and area > 0 else None
+    # U04: حجمُ الماء None حين لا قياس — النِّسَبُ المشتقّة تبقى None لا صفراً/قسمةً على None.
+    volume = summary.water_volume_m3
+    water_per_ha = volume / area if (area and area > 0 and volume is not None) else None
     water_cost = summary.cost_breakdown.get("water", 0.0)
-    water_cost_per_m3 = (
-        water_cost / summary.water_volume_m3 if summary.water_volume_m3 > 0 else None
-    )
-    energy_kwh_per_m3 = (
-        summary.energy_kwh / summary.water_volume_m3 if summary.water_volume_m3 > 0 else None
-    )
+    water_cost_per_m3 = water_cost / volume if (volume is not None and volume > 0) else None
+    energy_kwh_per_m3 = summary.energy_kwh / volume if (volume is not None and volume > 0) else None
 
     variance_list = list(variances)
     if any(v.severity == "critical" for v in variance_list):
@@ -258,7 +256,7 @@ def generate_efficiency_recommendations(
     """توصيات تحفظية من مؤشرات فعلية فقط؛ لا ML ولا توقعات."""
     recs: list[EfficiencyRecommendation] = []
     area = _non_negative(area_ha, field_name="area_ha") if area_ha is not None else None
-    if area and area > 0:
+    if area and area > 0 and summary.water_volume_m3 is not None:
         water_per_ha = summary.water_volume_m3 / area
         if water_per_ha > 8000:
             recs.append(
@@ -270,7 +268,7 @@ def generate_efficiency_recommendations(
                     {"water_m3_per_ha": water_per_ha, "threshold": 8000},
                 )
             )
-    if summary.water_volume_m3 > 0 and summary.energy_kwh > 0:
+    if (summary.water_volume_m3 or 0) > 0 and summary.energy_kwh > 0:
         kwh_per_m3 = summary.energy_kwh / summary.water_volume_m3
         if kwh_per_m3 > 0.8:
             recs.append(

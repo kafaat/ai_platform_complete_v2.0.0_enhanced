@@ -101,3 +101,57 @@ class TestNoOrphanClassifierTotal:
                 "rejected_untraceable",
             }
             assert isinstance(r["applies"], bool)
+
+
+class TestTraceableIsNotApproved:
+    """U07 (التدقيق الموحَّد 2026-09-13): وجود معرّف مصدر ≠ اعتماد زراعيّ."""
+
+    def test_traceable_update_without_review_is_unapproved(self):
+        r = resolve_learning_source({"source_type": "human_feedback", "source_id": "hf_1"})
+        assert r["traceability_status"] == "traceable"
+        assert r["review_status"] == "unreviewed"
+        assert r["agronomically_approved"] is False
+        assert r["review"] is None
+
+    def test_approval_requires_reviewer_verdict_and_evidence(self):
+        base = {"source_type": "recommendation_outcome", "source_id": "out_1"}
+        full = resolve_learning_source(
+            {
+                **base,
+                "review": {
+                    "reviewer_id": "agronomist:7",
+                    "verdict": "approved",
+                    "evidence_ids": ["or_9"],
+                    "reviewed_at": "2026-09-13",
+                },
+            }
+        )
+        assert full["review_status"] == "approved" and full["agronomically_approved"] is True
+        assert full["review"]["evidence_ids"] == ["or_9"]
+        no_evidence = resolve_learning_source(
+            {**base, "review": {"reviewer_id": "agronomist:7", "verdict": "approved"}}
+        )
+        assert no_evidence["review_status"] == "unreviewed"
+        no_reviewer = resolve_learning_source(
+            {**base, "review": {"verdict": "approved", "evidence_ids": ["or_9"]}}
+        )
+        assert no_reviewer["review_status"] == "unreviewed"
+        rejected = resolve_learning_source(
+            {**base, "source": {"review": {"reviewer_id": "a", "verdict": "rejected"}}}
+        )
+        assert rejected["review_status"] == "rejected"
+        assert rejected["agronomically_approved"] is False
+
+    def test_summary_separates_traceable_from_approved(self):
+        rows = [
+            {"source_type": "human_feedback", "traceability_status": "traceable"},
+            {
+                "source_type": "human_feedback",
+                "traceability_status": "traceable",
+                "review_status": "approved",
+            },
+        ]
+        s = summarize_learning_sources(rows)
+        assert s["traceable"] == 2
+        assert s["agronomically_approved"] == 1
+        assert s["by_review_status"] == {"unreviewed": 1, "approved": 1}

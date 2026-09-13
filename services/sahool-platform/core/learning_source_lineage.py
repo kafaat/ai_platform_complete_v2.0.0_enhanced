@@ -63,16 +63,61 @@ def resolve_learning_source(update: dict) -> dict:
     source_type = _pick(update, src, "source_type")
     source_id = _pick(update, src, "source_id")
     status = classify_traceability(source_type, source_id)
+    review = resolve_agronomic_review(update)
     out = {
         "source_type": source_type if source_type in VALID_SOURCE_TYPES else None,
         "source_id": source_id,
         "traceability_status": status,
         # صدق: فقط المُتتبَّع بالكامل يُطبِّق تغيير سياسة.
         "applies": status == "traceable",
+        # U07 (التدقيق الموحَّد 2026-09-13): «قابل للتتبّع» شكلٌ (نوع + معرّف)، لا اعتمادٌ
+        # زراعيّ. الاعتمادُ يحمل مراجِعاً وحكماً وأدلّة صريحة، ويُعلَن مستقلّاً.
+        "review_status": review["review_status"],
+        "agronomically_approved": review["agronomically_approved"],
+        "review": review["review"],
     }
     for k in _LINEAGE_KEYS:
         out[k] = _pick(update, src, k)
     return out
+
+
+_REVIEW_VERDICTS = frozenset({"approved", "rejected"})
+
+
+def resolve_agronomic_review(update: dict) -> dict:
+    """يحكم اعتمادَ المراجعة الزراعيّة من كتلة ``review`` (مسطّحة أو تحت ``source``).
+
+    ``approved`` يشترط ``reviewer_id`` غير فارغ و``verdict == "approved"`` و``evidence_ids``
+    غير فارغة — وإلّا ``unreviewed`` (أو ``rejected`` عند حكم الرفض الصريح). غيابُ الكتلة
+    ⇒ ``unreviewed``، لا ``approved`` ضمناً.
+    """
+    src = update.get("source") if isinstance(update.get("source"), dict) else {}
+    block = update.get("review")
+    if not isinstance(block, dict):
+        block = src.get("review") if isinstance(src.get("review"), dict) else None
+    if not block:
+        return {"review_status": "unreviewed", "agronomically_approved": False, "review": None}
+    reviewer = block.get("reviewer_id")
+    verdict = block.get("verdict")
+    evidence = [e for e in (block.get("evidence_ids") or []) if e not in (None, "")]
+    if isinstance(reviewer, str):
+        reviewer = reviewer.strip() or None
+    if verdict == "rejected" and reviewer:
+        status = "rejected"
+    elif verdict == "approved" and reviewer and evidence:
+        status = "approved"
+    else:
+        status = "unreviewed"
+    return {
+        "review_status": status,
+        "agronomically_approved": status == "approved",
+        "review": {
+            "reviewer_id": reviewer,
+            "verdict": verdict if verdict in _REVIEW_VERDICTS else None,
+            "evidence_ids": evidence,
+            "reviewed_at": block.get("reviewed_at"),
+        },
+    }
 
 
 def summarize_learning_sources(rows: list[dict]) -> dict:
@@ -83,11 +128,14 @@ def summarize_learning_sources(rows: list[dict]) -> dict:
     """
     by_type: dict[str, int] = {}
     by_status: dict[str, int] = {}
+    by_review: dict[str, int] = {}
     for r in rows:
         st = r.get("source_type") or "unknown"
         stt = r.get("traceability_status") or "unverified"
+        rv = r.get("review_status") or "unreviewed"
         by_type[st] = by_type.get(st, 0) + 1
         by_status[stt] = by_status.get(stt, 0) + 1
+        by_review[rv] = by_review.get(rv, 0) + 1
     total = len(rows)
     traceable = by_status.get("traceable", 0)
     return {
@@ -96,5 +144,8 @@ def summarize_learning_sources(rows: list[dict]) -> dict:
         "untraceable": total - traceable,
         "by_source_type": by_type,
         "by_traceability_status": by_status,
+        # U07: المُتتبَّع ≠ المُعتمَد — يُعرَضان معاً.
+        "by_review_status": by_review,
+        "agronomically_approved": by_review.get("approved", 0),
         "traceable_ratio": round(traceable / total, 3) if total else None,
     }

@@ -57,6 +57,11 @@ def _region_feedback(ev: dict) -> dict:
         priority = 2
         need = ev.get("samples_to_verified", 0)
         rec = f"دليل أوّليّ لـ{region} — اجمع {need} عيّنة إضافيّة للتحقّق الميدانيّ"
+    elif level == "field_sample_complete":
+        # U01: العيّنة اكتملت لكن لا اعتماد بعد — المطلوب مراجعةُ مختصّ لا مزيدُ عدّ.
+        action = "expert_review"
+        priority = 2
+        rec = f"عيّنة {region} بلغت العتبة ({n}) — تلزم مراجعة مختصّ قبل اعتماد الدليل"
     else:  # field_verified بنسبة نجاح جيّدة
         action = "monitor"
         priority = 1
@@ -88,6 +93,7 @@ def learning_feedback(evidence_records: list[dict]) -> dict:
         "n_regions": len(regions),
         "n_none": sum(r["evidence_level"] == "none" for r in regions),
         "n_preliminary": sum(r["evidence_level"] == "field_preliminary" for r in regions),
+        "n_sample_complete": sum(r["evidence_level"] == "field_sample_complete" for r in regions),
         "n_verified": sum(r["evidence_level"] == "field_verified" for r in regions),
         "mean_success_rate": round(sum(rates) / len(rates), 3) if rates else None,
         "regions_needing_data": [r["region"] for r in regions if r["action"] == "collect_data"],
@@ -154,11 +160,20 @@ async def process_season_closed_event(
     )
     outcomes = [dict(row) for row in rows]
     source_digests = sorted(_stable_digest(item) for item in outcomes)
-    paired = [
-        o
-        for o in outcomes
-        if o.get("predicted_yield_t_ha") is not None and o.get("actual_yield_t_ha") is not None
-    ]
+    # U02 (التدقيق الموحَّد 2026-09-13): سياسةُ الأهليّة نفسها التي يستعملها الموحِّد —
+    # قيمةٌ فعليّة مبكّرة قبل النضج أو غير منتهية لا تدخل حساب MAE ولا تعدّ نحو الحدّ
+    # الأدنى. دراسةُ دقّة التوقّع لا تشترط قبولَ التوصية (رفضُ المزارع لا يمحو حصاده).
+    from core.outcome_reconciler import recommendation_outcome_eligibility
+
+    paired: list[dict] = []
+    excluded_reasons: dict[str, int] = {}
+    for o in outcomes:
+        verdict = recommendation_outcome_eligibility(o, require_acceptance=False)
+        if verdict["eligible"]:
+            paired.append(o)
+        else:
+            reason = str(verdict["reason"])
+            excluded_reasons[reason] = excluded_reasons.get(reason, 0) + 1
     errors = [float(o["actual_yield_t_ha"]) - float(o["predicted_yield_t_ha"]) for o in paired]
     mae = None if not errors else round(sum(abs(v) for v in errors) / len(errors), 6)
     bias = None if not errors else round(sum(errors) / len(errors), 6)
@@ -167,6 +182,8 @@ async def process_season_closed_event(
         "field_id": field_id,
         "season_id": season_id,
         "outcome_count": len(paired),
+        "excluded_count": len(outcomes) - len(paired),
+        "excluded_reasons": excluded_reasons,
         "minimum_outcomes": minimum_outcomes,
         "mae_t_ha": mae,
         "bias_t_ha": bias,

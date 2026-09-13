@@ -65,12 +65,14 @@ def test_preliminary_below_threshold():
 
 
 def test_verified_at_threshold():
-    """عيّنات ≥ العتبة ⇒ field_verified (الدليل تراكَم من نتائج مُدامة)."""
+    """عيّنات ≥ العتبة ⇒ field_sample_complete؛ وfield_verified مع مراجعة فقط (U01)."""
     rows = [_row(1, 1) for _ in range(_FIELD_VERIFIED_MIN_SAMPLES)]
     out = evidence_from_persisted_outcomes("marib", rows)
     assert out["sample_count"] == _FIELD_VERIFIED_MIN_SAMPLES
-    assert out["evidence_level"] == "field_verified"
+    assert out["evidence_level"] == "field_sample_complete"
     assert out["samples_to_verified"] == 0
+    reviewed = evidence_from_persisted_outcomes("marib", rows, reviewed=True)
+    assert reviewed["evidence_level"] == "field_verified"
 
 
 def test_last_evaluated_from_created_at():

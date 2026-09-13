@@ -19,6 +19,8 @@ recommendation_outcomes (فقط عند القبول واكتمال الغلّت�
 
 from __future__ import annotations
 
+import math
+
 
 def _num(v) -> float | None:
     if v is None:
@@ -52,18 +54,42 @@ def normalize_outcome_record(row: dict) -> dict:
     }
 
 
-def _derive_rec_success(row: dict) -> bool | None:
-    """يشتقّ نجاح توصية بحذر: فقط عند القبول واكتمال الغلّتين (فعليّ ≥ متوقّع). وإلّا None.
+def recommendation_outcome_eligibility(row: dict, *, require_acceptance: bool = True) -> dict:
+    """سياسةُ أهليّةٍ واحدة لصفّ ``recommendation_outcomes`` قبل أيّ مقارنة أو ترشيح (U02).
 
-    صدق: غير مقبولة/غير مكتملة ⇒ لا حكم (لا يُنسَب نجاح لتوصية لم تُتَّبَع أو لم تنضج).
+    تُعيد ``{"eligible": bool, "reason": str | None}``. الأسباب بالترتيب:
+    ``missing_prediction`` · ``missing_actual`` · ``non_finite_value`` · ``immature``
+    (``matured_within_lag`` ليس صادقاً) · ``not_accepted`` (فقط حين يُطلَب القبول — أثرُ
+    توصيةٍ لم تُتَّبَع لا يُنسَب، لكنّ دقّةَ توقّع الغلّة تُدرَس ولو رُفِضت التوصية).
+
+    صدق (التدقيق الموحَّد 2026-09-13): قيمةٌ فعليّة مبكّرة قبل النضج كانت تدخل النجاح
+    والدليل؛ الاختبار القديم غطّى ``actual=None`` وحدَه.
     """
-    if not row.get("accepted"):
-        return None
     pred = _num(row.get("predicted_yield_t_ha"))
     act = _num(row.get("actual_yield_t_ha"))
-    if pred is None or act is None:
+    if pred is None:
+        return {"eligible": False, "reason": "missing_prediction"}
+    if act is None:
+        return {"eligible": False, "reason": "missing_actual"}
+    if not (math.isfinite(pred) and math.isfinite(act)):
+        return {"eligible": False, "reason": "non_finite_value"}
+    if not row.get("matured_within_lag"):
+        return {"eligible": False, "reason": "immature"}
+    if require_acceptance and not row.get("accepted"):
+        return {"eligible": False, "reason": "not_accepted"}
+    return {"eligible": True, "reason": None}
+
+
+def _derive_rec_success(row: dict) -> bool | None:
+    """يشتقّ نجاح توصية بحذر: فقط عند القبول والنضج واكتمال الغلّتين (فعليّ ≥ متوقّع).
+    وإلّا None.
+
+    صدق: غير مقبولة/غير مكتملة/غير ناضجة ⇒ لا حكم (لا يُنسَب نجاح لتوصية لم تُتَّبَع
+    أو لم تنضج).
+    """
+    if not recommendation_outcome_eligibility(row)["eligible"]:
         return None
-    return act >= pred
+    return _num(row.get("actual_yield_t_ha")) >= _num(row.get("predicted_yield_t_ha"))
 
 
 def normalize_recommendation_outcome(row: dict) -> dict:
@@ -88,6 +114,8 @@ def normalize_recommendation_outcome(row: dict) -> dict:
             ),
             "accepted": bool(row.get("accepted")),
             "matured_within_lag": bool(row.get("matured_within_lag")),
+            # سببُ الاستبعاد يُعلَن مع الصفّ (لا None صامتة) — U02.
+            "eligibility": recommendation_outcome_eligibility(row),
             "crop": row.get("crop"),
             "region": row.get("region"),
         },

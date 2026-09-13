@@ -33,9 +33,31 @@ class TestFarmerKnowledge:
 
     def test_verification_confirmed_raises_confidence(self):
         fk = _mk(KnowledgeType.SPATIAL)
-        verify_against_data(fk, data_supports=True)
+        verify_against_data(
+            fk,
+            data_supports=True,
+            evidence={"method": "ndvi", "reference_ids": ["scene_2026_05_01"]},
+            verified_by="agronomist:42",
+        )
         assert fk.verification_status == VerificationStatus.CONFIRMED
         assert fk.computed_confidence == Confidence.HIGH
+        assert fk.verification_evidence["reference_ids"] == ["scene_2026_05_01"]
+        assert fk.verified_by == "agronomist:42"
+        assert fk.to_dict()["verification_evidence"]["method"] == "ndvi"
+
+    def test_unreferenced_support_does_not_confirm(self):
+        """U07: Boolean بلا دليل مرجعيّ لا يرفع الحالة إلى «مؤكّدة» — يبقى قيد التحقّق."""
+        fk = _mk(KnowledgeType.SPATIAL)
+        verify_against_data(fk, data_supports=True)
+        assert fk.verification_status == VerificationStatus.PENDING
+        assert fk.data_agreement is True
+        assert fk.verification_evidence == {"basis": "unreferenced_claim"}
+        assert fk.computed_confidence != Confidence.HIGH
+        # طريقة بلا مراجع أو مراجع بلا طريقة ليست دليلاً مرجعيّاً.
+        verify_against_data(fk, data_supports=True, evidence={"method": "lab"})
+        assert fk.verification_status == VerificationStatus.PENDING
+        verify_against_data(fk, data_supports=True, evidence={"reference_ids": ["x"]})
+        assert fk.verification_status == VerificationStatus.PENDING
 
     def test_contradiction_lowers_not_rejects(self):
         """التعارض يُسجّل للدراسة، لا يُرفض (قد يكون الحساس مخطئاً)."""

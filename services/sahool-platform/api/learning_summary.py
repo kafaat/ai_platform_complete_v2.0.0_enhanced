@@ -217,6 +217,19 @@ def summarize_learning_with_reconciled_outcomes(
         "by_source": reconciled["by_source"],
         "by_kind": reconciled["by_kind"],
         "linked_group_count": len(reconciled["linked_groups"]),
+        # U03 (التدقيق الموحَّد 2026-09-13): ``sample_count`` أعلاه يعدّ **الصفوف**؛ حالةٌ
+        # واحدة مربوطة عبر النموذجين تُسهم بصفّين. هنا عدُّ وحدات التحليل المستقلّة:
+        # كلّ مجموعة مربوطة (decision_id مشترك) حالةٌ واحدة، وكلّ صفّ غير مربوط حالةٌ.
+        "independent_case_count": _independent_case_count(reconciled),
+        "rows_by_source": dict(reconciled["by_source"]),
+        "sample_count_basis": "rows",
         "authoritative_note": reconciled["authoritative_note"],
     }
     return summary
+
+
+def _independent_case_count(reconciled: dict) -> int:
+    grouped_ids = {g.get("decision_id") for g in reconciled.get("linked_groups") or []}
+    grouped_rows = sum(len(g.get("members") or []) for g in reconciled.get("linked_groups") or [])
+    total = int(reconciled.get("total") or 0)
+    return len(grouped_ids) + max(0, total - grouped_rows)

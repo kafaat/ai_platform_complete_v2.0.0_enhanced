@@ -113,3 +113,69 @@ def test_operation_requires_tenant_and_scope():
     )
     with pytest.raises(ValueError):
         validate_operation_record(op2)
+
+
+def test_missing_water_volume_is_unknown_not_zero():
+    """U04 (التدقيق الموحَّد 2026-09-13): ساعات ريّ بلا حجم مقيس كانت تصير 0 م³/هكتار."""
+    op = OperationLedgerRecord(
+        record_id="op1",
+        tenant_id="t1",
+        field_id="field1",
+        operation_date=date(2026, 1, 2),
+        operation_type=OperationType.IRRIGATION,
+    )
+    summary = summarize_operational_records(
+        [op],
+        water=[WaterRecord("op1", "field1", "well1", None, 4, None, None)],
+        energy=[EnergyRecord("op1", EnergySource.SOLAR, kwh=12)],
+    )
+    assert summary.water_volume_m3 is None
+    assert summary.water_records_total == 1
+    assert summary.water_records_measured == 0
+    assert summary.water_records_unmeasured == 1
+    assert summary.water_measurement_complete is False
+    row = ai_feature_row(summary, area_ha=2)
+    assert row["water_volume_m3"] is None
+    assert row["water_m3_per_ha"] is None
+    assert row["kwh_per_m3"] is None
+    assert row["water_measurement"] == {
+        "records_total": 1,
+        "records_measured": 0,
+        "records_unmeasured": 1,
+        "complete": False,
+    }
+
+
+def test_partially_measured_water_sums_only_measured_records_and_declares_the_gap():
+    op = OperationLedgerRecord(
+        record_id="op1",
+        tenant_id="t1",
+        field_id="field1",
+        operation_date=date(2026, 1, 2),
+        operation_type=OperationType.IRRIGATION,
+    )
+    summary = summarize_operational_records(
+        [op],
+        water=[
+            WaterRecord("op1", "field1", "well1", None, 3, 60, "meter"),
+            WaterRecord("op1", "field1", "well1", None, 3, None, None),
+        ],
+    )
+    assert summary.water_volume_m3 == 60
+    assert summary.water_records_measured == 1 and summary.water_records_unmeasured == 1
+    assert summary.water_measurement_complete is False
+    assert ai_feature_row(summary, area_ha=2)["water_m3_per_ha"] == 30
+
+
+def test_no_water_records_at_all_is_unknown_and_trivially_complete():
+    op = OperationLedgerRecord(
+        record_id="op1",
+        tenant_id="t1",
+        field_id="field1",
+        operation_date=date(2026, 1, 2),
+        operation_type=OperationType.OTHER,
+    )
+    summary = summarize_operational_records([op])
+    assert summary.water_volume_m3 is None
+    assert summary.water_records_total == 0
+    assert summary.water_measurement_complete is True

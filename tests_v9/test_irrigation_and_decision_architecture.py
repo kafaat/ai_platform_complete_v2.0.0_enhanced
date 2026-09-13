@@ -109,3 +109,62 @@ def test_registered_worker_is_an_executable_root_for_both_event_chains():
     assert "await msg.ack()" in text
     assert "await msg.nak(delay=5)" in text
     assert "await msg.term()" in text
+
+
+@pytest.mark.asyncio
+async def test_season_learning_excludes_immature_and_non_finite_rows_with_reasons():
+    """U02: قيمة فعليّة قبل النضج لا تعدّ نحو الحدّ الأدنى ولا تدخل MAE؛ السبب يُعلَن."""
+    mod = _load("services/sahool-platform/api/learning_feedback.py", "learning_feedback_u02")
+    outcomes = [
+        {
+            "recommendation_id": "mature-1",
+            "predicted_yield_t_ha": 4.0,
+            "actual_yield_t_ha": 4.2,
+            "accepted": True,
+            "matured_within_lag": True,
+        },
+        # مقبولة لكن غير ناضجة وبقيمة مبكّرة — كانت تُحسَب.
+        {
+            "recommendation_id": "early-1",
+            "predicted_yield_t_ha": 4.0,
+            "actual_yield_t_ha": 4.4,
+            "accepted": True,
+            "matured_within_lag": False,
+        },
+        {
+            "recommendation_id": "early-2",
+            "predicted_yield_t_ha": 4.0,
+            "actual_yield_t_ha": 4.5,
+            "accepted": True,
+            "matured_within_lag": False,
+        },
+        # مرفوضة لكن ناضجة — تدخل دراسة دقّة التوقّع (الحصاد لا يُمحى برفض التوصية).
+        {
+            "recommendation_id": "rejected-mature",
+            "predicted_yield_t_ha": 4.0,
+            "actual_yield_t_ha": 3.0,
+            "accepted": False,
+            "matured_within_lag": True,
+        },
+        {
+            "recommendation_id": "nan-1",
+            "predicted_yield_t_ha": 4.0,
+            "actual_yield_t_ha": float("nan"),
+            "accepted": True,
+            "matured_within_lag": True,
+        },
+    ]
+    conn = Conn(outcomes=outcomes)
+    result = await mod.process_season_closed_event(
+        conn,
+        event_id="evt-u02",
+        tenant_id="00000000-0000-0000-0000-000000000001",
+        field_id="fld-1",
+        season_id="ssn-1",
+    )
+    evaluation = result["promotion_candidate"]["evidence"]
+    assert evaluation["outcome_count"] == 2
+    assert evaluation["excluded_count"] == 3
+    assert evaluation["excluded_reasons"] == {"immature": 2, "non_finite_value": 1}
+    assert evaluation["status"] == "blocked"  # اثنان < الحدّ الأدنى ٣ — لا ترشيح من قيم مبكّرة
+    assert evaluation["mae_t_ha"] == 0.6  # (0.2 + 1.0) / 2 — الناضجتان فقط
