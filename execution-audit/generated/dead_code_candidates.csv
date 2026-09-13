@@ -455,7 +455,7 @@ medium,sahool-platform,class,TestRateLimiter,services/sahool-platform/tests/test
 medium,sahool-platform,class,TestRateLimitEndToEnd,services/sahool-platform/tests/test_orchestrator_and_api.py,226,0,review_before_delete,False
 medium,sahool-platform,class,TestNormalize,services/sahool-platform/tests/test_outcome_reconciler.py,12,0,review_before_delete,False
 medium,sahool-platform,class,TestHonestSuccessDerivation,services/sahool-platform/tests/test_outcome_reconciler.py,48,0,review_before_delete,False
-medium,sahool-platform,class,TestReconcile,services/sahool-platform/tests/test_outcome_reconciler.py,83,0,review_before_delete,False
+medium,sahool-platform,class,TestReconcile,services/sahool-platform/tests/test_outcome_reconciler.py,98,0,review_before_delete,False
 medium,sahool-platform,class,TestPHIGate,services/sahool-platform/tests/test_pesticide.py,14,0,review_before_delete,False
 medium,sahool-platform,class,TestRRI,services/sahool-platform/tests/test_pesticide.py,33,0,review_before_delete,False
 medium,sahool-platform,class,TestSafetyInvariants,services/sahool-platform/tests/test_pesticide.py,49,0,review_before_delete,False

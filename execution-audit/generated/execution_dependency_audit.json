@@ -5,7 +5,7 @@
   "runtime_verified":false,
   "python_files_parsed":1892,
   "route_handlers":1050,
-  "call_edges":77869,
+  "call_edges":77870,
   "dead_code_candidates":630,
   "duplicate_function_groups":60,
   "route_owners":27,
@@ -427353,72 +427353,79 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_outcome_reconciler.py",
-   "source":"test_keeps_both_sources_with_counts",
-   "target":"_data",
-   "line":110
+   "source":"test_immature_with_early_actual_has_no_verdict",
+   "target":"normalize_recommendation_outcome",
+   "line":85
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_outcome_reconciler.py",
    "source":"test_keeps_both_sources_with_counts",
-   "target":"reconcile_outcomes",
-   "line":111
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_outcome_reconciler.py",
-   "source":"test_dispatch_link_joins_the_two_models",
-   "target":"_data",
-   "line":117
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_outcome_reconciler.py",
-   "source":"test_dispatch_link_joins_the_two_models",
-   "target":"reconcile_outcomes",
-   "line":118
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_outcome_reconciler.py",
-   "source":"test_dispatch_link_joins_the_two_models",
-   "target":"len",
-   "line":120
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_outcome_reconciler.py",
-   "source":"test_dispatch_link_joins_the_two_models",
-   "target":"len",
-   "line":122
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_outcome_reconciler.py",
-   "source":"test_no_link_keeps_them_separate",
    "target":"_data",
    "line":125
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_outcome_reconciler.py",
-   "source":"test_no_link_keeps_them_separate",
+   "source":"test_keeps_both_sources_with_counts",
    "target":"reconcile_outcomes",
    "line":126
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_outcome_reconciler.py",
+   "source":"test_dispatch_link_joins_the_two_models",
+   "target":"_data",
+   "line":132
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_outcome_reconciler.py",
+   "source":"test_dispatch_link_joins_the_two_models",
+   "target":"reconcile_outcomes",
+   "line":133
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_outcome_reconciler.py",
+   "source":"test_dispatch_link_joins_the_two_models",
+   "target":"len",
+   "line":135
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_outcome_reconciler.py",
+   "source":"test_dispatch_link_joins_the_two_models",
+   "target":"len",
+   "line":137
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_outcome_reconciler.py",
+   "source":"test_no_link_keeps_them_separate",
+   "target":"_data",
+   "line":140
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_outcome_reconciler.py",
+   "source":"test_no_link_keeps_them_separate",
+   "target":"reconcile_outcomes",
+   "line":141
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_outcome_reconciler.py",
    "source":"test_authoritative_note_declares_complementary",
    "target":"reconcile_outcomes",
-   "line":130
+   "line":145
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_outcome_reconciler.py",
    "source":"test_empty_inputs_safe",
    "target":"reconcile_outcomes",
-   "line":135
+   "line":150
   },
   {
    "owner":"sahool-platform",
@@ -558519,7 +558526,7 @@
    "symbol":"TestReconcile",
    "kind":"class",
    "file":"services/sahool-platform/tests/test_outcome_reconciler.py",
-   "line":83,
+   "line":98,
    "owner":"sahool-platform",
    "decorated_route":false,
    "reference_count":0,
