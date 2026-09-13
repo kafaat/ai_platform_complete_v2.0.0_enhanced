@@ -44,8 +44,16 @@ class _FakeConn:
     def __init__(self):
         self.fetchrow_sql: str | None = None
         self.fetchrow_args: tuple | None = None
+        self.field_checked = False
+
+    async def fetchval(self, sql, field_id):
+        assert "FROM fields" in sql
+        assert field_id == "f-1"
+        self.field_checked = True
+        return 1
 
     async def fetchrow(self, sql, *args):  # noqa: ANN001
+        assert self.field_checked, "tenant field ownership must be checked before insertion"
         self.fetchrow_sql = sql
         self.fetchrow_args = args
         return {"work_order_id": uuid.uuid4()}
@@ -150,8 +158,9 @@ async def test_no_inference_no_persist_no_event(agro_mod, monkeypatch):
 async def test_persist_failure_best_effort(agro_mod, monkeypatch):
     """فشل التثبيت لا يرفع — best-effort: يُرجَع None (persisted=false) دون كسر المسار."""
 
-    class _BoomConn:
+    class _BoomConn(_FakeConn):
         async def fetchrow(self, *a, **k):  # noqa: ANN001
+            assert self.field_checked
             raise RuntimeError("table missing")
 
     monkeypatch.setattr(

@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 581,
+      "evidence_count": 582,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -161,6 +161,7 @@
         "services/decision-service/tests/test_wx11_6_registry_activation_boundary.py",
         "services/decision-service/tests/test_wx12_3_runtime_schedules.py",
         "services/edge-inference/models/pest_detector.py",
+        "services/edge-inference/sync_service.py",
         "services/edge-inference/tests/test_model_artifact_gate_endpoints.py",
         "services/gis-workflow-service/bulletin_bundle.py",
         "services/gis-workflow-service/run_bundle.py",
@@ -1662,7 +1663,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 125,
+      "evidence_count": 126,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1807,6 +1808,7 @@
         "services/vegetation-analysis-service/vegetation_runtime.py",
         "services/video-processor/main.py",
         "shared/ai/tool_audit.py",
+        "shared/fcm.py",
         "shared/governance/chemical_lineage.py",
         "shared/helpers.py",
         "shared/iot_execution_runtime.py",
@@ -1986,7 +1988,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 287,
+      "evidence_count": 289,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -1994,6 +1996,7 @@
         "auth",
         "database",
         "decision-service",
+        "edge-inference",
         "field-management-service",
         "model-registry-adapter",
         "raster-service",
@@ -2069,6 +2072,7 @@
         "services/decision-service/tests/test_wx11_2_model_evaluation.py",
         "services/decision-service/tests/test_wx12_1_runtime_receipts.py",
         "services/decision-service/tests/test_wx12_3_runtime_schedules.py",
+        "services/edge-inference/sync_service.py",
         "services/field-management-service/main.py",
         "services/model-registry-adapter/runtime.py",
         "services/model-registry-adapter/tests/test_runtime_contract.py",
@@ -2116,6 +2120,7 @@
         "services/sahool-platform/api/routers/decision_record.py",
         "services/sahool-platform/api/routers/decision_review.py",
         "services/sahool-platform/api/routers/device_twin.py",
+        "services/sahool-platform/api/routers/edge.py",
         "services/sahool-platform/api/routers/features.py",
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/internal_service.py",
@@ -2406,7 +2411,7 @@
         "services/sahool-platform/api/temporal_arbitration.py",
         "services/sahool-platform/api/trial_engine.py"
       ],
-      "source_evidence_count": 581,
+      "source_evidence_count": 582,
       "target_evidence_count": 489,
       "static_supported": true,
       "runtime_verified": false
@@ -2653,7 +2658,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 32,
-      "target_evidence_count": 125,
+      "target_evidence_count": 126,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2681,7 +2686,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 125,
+      "source_evidence_count": 126,
       "target_evidence_count": 28,
       "static_supported": true,
       "runtime_verified": false
@@ -2765,7 +2770,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 49,
-      "target_evidence_count": 287,
+      "target_evidence_count": 289,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -2775,5 +2780,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "4c84073ee0def4da790a4e00b8ad35e76e0ebff46340822059c369caf0360a93"
+  "content_sha256": "479ccd2370fbd34d0b31cf9b392f40580bd51e043e727575f8316bed4fff22f3"
 }

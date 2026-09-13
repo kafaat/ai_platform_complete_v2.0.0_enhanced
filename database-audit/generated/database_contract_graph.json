@@ -2705,7 +2705,9 @@
       "write_policy_with_check": false
     },
     {
-      "code_readers": [],
+      "code_readers": [
+        "services/sahool-platform/api/routers/edge.py"
+      ],
       "code_writers": [
         "services/sahool-platform/api/routers/edge.py"
       ],

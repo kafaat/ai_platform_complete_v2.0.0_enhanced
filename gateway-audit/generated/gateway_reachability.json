@@ -3,7 +3,7 @@
   "scope": "nginx-static-gateway-reachability",
   "runtime_verified": false,
   "production_certified": false,
-  "compose_name_count": 214,
+  "compose_name_count": 218,
   "config_count": 4,
   "upstream_count": 51,
   "proxied_location_count": 71,
@@ -154,7 +154,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 101,
+          "line": 110,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -167,7 +167,7 @@
           "trusted_tenant_injected": false,
           "internal": true,
           "sensitive": false,
-          "line": 105,
+          "line": 114,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -180,7 +180,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 119,
+          "line": 128,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -193,7 +193,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": true,
-          "line": 136,
+          "line": 144,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -206,7 +206,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 144,
+          "line": 153,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -219,7 +219,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 146,
+          "line": 155,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -232,7 +232,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 148,
+          "line": 156,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -245,7 +245,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": true,
-          "line": 149,
+          "line": 158,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -258,7 +258,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 152,
+          "line": 160,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -271,7 +271,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": true,
-          "line": 156,
+          "line": 164,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -284,7 +284,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": true,
-          "line": 168,
+          "line": 176,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -297,7 +297,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": false,
-          "line": 180,
+          "line": 188,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -310,7 +310,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 188,
+          "line": 196,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -323,7 +323,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 197,
+          "line": 203,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -336,7 +336,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": true,
-          "line": 201,
+          "line": 209,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -349,7 +349,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": true,
-          "line": 204,
+          "line": 212,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -362,7 +362,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": true,
-          "line": 208,
+          "line": 216,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -375,7 +375,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 214,
+          "line": 223,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -388,7 +388,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 217,
+          "line": 225,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -401,7 +401,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 220,
+          "line": 228,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -414,7 +414,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": true,
-          "line": 224,
+          "line": 231,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -427,7 +427,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": true,
-          "line": 229,
+          "line": 237,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -440,7 +440,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": true,
-          "line": 234,
+          "line": 242,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -453,7 +453,7 @@
           "trusted_tenant_injected": false,
           "internal": true,
           "sensitive": false,
-          "line": 251,
+          "line": 259,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -466,7 +466,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": true,
-          "line": 260,
+          "line": 268,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -479,7 +479,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": true,
-          "line": 278,
+          "line": 286,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -492,7 +492,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 289,
+          "line": 298,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -505,7 +505,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 294,
+          "line": 302,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -518,7 +518,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 297,
+          "line": 305,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -531,7 +531,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 303,
+          "line": 311,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -544,7 +544,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 307,
+          "line": 314,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -557,7 +557,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 313,
+          "line": 321,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -570,7 +570,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 319,
+          "line": 327,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -583,7 +583,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 322,
+          "line": 331,
           "security_class": "public_or_service_enforced"
         }
       ],
@@ -592,25 +592,25 @@
         {
           "kind": "sensitive_route_without_gateway_auth",
           "selector": "= /api/vegetation/readyz",
-          "line": 149,
+          "line": 158,
           "note": "May rely on service-level auth; requires review, not an automatic vulnerability finding."
         },
         {
           "kind": "sensitive_route_without_gateway_auth",
           "selector": "/api/soil/",
-          "line": 201,
+          "line": 209,
           "note": "May rely on service-level auth; requires review, not an automatic vulnerability finding."
         },
         {
           "kind": "sensitive_route_without_gateway_auth",
           "selector": "/api/field-forms/",
-          "line": 204,
+          "line": 212,
           "note": "May rely on service-level auth; requires review, not an automatic vulnerability finding."
         },
         {
           "kind": "sensitive_route_without_gateway_auth",
           "selector": "/api/segmentation/",
-          "line": 208,
+          "line": 216,
           "note": "May rely on service-level auth; requires review, not an automatic vulnerability finding."
         }
       ]
@@ -1392,5 +1392,5 @@
     }
   ],
   "boundary": "Static Nginx and Compose evidence only. Service-level authentication and live route behavior require runtime probes.",
-  "content_sha256": "d116cda1b75e2260b4b736096a84305a9a6710e007f8b9c9c5be5e0fd96173a7"
+  "content_sha256": "00a184e48ec98dd885c8d9a43ee6dcb7456ac7c1ec49350f0816db52999f0be9"
 }

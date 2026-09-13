@@ -1762,7 +1762,7 @@
       "configuration": [],
       "container": {
         "dockerfile": "services/raster-tiler-service/Dockerfile",
-        "requirements": null
+        "requirements": "services/raster-tiler-service/requirements.txt"
       },
       "contract_version": "1.0",
       "domain": "Imagery & Raster",
@@ -2606,7 +2606,6 @@
       "secrets": [
         "ANTHROPIC_API_KEY",
         "DECISION_SERVICE_TOKEN",
-        "FCM_SERVER_KEY",
         "FIELD_FORMS_SERVICE_TOKEN",
         "INTERNAL_SERVICE_TOKEN",
         "JWT_SECRET",

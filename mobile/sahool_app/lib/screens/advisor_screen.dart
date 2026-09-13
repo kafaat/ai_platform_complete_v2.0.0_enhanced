@@ -28,9 +28,6 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
     _chatBox = Hive.box('chat_history');  // F07: Hive storage
   }
 
-  List<Map<dynamic, dynamic>> get _messages =>
-      _chatBox.values.cast<Map>().toList();
-
   Future<void> _send(String text) async {
     if (text.trim().isEmpty) return;
     _controller.clear();

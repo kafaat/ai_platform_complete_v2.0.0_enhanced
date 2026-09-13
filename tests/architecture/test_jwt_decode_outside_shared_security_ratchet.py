@@ -49,7 +49,7 @@ JWT_MODULES = frozenset({"jwt", "jose.jwt"})
 #: الأساسُ المُجمَّد — مقيسٌ على `9613db9a` بالكاشف الـAST. كلُّ مدخلٍ دَينٌ مُعلَن والقيمةُ
 #: سقفُه (عددُ النداءات). **يُخفَّض عند النقل إلى `shared.security` ولا يُرفَع.**
 FROZEN_SITES: dict[str, int] = {
-    "agents/notification/agent.py": 1,
+    # notification moved to shared/security/access_tokens.py in #997 (f7cd7848; local 1091c55).
     "services/actuator-service/actuator_runtime.py": 1,
     "services/auth/main.py": 2,
     "services/auth/routers/session.py": 1,

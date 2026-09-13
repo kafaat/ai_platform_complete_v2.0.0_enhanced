@@ -117,7 +117,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
                 color: online ? kPrimary : Colors.grey,
                 shape: BoxShape.circle,
                 boxShadow: online
-                    ? [BoxShadow(color: kPrimary.withOpacity(0.6), blurRadius: 6)]
+                    ? [BoxShadow(color: kPrimary.withValues(alpha: 0.6), blurRadius: 6)]
                     : null,
               ),
             ),

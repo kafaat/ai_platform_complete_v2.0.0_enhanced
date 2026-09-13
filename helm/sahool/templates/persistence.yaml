@@ -1,0 +1,15 @@
+{{- range $name, $svc := .Values.workloads }}
+{{- if and $svc.enabled $svc.persistence }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $name }}-data
+  namespace: {{ $.Values.namespace.name }}
+spec:
+  accessModes: [{{ $svc.persistence.accessMode | quote }}]
+  resources:
+    requests:
+      storage: {{ $svc.persistence.size | quote }}
+{{- end }}
+{{- end }}

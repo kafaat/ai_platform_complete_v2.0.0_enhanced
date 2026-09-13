@@ -97,7 +97,7 @@ abstract final class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: SahoolPalette.card2,
-        selectedColor: SahoolPalette.green.withOpacity(0.16),
+        selectedColor: SahoolPalette.green.withValues(alpha: 0.16),
         labelStyle: const TextStyle(color: SahoolPalette.brown),
         secondaryLabelStyle: const TextStyle(color: SahoolPalette.brown),
         side: const BorderSide(color: SahoolPalette.line),
@@ -190,7 +190,7 @@ abstract final class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: const Color(0xFF202434),
-        selectedColor: primary.withOpacity(0.18),
+        selectedColor: primary.withValues(alpha: 0.18),
         labelStyle: const TextStyle(color: Colors.white),
         secondaryLabelStyle: const TextStyle(color: Colors.white),
         side: const BorderSide(color: Color(0xFF2A2E3D)),

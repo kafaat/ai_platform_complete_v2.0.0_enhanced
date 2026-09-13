@@ -32,7 +32,7 @@
       "registrations": [
         {
           "function": "capabilities",
-          "line": 376,
+          "line": 384,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/capabilities",
@@ -627,7 +627,7 @@
         },
         {
           "function": "readyz",
-          "line": 381,
+          "line": 389,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/readyz",
@@ -1159,7 +1159,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1098,
-  "route_inventory_sha256": "945a76f3b6c944d9bab60051dd5397b5e95992b390d7116f49b251d5075adaa0",
+  "route_inventory_sha256": "78ded6ecf4c722043109cbfb2a7b1cb1dc5d4e4ddbdf44c8bab97fd96904f8eb",
   "runtime_verified": false,
   "schema_version": 1
 }

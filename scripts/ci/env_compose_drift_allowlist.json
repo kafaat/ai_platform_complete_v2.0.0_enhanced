@@ -29,10 +29,6 @@
       "category": "D",
       "why": "ضبط أداء GDAL/curl (امتدادات مسموحة) بافتراضيّ آمن؛ object_store.py."
     },
-    "FCM_SERVER_KEY": {
-      "category": "B",
-      "why": "سرّ FCM من مدير الأسرار؛ غيابه=دفع معطَّل؛ لا في compose؛ core/capabilities.py."
-    },
     "FEATURE_AUTOMATION_RULES_ACTUATION": {
       "category": "A",
       "why": "راية تفعيل تنفيذ قواعد الأتمتة، معطَّلة افتراضاً؛ actuator_runtime.py."

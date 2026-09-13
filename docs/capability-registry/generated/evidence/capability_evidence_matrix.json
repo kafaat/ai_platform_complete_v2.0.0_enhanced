@@ -4945,6 +4945,8 @@
       "unit_test_paths": [
         "services/sahool-platform/tests/test_work_order.py",
         "services/sahool-platform/tests/test_work_order_from_recommendation.py",
+        "tests_v9/test_recommendation_work_order_idempotency.py",
+        "tests_v9/test_telegram_work_order_delivery.py",
         "tests_v9/test_work_order_persist_emit.py",
         "tests_v9/test_work_orders_migration.py"
       ]

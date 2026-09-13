@@ -92,7 +92,7 @@ class ProfileScreen extends StatelessWidget {
               padding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withOpacity(0.15),
+                color: const Color(0xFF10B981).withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(roleAr,

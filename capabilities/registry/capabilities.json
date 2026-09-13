@@ -425,7 +425,7 @@
         "GET /v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:43",
         "PATCH /api/v1/fields/{field_id}/seasons/{season_id} @ services/sahool-platform/api/routers/fields.py:2348",
         "PATCH /internal/seasons/{season_id} @ services/scout-ingest-service/season_api.py:264",
-        "POST /api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:206",
+        "POST /api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:216",
         "POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:529",
         "POST /api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2114",
         "POST /api/v1/seasons/{season_id}/simulate @ services/sahool-platform/api/routers/seasons.py:132",
@@ -539,8 +539,8 @@
         "GET /api/v1/propagation/crop @ services/sahool-platform/api/routers/propagation.py:42",
         "GET /api/v1/varieties/food-grains/{variety_id} @ services/sahool-platform/api/routers/varieties.py:47",
         "GET /api/v1/wofost/crop-types @ services/sahool-platform/api/routers/wofost.py:27",
-        "POST /api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:154",
-        "POST /api/v1/agro/crop-rotation @ services/sahool-platform/api/routers/agro_intelligence.py:189",
+        "POST /api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:164",
+        "POST /api/v1/agro/crop-rotation @ services/sahool-platform/api/routers/agro_intelligence.py:199",
         "POST /api/v1/crop-suitability @ services/sahool-platform/api/routers/crop_suitability.py:31",
         "POST /api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:250",
         "POST /api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:409",
@@ -811,6 +811,7 @@
         "tests_v9/test_erp_bridge_alias_contract.py",
         "tests_v9/test_erp_bridge_fail_closed.py",
         "tests_v9/test_erp_bridge_healthcheck_guard.py",
+        "tests_v9/test_erp_sync_recovery.py",
         "tests_v9/test_odoo_bridge_tenant_honesty.py",
         "tests_v9/test_v9_odoo_rls_hardening_static.py"
       ],
@@ -842,7 +843,7 @@
           "path": "services/odoo-bridge/main.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=14, tests=10, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=14, tests=11, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -2949,7 +2950,7 @@
         "POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:187",
         "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:441",
         "POST /api/v1/weather/recommendations/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2922",
-        "POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:303",
+        "POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:350",
         "POST /v1/recommendation-outcomes @ services/decision-service/main.py:954"
       ],
       "ui_consumers": [],
@@ -2970,6 +2971,7 @@
         "services/sahool-platform/tests/test_work_order_from_recommendation.py",
         "tests_v9/test_irrigation_recommendation_policy.py",
         "tests_v9/test_recommendation_enriched_passthrough.py",
+        "tests_v9/test_recommendation_work_order_idempotency.py",
         "tests_v9/test_v152_recommendation_feedback_deprecation_static.py"
       ],
       "runtime": {
@@ -3006,7 +3008,7 @@
           "path": "services/ai_agronomist/recommendation_events.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=16, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=17, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": "5",
@@ -3721,13 +3723,15 @@
         "services/sahool-platform/api/main.py"
       ],
       "apis": [
-        "POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:303"
+        "POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:350"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
       "tests": [
         "services/sahool-platform/tests/test_work_order.py",
         "services/sahool-platform/tests/test_work_order_from_recommendation.py",
+        "tests_v9/test_recommendation_work_order_idempotency.py",
+        "tests_v9/test_telegram_work_order_delivery.py",
         "tests_v9/test_work_order_persist_emit.py",
         "tests_v9/test_work_orders_migration.py"
       ],
@@ -3751,7 +3755,7 @@
           "path": "services/sahool-platform/core/work_order_from_recommendation.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=4, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=6, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -5290,6 +5294,7 @@
         "tests_v9/test_persistence_truth_audit_v30_7.py",
         "tests_v9/test_pip_audit_resolution_guard.py",
         "tests_v9/test_rag_live_corpus_audit.py",
+        "tests_v9/test_runtime_image_audit_gate.py",
         "tests_v9/test_tenant_query_audit.py",
         "tests_v9/test_v87_audit_tenant.py"
       ],
@@ -5325,7 +5330,7 @@
           "path": "services/sahool-platform/api/routers/security_audit.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=13, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=14, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

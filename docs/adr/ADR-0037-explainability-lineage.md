@@ -1,4 +1,6 @@
-# ADR-0003: سلسلة تفسير القرار (Explainability Lineage)
+# ADR-0037: سلسلة تفسير القرار (Explainability Lineage)
+
+Historical alias: `0003-explainability-lineage.md`. Renumbered on 2026-09-13 to resolve an ID collision; the decision itself is unchanged.
 
 ## الحالة
 مقبول — مُطبَّق (CanonicalFieldState.explain_decision)

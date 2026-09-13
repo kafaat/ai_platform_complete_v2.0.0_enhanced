@@ -22,6 +22,10 @@ from datetime import UTC, datetime
 logger = logging.getLogger("erp_provider")
 
 
+class ERPReadUnavailable(RuntimeError):
+    """A failed read is distinct from a successful empty catalog."""
+
+
 # ═══════════════════════════════════════════════════════════════════
 # الواجهة المشتركة — كلّ مزوّد ERP يحقّقها
 # ═══════════════════════════════════════════════════════════════════
@@ -155,10 +159,13 @@ class ERPNextProvider(ERPProvider):
                 params["filters"] = json.dumps(filters)
             r = await client.get(f"{self.url}/api/resource/{doctype}", params=params)
             r.raise_for_status()
-            return r.json().get("data", [])
-        except Exception as e:  # noqa: BLE001 — صدق: فشل → فارغ لا اختراع
+            data = r.json()["data"]
+            if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+                raise ValueError("invalid_erp_resource_response")
+            return data
+        except Exception as e:
             logger.warning("ERPNext %s تعذّر: %s", doctype, type(e).__name__)
-            return []
+            raise ERPReadUnavailable(f"erpnext_read_unavailable:{doctype}") from e
 
     async def authenticate(self) -> bool:
         # Frappe token-based: لا جلسة، نختبر بنداء خفيف.
@@ -182,7 +189,7 @@ class ERPNextProvider(ERPProvider):
 
     async def list_products(self, since=None) -> list[dict]:
         # Item هو منتج Frappe؛ نوحّده لمخطّط الجسر
-        filters = [["modified", ">", since]] if since else None
+        filters = [["modified", ">=", since]] if since else None
         items = await self._get_list(
             "Item",
             ["item_code", "item_name", "item_group", "stock_uom", "standard_rate"],
@@ -202,7 +209,7 @@ class ERPNextProvider(ERPProvider):
         ]
 
     async def list_suppliers(self, since=None) -> list[dict]:
-        filters = [["modified", ">", since]] if since else None
+        filters = [["modified", ">=", since]] if since else None
         sups = await self._get_list(
             "Supplier", ["supplier_name", "name", "mobile_no", "email_id"], filters
         )
@@ -337,7 +344,7 @@ class OdooProvider(ERPProvider):
             return False
 
     async def list_products(self, since=None) -> list[dict]:
-        domain = [["write_date", ">", since]] if since else []
+        domain = [["write_date", ">=", since]] if since else []
         rows = await self.odoo.search_read(
             "product.product",
             domain,
@@ -363,7 +370,7 @@ class OdooProvider(ERPProvider):
     async def list_suppliers(self, since=None) -> list[dict]:
         domain = [["supplier_rank", ">", 0]]
         if since:
-            domain.append(["write_date", ">", since])
+            domain.append(["write_date", ">=", since])
         rows = await self.odoo.search_read("res.partner", domain, ["id", "name", "phone", "email"])
         return [
             {

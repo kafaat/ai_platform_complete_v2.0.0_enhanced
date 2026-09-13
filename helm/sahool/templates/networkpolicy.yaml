@@ -1,4 +1,17 @@
 {{- if .Values.networkPolicy.enabled }}
+{{- /*
+Ingress ports are derived from the enabled workloads' declared `port` values, not a
+hand-kept list. The previous static list (8000, 8093, 8130, 8140, 8097) never carried
+8001 after sahool-raster-service moved to it, so the Service pointed at a port the
+namespace policy denied (Copilot on #997). Any new workload port is allowed as soon as
+it is declared; a port nobody serves is never opened.
+*/}}
+{{- $ports := list }}
+{{- range $name, $workload := .Values.workloads }}
+{{- if $workload.enabled }}
+{{- $ports = append $ports (printf "%d" (int $workload.port)) }}
+{{- end }}
+{{- end }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -18,16 +31,10 @@ spec:
               kubernetes.io/metadata.name: {{ . | quote }}
         {{- end }}
       ports:
+        {{- range $port := ($ports | uniq | sortAlpha) }}
         - protocol: TCP
-          port: 8000
-        - protocol: TCP
-          port: 8093
-        - protocol: TCP
-          port: 8130
-        - protocol: TCP
-          port: 8140
-        - protocol: TCP
-          port: 8097
+          port: {{ $port }}
+        {{- end }}
   egress:
     - to:
         - namespaceSelector: {}

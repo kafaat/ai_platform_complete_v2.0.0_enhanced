@@ -46,6 +46,8 @@ from contextlib import asynccontextmanager
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
+from shared.tracing import configure_tracing
+
 # جعل النواة قابلة للاستيراد
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -195,6 +197,9 @@ app = FastAPI(
     version="1.0.0",
     lifespan=_lifespan,
 )
+
+
+configure_tracing(app, "sahool-platform")
 
 
 async def _warn_weak_dev_jwt_secret():
@@ -644,21 +649,6 @@ async def tenant_connection(user):
                 user.role.value if hasattr(user.role, "value") else str(user.role),
             )
             yield conn
-
-
-async def _apply_tenant_guc(conn, tenant_id: str) -> None:
-    """يضبط سياق المستأجِر على اتّصال خام (يُحاكي main.py:346 حرفيّاً).
-
-    `true` ⇒ transaction-local (SET LOCAL — آمن مع connection pooling). يُستخدَم
-    على المسارات التي تكتسب اتّصالها الخاصّ من الـpool (لا عبر tenant_connection)
-    لكنّها مع ذلك مُنطّقة بمستأجِر واحد، فتفعّل RLS فعليّاً تحت الدور المُقيَّد
-    (sahool_app: NOBYPASSRLS, FORCE RLS). يجب استدعاؤه داخل معاملة قبل أيّ
-    استعلام مُنطّق بمستأجِر.
-    """
-    await conn.execute(
-        "SELECT set_config('app.current_tenant', $1, true)",
-        str(tenant_id),
-    )
 
 
 # ─── الأحداث الحرجة (fail-closed) ───────────────────────────────────────────────

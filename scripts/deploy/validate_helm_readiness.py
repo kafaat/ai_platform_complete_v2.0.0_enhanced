@@ -8,6 +8,7 @@ values and template contracts that are easy to break during release packaging.
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -26,6 +27,7 @@ REQUIRED_TEMPLATES = [
     "values-production.yaml",
     "templates/deployments.yaml",
     "templates/services.yaml",
+    "templates/persistence.yaml",
     "templates/ingress.yaml",
     "templates/networkpolicy.yaml",
     "templates/migration-job.yaml",
@@ -40,6 +42,31 @@ FORBIDDEN_SECRET_LITERALS = [
     "sslmode=disable",
     "BYPASSRLS",
 ]
+
+
+def source_contract_errors(values: dict, root: Path = ROOT) -> list[str]:
+    """Compare chart ports with the Dockerfile actually named by each workload."""
+    errors = []
+    for name, spec in values.get("workloads", {}).items():
+        if not spec.get("enabled"):
+            continue
+        source = root / spec.get("sourceDockerfile", "")
+        if not source.is_file():
+            errors.append(f"{name}: sourceDockerfile is required")
+            continue
+        ports = {
+            int(port)
+            for port in re.findall(r"^EXPOSE\s+(\d+)", source.read_text(encoding="utf-8"), re.M)
+        }
+        if spec.get("port") not in ports:
+            errors.append(
+                f"{name}: port {spec.get('port')} does not match {source.relative_to(root)} EXPOSE {sorted(ports)}"
+            )
+        if name == "sahool-knowledge-graph" and (
+            spec.get("replicas") != 1 or not spec.get("persistence")
+        ):
+            errors.append("knowledge-graph SQLite requires one replica and persistent storage")
+    return errors
 
 
 def load_yaml(path: Path) -> dict:
@@ -82,6 +109,7 @@ def main() -> int:
     values = load_yaml(CHART / "values.yaml")
     overlay = load_yaml(CHART / f"values-{args.env}.yaml")
     merged = deep_merge(values, overlay)
+    failures.extend(source_contract_errors(merged))
 
     if args.env == "production" and merged.get("global", {}).get("environment") != "production":
         failures.append("production overlay must set global.environment=production")
@@ -108,7 +136,11 @@ def main() -> int:
         tag = image_tag(image)
         if tag in FORBIDDEN_IMAGE_TAGS:
             failures.append(f"{name} uses unsafe image tag: {image}")
-        if args.env == "production" and int(spec.get("replicas", 0)) < 2:
+        if (
+            args.env == "production"
+            and name != "sahool-knowledge-graph"
+            and int(spec.get("replicas", 0)) < 2
+        ):
             failures.append(f"{name} production replicas must be >=2")
         secret_env = spec.get("secretEnv", {})
         if (

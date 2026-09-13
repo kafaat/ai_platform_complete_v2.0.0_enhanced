@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 632
   },
-  "inventory_sha256": "4b1bddad3d5786e8a44454407da539af43d7e4d52d1cc472e82cd0b725d8307f",
+  "inventory_sha256": "2249e5d850cb896122a28785566121a25b046eba8690d23e5c4f5187c3b7d823",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "2dea6c81e2349f89b5eeef0b7d0cce9bfc5000fbbc9f8f919af93805b3bf03ee"
+    "policy_sha256": "eebc3cb5c61fe876b0a8cd92aff08d83bd6bf3c7208366c878323ab5a78831d9"
   },
   "routes": [
     {
@@ -2906,7 +2906,7 @@
     {
       "classification": "domain",
       "function": "crop_risk_endpoint",
-      "line": 153,
+      "line": 163,
       "method": "POST",
       "path": "/api/v1/agro/crop-risk",
       "source": "api/routers/agro_intelligence.py"
@@ -2914,7 +2914,7 @@
     {
       "classification": "domain",
       "function": "crop_rotation_endpoint",
-      "line": 188,
+      "line": 198,
       "method": "POST",
       "path": "/api/v1/agro/crop-rotation",
       "source": "api/routers/agro_intelligence.py"
@@ -2922,7 +2922,7 @@
     {
       "classification": "domain",
       "function": "decision_playbook_endpoint",
-      "line": 213,
+      "line": 223,
       "method": "POST",
       "path": "/api/v1/agro/decision-playbook",
       "source": "api/routers/agro_intelligence.py"
@@ -2938,7 +2938,7 @@
     {
       "classification": "domain",
       "function": "plant_soil_feedback_endpoint",
-      "line": 166,
+      "line": 176,
       "method": "POST",
       "path": "/api/v1/agro/plant-soil-feedback",
       "source": "api/routers/agro_intelligence.py"
@@ -2946,7 +2946,7 @@
     {
       "classification": "domain",
       "function": "plant_soil_feedback_trend_endpoint",
-      "line": 174,
+      "line": 184,
       "method": "POST",
       "path": "/api/v1/agro/plant-soil-feedback/trend",
       "source": "api/routers/agro_intelligence.py"
@@ -2954,7 +2954,7 @@
     {
       "classification": "domain",
       "function": "season_comparison_endpoint",
-      "line": 205,
+      "line": 215,
       "method": "POST",
       "path": "/api/v1/agro/season-comparison",
       "source": "api/routers/agro_intelligence.py"
@@ -4442,7 +4442,7 @@
     {
       "classification": "domain",
       "function": "work_order_from_recommendation_endpoint",
-      "line": 302,
+      "line": 349,
       "method": "POST",
       "path": "/api/v1/work-orders/from-recommendation",
       "source": "api/routers/agro_intelligence.py"

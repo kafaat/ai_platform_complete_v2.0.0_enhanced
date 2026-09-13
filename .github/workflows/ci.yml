@@ -1945,14 +1945,15 @@ jobs:
           -r services/video-processor/requirements.txt
           -r services/weather-service/requirements.txt
           --progress-spinner off
-      # مسح إرشادي شامل: يكشف ثغرات بقيّة الخدمات (مثلاً RAG: pypdf/langchain —
-      # إصلاحها خارج سقوف توافق langchain، يحتاج ترقية متعمّدة) دون حجب الدمج.
-      - name: pip-audit (advisory — all services)
+      # Every requirements file consumed by a service/bot/agent image is blocking.
+      # Resolve images independently; unrelated runtime pins need not share a venv.
+      # The documented python-jose/cryptography ecdsa exception above still applies.
+      - name: pip-audit (gating — each runtime image)
         run: |
-          while IFS= read -r -d '' f; do
-            echo "── $f ──"; pip-audit -r "$f" --progress-spinner off || true
+          set -euo pipefail
+          while IFS= read -r -d '' requirements_file; do
+            pip-audit -r "$requirements_file" --ignore-vuln PYSEC-2026-1325 --progress-spinner off
           done < <(find services bots agents -name 'requirements*.txt' -print0)
-        continue-on-error: true
       # M12 FIX: الملف اسمه requirements_real.txt — السابق (requirements.txt)
       # غير موجود فكان || true يبتلعه دائماً وتبقى تبعيّات وقت التشغيل ناقصة.
       - run: pip install -r requirements_real.txt
@@ -1993,4 +1994,9 @@ jobs:
       - run: flutter analyze --no-fatal-infos --no-fatal-warnings
         working-directory: mobile/sahool_app
       - run: flutter test
+        working-directory: mobile/sahool_app
+      - name: Select Java 17 for the Android toolchain
+        run: echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+      - name: Build Android debug app from the committed native project
+        run: flutter build apk --debug --no-pub
         working-directory: mobile/sahool_app

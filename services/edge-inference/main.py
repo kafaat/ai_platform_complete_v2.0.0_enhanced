@@ -153,7 +153,7 @@ def capabilities_payload() -> dict[str, object]:
 
 
 class PestDetectionRequest(BaseModel):
-    field_id: str = Field(min_length=1, max_length=64)
+    field_id: str = Field(min_length=1, max_length=50)
     crop: str = Field(
         default="wheat", pattern="^(wheat|barley|maize|sorghum|millet|rice|potato|tomato|coffee)$"
     )
@@ -162,7 +162,7 @@ class PestDetectionRequest(BaseModel):
 
 
 class YieldEstimationRequest(BaseModel):
-    field_id: str = Field(min_length=1, max_length=64)
+    field_id: str = Field(min_length=1, max_length=50)
     crop: str
     image_count: int = Field(default=5, ge=1, le=20)
     growth_stage: str = Field(
@@ -219,7 +219,7 @@ def _require_service_token(x_agent_token: str = Header(None)) -> None:
 @app.post("/v1/inference/pest-detect")
 async def detect_pest(
     file: UploadFile = File(...),
-    field_id: str = Form("unknown"),
+    field_id: str = Form(...),
     crop: str = Form("wheat"),
     confidence_threshold: float = Form(0.6),
     return_image: bool = Form(False),
@@ -267,18 +267,22 @@ async def detect_pest(
         "model_version": detector.version,
     }
     sync = get_sync_service()
-    if not OFFLINE_MODE:
-        await sync.sync_result("pest_detection", result)
-    else:
-        sync.queue_result("pest_detection", result)
+    synced = False
+    try:
+        if not OFFLINE_MODE:
+            synced = await sync.sync_result("pest_detection", result)
+        else:
+            sync.queue_result("pest_detection", result)
+    except (OSError, ValueError) as exc:
+        raise HTTPException(503, "edge_sync_queue_or_identity_unavailable") from exc
     alert = artifact_gate.high_confidence_alert(detections)
-    return {**result, "alert_ar": alert, "sync_status": "synced" if not OFFLINE_MODE else "queued"}
+    return {**result, "alert_ar": alert, "sync_status": "synced" if synced else "queued"}
 
 
 @app.post("/v1/inference/yield-estimate")
 async def estimate_yield(
     files: list[UploadFile] = File(...),
-    field_id: str = Form("unknown"),
+    field_id: str = Form(...),
     crop: str = Form("wheat"),
     image_count: int = Form(5),
     growth_stage: str = Form("vegetative"),
@@ -333,11 +337,15 @@ async def estimate_yield(
         "timestamp": datetime.now(UTC).isoformat(),
     }
     sync = get_sync_service()
-    if not OFFLINE_MODE:
-        await sync.sync_result("yield_estimate", result)
-    else:
-        sync.queue_result("yield_estimate", result)
-    return {**result, "sync_status": "synced" if not OFFLINE_MODE else "queued"}
+    synced = False
+    try:
+        if not OFFLINE_MODE:
+            synced = await sync.sync_result("yield_estimate", result)
+        else:
+            sync.queue_result("yield_estimate", result)
+    except (OSError, ValueError) as exc:
+        raise HTTPException(503, "edge_sync_queue_or_identity_unavailable") from exc
+    return {**result, "sync_status": "synced" if synced else "queued"}
 
 
 @app.post("/v1/sync/trigger")

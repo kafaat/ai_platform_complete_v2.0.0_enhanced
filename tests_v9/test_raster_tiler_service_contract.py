@@ -216,7 +216,26 @@ def dockerfile_text() -> str:
 
 
 def test_dockerfile_pins_titiler_within_supported_range(dockerfile_text):
-    assert "titiler.application>=0.20,<0.23" in dockerfile_text
+    from packaging.requirements import Requirement
+    from packaging.specifiers import SpecifierSet
+    from packaging.utils import canonicalize_name
+
+    assert (
+        "COPY services/raster-tiler-service/requirements.txt /app/requirements.txt"
+        in dockerfile_text
+    )
+    assert "-r /app/requirements.txt" in dockerfile_text
+    requirements = [
+        Requirement(line)
+        for line in (SERVICE_DIR / "requirements.txt").read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.startswith("#")
+    ]
+    for requirement in requirements:
+        pins = list(requirement.specifier)
+        assert len(pins) == 1 and pins[0].operator == "==", requirement
+    titiler = [r for r in requirements if canonicalize_name(r.name) == "titiler-application"]
+    assert len(titiler) == 1
+    assert list(titiler[0].specifier)[0].version in SpecifierSet(">=0.20,<0.23")
 
 
 def test_dockerfile_exposes_documented_port(dockerfile_text):

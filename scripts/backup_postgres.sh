@@ -6,20 +6,21 @@
 # الميزات:
 #   ١. pg_dump → custom format (مضغوط، parallel-safe)
 #   ٢. WAL archiving (للـPITR — Point In Time Recovery)
-#   ٣. retention: ٧ days local + ٣٠ days S3
-#   ٤. integrity check بعد كل backup
+#   ٣. logical retention only; physical/WAL retention requires a verified boundary
+#   ٤. readable logical catalog / verified physical manifest; live restore still required
 #   ٥. metrics لـPrometheus (نجاح/فشل + حجم)
 #
 # Usage:
 #   ./backup_postgres.sh full          # full snapshot
-#   ./backup_postgres.sh wal_archive   # WAL segments only
+#   ./backup_postgres.sh base          # physical PG16 base + manifest
+#   ./backup_postgres.sh wal_archive <source> <segment>  # archive_command callback
 #   ./backup_postgres.sh verify <file> # verify backup
 #
 # Cron suggestion:
 #   0 2 * * *  /scripts/backup_postgres.sh full   # daily 2am full
-#   */15 * * * /scripts/backup_postgres.sh wal_archive  # every 15min WAL
+#   WAL is archived by PostgreSQL archive_command, not by a periodic cron.
 
-set -euo pipefail
+set -Eeuo pipefail
 
 # ─── Config (env vars) ──────────────────────────────────────────
 
@@ -57,7 +58,7 @@ push_metric() {
 }
 
 ensure_dir() {
-  mkdir -p "$BACKUP_DIR/full" "$BACKUP_DIR/wal" "$BACKUP_DIR/logs"
+  mkdir -p "$BACKUP_DIR/full" "$BACKUP_DIR/base" "$BACKUP_DIR/wal" "$BACKUP_DIR/logs"
 }
 
 # ─── Backup operations ──────────────────────────────────────────
@@ -91,8 +92,7 @@ backup_full() {
 
     # Verify integrity
     if pg_restore --list "$outfile" > /dev/null 2>&1; then
-      log "✓ Integrity check passed"
-      push_metric "sahool_backup_success" "1" 'type="full"'
+      log "✓ Archive catalog readable (a restore drill is still required)"
       push_metric "sahool_backup_size_bytes" "$size_bytes" 'type="full"'
       push_metric "sahool_backup_duration_seconds" "$duration" 'type="full"'
 
@@ -125,7 +125,7 @@ backup_wal_archive() {
   # WAL archiving للـPITR
   # Note: WAL archive_command يجب أن يكون مفعّلاً في postgresql.conf:
   #   archive_mode = on
-  #   archive_command = '/scripts/backup_postgres.sh wal_archive_one %p %f'
+  #   archive_command = '/scripts/backup_postgres.sh wal_archive %p %f'
   ensure_dir
 
   local wal_path="${1:-}"
@@ -137,20 +137,36 @@ backup_wal_archive() {
     return 0
   fi
 
-  local dest="$BACKUP_DIR/wal/$wal_filename"
-  if cp "$wal_path" "$dest" && [[ -f "$dest" ]]; then
-    push_metric "sahool_wal_archive_success" "1"
-    # S3 backup (async, non-blocking)
-    if [[ -n "${AWS_ACCESS_KEY_ID:-}" ]] && command -v aws &>/dev/null; then
-      aws s3 cp "$dest" "s3://${S3_BUCKET}/${S3_PREFIX}/wal/" \
-        --storage-class STANDARD_IA \
-        --quiet &
-    fi
-    return 0
-  else
-    push_metric "sahool_wal_archive_success" "0"
+  if [[ ! "$wal_filename" =~ ^[0-9A-F]{24}(\.[0-9A-F]{8}\.backup)?$ && ! "$wal_filename" =~ ^[0-9A-F]{8}\.history$ ]]; then
+    log "Invalid WAL archive filename"
     return 1
   fi
+  local dest="$BACKUP_DIR/wal/$wal_filename"
+  # Never overwrite a different archived segment with the same identity.
+  if [[ -f "$dest" ]]; then
+    cmp -s "$wal_path" "$dest" || return 1
+  else
+  local temporary
+  temporary=$(mktemp "$BACKUP_DIR/wal/.${wal_filename}.XXXXXX")
+  if ! cp -- "$wal_path" "$temporary" || ! sync -f "$temporary"; then
+    rm -f -- "$temporary"
+    return 1
+  fi
+  # Atomic create-if-absent also protects concurrent archiver invocations.
+  if ln -- "$temporary" "$dest" 2>/dev/null; then
+    rm -f -- "$temporary"
+  else
+    rm -f -- "$temporary"
+    cmp -s "$wal_path" "$dest" || return 1
+  fi
+  sync -f "$BACKUP_DIR/wal"
+  fi
+  if [[ -n "${AWS_ACCESS_KEY_ID:-}" ]] && command -v aws &>/dev/null; then
+    # Archive success must wait for the configured remote durability target.
+    aws s3 cp "$dest" "s3://${S3_BUCKET}/${S3_PREFIX}/wal/" --storage-class STANDARD_IA --quiet
+  fi
+  push_metric "sahool_wal_archive_success" "1"
+
 }
 
 # ─── Verification ───────────────────────────────────────────────
@@ -164,8 +180,9 @@ verify_backup() {
 
   log "Verifying: $file"
   if pg_restore --list "$file" > /dev/null 2>&1; then
-    local table_count=$(pg_restore --list "$file" | grep -c "TABLE DATA" || echo 0)
-    log "✓ Backup valid. Contains $table_count tables."
+    local table_count
+    table_count=$(pg_restore --list "$file" | awk '/TABLE DATA/{n++} END {print n+0}')
+    log "✓ Archive catalog readable: $table_count tables; restore not yet verified."
     return 0
   else
     log "✗ Backup CORRUPTED"
@@ -177,12 +194,15 @@ verify_backup() {
 
 cleanup_old() {
   log "Cleaning up backups older than ${RETENTION_DAYS_LOCAL} days locally"
-  find "$BACKUP_DIR/full" -name "sahool_*.dump" \
-    -mtime +${RETENTION_DAYS_LOCAL} -delete -print 2>/dev/null \
-    | wc -l | xargs -I{} log "Deleted {} old local backups"
-
-  find "$BACKUP_DIR/wal" -name "*" \
-    -mtime +${RETENTION_DAYS_LOCAL} -delete 2>/dev/null || true
+  [[ "$RETENTION_DAYS_LOCAL" =~ ^[0-9]+$ ]] || { log "Invalid retention days"; return 1; }
+  ensure_dir
+  local deleted
+  deleted=$(find "$BACKUP_DIR/full" -mindepth 1 -maxdepth 1 -type f -name 'sahool_*.dump' \
+    -mtime +"$RETENTION_DAYS_LOCAL" -delete -print | wc -l)
+  log "Deleted $deleted old local logical backups"
+  # WAL age alone cannot establish whether a retained physical base needs it.
+  # Prune only after a verified restore establishes the oldest required segment.
+  log "WAL and physical bases retained; prune from a verified restore boundary"
 
   # S3 cleanup (delegate to S3 lifecycle policy in production)
   log "S3 retention managed by lifecycle policy (${RETENTION_DAYS_S3} days)"
@@ -192,42 +212,62 @@ cleanup_old() {
 
 show_restore_help() {
   cat <<'EOF'
-RESTORE PROCEDURES (run manually with care):
+Logical restore (custom-format pg_dump; not PITR):
+  ./scripts/restore_postgres.sh /var/backups/sahool/full/sahool_TIMESTAMP.dump --dry-run
+  ./scripts/restore_postgres.sh /var/backups/sahool/full/sahool_TIMESTAMP.dump
 
-  ١. Full restore (last backup):
-     gunzip -c /var/backups/sahool/full/sahool_LATEST.dump.gz | \
-       pg_restore --dbname=sahool --clean --if-exists --verbose
+PITR requires a PHYSICAL base plus continuous archived WAL:
+  ./scripts/backup_postgres.sh base
+  ./scripts/restore_postgres.sh --pitr /var/backups/sahool/base/base_TIMESTAMP \
+    --target-dir /var/lib/postgresql/recovery-drill \
+    --wal-dir /var/backups/sahool/wal --target-time '2026-09-13T10:00:00Z' --dry-run
+Remove --dry-run to prepare a NEW EMPTY target, then start an isolated PostgreSQL
+instance of the SAME major as the base (Compose v9 deploys 15; the evidence lab 16;
+the preparation step refuses a mismatch against RECOVERY_PG_MAJOR or the local
+postgres binary). recovery.signal and the recovery settings are written by the
+preparation command. It does not start PostgreSQL or replace a live volume.
 
-  ٢. Selective restore (one table):
-     pg_restore --dbname=sahool \
-       --table=field_boundaries \
-       /var/backups/sahool/full/sahool_TIMESTAMP.dump
+A readable pg_restore catalog is not a restore proof. Check rows, roles, RLS,
+application queries, recovery target reached, and measured RPO/RTO in a drill.
+See docs/runbooks/POSTGRES_RECOVERY.md for WAL provisioning and storage coverage.
 
-  ٣. PITR (Point In Time Recovery):
-     # Stop postgres
-     # Restore base backup
-     pg_restore --dbname=sahool /var/backups/sahool/full/sahool_BASE.dump
-     # Configure recovery.conf:
-     #   restore_command = 'cp /var/backups/sahool/wal/%f %p'
-     #   recovery_target_time = '2026-06-03 14:30:00 UTC'
-     # Start postgres → it replays WAL until target time
-
-  ٤. Verify before relying:
-     ./backup_postgres.sh verify /path/to/backup.dump
-
-REMEMBER:
-  - Test restores monthly (drill)
-  - Never restore to production without dry-run first
-  - WAL retention must cover RPO (recovery point objective)
 EOF
 }
 
+backup_base() {
+  ensure_dir
+  local destination="$BACKUP_DIR/base/base_${TIMESTAMP}"
+  local temporary="${destination}.partial"
+  # This local layout supports the default tablespaces only. External tablespace
+  # mappings must be designed before allowing pg_basebackup to write their paths.
+  if [[ "$(psql -X -Atqc "SELECT count(*) FROM pg_tablespace WHERE spcname NOT IN ('pg_default','pg_global')")" != 0 ]]; then
+    log "External tablespaces require an explicit backup mapping"
+    return 1
+  fi
+  [[ ! -e "$temporary" && ! -e "$destination" ]] || { log "Backup destination exists"; return 1; }
+  pg_basebackup --pgdata="$temporary" --format=plain --wal-method=stream \
+    --checkpoint=fast --manifest-checksums=SHA256
+  pg_verifybackup "$temporary"
+  mv -- "$temporary" "$destination"
+  log "Physical base verified: $destination (live restore not yet measured)"
+  push_metric "sahool_backup_success" "1" 'type="base"'
+}
+
 # ─── Main ───────────────────────────────────────────────────────
+
+# A failed final stage must not leave a success metric for the overall job.
+case "${1:-help}" in
+  full|base) BACKUP_KIND="$1"; trap 'push_metric "sahool_backup_success" "0" "type=\"$BACKUP_KIND\""' ERR ;;
+esac
 
 case "${1:-help}" in
   full)
     backup_full
     cleanup_old
+    push_metric "sahool_backup_success" "1" 'type="full"'
+    ;;
+  base)
+    backup_base
     ;;
   wal_archive)
     backup_wal_archive "${2:-}" "${3:-}"
@@ -242,7 +282,7 @@ case "${1:-help}" in
     show_restore_help
     ;;
   *)
-    echo "Usage: $0 {full|wal_archive|verify <file>|cleanup|restore-help}"
+    echo "Usage: $0 {full|base|wal_archive <path> <filename>|verify <file>|cleanup|restore-help}"
     exit 1
     ;;
 esac

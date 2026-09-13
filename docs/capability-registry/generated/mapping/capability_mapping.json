@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5282,
+    "files_scanned": 5308,
     "files_by_kind": {
       "backend": 1207,
       "database": 277,
       "governance": 62,
-      "mobile": 51,
-      "other": 1455,
-      "tests": 1773,
+      "mobile": 55,
+      "other": 1465,
+      "tests": 1785,
       "web": 457
     },
-    "unmapped_artifacts": 2148,
-    "ambiguous_artifacts": 417
+    "unmapped_artifacts": 2162,
+    "ambiguous_artifacts": 418
   },
   "capabilities": [
     {
@@ -6765,27 +6765,27 @@
           "score": 10
         },
         {
-          "value": "/api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:153",
+          "value": "/api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:163",
           "score": 9
         },
         {
-          "value": "/api/v1/agro/crop-rotation @ services/sahool-platform/api/routers/agro_intelligence.py:188",
+          "value": "/api/v1/agro/crop-rotation @ services/sahool-platform/api/routers/agro_intelligence.py:198",
           "score": 9
         },
         {
-          "value": "/api/v1/agro/decision-playbook @ services/sahool-platform/api/routers/agro_intelligence.py:213",
+          "value": "/api/v1/agro/decision-playbook @ services/sahool-platform/api/routers/agro_intelligence.py:223",
           "score": 9
         },
         {
-          "value": "/api/v1/agro/plant-soil-feedback @ services/sahool-platform/api/routers/agro_intelligence.py:166",
+          "value": "/api/v1/agro/plant-soil-feedback @ services/sahool-platform/api/routers/agro_intelligence.py:176",
           "score": 9
         },
         {
-          "value": "/api/v1/agro/plant-soil-feedback/trend @ services/sahool-platform/api/routers/agro_intelligence.py:174",
+          "value": "/api/v1/agro/plant-soil-feedback/trend @ services/sahool-platform/api/routers/agro_intelligence.py:184",
           "score": 9
         },
         {
-          "value": "/api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:205",
+          "value": "/api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:215",
           "score": 9
         },
         {
@@ -6813,7 +6813,7 @@
           "score": 9
         },
         {
-          "value": "/api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:302",
+          "value": "/api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:349",
           "score": 9
         }
       ],
@@ -7422,7 +7422,7 @@
           "score": 9
         },
         {
-          "value": "sahool.agro_intelligence @ services/sahool-platform/api/routers/agro_intelligence.py:38",
+          "value": "sahool.agro_intelligence @ services/sahool-platform/api/routers/agro_intelligence.py:48",
           "score": 9
         },
         {
@@ -11208,27 +11208,27 @@
       ],
       "routes": [
         {
-          "value": "/health @ agents/notification/agent.py:655",
+          "value": "/health @ agents/notification/agent.py:691",
           "score": 12
         },
         {
-          "value": "/healthz @ agents/notification/agent.py:656",
+          "value": "/healthz @ agents/notification/agent.py:692",
           "score": 12
         },
         {
-          "value": "/metrics @ agents/notification/agent.py:686",
+          "value": "/metrics @ agents/notification/agent.py:732",
           "score": 12
         },
         {
-          "value": "/notification/test @ agents/notification/agent.py:699",
+          "value": "/notification/test @ agents/notification/agent.py:745",
           "score": 12
         },
         {
-          "value": "/notifications/test @ agents/notification/agent.py:641",
+          "value": "/notifications/test @ agents/notification/agent.py:677",
           "score": 12
         },
         {
-          "value": "/readyz @ agents/notification/agent.py:661",
+          "value": "/readyz @ agents/notification/agent.py:697",
           "score": 12
         },
         {
@@ -11404,7 +11404,7 @@
           "score": 12
         },
         {
-          "value": "sahool.> @ agents/notification/agent.py:449",
+          "value": "sahool.> @ agents/notification/agent.py:482",
           "score": 12
         },
         {
@@ -11416,7 +11416,7 @@
           "score": 12
         },
         {
-          "value": "sahool.alerts.weather @ agents/notification/agent.py:413",
+          "value": "sahool.alerts.weather @ agents/notification/agent.py:411",
           "score": 12
         },
         {
@@ -11424,7 +11424,7 @@
           "score": 12
         },
         {
-          "value": "sahool.economic.analysis @ agents/notification/agent.py:419",
+          "value": "sahool.economic.analysis @ agents/notification/agent.py:417",
           "score": 12
         },
         {
@@ -11432,7 +11432,7 @@
           "score": 12
         },
         {
-          "value": "sahool.events.> @ agents/notification/agent.py:424",
+          "value": "sahool.events.> @ agents/notification/agent.py:422",
           "score": 12
         },
         {
@@ -11460,7 +11460,7 @@
           "score": 12
         },
         {
-          "value": "sahool.fertilizer.recommendation @ agents/notification/agent.py:416",
+          "value": "sahool.fertilizer.recommendation @ agents/notification/agent.py:414",
           "score": 12
         },
         {
@@ -11468,7 +11468,7 @@
           "score": 12
         },
         {
-          "value": "sahool.inventory.low_stock @ agents/notification/agent.py:417",
+          "value": "sahool.inventory.low_stock @ agents/notification/agent.py:415",
           "score": 12
         },
         {
@@ -11476,7 +11476,7 @@
           "score": 12
         },
         {
-          "value": "sahool.irrigation.recommendation @ agents/notification/agent.py:415",
+          "value": "sahool.irrigation.recommendation @ agents/notification/agent.py:413",
           "score": 12
         },
         {
@@ -11484,7 +11484,11 @@
           "score": 12
         },
         {
-          "value": "sahool.pest.alert @ agents/notification/agent.py:414",
+          "value": "sahool.notification.dead_letter @ agents/notification/agent.py:435",
+          "score": 12
+        },
+        {
+          "value": "sahool.pest.alert @ agents/notification/agent.py:412",
           "score": 12
         },
         {
@@ -11492,7 +11496,7 @@
           "score": 12
         },
         {
-          "value": "sahool.task.assigned @ agents/notification/agent.py:418",
+          "value": "sahool.task.assigned @ agents/notification/agent.py:416",
           "score": 12
         },
         {
@@ -11500,7 +11504,7 @@
           "score": 12
         },
         {
-          "value": "sahool.tenant.*.satellite.*.computed @ agents/notification/agent.py:412",
+          "value": "sahool.tenant.*.satellite.*.computed @ agents/notification/agent.py:410",
           "score": 12
         },
         {
@@ -11772,6 +11776,14 @@
           ]
         },
         {
+          "path": "docs/audits/DEEP_REVIEW_SUPPLEMENT_20260913.md",
+          "score": 9,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
           "path": "grafana/dashboards/json/sahool-production-overview.json",
           "score": 9,
           "signals": [
@@ -11782,6 +11794,14 @@
         {
           "path": "shared/helpers.py",
           "score": 9,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
+          "path": "docs/audits/PATCH_CLOSURE_20260913.md",
+          "score": 8,
           "signals": [
             "content:jetstream",
             "content:nats"
@@ -11804,12 +11824,12 @@
         "backend": 6,
         "routes": 15,
         "database": 2,
-        "events": 67,
+        "events": 68,
         "web": 0,
         "mobile": 0,
         "tests": 10,
         "governance": 0,
-        "other_evidence": 19
+        "other_evidence": 21
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -13490,31 +13510,31 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:153",
+          "value": "/api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:163",
           "score": 12
         },
         {
-          "value": "/api/v1/agro/crop-rotation @ services/sahool-platform/api/routers/agro_intelligence.py:188",
+          "value": "/api/v1/agro/crop-rotation @ services/sahool-platform/api/routers/agro_intelligence.py:198",
           "score": 12
         },
         {
-          "value": "/api/v1/agro/decision-playbook @ services/sahool-platform/api/routers/agro_intelligence.py:213",
+          "value": "/api/v1/agro/decision-playbook @ services/sahool-platform/api/routers/agro_intelligence.py:223",
           "score": 12
         },
         {
-          "value": "/api/v1/agro/plant-soil-feedback @ services/sahool-platform/api/routers/agro_intelligence.py:166",
+          "value": "/api/v1/agro/plant-soil-feedback @ services/sahool-platform/api/routers/agro_intelligence.py:176",
           "score": 12
         },
         {
-          "value": "/api/v1/agro/plant-soil-feedback/trend @ services/sahool-platform/api/routers/agro_intelligence.py:174",
+          "value": "/api/v1/agro/plant-soil-feedback/trend @ services/sahool-platform/api/routers/agro_intelligence.py:184",
           "score": 12
         },
         {
-          "value": "/api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:205",
+          "value": "/api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:215",
           "score": 12
         },
         {
-          "value": "/api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:302",
+          "value": "/api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:349",
           "score": 12
         }
       ],
@@ -13552,8 +13572,16 @@
       ],
       "events": [
         {
-          "value": "sahool.agro_intelligence @ services/sahool-platform/api/routers/agro_intelligence.py:38",
+          "value": "sahool.agro_intelligence @ services/sahool-platform/api/routers/agro_intelligence.py:48",
           "score": 12
+        },
+        {
+          "value": "sahool.telegram @ bots/telegram/main.py:45",
+          "score": 9
+        },
+        {
+          "value": "sahool_voice.mp3 @ bots/telegram/main.py:206",
+          "score": 9
         }
       ],
       "web": [
@@ -13597,6 +13625,24 @@
           ]
         },
         {
+          "path": "tests_v9/test_telegram_work_order_delivery.py",
+          "score": 18,
+          "signals": [
+            "content:Work orders",
+            "path:work order",
+            "content:work order"
+          ]
+        },
+        {
+          "path": "tests_v9/test_recommendation_work_order_idempotency.py",
+          "score": 17,
+          "signals": [
+            "content:Work orders",
+            "path:work order",
+            "content:work order"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_work_order.py",
           "score": 12,
           "signals": [
@@ -13607,6 +13653,14 @@
       ],
       "governance": [],
       "other_evidence": [
+        {
+          "path": "bots/telegram/main.py",
+          "score": 9,
+          "signals": [
+            "content:Work orders",
+            "content:work order"
+          ]
+        },
         {
           "path": "agent-memory/SCHEMA_FACTS.md",
           "score": 8,
@@ -13624,12 +13678,12 @@
         "backend": 3,
         "routes": 7,
         "database": 6,
-        "events": 1,
+        "events": 3,
         "web": 1,
         "mobile": 0,
-        "tests": 4,
+        "tests": 6,
         "governance": 0,
-        "other_evidence": 1
+        "other_evidence": 2
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -15916,7 +15970,7 @@
           "score": 48
         },
         {
-          "value": "sahool.api @ services/sahool-platform/api/main.py:78",
+          "value": "sahool.api @ services/sahool-platform/api/main.py:80",
           "score": 23
         }
       ],
@@ -23471,6 +23525,14 @@
           ]
         },
         {
+          "path": "docs/audits/DEEP_REVIEW_SUPPLEMENT_20260913.md",
+          "score": 10,
+          "signals": [
+            "content:cog",
+            "content:raster tile"
+          ]
+        },
+        {
           "path": "FORENSIC_VERIFICATION_REPORT_20260626.md",
           "score": 9,
           "signals": [
@@ -23557,7 +23619,7 @@
         "mobile": 0,
         "tests": 23,
         "governance": 0,
-        "other_evidence": 25
+        "other_evidence": 26
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -25553,6 +25615,14 @@
           ]
         },
         {
+          "path": "docs/audits/DEEP_REVIEW_SUPPLEMENT_20260913.md",
+          "score": 8,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls"
+          ]
+        },
+        {
           "path": "docs/audits/FIXES_APPLIED.md",
           "score": 8,
           "signals": [
@@ -25681,7 +25751,7 @@
         "mobile": 0,
         "tests": 64,
         "governance": 0,
-        "other_evidence": 72
+        "other_evidence": 73
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -30099,7 +30169,7 @@
           "score": 12
         },
         {
-          "value": "sahool.telegram @ bots/telegram/main.py:44",
+          "value": "sahool.telegram @ bots/telegram/main.py:45",
           "score": 12
         },
         {
@@ -30111,7 +30181,7 @@
           "score": 12
         },
         {
-          "value": "sahool_voice.mp3 @ bots/telegram/main.py:204",
+          "value": "sahool_voice.mp3 @ bots/telegram/main.py:206",
           "score": 12
         },
         {
@@ -37352,6 +37422,22 @@
       "kind": "database"
     },
     {
+      "path": "mobile/sahool_app/BUILDING.md",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/ios/Runner/Assets.xcassets/LaunchImage.imageset/Contents.json",
+      "kind": "mobile"
+    },
+    {
+      "path": "mobile/sahool_app/ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md",
+      "kind": "mobile"
+    },
+    {
       "path": "mobile/sahool_app/lib/bloc/dashboard_bloc.dart",
       "kind": "mobile"
     },
@@ -42144,6 +42230,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_alert_senders_push_fcm_v1.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_alerts_derived_from_state.py",
       "kind": "tests"
     },
@@ -42165,6 +42255,10 @@
     },
     {
       "path": "tests_v9/test_aquacrop_salt_capability_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_architecture_compose_edges.py",
       "kind": "tests"
     },
     {
@@ -42213,6 +42307,10 @@
     },
     {
       "path": "tests_v9/test_backfill_worker_schema_drift_visibility_v31_2.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_backup_recovery_execution.py",
       "kind": "tests"
     },
     {
@@ -42616,6 +42714,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_edge_sync_recovery.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_end_to_end.py",
       "kind": "tests"
     },
@@ -42633,6 +42735,10 @@
     },
     {
       "path": "tests_v9/test_env_compose_drift_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_erp_sync_recovery.py",
       "kind": "tests"
     },
     {
@@ -42685,6 +42791,10 @@
     },
     {
       "path": "tests_v9/test_fake_green_test_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_fcm_http_v1.py",
       "kind": "tests"
     },
     {
@@ -42841,6 +42951,10 @@
     },
     {
       "path": "tests_v9/test_helm_migration_command_valid_20260705.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_helm_source_contract.py",
       "kind": "tests"
     },
     {
@@ -43140,6 +43254,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_notification_delivery_reliability.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_notification_subjects_prefix.py",
       "kind": "tests"
     },
@@ -43169,6 +43287,10 @@
     },
     {
       "path": "tests_v9/test_operations_summary_shape.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_otlp_tracing_delivery.py",
       "kind": "tests"
     },
     {
@@ -43489,6 +43611,10 @@
     },
     {
       "path": "tests_v9/test_runtime_evidence_subject_binding.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_runtime_image_audit_gate.py",
       "kind": "tests"
     },
     {
@@ -44306,6 +44432,14 @@
           "signals": [
             "content:NDVI",
             "content:ndvi"
+          ]
+        },
+        {
+          "capability_id": "OPS-002",
+          "score": 9,
+          "signals": [
+            "content:Work orders",
+            "content:work order"
           ]
         }
       ]
@@ -45161,6 +45295,36 @@
           "signals": [
             "content:NDVI",
             "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/audits/DEEP_REVIEW_SUPPLEMENT_20260913.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-009",
+          "score": 10,
+          "signals": [
+            "content:cog",
+            "content:raster tile"
+          ]
+        },
+        {
+          "capability_id": "INT-002",
+          "score": 9,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 8,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls"
           ]
         }
       ]

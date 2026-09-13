@@ -2150,14 +2150,14 @@ def test_sync_idempotency():
         return [("\u2717", f"sync_service لا يُستورد: {e}")]
     d = tempfile.mkdtemp()
     svc = ss.CloudSyncService("http://x", "t", sync_dir=d)
-    svc.queue_result("ndvi", {"f": "f1", "v": 0.5})
+    svc.queue_result("ndvi", {"field_id": "f1", "device_id": "test-edge", "v": 0.5})
     files = [f for f in os.listdir(d) if f.endswith(".json")]
     if files:
         item = json.load(open(os.path.join(d, files[0])))
         if "idempotency_key" in item and len(item["idempotency_key"]) == 32:
             r.append(("\u2713", "queue_result يولّد idempotency_key (32 حرف)"))
     # عنصران بنفس المحتوى → مفتاحان مختلفان (لا dedup زائف)
-    svc.queue_result("ndvi", {"f": "f1", "v": 0.5})
+    svc.queue_result("ndvi", {"field_id": "f1", "device_id": "test-edge", "v": 0.5})
     keys = [
         json.load(open(os.path.join(d, f)))["idempotency_key"]
         for f in os.listdir(d)
@@ -6449,9 +6449,11 @@ def test_deferred_capabilities_gate():
             r.append(("✓", "القدرات: لكلّ قدرة شرط تفعيل + سلوك خامل مُعلَن"))
         else:
             r.append(("✗", "القدرات: قدرة بلا تعليمات تفعيل/سلوك خامل"))
-        _os.environ["FCM_SERVER_KEY"] = "test"
+        from tests_v9.fcm_fixture import service_account_json
+
+        _os.environ["FCM_CREDENTIALS_JSON"] = service_account_json()
         activated = _cap.fcm_push_active()
-        del _os.environ["FCM_SERVER_KEY"]
+        del _os.environ["FCM_CREDENTIALS_JSON"]
         if activated and not _cap.fcm_push_active():
             r.append(("✓", "القدرات: الشرط يُفعّل ويُعطّل القدرة فعليّاً"))
         else:

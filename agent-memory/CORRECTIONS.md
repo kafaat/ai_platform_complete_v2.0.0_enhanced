@@ -1,3 +1,8 @@
+> Historical snapshot, retired as an active memory on 2026-09-13. Use
+> [`sahool-brain/index.md`](../sahool-brain/index.md) and `CLAUDE.md` for current
+> repository guidance. The original text below is retained for provenance;
+> its claims and startup instructions are not a second current source of truth.
+
 # أخطاء سابقة لا تُكرَّر (CORRECTIONS.md)
 
 > القاعدة الذهبيّة: كلّ خطأ تكرّر **أكثر من مرّة** يصبح قاعدة دائمة هنا.

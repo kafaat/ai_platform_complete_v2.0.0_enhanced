@@ -347,7 +347,7 @@ class _FieldsScreenState extends State<FieldsScreen> {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: _ndviColor(ndvi).withOpacity(0.15),
+                    color: _ndviColor(ndvi).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(

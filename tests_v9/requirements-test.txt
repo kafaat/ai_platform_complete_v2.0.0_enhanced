@@ -95,3 +95,11 @@ pyshp==2.3.1  # = api/requirements.txt:26
 # يُحوّل «الصياغةُ تُشبه كتلاً مُجرَّبة» إلى نتيجةٍ حمراء أو خضراء. وبلا تثبيتها هنا
 # يصير الشاهدُ `importorskip` أي **صمتاً** في CI، وطفرةٌ تُسمّيه تصير STABLE_WRONG_TEST.
 crossplane==0.5.8
+
+# Real bot import + work-order receipt/retry regression tests.
+aiogram==3.31.0
+
+# Explicit OTLP HTTP tracing, audited 2026-09-13.
+opentelemetry-sdk==1.44.0
+opentelemetry-exporter-otlp-proto-http==1.44.0
+opentelemetry-instrumentation-fastapi==0.65b0

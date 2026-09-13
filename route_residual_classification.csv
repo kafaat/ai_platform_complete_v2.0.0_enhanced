@@ -94,10 +94,10 @@ decision-service,services/decision-service/main.py,2821,POST,/v1/context-snapsho
 decision-service,services/decision-service/main.py,2853,GET,/v1/context-snapshots/{snapshot_id},read_context_snapshot,business_endpoint
 edge-inference,services/edge-inference/main.py,188,GET,/healthz,health_check,health
 edge-inference,services/edge-inference/main.py,220,POST,/v1/inference/pest-detect,detect_pest,business_endpoint
-edge-inference,services/edge-inference/main.py,279,POST,/v1/inference/yield-estimate,estimate_yield,business_endpoint
-edge-inference,services/edge-inference/main.py,344,POST,/v1/sync/trigger,trigger_sync,business_endpoint
-edge-inference,services/edge-inference/main.py,376,GET,/capabilities,capabilities,capabilities
-edge-inference,services/edge-inference/main.py,381,GET,/readyz,readyz,readiness
+edge-inference,services/edge-inference/main.py,283,POST,/v1/inference/yield-estimate,estimate_yield,business_endpoint
+edge-inference,services/edge-inference/main.py,352,POST,/v1/sync/trigger,trigger_sync,business_endpoint
+edge-inference,services/edge-inference/main.py,384,GET,/capabilities,capabilities,capabilities
+edge-inference,services/edge-inference/main.py,389,GET,/readyz,readyz,readiness
 field-management-service,services/field-management-service/main.py,209,GET,/healthz,healthz,health
 field-management-service,services/field-management-service/main.py,214,GET,/health,legacy_health,health
 field-management-service,services/field-management-service/main.py,219,GET,/readyz,readyz,readiness

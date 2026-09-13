@@ -121,7 +121,7 @@ class _FarmsScreenState extends State<FarmsScreen> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: kPrimary.withOpacity(0.15),
+              color: kPrimary.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(Icons.agriculture_outlined, color: kPrimary),

@@ -82,7 +82,15 @@ def test_declared_exemptions_classify_as_configuration(var: str, _service_name: 
     assert generator.is_secret(var) is False
 
 
-@pytest.mark.parametrize(("var", "service"), _MISCLASSIFIED)
+# ما يُقاس في العقد المولَّد اليوم: `FCM_SERVER_KEY` زال من المنصّة في #997 (مسارُ Push صار
+# `shared.fcm` HTTP v1 بـ`FCM_CREDENTIALS_JSON`) فلم يعد لأيّ خدمةٍ عقدٌ يحمله؛ يبقى في
+# `_MISCLASSIFIED` لأنّ اختبار الدالّة يحرس الاسمَ لا الأثر. و`FCM_CREDENTIALS_JSON` لا يظهر
+# في عقد المنصّة لأنّ المولِّد يقرأ `os.getenv` داخل الخدمة ولا يتبعه إلى `shared/`
+# (حدٌّ قائم قبل هذا التغيير — عقدُ notification-agent في الحال نفسها).
+_IN_CONTRACT = [pair for pair in _MISCLASSIFIED if pair[0] != "FCM_SERVER_KEY"]
+
+
+@pytest.mark.parametrize(("var", "service"), _IN_CONTRACT)
 def test_key_material_is_a_secret_in_the_generated_contract(var: str, service: str):
     """والأثر أيضاً — يحرس أن يكون العقد المُلتزَم مُعاد التوليد لا بائتاً."""
     entry = _service(service)

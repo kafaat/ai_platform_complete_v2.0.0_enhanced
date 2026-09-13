@@ -29,10 +29,20 @@ from core.soil_feedback_proxy import SoilFeedbackInputs, assess_plant_soil_feedb
 from core.soil_feedback_trend import SeasonFeedback, analyze_feedback_trend
 from core.weather_signals import WeatherSignal
 from core.work_order_from_recommendation import recommendation_to_work_order
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from api.main import UserSchema, _emit_domain_event, get_current_user, tenant_connection
+from api.command_store import CommandStore
+from api.main import (
+    UserSchema,
+    _assert_field_in_tenant,
+    _emit_domain_event,
+    _idem_key,
+    _idempotent,
+    get_current_user,
+    get_pool,
+    tenant_connection,
+)
 
 router = APIRouter()
 logger = logging.getLogger("sahool.agro_intelligence")
@@ -252,7 +262,7 @@ def decision_playbook_endpoint(
     return asdict(build_playbook(ctx))
 
 
-async def _persist_work_order(user: UserSchema, wo: dict) -> str | None:
+async def _persist_work_order(user: UserSchema, wo: dict, idem: str | None = None) -> str | None:
     """يُثبّت أمر العمل المُشتقّ (INSERT INTO work_orders) ثمّ يُصدِر WORK_ORDER_CREATED.
 
     persist-first: نُدرِج الصفّ فعليّاً (جدول v75، ضمن سياق RLS عبر tenant_connection
@@ -265,35 +275,72 @@ async def _persist_work_order(user: UserSchema, wo: dict) -> str | None:
     """
     try:
         async with tenant_connection(user) as conn:
-            row = await conn.fetchrow(
-                """INSERT INTO work_orders
-                       (tenant_id, field_id, wo_type, status, recommendation_id, payload)
-                   VALUES ($1::uuid, $2, $3, $4, $5, $6::jsonb)
-                   RETURNING work_order_id""",
-                str(user.tenant_id),
-                wo["field_id"],
-                wo["wo_type"],
-                wo["status"],
-                wo.get("recommendation_id"),
-                json.dumps(wo.get("payload") or {}, ensure_ascii=False, default=str),
-            )
-            work_order_id = str(row["work_order_id"])
-            # الحدث يُصدَر فقط بعد نجاح الإدراج (صفّ حقيقيّ موجود). best-effort افتراضاً
-            # (WORK_ORDER_CREATED ليس في CRITICAL_EVENT_TYPES) فلا يكسر فشلُ الإصدار الكتابةَ.
-            await _emit_domain_event(
-                conn,
-                user,
-                "WORK_ORDER_CREATED",
-                "work_order",
-                work_order_id,
-                {
-                    "field_id": wo["field_id"],
-                    "wo_type": wo["wo_type"],
-                    "status": wo["status"],
-                    "recommendation_id": wo.get("recommendation_id"),
-                },
-            )
-            return work_order_id
+            await _assert_field_in_tenant(conn, wo["field_id"])
+
+            async def create():
+                row = await conn.fetchrow(
+                    """INSERT INTO work_orders
+                           (tenant_id, field_id, wo_type, status, recommendation_id, payload)
+                       VALUES ($1::uuid, $2, $3, $4, $5, $6::jsonb)
+                       RETURNING work_order_id""",
+                    str(user.tenant_id),
+                    wo["field_id"],
+                    wo["wo_type"],
+                    wo["status"],
+                    wo.get("recommendation_id"),
+                    json.dumps(wo.get("payload") or {}, ensure_ascii=False, default=str),
+                )
+                work_order_id = str(row["work_order_id"])
+                # الحدث يُصدَر فقط بعد نجاح الإدراج (صفّ حقيقيّ موجود). best-effort افتراضاً
+                # (WORK_ORDER_CREATED ليس في CRITICAL_EVENT_TYPES) فلا يكسر فشلُ الإصدار الكتابةَ.
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    "WORK_ORDER_CREATED",
+                    "work_order",
+                    work_order_id,
+                    {
+                        "field_id": wo["field_id"],
+                        "wo_type": wo["wo_type"],
+                        "status": wo["status"],
+                        "recommendation_id": wo.get("recommendation_id"),
+                    },
+                )
+                return {"work_order_id": work_order_id}
+
+            if isinstance(idem, str):
+                import uuid
+
+                command_id = str(
+                    uuid.uuid5(
+                        uuid.NAMESPACE_URL, f"work-order:{user.tenant_id}:{user.user_id}:{idem}"
+                    )
+                )
+                await conn.execute(
+                    "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", command_id
+                )
+                store = CommandStore(get_pool(), conn=conn)
+                existing = await store.get(command_id)
+                if existing is not None and existing.payload != wo:
+                    raise HTTPException(409, "work_order_idempotency_conflict")
+                result = await _idempotent(
+                    store,
+                    command_id,
+                    create,
+                    command_type="work_order.from_recommendation",
+                    actor_id=str(user.user_id),
+                    tenant_id=str(user.tenant_id),
+                    payload=wo,
+                )
+            else:
+                result = await create()
+            return result["work_order_id"]
+    except HTTPException as exc:
+        if exc.status_code in {403, 404, 409}:
+            raise
+        logger.warning("work_order persistence unavailable: %s", exc.status_code)
+        return None
+
     except Exception:  # noqa: BLE001 — تثبيت/تدقيق أفضل-جهد لا يكسر المسار
         logger.warning("work_order persist/audit failed (best-effort)", exc_info=True)
         return None
@@ -301,7 +348,9 @@ async def _persist_work_order(user: UserSchema, wo: dict) -> str | None:
 
 @router.post("/api/v1/work-orders/from-recommendation")
 async def work_order_from_recommendation_endpoint(
-    req: WorkOrderFromRecommendationRequest, user: UserSchema = Depends(get_current_user)
+    req: WorkOrderFromRecommendationRequest,
+    user: UserSchema = Depends(get_current_user),
+    idem: str | None = Depends(_idem_key),
 ):
     """يحوّل توصية إلى أمر عمل (FOES) ويُثبّته ثمّ يُصدِر WORK_ORDER_CREATED.
 
@@ -313,7 +362,7 @@ async def work_order_from_recommendation_endpoint(
     )
     work_order_id = None
     if wo is not None:
-        work_order_id = await _persist_work_order(user, wo)
+        work_order_id = await _persist_work_order(user, wo, idem)
     return {
         "inferred": wo is not None,
         # persisted=true فقط حين أُدرِج صفّ فعليّاً (وأُصدِر حدثه). الاستنتاج بلا قاعدة

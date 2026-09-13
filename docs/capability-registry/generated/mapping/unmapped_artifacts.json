@@ -2024,6 +2024,22 @@
     "kind": "database"
   },
   {
+    "path": "mobile/sahool_app/BUILDING.md",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/ios/Runner/Assets.xcassets/LaunchImage.imageset/Contents.json",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md",
+    "kind": "mobile"
+  },
+  {
     "path": "mobile/sahool_app/lib/bloc/dashboard_bloc.dart",
     "kind": "mobile"
   },
@@ -6816,6 +6832,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_alert_senders_push_fcm_v1.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_alerts_derived_from_state.py",
     "kind": "tests"
   },
@@ -6837,6 +6857,10 @@
   },
   {
     "path": "tests_v9/test_aquacrop_salt_capability_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_architecture_compose_edges.py",
     "kind": "tests"
   },
   {
@@ -6885,6 +6909,10 @@
   },
   {
     "path": "tests_v9/test_backfill_worker_schema_drift_visibility_v31_2.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_backup_recovery_execution.py",
     "kind": "tests"
   },
   {
@@ -7288,6 +7316,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_edge_sync_recovery.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_end_to_end.py",
     "kind": "tests"
   },
@@ -7305,6 +7337,10 @@
   },
   {
     "path": "tests_v9/test_env_compose_drift_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_erp_sync_recovery.py",
     "kind": "tests"
   },
   {
@@ -7357,6 +7393,10 @@
   },
   {
     "path": "tests_v9/test_fake_green_test_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_fcm_http_v1.py",
     "kind": "tests"
   },
   {
@@ -7513,6 +7553,10 @@
   },
   {
     "path": "tests_v9/test_helm_migration_command_valid_20260705.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_helm_source_contract.py",
     "kind": "tests"
   },
   {
@@ -7812,6 +7856,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_notification_delivery_reliability.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_notification_subjects_prefix.py",
     "kind": "tests"
   },
@@ -7841,6 +7889,10 @@
   },
   {
     "path": "tests_v9/test_operations_summary_shape.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_otlp_tracing_delivery.py",
     "kind": "tests"
   },
   {
@@ -8161,6 +8213,10 @@
   },
   {
     "path": "tests_v9/test_runtime_evidence_subject_binding.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_runtime_image_audit_gate.py",
     "kind": "tests"
   },
   {
