@@ -847,3 +847,33 @@ def test_an_untouched_tree_still_plants_nothing(tmp_path):
     """الاتجاه الآخر: التوسيع لا يُحوِّل التقصير إلى مسحٍ كامل."""
     repo = _seed_repo(tmp_path)
     assert _scoped_targets(repo, "HEAD") == set()
+
+
+def test_a_second_preflight_in_the_same_worktree_exits_3_before_measuring_anything(tmp_path):
+    """LESSON-CONCURRENT-PREFLIGHT-CONTAMINATION-01 — عقدُ القفل يُقاس بعمليّة لا بنصّ.
+
+    يُمسَك `preflight.lock` في `.git` لمستودعٍ مؤقّت ثمّ يُطلَق السكربتُ الحقيقيّ من داخله
+    (`--show-toplevel` يجعل المستودعَ المؤقّت شجرتَه فلا يمسّ شجرةَ العمل الفعليّة ولا
+    يتصادم مع preflight يعمل فيها). المطلوب: رمزُ 3 ورسالةٌ تسمّي القفلَ **قبل** أيّ بوّابة
+    — فلو رُوجِع واصفُ الملفّ أو المسارُ أو الرمز لانكسر هذا لا نصٌّ يُبحَث عنه (Copilot على #1000).
+    """
+    import fcntl
+
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+    lock_path = repo / ".git" / "preflight.lock"
+    with lock_path.open("w") as holder:
+        fcntl.flock(holder, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        result = subprocess.run(
+            ["bash", str(SCRIPT), "--fast", "--no-fetch"],
+            cwd=repo,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=60,
+        )
+    assert result.returncode == 3, result.stdout + result.stderr
+    # `--git-dir` من داخل الجذر يُرجِع `.git` نسبيّاً — يكفي اسمُ القفل لا مسارُه المطلق.
+    assert "preflight.lock" in result.stderr, result.stderr
+    assert "── " not in result.stdout, "لا بوّابة تُقاس بعد رفض القفل"
