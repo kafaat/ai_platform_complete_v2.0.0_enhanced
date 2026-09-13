@@ -21,6 +21,7 @@ import logging
 import os
 import re
 from collections import defaultdict
+from collections.abc import Awaitable, Callable
 from contextlib import asynccontextmanager, suppress
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -372,17 +373,36 @@ async def dispatch(data: dict):
 
     html = make_html(title, message, extra)
 
+    # كلُّ قناةٍ محاولةٌ مستقلّة (C01، التقرير الجنائيّ الموحَّد ٢): كان فشلُ البريد يرفع
+    # `DeliveryUnavailable` فيغادر التوزيعُ قبل بلوغ Telegram وPush، ثمّ يُعاد الحدثُ كلُّه
+    # حتّى ينتهي في dead-letter دون أن تُجرَّب القنواتُ السليمة قطّ. الآن تُجرَّب كلُّها،
+    # وتُجمَع الفاشلةُ ويُرفَع بعد آخرها فتُعاد الرسالةُ من JetStream — والإيصالاتُ
+    # الناجحة (`sent`) تُتخطّى في المحاولة التالية داخل `_deliver_channel` فلا تتكرّر.
+    planned: list[tuple[str, Callable[[], Awaitable[None]]]] = []
+
     if prefs.get("email_enabled") and prefs.get("email_address"):
-        await _deliver_channel(
-            data, "email", lambda: send_email_async(prefs["email_address"], f"[سهول] {title}", html)
+        planned.append(
+            (
+                "email",
+                lambda: _deliver_channel(
+                    data,
+                    "email",
+                    lambda: send_email_async(prefs["email_address"], f"[سهول] {title}", html),
+                ),
+            )
         )
 
     if prefs.get("telegram_enabled") and prefs.get("telegram_chat_id"):
         text = f"<b>{title}</b>\n{message}"
         if extra:
             text += "\n" + "\n".join(f"• {k}: {v}" for k, v in extra.items())
-        await _deliver_channel(
-            data, "telegram", lambda: send_telegram(str(prefs["telegram_chat_id"]), text)
+        planned.append(
+            (
+                "telegram",
+                lambda: _deliver_channel(
+                    data, "telegram", lambda: send_telegram(str(prefs["telegram_chat_id"]), text)
+                ),
+            )
         )
 
     # Mobile push (C4/M1) — خلف علم FEATURE_MOBILE_PUSH (default off) + سجلّ احتياطيّ:
@@ -395,11 +415,31 @@ async def dispatch(data: dict):
         fcm_active=fcm_push_active(),
     )
     if decision == "send":
-        await _deliver_channel(
-            data, "push", lambda: send_push(str(prefs["push_token"]), title, message)
+        planned.append(
+            (
+                "push",
+                lambda: _deliver_channel(
+                    data, "push", lambda: send_push(str(prefs["push_token"]), title, message)
+                ),
+            )
         )
     elif decision == "record_only":
-        await _record_push_fallback(data, reason="mobile_push_disabled_or_fcm_dormant")
+        planned.append(
+            (
+                "push",
+                lambda: _record_push_fallback(data, reason="mobile_push_disabled_or_fcm_dormant"),
+            )
+        )
+
+    failed: list[str] = []
+    for channel, attempt in planned:
+        try:
+            await attempt()
+        except DeliveryUnavailable as exc:
+            logger.warning("Channel retained for retry: %s (%s)", channel, exc)
+            failed.append(channel)
+    if failed:
+        raise DeliveryUnavailable("channels_failed:" + ",".join(failed))
 
 
 # ── NATS subscriptions ────────────────────────────────────────

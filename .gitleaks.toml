@@ -18,8 +18,10 @@ paths = [
   # string literals are HMAC domain-separation labels, not keys; the `generic-api-key`
   # rule fires on the `key` keyword next to a high-entropy literal. The patch is never
   # applied by CI and the frozen actuator/firmware sources are unchanged (GATE-01).
-  # Narrow to the patch files only; any real secret elsewhere still fails the scan.
-  '''docs/audits/patches/.*\.patch$''',
+  # Narrowed to that ONE patch file (C05, unified forensic report v2): a directory-wide
+  # `.*\.patch$` would have exempted any future patch dropped here, including one that
+  # carried a real secret. A new review patch needs its own justified entry.
+  '''docs/audits/patches/SUP-08-actuator-v2-PENDING-GATE-01\.patch$''',
 ]
 # Deterministic, obviously-fake fixture values used in unit tests (self-describing
 # placeholders, never real credentials). Keep this list narrow and literal.
