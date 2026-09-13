@@ -192659,56 +192659,49 @@
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_or_create",
    "target":"UUID",
-   "line":122
+   "line":124
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_or_create",
    "target":"acquire",
-   "line":123
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/field_lifecycle.py",
-   "source":"get_or_create",
-   "target":"fetchrow",
    "line":125
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_or_create",
+   "target":"fetchrow",
+   "line":127
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/field_lifecycle.py",
+   "source":"get_or_create",
    "target":"_row_to_lifecycle",
-   "line":134
+   "line":136
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_or_create",
    "target":"str",
-   "line":145
+   "line":147
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_or_create",
    "target":"uuid4",
-   "line":145
+   "line":147
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_or_create",
    "target":"fetchrow",
-   "line":151
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/field_lifecycle.py",
-   "source":"get_or_create",
-   "target":"UUID",
-   "line":159
+   "line":153
   },
   {
    "owner":"sahool-platform",
@@ -192721,140 +192714,140 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_or_create",
+   "target":"UUID",
+   "line":163
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/field_lifecycle.py",
+   "source":"get_or_create",
    "target":"_row_to_lifecycle",
-   "line":165
+   "line":167
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_or_create",
    "target":"fetchrow",
-   "line":168
+   "line":170
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_or_create",
    "target":"_row_to_lifecycle",
-   "line":177
+   "line":179
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_or_create",
    "target":"RuntimeError",
-   "line":179
+   "line":181
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"transition",
    "target":"acquire",
-   "line":203
+   "line":205
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"transition",
    "target":"transaction",
-   "line":212
+   "line":214
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"transition",
    "target":"fetchrow",
-   "line":213
+   "line":215
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"transition",
    "target":"UUID",
-   "line":216
+   "line":218
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"transition",
    "target":"_transition_locked",
-   "line":218
+   "line":220
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"_transition_locked",
    "target":"LifecycleError",
-   "line":250
+   "line":252
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"_transition_locked",
    "target":"LifecycleStage",
-   "line":253
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/field_lifecycle.py",
-   "source":"_transition_locked",
-   "target":"is_valid_transition",
-   "line":254
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/field_lifecycle.py",
-   "source":"_transition_locked",
-   "target":"get",
    "line":255
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"_transition_locked",
-   "target":"LifecycleError",
+   "target":"is_valid_transition",
    "line":256
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"_transition_locked",
-   "target":"fetchrow",
-   "line":266
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/field_lifecycle.py",
-   "source":"_transition_locked",
-   "target":"UUID",
-   "line":270
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/field_lifecycle.py",
-   "source":"_transition_locked",
-   "target":"execute",
-   "line":276
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/field_lifecycle.py",
-   "source":"_transition_locked",
-   "target":"UUID",
-   "line":282
+   "target":"get",
+   "line":257
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"_transition_locked",
    "target":"LifecycleError",
-   "line":288
+   "line":258
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"_transition_locked",
-   "target":"isoformat",
+   "target":"fetchrow",
+   "line":268
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/field_lifecycle.py",
+   "source":"_transition_locked",
+   "target":"UUID",
+   "line":272
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/field_lifecycle.py",
+   "source":"_transition_locked",
+   "target":"execute",
+   "line":278
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/field_lifecycle.py",
+   "source":"_transition_locked",
+   "target":"UUID",
+   "line":284
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/field_lifecycle.py",
+   "source":"_transition_locked",
+   "target":"LifecycleError",
    "line":290
   },
   {
@@ -192862,181 +192855,174 @@
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"_transition_locked",
    "target":"isoformat",
-   "line":291
+   "line":292
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/field_lifecycle.py",
+   "source":"_transition_locked",
+   "target":"isoformat",
+   "line":293
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"_transition_locked",
    "target":"str",
-   "line":295
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/field_lifecycle.py",
-   "source":"_transition_locked",
-   "target":"uuid4",
-   "line":295
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/field_lifecycle.py",
-   "source":"_transition_locked",
-   "target":"execute",
    "line":297
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"_transition_locked",
-   "target":"UUID",
-   "line":303
+   "target":"uuid4",
+   "line":297
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/field_lifecycle.py",
+   "source":"_transition_locked",
+   "target":"execute",
+   "line":299
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"_transition_locked",
    "target":"UUID",
-   "line":304
+   "line":305
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"_transition_locked",
    "target":"UUID",
-   "line":307
+   "line":306
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/field_lifecycle.py",
+   "source":"_transition_locked",
+   "target":"UUID",
+   "line":309
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"_transition_locked",
    "target":"LifecycleError",
-   "line":313
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/field_lifecycle.py",
-   "source":"_transition_locked",
-   "target":"LifecycleTransition",
    "line":315
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"_transition_locked",
+   "target":"LifecycleTransition",
+   "line":317
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/field_lifecycle.py",
+   "source":"_transition_locked",
    "target":"now",
-   "line":320
+   "line":322
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_history",
    "target":"acquire",
-   "line":327
+   "line":329
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_history",
    "target":"fetch",
-   "line":328
+   "line":330
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_history",
    "target":"UUID",
-   "line":334
+   "line":336
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_history",
    "target":"LifecycleTransition",
-   "line":337
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/field_lifecycle.py",
-   "source":"get_history",
-   "target":"str",
-   "line":338
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/field_lifecycle.py",
-   "source":"get_history",
-   "target":"str",
    "line":339
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_history",
-   "target":"LifecycleStage",
+   "target":"str",
    "line":340
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_history",
-   "target":"LifecycleStage",
+   "target":"str",
    "line":341
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_history",
+   "target":"LifecycleStage",
+   "line":342
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/field_lifecycle.py",
+   "source":"get_history",
+   "target":"LifecycleStage",
+   "line":343
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/field_lifecycle.py",
+   "source":"get_history",
    "target":"str",
-   "line":344
+   "line":346
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_state",
    "target":"acquire",
-   "line":355
+   "line":357
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_state",
    "target":"fetchrow",
-   "line":356
+   "line":358
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_state",
    "target":"UUID",
-   "line":362
+   "line":364
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"get_state",
    "target":"_row_to_lifecycle",
-   "line":364
+   "line":366
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"_row_to_lifecycle",
    "target":"FieldLifecycle",
-   "line":367
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/field_lifecycle.py",
-   "source":"_row_to_lifecycle",
-   "target":"str",
-   "line":368
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/field_lifecycle.py",
-   "source":"_row_to_lifecycle",
-   "target":"str",
    "line":369
   },
   {
@@ -193057,8 +193043,22 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/field_lifecycle.py",
    "source":"_row_to_lifecycle",
-   "target":"LifecycleStage",
+   "target":"str",
    "line":372
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/field_lifecycle.py",
+   "source":"_row_to_lifecycle",
+   "target":"str",
+   "line":373
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/field_lifecycle.py",
+   "source":"_row_to_lifecycle",
+   "target":"LifecycleStage",
+   "line":374
   },
   {
    "owner":"sahool-platform",
@@ -302006,70 +302006,63 @@
    "file":"services/sahool-platform/api/trueup.py",
    "source":"apply",
    "target":"RuntimeError",
-   "line":308
+   "line":310
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/trueup.py",
    "source":"apply",
    "target":"acquire",
-   "line":313
+   "line":315
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/trueup.py",
    "source":"apply",
    "target":"fetchval",
-   "line":314
+   "line":316
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/trueup.py",
    "source":"apply",
    "target":"UUID",
-   "line":320
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/trueup.py",
-   "source":"apply",
-   "target":"float",
    "line":322
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/trueup.py",
    "source":"apply",
+   "target":"float",
+   "line":324
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/trueup.py",
+   "source":"apply",
    "target":"compute",
-   "line":325
+   "line":327
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/trueup.py",
    "source":"apply",
    "target":"acquire",
-   "line":331
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/trueup.py",
-   "source":"apply",
-   "target":"uuid4",
-   "line":332
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/trueup.py",
-   "source":"apply",
-   "target":"execute",
    "line":333
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/trueup.py",
    "source":"apply",
-   "target":"UUID",
-   "line":344
+   "target":"uuid4",
+   "line":334
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/trueup.py",
+   "source":"apply",
+   "target":"execute",
+   "line":335
   },
   {
    "owner":"sahool-platform",
@@ -302083,28 +302076,35 @@
    "file":"services/sahool-platform/api/trueup.py",
    "source":"apply",
    "target":"UUID",
-   "line":355
+   "line":348
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/trueup.py",
+   "source":"apply",
+   "target":"UUID",
+   "line":357
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/trueup.py",
    "source":"apply",
    "target":"emit",
-   "line":363
+   "line":365
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/trueup.py",
    "source":"_now_iso",
    "target":"isoformat",
-   "line":386
+   "line":388
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/trueup.py",
    "source":"_now_iso",
    "target":"now",
-   "line":386
+   "line":388
   },
   {
    "owner":"sahool-platform",
