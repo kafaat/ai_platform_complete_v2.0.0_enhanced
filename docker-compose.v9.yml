@@ -332,7 +332,7 @@ services:
       retries: 10
       start_period: 30s
   sahool-nats:
-    image: nats:2-alpine
+    image: nats:2-alpine@sha256:ad7a43eb7e3337c3c38ce5d784d1461791f95f730f252d2b25eee699752a0ca3
     # NATS-BROKER-HAS-NO-AUTHENTICATION-…-01: الوسيطُ كان مفتوحاً لكلّ من بلغ
     # `sahool-internal`. الاعتمادُ يُورَث من البيئة ويستوفيه `nats.conf` بـ`$NATS_USER`
     # و`$NATS_PASSWORD`؛ و`:?` تمنع سرّاً افتراضيّاً منشوراً وتُفشِل الإقلاعَ مغلقاً.
@@ -633,6 +633,8 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      FCM_CREDENTIALS_JSON: ${FCM_CREDENTIALS_JSON:-}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://sahool-otel-collector:4318}
       SAHOOL_JWT_SECRET: ${JWT_SECRET:?JWT_SECRET required — min 32 chars}
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
       SAHOOL_CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
@@ -1660,6 +1662,7 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      CMD_HMAC_SECRET: ${CMD_HMAC_SECRET:-}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       MQTT_BROKER_URL: mqtt://sahool-fastbee:1883
@@ -1744,7 +1747,10 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
-      SAHOOL_CLOUD_URL: https://api.sahool.local
+      SAHOOL_CLOUD_URL: ${SAHOOL_CLOUD_URL:-http://sahool-platform:8000}
+      EDGE_DEVICE_ID: ${EDGE_DEVICE_ID:-}
+      PEST_MODEL_SHA256: ${PEST_MODEL_SHA256:-}
+      YIELD_MODEL_SHA256: ${YIELD_MODEL_SHA256:-}
       EDGE_SYNC_TOKEN: ${EDGE_SYNC_TOKEN:?EDGE_SYNC_TOKEN required for edge sync}
       EDGE_DEVICE: ${EDGE_DEVICE:-rpi5}
       OFFLINE_MODE: ${OFFLINE_MODE:-false}
@@ -2057,6 +2063,7 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      SAHOOL_PLATFORM_URL: ${SAHOOL_PLATFORM_URL:-http://sahool-platform:8000}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:?TELEGRAM_WEBHOOK_SECRET
         required}
@@ -2096,6 +2103,7 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://sahool-otel-collector:4318}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
@@ -2109,6 +2117,12 @@ services:
       # WS auth: agent.py:_validate_ws_token فكّ JWT (HS256, aud=sahool) يقرأ JWT_SECRET؛
       # بلا حقنه raise "Missing token or secret" ⇒ يرفض كلّ اتّصال WS (fail-closed صامت).
       JWT_SECRET: ${JWT_SECRET}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-0}
+      FEATURE_MOBILE_PUSH: ${FEATURE_MOBILE_PUSH:-0}
+      FCM_CREDENTIALS_JSON: ${FCM_CREDENTIALS_JSON:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
     depends_on:
@@ -2125,7 +2139,7 @@ services:
     healthcheck:
       test:
       - CMD-SHELL
-      - python -c "import urllib.request; urllib.request.urlopen('http://localhost:8123/healthz',
+      - python -c "import urllib.request; urllib.request.urlopen('http://localhost:8123/readyz',
         timeout=3).read()" || exit 1
       interval: 30s
       timeout: 10s
@@ -2244,7 +2258,7 @@ services:
       retries: 6
       start_period: 30s
   sahool-jaeger:
-    image: ${JAEGER_IMAGE:-jaegertracing/all-in-one:1.57}
+    image: ${JAEGER_IMAGE:-jaegertracing/all-in-one:1.62.0}
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
@@ -2827,6 +2841,55 @@ services:
       timeout: 10s
       retries: 5
       start_period: 45s
+  sahool-nats-exporter:
+    image: natsio/prometheus-nats-exporter:0.20.2@sha256:c623b608e148e31e1c1c878673a197f1828e58ce90de4f01d22f1baa84c8fee9
+    command: ["-varz", "-connz", "-subz", "http://sahool-nats:8222"]
+    mem_limit: 128m
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    read_only: true
+    logging: *id001
+    networks: [sahool-internal]
+    depends_on:
+      sahool-nats:
+        condition: service_healthy
+  sahool-nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:1.5.3@sha256:85666e7fde7e253f1c6d978f9a961245df4c9cdb7677e1866d9bb28e8f9ee41d
+    command: ["--nginx.scrape-uri=http://sahool-nginx:8081/nginx_status"]
+    mem_limit: 128m
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    read_only: true
+    logging: *id001
+    networks: [sahool-internal]
+  sahool-pg-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:v0.20.1@sha256:ac5ec343104fae0e2d84a27bb8d69b38430a11910c5382cad85d478d2bab713e
+    environment:
+      DATA_SOURCE_NAME: ${POSTGRES_EXPORTER_DSN:-}
+    mem_limit: 128m
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    read_only: true
+    logging: *id001
+    networks: [sahool-internal]
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+  sahool-otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.160.0@sha256:799dc6cf12c96192af37b5bdba804da8c10b3bc563b43cb90c3f3c58d9572ad6
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./observability/otel-collector.yml:/etc/otelcol/config.yaml:ro
+    mem_limit: 384m
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    read_only: true
+    logging: *id001
+    networks: [sahool-internal]
 networks:
   sahool-public:
     driver: bridge

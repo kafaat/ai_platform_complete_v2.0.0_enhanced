@@ -519,13 +519,9 @@ async def lifespan(app: FastAPI):
 
 # ── FastAPI app ───────────────────────────────────────────────
 app = FastAPI(title="SAHOOL Notification Agent", version="9.1.0", lifespan=lifespan)
-# ✅ OTEL
-try:
-    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from shared.tracing import configure_tracing
 
-    FastAPIInstrumentor.instrument_app(app)
-except ImportError:
-    pass
+configure_tracing(app, "sahool-notification-agent")
 
 
 # ── WebSocket Connection Manager (secured) ─────────────────────

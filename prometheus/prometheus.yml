@@ -35,11 +35,10 @@ scrape_configs:
     static_configs:
       - targets: ['sahool-weather-service:8000']
 
-  # ملاحظة: لا خدمة soil-service مستقلّة في أيّ compose (مدمجة في المنصّة) ⇒ هدف
-  # معطّل دائماً. مُعطَّل حتى تُضاف خدمة فعليّة (إعادة تفعيله = إزالة التعليق).
-  # - job_name: 'soil-service'
-  #   static_configs:
-  #     - targets: ['sahool-soil:8000']
+  # Canonical v9 includes the standalone soil service on port 8000.
+  - job_name: 'soil-service'
+    static_configs:
+      - targets: ['sahool-soil:8000']
 
   # ── v9 New Services ───────────────────────────────────────────
   - job_name: 'supervisor-agent'
@@ -88,21 +87,23 @@ scrape_configs:
     metrics_path: '/metrics'
 
   # ── Infrastructure ────────────────────────────────────────────
-  # ملاحظة: لا حاوية sahool-pg-exporter في أيّ compose ⇒ هدف معطّل دائماً. مُعطَّل
-  # حتى يُضاف postgres-exporter كـsidecar (إعادة تفعيله = إزالة التعليق).
-  # - job_name: 'postgres-exporter'
-  #   static_configs:
-  #     - targets: ['sahool-pg-exporter:9187']
+  - job_name: 'postgres-exporter'
+    static_configs:
+      - targets: ['sahool-pg-exporter:9187']
 
   - job_name: 'nats-exporter'
     static_configs:
-      - targets: ['sahool-nats:8222']
+      - targets: ['sahool-nats-exporter:7777']
     metrics_path: '/metrics'
 
   - job_name: 'nginx'
     static_configs:
-      - targets: ['sahool-nginx:9113']
+      - targets: ['sahool-nginx-exporter:9113']
 
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+
+  - job_name: 'otel-collector'
+    static_configs:
+      - targets: ['sahool-otel-collector:8889']

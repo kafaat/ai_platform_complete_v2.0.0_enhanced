@@ -196,6 +196,10 @@ app = FastAPI(
     lifespan=_lifespan,
 )
 
+from shared.tracing import configure_tracing
+
+configure_tracing(app, "sahool-platform")
+
 
 async def _warn_weak_dev_jwt_secret():
     """يسجّل تحذير سرّ JWT الضعيف وقت الإقلاع فقط، لا وقت الاستيراد.
