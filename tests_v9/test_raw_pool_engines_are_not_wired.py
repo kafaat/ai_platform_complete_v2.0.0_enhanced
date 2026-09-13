@@ -47,12 +47,22 @@ def _engine_calls(tree: ast.AST):
             yield name, node
 
 
+def _may_carry_a_pool(call: ast.Call) -> bool:
+    """أيُّ وسيطٍ موضعيّ أو `pool=` أو مجموعةٌ مُمرَّرة (`*args` / `**kwargs`).
+
+    `**kwargs` يُمثَّل في AST بـ`ast.keyword` عنوانُه `None`، فشرطُ `kw.arg == "pool"` وحدَه
+    يعمى عنه (Copilot على #1000) — تُعامَل الخريطةُ المُمرَّرة كمخالفةٍ لأنّ الحارس لا
+    يستطيع حلَّها سكونيّاً، ومَن يحتاجها يكتب `pool=` صريحةً مع ضبط الـGUC.
+    """
+    return bool(call.args) or any(kw.arg is None or kw.arg == "pool" for kw in call.keywords)
+
+
 def test_no_raw_pool_engine_is_constructed_with_a_pool_on_a_request_path():
     wired = []
     for path in _production_modules():
         tree = ast.parse(path.read_text(encoding="utf-8"))
         for name, call in _engine_calls(tree):
-            if call.args or any(kw.arg == "pool" for kw in call.keywords):
+            if _may_carry_a_pool(call):
                 wired.append(f"{path.relative_to(ROOT)}:{call.lineno} {name}(...pool)")
     assert not wired, (
         "محرّكٌ خامٌ وُصِّل بـpool بلا ضبط app.current_tenant — RLS ستُرجِع صفراً تحت "
@@ -70,6 +80,24 @@ def test_the_measurement_that_closed_the_gap_still_holds():
             constructed[name].append(str(path.relative_to(ROOT)))
     assert constructed["FieldLifecycleEngine"] == []
     assert constructed["TrueUpEngine"] == ["services/sahool-platform/api/main.py"]
+
+
+@pytest.mark.parametrize(
+    "source, wired",
+    [
+        ("TrueUpEngine()", False),
+        ("TrueUpEngine(pool)", True),
+        ("TrueUpEngine(pool=pool)", True),
+        ("TrueUpEngine(*engines)", True),
+        ("TrueUpEngine(**kwargs)", True),
+        ("api.TrueUpEngine(**{'pool': pool})", True),
+    ],
+)
+def test_the_predicate_sees_forwarded_mappings_not_only_a_literal_pool_keyword(
+    source: str, wired: bool
+):
+    (call,) = [c for _n, c in _engine_calls(ast.parse(source))]
+    assert _may_carry_a_pool(call) is wired, source
 
 
 def test_both_engines_still_declare_the_guc_requirement_in_source():

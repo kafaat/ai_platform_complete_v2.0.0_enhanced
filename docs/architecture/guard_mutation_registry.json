@@ -2894,6 +2894,12 @@
     "brain_append_only_guard.py": {
       "mutations": [
         {
+          "expect": "test_omitting_base_is_a_usage_error_not_a_green_measurement",
+          "find": "        \"--base\",\n        required=True,",
+          "replace": "        \"--base\",\n        required=False,",
+          "why": "إسقاطُ الإلزام ⇒ يعود الحارس إلى فحص HEAD وحده بلا `--base` ويطبع ok — GUARD-RUN-WITHOUT-THE-ARGUMENTS-CI-PASSES-01 نفسها: خضرةٌ عن سؤالٍ لم يُطرَح. الاختبارُ يستدعي السكربت بلا وسائط عبر subprocess ويطلب رمز 2 وذكرَ الراية، فلا skipif ولا حاجة إلى تاريخ."
+        },
+        {
           "expect": "test_both_parents_are_examined_not_just_one",
           "find": "        for parent in parents_of(commit, root=root):",
           "replace": "        for parent in parents_of(commit, root=root)[:1]:",
