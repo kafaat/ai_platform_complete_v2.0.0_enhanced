@@ -2719,6 +2719,65 @@
           "why": "بلا الفشل المُغلَق يمضي النداءُ بلا ترويسة فيرتدّ 401 ويُبتلَع عند المُنادي، فيصير «الأمانُ مُفعَّل» و«النظامُ يعمل» ادّعاءَين لا يجتمعان ولا يظهر أيُّهما كاذب."
         }
       ]
+    },
+    "services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py": {
+      "$gap_ar": "WORKERS-INHERIT-AN-HTTP-HEALTHCHECK-THEY-CANNOT-ANSWER-01: العاملُ يرث `HEALTHCHECK curl :8000/healthz` من صورة المنصّة ولا يخدم HTTP فيُقرأ unhealthy دائماً؛ النبضةُ هي ما يقرأه مسبارُ compose، فغيابُها أو كذبُها يجب أن يحمرّ.",
+      "mutations": [
+        {
+          "expect": "test_a_sweep_leaves_a_fresh_running_heartbeat_the_probe_accepts",
+          "find": "    heartbeat.mark_poll(expired)\n    heartbeat.write()\n    return expired",
+          "replace": "    return expired  # mutated: كنسٌ ناجح بلا نبضة",
+          "test": "tests/irrigation/test_irrigation_reservation_lifecycle_worker.py",
+          "why": "كنسٌ ناجح لا يترك نبضة ⇒ المسبار يقرأ `starting` بائتاً ثمّ يُعلن العامل ميّتاً وهو يعمل — عودةُ العطل الأصليّ بثوبٍ آخر."
+        },
+        {
+          "expect": "test_a_failing_sweep_marks_the_heartbeat_failed_but_keeps_the_worker_alive",
+          "find": "        heartbeat.mark_error(f\"{type(exc).__name__}: {exc}\")\n        heartbeat.write()\n        return 0",
+          "replace": "        return 0  # mutated: فشلٌ صامت في النبضة",
+          "test": "tests/irrigation/test_irrigation_reservation_lifecycle_worker.py",
+          "why": "كنسٌ يفشل كلَّ دورة يبقى المسبارُ يقرأ آخرَ نبضةٍ ناجحة (أو `starting`) — صحّةٌ خضراء على عاملٍ لا يُنجز شيئاً."
+        },
+        {
+          "expect": "test_the_probe_max_age_follows_the_configured_poll_interval",
+          "find": "    return max(PROBE_MIN_MAX_AGE_SECONDS, PROBE_MISSED_POLLS * poll_seconds())",
+          "replace": "    return PROBE_MIN_MAX_AGE_SECONDS  # mutated: رقمٌ ثابت لا يتبع الإعداد",
+          "test": "tests/irrigation/test_irrigation_reservation_lifecycle_worker.py",
+          "why": "فاصلُ كنسٍ مشروع (١٨٠ ث) يجعل كلَّ نبضةٍ بائتةً قبل التالية ⇒ عاملٌ سليم يُقرأ ميّتاً — العطلُ الذي أمسكته مراجعة Copilot على الرقم المكتوب في compose."
+        }
+      ]
+    },
+    "services/sahool-platform/api/irrigation_dispatch_relay_worker.py": {
+      "$gap_ar": "WORKERS-INHERIT-AN-HTTP-HEALTHCHECK-THEY-CANNOT-ANSWER-01 (المُرحِّل): مدفوعٌ بالأحداث فنبضتُه زمنيّة + لكلّ رسالة؛ والمُطفَأ يجب أن ينبض `idle` لا `running`.",
+      "mutations": [
+        {
+          "expect": "test_a_handled_delivery_leaves_a_running_heartbeat_the_probe_accepts",
+          "find": "                heartbeat.mark_poll(1)\n            elif outcome == \"failed\":",
+          "replace": "                pass  # mutated: رسالةٌ مُرحَّلة بلا نبضة\n            elif outcome == \"failed\":",
+          "test": "tests/irrigation/test_gate_b_dispatch_relay_worker.py",
+          "why": "ترحيلٌ ناجح لا يُحدِّث النبضة ⇒ العدّادُ يبقى صفراً والحالةُ `starting`، فلا يستطيع المسبارُ تمييزَ مُرحِّلٍ يعمل من مُرحِّلٍ لم يستقبل شيئاً."
+        },
+        {
+          "expect": "test_a_disabled_relay_beats_idle_so_it_is_healthy_but_visibly_not_working",
+          "find": "        heartbeat.current_state = state\n",
+          "replace": "        heartbeat.current_state = \"running\"  # mutated: الخمولُ يتنكّر عملاً\n",
+          "test": "tests/irrigation/test_gate_b_dispatch_relay_worker.py",
+          "why": "مُرحِّلٌ مُطفَأ بالعلَم ينبض `running` ⇒ لوحةُ الصحّة تقول إنّ الأحداث تُرحَّل بينما تستقرّ في الـoutbox — كذبةُ حالةٍ لا عطلُ حياة."
+        },
+        {
+          "expect": "test_a_failed_delivery_outcome_marks_the_heartbeat_failed_not_running",
+          "find": "            if outcome == \"delivered\":",
+          "replace": "            if outcome is not None:  # mutated: كلُّ مخرَجٍ نجاح",
+          "test": "tests/irrigation/test_gate_b_dispatch_relay_worker.py",
+          "why": "POST يعود 503 كلَّ مرّة والمسبارُ أخضر: `handle_delivered_message` تعود بلا استثناء فتُحتسَب تسليماً — الالتفافُ الذي أمسكته المراجعة (٣ أصوات)."
+        },
+        {
+          "expect": "test_the_idle_beat_preserves_a_failed_state_until_a_delivery_succeeds",
+          "find": "        if heartbeat.current_state == \"failed\":\n            _touch_alive(heartbeat)\n        else:",
+          "replace": "        if False:  # mutated: الساعةُ تمحو الفشل\n            _touch_alive(heartbeat)\n        else:",
+          "test": "tests/irrigation/test_gate_b_dispatch_relay_worker.py",
+          "why": "نبضةُ الخمول كلَّ ٦٠ ث تُعيد `running` فوق `failed` ⇒ انقطاعُ التسليم يختفي من الصحّة بعد دقيقة بلا أن ينجح تسليمٌ واحد."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

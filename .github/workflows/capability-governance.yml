@@ -212,6 +212,9 @@ jobs:
             tests/architecture/test_marker_coverage_guard.py \
             tests/architecture/test_arch_test_ci_coverage_guard.py \
             tests/architecture/test_unenforced_report_list_tests.py \
+            tests/architecture/test_jwt_decode_outside_shared_security_ratchet.py \
+            tests/architecture/test_router_size_ratchet.py \
+            tests/architecture/test_frontend_fetch_boundary_ratchet.py \
             tests/architecture/test_brain_commit_claim_guard.py \
             tests/architecture/test_brain_deferral_registry_guard.py \
             tests/architecture/test_brain_state_consistency.py \

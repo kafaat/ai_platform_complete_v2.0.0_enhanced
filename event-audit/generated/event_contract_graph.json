@@ -18,7 +18,7 @@
       "dynamic_expr": "subject",
       "file": "services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
       "kind": "consumer",
-      "line": 161,
+      "line": 234,
       "queue": null,
       "subject": null
     },

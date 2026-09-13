@@ -387,7 +387,7 @@
       },
       "evidence_truncated": {
         "apis": 200,
-        "tests": 99
+        "tests": 100
       }
     },
     {
@@ -926,6 +926,7 @@
         "services/sahool-platform/tests/test_wind_geometry.py",
         "services/vegetation-analysis-service/test_platform_field_catalog_boundary.py",
         "services/vegetation-analysis-service/test_raster_bundle_boundary.py",
+        "tests/architecture/test_frontend_fetch_boundary_ratchet.py",
         "tests_v9/test_c4_economics_erp_payment_boundary_guard.py",
         "tests_v9/test_canonical_boundary.py",
         "tests_v9/test_canonical_field_geometry_contract.py",
@@ -934,8 +935,7 @@
         "tests_v9/test_field_boundary_ai_v59.py",
         "tests_v9/test_field_boundary_backends_v59_5.py",
         "tests_v9/test_field_geometry_history_append_only_v39_5.py",
-        "tests_v9/test_field_geometry_save_guard_20260703.py",
-        "tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py"
+        "tests_v9/test_field_geometry_save_guard_20260703.py"
       ],
       "runtime": {
         "metrics": [],
@@ -984,7 +984,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 9
+        "tests": 10
       }
     },
     {

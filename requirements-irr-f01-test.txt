@@ -1,2 +1,4 @@
 asyncpg>=0.29,<1
-pytest>=8,<9
+# pytest 8.4.2 يحمل PYSEC-2026-1845 (أُصلِح في 9.0.3)؛ والجناحُ الرئيس على pytest 9.1.1 أصلاً
+# (`tests_v9/requirements-test.txt`). مقيسٌ بـ`pip-audit` في مراجعة 2026-09-13.
+pytest>=9.0.3,<10
