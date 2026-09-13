@@ -18,6 +18,8 @@ from pydantic import BaseModel, Field, field_validator
 class EdgeSyncRequest(BaseModel):
     type: str
     data: dict
+    # max_length يطابق عرض العمود edge_results.idempotency_key (VARCHAR(128) منذ v231؛
+    # كان VARCHAR(32) فيسقط مفتاحٌ بطول 33–128 عند القاعدة بعد اجتياز التحقّق).
     idempotency_key: str = Field(min_length=16, max_length=128)
     occurred_at: datetime
     device_id: str = Field(min_length=1, max_length=50)

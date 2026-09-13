@@ -119,6 +119,10 @@
         {
           "type": "repository",
           "path": "migrations/v9_rls_tenant_isolation.down.sql"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v231_edge_idempotency_tenant_scope.sql"
         }
       ],
       "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=36, tests=25, ui=1, mobile=1. Runtime and production certification remain manual evidence gates.",

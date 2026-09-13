@@ -99,6 +99,53 @@ async def test_write_failure_never_sends(sync, monkeypatch, respx_mock):
     assert len(respx_mock.calls) == 0
 
 
+@pytest.mark.asyncio
+async def test_legacy_queue_file_without_stored_device_identity_is_retained_not_relabelled(
+    sync, monkeypatch, respx_mock
+):
+    """A pre-envelope queue file carries no device identity; the current process env
+    must not supply one at replay (a replaced device would inherit old readings)."""
+    route = respx_mock.post("https://edge.example.test/v1/edge/sync").mock(
+        return_value=httpx.Response(200, json={"status": "stored", "idempotency_key": "x" * 32})
+    )
+    legacy = {
+        "type": "pest_detection",
+        "data": {"field_id": "field-1", "timestamp": "2026-09-01T10:30:00+00:00"},
+        "idempotency_key": "x" * 32,
+    }
+    (Path(sync.sync_dir) / "legacy.json").write_text(json.dumps(legacy), encoding="utf-8")
+    monkeypatch.setenv("EDGE_DEVICE_ID", "replacement-device")
+    assert await sync.process_queue() == 0
+    assert route.call_count == 0
+    assert sync.queue_size() == 1
+    retained = json.loads((Path(sync.sync_dir) / "legacy.json").read_text(encoding="utf-8"))
+    assert "replacement-device" not in json.dumps(retained)
+
+
+@pytest.mark.asyncio
+async def test_legacy_queue_file_with_stored_device_identity_replays_that_identity(
+    sync, monkeypatch, respx_mock
+):
+    route = respx_mock.post("https://edge.example.test/v1/edge/sync").mock(
+        return_value=httpx.Response(200, json={"status": "stored", "idempotency_key": "y" * 32})
+    )
+    legacy = {
+        "type": "pest_detection",
+        "data": {
+            "field_id": "field-1",
+            "device_id": "original-device",
+            "timestamp": "2026-09-01T10:30:00+00:00",
+        },
+        "idempotency_key": "y" * 32,
+    }
+    (Path(sync.sync_dir) / "legacy.json").write_text(json.dumps(legacy), encoding="utf-8")
+    monkeypatch.setenv("EDGE_DEVICE_ID", "replacement-device")
+    assert await sync.process_queue() == 1
+    sent = json.loads(route.calls[0].request.content)
+    assert sent["device_id"] == "original-device"
+    assert sync.queue_size() == 0
+
+
 def test_ingress_rejects_missing_top_level_identity():
     model = load(
         "edge_ingress_validation", "services/sahool-platform/api/edge_models.py"

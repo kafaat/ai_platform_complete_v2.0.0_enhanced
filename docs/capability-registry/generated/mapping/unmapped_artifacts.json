@@ -6832,6 +6832,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_alert_senders_push_fcm_v1.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_alerts_derived_from_state.py",
     "kind": "tests"
   },

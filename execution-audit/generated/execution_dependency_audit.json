@@ -5,8 +5,8 @@
   "runtime_verified":false,
   "python_files_parsed":1891,
   "route_handlers":1050,
-  "call_edges":77702,
-  "dead_code_candidates":630,
+  "call_edges":77705,
+  "dead_code_candidates":629,
   "duplicate_function_groups":60,
   "route_owners":27,
   "automatic_deletions":0
@@ -79566,78 +79566,78 @@
    "owner":"edge-inference",
    "file":"services/edge-inference/sync_service.py",
    "source":"process_queue",
-   "target":"getenv",
-   "line":124
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/sync_service.py",
-   "source":"process_queue",
-   "target":"setdefault",
-   "line":124
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/sync_service.py",
-   "source":"process_queue",
-   "target":"all",
-   "line":125
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/sync_service.py",
-   "source":"process_queue",
    "target":"get",
-   "line":126
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/sync_service.py",
-   "source":"process_queue",
-   "target":"ValueError",
    "line":129
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/sync_service.py",
    "source":"process_queue",
-   "target":"_persist",
+   "target":"setdefault",
+   "line":129
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/sync_service.py",
+   "source":"process_queue",
+   "target":"all",
    "line":130
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/sync_service.py",
    "source":"process_queue",
-   "target":"_send",
+   "target":"get",
    "line":131
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/sync_service.py",
    "source":"process_queue",
+   "target":"ValueError",
+   "line":134
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/sync_service.py",
+   "source":"process_queue",
+   "target":"_persist",
+   "line":135
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/sync_service.py",
+   "source":"process_queue",
+   "target":"_send",
+   "line":136
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/sync_service.py",
+   "source":"process_queue",
    "target":"unlink",
-   "line":132
+   "line":137
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/sync_service.py",
    "source":"process_queue",
    "target":"info",
-   "line":135
+   "line":140
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/sync_service.py",
    "source":"process_queue",
    "target":"type",
-   "line":135
+   "line":140
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/sync_service.py",
    "source":"process_queue",
    "target":"now",
-   "line":139
+   "line":144
   },
   {
    "owner":"edge-inference",
@@ -166577,147 +166577,168 @@
    "file":"services/sahool-platform/api/alert_senders.py",
    "source":"_post_json",
    "target":"dumps",
-   "line":66
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/alert_senders.py",
-   "source":"_post_json",
-   "target":"encode",
-   "line":66
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/alert_senders.py",
-   "source":"_post_json",
-   "target":"Request",
    "line":67
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/alert_senders.py",
    "source":"_post_json",
+   "target":"encode",
+   "line":67
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/alert_senders.py",
+   "source":"_post_json",
+   "target":"Request",
+   "line":68
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/alert_senders.py",
+   "source":"_post_json",
    "target":"urlopen",
-   "line":74
+   "line":75
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/alert_senders.py",
    "source":"_send_email",
    "target":"_not_configured",
-   "line":83
+   "line":84
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/alert_senders.py",
    "source":"_send_email",
    "target":"MIMEText",
-   "line":85
+   "line":86
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/alert_senders.py",
    "source":"_send_email",
    "target":"SMTP",
-   "line":89
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/alert_senders.py",
-   "source":"_send_email",
-   "target":"starttls",
    "line":90
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/alert_senders.py",
    "source":"_send_email",
-   "target":"login",
+   "target":"starttls",
    "line":91
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/alert_senders.py",
    "source":"_send_email",
-   "target":"send_message",
+   "target":"login",
    "line":92
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/alert_senders.py",
    "source":"_send_email",
+   "target":"send_message",
+   "line":93
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/alert_senders.py",
+   "source":"_send_email",
    "target":"error",
-   "line":95
+   "line":96
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/alert_senders.py",
    "source":"_send_sms",
    "target":"_not_configured",
-   "line":101
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/alert_senders.py",
-   "source":"_send_sms",
-   "target":"_post_json",
    "line":102
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/alert_senders.py",
+   "source":"_send_sms",
+   "target":"_post_json",
+   "line":103
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/alert_senders.py",
    "source":"_send_whatsapp",
    "target":"_not_configured",
-   "line":112
+   "line":113
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/alert_senders.py",
    "source":"_send_whatsapp",
    "target":"_post_json",
-   "line":114
+   "line":115
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/alert_senders.py",
    "source":"_send_telegram",
    "target":"_not_configured",
-   "line":124
+   "line":125
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/alert_senders.py",
    "source":"_send_telegram",
    "target":"_post_json",
-   "line":126
+   "line":127
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/alert_senders.py",
+   "source":"_send_push",
+   "target":"fcm_push_active",
+   "line":142
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/alert_senders.py",
    "source":"_send_push",
    "target":"_not_configured",
-   "line":134
+   "line":143
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/alert_senders.py",
    "source":"_send_push",
-   "target":"_post_json",
-   "line":135
+   "target":"run",
+   "line":145
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/alert_senders.py",
+   "source":"_send_push",
+   "target":"send_push",
+   "line":145
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/alert_senders.py",
+   "source":"_send_push",
+   "target":"error",
+   "line":147
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/alert_senders.py",
    "source":"real_channel_sender",
    "target":"get",
-   "line":161
+   "line":170
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/alert_senders.py",
    "source":"real_channel_sender",
    "target":"handler",
-   "line":164
+   "line":173
   },
   {
    "owner":"sahool-platform",
@@ -188977,21 +188998,21 @@
    "file":"services/sahool-platform/api/edge_models.py",
    "source":"timestamp_has_timezone",
    "target":"field_validator",
-   "line":26
+   "line":28
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/edge_models.py",
    "source":"timestamp_has_timezone",
    "target":"utcoffset",
-   "line":29
+   "line":31
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/edge_models.py",
    "source":"timestamp_has_timezone",
    "target":"ValueError",
-   "line":30
+   "line":32
   },
   {
    "owner":"sahool-platform",
@@ -248365,70 +248386,70 @@
    "file":"services/sahool-platform/api/routers/edge.py",
    "source":"edge_sync_receive",
    "target":"tenant_connection",
-   "line":35
+   "line":39
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/edge.py",
    "source":"edge_sync_receive",
    "target":"_assert_field_in_tenant",
-   "line":36
+   "line":40
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/edge.py",
    "source":"edge_sync_receive",
    "target":"fetchrow",
-   "line":37
+   "line":41
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/edge.py",
    "source":"edge_sync_receive",
    "target":"str",
-   "line":47
+   "line":51
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/edge.py",
    "source":"edge_sync_receive",
    "target":"dumps",
-   "line":50
+   "line":54
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/edge.py",
    "source":"edge_sync_receive",
    "target":"fetchrow",
-   "line":55
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/edge.py",
-   "source":"edge_sync_receive",
-   "target":"str",
    "line":59
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/edge.py",
    "source":"edge_sync_receive",
-   "target":"isinstance",
-   "line":62
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/edge.py",
-   "source":"edge_sync_receive",
-   "target":"loads",
+   "target":"str",
    "line":63
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/edge.py",
    "source":"edge_sync_receive",
+   "target":"isinstance",
+   "line":66
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/edge.py",
+   "source":"edge_sync_receive",
+   "target":"loads",
+   "line":67
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/edge.py",
+   "source":"edge_sync_receive",
    "target":"HTTPException",
-   "line":72
+   "line":76
   },
   {
    "owner":"sahool-platform",
@@ -558880,17 +558901,6 @@
    "kind":"function",
    "file":"shared/domain/field_geometry.py",
    "line":92,
-   "owner":"shared",
-   "decorated_route":false,
-   "reference_count":0,
-   "confidence":"medium",
-   "action":"review_before_delete"
-  },
-  {
-   "symbol":"send_push",
-   "kind":"function",
-   "file":"shared/fcm.py",
-   "line":115,
    "owner":"shared",
    "decorated_route":false,
    "reference_count":0,

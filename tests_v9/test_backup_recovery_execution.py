@@ -123,6 +123,43 @@ def test_physical_base_and_pg16_recovery_prepare(environment, tmp_path):
     assert run("restore_postgres.sh", *args, env=environment).returncode != 0
 
 
+def _physical_base(tmp_path, major: str):
+    base = tmp_path / f"base_{major}"
+    base.mkdir()
+    (base / "PG_VERSION").write_text(major, encoding="utf-8")
+    (base / "backup_manifest").write_text("manifest", encoding="utf-8")
+    wal = tmp_path / "wal"
+    wal.mkdir(exist_ok=True)
+    return (
+        "--pitr",
+        base,
+        "--target-dir",
+        tmp_path / f"recovery_{major}",
+        "--wal-dir",
+        wal,
+        "--target-time",
+        "2026-09-13T10:00:00Z",
+        "--dry-run",
+    )
+
+
+def test_recovery_prepare_accepts_the_deployed_major_not_only_16(environment, tmp_path):
+    """The Compose v9 database is PostgreSQL 15; a hardcoded 16 refused its every base."""
+    for major in ("15", "16"):
+        result = run("restore_postgres.sh", *_physical_base(tmp_path, major), env=environment)
+        assert result.returncode == 0, (major, result.stderr)
+
+
+def test_recovery_prepare_refuses_a_major_mismatch_or_an_undeployed_major(environment, tmp_path):
+    mismatch = {**environment, "RECOVERY_PG_MAJOR": "16"}
+    result = run("restore_postgres.sh", *_physical_base(tmp_path, "15"), env=mismatch)
+    assert result.returncode != 0
+    assert "majors must match" in result.stderr
+    result = run("restore_postgres.sh", *_physical_base(tmp_path, "13"), env=environment)
+    assert result.returncode != 0
+    assert "supported majors" in result.stderr
+
+
 def test_logical_dump_is_not_accepted_as_physical_base(environment, tmp_path):
     dump = tmp_path / "logical.dump"
     dump.write_bytes(b"dump")

@@ -232,6 +232,11 @@ async def test_preferences_query_binds_tenant_and_user(agent, monkeypatch):
     monkeypatch.setattr(
         agent, "get_pool", AsyncMock(return_value=SimpleNamespace(acquire=lambda: conn))
     )
-    assert await agent.get_prefs(7, TENANT) is None
-    assert conn.fetchrow.call_args.args[1:] == (7, TENANT)
-    assert conn.contexts == [(TENANT, "7")]
+    # الموضوع نصّيّ (UUID في المنصّة) ويُقرأ بـuser_ref كما تكتبه واجهة التفضيلات — لا
+    # تحويل إلى int ولا عمود user_id القديم (Copilot على #997).
+    subject = "8d3f2c1a-5b4e-4f6a-9c7d-2e1f0a9b8c7d"
+    assert await agent.get_prefs(subject, TENANT) is None
+    sql = conn.fetchrow.call_args.args[0]
+    assert "user_ref=$2" in sql and "user_id=" not in sql
+    assert conn.fetchrow.call_args.args[1:] == (TENANT, subject)
+    assert conn.contexts == [(TENANT, subject)]

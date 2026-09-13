@@ -12,14 +12,38 @@ import csv
 import hashlib
 import json
 import re
+import sys
 from collections import defaultdict
 from functools import lru_cache
 from pathlib import Path
 
 import yaml
 
+# One Compose discovery surface for every guard that reads Compose (compose_surface.py).
+# The previous root-level glob silently omitted frontend/docker-compose.web.yml, so the
+# generated graph carried no frontend services or edges (Copilot on #997).
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from compose_surface import compose_files  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "architecture" / "generated"
+_REPO_ROOT = ROOT
+
+
+def discover_compose_files() -> list[Path]:
+    """The Compose surface: git-tracked files from compose_surface at the repository root.
+
+    Tests rebind ``ROOT`` to a scratch directory that is not a git checkout; there the
+    same declared patterns (root `docker-compose*.yml` plus `frontend/docker-compose*.yml`)
+    are globbed instead, so the parser is exercised on fixture files without inventing a
+    second discovery rule for the real tree.
+    """
+    if ROOT == _REPO_ROOT:
+        return sorted(compose_files())
+    patterns = ("docker-compose*.yml", "docker-compose*.yaml", "frontend/docker-compose*.yml")
+    return sorted({path for pattern in patterns for path in ROOT.glob(pattern)})
+
+
 SERVICE_DIRS = [ROOT / "services", ROOT / "apps", ROOT / "sahool-platform"]
 SKIP = {".git", ".venv", "venv", "node_modules", "dist", "build", "__pycache__"}
 URL_RE = re.compile(
@@ -128,8 +152,7 @@ def compose_edges(nodes: dict[str, dict]) -> list[dict]:
     """Read only service dependency keys, not nested conditions or later properties."""
     edges = []
     seen = set()
-    files = sorted(list(ROOT.glob("docker-compose*.yml")) + list(ROOT.glob("docker-compose*.yaml")))
-    for path in files:
+    for path in discover_compose_files():
         document = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
         for name, service in (document.get("services") or {}).items():
             current = canonical(name)

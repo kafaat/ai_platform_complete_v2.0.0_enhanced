@@ -12,11 +12,12 @@
   • sms      → SMS_PROVIDER_URL/SMS_API_KEY (POST JSON عامّ)
   • whatsapp → WHATSAPP_WEBHOOK_URL (+WHATSAPP_API_KEY اختياريّ) (POST JSON)
   • telegram → TELEGRAM_BOT_TOKEN (Bot API sendMessage؛ recipient=chat_id)
-  • push     → FCM_SERVER_KEY (FCM legacy HTTP؛ recipient=device token)
+  • push     → FCM_CREDENTIALS_JSON (FCM HTTP v1 عبر shared.fcm؛ recipient=device token)
 """
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
@@ -34,6 +35,7 @@ from api.alert_delivery import (
     ChannelMessage,
     DeliveryResult,
 )
+from shared.fcm import fcm_push_active, send_push
 
 logger = logging.getLogger("sahool.alert_senders")
 
@@ -52,7 +54,6 @@ WHATSAPP_WEBHOOK_URL = os.getenv("WHATSAPP_WEBHOOK_URL", "")
 WHATSAPP_API_KEY = os.getenv("WHATSAPP_API_KEY", "")
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-FCM_SERVER_KEY = os.getenv("FCM_SERVER_KEY", "")
 
 _HTTP_TIMEOUT = 10
 
@@ -130,14 +131,22 @@ def _send_telegram(msg: ChannelMessage) -> DeliveryResult:
 
 
 def _send_push(msg: ChannelMessage) -> DeliveryResult:
-    if not FCM_SERVER_KEY:
+    """FCM HTTP v1 عبر ``shared.fcm``: حسابٌ خدميّ مُتحقَّق منه وإيصالُ رسالةٍ مُسمّى.
+
+    كان هذا المسار يرسل إلى ``fcm.googleapis.com/fcm/send`` القديم بـ``FCM_SERVER_KEY``،
+    متجاوزاً تحقّقَ الاعتماد والإيصال الذي يفرضه ``shared/fcm.py`` على بقيّة المنصّة
+    (Copilot على #997). المُرسِل متزامن ويُنادى من خيطٍ عامل (``asyncio.to_thread``)، فحلقةٌ
+    محلّيّة لنداء الشبكة غير المتزامن آمنة هنا: لا حلقةَ أحداثٍ تعمل في ذلك الخيط. ولو
+    نودي من داخل حلقةٍ عاملة فالفشل صريح — لا مسارَ قديم يُعاد إليه.
+    """
+    if not fcm_push_active():
         return _not_configured(CHANNEL_PUSH)
-    ok, detail = _post_json(
-        "https://fcm.googleapis.com/fcm/send",
-        {"to": msg.recipient, "notification": {"title": msg.title_ar, "body": msg.body_ar}},
-        {"Authorization": f"key={FCM_SERVER_KEY}"},
-    )
-    return (CHANNEL_PUSH, ok, f"push {detail}")
+    try:
+        accepted = asyncio.run(send_push(msg.recipient or "", msg.title_ar, msg.body_ar))
+    except RuntimeError as e:
+        logger.error("تعذّر إرسال Push عبر FCM v1: %s", e)
+        return (CHANNEL_PUSH, False, f"push fcm_v1_error: {e}")
+    return (CHANNEL_PUSH, accepted, "push fcm_v1 " + ("accepted" if accepted else "not_accepted"))
 
 
 _DISPATCH = {

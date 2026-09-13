@@ -752,4 +752,9 @@ v228_worker_claim_lease.sql
 v229_market_mcp_schema.sql
 # v230: drawing persistence under the migration owner; DML-only runtime and FORCE-RLS.
 v230_drawing_features.sql
+# v231 (Copilot على #997): ديدوب مزامنة الحافة لكلّ مستأجِر — توسيع edge_results.idempotency_key
+#   إلى VARCHAR(128) (عرض عقد EdgeSyncRequest) وإحلال فهرس فريد جزئيّ على
+#   (tenant_id, idempotency_key) محلّ الفهرس العالميّ الذي كان يجعل مفتاح مستأجِرٍ يحجب
+#   مستأجِراً آخر بـ409. ALTER فقط، idempotent، بلا RLS جديد. يُدرَج قبل v206 كي يبقى v206 آخِر مدخل.
+v231_edge_idempotency_tenant_scope.sql
 v206_rls_final_hardening.sql

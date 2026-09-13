@@ -121,7 +121,12 @@ class CloudSyncService:
                             "timestamp"
                         )
                     item.setdefault("field_id", item["data"].get("field_id"))
-                    item.setdefault("device_id", os.getenv("EDGE_DEVICE_ID", ""))
+                    # Identity must come from what was persisted with the observation,
+                    # never from the current process environment: after a device
+                    # replacement or an EDGE_DEVICE_ID change, filling it in at replay
+                    # would attribute an old measurement to the wrong device. A legacy
+                    # file without a stored device identity is retained, not sent.
+                    item.setdefault("device_id", item["data"].get("device_id"))
                     if not all(
                         item.get(key)
                         for key in ("field_id", "device_id", "occurred_at", "idempotency_key")

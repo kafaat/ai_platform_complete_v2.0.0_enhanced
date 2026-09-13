@@ -216,14 +216,16 @@ Logical restore (custom-format pg_dump; not PITR):
   ./scripts/restore_postgres.sh /var/backups/sahool/full/sahool_TIMESTAMP.dump --dry-run
   ./scripts/restore_postgres.sh /var/backups/sahool/full/sahool_TIMESTAMP.dump
 
-PostgreSQL 16 PITR requires a PHYSICAL base plus continuous archived WAL:
+PITR requires a PHYSICAL base plus continuous archived WAL:
   ./scripts/backup_postgres.sh base
   ./scripts/restore_postgres.sh --pitr /var/backups/sahool/base/base_TIMESTAMP \
     --target-dir /var/lib/postgresql/recovery-drill \
     --wal-dir /var/backups/sahool/wal --target-time '2026-09-13T10:00:00Z' --dry-run
 Remove --dry-run to prepare a NEW EMPTY target, then start an isolated PostgreSQL
-16 instance there. recovery.signal and PostgreSQL 16 recovery settings are written
-by the preparation command. It does not start PostgreSQL or replace a live volume.
+instance of the SAME major as the base (Compose v9 deploys 15; the evidence lab 16;
+the preparation step refuses a mismatch against RECOVERY_PG_MAJOR or the local
+postgres binary). recovery.signal and the recovery settings are written by the
+preparation command. It does not start PostgreSQL or replace a live volume.
 
 A readable pg_restore catalog is not a restore proof. Check rows, roles, RLS,
 application queries, recovery target reached, and measured RPO/RTO in a drill.

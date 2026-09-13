@@ -33,6 +33,9 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/pg_conn_defaults.sh"
 # PGPASSWORD يُمرّر عبر env (لا في السكربت)
 
 PARALLEL_JOBS="${PARALLEL_JOBS:-4}"
+# Majors this repository deploys: Compose v9 runs postgis/postgis:15-3.4, the evidence
+# lab runs 16-3.4. A physical base can only be recovered by a server of the SAME major.
+SUPPORTED_PG_MAJORS="${SUPPORTED_PG_MAJORS:-15 16}"
 
 # ─── ألوان للمخرجات ────────────────────────────────────────────
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
@@ -54,7 +57,20 @@ prepare_pitr() {
         esac
     done
     [[ -f "$base/backup_manifest" && -f "$base/PG_VERSION" ]] || { err "A physical pg_basebackup directory is required"; return 1; }
-    [[ "$(cat "$base/PG_VERSION")" == 16 ]] || { err "This recovery procedure requires PostgreSQL 16"; return 1; }
+    local base_major recovery_major
+    base_major="$(tr -d '[:space:]' < "$base/PG_VERSION")"
+    # A hardcoded "16" rejected every base taken from the deployed Compose database
+    # (PostgreSQL 15) before recovery could begin (Copilot on #997). The base major must
+    # be one this repository deploys, and must equal the major of the server that will
+    # replay it: RECOVERY_PG_MAJOR when the operator names it, else the `postgres`
+    # binary on PATH when one exists. Neither present ⇒ the operator is told to start
+    # a matching major; the script never starts a server itself.
+    [[ " $SUPPORTED_PG_MAJORS " == *" $base_major "* ]] || { err "Base is PostgreSQL $base_major; supported majors: $SUPPORTED_PG_MAJORS"; return 1; }
+    recovery_major="${RECOVERY_PG_MAJOR:-}"
+    if [[ -z "$recovery_major" ]] && command -v postgres >/dev/null 2>&1; then
+        recovery_major="$(postgres --version 2>/dev/null | sed -nE 's/.*[^0-9]([0-9]+)(\.[0-9]+)?[^0-9]*$/\1/p')"
+    fi
+    [[ -z "$recovery_major" || "$recovery_major" == "$base_major" ]] || { err "Base is PostgreSQL $base_major but the recovery server is $recovery_major; majors must match"; return 1; }
     [[ "$target" == /* && ! -L "$target" ]] || { err "Use an absolute, non-symlink target"; return 1; }
     [[ -n "$target_time" && "$wal" =~ ^/[A-Za-z0-9_./-]+$ && -d "$wal" ]] || { err "WAL directory and target time are required"; return 1; }
     [[ ! -e "$target" || ( -d "$target" && -z "$(find "$target" -mindepth 1 -maxdepth 1 -print -quit)" ) ]] || { err "Target must be NEW or EMPTY"; return 1; }
@@ -75,7 +91,7 @@ recovery_target_time = '$target_time'
 recovery_target_action = 'pause'
 EOF
     touch "$target/recovery.signal"
-    log "Prepared $target. Start an ISOLATED PostgreSQL 16 instance as its OS owner; verify target reached before promotion."
+    log "Prepared $target. Start an ISOLATED PostgreSQL $base_major instance as its OS owner; verify target reached before promotion."
 }
 
 if [[ "${1:-}" == --pitr ]]; then

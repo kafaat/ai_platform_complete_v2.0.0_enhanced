@@ -1,4 +1,4 @@
-# PostgreSQL 16 recovery
+# PostgreSQL recovery (15 / 16)
 
 Logical exports and physical point-in-time recovery are separate procedures.
 `pg_restore --list` proves that an archive catalog is readable; it does not prove
@@ -7,7 +7,12 @@ has been met. No live restore drill was performed for the September 13 patch.
 
 ## Provisioning
 
-Use PostgreSQL 16 client tools matching the server major version. Supply the
+Use client tools matching the server major version. The repository deploys two
+majors: the Compose v9 database is `postgis/postgis:15-3.4` and the evidence lab is
+`16-3.4`. A physical base is replayed only by a server of the same major:
+`restore_postgres.sh --pitr` refuses a base whose `PG_VERSION` is outside
+`SUPPORTED_PG_MAJORS` (default `15 16`) or differs from `RECOVERY_PG_MAJOR` (or, when
+that is unset, from the `postgres` binary on `PATH`). Supply the
 existing `PGHOST`, `PGPORT`, `PGUSER`, `PGDATABASE`, and credentials through the
 operator's secret mechanism. The backup role needs the replication privileges
 required by `pg_basebackup`; application credentials are not a replacement.
@@ -50,7 +55,7 @@ verified base out of its `.partial` directory. This implementation rejects
 external tablespaces; they require an explicit storage mapping procedure.
 
 Remove `--dry-run` to prepare a **new or empty** target directory. The script
-verifies the physical manifest, copies the base, and writes PostgreSQL 16
+verifies the physical manifest and its major version, copies the base, and writes
 `recovery.signal`, `restore_command`, `recovery_target_time`, and a pause action.
 It does not start PostgreSQL, replace an existing data directory, or promote a
 server. Start the copy as its OS owner using a separate port and isolated

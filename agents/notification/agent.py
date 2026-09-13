@@ -234,12 +234,20 @@ async def _tenant_connection(tenant_id: str, user_id: str = ""):
         yield conn
 
 
-async def get_prefs(user_id: int, tenant_id: str) -> dict | None:
-    async with _tenant_connection(tenant_id, str(user_id)) as conn:
+async def get_prefs(user_id: str, tenant_id: str) -> dict | None:
+    """تفضيلات المستخدم بالهويّة التي تكتبها المنصّة: ``(tenant_id, user_ref)`` نصّاً.
+
+    كانت تُحوِّل الموضوع إلى ``int`` وتقرأ عمود ``user_id`` القديم (INTEGER، FK إلى
+    ``users.id``) بينما ``PUT /api/v1/notifications/preferences`` يكتب الصفّ تحت
+    ``user_ref`` النصّيّ (v38). فكلّ تفضيلٍ محفوظٍ عبر الـAPI الحاليّ كان يُفوَّت، وموضوعٌ
+    UUID كان يسقط قبل الاستعلام أصلاً (Copilot على #997).
+    """
+    user_ref = str(user_id)
+    async with _tenant_connection(tenant_id, user_ref) as conn:
         row = await conn.fetchrow(
-            "SELECT * FROM notification_preferences WHERE user_id=$1 AND tenant_id=$2::uuid",
-            user_id,
+            "SELECT * FROM notification_preferences WHERE tenant_id=$1::uuid AND user_ref=$2",
             tenant_id,
+            user_ref,
         )
         return dict(row) if row else None
 
@@ -352,7 +360,7 @@ async def dispatch(data: dict):
     if not user_id:
         return
 
-    prefs = await get_prefs(int(user_id), tenant_id)
+    prefs = await get_prefs(str(user_id), tenant_id)
     if not prefs:
         return
 

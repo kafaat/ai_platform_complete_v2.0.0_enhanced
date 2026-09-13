@@ -595,7 +595,6 @@ medium,shared,class,ObservationRejectedEventV1,shared/contracts/remote_sensing/e
 medium,shared,class,RasterAssetPersistedEventV1,shared/contracts/remote_sensing/events/raster_events_v1.py,15,0,review_before_delete,False
 medium,shared,class,RasterAssetFailedEventV1,shared/contracts/remote_sensing/events/raster_events_v1.py,32,0,review_before_delete,False
 medium,shared,function,is_canonical_field_geometry,shared/domain/field_geometry.py,92,0,review_before_delete,False
-medium,shared,function,send_push,shared/fcm.py,115,0,review_before_delete,False
 medium,shared,function,build_feature_lineage_manifest,shared/feature_store/runtime.py,255,0,review_before_delete,False
 medium,shared,function,transform_to_map_projection,shared/gis/crs_service.py,164,0,review_before_delete,False
 medium,shared,class,HttpDiagnosisResolver,shared/governance/chemical_lineage.py,128,0,review_before_delete,False

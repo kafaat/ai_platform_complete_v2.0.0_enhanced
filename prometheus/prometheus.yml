@@ -35,10 +35,13 @@ scrape_configs:
     static_configs:
       - targets: ['sahool-weather-service:8000']
 
-  # Canonical v9 includes the standalone soil service on port 8000.
+  # Canonical v9 includes the standalone soil service on port 8000. The target is
+  # the Compose service name (`sahool-soil-service`, docker-compose.v9.yml); there is
+  # no `sahool-soil` network alias, so the short name never resolved and the scrape
+  # stayed down (Copilot on #997).
   - job_name: 'soil-service'
     static_configs:
-      - targets: ['sahool-soil:8000']
+      - targets: ['sahool-soil-service:8000']
 
   # ── v9 New Services ───────────────────────────────────────────
   - job_name: 'supervisor-agent'

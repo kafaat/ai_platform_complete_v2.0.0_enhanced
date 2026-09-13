@@ -2606,7 +2606,6 @@
       "secrets": [
         "ANTHROPIC_API_KEY",
         "DECISION_SERVICE_TOKEN",
-        "FCM_SERVER_KEY",
         "FIELD_FORMS_SERVICE_TOKEN",
         "INTERNAL_SERVICE_TOKEN",
         "JWT_SECRET",
