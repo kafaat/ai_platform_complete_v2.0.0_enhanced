@@ -124,11 +124,13 @@ def test_field_preliminary_below_threshold():
 
 
 def test_field_verified_at_threshold():
-    n = 30  # عند العتبة بالضبط ⇒ field_verified.
+    # U01 (التدقيق الموحَّد 2026-09-13): العتبة بالضبط ⇒ عيّنة مكتملة بانتظار المراجعة —
+    # «مُتحقَّق ميدانيّاً» يشترط مراجعةَ مختصّ ولا يُمنَح بعدّ الصفوف وحدَه.
+    n = 30
     outcomes = [_outcome(success=True, n_eval=1) for _ in range(n)]
     out = summarize_region("jawf", [], outcomes)
     assert out["sample_count"] == n
-    assert out["evidence_level"] == "field_verified"
+    assert out["evidence_level"] == "field_sample_complete"
     assert out["samples_to_verified"] == 0
 
 
