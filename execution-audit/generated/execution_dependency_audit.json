@@ -5,8 +5,8 @@
   "runtime_verified":false,
   "python_files_parsed":1892,
   "route_handlers":1050,
-  "call_edges":77870,
-  "dead_code_candidates":630,
+  "call_edges":77895,
+  "dead_code_candidates":631,
   "duplicate_function_groups":60,
   "route_owners":27,
   "automatic_deletions":0
@@ -3207,7 +3207,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":196,
+   "line":202,
    "handler":"compute_learning_feedback",
    "method":"POST",
    "path":"/api/v1/calibration/feedback"
@@ -3215,7 +3215,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":214,
+   "line":220,
    "handler":"propose_region_adaptation",
    "method":"POST",
    "path":"/api/v1/calibration/{region}/adapt"
@@ -3223,7 +3223,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":247,
+   "line":253,
    "handler":"propose_region_adaptation_from_evidence",
    "method":"POST",
    "path":"/api/v1/calibration/{region}/adapt-from-evidence"
@@ -3231,7 +3231,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":302,
+   "line":314,
    "handler":"apply_region_adaptation_from_evidence",
    "method":"POST",
    "path":"/api/v1/calibration/{region}/adapt-from-evidence/apply"
@@ -3239,7 +3239,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":420,
+   "line":438,
    "handler":"propose_region_values",
    "method":"POST",
    "path":"/api/v1/calibration/{region}/propose-values"
@@ -3247,7 +3247,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":443,
+   "line":461,
    "handler":"set_region_override",
    "method":"POST",
    "path":"/api/v1/calibration/{region}/override"
@@ -3255,7 +3255,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":509,
+   "line":527,
    "handler":"get_resolved_region_calibration",
    "method":"GET",
    "path":"/api/v1/calibration/{region}/resolved"
@@ -3263,7 +3263,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":538,
+   "line":556,
    "handler":"list_region_overrides",
    "method":"GET",
    "path":"/api/v1/calibration/overrides/all"
@@ -3271,7 +3271,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":571,
+   "line":589,
    "handler":"delete_region_override",
    "method":"DELETE",
    "path":"/api/v1/calibration/{region}/override"
@@ -3279,7 +3279,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":617,
+   "line":635,
    "handler":"get_region_calibration_audit",
    "method":"GET",
    "path":"/api/v1/calibration/{region}/audit"
@@ -3719,7 +3719,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
-   "line":63,
+   "line":71,
    "handler":"explain_decision_endpoint",
    "method":"GET",
    "path":"/api/v1/decision/{decision_id}/explain"
@@ -18890,105 +18890,63 @@
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_generation_is_grounded",
-   "target":"any",
-   "line":612
+   "target":"isinstance",
+   "line":617
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_generation_is_grounded",
-   "target":"bool",
-   "line":612
+   "target":"get",
+   "line":619
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"_generation_is_grounded",
+   "target":"get",
+   "line":619
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"_generation_is_grounded",
+   "target":"get",
+   "line":619
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_generation_is_grounded",
    "target":"isinstance",
-   "line":612
+   "line":620
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"_generation_is_grounded",
+   "target":"strip",
+   "line":620
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_grounding_context_text",
    "target":"get",
-   "line":642
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"_grounding_context_text",
-   "target":"append",
-   "line":644
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"_grounding_context_text",
-   "target":"get",
-   "line":647
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"_grounding_context_text",
-   "target":"get",
-   "line":647
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"_grounding_context_text",
-   "target":"get",
-   "line":647
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"_grounding_context_text",
-   "target":"isinstance",
-   "line":648
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"_grounding_context_text",
-   "target":"str",
-   "line":649
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"_grounding_context_text",
-   "target":"append",
    "line":652
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_grounding_context_text",
-   "target":"str",
-   "line":652
+   "target":"append",
+   "line":654
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_grounding_context_text",
    "target":"get",
-   "line":653
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"_grounding_context_text",
-   "target":"append",
-   "line":655
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"_grounding_context_text",
-   "target":"isinstance",
    "line":657
   },
   {
@@ -18996,97 +18954,62 @@
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_grounding_context_text",
    "target":"get",
-   "line":658
+   "line":657
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_grounding_context_text",
    "target":"get",
-   "line":658
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"_grounding_context_text",
-   "target":"get",
-   "line":659
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"_grounding_context_text",
-   "target":"get",
-   "line":659
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"_grounding_context_text",
-   "target":"get",
-   "line":660
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"_grounding_context_text",
-   "target":"get",
-   "line":660
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"_grounding_context_text",
-   "target":"append",
-   "line":661
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"_grounding_context_text",
-   "target":"get",
-   "line":662
+   "line":657
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_grounding_context_text",
    "target":"isinstance",
-   "line":663
+   "line":658
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_grounding_context_text",
-   "target":"get",
-   "line":664
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"_grounding_context_text",
-   "target":"get",
-   "line":666
+   "target":"str",
+   "line":659
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_grounding_context_text",
    "target":"append",
-   "line":667
+   "line":662
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"_grounding_context_text",
+   "target":"str",
+   "line":662
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_grounding_context_text",
    "target":"get",
-   "line":667
+   "line":663
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_grounding_context_text",
-   "target":"get",
+   "target":"append",
+   "line":665
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"_grounding_context_text",
+   "target":"isinstance",
    "line":667
   },
   {
@@ -19100,7 +19023,14 @@
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_grounding_context_text",
-   "target":"append",
+   "target":"get",
+   "line":668
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"_grounding_context_text",
+   "target":"get",
    "line":669
   },
   {
@@ -19121,6 +19051,13 @@
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_grounding_context_text",
+   "target":"get",
+   "line":670
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"_grounding_context_text",
    "target":"append",
    "line":671
   },
@@ -19129,118 +19066,174 @@
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_grounding_context_text",
    "target":"get",
-   "line":671
+   "line":672
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"_grounding_context_text",
+   "target":"isinstance",
+   "line":673
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"_grounding_context_text",
+   "target":"get",
+   "line":674
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"_grounding_context_text",
+   "target":"get",
+   "line":676
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"_grounding_context_text",
+   "target":"append",
+   "line":677
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"_grounding_context_text",
+   "target":"get",
+   "line":677
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"_grounding_context_text",
+   "target":"get",
+   "line":677
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"_grounding_context_text",
+   "target":"get",
+   "line":678
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"_grounding_context_text",
+   "target":"append",
+   "line":679
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"_grounding_context_text",
+   "target":"get",
+   "line":679
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"_grounding_context_text",
+   "target":"get",
+   "line":680
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"_grounding_context_text",
+   "target":"append",
+   "line":681
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"_grounding_context_text",
+   "target":"get",
+   "line":681
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_grounding_context_text",
    "target":"str",
-   "line":671
+   "line":681
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_grounding_context_text",
    "target":"append",
-   "line":673
+   "line":683
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_grounding_context_text",
    "target":"join",
-   "line":673
+   "line":683
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_grounding_context_text",
    "target":"_ai_context_memory_lines",
-   "line":674
+   "line":684
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_grounding_context_text",
    "target":"_extract_ai_context_pack",
-   "line":674
+   "line":684
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_grounding_context_text",
    "target":"extend",
-   "line":674
+   "line":684
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"_grounding_context_text",
    "target":"join",
-   "line":675
+   "line":685
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"resolve_trusted_tenant",
-   "line":691
+   "line":701
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"HTTPException",
-   "line":693
+   "line":703
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"AsyncClient",
-   "line":695
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"getenv",
-   "line":704
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"service_token_ok",
-   "line":704
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"HTTPException",
    "line":705
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
-   "target":"_fetch_canonical_field_state",
-   "line":708
+   "target":"getenv",
+   "line":714
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
-   "target":"isinstance",
-   "line":713
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"get",
+   "target":"service_token_ok",
    "line":714
   },
   {
@@ -19248,293 +19241,314 @@
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"HTTPException",
-   "line":716
+   "line":715
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
-   "target":"_dependency_boundary",
-   "line":728
+   "target":"_fetch_canonical_field_state",
+   "line":718
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
+   "target":"isinstance",
+   "line":723
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"get",
-   "line":729
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"rstrip",
-   "line":730
+   "line":724
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"HTTPException",
+   "line":726
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
+   "target":"_dependency_boundary",
    "line":738
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
-   "target":"json",
-   "line":745
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"_graph_conditioned_retrieval_query",
-   "line":746
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"_dependency_boundary",
-   "line":748
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"post",
-   "line":749
+   "target":"get",
+   "line":739
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"rstrip",
-   "line":750
+   "line":740
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"HTTPException",
-   "line":766
+   "line":748
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"json",
-   "line":768
+   "line":755
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
+   "target":"_graph_conditioned_retrieval_query",
+   "line":756
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
+   "target":"_dependency_boundary",
+   "line":758
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
+   "target":"post",
+   "line":759
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
+   "target":"rstrip",
+   "line":760
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
+   "target":"HTTPException",
+   "line":776
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
+   "target":"json",
+   "line":778
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"get",
-   "line":770
+   "line":780
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"get",
-   "line":771
+   "line":781
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"sorted",
-   "line":795
+   "line":805
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"assert_no_decision_keys",
-   "line":802
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"_extract_ai_context_pack",
-   "line":807
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"enforce_request",
-   "line":811
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"allowed_tools_set",
    "line":812
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
-   "target":"get",
-   "line":816
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"get",
+   "target":"_extract_ai_context_pack",
    "line":817
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
+   "target":"enforce_request",
+   "line":821
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
+   "target":"allowed_tools_set",
+   "line":822
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
+   "target":"get",
+   "line":826
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
+   "target":"get",
+   "line":827
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
    "target":"_extract_evidence_ids",
-   "line":819
+   "line":829
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"_field_memory_evidence_ids",
-   "line":819
+   "line":829
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"fromkeys",
-   "line":823
+   "line":833
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"list",
-   "line":823
+   "line":833
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"_evidence_sources",
-   "line":824
+   "line":834
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"_confidence_from_payloads",
-   "line":825
+   "line":835
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"_generation_allowed",
-   "line":845
+   "line":855
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"_grounding_context_text",
-   "line":846
+   "line":856
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"get_policy",
-   "line":847
+   "line":857
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"normalize_policy",
-   "line":847
+   "line":857
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"resolve_generation",
-   "line":851
+   "line":861
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"provider_is_external",
-   "line":852
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"gate_generation",
-   "line":853
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"get",
    "line":862
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
-   "target":"dict",
+   "target":"gate_generation",
    "line":863
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
+   "target":"get",
+   "line":872
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
+   "target":"dict",
+   "line":873
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
    "target":"generate",
-   "line":865
+   "line":875
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"get",
-   "line":870
+   "line":880
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"_build_agent_tool_fetcher",
-   "line":871
+   "line":881
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"_utc_timestamp",
-   "line":876
+   "line":886
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"_generation_is_grounded",
-   "line":888
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"list",
    "line":898
   },
   {
@@ -19542,70 +19556,35 @@
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"list",
-   "line":899
+   "line":908
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
+   "target":"list",
+   "line":909
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"bool",
-   "line":900
+   "line":910
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"int",
-   "line":901
+   "line":911
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"_record_ai_advice_event",
-   "line":903
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"isinstance",
-   "line":916
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"get",
-   "line":917
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"get",
-   "line":918
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"get",
-   "line":920
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"get",
-   "line":924
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"get_policy",
-   "line":925
+   "line":913
   },
   {
    "owner":"ai-agronomist",
@@ -19618,14 +19597,7 @@
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
-   "target":"normalize_policy",
-   "line":926
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "source":"build_evidence_response",
-   "target":"build_observation",
+   "target":"get",
    "line":927
   },
   {
@@ -19633,21 +19605,49 @@
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"get",
-   "line":931
+   "line":928
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"get",
-   "line":932
+   "line":930
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
-   "target":"run_tool_calls",
-   "line":939
+   "target":"get",
+   "line":934
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
+   "target":"get_policy",
+   "line":935
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
+   "target":"isinstance",
+   "line":936
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
+   "target":"normalize_policy",
+   "line":936
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
+   "target":"build_observation",
+   "line":937
   },
   {
    "owner":"ai-agronomist",
@@ -19660,106 +19660,127 @@
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
-   "target":"_build_agent_tool_fetcher",
+   "target":"get",
    "line":942
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
+   "target":"run_tool_calls",
+   "line":949
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
+   "target":"get",
+   "line":951
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
+   "target":"_build_agent_tool_fetcher",
+   "line":952
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/ai_evidence_runtime.py",
+   "source":"build_evidence_response",
    "target":"_utc_timestamp",
-   "line":947
+   "line":957
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"get",
-   "line":952
+   "line":962
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"list",
-   "line":952
+   "line":962
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"list",
-   "line":952
+   "line":962
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"list",
-   "line":953
+   "line":963
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"list",
-   "line":953
+   "line":963
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"get",
-   "line":954
+   "line":964
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"build_transparency",
-   "line":956
+   "line":966
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"get",
-   "line":980
+   "line":990
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"isinstance",
-   "line":981
+   "line":991
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"bool",
-   "line":989
+   "line":999
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"get",
-   "line":989
+   "line":999
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"_guardrail_result",
-   "line":994
+   "line":1004
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
    "source":"build_evidence_response",
    "target":"build_advisory_envelope",
-   "line":999
+   "line":1009
   },
   {
    "owner":"ai-agronomist",
@@ -95156,112 +95177,112 @@
    "file":"services/local-ai-rag/init_retry.py",
    "source":"backoff_seconds",
    "target":"float",
-   "line":26
+   "line":27
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"backoff_seconds",
    "target":"max",
-   "line":26
+   "line":27
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"backoff_seconds",
    "target":"min",
-   "line":26
+   "line":27
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
    "target":"int",
-   "line":46
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/init_retry.py",
-   "source":"run_init_with_retry",
-   "target":"max",
-   "line":46
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/init_retry.py",
-   "source":"run_init_with_retry",
-   "target":"range",
    "line":47
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
-   "target":"init_fn",
-   "line":50
+   "target":"max",
+   "line":47
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
-   "target":"iscoroutine",
+   "target":"range",
+   "line":48
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"run_init_with_retry",
+   "target":"init_fn",
    "line":51
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
-   "target":"dict",
-   "line":55
+   "target":"isawaitable",
+   "line":53
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
-   "target":"type",
+   "target":"dict",
    "line":57
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
+   "target":"type",
+   "line":59
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"run_init_with_retry",
    "target":"error",
-   "line":60
+   "line":62
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
    "target":"dict",
-   "line":65
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/init_retry.py",
-   "source":"run_init_with_retry",
-   "target":"backoff_seconds",
    "line":67
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
+   "target":"backoff_seconds",
+   "line":69
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"run_init_with_retry",
    "target":"warning",
-   "line":68
+   "line":70
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
    "target":"do_sleep",
-   "line":75
+   "line":77
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
    "target":"dict",
-   "line":76
+   "line":78
   },
   {
    "owner":"local-ai-rag",
@@ -191209,8 +191230,8 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_registry.py",
    "source":"evidence_from_persisted_outcomes",
-   "target":"append",
-   "line":148
+   "target":"get",
+   "line":149
   },
   {
    "owner":"sahool-platform",
@@ -191238,21 +191259,35 @@
    "file":"services/sahool-platform/api/evidence_registry.py",
    "source":"evidence_from_persisted_outcomes",
    "target":"get",
-   "line":153
+   "line":157
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_registry.py",
+   "source":"evidence_from_persisted_outcomes",
+   "target":"get",
+   "line":159
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_registry.py",
+   "source":"evidence_from_persisted_outcomes",
+   "target":"append",
+   "line":162
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_registry.py",
    "source":"evidence_from_persisted_outcomes",
    "target":"aggregate_evidence",
-   "line":156
+   "line":163
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_registry.py",
    "source":"evidence_from_persisted_outcomes",
    "target":"len",
-   "line":161
+   "line":168
   },
   {
    "owner":"sahool-platform",
@@ -237662,882 +237697,882 @@
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_persisted_region_evidence",
    "target":"isoformat",
-   "line":173
+   "line":176
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_persisted_region_evidence",
    "target":"evidence_from_persisted_outcomes",
-   "line":175
+   "line":181
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"compute_learning_feedback",
    "target":"post",
-   "line":195
+   "line":201
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"compute_learning_feedback",
    "target":"Depends",
-   "line":198
+   "line":204
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"compute_learning_feedback",
    "target":"learning_feedback",
-   "line":204
+   "line":210
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"compute_learning_feedback",
    "target":"model_dump",
-   "line":204
+   "line":210
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation",
    "target":"post",
-   "line":213
+   "line":219
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation",
    "target":"Depends",
-   "line":217
+   "line":223
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation",
    "target":"get_calibration",
-   "line":224
+   "line":230
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation",
    "target":"aggregate_evidence",
-   "line":225
+   "line":231
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation",
    "target":"model_dump",
-   "line":231
+   "line":237
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation",
    "target":"update",
-   "line":231
+   "line":237
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation",
    "target":"propose_calibration_adjustment",
-   "line":232
+   "line":238
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation",
    "target":"to_dict",
-   "line":233
+   "line":239
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation",
    "target":"ensure_decision_id",
-   "line":235
+   "line":241
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation",
    "target":"lineage_stage",
-   "line":237
+   "line":243
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation_from_evidence",
    "target":"post",
-   "line":246
+   "line":252
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation_from_evidence",
    "target":"Depends",
-   "line":250
+   "line":256
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation_from_evidence",
    "target":"get_calibration",
-   "line":259
+   "line":265
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation_from_evidence",
    "target":"tenant_connection",
-   "line":261
+   "line":267
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation_from_evidence",
    "target":"fetch",
-   "line":262
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"propose_region_adaptation_from_evidence",
-   "target":"_db_unavailable",
    "line":268
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation_from_evidence",
-   "target":"isinstance",
-   "line":273
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"propose_region_adaptation_from_evidence",
-   "target":"loads",
+   "target":"_db_unavailable",
    "line":274
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation_from_evidence",
+   "target":"isinstance",
+   "line":279
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"propose_region_adaptation_from_evidence",
+   "target":"loads",
+   "line":280
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"propose_region_adaptation_from_evidence",
    "target":"append",
-   "line":276
+   "line":282
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation_from_evidence",
    "target":"isoformat",
-   "line":276
+   "line":285
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation_from_evidence",
    "target":"evidence_from_persisted_outcomes",
-   "line":278
+   "line":290
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation_from_evidence",
    "target":"propose_calibration_adjustment",
-   "line":283
+   "line":295
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation_from_evidence",
    "target":"to_dict",
-   "line":284
+   "line":296
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation_from_evidence",
    "target":"ensure_decision_id",
-   "line":286
+   "line":298
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation_from_evidence",
    "target":"lineage_stage",
-   "line":288
+   "line":300
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"post",
-   "line":301
+   "line":313
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"Depends",
-   "line":305
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"apply_region_adaptation_from_evidence",
-   "target":"ensure_decision_id",
-   "line":315
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"apply_region_adaptation_from_evidence",
-   "target":"HTTPException",
    "line":317
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
+   "target":"ensure_decision_id",
+   "line":327
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"apply_region_adaptation_from_evidence",
+   "target":"HTTPException",
+   "line":329
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"apply_region_adaptation_from_evidence",
    "target":"get_calibration",
-   "line":321
+   "line":333
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"tenant_connection",
-   "line":325
+   "line":337
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"fetch",
-   "line":326
+   "line":338
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"isinstance",
-   "line":334
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"apply_region_adaptation_from_evidence",
-   "target":"loads",
-   "line":335
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"apply_region_adaptation_from_evidence",
-   "target":"append",
-   "line":337
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"apply_region_adaptation_from_evidence",
-   "target":"isoformat",
-   "line":337
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"apply_region_adaptation_from_evidence",
-   "target":"evidence_from_persisted_outcomes",
-   "line":339
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"apply_region_adaptation_from_evidence",
-   "target":"propose_calibration_adjustment",
-   "line":342
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"apply_region_adaptation_from_evidence",
-   "target":"to_dict",
-   "line":343
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"apply_region_adaptation_from_evidence",
-   "target":"lineage_stage",
    "line":346
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
-   "target":"get",
-   "line":350
+   "target":"loads",
+   "line":347
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"apply_region_adaptation_from_evidence",
+   "target":"append",
+   "line":349
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"apply_region_adaptation_from_evidence",
+   "target":"isoformat",
+   "line":352
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"apply_region_adaptation_from_evidence",
+   "target":"evidence_from_persisted_outcomes",
+   "line":357
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"apply_region_adaptation_from_evidence",
+   "target":"propose_calibration_adjustment",
+   "line":360
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"apply_region_adaptation_from_evidence",
+   "target":"to_dict",
+   "line":361
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"apply_region_adaptation_from_evidence",
+   "target":"lineage_stage",
+   "line":364
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"get",
-   "line":356
+   "line":368
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"apply_region_adaptation_from_evidence",
+   "target":"get",
+   "line":374
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"validate_region_calibration",
-   "line":359
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"apply_region_adaptation_from_evidence",
-   "target":"HTTPException",
-   "line":363
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"apply_region_adaptation_from_evidence",
-   "target":"execute",
-   "line":366
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"apply_region_adaptation_from_evidence",
-   "target":"str",
-   "line":375
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"apply_region_adaptation_from_evidence",
-   "target":"dumps",
    "line":377
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
-   "target":"str",
-   "line":379
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"apply_region_adaptation_from_evidence",
-   "target":"_emit_domain_event",
+   "target":"HTTPException",
    "line":381
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
+   "target":"execute",
+   "line":384
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"apply_region_adaptation_from_evidence",
+   "target":"str",
+   "line":393
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"apply_region_adaptation_from_evidence",
+   "target":"dumps",
+   "line":395
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"apply_region_adaptation_from_evidence",
+   "target":"str",
+   "line":397
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"apply_region_adaptation_from_evidence",
+   "target":"_emit_domain_event",
+   "line":399
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"apply_region_adaptation_from_evidence",
    "target":"keys",
-   "line":387
+   "line":405
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"list",
-   "line":387
+   "line":405
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"_append_calibration_audit",
-   "line":392
+   "line":410
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"_db_unavailable",
-   "line":398
+   "line":416
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"apply_region_override",
-   "line":403
+   "line":421
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_values",
    "target":"post",
-   "line":419
+   "line":437
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_values",
    "target":"Depends",
-   "line":423
+   "line":441
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_values",
    "target":"validate_region_calibration",
-   "line":430
+   "line":448
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_values",
    "target":"items",
-   "line":432
+   "line":450
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_values",
    "target":"model_dump",
-   "line":432
+   "line":450
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
    "target":"post",
-   "line":442
+   "line":460
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
    "target":"Depends",
-   "line":446
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"set_region_override",
-   "target":"items",
-   "line":455
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"set_region_override",
-   "target":"model_dump",
-   "line":455
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"set_region_override",
-   "target":"validate_region_calibration",
-   "line":456
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"set_region_override",
-   "target":"HTTPException",
-   "line":459
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"set_region_override",
-   "target":"get_calibration",
-   "line":461
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"set_region_override",
-   "target":"tenant_connection",
    "line":464
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
-   "target":"_read_override_values",
-   "line":467
+   "target":"items",
+   "line":473
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
-   "target":"execute",
-   "line":468
+   "target":"model_dump",
+   "line":473
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
-   "target":"str",
+   "target":"validate_region_calibration",
+   "line":474
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"set_region_override",
+   "target":"HTTPException",
    "line":477
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
-   "target":"dumps",
+   "target":"get_calibration",
    "line":479
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
+   "target":"tenant_connection",
+   "line":482
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"set_region_override",
+   "target":"_read_override_values",
+   "line":485
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"set_region_override",
+   "target":"execute",
+   "line":486
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"set_region_override",
    "target":"str",
-   "line":481
+   "line":495
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
-   "target":"_emit_domain_event",
-   "line":483
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"set_region_override",
-   "target":"keys",
-   "line":489
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"set_region_override",
-   "target":"list",
-   "line":489
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"set_region_override",
-   "target":"_append_calibration_audit",
-   "line":493
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"set_region_override",
-   "target":"_db_unavailable",
+   "target":"dumps",
    "line":497
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
-   "target":"apply_region_override",
-   "line":504
+   "target":"str",
+   "line":499
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_resolved_region_calibration",
-   "target":"get",
-   "line":508
+   "source":"set_region_override",
+   "target":"_emit_domain_event",
+   "line":501
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_resolved_region_calibration",
-   "target":"Depends",
+   "source":"set_region_override",
+   "target":"keys",
+   "line":507
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"set_region_override",
+   "target":"list",
+   "line":507
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"set_region_override",
+   "target":"_append_calibration_audit",
    "line":511
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_resolved_region_calibration",
-   "target":"get_calibration",
-   "line":519
+   "source":"set_region_override",
+   "target":"_db_unavailable",
+   "line":515
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_resolved_region_calibration",
-   "target":"tenant_connection",
-   "line":521
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_resolved_region_calibration",
-   "target":"fetchrow",
+   "source":"set_region_override",
+   "target":"apply_region_override",
    "line":522
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_resolved_region_calibration",
+   "target":"get",
+   "line":526
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"get_resolved_region_calibration",
+   "target":"Depends",
+   "line":529
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"get_resolved_region_calibration",
+   "target":"get_calibration",
+   "line":537
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"get_resolved_region_calibration",
+   "target":"tenant_connection",
+   "line":539
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"get_resolved_region_calibration",
+   "target":"fetchrow",
+   "line":540
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"get_resolved_region_calibration",
    "target":"_db_unavailable",
-   "line":527
+   "line":545
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_resolved_region_calibration",
    "target":"apply_region_override",
-   "line":530
+   "line":548
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_resolved_region_calibration",
    "target":"isinstance",
-   "line":532
+   "line":550
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_resolved_region_calibration",
    "target":"loads",
-   "line":533
+   "line":551
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_resolved_region_calibration",
    "target":"apply_region_override",
-   "line":534
+   "line":552
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"list_region_overrides",
    "target":"get",
-   "line":537
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"list_region_overrides",
-   "target":"Depends",
-   "line":538
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"list_region_overrides",
-   "target":"tenant_connection",
-   "line":544
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"list_region_overrides",
-   "target":"fetch",
-   "line":545
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"list_region_overrides",
-   "target":"_db_unavailable",
-   "line":550
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"list_region_overrides",
-   "target":"isinstance",
    "line":555
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"list_region_overrides",
-   "target":"loads",
+   "target":"Depends",
    "line":556
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"list_region_overrides",
+   "target":"tenant_connection",
+   "line":562
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"list_region_overrides",
+   "target":"fetch",
+   "line":563
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"list_region_overrides",
+   "target":"_db_unavailable",
+   "line":568
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"list_region_overrides",
+   "target":"isinstance",
+   "line":573
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"list_region_overrides",
+   "target":"loads",
+   "line":574
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"list_region_overrides",
    "target":"append",
-   "line":558
+   "line":576
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"list_region_overrides",
    "target":"isoformat",
-   "line":564
+   "line":582
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"list_region_overrides",
    "target":"len",
-   "line":567
+   "line":585
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"delete_region_override",
    "target":"delete",
-   "line":570
+   "line":588
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"delete_region_override",
    "target":"Depends",
-   "line":573
+   "line":591
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"delete_region_override",
    "target":"get_calibration",
-   "line":579
+   "line":597
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"delete_region_override",
    "target":"tenant_connection",
-   "line":581
+   "line":599
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"delete_region_override",
    "target":"_read_override_values",
-   "line":583
+   "line":601
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"delete_region_override",
    "target":"execute",
-   "line":584
+   "line":602
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"delete_region_override",
    "target":"_append_calibration_audit",
-   "line":587
+   "line":605
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"delete_region_override",
    "target":"_db_unavailable",
-   "line":591
+   "line":609
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"_audit_row",
    "target":"isinstance",
-   "line":598
+   "line":616
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"_audit_row",
    "target":"loads",
-   "line":599
+   "line":617
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"_audit_row",
    "target":"isinstance",
-   "line":601
+   "line":619
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"_audit_row",
    "target":"loads",
-   "line":602
+   "line":620
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"_audit_row",
    "target":"str",
-   "line":605
+   "line":623
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"_audit_row",
    "target":"isoformat",
-   "line":612
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_region_calibration_audit",
-   "target":"get",
-   "line":616
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_region_calibration_audit",
-   "target":"Depends",
-   "line":619
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_region_calibration_audit",
-   "target":"get_calibration",
-   "line":627
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_region_calibration_audit",
-   "target":"tenant_connection",
-   "line":629
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_region_calibration_audit",
-   "target":"fetch",
    "line":630
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_region_calibration_audit",
+   "target":"get",
+   "line":634
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"get_region_calibration_audit",
+   "target":"Depends",
+   "line":637
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"get_region_calibration_audit",
+   "target":"get_calibration",
+   "line":645
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"get_region_calibration_audit",
+   "target":"tenant_connection",
+   "line":647
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"get_region_calibration_audit",
+   "target":"fetch",
+   "line":648
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"get_region_calibration_audit",
    "target":"_db_unavailable",
-   "line":636
+   "line":654
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_region_calibration_audit",
    "target":"_audit_row",
-   "line":638
+   "line":656
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_region_calibration_audit",
    "target":"len",
-   "line":639
+   "line":657
   },
   {
    "owner":"sahool-platform",
@@ -242008,134 +242043,148 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"_evidence_summary",
+   "target":"dict",
+   "line":63
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_explain.py",
+   "source":"_evidence_summary",
+   "target":"get",
+   "line":63
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_explain.py",
+   "source":"_evidence_summary",
    "target":"evidence_from_persisted_outcomes",
-   "line":59
+   "line":67
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"get",
-   "line":62
+   "line":70
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"Query",
-   "line":65
+   "line":73
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"Depends",
-   "line":66
+   "line":74
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"require_permission",
-   "line":66
+   "line":74
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"_decision_studio_enabled",
-   "line":75
+   "line":83
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"HTTPException",
-   "line":76
+   "line":84
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"tenant_connection",
-   "line":81
+   "line":89
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"fetchrow",
-   "line":82
+   "line":90
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"fetch",
-   "line":85
+   "line":93
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"_db_unavailable",
-   "line":92
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/decision_explain.py",
-   "source":"explain_decision_endpoint",
-   "target":"HTTPException",
-   "line":96
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/decision_explain.py",
-   "source":"explain_decision_endpoint",
-   "target":"_shape_decision_row",
-   "line":98
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/decision_explain.py",
-   "source":"explain_decision_endpoint",
-   "target":"isinstance",
    "line":100
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
-   "target":"loads",
-   "line":101
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/decision_explain.py",
-   "source":"explain_decision_endpoint",
-   "target":"explain_decision",
-   "line":103
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/decision_explain.py",
-   "source":"explain_decision_endpoint",
-   "target":"_shape_outcome_row",
+   "target":"HTTPException",
    "line":104
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
+   "target":"_shape_decision_row",
+   "line":106
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_explain.py",
+   "source":"explain_decision_endpoint",
+   "target":"isinstance",
+   "line":108
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_explain.py",
+   "source":"explain_decision_endpoint",
+   "target":"loads",
+   "line":109
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_explain.py",
+   "source":"explain_decision_endpoint",
+   "target":"explain_decision",
+   "line":111
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_explain.py",
+   "source":"explain_decision_endpoint",
+   "target":"_shape_outcome_row",
+   "line":112
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_explain.py",
+   "source":"explain_decision_endpoint",
    "target":"_evidence_summary",
-   "line":105
+   "line":113
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"len",
-   "line":116
+   "line":124
   },
   {
    "owner":"sahool-platform",
@@ -345504,14 +345553,14 @@
    "file":"services/sahool-platform/core/learning_source_lineage.py",
    "source":"resolve_agronomic_review",
    "target":"get",
-   "line":102
+   "line":104
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/learning_source_lineage.py",
    "source":"resolve_agronomic_review",
    "target":"isinstance",
-   "line":103
+   "line":104
   },
   {
    "owner":"sahool-platform",
@@ -345524,29 +345573,29 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/learning_source_lineage.py",
    "source":"resolve_agronomic_review",
-   "target":"get",
-   "line":118
+   "target":"strip",
+   "line":104
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/learning_source_lineage.py",
-   "source":"summarize_learning_sources",
-   "target":"get",
-   "line":133
+   "source":"resolve_agronomic_review",
+   "target":"isinstance",
+   "line":106
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/learning_source_lineage.py",
-   "source":"summarize_learning_sources",
-   "target":"get",
-   "line":134
+   "source":"resolve_agronomic_review",
+   "target":"strip",
+   "line":107
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/learning_source_lineage.py",
-   "source":"summarize_learning_sources",
+   "source":"resolve_agronomic_review",
    "target":"get",
-   "line":135
+   "line":121
   },
   {
    "owner":"sahool-platform",
@@ -345573,7 +345622,7 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/learning_source_lineage.py",
    "source":"summarize_learning_sources",
-   "target":"len",
+   "target":"get",
    "line":139
   },
   {
@@ -345588,14 +345637,35 @@
    "file":"services/sahool-platform/core/learning_source_lineage.py",
    "source":"summarize_learning_sources",
    "target":"get",
-   "line":149
+   "line":141
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/learning_source_lineage.py",
+   "source":"summarize_learning_sources",
+   "target":"len",
+   "line":142
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/learning_source_lineage.py",
+   "source":"summarize_learning_sources",
+   "target":"get",
+   "line":143
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/learning_source_lineage.py",
+   "source":"summarize_learning_sources",
+   "target":"get",
+   "line":152
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/learning_source_lineage.py",
    "source":"summarize_learning_sources",
    "target":"round",
-   "line":150
+   "line":153
   },
   {
    "owner":"sahool-platform",
@@ -348395,62 +348465,41 @@
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
    "target":"round",
-   "line":113
+   "line":114
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
-   "target":"bool",
-   "line":115
+   "target":"isfinite",
+   "line":117
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
-   "target":"get",
-   "line":115
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"normalize_recommendation_outcome",
-   "target":"bool",
-   "line":116
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"normalize_recommendation_outcome",
-   "target":"get",
-   "line":116
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"normalize_recommendation_outcome",
-   "target":"recommendation_outcome_eligibility",
+   "target":"isfinite",
    "line":118
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
-   "target":"get",
-   "line":119
+   "target":"bool",
+   "line":121
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
    "target":"get",
-   "line":120
+   "line":121
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
-   "target":"get",
+   "target":"bool",
    "line":122
   },
   {
@@ -348459,40 +348508,61 @@
    "source":"normalize_recommendation_outcome",
    "target":"get",
    "line":122
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"normalize_recommendation_outcome",
+   "target":"recommendation_outcome_eligibility",
+   "line":124
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"normalize_recommendation_outcome",
+   "target":"get",
+   "line":125
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"normalize_recommendation_outcome",
+   "target":"get",
+   "line":126
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"normalize_recommendation_outcome",
+   "target":"get",
+   "line":128
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"normalize_recommendation_outcome",
+   "target":"get",
+   "line":128
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
    "target":"append",
-   "line":148
+   "line":154
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
    "target":"normalize_outcome_record",
-   "line":148
+   "line":154
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
    "target":"normalize_recommendation_outcome",
-   "line":150
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"reconcile_outcomes",
-   "target":"get",
-   "line":152
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"reconcile_outcomes",
-   "target":"append",
    "line":156
   },
   {
@@ -348500,13 +348570,13 @@
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
    "target":"get",
-   "line":161
+   "line":158
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
-   "target":"get",
+   "target":"append",
    "line":162
   },
   {
@@ -348520,36 +348590,50 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
-   "target":"append",
-   "line":169
+   "target":"get",
+   "line":168
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
-   "target":"setdefault",
-   "line":169
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"reconcile_outcomes",
-   "target":"items",
-   "line":172
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"reconcile_outcomes",
-   "target":"len",
+   "target":"get",
    "line":173
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
-   "target":"len",
+   "target":"append",
+   "line":175
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"reconcile_outcomes",
+   "target":"setdefault",
+   "line":175
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"reconcile_outcomes",
+   "target":"items",
    "line":178
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"reconcile_outcomes",
+   "target":"len",
+   "line":179
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"reconcile_outcomes",
+   "target":"len",
+   "line":184
   },
   {
    "owner":"sahool-platform",
@@ -366014,42 +366098,77 @@
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_evidence_is_referenced",
    "target":"get",
-   "line":179
+   "line":181
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
+   "source":"_evidence_is_referenced",
+   "target":"isinstance",
+   "line":181
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
+   "source":"_evidence_is_referenced",
+   "target":"strip",
+   "line":181
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
+   "source":"_evidence_is_referenced",
+   "target":"strip",
+   "line":181
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_evidence_is_referenced",
    "target":"bool",
-   "line":180
+   "line":183
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_evidence_is_referenced",
    "target":"bool",
-   "line":180
+   "line":183
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
+   "source":"_evidence_is_referenced",
+   "target":"isinstance",
+   "line":183
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
+   "source":"_evidence_is_referenced",
+   "target":"strip",
+   "line":183
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"verify_against_data",
    "target":"dict",
-   "line":203
+   "line":206
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"verify_against_data",
    "target":"isinstance",
-   "line":203
+   "line":206
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"verify_against_data",
    "target":"_evidence_is_referenced",
-   "line":207
+   "line":210
   },
   {
    "owner":"sahool-platform",
@@ -403377,6 +403496,34 @@
   },
   {
    "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_whitespace_reference_ids_keep_pending",
+   "target":"_mk",
+   "line":158
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_whitespace_reference_ids_keep_pending",
+   "target":"verify_against_data",
+   "line":159
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_whitespace_reference_ids_keep_pending",
+   "target":"verify_against_data",
+   "line":163
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_whitespace_reference_ids_keep_pending",
+   "target":"verify_against_data",
+   "line":167
+  },
+  {
+   "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farmonaut.py",
    "source":"test_retired_farmonaut_provider_is_absent_and_unimported",
    "target":"exists",
@@ -421409,6 +421556,20 @@
   },
   {
    "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_source_lineage.py",
+   "source":"test_blank_evidence_ids_do_not_approve",
+   "target":"resolve_learning_source",
+   "line":161
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_source_lineage.py",
+   "source":"test_blank_evidence_ids_do_not_approve",
+   "target":"resolve_learning_source",
+   "line":173
+  },
+  {
+   "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_endpoint.py",
    "source":"test_summary_endpoint_wired",
    "target":"getattr",
@@ -421602,6 +421763,20 @@
    "source":"test_one_linked_case_counts_as_one_independent_case_not_two_samples",
    "target":"_ts",
    "line":185
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
+   "source":"test_non_finite_values_do_not_leak_into_the_delta_payload",
+   "target":"normalize_recommendation_outcome",
+   "line":202
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
+   "source":"test_non_finite_values_do_not_leak_into_the_delta_payload",
+   "target":"float",
+   "line":206
   },
   {
    "owner":"sahool-platform",
@@ -554027,7 +554202,7 @@
    "symbol":"build_evidence_response",
    "kind":"function",
    "file":"services/ai_agronomist/ai_evidence_runtime.py",
-   "line":678,
+   "line":688,
    "owner":"ai-agronomist",
    "decorated_route":false,
    "reference_count":0,
@@ -557427,6 +557602,17 @@
    "kind":"class",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
    "line":82,
+   "owner":"sahool-platform",
+   "decorated_route":false,
+   "reference_count":0,
+   "confidence":"medium",
+   "action":"review_before_delete"
+  },
+  {
+   "symbol":"TestBlankReferencesAreNotEvidence",
+   "kind":"class",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "line":155,
    "owner":"sahool-platform",
    "decorated_route":false,
    "reference_count":0,

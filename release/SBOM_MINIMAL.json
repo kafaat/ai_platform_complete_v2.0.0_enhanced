@@ -10785,7 +10785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b0206141c2921fca80d467f7253994f725777ed8e87d8bdcc1b80d2df78b701d"
+          "content": "629128de47e7c2b19865aa093e178071c8244e53df7784b15240d035f7aab15a"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -13355,7 +13355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d1cc0012f6af1ea7faf2f0ffdca6699eeab1047fea9be01de13365a771bbfad0"
+          "content": "376096a1792baf41a968b6ac1c0d53d1049556f0514474b6c003f5fcc89e5347"
         }
       ],
       "name": "services/local-ai-rag/init_retry.py",
@@ -16515,7 +16515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b75de6a07d2bdca41d94033343bf9eb20c5db251cb94faa815a16e86060f6d94"
+          "content": "86e8ffb5397ded8d452daac933b5a544c7676da77bd101850f0f95c335abdf76"
         }
       ],
       "name": "services/sahool-platform/api/evidence_registry.py",
@@ -17325,7 +17325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fdcf4bf99f6444c29eb4d7ec86bd12c88dd359988ef53f81c13ab0a46b025e18"
+          "content": "a54a0c1fc649a120ba98b93219c77193c3e0c88c6cddc9080a0316cc50f2c542"
         }
       ],
       "name": "services/sahool-platform/api/learning_feedback.py",
@@ -17895,7 +17895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fd62b64379a0ba186df65f3f6497e3eca39d27eb3677338b874f38d2c0eb8844"
+          "content": "f7fff52afa5b36d643445dbbe90eb4438e269f2e974cf877179843c437ed268c"
         }
       ],
       "name": "services/sahool-platform/api/routers/calibration.py",
@@ -18105,7 +18105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f66f083539a4b554c2ccde1b3c91374fd9d5b474de703cefbc4351718f2bbef2"
+          "content": "b1f9947ed2184bfacab9297e308475b7575243c34e2aaf99a5c059f3ae1379ef"
         }
       ],
       "name": "services/sahool-platform/api/routers/decision_explain.py",
@@ -22415,7 +22415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fe24ed540f6c84ab2c606e98155c445cf26a430e163dd44ce41ad02eed899bf8"
+          "content": "80f943f167aecea107c7d925865b9d27f6c814f2674ab757c3e049e8fe0fe583"
         }
       ],
       "name": "services/sahool-platform/core/learning_source_lineage.py",
@@ -22575,7 +22575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f112457ff6435ac43ef77ff9076fc6c2e3cb67420cc608649a26e1cc6a20c0b0"
+          "content": "83d341060f53597850d4373db9a6bcfc19c03d0f0dd625e1cb8c7ac6a0bf6986"
         }
       ],
       "name": "services/sahool-platform/core/outcome_reconciler.py",
@@ -23655,7 +23655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "be90a1b9a7e239dcf45a130cc4d909b6d3e5b0d98d50b88447591491c3108c96"
+          "content": "57cc41e105458673766653df26c8d69c6eb572b790f44144366af45bd909b451"
         }
       ],
       "name": "services/sahool-platform/knowledge/farmer_knowledge.py",
@@ -25325,7 +25325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "12db8271a9e26997ad351fa5a9084bf138bf5810995fb7e526a306e219526283"
+          "content": "9ae2b17e522fc9d3d69371fdfb086868765fe928d6db450489b07335a812cd9c"
         }
       ],
       "name": "services/sahool-platform/tests/test_farmer_knowledge.py",
@@ -26235,7 +26235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6b695c9c2a870def6d908d564540a3a76c041a51375a1347364598ba5597b456"
+          "content": "e3f6aa8dd41e2834c7c423d93c2996dd353fe3f07e434d90210fc7de17015ec8"
         }
       ],
       "name": "services/sahool-platform/tests/test_learning_source_lineage.py",
@@ -26255,7 +26255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4d73ad52959c6d1fa71b6785554dc50f9955901e00946b3a06db32ee4896730b"
+          "content": "9a423d4fa9fe17a431c1243e4b51137f839bf701fe90f1b95d228172ad22313f"
         }
       ],
       "name": "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",

@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 632
   },
-  "inventory_sha256": "3be5a942e74df5bf50eb116744721c5d179bec75ea46012ad75fc659463a0aa3",
+  "inventory_sha256": "cfbce7ca005ca67cd5f6e798f49b7c059ec394ae087ac3c867e86e0a2dc5095e",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "437a6ee5fa8be89222a1b611a595436b71222df1b4d951220c32d0c233edb05f"
+    "policy_sha256": "f3f74b7f587019eef579693d195dd9309e77490bfaa7cf1c916f508c48caeab4"
   },
   "routes": [
     {
@@ -42,7 +42,7 @@
     {
       "classification": "domain",
       "function": "delete_region_override",
-      "line": 570,
+      "line": 588,
       "method": "DELETE",
       "path": "/api/v1/calibration/{region}/override",
       "source": "api/routers/calibration.py"
@@ -378,7 +378,7 @@
     {
       "classification": "domain",
       "function": "list_region_overrides",
-      "line": 537,
+      "line": 555,
       "method": "GET",
       "path": "/api/v1/calibration/overrides/all",
       "source": "api/routers/calibration.py"
@@ -394,7 +394,7 @@
     {
       "classification": "domain",
       "function": "get_region_calibration_audit",
-      "line": 616,
+      "line": 634,
       "method": "GET",
       "path": "/api/v1/calibration/{region}/audit",
       "source": "api/routers/calibration.py"
@@ -410,7 +410,7 @@
     {
       "classification": "domain",
       "function": "get_resolved_region_calibration",
-      "line": 508,
+      "line": 526,
       "method": "GET",
       "path": "/api/v1/calibration/{region}/resolved",
       "source": "api/routers/calibration.py"
@@ -690,7 +690,7 @@
     {
       "classification": "domain",
       "function": "explain_decision_endpoint",
-      "line": 62,
+      "line": 70,
       "method": "GET",
       "path": "/api/v1/decision/{decision_id}/explain",
       "source": "api/routers/decision_explain.py"
@@ -3026,7 +3026,7 @@
     {
       "classification": "domain",
       "function": "compute_learning_feedback",
-      "line": 195,
+      "line": 201,
       "method": "POST",
       "path": "/api/v1/calibration/feedback",
       "source": "api/routers/calibration.py"
@@ -3034,7 +3034,7 @@
     {
       "classification": "domain",
       "function": "propose_region_adaptation",
-      "line": 213,
+      "line": 219,
       "method": "POST",
       "path": "/api/v1/calibration/{region}/adapt",
       "source": "api/routers/calibration.py"
@@ -3042,7 +3042,7 @@
     {
       "classification": "domain",
       "function": "propose_region_adaptation_from_evidence",
-      "line": 246,
+      "line": 252,
       "method": "POST",
       "path": "/api/v1/calibration/{region}/adapt-from-evidence",
       "source": "api/routers/calibration.py"
@@ -3050,7 +3050,7 @@
     {
       "classification": "domain",
       "function": "apply_region_adaptation_from_evidence",
-      "line": 301,
+      "line": 313,
       "method": "POST",
       "path": "/api/v1/calibration/{region}/adapt-from-evidence/apply",
       "source": "api/routers/calibration.py"
@@ -3066,7 +3066,7 @@
     {
       "classification": "domain",
       "function": "set_region_override",
-      "line": 442,
+      "line": 460,
       "method": "POST",
       "path": "/api/v1/calibration/{region}/override",
       "source": "api/routers/calibration.py"
@@ -3074,7 +3074,7 @@
     {
       "classification": "domain",
       "function": "propose_region_values",
-      "line": 419,
+      "line": 437,
       "method": "POST",
       "path": "/api/v1/calibration/{region}/propose-values",
       "source": "api/routers/calibration.py"

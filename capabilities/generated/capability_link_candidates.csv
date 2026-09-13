@@ -12,8 +12,8 @@ DEC-001,api,GET /runtime-identity @ services/sahool-platform/api/routers/platfor
 DEC-001,api,GET /runtime-identity @ services/soil-service/main.py:208,2,applied
 DEC-001,api,GET /runtime-identity @ services/weather-service/main.py:55,2,applied
 DEC-001,api,GET /v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1107,3,applied
-DEC-001,api,POST /api/v1/calibration/{region}/adapt-from-evidence @ services/sahool-platform/api/routers/calibration.py:247,2,applied
-DEC-001,api,POST /api/v1/calibration/{region}/adapt-from-evidence/apply @ services/sahool-platform/api/routers/calibration.py:302,2,applied
+DEC-001,api,POST /api/v1/calibration/{region}/adapt-from-evidence @ services/sahool-platform/api/routers/calibration.py:253,2,applied
+DEC-001,api,POST /api/v1/calibration/{region}/adapt-from-evidence/apply @ services/sahool-platform/api/routers/calibration.py:314,2,applied
 DEC-001,api,POST /api/v1/calibration/{region}/evidence @ services/sahool-platform/api/routers/calibration.py:124,2,applied
 DEC-001,api,POST /api/v1/cameras/snapshot-evidence @ services/sahool-platform/api/routers/cameras.py:58,2,applied
 DEC-001,api,POST /api/v1/evidence/corroborate @ services/sahool-platform/api/routers/evidence.py:26,2,applied
@@ -186,23 +186,23 @@ DEC-008,api,POST /v1/outcomes/{outcome_id}/learning-attribution @ services/decis
 DEC-008,api,POST /v1/outcomes/{outcome_id}/remote-sensing-attribution @ services/vegetation-analysis-service/routers/outcomes.py:88,2,applied
 DEC-008,service,services/decision-service/main.py,10,applied
 DEC-008,test,services/decision-service/tests/test_wx10_13_learning_attribution.py,7,applied
-DEC-009,api,DELETE /api/v1/calibration/{region}/override @ services/sahool-platform/api/routers/calibration.py:571,2,applied
+DEC-009,api,DELETE /api/v1/calibration/{region}/override @ services/sahool-platform/api/routers/calibration.py:589,2,applied
 DEC-009,api,GET /api/v1/calibration @ services/sahool-platform/api/routers/calibration.py:95,2,applied
-DEC-009,api,GET /api/v1/calibration/overrides/all @ services/sahool-platform/api/routers/calibration.py:538,2,applied
+DEC-009,api,GET /api/v1/calibration/overrides/all @ services/sahool-platform/api/routers/calibration.py:556,2,applied
 DEC-009,api,GET /api/v1/calibration/{region} @ services/sahool-platform/api/routers/calibration.py:106,2,applied
-DEC-009,api,GET /api/v1/calibration/{region}/audit @ services/sahool-platform/api/routers/calibration.py:617,2,applied
+DEC-009,api,GET /api/v1/calibration/{region}/audit @ services/sahool-platform/api/routers/calibration.py:635,2,applied
 DEC-009,api,GET /api/v1/calibration/{region}/evidence/persisted @ services/sahool-platform/api/routers/calibration.py:144,2,applied
-DEC-009,api,GET /api/v1/calibration/{region}/resolved @ services/sahool-platform/api/routers/calibration.py:509,2,applied
+DEC-009,api,GET /api/v1/calibration/{region}/resolved @ services/sahool-platform/api/routers/calibration.py:527,2,applied
 DEC-009,api,GET /api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:579,2,applied
 DEC-009,api,GET /api/v1/learning/prediction-calibration @ services/sahool-platform/api/routers/learning.py:114,2,applied
 DEC-009,api,GET /v1/learning/calibration-dataset @ services/decision-service/main.py:1972,3,applied
-DEC-009,api,POST /api/v1/calibration/feedback @ services/sahool-platform/api/routers/calibration.py:196,2,applied
-DEC-009,api,POST /api/v1/calibration/{region}/adapt @ services/sahool-platform/api/routers/calibration.py:214,2,applied
-DEC-009,api,POST /api/v1/calibration/{region}/adapt-from-evidence @ services/sahool-platform/api/routers/calibration.py:247,2,applied
-DEC-009,api,POST /api/v1/calibration/{region}/adapt-from-evidence/apply @ services/sahool-platform/api/routers/calibration.py:302,2,applied
+DEC-009,api,POST /api/v1/calibration/feedback @ services/sahool-platform/api/routers/calibration.py:202,2,applied
+DEC-009,api,POST /api/v1/calibration/{region}/adapt @ services/sahool-platform/api/routers/calibration.py:220,2,applied
+DEC-009,api,POST /api/v1/calibration/{region}/adapt-from-evidence @ services/sahool-platform/api/routers/calibration.py:253,2,applied
+DEC-009,api,POST /api/v1/calibration/{region}/adapt-from-evidence/apply @ services/sahool-platform/api/routers/calibration.py:314,2,applied
 DEC-009,api,POST /api/v1/calibration/{region}/evidence @ services/sahool-platform/api/routers/calibration.py:124,2,applied
-DEC-009,api,POST /api/v1/calibration/{region}/override @ services/sahool-platform/api/routers/calibration.py:443,2,applied
-DEC-009,api,POST /api/v1/calibration/{region}/propose-values @ services/sahool-platform/api/routers/calibration.py:420,2,applied
+DEC-009,api,POST /api/v1/calibration/{region}/override @ services/sahool-platform/api/routers/calibration.py:461,2,applied
+DEC-009,api,POST /api/v1/calibration/{region}/propose-values @ services/sahool-platform/api/routers/calibration.py:438,2,applied
 DEC-009,api,POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:633,2,applied
 DEC-009,api,POST /v1/learning/evaluation-runs @ services/decision-service/main.py:2014,3,applied
 DEC-009,api,POST /v1/soil/calibrations/build @ services/soil-service/routers/p5_certification.py:58,2,applied
@@ -1788,7 +1788,7 @@ SEC-004,test,tests_v9/test_mfa_hardening_integration_v29_5.py,3,applied
 SEC-004,test,tests_v9/test_mfa_migration_contract_guard.py,3,applied
 SEC-004,test,tests_v9/test_mfa_totp_antireplay_v141.py,5,applied
 SEC-005,api,GET /api/v1/admin/security/denials @ services/sahool-platform/api/routers/security_audit.py:19,2,applied
-SEC-005,api,GET /api/v1/calibration/{region}/audit @ services/sahool-platform/api/routers/calibration.py:617,2,applied
+SEC-005,api,GET /api/v1/calibration/{region}/audit @ services/sahool-platform/api/routers/calibration.py:635,2,applied
 SEC-005,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:224,2,applied
 SEC-005,service,services/auth/main.py,10,applied
 SEC-005,test,services/sahool-platform/tests/test_calibration_audit_endpoint.py,3,applied
