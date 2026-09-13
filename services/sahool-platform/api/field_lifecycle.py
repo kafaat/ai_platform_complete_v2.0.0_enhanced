@@ -110,8 +110,10 @@ class FieldLifecycleEngine:
         # app.current_tenant عليه. غير موصَّل بمسار طلب في main.py حاليّاً (سقالة).
         # كتابة الرفض الزمنيّ تمرّر tenant_id صراحةً (مأخوذاً من صفّ الـlifecycle)
         # لا عبر GUC غير مضبوط. إن وُصِّل لاحقاً على مسار طلب، مرّر tenant_id واضبط
-        # الـGUC عبر _apply_tenant_guc قبل الاستعلامات المُنطّقة بالمستأجِر — وإلّا
+        # الـGUC داخل المعاملة بالطريقة نفسِها التي يضبطه بها `tenant_connection` في
+        # main.py (محلّيّاً للمعاملة) قبل الاستعلامات المُنطّقة بالمستأجِر — وإلّا
         # ستُرجع RLS صفراً تحت الدور المُقيَّد (sahool_app: NOBYPASSRLS/FORCE RLS).
+        # (كان التعليق يُحيل إلى مُعينٍ `_apply_tenant_guc` لم يستدعه أحد؛ حُذِف في #997.)
 
     async def get_or_create(
         self,
