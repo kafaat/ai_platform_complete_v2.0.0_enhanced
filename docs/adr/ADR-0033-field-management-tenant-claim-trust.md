@@ -1,12 +1,29 @@
 # ADR-0033 — Tenant binding for field-management-service `/internal/fields`
 
-- **Status:** Proposed / **Deferred** (design frozen; implementation gated on a trigger — see §6). No code change accompanies this ADR.
+- **Status:** Implemented in source; production provisioning and live certification remain separate evidence. Status reconciled on 2026-09-13.
 - **Date:** 2026-07-18
 - **Scope:** `services/field-management-service` `/internal/fields/{id}` and every internal caller of it.
-- **Supersedes/relates:** #201 (extraction of internal field-read routes into field-management-service). This ADR does not change #201's runtime today; it records the target that a future change should converge on.
+- **Supersedes/relates:** #201 (extraction of internal field-read routes into field-management-service). The historical design below records the migration from #201; the implementation note is the current source status.
 - **Gap:** `FIELD-SVC-TENANT-HEADER-TRUST` (sahool-brain/gaps/registry.md).
 
-## 1. Current model (what exists today)
+## Implementation note (2026-09-13)
+
+`services/field-management-service/main.py` now requires a configured caller
+allowlist and `FIELD_SERVICE_TENANT_ASSERTION_KEY` in production. It verifies a
+signed `X-Tenant-Assertion` using
+`shared/security/service_tenant_assertion.py`, checks tenant agreement, and
+atomically consumes the assertion nonce. Production requires the configured
+Redis replay store and does not fall back to process memory. A shared agent token
+and an arbitrary tenant header alone therefore do not satisfy the current
+production contract. Key rotation accepts the configured current/previous key
+IDs. Development compatibility is not a production security guarantee.
+
+This status corrects stale documentation; it does not certify deployed keys,
+Redis availability, or a live cross-tenant probe. See the field-service assertion
+tests and the canonical runtime evidence ledger for their respective scopes.
+Sections 1–6 below retain the original design context and trigger history.
+
+## 1. Historical model (before the signed-assertion implementation)
 
 `/internal/fields/{id}` is **service-token-only**: `_require_service_token` (`main.py:55-70`) verifies `X-Agent-Token` via `hmac.compare_digest` and rejects a bare JWT (401). It does **not** read or verify a user JWT. The tenant is taken **exclusively from a caller-supplied `X-Tenant-Id` header** (`_require_tenant`, `main.py:76-85`); RLS is then enforced with that value (`set_config('app.current_tenant', …)` + `WHERE tenant_id = $2`).
 

@@ -90,6 +90,13 @@
           "replace": "          HIL_CERTIFICATION_REQUIRED: \"0\"  # mutated: permit silent HIL DB skip\n",
           "why": "HIL runtime persistence must not appear certified when its database fixture skipped; the real CI invocation must require the witness.",
           "test": "tests_v9/test_guardrails_contract.py"
+        },
+        {
+          "expect": "test_vulnerable_runtime_image_fails_the_actual_ci_step",
+          "test": "tests_v9/test_runtime_image_audit_gate.py",
+          "find": "            pip-audit -r \"$requirements_file\" --ignore-vuln PYSEC-2026-1325 --progress-spinner off\n",
+          "replace": "            pip-audit -r \"$requirements_file\" --ignore-vuln PYSEC-2026-1325 --progress-spinner off || true\n",
+          "why": "SUP-15: reproduce the old advisory shell behavior; a vulnerable image must make the actual CI step fail, while clean image inputs all pass."
         }
       ],
       "test": "tests_v9/test_mutation_sweep_headroom.py"
@@ -2776,6 +2783,20 @@
           "replace": "        if False:  # mutated: الساعةُ تمحو الفشل\n            _touch_alive(heartbeat)\n        else:",
           "test": "tests/irrigation/test_gate_b_dispatch_relay_worker.py",
           "why": "نبضةُ الخمول كلَّ ٦٠ ث تُعيد `running` فوق `failed` ⇒ انقطاعُ التسليم يختفي من الصحّة بعد دقيقة بلا أن ينجح تسليمٌ واحد."
+        }
+      ]
+    },
+    "scripts/deploy/validate_helm_readiness.py": {
+      "test": "tests_v9/test_helm_source_contract.py",
+      "$counterexample": "SUP-12: baseline chart passed despite five ports differing from their source Dockerfile EXPOSE; SQLite was replicated without persistent storage.",
+      "$positive_witness": "test_production_chart_matches_actual_sources",
+      "$impact": "release",
+      "mutations": [
+        {
+          "expect": "test_wrong_port_mutation_is_rejected",
+          "find": "        if spec.get(\"port\") not in ports:",
+          "replace": "        if False:  # mutated: ignore the image listening port",
+          "why": "The wrong-port counterexample must be rejected by the actual validator."
         }
       ]
     }

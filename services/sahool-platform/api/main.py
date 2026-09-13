@@ -34,8 +34,6 @@ api/main.py — FastAPI application للنواة سهول
 
 from __future__ import annotations
 
-from shared.tracing import configure_tracing
-
 import asyncio
 import contextlib
 import hmac  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
@@ -47,6 +45,8 @@ import sys
 from contextlib import asynccontextmanager
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
+
+from shared.tracing import configure_tracing
 
 # جعل النواة قابلة للاستيراد
 sys.path.insert(0, str(Path(__file__).parent.parent))

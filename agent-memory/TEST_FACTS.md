@@ -1,3 +1,8 @@
+> Historical snapshot, retired as an active memory on 2026-09-13. Use
+> [`sahool-brain/index.md`](../sahool-brain/index.md) and `CLAUDE.md` for current
+> repository guidance. The original text below is retained for provenance;
+> its claims and startup instructions are not a second current source of truth.
+
 # معايير الاختبار وبوّابات CI (TEST_FACTS.md)
 
 > كيف تتحقّق محليّاً قبل الدفع، وما الذي يحجب الدمج في CI.

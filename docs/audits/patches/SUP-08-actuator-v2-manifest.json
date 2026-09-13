@@ -1,0 +1,28 @@
+{
+  "status": "REVIEW_ONLY_NOT_AUTHORIZED_NOT_APPLIED",
+  "patch_sha256": "b7c37d28dbc303eb5637619142ed0589d9cb82b77681d6498acd0a8fb3618429",
+  "paths": [
+    {
+      "path": "shared/security/actuator_wire.py",
+      "before_sha256": null,
+      "proposed_sha256": "91a1e176809bf1c8efbf17a44c2c0d4674d2f7ed6666224d0c3b9c0dac7a8f3a"
+    },
+    {
+      "path": "services/actuator-service/actuator_runtime.py",
+      "before_sha256": "e68355f1c78d922dd7d3e18688228fd2b4016a63bef8289c0b7fd871d57c410f",
+      "proposed_sha256": "4c430e750da1459465acda6c8a70d87d172b65fece3f098a70150f8cb90f2606"
+    },
+    {
+      "path": "firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino",
+      "before_sha256": "90fbf2256cbf4def887962867df4ac643613e71f5ca512c4dbbea9f3a0c56265",
+      "proposed_sha256": "2a83890066fe95412d92b658f2c9f4e92b3fe4b16dd1f9539ff743cf9e65f8ad"
+    }
+  ],
+  "requires": [
+    "Exact GATE-01 adjudication by the independent authorized owner",
+    "Server/device v2 cutover with provisioned per-device keys and trusted device clock",
+    "Durable receipt ingestion and authenticated outcome reconciliation before physical certification",
+    "ESP32 compilation, power-loss/NVS-full tests, packet-size and real-broker tests",
+    "A reviewed migration or retirement decision for legacy rule/compensation callers"
+  ]
+}

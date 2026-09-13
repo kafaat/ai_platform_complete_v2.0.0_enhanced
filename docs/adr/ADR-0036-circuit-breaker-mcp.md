@@ -1,4 +1,6 @@
-# ADR-0002: قاطع دائرة لمكالمات MCP
+# ADR-0036: قاطع دائرة لمكالمات MCP
+
+Historical alias: `0002-circuit-breaker-mcp.md`. Renumbered on 2026-09-13 to resolve an ID collision; the decision itself is unchanged.
 
 ## الحالة
 مقبول — مُطبَّق (services/supervisor-agent/circuit_breaker.py)

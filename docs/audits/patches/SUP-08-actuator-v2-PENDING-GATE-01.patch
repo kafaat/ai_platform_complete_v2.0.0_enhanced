@@ -1,0 +1,312 @@
+diff --git a/shared/security/actuator_wire.py b/shared/security/actuator_wire.py
+new file mode 100644
+--- /dev/null
++++ b/shared/security/actuator_wire.py
+@@ -0,0 +1,32 @@
++"""Bound actuator v2 wire envelope. Requires coordinated device cutover."""
++from __future__ import annotations
++import hashlib
++import hmac
++import json
++import re
++import time
++
++
++def device_key(root_secret: str, tenant_id: str, device_id: str) -> bytes:
++    if len(root_secret) < 32:
++        raise ValueError("device signing root must contain at least 32 characters")
++    return hmac.digest(root_secret.encode(), f"sahool-device-v2\n{tenant_id}\n{device_id}".encode(), "sha256")
++
++
++def encode_command(root_secret: str, tenant_id: str, device_id: str,
++                   command_id: str, command: str, payload: dict, *, now: int | None = None) -> str:
++    for value in (tenant_id, device_id, command_id):
++        if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,128}", value):
++            raise ValueError("a bound identity is required")
++    if command not in {"OPEN", "CLOSE", "ON", "OFF"}:
++        raise ValueError("unsupported relay command")
++    issued = int(time.time()) if now is None else now
++    body = json.dumps({"v": 2, "tenant_id": tenant_id, "device_id": device_id,
++                       "command_id": command_id, "cmd": command, "payload": payload,
++                       "issued_at": issued, "expires_at": issued + 60},
++                      sort_keys=True, ensure_ascii=True, separators=(",", ":"), allow_nan=False)
++    if len(body.encode()) > 1536:
++        raise ValueError("command exceeds device wire budget")
++    key = device_key(root_secret, tenant_id, device_id)
++    sig = hmac.new(key, b"sahool-command-v2\n" + body.encode(), hashlib.sha256).hexdigest()
++    return json.dumps({"body": body, "sig": sig}, separators=(",", ":"))
+diff --git a/services/actuator-service/actuator_runtime.py b/services/actuator-service/actuator_runtime.py
+--- a/services/actuator-service/actuator_runtime.py
++++ b/services/actuator-service/actuator_runtime.py
+@@ -364,7 +364,9 @@
+                     receipt_status = "failed"
+                     device_reason = f"killswitch:{scoped_reason}"
+                 else:
+-                    sent = await send_mqtt_command(device_id, cmd, payload)
++                    wire_payload = {**payload, "tenant_id": tenant_id,
++                                    "idempotency_key": str(req_id)}
++                    sent = await send_mqtt_command(device_id, cmd, wire_payload)
+                     receipt_status = "accepted" if sent else "failed"
+             else:
+                 sent = False
+@@ -582,24 +584,19 @@
+         )
+         return True
+     topic = f"sahool/actuator/{device_id}/command"
+-    ts = datetime.now(UTC).isoformat()
+-    # A1: وقّع الأمر بـHMAC-SHA256 ليتحقّق منه الـfirmware قبل تحريك الصمّام
+-    # (يطابق verifyCmdHmac في esp32_mesh_gateway.ino: HMAC(secret, cmd+"|"+ts)).
+-    import hashlib as _hashlib
+-    import hmac as _hmac
+-
+-    secret = os.getenv("CMD_HMAC_SECRET", "")
+-    sig = ""
+-    if secret:
+-        sig = _hmac.new(secret.encode(), f"{command}|{ts}".encode(), _hashlib.sha256).hexdigest()
+-    message = json.dumps(
+-        {
+-            "cmd": command,
+-            "payload": payload,
+-            "ts": ts,
+-            "sig": sig,
+-        }
+-    )
++    from shared.security.actuator_wire import encode_command
++
++    try:
++        message = encode_command(
++            os.getenv("CMD_HMAC_SECRET", ""),
++            payload.get("tenant_id", ""), device_id,
++            payload.get("idempotency_key", ""), command, payload,
++        )
++    except (ValueError, TypeError):
++        # Legacy callers without durable identity must not publish unsigned or
++        # unbound physical work. They need an explicitly reviewed migration.
++        logger.error("MQTT v2 command refused: missing/invalid bound identity or key")
++        return False
+     host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
+     try:
+         async with MQTTClient(host, port=port, **_mqtt_auth_kwargs()) as client:
+diff --git a/firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino b/firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino
+--- a/firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino
++++ b/firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino
+@@ -15,6 +15,8 @@
+ // For development, plain WiFiClient is used below — change for production
+ #include <ArduinoJson.h>
+ #include <DHT.h>
++#include <Preferences.h>
++#include <time.h>
+ #include <mbedtls/md.h>   // HMAC-SHA256 للتحقّق من توقيع الأوامر (A1)
+ #include <esp_task_wdt.h> // مراقب الأجهزة (watchdog) — يعيد التشغيل عند التعليق
+ 
+@@ -115,96 +117,111 @@
+   return mqttClient.connected();
+ }
+ 
+-// A1: التحقّق من توقيع HMAC-SHA256 للأمر قبل تحريك الـrelay.
+-// يمنع أيّ طرف ينشر على الموضوع (أو يحقن على الشبكة) من تشغيل الصمّامات،
+-// حتّى مع وسيط MQTT بنصّ صريح. الحمولة المتوقّعة: {"cmd":..,"ts":..,"sig":"<hex>"}
+-// حيث sig = HMAC_SHA256(CMD_HMAC_SECRET, cmd + "|" + ts).
+-static bool verifyCmdHmac(const char* cmd, const char* ts, const char* sig) {
+-  if (strlen(CMD_HMAC_SECRET) == 0) return false;   // فارغ → رفض (آمن)
+-  if (cmd == nullptr || ts == nullptr || sig == nullptr) return false;
+-  // اِبنِ الرسالة cmd|ts
+-  char msg[96];
+-  snprintf(msg, sizeof(msg), "%s|%s", cmd, ts);
+-  // احسب HMAC-SHA256
+-  uint8_t hmac[32];
+-  const mbedtls_md_info_t* info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
+-  if (mbedtls_md_hmac(info,
+-        (const uint8_t*)CMD_HMAC_SECRET, strlen(CMD_HMAC_SECRET),
+-        (const uint8_t*)msg, strlen(msg), hmac) != 0) return false;
+-  // حوّل لـhex وقارن (ثابت الزمن قدر الإمكان)
++// Actuator v2: verify the exact signed body before parsing or operating the relay.
++// Provision cmdconfig/key as the 64 hex characters of device_key(root, tenant, device).
++// This is a per-device derived key, NOT the server root secret.
++static bool loadDeviceKey(uint8_t key[32]) {
++  Preferences config;
++  if (!config.begin("cmdconfig", true)) return false;
++  String hex = config.getString("key", "");
++  config.end();
++  if (hex.length() != 64 || String(TENANT_ID) == "default") return false;
++  for (int i = 0; i < 32; ++i) {
++    int value = 0;
++    for (int j = 0; j < 2; ++j) {
++      char c = hex[i * 2 + j];
++      int nibble = c >= '0' && c <= '9' ? c - '0' : (c >= 'a' && c <= 'f' ? c - 'a' + 10 : -1);
++      if (nibble < 0) return false;
++      value = value * 16 + nibble;
++    }
++    key[i] = static_cast<uint8_t>(value);
++  }
++  return true;
++}
++
++static String signWire(const uint8_t key[32], const String& prefix, const String& body) {
++  String message = prefix + body;
++  uint8_t digest[32];
++  if (mbedtls_md_hmac(mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), key, 32,
++      reinterpret_cast<const uint8_t*>(message.c_str()), message.length(), digest) != 0) return "";
+   char hex[65];
+-  for (int i = 0; i < 32; i++) snprintf(hex + i*2, 3, "%02x", hmac[i]);
+-  if (strlen(sig) != 64) return false;
+-  uint8_t diff = 0;
+-  for (int i = 0; i < 64; i++) diff |= (hex[i] ^ sig[i]);
+-  return diff == 0;
+-}
+-
+-// P1/idempotency: نافذة إعادة (replay window) — آخر N طوابع زمنيّة لأوامر
+-// نُفِّذت. أقوى من معرّف واحد: يكتشف التكرار غير المتتالي (تسليم MQTT QoS1
+-// خارج الترتيب، أو إعادة إرسال متأخّرة بعد فقد ACK). أمر بـts موجود في
+-// النافذة = تكرار → يُتجاهَل. ring buffer (لا تخصيص ديناميكي — مناسب لـESP32).
+-static const int CMD_WINDOW_SIZE = 16;
+-static String seenCmdTs[CMD_WINDOW_SIZE];
+-static int seenCmdHead = 0;
+-
+-static bool isDuplicateCmd(const char* ts) {
+-  if (ts == nullptr) return false;
+-  String t = String(ts);
+-  for (int i = 0; i < CMD_WINDOW_SIZE; i++) {
+-    if (seenCmdTs[i] == t) return true;   // رأيناه → تكرار
+-  }
+-  return false;
+-}
+-
+-static void rememberCmd(const char* ts) {
+-  if (ts == nullptr) return;
+-  seenCmdTs[seenCmdHead] = String(ts);
+-  seenCmdHead = (seenCmdHead + 1) % CMD_WINDOW_SIZE;  // دائري
+-}
+-
+-void mqttCallback(char* topic, byte* payload, unsigned int length) {
+-  String msg;
+-  for (unsigned int i = 0; i < length; i++) msg += (char)payload[i];
+-  Serial.println("MQTT cmd: " + String(topic) + " -> " + msg);
+-
+-  // Parse command
+-  StaticJsonDocument<256> doc;
+-  DeserializationError err = deserializeJson(doc, msg);
+-  if (err) return;
+-
+-  const char* cmd = doc["cmd"];
+-  // FIX: تحقّق من null قبل strcmp (أمر بلا حقل cmd كان يسبّب crash)
+-  if (cmd == nullptr) return;
+-  // A1: ارفض أيّ أمر بلا توقيع HMAC صالح (منع تشغيل الصمّامات بأمر مزوّر)
+-  const char* ts  = doc["ts"];
+-  const char* sig = doc["sig"];
+-  if (!verifyCmdHmac(cmd, ts, sig)) {
+-    Serial.println("MQTT cmd مرفوض: توقيع HMAC غير صالح");
+-    return;
+-  }
+-  // idempotency: ارفض الأمر المكرّر (ضمن نافذة آخر N) — يمنع تشغيل الصمّام
+-  // مرّتين عند تكرار تسليم MQTT أو إعادة الإرسال (نقطة حرجة فيزيائيّاً).
+-  if (isDuplicateCmd(ts)) {
+-    Serial.println("MQTT cmd مكرّر (ضمن نافذة الإعادة) — تُجوهِل (idempotency)");
+-    return;
+-  }
+-  rememberCmd(ts);
+-
+-  if (strcmp(cmd, "OPEN") == 0 || strcmp(cmd, "ON") == 0) {
+-    setRelay(true);    // يفتح + يبدأ مؤقّت الإغلاق التلقائي (fail-safe)
+-  } else if (strcmp(cmd, "CLOSE") == 0 || strcmp(cmd, "OFF") == 0) {
+-    setRelay(false);   // يغلق + يلغي المؤقّت
+-  }
+-
+-  // Acknowledge via mesh
+-  StaticJsonDocument<128> ack;
+-  ack["device"] = DEVICE_ID;
+-  ack["ack"] = cmd;
+-  ack["status"] = digitalRead(RELAY_PIN) ? "ON" : "OFF";
+-  String ackStr;
+-  serializeJson(ack, ackStr);
+-  mesh.sendBroadcast(ackStr);
++  for (int i = 0; i < 32; ++i) snprintf(hex + i * 2, 3, "%02x", digest[i]);
++  return String(hex);
++}
++
++static bool constantEqual(const String& left, const char* right) {
++  if (!right || left.length() != 64 || strlen(right) != 64) return false;
++  uint8_t difference = 0;
++  for (int i = 0; i < 64; ++i) difference |= left[i] ^ right[i];
++  return difference == 0;
++}
++
++static void publishReceipt(const uint8_t key[32], const char* commandId, const char* state) {
++  StaticJsonDocument<512> receipt;
++  receipt["v"] = 2;
++  receipt["tenant_id"] = TENANT_ID;
++  receipt["device_id"] = DEVICE_ID;
++  receipt["command_id"] = commandId;
++  receipt["state"] = state;
++  // This is the relay output, not a verified valve position or delivered water.
++  receipt["relay_output"] = digitalRead(RELAY_PIN) ? "ON" : "OFF";
++  receipt["observed_at"] = static_cast<int64_t>(time(nullptr));
++  String body;
++  serializeJson(receipt, body);
++  StaticJsonDocument<1024> envelope;
++  envelope["body"] = body;
++  envelope["sig"] = signWire(key, "sahool-receipt-v2\n", body);
++  String wire;
++  serializeJson(envelope, wire);
++  String topic = String("sahool/actuator/") + DEVICE_ID + "/receipt";
++  mqttClient.publish(topic.c_str(), wire.c_str(), false);
++}
++
++void mqttCallback(char* topic, byte* bytes, unsigned int length) {
++  if (String(topic) != String("sahool/actuator/") + DEVICE_ID + "/command" || length > 2048) return;
++  uint8_t key[32];
++  if (!loadDeviceKey(key)) return;
++  StaticJsonDocument<2560> envelope;
++  if (deserializeJson(envelope, bytes, length)) return;
++  const char* rawBody = envelope["body"];
++  const char* signature = envelope["sig"];
++  if (!rawBody || strlen(rawBody) > 1536) return;
++  String body(rawBody);
++  if (!constantEqual(signWire(key, "sahool-command-v2\n", body), signature)) return;
++  StaticJsonDocument<2048> command;
++  if (deserializeJson(command, body)) return;
++  const char* id = command["command_id"];
++  const char* cmd = command["cmd"];
++  if (!id || !cmd || strlen(id) == 0 || strlen(id) > 128 || command["v"] != 2) return;
++  if (command["tenant_id"].as<String>() != TENANT_ID || command["device_id"].as<String>() != DEVICE_ID) return;
++  bool opens = strcmp(cmd, "OPEN") == 0 || strcmp(cmd, "ON") == 0;
++  if (!opens && strcmp(cmd, "CLOSE") != 0 && strcmp(cmd, "OFF") != 0) return;
++  int64_t now = static_cast<int64_t>(time(nullptr));
++  int64_t issued = command["issued_at"] | static_cast<int64_t>(0);
++  int64_t expires = command["expires_at"] | static_cast<int64_t>(0);
++  if (now < 1700000000 || issued > now + 5 || expires <= now || expires <= issued || expires - issued > 60) return;
++  // NVS keys are short hashes; the complete ID is retained to reject a collision.
++  String slot = signWire(key, "sahool-ledger-key-v2\n", String(id)).substring(0, 15);
++  Preferences ledger;
++  if (!ledger.begin("cmdledger", false)) return;
++  String prior = ledger.getString(slot.c_str(), "");
++  if (prior.length()) {
++    ledger.end();
++    if (prior == String(id) + "|done") publishReceipt(key, id, "duplicate");
++    else publishReceipt(key, id, "uncertain_or_conflicting");
++    return;  // Never repeat relay work, including after a reset or lost receipt.
++  }
++  String pending = String(id) + "|pending";
++  if (ledger.putString(slot.c_str(), pending) != pending.length()) { ledger.end(); return; }
++  // Persist intent BEFORE the physical effect. A crash leaves uncertain work for
++  // operator reconciliation; it must never trigger an automatic replay.
++  setRelay(opens);
++  String done = String(id) + "|done";
++  bool persisted = ledger.putString(slot.c_str(), done) == done.length();
++  ledger.end();
++  publishReceipt(key, id, persisted ? "relay_written" : "uncertain");
++  // Entries are never evicted silently. Full NVS fails closed; maintenance needs
++  // an independently fenced command epoch and an approved reconciliation plan.
+ }
+ 
+ // ── Sensor Read ──────────────────────────────────────────────
+@@ -263,7 +280,8 @@
+   if (mesh.isRoot()) {
+     WiFi.begin(WIFI_SSID, WIFI_PASS);
+     mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
+-    mqttClient.setCallback(mqttCallback);
++    mqttClient.setBufferSize(3072);
++  mqttClient.setCallback(mqttCallback);
+   }
+ 
+   Serial.println("Setup complete");

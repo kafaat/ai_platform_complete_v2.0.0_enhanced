@@ -14,8 +14,6 @@ Condition-gated capabilities:
 
 from __future__ import annotations
 
-from shared.tracing import configure_tracing
-
 import asyncio
 import hashlib
 import json
@@ -37,6 +35,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from shared.fcm import fcm_push_active, send_push
 from shared.security.access_tokens import access_token_verification_key, verify_access_token
+from shared.tracing import configure_tracing
 
 logger = logging.getLogger("notification-agent")
 logging.basicConfig(
