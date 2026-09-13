@@ -55,7 +55,15 @@ def _evidence_summary(region: str | None, orows: list) -> dict | None:
     """
     if not region or not orows:
         return None
-    rows = [{"metrics": r["metrics"], "created_at": r["created_at"]} for r in orows]
+    rows = [
+        {
+            "metrics": r["metrics"],
+            "created_at": r["created_at"],
+            # U01: هويّة الحقل لأعداد الاستقلال متى حملها الصفّ (لا اختلاق).
+            "field_id": dict(r).get("field_id"),
+        }
+        for r in orows
+    ]
     return evidence_from_persisted_outcomes(region, rows)
 
 

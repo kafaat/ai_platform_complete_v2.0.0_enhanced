@@ -193,3 +193,21 @@ def test_one_linked_case_counts_as_one_independent_case_not_two_samples():
     assert rec["sample_count_basis"] == "rows"
     assert rec["independent_case_count"] == 2  # (or_1+ro_1) حالة واحدة + ro_2
     assert out["overall"]["sample_count"] == 3  # الصفوف كما هي — مُسمّاة لا مُخفاة
+
+
+def test_non_finite_values_do_not_leak_into_the_delta_payload():
+    """Copilot على #1001: NaN/Infinity لا تتسرّب إلى yield_delta_t_ha رغم استبعاد الصفّ."""
+    from core.outcome_reconciler import normalize_recommendation_outcome
+
+    row = normalize_recommendation_outcome(
+        {
+            "recommendation_id": "r",
+            "predicted_yield_t_ha": 4.0,
+            "actual_yield_t_ha": float("inf"),
+            "accepted": True,
+            "matured_within_lag": True,
+        }
+    )
+    assert row["result"]["yield_delta_t_ha"] is None
+    assert row["result"]["eligibility"]["reason"] == "non_finite_value"
+    assert row["success"] is None

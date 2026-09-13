@@ -153,7 +153,7 @@ async def process_season_closed_event(
     rows = await conn.fetch(
         """SELECT recommendation_id,predicted_yield_t_ha,actual_yield_t_ha,accepted,matured_within_lag
            FROM recommendation_outcomes
-           WHERE field_id=$1 AND season_id=$2 AND actual_yield_t_ha IS NOT NULL
+           WHERE field_id=$1 AND season_id=$2
            ORDER BY created_at,id""",
         field_id,
         season_id,

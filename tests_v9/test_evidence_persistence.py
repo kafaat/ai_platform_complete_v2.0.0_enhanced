@@ -84,3 +84,19 @@ def test_last_evaluated_from_created_at():
     out = evidence_from_persisted_outcomes("jawf", rows)
     assert out["last_evaluated_at"] == "2026-06-20T09:00:00"
     assert out["success_rate"] == 0.5
+
+
+def test_persisted_rows_carry_unit_identity_into_independence_counts():
+    """Copilot على #1001: المحوِّل كان يُسقِط هويّة الوحدة فتبقى الأعداد مجهولة للمسار المُدام."""
+    rows = [
+        {**_row(1, 1), "field_id": "fld_a"},
+        {**_row(1, 1), "field_id": "fld_b"},
+        {**_row(1, 1), "field_id": "fld_a"},
+        _row(1, 1),  # بلا هويّة ⇒ مجهولة الوحدة وتُعلَن
+    ]
+    out = evidence_from_persisted_outcomes("jawf", rows)
+    assert out["independence"]["fields"] == 2
+    assert out["independence"]["unknown_unit_samples"] == 1
+    # الهويّة داخل metrics تُقرأ أيضاً حين يغيب العمود.
+    nested = [{"metrics": {"n_evaluated": 1, "n_success": 1, "season_id": "ssn_1"}}]
+    assert evidence_from_persisted_outcomes("jawf", nested)["independence"]["seasons"] == 1

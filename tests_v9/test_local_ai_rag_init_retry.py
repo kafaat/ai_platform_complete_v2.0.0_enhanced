@@ -111,3 +111,41 @@ def test_main_wires_background_init_and_readyz_through_the_shared_state():
     assert '"init_failed" if failed else "initialising"' in readyz
     assert '"init_attempts": _init_state.get("attempts", 0)' in readyz
     assert '"last_error": _init_state.get("last_error")' in readyz
+
+
+@pytest.mark.asyncio
+async def test_initializer_returning_a_task_or_future_is_awaited_not_assumed_ready(retry):
+    """Copilot على #1001: Task/Future awaitable لا coroutine — يجب انتظاره لا اعتباره نجاحاً."""
+    import asyncio
+
+    calls = {"n": 0}
+
+    def init_returning_future():
+        calls["n"] += 1
+        fut = asyncio.get_running_loop().create_future()
+        if calls["n"] == 1:
+            fut.set_exception(RuntimeError("qdrant down"))
+        else:
+            fut.set_result(None)
+        return fut
+
+    async def no_sleep(_s):
+        return None
+
+    state = retry.new_state()
+    out = await retry.run_init_with_retry(
+        init_returning_future, state, max_attempts=3, base=1, cap=1, sleep=no_sleep
+    )
+    assert out["status"] == "ready" and out["attempts"] == 2
+
+    async def slow_ok():
+        await asyncio.sleep(0)
+
+    def init_returning_task():
+        return asyncio.create_task(slow_ok())
+
+    state2 = retry.new_state()
+    out2 = await retry.run_init_with_retry(
+        init_returning_task, state2, max_attempts=1, base=1, cap=1, sleep=no_sleep
+    )
+    assert out2["status"] == "ready"

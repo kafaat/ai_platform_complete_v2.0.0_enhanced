@@ -109,8 +109,14 @@ def normalize_recommendation_outcome(row: dict) -> dict:
         "result": {
             "predicted_yield_t_ha": pred,
             "actual_yield_t_ha": act,
+            # الفرقُ يُحسَب للقيم المنتهية فقط — NaN/Infinity لا تتسرّب إلى الحمولة (Copilot على #1001).
             "yield_delta_t_ha": (
-                round(act - pred, 3) if pred is not None and act is not None else None
+                round(act - pred, 3)
+                if pred is not None
+                and act is not None
+                and math.isfinite(pred)
+                and math.isfinite(act)
+                else None
             ),
             "accepted": bool(row.get("accepted")),
             "matured_within_lag": bool(row.get("matured_within_lag")),

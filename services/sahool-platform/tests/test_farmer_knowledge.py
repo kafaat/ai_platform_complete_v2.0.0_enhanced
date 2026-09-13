@@ -150,3 +150,21 @@ class TestConservativeWeight:
         )
         # on a non-governing target (e.g. sampling priority) weight applies
         assert applicable_weight(fk, "sampling_priority") > 0.0
+
+
+class TestBlankReferencesAreNotEvidence:
+    def test_whitespace_reference_ids_keep_pending(self):
+        """Copilot على #1001: `reference_ids=[" "]` لا يؤكّد."""
+        fk = _mk(KnowledgeType.SPATIAL)
+        verify_against_data(
+            fk, data_supports=True, evidence={"method": "ndvi", "reference_ids": [" "]}
+        )
+        assert fk.verification_status == VerificationStatus.PENDING
+        verify_against_data(
+            fk, data_supports=True, evidence={"method": "  ", "reference_ids": ["x"]}
+        )
+        assert fk.verification_status == VerificationStatus.PENDING
+        verify_against_data(
+            fk, data_supports=True, evidence={"method": "ndvi", "reference_ids": [" x "]}
+        )
+        assert fk.verification_status == VerificationStatus.CONFIRMED

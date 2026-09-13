@@ -155,3 +155,26 @@ class TestTraceableIsNotApproved:
         assert s["traceable"] == 2
         assert s["agronomically_approved"] == 1
         assert s["by_review_status"] == {"unreviewed": 1, "approved": 1}
+
+    def test_blank_evidence_ids_do_not_approve(self):
+        """Copilot على #1001: `[" "]` ليس دليلاً."""
+        r = resolve_learning_source(
+            {
+                "source_type": "human_feedback",
+                "source_id": "hf_1",
+                "review": {
+                    "reviewer_id": "a",
+                    "verdict": "approved",
+                    "evidence_ids": [" ", "", None, 7],
+                },
+            }
+        )
+        assert r["review_status"] == "unreviewed" and r["agronomically_approved"] is False
+        ok = resolve_learning_source(
+            {
+                "source_type": "human_feedback",
+                "source_id": "hf_1",
+                "review": {"reviewer_id": "a", "verdict": "approved", "evidence_ids": ["  or_9 "]},
+            }
+        )
+        assert ok["review_status"] == "approved" and ok["review"]["evidence_ids"] == ["or_9"]

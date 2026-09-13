@@ -99,7 +99,10 @@ def resolve_agronomic_review(update: dict) -> dict:
         return {"review_status": "unreviewed", "agronomically_approved": False, "review": None}
     reviewer = block.get("reviewer_id")
     verdict = block.get("verdict")
-    evidence = [e for e in (block.get("evidence_ids") or []) if e not in (None, "")]
+    # معرّفاتُ الأدلّة نصوصٌ غير فارغة بعد التشذيب — `" "` ليس دليلاً (Copilot على #1001).
+    evidence = [
+        e.strip() for e in (block.get("evidence_ids") or []) if isinstance(e, str) and e.strip()
+    ]
     if isinstance(reviewer, str):
         reviewer = reviewer.strip() or None
     if verdict == "rejected" and reviewer:

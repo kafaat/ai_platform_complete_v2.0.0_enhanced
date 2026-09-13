@@ -157,7 +157,7 @@ async def get_persisted_region_evidence(
     try:
         async with tenant_connection(user) as conn:
             db_rows = await conn.fetch(
-                "SELECT metrics, created_at FROM outcome_record WHERE region = $1 "
+                "SELECT metrics, created_at, field_id FROM outcome_record WHERE region = $1 "
                 "ORDER BY created_at ASC",
                 prof.region,
             )
@@ -170,7 +170,13 @@ async def get_persisted_region_evidence(
         if isinstance(m, str):
             m = _json.loads(m)
         created = r["created_at"]
-        rows.append({"metrics": m, "created_at": created.isoformat() if created else None})
+        rows.append(
+            {
+                "metrics": m,
+                "created_at": created.isoformat() if created else None,
+                "field_id": r["field_id"],  # U01: هويّة الوحدة لأعداد الاستقلال
+            }
+        )
 
     return evidence_from_persisted_outcomes(
         prof.region,
@@ -260,7 +266,7 @@ async def propose_region_adaptation_from_evidence(
     try:
         async with tenant_connection(user) as conn:
             db_rows = await conn.fetch(
-                "SELECT metrics, created_at FROM outcome_record WHERE region = $1 "
+                "SELECT metrics, created_at, field_id FROM outcome_record WHERE region = $1 "
                 "ORDER BY created_at ASC",
                 prof.region,
             )
@@ -273,7 +279,13 @@ async def propose_region_adaptation_from_evidence(
         if isinstance(m, str):
             m = _json.loads(m)
         created = r["created_at"]
-        rows.append({"metrics": m, "created_at": created.isoformat() if created else None})
+        rows.append(
+            {
+                "metrics": m,
+                "created_at": created.isoformat() if created else None,
+                "field_id": r["field_id"],  # U01: هويّة الوحدة لأعداد الاستقلال
+            }
+        )
 
     ev = evidence_from_persisted_outcomes(
         prof.region,
@@ -324,7 +336,7 @@ async def apply_region_adaptation_from_evidence(
     try:
         async with tenant_connection(user) as conn:
             db_rows = await conn.fetch(
-                "SELECT metrics, created_at FROM outcome_record WHERE region = $1 "
+                "SELECT metrics, created_at, field_id FROM outcome_record WHERE region = $1 "
                 "ORDER BY created_at ASC",
                 prof.region,
             )
@@ -334,7 +346,13 @@ async def apply_region_adaptation_from_evidence(
                 if isinstance(m, str):
                     m = _json.loads(m)
                 created = r["created_at"]
-                rows.append({"metrics": m, "created_at": created.isoformat() if created else None})
+                rows.append(
+                    {
+                        "metrics": m,
+                        "created_at": created.isoformat() if created else None,
+                        "field_id": r["field_id"],  # U01: هويّة الوحدة لأعداد الاستقلال
+                    }
+                )
 
             ev = evidence_from_persisted_outcomes(
                 prof.region, rows, expert_calibrated=prof.evidence_level == "expert_opinion"

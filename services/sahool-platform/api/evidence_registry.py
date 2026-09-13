@@ -145,14 +145,21 @@ def evidence_from_persisted_outcomes(
     outcomes: list[dict] = []
     for r in rows:
         m = r.get("metrics") or {}
-        outcomes.append(
-            {
-                "n_evaluated": m.get("n_evaluated", 0),
-                "n_success": m.get("n_success", 0),
-                "success_flags": m.get("success_flags", []),
-                "evaluated_at": r.get("created_at"),
-            }
-        )
+        sample = {
+            "n_evaluated": m.get("n_evaluated", 0),
+            "n_success": m.get("n_success", 0),
+            "success_flags": m.get("success_flags", []),
+            "evaluated_at": r.get("created_at"),
+        }
+        # هويّةُ الوحدة تُمرَّر إلى أعداد الاستقلال متى حملها الصفّ أو مقاييسُه — وإلّا بقيت
+        # العيّنة «مجهولة الوحدة» وتُعلَن كذلك (Copilot على #1001: كان المحوِّل يُسقِطها كلَّها).
+        for key in _INDEPENDENCE_KEYS:
+            value = r.get(key)
+            if value in (None, ""):
+                value = m.get(key)
+            if value not in (None, ""):
+                sample[key] = value
+        outcomes.append(sample)
     out = aggregate_evidence(
         region, outcomes, expert_calibrated=expert_calibrated, reviewed=reviewed
     )

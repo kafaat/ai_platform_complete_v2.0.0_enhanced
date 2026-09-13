@@ -153,6 +153,14 @@ async def test_season_learning_excludes_immature_and_non_finite_rows_with_reason
             "accepted": True,
             "matured_within_lag": True,
         },
+        # بلا قيمة فعليّة — كان الاستعلام يُسقِطها قبل السياسة فلا يظهر سببُها (Copilot على #1001).
+        {
+            "recommendation_id": "pending-1",
+            "predicted_yield_t_ha": 4.0,
+            "actual_yield_t_ha": None,
+            "accepted": True,
+            "matured_within_lag": False,
+        },
     ]
     conn = Conn(outcomes=outcomes)
     result = await mod.process_season_closed_event(
@@ -164,7 +172,14 @@ async def test_season_learning_excludes_immature_and_non_finite_rows_with_reason
     )
     evaluation = result["promotion_candidate"]["evidence"]
     assert evaluation["outcome_count"] == 2
-    assert evaluation["excluded_count"] == 3
-    assert evaluation["excluded_reasons"] == {"immature": 2, "non_finite_value": 1}
+    assert evaluation["excluded_count"] == 4
+    assert evaluation["excluded_reasons"] == {
+        "immature": 2,
+        "non_finite_value": 1,
+        "missing_actual": 1,
+    }
+    # السياسة تصنّف كلَّ الصفوف: الاستعلام لا يُسقِط الفارغة قبلها.
+    fetch_sql = next(call[1] for call in conn.calls if call[0] == "fetch")
+    assert "IS NOT NULL" not in fetch_sql
     assert evaluation["status"] == "blocked"  # اثنان < الحدّ الأدنى ٣ — لا ترشيح من قيم مبكّرة
     assert evaluation["mae_t_ha"] == 0.6  # (0.2 + 1.0) / 2 — الناضجتان فقط

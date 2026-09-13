@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 import logging
 from collections.abc import Awaitable, Callable
 from typing import Any
@@ -48,7 +49,8 @@ async def run_init_with_retry(
         state["attempts"] = attempt
         try:
             result = init_fn()
-            if asyncio.iscoroutine(result):
+            # أيُّ awaitable (coroutine/Task/Future) يُنتظَر — لا coroutine وحدَه (Copilot على #1001).
+            if inspect.isawaitable(result):
                 await result
             state["status"] = "ready"
             state["last_error"] = None

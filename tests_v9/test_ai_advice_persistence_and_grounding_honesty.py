@@ -145,3 +145,12 @@ def test_chat_suppresses_generated_text_without_rag_grounding_in_source(runtime)
     assert src.index('generation_status = "suppressed_ungrounded"') < src.index(
         'mode = "generated_grounded"'
     )
+
+
+def test_metadata_only_rag_hits_do_not_ground_generation(runtime):
+    """Copilot على #1001: مقتطف بلا نصّ ليس شاهداً — التأريض يشترط text/content/snippet غير فارغ."""
+    assert not runtime._generation_is_grounded({"rag": [{"chunk_id": "c1"}]})
+    assert not runtime._generation_is_grounded({"rag": [{"chunk_id": "c1", "text": "   "}]})
+    assert not runtime._generation_is_grounded({"rag": ["not-a-dict"]})
+    assert runtime._generation_is_grounded({"rag": [{"chunk_id": "c1", "snippet": "ريّ القمح"}]})
+    assert runtime._generation_is_grounded({"rag": [{"id": "c2", "content": "نصّ"}]})

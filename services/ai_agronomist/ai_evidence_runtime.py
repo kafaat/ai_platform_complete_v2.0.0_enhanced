@@ -609,7 +609,17 @@ def _generation_is_grounded(annotations: dict[str, Any]) -> bool:
     نصٌّ مولَّد فوق صفر مقتطفات هو توليدٌ حرّ يحمل وسمَ التأريض زوراً (RAG-10).
     """
     rag = annotations.get("rag") if isinstance(annotations, dict) else None
-    return bool(rag) and any(isinstance(item, dict) for item in rag)
+    if not rag:
+        return False
+    # مقتطفٌ بلا نصّ (بيانات وصفيّة فقط) ليس شاهداً — `_grounding_context_text` لا يُخرِج إلّا
+    # text/content/snippet، فالتأريضُ يشترط أحدَها غيرَ فارغ (Copilot على #1001).
+    for item in rag:
+        if not isinstance(item, dict):
+            continue
+        text = item.get("text") or item.get("content") or item.get("snippet")
+        if isinstance(text, str) and text.strip():
+            return True
+    return False
 
 
 def _guardrail_result(mode: str, generation_status: str) -> dict[str, Any]:

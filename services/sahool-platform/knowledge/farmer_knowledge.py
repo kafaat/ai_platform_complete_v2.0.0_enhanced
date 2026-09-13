@@ -176,8 +176,11 @@ def _evidence_is_referenced(evidence: dict | None) -> bool:
     if not isinstance(evidence, dict):
         return False
     method = evidence.get("method")
-    refs = [r for r in (evidence.get("reference_ids") or []) if r not in (None, "")]
-    return bool(method) and bool(refs)
+    # مراجعُ نصّيّة غير فارغة بعد التشذيب — `" "` ليس مرجعاً (Copilot على #1001).
+    refs = [
+        r.strip() for r in (evidence.get("reference_ids") or []) if isinstance(r, str) and r.strip()
+    ]
+    return isinstance(method, str) and bool(method.strip()) and bool(refs)
 
 
 def verify_against_data(
