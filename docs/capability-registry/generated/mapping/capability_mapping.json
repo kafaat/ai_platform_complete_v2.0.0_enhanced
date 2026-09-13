@@ -15,10 +15,10 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5309,
+    "files_scanned": 5308,
     "files_by_kind": {
       "backend": 1207,
-      "database": 278,
+      "database": 277,
       "governance": 62,
       "mobile": 55,
       "other": 1465,
@@ -26,7 +26,7 @@
       "web": 457
     },
     "unmapped_artifacts": 2162,
-    "ambiguous_artifacts": 419
+    "ambiguous_artifacts": 418
   },
   "capabilities": [
     {
@@ -3466,19 +3466,7 @@
           "score": 14
         },
         {
-          "value": "edge_results @ migrations/v231_edge_idempotency_tenant_scope.sql:15",
-          "score": 14
-        },
-        {
           "path": "migrations/v124_tenant_ai_policies.sql",
-          "score": 14,
-          "signals": [
-            "path:tenant",
-            "content:tenant"
-          ]
-        },
-        {
-          "path": "migrations/v231_edge_idempotency_tenant_scope.sql",
           "score": 14,
           "signals": [
             "path:tenant",
@@ -3899,7 +3887,7 @@
       "evidence_counts": {
         "backend": 15,
         "routes": 2,
-        "database": 22,
+        "database": 20,
         "events": 6,
         "web": 1,
         "mobile": 0,
@@ -9982,20 +9970,8 @@
           "score": 14
         },
         {
-          "value": "edge_results @ migrations/v231_edge_idempotency_tenant_scope.sql:15",
-          "score": 14
-        },
-        {
           "value": "edge_results @ migrations/v9_edge_idempotency.sql:7",
           "score": 14
-        },
-        {
-          "path": "migrations/v231_edge_idempotency_tenant_scope.sql",
-          "score": 14,
-          "signals": [
-            "path:dem",
-            "content:dem"
-          ]
         },
         {
           "path": "migrations/v9_edge_idempotency.sql",
@@ -11026,7 +11002,7 @@
       "evidence_counts": {
         "backend": 27,
         "routes": 100,
-        "database": 12,
+        "database": 10,
         "events": 51,
         "web": 12,
         "mobile": 0,
@@ -47707,28 +47683,6 @@
           "signals": [
             "content:row level security",
             "content:tenant isolation"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "migrations/v231_edge_idempotency_tenant_scope.sql",
-      "kind": "database",
-      "candidates": [
-        {
-          "capability_id": "GIS-003",
-          "score": 14,
-          "signals": [
-            "path:dem",
-            "content:dem"
-          ]
-        },
-        {
-          "capability_id": "FM-001",
-          "score": 14,
-          "signals": [
-            "path:tenant",
-            "content:tenant"
           ]
         }
       ]

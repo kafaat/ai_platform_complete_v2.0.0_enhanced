@@ -27,16 +27,13 @@ pytestmark = [pytest.mark.unit]
 _ROOT = Path(__file__).resolve().parents[1]
 _CARD = _ROOT / "docs" / "architecture" / "m03_command_path_adjudication.md"
 
-#: المواضعُ التي تُديدِب على `idempotency_key` **وحدَه** في شيفرة الإنتاج. البطاقةُ تحصر
-#: الأوّلَ في **مسار الأوامر**؛ وكان الثاني في مسار الحافّة (`routers/edge.py`) — ووجودُه
-#: هو ما أبطل صياغةَ «الوحيد في الشجرة». ثمّ صار ديدوبُ الحافّة على الزوج
-#: `(tenant_id, idempotency_key)` (v231، Copilot على #997) فخرج من هذا الحصر بالنصّ لا
-#: بالمعنى. والشكلُ الثنائيّ شائعٌ في مُلّاكٍ آخرين (decision-service · raster · soil …)
-#: فلا يُحصى شجرةً؛ يُثبَّت موضعُ الحافّة وحدَه أدناه كي لا يزول صامتاً.
+#: المواضعُ التي تُديدِب على `idempotency_key` في شيفرة الإنتاج. البطاقةُ تحصر
+#: الأوّلَ في **مسار الأوامر**؛ والثاني في مسار الحافّة — ووجودُه هو ما أبطل
+#: صياغةَ «الوحيد في الشجرة».
 _DEDUP_SITES = {
     "services/sahool-platform/api/phase_runtime_store.py",
+    "services/sahool-platform/api/routers/edge.py",
 }
-_EDGE_TENANT_SCOPED_SITE = "services/sahool-platform/api/routers/edge.py"
 
 
 def _card() -> str:
@@ -74,11 +71,6 @@ def test_the_dedup_key_sites_are_exactly_the_two_the_card_accounts_for():
     assert found == _DEDUP_SITES, (
         f"مواضعُ الديدوب بالمفتاح تغيّرت: {sorted(found)} — أعِد قياسَ §٣ب في البطاقة "
         "قبل الاعتماد على حُجّتها عن كلفة أ‑٢"
-    )
-    edge = (_ROOT / _EDGE_TENANT_SCOPED_SITE).read_text(encoding="utf-8")
-    assert "ON CONFLICT (tenant_id, idempotency_key) WHERE idempotency_key IS NOT NULL" in edge, (
-        "موضعُ الحافّة لم يعد يُديدِب بالزوج (tenant_id, idempotency_key) — أعِد قياسَ "
-        "تحديث §٣ب (v231) في البطاقة"
     )
 
 

@@ -188998,21 +188998,21 @@
    "file":"services/sahool-platform/api/edge_models.py",
    "source":"timestamp_has_timezone",
    "target":"field_validator",
-   "line":28
+   "line":30
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/edge_models.py",
    "source":"timestamp_has_timezone",
    "target":"utcoffset",
-   "line":31
+   "line":33
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/edge_models.py",
    "source":"timestamp_has_timezone",
    "target":"ValueError",
-   "line":32
+   "line":34
   },
   {
    "owner":"sahool-platform",
@@ -248386,70 +248386,70 @@
    "file":"services/sahool-platform/api/routers/edge.py",
    "source":"edge_sync_receive",
    "target":"tenant_connection",
-   "line":39
+   "line":43
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/edge.py",
    "source":"edge_sync_receive",
    "target":"_assert_field_in_tenant",
-   "line":40
+   "line":44
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/edge.py",
    "source":"edge_sync_receive",
    "target":"fetchrow",
-   "line":41
+   "line":45
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/edge.py",
    "source":"edge_sync_receive",
    "target":"str",
-   "line":51
+   "line":55
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/edge.py",
    "source":"edge_sync_receive",
    "target":"dumps",
-   "line":54
+   "line":58
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/edge.py",
    "source":"edge_sync_receive",
    "target":"fetchrow",
-   "line":59
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/edge.py",
-   "source":"edge_sync_receive",
-   "target":"str",
    "line":63
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/edge.py",
    "source":"edge_sync_receive",
-   "target":"isinstance",
-   "line":66
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/edge.py",
-   "source":"edge_sync_receive",
-   "target":"loads",
+   "target":"str",
    "line":67
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/edge.py",
    "source":"edge_sync_receive",
+   "target":"isinstance",
+   "line":70
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/edge.py",
+   "source":"edge_sync_receive",
+   "target":"loads",
+   "line":71
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/edge.py",
+   "source":"edge_sync_receive",
    "target":"HTTPException",
-   "line":76
+   "line":80
   },
   {
    "owner":"sahool-platform",

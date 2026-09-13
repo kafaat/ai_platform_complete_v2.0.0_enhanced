@@ -3640,28 +3640,6 @@
     ]
   },
   {
-    "path": "migrations/v231_edge_idempotency_tenant_scope.sql",
-    "kind": "database",
-    "candidates": [
-      {
-        "capability_id": "GIS-003",
-        "score": 14,
-        "signals": [
-          "path:dem",
-          "content:dem"
-        ]
-      },
-      {
-        "capability_id": "FM-001",
-        "score": 14,
-        "signals": [
-          "path:tenant",
-          "content:tenant"
-        ]
-      }
-    ]
-  },
-  {
     "path": "migrations/v23_equipment.sql",
     "kind": "database",
     "candidates": [
