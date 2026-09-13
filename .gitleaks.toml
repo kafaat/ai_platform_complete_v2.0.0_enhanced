@@ -10,16 +10,22 @@ useDefault = true
 
 [allowlist]
 description = "Scanner/guard source that embeds detection patterns, not real secrets"
+# Every entry is anchored at both ends: gitleaks searches the path regex, so an
+# unanchored suffix such as `docs/.../x\.patch$` would also exempt
+# `vendor/docs/.../x.patch` (Copilot on #999). Paths are repository-relative in the
+# git-history scan CI runs; measured with gitleaks 8.24.3 in both scan modes.
 paths = [
-  '''scripts/release/scan_release_archive\.py$''',
-  '''scripts/ci/jwt_secret_configuration_guard\.py$''',
+  '''^scripts/release/scan_release_archive\.py$''',
+  '''^scripts/ci/jwt_secret_configuration_guard\.py$''',
   # Review-only patches kept as evidence under docs/audits/patches/ (SUP-08, #997): the
   # embedded firmware source calls `signWire(key, "sahool-receipt-v2\n", body)` — those
   # string literals are HMAC domain-separation labels, not keys; the `generic-api-key`
   # rule fires on the `key` keyword next to a high-entropy literal. The patch is never
   # applied by CI and the frozen actuator/firmware sources are unchanged (GATE-01).
-  # Narrow to the patch files only; any real secret elsewhere still fails the scan.
-  '''docs/audits/patches/.*\.patch$''',
+  # Narrowed to that ONE patch file (C05, unified forensic report v2): a directory-wide
+  # `.*\.patch$` would have exempted any future patch dropped here, including one that
+  # carried a real secret. A new review patch needs its own justified entry.
+  '''^docs/audits/patches/SUP-08-actuator-v2-PENDING-GATE-01\.patch$''',
 ]
 # Deterministic, obviously-fake fixture values used in unit tests (self-describing
 # placeholders, never real credentials). Keep this list narrow and literal.

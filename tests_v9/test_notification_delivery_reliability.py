@@ -240,3 +240,58 @@ async def test_preferences_query_binds_tenant_and_user(agent, monkeypatch):
     assert "user_ref=$2" in sql and "user_id=" not in sql
     assert conn.fetchrow.call_args.args[1:] == (TENANT, subject)
     assert conn.contexts == [(TENANT, subject)]
+
+
+@pytest.mark.asyncio
+async def test_one_failing_channel_does_not_block_the_healthy_ones(agent, monkeypatch):
+    """C01 (unified forensic report v2): email failing must not prevent Telegram/Push.
+
+    Before: the first failed channel raised out of ``dispatch`` and the healthy channels
+    were never attempted; the whole event was redelivered until dead-lettered. Now every
+    planned channel is attempted, the failures are raised together afterwards (so
+    JetStream redelivers), and the receipts already ``sent`` are skipped on retry.
+    """
+    conn = Connection()
+    monkeypatch.setattr(
+        agent, "get_pool", AsyncMock(return_value=SimpleNamespace(acquire=lambda: conn))
+    )
+    monkeypatch.setattr(agent.manager, "send_to_user", AsyncMock())
+    monkeypatch.setattr(
+        agent,
+        "get_prefs",
+        AsyncMock(
+            return_value={
+                "event_types": ["task.assigned"],
+                "email_enabled": True,
+                "email_address": "farmer@example.test",
+                "telegram_enabled": True,
+                "telegram_chat_id": "42",
+                "push_enabled": False,
+            }
+        ),
+    )
+    email = AsyncMock(return_value=False)
+    telegram = AsyncMock(return_value=True)
+    monkeypatch.setattr(agent, "send_email_async", email)
+    monkeypatch.setattr(agent, "send_telegram", telegram)
+    data = {"tenant_id": TENANT, "user_id": "7", "event_type": "task.assigned", "event_id": "e-1"}
+
+    # Attempt 1: email fails, Telegram still delivered; the failure is reported afterwards.
+    with pytest.raises(agent.DeliveryUnavailable, match="channels_failed:email"):
+        await agent.dispatch(dict(data))
+    telegram.assert_awaited_once()
+    assert conn.statuses[(TENANT, agent._delivery_key(data), "email")] == "failed"
+    assert conn.statuses[(TENANT, agent._delivery_key(data), "telegram")] == "sent"
+
+    # Attempt 2 (redelivery, email still down): Telegram is NOT resent.
+    with pytest.raises(agent.DeliveryUnavailable, match="channels_failed:email"):
+        await agent.dispatch(dict(data))
+    telegram.assert_awaited_once()
+    assert email.await_count == 2
+
+    # Attempt 3 (provider recovered): the event settles with every receipt sent.
+    email.return_value = True
+    await agent.dispatch(dict(data))
+    telegram.assert_awaited_once()
+    assert email.await_count == 3
+    assert set(conn.statuses.values()) == {"sent"}

@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5308,
+    "files_scanned": 5309,
     "files_by_kind": {
       "backend": 1207,
       "database": 277,
       "governance": 62,
       "mobile": 55,
       "other": 1465,
-      "tests": 1785,
+      "tests": 1786,
       "web": 457
     },
-    "unmapped_artifacts": 2162,
+    "unmapped_artifacts": 2163,
     "ambiguous_artifacts": 418
   },
   "capabilities": [
@@ -11208,27 +11208,27 @@
       ],
       "routes": [
         {
-          "value": "/health @ agents/notification/agent.py:691",
+          "value": "/health @ agents/notification/agent.py:731",
           "score": 12
         },
         {
-          "value": "/healthz @ agents/notification/agent.py:692",
+          "value": "/healthz @ agents/notification/agent.py:732",
           "score": 12
         },
         {
-          "value": "/metrics @ agents/notification/agent.py:732",
+          "value": "/metrics @ agents/notification/agent.py:772",
           "score": 12
         },
         {
-          "value": "/notification/test @ agents/notification/agent.py:745",
+          "value": "/notification/test @ agents/notification/agent.py:785",
           "score": 12
         },
         {
-          "value": "/notifications/test @ agents/notification/agent.py:677",
+          "value": "/notifications/test @ agents/notification/agent.py:717",
           "score": 12
         },
         {
-          "value": "/readyz @ agents/notification/agent.py:697",
+          "value": "/readyz @ agents/notification/agent.py:737",
           "score": 12
         },
         {
@@ -11404,7 +11404,7 @@
           "score": 12
         },
         {
-          "value": "sahool.> @ agents/notification/agent.py:482",
+          "value": "sahool.> @ agents/notification/agent.py:522",
           "score": 12
         },
         {
@@ -11416,7 +11416,7 @@
           "score": 12
         },
         {
-          "value": "sahool.alerts.weather @ agents/notification/agent.py:411",
+          "value": "sahool.alerts.weather @ agents/notification/agent.py:451",
           "score": 12
         },
         {
@@ -11424,7 +11424,7 @@
           "score": 12
         },
         {
-          "value": "sahool.economic.analysis @ agents/notification/agent.py:417",
+          "value": "sahool.economic.analysis @ agents/notification/agent.py:457",
           "score": 12
         },
         {
@@ -11432,7 +11432,7 @@
           "score": 12
         },
         {
-          "value": "sahool.events.> @ agents/notification/agent.py:422",
+          "value": "sahool.events.> @ agents/notification/agent.py:462",
           "score": 12
         },
         {
@@ -11460,7 +11460,7 @@
           "score": 12
         },
         {
-          "value": "sahool.fertilizer.recommendation @ agents/notification/agent.py:414",
+          "value": "sahool.fertilizer.recommendation @ agents/notification/agent.py:454",
           "score": 12
         },
         {
@@ -11468,7 +11468,7 @@
           "score": 12
         },
         {
-          "value": "sahool.inventory.low_stock @ agents/notification/agent.py:415",
+          "value": "sahool.inventory.low_stock @ agents/notification/agent.py:455",
           "score": 12
         },
         {
@@ -11476,7 +11476,7 @@
           "score": 12
         },
         {
-          "value": "sahool.irrigation.recommendation @ agents/notification/agent.py:413",
+          "value": "sahool.irrigation.recommendation @ agents/notification/agent.py:453",
           "score": 12
         },
         {
@@ -11484,11 +11484,11 @@
           "score": 12
         },
         {
-          "value": "sahool.notification.dead_letter @ agents/notification/agent.py:435",
+          "value": "sahool.notification.dead_letter @ agents/notification/agent.py:475",
           "score": 12
         },
         {
-          "value": "sahool.pest.alert @ agents/notification/agent.py:412",
+          "value": "sahool.pest.alert @ agents/notification/agent.py:452",
           "score": 12
         },
         {
@@ -11496,7 +11496,7 @@
           "score": 12
         },
         {
-          "value": "sahool.task.assigned @ agents/notification/agent.py:416",
+          "value": "sahool.task.assigned @ agents/notification/agent.py:456",
           "score": 12
         },
         {
@@ -11504,7 +11504,7 @@
           "score": 12
         },
         {
-          "value": "sahool.tenant.*.satellite.*.computed @ agents/notification/agent.py:410",
+          "value": "sahool.tenant.*.satellite.*.computed @ agents/notification/agent.py:450",
           "score": 12
         },
         {
@@ -42915,6 +42915,10 @@
     },
     {
       "path": "tests_v9/test_github_actions_security_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_gitleaks_allowlist_scope.py",
       "kind": "tests"
     },
     {
