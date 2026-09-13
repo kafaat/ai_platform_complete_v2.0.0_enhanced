@@ -322,3 +322,118 @@ def ai_feature_row(summary: LedgerSummary, *, area_ha: float | None = None) -> d
             "recommendation": False,
         },
     }
+
+
+# ─── إدامة السجلّات الفرعيّة لعمليّةٍ واحدة ──────────────────────────────────────────
+# نُقِلت من راوتر `farm_operations_ledger` (راتشِت حجم الراوترات: لا راوترَ يكبر) — الكاتبُ
+# ما زال sahool-platform والمعاملةُ هي معاملةُ المُنادي؛ لا اتّصالَ يُفتح هنا.
+async def persist_operation_subrecords(
+    conn,
+    *,
+    tenant_id: str,
+    operation_id: str,
+    record_date: date,
+    farm_id: str | None,
+    field_id: str | None,
+    water=None,
+    energy=None,
+    equipment=(),
+    labor=(),
+    inputs=(),
+) -> dict[str, int]:
+    """يُدرِج سجلّات الماء/الطاقة/المعدّات/العمالة/المدخلات المرتبطة بعمليّة محفوظة.
+
+    يُستدعى **داخل** معاملة العمليّة (فشلُ أيّ سجلّ يُرجِع الكلَّ). يُعيد عدَّ الصفوف لكلّ
+    نوع للشفافيّة. الكائناتُ الفرعيّة تُقرأ بالسمات (نماذج الراوتر) — لا تبعيّة على api.
+    """
+    counts = {"water": 0, "energy": 0, "equipment": 0, "labor": 0, "inputs": 0}
+    if water:
+        await conn.execute(
+            """INSERT INTO farm_water_records
+               (tenant_id, operation_id, record_date, farm_id, field_id, well_id, pump_id,
+                pivot_id, hours_operated, water_volume_m3, measurement_method, notes)
+               VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)""",
+            tenant_id,
+            operation_id,
+            record_date,
+            farm_id,
+            field_id,
+            water.well_id,
+            water.pump_id,
+            water.pivot_id,
+            water.hours_operated,
+            water.water_volume_m3,
+            water.measurement_method,
+            water.notes,
+        )
+        counts["water"] = 1
+    if energy:
+        await conn.execute(
+            """INSERT INTO farm_energy_records
+               (tenant_id, operation_id, record_date, energy_source, kwh, diesel_liters,
+                hours_operated, equipment_id, well_id, pivot_id, notes)
+               VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)""",
+            tenant_id,
+            operation_id,
+            record_date,
+            energy.energy_source,
+            energy.kwh,
+            energy.diesel_liters,
+            energy.hours_operated,
+            energy.equipment_id,
+            energy.well_id,
+            energy.pivot_id,
+            energy.notes,
+        )
+        counts["energy"] = 1
+    for e in equipment or ():
+        await conn.execute(
+            """INSERT INTO farm_equipment_records
+               (tenant_id, operation_id, record_date, equipment_id, operator_id, hours_worked,
+                fuel_liters, maintenance_cost, notes)
+               VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9)""",
+            tenant_id,
+            operation_id,
+            record_date,
+            e.equipment_id,
+            e.operator_id,
+            e.hours_worked,
+            e.fuel_liters,
+            e.maintenance_cost,
+            e.notes,
+        )
+        counts["equipment"] += 1
+    for lab in labor or ():
+        await conn.execute(
+            """INSERT INTO farm_labor_records
+               (tenant_id, operation_id, record_date, worker_id, workers_count, hours,
+                wage_amount, notes)
+               VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8)""",
+            tenant_id,
+            operation_id,
+            record_date,
+            lab.worker_id,
+            lab.workers_count,
+            lab.hours,
+            lab.wage_amount,
+            lab.notes,
+        )
+        counts["labor"] += 1
+    for i in inputs or ():
+        await conn.execute(
+            """INSERT INTO farm_input_records
+               (tenant_id, operation_id, record_date, input_type, inventory_item_id, quantity,
+                unit, estimated_cost, notes)
+               VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9)""",
+            tenant_id,
+            operation_id,
+            record_date,
+            i.input_type,
+            i.inventory_item_id,
+            i.quantity,
+            i.unit,
+            i.estimated_cost,
+            i.notes,
+        )
+        counts["inputs"] += 1
+    return counts

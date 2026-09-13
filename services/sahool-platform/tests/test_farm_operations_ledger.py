@@ -179,3 +179,95 @@ def test_no_water_records_at_all_is_unknown_and_trivially_complete():
     assert summary.water_volume_m3 is None
     assert summary.water_records_total == 0
     assert summary.water_measurement_complete is True
+
+
+class _Conn:
+    def __init__(self):
+        self.calls: list[tuple[str, tuple]] = []
+
+    async def execute(self, sql, *args):
+        self.calls.append((sql, args))
+
+
+class _Obj:
+    def __init__(self, **kw):
+        self.__dict__.update(kw)
+
+
+@pytest.mark.asyncio
+async def test_persist_operation_subrecords_writes_each_kind_with_the_operation_identity():
+    """نُقِل من الراوتر (راتشِت الحجم): السجلّات الفرعيّة تُربَط بالعمليّة والمستأجِر والتاريخ."""
+    from core.farm_operations_ledger import persist_operation_subrecords
+
+    conn = _Conn()
+    counts = await persist_operation_subrecords(
+        conn,
+        tenant_id="11111111-1111-1111-1111-111111111111",
+        operation_id="oplog_abc",
+        record_date=date(2026, 1, 2),
+        farm_id="farm1",
+        field_id="field1",
+        water=_Obj(
+            well_id="w1",
+            pump_id=None,
+            pivot_id=None,
+            hours_operated=4,
+            water_volume_m3=None,
+            measurement_method=None,
+            notes=None,
+        ),
+        energy=_Obj(
+            energy_source="solar",
+            kwh=12,
+            diesel_liters=None,
+            hours_operated=4,
+            equipment_id=None,
+            well_id="w1",
+            pivot_id=None,
+            notes=None,
+        ),
+        equipment=[
+            _Obj(
+                equipment_id="p1",
+                operator_id=None,
+                hours_worked=4,
+                fuel_liters=None,
+                maintenance_cost=None,
+                notes=None,
+            )
+        ],
+        labor=[_Obj(worker_id=None, workers_count=2, hours=4, wage_amount=None, notes=None)] * 2,
+        inputs=[],
+    )
+    assert counts == {"water": 1, "energy": 1, "equipment": 1, "labor": 2, "inputs": 0}
+    tables = [sql.split("INSERT INTO ")[1].split()[0] for sql, _ in conn.calls]
+    assert tables == [
+        "farm_water_records",
+        "farm_energy_records",
+        "farm_equipment_records",
+        "farm_labor_records",
+        "farm_labor_records",
+    ]
+    for _sql, args in conn.calls:
+        assert args[0] == "11111111-1111-1111-1111-111111111111"
+        assert args[1] == "oplog_abc"
+        assert args[2] == date(2026, 1, 2)
+    # الحجمُ الغائب يُدرَج None لا 0 (U04 يبدأ من الإدخال).
+    assert conn.calls[0][1][9] is None
+
+
+@pytest.mark.asyncio
+async def test_persist_operation_subrecords_with_nothing_writes_nothing():
+    from core.farm_operations_ledger import persist_operation_subrecords
+
+    conn = _Conn()
+    counts = await persist_operation_subrecords(
+        conn,
+        tenant_id="t",
+        operation_id="o",
+        record_date=date(2026, 1, 2),
+        farm_id=None,
+        field_id=None,
+    )
+    assert counts == {"water": 0, "energy": 0, "equipment": 0, "labor": 0, "inputs": 0}
+    assert conn.calls == []

@@ -28,7 +28,7 @@ from core.farm_costing import (
     normalize_budget_line,
     project_to_erp_lines,
 )
-from core.farm_operations_ledger import LedgerSummary
+from core.farm_operations_ledger import LedgerSummary, persist_operation_subrecords
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator
 
@@ -278,90 +278,21 @@ async def create_operation_ledger_record(
                         req.sync_status,
                         user.user_id,
                     )
-                    if req.water:
-                        await conn.execute(
-                            """INSERT INTO farm_water_records
-                               (tenant_id, operation_id, record_date, farm_id, field_id, well_id, pump_id,
-                                pivot_id, hours_operated, water_volume_m3, measurement_method, notes)
-                               VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)""",
-                            str(user.tenant_id),
-                            operation_id,
-                            req.operation_date,
-                            req.farm_id,
-                            req.field_id,
-                            req.water.well_id,
-                            req.water.pump_id,
-                            req.water.pivot_id,
-                            req.water.hours_operated,
-                            req.water.water_volume_m3,
-                            req.water.measurement_method,
-                            req.water.notes,
-                        )
-                    if req.energy:
-                        await conn.execute(
-                            """INSERT INTO farm_energy_records
-                               (tenant_id, operation_id, record_date, energy_source, kwh, diesel_liters,
-                                hours_operated, equipment_id, well_id, pivot_id, notes)
-                               VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)""",
-                            str(user.tenant_id),
-                            operation_id,
-                            req.operation_date,
-                            req.energy.energy_source,
-                            req.energy.kwh,
-                            req.energy.diesel_liters,
-                            req.energy.hours_operated,
-                            req.energy.equipment_id,
-                            req.energy.well_id,
-                            req.energy.pivot_id,
-                            req.energy.notes,
-                        )
-                    for e in req.equipment:
-                        await conn.execute(
-                            """INSERT INTO farm_equipment_records
-                               (tenant_id, operation_id, record_date, equipment_id, operator_id, hours_worked,
-                                fuel_liters, maintenance_cost, notes)
-                               VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9)""",
-                            str(user.tenant_id),
-                            operation_id,
-                            req.operation_date,
-                            e.equipment_id,
-                            e.operator_id,
-                            e.hours_worked,
-                            e.fuel_liters,
-                            e.maintenance_cost,
-                            e.notes,
-                        )
-                    for labor in req.labor:
-                        await conn.execute(
-                            """INSERT INTO farm_labor_records
-                               (tenant_id, operation_id, record_date, worker_id, workers_count, hours,
-                                wage_amount, notes)
-                               VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8)""",
-                            str(user.tenant_id),
-                            operation_id,
-                            req.operation_date,
-                            labor.worker_id,
-                            labor.workers_count,
-                            labor.hours,
-                            labor.wage_amount,
-                            labor.notes,
-                        )
-                    for i in req.inputs:
-                        await conn.execute(
-                            """INSERT INTO farm_input_records
-                               (tenant_id, operation_id, record_date, input_type, inventory_item_id, quantity,
-                                unit, estimated_cost, notes)
-                               VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9)""",
-                            str(user.tenant_id),
-                            operation_id,
-                            req.operation_date,
-                            i.input_type,
-                            i.inventory_item_id,
-                            i.quantity,
-                            i.unit,
-                            i.estimated_cost,
-                            i.notes,
-                        )
+                    # السجلّاتُ الفرعيّة (ماء/طاقة/معدّات/عمالة/مدخلات) في وحدة النطاق نفسها،
+                    # داخل المعاملة نفسها — الكاتبُ ما زال هذه الخدمة (راتشِت حجم الراوتر).
+                    await persist_operation_subrecords(
+                        conn,
+                        tenant_id=str(user.tenant_id),
+                        operation_id=operation_id,
+                        record_date=req.operation_date,
+                        farm_id=req.farm_id,
+                        field_id=req.field_id,
+                        water=req.water,
+                        energy=req.energy,
+                        equipment=req.equipment,
+                        labor=req.labor,
+                        inputs=req.inputs,
+                    )
                 return {
                     "operation_id": operation_id,
                     "persisted": True,
