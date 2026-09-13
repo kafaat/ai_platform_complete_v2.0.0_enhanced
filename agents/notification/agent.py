@@ -14,6 +14,8 @@ Condition-gated capabilities:
 
 from __future__ import annotations
 
+from shared.tracing import configure_tracing
+
 import asyncio
 import hashlib
 import json
@@ -519,7 +521,6 @@ async def lifespan(app: FastAPI):
 
 # ── FastAPI app ───────────────────────────────────────────────
 app = FastAPI(title="SAHOOL Notification Agent", version="9.1.0", lifespan=lifespan)
-from shared.tracing import configure_tracing
 
 configure_tracing(app, "sahool-notification-agent")
 

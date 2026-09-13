@@ -1945,6 +1945,12 @@ jobs:
           -r services/video-processor/requirements.txt
           -r services/weather-service/requirements.txt
           --progress-spinner off
+      # Each image resolves its own environment; audit the exact Docker inputs.
+      - name: pip-audit (gating — notification, bot, and TiTiler images)
+        run: |
+          pip-audit -r agents/notification/requirements.txt --ignore-vuln PYSEC-2026-1325 --progress-spinner off
+          pip-audit -r bots/telegram/requirements.txt --progress-spinner off
+          pip-audit -r services/raster-tiler-service/requirements.txt --progress-spinner off
       # مسح إرشادي شامل: يكشف ثغرات بقيّة الخدمات (مثلاً RAG: pypdf/langchain —
       # إصلاحها خارج سقوف توافق langchain، يحتاج ترقية متعمّدة) دون حجب الدمج.
       - name: pip-audit (advisory — all services)
@@ -1993,4 +1999,9 @@ jobs:
       - run: flutter analyze --no-fatal-infos --no-fatal-warnings
         working-directory: mobile/sahool_app
       - run: flutter test
+        working-directory: mobile/sahool_app
+      - name: Select Java 17 for the Android toolchain
+        run: echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+      - name: Build Android debug app from the committed native project
+        run: flutter build apk --debug --no-pub
         working-directory: mobile/sahool_app

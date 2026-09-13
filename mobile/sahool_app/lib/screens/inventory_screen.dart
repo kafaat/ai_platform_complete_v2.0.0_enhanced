@@ -104,9 +104,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: kWarn.withOpacity(0.1),
+        color: kWarn.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: kWarn.withOpacity(0.35)),
+        border: Border.all(color: kWarn.withValues(alpha: 0.35)),
       ),
       child: Row(
         children: [
@@ -154,7 +154,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.2),
+                          color: Colors.red.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: const Text('مخزون منخفض',
