@@ -17,6 +17,8 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
+from shared.fcm import fcm_push_active
+
 
 def _truthy(v: str | None) -> bool:
     return bool(v and v.strip() and v.strip().lower() not in ("0", "false", "no", "off"))
@@ -28,16 +30,6 @@ def _file_present(env_key: str) -> bool:
 
 
 # ─── شروط التفعيل (تُقرأ في الخدمات المعنيّة بنفس الأسماء) ──────────
-
-
-def fcm_push_active() -> bool:
-    """إشعارات Push تُفعَّل عند ضبط FCM_SERVER_KEY (مسار FCM legacy المُنفَّذ فعلاً).
-
-    ملاحظة (مراجعة): لا نعتبر FCM_CREDENTIALS_JSON كافياً — مسار HTTP v1 (حساب
-    الخدمة) غير مربوط في notification-agent بعد، فاعتباره "مُفعَّلاً" يجعل
-    /capabilities يكذب (active بينما الإرسال يُرجِع False). يُوسَّع الشرط عند ربط v1.
-    """
-    return _truthy(os.getenv("FCM_SERVER_KEY"))
 
 
 # ملاحظة: التنبّؤ الجوّي الحيّ (Open-Meteo) ليس قدرةً مؤجَّلة — Open-Meteo مجّاني
@@ -99,7 +91,7 @@ def all_capabilities() -> list[Capability]:
             "fcm_push",
             "إشعارات Push (FCM/APNs)",
             fcm_push_active(),
-            "عيّن FCM_SERVER_KEY (مسار FCM legacy؛ HTTP v1/JSON يُربط لاحقاً)",
+            "زوّد FCM_CREDENTIALS_JSON بحساب خدمة صالح لـHTTP v1 وفعّل FEATURE_MOBILE_PUSH",
             "لا إرسال Push (البريد/تلغرام/داخل-التطبيق تعمل)؛ لا إشعار وهميّ",
         ),
         Capability(

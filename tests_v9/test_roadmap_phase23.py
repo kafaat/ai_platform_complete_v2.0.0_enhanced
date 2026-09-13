@@ -6449,9 +6449,11 @@ def test_deferred_capabilities_gate():
             r.append(("✓", "القدرات: لكلّ قدرة شرط تفعيل + سلوك خامل مُعلَن"))
         else:
             r.append(("✗", "القدرات: قدرة بلا تعليمات تفعيل/سلوك خامل"))
-        _os.environ["FCM_SERVER_KEY"] = "test"
+        from tests_v9.fcm_fixture import service_account_json
+
+        _os.environ["FCM_CREDENTIALS_JSON"] = service_account_json()
         activated = _cap.fcm_push_active()
-        del _os.environ["FCM_SERVER_KEY"]
+        del _os.environ["FCM_CREDENTIALS_JSON"]
         if activated and not _cap.fcm_push_active():
             r.append(("✓", "القدرات: الشرط يُفعّل ويُعطّل القدرة فعليّاً"))
         else:

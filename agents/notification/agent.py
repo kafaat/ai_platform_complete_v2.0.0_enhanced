@@ -8,12 +8,8 @@ SAHOOL v9.0 — agents/notification/agent.py (مُصلَح)
   ✅ 8 اشتراكات NATS مع durable names
 
 Condition-gated capabilities:
-  • FCM/APNs push (send_push) is CONDITION-GATED on the `fcm_push` capability
-    (mirrors services/sahool-platform/core/capabilities.py fcm_push_active()):
-    active only when FCM_SERVER_KEY is set to a truthy value in the env (the
-    legacy send path; HTTP v1 / FCM_CREDENTIALS_JSON is not wired for sending yet).
-    Otherwise the push path is a dormant no-op (returns False, never fabricates a
-    send and never crashes the agent).
+  FCM HTTP v1 uses explicitly provisioned FCM_CREDENTIALS_JSON and the shared
+  credential validator. Provider acceptance requires a named message receipt.
 """
 
 from __future__ import annotations
@@ -37,6 +33,7 @@ from nats.aio.client import Client as NATS
 from nats.js import JetStreamContext
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
+from shared.fcm import fcm_push_active, send_push
 from shared.security.access_tokens import access_token_verification_key, verify_access_token
 
 logger = logging.getLogger("notification-agent")
@@ -53,7 +50,6 @@ SMTP_USER = os.getenv("SMTP_USER", "")
 SMTP_PASS = os.getenv("SMTP_PASSWORD", "")
 TG_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 # FCM: السرّ يُقرأ وقت التشغيل في fcm_push_active()/send_push (لا ثابت استيراد).
-FCM_LEGACY_ENDPOINT = "https://fcm.googleapis.com/fcm/send"
 _fcm_dormant_logged = False
 
 # ── WebSocket manager ─────────────────────────────────────────
@@ -168,14 +164,6 @@ def _fcm_truthy(v: str) -> bool:
     return v.strip().lower() not in ("", "0", "false", "no", "off")
 
 
-def fcm_push_active() -> bool:
-    """Mirrors capabilities.py fcm_push_active(): active ONLY when FCM_SERVER_KEY is
-    set to a truthy value. Read at CALL time (not import) so env changes take effect.
-    FCM_CREDENTIALS_JSON (HTTP v1 / service account) is NOT wired for sending yet, so
-    it alone does NOT activate push — otherwise /capabilities would lie."""
-    return _fcm_truthy(os.getenv("FCM_SERVER_KEY", ""))
-
-
 # ── C4/M1: علم الـpush للموبايل (default OFF) + قرار الإرسال vs السجلّ الاحتياطيّ ──
 # إطار «implemented-but-off-by-default»: الـpush مُنفَّذ (send_push/FCM) لكنّه opt-in
 # صريح بهذا العلم. OFF (افتراضيّ) أو FCM خامل ⇒ **سجلّ احتياطيّ دائم** بدل إسقاط صامت.
@@ -184,7 +172,7 @@ _MOBILE_PUSH_FLAG = "FEATURE_MOBILE_PUSH"
 
 def mobile_push_enabled() -> bool:
     """هل push الموبايل مُفعَّل؟ default OFF (يُقرأ وقت الاستدعاء). علم opt-in صريح
-    فوق قدرة FCM — التفعيل يتطلّب العلم **و** FCM_SERVER_KEY معاً."""
+    فوق قدرة FCM — التفعيل يتطلّب العلم **و** FCM_CREDENTIALS_JSON الصالح معاً."""
     return _fcm_truthy(os.getenv(_MOBILE_PUSH_FLAG, ""))
 
 
@@ -201,56 +189,6 @@ def push_decision(*, flag_on: bool, push_enabled: bool, has_token: bool, fcm_act
     if flag_on and fcm_active:
         return "send"
     return "record_only"
-
-
-async def send_push(push_token: str, title: str, body: str) -> bool:
-    """Deliver a real FCM push. Honest + gated.
-
-    • Dormant (FCM_SERVER_KEY unset/falsey): logs once and returns False. No
-      fabrication, no fake send.
-    • FCM_SERVER_KEY set: POSTs to the FCM legacy HTTP API. Returns True ONLY on
-      a real 2xx response from FCM.
-    Never raises — any error is logged and returns False so the agent stays up.
-    """
-    global _fcm_dormant_logged
-    if not fcm_push_active():
-        if not _fcm_dormant_logged:
-            logger.info("FCM dormant: set FCM_SERVER_KEY to activate")
-            _fcm_dormant_logged = True
-        return False
-
-    if not push_token:
-        return False
-
-    # قراءة المفتاح وقت التشغيل (لا ثابت الاستيراد) ليعتمد التفعيل على البيئة فقط.
-    server_key = os.getenv("FCM_SERVER_KEY", "")
-
-    try:
-        import httpx  # lazy import — agent must not hard-depend on it for dormant path
-    except Exception as e:
-        logger.warning(f"FCM: httpx unavailable, push skipped: {e}")
-        return False
-
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.post(
-                FCM_LEGACY_ENDPOINT,
-                headers={
-                    "Authorization": f"key={server_key}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "to": push_token,
-                    "notification": {"title": title, "body": body},
-                },
-            )
-        if 200 <= resp.status_code < 300:
-            return True
-        logger.warning(f"FCM push non-2xx: {resp.status_code} {resp.text[:200]}")
-        return False
-    except Exception as e:
-        logger.warning(f"FCM push failed: {e}")
-        return False
 
 
 # ── DB helpers ────────────────────────────────────────────────
