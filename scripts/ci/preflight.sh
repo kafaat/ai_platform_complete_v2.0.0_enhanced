@@ -64,6 +64,18 @@ CONTRACT="docs/architecture/preflight_required.json"
 failures=0
 skipped=0
 
+# ── تشغيلةٌ واحدة لكلّ شجرة عمل (LESSON-CONCURRENT-PREFLIGHT-CONTAMINATION-01) ──
+# مقيس: تشغيلتان متزامنتان أفسدتا قياسَ بعضهما — مِسبارٌ في إحداهما كتب ملفّاً حقيقيّاً
+# في `routers/` فعدّته الأخرى، وأربعةُ إخفاقاتٍ نُسِبت إلى الشريحة وهي تلوّثُ تزامن.
+# القفلُ لكلّ شجرة عمل (`--git-dir` يخصّ الـworktree) فلا يمنع شجرتين مستقلّتين.
+LOCK_FILE="$(git rev-parse --git-dir)/preflight.lock"
+exec 9>"$LOCK_FILE"
+if ! flock -n 9; then
+  echo "✗ preflight تعمل بالفعل في شجرة العمل هذه (القفل: $LOCK_FILE)." >&2
+  echo "  تشغيلتان متزامنتان تُفسِدان قياسَ بعضهما — انتظر انتهاء الأولى بدل قراءة إخفاقاتٍ ملوَّثة." >&2
+  exit 3
+fi
+
 # رموز الخروج تُقرأ بالصيغة التي أثبتت صحّتها في §٢، لا بـ`&&/||`:
 #   `"$@" || rc=$?` يلتقط الحالة الحقيقيّة ويحمي من `set -e`
 #   `if/fi` + `return 0` صريح، فلا تصير قيمة آخر شرط قيمةَ إرجاع الدالّة
@@ -388,6 +400,9 @@ require_file scripts/ci/brain_duplicate_gap_identity_guard.py "٦د) brain_dupli
 if git rev-parse --verify "$BASE" >/dev/null 2>&1; then
   run "٦ب) brain_state_transition" python3 scripts/ci/brain_state_transition_guard.py --base "$BASE" --head HEAD
   run "٦ج) brain_commit_claim"     python3 scripts/ci/brain_commit_claim_guard.py --base "$BASE" --head HEAD
+  # ٦هـ: كان غائباً هنا وحاضراً في CI (`no-report-only-change.yml`)، فمرّ تقلّصٌ في سجلّ
+  # الدماغ أخضرَ محلّيّاً ثمّ حجب بـ`JOURNAL_SHRANK` — GUARD-RUN-WITHOUT-THE-ARGUMENTS-CI-PASSES-01.
+  run "٦هـ) brain_append_only"      python3 scripts/ci/brain_append_only_guard.py --base "$BASE" --head HEAD
   # ٦ج تقرأ **رسائل الالتزامات** في `$BASE..HEAD`. فتشغيلُ هذا السكربت قبل الالتزام
   # يقيس مدىً لا يحوي الرسالة التي ستُكتب بعد قليل — وأخضرُه حينئذٍ يقول «ما التُزِم
   # نظيف»، لا «رسالتك ستمرّ». مقيس: التزام يحمل `CI-HOST-PSQL:` في عنوانه — بادئةٌ
