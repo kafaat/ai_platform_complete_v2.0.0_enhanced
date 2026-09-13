@@ -2581,3 +2581,7 @@ Unit and repository suites passed on `bd7bca34b`; the platform-only rerun resolv
 | `9b6d832` | `ae99c98` |
 | `0c86f9f` | `aa43aef` |
 | `016bfa1` | `d5d6d43` |
+
+### 2026-09-13 — عقود الاختبارات بعد تنفيذ المراجعة (#995، أساس `b4fd76c`)
+
+أُبقي فحص ملكية الحقل قبل الإدراج، وقفل الحزم الفعلي الذي تقرؤه الصورة، والمالك الواحد لقرص SQLite. صُححت الاختبارات القديمة لتفرض هذه العقود، بدل إعادة السلوك المعيب لإرضائها. نُقص أساس JWT بإزالة `agents/notification/agent.py` بعد نقله في `1091c55`، ونُقص أساس لغة الآلة بعد إصلاح ملف اختبار النشر. الغرض تقليص الدين لا السماح بمخالفة جديدة. انظر `tests_v9/test_work_order_persist_emit.py` و`tests_v9/test_raster_tiler_service_contract.py` و`tests/deploy/test_phase15_deployment_readiness_contracts.py`.

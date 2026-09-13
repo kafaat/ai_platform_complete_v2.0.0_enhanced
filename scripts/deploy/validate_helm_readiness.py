@@ -54,7 +54,10 @@ def source_contract_errors(values: dict, root: Path = ROOT) -> list[str]:
         if not source.is_file():
             errors.append(f"{name}: sourceDockerfile is required")
             continue
-        ports = {int(port) for port in re.findall(r"^EXPOSE\s+(\d+)", source.read_text(), re.M)}
+        ports = {
+            int(port)
+            for port in re.findall(r"^EXPOSE\s+(\d+)", source.read_text(encoding="utf-8"), re.M)
+        }
         if spec.get("port") not in ports:
             errors.append(
                 f"{name}: port {spec.get('port')} does not match {source.relative_to(root)} EXPOSE {sorted(ports)}"

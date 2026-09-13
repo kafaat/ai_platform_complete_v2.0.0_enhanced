@@ -41,7 +41,7 @@ async def test_timeout_restart_replay_keeps_entire_envelope(sync, respx_mock):
     route.mock(side_effect=httpx.ReadTimeout("synthetic timeout"))
     assert await sync.sync_result("pest_detection", observation()) is False
     original = json.loads(route.calls[0].request.content)
-    saved = json.loads(next(Path(sync.sync_dir).glob("*.json")).read_text())
+    saved = json.loads(next(Path(sync.sync_dir).glob("*.json")).read_text(encoding="utf-8"))
     assert saved == original
     model = load(
         "edge_ingress_model", "services/sahool-platform/api/edge_models.py"
@@ -73,7 +73,7 @@ async def test_http_200_without_matching_receipt_is_not_sync_success(sync, respx
 def test_offline_envelope_has_identity_and_distinct_measurements(sync):
     sync.queue_result("pest_detection", observation())
     sync.queue_result("pest_detection", observation())
-    rows = [json.loads(p.read_text()) for p in Path(sync.sync_dir).glob("*.json")]
+    rows = [json.loads(p.read_text(encoding="utf-8")) for p in Path(sync.sync_dir).glob("*.json")]
     assert len({r["idempotency_key"] for r in rows}) == 2
     assert all(r["field_id"] == "field-1" and r["device_id"] == "edge-device-1" for r in rows)
     assert all(r["occurred_at"] == observation()["timestamp"] for r in rows)

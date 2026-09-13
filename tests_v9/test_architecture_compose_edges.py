@@ -16,7 +16,8 @@ def test_only_list_or_mapping_dependencies_become_edges(tmp_path, monkeypatch):
     graph = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(graph)
     monkeypatch.setattr(graph, "ROOT", tmp_path)
-    (tmp_path / "docker-compose.yml").write_text("""services:
+    (tmp_path / "docker-compose.yml").write_text(
+        """services:
   api:
     depends_on:
       db:
@@ -31,7 +32,9 @@ def test_only_list_or_mapping_dependencies_become_edges(tmp_path, monkeypatch):
 volumes:
   data:
     driver: local
-""")
+""",
+        encoding="utf-8",
+    )
     nodes = {}
     edges = graph.compose_edges(nodes)
     assert {(x["source"], x["target"]) for x in edges} == {("api", "db"), ("worker", "api")}
@@ -47,9 +50,9 @@ def test_test_only_imports_do_not_create_runtime_dependencies(tmp_path, monkeypa
     monkeypatch.setattr(graph, "ROOT", tmp_path)
     service = tmp_path / "services/platform"
     (service / "tests").mkdir(parents=True)
-    (service / "tests/test_fake.py").write_text("import frontend.fixture\n")
-    (service / "test_local.py").write_text("import frontend.fixture\n")
-    (service / "app.py").write_text("import auth.runtime\n")
+    (service / "tests/test_fake.py").write_text("import frontend.fixture\n", encoding="utf-8")
+    (service / "test_local.py").write_text("import frontend.fixture\n", encoding="utf-8")
+    (service / "app.py").write_text("import auth.runtime\n", encoding="utf-8")
     nodes = {
         "platform": {"paths": ["services/platform"]},
         "auth": {"paths": []},

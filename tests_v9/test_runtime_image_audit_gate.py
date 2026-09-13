@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def audit_step():
-    workflow = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text())
+    workflow = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
     for job in workflow["jobs"].values():
         for step in job.get("steps", []):
             if step.get("name") == "pip-audit (gating — each runtime image)":
@@ -30,12 +30,13 @@ def run_audit(tmp_path, failure):
     for name in files:
         target = tmp_path / name
         target.parent.mkdir(parents=True)
-        target.write_text("synthetic-package==1.0\n")
+        target.write_text("synthetic-package==1.0\n", encoding="utf-8")
     binary = tmp_path / "bin"
     binary.mkdir()
     executable = binary / "pip-audit"
     executable.write_text(
-        '#!/bin/sh\nprintf "%s\\n" "$2" >> "$SAHOOL_TEST_AUDIT_LOG"\nexit "$SAHOOL_TEST_AUDIT_EXIT"\n'
+        '#!/bin/sh\nprintf "%s\\n" "$2" >> "$SAHOOL_TEST_AUDIT_LOG"\nexit "$SAHOOL_TEST_AUDIT_EXIT"\n',
+        encoding="utf-8",
     )
     executable.chmod(0o755)
     logfile = tmp_path / "audited.txt"
@@ -51,9 +52,10 @@ def run_audit(tmp_path, failure):
         env=env,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         timeout=10,
     )
-    return result, logfile.read_text().splitlines(), files
+    return result, logfile.read_text(encoding="utf-8").splitlines(), files
 
 
 def test_clean_runtime_images_all_pass_the_actual_ci_step(tmp_path):

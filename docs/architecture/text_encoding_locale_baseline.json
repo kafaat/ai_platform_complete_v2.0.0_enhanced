@@ -276,10 +276,6 @@
       "reads": 0,
       "subprocess": 1
     },
-    "tests/deploy/test_phase15_deployment_readiness_contracts.py": {
-      "reads": 4,
-      "subprocess": 1
-    },
     "tests/integration/irrigation/test_v195_postgres.py": {
       "reads": 1,
       "subprocess": 0

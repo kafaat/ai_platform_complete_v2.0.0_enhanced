@@ -1,4 +1,5 @@
 """Execute backup shell control flow with isolated fake PostgreSQL clients."""
+
 from __future__ import annotations
 
 import os
@@ -17,7 +18,7 @@ def environment(tmp_path):
     binary.mkdir()
     scripts = {
         "curl": 'cat >> "$TEST_METRICS"\n',
-        "psql": 'echo 0\n',
+        "psql": "echo 0\n",
         "pg_verifybackup": 'test -f "$1/backup_manifest"\n',
         "pg_dump": 'for arg in "$@"; do case "$arg" in --file=*) printf dump > "${arg#--file=}";; esac; done\n',
         "pg_restore": 'echo "; archive catalog"\n',
@@ -25,15 +26,26 @@ def environment(tmp_path):
     }
     for name, script in scripts.items():
         p = binary / name
-        p.write_text("#!/bin/bash\nset -eu\n" + script)
+        p.write_text("#!/bin/bash\nset -eu\n" + script, encoding="utf-8")
         p.chmod(0o755)
-    env = {**os.environ, "PATH": f"{binary}:{os.environ['PATH']}", "BACKUP_DIR": str(tmp_path / "backups"), "TEST_METRICS": str(tmp_path / "metrics")}
+    env = {
+        **os.environ,
+        "PATH": f"{binary}:{os.environ['PATH']}",
+        "BACKUP_DIR": str(tmp_path / "backups"),
+        "TEST_METRICS": str(tmp_path / "metrics"),
+    }
     env.pop("AWS_ACCESS_KEY_ID", None)
     return env
 
 
 def run(script, *args, env):
-    return subprocess.run(["bash", str(ROOT / "scripts" / script), *map(str, args)], env=env, capture_output=True, text=True)
+    return subprocess.run(
+        ["bash", str(ROOT / "scripts" / script), *map(str, args)],
+        env=env,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
 
 
 def test_empty_cleanup_and_full_job_succeed(environment):
@@ -42,33 +54,46 @@ def test_empty_cleanup_and_full_job_succeed(environment):
     assert "Deleted 0" in result.stderr
     result = run("backup_postgres.sh", "full", env=environment)
     assert result.returncode == 0, result.stderr
-    assert 'sahool_backup_success{type="full"} 1' in Path(environment["TEST_METRICS"]).read_text()
+    assert 'sahool_backup_success{type="full"} 1' in Path(environment["TEST_METRICS"]).read_text(
+        encoding="utf-8"
+    )
 
 
 def test_cleanup_failure_cannot_report_overall_success(environment):
     environment["RETENTION_DAYS_LOCAL"] = "invalid"
     result = run("backup_postgres.sh", "full", env=environment)
     assert result.returncode != 0
-    metrics = Path(environment["TEST_METRICS"]).read_text()
+    metrics = Path(environment["TEST_METRICS"]).read_text(encoding="utf-8")
     assert 'sahool_backup_success{type="full"} 0' in metrics
-    assert 'sahool_backup_success{type="full"} 1' not in metrics, "success belongs after every required stage"
+    assert 'sahool_backup_success{type="full"} 1' not in metrics, (
+        "success belongs after every required stage"
+    )
 
 
 def test_wal_same_segment_replay_and_collision(environment, tmp_path):
     source = tmp_path / "segment"
     source.write_bytes(b"first segment")
     filename = "000000010000000000000001"
-    assert run("backup_postgres.sh", "wal_archive", source, filename, env=environment).returncode == 0
-    assert run("backup_postgres.sh", "wal_archive", source, filename, env=environment).returncode == 0
+    assert (
+        run("backup_postgres.sh", "wal_archive", source, filename, env=environment).returncode == 0
+    )
+    assert (
+        run("backup_postgres.sh", "wal_archive", source, filename, env=environment).returncode == 0
+    )
     source.write_bytes(b"different segment")
-    assert run("backup_postgres.sh", "wal_archive", source, filename, env=environment).returncode != 0
+    assert (
+        run("backup_postgres.sh", "wal_archive", source, filename, env=environment).returncode != 0
+    )
     assert (Path(environment["BACKUP_DIR"]) / "wal" / filename).read_bytes() == b"first segment"
 
 
 def test_wal_path_traversal_rejected(environment, tmp_path):
     source = tmp_path / "segment"
     source.write_bytes(b"data")
-    assert run("backup_postgres.sh", "wal_archive", source, "../outside", env=environment).returncode != 0
+    assert (
+        run("backup_postgres.sh", "wal_archive", source, "../outside", env=environment).returncode
+        != 0
+    )
 
 
 def test_physical_base_and_pg16_recovery_prepare(environment, tmp_path):
@@ -77,13 +102,24 @@ def test_physical_base_and_pg16_recovery_prepare(environment, tmp_path):
     base = next((Path(environment["BACKUP_DIR"]) / "base").glob("base_*"))
     wal = Path(environment["BACKUP_DIR"]) / "wal"
     target = tmp_path / "recovery"
-    args = ("--pitr", base, "--target-dir", target, "--wal-dir", wal, "--target-time", "2026-09-13T10:00:00Z")
+    args = (
+        "--pitr",
+        base,
+        "--target-dir",
+        target,
+        "--wal-dir",
+        wal,
+        "--target-time",
+        "2026-09-13T10:00:00Z",
+    )
     assert run("restore_postgres.sh", *args, "--dry-run", env=environment).returncode == 0
     assert not target.exists(), "dry run must not prepare a data directory"
     result = run("restore_postgres.sh", *args, env=environment)
     assert result.returncode == 0, result.stderr
     assert (target / "recovery.signal").is_file()
-    assert "recovery_target_action = 'pause'" in (target / "postgresql.auto.conf").read_text()
+    assert "recovery_target_action = 'pause'" in (target / "postgresql.auto.conf").read_text(
+        encoding="utf-8"
+    )
     assert run("restore_postgres.sh", *args, env=environment).returncode != 0
 
 
