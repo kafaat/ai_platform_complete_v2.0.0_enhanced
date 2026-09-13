@@ -48,6 +48,11 @@ nats-py>=2.3.0
 # فيفشل ١١ اختباراً على إصدار **لا تُختبَر عليه المنصّة**. رقِّ هنا والإنتاج معاً.
 fastapi==0.136.3  # = api/requirements.txt:6
 scipy==1.13.1  # = api/requirements.txt:20 — api/trial_engine.py يستورد scipy.stats
+# defusedxml: `api/geo_import.py:27` يستوردها علويّاً، وجناحُ المنصّة (٨ج في preflight)
+# يجمع `tests/test_geo_import.py` فيسقط الجمعُ كلُّه (4,285 حالة) على استنساخٍ بمتطلّبات
+# الاختبار وحدها — ظهر في #993 ثمّ في مراجعة 2026-09-13. CI تثبّت api/requirements.txt
+# فلا تراه؛ هنا يُثبَّت على إصدار الإنتاج نفسِه.
+defusedxml==0.7.1  # = api/requirements.txt:5
 # pillow: مطلوبة لاختبار واحد مُثبَت بالقياس — إسقاطها وحدها يُفشِل
 # test_segmentation_frontend_contract_20260702::test_segment_request_accepts_frontend_field_names
 pillow>=10.0.0  # = services/field-segmentation/requirements.txt:10
