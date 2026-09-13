@@ -1362,7 +1362,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 538,
+    "line": 557,
     "method": "POST",
     "path": "/v1/query",
     "function": "query_endpoint"
@@ -1370,7 +1370,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 548,
+    "line": 567,
     "method": "POST",
     "path": "/v1/ingest",
     "function": "ingest_endpoint"
@@ -1378,7 +1378,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 603,
+    "line": 622,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -1386,7 +1386,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 621,
+    "line": 640,
     "method": "GET",
     "path": "/health",
     "function": "legacy_health"
@@ -1394,7 +1394,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 626,
+    "line": 645,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -4458,7 +4458,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 212,
+    "line": 225,
     "method": "POST",
     "path": "/api/v1/farm-ledger/operations",
     "function": "create_operation_ledger_record"
@@ -4466,7 +4466,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 355,
+    "line": 395,
     "method": "GET",
     "path": "/api/v1/farm-ledger/operations",
     "function": "list_operation_ledger_records"
@@ -4474,7 +4474,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 403,
+    "line": 443,
     "method": "GET",
     "path": "/api/v1/farm-ledger/summary",
     "function": "farm_ledger_summary"
@@ -4482,7 +4482,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 529,
+    "line": 569,
     "method": "POST",
     "path": "/api/v1/farm-ledger/budgets",
     "function": "upsert_season_budget_lines"
@@ -4490,7 +4490,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 610,
+    "line": 650,
     "method": "GET",
     "path": "/api/v1/farm-ledger/budgets/{season_id}",
     "function": "get_season_budget"
@@ -4498,7 +4498,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 638,
+    "line": 678,
     "method": "POST",
     "path": "/api/v1/farm-ledger/revenues",
     "function": "create_revenue_record"
@@ -4506,7 +4506,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 730,
+    "line": 770,
     "method": "GET",
     "path": "/api/v1/farm-ledger/variance/{season_id}",
     "function": "get_budget_variance"
@@ -4514,7 +4514,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 758,
+    "line": 798,
     "method": "GET",
     "path": "/api/v1/farm-ledger/profitability/{season_id}",
     "function": "get_season_profitability"
@@ -4522,7 +4522,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 793,
+    "line": 833,
     "method": "GET",
     "path": "/api/v1/farm-ledger/erp-projection/{season_id}",
     "function": "get_erp_projection"
@@ -4530,7 +4530,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 876,
+    "line": 916,
     "method": "POST",
     "path": "/api/v1/farm-ledger/autowrite-preview",
     "function": "operation_autowrite_preview"
@@ -4538,7 +4538,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 924,
+    "line": 964,
     "method": "GET",
     "path": "/api/v1/farm-ledger/inventory-projection/{season_id}",
     "function": "get_inventory_projection"
@@ -4546,7 +4546,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 1015,
+    "line": 1055,
     "method": "GET",
     "path": "/api/v1/farm-ledger/economic-state/{season_id}",
     "function": "get_economic_state"

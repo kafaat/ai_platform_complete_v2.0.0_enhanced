@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5310,
+    "files_scanned": 5314,
     "files_by_kind": {
-      "backend": 1207,
+      "backend": 1208,
       "database": 277,
       "governance": 62,
       "mobile": 55,
       "other": 1465,
-      "tests": 1787,
+      "tests": 1790,
       "web": 457
     },
-    "unmapped_artifacts": 2164,
+    "unmapped_artifacts": 2166,
     "ambiguous_artifacts": 418
   },
   "capabilities": [
@@ -4164,6 +4164,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/evidence_registry.py",
+          "score": 8,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
           "path": "services/sahool-platform/examples/tenant_data/districts/tihama/climate.yaml",
           "score": 8,
           "signals": [
@@ -4214,51 +4222,51 @@
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/autowrite-preview @ services/sahool-platform/api/routers/farm_operations_ledger.py:875",
+          "value": "/api/v1/farm-ledger/autowrite-preview @ services/sahool-platform/api/routers/farm_operations_ledger.py:915",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:528",
+          "value": "/api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:568",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:609",
+          "value": "/api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:649",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/economic-state/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:1014",
+          "value": "/api/v1/farm-ledger/economic-state/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:1054",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:792",
+          "value": "/api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:832",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:923",
+          "value": "/api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:963",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/operations @ services/sahool-platform/api/routers/farm_operations_ledger.py:211",
+          "value": "/api/v1/farm-ledger/operations @ services/sahool-platform/api/routers/farm_operations_ledger.py:224",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/operations @ services/sahool-platform/api/routers/farm_operations_ledger.py:354",
+          "value": "/api/v1/farm-ledger/operations @ services/sahool-platform/api/routers/farm_operations_ledger.py:394",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/profitability/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:757",
+          "value": "/api/v1/farm-ledger/profitability/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:797",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/revenues @ services/sahool-platform/api/routers/farm_operations_ledger.py:637",
+          "value": "/api/v1/farm-ledger/revenues @ services/sahool-platform/api/routers/farm_operations_ledger.py:677",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/summary @ services/sahool-platform/api/routers/farm_operations_ledger.py:402",
+          "value": "/api/v1/farm-ledger/summary @ services/sahool-platform/api/routers/farm_operations_ledger.py:442",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:729",
+          "value": "/api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:769",
           "score": 17
         },
         {
@@ -5344,7 +5352,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 33,
+        "backend": 34,
         "routes": 44,
         "database": 98,
         "events": 22,
@@ -26795,6 +26803,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_raster_service_token_binding.py",
+          "score": 14,
+          "signals": [
+            "path:service token",
+            "content:service token"
+          ]
+        },
+        {
           "path": "tests_v9/test_service_token_constant_time.py",
           "score": 14,
           "signals": [
@@ -26889,7 +26905,7 @@
         "events": 3,
         "web": 0,
         "mobile": 0,
-        "tests": 9,
+        "tests": 10,
         "governance": 0,
         "other_evidence": 2
       },
@@ -38234,6 +38250,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/local-ai-rag/init_retry.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/local-ai-rag/main.py",
       "kind": "backend"
     },
@@ -38759,10 +38779,6 @@
     },
     {
       "path": "services/sahool-platform/api/evidence_map.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/sahool-platform/api/evidence_registry.py",
       "kind": "backend"
     },
     {
@@ -42154,6 +42170,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_ai_advice_persistence_and_grounding_honesty.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_ai_agronomist_main_decomposition_guard.py",
       "kind": "tests"
     },
@@ -43115,6 +43135,10 @@
     },
     {
       "path": "tests_v9/test_live_pg_role_closure_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_local_ai_rag_init_retry.py",
       "kind": "tests"
     },
     {
