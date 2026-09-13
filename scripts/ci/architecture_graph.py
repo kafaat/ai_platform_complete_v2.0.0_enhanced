@@ -16,6 +16,8 @@ from collections import defaultdict
 from functools import lru_cache
 from pathlib import Path
 
+import yaml
+
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "architecture" / "generated"
 SERVICE_DIRS = [ROOT / "services", ROOT / "apps", ROOT / "sahool-platform"]
@@ -71,7 +73,14 @@ def python_edges(nodes: dict[str, dict]) -> list[dict]:
     seen = set()
     for base, src in path_owner:
         for py in base.rglob("*.py"):
-            if any(part in SKIP for part in py.parts):
+            relative = py.relative_to(base)
+            if any(part in SKIP | {"tests", "test", "tests_v9"} for part in relative.parts):
+                continue
+            if (
+                py.name.startswith("test_")
+                or py.name.endswith("_test.py")
+                or py.name == "conftest.py"
+            ):
                 continue
             try:
                 tree = ast.parse(py.read_text(encoding="utf-8", errors="ignore"))
@@ -116,53 +125,32 @@ def python_edges(nodes: dict[str, dict]) -> list[dict]:
 
 
 def compose_edges(nodes: dict[str, dict]) -> list[dict]:
+    """Read only service dependency keys, not nested conditions or later properties."""
     edges = []
     seen = set()
-    for f in list(ROOT.glob("docker-compose*.yml")) + list(ROOT.glob("docker-compose*.yaml")):
-        lines = f.read_text(encoding="utf-8", errors="ignore").splitlines()
-        in_services = False
-        current = None
-        in_depends = False
-        service_indent = None
-        for line in lines:
-            stripped = line.strip()
-            indent = len(line) - len(line.lstrip())
-            if stripped == "services:":
-                in_services = True
-                continue
-            if not in_services:
-                continue
-            m = re.match(r"^\s{2}([A-Za-z0-9_.-]+):\s*(?:#.*)?$", line)
-            if m:
-                current = canonical(m.group(1))
-                service_indent = indent
-                in_depends = False
-                continue
-            if current and stripped.startswith("depends_on:"):
-                in_depends = True
-                continue
-            if in_depends:
-                m1 = re.match(r"^\s*-\s*([A-Za-z0-9_.-]+)\s*$", line)
-                m2 = re.match(r"^\s+([A-Za-z0-9_.-]+):(?:\s|$)", line)
-                dep = canonical((m1 or m2).group(1)) if (m1 or m2) else None
-                if dep:
-                    nodes.setdefault(
-                        current, {"id": current, "paths": [], "kind": "compose-service"}
+    files = sorted(list(ROOT.glob("docker-compose*.yml")) + list(ROOT.glob("docker-compose*.yaml")))
+    for path in files:
+        document = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        for name, service in (document.get("services") or {}).items():
+            current = canonical(name)
+            dependencies = (service or {}).get("depends_on") or []
+            for name in dependencies:
+                dependency = canonical(name)
+                nodes.setdefault(current, {"id": current, "paths": [], "kind": "compose-service"})
+                nodes.setdefault(
+                    dependency, {"id": dependency, "paths": [], "kind": "compose-service"}
+                )
+                key = (current, dependency, str(path.relative_to(ROOT)))
+                if key not in seen:
+                    seen.add(key)
+                    edges.append(
+                        {
+                            "source": current,
+                            "target": dependency,
+                            "kind": "compose-depends-on",
+                            "evidence": key[2],
+                        }
                     )
-                    nodes.setdefault(dep, {"id": dep, "paths": [], "kind": "compose-service"})
-                    key = (current, dep, str(f.relative_to(ROOT)))
-                    if key not in seen:
-                        seen.add(key)
-                        edges.append(
-                            {
-                                "source": current,
-                                "target": dep,
-                                "kind": "compose-depends-on",
-                                "evidence": key[2],
-                            }
-                        )
-                elif stripped and indent <= (service_indent or 2) + 2:
-                    in_depends = False
     return edges
 
 

@@ -514,7 +514,7 @@
     },
     {
       "kind": "app",
-      "line": 192,
+      "line": 194,
       "module": "services.sahool-platform.api.main",
       "node_id": "services.sahool-platform.api.main:app",
       "route_count": 0,
@@ -568,7 +568,7 @@
     },
     {
       "kind": "router",
-      "line": 37,
+      "line": 47,
       "module": "services.sahool-platform.api.routers.agro_intelligence",
       "node_id": "services.sahool-platform.api.routers.agro_intelligence:router",
       "route_count": 7,
@@ -2613,7 +2613,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "21d6700d36be6bc6c58b867b12f960e40366898b16995b39642470e12a2be353",
+  "inventory_sha256": "c6cd19f7b16be3da9d54de5acdfb67d18faff2aa420cc865a82b17fbd857881e",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {
@@ -2999,7 +2999,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 37,
+      "line": 47,
       "module": "services.sahool-platform.api.routers.agro_intelligence",
       "node_id": "services.sahool-platform.api.routers.agro_intelligence:router",
       "route_count": 7,

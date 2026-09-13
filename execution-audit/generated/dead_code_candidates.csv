@@ -8,7 +8,6 @@ high,raster-service,function,_require_layer_tenant,services/raster-service/raste
 high,raster-service,function,_require_layer_tenant_authorized,services/raster-service/raster_main_runtime.py,93,0,review_before_delete,False
 high,raster-service,function,_clean_cache,services/raster-service/test_c7_latest_cache_provenance.py,40,0,review_before_delete,False
 high,raster-service,function,_clean_cache,services/raster-service/test_cdse_empty_raster_not_cached.py,70,0,review_before_delete,False
-high,sahool-platform,function,_apply_tenant_guc,services/sahool-platform/api/main.py,649,0,review_before_delete,False
 high,sahool-platform,function,_record_to_json,services/sahool-platform/api/routers/field_ai_context.py,59,0,review_before_delete,False
 high,sahool-platform,function,_conflict_changed_fields,services/sahool-platform/api/routers/fields.py,1244,0,review_before_delete,False
 high,sahool-platform,function,_facts_snapshot_hash,services/sahool-platform/api/routers/irrigation_mpc.py,190,0,review_before_delete,False
@@ -160,7 +159,7 @@ medium,sahool-platform,class,EmitEventExecutionRequestPort,services/sahool-platf
 medium,sahool-platform,function,resolve_source_paths,services/sahool-platform/api/irrigation_path_query.py,63,0,review_before_delete,False
 medium,sahool-platform,function,compensate_dispatch_failure,services/sahool-platform/api/irrigation_reservation_adapter.py,334,0,review_before_delete,False
 medium,sahool-platform,function,plan_and_maybe_emit,services/sahool-platform/api/lexicographic_mpc_bridge.py,96,0,review_before_delete,False
-medium,sahool-platform,function,rate_limit_middleware,services/sahool-platform/api/main.py,902,0,review_before_delete,False
+medium,sahool-platform,function,rate_limit_middleware,services/sahool-platform/api/main.py,892,0,review_before_delete,False
 medium,sahool-platform,function,should_fail,services/sahool-platform/api/offline_pending_db.py,71,0,review_before_delete,False
 medium,sahool-platform,function,reclaim_stuck_processing,services/sahool-platform/api/offline_pending_db.py,253,0,review_before_delete,False
 medium,sahool-platform,function,clear_processed,services/sahool-platform/api/offline_pending_db.py,279,0,review_before_delete,False
@@ -596,6 +595,7 @@ medium,shared,class,ObservationRejectedEventV1,shared/contracts/remote_sensing/e
 medium,shared,class,RasterAssetPersistedEventV1,shared/contracts/remote_sensing/events/raster_events_v1.py,15,0,review_before_delete,False
 medium,shared,class,RasterAssetFailedEventV1,shared/contracts/remote_sensing/events/raster_events_v1.py,32,0,review_before_delete,False
 medium,shared,function,is_canonical_field_geometry,shared/domain/field_geometry.py,92,0,review_before_delete,False
+medium,shared,function,send_push,shared/fcm.py,115,0,review_before_delete,False
 medium,shared,function,build_feature_lineage_manifest,shared/feature_store/runtime.py,255,0,review_before_delete,False
 medium,shared,function,transform_to_map_projection,shared/gis/crs_service.py,164,0,review_before_delete,False
 medium,shared,class,HttpDiagnosisResolver,shared/governance/chemical_lineage.py,128,0,review_before_delete,False
@@ -622,6 +622,7 @@ medium,shared,function,agricultural_evaluation_profile,shared/mlops/runtime.py,2
 medium,shared,function,project_observation,shared/precision_agriculture/pail_om_edge.py,31,0,review_before_delete,False
 medium,shared,function,import_observation_projection,shared/precision_agriculture/pail_om_edge.py,110,0,review_before_delete,False
 medium,shared,function,bind_plot_outcomes,shared/precision_agriculture/trial_spatial.py,264,0,review_before_delete,False
+medium,shared,function,verify_access_token,shared/security/access_tokens.py,35,0,review_before_delete,False
 medium,shared,function,wildcard_with_credentials,shared/security/cors_policy.py,78,0,review_before_delete,False
 medium,shared,function,require_attested_reviewer,shared/security/gateway_deps.py,71,0,review_before_delete,False
 medium,shared,function,logbook_size_ok,shared/security/season_logbook.py,68,0,review_before_delete,False

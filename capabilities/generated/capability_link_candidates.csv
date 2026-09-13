@@ -781,7 +781,7 @@ FM-004,api,GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41
 FM-004,api,GET /v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:43,2,applied
 FM-004,api,PATCH /api/v1/fields/{field_id}/seasons/{season_id} @ services/sahool-platform/api/routers/fields.py:2348,2,applied
 FM-004,api,PATCH /internal/seasons/{season_id} @ services/scout-ingest-service/season_api.py:264,2,applied
-FM-004,api,POST /api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:206,2,applied
+FM-004,api,POST /api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:216,2,applied
 FM-004,api,POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:529,2,applied
 FM-004,api,POST /api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2114,2,applied
 FM-004,api,POST /api/v1/seasons/{season_id}/simulate @ services/sahool-platform/api/routers/seasons.py:132,2,applied
@@ -835,8 +835,8 @@ FM-005,api,GET /api/v1/market/crop-gap @ services/sahool-platform/api/routers/ma
 FM-005,api,GET /api/v1/propagation/crop @ services/sahool-platform/api/routers/propagation.py:42,2,applied
 FM-005,api,GET /api/v1/varieties/food-grains/{variety_id} @ services/sahool-platform/api/routers/varieties.py:47,2,applied
 FM-005,api,GET /api/v1/wofost/crop-types @ services/sahool-platform/api/routers/wofost.py:27,2,applied
-FM-005,api,POST /api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:154,2,applied
-FM-005,api,POST /api/v1/agro/crop-rotation @ services/sahool-platform/api/routers/agro_intelligence.py:189,2,applied
+FM-005,api,POST /api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:164,2,applied
+FM-005,api,POST /api/v1/agro/crop-rotation @ services/sahool-platform/api/routers/agro_intelligence.py:199,2,applied
 FM-005,api,POST /api/v1/crop-suitability @ services/sahool-platform/api/routers/crop_suitability.py:31,2,applied
 FM-005,api,POST /api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:250,2,applied
 FM-005,api,POST /api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:409,2,applied
@@ -942,6 +942,7 @@ FM-008,test,tests_v9/test_compose_odoo_db_separation.py,3,applied
 FM-008,test,tests_v9/test_erp_bridge_alias_contract.py,3,applied
 FM-008,test,tests_v9/test_erp_bridge_fail_closed.py,3,applied
 FM-008,test,tests_v9/test_erp_bridge_healthcheck_guard.py,3,applied
+FM-008,test,tests_v9/test_erp_sync_recovery.py,3,applied
 FM-008,test,tests_v9/test_odoo_bridge_tenant_honesty.py,3,applied
 FM-008,test,tests_v9/test_v9_odoo_rls_hardening_static.py,3,applied
 GIS-001,api,DELETE /api/v1/gis/cloud-native/locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:656,2,applied
@@ -1111,7 +1112,7 @@ IRR-005,api,POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ servi
 IRR-005,api,POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:187,7,applied
 IRR-005,api,POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:441,3,applied
 IRR-005,api,POST /api/v1/weather/recommendations/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2922,3,applied
-IRR-005,api,POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:303,3,applied
+IRR-005,api,POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:350,3,applied
 IRR-005,api,POST /v1/recommendation-outcomes @ services/decision-service/main.py:954,2,applied
 IRR-005,service,services/sahool-platform/api/main.py,10,applied
 IRR-005,test,services/decision-service/tests/test_s5_exec_01_recommendation_outcomes_compat.py,3,applied
@@ -1129,6 +1130,7 @@ IRR-005,test,services/sahool-platform/tests/test_s5_exec_01_recommendation_outco
 IRR-005,test,services/sahool-platform/tests/test_work_order_from_recommendation.py,3,applied
 IRR-005,test,tests_v9/test_irrigation_recommendation_policy.py,7,applied
 IRR-005,test,tests_v9/test_recommendation_enriched_passthrough.py,3,applied
+IRR-005,test,tests_v9/test_recommendation_work_order_idempotency.py,3,applied
 IRR-005,test,tests_v9/test_v152_recommendation_feedback_deprecation_static.py,3,applied
 IRR-006,api,DELETE /api/v1/irrigation/schedules/{schedule_id} @ services/sahool-platform/api/routers/irrigation.py:357,3,applied
 IRR-006,api,POST /api/v1/irrigation/schedules @ services/sahool-platform/api/routers/irrigation.py:236,3,applied
@@ -1206,10 +1208,12 @@ OPS-001,api,POST /api/v1/weather/tasks/from-operation-plan @ services/sahool-pla
 OPS-001,mobile,mobile/sahool_app/lib/screens/tasks_screen.dart,2,applied
 OPS-001,service,services/sahool-platform/api/main.py,10,applied
 OPS-001,test,tests_v9/test_tasks_endpoints.py,3,applied
-OPS-002,api,POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:303,5,applied
+OPS-002,api,POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:350,5,applied
 OPS-002,service,services/sahool-platform/api/main.py,10,applied
 OPS-002,test,services/sahool-platform/tests/test_work_order.py,5,applied
 OPS-002,test,services/sahool-platform/tests/test_work_order_from_recommendation.py,5,applied
+OPS-002,test,tests_v9/test_recommendation_work_order_idempotency.py,5,applied
+OPS-002,test,tests_v9/test_telegram_work_order_delivery.py,5,applied
 OPS-002,test,tests_v9/test_work_order_persist_emit.py,5,applied
 OPS-002,test,tests_v9/test_work_orders_migration.py,5,applied
 OPS-003,api,GET /api/v1/scouting/pins @ services/sahool-platform/api/routers/scouting.py:78,2,applied
@@ -1797,6 +1801,7 @@ SEC-005,test,tests_v9/test_compose_security_audit.py,3,applied
 SEC-005,test,tests_v9/test_persistence_truth_audit_v30_7.py,3,applied
 SEC-005,test,tests_v9/test_pip_audit_resolution_guard.py,3,applied
 SEC-005,test,tests_v9/test_rag_live_corpus_audit.py,3,applied
+SEC-005,test,tests_v9/test_runtime_image_audit_gate.py,3,applied
 SEC-005,test,tests_v9/test_tenant_query_audit.py,3,applied
 SEC-005,test,tests_v9/test_v87_audit_tenant.py,3,applied
 SEC-006,service,services/auth/main.py,10,applied

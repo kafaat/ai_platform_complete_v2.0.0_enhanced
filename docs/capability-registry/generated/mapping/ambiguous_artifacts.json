@@ -385,6 +385,14 @@
           "content:NDVI",
           "content:ndvi"
         ]
+      },
+      {
+        "capability_id": "OPS-002",
+        "score": 9,
+        "signals": [
+          "content:Work orders",
+          "content:work order"
+        ]
       }
     ]
   },
@@ -1239,6 +1247,36 @@
         "signals": [
           "content:NDVI",
           "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/audits/DEEP_REVIEW_SUPPLEMENT_20260913.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-009",
+        "score": 10,
+        "signals": [
+          "content:cog",
+          "content:raster tile"
+        ]
+      },
+      {
+        "capability_id": "INT-002",
+        "score": 9,
+        "signals": [
+          "content:jetstream",
+          "content:nats"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 8,
+        "signals": [
+          "content:Tenant RLS",
+          "content:rls"
         ]
       }
     ]

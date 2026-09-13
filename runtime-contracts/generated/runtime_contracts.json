@@ -1762,7 +1762,7 @@
       "configuration": [],
       "container": {
         "dockerfile": "services/raster-tiler-service/Dockerfile",
-        "requirements": null
+        "requirements": "services/raster-tiler-service/requirements.txt"
       },
       "contract_version": "1.0",
       "domain": "Imagery & Raster",

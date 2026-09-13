@@ -17,5 +17,5 @@ RUN useradd -m sahool && chown -R sahool:sahool /app
 USER sahool
 # الصورة لا تثبّت curl — نستخدم python (متوفّر) ونطلب /healthz على المنفذ 8123.
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8123/readyz', timeout=3).read()" || exit 1
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8123/healthz', timeout=3).read()" || exit 1
 CMD ["python", "agent.py"]
