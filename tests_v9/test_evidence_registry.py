@@ -127,6 +127,34 @@ def test_samples_without_unit_identity_are_declared_not_hidden():
     assert any("بلا هويّة" in w for w in e["warnings_ar"])
 
 
+def test_unknown_identity_warned_in_multi_dimension_batch():
+    rows = [
+        {**_outcome(1, 1), "field_id": f"field_{i % 3}", "season_id": f"season_{i % 2}"}
+        for i in range(7)
+    ] + [_outcome(1, 1) for _ in range(3)]
+    e = aggregate_evidence("jawf", rows)
+    assert e["sample_count"] == 10
+    assert e["independence"]["unknown_unit_samples"] == 3
+    assert e["independence"]["fields"] == 3
+    assert e["independence"]["seasons"] == 2
+    assert sum("3 من 10" in w and "هوية" in w for w in e["warnings_ar"]) == 1
+    assert not any("الهوية محدودة" in w for w in e["warnings_ar"])
+
+
+def test_unknown_identity_and_narrow_scope_coexist():
+    rows = [
+        {**_outcome(1, 1), "field_id": "field_1", "season_id": f"season_{i}"} for i in range(3)
+    ] + [_outcome(1, 1) for _ in range(2)]
+    e = aggregate_evidence("jawf", rows)
+    assert e["sample_count"] == 5
+    assert e["independence"]["unknown_unit_samples"] == 2
+    assert e["independence"]["fields"] == 1
+    assert e["independence"]["seasons"] == 3
+    assert sum("2 من 5" in w and "هوية" in w for w in e["warnings_ar"]) == 1
+    assert any("معرّفات الحقول المتاحة: 1، والمواسم: 3" in w for w in e["warnings_ar"])
+    assert any("الهوية محدودة" in w for w in e["warnings_ar"])
+
+
 def test_tenant_identity_does_not_prove_field_and_season_completeness():
     e = aggregate_evidence("jawf", [{**_outcome(1, 1), "tenant_id": "tenant_1"}] * 4)
     assert e["independence"] == {
