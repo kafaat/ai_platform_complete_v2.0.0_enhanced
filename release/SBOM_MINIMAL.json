@@ -2675,7 +2675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "84771343a31f75b6502c06bb15c454ccad02b1ebbe9e7ef5e8c5e18c37612a4d"
+          "content": "7ceec12599bce82c4064efae6f5da88c74c1f0646ca6b5b2efbeaefa2dccc4da"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -5615,7 +5615,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ba2c53a4e5fcba7650bb5f04db69e76f752eb42291a7c8d435ac1bc837f2cf61"
+          "content": "370b765065ce2af1ba13b8d5d6949e9c5eb608c8afbc8ce2b79a0cb672427b5e"
+        }
+      ],
+      "name": "frontend/src/sections/LearningDashboardPage.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d3a5531caf1bc4d2d0f5001dbbd12485f3d0ba6f1372fd94f52e8c267c0e2a88"
         }
       ],
       "name": "frontend/src/sections/LearningDashboardPage.tsx",
@@ -5625,7 +5635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "11335cddb5b9fbea61780dda9fed2d03d17079fa0b8c8da1fb93cd480049f314"
+          "content": "73f5e38dcea5222b48f7b6e62f5c5694f86f302c724af7868ae9683f05ad4e9c"
         }
       ],
       "name": "frontend/src/sections/LineagePage.tsx",
@@ -6385,7 +6395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c21f913ea5423d2a322c975937eb94f4bc449a3fb765fc39ad3c9b0b3e7f1ca3"
+          "content": "63589ccceae4851e5b641afe909a424e5646d3b75da6d8dae4212b766d92c2e1"
         }
       ],
       "name": "frontend/src/services/api/calibration.ts",
@@ -6555,7 +6565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e16d96c6682bf724e6c0da5468c975240d75f36abcefb17e22b20829a775a37f"
+          "content": "8dc5ef53e50a1019547ee110f481ff5745207cd19b3d2a340452e0d800e10278"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -16525,7 +16535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "514ec7475ae593d22b367d99476f062783e241465aa7630c97fd7ff6b7deee51"
+          "content": "b77d47c1eba6904b98b479eb57cedf86f111da73387416a7e509b14053a8dee4"
         }
       ],
       "name": "services/sahool-platform/api/evidence_registry.py",

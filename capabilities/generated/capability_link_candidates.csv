@@ -23,6 +23,7 @@ DEC-001,api,POST /v1/evidence/vegetation-snapshots @ services/decision-service/m
 DEC-001,api,POST /v1/fields/{field_id}/soil/evidence @ services/soil-service/routers/canonical.py:129,2,applied
 DEC-001,api,POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:2791,3,applied
 DEC-001,service,services/decision-service/main.py,10,applied
+DEC-001,test,docs/testing/LEARNING_DASHBOARD_EVIDENCE_20260914.md,3,applied
 DEC-001,test,services/decision-service/tests/test_activation_evidence_contract.py,3,applied
 DEC-001,test,services/decision-service/tests/test_agronomic_evidence_contract.py,3,applied
 DEC-001,test,services/decision-service/tests/test_decision_evidence_read.py,7,applied

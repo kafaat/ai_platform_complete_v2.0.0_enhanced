@@ -15,7 +15,7 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5324,
+    "files_scanned": 5325,
     "files_by_kind": {
       "backend": 1208,
       "database": 277,
@@ -23,10 +23,10 @@
       "mobile": 55,
       "other": 1472,
       "tests": 1793,
-      "web": 457
+      "web": 458
     },
-    "unmapped_artifacts": 2168,
-    "ambiguous_artifacts": 420
+    "unmapped_artifacts": 2167,
+    "ambiguous_artifacts": 419
   },
   "capabilities": [
     {
@@ -5008,6 +5008,14 @@
             "content:farm",
             "content:farms"
           ]
+        },
+        {
+          "path": "frontend/src/sections/LearningDashboardPage.test.tsx",
+          "score": 8,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
         }
       ],
       "mobile": [
@@ -5232,6 +5240,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_evidence_registry.py",
+          "score": 8,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
           "path": "tests_v9/test_irrx1_farmer_manual_operations_ui.py",
           "score": 8,
           "signals": [
@@ -5364,9 +5380,9 @@
         "routes": 44,
         "database": 98,
         "events": 22,
-        "web": 14,
+        "web": 15,
         "mobile": 2,
-        "tests": 26,
+        "tests": 27,
         "governance": 0,
         "other_evidence": 14
       },
@@ -13091,13 +13107,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        },
-        {
           "path": "shared/autonomous_farm_os_phase9.py",
           "score": 12,
           "signals": [
@@ -13119,7 +13128,7 @@
         "mobile": 0,
         "tests": 0,
         "governance": 0,
-        "other_evidence": 2
+        "other_evidence": 1
       },
       "coverage_dimensions": 1,
       "mapped": true
@@ -13380,13 +13389,6 @@
           ]
         },
         {
-          "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        },
-        {
           "path": "docs/capabilities/SALINITY_CAPABILITY.md",
           "score": 14,
           "signals": [
@@ -13440,7 +13442,7 @@
         "mobile": 0,
         "tests": 10,
         "governance": 0,
-        "other_evidence": 7
+        "other_evidence": 6
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -13457,15 +13459,7 @@
       "mobile": [],
       "tests": [],
       "governance": [],
-      "other_evidence": [
-        {
-          "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        }
-      ],
+      "other_evidence": [],
       "ambiguous": [],
       "static_evidence_only": true,
       "runtime_verified": false,
@@ -13479,7 +13473,7 @@
         "mobile": 0,
         "tests": 0,
         "governance": 0,
-        "other_evidence": 1
+        "other_evidence": 0
       },
       "coverage_dimensions": 0,
       "mapped": false
@@ -25886,13 +25880,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        },
-        {
           "path": "scripts/ci/wx12_runtime_multitenancy_gate.py",
           "score": 12,
           "signals": [
@@ -25923,7 +25910,7 @@
         "mobile": 0,
         "tests": 1,
         "governance": 0,
-        "other_evidence": 3
+        "other_evidence": 2
       },
       "coverage_dimensions": 2,
       "mapped": true
@@ -42823,10 +42810,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_evidence_registry.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_execution_feedback_shape.py",
       "kind": "tests"
     },
@@ -44517,40 +44500,6 @@
           "signals": [
             "content:Work orders",
             "content:work order"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "certification/evidence/pr974_ci_repair_62751f9e.json",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SEC-003",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "IRR-010",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "IRR-009",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "IRR-008",
-          "score": 20,
-          "signals": [
-            "explicit_id"
           ]
         }
       ]

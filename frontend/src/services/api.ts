@@ -1076,13 +1076,26 @@ export interface LearningSummaryRegion {
   calibrated?:                 boolean;
   warnings_ar?:                string[];
 }
+/** Counts from the existing reconciliation read path. Linked cases are not
+ * proof of statistically independent fields, farms or seasons. */
+export interface LearningOutcomeReconciliation {
+  enabled?:                boolean;
+  total?:                  number | null;
+  by_source?:              Record<string, number>;
+  by_kind?:                Record<string, number>;
+  linked_group_count?:     number;
+  independent_case_count?: number | null;
+  rows_by_source?:         Partial<Record<string, number | null>>;
+  sample_count_basis?:     string;
+  authoritative_note?:     string;
+}
 export interface LearningSummary {
   regions?:                LearningSummaryRegion[];
   region_count?:           number;
   overall?:                LearningSummaryRegion;
   calibrated?:             boolean;
   warnings_ar?:            string[];
-  outcome_reconciliation?: Record<string, unknown>;
+  outcome_reconciliation?: LearningOutcomeReconciliation | null;
   [k: string]:             unknown;
 }
 /** يجلب تلخيص حلقة التعلّم. أفضل-جهد: أيّ خطأ/استجابة غير صالحة (404 نقطة غير
@@ -3793,4 +3806,3 @@ export * from './api/fieldIrrigation';
 
 // FIELD WORKSPACE TIMELINE FACADE — UI-32 compatibility export
 export * from './api/fieldTimeline';
-

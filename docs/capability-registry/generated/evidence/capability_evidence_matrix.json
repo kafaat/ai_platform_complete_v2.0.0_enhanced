@@ -1584,6 +1584,7 @@
         "services/sahool-platform/tests/test_simple_farm_book.py",
         "services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py",
         "shared/test_autonomous_farm_os_phase9.py",
+        "tests_v9/test_evidence_registry.py",
         "tests_v9/test_farm_memory.py",
         "tests_v9/test_irrx1_farmer_manual_operations_ui.py",
         "tests_v9/test_writeops_events_emitted.py"

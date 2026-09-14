@@ -2574,8 +2574,8 @@ export function useDecisionLineage(decisionId?: string): UseQueryResult<Decision
 }
 
 // الدليل المتراكم لمنطقة (GET /api/v1/calibration/{region}/evidence/persisted) — قراءة
-// فقط. يُظهر تقدّم العيّنات نحو التحقّق ومستوى الدليل. صدق: تقديريّ غير مُعايَر
-// (calibrated=false) حتى تكفي العيّنات. لا fallback وهميّ — الخطأ يُرفض الاستعلام.
+// فقط. ينقل تقدّم جمع العيّنات ومستوى الدليل والتحذيرات كما يردها الخادم؛ العدد
+// وحده لا يمنح مراجعة أو معايرة. لا fallback وهميّ — الخطأ يُرفض الاستعلام.
 export function usePersistedEvidence(region?: string): UseQueryResult<PersistedEvidence, Error> {
   const r = (region ?? '').trim();
   return useQuery<PersistedEvidence, Error>({

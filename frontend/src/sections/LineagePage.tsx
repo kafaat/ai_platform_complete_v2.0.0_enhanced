@@ -2,9 +2,9 @@
 // SAHOOL — LineagePage (يستهلك GET /api/v1/decision/{id}/lineage
 // و GET /api/v1/calibration/{region}/evidence/persisted)
 // قراءة فقط: يُظهر سلسلة النَّسَب المُدامة (قرار → نتائجه التالية)، والدليل
-// الميدانيّ المتراكم لكلّ منطقة وتقدّمه نحو التحقّق. صدق: الدليل المتراكم
-// تقديريّ غير مُعايَر (calibrated=false, source=persisted_outcomes) حتى تُجمَع
-// عيّنات كافية — تُعرَض warnings_ar صراحةً بلا أرقام قاطعة مُلفَّقة.
+// الميدانيّ المتراكم لكلّ منطقة وتقدّم جمع العيّنات. صدق: بلوغ عتبة الجمع لا يمنح
+// اعتماداً أو معايرة (calibrated=false, source=persisted_outcomes)؛
+// تُعرَض warnings_ar ومستوى الدليل كما يردان من الخادم.
 // ═══════════════════════════════════════════════════════════════
 import { useState } from 'react';
 import {
@@ -115,7 +115,7 @@ export default function LineagePage() {
   const dec = lineage.data?.decision ?? null;
   const ev = evidence.data;
   const evStyle = ev ? evidenceStyle(ev.evidence_level) : null;
-  // تقدّم العيّنات نحو التحقّق (sample_count / field_verified_min_samples).
+  // تقدّم جمع العيّنات (sample_count / field_verified_min_samples)، لا الاعتماد.
   const progressPct = ev && ev.field_verified_min_samples > 0
     ? Math.min(100, Math.round((ev.sample_count / ev.field_verified_min_samples) * 100))
     : 0;
@@ -127,8 +127,8 @@ export default function LineagePage() {
         <h2 className="text-xl font-bold text-slate-100">سلسلة النَّسَب والدليل المتراكم</h2>
       </div>
       <p className="text-sm text-slate-400">
-        أثرٌ صادق للقرارات المُدامة ونتائجها التالية، وتراكم الدليل الميدانيّ لكلّ منطقة نحو التحقّق.
-        لا أرقام قاطعة مُلفَّقة: الدليل المتراكم <span className="text-amber-300">تقديريّ غير مُعايَر</span> حتى تُجمَع عيّنات كافية.
+        أثرٌ صادق للقرارات المُدامة ونتائجها التالية، وتقدّم جمع العيّنات لكلّ منطقة.
+        اكتمال الجمع يختلف عن مراجعة الدليل ومعايرته؛ الدليل المتراكم <span className="text-amber-300">تقديريّ غير مُعايَر</span>.
       </p>
 
       {/* ═══════════ القسم الأوّل: سلسلة قرار ═══════════ */}
@@ -268,7 +268,7 @@ export default function LineagePage() {
 
         {ev && evStyle && (
           <div className="space-y-4">
-            {/* تقدّم نحو التحقّق + شارة + معدّل النجاح */}
+            {/* تقدّم الجمع + مستوى الدليل الوارد + معدّل النجاح */}
             <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold"
@@ -282,10 +282,10 @@ export default function LineagePage() {
                 </span>
               </div>
 
-              {/* شريط تقدّم العيّنات نحو التحقّق */}
+              {/* شريط تقدّم العيّنات نحو عتبة الجمع التقديريّة */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-[11px] text-slate-400">
-                  <span>التقدّم نحو التحقّق الميدانيّ</span>
+                  <span>اكتمال جمع العيّنات</span>
                   <span className="text-slate-300 font-medium">
                     {ev.sample_count} / {ev.field_verified_min_samples} عيّنة
                   </span>
@@ -296,7 +296,7 @@ export default function LineagePage() {
                 </div>
                 {ev.samples_to_verified > 0 && (
                   <div className="text-[10px] text-slate-500">
-                    تبقّى {ev.samples_to_verified} عيّنة للوصول إلى «مُتحقَّق ميدانيّاً».
+                    تبقّى {ev.samples_to_verified} عيّنة لبلوغ عتبة الجمع.
                   </div>
                 )}
               </div>
