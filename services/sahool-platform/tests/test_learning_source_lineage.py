@@ -101,3 +101,142 @@ class TestNoOrphanClassifierTotal:
                 "rejected_untraceable",
             }
             assert isinstance(r["applies"], bool)
+
+
+class TestTraceableIsNotApproved:
+    """U07 (التدقيق الموحَّد 2026-09-13): وجود معرّف مصدر ≠ اعتماد زراعيّ."""
+
+    def test_traceable_update_without_review_is_unapproved(self):
+        r = resolve_learning_source({"source_type": "human_feedback", "source_id": "hf_1"})
+        assert r["traceability_status"] == "traceable"
+        assert r["review_status"] == "unreviewed"
+        assert r["agronomically_approved"] is False
+        assert r["review"] is None
+
+    def test_approval_requires_reviewer_verdict_and_evidence(self):
+        base = {"source_type": "recommendation_outcome", "source_id": "out_1"}
+        full = resolve_learning_source(
+            {
+                **base,
+                "review": {
+                    "reviewer_id": "agronomist:7",
+                    "verdict": "approved",
+                    "evidence_ids": ["or_9"],
+                    "reviewed_at": "2026-09-13",
+                },
+            }
+        )
+        assert full["review_status"] == "approved" and full["agronomically_approved"] is True
+        assert full["review"]["evidence_ids"] == ["or_9"]
+        no_evidence = resolve_learning_source(
+            {**base, "review": {"reviewer_id": "agronomist:7", "verdict": "approved"}}
+        )
+        assert no_evidence["review_status"] == "unreviewed"
+        no_reviewer = resolve_learning_source(
+            {**base, "review": {"verdict": "approved", "evidence_ids": ["or_9"]}}
+        )
+        assert no_reviewer["review_status"] == "unreviewed"
+        rejected = resolve_learning_source(
+            {**base, "source": {"review": {"reviewer_id": "a", "verdict": "rejected"}}}
+        )
+        assert rejected["review_status"] == "rejected"
+        assert rejected["agronomically_approved"] is False
+
+    def test_summary_separates_traceable_from_approved(self):
+        rows = [
+            {"source_type": "human_feedback", "traceability_status": "traceable"},
+            {
+                "source_type": "human_feedback",
+                "traceability_status": "traceable",
+                "review_status": "approved",
+            },
+        ]
+        s = summarize_learning_sources(rows)
+        assert s["traceable"] == 2
+        assert s["agronomically_approved"] == 1
+        assert s["by_review_status"] == {"unreviewed": 1, "approved": 1}
+
+    def test_blank_evidence_ids_do_not_approve(self):
+        """Copilot على #1001: `[" "]` ليس دليلاً."""
+        r = resolve_learning_source(
+            {
+                "source_type": "human_feedback",
+                "source_id": "hf_1",
+                "review": {
+                    "reviewer_id": "a",
+                    "verdict": "approved",
+                    "evidence_ids": [" ", "", None, 7],
+                },
+            }
+        )
+        assert r["review_status"] == "unreviewed" and r["agronomically_approved"] is False
+        # قائمةٌ مختلطة (عضوٌ صالح + عضوٌ خاطئ) تُرفَض كلُّها — لا ترشيحَ جزئيّ (Copilot على #1001).
+        mixed = resolve_learning_source(
+            {
+                "source_type": "human_feedback",
+                "source_id": "hf_1",
+                "review": {"reviewer_id": "a", "verdict": "approved", "evidence_ids": ["ok_1", 7]},
+            }
+        )
+        assert mixed["review_status"] == "unreviewed" and mixed["review"]["evidence_ids"] == []
+        ok = resolve_learning_source(
+            {
+                "source_type": "human_feedback",
+                "source_id": "hf_1",
+                "review": {"reviewer_id": "a", "verdict": "approved", "evidence_ids": ["  or_9 "]},
+            }
+        )
+        assert ok["review_status"] == "approved" and ok["review"]["evidence_ids"] == ["or_9"]
+
+    def test_non_string_reviewer_is_not_a_reviewer(self):
+        """Copilot على #1001: `reviewer_id: 7` كان يمرّ صادقاً فيُعتمَد بلا هويّة مراجِع صالحة."""
+        for bad in (7, True, {"id": "a"}, ["a"], 0.5):
+            r = resolve_learning_source(
+                {
+                    "source_type": "human_feedback",
+                    "source_id": "hf_1",
+                    "review": {"reviewer_id": bad, "verdict": "approved", "evidence_ids": ["e1"]},
+                }
+            )
+            assert r["review_status"] == "unreviewed", bad
+            assert r["review"]["reviewer_id"] is None
+        rejected = resolve_learning_source(
+            {
+                "source_type": "human_feedback",
+                "source_id": "hf_1",
+                "review": {"reviewer_id": 7, "verdict": "rejected", "evidence_ids": []},
+            }
+        )
+        assert rejected["review_status"] == "unreviewed"  # رفضٌ بلا مراجِع صالح لا يُحتسَب أيضاً
+
+    def test_scalar_evidence_ids_are_not_a_list_of_evidence(self):
+        """Copilot على #1001: `evidence_ids: "claim-1"` كان يُقطَّع حروفاً فيُعتمَد بلا قائمة."""
+        for scalar in ("claim-1", 7, {"id": "x"}, True):
+            r = resolve_learning_source(
+                {
+                    "source_type": "human_feedback",
+                    "source_id": "hf_1",
+                    "review": {"reviewer_id": "a", "verdict": "approved", "evidence_ids": scalar},
+                }
+            )
+            assert r["review_status"] == "unreviewed", scalar
+            assert r["review"]["evidence_ids"] == []
+        # قائمةُ JSON وحدَها مقبولة — الصفُّ والمجموعة مرفوضان (ترتيبُ المجموعة غيرُ حتميّ فتختلف
+        # بصمةُ التدقيق لمدخل واحد؛ Copilot على #1001).
+        for seq in (("e1",), {"e1"}, frozenset({"e1"})):
+            r = resolve_learning_source(
+                {
+                    "source_type": "human_feedback",
+                    "source_id": "hf_1",
+                    "review": {"reviewer_id": "a", "verdict": "approved", "evidence_ids": seq},
+                }
+            )
+            assert r["review_status"] == "unreviewed", seq
+        ok = resolve_learning_source(
+            {
+                "source_type": "human_feedback",
+                "source_id": "hf_1",
+                "review": {"reviewer_id": "a", "verdict": "approved", "evidence_ids": ["e1"]},
+            }
+        )
+        assert ok["review_status"] == "approved"

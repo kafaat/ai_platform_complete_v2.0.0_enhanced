@@ -10,7 +10,14 @@ export interface LedgerSummary {
   direct_cost: number;
   indirect_cost: number;
   cost_breakdown: Record<string, number>;
-  water_volume_m3: number;
+  /** U04: null حين لا حجمَ ماءٍ مقيساً — الغائب ليس صفراً. */
+  water_volume_m3: number | null;
+  water_measurement?: {
+    records_total: number;
+    records_measured: number;
+    records_unmeasured: number;
+    complete: boolean;
+  };
   energy_kwh: number;
   diesel_liters: number;
   equipment_hours: number;
@@ -195,7 +202,8 @@ export function economicIntensities(state: EconomicStateBody | null | undefined,
   if (!state) return [];
   const out: EconomicIntensity[] = [];
   if (state.cost_per_ha != null) out.push({ label: 'تكلفة/هـ', value: formatMoney(state.cost_per_ha, currency) });
-  if (state.water_m3_per_ha != null && state.water_m3_per_ha > 0) {
+  // U04: الصفرُ المقيس بيانات (لا ماء) ويختلف عن null (لا قياس) — لا يُخفى (Copilot على #1001).
+  if (state.water_m3_per_ha != null) {
     out.push({ label: 'ماء م³/هـ', value: String(Math.round(state.water_m3_per_ha)) });
   }
   if (state.water_cost_per_m3 != null) out.push({ label: 'تكلفة الماء/م³', value: formatMoney(state.water_cost_per_m3, currency) });

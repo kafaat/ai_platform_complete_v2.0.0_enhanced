@@ -8172,6 +8172,28 @@
     ]
   },
   {
+    "path": "services/sahool-platform/tests/test_farmer_knowledge.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "FM-002",
+        "score": 14,
+        "signals": [
+          "path:farm",
+          "content:farm"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/tests/test_field_season_projection.py",
     "kind": "tests",
     "candidates": [

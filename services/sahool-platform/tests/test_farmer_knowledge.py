@@ -33,9 +33,31 @@ class TestFarmerKnowledge:
 
     def test_verification_confirmed_raises_confidence(self):
         fk = _mk(KnowledgeType.SPATIAL)
-        verify_against_data(fk, data_supports=True)
+        verify_against_data(
+            fk,
+            data_supports=True,
+            evidence={"method": "ndvi", "reference_ids": ["scene_2026_05_01"]},
+            verified_by="agronomist:42",
+        )
         assert fk.verification_status == VerificationStatus.CONFIRMED
         assert fk.computed_confidence == Confidence.HIGH
+        assert fk.verification_evidence["reference_ids"] == ["scene_2026_05_01"]
+        assert fk.verified_by == "agronomist:42"
+        assert fk.to_dict()["verification_evidence"]["method"] == "ndvi"
+
+    def test_unreferenced_support_does_not_confirm(self):
+        """U07: Boolean بلا دليل مرجعيّ لا يرفع الحالة إلى «مؤكّدة» — يبقى قيد التحقّق."""
+        fk = _mk(KnowledgeType.SPATIAL)
+        verify_against_data(fk, data_supports=True)
+        assert fk.verification_status == VerificationStatus.PENDING
+        assert fk.data_agreement is True
+        assert fk.verification_evidence == {"basis": "unreferenced_claim"}
+        assert fk.computed_confidence != Confidence.HIGH
+        # طريقة بلا مراجع أو مراجع بلا طريقة ليست دليلاً مرجعيّاً.
+        verify_against_data(fk, data_supports=True, evidence={"method": "lab"})
+        assert fk.verification_status == VerificationStatus.PENDING
+        verify_against_data(fk, data_supports=True, evidence={"reference_ids": ["x"]})
+        assert fk.verification_status == VerificationStatus.PENDING
 
     def test_contradiction_lowers_not_rejects(self):
         """التعارض يُسجّل للدراسة، لا يُرفض (قد يكون الحساس مخطئاً)."""
@@ -128,3 +150,116 @@ class TestConservativeWeight:
         )
         # on a non-governing target (e.g. sampling priority) weight applies
         assert applicable_weight(fk, "sampling_priority") > 0.0
+
+
+class TestBlankReferencesAreNotEvidence:
+    def test_whitespace_reference_ids_keep_pending(self):
+        """Copilot على #1001: `reference_ids=[" "]` لا يؤكّد."""
+        fk = _mk(KnowledgeType.SPATIAL)
+        verify_against_data(
+            fk, data_supports=True, evidence={"method": "ndvi", "reference_ids": [" "]}
+        )
+        assert fk.verification_status == VerificationStatus.PENDING
+        verify_against_data(
+            fk, data_supports=True, evidence={"method": "  ", "reference_ids": ["x"]}
+        )
+        assert fk.verification_status == VerificationStatus.PENDING
+        verify_against_data(
+            fk, data_supports=True, evidence={"method": "ndvi", "reference_ids": [" x "]}
+        )
+        assert fk.verification_status == VerificationStatus.CONFIRMED
+        # قائمةٌ مختلطة تخرق العقد كلَّه — لا ترشيحَ جزئيّ يؤكّد (Copilot على #1001).
+        mixed = _mk(KnowledgeType.SPATIAL)
+        verify_against_data(
+            mixed, data_supports=True, evidence={"method": "ndvi", "reference_ids": ["scene-1", 7]}
+        )
+        assert mixed.verification_status == VerificationStatus.PENDING
+        assert mixed.verification_evidence["basis"] == "unreferenced_claim"
+
+    def test_scalar_reference_ids_are_not_a_reference_list(self):
+        """Copilot على #1001: `reference_ids: "scene-1"` كان يُقطَّع حروفاً فيؤكّد بلا قائمة مراجع."""
+        for scalar in ("scene-1", 3, {"id": "s"}, True):
+            fk = _mk(KnowledgeType.SPATIAL)
+            verify_against_data(
+                fk, data_supports=True, evidence={"method": "ndvi", "reference_ids": scalar}
+            )
+            assert fk.verification_status == VerificationStatus.PENDING, scalar
+            assert fk.verification_evidence["basis"] == "unreferenced_claim"
+        # قائمةُ JSON وحدَها تؤكّد — الصفُّ والمجموعة يبقيان قيد التحقّق (المجموعة لا تُسلسَل في
+        # to_dict وترتيبُها غيرُ حتميّ؛ Copilot على #1001).
+        for seq in (("s1",), {"s1"}):
+            fk = _mk(KnowledgeType.SPATIAL)
+            verify_against_data(
+                fk, data_supports=True, evidence={"method": "ndvi", "reference_ids": seq}
+            )
+            assert fk.verification_status == VerificationStatus.PENDING, seq
+            # الدليلُ المحفوظ (المرفوض للتأكيد) يبقى قابلاً للتسلسل — المجموعةُ تصير قائمة مرتّبة.
+            import json
+
+            assert json.loads(json.dumps(fk.to_dict()))["verification_evidence"][
+                "reference_ids"
+            ] == ["s1"]
+        fk = _mk(KnowledgeType.SPATIAL)
+        verify_against_data(
+            fk, data_supports=True, evidence={"method": "ndvi", "reference_ids": ["s1"]}
+        )
+        assert fk.verification_status == VerificationStatus.CONFIRMED
+        import json
+
+        json.dumps(fk.to_dict())  # الدليلُ المحفوظ قابلٌ للتسلسل
+        # NaN/Infinity ليست JSON قياسيّاً ⇒ تُطبَّع إلى null (Copilot على #1001).
+        nan_fk = _mk(KnowledgeType.SPATIAL)
+        verify_against_data(
+            nan_fk,
+            data_supports=True,
+            evidence={
+                "method": "lab",
+                "reference_ids": ["lab_1"],
+                "score": float("nan"),
+                "bounds": [float("inf"), 0.5],
+            },
+        )
+        payload = json.loads(json.dumps(nan_fk.to_dict(), allow_nan=False))
+        assert payload["verification_evidence"]["score"] is None
+        assert payload["verification_evidence"]["bounds"] == [None, 0.5]
+
+
+class TestRejectedKnowledgeKeepsTheAuditTrail:
+    def test_evidence_and_actor_are_recorded_while_status_stays_rejected(self):
+        """Copilot على #1001 (مكتومة): الإعادةُ المبكّرة للمرفوضة كانت تُسقِط الدليلَ والمُراجِع بصمت."""
+        fk = _mk(KnowledgeType.CAUSAL, mechanism="")  # مرفوضة (سببيّة بلا آلية)
+        verify_against_data(
+            fk,
+            data_supports=True,
+            evidence={"method": "trial", "reference_ids": ["trial_7"]},
+            verified_by="agronomist:3",
+        )
+        assert fk.verification_status == VerificationStatus.REJECTED
+        assert fk.verification_evidence == {"method": "trial", "reference_ids": ["trial_7"]}
+        assert fk.verified_by == "agronomist:3"
+        assert fk.data_agreement is None  # لا حكمَ بيانات على المرفوضة — الحالة لا تتغيّر
+        assert fk.prior_weight == 0.0
+
+
+class TestUnreferencedClaimKeepsTheSubmittedEvidence:
+    def test_method_and_audit_fields_survive_with_the_basis_flag(self):
+        """Copilot على #1001: الأساسُ يُضاف إلى الدليل المُقدَّم ولا يستبدله."""
+        fk = _mk(KnowledgeType.SPATIAL)
+        verify_against_data(
+            fk,
+            data_supports=True,
+            evidence={"method": "lab", "reference_ids": [" "], "note": "sample lost"},
+            verified_by="tech:9",
+        )
+        assert fk.verification_status == VerificationStatus.PENDING
+        assert fk.verification_evidence == {
+            "method": "lab",
+            "reference_ids": [" "],
+            "note": "sample lost",
+            "basis": "unreferenced_claim",
+        }
+        assert fk.verified_by == "tech:9"
+        # بلا دليل أصلاً ⇒ الأساس وحدَه (لا اختلاق حقول).
+        bare = _mk(KnowledgeType.SPATIAL)
+        verify_against_data(bare, data_supports=True)
+        assert bare.verification_evidence == {"basis": "unreferenced_claim"}

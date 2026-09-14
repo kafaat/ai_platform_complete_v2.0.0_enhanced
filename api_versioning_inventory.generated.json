@@ -1532,7 +1532,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 538,
+    "line": 581,
     "method": "POST",
     "path": "/v1/query",
     "handler": "query_endpoint",
@@ -1541,7 +1541,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 548,
+    "line": 591,
     "method": "POST",
     "path": "/v1/ingest",
     "handler": "ingest_endpoint",
@@ -1550,7 +1550,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 603,
+    "line": 646,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1559,7 +1559,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 621,
+    "line": 664,
     "method": "GET",
     "path": "/health",
     "handler": "legacy_health",
@@ -1568,7 +1568,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 626,
+    "line": 669,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -3827,7 +3827,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 144,
+    "line": 180,
     "method": "GET",
     "path": "/api/v1/calibration/{region}/evidence/persisted",
     "handler": "get_persisted_region_evidence",
@@ -3836,7 +3836,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 196,
+    "line": 222,
     "method": "POST",
     "path": "/api/v1/calibration/feedback",
     "handler": "compute_learning_feedback",
@@ -3845,7 +3845,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 214,
+    "line": 240,
     "method": "POST",
     "path": "/api/v1/calibration/{region}/adapt",
     "handler": "propose_region_adaptation",
@@ -3854,7 +3854,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 247,
+    "line": 284,
     "method": "POST",
     "path": "/api/v1/calibration/{region}/adapt-from-evidence",
     "handler": "propose_region_adaptation_from_evidence",
@@ -3863,7 +3863,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 302,
+    "line": 330,
     "method": "POST",
     "path": "/api/v1/calibration/{region}/adapt-from-evidence/apply",
     "handler": "apply_region_adaptation_from_evidence",
@@ -3872,7 +3872,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 420,
+    "line": 439,
     "method": "POST",
     "path": "/api/v1/calibration/{region}/propose-values",
     "handler": "propose_region_values",
@@ -3881,7 +3881,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 443,
+    "line": 462,
     "method": "POST",
     "path": "/api/v1/calibration/{region}/override",
     "handler": "set_region_override",
@@ -3890,7 +3890,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 509,
+    "line": 528,
     "method": "GET",
     "path": "/api/v1/calibration/{region}/resolved",
     "handler": "get_resolved_region_calibration",
@@ -3899,7 +3899,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 538,
+    "line": 557,
     "method": "GET",
     "path": "/api/v1/calibration/overrides/all",
     "handler": "list_region_overrides",
@@ -3908,7 +3908,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 571,
+    "line": 590,
     "method": "DELETE",
     "path": "/api/v1/calibration/{region}/override",
     "handler": "delete_region_override",
@@ -3917,7 +3917,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 617,
+    "line": 636,
     "method": "GET",
     "path": "/api/v1/calibration/{region}/audit",
     "handler": "get_region_calibration_audit",
@@ -4331,7 +4331,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_confidence.py",
-    "line": 74,
+    "line": 76,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/decision-confidence",
     "handler": "decision_confidence_endpoint",
@@ -4412,7 +4412,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_explain.py",
-    "line": 63,
+    "line": 75,
     "method": "GET",
     "path": "/api/v1/decision/{decision_id}/explain",
     "handler": "explain_decision_endpoint",
@@ -4952,7 +4952,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/evidence_map.py",
-    "line": 87,
+    "line": 88,
     "method": "GET",
     "path": "/api/v1/evidence/map",
     "handler": "evidence_map_endpoint",
@@ -4997,7 +4997,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 212,
+    "line": 225,
     "method": "POST",
     "path": "/api/v1/farm-ledger/operations",
     "handler": "create_operation_ledger_record",
@@ -5006,7 +5006,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 355,
+    "line": 322,
     "method": "GET",
     "path": "/api/v1/farm-ledger/operations",
     "handler": "list_operation_ledger_records",
@@ -5015,7 +5015,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 403,
+    "line": 370,
     "method": "GET",
     "path": "/api/v1/farm-ledger/summary",
     "handler": "farm_ledger_summary",
@@ -5024,7 +5024,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 529,
+    "line": 498,
     "method": "POST",
     "path": "/api/v1/farm-ledger/budgets",
     "handler": "upsert_season_budget_lines",
@@ -5033,7 +5033,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 610,
+    "line": 579,
     "method": "GET",
     "path": "/api/v1/farm-ledger/budgets/{season_id}",
     "handler": "get_season_budget",
@@ -5042,7 +5042,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 638,
+    "line": 607,
     "method": "POST",
     "path": "/api/v1/farm-ledger/revenues",
     "handler": "create_revenue_record",
@@ -5051,7 +5051,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 730,
+    "line": 699,
     "method": "GET",
     "path": "/api/v1/farm-ledger/variance/{season_id}",
     "handler": "get_budget_variance",
@@ -5060,7 +5060,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 758,
+    "line": 727,
     "method": "GET",
     "path": "/api/v1/farm-ledger/profitability/{season_id}",
     "handler": "get_season_profitability",
@@ -5069,7 +5069,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 793,
+    "line": 762,
     "method": "GET",
     "path": "/api/v1/farm-ledger/erp-projection/{season_id}",
     "handler": "get_erp_projection",
@@ -5078,7 +5078,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 876,
+    "line": 845,
     "method": "POST",
     "path": "/api/v1/farm-ledger/autowrite-preview",
     "handler": "operation_autowrite_preview",
@@ -5087,7 +5087,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 924,
+    "line": 893,
     "method": "GET",
     "path": "/api/v1/farm-ledger/inventory-projection/{season_id}",
     "handler": "get_inventory_projection",
@@ -5096,7 +5096,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/farm_operations_ledger.py",
-    "line": 1015,
+    "line": 986,
     "method": "GET",
     "path": "/api/v1/farm-ledger/economic-state/{season_id}",
     "handler": "get_economic_state",

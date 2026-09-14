@@ -1577,6 +1577,7 @@
         "services/sahool-platform/tests/test_farmer_knowledge.py",
         "services/sahool-platform/tests/test_farmonaut.py",
         "services/sahool-platform/tests/test_learning.py",
+        "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
         "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py",
         "services/sahool-platform/tests/test_prediction_calibration.py",
         "services/sahool-platform/tests/test_reports.py",
@@ -6815,6 +6816,7 @@
         "services/sahool-platform/tests/test_evidence_class.py",
         "services/sahool-platform/tests/test_fao56_agronomic_validation.py",
         "services/sahool-platform/tests/test_fao56_dual_kc_salinity_validation.py",
+        "services/sahool-platform/tests/test_farmer_knowledge.py",
         "services/sahool-platform/tests/test_field_season_projection.py",
         "services/sahool-platform/tests/test_field_twin.py",
         "services/sahool-platform/tests/test_freshness_sweep.py",
@@ -6862,7 +6864,6 @@
         "tests_v9/test_event_replay.py",
         "tests_v9/test_field_intelligence_cloud.py",
         "tests_v9/test_field_readiness.py",
-        "tests_v9/test_field_state_gateway.py",
         "tests_v9/test_field_state_ndvi_enrichment.py",
         "tests_v9/test_kc_from_ndvi.py",
         "tests_v9/test_kc_ndvi.py",
@@ -8517,6 +8518,7 @@
         "tests/irrigation/test_irr_f01_activation_gate_prod_guard.py",
         "tests_v9/test_decision_service_auth_is_activatable.py",
         "tests_v9/test_internal_field_read_channel.py",
+        "tests_v9/test_raster_service_token_binding.py",
         "tests_v9/test_sensing_adapter_service_token.py",
         "tests_v9/test_service_token_constant_time.py"
       ]

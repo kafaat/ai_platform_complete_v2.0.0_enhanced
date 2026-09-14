@@ -3002,7 +3002,7 @@
         "services/sahool-platform/api/routers/farm_operations_ledger.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "created_in": "v100_farm_operations_ledger.sql",
       "has_tenant_id": true,
@@ -3019,7 +3019,7 @@
         "services/sahool-platform/api/routers/farm_operations_ledger.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "created_in": "v100_farm_operations_ledger.sql",
       "has_tenant_id": true,
@@ -3049,7 +3049,7 @@
         "services/sahool-platform/api/routers/farm_operations_ledger.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "created_in": "v100_farm_operations_ledger.sql",
       "has_tenant_id": true,
@@ -3066,7 +3066,7 @@
         "services/sahool-platform/api/routers/farm_operations_ledger.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "created_in": "v100_farm_operations_ledger.sql",
       "has_tenant_id": true,
@@ -3241,7 +3241,7 @@
         "services/sahool-platform/api/routers/farm_operations_ledger.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+        "services/sahool-platform/core/farm_operations_ledger.py"
       ],
       "created_in": "v100_farm_operations_ledger.sql",
       "has_tenant_id": true,
@@ -3689,6 +3689,7 @@
         "services/sahool-platform/api/routers/indicators.py",
         "services/sahool-platform/api/routers/internal_service.py",
         "services/sahool-platform/api/routers/irrigation_mpc.py",
+        "services/sahool-platform/api/routers/learning_summary.py",
         "services/sahool-platform/api/routers/market.py",
         "services/sahool-platform/api/routers/nl_gis.py",
         "services/sahool-platform/api/routers/operations.py",
@@ -3703,6 +3704,7 @@
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
         "services/sahool-platform/api/weather_service_client.py",
         "services/sahool-platform/tests/test_field_aggregate_ports.py",
+        "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
         "services/sahool-platform/tests/test_operations_summary_endpoint.py",
         "services/sahool-platform/tests/test_p2_5_raster_direct_wiring_final_sweep.py",
         "services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py",

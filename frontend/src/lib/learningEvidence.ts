@@ -264,7 +264,7 @@ export interface RegionFeedback {
   evidence_level?: string;
   sample_count?: number;
   success_rate?: number | null;
-  action?: string; // collect_data | review_calibration | verify | monitor
+  action?: string; // collect_data | review_calibration | verify | expert_review | monitor
   priority?: number;
   review_targets?: string[];
   recommendation_ar?: string;
@@ -300,6 +300,8 @@ const FEEDBACK_ACTIONS: Record<string, Badge> = {
   collect_data: { label_ar: 'اجمع بيانات', color: NEUTRAL },
   review_calibration: { label_ar: 'راجِع المعايرة', color: DANGER },
   verify: { label_ar: 'تحقّق ميدانيّ', color: WARN },
+  // U01: العيّنة بلغت العتبة بلا اعتماد — المطلوب مراجعةُ مختصّ لا مزيدُ عدّ.
+  expert_review: { label_ar: 'مراجعة مختصّ', color: WARN },
   monitor: { label_ar: 'راقِب فقط', color: OK },
 };
 export function feedbackActionBadge(action: string | null | undefined): Badge {
@@ -512,5 +514,6 @@ export const OBS_CONFIDENCE_OPTIONS: { key: string; label_ar: string }[] = [
 export const EVIDENCE_LEVEL_OPTIONS: { key: string; label_ar: string }[] = [
   { key: 'none', label_ar: 'لا دليل' },
   { key: 'field_preliminary', label_ar: 'أوّليّ ميدانيّ' },
+  { key: 'field_sample_complete', label_ar: 'عيّنة مكتملة — بانتظار المراجعة' },
   { key: 'field_verified', label_ar: 'مُتحقَّق ميدانيّاً' },
 ];
