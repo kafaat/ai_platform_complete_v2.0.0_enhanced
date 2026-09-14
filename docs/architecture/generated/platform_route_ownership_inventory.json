@@ -5,9 +5,9 @@
     "mapped_routes": 636,
     "surface_routes": 636
   },
-  "inventory_sha256": "37bdfeafd31b6cbba72f9b8e978a5d24dff31ff90189f9460a4cbb8883ab252b",
+  "inventory_sha256": "dd2a59eab4d6b43133261668800d70da4a7aa9ab82fabc7c346749715fab8611",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "d1ab561fe8212b38f4ba1427ef1c9d574ea06661f87ce0c94cd7a901b75f2e62",
+  "map_sha256": "303863757a3c1fe737c00d662886db713bd5c1d0689491bbc1e4bc702ed842ad",
   "routes": [
     {
       "classification": null,
@@ -1205,7 +1205,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/decision_explain.py",
       "function": "explain_decision_endpoint",
-      "line": 70,
+      "line": 71,
       "method": "GET",
       "owner": "sahool-platform",
       "owner_type": "bff-orchestrator",

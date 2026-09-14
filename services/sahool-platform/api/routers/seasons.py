@@ -549,14 +549,18 @@ async def field_season_state_endpoint(
                 raise HTTPException(
                     status_code=404, detail="الموسم غير موجود لهذا الحقل ضمن هذا المستأجِر"
                 )
+            # القراءاتُ التكميليّة كلُّها داخل نقاط حفظ (معاملات متداخلة): جدولٌ غائب في نشرٍ
+            # جزئيّ كان يُفسِد معاملةَ tenant_connection الخارجيّة فيفشل الالتزامُ ويعود 503
+            # رغم الالتقاط المحلّيّ (Copilot على #1001).
             # أحدث مؤشّرات + جودة المشهد (best-effort).
             try:
-                irow = await conn.fetchrow(
-                    "SELECT ndvi_mean, ndmi_mean, valid_pixel_ratio, cloud_pct "
-                    "FROM imagery_automation_fields WHERE field_id = $1 "
-                    "ORDER BY acquisition_date DESC NULLS LAST LIMIT 1",
-                    field_id,
-                )
+                async with conn.transaction():
+                    irow = await conn.fetchrow(
+                        "SELECT ndvi_mean, ndmi_mean, valid_pixel_ratio, cloud_pct "
+                        "FROM imagery_automation_fields WHERE field_id = $1 "
+                        "ORDER BY acquisition_date DESC NULLS LAST LIMIT 1",
+                        field_id,
+                    )
                 if irow is not None:
                     ndvi, ndmi = irow["ndvi_mean"], irow["ndmi_mean"]
                     vpr, cloud = irow["valid_pixel_ratio"], irow["cloud_pct"]
@@ -564,14 +568,15 @@ async def field_season_state_endpoint(
                 pass
             # عجز الماء التراكميّ 7/14 يوم من دفتر المياه (best-effort).
             try:
-                wrow = await conn.fetchrow(
-                    "SELECT SUM(deficit_mm) FILTER "
-                    "(WHERE ledger_date >= CURRENT_DATE - INTERVAL '7 days')  AS d7, "
-                    "SUM(deficit_mm) FILTER "
-                    "(WHERE ledger_date >= CURRENT_DATE - INTERVAL '14 days') AS d14 "
-                    "FROM water_ledger WHERE field_id = $1",
-                    field_id,
-                )
+                async with conn.transaction():
+                    wrow = await conn.fetchrow(
+                        "SELECT SUM(deficit_mm) FILTER "
+                        "(WHERE ledger_date >= CURRENT_DATE - INTERVAL '7 days')  AS d7, "
+                        "SUM(deficit_mm) FILTER "
+                        "(WHERE ledger_date >= CURRENT_DATE - INTERVAL '14 days') AS d14 "
+                        "FROM water_ledger WHERE field_id = $1",
+                        field_id,
+                    )
                 if wrow is not None:
                     def7 = float(wrow["d7"]) if wrow["d7"] is not None else None
                     def14 = float(wrow["d14"]) if wrow["d14"] is not None else None
@@ -579,23 +584,25 @@ async def field_season_state_endpoint(
                 pass
             # عدد المهام المفتوحة (best-effort).
             try:
-                cnt = await conn.fetchval(
-                    "SELECT COUNT(*) FROM field_tasks WHERE field_id = $1 "
-                    "AND status NOT IN ('done', 'completed', 'cancelled')",
-                    field_id,
-                )
+                async with conn.transaction():
+                    cnt = await conn.fetchval(
+                        "SELECT COUNT(*) FROM field_tasks WHERE field_id = $1 "
+                        "AND status NOT IN ('done', 'completed', 'cancelled')",
+                        field_id,
+                    )
                 open_tasks = int(cnt) if cnt is not None else None
             except Exception:  # noqa: BLE001
                 pass
             # النتائج المتصالحة (best-effort): outcome_record + recommendation_outcomes.
             # الغياب/الجداول الجزئية لا يعطل حقيقة الموسم؛ يظهر outcomes ضمن evidence_missing.
             try:
-                rows = await conn.fetch(
-                    "SELECT outcome_id, field_id, region, decision_id, success, metrics, "
-                    "planned, actual, stage, created_at FROM outcome_record "
-                    "WHERE field_id = $1",
-                    field_id,
-                )
+                async with conn.transaction():
+                    rows = await conn.fetch(
+                        "SELECT outcome_id, field_id, region, decision_id, success, metrics, "
+                        "planned, actual, stage, created_at FROM outcome_record "
+                        "WHERE field_id = $1",
+                        field_id,
+                    )
                 outcome_records = [
                     {
                         "outcome_id": r["outcome_id"],
@@ -614,14 +621,15 @@ async def field_season_state_endpoint(
             except Exception:  # noqa: BLE001
                 outcome_records = []
             try:
-                rows = await conn.fetch(
-                    "SELECT outcome_id, field_id, farm_id, season_id, crop, recommendation_id, "
-                    "predicted_yield_t_ha, actual_yield_t_ha, accepted, matured_within_lag, "
-                    "issued_at, outcome_recorded_at FROM recommendation_outcomes "
-                    "WHERE field_id = $1 AND (season_id = $2 OR season_id IS NULL)",
-                    field_id,
-                    season_id,
-                )
+                async with conn.transaction():
+                    rows = await conn.fetch(
+                        "SELECT outcome_id, field_id, farm_id, season_id, crop, recommendation_id, "
+                        "predicted_yield_t_ha, actual_yield_t_ha, accepted, matured_within_lag, "
+                        "issued_at, outcome_recorded_at FROM recommendation_outcomes "
+                        "WHERE field_id = $1 AND (season_id = $2 OR season_id IS NULL)",
+                        field_id,
+                        season_id,
+                    )
                 recommendation_outcomes = [
                     {
                         "outcome_id": r["outcome_id"],
@@ -642,9 +650,10 @@ async def field_season_state_endpoint(
             except Exception:  # noqa: BLE001
                 recommendation_outcomes = []
             try:
-                rows = await conn.fetch(
-                    "SELECT recommendation_id, decision_id FROM dispatch_decisions"
-                )
+                async with conn.transaction():
+                    rows = await conn.fetch(
+                        "SELECT recommendation_id, decision_id FROM dispatch_decisions"
+                    )
                 dispatch_links = {
                     r["recommendation_id"]: r["decision_id"]
                     for r in rows

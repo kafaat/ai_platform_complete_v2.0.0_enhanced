@@ -14,7 +14,7 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = 'd59ff6f4f337636aebd03fa4868823a05c63c4fe7874a7ff062f234943669bdd';
+export const PLATFORM_CATALOG_FINGERPRINT = 'd187515710e0895a20ebc8cbe9864ac0e88f229ec0104ba9a2547c4799d102fc';
 
 export const PLATFORM_CATALOG_COUNTS = {
   "backend_components": 32,

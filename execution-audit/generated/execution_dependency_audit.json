@@ -5,7 +5,7 @@
   "runtime_verified":false,
   "python_files_parsed":1892,
   "route_handlers":1050,
-  "call_edges":77956,
+  "call_edges":77992,
   "dead_code_candidates":633,
   "duplicate_function_groups":60,
   "route_owners":27,
@@ -1351,7 +1351,7 @@
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
-   "line":564,
+   "line":570,
    "handler":"query_endpoint",
    "method":"POST",
    "path":"/v1/query"
@@ -1359,7 +1359,7 @@
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
-   "line":574,
+   "line":580,
    "handler":"ingest_endpoint",
    "method":"POST",
    "path":"/v1/ingest"
@@ -1367,7 +1367,7 @@
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
-   "line":629,
+   "line":635,
    "handler":"healthz",
    "method":"GET",
    "path":"/healthz"
@@ -1375,7 +1375,7 @@
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
-   "line":647,
+   "line":653,
    "handler":"legacy_health",
    "method":"GET",
    "path":"/health"
@@ -1383,7 +1383,7 @@
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
-   "line":652,
+   "line":658,
    "handler":"readyz",
    "method":"GET",
    "path":"/readyz"
@@ -3719,7 +3719,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
-   "line":71,
+   "line":72,
    "handler":"explain_decision_endpoint",
    "method":"GET",
    "path":"/api/v1/decision/{decision_id}/explain"
@@ -95175,114 +95175,191 @@
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
+   "source":"non_negative_float",
+   "target":"str",
+   "line":35
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"non_negative_float",
+   "target":"strip",
+   "line":35
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"non_negative_float",
+   "target":"float",
+   "line":36
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"non_negative_float",
+   "target":"float",
+   "line":38
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"non_negative_float",
+   "target":"float",
+   "line":40
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"non_negative_float",
+   "target":"isfinite",
+   "line":41
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"non_negative_float",
+   "target":"warning",
+   "line":42
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"non_negative_float",
+   "target":"float",
+   "line":43
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"backoff_seconds",
+   "target":"isfinite",
+   "line":52
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"backoff_seconds",
+   "target":"isfinite",
+   "line":52
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"backoff_seconds",
+   "target":"ValueError",
+   "line":53
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
    "source":"backoff_seconds",
    "target":"float",
-   "line":27
+   "line":54
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"backoff_seconds",
    "target":"max",
-   "line":27
+   "line":54
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"backoff_seconds",
    "target":"min",
-   "line":27
+   "line":54
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
    "target":"int",
-   "line":47
+   "line":74
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
    "target":"max",
-   "line":47
+   "line":74
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
    "target":"range",
-   "line":48
+   "line":75
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
    "target":"init_fn",
-   "line":51
+   "line":78
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
    "target":"isawaitable",
-   "line":53
+   "line":80
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
    "target":"dict",
-   "line":57
+   "line":84
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
    "target":"type",
-   "line":59
+   "line":86
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
    "target":"error",
-   "line":62
+   "line":89
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
    "target":"dict",
-   "line":67
+   "line":94
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
    "target":"backoff_seconds",
-   "line":69
+   "line":96
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
    "target":"warning",
-   "line":70
+   "line":97
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
    "target":"do_sleep",
-   "line":77
+   "line":104
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
    "target":"dict",
-   "line":78
+   "line":105
   },
   {
    "owner":"local-ai-rag",
@@ -96234,105 +96311,84 @@
    "file":"services/local-ai-rag/main.py",
    "source":"_init_models_once",
    "target":"info",
-   "line":448
+   "line":454
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_init_models_once",
    "target":"wait_for_ollama",
-   "line":449
+   "line":455
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_init_models_once",
    "target":"init_llm",
-   "line":450
+   "line":456
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_init_models_once",
    "target":"init_vectorstore",
-   "line":451
+   "line":457
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_init_models_once",
    "target":"info",
-   "line":452
+   "line":458
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_init_models_background",
    "target":"run_init_with_retry",
-   "line":459
+   "line":465
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"info",
-   "line":471
+   "line":477
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"_init_models_background",
-   "line":473
+   "line":479
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"create_task",
-   "line":473
+   "line":479
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"info",
-   "line":474
+   "line":480
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"info",
-   "line":476
+   "line":482
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
    "target":"Depends",
-   "line":502
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_get_rag_user",
-   "target":"HTTPException",
-   "line":506
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_get_rag_user",
-   "target":"len",
-   "line":509
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_get_rag_user",
-   "target":"HTTPException",
-   "line":510
+   "line":508
   },
   {
    "owner":"local-ai-rag",
@@ -96345,350 +96401,357 @@
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
+   "target":"len",
+   "line":515
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_get_rag_user",
+   "target":"HTTPException",
+   "line":516
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_get_rag_user",
+   "target":"HTTPException",
+   "line":518
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_get_rag_user",
    "target":"decode",
-   "line":514
+   "line":520
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
    "target":"type",
-   "line":518
+   "line":524
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
    "target":"warning",
-   "line":518
+   "line":524
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
    "target":"HTTPException",
-   "line":519
+   "line":525
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
    "target":"get",
-   "line":521
+   "line":527
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
    "target":"HTTPException",
-   "line":522
+   "line":528
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_require_ready",
    "target":"HTTPException",
-   "line":560
+   "line":566
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_endpoint",
    "target":"post",
-   "line":563
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_endpoint",
-   "target":"Depends",
-   "line":564
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_endpoint",
-   "target":"_require_ready",
-   "line":565
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_endpoint",
-   "target":"get",
-   "line":567
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_endpoint",
-   "target":"HTTPException",
    "line":569
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_endpoint",
-   "target":"_validate_tenant_id",
+   "target":"Depends",
    "line":570
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_endpoint",
+   "target":"_require_ready",
+   "line":571
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_endpoint",
+   "target":"get",
+   "line":573
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_endpoint",
+   "target":"HTTPException",
+   "line":575
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_endpoint",
+   "target":"_validate_tenant_id",
+   "line":576
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_endpoint",
    "target":"query_rag",
-   "line":570
+   "line":576
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_endpoint",
    "target":"str",
-   "line":570
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"post",
-   "line":573
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"File",
-   "line":575
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"Form",
    "line":576
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
-   "target":"Header",
-   "line":577
+   "target":"post",
+   "line":579
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
-   "target":"_require_service_token",
+   "target":"File",
+   "line":581
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"Form",
+   "line":582
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"Header",
    "line":583
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
+   "target":"_require_service_token",
+   "line":589
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
    "target":"_require_ready",
-   "line":584
+   "line":590
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"_validate_tenant_id",
-   "line":585
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"Path",
-   "line":589
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"lower",
-   "line":589
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"HTTPException",
    "line":591
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
+   "target":"Path",
+   "line":595
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"lower",
+   "line":595
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"HTTPException",
+   "line":597
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
    "target":"NamedTemporaryFile",
-   "line":596
+   "line":602
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"read",
-   "line":600
+   "line":606
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"len",
-   "line":603
+   "line":609
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"close",
-   "line":605
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"Path",
-   "line":606
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"unlink",
-   "line":606
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"HTTPException",
-   "line":607
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"write",
    "line":611
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
-   "target":"close",
-   "line":614
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
    "target":"Path",
-   "line":615
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"append",
-   "line":616
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"Path",
-   "line":617
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"str",
-   "line":617
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"ingest_documents",
-   "line":619
+   "line":612
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"unlink",
+   "line":612
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"HTTPException",
+   "line":613
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"write",
+   "line":617
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"close",
+   "line":620
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"Path",
+   "line":621
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"append",
+   "line":622
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"Path",
    "line":623
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"str",
+   "line":623
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"ingest_documents",
+   "line":625
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"unlink",
+   "line":629
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"healthz",
    "target":"get",
-   "line":628
+   "line":634
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"healthz",
    "target":"AsyncClient",
-   "line":632
+   "line":638
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"healthz",
    "target":"get",
-   "line":633
+   "line":639
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"healthz",
    "target":"debug",
-   "line":636
+   "line":642
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"healthz",
    "target":"type",
-   "line":636
+   "line":642
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"legacy_health",
    "target":"get",
-   "line":646
+   "line":652
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"legacy_health",
    "target":"healthz",
-   "line":648
+   "line":654
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"readyz",
    "target":"get",
-   "line":651
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"readyz",
-   "target":"get",
-   "line":656
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"readyz",
-   "target":"HTTPException",
    "line":657
   },
   {
@@ -96696,6 +96759,13 @@
    "file":"services/local-ai-rag/main.py",
    "source":"readyz",
    "target":"get",
+   "line":662
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"readyz",
+   "target":"HTTPException",
    "line":663
   },
   {
@@ -96703,7 +96773,14 @@
    "file":"services/local-ai-rag/main.py",
    "source":"readyz",
    "target":"get",
-   "line":665
+   "line":669
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"readyz",
+   "target":"get",
+   "line":671
   },
   {
    "owner":"local-ai-rag",
@@ -191098,27 +191175,13 @@
    "file":"services/sahool-platform/api/evidence_registry.py",
    "source":"aggregate_evidence",
    "target":"get",
-   "line":63
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_registry.py",
-   "source":"aggregate_evidence",
-   "target":"len",
    "line":64
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_registry.py",
    "source":"aggregate_evidence",
-   "target":"get",
-   "line":65
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_registry.py",
-   "source":"aggregate_evidence",
-   "target":"sum",
+   "target":"len",
    "line":65
   },
   {
@@ -191139,15 +191202,22 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_registry.py",
    "source":"aggregate_evidence",
-   "target":"round",
+   "target":"get",
    "line":67
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_registry.py",
    "source":"aggregate_evidence",
-   "target":"get",
-   "line":72
+   "target":"sum",
+   "line":67
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_registry.py",
+   "source":"aggregate_evidence",
+   "target":"round",
+   "line":68
   },
   {
    "owner":"sahool-platform",
@@ -191161,13 +191231,13 @@
    "file":"services/sahool-platform/api/evidence_registry.py",
    "source":"aggregate_evidence",
    "target":"get",
-   "line":75
+   "line":74
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_registry.py",
    "source":"aggregate_evidence",
-   "target":"max",
+   "target":"get",
    "line":76
   },
   {
@@ -191175,63 +191245,63 @@
    "file":"services/sahool-platform/api/evidence_registry.py",
    "source":"aggregate_evidence",
    "target":"max",
-   "line":94
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_registry.py",
-   "source":"aggregate_evidence",
-   "target":"_independence",
-   "line":95
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_registry.py",
-   "source":"aggregate_evidence",
-   "target":"append",
-   "line":99
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_registry.py",
-   "source":"aggregate_evidence",
-   "target":"append",
-   "line":103
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_registry.py",
-   "source":"aggregate_evidence",
-   "target":"append",
-   "line":107
+   "line":77
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_registry.py",
    "source":"aggregate_evidence",
    "target":"max",
-   "line":108
+   "line":95
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_registry.py",
+   "source":"aggregate_evidence",
+   "target":"_independence",
+   "line":96
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_registry.py",
    "source":"aggregate_evidence",
    "target":"append",
+   "line":100
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_registry.py",
+   "source":"aggregate_evidence",
+   "target":"append",
+   "line":104
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_registry.py",
+   "source":"aggregate_evidence",
+   "target":"append",
+   "line":108
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_registry.py",
+   "source":"aggregate_evidence",
+   "target":"max",
    "line":109
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_registry.py",
-   "source":"evidence_from_persisted_outcomes",
-   "target":"get",
-   "line":147
+   "source":"aggregate_evidence",
+   "target":"append",
+   "line":110
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_registry.py",
    "source":"evidence_from_persisted_outcomes",
    "target":"get",
-   "line":149
+   "line":148
   },
   {
    "owner":"sahool-platform",
@@ -191259,35 +191329,42 @@
    "file":"services/sahool-platform/api/evidence_registry.py",
    "source":"evidence_from_persisted_outcomes",
    "target":"get",
-   "line":157
+   "line":153
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_registry.py",
    "source":"evidence_from_persisted_outcomes",
    "target":"get",
-   "line":159
+   "line":158
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_registry.py",
+   "source":"evidence_from_persisted_outcomes",
+   "target":"get",
+   "line":160
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_registry.py",
    "source":"evidence_from_persisted_outcomes",
    "target":"append",
-   "line":162
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_registry.py",
-   "source":"evidence_from_persisted_outcomes",
-   "target":"aggregate_evidence",
    "line":163
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_registry.py",
    "source":"evidence_from_persisted_outcomes",
+   "target":"aggregate_evidence",
+   "line":164
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_registry.py",
+   "source":"evidence_from_persisted_outcomes",
    "target":"len",
-   "line":168
+   "line":169
   },
   {
    "owner":"sahool-platform",
@@ -242092,148 +242169,162 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"_evidence_summary",
+   "target":"isinstance",
+   "line":61
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_explain.py",
+   "source":"_evidence_summary",
+   "target":"loads",
+   "line":61
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_explain.py",
+   "source":"_evidence_summary",
    "target":"dict",
-   "line":63
+   "line":64
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"_evidence_summary",
    "target":"get",
-   "line":63
+   "line":64
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"_evidence_summary",
    "target":"evidence_from_persisted_outcomes",
-   "line":67
+   "line":68
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"get",
-   "line":70
+   "line":71
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"Query",
-   "line":73
+   "line":74
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"Depends",
-   "line":74
+   "line":75
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"require_permission",
-   "line":74
+   "line":75
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"_decision_studio_enabled",
-   "line":83
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/decision_explain.py",
-   "source":"explain_decision_endpoint",
-   "target":"HTTPException",
    "line":84
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
-   "target":"tenant_connection",
-   "line":89
+   "target":"HTTPException",
+   "line":85
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
-   "target":"fetchrow",
+   "target":"tenant_connection",
    "line":90
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
+   "target":"fetchrow",
+   "line":91
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_explain.py",
+   "source":"explain_decision_endpoint",
    "target":"fetch",
-   "line":93
+   "line":94
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"_db_unavailable",
-   "line":100
+   "line":101
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"HTTPException",
-   "line":104
+   "line":105
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"_shape_decision_row",
-   "line":106
+   "line":107
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"isinstance",
-   "line":108
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/decision_explain.py",
-   "source":"explain_decision_endpoint",
-   "target":"loads",
    "line":109
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
-   "target":"explain_decision",
-   "line":111
+   "target":"loads",
+   "line":110
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
-   "target":"_shape_outcome_row",
+   "target":"explain_decision",
    "line":112
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
-   "target":"_evidence_summary",
+   "target":"_shape_outcome_row",
    "line":113
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
+   "target":"_evidence_summary",
+   "line":114
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_explain.py",
+   "source":"explain_decision_endpoint",
    "target":"len",
-   "line":124
+   "line":125
   },
   {
    "owner":"sahool-platform",
@@ -274838,127 +274929,141 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"get_learning_summary",
-   "target":"fetch",
-   "line":79
+   "target":"transaction",
+   "line":82
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"get_learning_summary",
    "target":"fetch",
-   "line":87
+   "line":85
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/learning_summary.py",
+   "source":"get_learning_summary",
+   "target":"transaction",
+   "line":95
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/learning_summary.py",
+   "source":"get_learning_summary",
+   "target":"fetch",
+   "line":96
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"get_learning_summary",
    "target":"_db_unavailable",
-   "line":93
+   "line":102
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"get_learning_summary",
    "target":"_loads",
-   "line":104
+   "line":113
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"get_learning_summary",
    "target":"_loads",
-   "line":105
+   "line":114
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"get_learning_summary",
    "target":"_loads",
-   "line":106
+   "line":115
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"get_learning_summary",
    "target":"summarize_learning_with_reconciled_outcomes",
-   "line":135
+   "line":145
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"get_learning_summary",
    "target":"_isoformat_stamps",
-   "line":142
+   "line":152
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"_iso",
    "target":"get",
-   "line":158
+   "line":168
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"_isoformat_stamps",
    "target":"get",
-   "line":158
+   "line":168
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"_iso",
    "target":"hasattr",
-   "line":159
+   "line":169
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"_isoformat_stamps",
    "target":"hasattr",
-   "line":159
+   "line":169
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"_iso",
    "target":"isoformat",
-   "line":160
+   "line":170
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"_isoformat_stamps",
    "target":"isoformat",
-   "line":160
+   "line":170
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"_isoformat_stamps",
    "target":"get",
-   "line":162
+   "line":172
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"_isoformat_stamps",
    "target":"_iso",
-   "line":163
+   "line":173
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"_isoformat_stamps",
    "target":"get",
-   "line":164
+   "line":174
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"_isoformat_stamps",
    "target":"_iso",
-   "line":165
+   "line":175
   },
   {
    "owner":"sahool-platform",
@@ -285149,127 +285254,169 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
-   "target":"fetchrow",
-   "line":554
+   "target":"transaction",
+   "line":557
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
    "target":"fetchrow",
-   "line":567
+   "line":558
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/seasons.py",
+   "source":"field_season_state_endpoint",
+   "target":"transaction",
+   "line":571
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/seasons.py",
+   "source":"field_season_state_endpoint",
+   "target":"fetchrow",
+   "line":572
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
    "target":"float",
-   "line":576
+   "line":581
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
    "target":"float",
-   "line":577
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/seasons.py",
-   "source":"field_season_state_endpoint",
-   "target":"fetchval",
    "line":582
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
-   "target":"int",
+   "target":"transaction",
    "line":587
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
-   "target":"fetch",
+   "target":"fetchval",
+   "line":588
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/seasons.py",
+   "source":"field_season_state_endpoint",
+   "target":"int",
    "line":593
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
-   "target":"_loads",
-   "line":606
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/seasons.py",
-   "source":"field_season_state_endpoint",
-   "target":"_loads",
-   "line":607
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/seasons.py",
-   "source":"field_season_state_endpoint",
-   "target":"_loads",
-   "line":608
+   "target":"transaction",
+   "line":599
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
    "target":"fetch",
-   "line":617
+   "line":600
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/seasons.py",
+   "source":"field_season_state_endpoint",
+   "target":"_loads",
+   "line":613
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/seasons.py",
+   "source":"field_season_state_endpoint",
+   "target":"_loads",
+   "line":614
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/seasons.py",
+   "source":"field_season_state_endpoint",
+   "target":"_loads",
+   "line":615
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/seasons.py",
+   "source":"field_season_state_endpoint",
+   "target":"transaction",
+   "line":624
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
    "target":"fetch",
-   "line":645
+   "line":625
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/seasons.py",
+   "source":"field_season_state_endpoint",
+   "target":"transaction",
+   "line":653
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/seasons.py",
+   "source":"field_season_state_endpoint",
+   "target":"fetch",
+   "line":654
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
    "target":"_db_unavailable",
-   "line":658
+   "line":667
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
    "target":"isinstance",
-   "line":661
+   "line":670
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
    "target":"loads",
-   "line":663
+   "line":672
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
    "target":"isinstance",
-   "line":666
+   "line":675
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
    "target":"str",
-   "line":666
+   "line":675
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
    "target":"assemble_field_season_state",
-   "line":668
+   "line":677
   },
   {
    "owner":"sahool-platform",
@@ -421962,6 +422109,104 @@
   },
   {
    "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_endpoint.py",
+   "source":"test_optional_reads_run_inside_savepoints",
+   "target":"Path",
+   "line":60
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_endpoint.py",
+   "source":"test_optional_reads_run_inside_savepoints",
+   "target":"resolve",
+   "line":60
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_endpoint.py",
+   "source":"test_optional_reads_run_inside_savepoints",
+   "target":"read_text",
+   "line":61
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_endpoint.py",
+   "source":"test_optional_reads_run_inside_savepoints",
+   "target":"split",
+   "line":62
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_endpoint.py",
+   "source":"test_optional_reads_run_inside_savepoints",
+   "target":"findall",
+   "line":64
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_endpoint.py",
+   "source":"test_optional_reads_run_inside_savepoints",
+   "target":"len",
+   "line":65
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_endpoint.py",
+   "source":"test_optional_reads_run_inside_savepoints",
+   "target":"all",
+   "line":66
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_endpoint.py",
+   "source":"test_optional_reads_run_inside_savepoints",
+   "target":"startswith",
+   "line":66
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_endpoint.py",
+   "source":"test_optional_reads_run_inside_savepoints",
+   "target":"read_text",
+   "line":67
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_endpoint.py",
+   "source":"test_optional_reads_run_inside_savepoints",
+   "target":"split",
+   "line":68
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_endpoint.py",
+   "source":"test_optional_reads_run_inside_savepoints",
+   "target":"findall",
+   "line":69
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_endpoint.py",
+   "source":"test_optional_reads_run_inside_savepoints",
+   "target":"len",
+   "line":70
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_endpoint.py",
+   "source":"test_optional_reads_run_inside_savepoints",
+   "target":"all",
+   "line":71
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_endpoint.py",
+   "source":"test_optional_reads_run_inside_savepoints",
+   "target":"startswith",
+   "line":71
+  },
+  {
+   "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"_ts",
    "target":"datetime",
@@ -422168,42 +422413,49 @@
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_recommendation_outcomes_carry_farm_id_into_independence_counts",
    "target":"read_text",
-   "line":257
+   "line":256
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
+   "source":"test_recommendation_outcomes_carry_farm_id_into_independence_counts",
+   "target":"read_text",
+   "line":259
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_reconciled_rows_keep_unit_identity_for_independence_counts",
    "target":"summarize_learning_with_reconciled_outcomes",
-   "line":264
+   "line":269
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_reconciled_rows_keep_unit_identity_for_independence_counts",
    "target":"_ts",
-   "line":274
+   "line":279
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_reconciled_rows_keep_unit_identity_for_independence_counts",
    "target":"range",
-   "line":276
+   "line":281
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_reconciled_rows_keep_unit_identity_for_independence_counts",
    "target":"_ts",
-   "line":289
+   "line":294
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_reconciled_rows_keep_unit_identity_for_independence_counts",
    "target":"next",
-   "line":293
+   "line":298
   },
   {
    "owner":"sahool-platform",

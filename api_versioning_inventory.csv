@@ -169,11 +169,11 @@ knowledge-graph,services/knowledge-graph/main.py,152,POST,/v1/nodes,upsert_node,
 knowledge-graph,services/knowledge-graph/main.py,160,POST,/v1/edges,upsert_edge,versioned
 knowledge-graph,services/knowledge-graph/main.py,169,GET,/v1/edges,edges,versioned
 knowledge-graph,services/knowledge-graph/main.py,183,POST,/graphql,graphql,graphql_facade
-local-ai-rag,services/local-ai-rag/main.py,564,POST,/v1/query,query_endpoint,versioned
-local-ai-rag,services/local-ai-rag/main.py,574,POST,/v1/ingest,ingest_endpoint,versioned
-local-ai-rag,services/local-ai-rag/main.py,629,GET,/healthz,healthz,infra
-local-ai-rag,services/local-ai-rag/main.py,647,GET,/health,legacy_health,infra
-local-ai-rag,services/local-ai-rag/main.py,652,GET,/readyz,readyz,infra
+local-ai-rag,services/local-ai-rag/main.py,570,POST,/v1/query,query_endpoint,versioned
+local-ai-rag,services/local-ai-rag/main.py,580,POST,/v1/ingest,ingest_endpoint,versioned
+local-ai-rag,services/local-ai-rag/main.py,635,GET,/healthz,healthz,infra
+local-ai-rag,services/local-ai-rag/main.py,653,GET,/health,legacy_health,infra
+local-ai-rag,services/local-ai-rag/main.py,658,GET,/readyz,readyz,infra
 mcp_servers,services/mcp_servers/generic_context_server.py,144,GET,/healthz,healthz,infra
 mcp_servers,services/mcp_servers/generic_context_server.py,149,GET,/readyz,readyz,infra
 mcp_servers,services/mcp_servers/generic_context_server.py,156,GET,/v1/mcp/tools,list_tools,versioned
@@ -489,7 +489,7 @@ sahool-platform,services/sahool-platform/api/routers/decision_dispatch.py,492,GE
 sahool-platform,services/sahool-platform/api/routers/decision_dispatch.py,524,GET,/api/v1/decision/dispatch/queue,list_dispatch_queue,versioned
 sahool-platform,services/sahool-platform/api/routers/decision_dispatch.py,580,POST,/api/v1/decision/ledger,record_execution_outcome,versioned
 sahool-platform,services/sahool-platform/api/routers/decision_dispatch.py,676,GET,/api/v1/decision/ledger,list_execution_ledger,versioned
-sahool-platform,services/sahool-platform/api/routers/decision_explain.py,71,GET,/api/v1/decision/{decision_id}/explain,explain_decision_endpoint,versioned
+sahool-platform,services/sahool-platform/api/routers/decision_explain.py,72,GET,/api/v1/decision/{decision_id}/explain,explain_decision_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/decision_impact.py,103,GET,/api/v1/decision/impact,get_impact,versioned
 sahool-platform,services/sahool-platform/api/routers/decision_impact.py,119,GET,/api/v1/decision/learning,get_learning,versioned
 sahool-platform,services/sahool-platform/api/routers/decision_impact.py,185,GET,/api/v1/decision/economics,get_decision_economics,versioned

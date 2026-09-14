@@ -1532,7 +1532,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 564,
+    "line": 570,
     "method": "POST",
     "path": "/v1/query",
     "handler": "query_endpoint",
@@ -1541,7 +1541,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 574,
+    "line": 580,
     "method": "POST",
     "path": "/v1/ingest",
     "handler": "ingest_endpoint",
@@ -1550,7 +1550,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 629,
+    "line": 635,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1559,7 +1559,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 647,
+    "line": 653,
     "method": "GET",
     "path": "/health",
     "handler": "legacy_health",
@@ -1568,7 +1568,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 652,
+    "line": 658,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -4412,7 +4412,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_explain.py",
-    "line": 71,
+    "line": 72,
     "method": "GET",
     "path": "/api/v1/decision/{decision_id}/explain",
     "handler": "explain_decision_endpoint",

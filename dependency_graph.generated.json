@@ -1,5 +1,5 @@
 {
-  "edge_count": 817,
+  "edge_count": 819,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -2472,6 +2472,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/routers/learning_summary.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/market.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -2603,6 +2613,16 @@
     },
     {
       "evidence": "services/sahool-platform/tests/test_field_aggregate_ports.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -8190,7 +8210,7 @@
     "CALLS": 43,
     "CONSUMES": 1,
     "EMITS": 1,
-    "READS": 419,
+    "READS": 421,
     "ROUTES_TO": 71,
     "WRITES": 282
   },
@@ -8207,8 +8227,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 702,
-      "resolved": 701,
+      "observed": 704,
+      "resolved": 703,
       "unresolved_component_paths": 0
     }
   }

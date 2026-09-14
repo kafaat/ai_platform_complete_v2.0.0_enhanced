@@ -439,8 +439,14 @@ if _INIT_MAX_ATTEMPTS_RAW < 1:
     logger.warning(
         "RAG_INIT_MAX_ATTEMPTS=%d غير صالح — قُيِّد إلى %d", _INIT_MAX_ATTEMPTS_RAW, INIT_MAX_ATTEMPTS
     )
-INIT_BACKOFF_BASE_S = float(os.getenv("RAG_INIT_BACKOFF_BASE_S", "5"))
-INIT_BACKOFF_CAP_S = float(os.getenv("RAG_INIT_BACKOFF_CAP_S", "60"))
+# قيمُ التراجع تُطبَّع عند الحدود (منتهية ≥ 0 وإلّا الافتراضيّ مع تحذير) — سالبٌ كان يمرّ
+# فيصير التراجعُ صفراً وتُعاد التهيئة في حلقة ضيّقة (Copilot على #1001).
+INIT_BACKOFF_BASE_S = init_retry.non_negative_float(
+    os.getenv("RAG_INIT_BACKOFF_BASE_S", "5"), 5.0, name="RAG_INIT_BACKOFF_BASE_S", log=logger
+)
+INIT_BACKOFF_CAP_S = init_retry.non_negative_float(
+    os.getenv("RAG_INIT_BACKOFF_CAP_S", "60"), 60.0, name="RAG_INIT_BACKOFF_CAP_S", log=logger
+)
 _init_state: dict = init_retry.new_state()
 
 

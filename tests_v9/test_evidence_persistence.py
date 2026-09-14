@@ -64,7 +64,7 @@ def test_preliminary_below_threshold():
     assert out["success_flag_counts"]["stress_avoided"] == 5
 
 
-def test_verified_at_threshold():
+def test_threshold_reached_is_sample_complete_until_reviewed():
     """عيّنات ≥ العتبة ⇒ field_sample_complete؛ وfield_verified مع مراجعة فقط (U01)."""
     rows = [_row(1, 1) for _ in range(_FIELD_VERIFIED_MIN_SAMPLES)]
     out = evidence_from_persisted_outcomes("marib", rows)
@@ -73,6 +73,26 @@ def test_verified_at_threshold():
     assert out["samples_to_verified"] == 0
     reviewed = evidence_from_persisted_outcomes("marib", rows, reviewed=True)
     assert reviewed["evidence_level"] == "field_verified"
+
+
+def test_decision_explain_evidence_decodes_raw_jsonb_metrics():
+    """Copilot على #1001: مسارُ الشرح كان يمرّر metrics نصّاً خاماً (asyncpg بلا codec) فيرفع 500."""
+    pytest.importorskip("fastapi")
+    from api.routers.decision_explain import _evidence_summary
+
+    raw_rows = [
+        {
+            "metrics": '{"n_evaluated": 1, "n_success": 1, "success_flags": ["yield_met"]}',
+            "created_at": "2026-06-20T10:00:00",
+            "field_id": "fld_1",
+        },
+        {"metrics": {"n_evaluated": 1, "n_success": 0}, "created_at": "2026-06-21T10:00:00"},
+    ]
+    out = _evidence_summary("jawf", raw_rows)
+    assert out["sample_count"] == 2 and out["success_rate"] == 0.5
+    assert out["success_flag_counts"]["yield_met"] == 1
+    assert out["independence"]["fields"] == 1 and out["independence"]["unknown_unit_samples"] == 1
+    assert _evidence_summary(None, raw_rows) is None and _evidence_summary("jawf", []) is None
 
 
 def test_last_evaluated_from_created_at():

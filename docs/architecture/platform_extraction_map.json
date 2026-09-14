@@ -1817,7 +1817,7 @@
       "function": "explain_decision_endpoint",
       "method": "GET",
       "path": "/api/v1/decision/{decision_id}/explain",
-      "line": 70,
+      "line": 71,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_explain.py::GET /api/v1/decision/{decision_id}/explain::explain_decision_endpoint"

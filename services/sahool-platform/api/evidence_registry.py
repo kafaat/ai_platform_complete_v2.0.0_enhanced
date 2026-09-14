@@ -57,8 +57,9 @@ def aggregate_evidence(
     outcomes: قائمة مخرجات measure_outcome (كلّ منها {n_evaluated, n_success,
     success_flags, evaluated_at?}). expert_calibrated: هل للمنطقة قيم خبير مُسبقاً.
     صدق: العيّنة = نتيجة فيها ≥1 مقياس مُقيَّم (الفارغة لا تُحتسب). مستوى الدليل من
-    عدد العيّنات (عتبة موسومة): 0⇒none/expert_opinion، <العتبة⇒field_preliminary،
-    ≥العتبة⇒field_verified.
+    عدد العيّنات (عتبة موسومة) **ثمّ** المراجعة: 0⇒none/expert_opinion،
+    <العتبة⇒field_preliminary، ≥العتبة⇒field_sample_complete (عيّنة مكتملة بانتظار
+    المراجعة)، و≥العتبة مع ``reviewed=True``⇒field_verified — بلوغُ العتبة وحدَه لا يعتمد.
     """
     samples = [o for o in outcomes if o.get("n_evaluated", 0) > 0]
     sample_count = len(samples)

@@ -40,6 +40,31 @@ def test_backoff_is_exponential_and_capped(retry):
     assert retry.backoff_seconds(9, base=5, cap=60) == 60
 
 
+def test_backoff_fails_closed_on_negative_or_non_finite_bounds(retry):
+    """Copilot على #1001 (مكتومة): قاعدةٌ سالبة كانت تُعيد زمناً سالباً ⇒ حلقةُ إعادة ضيّقة."""
+    for base, cap in ((-5, 60), (5, -1), (float("nan"), 60), (5, float("inf"))):
+        with pytest.raises(ValueError):
+            retry.backoff_seconds(1, base=base, cap=cap)
+
+
+def test_config_boundary_normalises_backoff_values(retry):
+    """القيمُ غير الصالحة تُستبدَل بالافتراضيّ عند الحدود (لا في منتصف حلقة الإعادة)."""
+    ok = retry.non_negative_float("2.5", 5.0, name="X")
+    assert ok == 2.5
+    assert retry.non_negative_float(None, 5.0, name="X") == 5.0
+    assert retry.non_negative_float("  ", 5.0, name="X") == 5.0
+    for bad in ("-5", "nan", "inf", "-inf", "abc"):
+        assert retry.non_negative_float(bad, 60.0, name="X") == 60.0, bad
+    assert retry.non_negative_float("0", 60.0, name="X") == 0.0  # الصفر مسموح (بلا تراجع)
+    # main.py يمرّ بهذه الحدود لكلا المتغيّرين — لا `float(os.getenv(...))` عارٍ.
+    src = MAIN.read_text(encoding="utf-8")
+    for var, default in (("RAG_INIT_BACKOFF_BASE_S", "5"), ("RAG_INIT_BACKOFF_CAP_S", "60")):
+        assert f'non_negative_float(\n    os.getenv("{var}", "{default}")' in src, var
+        assert f'float(os.getenv("{var}"' not in src, (
+            f"{var} يُقرأ بلا تطبيع — السالبُ يصير تراجعاً صفريّاً وحلقةَ إعادة ضيّقة"
+        )
+
+
 @pytest.mark.asyncio
 async def test_transient_failure_is_retried_until_ready(retry):
     attempts = {"n": 0}

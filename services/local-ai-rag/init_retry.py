@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 import logging
+import math
 from collections.abc import Awaitable, Callable
 from typing import Any
 
@@ -22,8 +23,34 @@ def new_state() -> dict[str, Any]:
     return {"status": "pending", "attempts": 0, "last_error": None}
 
 
+def non_negative_float(
+    raw: str | None, default: float, *, name: str, log: logging.Logger | None = None
+) -> float:
+    """يقرأ قيمةَ إعدادٍ عشريّةً **منتهيةً غير سالبة** وإلّا يُعيد الافتراضيّ مع تحذير.
+
+    Copilot على #1001: قيمةٌ سالبة لـ``RAG_INIT_BACKOFF_*`` كانت تمرّ فيُعيد التراجعُ زمناً
+    سالباً و``asyncio.sleep`` يعامله كصفر — حلقةُ إعادة ضيّقة بدل تراجعٍ محدود. الحدُّ يُفرَض
+    عند حدود الإعداد (هنا) لا في منتصف حلقة الإعادة.
+    """
+    if raw is None or not str(raw).strip():
+        return float(default)
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        value = float("nan")
+    if not math.isfinite(value) or value < 0:
+        (log or _log).warning("%s=%r غير صالح (يلزم عددٌ منتهٍ ≥ 0) — استُعمِل %s", name, raw, default)
+        return float(default)
+    return value
+
+
 def backoff_seconds(attempt: int, *, base: float, cap: float) -> float:
-    """تراجعٌ أسّيّ محدود: base·2^(attempt-1) بسقف cap. نقيّ؛ attempt يبدأ من 1."""
+    """تراجعٌ أسّيّ محدود: base·2^(attempt-1) بسقف cap. نقيّ؛ attempt يبدأ من 1.
+
+    يرفض قاعدةً أو سقفاً سالبَين/غيرَ منتهيَين (يفشل مغلقاً) — التطبيعُ مسؤوليّةُ حدود الإعداد.
+    """
+    if not (math.isfinite(base) and math.isfinite(cap)) or base < 0 or cap < 0:
+        raise ValueError(f"backoff base/cap must be finite and >= 0 (got {base!r}, {cap!r})")
     return float(min(cap, base * (2 ** max(0, attempt - 1))))
 
 
