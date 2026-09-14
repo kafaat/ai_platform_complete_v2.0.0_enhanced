@@ -4222,15 +4222,15 @@
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/autowrite-preview @ services/sahool-platform/api/routers/farm_operations_ledger.py:846",
+          "value": "/api/v1/farm-ledger/autowrite-preview @ services/sahool-platform/api/routers/farm_operations_ledger.py:844",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:499",
+          "value": "/api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:497",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:580",
+          "value": "/api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:578",
           "score": 17
         },
         {
@@ -4238,11 +4238,11 @@
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:763",
+          "value": "/api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:761",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:894",
+          "value": "/api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:892",
           "score": 17
         },
         {
@@ -4250,23 +4250,23 @@
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/operations @ services/sahool-platform/api/routers/farm_operations_ledger.py:325",
+          "value": "/api/v1/farm-ledger/operations @ services/sahool-platform/api/routers/farm_operations_ledger.py:321",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/profitability/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:728",
+          "value": "/api/v1/farm-ledger/profitability/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:726",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/revenues @ services/sahool-platform/api/routers/farm_operations_ledger.py:608",
+          "value": "/api/v1/farm-ledger/revenues @ services/sahool-platform/api/routers/farm_operations_ledger.py:606",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/summary @ services/sahool-platform/api/routers/farm_operations_ledger.py:373",
+          "value": "/api/v1/farm-ledger/summary @ services/sahool-platform/api/routers/farm_operations_ledger.py:369",
           "score": 17
         },
         {
-          "value": "/api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:700",
+          "value": "/api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:698",
           "score": 17
         },
         {

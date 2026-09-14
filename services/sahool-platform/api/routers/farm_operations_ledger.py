@@ -7,10 +7,13 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 import uuid
 from datetime import date
 
+from core import farm_operations_ledger as ledger_core
 from core.erp_projection_contract import build_projection_envelope
 from core.farm_closed_loop import (
     OperationEvent,
@@ -28,7 +31,7 @@ from core.farm_costing import (
     normalize_budget_line,
     project_to_erp_lines,
 )
-from core.farm_operations_ledger import LedgerSummary, persist_operation_subrecords
+from core.farm_operations_ledger import LedgerSummary
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator
 
@@ -214,9 +217,6 @@ class OperationLedgerIn(BaseModel):
 
 def _request_digest(req: OperationLedgerIn) -> str:
     """بصمةُ الحمولة الكاملة (JSON مرتَّب) — تُميِّز الإعادةَ الصادقة عن إعادة استعمال المفتاح."""
-    import hashlib
-    import json
-
     canonical = json.dumps(req.model_dump(mode="json"), sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
@@ -229,11 +229,8 @@ async def create_operation_ledger_record(
 ):
     """يحفظ سجل عمل يوميّاً ومرفقاته الرقابية. لا يزامن ERP ولا يخصم مخزوناً هنا.
 
-    U06 (التدقيق الموحَّد 2026-09-13): كان كلُّ طلب يولّد ``operation_id`` جديداً، فإعادةُ
-    طابور الهاتف بعد انقطاع الردّ (بعد COMMIT وقبل الوصول) تُنشئ عمليّتين للمصدر نفسه.
-    الآن ``Idempotency-Key`` (UUID) يُسجِّل الأمر مرّةً في ``commands`` داخل معاملة
-    ``tenant_connection`` نفسها ويُعيد النتيجةَ المخزَّنة حرفيّاً عند الإعادة (بالمعرّف
-    الأصليّ)؛ المفتاحُ نفسه بحمولةٍ مختلفة ⇒ 409. بلا مفتاح ⇒ السلوك القديم.
+    U06: ``Idempotency-Key`` (UUID) يُسجِّل الأمر مرّةً في ``commands`` داخل معاملة ``tenant_connection``
+    ويُعيد النتيجةَ المخزَّنة حرفيّاً؛ المفتاحُ نفسه بحمولةٍ مختلفة ⇒ 409 **قبل** فحوص النطاق (فهي داخل العمل).
     """
     _require_enabled()
     if api_main._DB_POOL is None:
@@ -244,13 +241,13 @@ async def create_operation_ledger_record(
     try:
         async with tenant_connection(user) as conn:
             tenant_id = str(user.tenant_id)
-            if req.field_id:
-                await _assert_field_in_tenant(conn, req.field_id)
-            await _assert_season_in_tenant(conn, tenant_id, req.season_id)
-            await _assert_production_unit_in_tenant(conn, tenant_id, req.production_unit_id)
-            await _assert_farm_in_tenant(conn, tenant_id, req.farm_id)
 
             async def _persist() -> dict:
+                if req.field_id:
+                    await _assert_field_in_tenant(conn, req.field_id)
+                await _assert_season_in_tenant(conn, tenant_id, req.season_id)
+                await _assert_production_unit_in_tenant(conn, tenant_id, req.production_unit_id)
+                await _assert_farm_in_tenant(conn, tenant_id, req.farm_id)
                 async with conn.transaction():
                     await conn.execute(
                         """INSERT INTO farm_operation_ledger
@@ -278,9 +275,8 @@ async def create_operation_ledger_record(
                         req.sync_status,
                         user.user_id,
                     )
-                    # السجلّاتُ الفرعيّة (ماء/طاقة/معدّات/عمالة/مدخلات) في وحدة النطاق نفسها،
-                    # داخل المعاملة نفسها — الكاتبُ ما زال هذه الخدمة (راتشِت حجم الراوتر).
-                    await persist_operation_subrecords(
+                    # السجلّاتُ الفرعيّة في وحدة النطاق، داخل المعاملة نفسها (راتشِت حجم الراوتر).
+                    await ledger_core.persist_operation_subrecords(
                         conn,
                         tenant_id=str(user.tenant_id),
                         operation_id=operation_id,
@@ -410,7 +406,9 @@ async def farm_ledger_summary(
                     COALESCE(SUM(cost_amount), 0)::float AS total_cost,
                     COALESCE(SUM(cost_amount) FILTER (WHERE cost_category IN ('administration','overhead','supervision','security','management')), 0)::float AS indirect_cost,
                     COALESCE(SUM(cost_amount) FILTER (WHERE sync_status IN ('ready_for_sync','synced','sync_failed')), 0)::float AS syncable_cost,
-                    COALESCE((SELECT SUM(water_volume_m3) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id), 0)::float AS water_volume_m3,
+                    (SELECT SUM(water_volume_m3) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::float AS water_volume_m3,
+                    (SELECT COUNT(*) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::int AS water_records_total,
+                    (SELECT COUNT(water_volume_m3) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::int AS water_records_measured,
                     COALESCE((SELECT SUM(kwh) FROM farm_energy_records e JOIN ops ON ops.operation_id = e.operation_id), 0)::float AS energy_kwh,
                     COALESCE((SELECT SUM(diesel_liters) FROM farm_energy_records e JOIN ops ON ops.operation_id = e.operation_id), 0)::float AS diesel_liters,
                     COALESCE((SELECT SUM(hours_worked) FROM farm_equipment_records q JOIN ops ON ops.operation_id = q.operation_id), 0)::float AS equipment_hours,
@@ -439,7 +437,7 @@ async def farm_ledger_summary(
             "direct_cost": total - indirect,
             "indirect_cost": indirect,
             "cost_breakdown": {r["category"]: float(r["amount"] or 0.0) for r in breakdown_rows},
-            "water_volume_m3": float(row["water_volume_m3"] or 0.0),
+            **ledger_core.water_summary_payload(row),
             "energy_kwh": float(row["energy_kwh"] or 0.0),
             "diesel_liters": float(row["diesel_liters"] or 0.0),
             "equipment_hours": float(row["equipment_hours"] or 0.0),
@@ -944,7 +942,9 @@ async def _fetch_ledger_summary_for_season(conn, tenant_id: str, season_id: str)
             COALESCE(SUM(cost_amount), 0)::float AS total_cost,
             COALESCE(SUM(cost_amount) FILTER (WHERE cost_category IN ('administration','overhead','supervision','security','management')), 0)::float AS indirect_cost,
             COALESCE(SUM(cost_amount) FILTER (WHERE sync_status IN ('ready_for_sync','synced','sync_failed')), 0)::float AS syncable_cost,
-            COALESCE((SELECT SUM(water_volume_m3) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id), 0)::float AS water_volume_m3,
+            (SELECT SUM(water_volume_m3) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::float AS water_volume_m3,
+            (SELECT COUNT(*) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::int AS water_records_total,
+            (SELECT COUNT(water_volume_m3) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::int AS water_records_measured,
             COALESCE((SELECT SUM(kwh) FROM farm_energy_records e JOIN ops ON ops.operation_id = e.operation_id), 0)::float AS energy_kwh,
             COALESCE((SELECT SUM(diesel_liters) FROM farm_energy_records e JOIN ops ON ops.operation_id = e.operation_id), 0)::float AS diesel_liters,
             COALESCE((SELECT SUM(hours_worked) FROM farm_equipment_records q JOIN ops ON ops.operation_id = q.operation_id), 0)::float AS equipment_hours,
@@ -970,7 +970,7 @@ async def _fetch_ledger_summary_for_season(conn, tenant_id: str, season_id: str)
         indirect_cost=indirect,
         currency="YER",
         cost_breakdown={r["category"]: float(r["amount"] or 0.0) for r in breakdown_rows},
-        water_volume_m3=float(row["water_volume_m3"] or 0.0),
+        **ledger_core.water_summary_from_row(row),
         energy_kwh=float(row["energy_kwh"] or 0.0),
         diesel_liters=float(row["diesel_liters"] or 0.0),
         equipment_hours=float(row["equipment_hours"] or 0.0),

@@ -10,7 +10,14 @@ export interface LedgerSummary {
   direct_cost: number;
   indirect_cost: number;
   cost_breakdown: Record<string, number>;
-  water_volume_m3: number;
+  /** U04: null حين لا حجمَ ماءٍ مقيساً — الغائب ليس صفراً. */
+  water_volume_m3: number | null;
+  water_measurement?: {
+    records_total: number;
+    records_measured: number;
+    records_unmeasured: number;
+    complete: boolean;
+  };
   energy_kwh: number;
   diesel_liters: number;
   equipment_hours: number;

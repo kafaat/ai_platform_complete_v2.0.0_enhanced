@@ -324,6 +324,40 @@ def ai_feature_row(summary: LedgerSummary, *, area_ha: float | None = None) -> d
     }
 
 
+def water_summary_from_row(row: Any) -> dict[str, Any]:
+    """يقرأ حجمَ الماء وعدّادات القياس من صفّ SQL مجمَّع (U04) — الغائبُ ``None`` لا ``0``.
+
+    يتوقّع الأعمدة ``water_volume_m3`` (``SUM`` بلا ``COALESCE``) و``water_records_total``
+    و``water_records_measured``، ويُعيد وسائطَ ``LedgerSummary`` الأربعة للماء. كان مسارا
+    HTTP يُغلّفان المجموعَ بـ``COALESCE(…, 0)`` ثمّ ``or 0.0`` فيخرج الموسمُ غيرُ المقيس
+    صفراً رغم عقد الوحدة (Copilot على #1001).
+    """
+    volume = row["water_volume_m3"]
+    total = int(row["water_records_total"] or 0)
+    measured = int(row["water_records_measured"] or 0)
+    return {
+        "water_volume_m3": float(volume) if volume is not None else None,
+        "water_records_total": total,
+        "water_records_measured": measured,
+        "water_records_unmeasured": total - measured,
+    }
+
+
+def water_summary_payload(row: Any) -> dict[str, Any]:
+    """حقولُ الماء لردّ HTTP الملخَّص: الحجمُ (أو ``None``) واكتمالُ القياس بالشكل الذي
+    يُصدِره ``ai_feature_row`` نفسه."""
+    w = water_summary_from_row(row)
+    return {
+        "water_volume_m3": w["water_volume_m3"],
+        "water_measurement": {
+            "records_total": w["water_records_total"],
+            "records_measured": w["water_records_measured"],
+            "records_unmeasured": w["water_records_unmeasured"],
+            "complete": w["water_records_unmeasured"] == 0,
+        },
+    }
+
+
 # ─── إدامة السجلّات الفرعيّة لعمليّةٍ واحدة ──────────────────────────────────────────
 # نُقِلت من راوتر `farm_operations_ledger` (راتشِت حجم الراوترات: لا راوترَ يكبر) — الكاتبُ
 # ما زال sahool-platform والمعاملةُ هي معاملةُ المُنادي؛ لا اتّصالَ يُفتح هنا.

@@ -288,3 +288,13 @@ def test_farm_ledger_operation_create_is_idempotent_by_contract():
     assert 'command_type="farm_ledger.operation.create"' in src
     # المعرّف يُولَّد قبل الأمر ويُحفَظ في حمولته فتُعيده الإعادة حرفيّاً.
     assert src.index('operation_id = "oplog_"') < src.index("_idempotent(")
+    # فحوصُ النطاق داخل العمل (Copilot على #1001): مفتاحٌ مُعاد بحمولةٍ مختلفة تشير إلى حقل/موسم
+    # غائب كان يُردّ 404/422 قبل مقارنة البصمة — الآن 409 أوّلاً، والإعادةُ الصادقة لا تُعيد الفحص.
+    persist_at = src.index("async def _persist(")
+    for guard in (
+        "_assert_field_in_tenant(",
+        "_assert_season_in_tenant(",
+        "_assert_production_unit_in_tenant(",
+        "_assert_farm_in_tenant(",
+    ):
+        assert src.index(guard) > persist_at, f"{guard} يسبق _persist — 404 قبل 409"

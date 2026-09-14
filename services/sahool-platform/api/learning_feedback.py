@@ -140,6 +140,10 @@ async def process_season_closed_event(
     import json
     from uuid import UUID
 
+    # القفلُ **قبل** فحص الإعادة (Copilot على #1001): تسليمان متزامنان كانا يريان «لا صفّ»
+    # معاً ثمّ يُصدِران الحدثَ مرّتين رغم ON CONFLICT DO NOTHING — الثاني ينتظر القفل ثمّ يرى
+    # صفَّ الأوّل ويعود بالتقييم المخزَّن.
+    await conn.execute("SELECT pg_advisory_xact_lock(hashtext($1))", f"season-learning:{event_id}")
     existing = await conn.fetchrow(
         "SELECT evaluation FROM decision_learning_runs WHERE event_id=$1", event_id
     )
@@ -150,12 +154,13 @@ async def process_season_closed_event(
             "evaluation": dict(existing["evaluation"] or {}),
         }
 
-    await conn.execute("SELECT pg_advisory_xact_lock(hashtext($1))", f"season-learning:{event_id}")
+    # الترتيبُ بأعمدة الجدول الفعليّة (v49: outcome_id/issued_at/outcome_recorded_at) — كان
+    # `created_at,id` فيفشل كلُّ إغلاق موسم بعمود غير معرَّف قبل أيّ إدامة (Copilot على #1001).
     rows = await conn.fetch(
         """SELECT recommendation_id,predicted_yield_t_ha,actual_yield_t_ha,accepted,matured_within_lag
            FROM recommendation_outcomes
            WHERE field_id=$1 AND season_id=$2
-           ORDER BY created_at,id""",
+           ORDER BY COALESCE(outcome_recorded_at, issued_at),outcome_id""",
         field_id,
         season_id,
     )

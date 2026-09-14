@@ -3835,7 +3835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6c888132d000672cc11a2879b288a5e963f24f0d78290f5d4849a5c932f5fea7"
+          "content": "e837a2b2f6f4312cd1e13d420b95a91a43f590ab14b683d3335a931009048979"
         }
       ],
       "name": "frontend/src/lib/fieldProfitability.ts",
@@ -17335,7 +17335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8464cd0e12dd844a0606340d0f679d82909a831ea879d07bc5930b56329a910e"
+          "content": "4cbfe550785c532aba91e3fbaa490365bb616f38d814d1c5dd68bc51280b0d33"
         }
       ],
       "name": "services/sahool-platform/api/learning_feedback.py",
@@ -18335,7 +18335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e0acc754581093dae181cacc99f0fb44deb34292282f8c8963fe68388d62a0c8"
+          "content": "68cb7345ddc030a8eff9cf1bfaa2844a97eefbbfa409e2a013545a634ccfbc2c"
         }
       ],
       "name": "services/sahool-platform/api/routers/farm_operations_ledger.py",
@@ -21985,7 +21985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ad8f1fb843a752d10f559fa0ee589c4fa661ed73e8dfa0cd415be084538030b3"
+          "content": "cafc26601320476230cbdc8fd499c00d08699f04a96529e3fe225297795bcf8a"
         }
       ],
       "name": "services/sahool-platform/core/farm_operations_ledger.py",
@@ -22585,7 +22585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "83d341060f53597850d4373db9a6bcfc19c03d0f0dd625e1cb8c7ac6a0bf6986"
+          "content": "3b67c920905a86dde27f3e5b66411c56402b75f0b59d515e944fbe7c95bdf11b"
         }
       ],
       "name": "services/sahool-platform/core/outcome_reconciler.py",
@@ -25315,7 +25315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4af4407d5be075b21576b5d67199e4c43cb446cdac7a8d52346bc56985ead25f"
+          "content": "ff872885a5d8ef9217db430cfe2b0a6a53f3ccd2f6aef5b2da2594de736a0561"
         }
       ],
       "name": "services/sahool-platform/tests/test_farm_operations_ledger.py",
@@ -26265,7 +26265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ffeb143037652cd4221bf3aa5daca9df202c08002d2f58e53844f33810dbbcde"
+          "content": "2ff8ff6768e6e8457b199b87d7568c1ca696d11f727a90944937556db0d42ff5"
         }
       ],
       "name": "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",

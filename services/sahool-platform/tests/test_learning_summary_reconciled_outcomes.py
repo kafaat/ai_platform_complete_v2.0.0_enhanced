@@ -211,6 +211,12 @@ def test_non_finite_values_do_not_leak_into_the_delta_payload():
     assert row["result"]["yield_delta_t_ha"] is None
     assert row["result"]["eligibility"]["reason"] == "non_finite_value"
     assert row["success"] is None
+    # المكتومة: التوقّع/الفعليّ نفساهما كانا يُنسَخان غيرَ منتهيين إلى الحمولة.
+    assert row["result"]["actual_yield_t_ha"] is None
+    assert row["result"]["predicted_yield_t_ha"] == 4.0
+    import json
+
+    json.dumps(row, allow_nan=False)  # تسلسلٌ صارم لا يفشل
 
 
 def test_reconciled_rows_keep_unit_identity_for_independence_counts():

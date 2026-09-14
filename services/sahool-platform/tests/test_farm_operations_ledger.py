@@ -16,7 +16,53 @@ from core.farm_operations_ledger import (
     ai_feature_row,
     summarize_operational_records,
     validate_operation_record,
+    water_summary_from_row,
+    water_summary_payload,
 )
+
+
+def test_water_summary_from_sql_row_keeps_unmeasured_water_unknown():
+    """Copilot على #1001 (مكتومة): مسارا HTTP كانا يُغلّفان SUM بـCOALESCE(…,0) ثمّ `or 0.0`."""
+    unmeasured = {"water_volume_m3": None, "water_records_total": 2, "water_records_measured": 0}
+    assert water_summary_from_row(unmeasured) == {
+        "water_volume_m3": None,
+        "water_records_total": 2,
+        "water_records_measured": 0,
+        "water_records_unmeasured": 2,
+    }
+    assert water_summary_payload(unmeasured) == {
+        "water_volume_m3": None,
+        "water_measurement": {
+            "records_total": 2,
+            "records_measured": 0,
+            "records_unmeasured": 2,
+            "complete": False,
+        },
+    }
+    measured = {"water_volume_m3": 900.0, "water_records_total": 1, "water_records_measured": 1}
+    assert water_summary_payload(measured)["water_volume_m3"] == 900.0
+    assert water_summary_payload(measured)["water_measurement"]["complete"] is True
+    # بلا سجلّات ماء أصلاً: الأعمدة NULL/0 ⇒ مجهول واكتمالٌ تافه (كعقد summarize_operational_records).
+    empty = {"water_volume_m3": None, "water_records_total": None, "water_records_measured": None}
+    assert water_summary_payload(empty)["water_measurement"] == {
+        "records_total": 0,
+        "records_measured": 0,
+        "records_unmeasured": 0,
+        "complete": True,
+    }
+
+
+def test_router_summary_queries_do_not_coalesce_water_to_zero():
+    """كلا الاستعلامين (ملخّص HTTP وملخّص الموسم) يُصدِران SUM بلا COALESCE مع عدّادي القياس."""
+    from pathlib import Path
+
+    router = Path(__file__).resolve().parents[1] / "api/routers/farm_operations_ledger.py"
+    src = router.read_text(encoding="utf-8")
+    assert "COALESCE((SELECT SUM(water_volume_m3)" not in src
+    assert 'float(row["water_volume_m3"] or 0.0)' not in src
+    assert src.count("AS water_records_total") == 2
+    assert src.count("AS water_records_measured") == 2
+    assert "water_summary_payload(row)" in src and "water_summary_from_row(row)" in src
 
 
 def test_summarize_operational_records_control_ledger():

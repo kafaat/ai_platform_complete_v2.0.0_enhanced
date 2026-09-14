@@ -1072,7 +1072,7 @@
     },
     {
       "kind": "router",
-      "line": 50,
+      "line": 53,
       "module": "services.sahool-platform.api.routers.farm_operations_ledger",
       "node_id": "services.sahool-platform.api.routers.farm_operations_ledger:router",
       "route_count": 12,
@@ -2613,7 +2613,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "b20a86030444dc21512df8c4a77fcaf4c193f0dda57329330687fe1f00a0525c",
+  "inventory_sha256": "19c94c27816d35b7e11c6527f23e1e4f9702897c97c36c149143d7930b2851b0",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {
@@ -3559,7 +3559,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 50,
+      "line": 53,
       "module": "services.sahool-platform.api.routers.farm_operations_ledger",
       "node_id": "services.sahool-platform.api.routers.farm_operations_ledger:router",
       "route_count": 12,

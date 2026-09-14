@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import re
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -183,3 +184,41 @@ async def test_season_learning_excludes_immature_and_non_finite_rows_with_reason
     assert "IS NOT NULL" not in fetch_sql
     assert evaluation["status"] == "blocked"  # اثنان < الحدّ الأدنى ٣ — لا ترشيح من قيم مبكّرة
     assert evaluation["mae_t_ha"] == 0.6  # (0.2 + 1.0) / 2 — الناضجتان فقط
+
+
+def _recommendation_outcomes_columns() -> set[str]:
+    """أعمدةُ الجدول كما يُعرِّفها v49 — مصدرُ الحقيقة لا الاستنتاج."""
+    ddl = (ROOT / "migrations/v49_zone_key_recommendation_outcomes.sql").read_text(encoding="utf-8")
+    body = ddl.split("CREATE TABLE IF NOT EXISTS recommendation_outcomes (", 1)[1].split(");", 1)[0]
+    return {
+        line.split()[0]
+        for line in body.splitlines()
+        if line.strip() and not line.strip().startswith("--")
+    }
+
+
+@pytest.mark.asyncio
+async def test_season_learning_locks_before_the_replay_check_and_orders_by_real_columns():
+    """Copilot على #1001 (مكتومتان): (أ) القفلُ الاستشاريّ قبل فحص الإعادة — تسليمان متزامنان
+    كانا يريان «لا صفّ» معاً فيُصدِران الحدثَ مرّتين؛ (ب) ORDER BY بأعمدة v49 الفعليّة —
+    كان `created_at,id` فيفشل كلُّ إغلاق موسم بعمود غير معرَّف."""
+    mod = _load("services/sahool-platform/api/learning_feedback.py", "learning_feedback_lock")
+    kw = dict(tenant_id="00000000-0000-0000-0000-000000000001", field_id="fld-1", season_id="ssn-1")
+
+    replay = Conn(replay=True)
+    result = await mod.process_season_closed_event(replay, event_id="evt-lock", **kw)
+    assert result["idempotent_replay"] is True
+    sqls = [call[1] for call in replay.calls]
+    lock_at = next(i for i, s in enumerate(sqls) if "pg_advisory_xact_lock" in s)
+    replay_check_at = next(i for i, s in enumerate(sqls) if "decision_learning_runs WHERE" in s)
+    assert lock_at < replay_check_at, "فحصُ الإعادة يسبق القفل — نافذةُ إصدارٍ مزدوج"
+    assert not any("emit_event" in s for s in sqls)
+
+    fresh = Conn(outcomes=[])
+    await mod.process_season_closed_event(fresh, event_id="evt-order", **kw)
+    fetch_sql = next(call[1] for call in fresh.calls if call[0] == "fetch")
+    order_by = fetch_sql.split("ORDER BY", 1)[1]
+    referenced = set(re.findall(r"[a-z_]+", order_by))  # المعرّفات الصغيرة فقط (لا الدوالّ)
+    columns = _recommendation_outcomes_columns()
+    assert referenced and referenced <= columns, (referenced - columns, columns)
+    assert "created_at" not in order_by and " id" not in order_by

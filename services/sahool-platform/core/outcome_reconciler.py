@@ -92,10 +92,19 @@ def _derive_rec_success(row: dict) -> bool | None:
     return _num(row.get("actual_yield_t_ha")) >= _num(row.get("predicted_yield_t_ha"))
 
 
+def _finite(v: float | None) -> float | None:
+    """قيمةٌ منتهية أو ``None`` — NaN/Infinity لا تتسرّب إلى حمولة JSON (Copilot على #1001)."""
+    return v if v is not None and math.isfinite(v) else None
+
+
 def normalize_recommendation_outcome(row: dict) -> dict:
-    """يُطبّع صفّ ``recommendation_outcomes`` (تعلّم الغلّة) إلى الشكل الموحّد."""
-    pred = _num(row.get("predicted_yield_t_ha"))
-    act = _num(row.get("actual_yield_t_ha"))
+    """يُطبّع صفّ ``recommendation_outcomes`` (تعلّم الغلّة) إلى الشكل الموحّد.
+
+    القيمُ غير المنتهية تُطبَّع إلى ``None`` في الحمولة (التوقّع والفعليّ والفرق معاً)؛ سببُ
+    الاستبعاد يبقى معلَناً في ``eligibility`` المحسوبة من الصفّ الخام.
+    """
+    pred = _finite(_num(row.get("predicted_yield_t_ha")))
+    act = _finite(_num(row.get("actual_yield_t_ha")))
     return {
         "source_model": "recommendation_outcomes",
         "kind": "yield_learning",
@@ -109,14 +118,8 @@ def normalize_recommendation_outcome(row: dict) -> dict:
         "result": {
             "predicted_yield_t_ha": pred,
             "actual_yield_t_ha": act,
-            # الفرقُ يُحسَب للقيم المنتهية فقط — NaN/Infinity لا تتسرّب إلى الحمولة (Copilot على #1001).
             "yield_delta_t_ha": (
-                round(act - pred, 3)
-                if pred is not None
-                and act is not None
-                and math.isfinite(pred)
-                and math.isfinite(act)
-                else None
+                round(act - pred, 3) if pred is not None and act is not None else None
             ),
             "accepted": bool(row.get("accepted")),
             "matured_within_lag": bool(row.get("matured_within_lag")),

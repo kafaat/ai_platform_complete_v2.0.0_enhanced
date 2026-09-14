@@ -5,7 +5,7 @@
   "runtime_verified":false,
   "python_files_parsed":1892,
   "route_handlers":1050,
-  "call_edges":77913,
+  "call_edges":77933,
   "dead_code_candidates":632,
   "duplicate_function_groups":60,
   "route_owners":27,
@@ -4239,7 +4239,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "line":326,
+   "line":322,
    "handler":"list_operation_ledger_records",
    "method":"GET",
    "path":"/api/v1/farm-ledger/operations"
@@ -4247,7 +4247,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "line":374,
+   "line":370,
    "handler":"farm_ledger_summary",
    "method":"GET",
    "path":"/api/v1/farm-ledger/summary"
@@ -4255,7 +4255,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "line":500,
+   "line":498,
    "handler":"upsert_season_budget_lines",
    "method":"POST",
    "path":"/api/v1/farm-ledger/budgets"
@@ -4263,7 +4263,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "line":581,
+   "line":579,
    "handler":"get_season_budget",
    "method":"GET",
    "path":"/api/v1/farm-ledger/budgets/{season_id}"
@@ -4271,7 +4271,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "line":609,
+   "line":607,
    "handler":"create_revenue_record",
    "method":"POST",
    "path":"/api/v1/farm-ledger/revenues"
@@ -4279,7 +4279,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "line":701,
+   "line":699,
    "handler":"get_budget_variance",
    "method":"GET",
    "path":"/api/v1/farm-ledger/variance/{season_id}"
@@ -4287,7 +4287,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "line":729,
+   "line":727,
    "handler":"get_season_profitability",
    "method":"GET",
    "path":"/api/v1/farm-ledger/profitability/{season_id}"
@@ -4295,7 +4295,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "line":764,
+   "line":762,
    "handler":"get_erp_projection",
    "method":"GET",
    "path":"/api/v1/farm-ledger/erp-projection/{season_id}"
@@ -4303,7 +4303,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "line":847,
+   "line":845,
    "handler":"operation_autowrite_preview",
    "method":"POST",
    "path":"/api/v1/farm-ledger/autowrite-preview"
@@ -4311,7 +4311,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "line":895,
+   "line":893,
    "handler":"get_inventory_projection",
    "method":"GET",
    "path":"/api/v1/farm-ledger/inventory-projection/{season_id}"
@@ -214911,154 +214911,140 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
+   "target":"execute",
+   "line":146
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
    "target":"fetchrow",
-   "line":143
+   "line":147
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"dict",
-   "line":150
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"execute",
-   "line":153
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"fetch",
    "line":154
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
+   "target":"fetch",
+   "line":159
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
    "target":"dict",
-   "line":162
+   "line":167
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"_stable_digest",
-   "line":163
+   "line":168
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"sorted",
-   "line":163
+   "line":168
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"recommendation_outcome_eligibility",
-   "line":172
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"append",
-   "line":174
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"str",
-   "line":176
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"get",
    "line":177
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
-   "target":"float",
-   "line":178
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"float",
-   "line":178
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"abs",
+   "target":"append",
    "line":179
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
-   "target":"len",
-   "line":179
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"round",
-   "line":179
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"sum",
-   "line":179
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"len",
-   "line":180
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"round",
-   "line":180
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"sum",
-   "line":180
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"len",
+   "target":"str",
    "line":181
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
+   "target":"get",
+   "line":182
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
+   "target":"float",
+   "line":183
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
+   "target":"float",
+   "line":183
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
+   "target":"abs",
+   "line":184
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
    "target":"len",
+   "line":184
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
+   "target":"round",
+   "line":184
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
+   "target":"sum",
+   "line":184
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
+   "target":"len",
+   "line":185
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
+   "target":"round",
+   "line":185
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
+   "target":"sum",
    "line":185
   },
   {
@@ -215073,91 +215059,105 @@
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"len",
-   "line":186
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"_stable_digest",
-   "line":195
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"execute",
-   "line":196
+   "line":190
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"len",
-   "line":205
+   "line":191
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
-   "target":"dumps",
-   "line":206
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"dumps",
-   "line":207
+   "target":"len",
+   "line":191
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"_stable_digest",
-   "line":219
+   "line":200
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"execute",
-   "line":220
+   "line":201
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
+   "target":"len",
+   "line":210
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"dumps",
-   "line":229
+   "line":211
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
+   "target":"dumps",
+   "line":212
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
+   "target":"_stable_digest",
+   "line":224
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
+   "target":"execute",
+   "line":225
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
+   "target":"dumps",
+   "line":234
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"fetchval",
-   "line":232
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"UUID",
-   "line":236
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"dumps",
    "line":237
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
+   "target":"UUID",
+   "line":241
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
+   "target":"dumps",
+   "line":242
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
    "target":"str",
-   "line":246
+   "line":251
   },
   {
    "owner":"sahool-platform",
@@ -250668,175 +250668,175 @@
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_enabled",
    "target":"getenv",
-   "line":55
+   "line":58
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_enabled",
    "target":"is_enabled",
-   "line":55
+   "line":58
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_require_enabled",
    "target":"_enabled",
-   "line":59
+   "line":62
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_require_enabled",
    "target":"HTTPException",
-   "line":60
+   "line":63
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_assert_season_in_tenant",
    "target":"fetchval",
-   "line":66
+   "line":69
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_assert_season_in_tenant",
    "target":"HTTPException",
-   "line":72
+   "line":75
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_assert_production_unit_in_tenant",
    "target":"fetchval",
-   "line":80
+   "line":83
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_assert_production_unit_in_tenant",
    "target":"HTTPException",
-   "line":86
+   "line":89
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_assert_farm_in_tenant",
    "target":"fetchval",
-   "line":92
+   "line":95
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_assert_farm_in_tenant",
    "target":"HTTPException",
-   "line":98
+   "line":101
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_non_negative_or_none",
    "target":"ValueError",
-   "line":105
+   "line":108
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_positive",
    "target":"field_validator",
-   "line":118
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"_positive",
-   "target":"_non_negative_or_none",
    "line":121
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_positive",
-   "target":"field_validator",
-   "line":134
+   "target":"_non_negative_or_none",
+   "line":124
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_positive",
-   "target":"_non_negative_or_none",
+   "target":"field_validator",
    "line":137
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_positive",
+   "target":"_non_negative_or_none",
+   "line":140
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"_positive",
    "target":"field_validator",
-   "line":148
+   "line":151
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_positive",
    "target":"_non_negative_or_none",
-   "line":151
+   "line":154
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_workers_positive",
    "target":"field_validator",
-   "line":161
+   "line":164
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_workers_positive",
    "target":"ValueError",
-   "line":165
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"_positive",
-   "target":"field_validator",
    "line":168
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_positive",
-   "target":"_non_negative_or_none",
+   "target":"field_validator",
    "line":171
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_positive",
+   "target":"_non_negative_or_none",
+   "line":174
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"_positive",
    "target":"field_validator",
-   "line":182
+   "line":185
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_positive",
    "target":"_non_negative_or_none",
-   "line":185
+   "line":188
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_cost_positive",
    "target":"field_validator",
-   "line":209
+   "line":212
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_cost_positive",
    "target":"_non_negative_or_none",
-   "line":212
+   "line":215
   },
   {
    "owner":"sahool-platform",
@@ -250906,48 +250906,62 @@
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"_require_enabled",
-   "line":238
+   "line":235
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"HTTPException",
-   "line":240
+   "line":237
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"HTTPException",
-   "line":242
+   "line":239
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"uuid4",
-   "line":243
+   "line":240
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"tenant_connection",
-   "line":245
+   "line":242
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"str",
-   "line":246
+   "line":243
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"_persist",
+   "target":"_assert_field_in_tenant",
+   "line":247
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"_assert_field_in_tenant",
+   "line":247
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"_persist",
+   "target":"_assert_season_in_tenant",
    "line":248
   },
   {
@@ -250955,6 +250969,13 @@
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"_assert_season_in_tenant",
+   "line":248
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"_persist",
+   "target":"_assert_production_unit_in_tenant",
    "line":249
   },
   {
@@ -250962,6 +250983,13 @@
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"_assert_production_unit_in_tenant",
+   "line":249
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"_persist",
+   "target":"_assert_farm_in_tenant",
    "line":250
   },
   {
@@ -250969,132 +250997,139 @@
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"_assert_farm_in_tenant",
+   "line":250
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"_persist",
+   "target":"transaction",
+   "line":251
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"create_operation_ledger_record",
+   "target":"transaction",
    "line":251
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_persist",
-   "target":"transaction",
-   "line":254
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"create_operation_ledger_record",
-   "target":"transaction",
-   "line":254
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"_persist",
    "target":"execute",
-   "line":255
+   "line":252
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"execute",
-   "line":255
+   "line":252
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_persist",
    "target":"str",
-   "line":264
+   "line":261
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"str",
-   "line":264
+   "line":261
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_persist",
    "target":"persist_operation_subrecords",
-   "line":283
+   "line":279
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"persist_operation_subrecords",
-   "line":283
+   "line":279
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_persist",
    "target":"str",
-   "line":285
+   "line":281
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"str",
-   "line":285
+   "line":281
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"_idempotent",
-   "line":304
+   "line":300
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"CommandStore",
-   "line":305
+   "line":301
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"get_pool",
-   "line":305
+   "line":301
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"str",
-   "line":309
+   "line":305
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"_request_digest",
-   "line":313
+   "line":309
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"_persist",
-   "line":317
+   "line":313
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_operation_ledger_record",
    "target":"_db_unavailable",
-   "line":321
+   "line":317
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"list_operation_ledger_records",
    "target":"get",
+   "line":321
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"list_operation_ledger_records",
+   "target":"Query",
    "line":325
   },
   {
@@ -251102,42 +251137,63 @@
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"list_operation_ledger_records",
    "target":"Query",
-   "line":329
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"list_operation_ledger_records",
-   "target":"Query",
-   "line":330
+   "line":326
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"list_operation_ledger_records",
    "target":"Depends",
-   "line":331
+   "line":327
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"list_operation_ledger_records",
    "target":"require_permission",
-   "line":331
+   "line":327
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"list_operation_ledger_records",
    "target":"_require_enabled",
-   "line":333
+   "line":329
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"list_operation_ledger_records",
    "target":"str",
-   "line":337
+   "line":333
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"list_operation_ledger_records",
+   "target":"append",
+   "line":335
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"list_operation_ledger_records",
+   "target":"append",
+   "line":336
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"list_operation_ledger_records",
+   "target":"len",
+   "line":336
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"list_operation_ledger_records",
+   "target":"append",
+   "line":338
   },
   {
    "owner":"sahool-platform",
@@ -251150,15 +251206,15 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"list_operation_ledger_records",
-   "target":"append",
-   "line":340
+   "target":"len",
+   "line":339
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"list_operation_ledger_records",
-   "target":"len",
-   "line":340
+   "target":"append",
+   "line":341
   },
   {
    "owner":"sahool-platform",
@@ -251171,15 +251227,15 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"list_operation_ledger_records",
-   "target":"append",
-   "line":343
+   "target":"len",
+   "line":342
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"list_operation_ledger_records",
-   "target":"len",
-   "line":343
+   "target":"append",
+   "line":344
   },
   {
    "owner":"sahool-platform",
@@ -251192,98 +251248,77 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"list_operation_ledger_records",
-   "target":"append",
-   "line":346
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"list_operation_ledger_records",
    "target":"len",
-   "line":346
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"list_operation_ledger_records",
-   "target":"append",
-   "line":348
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"list_operation_ledger_records",
-   "target":"append",
-   "line":349
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"list_operation_ledger_records",
-   "target":"len",
-   "line":349
+   "line":345
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"list_operation_ledger_records",
    "target":"tenant_connection",
-   "line":351
+   "line":347
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"list_operation_ledger_records",
    "target":"_assert_field_in_tenant",
-   "line":353
+   "line":349
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"list_operation_ledger_records",
    "target":"fetch",
-   "line":354
+   "line":350
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"list_operation_ledger_records",
    "target":"join",
-   "line":359
+   "line":355
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"list_operation_ledger_records",
    "target":"_db_unavailable",
-   "line":366
+   "line":362
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"list_operation_ledger_records",
    "target":"dict",
-   "line":368
+   "line":364
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"list_operation_ledger_records",
    "target":"isoformat",
-   "line":368
+   "line":364
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"list_operation_ledger_records",
    "target":"len",
-   "line":369
+   "line":365
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"farm_ledger_summary",
    "target":"get",
+   "line":369
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"farm_ledger_summary",
+   "target":"Query",
    "line":373
   },
   {
@@ -251291,42 +251326,63 @@
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"farm_ledger_summary",
    "target":"Query",
-   "line":377
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"farm_ledger_summary",
-   "target":"Query",
-   "line":378
+   "line":374
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"farm_ledger_summary",
    "target":"Depends",
-   "line":379
+   "line":375
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"farm_ledger_summary",
    "target":"require_permission",
-   "line":379
+   "line":375
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"farm_ledger_summary",
    "target":"_require_enabled",
-   "line":382
+   "line":378
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"farm_ledger_summary",
    "target":"str",
-   "line":386
+   "line":382
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"farm_ledger_summary",
+   "target":"append",
+   "line":384
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"farm_ledger_summary",
+   "target":"append",
+   "line":385
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"farm_ledger_summary",
+   "target":"len",
+   "line":385
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"farm_ledger_summary",
+   "target":"append",
+   "line":387
   },
   {
    "owner":"sahool-platform",
@@ -251339,15 +251395,15 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"farm_ledger_summary",
-   "target":"append",
-   "line":389
+   "target":"len",
+   "line":388
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"farm_ledger_summary",
-   "target":"len",
-   "line":389
+   "target":"append",
+   "line":390
   },
   {
    "owner":"sahool-platform",
@@ -251360,15 +251416,15 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"farm_ledger_summary",
-   "target":"append",
-   "line":392
+   "target":"len",
+   "line":391
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"farm_ledger_summary",
-   "target":"len",
-   "line":392
+   "target":"append",
+   "line":393
   },
   {
    "owner":"sahool-platform",
@@ -251381,77 +251437,63 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"farm_ledger_summary",
-   "target":"append",
-   "line":395
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"farm_ledger_summary",
    "target":"len",
-   "line":395
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"farm_ledger_summary",
-   "target":"append",
-   "line":397
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"farm_ledger_summary",
-   "target":"append",
-   "line":398
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"farm_ledger_summary",
-   "target":"len",
-   "line":398
+   "line":394
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"farm_ledger_summary",
    "target":"join",
-   "line":399
+   "line":395
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"farm_ledger_summary",
    "target":"tenant_connection",
-   "line":401
+   "line":397
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"farm_ledger_summary",
    "target":"_assert_field_in_tenant",
-   "line":403
+   "line":399
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"farm_ledger_summary",
    "target":"fetchrow",
-   "line":404
+   "line":400
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"farm_ledger_summary",
    "target":"fetch",
-   "line":421
+   "line":419
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"farm_ledger_summary",
    "target":"_db_unavailable",
+   "line":430
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"farm_ledger_summary",
+   "target":"float",
+   "line":431
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"farm_ledger_summary",
+   "target":"float",
    "line":432
   },
   {
@@ -251459,14 +251501,14 @@
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"farm_ledger_summary",
    "target":"float",
-   "line":433
+   "line":439
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"farm_ledger_summary",
-   "target":"float",
-   "line":434
+   "target":"water_summary_payload",
+   "line":440
   },
   {
    "owner":"sahool-platform",
@@ -251513,71 +251555,64 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"farm_ledger_summary",
-   "target":"float",
-   "line":447
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"farm_ledger_summary",
-   "target":"float",
-   "line":448
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_positive",
    "target":"field_validator",
-   "line":468
+   "line":466
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_positive",
    "target":"_non_negative_or_none",
-   "line":471
+   "line":469
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_positive",
    "target":"field_validator",
-   "line":493
+   "line":491
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_positive",
    "target":"_non_negative_or_none",
-   "line":496
+   "line":494
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"upsert_season_budget_lines",
    "target":"post",
-   "line":499
+   "line":497
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"upsert_season_budget_lines",
    "target":"Depends",
-   "line":502
+   "line":500
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"upsert_season_budget_lines",
    "target":"require_permission",
-   "line":502
+   "line":500
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"upsert_season_budget_lines",
    "target":"_require_enabled",
+   "line":503
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"upsert_season_budget_lines",
+   "target":"HTTPException",
    "line":505
   },
   {
@@ -251591,679 +251626,679 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"upsert_season_budget_lines",
-   "target":"HTTPException",
+   "target":"tenant_connection",
    "line":509
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"upsert_season_budget_lines",
-   "target":"tenant_connection",
-   "line":511
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"upsert_season_budget_lines",
    "target":"str",
-   "line":512
+   "line":510
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"upsert_season_budget_lines",
    "target":"transaction",
-   "line":513
+   "line":511
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"upsert_season_budget_lines",
    "target":"_assert_season_in_tenant",
-   "line":516
+   "line":514
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"upsert_season_budget_lines",
    "target":"uuid4",
-   "line":517
+   "line":515
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"upsert_season_budget_lines",
    "target":"normalize_budget_line",
-   "line":518
+   "line":516
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"upsert_season_budget_lines",
    "target":"SeasonBudgetLine",
-   "line":519
+   "line":517
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"upsert_season_budget_lines",
    "target":"fetchrow",
-   "line":533
+   "line":531
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"upsert_season_budget_lines",
    "target":"str",
-   "line":554
+   "line":552
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"upsert_season_budget_lines",
    "target":"HTTPException",
-   "line":569
+   "line":567
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"upsert_season_budget_lines",
    "target":"append",
-   "line":572
+   "line":570
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"upsert_season_budget_lines",
    "target":"_db_unavailable",
-   "line":576
+   "line":574
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_budget",
    "target":"get",
-   "line":580
+   "line":578
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_budget",
    "target":"Depends",
-   "line":583
+   "line":581
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_budget",
    "target":"require_permission",
-   "line":583
+   "line":581
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_budget",
    "target":"_require_enabled",
-   "line":585
+   "line":583
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_budget",
    "target":"tenant_connection",
-   "line":589
+   "line":587
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_budget",
    "target":"fetch",
-   "line":590
+   "line":588
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_budget",
    "target":"str",
-   "line":596
+   "line":594
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_budget",
    "target":"_db_unavailable",
-   "line":600
+   "line":598
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_budget",
    "target":"dict",
-   "line":603
+   "line":601
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_budget",
    "target":"float",
-   "line":604
+   "line":602
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_budget",
    "target":"sum",
-   "line":604
+   "line":602
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_revenue_record",
    "target":"post",
-   "line":608
+   "line":606
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_revenue_record",
    "target":"Depends",
-   "line":611
+   "line":609
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_revenue_record",
    "target":"require_permission",
-   "line":611
+   "line":609
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_revenue_record",
    "target":"_require_enabled",
-   "line":613
+   "line":611
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_revenue_record",
    "target":"HTTPException",
-   "line":615
+   "line":613
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_revenue_record",
    "target":"uuid4",
-   "line":616
+   "line":614
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_revenue_record",
    "target":"tenant_connection",
-   "line":619
+   "line":617
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_revenue_record",
    "target":"str",
+   "line":618
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"create_revenue_record",
+   "target":"_assert_field_in_tenant",
    "line":620
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_revenue_record",
-   "target":"_assert_field_in_tenant",
-   "line":622
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"create_revenue_record",
    "target":"_assert_season_in_tenant",
-   "line":623
+   "line":621
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_revenue_record",
    "target":"_assert_production_unit_in_tenant",
-   "line":624
+   "line":622
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_revenue_record",
    "target":"execute",
-   "line":625
+   "line":623
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_revenue_record",
    "target":"str",
-   "line":631
+   "line":629
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"create_revenue_record",
    "target":"_db_unavailable",
-   "line":649
+   "line":647
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_fetch_budget_and_actual",
    "target":"fetch",
-   "line":654
+   "line":652
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_fetch_budget_and_actual",
    "target":"fetch",
-   "line":662
+   "line":660
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_fetch_budget_and_actual",
    "target":"SeasonBudgetLine",
-   "line":671
+   "line":669
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_fetch_budget_and_actual",
    "target":"float",
-   "line":679
+   "line":677
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_fetch_budget_and_actual",
    "target":"ActualCostLine",
-   "line":687
+   "line":685
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_fetch_budget_and_actual",
    "target":"float",
-   "line":692
+   "line":690
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_budget_variance",
    "target":"get",
-   "line":700
+   "line":698
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_budget_variance",
    "target":"Depends",
-   "line":703
+   "line":701
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_budget_variance",
    "target":"require_permission",
-   "line":703
+   "line":701
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_budget_variance",
    "target":"_require_enabled",
-   "line":705
+   "line":703
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_budget_variance",
    "target":"tenant_connection",
-   "line":714
+   "line":712
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_budget_variance",
    "target":"_fetch_budget_and_actual",
-   "line":715
+   "line":713
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_budget_variance",
    "target":"str",
-   "line":715
+   "line":713
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_budget_variance",
    "target":"_db_unavailable",
-   "line":717
+   "line":715
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_budget_variance",
    "target":"compute_variances",
-   "line":718
+   "line":716
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_budget_variance",
    "target":"generate_cost_recommendations",
-   "line":719
+   "line":717
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_profitability",
    "target":"get",
-   "line":728
+   "line":726
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_profitability",
    "target":"Depends",
-   "line":733
+   "line":731
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_profitability",
    "target":"require_permission",
-   "line":733
+   "line":731
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_profitability",
    "target":"_require_enabled",
-   "line":735
+   "line":733
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_profitability",
    "target":"tenant_connection",
-   "line":739
+   "line":737
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_profitability",
    "target":"_fetch_budget_and_actual",
-   "line":740
+   "line":738
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_profitability",
    "target":"str",
-   "line":740
+   "line":738
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_profitability",
    "target":"fetchrow",
-   "line":741
+   "line":739
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_profitability",
    "target":"str",
-   "line":744
+   "line":742
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_profitability",
    "target":"_db_unavailable",
-   "line":748
+   "line":746
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_profitability",
    "target":"compute_profitability",
-   "line":749
+   "line":747
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_season_profitability",
    "target":"float",
-   "line":751
+   "line":749
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_erp_projection",
    "target":"get",
-   "line":763
+   "line":761
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_erp_projection",
    "target":"Depends",
-   "line":767
+   "line":765
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_erp_projection",
    "target":"require_permission",
-   "line":767
+   "line":765
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_erp_projection",
    "target":"_require_enabled",
-   "line":770
+   "line":768
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_erp_projection",
    "target":"tenant_connection",
-   "line":774
+   "line":772
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_erp_projection",
    "target":"_fetch_budget_and_actual",
-   "line":775
+   "line":773
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_erp_projection",
    "target":"str",
-   "line":775
+   "line":773
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_erp_projection",
    "target":"_db_unavailable",
-   "line":777
+   "line":775
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_erp_projection",
    "target":"project_to_erp_lines",
+   "line":776
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"get_erp_projection",
+   "target":"getenv",
    "line":778
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_erp_projection",
-   "target":"getenv",
-   "line":780
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"get_erp_projection",
    "target":"lower",
-   "line":780
+   "line":778
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_erp_projection",
    "target":"strip",
-   "line":780
+   "line":778
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_erp_projection",
    "target":"build_projection_envelope",
-   "line":781
+   "line":779
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_flag_enabled",
    "target":"getenv",
-   "line":804
+   "line":802
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_flag_enabled",
    "target":"is_enabled",
-   "line":804
+   "line":802
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_positive",
    "target":"field_validator",
-   "line":814
+   "line":812
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_positive",
    "target":"_non_negative_or_none",
-   "line":817
+   "line":815
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_positive",
    "target":"field_validator",
-   "line":838
+   "line":836
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_positive",
    "target":"_non_negative_or_none",
-   "line":843
+   "line":841
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"operation_autowrite_preview",
    "target":"post",
-   "line":846
+   "line":844
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"operation_autowrite_preview",
    "target":"Depends",
-   "line":849
+   "line":847
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"operation_autowrite_preview",
    "target":"require_permission",
-   "line":849
+   "line":847
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"operation_autowrite_preview",
    "target":"_require_enabled",
-   "line":856
+   "line":854
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"operation_autowrite_preview",
    "target":"tenant_connection",
-   "line":858
+   "line":856
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"operation_autowrite_preview",
    "target":"_assert_field_in_tenant",
-   "line":859
+   "line":857
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"operation_autowrite_preview",
    "target":"OperationEvent",
-   "line":860
+   "line":858
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"operation_autowrite_preview",
    "target":"uuid4",
-   "line":861
+   "line":859
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"operation_autowrite_preview",
    "target":"str",
-   "line":862
+   "line":860
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"operation_autowrite_preview",
    "target":"tuple",
-   "line":877
+   "line":875
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"operation_autowrite_preview",
    "target":"ResourceUse",
-   "line":878
+   "line":876
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"operation_autowrite_preview",
    "target":"operation_event_to_ledger_payload",
+   "line":881
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"operation_autowrite_preview",
+   "target":"_flag_enabled",
    "line":883
   },
   {
@@ -252271,6 +252306,13 @@
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"operation_autowrite_preview",
    "target":"_flag_enabled",
+   "line":884
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"operation_autowrite_preview",
+   "target":"get",
    "line":885
   },
   {
@@ -252283,79 +252325,72 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"operation_autowrite_preview",
-   "target":"get",
-   "line":887
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"operation_autowrite_preview",
-   "target":"_flag_enabled",
-   "line":888
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_inventory_projection",
    "target":"get",
-   "line":894
+   "line":892
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_inventory_projection",
    "target":"Depends",
-   "line":897
+   "line":895
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_inventory_projection",
    "target":"require_permission",
-   "line":897
+   "line":895
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_inventory_projection",
    "target":"_require_enabled",
-   "line":900
+   "line":898
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_inventory_projection",
    "target":"tenant_connection",
-   "line":904
+   "line":902
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_inventory_projection",
    "target":"fetch",
-   "line":905
+   "line":903
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_inventory_projection",
    "target":"str",
-   "line":913
+   "line":911
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_inventory_projection",
    "target":"_db_unavailable",
-   "line":917
+   "line":915
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_inventory_projection",
    "target":"ResourceUse",
-   "line":919
+   "line":917
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
+   "source":"get_inventory_projection",
+   "target":"float",
+   "line":920
   },
   {
    "owner":"sahool-platform",
@@ -252368,36 +252403,29 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_inventory_projection",
-   "target":"float",
-   "line":924
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
-   "source":"get_inventory_projection",
    "target":"_flag_enabled",
-   "line":928
+   "line":926
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_inventory_projection",
    "target":"build_inventory_projection",
-   "line":928
+   "line":926
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"get_inventory_projection",
    "target":"_flag_enabled",
-   "line":931
+   "line":929
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_fetch_ledger_summary_for_season",
    "target":"fetchrow",
-   "line":938
+   "line":936
   },
   {
    "owner":"sahool-platform",
@@ -252438,7 +252466,7 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/farm_operations_ledger.py",
    "source":"_fetch_ledger_summary_for_season",
-   "target":"float",
+   "target":"water_summary_from_row",
    "line":973
   },
   {
@@ -334036,37 +334064,65 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/farm_operations_ledger.py",
-   "source":"persist_operation_subrecords",
-   "target":"execute",
-   "line":351
+   "source":"water_summary_from_row",
+   "target":"int",
+   "line":336
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/farm_operations_ledger.py",
+   "source":"water_summary_from_row",
+   "target":"int",
+   "line":337
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/farm_operations_ledger.py",
+   "source":"water_summary_from_row",
+   "target":"float",
+   "line":339
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/farm_operations_ledger.py",
+   "source":"water_summary_payload",
+   "target":"water_summary_from_row",
+   "line":349
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/farm_operations_ledger.py",
    "source":"persist_operation_subrecords",
    "target":"execute",
-   "line":371
+   "line":385
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/farm_operations_ledger.py",
    "source":"persist_operation_subrecords",
    "target":"execute",
-   "line":390
+   "line":405
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/farm_operations_ledger.py",
    "source":"persist_operation_subrecords",
    "target":"execute",
-   "line":407
+   "line":424
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/farm_operations_ledger.py",
    "source":"persist_operation_subrecords",
    "target":"execute",
-   "line":423
+   "line":441
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/farm_operations_ledger.py",
+   "source":"persist_operation_subrecords",
+   "target":"execute",
+   "line":457
   },
   {
    "owner":"sahool-platform",
@@ -348344,58 +348400,44 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"normalize_recommendation_outcome",
-   "target":"_num",
+   "source":"_finite",
+   "target":"isfinite",
    "line":97
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
-   "target":"get",
-   "line":97
+   "target":"_finite",
+   "line":106
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
    "target":"_num",
-   "line":98
+   "line":106
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
    "target":"get",
-   "line":98
+   "line":106
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
-   "target":"get",
-   "line":102
+   "target":"_finite",
+   "line":107
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
-   "target":"get",
-   "line":103
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"normalize_recommendation_outcome",
-   "target":"get",
-   "line":104
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"normalize_recommendation_outcome",
-   "target":"get",
-   "line":105
+   "target":"_num",
+   "line":107
   },
   {
    "owner":"sahool-platform",
@@ -348408,64 +348450,71 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
-   "target":"_derive_rec_success",
-   "line":108
+   "target":"get",
+   "line":111
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
-   "target":"round",
+   "target":"get",
+   "line":112
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"normalize_recommendation_outcome",
+   "target":"get",
+   "line":113
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"normalize_recommendation_outcome",
+   "target":"get",
    "line":114
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
-   "target":"isfinite",
+   "target":"get",
+   "line":116
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"normalize_recommendation_outcome",
+   "target":"_derive_rec_success",
    "line":117
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
-   "target":"isfinite",
-   "line":118
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"normalize_recommendation_outcome",
-   "target":"bool",
-   "line":121
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"normalize_recommendation_outcome",
-   "target":"get",
-   "line":121
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"normalize_recommendation_outcome",
-   "target":"bool",
+   "target":"round",
    "line":122
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
-   "target":"get",
-   "line":122
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"normalize_recommendation_outcome",
-   "target":"recommendation_outcome_eligibility",
+   "target":"bool",
    "line":124
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"normalize_recommendation_outcome",
+   "target":"get",
+   "line":124
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"normalize_recommendation_outcome",
+   "target":"bool",
+   "line":125
   },
   {
    "owner":"sahool-platform",
@@ -348478,8 +348527,8 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
-   "target":"get",
-   "line":126
+   "target":"recommendation_outcome_eligibility",
+   "line":127
   },
   {
    "owner":"sahool-platform",
@@ -348493,98 +348542,112 @@
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
    "target":"get",
-   "line":128
+   "line":129
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"normalize_recommendation_outcome",
+   "target":"get",
+   "line":131
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"normalize_recommendation_outcome",
+   "target":"get",
+   "line":131
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
    "target":"append",
-   "line":154
+   "line":157
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
    "target":"normalize_outcome_record",
-   "line":154
+   "line":157
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
    "target":"normalize_recommendation_outcome",
-   "line":156
+   "line":159
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
    "target":"get",
-   "line":158
+   "line":161
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
    "target":"append",
-   "line":162
+   "line":165
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
    "target":"get",
-   "line":167
+   "line":170
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
    "target":"get",
-   "line":168
+   "line":171
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
    "target":"get",
-   "line":173
+   "line":176
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
    "target":"append",
-   "line":175
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"reconcile_outcomes",
-   "target":"setdefault",
-   "line":175
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"reconcile_outcomes",
-   "target":"items",
    "line":178
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
-   "target":"len",
-   "line":179
+   "target":"setdefault",
+   "line":178
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"reconcile_outcomes",
+   "target":"items",
+   "line":181
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
    "target":"len",
-   "line":184
+   "line":182
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"reconcile_outcomes",
+   "target":"len",
+   "line":187
   },
   {
    "owner":"sahool-platform",
@@ -402860,408 +402923,478 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_summarize_operational_records_control_ledger",
-   "target":"OperationLedgerRecord",
-   "line":24
+   "source":"test_water_summary_from_sql_row_keeps_unmeasured_water_unknown",
+   "target":"water_summary_from_row",
+   "line":27
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_summarize_operational_records_control_ledger",
-   "target":"date",
-   "line":30
+   "source":"test_water_summary_from_sql_row_keeps_unmeasured_water_unknown",
+   "target":"water_summary_payload",
+   "line":33
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_summarize_operational_records_control_ledger",
-   "target":"LedgerCostLine",
-   "line":34
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_summarize_operational_records_control_ledger",
-   "target":"LedgerCostLine",
-   "line":35
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_summarize_operational_records_control_ledger",
-   "target":"summarize_operational_records",
-   "line":39
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_summarize_operational_records_control_ledger",
-   "target":"WaterRecord",
-   "line":41
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_summarize_operational_records_control_ledger",
-   "target":"EnergyRecord",
-   "line":42
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_summarize_operational_records_control_ledger",
-   "target":"EquipmentRecord",
+   "source":"test_water_summary_from_sql_row_keeps_unmeasured_water_unknown",
+   "target":"water_summary_payload",
    "line":43
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_summarize_operational_records_control_ledger",
-   "target":"InputRecord",
+   "source":"test_water_summary_from_sql_row_keeps_unmeasured_water_unknown",
+   "target":"water_summary_payload",
    "line":44
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_syncable_cost_is_only_for_ready_records",
+   "source":"test_water_summary_from_sql_row_keeps_unmeasured_water_unknown",
+   "target":"water_summary_payload",
+   "line":47
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_router_summary_queries_do_not_coalesce_water_to_zero",
+   "target":"Path",
+   "line":59
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_router_summary_queries_do_not_coalesce_water_to_zero",
+   "target":"resolve",
+   "line":59
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_router_summary_queries_do_not_coalesce_water_to_zero",
+   "target":"read_text",
+   "line":60
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_router_summary_queries_do_not_coalesce_water_to_zero",
+   "target":"count",
+   "line":63
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_router_summary_queries_do_not_coalesce_water_to_zero",
+   "target":"count",
+   "line":64
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_summarize_operational_records_control_ledger",
    "target":"OperationLedgerRecord",
-   "line":58
+   "line":70
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_syncable_cost_is_only_for_ready_records",
+   "source":"test_summarize_operational_records_control_ledger",
    "target":"date",
-   "line":62
+   "line":76
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_syncable_cost_is_only_for_ready_records",
-   "target":"LedgerCostLine",
-   "line":65
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_syncable_cost_is_only_for_ready_records",
-   "target":"summarize_operational_records",
-   "line":68
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_ai_feature_row_is_descriptive_not_predictive",
-   "target":"OperationLedgerRecord",
-   "line":74
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_ai_feature_row_is_descriptive_not_predictive",
-   "target":"date",
-   "line":78
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_ai_feature_row_is_descriptive_not_predictive",
+   "source":"test_summarize_operational_records_control_ledger",
    "target":"LedgerCostLine",
    "line":80
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_ai_feature_row_is_descriptive_not_predictive",
+   "source":"test_summarize_operational_records_control_ledger",
+   "target":"LedgerCostLine",
+   "line":81
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_summarize_operational_records_control_ledger",
    "target":"summarize_operational_records",
-   "line":82
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_ai_feature_row_is_descriptive_not_predictive",
-   "target":"WaterRecord",
-   "line":84
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_ai_feature_row_is_descriptive_not_predictive",
-   "target":"EnergyRecord",
    "line":85
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_ai_feature_row_is_descriptive_not_predictive",
-   "target":"ai_feature_row",
+   "source":"test_summarize_operational_records_control_ledger",
+   "target":"WaterRecord",
    "line":87
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_operation_requires_tenant_and_scope",
-   "target":"OperationLedgerRecord",
-   "line":99
+   "source":"test_summarize_operational_records_control_ledger",
+   "target":"EnergyRecord",
+   "line":88
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_operation_requires_tenant_and_scope",
+   "source":"test_summarize_operational_records_control_ledger",
+   "target":"EquipmentRecord",
+   "line":89
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_summarize_operational_records_control_ledger",
+   "target":"InputRecord",
+   "line":90
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_syncable_cost_is_only_for_ready_records",
+   "target":"OperationLedgerRecord",
+   "line":104
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_syncable_cost_is_only_for_ready_records",
    "target":"date",
-   "line":102
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_operation_requires_tenant_and_scope",
-   "target":"raises",
-   "line":105
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_operation_requires_tenant_and_scope",
-   "target":"validate_operation_record",
-   "line":106
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_operation_requires_tenant_and_scope",
-   "target":"OperationLedgerRecord",
    "line":108
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_operation_requires_tenant_and_scope",
-   "target":"date",
+   "source":"test_syncable_cost_is_only_for_ready_records",
+   "target":"LedgerCostLine",
    "line":111
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_operation_requires_tenant_and_scope",
-   "target":"raises",
+   "source":"test_syncable_cost_is_only_for_ready_records",
+   "target":"summarize_operational_records",
    "line":114
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_operation_requires_tenant_and_scope",
-   "target":"validate_operation_record",
-   "line":115
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_missing_water_volume_is_unknown_not_zero",
+   "source":"test_ai_feature_row_is_descriptive_not_predictive",
    "target":"OperationLedgerRecord",
    "line":120
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
-   "source":"test_missing_water_volume_is_unknown_not_zero",
+   "source":"test_ai_feature_row_is_descriptive_not_predictive",
    "target":"date",
    "line":124
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_ai_feature_row_is_descriptive_not_predictive",
+   "target":"LedgerCostLine",
+   "line":126
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_ai_feature_row_is_descriptive_not_predictive",
+   "target":"summarize_operational_records",
+   "line":128
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_ai_feature_row_is_descriptive_not_predictive",
+   "target":"WaterRecord",
+   "line":130
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_ai_feature_row_is_descriptive_not_predictive",
+   "target":"EnergyRecord",
+   "line":131
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_ai_feature_row_is_descriptive_not_predictive",
+   "target":"ai_feature_row",
+   "line":133
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_operation_requires_tenant_and_scope",
+   "target":"OperationLedgerRecord",
+   "line":145
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_operation_requires_tenant_and_scope",
+   "target":"date",
+   "line":148
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_operation_requires_tenant_and_scope",
+   "target":"raises",
+   "line":151
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_operation_requires_tenant_and_scope",
+   "target":"validate_operation_record",
+   "line":152
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_operation_requires_tenant_and_scope",
+   "target":"OperationLedgerRecord",
+   "line":154
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_operation_requires_tenant_and_scope",
+   "target":"date",
+   "line":157
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_operation_requires_tenant_and_scope",
+   "target":"raises",
+   "line":160
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_operation_requires_tenant_and_scope",
+   "target":"validate_operation_record",
+   "line":161
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_missing_water_volume_is_unknown_not_zero",
+   "target":"OperationLedgerRecord",
+   "line":166
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
+   "source":"test_missing_water_volume_is_unknown_not_zero",
+   "target":"date",
+   "line":170
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_missing_water_volume_is_unknown_not_zero",
    "target":"summarize_operational_records",
-   "line":127
+   "line":173
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_missing_water_volume_is_unknown_not_zero",
    "target":"WaterRecord",
-   "line":129
+   "line":175
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_missing_water_volume_is_unknown_not_zero",
    "target":"EnergyRecord",
-   "line":130
+   "line":176
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_missing_water_volume_is_unknown_not_zero",
    "target":"ai_feature_row",
-   "line":137
+   "line":183
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_partially_measured_water_sums_only_measured_records_and_declares_the_gap",
    "target":"OperationLedgerRecord",
-   "line":150
+   "line":196
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_partially_measured_water_sums_only_measured_records_and_declares_the_gap",
    "target":"date",
-   "line":154
+   "line":200
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_partially_measured_water_sums_only_measured_records_and_declares_the_gap",
    "target":"summarize_operational_records",
-   "line":157
+   "line":203
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_partially_measured_water_sums_only_measured_records_and_declares_the_gap",
    "target":"WaterRecord",
-   "line":160
+   "line":206
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_partially_measured_water_sums_only_measured_records_and_declares_the_gap",
    "target":"WaterRecord",
-   "line":161
+   "line":207
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_partially_measured_water_sums_only_measured_records_and_declares_the_gap",
    "target":"ai_feature_row",
-   "line":167
+   "line":213
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_no_water_records_at_all_is_unknown_and_trivially_complete",
    "target":"OperationLedgerRecord",
-   "line":171
+   "line":217
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_no_water_records_at_all_is_unknown_and_trivially_complete",
    "target":"date",
-   "line":175
+   "line":221
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_no_water_records_at_all_is_unknown_and_trivially_complete",
    "target":"summarize_operational_records",
-   "line":178
+   "line":224
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"execute",
    "target":"append",
-   "line":189
+   "line":235
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"__init__",
    "target":"update",
-   "line":194
+   "line":240
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_persist_operation_subrecords_writes_each_kind_with_the_operation_identity",
    "target":"_Conn",
-   "line":202
+   "line":248
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_persist_operation_subrecords_writes_each_kind_with_the_operation_identity",
    "target":"persist_operation_subrecords",
-   "line":203
+   "line":249
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_persist_operation_subrecords_writes_each_kind_with_the_operation_identity",
    "target":"date",
-   "line":207
+   "line":253
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_persist_operation_subrecords_writes_each_kind_with_the_operation_identity",
    "target":"_Obj",
-   "line":210
+   "line":256
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_persist_operation_subrecords_writes_each_kind_with_the_operation_identity",
    "target":"_Obj",
-   "line":219
+   "line":265
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_persist_operation_subrecords_writes_each_kind_with_the_operation_identity",
    "target":"_Obj",
-   "line":230
+   "line":276
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_persist_operation_subrecords_writes_each_kind_with_the_operation_identity",
    "target":"_Obj",
-   "line":239
+   "line":285
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_persist_operation_subrecords_writes_each_kind_with_the_operation_identity",
    "target":"split",
-   "line":243
+   "line":289
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_persist_operation_subrecords_writes_each_kind_with_the_operation_identity",
    "target":"split",
-   "line":243
+   "line":289
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_persist_operation_subrecords_writes_each_kind_with_the_operation_identity",
    "target":"date",
-   "line":254
+   "line":300
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_persist_operation_subrecords_with_nothing_writes_nothing",
    "target":"_Conn",
-   "line":263
+   "line":309
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_persist_operation_subrecords_with_nothing_writes_nothing",
    "target":"persist_operation_subrecords",
-   "line":264
+   "line":310
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farm_operations_ledger.py",
    "source":"test_persist_operation_subrecords_with_nothing_writes_nothing",
    "target":"date",
-   "line":268
+   "line":314
   },
   {
    "owner":"sahool-platform",
@@ -421872,37 +422005,44 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
+   "source":"test_non_finite_values_do_not_leak_into_the_delta_payload",
+   "target":"dumps",
+   "line":219
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_reconciled_rows_keep_unit_identity_for_independence_counts",
    "target":"summarize_learning_with_reconciled_outcomes",
-   "line":218
+   "line":224
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_reconciled_rows_keep_unit_identity_for_independence_counts",
    "target":"_ts",
-   "line":228
+   "line":234
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_reconciled_rows_keep_unit_identity_for_independence_counts",
    "target":"range",
-   "line":230
+   "line":236
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_reconciled_rows_keep_unit_identity_for_independence_counts",
    "target":"_ts",
-   "line":243
+   "line":249
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_reconciled_rows_keep_unit_identity_for_independence_counts",
    "target":"next",
-   "line":247
+   "line":253
   },
   {
    "owner":"sahool-platform",
