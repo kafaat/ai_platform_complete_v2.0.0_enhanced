@@ -1,25 +1,27 @@
 """api/routers/irrigation_mpc.py — نقطة متحكّم الريّ الهرميّ المعجميّ (Lexicographic MPC).
 
-P1.1b: أوّل **مستهلك إنتاجيّ** لـ`solve_lexicographic_irrigation` — يقرأ حقيقة الخادم
-(أحدث استنزاف من `water_ledger`) عند غيابها، يحلّ القرار المعجميّ، ويعيده كاملاً بنَسَبه
-(`content_digest`/`idempotency_key`/`objective_trace`). **توصية-فقط**: لا أمر مضخّة؛
-`submit=true` (خلف عَلَم الجسر) يُصدِر مرشّحاً محكوماً إلى مركز القرار فقط.
+المساران `/plan` و`/simulate` يقبلان حقائق العميل، ولذلك يعيدان محاكاة فقط ولا
+يُصدران مرشّحاً محكوماً، حتى عند قراءة استنزاف البداية من `water_ledger`.
+مصدر Dr الخادمي لا يغيّر مصدر TAW والطقس وبقيّة حقائق العميل.
 
 `tenant_id` من المستخدم المُصادَق (لا من الجسم) — عزل المستأجِر. الحساب نقيّ فيُختبَر
 باستدعاء المعالِج.
 
-**P1.1c (تصلّب fail-closed + فصل المحاكاة/العمليّ):** تمرير `initial_depletion_mm` صريحاً
-⇒ **محاكاة** (حقيقة عميل) لا تُصدَر مرشّحاً محكوماً. غيابه ⇒ يُقرأ Dr من `water_ledger`
-(حقيقة الخادم) = **عمليّ** قابل للإصدار؛ وغياب صفّ الدفتر ⇒ **blocked** (لا اختلاق Dr=0).
+غياب `initial_depletion_mm` في `/plan` يسمح بقراءة Dr كبداية للمحاكاة فقط؛
+وغياب صفّ الدفتر ⇒ **blocked** (لا اختلاق Dr=0).
 حدود صارمة على العقد (422 على القيم السالبة/خارج المدى).
 
 **P1.1c-b (مصدرة الحقائق الخادميّة + فصل المسارات):** مساران منفصلان —
 `POST /api/v1/irrigation/mpc/simulate` (حقائق يدويّة، scenario، لا يُصدِر أبداً) و
 `POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation` (توصية عمليّة: **لا حقائق
-عميل** — Dr+المرحلة من water_ledger، TAW من التربة، التنبّؤ من الطقس؛ نقص أيّ حقيقة ⇒
-blocked؛ تحقّق ملكيّة الحقل؛ بصمات لقطات لكلّ مصدر). المسار القديم `/plan` يبقى للتوافق.
-**متبقٍّ (مُعلَن، staging):** وصل مصدرَي soil/weather الفعليَّين (هنا fail-closed stubs) +
-شهادة PostgreSQL للسلسلة حتى outcome — فتفعيل الجسر يبقى غير جاهز للإنتاج حتى ذلك.
+عميل** — كلُّها من `resolve_canonical_water_state`؛ نقص أيّ دليل ⇒ blocked بسببٍ مُسمّى؛
+تحقّق ملكيّة الحقل؛ بصماتُ لقطة المُنتِج نفسِه). المسار القديم `/plan` يبقى للتوافق.
+
+**والوصلُ تمّ:** كان مصدرا التربة والطقس هنا `return None` بلا شرط، فتُرجِع هذه النقطةُ
+`insufficient_ground_truth` **دائماً** ولا تُختبَر إلّا بحقن — أي أنّ البابَ المُحكَم كان
+مقفلاً بنيويّاً والمفتوحَ الوحيدَ هو `/plan` الذي لا يفحص شيئاً. المُنتِجُ القانونيّ كان
+قائماً ويستهلكه المسارُ الساعيُّ فعلاً، فوُصِل بالمستهلِك المُعطَّل.
+**ويبقى غيرَ مقيس:** شهادةُ PostgreSQL للسلسلة حتّى outcome.
 """
 
 from __future__ import annotations
@@ -32,6 +34,7 @@ from datetime import UTC, datetime
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
+from api.canonical_water_state import CanonicalWaterState, resolve_canonical_water_state
 from api.canonical_well_capability import evaluate_water_salinity_gate
 from api.irrigation_mpc import ForecastDay
 from api.irrigation_runtime_orchestrator import orchestrate_irrigation_recommendation
@@ -55,10 +58,9 @@ class ForecastDayIn(BaseModel):
 class MpcPlanRequest(BaseModel):
     """مدخلات خطّة الريّ المعجميّة.
 
-    **دلالة المدخلات (P1.1c):** تمرير `initial_depletion_mm` صريحاً ⇒ **محاكاة** (حقيقة
-    عميل، لا تُصدِر مرشّحاً محكوماً). غيابه ⇒ يُقرأ Dr من `water_ledger` (حقيقة الخادم) =
-    **عمليّ** قابل للإصدار؛ وغياب صفّ الدفتر ⇒ **fail-closed** (لا اختلاق صفر). الحدود
-    الصارمة أدناه ترفض القيم غير القانونيّة بـ422.
+    جميع هذه المدخلات للمحاكاة فقط. عند غياب `initial_depletion_mm` يُقرأ Dr من
+    `water_ledger` كبداية للمحاكاة، ويُحجب الحساب إن غاب صفّ الدفتر. مدخلات TAW والطقس
+    تبقى حقائق عميل، ولا يُسمح بإصدار مرشّح منها. الحدود أدناه تُفرَض بـ422.
     """
 
     field_id: str = Field(min_length=1)
@@ -74,7 +76,7 @@ class MpcPlanRequest(BaseModel):
     season_budget_mm: float | None = Field(default=None, ge=0)
     water_price_per_m3: float | None = Field(default=None, ge=0)
     depletion_confidence: float | None = Field(default=None, ge=0, le=1)
-    submit: bool = False  # إصدار مرشّح محكوم (عمليّ فقط، خلف عَلَم الجسر)
+    submit: bool = False  # Legacy compatibility: simulation submissions are rejected.
 
 
 async def _latest_ledger_depletion(user: UserSchema, field_id: str) -> float | None:
@@ -97,7 +99,7 @@ async def irrigation_mpc_plan(
     req: MpcPlanRequest, user: UserSchema = Depends(get_current_user)
 ) -> dict:
     tenant_id = user.tenant_id
-    # P1.1c: فصل المحاكاة عن العمليّ + fail-closed على غياب الحقيقة (لا اختلاق Dr=0).
+    # The entire request remains a simulation, including when only Dr is server-owned.
     manual_depletion = req.initial_depletion_mm is not None
     if manual_depletion:
         depletion = float(req.initial_depletion_mm)  # حقيقة عميل ⇒ محاكاة
@@ -140,23 +142,22 @@ async def irrigation_mpc_plan(
         data_degraded=False,
     )
 
-    # وضع صريح: المحاكاة (حقائق عميل) لا تُصدَر مرشّحاً محكوماً؛ العمليّ (حقيقة خادم) يُصدَر.
-    mode = "simulation" if manual_depletion else "operational"
-    out: dict = {"decision": decision.to_dict(), "depletion_source": depletion_source, "mode": mode}
+    out: dict = {
+        "decision": decision.to_dict(),
+        "depletion_source": depletion_source,
+        "mode": "simulation",
+        "execution_allowed": False,
+        "recommendation_only": True,
+    }
 
     if req.submit:
-        if manual_depletion:
-            out["emit"] = {
-                "status": "rejected_simulation",
-                "detail": (
-                    "لا يُصدَر مرشّح محكوم من محاكاة (حقائق عميل). الإصدار العمليّ يتطلّب "
-                    "استنزافاً مرجعيّاً من الخادم (water_ledger)."
-                ),
-            }
-        elif not bridge_enabled():
-            out["emit"] = {"status": "disabled"}
-        else:
-            out["emit"] = await emit_mpc_candidate(decision, tenant_id=tenant_id)
+        out["emit"] = {
+            "status": "rejected_simulation",
+            "detail": (
+                "لا يُصدَر مرشّح محكوم من محاكاة. استخدم مسار التوصية الخادمي الذي "
+                "يتحقق من جميع الحقائق؛ قراءة Dr من water_ledger وحدها لا تكفي."
+            ),
+        }
     return out
 
 
@@ -179,11 +180,11 @@ async def irrigation_mpc_capabilities(user: UserSchema = Depends(get_current_use
 
 
 # ═══════════════════ P1.1c-b: مصدرة الحقائق الخادميّة + فصل المسارات ═══════════════════
-# التوصية العمليّة تُبنى **فقط** من حقائق SoR خادميّاً (لا حقائق عميل): Dr+المرحلة من
-# water_ledger، TAW من ملفّ التربة، التنبّؤ من خدمة الطقس. أيّ حقيقة ناقصة ⇒ **blocked**
-# (لا تلفيق). كلّ مصدر يحمل بصمة لقطة (snapshot hash) للنَّسَب. المصدران غير الموصولَين
-# خادميّاً هنا (soil/weather) يُرجعان None افتراضيّاً (fail-closed) ويُوصَلان في staging؛
-# الاختبارات تحقنهما لإثبات مسار الحقائق الكاملة. (بديل يدويّ صريح: /simulate.)
+# التوصية العمليّة تُبنى **فقط** من حقائق SoR خادميّاً (لا حقائق عميل)، ومن **لقطةٍ
+# واحدة متّسقة**: `resolve_canonical_water_state` يُصدِر الاستنزافَ والمرحلة وTAW/RAW
+# والتنبّؤ معاً ببصماتها. نقصُ أيّ دليل ⇒ **blocked** بسببٍ يُسمّي الناقص (لا تلفيق)،
+# و`operational_eligible=False` ⇒ blocked أيضاً: حكمُ المُنتِج على صلاحيّة لقطتِه
+# للتشغيل، وتجاهلُه يُعيد ما أُزيل من `/plan` — سلطةً أقوى من دليلها.
 
 
 def _facts_snapshot_hash(facts: object) -> str:
@@ -225,22 +226,30 @@ async def _source_current_state(user: UserSchema, field_id: str) -> dict | None:
         return None
 
 
-async def _source_soil_capacity(tenant_id: str, field_id: str) -> dict | None:
-    """TAW/RAW من ملفّ التربة SoR — غير موصول خادميّاً هنا (staging). fail-closed None.
+async def _source_canonical_water(
+    user: UserSchema, field_id: str, horizon_days: int
+) -> CanonicalWaterState | dict | None:
+    """حالةُ الماء القانونيّة: مصدرُ TAW/RAW والتنبّؤ والاستنزاف معاً.
 
-    يُعاد ربطه بـsoil-service في staging؛ الاختبارات تحقن {"taw_mm":..., "raw_fraction":...}.
+    حلّت محلّ `_source_soil_capacity` و`_source_forecast_horizon` اللتين كانتا
+    `return None` **بلا شرط**، فكانت هذه النقطةُ المُحكَمة تُرجِع
+    `insufficient_ground_truth` دائماً ولا تُختبَر إلّا بحقنٍ في الاختبارات — أي أنّ
+    البابَ المُحكَم كان مقفلاً بنيويّاً والبابُ الوحيدُ المفتوح هو الذي لا يفحص شيئاً.
+
+    والمُنتِجُ لم يُبنَ هنا: `resolve_canonical_water_state` قائمٌ ويستهلكه المسارُ
+    الساعيُّ فعلاً عبر `irrigation_runtime_orchestrator`. المطلوبُ كان وصلَ المُنتِج
+    القائم بالمستهلِك المُعطَّل لا مصدراً جديداً.
+
+    ومصدرٌ **واحد** لا ثلاثة: TAW والتنبّؤ والاستنزاف تُشتقّ من لقطةٍ واحدة متّسقة
+    ببصماتها، فلا يُركَّب قرارٌ من مصادر التقطت لحظاتٍ مختلفة.
     """
-    return None
-
-
-async def _source_forecast_horizon(
-    tenant_id: str, field_id: str, horizon_days: int
-) -> list[dict] | None:
-    """تنبّؤ (et0/kc/rain) من خدمة الطقس SoR — غير موصول خادميّاً هنا (staging). fail-closed.
-
-    يُعاد ربطه بـweather-service في staging؛ الاختبارات تحقن قائمة أيّام التنبّؤ.
-    """
-    return None
+    async with tenant_connection(user) as conn:
+        return await resolve_canonical_water_state(
+            conn,
+            tenant_id=user.tenant_id,
+            field_id=field_id,
+            horizon_days=horizon_days,
+        )
 
 
 class SimulateRequest(MpcPlanRequest):
@@ -405,32 +414,51 @@ async def irrigation_mpc_recommendation(
             "enforced": False,
         }
 
-    state = await _source_current_state(user, field_id)
-    soil = await _source_soil_capacity(tenant_id, field_id)
-    forecast = await _source_forecast_horizon(tenant_id, field_id, req.horizon_days)
+    canonical = await _source_canonical_water(user, field_id, req.horizon_days)
+    if canonical is None or isinstance(canonical, dict):
+        # المُنتِجُ القانونيّ يُرجِع حمولةَ حجبٍ **مُسمّاة** عند نقص أيّ دليل. تُمرَّر
+        # كما هي: سببُه أدقُّ من `insufficient_ground_truth` عامّاً — يقول أيُّ دليلٍ
+        # نقص (`canonical_rain_incomplete` · `canonical_field_elevation_missing` …).
+        blocked = dict(canonical or {})
+        blocked.update({"status": "blocked", "field_id": field_id})
+        blocked.setdefault("reason", "insufficient_ground_truth")
+        blocked.setdefault(
+            "detail",
+            "لا تُبنى توصية عمليّة إلّا من حقائق SoR كاملة (لا حقائق عميل). استعمل "
+            "/simulate للمحاكاة اليدويّة، أو شغّل مصادر الحقائق الناقصة.",
+        )
+        return blocked
 
-    missing = []
-    if not state:
-        missing.append("depletion+stage(water_ledger)")
-    if not soil or "taw_mm" not in soil:
-        missing.append("taw(soil_profile)")
-    if not forecast:
-        missing.append("forecast(weather_service)")
-    if missing:
+    if not canonical.operational_eligible:
+        # حالةٌ متدهورة (دفترٌ بائت مثلاً) تُبنى منها **محاكاة** لا مرشّحٌ محكوم:
+        # `operational_eligible` هو حكمُ المُنتِج على صلاحيّة لقطتِه للتشغيل، وتجاهلُه
+        # يُعيد بالضبط ما أُزيل من `/plan` — سلطةً أقوى من دليلها.
         return {
             "status": "blocked",
-            "reason": "insufficient_ground_truth",
+            "reason": "canonical_water_state_not_operational",
             "field_id": field_id,
-            "missing": missing,
-            "detail": (
-                "لا تُبنى توصية عمليّة إلّا من حقائق SoR كاملة (لا حقائق عميل). استعمل "
-                "/simulate للمحاكاة اليدويّة، أو شغّل مصادر الحقائق الناقصة."
-            ),
+            "season_id": canonical.season_id,
+            "quality_status": canonical.quality_status,
+            "limitations": canonical.limitations,
         }
 
-    ledger_snapshot_hash = _facts_snapshot_hash(state)
-    weather_snapshot_hash = _facts_snapshot_hash(forecast)
-    soil_snapshot_hash = _facts_snapshot_hash(soil)
+    state = {
+        "depletion_mm": canonical.depletion_mm,
+        "stage": canonical.growth_stage,
+        "as_of": canonical.ledger_date,
+    }
+    soil = {
+        "taw_mm": canonical.taw_mm,
+        "raw_fraction": canonical.raw_fraction,
+        "crop": canonical.crop,
+    }
+    forecast = canonical.forecast
+
+    # بصماتُ المُنتِج نفسِه لا بصماتٌ تُحسَب هنا: النَّسَبُ يشير إلى اللقطة التي بُني
+    # عليها القرارُ فعلاً، فيُطابَق لاحقاً بما خزّنه المُنتِج.
+    ledger_snapshot_hash = canonical.water_state_digest
+    weather_snapshot_hash = canonical.weather_snapshot_digest
+    soil_snapshot_hash = canonical.soil_profile_digest
 
     decision = solve_lexicographic_irrigation(
         forecast=[
@@ -462,10 +490,10 @@ async def irrigation_mpc_recommendation(
         "decision": decision.to_dict(),
         "mode": "operational",
         "facts_provenance": {
-            "depletion_source": "water_ledger",
-            "stage_source": "water_ledger",
-            "taw_source": "soil_profile",
-            "forecast_source": "weather_service",
+            "depletion_source": "canonical_water_state",
+            "stage_source": "canonical_water_state",
+            "taw_source": "canonical_root_zone_profile",
+            "forecast_source": "canonical_water_state",
             "as_of": state.get("as_of"),
             "ledger_snapshot_hash": ledger_snapshot_hash,
             "weather_snapshot_hash": weather_snapshot_hash,

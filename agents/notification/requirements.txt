@@ -9,3 +9,8 @@ python-jose[cryptography]>=3.3.0
 # سقف <14: websockets 14+ يكسر معالج البروتوكول القديم في uvicorn 0.30.6
 websockets>=12.0,<14
 prometheus-client>=0.20.0
+
+# Explicit OTLP HTTP tracing, audited 2026-09-13.
+opentelemetry-sdk==1.44.0
+opentelemetry-exporter-otlp-proto-http==1.44.0
+opentelemetry-instrumentation-fastapi==0.65b0

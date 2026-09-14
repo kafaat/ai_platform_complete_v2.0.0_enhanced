@@ -239,3 +239,98 @@ def test_create_field_path_wires_idempotency():
     assert "_idempotent(" in pf, "_persist_field لا يستدعي _idempotent"
     assert "CommandStore(" in pf, "_persist_field لا يبني CommandStore"
     assert '"field.create"' in pf, "_persist_field: نوع أمر field.create مفقود"
+
+
+async def test_same_key_with_a_different_payload_is_a_conflict_not_a_replay(m):
+    """U06 (التدقيق الموحَّد 2026-09-13): إعادة استعمال المفتاح بحمولة مختلفة ⇒ 409 مسمّى."""
+    from fastapi import HTTPException
+
+    store = _FakeStore()
+
+    async def work():
+        return {"operation_id": "oplog_a"}
+
+    kw = dict(command_type="farm_ledger.operation.create", actor_id="u1", tenant_id=_TID)
+    first = await m._idempotent(
+        store, _CID, work, payload={"operation_id": "oplog_a", "request_digest": "d1"}, **kw
+    )
+    same = await m._idempotent(
+        store, _CID, work, payload={"operation_id": "oplog_b", "request_digest": "d1"}, **kw
+    )
+    assert first == same == {"operation_id": "oplog_a"}  # الإعادة الصادقة تُعيد المعرّف الأصليّ
+    with pytest.raises(HTTPException) as e:
+        await m._idempotent(
+            store, _CID, work, payload={"operation_id": "oplog_c", "request_digest": "d2"}, **kw
+        )
+    assert e.value.status_code == 409
+    assert "مختلفة" in str(e.value.detail)
+
+
+async def test_legacy_row_without_a_digest_conflicts_with_a_digest_bearing_replay(m):
+    """Copilot على #1001: صفُّ أمرٍ قديم بلا request_digest كان يُعاد نتيجتُه لطلبٍ ببصمة ولو
+    اختلفت الحمولة — لا يمكن إثباتُ التطابق فيُعامَل تعارضاً."""
+    from fastapi import HTTPException
+
+    store = _FakeStore()
+
+    async def work():
+        return {"operation_id": "oplog_legacy"}
+
+    kw = dict(command_type="farm_ledger.operation.create", actor_id="u1", tenant_id=_TID)
+    legacy = await m._idempotent(store, _CID, work, payload={"operation_id": "oplog_legacy"}, **kw)
+    assert legacy == {"operation_id": "oplog_legacy"}
+    with pytest.raises(HTTPException) as e:
+        await m._idempotent(
+            store, _CID, work, payload={"operation_id": "x", "request_digest": "d9"}, **kw
+        )
+    assert e.value.status_code == 409
+
+
+async def test_routes_without_a_digest_keep_the_old_replay_semantics(m):
+    store = _FakeStore()
+
+    async def work():
+        return {"x": 1}
+
+    kw = dict(command_type="device.create", actor_id="u1", tenant_id=_TID, payload={})
+    assert await m._idempotent(store, _CID, work, **kw) == await m._idempotent(
+        store, _CID, work, **kw
+    )
+
+
+def test_idempotency_key_header_is_allowed_by_cors():
+    """Copilot على #1001: نقاطُ idempotency تشترط ترويسة Idempotency-Key، وكانت غائبةً من
+    allow_headers فيفشل preflight المتصفّح قبل بلوغ المعالِج."""
+    if ROOT not in sys.path:
+        sys.path.insert(0, ROOT)
+    from shared.security.cors_policy import PLATFORM_ALLOW_HEADERS
+
+    assert "Idempotency-Key" in PLATFORM_ALLOW_HEADERS
+    assert {"Authorization", "Content-Type", "X-Correlation-Id"} <= set(PLATFORM_ALLOW_HEADERS)
+    with open(MAIN, encoding="utf-8") as f:
+        src = f.read()
+    cors = src[src.index("allow_headers=") :].split("\n", 1)[0]
+    assert "allow_headers=PLATFORM_ALLOW_HEADERS" in cors, cors
+
+
+def test_farm_ledger_operation_create_is_idempotent_by_contract():
+    """U06: سجلّ العمليّات الزراعيّة يقبل Idempotency-Key ويمرّ بالعقد نفسه داخل المعاملة."""
+    src = _handler_src("create_operation_ledger_record")
+    assert "Depends(_idem_key)" in src
+    assert "_idempotent(" in src
+    assert "CommandStore(get_pool(), conn=conn)" in src
+    assert '"request_digest": _request_digest(req)' in src
+    assert 'command_type="farm_ledger.operation.create"' in src
+    # المعرّف يُولَّد قبل الأمر ويُحفَظ في حمولته فتُعيده الإعادة حرفيّاً.
+    assert src.index('operation_id = "oplog_"') < src.index("_idempotent(")
+    # فحوصُ النطاق داخل العمل (Copilot على #1001): مفتاحٌ مُعاد بحمولةٍ مختلفة تشير إلى حقل/موسم
+    # غائب كان يُردّ 404/422 قبل مقارنة البصمة — الآن 409 أوّلاً، والإعادةُ الصادقة لا تُعيد الفحص.
+    persist_at = src.index("async def _persist(")
+    for guard in (
+        "field_or_production_unit_or_farm_required",  # فحصُ النطاق غير الفارغ (422) كذلك
+        "_assert_field_in_tenant(",
+        "_assert_season_in_tenant(",
+        "_assert_production_unit_in_tenant(",
+        "_assert_farm_in_tenant(",
+    ):
+        assert src.index(guard) > persist_at, f"{guard} يسبق _persist — 404 قبل 409"

@@ -1524,6 +1524,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/LearningDashboardPage.static.test.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/src/sections/LearningDashboardPage.tsx",
     "kind": "web"
   },
@@ -2022,6 +2026,22 @@
   {
     "path": "migrations/validate_migrations.py",
     "kind": "database"
+  },
+  {
+    "path": "mobile/sahool_app/BUILDING.md",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/ios/Runner/Assets.xcassets/LaunchImage.imageset/Contents.json",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md",
+    "kind": "mobile"
   },
   {
     "path": "mobile/sahool_app/lib/bloc/dashboard_bloc.dart",
@@ -2820,6 +2840,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/local-ai-rag/init_retry.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/local-ai-rag/main.py",
     "kind": "backend"
   },
@@ -2981,10 +3005,6 @@
   },
   {
     "path": "services/raster-service/raster_runtime_state.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/raster-service/raster_security_context.py",
     "kind": "backend"
   },
   {
@@ -3349,10 +3369,6 @@
   },
   {
     "path": "services/sahool-platform/api/evidence_map.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/sahool-platform/api/evidence_registry.py",
     "kind": "backend"
   },
   {
@@ -5580,10 +5596,6 @@
     "kind": "tests"
   },
   {
-    "path": "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
-    "kind": "tests"
-  },
-  {
     "path": "services/sahool-platform/tests/test_loop_referential_integrity.py",
     "kind": "tests"
   },
@@ -6744,6 +6756,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ai_advice_persistence_and_grounding_honesty.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ai_agronomist_main_decomposition_guard.py",
     "kind": "tests"
   },
@@ -6820,6 +6836,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_alert_senders_push_fcm_v1.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_alerts_derived_from_state.py",
     "kind": "tests"
   },
@@ -6841,6 +6861,10 @@
   },
   {
     "path": "tests_v9/test_aquacrop_salt_capability_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_architecture_compose_edges.py",
     "kind": "tests"
   },
   {
@@ -6889,6 +6913,10 @@
   },
   {
     "path": "tests_v9/test_backfill_worker_schema_drift_visibility_v31_2.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_backup_recovery_execution.py",
     "kind": "tests"
   },
   {
@@ -7292,6 +7320,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_edge_sync_recovery.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_end_to_end.py",
     "kind": "tests"
   },
@@ -7309,6 +7341,10 @@
   },
   {
     "path": "tests_v9/test_env_compose_drift_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_erp_sync_recovery.py",
     "kind": "tests"
   },
   {
@@ -7364,6 +7400,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_fcm_http_v1.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_feature_flags_smoke.py",
     "kind": "tests"
   },
@@ -7413,6 +7453,10 @@
   },
   {
     "path": "tests_v9/test_fields_merge_split_atomic.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_fieldview_import.py",
     "kind": "tests"
   },
   {
@@ -7484,6 +7528,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_gitleaks_allowlist_scope.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_guard_catalogue.py",
     "kind": "tests"
   },
@@ -7517,6 +7565,10 @@
   },
   {
     "path": "tests_v9/test_helm_migration_command_valid_20260705.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_helm_source_contract.py",
     "kind": "tests"
   },
   {
@@ -7596,6 +7648,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_irrigation_policy.py",
     "kind": "tests"
   },
@@ -7669,6 +7725,10 @@
   },
   {
     "path": "tests_v9/test_live_pg_role_closure_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_local_ai_rag_init_retry.py",
     "kind": "tests"
   },
   {
@@ -7812,6 +7872,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_notification_delivery_reliability.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_notification_subjects_prefix.py",
     "kind": "tests"
   },
@@ -7841,6 +7905,10 @@
   },
   {
     "path": "tests_v9/test_operations_summary_shape.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_otlp_tracing_delivery.py",
     "kind": "tests"
   },
   {
@@ -7909,6 +7977,10 @@
   },
   {
     "path": "tests_v9/test_portfolio_command_shape.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_practice_dataset_review.py",
     "kind": "tests"
   },
   {
@@ -8084,6 +8156,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_raw_pool_engines_are_not_wired.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_raw_weather_processing_contract_guard.py",
     "kind": "tests"
   },
@@ -8161,6 +8237,10 @@
   },
   {
     "path": "tests_v9/test_runtime_evidence_subject_binding.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_runtime_image_audit_gate.py",
     "kind": "tests"
   },
   {

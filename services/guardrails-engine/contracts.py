@@ -1,7 +1,7 @@
 """Evidence required before safety tiers may interpret an amount as zero.
 
 Money is in USD; quantities are numeric JSON values, never booleans or strings.
-Zero is an explicit observation, not a substitute for absent financial evidence.
+Zero is an explicit observation, not a substitute for absent safety evidence.
 """
 
 import math
@@ -26,6 +26,9 @@ def contract_violations(action_type: str, action_data: dict, farm_context: dict)
         required["action_data"].append("contract_value_usd")
     if action_type == "pesticide":
         required["action_data"].extend(["chemical", "dosage_kg_ha"])
+    if action_type == "fertilization":
+        required["action_data"].extend(["N_kg_ha", "P_kg_ha", "K_kg_ha"])
+        required["farm_context"].extend(["annual_N_kg_ha", "season_carbon_kg_co2e"])
     if action_type == "irrigation":
         required["action_data"].append("water_m3")
         required["farm_context"].extend(

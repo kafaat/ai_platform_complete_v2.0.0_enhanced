@@ -111,7 +111,7 @@ def test_all_pending_success_rate_none():
     assert out["success_rate"] is None  # لا محسوم ⇒ لا تلفيق
 
 
-# ── (ج) عتبة field_verified ──
+# ── (ج) عتبة العيّنة: field_preliminary → field_sample_complete → (بمراجعة) field_verified ──
 
 
 def test_field_preliminary_below_threshold():
@@ -123,13 +123,16 @@ def test_field_preliminary_below_threshold():
     assert out["samples_to_verified"] == out["field_verified_min_samples"] - 5
 
 
-def test_field_verified_at_threshold():
-    n = 30  # عند العتبة بالضبط ⇒ field_verified.
+def test_threshold_reached_is_sample_complete_until_reviewed():
+    # U01 (التدقيق الموحَّد 2026-09-13): العتبة بالضبط ⇒ عيّنة مكتملة بانتظار المراجعة —
+    # «مُتحقَّق ميدانيّاً» يشترط مراجعةَ مختصّ ولا يُمنَح بعدّ الصفوف وحدَه.
+    n = 30
     outcomes = [_outcome(success=True, n_eval=1) for _ in range(n)]
     out = summarize_region("jawf", [], outcomes)
     assert out["sample_count"] == n
-    assert out["evidence_level"] == "field_verified"
+    assert out["evidence_level"] == "field_sample_complete"
     assert out["samples_to_verified"] == 0
+    assert out["review_status"] == "unreviewed"
 
 
 def test_empty_metrics_not_counted_as_sample():

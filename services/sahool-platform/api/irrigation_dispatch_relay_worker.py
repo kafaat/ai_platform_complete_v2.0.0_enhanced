@@ -27,6 +27,7 @@ import asyncio
 import json
 import logging
 import os
+import time
 from collections.abc import Awaitable, Callable
 from typing import Any
 
@@ -35,10 +36,19 @@ from irrigation_dispatch_relay import (
     SUPPORTED_DISPATCH_EVENTS,
     build_reservation_dispatch_ingest,
 )
+from worker_heartbeat import HeartbeatState
 
 logger = logging.getLogger("sahool.irrigation.dispatch_relay")
 
 RELAY_FLAG = "FEATURE_RESERVATION_DISPATCH_RELAY"
+# WORKERS-INHERIT-AN-HTTP-HEALTHCHECK-THEY-CANNOT-ANSWER-01: the platform image's Dockerfile
+# HEALTHCHECK curls :8000/healthz, which this worker never serves — so it read as unhealthy
+# forever. The heartbeat below is what `python -m api.worker_heartbeat check --worker
+# reservation-dispatch-relay` reads from compose. The relay is event-driven, so the beat is
+# time-based (every IDLE_BEAT_SECONDS while waiting) plus one per handled message; `--max-age`
+# in compose must exceed IDLE_BEAT_SECONDS.
+WORKER_NAME = "reservation-dispatch-relay"
+IDLE_BEAT_SECONDS = 60.0
 INGEST_PATH = "/v1/reservation-dispatch-intents"
 # Subjects the outbox publishes reservation dispatch events on (sahool.events.<event_type>).
 DEFAULT_SUBJECTS = tuple(f"sahool.events.{e}" for e in sorted(SUPPORTED_DISPATCH_EVENTS))
@@ -134,7 +144,74 @@ async def _default_post(tenant_id: str | None, body: dict[str, Any]) -> tuple[in
     return response.status_code, payload
 
 
-async def run_relay(*, post_fn: PostFn | None = None) -> None:
+def make_message_handler(
+    post: PostFn, heartbeat: HeartbeatState
+) -> Callable[[Any], Awaitable[None]]:
+    """The NATS callback: relay one delivery and leave a heartbeat behind it.
+
+    A handler error marks the beat ``failed`` (the probe reports it with the error text) but
+    never kills the subscription — the next delivery may succeed and mark it running again.
+    """
+
+    async def _on_message(msg: Any) -> None:
+        try:
+            result = await handle_delivered_message(msg.data, post_fn=post)
+        except Exception as exc:  # noqa: BLE001 — a single bad message must not kill the worker
+            logger.warning("dispatch relay handler error: %s", exc)
+            heartbeat.mark_error(f"{type(exc).__name__}: {exc}")
+        else:
+            # The structured outcome IS the health signal — a handler that returns is not a
+            # handler that delivered. Only `delivered` counts; a `failed` POST (503 mirror,
+            # SoR-off, 502) is an error the probe must show; `skipped` proves liveness only.
+            outcome = result.get("outcome")
+            if outcome == "delivered":
+                heartbeat.mark_poll(1)
+            elif outcome == "failed":
+                heartbeat.mark_error(
+                    f"inbox_post_not_settled:status={result.get('status')} "
+                    f"event={result.get('source_event_id')}"
+                )
+            else:
+                _touch_alive(heartbeat)
+        heartbeat.write()
+
+    return _on_message
+
+
+def _touch_alive(heartbeat: HeartbeatState) -> None:
+    """Refresh `last_poll_at` without changing state or counters.
+
+    Used for beats that prove the process is alive but say nothing about delivery: a skipped
+    (foreign) message, or the idle tick. A `failed` state is deliberately preserved — only a
+    `delivered` outcome clears it — so a relay whose last POST failed stays unhealthy until a
+    delivery actually succeeds, instead of turning green sixty seconds later by the clock.
+    """
+    heartbeat.last_poll_at = time.time()
+    if heartbeat.current_state == "starting":
+        heartbeat.current_state = "running"
+
+
+async def idle_with_heartbeat(heartbeat: HeartbeatState, *, state: str) -> None:
+    """Wait forever, beating every IDLE_BEAT_SECONDS so the probe can tell 'waiting' from 'dead'.
+
+    ``state`` is what the beat reports (``idle`` when the feature flag is off, ``running`` while
+    subscribed) — a disabled relay is healthy *and* visibly idle, never disguised as working.
+    A ``failed`` state set by a message handler is never overwritten here: the clock proves the
+    process is alive, not that delivery recovered.
+    """
+    while True:
+        if heartbeat.current_state == "failed":
+            _touch_alive(heartbeat)
+        else:
+            heartbeat.mark_poll(0)
+            heartbeat.current_state = state
+        heartbeat.write()
+        await asyncio.sleep(IDLE_BEAT_SECONDS)
+
+
+async def run_relay(
+    *, post_fn: PostFn | None = None, heartbeat: HeartbeatState | None = None
+) -> None:
     """Connect NATS, subscribe to the reservation dispatch subjects, and relay each delivery to the
     inbox until cancelled. No-op (with a clear log) when the relay flag is off."""
     if not relay_enabled():
@@ -142,6 +219,7 @@ async def run_relay(*, post_fn: PostFn | None = None) -> None:
         return
     nats_url = os.getenv("NATS_URL") or os.getenv("SAHOOL_NATS_URL") or "nats://sahool-nats:4222"
     post = post_fn or _default_post
+    beat = heartbeat or HeartbeatState(WORKER_NAME)
 
     import nats  # type: ignore
     from shared.broker_url import redact_broker_url
@@ -150,18 +228,12 @@ async def run_relay(*, post_fn: PostFn | None = None) -> None:
     # `NATS_URL` صار يحمل الاعتماد — يُطبَع مُنقّى (NATS-BROKER-HAS-NO-AUTHENTICATION-…-01).
     logger.info("reservation dispatch relay connected to NATS at %s", redact_broker_url(nats_url))
 
-    async def _on_message(msg: Any) -> None:
-        try:
-            await handle_delivered_message(msg.data, post_fn=post)
-        except Exception as exc:  # noqa: BLE001 — a single bad message must not kill the worker
-            logger.warning("dispatch relay handler error: %s", exc)
-
+    on_message = make_message_handler(post, beat)
     try:
         for subject in subscribed_subjects():
-            await nc.subscribe(subject, cb=_on_message)
+            await nc.subscribe(subject, cb=on_message)
             logger.info("reservation dispatch relay subscribed to %s", subject)
-        while True:
-            await asyncio.sleep(3600)
+        await idle_with_heartbeat(beat, state="running")
     finally:
         await nc.drain()
 
@@ -170,13 +242,14 @@ def main() -> int:
     logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 
     async def _serve() -> None:
+        heartbeat = HeartbeatState(WORKER_NAME)
+        heartbeat.write()  # `starting` — a fresh file before NATS is even reachable
         if not relay_enabled():
             # Started (e.g. under the `relay` profile) but the feature is off: idle instead of
             # exiting, so the container stays a harmless no-op without restart-thrashing.
             logger.info("reservation dispatch relay disabled (%s unset) — idling", RELAY_FLAG)
-            while True:
-                await asyncio.sleep(3600)
-        await run_relay()
+            await idle_with_heartbeat(heartbeat, state="idle")
+        await run_relay(heartbeat=heartbeat)
 
     asyncio.run(_serve())
     return 0

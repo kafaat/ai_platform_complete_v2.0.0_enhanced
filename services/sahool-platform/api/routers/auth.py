@@ -17,6 +17,7 @@ from __future__ import annotations
 import time
 
 import jwt  # PyJWT
+from core.authorization import Permission, has_permission
 from fastapi import APIRouter, Depends, Header, HTTPException
 from jwt.exceptions import InvalidTokenError
 
@@ -96,6 +97,7 @@ def auth_me(user: UserSchema = Depends(get_current_user)):
             "tenant_id": user.tenant_id,
             "role": user.role.value,
             "name_ar": user.name_ar,
+            "permissions": sorted(p.value for p in Permission if has_permission(user, p)),
         }
     }
 

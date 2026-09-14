@@ -2,53 +2,13 @@
   "schema_version": "1.0.0",
   "nodes": [
     {
-      "id": "--quiet",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 1,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
-      "id": "--spider",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 1,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
-      "id": "-c",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 3,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
-      "id": "-f",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 14,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
-      "id": "-sf",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 2,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
       "id": "actuator-service",
       "paths": [
         "services/actuator-service"
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 10,
+      "outgoing": 8,
       "orphan": false
     },
     {
@@ -58,7 +18,7 @@
       ],
       "kind": "service",
       "incoming": 1,
-      "outgoing": 3,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -69,14 +29,6 @@
       "kind": "service",
       "incoming": 0,
       "outgoing": 5,
-      "orphan": false
-    },
-    {
-      "id": "aliases",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 3,
-      "outgoing": 0,
       "orphan": false
     },
     {
@@ -93,56 +45,8 @@
       "id": "auth-service",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 2,
-      "outgoing": 6,
-      "orphan": false
-    },
-    {
-      "id": "capabilities",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 3,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
-      "id": "cmd",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 22,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
-      "id": "cmd-shell",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 2,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
-      "id": "condition",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 71,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
-      "id": "count",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 1,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
-      "id": "curl",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 16,
-      "outgoing": 0,
+      "incoming": 5,
+      "outgoing": 4,
       "orphan": false
     },
     {
@@ -151,24 +55,8 @@
         "services/decision-service"
       ],
       "kind": "service",
-      "incoming": 13,
+      "incoming": 10,
       "outgoing": 3,
-      "orphan": false
-    },
-    {
-      "id": "deploy",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 1,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
-      "id": "devices",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 1,
-      "outgoing": 0,
       "orphan": false
     },
     {
@@ -187,8 +75,8 @@
         "services/odoo-bridge"
       ],
       "kind": "service",
-      "incoming": 4,
-      "outgoing": 7,
+      "incoming": 2,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -196,7 +84,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 5,
-      "outgoing": 2,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -204,7 +92,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 1,
-      "outgoing": 4,
+      "outgoing": 3,
       "orphan": false
     },
     {
@@ -212,7 +100,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 1,
-      "outgoing": 2,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -228,7 +116,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 9,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -236,7 +124,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 2,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -244,7 +132,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 2,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -268,7 +156,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 2,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -276,15 +164,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 1,
-      "outgoing": 2,
-      "orphan": false
-    },
-    {
-      "id": "evidence-internal",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 1,
-      "outgoing": 0,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -292,7 +172,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 4,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -308,7 +188,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 4,
-      "outgoing": 4,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -335,16 +215,16 @@
       "id": "frontend",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 3,
-      "outgoing": 2,
+      "incoming": 4,
+      "outgoing": 4,
       "orphan": false
     },
     {
       "id": "guardrails",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 10,
-      "outgoing": 4,
+      "incoming": 8,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -358,29 +238,13 @@
       "orphan": true
     },
     {
-      "id": "healthcheck",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 52,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
       "id": "indicators-service",
       "paths": [
         "services/indicators-service"
       ],
       "kind": "service",
-      "incoming": 5,
+      "incoming": 4,
       "outgoing": 2,
-      "orphan": false
-    },
-    {
-      "id": "interval",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 52,
-      "outgoing": 0,
       "orphan": false
     },
     {
@@ -399,8 +263,8 @@
         "services/local-ai-rag"
       ],
       "kind": "service",
-      "incoming": 3,
-      "outgoing": 5,
+      "incoming": 2,
+      "outgoing": 4,
       "orphan": false
     },
     {
@@ -408,7 +272,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 2,
-      "outgoing": 2,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -428,15 +292,7 @@
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 3,
-      "orphan": false
-    },
-    {
-      "id": "networks",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 83,
-      "outgoing": 0,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -444,7 +300,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 8,
+      "outgoing": 9,
       "orphan": false
     },
     {
@@ -461,8 +317,8 @@
         "services/sahool-platform"
       ],
       "kind": "service",
-      "incoming": 3,
-      "outgoing": 80,
+      "incoming": 5,
+      "outgoing": 31,
       "orphan": false
     },
     {
@@ -482,18 +338,10 @@
       "orphan": false
     },
     {
-      "id": "python",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 5,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
       "id": "qdrant",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 5,
+      "incoming": 4,
       "outgoing": 0,
       "orphan": false
     },
@@ -504,7 +352,7 @@
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 2,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -523,7 +371,7 @@
         "services/raster-service"
       ],
       "kind": "service",
-      "incoming": 16,
+      "incoming": 8,
       "outgoing": 9,
       "orphan": false
     },
@@ -533,15 +381,15 @@
         "services/raster-tiler-service"
       ],
       "kind": "service",
-      "incoming": 0,
+      "incoming": 2,
       "outgoing": 0,
-      "orphan": true
+      "orphan": false
     },
     {
       "id": "redis",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 35,
+      "incoming": 29,
       "outgoing": 0,
       "orphan": false
     },
@@ -552,39 +400,7 @@
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 2,
-      "orphan": false
-    },
-    {
-      "id": "required",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 1,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
-      "id": "reservations",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 1,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
-      "id": "resources",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 1,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
-      "id": "retries",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 52,
-      "outgoing": 0,
+      "outgoing": 3,
       "orphan": false
     },
     {
@@ -592,7 +408,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 11,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -600,7 +416,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 25,
+      "outgoing": 4,
       "orphan": false
     },
     {
@@ -608,7 +424,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 1,
-      "outgoing": 18,
+      "outgoing": 6,
       "orphan": false
     },
     {
@@ -616,7 +432,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 1,
-      "outgoing": 16,
+      "outgoing": 4,
       "orphan": false
     },
     {
@@ -624,7 +440,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 4,
-      "outgoing": 27,
+      "outgoing": 6,
       "orphan": false
     },
     {
@@ -632,7 +448,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 13,
+      "outgoing": 4,
       "orphan": false
     },
     {
@@ -656,7 +472,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 2,
-      "outgoing": 31,
+      "outgoing": 3,
       "orphan": false
     },
     {
@@ -672,7 +488,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 27,
+      "outgoing": 6,
       "orphan": false
     },
     {
@@ -680,14 +496,14 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 1,
-      "outgoing": 2,
+      "outgoing": 1,
       "orphan": false
     },
     {
       "id": "sahool-frontend",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 1,
+      "incoming": 2,
       "outgoing": 0,
       "orphan": false
     },
@@ -696,7 +512,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 3,
-      "outgoing": 26,
+      "outgoing": 5,
       "orphan": false
     },
     {
@@ -704,15 +520,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 3,
-      "outgoing": 13,
-      "orphan": false
-    },
-    {
-      "id": "sahool-internal",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 59,
-      "outgoing": 0,
+      "outgoing": 4,
       "orphan": false
     },
     {
@@ -720,7 +528,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 4,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -736,7 +544,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 2,
-      "outgoing": 25,
+      "outgoing": 4,
       "orphan": false
     },
     {
@@ -744,7 +552,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 2,
-      "outgoing": 23,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -752,7 +560,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 27,
-      "outgoing": 8,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -768,7 +576,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 4,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -776,7 +584,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 4,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -784,23 +592,23 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 11,
+      "outgoing": 2,
       "orphan": false
     },
     {
       "id": "sahool-nats",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 13,
+      "incoming": 14,
       "outgoing": 0,
       "orphan": false
     },
     {
-      "id": "sahool-net",
+      "id": "sahool-nats-exporter",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 1,
-      "outgoing": 0,
+      "incoming": 0,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -808,15 +616,15 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 51,
+      "outgoing": 32,
       "orphan": false
     },
     {
       "id": "sahool-notification-agent",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 2,
-      "outgoing": 27,
+      "incoming": 3,
+      "outgoing": 8,
       "orphan": false
     },
     {
@@ -824,15 +632,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 1,
-      "outgoing": 24,
-      "orphan": false
-    },
-    {
-      "id": "sahool-odoo-bridge",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 3,
-      "outgoing": 0,
+      "outgoing": 3,
       "orphan": false
     },
     {
@@ -844,11 +644,19 @@
       "orphan": false
     },
     {
+      "id": "sahool-pg-exporter",
+      "paths": [],
+      "kind": "compose-service",
+      "incoming": 0,
+      "outgoing": 1,
+      "orphan": false
+    },
+    {
       "id": "sahool-phase-runtime-outbox-worker",
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 11,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -856,22 +664,14 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 11,
+      "outgoing": 2,
       "orphan": false
     },
     {
       "id": "sahool-postgres",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 39,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
-      "id": "sahool-public",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 2,
+      "incoming": 40,
       "outgoing": 0,
       "orphan": false
     },
@@ -888,7 +688,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 10,
+      "outgoing": 4,
       "orphan": false
     },
     {
@@ -896,7 +696,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 2,
-      "outgoing": 18,
+      "outgoing": 3,
       "orphan": false
     },
     {
@@ -912,7 +712,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 11,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -920,15 +720,15 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 11,
+      "outgoing": 2,
       "orphan": false
     },
     {
       "id": "sahool-raster-service",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 0,
-      "outgoing": 13,
+      "incoming": 1,
+      "outgoing": 4,
       "orphan": false
     },
     {
@@ -944,7 +744,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 1,
-      "outgoing": 14,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -952,7 +752,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 4,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -967,8 +767,8 @@
       "id": "sahool-scout-ingest",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 0,
-      "outgoing": 14,
+      "incoming": 1,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -976,7 +776,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 11,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -992,7 +792,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 14,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -1000,7 +800,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 2,
-      "outgoing": 23,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -1008,7 +808,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 26,
+      "outgoing": 7,
       "orphan": false
     },
     {
@@ -1016,7 +816,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 2,
-      "outgoing": 13,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -1024,15 +824,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 8,
-      "orphan": false
-    },
-    {
-      "id": "sahool-unified-odoo-bridge",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 1,
-      "outgoing": 0,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -1040,7 +832,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 3,
-      "outgoing": 10,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -1048,7 +840,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 1,
-      "outgoing": 25,
+      "outgoing": 6,
       "orphan": false
     },
     {
@@ -1056,7 +848,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 11,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -1072,7 +864,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 14,
+      "outgoing": 3,
       "orphan": false
     },
     {
@@ -1080,7 +872,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 2,
-      "outgoing": 24,
+      "outgoing": 3,
       "orphan": false
     },
     {
@@ -1088,7 +880,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 13,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -1104,7 +896,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 2,
-      "outgoing": 3,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -1149,15 +941,7 @@
         "services/soil-service"
       ],
       "kind": "service",
-      "incoming": 9,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
-      "id": "start-period",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 52,
+      "incoming": 8,
       "outgoing": 0,
       "orphan": false
     },
@@ -1167,8 +951,8 @@
         "services/supervisor-agent"
       ],
       "kind": "service",
-      "incoming": 3,
-      "outgoing": 19,
+      "incoming": 6,
+      "outgoing": 16,
       "orphan": false
     },
     {
@@ -1176,23 +960,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 6,
-      "orphan": false
-    },
-    {
-      "id": "test",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 52,
-      "outgoing": 0,
-      "orphan": false
-    },
-    {
-      "id": "timeout",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 52,
-      "outgoing": 0,
+      "outgoing": 4,
       "orphan": false
     },
     {
@@ -1212,7 +980,7 @@
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 12,
+      "outgoing": 10,
       "orphan": false
     },
     {
@@ -1222,15 +990,7 @@
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 10,
-      "orphan": false
-    },
-    {
-      "id": "volumes",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 2,
-      "outgoing": 0,
+      "outgoing": 8,
       "orphan": false
     },
     {
@@ -1257,8 +1017,8 @@
         "services/weather-service"
       ],
       "kind": "service",
-      "incoming": 17,
-      "outgoing": 5,
+      "incoming": 4,
+      "outgoing": 1,
       "orphan": false
     },
     {
@@ -1270,14 +1030,6 @@
       "incoming": 0,
       "outgoing": 0,
       "orphan": true
-    },
-    {
-      "id": "wget",
-      "paths": [],
-      "kind": "compose-service",
-      "incoming": 1,
-      "outgoing": 0,
-      "orphan": false
     },
     {
       "id": "wofost-mcp",
@@ -1309,18 +1061,6 @@
     },
     {
       "source": "actuator-service",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "actuator-service",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "actuator-service",
       "target": "postgis",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.light.yml"
@@ -1346,12 +1086,6 @@
     {
       "source": "actuator-service",
       "target": "redis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "agriai-engine",
-      "target": "networks",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.unified.yml"
     },
@@ -1417,18 +1151,6 @@
     },
     {
       "source": "auth-service",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "auth-service",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "auth-service",
       "target": "postgis",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.light.yml"
@@ -1471,19 +1193,7 @@
     },
     {
       "source": "erp-bridge",
-      "target": "aliases",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "erp-bridge",
       "target": "auth-service",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "erp-bridge",
-      "target": "networks",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.unified.yml"
     },
@@ -1494,38 +1204,8 @@
       "evidence": "docker-compose.unified.yml"
     },
     {
-      "source": "erp-bridge",
-      "target": "sahool-net",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "erp-bridge",
-      "target": "sahool-odoo-bridge",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "erp-bridge",
-      "target": "sahool-unified-odoo-bridge",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "erpnext-backend",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.erpnext.yml"
-    },
-    {
       "source": "erpnext-backend",
       "target": "erpnext-create-site",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.erpnext.yml"
-    },
-    {
-      "source": "erpnext-configurator",
-      "target": "condition",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.erpnext.yml"
     },
@@ -1549,19 +1229,7 @@
     },
     {
       "source": "erpnext-create-site",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.erpnext.yml"
-    },
-    {
-      "source": "erpnext-create-site",
       "target": "erpnext-configurator",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.erpnext.yml"
-    },
-    {
-      "source": "erpnext-frontend",
-      "target": "condition",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.erpnext.yml"
     },
@@ -1578,56 +1246,8 @@
       "evidence": "docker-compose.erpnext.yml"
     },
     {
-      "source": "erpnext-frontend",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.erpnext.yml"
-    },
-    {
-      "source": "erpnext-frontend",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.erpnext.yml"
-    },
-    {
-      "source": "erpnext-frontend",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.erpnext.yml"
-    },
-    {
-      "source": "erpnext-frontend",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.erpnext.yml"
-    },
-    {
-      "source": "erpnext-frontend",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.erpnext.yml"
-    },
-    {
-      "source": "erpnext-frontend",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.erpnext.yml"
-    },
-    {
-      "source": "erpnext-queue-long",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.erpnext.yml"
-    },
-    {
       "source": "erpnext-queue-long",
       "target": "erpnext-backend",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.erpnext.yml"
-    },
-    {
-      "source": "erpnext-queue-short",
-      "target": "condition",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.erpnext.yml"
     },
@@ -1639,19 +1259,7 @@
     },
     {
       "source": "erpnext-scheduler",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.erpnext.yml"
-    },
-    {
-      "source": "erpnext-scheduler",
       "target": "erpnext-backend",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.erpnext.yml"
-    },
-    {
-      "source": "erpnext-websocket",
-      "target": "condition",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.erpnext.yml"
     },
@@ -1660,42 +1268,12 @@
       "target": "erpnext-backend",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.erpnext.yml"
-    },
-    {
-      "source": "evidence-migrate",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.evidence-lab.yml"
-    },
-    {
-      "source": "evidence-migrate",
-      "target": "evidence-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.evidence-lab.yml"
     },
     {
       "source": "evidence-migrate",
       "target": "evidence-postgres",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.evidence-lab.yml"
-    },
-    {
-      "source": "evidence-migrate",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.evidence-lab.yml"
-    },
-    {
-      "source": "fastbee",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "fastbee",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
     },
     {
       "source": "fastbee",
@@ -1717,25 +1295,25 @@
     },
     {
       "source": "frontend",
-      "target": "networks",
+      "target": "auth-service",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.light.yml"
     },
     {
       "source": "frontend",
-      "target": "networks",
+      "target": "auth-service",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.unified.yml"
     },
     {
-      "source": "guardrails",
-      "target": "networks",
+      "source": "frontend",
+      "target": "supervisor-agent",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.light.yml"
     },
     {
-      "source": "guardrails",
-      "target": "networks",
+      "source": "frontend",
+      "target": "supervisor-agent",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.unified.yml"
     },
@@ -1765,12 +1343,6 @@
     },
     {
       "source": "local-ai-rag",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "local-ai-rag",
       "target": "ollama",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.unified.yml"
@@ -1792,12 +1364,6 @@
       "target": "rag-retrieval",
       "kind": "code-reference",
       "evidence": "services/local-ai-rag/main.py"
-    },
-    {
-      "source": "market-mcp",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
     },
     {
       "source": "market-mcp",
@@ -1833,12 +1399,6 @@
       "source": "model-registry-adapter",
       "target": "decision-service",
       "kind": "code-reference",
-      "evidence": "services/model-registry-adapter/tests/test_runtime_contract.py"
-    },
-    {
-      "source": "model-registry-adapter",
-      "target": "decision-service",
-      "kind": "code-reference",
       "evidence": "services/model-registry-adapter/worker.py"
     },
     {
@@ -1846,6 +1406,12 @@
       "target": "agriai-engine",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.unified.yml"
+    },
+    {
+      "source": "nginx",
+      "target": "auth-service",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.light.yml"
     },
     {
       "source": "nginx",
@@ -1863,6 +1429,12 @@
       "source": "nginx",
       "target": "frontend",
       "kind": "compose-depends-on",
+      "evidence": "docker-compose.light.yml"
+    },
+    {
+      "source": "nginx",
+      "target": "frontend",
+      "kind": "compose-depends-on",
       "evidence": "docker-compose.unified.yml"
     },
     {
@@ -1873,63 +1445,15 @@
     },
     {
       "source": "nginx",
-      "target": "networks",
+      "target": "supervisor-agent",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "nginx",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
     },
     {
       "source": "nginx",
       "target": "supervisor-agent",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "platform",
-      "target": "-f",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "platform",
-      "target": "capabilities",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/api/routers/capabilities.py"
-    },
-    {
-      "source": "platform",
-      "target": "capabilities",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_capabilities_ai_fallbacks.py"
-    },
-    {
-      "source": "platform",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "platform",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "platform",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "platform",
-      "target": "curl",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "platform",
@@ -1948,12 +1472,6 @@
       "target": "decision-service",
       "kind": "code-reference",
       "evidence": "services/sahool-platform/core/capabilities.py"
-    },
-    {
-      "source": "platform",
-      "target": "decision-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_capabilities_ai_fallbacks.py"
     },
     {
       "source": "platform",
@@ -1987,105 +1505,15 @@
     },
     {
       "source": "platform",
-      "target": "guardrails",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_decision_dispatch.py"
-    },
-    {
-      "source": "platform",
-      "target": "guardrails",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_guardrails.py"
-    },
-    {
-      "source": "platform",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "platform",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "platform",
-      "target": "indicators-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_soil_remote.py"
-    },
-    {
-      "source": "platform",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "platform",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "platform",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "platform",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "platform",
       "target": "raster-service",
       "kind": "code-reference",
       "evidence": "services/sahool-platform/api/raster_service_client.py"
     },
     {
       "source": "platform",
-      "target": "raster-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_p1_raster_boundary_guard.py"
-    },
-    {
-      "source": "platform",
-      "target": "raster-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_p2_1_imagery_automation_raster_facade_guard.py"
-    },
-    {
-      "source": "platform",
-      "target": "raster-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_p2_2_field_ai_context_raster_facade_guard.py"
-    },
-    {
-      "source": "platform",
-      "target": "raster-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_p2_3_field_intelligence_adapter_raster_facade_guard.py"
-    },
-    {
-      "source": "platform",
-      "target": "raster-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_p2_4_compat_gateway_raster_facade_guard.py"
-    },
-    {
-      "source": "platform",
-      "target": "raster-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_p2_5_raster_direct_wiring_final_sweep.py"
-    },
-    {
-      "source": "platform",
-      "target": "raster-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_p2_raster_facade_cleanup_guard.py"
+      "target": "raster-tiler-service",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "platform",
@@ -2107,43 +1535,7 @@
     },
     {
       "source": "platform",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_capabilities_ai_fallbacks.py"
-    },
-    {
-      "source": "platform",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_weather_engine_v24_redis_ready_cache.py"
-    },
-    {
-      "source": "platform",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "platform",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "platform",
       "target": "sahool-field-segmentation",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "platform",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "platform",
-      "target": "sahool-internal",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -2233,48 +1625,6 @@
     },
     {
       "source": "platform",
-      "target": "soil-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_canonical_soil_state.py"
-    },
-    {
-      "source": "platform",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "platform",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "platform",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "platform",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "platform",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "platform",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "platform",
       "target": "weather-service",
       "kind": "code-reference",
       "evidence": "services/sahool-platform/api/weather_service_client.py"
@@ -2292,94 +1642,10 @@
       "evidence": "services/sahool-platform/core/field_intelligence_adapters.py"
     },
     {
-      "source": "platform",
-      "target": "weather-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_gis_tile_math.py"
-    },
-    {
-      "source": "platform",
-      "target": "weather-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_p3_4_platform_weather_facade_guard.py"
-    },
-    {
-      "source": "platform",
-      "target": "weather-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_weather_alerts.py"
-    },
-    {
-      "source": "platform",
-      "target": "weather-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_weather_alerts_notify.py"
-    },
-    {
-      "source": "platform",
-      "target": "weather-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_weather_engine_v12_operation_plan.py"
-    },
-    {
-      "source": "platform",
-      "target": "weather-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_weather_engine_v18_observability.py"
-    },
-    {
-      "source": "platform",
-      "target": "weather-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_weather_engine_v19_prometheus_cache_admin.py"
-    },
-    {
-      "source": "platform",
-      "target": "weather-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_weather_engine_v20_readiness_selftest.py"
-    },
-    {
-      "source": "platform",
-      "target": "weather-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_weather_engine_v21_rate_limit_actions.py"
-    },
-    {
-      "source": "platform",
-      "target": "weather-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_weather_engine_v22_runtime_contract.py"
-    },
-    {
-      "source": "platform",
-      "target": "weather-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_weather_engine_v26_runtime_smoke_assets.py"
-    },
-    {
-      "source": "platform",
-      "target": "weather-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_weather_field_timeline_link.py"
-    },
-    {
-      "source": "platform",
-      "target": "weather-service",
-      "kind": "code-reference",
-      "evidence": "services/sahool-platform/tests/test_weather_tile_engine_v10.py"
-    },
-    {
       "source": "qdrant-seed",
       "target": "qdrant",
       "kind": "code-reference",
       "evidence": "services/qdrant-seed/seed.py"
-    },
-    {
-      "source": "qdrant-seed",
-      "target": "qdrant",
-      "kind": "code-reference",
-      "evidence": "services/qdrant-seed/test_aljawf_knowledge.py"
     },
     {
       "source": "rag-retrieval",
@@ -2454,40 +1720,10 @@
       "evidence": "services/remote-sensing-workspace-bff/main.py"
     },
     {
-      "source": "sahool-actuator-dispatch-worker",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-actuator-dispatch-worker",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-actuator-dispatch-worker",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-actuator-dispatch-worker",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-actuator-dispatch-worker",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-actuator-dispatch-worker",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
+      "source": "remote-sensing-workspace-bff",
+      "target": "platform",
+      "kind": "code-reference",
+      "evidence": "services/remote-sensing-workspace-bff/main.py"
     },
     {
       "source": "sahool-actuator-dispatch-worker",
@@ -2498,102 +1734,6 @@
     {
       "source": "sahool-actuator-dispatch-worker",
       "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-actuator-dispatch-worker",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-actuator-dispatch-worker",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-actuator-dispatch-worker",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
-      "target": "-f",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
-      "target": "curl",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
-      "target": "retries",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -2605,18 +1745,6 @@
     },
     {
       "source": "sahool-actuator-service",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
       "target": "sahool-migrate",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
@@ -2634,98 +1762,8 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-actuator-service",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-actuator-service",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-agriai-engine",
-      "target": "-f",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-agriai-engine",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-agriai-engine",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-agriai-engine",
-      "target": "curl",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-agriai-engine",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-agriai-engine",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-agriai-engine",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-agriai-engine",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
       "source": "sahool-agriai-engine",
       "target": "sahool-edge",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-agriai-engine",
-      "target": "sahool-internal",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -2760,80 +1798,8 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-agriai-engine",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-agriai-engine",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-agriai-engine",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-ai-agronomist",
-      "target": "-c",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-ai-agronomist",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-ai-agronomist",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-ai-agronomist",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-ai-agronomist",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-ai-agronomist",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-ai-agronomist",
-      "target": "python",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-ai-agronomist",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
       "source": "sahool-ai-agronomist",
       "target": "sahool-guardrails-engine",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-ai-agronomist",
-      "target": "sahool-internal",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -2856,114 +1822,6 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-ai-agronomist",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-ai-agronomist",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-ai-agronomist",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "-f",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "curl",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
       "source": "sahool-auth",
       "target": "sahool-migrate",
       "kind": "compose-depends-on",
@@ -2996,78 +1854,6 @@
     {
       "source": "sahool-auth",
       "target": "sahool-redis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-auth",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-canonical-execution-learning-worker",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-canonical-execution-learning-worker",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-canonical-execution-learning-worker",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-canonical-execution-learning-worker",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-canonical-execution-learning-worker",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-canonical-execution-learning-worker",
-      "target": "sahool-internal",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -3096,144 +1882,6 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-canonical-execution-learning-worker",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-canonical-execution-learning-worker",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-canonical-execution-learning-worker",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "-f",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "aliases",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "aliases",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "curl",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "erp-bridge",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "erp-bridge",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "required",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
       "source": "sahool-erp-bridge",
       "target": "sahool-odoo",
       "kind": "compose-depends-on",
@@ -3241,18 +1889,6 @@
     },
     {
       "source": "sahool-erp-bridge",
-      "target": "sahool-odoo-bridge",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "sahool-odoo-bridge",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
       "target": "sahool-postgres",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.fixed.yml"
@@ -3260,108 +1896,6 @@
     {
       "source": "sahool-erp-bridge",
       "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-erp-bridge",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "-sf",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "curl",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "networks",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -3373,30 +1907,6 @@
     },
     {
       "source": "sahool-field-management",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-field-management",
       "target": "sahool-migrate",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.fixed.yml"
@@ -3424,48 +1934,6 @@
       "target": "sahool-redis",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-field-management",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-field-segmentation",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.gpu.yml"
     },
     {
       "source": "sahool-field-segmentation",
@@ -3475,96 +1943,6 @@
     },
     {
       "source": "sahool-guardrails-engine",
-      "target": "-f",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "curl",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
       "target": "sahool-migrate",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.fixed.yml"
@@ -3592,78 +1970,6 @@
       "target": "sahool-redis",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-guardrails-engine",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-indicators-service",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-indicators-service",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-indicators-service",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-indicators-service",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-indicators-service",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-indicators-service",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "sahool-indicators-service",
@@ -3690,134 +1996,8 @@
       "evidence": "docker-compose.fixed.yml"
     },
     {
-      "source": "sahool-indicators-service",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-indicators-service",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-indicators-service",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-irrigation-reservation-lifecycle-worker",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-irrigation-reservation-lifecycle-worker",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-irrigation-reservation-lifecycle-worker",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
       "source": "sahool-irrigation-reservation-lifecycle-worker",
       "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "-f",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "curl",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "sahool-internal",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -3846,132 +2026,6 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-local-ai-rag",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-local-ai-rag",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "-f",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "curl",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
       "source": "sahool-market-mcp",
       "target": "sahool-postgres",
       "kind": "compose-depends-on",
@@ -3984,78 +2038,6 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-market-mcp",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-market-mcp",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-migrate",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-migrate",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-migrate",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-migrate",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-migrate",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-migrate",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
       "source": "sahool-migrate",
       "target": "sahool-postgres",
       "kind": "compose-depends-on",
@@ -4064,24 +2046,6 @@
     {
       "source": "sahool-migrate",
       "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-minio-init",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-minio-init",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-minio-init",
-      "target": "sahool-internal",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -4093,61 +2057,7 @@
     },
     {
       "source": "sahool-model-lifecycle-adapter",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-model-lifecycle-adapter",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-model-lifecycle-adapter",
       "target": "sahool-decision-service",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-model-lifecycle-adapter",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-model-registry-worker",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-model-registry-worker",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-model-registry-worker",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-model-registry-worker",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-model-registry-worker",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-model-registry-worker",
-      "target": "sahool-internal",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -4164,98 +2074,14 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-model-registry-worker",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-model-registry-worker",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-model-registry-worker",
-      "target": "timeout",
+      "source": "sahool-nats-exporter",
+      "target": "sahool-nats",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "sahool-nginx",
-      "target": "--quiet",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "--spider",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "retries",
+      "target": "platform",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -4303,6 +2129,12 @@
     },
     {
       "source": "sahool-nginx",
+      "target": "sahool-frontend",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-nginx",
       "target": "sahool-guardrails-engine",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.fixed.yml"
@@ -4322,18 +2154,6 @@
     {
       "source": "sahool-nginx",
       "target": "sahool-indicators-service",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-internal",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -4375,13 +2195,7 @@
     },
     {
       "source": "sahool-nginx",
-      "target": "sahool-public",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-public",
+      "target": "sahool-notification-agent",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -4393,7 +2207,19 @@
     },
     {
       "source": "sahool-nginx",
+      "target": "sahool-raster-service",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-nginx",
       "target": "sahool-remote-sensing-workspace-bff",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-nginx",
+      "target": "sahool-scout-ingest",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -4446,126 +2272,6 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-nginx",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "wget",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "cmd-shell",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
       "source": "sahool-notification-agent",
       "target": "sahool-migrate",
       "kind": "compose-depends-on",
@@ -4614,132 +2320,6 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-notification-agent",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-notification-agent",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "-f",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "curl",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
       "source": "sahool-odoo",
       "target": "sahool-migrate",
       "kind": "compose-depends-on",
@@ -4758,74 +2338,8 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-odoo",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-odoo",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-phase-runtime-outbox-worker",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-phase-runtime-outbox-worker",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-phase-runtime-outbox-worker",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-phase-runtime-outbox-worker",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-phase-runtime-outbox-worker",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-phase-runtime-outbox-worker",
-      "target": "sahool-internal",
+      "source": "sahool-pg-exporter",
+      "target": "sahool-postgres",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -4842,60 +2356,6 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-phase-runtime-outbox-worker",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-phase-runtime-outbox-worker",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-phase-runtime-outbox-worker",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-plugin-runtime-worker",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-plugin-runtime-worker",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-plugin-runtime-worker",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-plugin-runtime-worker",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-plugin-runtime-worker",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-plugin-runtime-worker",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
       "source": "sahool-plugin-runtime-worker",
       "target": "sahool-migrate",
       "kind": "compose-depends-on",
@@ -4904,60 +2364,6 @@
     {
       "source": "sahool-plugin-runtime-worker",
       "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-plugin-runtime-worker",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-plugin-runtime-worker",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-plugin-runtime-worker",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-qdrant-seed",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-qdrant-seed",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-qdrant-seed",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-qdrant-seed",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-qdrant-seed",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-qdrant-seed",
-      "target": "sahool-internal",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -4987,78 +2393,6 @@
     },
     {
       "source": "sahool-rag-retrieval",
-      "target": "-c",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-rag-retrieval",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-rag-retrieval",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.rag-kg-mcp.yml"
-    },
-    {
-      "source": "sahool-rag-retrieval",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-rag-retrieval",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-rag-retrieval",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-rag-retrieval",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.rag-kg-mcp.yml"
-    },
-    {
-      "source": "sahool-rag-retrieval",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-rag-retrieval",
-      "target": "python",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-rag-retrieval",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-rag-retrieval",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.rag-kg-mcp.yml"
-    },
-    {
-      "source": "sahool-rag-retrieval",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-rag-retrieval",
       "target": "sahool-ollama",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
@@ -5072,24 +2406,6 @@
     {
       "source": "sahool-rag-retrieval",
       "target": "sahool-qdrant",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-rag-retrieval",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-rag-retrieval",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-rag-retrieval",
-      "target": "timeout",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -5101,42 +2417,6 @@
     },
     {
       "source": "sahool-raster-backfill-scan-worker",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-backfill-scan-worker",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-backfill-scan-worker",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-backfill-scan-worker",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-backfill-scan-worker",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-backfill-scan-worker",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-backfill-scan-worker",
       "target": "sahool-migrate",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
@@ -5144,60 +2424,6 @@
     {
       "source": "sahool-raster-backfill-scan-worker",
       "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-backfill-scan-worker",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-backfill-scan-worker",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-backfill-scan-worker",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-cache-invalidation-worker",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-cache-invalidation-worker",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-cache-invalidation-worker",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-cache-invalidation-worker",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-cache-invalidation-worker",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-cache-invalidation-worker",
-      "target": "sahool-internal",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -5214,58 +2440,10 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-raster-cache-invalidation-worker",
-      "target": "start-period",
+      "source": "sahool-raster-service",
+      "target": "raster-tiler-service",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-cache-invalidation-worker",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-cache-invalidation-worker",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-raster-service",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-raster-service",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-raster-service",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-raster-service",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-raster-service",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-raster-service",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
     },
     {
       "source": "sahool-raster-service",
@@ -5286,86 +2464,8 @@
       "evidence": "docker-compose.fixed.yml"
     },
     {
-      "source": "sahool-raster-service",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-raster-service",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-raster-service",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-raster-service",
-      "target": "volumes",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-remote-sensing-workspace-bff",
-      "target": "-f",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-remote-sensing-workspace-bff",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-remote-sensing-workspace-bff",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-remote-sensing-workspace-bff",
-      "target": "curl",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-remote-sensing-workspace-bff",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-remote-sensing-workspace-bff",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-remote-sensing-workspace-bff",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-remote-sensing-workspace-bff",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
       "source": "sahool-remote-sensing-workspace-bff",
       "target": "sahool-indicators-service",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-remote-sensing-workspace-bff",
-      "target": "sahool-internal",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -5376,42 +2476,6 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-remote-sensing-workspace-bff",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-remote-sensing-workspace-bff",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-remote-sensing-workspace-bff",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-reservation-dispatch-relay-worker",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-reservation-dispatch-relay-worker",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-reservation-dispatch-relay-worker",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
       "source": "sahool-reservation-dispatch-relay-worker",
       "target": "sahool-nats",
       "kind": "compose-depends-on",
@@ -5419,60 +2483,6 @@
     },
     {
       "source": "sahool-scout-ingest",
-      "target": "-sf",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-scout-ingest",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-scout-ingest",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-scout-ingest",
-      "target": "curl",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-scout-ingest",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-scout-ingest",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-scout-ingest",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-scout-ingest",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-scout-ingest",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-scout-ingest",
       "target": "sahool-migrate",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
@@ -5480,60 +2490,6 @@
     {
       "source": "sahool-scout-ingest",
       "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-scout-ingest",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-scout-ingest",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-scout-ingest",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-scout-ingest-projection",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-scout-ingest-projection",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-scout-ingest-projection",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-scout-ingest-projection",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-scout-ingest-projection",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-scout-ingest-projection",
-      "target": "sahool-internal",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -5550,78 +2506,6 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-scout-ingest-projection",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-scout-ingest-projection",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-scout-ingest-projection",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-soil-service",
-      "target": "-c",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-soil-service",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-soil-service",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-soil-service",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-soil-service",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-soil-service",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-soil-service",
-      "target": "python",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-soil-service",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-soil-service",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
       "source": "sahool-soil-service",
       "target": "sahool-migrate",
       "kind": "compose-depends-on",
@@ -5630,102 +2514,6 @@
     {
       "source": "sahool-soil-service",
       "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-soil-service",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-soil-service",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-soil-service",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "-f",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "curl",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "retries",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -5742,132 +2530,6 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-supervisor-agent",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-supervisor-agent",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "cmd-shell",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
       "source": "sahool-telegram-bot",
       "target": "sahool-migrate",
       "kind": "compose-depends-on",
@@ -5910,136 +2572,10 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-telegram-bot",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-telegram-bot",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-tts-service",
-      "target": "-f",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-tts-service",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-tts-service",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-tts-service",
-      "target": "curl",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-tts-service",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-tts-service",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-tts-service",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-tts-service",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-tts-service",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
       "source": "sahool-tts-service",
       "target": "sahool-redis",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-tts-service",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-tts-service",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-tts-service",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-unified-odoo",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "sahool-unified-odoo",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "sahool-unified-odoo",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
     },
     {
       "source": "sahool-unified-odoo",
@@ -6048,178 +2584,10 @@
       "evidence": "docker-compose.unified.yml"
     },
     {
-      "source": "sahool-unified-odoo",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "sahool-unified-odoo",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "sahool-unified-odoo",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "sahool-unified-odoo",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "sahool-vegetation-analysis",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-vegetation-analysis",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-vegetation-analysis",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-vegetation-analysis",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-vegetation-analysis",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-vegetation-analysis",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
       "source": "sahool-vegetation-analysis",
       "target": "sahool-nats",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-vegetation-analysis",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-vegetation-analysis",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-vegetation-analysis",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-video-processor",
-      "target": "-f",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-video-processor",
-      "target": "capabilities",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.gpu.yml"
-    },
-    {
-      "source": "sahool-video-processor",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-video-processor",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.gpu.yml"
-    },
-    {
-      "source": "sahool-video-processor",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-video-processor",
-      "target": "count",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.gpu.yml"
-    },
-    {
-      "source": "sahool-video-processor",
-      "target": "curl",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-video-processor",
-      "target": "deploy",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.gpu.yml"
-    },
-    {
-      "source": "sahool-video-processor",
-      "target": "devices",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.gpu.yml"
-    },
-    {
-      "source": "sahool-video-processor",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-video-processor",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-video-processor",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-video-processor",
-      "target": "reservations",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.gpu.yml"
-    },
-    {
-      "source": "sahool-video-processor",
-      "target": "resources",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.gpu.yml"
-    },
-    {
-      "source": "sahool-video-processor",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "sahool-video-processor",
@@ -6241,12 +2609,6 @@
     },
     {
       "source": "sahool-video-processor",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-video-processor",
       "target": "sahool-redis",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
@@ -6264,60 +2626,6 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-video-processor",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-video-processor",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-video-processor",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-water-ledger-worker",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-water-ledger-worker",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-water-ledger-worker",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-water-ledger-worker",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-water-ledger-worker",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-water-ledger-worker",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
       "source": "sahool-water-ledger-worker",
       "target": "sahool-migrate",
       "kind": "compose-depends-on",
@@ -6326,72 +2634,6 @@
     {
       "source": "sahool-water-ledger-worker",
       "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-water-ledger-worker",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-water-ledger-worker",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-water-ledger-worker",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-polygon-worker",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-polygon-worker",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-polygon-worker",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-polygon-worker",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-polygon-worker",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-polygon-worker",
-      "target": "python",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-polygon-worker",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-polygon-worker",
-      "target": "sahool-internal",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -6410,114 +2652,6 @@
     {
       "source": "sahool-weather-polygon-worker",
       "target": "sahool-postgres",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-polygon-worker",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-polygon-worker",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-polygon-worker",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "-f",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "curl",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "sahool-internal",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -6540,90 +2674,6 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-weather-service",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-weather-service",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-signal-engine",
-      "target": "cmd",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-signal-engine",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-signal-engine",
-      "target": "healthcheck",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-signal-engine",
-      "target": "interval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-signal-engine",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-signal-engine",
-      "target": "python",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-signal-engine",
-      "target": "retries",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-signal-engine",
-      "target": "sahool-internal",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
       "source": "sahool-weather-signal-engine",
       "target": "sahool-migrate",
       "kind": "compose-depends-on",
@@ -6636,38 +2686,8 @@
       "evidence": "docker-compose.v9.yml"
     },
     {
-      "source": "sahool-weather-signal-engine",
-      "target": "start-period",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-signal-engine",
-      "target": "test",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-weather-signal-engine",
-      "target": "timeout",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-zlmediakit",
-      "target": "condition",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
       "source": "sahool-zlmediakit",
       "target": "sahool-zlmediakit-config",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-zlmediakit",
-      "target": "volumes",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -6697,12 +2717,6 @@
     },
     {
       "source": "supervisor-agent",
-      "target": "local-ai-rag",
-      "kind": "code-reference",
-      "evidence": "services/supervisor-agent/test_ai_orchestration_forensic.py"
-    },
-    {
-      "source": "supervisor-agent",
       "target": "market-mcp",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.light.yml"
@@ -6710,18 +2724,6 @@
     {
       "source": "supervisor-agent",
       "target": "market-mcp",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "supervisor-agent",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "supervisor-agent",
-      "target": "networks",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.unified.yml"
     },
@@ -6787,18 +2789,6 @@
     },
     {
       "source": "telegram-bot",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "telegram-bot",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "telegram-bot",
       "target": "redis",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.light.yml"
@@ -6832,12 +2822,6 @@
       "target": "decision-service",
       "kind": "code-reference",
       "evidence": "services/vegetation-analysis-service/decision_bridge.py"
-    },
-    {
-      "source": "vegetation-analysis-service",
-      "target": "decision-service",
-      "kind": "code-reference",
-      "evidence": "services/vegetation-analysis-service/post_execution_bridge.py"
     },
     {
       "source": "vegetation-analysis-service",
@@ -6891,12 +2875,6 @@
       "source": "vegetation-analysis-service",
       "target": "raster-service",
       "kind": "code-reference",
-      "evidence": "services/vegetation-analysis-service/test_production_truth_closure.py"
-    },
-    {
-      "source": "vegetation-analysis-service",
-      "target": "raster-service",
-      "kind": "code-reference",
       "evidence": "services/vegetation-analysis-service/vegetation_runtime.py"
     },
     {
@@ -6931,18 +2909,6 @@
     },
     {
       "source": "video-processor",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.light.yml"
-    },
-    {
-      "source": "video-processor",
-      "target": "networks",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.unified.yml"
-    },
-    {
-      "source": "video-processor",
       "target": "redis",
       "kind": "code-reference",
       "evidence": "services/video-processor/main.py"
@@ -6964,40 +2930,16 @@
       "target": "redis",
       "kind": "code-reference",
       "evidence": "services/weather-service/cache.py"
-    },
-    {
-      "source": "weather-service",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/weather-service/tests/test_cache_age_is_server_counted.py"
-    },
-    {
-      "source": "weather-service",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/weather-service/tests/test_crop_stress_endpoints.py"
-    },
-    {
-      "source": "weather-service",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/weather-service/tests/test_weather_readyz_and_cache_backend.py"
-    },
-    {
-      "source": "weather-service",
-      "target": "redis",
-      "kind": "code-reference",
-      "evidence": "services/weather-service/tests/test_weather_redis_live_optional.py"
     }
   ],
   "cycles": [],
   "summary": {
-    "nodes": 153,
-    "edges": 950,
-    "orphans": 6,
+    "nodes": 122,
+    "edges": 315,
+    "orphans": 5,
     "cycles": 0,
-    "code_edges": 115,
-    "compose_edges": 835
+    "code_edges": 78,
+    "compose_edges": 237
   },
-  "content_sha256": "ceebabca65b736a2f26754feef5f604f1be9a2dba0b7b7814a66605993f25072"
+  "content_sha256": "1abdae701f4c17fce1a6e296d8b8146225c8797dce072b55f0423f3c3363125c"
 }

@@ -20,9 +20,9 @@ class PostExecutionBridge:
         self.raster_url = os.getenv(
             "RASTER_SERVICE_URL", "http://sahool-raster-service:8001"
         ).rstrip("/")
-        self.decision_url = os.getenv(
-            "DECISION_SERVICE_URL", "http://sahool-decision-service:8160"
-        ).rstrip("/")
+        # Human outcome/learning writes use the platform's existing RBAC boundary.
+        # It derives tenant and actor from the JWT before calling decision-service.
+        self.platform_url = os.getenv("PLATFORM_API_URL", "http://sahool-platform:8000").rstrip("/")
         self.timeout = float(os.getenv("RS10_BRIDGE_TIMEOUT_S", "8"))
 
     @staticmethod
@@ -60,7 +60,7 @@ class PostExecutionBridge:
                 tenant_id, field_id, execution_request_id, target_date
             ),
         }
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
+        async with httpx.AsyncClient(timeout=self.timeout, trust_env=False) as client:
             response = await client.post(
                 f"{self.raster_url}/v1/fields/{field_id}/imagery-ingestion-requests",
                 json=body,
@@ -83,18 +83,18 @@ class PostExecutionBridge:
         verified_by: str,
         payload: dict[str, Any],
     ) -> dict[str, Any]:
+        # verified_by remains a compatibility argument; only the session owner
+        # may resolve the actor or grant DECISION_EXECUTE.
         headers = {
             "Authorization": authorization,
-            "X-Tenant-Id": tenant_id,
-            "X-Verified-By": verified_by,
             "Idempotency-Key": str(
                 payload.get("idempotency_key")
                 or self._idempotency(tenant_id, execution_request_id, "verify")
             ),
         }
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
+        async with httpx.AsyncClient(timeout=self.timeout, trust_env=False) as client:
             response = await client.post(
-                f"{self.decision_url}/v1/execution-requests/{execution_request_id}/verify-outcome",
+                f"{self.platform_url}/api/v1/execution-requests/{execution_request_id}/verify-outcome",
                 json=payload,
                 headers=headers,
             )
@@ -111,18 +111,18 @@ class PostExecutionBridge:
         attributed_by: str,
         payload: dict[str, Any],
     ) -> dict[str, Any]:
+        # The platform resolves the actor and DECISION_LEARNING_ATTRIBUTE.
+        # Never forward the caller-supplied attributed_by as trusted identity.
         headers = {
             "Authorization": authorization,
-            "X-Tenant-Id": tenant_id,
-            "X-Attributed-By": attributed_by,
             "Idempotency-Key": str(
                 payload.get("idempotency_key")
                 or self._idempotency(tenant_id, outcome_id, "attribute")
             ),
         }
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
+        async with httpx.AsyncClient(timeout=self.timeout, trust_env=False) as client:
             response = await client.post(
-                f"{self.decision_url}/v1/outcomes/{outcome_id}/learning-attribution",
+                f"{self.platform_url}/api/v1/outcomes/{outcome_id}/learning-attribution",
                 json=payload,
                 headers=headers,
             )

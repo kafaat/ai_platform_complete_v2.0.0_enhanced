@@ -12,6 +12,11 @@ import os
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
+from shared.security.decision_service_auth import (
+    DecisionServiceAuthUnavailable,
+    decision_service_auth_headers,
+)
+
 
 def _bool(name: str, default: bool = False) -> bool:
     return os.getenv(name, str(default)).strip().lower() in {"1", "true", "yes", "on"}
@@ -26,15 +31,11 @@ def bridge_enabled() -> bool:
     return _bool("WATER_DEFICIT_DECISION_BRIDGE_ENABLED", False)
 
 
-def _is_production() -> bool:
-    return os.getenv("SAHOOL_ENV", "development").strip().lower() in {"production", "prod"}
-
-
 def water_ledger_identity_startup_error() -> str | None:
     """CT-03 (تدقيق الحاويات V21): هويّة الخدمة إلزاميّة للعامل في الإنتاج متى فُعّل الجسر.
 
     متى فُعّل ``WATER_DEFICIT_DECISION_BRIDGE_ENABLED`` يدفع عامل دفتر المياه مرشّحات
-    قرار إلى decision-service مُصادَقاً عليها بـ``X-Agent-Token``/``SAHOOL_AGENT_TOKEN``.
+    قرار إلى decision-service مُصادَقاً عليها بـ``Bearer``/``DECISION_SERVICE_TOKEN``.
     بلا التوكن يرفض decision-service (401) ويظلّ العامل يطرق الباب بلا هويّة. في الإنتاج
     (``SAHOOL_ENV=production``) نرفض الإقلاع رفضاً صارماً كي لا يحاول عاملٌ مجهول الهويّة
     دفع مرشّحات قرار محكومة أصلاً. التطوير (أو الجسر مُعطَّل) يبقى قابلاً للتشغيل. علَمٌ
@@ -47,17 +48,20 @@ def water_ledger_identity_startup_error() -> str | None:
         "yes",
         "on",
     }
-    if not (require or _is_production()):
-        return None
     if not bridge_enabled():
         return None
-    if os.getenv("SAHOOL_AGENT_TOKEN", "").strip():
+    try:
+        decision_service_auth_headers(required=require)
+    except DecisionServiceAuthUnavailable:
+        pass
+    else:
         return None
     return (
-        "SAHOOL_AGENT_TOKEN is required when the water-deficit decision bridge is enabled in "
-        "production (or when WATER_LEDGER_REQUIRE_IDENTITY is set) but is empty — refusing to "
+        "DECISION_SERVICE_TOKEN is required when the water-deficit decision bridge is enabled in "
+        "production (or when WATER_LEDGER_REQUIRE_IDENTITY / DECISION_REQUIRE_AUTH_TOKEN is set) "
+        "but is unavailable — refusing to "
         "start an unidentified water-ledger worker that would push governed decision candidates "
-        "to decision-service. Configure the shared service agent token before deployment."
+        "to decision-service. Configure the decision-service bearer before deployment."
     )
 
 

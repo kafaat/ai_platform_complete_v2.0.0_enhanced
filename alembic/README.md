@@ -1,3 +1,20 @@
+# Historical Alembic prototype — not a deployment migration runner
+
+The canonical platform schema is managed by `migrations/MANIFEST.txt` and the
+`sahool-migrate` runner using `scripts_v9/run_migrations.sql`. The decision service
+has its own owned migration path. This Alembic prototype is not part of either
+production chain and must not be stamped or upgraded on a deployed database.
+Its two revisions are retained as historical source, not future migration guidance.
+
+For a new platform migration, follow the canonical migration manifest/runbook
+and its ownership and GATE-01 requirements. Any future Alembic adoption requires
+an explicit mapping from the full canonical history and a tested transition.
+The old "20 migrations" baseline is not a representation of the current schema.
+
+The material below is historical context only; its setup commands are obsolete.
+
+---
+
 # هجرات Alembic — SAHOOL
 
 ## السياق

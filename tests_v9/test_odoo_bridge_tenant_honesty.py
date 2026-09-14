@@ -100,6 +100,9 @@ class FakeConn:
         self._items = items
         self.executes: list[tuple[str, tuple]] = []
 
+    def transaction(self):
+        return FakeAcquire(self)
+
     async def fetch(self, query, *args):
         if "FROM procurement_orders" in query:
             return list(self._orders)

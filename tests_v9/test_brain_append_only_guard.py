@@ -168,6 +168,28 @@ def test_an_unresolvable_ref_fails_closed_rather_than_reporting_an_empty_range()
     assert "Traceback" not in result.stderr
 
 
+def test_omitting_base_is_a_usage_error_not_a_green_measurement():
+    """GUARD-RUN-WITHOUT-THE-ARGUMENTS-CI-PASSES-01: no range means no measurement.
+
+    Before ``--base`` became mandatory the guard run bare compared HEAD with itself and
+    printed ``_ok`` — green about a question never asked, while CI walked every
+    parent pair. The omission must be an argparse usage error (exit 2, naming the flag),
+    never a zero-pair success. Registered as a mutation so that dropping
+    ``required=True`` turns this test red (Copilot on #1000).
+    """
+    result = subprocess.run(
+        [sys.executable, str(GUARD)],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    assert result.returncode == 2, result.stdout + result.stderr
+    assert "--base" in result.stderr
+    assert "Traceback" not in result.stderr
+    assert "ok" not in result.stdout.lower()
+
+
 def test_a_deleted_journal_blocks(guard, tmp_path):
     root = tmp_path / "del"
     (root / "sahool-brain").mkdir(parents=True)

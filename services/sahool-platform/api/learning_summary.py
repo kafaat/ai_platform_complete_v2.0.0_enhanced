@@ -92,6 +92,10 @@ def summarize_region(
         "sample_count": evidence["sample_count"],
         "samples_to_verified": evidence["samples_to_verified"],
         "field_verified_min_samples": evidence["field_verified_min_samples"],
+        # U01: جودةُ الدليل لا عدُّه — تُمرَّر إلى اللوحة كما يُصدرها سجلّ الدليل.
+        "sample_completeness": evidence["sample_completeness"],
+        "review_status": evidence["review_status"],
+        "independence": evidence["independence"],
         "last_decision_at": last_decision_at,
         "last_outcome_at": last_outcome_at,
         "last_activity_at": last_activity_at,
@@ -171,6 +175,11 @@ def _learning_row_from_unified_outcome(item: dict) -> dict:
     result = item.get("result") or {}
     return {
         "region": item.get("region") or result.get("region"),
+        # U01: هويّةُ الوحدة تُمرَّر إلى أعداد الاستقلال (Copilot على #1001: كانت تُسقَط هنا).
+        "field_id": item.get("field_id"),
+        "season_id": item.get("season_id"),
+        "farm_id": item.get("farm_id"),
+        "tenant_id": item.get("tenant_id"),
         "success": success,
         "metrics": {
             "n_evaluated": 1 if decided else 0,
@@ -217,6 +226,19 @@ def summarize_learning_with_reconciled_outcomes(
         "by_source": reconciled["by_source"],
         "by_kind": reconciled["by_kind"],
         "linked_group_count": len(reconciled["linked_groups"]),
+        # U03 (التدقيق الموحَّد 2026-09-13): ``sample_count`` أعلاه يعدّ **الصفوف**؛ حالةٌ
+        # واحدة مربوطة عبر النموذجين تُسهم بصفّين. هنا عدُّ وحدات التحليل المستقلّة:
+        # كلّ مجموعة مربوطة (decision_id مشترك) حالةٌ واحدة، وكلّ صفّ غير مربوط حالةٌ.
+        "independent_case_count": _independent_case_count(reconciled),
+        "rows_by_source": dict(reconciled["by_source"]),
+        "sample_count_basis": "rows",
         "authoritative_note": reconciled["authoritative_note"],
     }
     return summary
+
+
+def _independent_case_count(reconciled: dict) -> int:
+    grouped_ids = {g.get("decision_id") for g in reconciled.get("linked_groups") or []}
+    grouped_rows = sum(len(g.get("members") or []) for g in reconciled.get("linked_groups") or [])
+    total = int(reconciled.get("total") or 0)
+    return len(grouped_ids) + max(0, total - grouped_rows)

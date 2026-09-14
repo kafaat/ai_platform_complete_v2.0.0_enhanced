@@ -39,3 +39,5 @@
 | [`../RUNBOOK.md`](../RUNBOOK.md) | دليل التشغيل |
 | [`../SAHOOL_PRODUCTION_GAP_REPORT_v1.md`](../SAHOOL_PRODUCTION_GAP_REPORT_v1.md) | تقرير فجوات الجاهزيّة للإنتاج |
 | [`../CLAUDE.md`](../CLAUDE.md) | دليل المساهمة (اختبارات/تبعيّات/الدماغ المعرفيّ) |
+
+- Historical memory: [`agent-memory/MEMORY.md`](../agent-memory/MEMORY.md), retired as an active parallel brain on 2026-09-13; retained for provenance only.

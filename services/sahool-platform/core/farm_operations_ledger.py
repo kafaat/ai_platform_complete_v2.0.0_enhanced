@@ -166,7 +166,8 @@ class LedgerSummary:
     indirect_cost: float
     currency: str
     cost_breakdown: dict[str, float]
-    water_volume_m3: float
+    # U04: None حين لا يوجد حجمٌ مقيس — الغائب ليس صفراً (صفر يعني «لم يُستهلك ماء»).
+    water_volume_m3: float | None
     energy_kwh: float
     diesel_liters: float
     equipment_hours: float
@@ -175,6 +176,15 @@ class LedgerSummary:
     record_count: int
     syncable_cost: float
     control_only: bool
+    # اكتمالُ قياس الماء (U04): كم سجلّ ريّ حمل حجماً مقيساً وكم سجلّ بلا حجم.
+    water_records_total: int = 0
+    water_records_measured: int = 0
+    water_records_unmeasured: int = 0
+
+    @property
+    def water_measurement_complete(self) -> bool:
+        """صحيح فقط حين كلُّ سجلّات الماء مقيسة (بلا سجلّات ⇒ لا شيء ليُقاس ⇒ True)."""
+        return self.water_records_unmeasured == 0
 
 
 def _non_negative(value: float | int | None, *, field_name: str) -> float | None:
@@ -232,10 +242,19 @@ def summarize_operational_records(
     indirect = sum(v for k, v in cost_breakdown.items() if k in indirect_keys)
     direct = total - indirect
 
-    water_volume = sum(
-        (_non_negative(r.water_volume_m3, field_name="water_volume_m3") or 0.0)
-        for r in (water or [])
-    )
+    # U04 (التدقيق الموحَّد 2026-09-13): كان الحجمُ الغائب يُجمَع صفراً فتخرج خاصيّةُ
+    # التعلّم water_m3_per_ha=0 عن ريٍّ سُجِّلت ساعاتُه بلا حجم. الآن: يُجمَع المقيسُ
+    # وحدَه، ويُعلَن عددُ المقيس/غير المقيس، وغيابُ أيّ قياس ⇒ None لا 0.
+    measured_volumes = [
+        v
+        for v in (
+            _non_negative(r.water_volume_m3, field_name="water_volume_m3") for r in (water or [])
+        )
+        if v is not None
+    ]
+    water_records_total = len(water or [])
+    water_records_measured = len(measured_volumes)
+    water_volume = sum(measured_volumes) if measured_volumes else None
     energy_kwh = sum((_non_negative(r.kwh, field_name="kwh") or 0.0) for r in (energy or []))
     diesel = sum(
         (_non_negative(r.diesel_liters, field_name="diesel_liters") or 0.0) for r in (energy or [])
@@ -265,29 +284,190 @@ def summarize_operational_records(
         record_count=len(operations),
         syncable_cost=syncable,
         control_only=syncable == 0.0,
+        water_records_total=water_records_total,
+        water_records_measured=water_records_measured,
+        water_records_unmeasured=water_records_total - water_records_measured,
     )
 
 
 def ai_feature_row(summary: LedgerSummary, *, area_ha: float | None = None) -> dict[str, Any]:
-    """صف features آمن للتعلم المستقبلي؛ لا يتنبأ ولا يوصي هنا."""
+    """صف features آمن للتعلم المستقبلي؛ لا يتنبأ ولا يوصي هنا.
+
+    U04: خصائصُ الماء تكون ``None`` حين لا حجمَ مقيساً، ويرافقها اكتمالُ القياس — فلا
+    يتعلّم نموذجٌ أنّ ريّاً بلا عدّاد كان صفر أمتار مكعّبة.
+    """
     area = _non_negative(area_ha, field_name="area_ha") if area_ha is not None else None
+    volume = summary.water_volume_m3
     return {
         "total_cost": summary.total_cost,
         "direct_cost": summary.direct_cost,
         "indirect_cost": summary.indirect_cost,
-        "water_volume_m3": summary.water_volume_m3,
+        "water_volume_m3": volume,
+        "water_measurement": {
+            "records_total": summary.water_records_total,
+            "records_measured": summary.water_records_measured,
+            "records_unmeasured": summary.water_records_unmeasured,
+            "complete": summary.water_measurement_complete,
+        },
         "energy_kwh": summary.energy_kwh,
         "diesel_liters": summary.diesel_liters,
         "equipment_hours": summary.equipment_hours,
         "labor_hours": summary.labor_hours,
         "cost_per_ha": summary.total_cost / area if area else None,
-        "water_m3_per_ha": summary.water_volume_m3 / area if area else None,
-        "kwh_per_m3": summary.energy_kwh / summary.water_volume_m3
-        if summary.water_volume_m3 > 0
-        else None,
+        "water_m3_per_ha": volume / area if (area and volume is not None) else None,
+        "kwh_per_m3": summary.energy_kwh / volume if (volume is not None and volume > 0) else None,
         "provenance": {
             "source": "farm_operations_ledger",
             "prediction": False,
             "recommendation": False,
         },
     }
+
+
+def water_summary_from_row(row: Any) -> dict[str, Any]:
+    """يقرأ حجمَ الماء وعدّادات القياس من صفّ SQL مجمَّع (U04) — الغائبُ ``None`` لا ``0``.
+
+    يتوقّع الأعمدة ``water_volume_m3`` (``SUM`` بلا ``COALESCE``) و``water_records_total``
+    و``water_records_measured``، ويُعيد وسائطَ ``LedgerSummary`` الأربعة للماء. كان مسارا
+    HTTP يُغلّفان المجموعَ بـ``COALESCE(…, 0)`` ثمّ ``or 0.0`` فيخرج الموسمُ غيرُ المقيس
+    صفراً رغم عقد الوحدة (Copilot على #1001).
+    """
+    volume = row["water_volume_m3"]
+    total = int(row["water_records_total"] or 0)
+    measured = int(row["water_records_measured"] or 0)
+    return {
+        "water_volume_m3": float(volume) if volume is not None else None,
+        "water_records_total": total,
+        "water_records_measured": measured,
+        "water_records_unmeasured": total - measured,
+    }
+
+
+def water_summary_payload(row: Any) -> dict[str, Any]:
+    """حقولُ الماء لردّ HTTP الملخَّص: الحجمُ (أو ``None``) واكتمالُ القياس بالشكل الذي
+    يُصدِره ``ai_feature_row`` نفسه."""
+    w = water_summary_from_row(row)
+    return {
+        "water_volume_m3": w["water_volume_m3"],
+        "water_measurement": {
+            "records_total": w["water_records_total"],
+            "records_measured": w["water_records_measured"],
+            "records_unmeasured": w["water_records_unmeasured"],
+            "complete": w["water_records_unmeasured"] == 0,
+        },
+    }
+
+
+# ─── إدامة السجلّات الفرعيّة لعمليّةٍ واحدة ──────────────────────────────────────────
+# نُقِلت من راوتر `farm_operations_ledger` (راتشِت حجم الراوترات: لا راوترَ يكبر) — الكاتبُ
+# ما زال sahool-platform والمعاملةُ هي معاملةُ المُنادي؛ لا اتّصالَ يُفتح هنا.
+async def persist_operation_subrecords(
+    conn,
+    *,
+    tenant_id: str,
+    operation_id: str,
+    record_date: date,
+    farm_id: str | None,
+    field_id: str | None,
+    water=None,
+    energy=None,
+    equipment=(),
+    labor=(),
+    inputs=(),
+) -> dict[str, int]:
+    """يُدرِج سجلّات الماء/الطاقة/المعدّات/العمالة/المدخلات المرتبطة بعمليّة محفوظة.
+
+    يُستدعى **داخل** معاملة العمليّة (فشلُ أيّ سجلّ يُرجِع الكلَّ). يُعيد عدَّ الصفوف لكلّ
+    نوع للشفافيّة. الكائناتُ الفرعيّة تُقرأ بالسمات (نماذج الراوتر) — لا تبعيّة على api.
+    """
+    counts = {"water": 0, "energy": 0, "equipment": 0, "labor": 0, "inputs": 0}
+    if water:
+        await conn.execute(
+            """INSERT INTO farm_water_records
+               (tenant_id, operation_id, record_date, farm_id, field_id, well_id, pump_id,
+                pivot_id, hours_operated, water_volume_m3, measurement_method, notes)
+               VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)""",
+            tenant_id,
+            operation_id,
+            record_date,
+            farm_id,
+            field_id,
+            water.well_id,
+            water.pump_id,
+            water.pivot_id,
+            water.hours_operated,
+            water.water_volume_m3,
+            water.measurement_method,
+            water.notes,
+        )
+        counts["water"] = 1
+    if energy:
+        await conn.execute(
+            """INSERT INTO farm_energy_records
+               (tenant_id, operation_id, record_date, energy_source, kwh, diesel_liters,
+                hours_operated, equipment_id, well_id, pivot_id, notes)
+               VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)""",
+            tenant_id,
+            operation_id,
+            record_date,
+            energy.energy_source,
+            energy.kwh,
+            energy.diesel_liters,
+            energy.hours_operated,
+            energy.equipment_id,
+            energy.well_id,
+            energy.pivot_id,
+            energy.notes,
+        )
+        counts["energy"] = 1
+    for e in equipment or ():
+        await conn.execute(
+            """INSERT INTO farm_equipment_records
+               (tenant_id, operation_id, record_date, equipment_id, operator_id, hours_worked,
+                fuel_liters, maintenance_cost, notes)
+               VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9)""",
+            tenant_id,
+            operation_id,
+            record_date,
+            e.equipment_id,
+            e.operator_id,
+            e.hours_worked,
+            e.fuel_liters,
+            e.maintenance_cost,
+            e.notes,
+        )
+        counts["equipment"] += 1
+    for lab in labor or ():
+        await conn.execute(
+            """INSERT INTO farm_labor_records
+               (tenant_id, operation_id, record_date, worker_id, workers_count, hours,
+                wage_amount, notes)
+               VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8)""",
+            tenant_id,
+            operation_id,
+            record_date,
+            lab.worker_id,
+            lab.workers_count,
+            lab.hours,
+            lab.wage_amount,
+            lab.notes,
+        )
+        counts["labor"] += 1
+    for i in inputs or ():
+        await conn.execute(
+            """INSERT INTO farm_input_records
+               (tenant_id, operation_id, record_date, input_type, inventory_item_id, quantity,
+                unit, estimated_cost, notes)
+               VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9)""",
+            tenant_id,
+            operation_id,
+            record_date,
+            i.input_type,
+            i.inventory_item_id,
+            i.quantity,
+            i.unit,
+            i.estimated_cost,
+            i.notes,
+        )
+        counts["inputs"] += 1
+    return counts

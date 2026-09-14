@@ -1034,6 +1034,7 @@
       "title": "Learning attribution",
       "unit_test_paths": [
         "services/decision-service/tests/test_wx10_13_learning_attribution.py",
+        "services/vegetation-analysis-service/test_post_execution_bridge.py",
         "tests_v9/test_closed_agronomic_loop_authority_guard.py"
       ]
     },
@@ -1576,6 +1577,7 @@
         "services/sahool-platform/tests/test_farmer_knowledge.py",
         "services/sahool-platform/tests/test_farmonaut.py",
         "services/sahool-platform/tests/test_learning.py",
+        "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
         "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py",
         "services/sahool-platform/tests/test_prediction_calibration.py",
         "services/sahool-platform/tests/test_reports.py",
@@ -2008,7 +2010,6 @@
         "services/sahool-platform/tests/test_fields_endpoint.py",
         "services/sahool-platform/tests/test_variety_suitability.py",
         "services/sahool-platform/tests/test_yield_analysis.py",
-        "tests_v9/test_canonical_water_state_mpc.py",
         "tests_v9/test_variety_catalog_reference_only_barrier.py",
         "tests_v9/test_variety_policy_resolution.py"
       ]
@@ -4945,6 +4946,8 @@
       "unit_test_paths": [
         "services/sahool-platform/tests/test_work_order.py",
         "services/sahool-platform/tests/test_work_order_from_recommendation.py",
+        "tests_v9/test_recommendation_work_order_idempotency.py",
+        "tests_v9/test_telegram_work_order_delivery.py",
         "tests_v9/test_work_order_persist_emit.py",
         "tests_v9/test_work_orders_migration.py"
       ]
@@ -6813,6 +6816,7 @@
         "services/sahool-platform/tests/test_evidence_class.py",
         "services/sahool-platform/tests/test_fao56_agronomic_validation.py",
         "services/sahool-platform/tests/test_fao56_dual_kc_salinity_validation.py",
+        "services/sahool-platform/tests/test_farmer_knowledge.py",
         "services/sahool-platform/tests/test_field_season_projection.py",
         "services/sahool-platform/tests/test_field_twin.py",
         "services/sahool-platform/tests/test_freshness_sweep.py",
@@ -6860,7 +6864,6 @@
         "tests_v9/test_event_replay.py",
         "tests_v9/test_field_intelligence_cloud.py",
         "tests_v9/test_field_readiness.py",
-        "tests_v9/test_field_state_gateway.py",
         "tests_v9/test_field_state_ndvi_enrichment.py",
         "tests_v9/test_kc_from_ndvi.py",
         "tests_v9/test_kc_ndvi.py",
@@ -7668,6 +7671,7 @@
         "services/raster-service/test_tiles.py",
         "shared/gis/test_cloud_native_runtime.py",
         "tests_v9/test_cdse_and_storage_failclosed_v29_8.py",
+        "tests_v9/test_connectivity_tile_transport.py",
         "tests_v9/test_dev_gateway_raster_tile_auth_guard.py",
         "tests_v9/test_lexicographic_irrigation_mpc.py",
         "tests_v9/test_lexicographic_mpc_bridge.py",
@@ -8512,7 +8516,9 @@
         "services/decision-service/tests/test_loop_tables_and_ws_guard.py",
         "services/decision-service/tests/test_service_token_guard.py",
         "tests/irrigation/test_irr_f01_activation_gate_prod_guard.py",
+        "tests_v9/test_decision_service_auth_is_activatable.py",
         "tests_v9/test_internal_field_read_channel.py",
+        "tests_v9/test_raster_service_token_binding.py",
         "tests_v9/test_sensing_adapter_service_token.py",
         "tests_v9/test_service_token_constant_time.py"
       ]
@@ -9991,7 +9997,6 @@
         "services/weather-service/tests/test_p3_weather_service_runtime.py",
         "tests/test_real_data.py",
         "tests_v9/test_canonical_water.py",
-        "tests_v9/test_canonical_water_state_mpc.py",
         "tests_v9/test_confidence_failures.py",
         "tests_v9/test_crop_twin.py",
         "tests_v9/test_etc_dual_canonical.py",

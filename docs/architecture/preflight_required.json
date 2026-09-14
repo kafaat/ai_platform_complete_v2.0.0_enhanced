@@ -21,6 +21,7 @@
   "required_tests_platform_note": "services/sahool-platform/tests/test_p0_platform_module_growth_guard.py: راتشِت ميزانية وحدات المنصّة — يعمل في الطبقة السريعة (٥ج) لأنّه يعدّ ملفّاتٍ بلا استيراد؛ الجناحُ كاملاً في ٨ج بشرط تطابق إصدار FastAPI.",
   "required_scripts": [
     "scripts/ci/arch_test_ci_coverage_guard.py",
+    "scripts/ci/brain_append_only_guard.py",
     "scripts/ci/brain_commit_claim_guard.py",
     "scripts/ci/brain_deferral_registry_guard.py",
     "scripts/ci/brain_duplicate_gap_identity_guard.py",

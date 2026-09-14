@@ -50,12 +50,24 @@ def _decision_studio_enabled() -> bool:
 def _evidence_summary(region: str | None, orows: list) -> dict | None:
     """ملخّص دليل المنطقة من نتائج القرار المُدامة إن توفّرت منطقة — None إن غابت (لا اختلاق).
 
-    يفوّض إلى evidence_from_persisted_outcomes (مصدر واحد لعتبة field_verified). الصفوف
-    تُمرَّر بـmetrics مفكوكة (JSONB ⇒ dict) وcreated_at كما هو — منطق العتبة نقيّ هناك.
+    يفوّض إلى evidence_from_persisted_outcomes (مصدر واحد لعتبة field_verified). metrics تُفكّ
+    **هنا** (asyncpg يعيد JSONB نصّاً خاماً بلا codec — كان النصّ يُمرَّر كما هو فيرفع
+    `.get` على str ويُعيد المسارُ 500؛ Copilot على #1001) وcreated_at كما هو — منطق العتبة نقيّ هناك.
     """
     if not region or not orows:
         return None
-    rows = [{"metrics": r["metrics"], "created_at": r["created_at"]} for r in orows]
+    rows = [
+        {
+            "metrics": _json.loads(r["metrics"]) if isinstance(r["metrics"], str) else r["metrics"],
+            "created_at": r["created_at"],
+            # U01: هويّة الوحدة (حقل + مستأجِر) لأعداد الاستقلال متى حملها الصفّ (لا اختلاق).
+            "field_id": dict(r).get("field_id"),
+            "tenant_id": (
+                str(dict(r).get("tenant_id")) if dict(r).get("tenant_id") is not None else None
+            ),
+        }
+        for r in orows
+    ]
     return evidence_from_persisted_outcomes(region, rows)
 
 

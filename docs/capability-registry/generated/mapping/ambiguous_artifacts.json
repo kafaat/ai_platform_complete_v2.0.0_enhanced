@@ -385,6 +385,14 @@
           "content:NDVI",
           "content:ndvi"
         ]
+      },
+      {
+        "capability_id": "OPS-002",
+        "score": 9,
+        "signals": [
+          "content:Work orders",
+          "content:work order"
+        ]
       }
     ]
   },
@@ -1273,6 +1281,36 @@
         "signals": [
           "content:NDVI",
           "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/audits/DEEP_REVIEW_SUPPLEMENT_20260913.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-009",
+        "score": 10,
+        "signals": [
+          "content:cog",
+          "content:raster tile"
+        ]
+      },
+      {
+        "capability_id": "INT-002",
+        "score": 9,
+        "signals": [
+          "content:jetstream",
+          "content:nats"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 8,
+        "signals": [
+          "content:Tenant RLS",
+          "content:rls"
         ]
       }
     ]
@@ -4904,19 +4942,19 @@
     "kind": "backend",
     "candidates": [
       {
+        "capability_id": "SAT-009",
+        "score": 11,
+        "signals": [
+          "content:cog",
+          "content:tilejson"
+        ]
+      },
+      {
         "capability_id": "SAT-001",
         "score": 10,
         "signals": [
           "content:sentinel",
           "content:stac"
-        ]
-      },
-      {
-        "capability_id": "SAT-009",
-        "score": 9,
-        "signals": [
-          "content:cog",
-          "content:tilejson"
         ]
       }
     ]
@@ -8168,6 +8206,28 @@
     ]
   },
   {
+    "path": "services/sahool-platform/tests/test_farmer_knowledge.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "FM-002",
+        "score": 14,
+        "signals": [
+          "path:farm",
+          "content:farm"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/tests/test_field_season_projection.py",
     "kind": "tests",
     "candidates": [
@@ -8644,6 +8704,28 @@
       {
         "capability_id": "DEC-008",
         "score": 10,
+        "signals": [
+          "content:Learning attribution",
+          "content:learning attribution"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "DEC-004",
+        "score": 10,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      },
+      {
+        "capability_id": "DEC-008",
+        "score": 8,
         "signals": [
           "content:Learning attribution",
           "content:learning attribution"
@@ -9382,37 +9464,6 @@
         "signals": [
           "content:slope",
           "content:terrain"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "tests_v9/test_canonical_water_state_mpc.py",
-    "kind": "tests",
-    "candidates": [
-      {
-        "capability_id": "WX-004",
-        "score": 12,
-        "signals": [
-          "content:ET0",
-          "content:et0"
-        ]
-      },
-      {
-        "capability_id": "WX-002",
-        "score": 12,
-        "signals": [
-          "content:Weather forecast",
-          "content:forecast",
-          "content:weather forecast"
-        ]
-      },
-      {
-        "capability_id": "FM-005",
-        "score": 12,
-        "signals": [
-          "content:cultivar",
-          "content:variety"
         ]
       }
     ]

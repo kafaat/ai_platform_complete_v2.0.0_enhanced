@@ -11,6 +11,8 @@ import sys
 
 import pytest
 
+from tests_v9.fcm_fixture import service_account_json
+
 CORE = os.path.join(os.path.dirname(__file__), "..", "services/sahool-platform")
 
 
@@ -48,7 +50,7 @@ def test_all_dormant_by_default(caps, monkeypatch):
 @pytest.mark.unit
 def test_condition_activates_capability(caps, monkeypatch):
     # FCM: يُفعَّل بسرّ
-    monkeypatch.setenv("FCM_SERVER_KEY", "secret")
+    monkeypatch.setenv("FCM_CREDENTIALS_JSON", service_account_json())
     assert caps.fcm_push_active() is True
     # مستقبِلات التنبيه: أيّ مستقبِل واحد يكفي
     monkeypatch.setenv("ALERT_SLACK_WEBHOOK", "https://hooks.example/x")

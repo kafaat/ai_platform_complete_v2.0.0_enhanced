@@ -22,6 +22,7 @@ _HEADERS = {"X-Agent-Token": "test-agent-token"}
 
 def _load_edge(monkeypatch, tmp_path, *, approve: bool):
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "test-agent-token")
+    monkeypatch.setenv("EDGE_DEVICE_ID", "edge-unit-device")
     monkeypatch.setenv("EDGE_SYNC_DIR", str(tmp_path / "sync"))
     monkeypatch.setenv("OFFLINE_MODE", "true")
     pest = tmp_path / "pest_detector_int8.onnx"
@@ -84,6 +85,7 @@ def test_inference_refuses_an_unapproved_model_even_though_the_file_exists(monke
     client = TestClient(module.app)
     response = client.post(
         "/v1/inference/pest-detect",
+        data={"field_id": "field-unit"},
         files={"file": ("leaf.jpg", io.BytesIO(b"\xff\xd8\xff"), "image/jpeg")},
         headers=_HEADERS,
     )
@@ -97,6 +99,7 @@ def test_an_approved_model_detects_and_the_alert_does_not_prescribe(monkeypatch,
     client = TestClient(module.app)
     response = client.post(
         "/v1/inference/pest-detect",
+        data={"field_id": "field-unit"},
         files={"file": ("leaf.jpg", io.BytesIO(b"\xff\xd8\xff"), "image/jpeg")},
         headers=_HEADERS,
     )
@@ -118,7 +121,7 @@ def test_empty_yield_features_are_a_422_not_a_zero_and_not_a_500(monkeypatch, tm
     response = client.post(
         "/v1/inference/yield-estimate",
         files=[("files", ("a.jpg", io.BytesIO(b"\xff\xd8\xff"), "image/jpeg"))],
-        data={"image_count": "1"},
+        data={"image_count": "1", "field_id": "field-unit"},
         headers=_HEADERS,
     )
     assert response.status_code == 422
@@ -138,7 +141,7 @@ def test_yield_without_a_model_interval_publishes_none_and_the_limitation(monkey
     response = client.post(
         "/v1/inference/yield-estimate",
         files=[("files", ("a.jpg", io.BytesIO(b"\xff\xd8\xff"), "image/jpeg"))],
-        data={"image_count": "1"},
+        data={"image_count": "1", "field_id": "field-unit"},
         headers=_HEADERS,
     )
     assert response.status_code == 200

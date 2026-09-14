@@ -129,7 +129,9 @@ def test_recommendation_cutover_service_failure_is_not_swallowed() -> None:
     assert 'service_result.get("persisted")' in branch
 
 
-def test_decision_service_client_exposes_mirror_facade_functions() -> None:
+def test_decision_service_client_exposes_mirror_facade_functions(monkeypatch) -> None:
+    from api.decision_service_client import decision_service_headers
+
     text = (ROOT / "api/decision_service_client.py").read_text(encoding="utf-8")
     for name in [
         "record_decision",
@@ -140,5 +142,13 @@ def test_decision_service_client_exposes_mirror_facade_functions() -> None:
     ]:
         assert f"async def {name}" in text
     assert "DEFAULT_DECISION_SERVICE_URL" in text
-    assert "X-Agent-Token" in text
     assert "X-Tenant-Id" in text
+    monkeypatch.setenv("DECISION_SERVICE_TOKEN", "mirror-service-credential")
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "unrelated-agent-credential")
+    headers = decision_service_headers(
+        tenant_id="tenant-1", authorization="Bearer user-session", recorded_by="user-1"
+    )
+    assert headers["Authorization"] == "Bearer mirror-service-credential"
+    assert headers["X-Tenant-Id"] == "tenant-1"
+    assert headers["X-Recorded-By"] == "user-1"
+    assert "X-Agent-Token" not in headers

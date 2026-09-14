@@ -271,7 +271,14 @@ def check_range(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--base", default=None, help="فحص base..head؛ بدونه يُفحص HEAD وحده")
+    # GUARD-RUN-WITHOUT-THE-ARGUMENTS-CI-PASSES-01: بلا `--base` كان الحارس يفحص HEAD
+    # وحده ويطبع `_ok` — خضرةٌ عن سؤالٍ لم يُطرَح، بينما CI تمشي على كلّ أزواج المدى.
+    # فالمدى إلزاميّ: غيابُه خطأُ استدعاءٍ (رمز 2) لا قياساً فارغاً يُقرأ نجاحاً.
+    parser.add_argument(
+        "--base",
+        required=True,
+        help="بداية المدى base..head — إلزاميّة؛ الحارس يرفض أن يخضرّ على HEAD وحده",
+    )
     parser.add_argument("--head", default="HEAD")
     parser.add_argument(
         "--check", action="store_true", help="الوضع الافتراضي؛ الراية تجعل النيّة صريحة"

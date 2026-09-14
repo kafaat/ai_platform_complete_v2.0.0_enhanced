@@ -75,9 +75,24 @@ class TestHonestSuccessDerivation:
                 "predicted_yield_t_ha": 5,
                 "actual_yield_t_ha": 3.5,
                 "accepted": True,
+                "matured_within_lag": True,  # U02: الحكم يشترط النضج أيضاً
             }
         )
         assert u["success"] is False
+
+    def test_immature_with_early_actual_has_no_verdict(self):
+        """U02: قيمة فعليّة قبل النضج لا تُقرأ نجاحاً ولا فشلاً — والسبب يُعلَن."""
+        u = normalize_recommendation_outcome(
+            {
+                "recommendation_id": "r",
+                "predicted_yield_t_ha": 5,
+                "actual_yield_t_ha": 6,
+                "accepted": True,
+                "matured_within_lag": False,
+            }
+        )
+        assert u["success"] is None
+        assert u["result"]["eligibility"] == {"eligible": False, "reason": "immature"}
 
 
 class TestReconcile:

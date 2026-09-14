@@ -32,7 +32,6 @@ import 'package:flutter_map_mbtiles/flutter_map_mbtiles.dart';
 import 'package:flutter_map_pmtiles/flutter_map_pmtiles.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:mbtiles/mbtiles.dart';
-import 'package:path_provider/path_provider.dart';
 
 // نوع حزمة offline: PMTiles (مفضّل — ملفّ واحد، HTTP-range، hybrid) أو
 // MBTiles (SQLite، ناضج). PMTiles أقرب لاتّجاه geospatial-first.
@@ -163,10 +162,10 @@ class _WeatherWindOverlayPainter extends CustomPainter {
   Color _heatColor() {
     final t = tempC ?? 30.0;
     final h = humidityPct ?? 45.0;
-    if (t >= 38) return const Color(0xFFEF4444).withOpacity(0.34 * opacity);
-    if (t >= 32) return const Color(0xFFF97316).withOpacity(0.30 * opacity);
-    if (h >= 75) return const Color(0xFF0EA5E9).withOpacity(0.24 * opacity);
-    return const Color(0xFFF59E0B).withOpacity(0.22 * opacity);
+    if (t >= 38) return const Color(0xFFEF4444).withValues(alpha: 0.34 * opacity);
+    if (t >= 32) return const Color(0xFFF97316).withValues(alpha: 0.30 * opacity);
+    if (h >= 75) return const Color(0xFF0EA5E9).withValues(alpha: 0.24 * opacity);
+    return const Color(0xFFF59E0B).withValues(alpha: 0.22 * opacity);
   }
 
   @override
@@ -176,7 +175,7 @@ class _WeatherWindOverlayPainter extends CustomPainter {
     final speed = windSpeedKmh ?? 12.0;
     final stroke = (1.4 + speed / 18.0).clamp(1.4, 5.0).toDouble();
     final paint = Paint()
-      ..color = Colors.white.withOpacity((windDirectionDeg == null ? 0.38 : 0.62) * opacity)
+      ..color = Colors.white.withValues(alpha: (windDirectionDeg == null ? 0.38 : 0.62) * opacity)
       ..strokeWidth = stroke
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
@@ -293,7 +292,7 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
         polygons: [
           Polygon(
             points: ring,
-            color: const Color(0xFF10B981).withOpacity(0.18),
+            color: const Color(0xFF10B981).withValues(alpha: 0.18),
             borderColor: const Color(0xFF10B981),
             borderStrokeWidth: 2,
           ),
@@ -328,7 +327,7 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
           polygons: [
             Polygon(
               points: pts,
-              color: const Color(0xFF10B981).withOpacity(0.18),
+              color: const Color(0xFF10B981).withValues(alpha: 0.18),
               borderColor: const Color(0xFF10B981),
               borderStrokeWidth: 2,
             ),

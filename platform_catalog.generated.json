@@ -6948,7 +6948,7 @@
         "GET /api/v1/farm-ledger/operations",
         "POST /api/v1/farm-ledger/operations"
       ],
-      "idempotency_required": false,
+      "idempotency_required": true,
       "kind": "mixed",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
@@ -8840,7 +8840,8 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /api/v1/gis/cloud-native/rasters/{raster_id}/tilejson.json"
+        "GET /api/v1/gis/cloud-native/rasters/{raster_id}/tilejson.json",
+        "GET /api/v1/gis/cloud-native/rasters/{raster_id}/tiles/{z}/{x}/{y}.png"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -15497,7 +15498,9 @@
         "wiring_disposition": "consumed"
       },
       "consumes": {
-        "services": []
+        "services": [
+          "sahool-platform"
+        ]
       },
       "deployment_units": [
         "sahool-edge"
@@ -15507,7 +15510,7 @@
         "tables": []
       },
       "runtime": {
-        "compose_reachable": false,
+        "compose_reachable": true,
         "compose_services": [
           "sahool-edge"
         ],
@@ -15550,7 +15553,6 @@
       },
       "consumes": {
         "services": [
-          "sahool-erpnext",
           "sahool-odoo"
         ]
       },
@@ -16403,7 +16405,7 @@
       "consumes": {
         "services": [
           "decision-service",
-          "sahool-titiler"
+          "raster-tiler-service"
         ]
       },
       "deployment_units": [
@@ -16481,7 +16483,7 @@
         "tables": []
       },
       "runtime": {
-        "compose_reachable": false,
+        "compose_reachable": true,
         "compose_services": [
           "raster-tiler-service"
         ],
@@ -16527,6 +16529,7 @@
         "services": [
           "decision-service",
           "indicators-service",
+          "sahool-platform",
           "sahool-vegetation-analysis"
         ]
       },
@@ -16593,6 +16596,7 @@
           "knowledge-graph",
           "rag-retrieval",
           "raster-service",
+          "raster-tiler-service",
           "sahool-ai-agronomist",
           "sahool-ollama",
           "sahool-scout-ingest",
@@ -17491,7 +17495,7 @@
     "capabilities": 827,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 93,
-    "capabilities_idempotent": 47,
+    "capabilities_idempotent": 48,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 477,
     "components": 36,
@@ -17499,9 +17503,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1113,
+    "route_rows": 1114,
     "ui_waivers": 52,
-    "unique_method_path": 998
+    "unique_method_path": 999
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -17757,7 +17761,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "26eeafa1b604c36d3cccc93832d3ed4cf75ced4a77a77e69421be3b9f9c5210b",
+  "fingerprint": "d187515710e0895a20ebc8cbe9864ac0e88f229ec0104ba9a2547c4799d102fc",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17807,15 +17811,15 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 809,
+      "edge_count": 819,
       "failures": [],
       "passed": true,
       "relation_counts": {
-        "CALLS": 38,
+        "CALLS": 43,
         "CONSUMES": 1,
         "EMITS": 1,
-        "READS": 417,
-        "ROUTES_TO": 70,
+        "READS": 421,
+        "ROUTES_TO": 71,
         "WRITES": 282
       }
     },

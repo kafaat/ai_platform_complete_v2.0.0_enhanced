@@ -1,6 +1,8 @@
 import importlib.util
 from pathlib import Path
 
+import httpx
+import pytest
 from fastapi.testclient import TestClient
 
 SPEC = importlib.util.spec_from_file_location(
@@ -9,6 +11,35 @@ SPEC = importlib.util.spec_from_file_location(
 mod = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(mod)
 client = TestClient(mod.app)
+
+pytestmark = pytest.mark.unit
+
+
+@pytest.fixture(autouse=True)
+def platform_identity(monkeypatch):
+    state = {
+        "status": 200,
+        "body": {"user": {"tenant_id": "t", "permissions": ["recommendation:view"]}},
+        "requests": [],
+    }
+
+    def handler(request):
+        state["requests"].append(request)
+        if request.url.path == "/api/v1/auth/me":
+            return httpx.Response(state["status"], json=state["body"])
+        return httpx.Response(503, json={"detail": "controlled unavailable upstream"})
+
+    original = httpx.AsyncClient
+    monkeypatch.setattr(
+        mod.httpx,
+        "AsyncClient",
+        lambda **kw: original(
+            transport=httpx.MockTransport(handler),
+            **kw,
+        ),
+    )
+    monkeypatch.setenv("DECISION_SERVICE_TOKEN", "decision-only-secret")
+    return state
 
 
 def test_health():
@@ -101,3 +132,68 @@ def test_malformed_identifiers_rejected():
         headers={"Authorization": "Bearer x", "X-Tenant-Id": "t"},
     )
     assert response.status_code == 400
+
+
+@pytest.mark.parametrize("status", [401, 403, 503])
+def test_identity_failure_blocks_before_domain_calls(platform_identity, status):
+    platform_identity["status"] = status
+    response = client.get(
+        "/v1/fields/fld_a/remote-sensing-workspace",
+        params={"season_id": "s1", "include": "decisions"},
+        headers={"Authorization": "Bearer x", "X-Tenant-Id": "t"},
+    )
+    assert response.status_code == status
+    assert len(platform_identity["requests"]) == 1
+
+
+@pytest.mark.parametrize(
+    "user",
+    [
+        {"tenant_id": "different-tenant", "permissions": ["recommendation:view"]},
+        {"tenant_id": "t", "permissions": []},
+    ],
+)
+def test_tenant_spoof_and_unprivileged_role_are_rejected(platform_identity, user):
+    platform_identity["body"] = {"user": user}
+    response = client.get(
+        "/v1/fields/fld_a/remote-sensing-workspace",
+        params={"season_id": "s1", "include": "decisions"},
+        headers={"Authorization": "Bearer x", "X-Tenant-Id": "t"},
+    )
+    assert response.status_code == 403
+    assert len(platform_identity["requests"]) == 1
+
+
+def test_verified_tenant_and_service_credential_only_on_decision_calls(platform_identity):
+    response = client.get(
+        "/v1/fields/fld_a/remote-sensing-workspace",
+        params={"season_id": "s1", "include": "decisions,outcomes,anomalies"},
+        headers={"Authorization": "Bearer user-jwt", "X-Tenant-Id": "t"},
+    )
+    assert response.status_code == 200
+    assert response.json()["partial"] is True  # domain transport is deliberately unavailable
+    requests = platform_identity["requests"]
+    assert len(requests) == 4
+    assert requests[0].headers["Authorization"] == "Bearer user-jwt"
+    assert "X-Tenant-Id" not in requests[0].headers
+    for request in requests[1:]:
+        expected = (
+            "Bearer decision-only-secret"
+            if request.url.host == "sahool-decision-service"
+            else "Bearer user-jwt"
+        )
+        assert request.headers["Authorization"] == expected
+        assert request.headers["X-Tenant-Id"] == "t"
+
+
+def test_missing_production_service_token_never_uses_user_token(platform_identity, monkeypatch):
+    monkeypatch.setenv("SAHOOL_ENV", "production")
+    monkeypatch.delenv("DECISION_SERVICE_TOKEN")
+    response = client.get(
+        "/v1/fields/fld_a/remote-sensing-workspace",
+        params={"season_id": "s1", "include": "decisions"},
+        headers={"Authorization": "Bearer user-jwt", "X-Tenant-Id": "t"},
+    )
+    assert response.status_code == 503
+    assert len(platform_identity["requests"]) == 1
+    assert response.json()["detail"] == "decision_service_auth_unavailable"

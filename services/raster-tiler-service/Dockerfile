@@ -20,6 +20,7 @@ RUN apt-get update \
 ARG PIP_INDEX_URL=https://pypi.org/simple
 ARG PIP_EXTRA_INDEX_URL=
 ARG PIP_TRUSTED_HOST=
+COPY services/raster-tiler-service/requirements.txt /app/requirements.txt
 RUN set -eu; \
     extra_args=""; \
     if [ -n "${PIP_EXTRA_INDEX_URL}" ]; then \
@@ -31,8 +32,7 @@ RUN set -eu; \
     pip install --timeout 300 --retries 10 \
       --index-url "${PIP_INDEX_URL}" \
       ${extra_args} \
-      "titiler.application>=0.20,<0.23" \
-      "uvicorn[standard]>=0.30,<0.34"
+      -r /app/requirements.txt
 
 COPY shared/ /app/shared/
 COPY services/raster-tiler-service/main.py /app/main.py

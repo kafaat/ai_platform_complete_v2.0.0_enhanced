@@ -1,14 +1,18 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "0faacfc52f9746f396c806c23b4aa4777ca0dff7",
+  "measured_on": "6353d18a8d7adca435e99060b3eccda4489707f5",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "9bbbc8fe30431b78f02c760425dbbc0be9345eeebed2198eeb0069fb246ed31d",
+  "measurement_input_digest": "d903d2c3ed79d50f030a5fecf7426f960d800a638d93cab3dedcc881613310d4",
   "measurement_algorithm_digest": "5e1674674f2856600b7a8a67f9e383a7f122d1f39acd605826ec75bd98fc4641",
-  "measurement_basis_digest": "57d7de260cd96d50ae3d74a510fc0cdb3e6d86dbc38fef3adb31bd07bc63dedc",
+  "measurement_basis_digest": "44a25e66d48f0677fd64103eef0f4297aadffac055551b86a5ea9c8e9f83ee53",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
       "sha256": "ea261e61b0f54747ffec2980a79d7609a994fda84470bdc11246e124c5aaa54a"
+    },
+    {
+      "path": "agents/notification/agent.py",
+      "sha256": "b34f958115c0b5db6cf4d50d182a559a971e5f8eee93522c4e78b92ec241b8f5"
     },
     {
       "path": "scripts/ci/agronomic_lineage_integrity_gate.py",
@@ -96,11 +100,11 @@
     },
     {
       "path": "services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
-      "sha256": "6abe692b8493dd54f7d39d06c99239d7e67f0193ef98150ae2e18379772e9083"
+      "sha256": "612da57ec1cd1fd3f373d383905a8356305f112c46b77c513de9ceed57ed5ab2"
     },
     {
       "path": "services/sahool-platform/api/main.py",
-      "sha256": "a0fa51ae1c6d192e7f98c4651e18db18e165522278adb18623ec3f5762c4f5b2"
+      "sha256": "5ae2c1ae6493fe3685f6c7f7c0bd902a458906db20627f99020637056a61b55c"
     },
     {
       "path": "services/sahool-platform/api/phase_runtime_store.py",
@@ -180,7 +184,6 @@
     "services/raster-service/backfill_scan_worker.py:101",
     "services/raster-service/cache_invalidation_worker.py:87",
     "services/sahool-platform/api/imagery_automation.py:178",
-    "services/sahool-platform/api/main.py:659",
     "services/sahool-platform/api/phase_runtime_store.py:98",
     "services/sahool-platform/api/phase_runtime_store.py:99",
     "services/sahool-platform/api/phase_runtime_workers.py:49",

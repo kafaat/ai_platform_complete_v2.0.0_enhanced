@@ -199,6 +199,7 @@ def normalize_controller_telemetry(
         if value is not None and not 0 <= value <= 100:
             raise ValueError(f"{key.upper()}_OUT_OF_RANGE")
     digest_input = {
+        "tenant_id": handshake.tenant_id,
         "controller_id": handshake.controller_id,
         "machine_id": handshake.machine_id,
         "sequence_number": sequence_number,
@@ -230,12 +231,21 @@ def build_controller_capability_snapshot(
     blockers: list[str] = []
     limitations: list[str] = []
     if (
-        handshake.controller_id != telemetry.controller_id
+        isinstance(maximum_age_seconds, bool)
+        or not isinstance(maximum_age_seconds, int)
+        or maximum_age_seconds < 0
+    ):
+        raise ValueError("MAXIMUM_TELEMETRY_AGE_INVALID")
+    if (
+        handshake.tenant_id != telemetry.tenant_id
+        or handshake.controller_id != telemetry.controller_id
         or handshake.machine_id != telemetry.machine_id
     ):
         blockers.append("CONTROLLER_TELEMETRY_IDENTITY_MISMATCH")
-    age = max(0.0, (_utc(now) - _utc(telemetry.observed_at)).total_seconds())
-    fresh = age <= maximum_age_seconds
+    age = (_utc(now) - _utc(telemetry.observed_at)).total_seconds()
+    fresh = 0 <= age <= maximum_age_seconds
+    if age < 0:
+        blockers.append("CONTROLLER_TELEMETRY_OBSERVED_IN_FUTURE")
     if not fresh:
         blockers.append("CONTROLLER_TELEMETRY_STALE")
     if handshake.certification_status != "certified":

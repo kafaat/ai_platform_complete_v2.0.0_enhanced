@@ -41,7 +41,7 @@ def test_p4_platform_decision_client_is_the_transport_boundary():
         "DEFAULT_DECISION_SERVICE_URL",
         "decision_get_json",
         "decision_post_json",
-        "X-Agent-Token",
+        "decision_service_auth_headers",
         "X-Tenant-Id",
         "/v1/decisions/record",
         "/v1/outcomes/record",

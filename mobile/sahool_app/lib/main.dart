@@ -276,7 +276,7 @@ class _MainNavigationState extends State<MainNavigation> {
     // H01: Handle Android back button
     return PopScope(
       canPop: _selectedIndex == 0,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (!didPop && _selectedIndex != 0) {
           setState(() => _selectedIndex = 0);
         }

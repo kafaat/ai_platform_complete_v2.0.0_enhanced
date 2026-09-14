@@ -68,25 +68,34 @@ async def get_learning_summary(
         async with tenant_connection(user) as conn:
             drows = await conn.fetch("SELECT region, created_at FROM decision_record")
             orows = await conn.fetch(
-                "SELECT outcome_id, field_id, region, decision_id, success, metrics, "
+                "SELECT outcome_id, tenant_id, field_id, region, decision_id, success, metrics, "
                 "planned, actual, stage, created_at FROM outcome_record"
             )
             # Optional v49/v66 bridge: these tables may be absent in partial deployments.
             # Absence must not hide outcome_record evidence or turn the dashboard into 503.
+            # كلُّ قراءة اختياريّة داخل نقطة حفظ (معاملة متداخلة): خطأُ «جدول غائب» كان يُفسِد
+            # معاملةَ tenant_connection الخارجيّة فيفشل الالتزامُ ويعود 503 رغم الالتقاط
+            # (Copilot على #1001).
             rorows = []
             dispatch_rows = []
             try:
-                rorows = await conn.fetch(
-                    "SELECT outcome_id, field_id, season_id, crop, recommendation_id, "
-                    "predicted_yield_t_ha, actual_yield_t_ha, accepted, matured_within_lag, "
-                    "issued_at, outcome_recorded_at FROM recommendation_outcomes"
-                )
+                async with conn.transaction():
+                    # v49 بلا عمود region — يُشتقّ من الحقل (fields.region) كي تُجمَّع صفوفُ
+                    # تعلّم الغلّة تحت منطقتها لا تحت `_unspecified` (Copilot على #1001).
+                    rorows = await conn.fetch(
+                        "SELECT ro.outcome_id, ro.tenant_id, ro.field_id, ro.farm_id, ro.season_id, ro.crop, "
+                        "ro.recommendation_id, ro.predicted_yield_t_ha, ro.actual_yield_t_ha, "
+                        "ro.accepted, ro.matured_within_lag, ro.issued_at, ro.outcome_recorded_at, "
+                        "f.region AS region FROM recommendation_outcomes ro "
+                        "LEFT JOIN fields f ON f.field_id = ro.field_id"
+                    )
             except Exception:  # noqa: BLE001 — optional bridge table; absence ⇒ zero yield-learning rows
                 rorows = []
             try:
-                dispatch_rows = await conn.fetch(
-                    "SELECT recommendation_id, decision_id FROM dispatch_decisions"
-                )
+                async with conn.transaction():
+                    dispatch_rows = await conn.fetch(
+                        "SELECT recommendation_id, decision_id FROM dispatch_decisions"
+                    )
             except Exception:  # noqa: BLE001 — optional link table; absence ⇒ no soft linking
                 dispatch_rows = []
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
@@ -97,6 +106,7 @@ async def get_learning_summary(
     outcome_rows = [
         {
             "outcome_id": r["outcome_id"],
+            "tenant_id": str(r["tenant_id"]) if r["tenant_id"] is not None else None,
             "field_id": r["field_id"],
             "region": r["region"],
             "decision_id": r["decision_id"],
@@ -112,7 +122,10 @@ async def get_learning_summary(
     recommendation_outcomes = [
         {
             "outcome_id": r["outcome_id"],
+            "tenant_id": str(r["tenant_id"]) if r["tenant_id"] is not None else None,
             "field_id": r["field_id"],
+            "farm_id": r["farm_id"],  # U01: وحدةُ التكرار تصل إلى أعداد الاستقلال
+            "region": r["region"],  # من fields.region (v49 بلا منطقة)
             "season_id": r["season_id"],
             "crop": r["crop"],
             "recommendation_id": r["recommendation_id"],

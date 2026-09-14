@@ -49,6 +49,7 @@ workloads:
     image: sahool/platform:2026.06.26-rc.15
     replicas: 2
     port: 8000
+    sourceDockerfile: services/sahool-platform/Dockerfile
     pathPrefix: /api/v1
     env:
       SERVICE_NAME: sahool-platform
@@ -59,13 +60,18 @@ workloads:
     secretEnv:
       DATABASE_URL: databaseUrl
       JWT_PUBLIC_KEY: jwtPublicKey
-      X_AGENT_TOKEN: agentToken
+      SAHOOL_AGENT_TOKEN: agentToken
   sahool-raster-service:
     enabled: true
     image: sahool/raster-service:2026.06.26-rc.15
     replicas: 2
-    port: 8000
+    port: 8001
+    sourceDockerfile: services/raster-service/Dockerfile
     pathPrefix: /api/raster
+    persistence:
+      size: 20Gi
+      accessMode: ReadWriteMany
+      mountPath: /data/rasters
     env:
       SERVICE_NAME: sahool-raster-service
       RUNTIME_ROLE_REQUIRED: "sahool_app"
@@ -74,6 +80,7 @@ workloads:
       CDSE_PROCESS_RETRY_BASE_SECONDS: "5"
       CDSE_PROCESS_RETRY_MAX_SECONDS: "120"
     secretEnv:
+      SAHOOL_AGENT_TOKEN: agentToken
       DATABASE_URL: databaseUrl
       CDSE_CLIENT_ID: cdseClientId
       CDSE_CLIENT_SECRET: cdseClientSecret
@@ -81,43 +88,52 @@ workloads:
     enabled: true
     image: sahool/ai-agronomist:2026.06.26-rc.15
     replicas: 2
-    port: 8093
+    port: 8000
+    sourceDockerfile: services/ai_agronomist/Dockerfile
     pathPrefix: /api/ai-agronomist
     env:
       SERVICE_NAME: sahool-ai-agronomist
       FIELD_STATE_REQUIRED: "true"
     secretEnv:
-      X_AGENT_TOKEN: agentToken
+      SAHOOL_AGENT_TOKEN: agentToken
   sahool-rag-retrieval:
     enabled: true
     image: sahool/rag-retrieval:2026.06.26-rc.15
     replicas: 2
-    port: 8130
+    port: 8000
+    sourceDockerfile: services/rag-retrieval/Dockerfile
     pathPrefix: /api/rag
     env:
       SERVICE_NAME: sahool-rag-retrieval
     secretEnv:
-      X_AGENT_TOKEN: agentToken
+      SAHOOL_AGENT_TOKEN: agentToken
   sahool-knowledge-graph:
     enabled: true
     image: sahool/knowledge-graph:2026.06.26-rc.15
-    replicas: 2
-    port: 8140
+    replicas: 1
+    port: 8000
+    sourceDockerfile: services/knowledge-graph/Dockerfile
     pathPrefix: /api/knowledge-graph
+    persistence:
+      size: 5Gi
+      accessMode: ReadWriteOnce
+      mountPath: /data
     env:
+      KG_SQLITE_PATH: /data/kg.sqlite
       SERVICE_NAME: sahool-knowledge-graph
     secretEnv:
-      X_AGENT_TOKEN: agentToken
+      SAHOOL_AGENT_TOKEN: agentToken
   sahool-guardrails-engine:
     enabled: true
     image: sahool/guardrails-engine:2026.06.26-rc.15
     replicas: 2
-    port: 8097
+    port: 8000
+    sourceDockerfile: services/guardrails-engine/Dockerfile
     pathPrefix: /api/guardrails
     env:
       SERVICE_NAME: sahool-guardrails-engine
     secretEnv:
-      X_AGENT_TOKEN: agentToken
+      SAHOOL_AGENT_TOKEN: agentToken
 
 jobs:
   migration:

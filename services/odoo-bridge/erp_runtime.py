@@ -12,6 +12,7 @@ import hashlib
 import logging
 import os
 import sys
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -207,32 +208,58 @@ async def _run_migrations():
     logger.info("DB migrations: tables pre-created by sahool-migrate (v9_odoo_bridge.sql)")
 
 
-async def get_last_sync(entity: str, direction: str) -> datetime | None:
-    pool = await get_pool()
-    if not pool:
-        return None
-    async with pool.acquire() as conn:
-        row = await conn.fetchrow(
-            "SELECT last_sync_at FROM odoo_sync_state WHERE entity=$1 AND direction=$2",
-            entity,
-            direction,
-        )
-        return row["last_sync_at"] if row else None
+async def get_last_sync(entity: str, direction: str, *, connection=None) -> datetime | None:
+    if connection is None:
+        pool = await get_pool()
+        if not pool:
+            raise RuntimeError("erp_sync_database_unavailable")
+        async with pool.acquire() as conn:
+            return await get_last_sync(entity, direction, connection=conn)
+    row = await connection.fetchrow(
+        "SELECT last_sync_at FROM odoo_sync_state WHERE entity=$1 AND direction=$2",
+        entity,
+        direction,
+    )
+    return row["last_sync_at"] if row else None
 
 
-async def set_last_sync(entity: str, direction: str, sync_at: datetime):
+async def set_last_sync(entity: str, direction: str, sync_at: datetime, *, connection=None):
+    if connection is None:
+        pool = await get_pool()
+        if not pool:
+            raise RuntimeError("erp_sync_database_unavailable")
+        async with pool.acquire() as conn:
+            return await set_last_sync(entity, direction, sync_at, connection=conn)
+    await connection.execute(
+        "INSERT INTO odoo_sync_state (entity, direction, last_sync_at) VALUES ($1,$2,$3) "
+        "ON CONFLICT (entity, direction) DO UPDATE SET last_sync_at=$3",
+        entity,
+        direction,
+        sync_at,
+    )
+
+
+@asynccontextmanager
+async def _catalog_sync_batch(provider: str, entity: str, legacy_entity: str):
+    """Serialize a catalog and commit its cursor in the same transaction as rows.
+
+    The cursor is captured BEFORE fetching, so updates during the request remain
+    eligible next time. Inclusive provider filters also retain equal timestamps.
+    """
     pool = await get_pool()
-    if not pool:
-        return
-    async with pool.acquire() as conn:
+    if pool is None:
+        raise RuntimeError("erp_sync_database_unavailable")
+    key = f"{provider}.{entity}"
+    async with pool.acquire() as conn, conn.transaction():
         await conn.execute(
-            """INSERT INTO odoo_sync_state (entity, direction, last_sync_at)
-                VALUES ($1,$2,$3)
-                ON CONFLICT (entity, direction) DO UPDATE SET last_sync_at=$3""",
-            entity,
-            direction,
-            sync_at,
+            "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", f"erp_sync:{key}"
         )
+        last = await get_last_sync(key, "erp_to_sahool", connection=conn)
+        started_at = datetime.now(UTC)
+        yield conn, last.isoformat() if last else None
+        await set_last_sync(key, "erp_to_sahool", started_at, connection=conn)
+        if provider == "odoo":
+            await set_last_sync(legacy_entity, "odoo_to_sahool", started_at, connection=conn)
 
 
 async def log_sync_record(
@@ -278,21 +305,13 @@ async def sync_products():
         logger.info("ERP disabled → products sync skipped")
         return
 
-    last_sync = await get_last_sync(f"{provider.name}.products", "erp_to_sahool")
-    since = last_sync.isoformat() if last_sync else None
-    products = await provider.list_products(since=since)
-
-    pool = await get_pool()
-    if not pool:
-        return
-
     synced = 0
-    async with pool.acquire() as conn:
+    async with _catalog_sync_batch(provider.name, "products", "product.product") as (conn, since):
+        products = await provider.list_products(since=since)
         for item in products:
             external_id = item.get("external_id") or item.get("code") or item.get("name")
             if external_id is None:
-                logger.warning("ERP product skipped: missing external id")
-                continue
+                raise ValueError("erp_row_missing_external_id")
             product_key = (
                 str(external_id) if provider.name == "odoo" else f"{provider.name}:{external_id}"
             )
@@ -340,11 +359,6 @@ async def sync_products():
                 )
             synced += 1
 
-    now = datetime.now(UTC)
-    await set_last_sync(f"{provider.name}.products", "erp_to_sahool", now)
-    # Backward-compatible marker for existing dashboards when provider is Odoo.
-    if provider.name == "odoo":
-        await set_last_sync("product.product", "odoo_to_sahool", now)
     await log_sync_record(
         "erp_to_sahool",
         "products",
@@ -366,21 +380,13 @@ async def sync_suppliers():
         logger.info("ERP disabled → suppliers sync skipped")
         return
 
-    last_sync = await get_last_sync(f"{provider.name}.suppliers", "erp_to_sahool")
-    since = last_sync.isoformat() if last_sync else None
-    suppliers = await provider.list_suppliers(since=since)
-
-    pool = await get_pool()
-    if not pool:
-        return
-
     synced = 0
-    async with pool.acquire() as conn:
+    async with _catalog_sync_batch(provider.name, "suppliers", "res.partner") as (conn, since):
+        suppliers = await provider.list_suppliers(since=since)
         for item in suppliers:
             external_id = item.get("external_id") or item.get("code") or item.get("name")
             if external_id is None:
-                logger.warning("ERP supplier skipped: missing external id")
-                continue
+                raise ValueError("erp_row_missing_external_id")
             supplier_key = (
                 str(external_id) if provider.name == "odoo" else f"{provider.name}:{external_id}"
             )
@@ -427,10 +433,6 @@ async def sync_suppliers():
                 )
             synced += 1
 
-    now = datetime.now(UTC)
-    await set_last_sync(f"{provider.name}.suppliers", "erp_to_sahool", now)
-    if provider.name == "odoo":
-        await set_last_sync("res.partner", "odoo_to_sahool", now)
     await log_sync_record(
         "erp_to_sahool",
         "suppliers",

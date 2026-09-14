@@ -81,3 +81,238 @@ def test_unmatured_recommendation_outcome_stays_pending_and_does_not_inflate_evi
     assert out["overall"]["outcomes_decided"] == 0
     assert out["overall"]["success_rate"] is None
     assert out["overall"]["sample_count"] == 0
+
+
+def test_immature_outcome_with_an_early_actual_value_stays_pending():
+    """U02 (التدقيق الموحَّد 2026-09-13): قيمة فعليّة مبكّرة قبل النضج كانت تدخل النجاح."""
+    out = summarize_learning_with_reconciled_outcomes(
+        decision_rows=[],
+        outcome_records=[],
+        recommendation_outcomes=[
+            {
+                "outcome_id": "ro_early",
+                "field_id": "fld_1",
+                "region": "jawf",
+                "recommendation_id": "rec_early",
+                "predicted_yield_t_ha": 4.0,
+                "actual_yield_t_ha": 4.4,
+                "accepted": True,
+                "matured_within_lag": False,
+                "issued_at": _ts(1),
+            }
+        ],
+    )
+    assert out["overall"]["outcomes_pending"] == 1
+    assert out["overall"]["outcomes_decided"] == 0
+    assert out["overall"]["success_rate"] is None
+    assert out["overall"]["sample_count"] == 0
+
+
+def test_eligibility_reasons_are_explicit_and_non_finite_values_are_rejected():
+    from core.outcome_reconciler import (
+        normalize_recommendation_outcome,
+        recommendation_outcome_eligibility,
+    )
+
+    base = {"predicted_yield_t_ha": 4.0, "actual_yield_t_ha": 4.4, "accepted": True}
+    assert recommendation_outcome_eligibility({**base, "matured_within_lag": True}) == {
+        "eligible": True,
+        "reason": None,
+    }
+    assert recommendation_outcome_eligibility({**base, "matured_within_lag": False})["reason"] == (
+        "immature"
+    )
+    assert (
+        recommendation_outcome_eligibility({**base, "matured_within_lag": True, "accepted": False})[
+            "reason"
+        ]
+        == "not_accepted"
+    )
+    # دراسة دقّة التوقّع لا تشترط القبول.
+    assert recommendation_outcome_eligibility(
+        {**base, "matured_within_lag": True, "accepted": False}, require_acceptance=False
+    )["eligible"]
+    assert (
+        recommendation_outcome_eligibility(
+            {**base, "matured_within_lag": True, "actual_yield_t_ha": "nan"}
+        )["reason"]
+        == "non_finite_value"
+    )
+    assert recommendation_outcome_eligibility({**base, "actual_yield_t_ha": None})["reason"] == (
+        "missing_actual"
+    )
+    row = normalize_recommendation_outcome({**base, "matured_within_lag": False})
+    assert row["success"] is None
+    assert row["result"]["eligibility"]["reason"] == "immature"
+
+
+def test_one_linked_case_counts_as_one_independent_case_not_two_samples():
+    """U03: صفّان مربوطان بالقرار نفسه = حالة واحدة؛ الصفوف تُعدّ صفوفاً باسمها."""
+    out = summarize_learning_with_reconciled_outcomes(
+        decision_rows=[],
+        outcome_records=[
+            {
+                "outcome_id": "or_1",
+                "field_id": "fld_1",
+                "region": "jawf",
+                "decision_id": "dec_1",
+                "success": True,
+                "metrics": {"n_evaluated": 1, "n_success": 1},
+                "created_at": _ts(2),
+            }
+        ],
+        recommendation_outcomes=[
+            {
+                "outcome_id": "ro_1",
+                "field_id": "fld_1",
+                "region": "jawf",
+                "recommendation_id": "rec_1",
+                "predicted_yield_t_ha": 4.0,
+                "actual_yield_t_ha": 4.4,
+                "accepted": True,
+                "matured_within_lag": True,
+                "outcome_recorded_at": _ts(3),
+            },
+            {
+                "outcome_id": "ro_2",
+                "field_id": "fld_2",
+                "region": "jawf",
+                "recommendation_id": "rec_2",
+                "predicted_yield_t_ha": 3.0,
+                "actual_yield_t_ha": 3.1,
+                "accepted": True,
+                "matured_within_lag": True,
+                "outcome_recorded_at": _ts(4),
+            },
+        ],
+        dispatch_links={"rec_1": "dec_1"},
+    )
+    rec = out["outcome_reconciliation"]
+    assert rec["linked_group_count"] == 1
+    assert rec["rows_by_source"] == {"outcome_record": 1, "recommendation_outcomes": 2}
+    assert rec["sample_count_basis"] == "rows"
+    assert rec["independent_case_count"] == 2  # (or_1+ro_1) حالة واحدة + ro_2
+    assert out["overall"]["sample_count"] == 3  # الصفوف كما هي — مُسمّاة لا مُخفاة
+
+
+def test_non_finite_values_do_not_leak_into_the_delta_payload():
+    """Copilot على #1001: NaN/Infinity لا تتسرّب إلى yield_delta_t_ha رغم استبعاد الصفّ."""
+    from core.outcome_reconciler import normalize_recommendation_outcome
+
+    row = normalize_recommendation_outcome(
+        {
+            "recommendation_id": "r",
+            "predicted_yield_t_ha": 4.0,
+            "actual_yield_t_ha": float("inf"),
+            "accepted": True,
+            "matured_within_lag": True,
+        }
+    )
+    assert row["result"]["yield_delta_t_ha"] is None
+    assert row["result"]["eligibility"]["reason"] == "non_finite_value"
+    assert row["success"] is None
+    # المكتومة: التوقّع/الفعليّ نفساهما كانا يُنسَخان غيرَ منتهيين إلى الحمولة.
+    assert row["result"]["actual_yield_t_ha"] is None
+    assert row["result"]["predicted_yield_t_ha"] == 4.0
+    import json
+
+    json.dumps(row, allow_nan=False)  # تسلسلٌ صارم لا يفشل
+
+
+def test_recommendation_outcomes_carry_farm_id_into_independence_counts():
+    """Copilot على #1001: الموحِّد كان يُسقِط farm_id (v49) فتبقى أعدادُ استقلال المزارع صفراً."""
+    from pathlib import Path
+
+    from core.outcome_reconciler import normalize_recommendation_outcome
+
+    item = normalize_recommendation_outcome(
+        {
+            "outcome_id": "ro",
+            "tenant_id": "t-1",
+            "field_id": "fld_1",
+            "farm_id": "farm_9",
+            "season_id": "s1",
+        }
+    )
+    assert item["farm_id"] == "farm_9" and item["tenant_id"] == "t-1"
+    out = summarize_learning_with_reconciled_outcomes(
+        decision_rows=[],
+        outcome_records=[],
+        recommendation_outcomes=[
+            {
+                "outcome_id": f"ro_{i}",
+                "tenant_id": "t-1",
+                "field_id": f"fld_{i}",
+                "farm_id": "farm_9" if i < 2 else "farm_10",
+                "season_id": "s1",
+                "region": "jawf",
+                "predicted_yield_t_ha": 4.0,
+                "actual_yield_t_ha": 4.1,
+                "accepted": True,
+                "matured_within_lag": True,
+                "outcome_recorded_at": _ts(1),
+            }
+            for i in range(3)
+        ],
+    )
+    independence = out["overall"]["independence"]
+    assert independence["farms"] == 2 and independence["fields"] == 3
+    assert independence["tenants"] == 1  # Copilot على #1001: كان tenant_id لا يُمرَّر أبداً ⇒ 0
+    assert independence["unknown_unit_samples"] == 0
+    # مسارا القراءة يختاران farm_id وtenant_id فعلاً (لا يكفي أن يقبلهما الموحِّد).
+    routers = Path(__file__).resolve().parents[1] / "api/routers"
+    summary_src = (routers / "learning_summary.py").read_text(encoding="utf-8")
+    assert "ro.tenant_id, ro.field_id, ro.farm_id, ro.season_id" in summary_src
+    assert "SELECT outcome_id, tenant_id, field_id, region" in summary_src
+    assert (
+        '"farm_id": r["farm_id"]' in summary_src
+        and summary_src.count('"tenant_id": str(r["tenant_id"])') == 2
+    )
+    seasons_src = (routers / "seasons.py").read_text(encoding="utf-8")
+    assert "ro.tenant_id, ro.field_id, ro.farm_id, ro.season_id" in seasons_src
+    assert "SELECT outcome_id, tenant_id, field_id, region" in seasons_src
+    assert (
+        '"farm_id": r["farm_id"]' in seasons_src
+        and seasons_src.count('"tenant_id": str(r["tenant_id"])') == 2
+    )
+    # v49 بلا region: كلا المسارين يشتقّها من الحقل كي لا تسقط صفوفُ الغلّة في `_unspecified`.
+    for src in (summary_src, seasons_src):
+        assert "LEFT JOIN fields f ON f.field_id = ro.field_id" in src
+        assert "f.region AS region" in src and '"region": r["region"]' in src
+
+
+def test_reconciled_rows_keep_unit_identity_for_independence_counts():
+    """Copilot على #1001: الصفُّ المضغوط كان يُسقِط field_id/season_id فتبقى أعداد الاستقلال صفراً."""
+    out = summarize_learning_with_reconciled_outcomes(
+        decision_rows=[],
+        outcome_records=[
+            {
+                "outcome_id": f"or_{i}",
+                "field_id": f"fld_{i % 2}",
+                "region": "jawf",
+                "decision_id": f"dec_{i}",
+                "success": True,
+                "metrics": {"n_evaluated": 1, "n_success": 1},
+                "created_at": _ts(1),
+            }
+            for i in range(4)
+        ],
+        recommendation_outcomes=[
+            {
+                "outcome_id": "ro_1",
+                "field_id": "fld_9",
+                "season_id": "ssn_1",
+                "region": "jawf",
+                "recommendation_id": "rec_1",
+                "predicted_yield_t_ha": 4.0,
+                "actual_yield_t_ha": 4.4,
+                "accepted": True,
+                "matured_within_lag": True,
+                "outcome_recorded_at": _ts(2),
+            }
+        ],
+    )
+    region = next(r for r in out["regions"] if r["region"] == "jawf")
+    assert region["independence"]["fields"] == 3
+    assert region["independence"]["seasons"] == 1
+    assert region["independence"]["unknown_unit_samples"] == 0

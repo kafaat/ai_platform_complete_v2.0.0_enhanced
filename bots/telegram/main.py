@@ -20,6 +20,7 @@ import asyncio
 import logging
 import os
 import time as _time_module
+import uuid
 from datetime import UTC, datetime
 
 import httpx
@@ -128,6 +129,7 @@ BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 WEBHOOK_SECRET = os.getenv("TELEGRAM_WEBHOOK_SECRET", os.getenv("WEBHOOK_SECRET", ""))
 REDIS_URL = os.getenv("REDIS_URL", "redis://sahool-redis:6379/2")
 SUPERVISOR_URL = os.getenv("SUPERVISOR_AGENT_URL", "http://sahool-supervisor-agent:8000")
+PLATFORM_URL = os.getenv("SAHOOL_PLATFORM_URL", "http://sahool-platform:8000")
 AUTH_URL = os.getenv("AUTH_SERVICE_URL", "http://sahool-auth:8000")
 # ملاحظة B5: البوت لم يعد يصكّ توكنات — لا يحمل سرّ التوقيع إطلاقاً.
 
@@ -196,7 +198,7 @@ async def send_voice_alert(chat_id: int, text: str, voice: str = "yemeni_male") 
             resp = await client.post(
                 f"{TTS_URL}/v1/tts/synthesize",
                 json={"text": text[:1000], "voice": voice},
-                headers={"Authorization": f"Bearer {TTS_TOKEN}"},
+                headers={"X-Agent-Token": TTS_TOKEN},
             )
         if resp.status_code != 200:
             logger.warning(f"TTS failed: {resp.status_code}")
@@ -657,24 +659,39 @@ async def process_pest_photo(message: Message, state: FSMContext):
 
         await wait_msg.edit_text(response)
 
-        # If treatment recommended, offer to create task
-        if "علاج" in response or "treatment" in response.lower():
+        # Only a structured recommendation can enter the existing work-order
+        # workflow. Free text containing "treatment" is not an authorization.
+        recommendation = result.get("recommendation")
+        await state.update_data(pest_task=None)
+        if (
+            isinstance(recommendation, dict)
+            and (recommendation.get("id") or recommendation.get("recommendation_id"))
+            and field_id != "unknown"
+        ):
             kb = InlineKeyboardMarkup(
                 inline_keyboard=[
                     [
                         InlineKeyboardButton(
-                            text="✅ إنشاء مهمة مكافحة", callback_data="create_pest_task"
+                            text="إنشاء أمر عمل مخطط للمراجعة", callback_data="create_pest_task"
                         )
-                    ],
-                    [InlineKeyboardButton(text="❌ لا شكراً", callback_data="dismiss")],
+                    ]
                 ]
             )
-            await message.answer("هل تريد إنشاء مهمة مكافحة في نظام SAHOOL؟", reply_markup=kb)
+            prompt = await message.answer(
+                "هل تريد تحويل التوصية إلى أمر عمل مخطط؟", reply_markup=kb, parse_mode=None
+            )
+            await state.update_data(
+                pest_task={
+                    "field_id": field_id,
+                    "recommendation": recommendation,
+                    "message_id": prompt.message_id,
+                }
+            )
 
     except Exception as e:
         await wait_msg.edit_text(f"❌ خطأ في التحليل\\: {_md2(str(e)[:100])}")
 
-    await state.clear()
+    await state.set_state(None)
 
 
 @router.message(F.text == "💰 السوق")
@@ -801,13 +818,47 @@ async def cmd_settings(message: Message):
 
 
 @router.callback_query(F.data == "create_pest_task")
-async def cb_create_pest_task(callback: CallbackQuery):
-    """Create pest control task."""
-    await callback.message.edit_text(
-        "✅ *تم إنشاء مهمة مكافحة في نظام SAHOOL\\!*\nسيتم إشعارك بموعد التنفيذ\\.",
-        reply_markup=None,
+async def cb_create_pest_task(callback: CallbackQuery, state: FSMContext):
+    """Create a planned work order through the existing authenticated endpoint."""
+    token = await get_user_token(callback.from_user.id)
+    if not token:
+        await callback.answer("اربط حسابك أولاً باستخدام /link؛ لم يُنشأ أمر عمل.", show_alert=True)
+        return
+    context = (await state.get_data()).get("pest_task")
+    if not context or context.get("message_id") != callback.message.message_id:
+        await callback.answer(
+            "انتهت صلاحية الطلب؛ أعد عرض التوصية. لم يُنشأ أمر عمل.", show_alert=True
+        )
+        return
+    key = str(
+        uuid.uuid5(
+            uuid.NAMESPACE_URL,
+            f"sahool:telegram:{callback.from_user.id}:{callback.message.chat.id}:{callback.message.message_id}",
+        )
     )
-    await callback.answer("تم إنشاء المهمة\\!", show_alert=True)
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            response = await client.post(
+                f"{PLATFORM_URL.rstrip('/')}/api/v1/work-orders/from-recommendation",
+                headers={"Authorization": f"Bearer {token}", "Idempotency-Key": key},
+                json={"field_id": context["field_id"], "recommendation": context["recommendation"]},
+            )
+            response.raise_for_status()
+            receipt = response.json()
+        if receipt.get("persisted") is not True or not receipt.get("work_order_id"):
+            raise ValueError("work_order_not_persisted")
+    except Exception as exc:
+        logger.warning("Telegram work-order request failed: %s", type(exc).__name__)
+        await callback.answer(
+            "تعذر تأكيد إنشاء أمر العمل. أعد المحاولة للتحقق بنفس الطلب.", show_alert=True
+        )
+        return
+    await callback.message.edit_text(
+        f"تم إنشاء أمر العمل المخطط: {receipt['work_order_id']}. يخضع للمراجعة قبل التنفيذ.",
+        reply_markup=None,
+        parse_mode=None,
+    )
+    await callback.answer("حُفظ أمر العمل المخطط.", show_alert=True)
 
 
 @router.callback_query(F.data.startswith("trend_"))
@@ -871,6 +922,16 @@ async def cb_dismiss(callback: CallbackQuery):
 # ─── Natural Language Handler ──────────────────────────────
 
 
+# ── /voice command — test TTS ──────────────────────────────────
+@router.message(Command("voice"))
+async def cmd_voice(message: Message):
+    """Send a sample voice message in Yemeni Arabic."""
+    text = "مرحباً بك في منصة سهول الزراعية الذكية. هذه رسالة صوتية تجريبية بصوت يمني أصيل."
+    sent = await send_voice_alert(message.chat.id, text, voice="yemeni_male")
+    if not sent:
+        await message.answer("تعذر إنتاج الصوت في الوقت الحالي\\. سيتم الإرسال نصياً بدلاً من ذلك\\.")
+
+
 @router.message(F.text)
 async def handle_natural_language(message: Message):
     """Handle any text message as natural language query."""
@@ -929,13 +990,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-
-# ── /voice command — test TTS ──────────────────────────────────
-@router.message(Command("voice"))
-async def cmd_voice(message: Message):
-    """Send a sample voice message in Yemeni Arabic."""
-    text = "مرحباً بك في منصة سهول الزراعية الذكية. هذه رسالة صوتية تجريبية بصوت يمني أصيل."
-    sent = await send_voice_alert(message.chat.id, text, voice="yemeni_male")
-    if not sent:
-        await message.answer("تعذر إنتاج الصوت في الوقت الحالي\\. سيتم الإرسال نصياً بدلاً من ذلك\\.")

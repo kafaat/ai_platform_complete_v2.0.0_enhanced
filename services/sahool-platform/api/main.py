@@ -46,6 +46,8 @@ from contextlib import asynccontextmanager
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
+from shared.tracing import configure_tracing
+
 # جعل النواة قابلة للاستيراد
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -73,7 +75,7 @@ from fastapi.responses import (  # noqa: F401 — إعادة تصدير (نمط 
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel
 
-from shared.security.cors_policy import parse_cors_origins
+from shared.security.cors_policy import PLATFORM_ALLOW_HEADERS, parse_cors_origins
 
 logger = logging.getLogger("sahool.api")
 
@@ -195,6 +197,9 @@ app = FastAPI(
     version="1.0.0",
     lifespan=_lifespan,
 )
+
+
+configure_tracing(app, "sahool-platform")
 
 
 async def _warn_weak_dev_jwt_secret():
@@ -646,21 +651,6 @@ async def tenant_connection(user):
             yield conn
 
 
-async def _apply_tenant_guc(conn, tenant_id: str) -> None:
-    """يضبط سياق المستأجِر على اتّصال خام (يُحاكي main.py:346 حرفيّاً).
-
-    `true` ⇒ transaction-local (SET LOCAL — آمن مع connection pooling). يُستخدَم
-    على المسارات التي تكتسب اتّصالها الخاصّ من الـpool (لا عبر tenant_connection)
-    لكنّها مع ذلك مُنطّقة بمستأجِر واحد، فتفعّل RLS فعليّاً تحت الدور المُقيَّد
-    (sahool_app: NOBYPASSRLS, FORCE RLS). يجب استدعاؤه داخل معاملة قبل أيّ
-    استعلام مُنطّق بمستأجِر.
-    """
-    await conn.execute(
-        "SELECT set_config('app.current_tenant', $1, true)",
-        str(tenant_id),
-    )
-
-
 # ─── الأحداث الحرجة (fail-closed) ───────────────────────────────────────────────
 # قائمة بيضاء صريحة دنيا لأنواع الأحداث التي لا يجوز فيها «كتابة عمل بلا حدث»: أحداث
 # الحوكمة/المال/تبدّل الحالة (توزيع قرار/تنفيذ، سجلّ قرار/نتيجة، نَسَب التنفيذ، تبدّل
@@ -694,9 +684,10 @@ CRITICAL_EVENT_TYPES: frozenset[str] = frozenset(
 
 async def _emit_domain_event(
     conn, user, event_type_name, entity_type, entity_id, payload, *, critical: bool | None = None
-):
+) -> bool:
     """يُصدر حدث domain ضمن نفس معاملة الكتابة (نمط outbox: الحدث + صفّ outbox
-    يُكتبان ذرّيّاً مع تغيير الحالة) داخل **savepoint**.
+    يُكتبان ذرّيّاً مع تغيير الحالة) داخل **savepoint**. يُعيد ``True`` حين كُتب الحدث
+    و``False`` حين ابتُلع فشلٌ غير حرج (فيُبلِغ المُنادي الإدامةَ الحقيقيّة — P0).
 
     سلوك الفشل يحكمه ``critical``:
       - حرج (``critical=True`` أو نوع ضمن ``CRITICAL_EVENT_TYPES``): فشل الإدراج
@@ -734,6 +725,8 @@ async def _emit_domain_event(
             raise
         # غير حرج: فشل الإصدار (غياب جداول/DB) لا يكسر الكتابة (تصميم متعمّد).
         logger.warning("emit %s تخطّي: %s", event_type_name, e)
+        return False
+    return True
 
 
 # ─── idempotency لنقاط الموبايل (إعادات offline لا تُكرّر الكتابة) ──────────────
@@ -789,6 +782,12 @@ async def _idempotent(store, command_id, do_work, *, command_type, actor_id, ten
         await store.mark_succeeded(command_id, result)
         return result
     existing = await store.get(command_id)  # موجود مسبقاً
+    # U06: طلبٌ ببصمة يُقارَن ببصمة الصفّ؛ صفٌّ قديم بلا بصمة لا يُعامَل إعادةً صادقة (Copilot #1001).
+    wanted = (payload or {}).get("request_digest")
+    stored = ((existing.payload if existing is not None else None) or {}).get("request_digest")
+    if wanted and (stored is None or wanted != stored):
+        detail = "Idempotency-Key أُعيد استعماله بحمولةٍ مختلفة — استعمل مفتاحاً جديداً"
+        raise HTTPException(status_code=409, detail=detail)
     if existing is not None and existing.status == CommandStatus.SUCCEEDED:
         return existing.result  # نتيجة مخزّنة — لا إعادة تنفيذ (idempotent)
     raise HTTPException(status_code=409, detail="الأمر قيد المعالجة — أعد المحاولة لاحقاً")
@@ -813,7 +812,7 @@ app.add_middleware(
     allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["Authorization", "Content-Type", "X-Correlation-Id", "X-Causation-Id"],
+    allow_headers=PLATFORM_ALLOW_HEADERS,  # يشمل Idempotency-Key (Copilot على #1001)
 )
 
 # تتبّع موزّع: معرّف ربط (Correlation-Id) لكلّ طلب — يُضبَط في السياق ويُعاد في

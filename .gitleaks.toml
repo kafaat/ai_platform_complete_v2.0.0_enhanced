@@ -10,9 +10,22 @@ useDefault = true
 
 [allowlist]
 description = "Scanner/guard source that embeds detection patterns, not real secrets"
+# Every entry is anchored at both ends: gitleaks searches the path regex, so an
+# unanchored suffix such as `docs/.../x\.patch$` would also exempt
+# `vendor/docs/.../x.patch` (Copilot on #999). Paths are repository-relative in the
+# git-history scan CI runs; measured with gitleaks 8.24.3 in both scan modes.
 paths = [
-  '''scripts/release/scan_release_archive\.py$''',
-  '''scripts/ci/jwt_secret_configuration_guard\.py$''',
+  '''^scripts/release/scan_release_archive\.py$''',
+  '''^scripts/ci/jwt_secret_configuration_guard\.py$''',
+  # Review-only patches kept as evidence under docs/audits/patches/ (SUP-08, #997): the
+  # embedded firmware source calls `signWire(key, "sahool-receipt-v2\n", body)` — those
+  # string literals are HMAC domain-separation labels, not keys; the `generic-api-key`
+  # rule fires on the `key` keyword next to a high-entropy literal. The patch is never
+  # applied by CI and the frozen actuator/firmware sources are unchanged (GATE-01).
+  # Narrowed to that ONE patch file (C05, unified forensic report v2): a directory-wide
+  # `.*\.patch$` would have exempted any future patch dropped here, including one that
+  # carried a real secret. A new review patch needs its own justified entry.
+  '''^docs/audits/patches/SUP-08-actuator-v2-PENDING-GATE-01\.patch$''',
 ]
 # Deterministic, obviously-fake fixture values used in unit tests (self-describing
 # placeholders, never real credentials). Keep this list narrow and literal.
@@ -23,4 +36,12 @@ regexes = [
   # a decision-service test, never a credential. Global allowlist (not an inline marker)
   # because the token lives in branch history and the history scan re-reads each commit.
   '''wx106-approve''',
+  # A credential-shaped fixture literal committed once in `6f7d621b` for the
+  # decision-service auth join test. It was never a credential: the test compares the
+  # value only against itself, and the working tree now generates it per run
+  # (`placeholder-<uuid4>`) so no future commit carries a literal at all. Allowlisted for
+  # the same reason as the entry above and no other — the value is immutable in history,
+  # and rewriting that history would rewrite delivered handoff commits whose SHAs are
+  # cited in their own reports. Narrow and literal: it matches this one dead string.
+  '''s3rv1ce-t0ken-for-the-join''',
 ]

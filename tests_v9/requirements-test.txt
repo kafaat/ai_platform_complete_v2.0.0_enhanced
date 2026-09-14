@@ -48,6 +48,11 @@ nats-py>=2.3.0
 # فيفشل ١١ اختباراً على إصدار **لا تُختبَر عليه المنصّة**. رقِّ هنا والإنتاج معاً.
 fastapi==0.136.3  # = api/requirements.txt:6
 scipy==1.13.1  # = api/requirements.txt:20 — api/trial_engine.py يستورد scipy.stats
+# defusedxml: `api/geo_import.py:27` يستوردها علويّاً، وجناحُ المنصّة (٨ج في preflight)
+# يجمع `tests/test_geo_import.py` فيسقط الجمعُ كلُّه (4,285 حالة) على استنساخٍ بمتطلّبات
+# الاختبار وحدها — ظهر في #993 ثمّ في مراجعة 2026-09-13. CI تثبّت api/requirements.txt
+# فلا تراه؛ هنا يُثبَّت على إصدار الإنتاج نفسِه.
+defusedxml==0.7.1  # = api/requirements.txt:5
 # pillow: مطلوبة لاختبار واحد مُثبَت بالقياس — إسقاطها وحدها يُفشِل
 # test_segmentation_frontend_contract_20260702::test_segment_request_accepts_frontend_field_names
 pillow>=10.0.0  # = services/field-segmentation/requirements.txt:10
@@ -83,3 +88,18 @@ jsonschema>=4.20.0
 # لا تملكها ⇒ سبعةُ اختباراتٍ على مُصدِّر وصفة VRA لم تُنفَّذ في CI قطّ، وتُقرأ «متخطّاة»
 # أي خضراء. والكلفة صفر: عجلةٌ نقيّة-Python بـ٤٦ كيلوبايت بلا تبعيّات.
 pyshp==2.3.1  # = api/requirements.txt:26
+
+# `tests_v9/test_connectivity_tile_transport.py` يفحص **صياغةَ** `nginx/nginx.v9.conf`
+# وبنيتَه بلا daemon: لا nginx ولا Docker في عدّاء الوحدة، وقراءةُ الملفّ بالعين ليست
+# تحقّقاً. `crossplane` هو مُحلّل nginx الرسميّ من F5 (نقيُّ Python، بلا تبعيّات) —
+# يُحوّل «الصياغةُ تُشبه كتلاً مُجرَّبة» إلى نتيجةٍ حمراء أو خضراء. وبلا تثبيتها هنا
+# يصير الشاهدُ `importorskip` أي **صمتاً** في CI، وطفرةٌ تُسمّيه تصير STABLE_WRONG_TEST.
+crossplane==0.5.8
+
+# Real bot import + work-order receipt/retry regression tests.
+aiogram==3.31.0
+
+# Explicit OTLP HTTP tracing, audited 2026-09-13.
+opentelemetry-sdk==1.44.0
+opentelemetry-exporter-otlp-proto-http==1.44.0
+opentelemetry-instrumentation-fastapi==0.65b0

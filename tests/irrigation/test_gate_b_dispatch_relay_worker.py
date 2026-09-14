@@ -10,6 +10,7 @@ Requires pytest-asyncio (pytest.ini runs asyncio_mode=auto); the CI job installs
 
 from __future__ import annotations
 
+import asyncio
 import json
 import sys
 from pathlib import Path
@@ -106,6 +107,145 @@ async def test_relay_default_off_does_not_start(monkeypatch):
     assert worker.relay_enabled() is False
     # run_relay returns immediately without importing/connecting NATS when the flag is off.
     await worker.run_relay(post_fn=_Recorder().post)
+
+
+class _Msg:
+    def __init__(self, data: bytes):
+        self.data = data
+
+
+def _heartbeat_in(tmp_path, monkeypatch):
+    monkeypatch.setenv("WORKER_HEARTBEAT_DIR", str(tmp_path))
+    from worker_heartbeat import HeartbeatState, evaluate_heartbeat, read_heartbeat
+
+    return HeartbeatState(worker.WORKER_NAME), read_heartbeat, evaluate_heartbeat
+
+
+@pytest.mark.asyncio
+async def test_a_handled_delivery_leaves_a_running_heartbeat_the_probe_accepts(
+    tmp_path, monkeypatch
+):
+    """WORKERS-INHERIT-AN-HTTP-HEALTHCHECK-THEY-CANNOT-ANSWER-01: the compose probe reads this
+    file; the relay serves no HTTP, so without it the image's curl :8000 check marks it unhealthy
+    forever. What the handler writes must be what the probe's evaluator accepts."""
+    hb, read, evaluate = _heartbeat_in(tmp_path, monkeypatch)
+    rec = _Recorder()
+    handler = worker.make_message_handler(rec.post, hb)
+    await handler(_Msg(_envelope()))
+    assert len(rec.calls) == 1
+    data = read(worker.WORKER_NAME)
+    assert data is not None and data["current_state"] == "running"
+    assert data["processed_total"] == 1
+    ok, reason = evaluate(data, now_epoch=data["last_poll_at"] + 1, max_age_seconds=300)
+    assert ok, reason
+
+
+@pytest.mark.asyncio
+async def test_a_handler_error_marks_the_heartbeat_failed_without_killing_the_subscription(
+    tmp_path, monkeypatch
+):
+    hb, read, evaluate = _heartbeat_in(tmp_path, monkeypatch)
+
+    async def _exploding_post(_tenant, _body):
+        raise RuntimeError("inbox exploded")
+
+    handler = worker.make_message_handler(_exploding_post, hb)
+    await handler(_Msg(_envelope()))  # must not raise — one bad message never kills the worker
+    data = read(worker.WORKER_NAME)
+    assert data is not None and data["current_state"] == "failed"
+    assert "inbox exploded" in data["last_error"]
+    ok, reason = evaluate(data, now_epoch=data["last_poll_at"] + 1, max_age_seconds=300)
+    assert not ok and reason.startswith("worker_state_failed:")
+
+
+@pytest.mark.asyncio
+async def test_a_failed_delivery_outcome_marks_the_heartbeat_failed_not_running(
+    tmp_path, monkeypatch
+):
+    """Copilot on #995 (3 votes): `handle_delivered_message` returns a structured `failed` for a
+    503/502 without raising, so a handler that only branched on exceptions counted every
+    non-exception as a delivery — a permanently failing inbox kept the probe green."""
+    hb, read, evaluate = _heartbeat_in(tmp_path, monkeypatch)
+    rec = _Recorder(status=503, resp={"detail": "sor off"})
+    handler = worker.make_message_handler(rec.post, hb)
+    await handler(_Msg(_envelope(event_id="evt-503")))
+    data = read(worker.WORKER_NAME)
+    assert data is not None and data["current_state"] == "failed"
+    assert data["processed_total"] == 0
+    assert "status=503" in data["last_error"] and "evt-503" in data["last_error"]
+    ok, reason = evaluate(data, now_epoch=data["last_poll_at"] + 1, max_age_seconds=300)
+    assert not ok and reason.startswith("worker_state_failed:")
+
+
+@pytest.mark.asyncio
+async def test_a_skipped_foreign_event_proves_liveness_without_counting_a_delivery(
+    tmp_path, monkeypatch
+):
+    hb, read, evaluate = _heartbeat_in(tmp_path, monkeypatch)
+    rec = _Recorder()
+    handler = worker.make_message_handler(rec.post, hb)
+    await handler(_Msg(_envelope(event_type="something.else")))
+    assert rec.calls == []  # nothing posted …
+    data = read(worker.WORKER_NAME)
+    assert data is not None and data["processed_total"] == 0  # … nothing counted …
+    assert data["current_state"] == "running"  # … but the process is visibly alive
+    ok, _ = evaluate(data, now_epoch=data["last_poll_at"] + 1, max_age_seconds=300)
+    assert ok
+
+
+@pytest.mark.asyncio
+async def test_the_idle_beat_preserves_a_failed_state_until_a_delivery_succeeds(
+    tmp_path, monkeypatch
+):
+    """Copilot on #995: the 60-second idle tick used to `mark_poll(0)` (state → running) over a
+    `failed` set by a handler, so an outage turned green by the clock. It must not."""
+    hb, read, evaluate = _heartbeat_in(tmp_path, monkeypatch)
+    failing = worker.make_message_handler(_Recorder(status=503).post, hb)
+    await failing(_Msg(_envelope()))
+    assert read(worker.WORKER_NAME)["current_state"] == "failed"
+
+    async def _sleep_once(_seconds):
+        raise asyncio.CancelledError
+
+    monkeypatch.setattr(worker.asyncio, "sleep", _sleep_once)
+    with pytest.raises(asyncio.CancelledError):
+        await worker.idle_with_heartbeat(hb, state="running")
+    data = read(worker.WORKER_NAME)
+    assert data["current_state"] == "failed"  # the clock did not clear it
+    ok, reason = evaluate(data, now_epoch=data["last_poll_at"] + 1, max_age_seconds=300)
+    assert not ok and reason.startswith("worker_state_failed:")
+
+    # Only a real delivery clears it.
+    delivering = worker.make_message_handler(_Recorder(status=200).post, hb)
+    await delivering(_Msg(_envelope(event_id="evt-ok")))
+    data = read(worker.WORKER_NAME)
+    assert data["current_state"] == "running" and data["processed_total"] == 1
+    assert evaluate(data, now_epoch=data["last_poll_at"] + 1, max_age_seconds=300)[0]
+
+
+@pytest.mark.asyncio
+async def test_a_disabled_relay_beats_idle_so_it_is_healthy_but_visibly_not_working(
+    tmp_path, monkeypatch
+):
+    """Default-off must not read as dead (restart-thrash) nor as working (a lie): the idle loop
+    writes an `idle` beat the probe accepts, then sleeps."""
+    hb, read, evaluate = _heartbeat_in(tmp_path, monkeypatch)
+    slept: list[float] = []
+
+    async def _sleep_once(seconds):
+        slept.append(seconds)
+        raise asyncio.CancelledError  # stop the forever-loop after the first beat
+
+    monkeypatch.setattr(worker.asyncio, "sleep", _sleep_once)
+    with pytest.raises(asyncio.CancelledError):
+        await worker.idle_with_heartbeat(hb, state="idle")
+    assert slept == [worker.IDLE_BEAT_SECONDS]
+    data = read(worker.WORKER_NAME)
+    assert data is not None and data["current_state"] == "idle"
+    ok, _ = evaluate(data, now_epoch=data["last_poll_at"] + 1, max_age_seconds=300)
+    assert ok
+    # The compose `--max-age 300` must exceed the idle cadence, or a healthy idle relay flaps.
+    assert worker.IDLE_BEAT_SECONDS < 300
 
 
 def test_worker_static_boundary_no_fulfillment():

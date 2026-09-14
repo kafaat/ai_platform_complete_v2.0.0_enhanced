@@ -14,11 +14,12 @@ import logging
 import os
 import re
 import tempfile
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
+import init_retry
 from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.security import HTTPAuthorizationCredentials as _C
 from fastapi.security import HTTPBearer as _B
@@ -427,27 +428,69 @@ async def query_rag(question: str, tenant_id: str, k: int = 5) -> dict:
 # ══════════════════════════════════════════════════════════════
 # Lifespan
 # ══════════════════════════════════════════════════════════════
+# حالة التهيئة الخلفيّة — تُقرأ في /readyz فيُميَّز «قيد التحميل» عن «فشلت نهائيّاً بعد
+# N محاولات» (التدقيق الموحَّد 2026-09-13، P0: كانت محاولةً واحدة بلا إعادة، فغيابُ Qdrant
+# عند الإقلاع يترك الخدمة 503 إلى الأبد وتقول /readyz «قيد التحميل»).
+# نصٌّ غير رقميّ لا يُسقِط الوحدة عند الاستيراد — الافتراضيّ مع تحذير (Copilot على #1001).
+_INIT_MAX_ATTEMPTS_RAW = init_retry.int_or_default(
+    os.getenv("RAG_INIT_MAX_ATTEMPTS", "6"), 6, name="RAG_INIT_MAX_ATTEMPTS", log=logger
+)
+# القيمةُ المُقيَّدة هي ما يُنفَّذ وما يُبلَّغ في /readyz — صفرٌ أو سالب يعني محاولةً واحدة
+# ويُسجَّل تحذيرٌ بدل أن يرى المشغّل `init_attempts: 1` مع `init_max_attempts: 0` (Copilot على #1001).
+INIT_MAX_ATTEMPTS = max(1, _INIT_MAX_ATTEMPTS_RAW)
+if _INIT_MAX_ATTEMPTS_RAW < 1:
+    logger.warning(
+        "RAG_INIT_MAX_ATTEMPTS=%d غير صالح — قُيِّد إلى %d", _INIT_MAX_ATTEMPTS_RAW, INIT_MAX_ATTEMPTS
+    )
+# قيمُ التراجع تُطبَّع عند الحدود (منتهية ≥ 0 وإلّا الافتراضيّ مع تحذير) — سالبٌ كان يمرّ
+# فيصير التراجعُ صفراً وتُعاد التهيئة في حلقة ضيّقة (Copilot على #1001).
+INIT_BACKOFF_BASE_S = init_retry.non_negative_float(
+    os.getenv("RAG_INIT_BACKOFF_BASE_S", "5"), 5.0, name="RAG_INIT_BACKOFF_BASE_S", log=logger
+)
+INIT_BACKOFF_CAP_S = init_retry.non_negative_float(
+    os.getenv("RAG_INIT_BACKOFF_CAP_S", "60"), 60.0, name="RAG_INIT_BACKOFF_CAP_S", log=logger
+)
+_init_state: dict = init_retry.new_state()
+
+
+async def _init_models_once() -> None:
+    logger.info("تهيئة خلفيّة: انتظار Ollama وسحب النماذج...")
+    await wait_for_ollama()
+    init_llm()
+    init_vectorstore()
+    logger.info("اكتملت التهيئة الخلفيّة — خدمة RAG جاهزة بالكامل")
+
+
 async def _init_models_background() -> None:
     """يسحب النماذج ويهيّئ LLM + المتجهات دون حجب الإقلاع — كي تكون الحاوية
-    حيّة فوراً للـhealthcheck. _llm/_vectorstore يصبحان غير None بعد الجاهزيّة."""
-    try:
-        logger.info("تهيئة خلفيّة: انتظار Ollama وسحب النماذج...")
-        await wait_for_ollama()
-        init_llm()
-        init_vectorstore()
-        logger.info("اكتملت التهيئة الخلفيّة — خدمة RAG جاهزة بالكامل")
-    except Exception as exc:  # noqa: BLE001
-        logger.error("فشلت التهيئة الخلفيّة للنماذج: %s", exc)
+    حيّة فوراً للـhealthcheck. _llm/_vectorstore يصبحان غير None بعد الجاهزيّة.
+    المحاولات محدودة بتراجع (لا محاولة واحدة تترك الخدمة عالقة إن تأخّر Qdrant/Ollama)."""
+    await init_retry.run_init_with_retry(
+        _init_models_once,
+        _init_state,
+        max_attempts=INIT_MAX_ATTEMPTS,
+        base=INIT_BACKOFF_BASE_S,
+        cap=INIT_BACKOFF_CAP_S,
+        log=logger,
+    )
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Local AI RAG starting (سحب النماذج يجري في الخلفيّة)...")
-    # fire-and-forget: التطبيق حيّ فوراً للفحوص؛ النماذج تُحمَّل في الخلفيّة.
-    asyncio.create_task(_init_models_background())
+    # التطبيق حيّ فوراً للفحوص؛ النماذج تُحمَّل في الخلفيّة — والمهمّةُ مملوكةٌ لدورة الحياة
+    # لا مُهمَلة: عند الإيقاف أثناء تراجعٍ أو انتظار تبعيّة تُلغى وتُنتظَر فلا تستمرّ التهيئة
+    # بعد توقّف التطبيق ولا تتسرّب في اختبارات دورة الحياة (Copilot على #1001).
+    init_task = asyncio.create_task(_init_models_background())
     logger.info("خادم RAG HTTP جاهز — النماذج تُحمَّل في الخلفيّة")
-    yield
-    logger.info("Local AI RAG stopped")
+    try:
+        yield
+    finally:
+        if not init_task.done():
+            init_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await init_task
+        logger.info("Local AI RAG stopped")
 
 
 # C-07 FIX: JWT auth for RAG endpoints
@@ -624,14 +667,19 @@ async def legacy_health():
 
 @app.get("/readyz")
 async def readyz():
-    """يردّ 200 فقط بعد تحميل النماذج؛ 503 أثناء التهيئة الخلفيّة."""
+    """يردّ 200 فقط بعد تحميل النماذج؛ 503 أثناء التهيئة الخلفيّة أو بعد فشلها النهائيّ
+    (مع تمييز الحالتين وذكر آخر خطأ وعدد المحاولات — لا «قيد التحميل» أبديّة)."""
     if _llm is None or _vectorstore is None:
+        failed = _init_state.get("status") == "failed"
         raise HTTPException(
             status_code=503,
             detail={
-                "status": "initialising",
+                "status": "init_failed" if failed else "initialising",
                 "service": "local-ai-rag",
-                "message": "النماذج قيد التحميل",
+                "message": "فشلت تهيئة النماذج نهائيّاً" if failed else "النماذج قيد التحميل",
+                "init_attempts": _init_state.get("attempts", 0),
+                "init_max_attempts": INIT_MAX_ATTEMPTS,
+                "last_error": _init_state.get("last_error"),
             },
         )
     return {

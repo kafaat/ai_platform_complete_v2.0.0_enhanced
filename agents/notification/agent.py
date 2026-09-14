@@ -8,23 +8,21 @@ SAHOOL v9.0 — agents/notification/agent.py (مُصلَح)
   ✅ 8 اشتراكات NATS مع durable names
 
 Condition-gated capabilities:
-  • FCM/APNs push (send_push) is CONDITION-GATED on the `fcm_push` capability
-    (mirrors services/sahool-platform/core/capabilities.py fcm_push_active()):
-    active only when FCM_SERVER_KEY is set to a truthy value in the env (the
-    legacy send path; HTTP v1 / FCM_CREDENTIALS_JSON is not wired for sending yet).
-    Otherwise the push path is a dormant no-op (returns False, never fabricates a
-    send and never crashes the agent).
+  FCM HTTP v1 uses explicitly provisioned FCM_CREDENTIALS_JSON and the shared
+  credential validator. Provider acceptance requires a named message receipt.
 """
 
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import logging
 import os
 import re
 from collections import defaultdict
-from contextlib import asynccontextmanager
+from collections.abc import Awaitable, Callable
+from contextlib import asynccontextmanager, suppress
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -35,6 +33,10 @@ from fastapi.responses import Response
 from nats.aio.client import Client as NATS
 from nats.js import JetStreamContext
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+
+from shared.fcm import fcm_push_active, send_push
+from shared.security.access_tokens import access_token_verification_key, verify_access_token
+from shared.tracing import configure_tracing
 
 logger = logging.getLogger("notification-agent")
 logging.basicConfig(
@@ -50,7 +52,6 @@ SMTP_USER = os.getenv("SMTP_USER", "")
 SMTP_PASS = os.getenv("SMTP_PASSWORD", "")
 TG_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 # FCM: السرّ يُقرأ وقت التشغيل في fcm_push_active()/send_push (لا ثابت استيراد).
-FCM_LEGACY_ENDPOINT = "https://fcm.googleapis.com/fcm/send"
 _fcm_dormant_logged = False
 
 # ── WebSocket manager ─────────────────────────────────────────
@@ -165,14 +166,6 @@ def _fcm_truthy(v: str) -> bool:
     return v.strip().lower() not in ("", "0", "false", "no", "off")
 
 
-def fcm_push_active() -> bool:
-    """Mirrors capabilities.py fcm_push_active(): active ONLY when FCM_SERVER_KEY is
-    set to a truthy value. Read at CALL time (not import) so env changes take effect.
-    FCM_CREDENTIALS_JSON (HTTP v1 / service account) is NOT wired for sending yet, so
-    it alone does NOT activate push — otherwise /capabilities would lie."""
-    return _fcm_truthy(os.getenv("FCM_SERVER_KEY", ""))
-
-
 # ── C4/M1: علم الـpush للموبايل (default OFF) + قرار الإرسال vs السجلّ الاحتياطيّ ──
 # إطار «implemented-but-off-by-default»: الـpush مُنفَّذ (send_push/FCM) لكنّه opt-in
 # صريح بهذا العلم. OFF (افتراضيّ) أو FCM خامل ⇒ **سجلّ احتياطيّ دائم** بدل إسقاط صامت.
@@ -181,7 +174,7 @@ _MOBILE_PUSH_FLAG = "FEATURE_MOBILE_PUSH"
 
 def mobile_push_enabled() -> bool:
     """هل push الموبايل مُفعَّل؟ default OFF (يُقرأ وقت الاستدعاء). علم opt-in صريح
-    فوق قدرة FCM — التفعيل يتطلّب العلم **و** FCM_SERVER_KEY معاً."""
+    فوق قدرة FCM — التفعيل يتطلّب العلم **و** FCM_CREDENTIALS_JSON الصالح معاً."""
     return _fcm_truthy(os.getenv(_MOBILE_PUSH_FLAG, ""))
 
 
@@ -198,56 +191,6 @@ def push_decision(*, flag_on: bool, push_enabled: bool, has_token: bool, fcm_act
     if flag_on and fcm_active:
         return "send"
     return "record_only"
-
-
-async def send_push(push_token: str, title: str, body: str) -> bool:
-    """Deliver a real FCM push. Honest + gated.
-
-    • Dormant (FCM_SERVER_KEY unset/falsey): logs once and returns False. No
-      fabrication, no fake send.
-    • FCM_SERVER_KEY set: POSTs to the FCM legacy HTTP API. Returns True ONLY on
-      a real 2xx response from FCM.
-    Never raises — any error is logged and returns False so the agent stays up.
-    """
-    global _fcm_dormant_logged
-    if not fcm_push_active():
-        if not _fcm_dormant_logged:
-            logger.info("FCM dormant: set FCM_SERVER_KEY to activate")
-            _fcm_dormant_logged = True
-        return False
-
-    if not push_token:
-        return False
-
-    # قراءة المفتاح وقت التشغيل (لا ثابت الاستيراد) ليعتمد التفعيل على البيئة فقط.
-    server_key = os.getenv("FCM_SERVER_KEY", "")
-
-    try:
-        import httpx  # lazy import — agent must not hard-depend on it for dormant path
-    except Exception as e:
-        logger.warning(f"FCM: httpx unavailable, push skipped: {e}")
-        return False
-
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.post(
-                FCM_LEGACY_ENDPOINT,
-                headers={
-                    "Authorization": f"key={server_key}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "to": push_token,
-                    "notification": {"title": title, "body": body},
-                },
-            )
-        if 200 <= resp.status_code < 300:
-            return True
-        logger.warning(f"FCM push non-2xx: {resp.status_code} {resp.text[:200]}")
-        return False
-    except Exception as e:
-        logger.warning(f"FCM push failed: {e}")
-        return False
 
 
 # ── DB helpers ────────────────────────────────────────────────
@@ -269,54 +212,109 @@ async def get_pool() -> asyncpg.Pool | None:
     return _pool
 
 
-async def get_prefs(user_id: int) -> dict | None:
+class InvalidNotification(ValueError):
+    """An event cannot be routed safely; retain it in the dead-letter subject."""
+
+
+class DeliveryUnavailable(RuntimeError):
+    """Keep the JetStream message owed when persistence or delivery fails."""
+
+
+@asynccontextmanager
+async def _tenant_connection(tenant_id: str, user_id: str = ""):
     pool = await get_pool()
-    if not pool:
-        return None
-    try:
-        async with pool.acquire() as conn:
-            row = await conn.fetchrow(
-                "SELECT * FROM notification_preferences WHERE user_id=$1", user_id
-            )
-            return dict(row) if row else None
-    except Exception:  # noqa: BLE001 — تعذّر قراءة التفضيلات ⇒ None (تُستعمَل الافتراضات)
-        return None
+    if pool is None:
+        raise DeliveryUnavailable("notification_database_unavailable")
+    async with pool.acquire() as conn, conn.transaction():
+        await conn.execute(
+            "SELECT set_config('app.current_tenant', $1, true), "
+            "set_config('app.current_user_id', $2, true)",
+            str(tenant_id),
+            str(user_id),
+        )
+        yield conn
+
+
+async def get_prefs(user_id: str, tenant_id: str) -> dict | None:
+    """تفضيلات المستخدم بالهويّة التي تكتبها المنصّة: ``(tenant_id, user_ref)`` نصّاً.
+
+    كانت تُحوِّل الموضوع إلى ``int`` وتقرأ عمود ``user_id`` القديم (INTEGER، FK إلى
+    ``users.id``) بينما ``PUT /api/v1/notifications/preferences`` يكتب الصفّ تحت
+    ``user_ref`` النصّيّ (v38). فكلّ تفضيلٍ محفوظٍ عبر الـAPI الحاليّ كان يُفوَّت، وموضوعٌ
+    UUID كان يسقط قبل الاستعلام أصلاً (Copilot على #997).
+    """
+    user_ref = str(user_id)
+    async with _tenant_connection(tenant_id, user_ref) as conn:
+        row = await conn.fetchrow(
+            "SELECT * FROM notification_preferences WHERE tenant_id=$1::uuid AND user_ref=$2",
+            tenant_id,
+            user_ref,
+        )
+        return dict(row) if row else None
+
+
+def _delivery_key(data: dict) -> str:
+    identity = data.get("_delivery_id") or data.get("event_id") or data.get("alert_key")
+    if not identity:
+        identity = hashlib.sha256(
+            json.dumps(data, sort_keys=True, ensure_ascii=False).encode()
+        ).hexdigest()
+    return f"notification:{identity}:user:{data.get('user_id', '')}"
+
+
+async def _deliver_channel(data: dict, channel: str, send=None, reason: str | None = None) -> None:
+    """Use existing tenant-scoped receipts to skip already successful channels.
+
+    The database row lock serializes redeliveries. Provider acceptance followed
+    by a crash before commit can still repeat a send: this is at-least-once, not
+    a claim of exactly-once delivery at external providers.
+    """
+    tenant = data.get("tenant_id")
+    if not tenant:
+        raise InvalidNotification("notification_tenant_required")
+    key = _delivery_key(data)
+    failed = False
+    async with _tenant_connection(str(tenant), str(data.get("user_id", ""))) as conn:
+        await conn.execute(
+            "INSERT INTO notification_delivery (tenant_id, alert_key, channel, status, error) "
+            "VALUES ($1::uuid, $2, $3, 'queued', $4) "
+            "ON CONFLICT (tenant_id, alert_key, channel) DO NOTHING",
+            str(tenant),
+            key,
+            channel,
+            reason,
+        )
+        status = await conn.fetchval(
+            "SELECT status FROM notification_delivery "
+            "WHERE tenant_id=$1::uuid AND alert_key=$2 AND channel=$3 FOR UPDATE",
+            str(tenant),
+            key,
+            channel,
+        )
+        if status is None:
+            raise DeliveryUnavailable("notification_receipt_unavailable")
+        if status in {"sent", "delivered"} or send is None:
+            return
+        try:
+            sent = await send()
+        except Exception:
+            sent = False
+        failed = not sent
+        await conn.execute(
+            "UPDATE notification_delivery SET status=$4, error=$5, updated_at=now() "
+            "WHERE tenant_id=$1::uuid AND alert_key=$2 AND channel=$3",
+            str(tenant),
+            key,
+            channel,
+            "sent" if sent else "failed",
+            None if sent else "provider_delivery_failed",
+        )
+    if failed:
+        raise DeliveryUnavailable(f"{channel}_delivery_failed")
 
 
 async def _record_push_fallback(data: dict, reason: str) -> None:
-    """C4/M1: يُدِيم إيصال push (status='queued') في notification_delivery حين **لا**
-    يُرسَل الـpush فعليّاً (العلم off أو FCM خامل) — فلا يُفقَد إشعارٌ يريده المستخدم
-    صامتاً (create_notification_record). يُحدَّث لاحقاً عند تفعيل الـpush/التسليم.
-
-    best-effort fail-soft: غياب tenant_id (لا يمكن احترام NOT NULL/RLS) أو تعذّر القاعدة
-    ⇒ تخطٍّ مع تسجيل debug — لا كسر للوكيل، ولا سجلّ مُلفَّق. مفتاح التنبيه من data إن
-    توفّر وإلّا مُشتقّ ثابت من (نوع الحدث، المستخدم).
-    """
-    tenant_id = data.get("tenant_id")
-    if not tenant_id:
-        logger.debug("push fallback: لا tenant_id ⇒ تخطّي السجلّ (fail-soft)")
-        return
-    alert_key = (
-        data.get("alert_key") or f"push:{data.get('event_type', '')}:{data.get('user_id', '')}"
-    )
-    try:
-        pool = await get_pool()
-        if not pool:
-            return
-        async with pool.acquire() as conn:
-            await conn.execute(
-                """
-                INSERT INTO notification_delivery (tenant_id, alert_key, channel, status, error)
-                VALUES ($1::uuid, $2, 'push', 'queued', $3)
-                ON CONFLICT (tenant_id, alert_key, channel)
-                DO UPDATE SET status = 'queued', error = EXCLUDED.error, updated_at = now()
-                """,
-                str(tenant_id),
-                alert_key,
-                reason,
-            )
-    except Exception as e:  # noqa: BLE001 — سجلّ best-effort، لا يكسر التوزيع
-        logger.debug("push fallback record تخطٍّ: %s", e)
+    await _deliver_channel(data, "push", reason=reason)
 
 
 # ── Event dispatcher ──────────────────────────────────────────
@@ -352,23 +350,18 @@ async def dispatch(data: dict):
     message = data.get("message", "")
     extra = data.get("data", {})
 
-    # Always send via WebSocket. الأسماء الصحيحة send_to_user/broadcast — كان
-    # broadcast_user/broadcast_all غير موجودين ⇒ AttributeError يُعطّل كلّ الإشعارات
-    # ويُبقي رسائل JetStream دون ack فتُعاد بلا نهاية. المفتاح str (connections: dict[str,…]).
-    # عزل المستأجِر: حدث بلا user_id لكنّه يحمل tenant_id (مثل أحداث المنصّة
-    # sahool.events.*) يُبثّ لمستخدمي ذلك المستأجِر فقط — لا بثّ عابر للمستأجرين.
     tenant_id = data.get("tenant_id")
+    if not isinstance(tenant_id, str) or not tenant_id.strip():
+        raise InvalidNotification("notification_tenant_required")
     if user_id:
         await manager.send_to_user(str(user_id), data)
-    elif tenant_id:
-        await manager.broadcast_tenant(str(tenant_id), data)
     else:
-        await manager.broadcast(data)
+        await manager.broadcast_tenant(tenant_id, data)
 
     if not user_id:
         return
 
-    prefs = await get_prefs(int(user_id))
+    prefs = await get_prefs(str(user_id), tenant_id)
     if not prefs:
         return
 
@@ -380,14 +373,37 @@ async def dispatch(data: dict):
 
     html = make_html(title, message, extra)
 
+    # كلُّ قناةٍ محاولةٌ مستقلّة (C01، التقرير الجنائيّ الموحَّد ٢): كان فشلُ البريد يرفع
+    # `DeliveryUnavailable` فيغادر التوزيعُ قبل بلوغ Telegram وPush، ثمّ يُعاد الحدثُ كلُّه
+    # حتّى ينتهي في dead-letter دون أن تُجرَّب القنواتُ السليمة قطّ. الآن تُجرَّب كلُّها،
+    # وتُجمَع الفاشلةُ ويُرفَع بعد آخرها فتُعاد الرسالةُ من JetStream — والإيصالاتُ
+    # الناجحة (`sent`) تُتخطّى في المحاولة التالية داخل `_deliver_channel` فلا تتكرّر.
+    planned: list[tuple[str, Callable[[], Awaitable[None]]]] = []
+
     if prefs.get("email_enabled") and prefs.get("email_address"):
-        await send_email_async(prefs["email_address"], f"[سهول] {title}", html)
+        planned.append(
+            (
+                "email",
+                lambda: _deliver_channel(
+                    data,
+                    "email",
+                    lambda: send_email_async(prefs["email_address"], f"[سهول] {title}", html),
+                ),
+            )
+        )
 
     if prefs.get("telegram_enabled") and prefs.get("telegram_chat_id"):
         text = f"<b>{title}</b>\n{message}"
         if extra:
             text += "\n" + "\n".join(f"• {k}: {v}" for k, v in extra.items())
-        await send_telegram(str(prefs["telegram_chat_id"]), text)
+        planned.append(
+            (
+                "telegram",
+                lambda: _deliver_channel(
+                    data, "telegram", lambda: send_telegram(str(prefs["telegram_chat_id"]), text)
+                ),
+            )
+        )
 
     # Mobile push (C4/M1) — خلف علم FEATURE_MOBILE_PUSH (default off) + سجلّ احتياطيّ:
     # send عند (العلم on ∧ FCM نشط)؛ record_only عند رغبة المستخدم بلا تفعيل ⇒ سجلّ
@@ -399,9 +415,31 @@ async def dispatch(data: dict):
         fcm_active=fcm_push_active(),
     )
     if decision == "send":
-        await send_push(str(prefs["push_token"]), title, message)
+        planned.append(
+            (
+                "push",
+                lambda: _deliver_channel(
+                    data, "push", lambda: send_push(str(prefs["push_token"]), title, message)
+                ),
+            )
+        )
     elif decision == "record_only":
-        await _record_push_fallback(data, reason="mobile_push_disabled_or_fcm_dormant")
+        planned.append(
+            (
+                "push",
+                lambda: _record_push_fallback(data, reason="mobile_push_disabled_or_fcm_dormant"),
+            )
+        )
+
+    failed: list[str] = []
+    for channel, attempt in planned:
+        try:
+            await attempt()
+        except DeliveryUnavailable as exc:
+            logger.warning("Channel retained for retry: %s (%s)", channel, exc)
+            failed.append(channel)
+    if failed:
+        raise DeliveryUnavailable("channels_failed:" + ",".join(failed))
 
 
 # ── NATS subscriptions ────────────────────────────────────────
@@ -425,59 +463,113 @@ SUBSCRIPTIONS = [
 ]
 
 
+_subscriptions: dict = {}
+
+
+async def _dead_letter(msg, reason: str) -> None:
+    if _js is None:
+        raise DeliveryUnavailable("dead_letter_unavailable")
+    metadata = msg.metadata
+    identity = f"{metadata.stream}:{metadata.sequence.stream}"
+    await _js.publish(
+        "sahool.notification.dead_letter",
+        json.dumps(
+            {
+                "source_subject": msg.subject,
+                "source_id": identity,
+                "reason": reason,
+                "payload": msg.data.decode("utf-8", errors="replace"),
+            }
+        ).encode(),
+        headers={"Nats-Msg-Id": f"notification-dead-letter:{identity}"},
+    )
+    await msg.term()
+
+
 async def handle_msg(msg):
     try:
         data = json.loads(msg.data.decode())
+        if not isinstance(data, dict):
+            raise InvalidNotification("notification_object_required")
+        metadata = msg.metadata
+        data["_delivery_id"] = f"{metadata.stream}:{metadata.sequence.stream}"
         await dispatch(data)
-        msg.ack()  # sync in nats-py>=2.3
-    except Exception as e:
-        logger.error(f"handle_msg error: {e}")
+    except (InvalidNotification, UnicodeError, json.JSONDecodeError) as exc:
+        try:
+            await _dead_letter(msg, type(exc).__name__)
+        except Exception:
+            await msg.nak(delay=30)
+    except Exception as exc:
+        logger.warning("Notification retry: %s", type(exc).__name__)
+        try:
+            if msg.metadata.num_delivered >= 10:
+                await _dead_letter(msg, "delivery_attempts_exhausted")
+            else:
+                await msg.nak(delay=30)
+        except Exception:
+            await msg.nak(delay=30)
+    else:
+        await msg.ack()
+
+
+async def _ensure_subscriptions():
+    from nats.js.api import ConsumerConfig, StreamConfig
+    from nats.js.errors import NotFoundError
+
+    try:
+        await _js.stream_info("sahool")
+    except NotFoundError:
+        await _js.add_stream(StreamConfig(name="sahool", subjects=["sahool.>"]))
+    for subject, durable in SUBSCRIPTIONS:
+        if durable in _subscriptions:
+            continue
+        try:
+            _subscriptions[durable] = await _js.subscribe(
+                subject,
+                cb=handle_msg,
+                durable=durable,
+                manual_ack=True,
+                config=ConsumerConfig(ack_wait=120, max_deliver=-1),
+            )
+        except Exception as exc:
+            logger.warning("Subscription unavailable: %s (%s)", durable, type(exc).__name__)
+
+
+async def _subscription_loop():
+    while True:
+        try:
+            await _ensure_subscriptions()
+        except Exception as exc:
+            logger.warning("Subscription initialization retry: %s", type(exc).__name__)
+        await asyncio.sleep(5)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global _nc, _js
+    global _nc, _js, _pool
+    access_token_verification_key()
+    _subscriptions.clear()
     _nc = NATS()
     await _nc.connect(NATS_URL)
     _js = _nc.jetstream()
-
-    # نضمن وجود تيّار "sahool" قبل الاشتراك — JetStream يتطلّب وجود التيّار قبل
-    # إنشاء المستهلكين الدائمين (durable)، وإلّا تفشل كلّ الاشتراكات.
+    task = asyncio.create_task(_subscription_loop())
     try:
-        from nats.js.api import StreamConfig
-
-        await _js.add_stream(StreamConfig(name="sahool", subjects=["sahool.>"]))
-        logger.info("  JetStream stream 'sahool' ensured")
-    except Exception as e:
-        # تجاهل "already exists" — أيّ خطأ آخر يُسجَّل دون إيقاف الإقلاع.
-        if "already exists" not in str(e).lower():
-            logger.warning(f"  add_stream 'sahool' warning: {e}")
-
-    for subject, durable in SUBSCRIPTIONS:
-        try:
-            await _js.subscribe(subject, cb=handle_msg, durable=durable)
-            logger.info(f"  Subscribed: {subject} [{durable}]")
-        except Exception as e:
-            logger.warning(f"  Subscribe failed {subject}: {e}")
-
-    logger.info(f"✅ Notification Agent ready — {len(SUBSCRIPTIONS)} subscriptions")
-    yield
-    if _nc:
+        yield
+    finally:
+        task.cancel()
+        with suppress(asyncio.CancelledError):
+            await task
         await _nc.close()
-    pool = await get_pool()
-    if pool:
-        await pool.close()
+        _subscriptions.clear()
+        if _pool:
+            await _pool.close()
+            _pool = None
 
 
 # ── FastAPI app ───────────────────────────────────────────────
 app = FastAPI(title="SAHOOL Notification Agent", version="9.1.0", lifespan=lifespan)
-# ✅ OTEL
-try:
-    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
-    FastAPIInstrumentor.instrument_app(app)
-except ImportError:
-    pass
+configure_tracing(app, "sahool-notification-agent")
 
 
 # ── WebSocket Connection Manager (secured) ─────────────────────
@@ -498,6 +590,8 @@ class ConnectionManager:
 
     async def connect(self, user_id: str, websocket, tenant_id: str = "") -> bool:
         async with self._lock:
+            if not tenant_id or self._user_tenant.get(user_id, tenant_id) != tenant_id:
+                return False
             if len(self.connections[user_id]) >= self._max_per_user:
                 return False
             self.connections[user_id].add(websocket)
@@ -513,6 +607,8 @@ class ConnectionManager:
                 self._user_tenant.pop(user_id, None)
 
     async def send_to_user(self, user_id: str, data: dict):
+        if not data.get("tenant_id") or self._user_tenant.get(user_id) != str(data["tenant_id"]):
+            return
         dead = set()
         for ws in list(self.connections.get(user_id, [])):
             try:
@@ -540,28 +636,8 @@ manager = ConnectionManager(max_per_user=5)
 
 
 # ── WebSocket JWT Validation ─────────────────────────────────────
-# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
-_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
-
-
 def _validate_ws_token(token: str) -> dict:
-    """Full JWT validation for WebSocket connections."""
-    from jose import JWTError
-    from jose import jwt as _jwt
-
-    JWT_SECRET = os.getenv("JWT_SECRET", "")
-    if not JWT_SECRET or not token:
-        raise ValueError("Missing token or secret")
-    try:
-        payload = _jwt.decode(token, JWT_SECRET, algorithms=["HS256"], audience="sahool")
-        # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول يُعامَل كتوكن غير صالح.
-        if payload.get("iss") not in _ALLOWED_ISS:
-            raise ValueError("Invalid token issuer")
-        if not payload.get("sub"):
-            raise ValueError("Missing sub claim")
-        return payload
-    except JWTError as e:
-        raise ValueError(f"Invalid token: {e}") from e
+    return verify_access_token(token)
 
 
 async def _ws_receive_loop(websocket, verified_user_id: str):
@@ -646,7 +722,7 @@ async def test_notification(payload: dict, _: None = Depends(_require_agent_toke
         "title": "🧪 إشعار تجريبي — SAHOOL v9",
         "message": "هذا اختبار لنظام الإشعارات",
         "data": {"test": True},
-        "tenant_id": payload.get("tenant_id", "default"),
+        "tenant_id": payload.get("tenant_id"),
     }
     await dispatch(test_event)
     return {"status": "sent"}
@@ -660,15 +736,25 @@ async def health():
 
 @app.get("/readyz")
 async def readyz():
-    # جاهزيّة حقيقيّة: الوكيل يستهلك أحداث NATS (8 اشتراكات JetStream) ويكتب/يقرأ
-    # تفضيلات الإشعارات في القاعدة. كلاهما متطلّب فعليّ لخدمة الطلبات:
-    #   • NATS: لينشين الإقلاع يتّصل به (غير ملفوف) فبدونه لا يقلع أصلاً — نتحقّق
-    #     أنّ الاتّصال حيّ (is_connected) لا مجرّد كائن منشأ.
-    #   • القاعدة: حين تُضبط DATABASE_URL نتحقّق بـSELECT 1؛ تعذُّره ⇒ 503.
-    # أيّ تعذّر ⇒ 503 لا «جاهز» كاذب. (FCM/البريد/تيليجرام اختياريّة بإغلاق مرن
-    # — لا نُبنى عليها الجاهزيّة كي لا نُنتج عدم-جاهزيّة كاذبة.)
-    if _nc is None or not _nc.is_connected:
+    if _nc is None or not _nc.is_connected or _js is None:
         raise HTTPException(503, {"status": "not_ready", "reason": "nats"})
+    missing = []
+    for subject, durable in SUBSCRIPTIONS:
+        try:
+            if durable not in _subscriptions:
+                raise RuntimeError("subscription_missing")
+            info = await _js.consumer_info("sahool", durable)
+            if info.config.filter_subject != subject:
+                raise RuntimeError("subscription_filter_mismatch")
+        except Exception:
+            _subscriptions.pop(durable, None)
+            missing.append(durable)
+    if missing:
+        raise HTTPException(
+            503, {"status": "not_ready", "reason": "subscriptions", "missing": missing}
+        )
+    if not DB_URL:
+        raise HTTPException(503, {"status": "not_ready", "reason": "database_not_configured"})
     if DB_URL:
         try:
             pool = await get_pool()
@@ -707,5 +793,5 @@ async def send_test_notification(
     if not re.fullmatch(r"[A-Za-z0-9_.\-]{1,64}", event_type or ""):
         raise HTTPException(400, "event_type غير صالح")
     subject = f"sahool.{event_type}"
-    await publish_event(subject, {"tenant_id": tenant_id, **data})
+    await publish_event(subject, {**data, "tenant_id": tenant_id})
     return {"published": subject}

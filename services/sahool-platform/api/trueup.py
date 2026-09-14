@@ -301,8 +301,10 @@ class TrueUpEngine:
         ملاحظة عزل: المثيل الموصَّل في main.py هو TrueUpEngine() بـpool=None
         (يُستخدَم compute النقيّ فقط على مسار الطلب)، فمسار apply الخام هذا غير
         مُفعَّل حاليّاً. يكتسب اتّصاله من الـpool بلا ضبط app.current_tenant؛ إن
-        وُصِّل لاحقاً على مسار طلب وجب تمرير tenant_id وضبط الـGUC عبر
-        _apply_tenant_guc — أو، إن صار عابراً للمستأجِرين، دور خدميّ مخصّص.
+        وُصِّل لاحقاً على مسار طلب وجب تمرير tenant_id وضبط الـGUC داخل المعاملة
+        بالطريقة نفسِها التي يضبطه بها `tenant_connection` في main.py — أو،
+        إن صار عابراً للمستأجِرين، دور خدميّ مخصّص. (المُعين `_apply_tenant_guc` الذي كان
+        التعليق يُحيل إليه لم يستدعه أحد وحُذِف في #997.)
         """
         if self.pool is None:
             raise RuntimeError("TrueUpEngine: pool not configured for async apply()")

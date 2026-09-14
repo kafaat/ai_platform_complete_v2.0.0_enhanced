@@ -90,6 +90,13 @@
           "replace": "          HIL_CERTIFICATION_REQUIRED: \"0\"  # mutated: permit silent HIL DB skip\n",
           "why": "HIL runtime persistence must not appear certified when its database fixture skipped; the real CI invocation must require the witness.",
           "test": "tests_v9/test_guardrails_contract.py"
+        },
+        {
+          "expect": "test_vulnerable_runtime_image_fails_the_actual_ci_step",
+          "test": "tests_v9/test_runtime_image_audit_gate.py",
+          "find": "            pip-audit -r \"$requirements_file\" --ignore-vuln PYSEC-2026-1325 --progress-spinner off\n",
+          "replace": "            pip-audit -r \"$requirements_file\" --ignore-vuln PYSEC-2026-1325 --progress-spinner off || true\n",
+          "why": "SUP-15: reproduce the old advisory shell behavior; a vulnerable image must make the actual CI step fail, while clean image inputs all pass."
         }
       ],
       "test": "tests_v9/test_mutation_sweep_headroom.py"
@@ -1984,8 +1991,23 @@
           "find": "raise _db_unavailable(\"قراءة مجموعات STAC\", exc) from exc",
           "replace": "raise _db_unavailable(exc) from exc",
           "why": "Restores the original missing argument: injected DB connection failure must produce 503, not HTTP 500."
+        },
+        {
+          "expect": "test_registry_tile_route_authorizes_before_contacting_backend",
+          "find": "    y: int,\n    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),",
+          "replace": "    y: int,\n    user: UserSchema = UserSchema(tenant_id=\"anonymous\"),  # mutated: بلا مصادقة",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "البلاطاتُ تُحمَّل كـ`<img>` بلا ترويسة Authorization، فالإغراءُ قائمٌ لإعفاء هذه النقطة من البوّابة. الشاهدُ يشترط 401 على نداءٍ بلا هُويّة."
+        },
+        {
+          "expect": "test_registry_tile_route_authorizes_before_contacting_backend",
+          "find": "        async with tenant_connection(user) as conn:\n            row = await conn.fetchrow(\n                \"SELECT cog_url FROM raster_registry WHERE id::text = $1\", raster_id",
+          "replace": "        async with tenant_connection(None) as conn:  # mutated: اتّصالٌ غيرُ مُنسَب\n            row = await conn.fetchrow(\n                \"SELECT cog_url FROM raster_registry WHERE id::text = $1\", raster_id",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "العزلُ هنا ليس في جملة SQL — لا `tenant_id` فيها — بل في **نَسَب الاتّصال** إلى المستخدم المُصادَق؛ فنزعُ الهُويّة من `tenant_connection` ينزع RLS كلَّه. الشاهدُ يشترط 404 لمستأجِرٍ آخر و`transport == []`، أي أنّ بلاطةً لا تُطلَب لسجلٍّ لا يُقرأ."
         }
-      ]
+      ],
+      "$verified_on_sha_tile_route": "d1328d681b3a941a757aaf94e44285c3cb87b483"
     },
     "services/sahool-platform/api/routers/drawing_features.py": {
       "mutations": [
@@ -2432,6 +2454,351 @@
           "why": "Exempting loans from annual revenue completeness hides missing financial evidence; the witness removes only annual_revenue_usd from a complete loan context."
         }
       ]
+    },
+    "shared/gis/cloud_native_runtime.py": {
+      "$gap_ar": "TILEJSON-CROSSED-THE-BROWSER-BOUNDARY-WITH-A-URL-01 — كان `tilejson_for_cog` يُعيد `/tiler` (مساراً غيرَ موجود في أيّ بوّابة)، ثمّ صار يُعيد **هُويّةَ سجلّ** لا عنوانَ COG. والخاصّيّةُ المحروسة ليست شكلَ المسار بل أنّ ما يعبُر إلى المتصفّح **لا يحمل عنوان المصدر** — فالعميل لا يستطيع اختيارَ ما يُقرأ، وهو ما يُغلق شكلَ SSRF لا يُخفيه.",
+      "$verified_on_sha": "d1328d681b3a941a757aaf94e44285c3cb87b483",
+      "mutations": [
+        {
+          "expect": "test_record_stac_tilejson_are_db_backed_contracts",
+          "find": "    base = f\"/api/v1/gis/cloud-native/rasters/{quote(record.id, safe='')}/tiles\"\n    tiles = [f\"{base}/{{z}}/{{x}}/{{y}}.png\"]",
+          "replace": "    tiles = [f\"{record.cog_url}/{{z}}/{{x}}/{{y}}.png\"]  # mutated: العنوانُ يعبُر",
+          "test": "shared/gis/test_cloud_native_runtime.py",
+          "why": "تُعيد العطلَ الأخطر بأثرٍ رجعيّ: عنوانُ COG يعبُر إلى المتصفّح فيصير المصدرُ اختيارَ العميل. الشاهدُ يشترط `rec.cog_url not in str(tilejson)` — أي غيابَ العنوان نفسِه لا مجرّد شكلِ مسارٍ نسبيّ."
+        }
+      ]
+    },
+    "shared/gis/cog_tile_proxy.py": {
+      "$gap_ar": "COG-TILE-TRANSPORT-IS-AN-UNBOUNDED-FETCH-01 — ناقلٌ يقرأ من مضيفٍ خارجيّ بأمر مستهلِك. ثلاثُ خاصّيّات تفصل «ناقلاً محدوداً» عن «وكيلٍ مفتوح»: قائمةُ مضيفين مسموحين، وسقفُ حجم، وتحقّقٌ من النوع **بالبايتات** لا بترويسة `content-type` التي يملكها الطرفُ الآخر. وكلُّها تمرّ صامتةً على شجرةٍ سليمة، فتُزرَع واحدةً واحدة.",
+      "$verified_on_sha": "d1328d681b3a941a757aaf94e44285c3cb87b483",
+      "mutations": [
+        {
+          "expect": "test_untrusted_source_is_rejected_before_transport",
+          "find": "            and source.hostname in allowed\n",
+          "replace": "",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "بلا القائمة يصير الناقلُ وكيلاً مفتوحاً (SSRF): أيُّ مضيفٍ يُقرأ من داخل الشبكة. والشاهدُ يشترط الرفضَ **قبل** أيّ نداءٍ شبكيّ (`requests == []`)، فلا يمرّ على رفضٍ متأخّرٍ بعد أن وقع الاتّصال."
+        },
+        {
+          "expect": "test_bad_backend_response_is_not_a_successful_tile",
+          "find": "                    if len(content) > MAX_TILE_BYTES:\n                        raise HTTPException(502, \"cog_tile_backend_response_too_large\")",
+          "replace": "                    pass  # mutated: لا سقفَ — الذاكرةُ بيد الطرف الآخر",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "السقفُ يُقاس **أثناء** البثّ لا بعده؛ نزعُه يجعل حجمَ الاستجابة قرارَ الخادم البعيد. حالةُ الشاهد تبدأ ببصمة PNG صحيحة وتتجاوز السقف، فلا يلتقطها فحصُ النوع."
+        },
+        {
+          "expect": "test_bad_backend_response_is_not_a_successful_tile",
+          "find": "    if not content.startswith(PNG_SIGNATURE):\n        raise HTTPException(502, \"cog_tile_backend_not_png\")\n    return bytes(content)",
+          "replace": "    return bytes(content)  # mutated: الترويسةُ وحدَها تُصدّق النوع",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "يبقى فحصُ `content-type` فيبدو النوعُ محروساً — لكنّ الترويسةَ يملكها الطرفُ البعيد. حالةُ الشاهد `(200, b\"not a png\", \"image/png\")` تفصل تصديقَ البايتات عن تصديق الترويسة بالضبط."
+        }
+      ]
+    },
+    "services/raster-service/raster_security_context.py": {
+      "$gap_ar": "مجموعةُ قبول المُعلِن كانت أوسعَ من مجموعة قبول الناقل: `public_cog_url` يقبل `http://` وأيَّ منفذ، والنقلُ يشترط `https` على المنفذ القياسيّ ⇒ قالبُ بلاطاتٍ مُعلَنٌ تعود كلُّ بلاطةٍ منه 422.",
+      "mutations": [
+        {
+          "expect": "test_every_advertised_source_is_one_the_transport_will_fetch",
+          "find": "    if not low.startswith(\"https://\"):",
+          "replace": "    if not (low.startswith(\"http://\") or low.startswith(\"https://\")):  # mutated",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "يُعيد قبولَ `http://` في المُعلِن وحدَه — وهو الانفصالُ المقيس بعينه: يمرّ الإعلانُ ويحجب النقلُ بـ422."
+        },
+        {
+          "expect": "test_every_advertised_source_is_one_the_transport_will_fetch",
+          "find": "        if parsed.port not in (None, 443):",
+          "replace": "        if parsed.port not in (None, 443, 8443):  # mutated",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "النصفُ الثاني من الانفصال: منفذٌ غيرُ قياسيّ يمرّ المُعلِنَ ويحجبه الناقل. الخاصّيّةُ تُقاس بعرض الرابط على الحاكمين لا بتكرار شرطِ أحدهما."
+        },
+        {
+          "expect": "test_every_advertised_source_is_one_the_transport_will_fetch",
+          "find": "    if parsed.username or parsed.password or parsed.fragment:",
+          "replace": "    if parsed.fragment and False:  # mutated: اعتمادٌ مضمَّنٌ يمرّ",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "اعتمادٌ مضمَّنٌ في الرابط يمرّ المُعلِنَ فيُعلَن قالبٌ يحجبه الناقل — ويُسرِّب الاعتمادَ إلى TileJSON في الطريق."
+        }
+      ]
+    },
+    "services/raster-service/cloud_native_catalog.py": {
+      "$gap_ar": "معاينةُ سجلّ COG كانت تُصدِر `tilejson_url` بشكل TiTiler المباشر حاملاً المصدرَ في الاستعلام — مسارٌ لا توجّهه البوّابة أصلاً، فالرابطُ ميّتٌ ومُسرِّبٌ للشكل معاً، والسجلُّ المُعايَن بلا هويّةٍ فلا مسارَ بلاطاتٍ مُصادَقاً عليه له.",
+      "mutations": [
+        {
+          "expect": "test_cog_registry_preview_scores_quality_without_advertising_a_tile_path",
+          "find": "        \"tilejson_url\": None,",
+          "replace": "        \"tilejson_url\": f\"/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}?url={cog_url}\",  # mutated",
+          "test": "services/raster-service/test_cloud_native_catalog.py",
+          "why": "يُعيد الشكلَ القديم إلى معاينةٍ لا تملك هويّةَ سجلّ؛ الشاهدُ يشترط غيابَ القالب وعلّةً مُسمّاة، ويمنع ظهورَ `WebMercatorQuad` في أيّ حقل."
+        }
+      ]
+    },
+    "services/raster-service/routers/tiles.py": {
+      "$gap_ar": "الفرعُ الديناميكيّ الجديد في مسار بلاطات الطبقة (مصدرٌ عامّ ⇒ نقلٌ محدود) كان بلا شاهدٍ على مستوى نقطة النهاية: عطلُ وصلٍ فيه يمرّ خضراء.",
+      "mutations": [
+        {
+          "expect": "test_a_stale_ownership_cache_does_not_serve_another_tenants_tile",
+          "find": "    await require_layer_tenant_authorized(layer_id, layers=LAYERS, logger=logger)\n    if layer_id not in LAYERS:\n        raise HTTPException(404, \"طبقة غير موجودة\")\n    tile_path = os.path.join(UPLOAD_DIR, layer_id, f\"{z}_{x}_{y}.png\")",
+          "replace": "    if layer_id not in LAYERS:  # mutated: الملكيّةُ من القاعدة لا تُفحَص\n        raise HTTPException(404, \"طبقة غير موجودة\")\n    tile_path = os.path.join(UPLOAD_DIR, layer_id, f\"{z}_{x}_{y}.png\")",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "نزعُ الفحص المدعوم بالقاعدة يجعل **ذاكرةً بائتة** كافيةً لخدمة بلاطةِ مستأجِرٍ آخر. وأوّلُ شاهدٍ سمّيتُه نجا من هذه الطفرة لأنّه كان يُخالِف الذاكرةَ أيضاً فيكفيه الفحصُ السريع؛ فعُزِّز الشاهدُ إلى حالة الذاكرة البائتة بدل حذف الطفرة."
+        },
+        {
+          "expect": "test_layer_tile_endpoint_serves_a_public_cog_through_the_bounded_transport",
+          "find": "            cog_url, z, x, y, base_url=TITILER_URL, colormap=colormap, rescale=rescale",
+          "replace": "            cog_url, z, x, y, base_url=TITILER_URL, rescale=rescale  # mutated: colormap يُسقَط",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "عطلُ وصلٍ صامت: البلاطةُ تُخدَم لكن بلا خريطةِ الألوان المطلوبة. الشاهدُ يقرأ `colormap_name` من طلبِ الخلفيّة الفعليّ."
+        }
+      ]
+    },
+    "services/odoo-bridge/erp_provider.py": {
+      "$gap_ar": "ERPNext صار يشترط عنواناً صريحاً مع الاعتمادين، لكنّ شاهدَ التبديل كان `if … : append` بلا تأكيد — فمسارُ النجاح غيرُ مقيسٍ أصلاً، وحالةُ «بلا مفاتيح» تمرّ لسببٍ آخر ولو حُذِف فحصُ المفاتيح.",
+      "mutations": [
+        {
+          "expect": "test_erp_provider_switch",
+          "find": "        if not url or not key or not secret:",
+          "replace": "        if not key or not secret:  # mutated: هدفٌ مختلَقٌ بلا عنوان",
+          "test": "tests_v9/test_roadmap_phase23.py",
+          "why": "يُعيد اختلاقَ هدفٍ عند غياب العنوان؛ الحالةُ ٣ب تشترط الهبوطَ إلى NullProvider بمفاتيحَ كاملةٍ بلا عنوان."
+        }
+      ]
+    },
+    "nginx/nginx.v9.conf": {
+      "$gap_ar": "القالبُ المُعلَن في TileJSON يشير إلى مسار منصّةٍ مُصادَق، لكنّ `location /api/v1/` لا يشتقّ التوكنَ من كوكي `sahool_at` كما يفعل `/api/raster/` — و`<img>`/MapLibre لا يحمل ترويسة ⇒ 401 على كلّ بلاطة.",
+      "mutations": [
+        {
+          "expect": "test_the_advertised_tile_path_reaches_a_gateway_location_that_bridges_the_cookie",
+          "find": "        location ~ ^/api/v1/gis/cloud-native/rasters/[^/]+/tiles/ {",
+          "replace": "        location ~ ^/api/v1/NEVER-MATCHES/rasters/[^/]+/tiles/ {  # mutated",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "يُعطّل انطباقَ موقع البلاطات فيعود المسارُ إلى مطابقة البادئة العامّة بلا جسرِ كوكي — أي 401 لكلّ <img>. الشاهدُ يحتسب الفائزَ بقواعد nginx نفسِها من مسارٍ مشتقٍّ من `tilejson_for_cog`."
+        },
+        {
+          "expect": "test_the_gateway_configuration_parses_and_the_tile_location_is_well_formed",
+          "find": "            proxy_pass http://platform_backend;                           # بلا مقطع URI: المسارُ يمرّ كما هو.",
+          "replace": "            proxy_pass http://platform_backend/api/v1/;                   # mutated: مقطعُ URI",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "قيدٌ دلاليٌّ لا يراه مُحلّلُ الصياغة: `proxy_pass` بمقطع URI داخل موقعٍ نمطيّ يرفضه nginx **وقت التحميل**، فيسقط المكدّسُ كلُّه لا هذا المسار وحدَه. وكنتُ أدّعي فحصَه بالقراءة، فصار نتيجةً."
+        },
+        {
+          "expect": "test_the_gateway_configuration_parses_and_the_tile_location_is_well_formed",
+          "find": "            auth_request /_auth_verify;                                   # فشله ⇒ رفض، لا تمرير.",
+          "replace": "            auth_request /_auth_verify                                    # mutated: بلا فاصلة منقوطة",
+          "test": "tests_v9/test_connectivity_tile_transport.py",
+          "why": "خطأُ صياغةٍ صرف: بلا nginx ولا Docker في العدّاء، كان يمرّ إلى الدمج ويسقط المكدّسَ عند الإقلاع. `crossplane` يُعيد `status: failed` فيحمرّ الشاهد."
+        }
+      ]
+    },
+    "services/sahool-platform/api/irrigation_runtime_orchestrator.py": {
+      "$gap_ar": "ORCHESTRATOR-READS-JSONB-AS-IF-DECODED-01 — `asyncpg` يُسلّم `jsonb` **نصّاً** ما لم يُسجَّل مُرمِّز، ومسبحُ `api/main.py` لا يُسجّله (يقيسه `tests_v9/test_live_pg_fake_connection_debt.py::test_asyncpg_really_returns_jsonb_as_str_without_a_codec`). فكان المنسّق يقرأ ثلاثة أعمدة بـ`dict(row[...])`/`list(row[...])`: الأوّل يرفع `ValueError` عند أوّل صفٍّ حقيقيّ فيسقط المسارُ الساعيّ كلُّه بـ500، والثاني يُحوّل `\"[]\"` إلى `['[', ']']` **بلا خطأ** فيصير سببا حجبٍ مختلقان من قوسين. ونجا العطلُ من الجناح لأنّ بديلَ `fetchrow` كان يبني الصفَّ بكائناتٍ مفكوكةٍ أصلاً — فيفترض الجوابَ الذي يدّعي قياسه. والعطلُ نفسُه أُصلح مرّةً في العامل ووُثّق حرفيّاً في docstring الدالّة `decode_jsonb`، وبقي هذا الموضعُ عليه.",
+      "mutations": [
+        {
+          "expect": "test_a_jsonb_object_arriving_as_text_is_decoded_not_crashed",
+          "find": "    decoded = _decode_or_block(value, {}, column=column)\n    if not isinstance(decoded, dict):\n        raise _MalformedCanonicalRow(column)\n    return dict(decoded)",
+          "replace": "    return dict(value or {})  # mutated: العطلُ الأصليّ — قراءةٌ بلا فكّ",
+          "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
+          "why": "هذه هي الصياغةُ التي كانت في المصدر حرفيّاً. `dict('{\"a\": 1}')` يرفع `ValueError`، فالمسارُ الساعيّ يسقط عند أوّل صفٍّ تُعيده قاعدةٌ حقيقيّة."
+        },
+        {
+          "expect": "test_a_jsonb_array_arriving_as_text_is_a_list_not_its_characters",
+          "find": "    decoded = _decode_or_block(value, [], column=column)\n    if not isinstance(decoded, list) or not all(isinstance(item, str) for item in decoded):\n        raise _MalformedCanonicalRow(column)\n    return list(decoded)",
+          "replace": "    return list(value or [])  # mutated: العطلُ الصامت — النصُّ يصير حروفاً",
+          "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
+          "why": "أخطرُ الشقّين لأنّه **لا يرفع**: `list('[\"A\", \"B\"]')` يُعيد حروفاً، فتظهر أسبابُ حجبٍ مختلقة في `blocking_reasons` ولا يحمرّ شيء."
+        },
+        {
+          "expect": "test_a_wrong_shape_names_its_column_instead_of_escaping_as_500",
+          "find": "    if not isinstance(decoded, dict):\n        raise _MalformedCanonicalRow(column)",
+          "replace": "    if not isinstance(decoded, dict):\n        decoded = {}  # mutated: البنيةُ الفاسدة تُبتلَع بصمت",
+          "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
+          "why": "الفكُّ وحدَه لا يكفي: صفٌّ بمصفوفةٍ حيث يُنتظَر كائن يمرّ فارغاً فيُحسَب «غيابَ قدرة» بدل «صفّاً فاسداً»."
+        },
+        {
+          "expect": "test_truncated_json_blocks_by_name_instead_of_escaping_as_500",
+          "find": "    try:\n        return decode_jsonb(value, default)\n    except ValueError as exc:  # JSONDecodeError من json.loads\n        raise _MalformedCanonicalRow(column) from exc",
+          "replace": "    return decode_jsonb(value, default)  # mutated: JSONDecodeError يهرب خمسمئةً",
+          "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
+          "why": "ثغرةُ الصياغة الأولى لهذا الإصلاح، وجدتها المراجعةُ المتوازية بحالة `\"{\"`: اشتراطُ البنية يلتقط الشكلَ الخاطئ ولا يلتقط النصَّ **غيرَ الصالح** — `json.loads` يرفع قبل أن تصل القيمةُ إلى `isinstance`."
+        },
+        {
+          "expect": "test_a_reason_list_of_non_strings_is_malformed_not_a_numeric_block_reason",
+          "find": "not isinstance(decoded, list) or not all(isinstance(item, str) for item in decoded)",
+          "replace": "not isinstance(decoded, list)",
+          "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
+          "why": "من المراجعة المتوازية: `[1]` قائمةٌ صحيحةُ البنية تُنتج سببَ حجبٍ رقميّاً في حمولةٍ يقرؤها إنسان. اشتراطُ القائمة وحدَه يمرّ عليها."
+        },
+        {
+          "expect": "test_every_jsonb_column_the_orchestrator_reads_goes_through_a_decoder",
+          "find": "    payload = _jsonb_object(row[\"payload\"], column=\"canonical_irrigation_capability_graphs.payload\")",
+          "replace": "    payload = dict(row[\"payload\"] or {})  # mutated: عمودٌ يعود إلى القراءة المباشرة",
+          "test": "tests_v9/test_irrigation_orchestrator_jsonb_decoding.py",
+          "why": "الدالّتان قد تبقيان سليمتين ويُضاف عمودٌ يُقرأ مباشرةً، فيعود العطلُ من بابٍ آخر. حارسُ الانحدار يُشتقّ من المصدر لا من قائمةٍ مكتوبة."
+        },
+        {
+          "expect": "test_server_owned_orchestrator_builds_and_persists",
+          "find": "    payload = _jsonb_object(row[\"snapshot\"], column=\"irrigation_executability_gates.snapshot\")",
+          "replace": "    payload = dict(row[\"snapshot\"] or {})  # mutated: العطلُ في بوّابة القابليّة",
+          "test": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+          "why": "شاهدٌ من طرفٍ إلى طرف: البديلُ مُعامَلٌ على حالتَي `codec`/`asyncpg-default`، فالحالةُ الثانية تُسلّم `jsonb` نصّاً كما تُسلّمه القاعدة. ولو بقي البديلُ المفكوكُ وحدَه لمرّت الطفرةُ خضراء — وهو سببُ نجاة العطل الأصليّ من الجناح."
+        },
+        {
+          "expect": "test_invalid_persisted_jsonb_blocks_at_http_boundary",
+          "find": "    except _MalformedCanonicalRow as exc:\n        return _blocked(",
+          "replace": "    except _MalformedCanonicalRow:  # mutated: الاستثناء يهرب خمسمئةً\n        raise\n    if False:\n        return _blocked(",
+          "test": "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+          "why": "من المراجعة المتوازية: الشاهدُ يقيس على **حدّ HTTP** أنّ الردّ 200 محجوبٌ لا خمسمئة، وأنّ الطقسَ لم يُنتظَر وأنّ شيئاً لم يُكتَب. الطفرةُ تُبقي الفكَّ سليماً وتنزع التسميةَ وحدَها، فتفصل «فُكَّ الترميز» عن «حُجِب بسببٍ مفهوم»."
+        }
+      ]
+    },
+    "services/sahool-platform/api/decision_service_client.py": {
+      "$gap_ar": "DECISION-SERVICE-HARDENING-IS-NOT-ACTIVATABLE-01 — وسيطُ `_service_token_guard` يقرأ `Authorization: Bearer` وحدَه، والعميلُ كان يرسل `X-Agent-Token` الذي لا يقرؤه أحد: **صفرٌ من ٢٧ نداءً داخليّاً** يمرّر تفويضاً. فما كان التشديدُ معطَّلاً بل غيرَ قابلٍ للتفعيل — ضبطُ `DECISION_SERVICE_AUTH_TOKEN` كما توصي الوثيقة يردّ كلَّ نداءات المنصّة 401، ويبتلعها `lexicographic_mpc_bridge` في `try` عريض فتسقط التوصيةُ الصالحة معها. وحتّى ذلك الحين تبقى موافقةُ الإنسان — آخرُ حاجزٍ قبل التنفيذ — بلا مصادقةٍ على الشبكة الداخليّة. ولم يمسكه اختبارٌ لأنّ لكلّ طرفٍ اختباراتِه وكلاهما أخضر: لا أحد ركّب ما يرسله العميلُ فعلاً على ما يفرضه الوسيطُ فعلاً. والإصلاحُ النهائيّ من المراجعة المتوازية (`b15871f9`): وحدةٌ مشتركة `shared/security/decision_service_auth.py` يستعملها كلُّ المستهلكين لا المنصّةُ وحدَها، وتفشل **مغلقةً** (503) في الإنتاج عند غياب الرمز بدل نداءٍ عارٍ يرتدّ 401 فيُبتلَع، وترفض رموزاً تحوي `\\r\\n`، و`trust_env=False` يمنع إعادةَ توجيه نداءٍ داخليّ عبر وكيل بيئيّ. وصحّحت خاصّيّةً كنتُ أشترطها خطأً: رمزُ المستخدم ليس اعتماداً لهذه القفزة.",
+      "mutations": [
+        {
+          "expect": "test_what_the_platform_sends_is_what_the_service_accepts",
+          "find": "        headers = decision_service_auth_headers()",
+          "replace": "        headers = {\"X-Agent-Token\": os.getenv(\"SAHOOL_AGENT_TOKEN\", \"\")}  # mutated: العطلُ الأصليّ",
+          "test": "tests_v9/test_decision_service_auth_is_activatable.py",
+          "why": "يُعيد الصياغةَ التي كانت في `main` حرفيّاً: ترويسةٌ لا يقرؤها الوسيطُ أصلاً. الشاهدُ يستدعي الوسيطَ الحقيقيّ على الترويسة الحقيقيّة، فلا يمرّ على «العميل يضع ما نضعه له»."
+        },
+        {
+          "expect": "test_the_service_hop_never_forwards_a_user_jwt_in_place_of_service_credentials",
+          "find": "    if tenant_id:\n        headers[\"X-Tenant-Id\"] = str(tenant_id)",
+          "replace": "    if authorization:\n        headers[\"Authorization\"] = authorization  # mutated: رمزُ المستخدم يُزيح رمزَ الخدمة\n    if tenant_id:\n        headers[\"X-Tenant-Id\"] = str(tenant_id)",
+          "test": "tests_v9/test_decision_service_auth_is_activatable.py",
+          "why": "«إصلاحٌ» يبدو لطيفاً — تمريرُ تفويض المُتّصِل — يكسر المصادقةَ فعليّاً: الوسيطُ يقارن المُقدَّم بالرمز الخدميّ المشترَك، فرمزُ مستخدمٍ صحيحٌ تماماً يرتدّ 401. وهي الخاصّيّةُ التي كنتُ أشترط عكسَها قبل المراجعة المتوازية."
+        }
+      ]
+    },
+    "services/sahool-platform/api/canonical_water_state.py": {
+      "$gap_ar": "CANONICAL-WATER-FABRICATES-WHAT-IT-DOES-NOT-MODEL-01 — الجريانُ السطحيّ غيرُ منمذَجٍ في هذا المُنتِج، وكان يُكتَب `runoff_mm: 0.0` حرفيّاً لكلّ يوم فيُقرأ قياساً لا غياباً؛ ويمرّ إلى المنسّق ثمّ إلى حساب المطر الفعّال.",
+      "mutations": [
+        {
+          "expect": "test_unmodelled_runoff_is_declared_not_reported_as_a_measured_zero",
+          "find": "                \"rain_mm\": float(rain),\n                \"source\": \"weather-engine-et0-series+season-phenology\",",
+          "replace": "                \"rain_mm\": float(rain),\n                \"runoff_mm\": 0.0,  # mutated: صفرٌ مختلَق يُقرأ قياساً\n                \"source\": \"weather-engine-et0-series+season-phenology\",",
+          "test": "tests_v9/test_canonical_water_state_mpc.py",
+          "why": "الصفرُ المختلَق يمرّ إلى `daily_runoff_mm_by_date` في المنسّق فيدخل حسابَ `effective_rain_mm` بوصفه قياساً. والأثرُ اتّجاهيّ: نقصُ ريٍّ على المنحدرات. والمُنتِجُ القانونيّ للجريان قائمٌ ومُسجَّل — بلا مستهلكٍ واحد في شجرة الإنتاج."
+        }
+      ]
+    },
+    "services/sahool-platform/api/routers/irrigation_mpc.py": {
+      "$gap_ar": "SALINITY-GUARD-MEASURES-TEXT-NOT-TRAVERSAL-01 — حارسُ H5.1 يشترط سلاسلَ نصّ في `ROUTE_SRC`، و`ROUTE_SRC` هو الملفُّ كلُّه وفيه أكثرُ من نقطة إصدار. فما دام أيُّ مسارٍ يستدعي `evaluate_water_salinity_gate` يبقى الحارسُ أخضرَ ولو أصدرت النقاطُ الأخرى مرشّحاتٍ محكومة بلا فحصِ ملوحة. وهو الصنفُ الذي يصفه كتالوجُ الحرّاس: يمرّ على شجرةٍ سليمة، ولم يُقَس قطّ أنّه يحمرّ حين يوجد العطل.",
+      "mutations": [
+        {
+          "expect": "test_every_candidate_emission_point_is_gated_on_the_salinity_verdict",
+          "find": "        out[\"emit\"] = {\n            \"status\": \"rejected_simulation\",",
+          "replace": "        out[\"emit\"] = await emit_mpc_candidate(decision, tenant_id=tenant_id)  # mutated: نقطةُ إصدارٍ ثانية بلا بوّابة ملوحة\n        out[\"emit_simulation_note\"] = {\n            \"status\": \"rejected_simulation\",",
+          "test": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
+          "why": "تزرع نقطةَ إصدارٍ ثانية في دالّةٍ لا تستدعي البوّابة — وهو العطلُ الذي كان الحارسُ النصّيّ يمرّ عليه أخضرَ حرفيّاً، لأنّ السلاسلَ الثلاثَ تبقى موجودةً في الملفّ بفضل النقطة المُحكَمة. الجردُ المُشتقّ من `ast` يراها."
+        },
+        {
+          "expect": "test_the_hardened_route_has_no_unconditionally_disabled_fact_source",
+          "find": "    async with tenant_connection(user) as conn:\n        return await resolve_canonical_water_state(",
+          "replace": "    return None  # mutated: المصدرُ يعود مُعطَّلاً بنيويّاً\n    async with tenant_connection(user) as conn:\n        return await resolve_canonical_water_state(",
+          "test": "tests_v9/test_lexicographic_mpc_bridge.py",
+          "why": "يُعيد العطلَ الأصليّ: مصدرُ حقائقَ يُرجِع `None` بلا شرط، فتُرجِع النقطةُ المُحكَمة blocked دائماً ويبقى المسارُ الوحيدُ المُصدِر هو الذي لا يفحص شيئاً. والحارسُ مُشتقٌّ من `ast` فلا يُخدَع بتعليقٍ ولا يبيت باسمٍ جديد."
+        },
+        {
+          "expect": "test_a_degraded_canonical_snapshot_cannot_become_an_operational_candidate",
+          "find": "    if not canonical.operational_eligible:",
+          "replace": "    if False:  # mutated: حكمُ المُنتِج على لقطتِه يُتجاهَل",
+          "test": "tests_v9/test_lexicographic_mpc_bridge.py",
+          "why": "لقطةٌ صالحةُ الشكل من دفترٍ بائت تُصدِر مرشّحاً محكوماً بسلطةٍ أقوى من دليلها — وهو بعينه سببُ قطعِ الإصدار عن `/plan`. الوصلُ لا يجوز أن يُعيده من الباب الآخر."
+        },
+        {
+          "expect": "test_the_decision_is_built_from_the_canonical_snapshot_not_from_request_fields",
+          "find": "        \"raw_fraction\": canonical.raw_fraction,",
+          "replace": "        \"raw_fraction\": req.raw_fraction,  # mutated: حقيقةُ عميلٍ تُزيح اللقطة",
+          "test": "tests_v9/test_lexicographic_mpc_bridge.py",
+          "why": "`RecommendationRequest` ما زال يحمل `raw_fraction`، فتوجيهُ العميل قد يعود من بابٍ خلفيّ بينما يبقى النَّسَبُ يقول «قانونيّ» — وهو أخطرُ من الحقيقة المكشوفة."
+        }
+      ]
+    },
+    "shared/security/decision_service_auth.py": {
+      "$gap_ar": "DECISION-SERVICE-CREDENTIAL-ABSENCE-IS-SILENT-01 — عقدُ الاعتماد الصادر إلى decision-service. من `b15871f9`: مصدرٌ واحد لكلّ المستهلكين (المنصّة · جسر الماء · التحليل النباتيّ · BFF · raster)، يفشل **مغلقاً** في الإنتاج عند غياب الرمز بدل نداءٍ عارٍ يرتدّ 401 فيُبتلَع، ويرفض رموزاً تحمل `\\r\\n` (حقنُ ترويسة).",
+      "mutations": [
+        {
+          "expect": "test_production_without_a_service_token_fails_closed_instead_of_calling_unauthenticated",
+          "find": "    if (required and not token) or any(c in token for c in \"\\r\\n\"):\n        raise DecisionServiceAuthUnavailable()",
+          "replace": "    pass  # mutated: الغيابُ يمضي نداءً عارياً بدل فشلٍ معلَن",
+          "test": "tests_v9/test_decision_service_auth_is_activatable.py",
+          "why": "بلا الفشل المُغلَق يمضي النداءُ بلا ترويسة فيرتدّ 401 ويُبتلَع عند المُنادي، فيصير «الأمانُ مُفعَّل» و«النظامُ يعمل» ادّعاءَين لا يجتمعان ولا يظهر أيُّهما كاذب."
+        }
+      ]
+    },
+    "services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py": {
+      "$gap_ar": "WORKERS-INHERIT-AN-HTTP-HEALTHCHECK-THEY-CANNOT-ANSWER-01: العاملُ يرث `HEALTHCHECK curl :8000/healthz` من صورة المنصّة ولا يخدم HTTP فيُقرأ unhealthy دائماً؛ النبضةُ هي ما يقرأه مسبارُ compose، فغيابُها أو كذبُها يجب أن يحمرّ.",
+      "mutations": [
+        {
+          "expect": "test_a_sweep_leaves_a_fresh_running_heartbeat_the_probe_accepts",
+          "find": "    heartbeat.mark_poll(expired)\n    heartbeat.write()\n    return expired",
+          "replace": "    return expired  # mutated: كنسٌ ناجح بلا نبضة",
+          "test": "tests/irrigation/test_irrigation_reservation_lifecycle_worker.py",
+          "why": "كنسٌ ناجح لا يترك نبضة ⇒ المسبار يقرأ `starting` بائتاً ثمّ يُعلن العامل ميّتاً وهو يعمل — عودةُ العطل الأصليّ بثوبٍ آخر."
+        },
+        {
+          "expect": "test_a_failing_sweep_marks_the_heartbeat_failed_but_keeps_the_worker_alive",
+          "find": "        heartbeat.mark_error(f\"{type(exc).__name__}: {exc}\")\n        heartbeat.write()\n        return 0",
+          "replace": "        return 0  # mutated: فشلٌ صامت في النبضة",
+          "test": "tests/irrigation/test_irrigation_reservation_lifecycle_worker.py",
+          "why": "كنسٌ يفشل كلَّ دورة يبقى المسبارُ يقرأ آخرَ نبضةٍ ناجحة (أو `starting`) — صحّةٌ خضراء على عاملٍ لا يُنجز شيئاً."
+        },
+        {
+          "expect": "test_the_probe_max_age_follows_the_configured_poll_interval",
+          "find": "    return max(PROBE_MIN_MAX_AGE_SECONDS, PROBE_MISSED_POLLS * poll_seconds())",
+          "replace": "    return PROBE_MIN_MAX_AGE_SECONDS  # mutated: رقمٌ ثابت لا يتبع الإعداد",
+          "test": "tests/irrigation/test_irrigation_reservation_lifecycle_worker.py",
+          "why": "فاصلُ كنسٍ مشروع (١٨٠ ث) يجعل كلَّ نبضةٍ بائتةً قبل التالية ⇒ عاملٌ سليم يُقرأ ميّتاً — العطلُ الذي أمسكته مراجعة Copilot على الرقم المكتوب في compose."
+        }
+      ]
+    },
+    "services/sahool-platform/api/irrigation_dispatch_relay_worker.py": {
+      "$gap_ar": "WORKERS-INHERIT-AN-HTTP-HEALTHCHECK-THEY-CANNOT-ANSWER-01 (المُرحِّل): مدفوعٌ بالأحداث فنبضتُه زمنيّة + لكلّ رسالة؛ والمُطفَأ يجب أن ينبض `idle` لا `running`.",
+      "mutations": [
+        {
+          "expect": "test_a_handled_delivery_leaves_a_running_heartbeat_the_probe_accepts",
+          "find": "                heartbeat.mark_poll(1)\n            elif outcome == \"failed\":",
+          "replace": "                pass  # mutated: رسالةٌ مُرحَّلة بلا نبضة\n            elif outcome == \"failed\":",
+          "test": "tests/irrigation/test_gate_b_dispatch_relay_worker.py",
+          "why": "ترحيلٌ ناجح لا يُحدِّث النبضة ⇒ العدّادُ يبقى صفراً والحالةُ `starting`، فلا يستطيع المسبارُ تمييزَ مُرحِّلٍ يعمل من مُرحِّلٍ لم يستقبل شيئاً."
+        },
+        {
+          "expect": "test_a_disabled_relay_beats_idle_so_it_is_healthy_but_visibly_not_working",
+          "find": "        heartbeat.current_state = state\n",
+          "replace": "        heartbeat.current_state = \"running\"  # mutated: الخمولُ يتنكّر عملاً\n",
+          "test": "tests/irrigation/test_gate_b_dispatch_relay_worker.py",
+          "why": "مُرحِّلٌ مُطفَأ بالعلَم ينبض `running` ⇒ لوحةُ الصحّة تقول إنّ الأحداث تُرحَّل بينما تستقرّ في الـoutbox — كذبةُ حالةٍ لا عطلُ حياة."
+        },
+        {
+          "expect": "test_a_failed_delivery_outcome_marks_the_heartbeat_failed_not_running",
+          "find": "            if outcome == \"delivered\":",
+          "replace": "            if outcome is not None:  # mutated: كلُّ مخرَجٍ نجاح",
+          "test": "tests/irrigation/test_gate_b_dispatch_relay_worker.py",
+          "why": "POST يعود 503 كلَّ مرّة والمسبارُ أخضر: `handle_delivered_message` تعود بلا استثناء فتُحتسَب تسليماً — الالتفافُ الذي أمسكته المراجعة (٣ أصوات)."
+        },
+        {
+          "expect": "test_the_idle_beat_preserves_a_failed_state_until_a_delivery_succeeds",
+          "find": "        if heartbeat.current_state == \"failed\":\n            _touch_alive(heartbeat)\n        else:",
+          "replace": "        if False:  # mutated: الساعةُ تمحو الفشل\n            _touch_alive(heartbeat)\n        else:",
+          "test": "tests/irrigation/test_gate_b_dispatch_relay_worker.py",
+          "why": "نبضةُ الخمول كلَّ ٦٠ ث تُعيد `running` فوق `failed` ⇒ انقطاعُ التسليم يختفي من الصحّة بعد دقيقة بلا أن ينجح تسليمٌ واحد."
+        }
+      ]
+    },
+    "scripts/deploy/validate_helm_readiness.py": {
+      "test": "tests_v9/test_helm_source_contract.py",
+      "$counterexample": "SUP-12: baseline chart passed despite five ports differing from their source Dockerfile EXPOSE; SQLite was replicated without persistent storage.",
+      "$positive_witness": "test_production_chart_matches_actual_sources",
+      "$impact": "release",
+      "mutations": [
+        {
+          "expect": "test_wrong_port_mutation_is_rejected",
+          "find": "        if spec.get(\"port\") not in ports:",
+          "replace": "        if False:  # mutated: ignore the image listening port",
+          "why": "The wrong-port counterexample must be rejected by the actual validator."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
@@ -2526,6 +2893,12 @@
     },
     "brain_append_only_guard.py": {
       "mutations": [
+        {
+          "expect": "test_omitting_base_is_a_usage_error_not_a_green_measurement",
+          "find": "        \"--base\",\n        required=True,",
+          "replace": "        \"--base\",\n        required=False,",
+          "why": "إسقاطُ الإلزام ⇒ يعود الحارس إلى فحص HEAD وحده بلا `--base` ويطبع ok — GUARD-RUN-WITHOUT-THE-ARGUMENTS-CI-PASSES-01 نفسها: خضرةٌ عن سؤالٍ لم يُطرَح. الاختبارُ يستدعي السكربت بلا وسائط عبر subprocess ويطلب رمز 2 وذكرَ الراية، فلا skipif ولا حاجة إلى تاريخ."
+        },
         {
           "expect": "test_both_parents_are_examined_not_just_one",
           "find": "        for parent in parents_of(commit, root=root):",

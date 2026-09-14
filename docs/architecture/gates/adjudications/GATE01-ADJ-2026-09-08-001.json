@@ -6,6 +6,7 @@
   "status": "CONSUMED",
   "approved_by": "owner",
   "adjudicated_on": "2026-09-08",
+  "pr": 990,
   "one_time": true,
   "phase0_baseline_ref": {
     "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
@@ -45,6 +46,8 @@
   "consumption": {
     "merge_sha": "7407eae2ba006a4c4c07018988a0f680e176abea",
     "consumed_on": "2026-09-09",
-    "note_ar": "دخلت البايتات المأذونة إلى main عبر PR #990 بعد إدماج إصلاحات PR #991. طوبقت بصمتا authorized_blobs مع شجرة الدمج المذكور قبل ختم الاستهلاك؛ لا يوسّع هذا الختم التفويض ولا يغيّر حالة GATE-01 العالمية."
+    "merged_at": "2026-09-09T13:25:56Z",
+    "merge_evidence_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/990",
+    "note_ar": "خُتم بعد التحقق من دمج #990 ومن تطابق بصمتي الملفين المصرح بهما مع شجرة الدمج. الختم يستهلك التفويض القائم ولا يضيف إذناً جديداً أو يفتح GATE-01."
   }
 }

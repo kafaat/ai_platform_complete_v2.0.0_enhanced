@@ -9,6 +9,8 @@ x-logging: &id001
 # متغيّر، فلم يبقَ أيّ مُشير إلى ``*id002`` وأُزيلت المرساة اليتيمة (لا كتلة ميّتة في المخطّط).
 services:
   raster-tiler-service:
+    # MEM-LIMIT-ABSENT-01 (المراجعة البنيويّة 2026-09-13 §٤.١): كان بلا سقف ذاكرة — مُعايَرٌ على أقرانه في هذا الملفّ.
+    mem_limit: 1024m
     build:
       context: .
       dockerfile: services/raster-tiler-service/Dockerfile
@@ -21,6 +23,8 @@ services:
     - no-new-privileges:true
     environment:
     - PORT=8088
+    networks:
+    - sahool-internal
     ports:
     - 127.0.0.1:8088:8088
     healthcheck:
@@ -61,6 +65,16 @@ services:
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
     depends_on:
+      sahool-platform:
+        condition: service_healthy
+      sahool-raster-service:
+        condition: service_healthy
+      sahool-scout-ingest:
+        condition: service_healthy
+      sahool-notification-agent:
+        condition: service_healthy
+      sahool-frontend:
+        condition: service_healthy
       sahool-auth:
         condition: service_healthy
       sahool-supervisor-agent:
@@ -318,7 +332,7 @@ services:
       retries: 10
       start_period: 30s
   sahool-nats:
-    image: nats:2-alpine
+    image: nats:2-alpine@sha256:ad7a43eb7e3337c3c38ce5d784d1461791f95f730f252d2b25eee699752a0ca3
     # NATS-BROKER-HAS-NO-AUTHENTICATION-…-01: الوسيطُ كان مفتوحاً لكلّ من بلغ
     # `sahool-internal`. الاعتمادُ يُورَث من البيئة ويستوفيه `nats.conf` بـ`$NATS_USER`
     # و`$NATS_PASSWORD`؛ و`:?` تمنع سرّاً افتراضيّاً منشوراً وتُفشِل الإقلاعَ مغلقاً.
@@ -379,6 +393,8 @@ services:
       retries: 6
       start_period: 60s
   sahool-minio-init:
+    # MEM-LIMIT-ABSENT-01 (المراجعة البنيويّة 2026-09-13 §٤.١): كان بلا سقف ذاكرة — مُعايَرٌ على أقرانه في هذا الملفّ.
+    mem_limit: 128m
     image: ${MINIO_MC_IMAGE:-minio/mc:RELEASE.2025-04-16T18-13-26Z}
     restart: "no"
     security_opt:
@@ -507,6 +523,8 @@ services:
       retries: 10
       start_period: 180s
   sahool-migrate:
+    # MEM-LIMIT-ABSENT-01 (المراجعة البنيويّة 2026-09-13 §٤.١): كان بلا سقف ذاكرة — مُعايَرٌ على أقرانه في هذا الملفّ.
+    mem_limit: 256m
     image: postgis/postgis:15-3.4
     restart: 'no'
     logging: *id001
@@ -615,6 +633,8 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      FCM_CREDENTIALS_JSON: ${FCM_CREDENTIALS_JSON:-}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://sahool-otel-collector:4318}
       SAHOOL_JWT_SECRET: ${JWT_SECRET:?JWT_SECRET required — min 32 chars}
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
       SAHOOL_CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
@@ -628,11 +648,18 @@ services:
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_SERVICE_URL: ${RASTER_SERVICE_URL:-http://sahool-raster-service:8001}
+      TITILER_URL: ${TITILER_URL:-http://raster-tiler-service:8088}
+      COG_TILE_ALLOWED_HOSTS: ${COG_TILE_ALLOWED_HOSTS:-}
       WEATHER_SERVICE_URL: ${WEATHER_SERVICE_URL:-http://sahool-weather-service:8000}
       SOIL_SERVICE_URL: ${SOIL_SERVICE_URL:-http://sahool-soil-service:8000}
       # Best-effort mirror target (dual-path): platform writes are authoritative; the facade
       # mirrors to this URL and swallows failures. Unreachable mirror ⇒ logged warning, never data loss.
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
+      # الرمزُ الخدميّ نفسُه الذي يفرضه `_service_token_guard` هناك. بدونه كان تفعيلُ
+      # `DECISION_SERVICE_AUTH_TOKEN` يردّ كلَّ نداءات المنصّة 401 — تشديدٌ يُعطِّل بدل
+      # أن يحمي؛ و`DECISION_REQUIRE_AUTH_TOKEN` يجعل غيابَه فشلاً معلَناً لا صمتاً.
+      DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
+      DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
@@ -675,6 +702,8 @@ services:
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
       SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
     depends_on:
+      raster-tiler-service:
+        condition: service_healthy
       sahool-postgres:
         condition: service_healthy
       sahool-redis:
@@ -696,6 +725,8 @@ services:
       retries: 6
       start_period: 30s
   sahool-weather-polygon-worker:
+    # MEM-LIMIT-ABSENT-01 (المراجعة البنيويّة 2026-09-13 §٤.١): كان بلا سقف ذاكرة — مُعايَرٌ على أقرانه في هذا الملفّ.
+    mem_limit: 512m
     build:
       context: .
       dockerfile: services/weather-polygon-worker/Dockerfile
@@ -733,6 +764,8 @@ services:
       retries: 6
       start_period: 40s
   sahool-weather-signal-engine:
+    # MEM-LIMIT-ABSENT-01 (المراجعة البنيويّة 2026-09-13 §٤.١): كان بلا سقف ذاكرة — مُعايَرٌ على أقرانه في هذا الملفّ.
+    mem_limit: 512m
     build:
       context: .
       dockerfile: services/weather-signal-engine/Dockerfile
@@ -1010,6 +1043,7 @@ services:
       # خدمة compose الفعليّة (sahool-decision-service:8160) بدل الافتراض الوهميّ في الكود.
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
       DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
+      DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
     volumes:
     - vegetation-anomaly-data:/data/vegetation
     networks:
@@ -1162,9 +1196,13 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      PLATFORM_API_URL: http://sahool-platform:8000
       INDICATORS_SERVICE_URL: http://sahool-indicators-service:8000
       VEGETATION_SERVICE_URL: http://sahool-vegetation-analysis:8000
       DECISION_SERVICE_URL: http://sahool-decision-service:8160
+      DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
+      DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
       TASK_SERVICE_URL: ${TASK_SERVICE_URL:-}
       WORKSPACE_BFF_TIMEOUT_S: ${WORKSPACE_BFF_TIMEOUT_S:-6}
     depends_on:
@@ -1207,6 +1245,7 @@ services:
       # عند التفعيل يستشير raster-service قرار decision-service (/v1/activation/satellite_cdse/source)
       # قبل اختيار CDSE، ويسقط مُغلَقاً إلى element84 عند أيّ تعذُّر. environment_id يطابق جانب البوّابة.
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
+      DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
       RASTER_ACTIVATION_GATE_ENFORCE: ${RASTER_ACTIVATION_GATE_ENFORCE:-0}
       ACTIVATION_ENVIRONMENT_ID: ${ACTIVATION_ENVIRONMENT_ID:-default}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
@@ -1241,7 +1280,8 @@ services:
       CDSE_PROCESS_MAX_RETRIES: ${CDSE_PROCESS_MAX_RETRIES:-5}
       CDSE_PROCESS_RETRY_BASE_SECONDS: ${CDSE_PROCESS_RETRY_BASE_SECONDS:-5}
       CDSE_PROCESS_RETRY_MAX_SECONDS: ${CDSE_PROCESS_RETRY_MAX_SECONDS:-120}
-      TITILER_URL: ${TITILER_URL:-http://sahool-titiler:8000}
+      TITILER_URL: ${TITILER_URL:-http://raster-tiler-service:8088}
+      COG_TILE_ALLOWED_HOSTS: ${COG_TILE_ALLOWED_HOSTS:-}
       FIELD_DEM_PATH: ${FIELD_DEM_PATH:-/data/dem/aljawf_glo30_cog.tif}
       SOILGRIDS_DIR: ${SOILGRIDS_DIR:-/data/soilgrids}
       RASTER_MAX_READ_DIM: ${RASTER_MAX_READ_DIM:-2048}
@@ -1255,6 +1295,9 @@ services:
     - raster-data:/data/rasters
     - ./data/dem:/data/dem:ro
     - ./data/soilgrids:/data/soilgrids:ro
+    depends_on:
+      raster-tiler-service:
+        condition: service_healthy
     networks:
     - sahool-internal
     healthcheck:
@@ -1382,6 +1425,9 @@ services:
       retries: 5
       start_period: 30s
   sahool-titiler:
+    # Compatibility only; the default platform and raster paths share raster-tiler-service.
+    profiles:
+    - legacy-tiler
     image: ${TITILER_IMAGE:-ghcr.io/developmentseed/titiler:0.18.6}
     command: uvicorn titiler.application.main:app --host 0.0.0.0 --port 8000 --workers
       1
@@ -1616,6 +1662,7 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      CMD_HMAC_SECRET: ${CMD_HMAC_SECRET:-}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       MQTT_BROKER_URL: mqtt://sahool-fastbee:1883
@@ -1700,7 +1747,10 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
-      SAHOOL_CLOUD_URL: https://api.sahool.local
+      SAHOOL_CLOUD_URL: ${SAHOOL_CLOUD_URL:-http://sahool-platform:8000}
+      EDGE_DEVICE_ID: ${EDGE_DEVICE_ID:-}
+      PEST_MODEL_SHA256: ${PEST_MODEL_SHA256:-}
+      YIELD_MODEL_SHA256: ${YIELD_MODEL_SHA256:-}
       EDGE_SYNC_TOKEN: ${EDGE_SYNC_TOKEN:?EDGE_SYNC_TOKEN required for edge sync}
       EDGE_DEVICE: ${EDGE_DEVICE:-rpi5}
       OFFLINE_MODE: ${OFFLINE_MODE:-false}
@@ -1930,7 +1980,7 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL}
       ERP_PROVIDER: ${ERP_PROVIDER:-erpnext}
-      ERPNEXT_URL: ${ERPNEXT_URL:-http://sahool-erpnext:8000}
+      ERPNEXT_URL: ${ERPNEXT_URL:-}
       ERPNEXT_API_KEY: ${ERPNEXT_API_KEY:-}
       ERPNEXT_API_SECRET: ${ERPNEXT_API_SECRET:-}
       ODOO_URL: ${ODOO_URL:-http://sahool-odoo:8069}
@@ -2013,6 +2063,7 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      SAHOOL_PLATFORM_URL: ${SAHOOL_PLATFORM_URL:-http://sahool-platform:8000}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:?TELEGRAM_WEBHOOK_SECRET
         required}
@@ -2052,6 +2103,7 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://sahool-otel-collector:4318}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
@@ -2065,6 +2117,12 @@ services:
       # WS auth: agent.py:_validate_ws_token فكّ JWT (HS256, aud=sahool) يقرأ JWT_SECRET؛
       # بلا حقنه raise "Missing token or secret" ⇒ يرفض كلّ اتّصال WS (fail-closed صامت).
       JWT_SECRET: ${JWT_SECRET}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-0}
+      FEATURE_MOBILE_PUSH: ${FEATURE_MOBILE_PUSH:-0}
+      FCM_CREDENTIALS_JSON: ${FCM_CREDENTIALS_JSON:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
     depends_on:
@@ -2200,7 +2258,7 @@ services:
       retries: 6
       start_period: 30s
   sahool-jaeger:
-    image: ${JAEGER_IMAGE:-jaegertracing/all-in-one:1.57}
+    image: ${JAEGER_IMAGE:-jaegertracing/all-in-one:1.62.0}
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
@@ -2223,6 +2281,8 @@ services:
       retries: 6
       start_period: 30s
   sahool-soil-service:
+    # MEM-LIMIT-ABSENT-01 (المراجعة البنيويّة 2026-09-13 §٤.١): كان بلا سقف ذاكرة — مُعايَرٌ على أقرانه في هذا الملفّ.
+    mem_limit: 768m
     build:
       context: .
       dockerfile: services/soil-service/Dockerfile
@@ -2406,6 +2466,18 @@ services:
     - python
     - -m
     - api.irrigation_reservation_lifecycle_worker
+    # WORKERS-INHERIT-AN-HTTP-HEALTHCHECK-THEY-CANNOT-ANSWER-01: بلا هذا المفتاح يرث العاملُ
+    # `HEALTHCHECK curl :8000/healthz` من Dockerfile المنصّة ولا يخدم HTTP ⇒ unhealthy دائماً.
+    # `--probe` يشتقّ أقصى عمرٍ للنبضة من IRRIGATION_RESERVATION_LIFECYCLE_POLL_SECONDS نفسِه
+    # (ثمانيةُ أضعاف، بأرضيّة ١٢٠ ث) — رقمٌ مكتوبٌ هنا كان يُكذِّب فاصلاً مشروعاً كـ١٨٠ ث.
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - python -m api.irrigation_reservation_lifecycle_worker --probe
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     depends_on:
       sahool-postgres:
         condition: service_healthy
@@ -2430,12 +2502,25 @@ services:
       PYTHONDONTWRITEBYTECODE: "1"
       NATS_URL: ${NATS_URL:-nats://${NATS_USER}:${NATS_PASSWORD}@sahool-nats:4222}
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
+      DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
+      DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
       FEATURE_RESERVATION_DISPATCH_RELAY: ${FEATURE_RESERVATION_DISPATCH_RELAY:-0}
     command:
     - python
     - -m
     - api.irrigation_dispatch_relay_worker
+    # WORKERS-INHERIT-AN-HTTP-HEALTHCHECK-THEY-CANNOT-ANSWER-01 (انظر العامل أعلاه). المُرحِّل
+    # مدفوعٌ بالأحداث فنبضتُه زمنيّة (كلّ ٦٠ ث أثناء الانتظار) + نبضةٌ لكلّ رسالة؛ ٣٠٠ ث = خمس
+    # نبضاتٍ فائتة. والمُطفَأ بالعلَم ينبض «idle» — صحّيٌّ وظاهرُ الخمول، لا متنكّرٌ عاملاً.
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - python -m api.worker_heartbeat check --worker reservation-dispatch-relay --max-age 300
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     depends_on:
       sahool-nats:
         condition: service_started
@@ -2564,9 +2649,11 @@ services:
       WATER_DEFICIT_EXECUTION_TARGET_ID: ${WATER_DEFICIT_EXECUTION_TARGET_ID:-}
       WATER_DEFICIT_POLICY_ACTOR: ${WATER_DEFICIT_POLICY_ACTOR:-water-deficit-policy}
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
-      # هويّة الجسر أمام decision-service (X-Agent-Token) — بدونها تُرفَض مرشّحات العجز.
+      DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
+      DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
+      # قرار الخدمة يتطلب Bearer من DECISION_SERVICE_TOKEN؛ SAHOOL_AGENT_TOKEN لا يحل محله.
       # CT-03: في الإنتاج (SAHOOL_ENV=production) متى فُعّل الجسر أعلاه يرفض العامل الإقلاع
-      # إن بقي هذا فارغاً (fail-closed، انظر water_ledger_identity_startup_error) — على
+      # إن بقي توكن القرار فارغاً (انظر water_ledger_identity_startup_error) — على
       # المشغّل حقنه من مدير الأسرار؛ الافتراض الفارغ يخدم التطوير/الجسر المُعطَّل فقط.
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
       WORKER_POLL_SECONDS: ${WATER_LEDGER_POLL_SECONDS:-3600}
@@ -2633,6 +2720,8 @@ services:
       retries: 5
       start_period: 40s
   sahool-zlmediakit-config:
+    # MEM-LIMIT-ABSENT-01 (المراجعة البنيويّة 2026-09-13 §٤.١): كان بلا سقف ذاكرة — مُعايَرٌ على أقرانه في هذا الملفّ.
+    mem_limit: 128m
     # CT-07 (container-audit V21 §6): pin floating image tags.
     # Upstream zlmediakit/zlmediakit ships ONLY moving branch tags
     # (master / master_py / feature-*) — no semver/date release tag exists
@@ -2752,6 +2841,55 @@ services:
       timeout: 10s
       retries: 5
       start_period: 45s
+  sahool-nats-exporter:
+    image: natsio/prometheus-nats-exporter:0.20.2@sha256:c623b608e148e31e1c1c878673a197f1828e58ce90de4f01d22f1baa84c8fee9
+    command: ["-varz", "-connz", "-subz", "http://sahool-nats:8222"]
+    mem_limit: 128m
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    read_only: true
+    logging: *id001
+    networks: [sahool-internal]
+    depends_on:
+      sahool-nats:
+        condition: service_healthy
+  sahool-nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:1.5.3@sha256:85666e7fde7e253f1c6d978f9a961245df4c9cdb7677e1866d9bb28e8f9ee41d
+    command: ["--nginx.scrape-uri=http://sahool-nginx:8081/nginx_status"]
+    mem_limit: 128m
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    read_only: true
+    logging: *id001
+    networks: [sahool-internal]
+  sahool-pg-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:v0.20.1@sha256:ac5ec343104fae0e2d84a27bb8d69b38430a11910c5382cad85d478d2bab713e
+    environment:
+      DATA_SOURCE_NAME: ${POSTGRES_EXPORTER_DSN:-}
+    mem_limit: 128m
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    read_only: true
+    logging: *id001
+    networks: [sahool-internal]
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+  sahool-otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.160.0@sha256:799dc6cf12c96192af37b5bdba804da8c10b3bc563b43cb90c3f3c58d9572ad6
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./observability/otel-collector.yml:/etc/otelcol/config.yaml:ro
+    mem_limit: 384m
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    read_only: true
+    logging: *id001
+    networks: [sahool-internal]
 networks:
   sahool-public:
     driver: bridge

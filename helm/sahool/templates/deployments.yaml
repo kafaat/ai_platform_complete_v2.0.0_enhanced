@@ -11,6 +11,10 @@ metadata:
     app.kubernetes.io/component: {{ $name }}
 spec:
   replicas: {{ $svc.replicas }}
+  {{- if and $svc.persistence (eq $svc.persistence.accessMode "ReadWriteOnce") }}
+  strategy:
+    type: Recreate
+  {{- end }}
   selector:
     matchLabels:
       app.kubernetes.io/component: {{ $name }}
@@ -27,6 +31,7 @@ spec:
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
+        fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
       containers:
@@ -37,6 +42,8 @@ spec:
             - name: http
               containerPort: {{ $svc.port }}
           env:
+            - name: SAHOOL_ENV
+              value: {{ $.Values.global.environment | quote }}
             {{- range $k, $v := $svc.env }}
             - name: {{ $k }}
               value: {{ $v | quote }}
@@ -47,6 +54,13 @@ spec:
                 secretKeyRef:
                   name: {{ index $.Values.global.secretRefs $secretKey }}
                   key: value
+            {{- end }}
+          volumeMounts:
+            - name: temporary
+              mountPath: /tmp
+            {{- if $svc.persistence }}
+            - name: data
+              mountPath: {{ $svc.persistence.mountPath | quote }}
             {{- end }}
           readinessProbe:
             httpGet:
@@ -69,5 +83,13 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
+      volumes:
+        - name: temporary
+          emptyDir: {}
+        {{- if $svc.persistence }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ $name }}-data
+        {{- end }}
 {{- end }}
 {{- end }}

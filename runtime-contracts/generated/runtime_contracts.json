@@ -1159,6 +1159,9 @@
         "NUM_CTX",
         "OLLAMA_BASE_URL",
         "QDRANT_URL",
+        "RAG_INIT_BACKOFF_BASE_S",
+        "RAG_INIT_BACKOFF_CAP_S",
+        "RAG_INIT_MAX_ATTEMPTS",
         "RAG_RETRIEVAL_SHADOW",
         "RAG_RETRIEVAL_URL",
         "SAHOOL_ALLOW_HS256_IN_PROD",
@@ -1762,7 +1765,7 @@
       "configuration": [],
       "container": {
         "dockerfile": "services/raster-tiler-service/Dockerfile",
-        "requirements": null
+        "requirements": "services/raster-tiler-service/requirements.txt"
       },
       "contract_version": "1.0",
       "domain": "Imagery & Raster",
@@ -1809,6 +1812,7 @@
       "configuration": [
         "DECISION_SERVICE_URL",
         "INDICATORS_SERVICE_URL",
+        "PLATFORM_API_URL",
         "TASK_SERVICE_URL",
         "VEGETATION_SERVICE_URL",
         "WORKSPACE_BFF_TIMEOUT_S"
@@ -1975,6 +1979,7 @@
         "SMTP_PORT",
         "SMTP_USER",
         "SOIL_SERVICE_URL",
+        "TITILER_URL",
         "VEGETATION_SERVICE_URL",
         "VLLM_BASE_URL",
         "VLLM_MODEL",
@@ -2510,6 +2515,7 @@
           "services/sahool-platform/core/workflow_engine.py",
           "services/sahool-platform/core/yield_intelligence.py",
           "services/sahool-platform/core/yield_map_processing.py",
+          "services/sahool-platform/knowledge/farmer_knowledge.py",
           "services/sahool-platform/learn_from_harvest.py",
           "services/sahool-platform/smoke_e2e_test.py",
           "services/sahool-platform/storage/lite_store.py",
@@ -2541,6 +2547,7 @@
           "services/sahool-platform/tests/test_food_grain_varieties_catalog.py",
           "services/sahool-platform/tests/test_index_registry.py",
           "services/sahool-platform/tests/test_indicators_dashboard.py",
+          "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
           "services/sahool-platform/tests/test_lab_sampling_router.py",
           "services/sahool-platform/tests/test_learn_from_harvest.py",
           "services/sahool-platform/tests/test_machinery_export.py",
@@ -2603,7 +2610,6 @@
       "secrets": [
         "ANTHROPIC_API_KEY",
         "DECISION_SERVICE_TOKEN",
-        "FCM_SERVER_KEY",
         "FIELD_FORMS_SERVICE_TOKEN",
         "INTERNAL_SERVICE_TOKEN",
         "JWT_SECRET",

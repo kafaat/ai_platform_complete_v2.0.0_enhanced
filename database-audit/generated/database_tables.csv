@@ -63,7 +63,7 @@ distributed_raster_jobs,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True
 documents,v29_documents.sql,33,True,False,False,0,False,True,2,1
 drawing_features,v230_drawing_features.sql,227,True,True,True,1,True,False,2,1
 drone_missions,init_v8.sql,0,True,True,False,0,False,True,0,0
-edge_results,v9_new_tables.sql,3,True,False,False,0,False,True,0,1
+edge_results,v9_new_tables.sql,3,True,False,False,0,False,True,1,1
 equipment,v23_equipment.sql,27,True,False,False,0,False,True,3,1
 equipment_maintenance,v23_equipment.sql,27,True,False,False,0,False,True,2,1
 equipment_telemetry_frames,v109_phase9_iot_execution_adapters.sql,115,True,True,True,1,True,False,0,0
@@ -120,7 +120,7 @@ field_state_snapshots,v60_event_snapshots.sql,65,True,False,False,0,False,True,1
 field_submissions,v204_field_forms.sql,209,True,True,True,1,True,False,1,1
 field_tasks,v9_new_tables.sql,3,True,False,False,0,False,True,5,2
 field_weather_overlay,v74_weather_intelligence.sql,79,True,False,False,0,False,True,1,1
-fields,v9_foundation.sql,1,True,False,False,0,False,True,47,5
+fields,v9_foundation.sql,1,True,False,False,0,False,True,50,5
 geometry_editing_sessions,v114_cloud_native_gis_best_practices.sql,120,True,True,True,1,True,False,1,1
 geometry_locks,v114_cloud_native_gis_best_practices.sql,120,True,True,True,1,True,False,1,1
 gis_collaboration_events,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True,False,0,0

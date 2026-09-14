@@ -23,7 +23,7 @@ from datetime import UTC, date, datetime
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.decision_confidence import fuse_decision_confidence
-from api.evidence_map import EVIDENCE_VERIFIED_MIN_SAMPLES
+from api.evidence_map import EVALUATED_OUTCOME_PREDICATE, EVIDENCE_VERIFIED_MIN_SAMPLES
 from api.main import (
     Permission,
     UserSchema,
@@ -47,7 +47,9 @@ def _decision_confidence_enabled() -> bool:
 def _evidence_value(decisions: int, outcomes: int) -> tuple[float | None, str]:
     """يُحوّل عدّ القرارات/القياسات المُدامة لحقل إلى درجة دليل 0..1 + وصف — None إن لا شيء."""
     if outcomes >= EVIDENCE_VERIFIED_MIN_SAMPLES:
-        return 1.0, f"مؤكَّد ميدانيّاً ({outcomes} قياس)"
+        # U01 (Copilot على #1001): العدُّ وحدَه لا يعتمد — كانت ≥ العتبة ⇒ 1.0 «مؤكَّد» بلا مراجعة.
+        # الدرجةُ الكاملة محجوزة لدليلٍ مراجَع لا يحمله هذا العدّ.
+        return 0.8, f"عيّنة مكتملة ({outcomes} قياس) — بانتظار مراجعة مختصّ قبل الاعتماد"
     if outcomes > 0:
         return 0.6, f"مدعوم أوّليّاً ({outcomes}/{EVIDENCE_VERIFIED_MIN_SAMPLES} قياس)"
     if decisions > 0:
@@ -99,7 +101,11 @@ async def decision_confidence_endpoint(
                 drows = []
             # دليل: عدّ قرارات/قياسات الحقل.
             decisions = await _scalar(conn, "decision_record", field_id)
-            outcomes = await _scalar(conn, "outcome_record", field_id)
+            # الصفوفُ المُقيَّمة فقط — كما في سجلّ الدليل (Copilot على #1001: كان COUNT(*) يعدّ
+            # الصفوفَ الفارغة فيمنح درجةَ «عيّنة مكتملة» لحقل بلا قياس).
+            outcomes = await _scalar(
+                conn, "outcome_record", field_id, predicate=EVALUATED_OUTCOME_PREDICATE
+            )
             # استشعار: أحدث NDVI.
             try:
                 ndvi_date = await conn.fetchval(
@@ -152,11 +158,12 @@ async def decision_confidence_endpoint(
     return out
 
 
-async def _scalar(conn, table: str, field_id: str) -> int:
-    """عدّ صفوف جدول لحقل best-effort — 0 عند تعذّره (جدول غائب)."""
+async def _scalar(conn, table: str, field_id: str, *, predicate: str | None = None) -> int:
+    """عدّ صفوف جدول لحقل best-effort — 0 عند تعذّره (جدول غائب). ``predicate`` شرطُ SQL ثابت إضافيّ."""
+    where = f"field_id = $1{' AND ' + predicate if predicate else ''}"
     try:
         val = await conn.fetchval(
-            f"SELECT COUNT(*) FROM {table} WHERE field_id = $1",  # noqa: S608 — table من ثابت داخليّ لا من مدخل
+            f"SELECT COUNT(*) FROM {table} WHERE {where}",  # noqa: S608 — table/predicate ثابتان داخليّان لا من مدخل
             field_id,
         )
     except Exception:  # noqa: BLE001 — جدول غائب ⇒ 0

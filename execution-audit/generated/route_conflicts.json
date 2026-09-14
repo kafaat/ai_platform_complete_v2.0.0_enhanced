@@ -32,7 +32,7 @@
       "registrations": [
         {
           "function": "capabilities",
-          "line": 376,
+          "line": 384,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/capabilities",
@@ -142,7 +142,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 621,
+          "line": 664,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/health",
@@ -333,7 +333,7 @@
         },
         {
           "function": "healthz",
-          "line": 603,
+          "line": 646,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/healthz",
@@ -405,7 +405,7 @@
         },
         {
           "function": "healthz",
-          "line": 33,
+          "line": 39,
           "method": "GET",
           "module": "services/remote-sensing-workspace-bff/main.py",
           "path": "/healthz",
@@ -627,7 +627,7 @@
         },
         {
           "function": "readyz",
-          "line": 381,
+          "line": 389,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/readyz",
@@ -675,7 +675,7 @@
         },
         {
           "function": "readyz",
-          "line": 626,
+          "line": 669,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/readyz",
@@ -747,7 +747,7 @@
         },
         {
           "function": "readyz",
-          "line": 38,
+          "line": 44,
           "method": "GET",
           "module": "services/remote-sensing-workspace-bff/main.py",
           "path": "/readyz",
@@ -1045,7 +1045,7 @@
       "registrations": [
         {
           "function": "ingest_endpoint",
-          "line": 548,
+          "line": 591,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
           "path": "/v1/ingest",
@@ -1123,7 +1123,7 @@
         },
         {
           "function": "query_endpoint",
-          "line": 538,
+          "line": 581,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
           "path": "/v1/query",
@@ -1158,8 +1158,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1097,
-  "route_inventory_sha256": "9db130f5a6427ed125827f71d25989518af28462edb156cb1cfa769de1be8055",
+  "route_count": 1098,
+  "route_inventory_sha256": "5589f09cfe545a7ea87cb775d297c20fdb08c20eb7d7b0ac064e51831a5b0738",
   "runtime_verified": false,
   "schema_version": 1
 }

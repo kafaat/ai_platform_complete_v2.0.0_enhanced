@@ -1,0 +1,52 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                44,
+                15
+              ],
+              [
+                44.01,
+                15
+              ],
+              [
+                44.01,
+                15.01
+              ],
+              [
+                44,
+                15
+              ]
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "synthetic-export-1",
+        "resourceOwner": {
+          "id": "not-a-tenant",
+          "email": "synthetic@example.invalid"
+        },
+        "field": {
+          "id": "vendor-field-1",
+          "name": "Synthetic plot"
+        },
+        "plantingActivity": {
+          "date": "2026-06-01",
+          "crop": "corn",
+          "area": {
+            "q": 1.5,
+            "u": "hectare"
+          }
+        }
+      }
+    }
+  ]
+}

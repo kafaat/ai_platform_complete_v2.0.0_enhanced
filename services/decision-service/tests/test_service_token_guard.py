@@ -97,3 +97,23 @@ def test_production_restricts_exemptions_to_probes(monkeypatch):
     assert c.get("/openapi.json").status_code == 401
     # a health probe stays exempt in production.
     assert c.get("/healthz").status_code != 401
+
+
+@pytest.mark.parametrize("credential,expected", [(TOKEN, 404), ("wrong-service-token", 401)])
+def test_platform_facade_headers_pass_the_real_receiver_guard(monkeypatch, credential, expected):
+    import importlib.util
+
+    path = SERVICE_DIR.parent / "sahool-platform" / "api" / "decision_service_client.py"
+    spec = importlib.util.spec_from_file_location("platform_decision_transport", path)
+    facade = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(facade)
+    client = _client(monkeypatch, token=TOKEN, prod=True)
+    monkeypatch.setenv("DECISION_SERVICE_TOKEN", credential)
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "unrelated-agent-token")
+    for tenant in ["tenant-a", "tenant-b"]:
+        headers = facade.decision_service_headers(
+            tenant_id=tenant, authorization="Bearer end-user-jwt", reviewed_by="reviewer-a"
+        )
+        assert headers["X-Tenant-Id"] == tenant
+        assert headers["X-Reviewed-By"] == "reviewer-a"
+        assert client.get(UNROUTED, headers=headers).status_code == expected

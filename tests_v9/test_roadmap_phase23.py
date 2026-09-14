@@ -2150,14 +2150,14 @@ def test_sync_idempotency():
         return [("\u2717", f"sync_service لا يُستورد: {e}")]
     d = tempfile.mkdtemp()
     svc = ss.CloudSyncService("http://x", "t", sync_dir=d)
-    svc.queue_result("ndvi", {"f": "f1", "v": 0.5})
+    svc.queue_result("ndvi", {"field_id": "f1", "device_id": "test-edge", "v": 0.5})
     files = [f for f in os.listdir(d) if f.endswith(".json")]
     if files:
         item = json.load(open(os.path.join(d, files[0])))
         if "idempotency_key" in item and len(item["idempotency_key"]) == 32:
             r.append(("\u2713", "queue_result يولّد idempotency_key (32 حرف)"))
     # عنصران بنفس المحتوى → مفتاحان مختلفان (لا dedup زائف)
-    svc.queue_result("ndvi", {"f": "f1", "v": 0.5})
+    svc.queue_result("ndvi", {"field_id": "f1", "device_id": "test-edge", "v": 0.5})
     keys = [
         json.load(open(os.path.join(d, f)))["idempotency_key"]
         for f in os.listdir(d)
@@ -4155,20 +4155,33 @@ def test_erp_provider_switch():
     p1 = erp_provider.get_erp_provider()
     if p1.name == "none":
         r.append(("\u2713", "تبديل: none → ERP معطّل (NullProvider)"))
-    # 2. erpnext بمفاتيح → erpnext
+    # 2. erpnext بعنوانٍ صريح **ومفاتيح** → erpnext.
+    #    العنوانُ لازمٌ منذ أن صار الجسرُ يرفض اختلاقَ هدفٍ داخليّ. وبدونه كانت هذه الحالةُ
+    #    تهبط إلى `none` **بلا أن يحمرّ شيء**، لأنّ الفرعَ كان `if … : append` بلا تأكيد —
+    #    فمسارُ النجاح صار غيرَ مقيسٍ أصلاً. التأكيدُ الآن مباشر.
     os.environ["ERP_PROVIDER"] = "erpnext"
+    os.environ["ERPNEXT_URL"] = "https://erp.example.test"
     os.environ["ERPNEXT_API_KEY"] = "k"
     os.environ["ERPNEXT_API_SECRET"] = "s"
     importlib.reload(erp_provider)
     p2 = erp_provider.get_erp_provider()
-    if p2.name == "erpnext":
-        r.append(("\u2713", "تبديل: erpnext → ERPNextProvider (Frappe REST)"))
-    # 3. erpnext بلا مفاتيح → none آمن (صدق: لا اتّصال وهمي)
+    assert p2.name == "erpnext", "عنوانٌ صريحٌ ومفاتيحُ كاملة يجب أن تُنتِج ERPNextProvider"
+    r.append(("\u2713", "تبديل: erpnext → ERPNextProvider (Frappe REST)"))
+    # 3. erpnext بلا مفاتيح → none آمن (صدق: لا اتّصال وهمي).
+    #    والعنوانُ يبقى مضبوطاً كي يكون **غيابُ المفاتيح وحدَه** هو السبب؛ وإلّا مرّت هذه
+    #    الحالةُ لسببٍ آخر ولو حُذِف فحصُ المفاتيح تماماً.
     os.environ["ERPNEXT_API_KEY"] = ""
     importlib.reload(erp_provider)
     p3 = erp_provider.get_erp_provider()
-    if p3.name == "none":
-        r.append(("\u2713", "صدق: erpnext بلا مفاتيح → none (لا اتّصال وهمي)"))
+    assert p3.name == "none", "مفاتيحُ ناقصةٌ يجب أن تهبط إلى NullProvider"
+    r.append(("\u2713", "صدق: erpnext بلا مفاتيح → none (لا اتّصال وهمي)"))
+    # ٣ب. والعكسُ كذلك: مفاتيحُ كاملةٌ بلا عنوانٍ صريح → none (لا هدفَ مختلَق).
+    os.environ["ERPNEXT_API_KEY"] = "k"
+    os.environ.pop("ERPNEXT_URL", None)
+    importlib.reload(erp_provider)
+    p3b = erp_provider.get_erp_provider()
+    assert p3b.name == "none", "مفاتيحُ بلا عنوانٍ صريح يجب ألّا تختلق هدفاً"
+    r.append(("\u2713", "صدق: erpnext بلا عنوان صريح → none (لا هدف مختلَق)"))
     # 4. odoo بـclient → OdooProvider (يلفّ الموجود)
     os.environ["ERP_PROVIDER"] = "odoo"
     importlib.reload(erp_provider)
@@ -6436,9 +6449,11 @@ def test_deferred_capabilities_gate():
             r.append(("✓", "القدرات: لكلّ قدرة شرط تفعيل + سلوك خامل مُعلَن"))
         else:
             r.append(("✗", "القدرات: قدرة بلا تعليمات تفعيل/سلوك خامل"))
-        _os.environ["FCM_SERVER_KEY"] = "test"
+        from tests_v9.fcm_fixture import service_account_json
+
+        _os.environ["FCM_CREDENTIALS_JSON"] = service_account_json()
         activated = _cap.fcm_push_active()
-        del _os.environ["FCM_SERVER_KEY"]
+        del _os.environ["FCM_CREDENTIALS_JSON"]
         if activated and not _cap.fcm_push_active():
             r.append(("✓", "القدرات: الشرط يُفعّل ويُعطّل القدرة فعليّاً"))
         else:
