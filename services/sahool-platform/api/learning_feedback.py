@@ -149,6 +149,15 @@ async def process_season_closed_event(
     import json
     from uuid import UUID
 
+    # الحدُّ الأدنى يأتي من حمولة الحدث بلا تحقّق — صفرٌ أو سالب كان يُمرّر `enough` على عيّنة
+    # فارغة فيُنشئ مرشَّحاً `review_ready` بلا نتيجة (Copilot على #1001). يُطبَّع إلى ≥ 1 ويُعلَن
+    # المطلوبُ الأصليّ حين يختلف.
+    requested_minimum = minimum_outcomes
+    try:
+        minimum_outcomes = max(1, int(minimum_outcomes))
+    except (TypeError, ValueError):
+        minimum_outcomes = 3
+
     # القفلُ **قبل** فحص الإعادة (Copilot على #1001): تسليمان متزامنان كانا يريان «لا صفّ»
     # معاً ثمّ يُصدِران الحدثَ مرّتين رغم ON CONFLICT DO NOTHING — الثاني ينتظر القفل ثمّ يرى
     # صفَّ الأوّل ويعود بالتقييم المخزَّن.
@@ -205,6 +214,11 @@ async def process_season_closed_event(
         "excluded_count": len(outcomes) - len(paired),
         "excluded_reasons": excluded_reasons,
         "minimum_outcomes": minimum_outcomes,
+        **(
+            {"minimum_outcomes_requested": requested_minimum}
+            if requested_minimum != minimum_outcomes
+            else {}
+        ),
         "mae_t_ha": mae,
         "bias_t_ha": bias,
         "status": "review_ready" if enough else "blocked",

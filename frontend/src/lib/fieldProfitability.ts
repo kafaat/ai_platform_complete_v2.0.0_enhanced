@@ -202,7 +202,8 @@ export function economicIntensities(state: EconomicStateBody | null | undefined,
   if (!state) return [];
   const out: EconomicIntensity[] = [];
   if (state.cost_per_ha != null) out.push({ label: 'تكلفة/هـ', value: formatMoney(state.cost_per_ha, currency) });
-  if (state.water_m3_per_ha != null && state.water_m3_per_ha > 0) {
+  // U04: الصفرُ المقيس بيانات (لا ماء) ويختلف عن null (لا قياس) — لا يُخفى (Copilot على #1001).
+  if (state.water_m3_per_ha != null) {
     out.push({ label: 'ماء م³/هـ', value: String(Math.round(state.water_m3_per_ha)) });
   }
   if (state.water_cost_per_m3 != null) out.push({ label: 'تكلفة الماء/م³', value: formatMoney(state.water_cost_per_m3, currency) });

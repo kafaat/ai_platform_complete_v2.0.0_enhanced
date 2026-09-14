@@ -1344,7 +1344,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 249,
+      "evidence_count": 250,
       "owners": [
         "ai_agronomist",
         "auth",
@@ -1607,6 +1607,7 @@
         "shared/marketplace_ecosystem_phase12.py",
         "shared/marketplace_plugin_runtime.py",
         "shared/precision_agriculture/phase6_intelligence.py",
+        "shared/security/cors_policy.py",
         "shared/security/gateway_deps.py",
         "shared/security/trusted_tenant.py",
         "shared/test_marketplace_ecosystem_phase12.py",
@@ -1669,7 +1670,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 126,
+      "evidence_count": 127,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1818,6 +1819,7 @@
         "shared/governance/chemical_lineage.py",
         "shared/helpers.py",
         "shared/iot_execution_runtime.py",
+        "shared/security/cors_policy.py",
         "shared/security/decision_service_auth.py"
       ],
       "runtime_verified": false
@@ -2599,7 +2601,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 172,
-      "target_evidence_count": 249,
+      "target_evidence_count": 250,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2630,7 +2632,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 249,
+      "source_evidence_count": 250,
       "target_evidence_count": 32,
       "static_supported": true,
       "runtime_verified": false
@@ -2666,7 +2668,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 32,
-      "target_evidence_count": 126,
+      "target_evidence_count": 127,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2694,7 +2696,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 126,
+      "source_evidence_count": 127,
       "target_evidence_count": 28,
       "static_supported": true,
       "runtime_verified": false
@@ -2789,5 +2791,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "2ab8d8dad6ac20452a756ce9fa1d2fc2c3201d134924fcf46c907cb3d3d80bb8"
+  "content_sha256": "8d338f091baaef9d2c021b64ac7244dc23f04da631915ef63878a20a29178f4d"
 }

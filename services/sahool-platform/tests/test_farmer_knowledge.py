@@ -178,12 +178,22 @@ class TestBlankReferencesAreNotEvidence:
             )
             assert fk.verification_status == VerificationStatus.PENDING, scalar
             assert fk.verification_evidence["basis"] == "unreferenced_claim"
-        for seq in (["s1"], ("s1",), {"s1"}):
+        # قائمةُ JSON وحدَها تؤكّد — الصفُّ والمجموعة يبقيان قيد التحقّق (المجموعة لا تُسلسَل في
+        # to_dict وترتيبُها غيرُ حتميّ؛ Copilot على #1001).
+        for seq in (("s1",), {"s1"}):
             fk = _mk(KnowledgeType.SPATIAL)
             verify_against_data(
                 fk, data_supports=True, evidence={"method": "ndvi", "reference_ids": seq}
             )
-            assert fk.verification_status == VerificationStatus.CONFIRMED, seq
+            assert fk.verification_status == VerificationStatus.PENDING, seq
+        fk = _mk(KnowledgeType.SPATIAL)
+        verify_against_data(
+            fk, data_supports=True, evidence={"method": "ndvi", "reference_ids": ["s1"]}
+        )
+        assert fk.verification_status == VerificationStatus.CONFIRMED
+        import json
+
+        json.dumps(fk.to_dict())  # الدليلُ المحفوظ قابلٌ للتسلسل
 
 
 class TestRejectedKnowledgeKeepsTheAuditTrail:

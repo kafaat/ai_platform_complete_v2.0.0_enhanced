@@ -29,6 +29,18 @@ _WILDCARD_TOKENS = frozenset({"*", "null"})
 # Conservative dev-only defaults when no origin is configured and we are not in production.
 _DEV_DEFAULTS: tuple[str, ...] = ("http://localhost:3000", "http://10.0.2.2:8000")
 
+# Request headers the platform BFF accepts on credentialed cross-origin calls. The
+# idempotency contract (``_idem_key``: create_activity / update_field / farm-ledger
+# operations …) requires ``Idempotency-Key``; it was missing here, so browser preflights
+# failed before any idempotent handler was reached (Copilot review on #1001).
+PLATFORM_ALLOW_HEADERS: list[str] = [
+    "Authorization",
+    "Content-Type",
+    "X-Correlation-Id",
+    "X-Causation-Id",
+    "Idempotency-Key",
+]
+
 
 def _is_production(production: bool | None) -> bool:
     if production is not None:

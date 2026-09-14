@@ -212,8 +212,9 @@ class TestTraceableIsNotApproved:
             )
             assert r["review_status"] == "unreviewed", scalar
             assert r["review"]["evidence_ids"] == []
-        # الأشكالُ التسلسليّة كلُّها مقبولة (قائمة/صفّ/مجموعة).
-        for seq in (["e1"], ("e1",), {"e1"}):
+        # قائمةُ JSON وحدَها مقبولة — الصفُّ والمجموعة مرفوضان (ترتيبُ المجموعة غيرُ حتميّ فتختلف
+        # بصمةُ التدقيق لمدخل واحد؛ Copilot على #1001).
+        for seq in (("e1",), {"e1"}, frozenset({"e1"})):
             r = resolve_learning_source(
                 {
                     "source_type": "human_feedback",
@@ -221,4 +222,12 @@ class TestTraceableIsNotApproved:
                     "review": {"reviewer_id": "a", "verdict": "approved", "evidence_ids": seq},
                 }
             )
-            assert r["review_status"] == "approved", seq
+            assert r["review_status"] == "unreviewed", seq
+        ok = resolve_learning_source(
+            {
+                "source_type": "human_feedback",
+                "source_id": "hf_1",
+                "review": {"reviewer_id": "a", "verdict": "approved", "evidence_ids": ["e1"]},
+            }
+        )
+        assert ok["review_status"] == "approved"

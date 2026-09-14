@@ -176,10 +176,11 @@ def _evidence_is_referenced(evidence: dict | None) -> bool:
     if not isinstance(evidence, dict):
         return False
     method = evidence.get("method")
-    # مراجعُ **قائمةٌ** من نصوص غير فارغة بعد التشذيب — `" "` ليس مرجعاً، ونصٌّ مفرد
-    # (`"scene-1"`) ليس قائمةً تُقطَّع حروفاً (Copilot على #1001).
+    # مراجعُ **قائمةُ JSON** من نصوص غير فارغة بعد التشذيب — `" "` ليس مرجعاً، ونصٌّ مفرد
+    # (`"scene-1"`) ليس قائمةً تُقطَّع حروفاً، والمجموعةُ/الصفُّ مرفوضان: الدليلُ يُحفَظ كما قُدِّم
+    # ويُسلسَل في to_dict، والمجموعةُ لا تُسلسَل وترتيبُها غيرُ حتميّ (Copilot على #1001).
     raw_refs = evidence.get("reference_ids")
-    if not isinstance(raw_refs, (list, tuple, set, frozenset)):
+    if not isinstance(raw_refs, list):
         return False
     refs = [r.strip() for r in raw_refs if isinstance(r, str) and r.strip()]
     return isinstance(method, str) and bool(method.strip()) and bool(refs)

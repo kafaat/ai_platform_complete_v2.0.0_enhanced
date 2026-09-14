@@ -1050,26 +1050,39 @@ export const fetchDecisionRecords = (limit = 200): Promise<DecisionRecordsResult
 // صدق: نستهلكها إن نجحت، ونُعيد null عند 404/أيّ خطأ (لا تلفيق) فتعرض الواجهة حالةً
 // فارغة صادقة بدل أرقام مُختلَقة. الشكل دفاعيّ (كلّ الحقول اختياريّة) لتفادي افتراض
 // عقد غير مُثبَّت في هذا الفرع.
+// العقد الحاليّ (api/learning_summary.summarize_learning): لقطةٌ لكلّ منطقة + إجماليّ تحت
+// `overall` (المفاتيح نفسها) + `region_count` في الجذر. لا `outcome_count`/`success_rate`
+// في الجذر — كانت اللوحة تقرؤها منه فتعرض «—» على بيانات موجودة (Copilot على #1001).
 export interface LearningSummaryRegion {
   region?:                     string;
-  sample_count?:               number;
-  evidence_level?:             EvidenceLevel | string;
-  success_rate?:               number | null;
+  decision_count?:             number;
   outcome_count?:              number;
+  outcomes_decided?:           number;
+  outcomes_succeeded?:         number;
+  outcomes_failed?:            number;
+  outcomes_pending?:           number;
+  success_rate?:               number | null;
+  evidence_level?:             EvidenceLevel | string;
+  sample_count?:               number;
   samples_to_verified?:        number;
   field_verified_min_samples?: number;
+  sample_completeness?:        string;
+  review_status?:              string;
+  independence?:               { fields: number; seasons: number; farms: number; tenants: number; unknown_unit_samples: number };
+  last_decision_at?:           string | null;
+  last_outcome_at?:            string | null;
+  last_activity_at?:           string | null;
   calibrated?:                 boolean;
   warnings_ar?:                string[];
 }
 export interface LearningSummary {
-  regions?:           LearningSummaryRegion[];
-  decision_count?:    number;
-  outcome_count?:     number;
-  success_rate?:      number | null;
-  regions_verified?:  number;
-  calibrated?:        boolean;
-  warnings_ar?:       string[];
-  [k: string]:        unknown;
+  regions?:                LearningSummaryRegion[];
+  region_count?:           number;
+  overall?:                LearningSummaryRegion;
+  calibrated?:             boolean;
+  warnings_ar?:            string[];
+  outcome_reconciliation?: Record<string, unknown>;
+  [k: string]:             unknown;
 }
 /** يجلب تلخيص حلقة التعلّم. أفضل-جهد: أيّ خطأ/استجابة غير صالحة (404 نقطة غير
  *  مُتاحة بعد، 503 DB) ⇒ null فتعرض الواجهة حالةً فارغة صادقة (لا تلفيق). */

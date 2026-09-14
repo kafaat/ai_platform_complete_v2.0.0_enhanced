@@ -278,6 +278,21 @@ async def test_routes_without_a_digest_keep_the_old_replay_semantics(m):
     )
 
 
+def test_idempotency_key_header_is_allowed_by_cors():
+    """Copilot على #1001: نقاطُ idempotency تشترط ترويسة Idempotency-Key، وكانت غائبةً من
+    allow_headers فيفشل preflight المتصفّح قبل بلوغ المعالِج."""
+    if ROOT not in sys.path:
+        sys.path.insert(0, ROOT)
+    from shared.security.cors_policy import PLATFORM_ALLOW_HEADERS
+
+    assert "Idempotency-Key" in PLATFORM_ALLOW_HEADERS
+    assert {"Authorization", "Content-Type", "X-Correlation-Id"} <= set(PLATFORM_ALLOW_HEADERS)
+    with open(MAIN, encoding="utf-8") as f:
+        src = f.read()
+    cors = src[src.index("allow_headers=") :].split("\n", 1)[0]
+    assert "allow_headers=PLATFORM_ALLOW_HEADERS" in cors, cors
+
+
 def test_farm_ledger_operation_create_is_idempotent_by_contract():
     """U06: سجلّ العمليّات الزراعيّة يقبل Idempotency-Key ويمرّ بالعقد نفسه داخل المعاملة."""
     src = _handler_src("create_operation_ledger_record")

@@ -20,6 +20,21 @@ describe('LearningDashboardPage — evidence quality is rendered, not only count
     expect(SRC).toContain('field_sample_complete');
     expect(SRC).toMatch(/field_sample_complete:\s*'عيّنة مكتملة/);
   });
+  it('reads the aggregate counters from summary.overall, not the response root', () => {
+    // Copilot على #1001: العقد يضع الإجماليّ تحت `overall`؛ القراءة من الجذر تعرض «—» على بيانات موجودة.
+    expect(SRC).toContain('summary?.overall?.outcome_count');
+    expect(SRC).toContain('summary?.overall?.success_rate');
+    expect(SRC).not.toContain('summary?.outcome_count');
+    expect(SRC).not.toContain('summary?.success_rate');
+    expect(SRC).not.toContain('regions_verified');
+    expect(SRC).toContain("r.evidence_level === 'field_verified'");
+    const API = readFileSync(resolve(__dirname, '../services/api.ts'), 'utf8');
+    const block = API.slice(API.indexOf('export interface LearningSummary {'));
+    const body = block.slice(0, block.indexOf('}'));
+    expect(body).toContain('overall?:');
+    expect(body).toContain('region_count?:');
+    expect(body).not.toContain('regions_verified');
+  });
   it('types the new evidence fields on PersistedEvidence', () => {
     expect(TYPES).toContain('review_status?:');
     expect(TYPES).toContain('independence?:');

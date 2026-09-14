@@ -112,6 +112,11 @@ describe('economicIntensities — real unit intensities only', () => {
     expect(rows[1].value).toBe('5200');
     expect(rows[3].value).toBe('0.42');
   });
+  it('keeps a measured zero water intensity distinct from missing data', () => {
+    // Copilot على #1001: كان `> 0` يُسقِط الصفر المقيس فيبدو كغياب قياس.
+    const rows = economicIntensities({ ...base, water_m3_per_ha: 0 });
+    expect(rows.find((r) => r.label === 'ماء م³/هـ')?.value).toBe('0');
+  });
   it('drops null intensities instead of zeroing them', () => {
     const rows = economicIntensities({ ...base, cost_per_ha: null, water_m3_per_ha: null, water_cost_per_m3: null, energy_kwh_per_m3: null });
     expect(rows).toEqual([]);

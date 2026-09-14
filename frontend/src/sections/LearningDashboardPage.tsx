@@ -192,9 +192,13 @@ export default function LearningDashboardPage() {
 
   // النتائج/نسبة النجاح/المناطق المُتحقَّقة — من learning/summary إن توفّرت فقط
   // (لا نُلفّق هذه الأرقام من سرد القرارات وحده، فهو لا يحمل النتائج). null ⇒ «—».
-  const outcomeCount = summary?.outcome_count ?? null;
-  const successRate = summary?.success_rate ?? null;
-  const regionsVerified = summary?.regions_verified ?? null;
+  // العقد الحاليّ يضع الإجماليّ تحت `overall` (كانت تُقرأ من الجذر فتظهر «—» على بيانات
+  // موجودة — Copilot على #1001)، والمناطقُ المُتحقَّقة تُعدّ من بطاقات المناطق نفسها.
+  const outcomeCount = summary?.overall?.outcome_count ?? null;
+  const successRate = summary?.overall?.success_rate ?? null;
+  const regionsVerified = summary?.regions
+    ? summary.regions.filter((r) => r.evidence_level === 'field_verified').length
+    : null;
 
   const isLoading = records.isLoading || learning.isLoading;
   const recordsDegraded = Boolean(records.data?.degraded);

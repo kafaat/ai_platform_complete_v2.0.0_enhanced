@@ -224,6 +224,29 @@ async def test_season_learning_locks_before_the_replay_check_and_orders_by_real_
     assert "created_at" not in order_by and " id" not in order_by
 
 
+@pytest.mark.asyncio
+async def test_non_positive_minimum_outcomes_cannot_make_an_empty_season_review_ready():
+    """Copilot على #1001 (مكتومة): `minimum_outcomes=0` من حمولة الحدث كان يُمرّر `enough` على
+    عيّنة فارغة فيُنشئ مرشَّحاً review_ready بلا نتيجة."""
+    mod = _load("services/sahool-platform/api/learning_feedback.py", "learning_feedback_min")
+    kw = dict(tenant_id="00000000-0000-0000-0000-000000000001", field_id="fld-1", season_id="ssn-1")
+    for bad in (0, -3, "abc", None):
+        conn = Conn(outcomes=[])
+        result = await mod.process_season_closed_event(
+            conn, event_id=f"evt-min-{bad}", minimum_outcomes=bad, **kw
+        )
+        evaluation = result["evaluation"]
+        assert result["status"] == "blocked", bad
+        assert evaluation["minimum_outcomes"] >= 1, bad
+        assert evaluation["minimum_outcomes_requested"] == bad
+        assert result["promotion_candidate"]["status"] == "blocked"
+    # الحدُّ الصالح لا يحمل مفتاح «المطلوب» (بصمةُ التقييم مستقرّة للمدخل السويّ).
+    conn = Conn(outcomes=[])
+    result = await mod.process_season_closed_event(conn, event_id="evt-min-ok", **kw)
+    assert result["evaluation"]["minimum_outcomes"] == 3
+    assert "minimum_outcomes_requested" not in result["evaluation"]
+
+
 class _RawJsonbConn(Conn):
     """اتّصالُ asyncpg خام بلا codec: JSONB يصل **نصّاً** (كما في عامل التعلّم القانونيّ)."""
 

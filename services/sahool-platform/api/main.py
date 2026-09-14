@@ -75,7 +75,7 @@ from fastapi.responses import (  # noqa: F401 — إعادة تصدير (نمط 
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel
 
-from shared.security.cors_policy import parse_cors_origins
+from shared.security.cors_policy import PLATFORM_ALLOW_HEADERS, parse_cors_origins
 
 logger = logging.getLogger("sahool.api")
 
@@ -812,7 +812,7 @@ app.add_middleware(
     allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["Authorization", "Content-Type", "X-Correlation-Id", "X-Causation-Id"],
+    allow_headers=PLATFORM_ALLOW_HEADERS,  # يشمل Idempotency-Key (Copilot على #1001)
 )
 
 # تتبّع موزّع: معرّف ربط (Correlation-Id) لكلّ طلب — يُضبَط في السياق ويُعاد في
