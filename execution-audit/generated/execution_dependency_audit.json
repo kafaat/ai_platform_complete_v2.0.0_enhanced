@@ -5,7 +5,7 @@
   "runtime_verified":false,
   "python_files_parsed":1893,
   "route_handlers":1050,
-  "call_edges":78207,
+  "call_edges":78206,
   "dead_code_candidates":633,
   "duplicate_function_groups":60,
   "route_owners":27,
@@ -191393,13 +191393,6 @@
    "source":"aggregate_evidence",
    "target":"append",
    "line":110
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_registry.py",
-   "source":"aggregate_evidence",
-   "target":"max",
-   "line":113
   },
   {
    "owner":"sahool-platform",
