@@ -1524,6 +1524,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/LearningDashboardPage.static.test.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/src/sections/LearningDashboardPage.tsx",
     "kind": "web"
   },

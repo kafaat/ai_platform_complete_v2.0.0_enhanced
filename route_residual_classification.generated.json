@@ -1169,7 +1169,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 557,
+      "line": 564,
       "method": "POST",
       "path": "/v1/query",
       "function": "query_endpoint",
@@ -1178,7 +1178,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 567,
+      "line": 574,
       "method": "POST",
       "path": "/v1/ingest",
       "function": "ingest_endpoint",
@@ -1187,7 +1187,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 622,
+      "line": 629,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -1196,7 +1196,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 640,
+      "line": 647,
       "method": "GET",
       "path": "/health",
       "function": "legacy_health",
@@ -1205,7 +1205,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 645,
+      "line": 652,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",

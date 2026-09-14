@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5314,
+    "files_scanned": 5315,
     "files_by_kind": {
       "backend": 1208,
       "database": 277,
       "governance": 62,
       "mobile": 55,
       "other": 1465,
-      "tests": 1790,
+      "tests": 1791,
       "web": 457
     },
-    "unmapped_artifacts": 2166,
+    "unmapped_artifacts": 2167,
     "ambiguous_artifacts": 419
   },
   "capabilities": [
@@ -36936,6 +36936,10 @@
     {
       "path": "frontend/src/sections/LabSamplingPage.tsx",
       "kind": "web"
+    },
+    {
+      "path": "frontend/src/sections/LearningDashboardPage.static.test.ts",
+      "kind": "tests"
     },
     {
       "path": "frontend/src/sections/LearningDashboardPage.tsx",

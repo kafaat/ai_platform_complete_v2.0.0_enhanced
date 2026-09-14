@@ -4275,7 +4275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7d772cfbbfe42d6f5b69a2b4bba670d9f0cef8e1935f77644401921f8f820100"
+          "content": "3b4b81fe62c2e4bdbc576a86a424031cb9b5db4d81a2f8e1764dcd9e0d9c2c9a"
         }
       ],
       "name": "frontend/src/lib/learningEvidence.test.ts",
@@ -4285,7 +4285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5bb22308f6d528f36f9912a776c6a5c8fe0207a21f70dc1e10135b998dad04b9"
+          "content": "9147fadcaa8077f3f5df207d84e171e2fd6770a6471e3882d4b31e75891fafea"
         }
       ],
       "name": "frontend/src/lib/learningEvidence.ts",
@@ -5605,7 +5605,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dc290f492cbeba2435959ab42f5a0a0483ac3582bdf8af3a6ed19eb48450ce8c"
+          "content": "782d73dd7d02c03e6b0be311bba1f3e8df21e3577b0d816fe44ba5cea80a2c6e"
+        }
+      ],
+      "name": "frontend/src/sections/LearningDashboardPage.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8ab76017b0c72cc8929ebeea240fb72e3abe12f44a922b2cd3d1018fce385081"
         }
       ],
       "name": "frontend/src/sections/LearningDashboardPage.tsx",
@@ -6375,7 +6385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "730b9c10ff711194c82564481779f9065d49ccf1803b40267b0e82a6bd0fb8ea"
+          "content": "72726b9c37727f71d0a1d5bb9a488b51a4f251c7ef5f1bc656da3fd32a4df602"
         }
       ],
       "name": "frontend/src/services/api/calibration.ts",
@@ -13365,7 +13375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "909a2bb1cd8b5dd691d544f48fdd5146c43aafde93f30cc3281c2428899d51a7"
+          "content": "b3d748a48e2fec759f9b93c7bfca5511c0ae41153ee9216e73ab334deb0589f7"
         }
       ],
       "name": "services/local-ai-rag/main.py",
@@ -23655,7 +23665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "57cc41e105458673766653df26c8d69c6eb572b790f44144366af45bd909b451"
+          "content": "187aac8e40c0b4a1c2bc59d7bf534f26ac8c3402173f9bc2a617f2a0264a8b66"
         }
       ],
       "name": "services/sahool-platform/knowledge/farmer_knowledge.py",
@@ -25325,7 +25335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9ae2b17e522fc9d3d69371fdfb086868765fe928d6db450489b07335a812cd9c"
+          "content": "55e0c27012b729bddce10d01bb24aa316fb123f2327194b135870013eae406a5"
         }
       ],
       "name": "services/sahool-platform/tests/test_farmer_knowledge.py",

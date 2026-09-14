@@ -5,8 +5,8 @@
   "runtime_verified":false,
   "python_files_parsed":1892,
   "route_handlers":1050,
-  "call_edges":77899,
-  "dead_code_candidates":631,
+  "call_edges":77904,
+  "dead_code_candidates":632,
   "duplicate_function_groups":60,
   "route_owners":27,
   "automatic_deletions":0
@@ -1351,7 +1351,7 @@
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
-   "line":557,
+   "line":564,
    "handler":"query_endpoint",
    "method":"POST",
    "path":"/v1/query"
@@ -1359,7 +1359,7 @@
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
-   "line":567,
+   "line":574,
    "handler":"ingest_endpoint",
    "method":"POST",
    "path":"/v1/ingest"
@@ -1367,7 +1367,7 @@
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
-   "line":622,
+   "line":629,
    "handler":"healthz",
    "method":"GET",
    "path":"/healthz"
@@ -1375,7 +1375,7 @@
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
-   "line":640,
+   "line":647,
    "handler":"legacy_health",
    "method":"GET",
    "path":"/health"
@@ -1383,7 +1383,7 @@
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
-   "line":645,
+   "line":652,
    "handler":"readyz",
    "method":"GET",
    "path":"/readyz"
@@ -96234,97 +96234,83 @@
    "file":"services/local-ai-rag/main.py",
    "source":"_init_models_once",
    "target":"info",
-   "line":441
+   "line":448
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_init_models_once",
    "target":"wait_for_ollama",
-   "line":442
+   "line":449
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_init_models_once",
    "target":"init_llm",
-   "line":443
+   "line":450
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_init_models_once",
    "target":"init_vectorstore",
-   "line":444
+   "line":451
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_init_models_once",
    "target":"info",
-   "line":445
+   "line":452
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_init_models_background",
    "target":"run_init_with_retry",
-   "line":452
+   "line":459
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"info",
-   "line":464
+   "line":471
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"_init_models_background",
-   "line":466
+   "line":473
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"create_task",
-   "line":466
+   "line":473
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"info",
-   "line":467
+   "line":474
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"info",
-   "line":469
+   "line":476
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
    "target":"Depends",
-   "line":495
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_get_rag_user",
-   "target":"HTTPException",
-   "line":499
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_get_rag_user",
-   "target":"len",
    "line":502
   },
   {
@@ -96332,35 +96318,21 @@
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
    "target":"HTTPException",
-   "line":503
+   "line":506
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_get_rag_user",
+   "target":"len",
+   "line":509
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
    "target":"HTTPException",
-   "line":505
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_get_rag_user",
-   "target":"decode",
-   "line":507
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_get_rag_user",
-   "target":"type",
-   "line":511
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_get_rag_user",
-   "target":"warning",
-   "line":511
+   "line":510
   },
   {
    "owner":"local-ai-rag",
@@ -96373,323 +96345,337 @@
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
-   "target":"get",
+   "target":"decode",
    "line":514
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
+   "target":"type",
+   "line":518
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_get_rag_user",
+   "target":"warning",
+   "line":518
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_get_rag_user",
    "target":"HTTPException",
-   "line":515
+   "line":519
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_get_rag_user",
+   "target":"get",
+   "line":521
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_get_rag_user",
+   "target":"HTTPException",
+   "line":522
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_require_ready",
    "target":"HTTPException",
-   "line":553
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_endpoint",
-   "target":"post",
-   "line":556
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_endpoint",
-   "target":"Depends",
-   "line":557
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_endpoint",
-   "target":"_require_ready",
-   "line":558
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_endpoint",
-   "target":"get",
    "line":560
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_endpoint",
+   "target":"post",
+   "line":563
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_endpoint",
+   "target":"Depends",
+   "line":564
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_endpoint",
+   "target":"_require_ready",
+   "line":565
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_endpoint",
+   "target":"get",
+   "line":567
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_endpoint",
    "target":"HTTPException",
-   "line":562
+   "line":569
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_endpoint",
    "target":"_validate_tenant_id",
-   "line":563
+   "line":570
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_endpoint",
    "target":"query_rag",
-   "line":563
+   "line":570
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_endpoint",
    "target":"str",
-   "line":563
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"post",
-   "line":566
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"File",
-   "line":568
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"Form",
-   "line":569
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"Header",
    "line":570
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
-   "target":"_require_service_token",
+   "target":"post",
+   "line":573
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"File",
+   "line":575
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"Form",
    "line":576
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
-   "target":"_require_ready",
+   "target":"Header",
    "line":577
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
-   "target":"_validate_tenant_id",
-   "line":578
+   "target":"_require_service_token",
+   "line":583
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
-   "target":"Path",
-   "line":582
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"lower",
-   "line":582
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"HTTPException",
+   "target":"_require_ready",
    "line":584
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
-   "target":"NamedTemporaryFile",
+   "target":"_validate_tenant_id",
+   "line":585
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"Path",
    "line":589
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
-   "target":"read",
-   "line":593
+   "target":"lower",
+   "line":589
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
-   "target":"len",
+   "target":"HTTPException",
+   "line":591
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"NamedTemporaryFile",
    "line":596
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
-   "target":"close",
-   "line":598
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"Path",
-   "line":599
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"unlink",
-   "line":599
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"HTTPException",
+   "target":"read",
    "line":600
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
-   "target":"write",
-   "line":604
+   "target":"len",
+   "line":603
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"close",
-   "line":607
+   "line":605
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"Path",
-   "line":608
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"append",
-   "line":609
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"Path",
-   "line":610
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"str",
-   "line":610
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"ingest_documents",
-   "line":612
+   "line":606
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"unlink",
+   "line":606
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"HTTPException",
+   "line":607
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"write",
+   "line":611
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"close",
+   "line":614
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"Path",
+   "line":615
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"append",
    "line":616
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"Path",
+   "line":617
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"str",
+   "line":617
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"ingest_documents",
+   "line":619
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"unlink",
+   "line":623
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"healthz",
    "target":"get",
-   "line":621
+   "line":628
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"healthz",
    "target":"AsyncClient",
-   "line":625
+   "line":632
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"healthz",
    "target":"get",
-   "line":626
+   "line":633
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"healthz",
    "target":"debug",
-   "line":629
+   "line":636
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"healthz",
    "target":"type",
-   "line":629
+   "line":636
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"legacy_health",
    "target":"get",
-   "line":639
+   "line":646
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"legacy_health",
    "target":"healthz",
-   "line":641
+   "line":648
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"readyz",
    "target":"get",
-   "line":644
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"readyz",
-   "target":"get",
-   "line":649
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"readyz",
-   "target":"HTTPException",
-   "line":650
+   "line":651
   },
   {
    "owner":"local-ai-rag",
@@ -96702,8 +96688,22 @@
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"readyz",
+   "target":"HTTPException",
+   "line":657
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"readyz",
    "target":"get",
-   "line":658
+   "line":663
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"readyz",
+   "target":"get",
+   "line":665
   },
   {
    "owner":"local-ai-rag",
@@ -366095,6 +366095,13 @@
   },
   {
    "owner":"sahool-platform",
+   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
+   "source":"verify_against_data",
+   "target":"isinstance",
+   "line":218
+  },
+  {
+   "owner":"sahool-platform",
    "file":"services/sahool-platform/learn_from_harvest.py",
    "source":"learn",
    "target":"exists",
@@ -403549,6 +403556,34 @@
    "source":"test_whitespace_reference_ids_keep_pending",
    "target":"verify_against_data",
    "line":167
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_method_and_audit_fields_survive_with_the_basis_flag",
+   "target":"_mk",
+   "line":176
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_method_and_audit_fields_survive_with_the_basis_flag",
+   "target":"verify_against_data",
+   "line":177
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_method_and_audit_fields_survive_with_the_basis_flag",
+   "target":"_mk",
+   "line":192
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_method_and_audit_fields_survive_with_the_basis_flag",
+   "target":"verify_against_data",
+   "line":193
   },
   {
    "owner":"sahool-platform",
@@ -557641,6 +557676,17 @@
    "kind":"class",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
    "line":155,
+   "owner":"sahool-platform",
+   "decorated_route":false,
+   "reference_count":0,
+   "confidence":"medium",
+   "action":"review_before_delete"
+  },
+  {
+   "symbol":"TestUnreferencedClaimKeepsTheSubmittedEvidence",
+   "kind":"class",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "line":173,
    "owner":"sahool-platform",
    "decorated_route":false,
    "reference_count":0,
