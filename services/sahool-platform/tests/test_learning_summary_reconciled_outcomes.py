@@ -211,3 +211,40 @@ def test_non_finite_values_do_not_leak_into_the_delta_payload():
     assert row["result"]["yield_delta_t_ha"] is None
     assert row["result"]["eligibility"]["reason"] == "non_finite_value"
     assert row["success"] is None
+
+
+def test_reconciled_rows_keep_unit_identity_for_independence_counts():
+    """Copilot على #1001: الصفُّ المضغوط كان يُسقِط field_id/season_id فتبقى أعداد الاستقلال صفراً."""
+    out = summarize_learning_with_reconciled_outcomes(
+        decision_rows=[],
+        outcome_records=[
+            {
+                "outcome_id": f"or_{i}",
+                "field_id": f"fld_{i % 2}",
+                "region": "jawf",
+                "decision_id": f"dec_{i}",
+                "success": True,
+                "metrics": {"n_evaluated": 1, "n_success": 1},
+                "created_at": _ts(1),
+            }
+            for i in range(4)
+        ],
+        recommendation_outcomes=[
+            {
+                "outcome_id": "ro_1",
+                "field_id": "fld_9",
+                "season_id": "ssn_1",
+                "region": "jawf",
+                "recommendation_id": "rec_1",
+                "predicted_yield_t_ha": 4.0,
+                "actual_yield_t_ha": 4.4,
+                "accepted": True,
+                "matured_within_lag": True,
+                "outcome_recorded_at": _ts(2),
+            }
+        ],
+    )
+    region = next(r for r in out["regions"] if r["region"] == "jawf")
+    assert region["independence"]["fields"] == 3
+    assert region["independence"]["seasons"] == 1
+    assert region["independence"]["unknown_unit_samples"] == 0

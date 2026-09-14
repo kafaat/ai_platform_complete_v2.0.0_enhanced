@@ -97,8 +97,9 @@ def learning_feedback(evidence_records: list[dict]) -> dict:
         "n_verified": sum(r["evidence_level"] == "field_verified" for r in regions),
         "mean_success_rate": round(sum(rates) / len(rates), 3) if rates else None,
         "regions_needing_data": [r["region"] for r in regions if r["action"] == "collect_data"],
+        # U01: مراجعةُ المعايرة ومراجعةُ المختصّ كلتاهما «تحتاج مراجعة» (Copilot على #1001).
         "regions_needing_review": [
-            r["region"] for r in regions if r["action"] == "review_calibration"
+            r["region"] for r in regions if r["action"] in ("review_calibration", "expert_review")
         ],
     }
 

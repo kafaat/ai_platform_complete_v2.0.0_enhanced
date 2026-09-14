@@ -104,3 +104,17 @@ def test_summary_counts():
     assert s["n_preliminary"] == 1
     assert s["n_verified"] == 1
     assert s["mean_success_rate"] == pytest.approx((0.8 + 0.9) / 2, abs=1e-3)
+
+
+def test_expert_review_regions_are_listed_as_needing_review():
+    """Copilot على #1001: مراجعةُ المختصّ (U01) تدخل قائمة regions_needing_review كمراجعة المعايرة."""
+    from api.evidence_registry import aggregate_evidence
+    from api.learning_feedback import learning_feedback
+
+    ev = aggregate_evidence(
+        "jawf", [{"n_evaluated": 1, "n_success": 1, "success_flags": []} for _ in range(30)]
+    )
+    assert ev["evidence_level"] == "field_sample_complete"
+    out = learning_feedback([ev])
+    assert out["regions"][0]["action"] == "expert_review"
+    assert "jawf" in out["summary"]["regions_needing_review"]

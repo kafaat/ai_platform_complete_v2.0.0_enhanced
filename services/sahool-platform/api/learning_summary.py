@@ -92,6 +92,10 @@ def summarize_region(
         "sample_count": evidence["sample_count"],
         "samples_to_verified": evidence["samples_to_verified"],
         "field_verified_min_samples": evidence["field_verified_min_samples"],
+        # U01: جودةُ الدليل لا عدُّه — تُمرَّر إلى اللوحة كما يُصدرها سجلّ الدليل.
+        "sample_completeness": evidence["sample_completeness"],
+        "review_status": evidence["review_status"],
+        "independence": evidence["independence"],
         "last_decision_at": last_decision_at,
         "last_outcome_at": last_outcome_at,
         "last_activity_at": last_activity_at,
@@ -171,6 +175,11 @@ def _learning_row_from_unified_outcome(item: dict) -> dict:
     result = item.get("result") or {}
     return {
         "region": item.get("region") or result.get("region"),
+        # U01: هويّةُ الوحدة تُمرَّر إلى أعداد الاستقلال (Copilot على #1001: كانت تُسقَط هنا).
+        "field_id": item.get("field_id"),
+        "season_id": item.get("season_id"),
+        "farm_id": item.get("farm_id"),
+        "tenant_id": item.get("tenant_id"),
         "success": success,
         "metrics": {
             "n_evaluated": 1 if decided else 0,

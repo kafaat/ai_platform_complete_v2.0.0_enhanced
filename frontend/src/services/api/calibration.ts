@@ -271,7 +271,12 @@ export const fetchDecisionLineage = (decisionId: string): Promise<DecisionLineag
     .get<DecisionLineage>(`/api/v1/decision/${encodeURIComponent(decisionId)}/lineage`)
     .then(r => r.data);
 
-export type EvidenceLevel = 'none' | 'field_preliminary' | 'field_verified' | 'expert_opinion';
+export type EvidenceLevel =
+  | 'none'
+  | 'field_preliminary'
+  | 'field_sample_complete' // U01: العتبة بلا مراجعة مختصّ
+  | 'field_verified'
+  | 'expert_opinion';
 export interface PersistedEvidence {
   region:                     string;
   sample_count:               number;

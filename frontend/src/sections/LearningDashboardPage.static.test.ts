@@ -24,5 +24,6 @@ describe('LearningDashboardPage — evidence quality is rendered, not only count
     expect(TYPES).toContain('review_status?:');
     expect(TYPES).toContain('independence?:');
     expect(TYPES).toContain('unknown_unit_samples: number');
+    expect(TYPES).toMatch(/EvidenceLevel =[\s\S]*'field_sample_complete'/);
   });
 });
