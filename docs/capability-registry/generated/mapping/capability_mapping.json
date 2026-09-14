@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5323,
+    "files_scanned": 5325,
     "files_by_kind": {
       "backend": 1208,
       "database": 277,
       "governance": 62,
       "mobile": 55,
-      "other": 1471,
+      "other": 1472,
       "tests": 1793,
-      "web": 457
+      "web": 458
     },
-    "unmapped_artifacts": 2168,
+    "unmapped_artifacts": 2167,
     "ambiguous_artifacts": 419
   },
   "capabilities": [
@@ -5008,6 +5008,14 @@
             "content:farm",
             "content:farms"
           ]
+        },
+        {
+          "path": "frontend/src/sections/LearningDashboardPage.test.tsx",
+          "score": 8,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
         }
       ],
       "mobile": [
@@ -5232,6 +5240,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_evidence_registry.py",
+          "score": 8,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
           "path": "tests_v9/test_irrx1_farmer_manual_operations_ui.py",
           "score": 8,
           "signals": [
@@ -5364,9 +5380,9 @@
         "routes": 44,
         "database": 98,
         "events": 22,
-        "web": 14,
+        "web": 15,
         "mobile": 2,
-        "tests": 26,
+        "tests": 27,
         "governance": 0,
         "other_evidence": 14
       },
@@ -42791,10 +42807,6 @@
     },
     {
       "path": "tests_v9/test_evidence_persistence.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_evidence_registry.py",
       "kind": "tests"
     },
     {
