@@ -149,3 +149,14 @@ async def test_initializer_returning_a_task_or_future_is_awaited_not_assumed_rea
         init_returning_task, state2, max_attempts=1, base=1, cap=1, sleep=no_sleep
     )
     assert out2["status"] == "ready"
+
+
+def test_readyz_reports_the_clamped_attempt_budget_not_the_raw_env():
+    """Copilot على #1001: صفرٌ أو سالب في RAG_INIT_MAX_ATTEMPTS يُقيَّد إلى 1 عند التعريف
+    — فما يُنفَّذ وما يُبلَّغ في /readyz قيمةٌ واحدة، ويُسجَّل تحذير."""
+    src = MAIN.read_text(encoding="utf-8")
+    assert "INIT_MAX_ATTEMPTS = max(1, _INIT_MAX_ATTEMPTS_RAW)" in src
+    assert "if _INIT_MAX_ATTEMPTS_RAW < 1:" in src
+    readyz = src[src.index('@app.get("/readyz")') :]
+    assert '"init_max_attempts": INIT_MAX_ATTEMPTS' in readyz
+    assert "_INIT_MAX_ATTEMPTS_RAW" not in readyz

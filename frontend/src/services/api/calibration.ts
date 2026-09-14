@@ -281,6 +281,16 @@ export interface PersistedEvidence {
   last_evaluated_at:          string | null;
   field_verified_min_samples: number;
   samples_to_verified:        number;
+  // U01: اكتمالُ العيّنة ≠ الاعتماد — الحالتان تُعرَضان مع أعداد الوحدات المستقلّة.
+  sample_completeness?:       'empty' | 'below_threshold' | 'threshold_reached' | string;
+  review_status?:             'reviewed' | 'unreviewed' | string;
+  independence?: {
+    fields: number;
+    seasons: number;
+    farms: number;
+    tenants: number;
+    unknown_unit_samples: number;
+  };
   calibrated:                 false;
   source:                     'persisted_outcomes';
   persisted_rows:             number;

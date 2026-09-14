@@ -18,6 +18,7 @@ import {
   suggestionBadge,
   thresholdSuggestionRows,
   tierBadge,
+  feedbackActionBadge,
 } from './learningEvidence';
 import type { ObservationInput } from './learningEvidence';
 
@@ -173,5 +174,13 @@ describe('observationReady — no submit without a real measurement', () => {
     expect(observationReady({ ...base, observable_id: '  ' })).toBe(false);
     expect(observationReady({ ...base, measured_at: '' })).toBe(false);
     expect(observationReady(null)).toBe(false);
+  });
+});
+
+describe('feedbackActionBadge — U01 expert_review is a known, translated action', () => {
+  it('maps expert_review to an Arabic review badge instead of raw passthrough', () => {
+    const badge = feedbackActionBadge('expert_review');
+    expect(badge.label_ar).toBe('مراجعة مختصّ');
+    expect(badge.label_ar).not.toBe('expert_review');
   });
 });

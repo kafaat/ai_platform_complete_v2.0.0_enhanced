@@ -168,3 +168,27 @@ class TestBlankReferencesAreNotEvidence:
             fk, data_supports=True, evidence={"method": "ndvi", "reference_ids": [" x "]}
         )
         assert fk.verification_status == VerificationStatus.CONFIRMED
+
+
+class TestUnreferencedClaimKeepsTheSubmittedEvidence:
+    def test_method_and_audit_fields_survive_with_the_basis_flag(self):
+        """Copilot على #1001: الأساسُ يُضاف إلى الدليل المُقدَّم ولا يستبدله."""
+        fk = _mk(KnowledgeType.SPATIAL)
+        verify_against_data(
+            fk,
+            data_supports=True,
+            evidence={"method": "lab", "reference_ids": [" "], "note": "sample lost"},
+            verified_by="tech:9",
+        )
+        assert fk.verification_status == VerificationStatus.PENDING
+        assert fk.verification_evidence == {
+            "method": "lab",
+            "reference_ids": [" "],
+            "note": "sample lost",
+            "basis": "unreferenced_claim",
+        }
+        assert fk.verified_by == "tech:9"
+        # بلا دليل أصلاً ⇒ الأساس وحدَه (لا اختلاق حقول).
+        bare = _mk(KnowledgeType.SPATIAL)
+        verify_against_data(bare, data_supports=True)
+        assert bare.verification_evidence == {"basis": "unreferenced_claim"}

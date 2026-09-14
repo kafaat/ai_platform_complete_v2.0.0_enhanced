@@ -212,5 +212,10 @@ def verify_against_data(
     else:
         # تأييدٌ بلا مرجع لا يرفع الحالة — يبقى قيد التحقّق ويُعلَن سببُه.
         knowledge.verification_status = VerificationStatus.PENDING
-        knowledge.verification_evidence = {"basis": "unreferenced_claim"}
+        # يُحفَظ ما قدّمه المُنادي (الطريقة/المراجع/حقول التدقيق) ويُضاف الأساسُ لا يُستبدَل
+        # به (Copilot على #1001).
+        knowledge.verification_evidence = {
+            **(evidence if isinstance(evidence, dict) else {}),
+            "basis": "unreferenced_claim",
+        }
     return knowledge

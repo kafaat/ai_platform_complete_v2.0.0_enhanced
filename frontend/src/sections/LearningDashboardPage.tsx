@@ -126,6 +126,33 @@ function RegionEvidenceCard({ region, regionAr }: { region: string; regionAr: st
             )}
           </div>
 
+          {/* U01: جودة الدليل لا عدُّه — حالة المراجعة وأعداد الوحدات المستقلّة (حقول/مواسم/
+              مزارع) والعيّنات مجهولة الوحدة. 30 صفّاً من حقلٍ واحد ليست 30 شاهداً. */}
+          <div className="rounded-lg border p-2.5 space-y-1" style={{ background: '#0f172a', borderColor: '#334155' }}
+            data-testid={`evidence-quality-${region}`}>
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-slate-400">حالة المراجعة</span>
+              <span className="font-semibold"
+                style={{ color: ev.review_status === 'reviewed' ? '#4ade80' : '#fbbf24' }}>
+                {ev.review_status === 'reviewed' ? 'مراجَعة من مختصّ'
+                  : ev.review_status === 'unreviewed' ? 'غير مراجَعة' : '—'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-slate-400">وحدات مستقلّة (حقول / مواسم / مزارع)</span>
+              <span className="text-slate-200 font-medium" dir="ltr">
+                {ev.independence
+                  ? `${ev.independence.fields} / ${ev.independence.seasons} / ${ev.independence.farms}`
+                  : '—'}
+              </span>
+            </div>
+            {ev.independence && ev.independence.unknown_unit_samples > 0 && (
+              <div className="text-[10px] text-amber-300/90">
+                {ev.independence.unknown_unit_samples} عيّنة بلا هويّة حقل/موسم — استقلالُها غير قابل للإثبات.
+              </div>
+            )}
+          </div>
+
           {/* إبراز صريح: غير مُعايَر (calibrated=false) + warnings_ar */}
           {!ev.calibrated && (
             <div className="rounded-lg border p-2.5 space-y-1" style={{ background: '#1a1400', borderColor: '#f59e0b33' }}>

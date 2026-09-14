@@ -431,7 +431,14 @@ async def query_rag(question: str, tenant_id: str, k: int = 5) -> dict:
 # حالة التهيئة الخلفيّة — تُقرأ في /readyz فيُميَّز «قيد التحميل» عن «فشلت نهائيّاً بعد
 # N محاولات» (التدقيق الموحَّد 2026-09-13، P0: كانت محاولةً واحدة بلا إعادة، فغيابُ Qdrant
 # عند الإقلاع يترك الخدمة 503 إلى الأبد وتقول /readyz «قيد التحميل»).
-INIT_MAX_ATTEMPTS = int(os.getenv("RAG_INIT_MAX_ATTEMPTS", "6"))
+_INIT_MAX_ATTEMPTS_RAW = int(os.getenv("RAG_INIT_MAX_ATTEMPTS", "6"))
+# القيمةُ المُقيَّدة هي ما يُنفَّذ وما يُبلَّغ في /readyz — صفرٌ أو سالب يعني محاولةً واحدة
+# ويُسجَّل تحذيرٌ بدل أن يرى المشغّل `init_attempts: 1` مع `init_max_attempts: 0` (Copilot على #1001).
+INIT_MAX_ATTEMPTS = max(1, _INIT_MAX_ATTEMPTS_RAW)
+if _INIT_MAX_ATTEMPTS_RAW < 1:
+    logger.warning(
+        "RAG_INIT_MAX_ATTEMPTS=%d غير صالح — قُيِّد إلى %d", _INIT_MAX_ATTEMPTS_RAW, INIT_MAX_ATTEMPTS
+    )
 INIT_BACKOFF_BASE_S = float(os.getenv("RAG_INIT_BACKOFF_BASE_S", "5"))
 INIT_BACKOFF_CAP_S = float(os.getenv("RAG_INIT_BACKOFF_CAP_S", "60"))
 _init_state: dict = init_retry.new_state()
