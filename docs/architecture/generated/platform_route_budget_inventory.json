@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 632
   },
-  "inventory_sha256": "10c871a1b275aa81e25d9f59458379ecc199a77c3d46fae5ce058a4c36e96fac",
+  "inventory_sha256": "8d13e7856552c191a57d2117c195f039589412ddda12b817efdd3cf2493e6d95",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "65c1f480131929b3b472befd53bf14881174d5c35ad385629654652136c8d172"
+    "policy_sha256": "fde7656164f455a3892458f64277ba4b0f5b7b83c1499eb4bc53a6a4d236501c"
   },
   "routes": [
     {
@@ -858,7 +858,7 @@
     {
       "classification": "domain",
       "function": "evidence_map_endpoint",
-      "line": 86,
+      "line": 87,
       "method": "GET",
       "path": "/api/v1/evidence/map",
       "source": "api/routers/evidence_map.py"

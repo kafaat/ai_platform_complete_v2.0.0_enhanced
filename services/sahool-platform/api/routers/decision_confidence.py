@@ -23,7 +23,7 @@ from datetime import UTC, date, datetime
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.decision_confidence import fuse_decision_confidence
-from api.evidence_map import EVIDENCE_VERIFIED_MIN_SAMPLES
+from api.evidence_map import EVALUATED_OUTCOME_PREDICATE, EVIDENCE_VERIFIED_MIN_SAMPLES
 from api.main import (
     Permission,
     UserSchema,
@@ -101,7 +101,11 @@ async def decision_confidence_endpoint(
                 drows = []
             # دليل: عدّ قرارات/قياسات الحقل.
             decisions = await _scalar(conn, "decision_record", field_id)
-            outcomes = await _scalar(conn, "outcome_record", field_id)
+            # الصفوفُ المُقيَّمة فقط — كما في سجلّ الدليل (Copilot على #1001: كان COUNT(*) يعدّ
+            # الصفوفَ الفارغة فيمنح درجةَ «عيّنة مكتملة» لحقل بلا قياس).
+            outcomes = await _scalar(
+                conn, "outcome_record", field_id, predicate=EVALUATED_OUTCOME_PREDICATE
+            )
             # استشعار: أحدث NDVI.
             try:
                 ndvi_date = await conn.fetchval(
@@ -154,11 +158,12 @@ async def decision_confidence_endpoint(
     return out
 
 
-async def _scalar(conn, table: str, field_id: str) -> int:
-    """عدّ صفوف جدول لحقل best-effort — 0 عند تعذّره (جدول غائب)."""
+async def _scalar(conn, table: str, field_id: str, *, predicate: str | None = None) -> int:
+    """عدّ صفوف جدول لحقل best-effort — 0 عند تعذّره (جدول غائب). ``predicate`` شرطُ SQL ثابت إضافيّ."""
+    where = f"field_id = $1{' AND ' + predicate if predicate else ''}"
     try:
         val = await conn.fetchval(
-            f"SELECT COUNT(*) FROM {table} WHERE field_id = $1",  # noqa: S608 — table من ثابت داخليّ لا من مدخل
+            f"SELECT COUNT(*) FROM {table} WHERE {where}",  # noqa: S608 — table/predicate ثابتان داخليّان لا من مدخل
             field_id,
         )
     except Exception:  # noqa: BLE001 — جدول غائب ⇒ 0

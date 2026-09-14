@@ -1006,7 +1006,7 @@
         "services/raster-service/main.py"
       ],
       "apis": [
-        "GET /api/v1/evidence/map @ services/sahool-platform/api/routers/evidence_map.py:87",
+        "GET /api/v1/evidence/map @ services/sahool-platform/api/routers/evidence_map.py:88",
         "GET /api/v1/fields/{field_id}/yield-map-records @ services/sahool-platform/api/routers/yield_map_ingestion.py:290",
         "GET /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:256",
         "GET /api/v1/indicators/map-layers @ services/sahool-platform/api/routers/indicators.py:47",
@@ -4196,7 +4196,7 @@
         "GET /api/v1/calibration/{region}/evidence/persisted @ services/sahool-platform/api/routers/calibration.py:180",
         "GET /api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:71",
         "GET /api/v1/evidence-graph/analytics @ services/sahool-platform/api/routers/field_intelligence.py:605",
-        "GET /api/v1/evidence/map @ services/sahool-platform/api/routers/evidence_map.py:87",
+        "GET /api/v1/evidence/map @ services/sahool-platform/api/routers/evidence_map.py:88",
         "GET /api/v1/fields/{field_id}/evidence-graph/latest @ services/sahool-platform/api/routers/field_intelligence.py:539",
         "GET /api/v1/fields/{field_id}/evidence-graph/nodes @ services/sahool-platform/api/routers/field_intelligence.py:638",
         "GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sahool-platform/api/routers/field_intelligence.py:571",

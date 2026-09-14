@@ -24,6 +24,14 @@ from __future__ import annotations
 # عتبة التحقّق الميدانيّ (عدد القياسات) — تطابق evidence_registry. ⚠ تقديريّ غير معايَر.
 EVIDENCE_VERIFIED_MIN_SAMPLES = 30
 
+# شرطُ «الصفّ المُقيَّم» في SQL — يطابق ``evidence_registry`` الذي يُسقِط ``n_evaluated == 0``
+# (Copilot على #1001: كان ``COUNT(*)`` يعدّ الصفوفَ الفارغة/المعلّقة فتبدو 30 سجلّاً بلا قياس
+# «عيّنة مكتملة»). ``CASE`` يضمن ألّا يُحوَّل نصٌّ غير رقميّ قبل فحصه.
+EVALUATED_OUTCOME_PREDICATE = (
+    "(CASE WHEN metrics->>'n_evaluated' ~ '^[0-9]+(\\.[0-9]+)?$' "
+    "THEN (metrics->>'n_evaluated')::numeric ELSE 0 END) > 0"
+)
+
 # ترتيب المستويات (للأسوأ→الأفضل) + وسوم العرض (لا منطق ألوان في الواجهة يُختلَق).
 _TIER_AR = {
     "field_verified": "مؤكَّد ميدانيّاً",

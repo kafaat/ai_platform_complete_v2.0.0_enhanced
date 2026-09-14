@@ -549,7 +549,7 @@ sahool-platform,services/sahool-platform/api/routers/escalation.py,23,POST,/api/
 sahool-platform,services/sahool-platform/api/routers/etc_dual.py,228,POST,/api/v1/fields/{field_id}/etc-dual,field_etc_dual,versioned
 sahool-platform,services/sahool-platform/api/routers/events.py,32,GET,/api/v1/events/{entity_type}/{entity_id},entity_events,versioned
 sahool-platform,services/sahool-platform/api/routers/evidence.py,26,POST,/api/v1/evidence/corroborate,evidence_corroborate,versioned
-sahool-platform,services/sahool-platform/api/routers/evidence_map.py,87,GET,/api/v1/evidence/map,evidence_map_endpoint,versioned
+sahool-platform,services/sahool-platform/api/routers/evidence_map.py,88,GET,/api/v1/evidence/map,evidence_map_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/execution_feedback.py,50,GET,/api/v1/execution/feedback,execution_feedback_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/execution_lineage.py,61,POST,/api/v1/lineage/link,link_lineage_ref,versioned
 sahool-platform,services/sahool-platform/api/routers/execution_lineage.py,121,GET,/api/v1/lineage/{lineage_id},get_lineage_chain,versioned

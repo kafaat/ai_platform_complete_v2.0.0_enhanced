@@ -2,7 +2,7 @@ capability_id,kind,value,score,decision
 DEC-001,api,GET /api/v1/calibration/{region}/evidence/persisted @ services/sahool-platform/api/routers/calibration.py:180,2,applied
 DEC-001,api,GET /api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:71,2,applied
 DEC-001,api,GET /api/v1/evidence-graph/analytics @ services/sahool-platform/api/routers/field_intelligence.py:605,2,applied
-DEC-001,api,GET /api/v1/evidence/map @ services/sahool-platform/api/routers/evidence_map.py:87,2,applied
+DEC-001,api,GET /api/v1/evidence/map @ services/sahool-platform/api/routers/evidence_map.py:88,2,applied
 DEC-001,api,GET /api/v1/fields/{field_id}/evidence-graph/latest @ services/sahool-platform/api/routers/field_intelligence.py:539,2,applied
 DEC-001,api,GET /api/v1/fields/{field_id}/evidence-graph/nodes @ services/sahool-platform/api/routers/field_intelligence.py:638,2,applied
 DEC-001,api,GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sahool-platform/api/routers/field_intelligence.py:571,2,applied
@@ -1018,7 +1018,7 @@ GIS-001,test,tests_v9/test_sam2_polygon_cleaning_20260702.py,3,applied
 GIS-001,test,tests_v9/test_sam2_polygon_postprocessing_20260703.py,3,applied
 GIS-001,test,tests_v9/test_segmentation_boundary_metadata_contract_20260703.py,3,applied
 GIS-001,test,tests_v9/test_weather_polygon_worker.py,3,applied
-GIS-002,api,GET /api/v1/evidence/map @ services/sahool-platform/api/routers/evidence_map.py:87,2,applied
+GIS-002,api,GET /api/v1/evidence/map @ services/sahool-platform/api/routers/evidence_map.py:88,2,applied
 GIS-002,api,GET /api/v1/fields/{field_id}/yield-map-records @ services/sahool-platform/api/routers/yield_map_ingestion.py:290,2,applied
 GIS-002,api,GET /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:256,2,applied
 GIS-002,api,GET /api/v1/indicators/map-layers @ services/sahool-platform/api/routers/indicators.py:47,4,applied

@@ -4191,7 +4191,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/evidence_map.py",
-   "line":87,
+   "line":88,
    "handler":"evidence_map_endpoint",
    "method":"GET",
    "path":"/api/v1/evidence/map"
@@ -190958,104 +190958,55 @@
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"_as_int",
    "target":"int",
-   "line":54
+   "line":62
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"_has_coords",
    "target":"get",
-   "line":78
+   "line":86
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"_has_coords",
    "target":"get",
-   "line":78
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"_has_coords",
-   "target":"float",
-   "line":80
+   "line":86
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"_has_coords",
    "target":"float",
-   "line":81
+   "line":88
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"_has_coords",
+   "target":"float",
+   "line":89
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"shape_evidence_map",
    "target":"_as_int",
-   "line":103
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"get",
-   "line":103
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"_as_int",
-   "line":104
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"get",
-   "line":104
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"_as_int",
-   "line":105
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"get",
-   "line":105
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"_classify",
-   "line":106
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"_has_coords",
-   "line":108
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"round",
    "line":111
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"shape_evidence_map",
-   "target":"append",
+   "target":"get",
+   "line":111
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
+   "target":"_as_int",
    "line":112
   },
   {
@@ -191063,48 +191014,76 @@
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"shape_evidence_map",
    "target":"get",
+   "line":112
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
+   "target":"_as_int",
+   "line":113
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
+   "target":"get",
+   "line":113
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
+   "target":"_classify",
    "line":114
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"shape_evidence_map",
-   "target":"get",
-   "line":115
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"get",
+   "target":"_has_coords",
    "line":116
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"shape_evidence_map",
-   "target":"get",
-   "line":117
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"get",
-   "line":118
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"get",
+   "target":"round",
    "line":119
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"shape_evidence_map",
-   "target":"max",
+   "target":"append",
+   "line":120
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
+   "target":"get",
+   "line":122
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
+   "target":"get",
+   "line":123
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
+   "target":"get",
+   "line":124
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
+   "target":"get",
    "line":125
   },
   {
@@ -191118,8 +191097,29 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"shape_evidence_map",
+   "target":"get",
+   "line":127
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
+   "target":"max",
+   "line":133
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
+   "target":"get",
+   "line":134
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
    "target":"len",
-   "line":140
+   "line":148
   },
   {
    "owner":"sahool-platform",
@@ -240889,147 +240889,147 @@
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"_scalar",
-   "line":104
+   "line":106
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"fetchval",
-   "line":107
+   "line":111
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"_db_unavailable",
-   "line":114
+   "line":118
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"isinstance",
-   "line":119
+   "line":123
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"total_seconds",
-   "line":121
+   "line":125
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"append",
-   "line":122
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/decision_confidence.py",
-   "source":"decision_confidence_endpoint",
-   "target":"str",
-   "line":124
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/decision_confidence.py",
-   "source":"decision_confidence_endpoint",
-   "target":"max",
    "line":126
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
-   "target":"_num",
-   "line":127
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/decision_confidence.py",
-   "source":"decision_confidence_endpoint",
-   "target":"_num",
+   "target":"str",
    "line":128
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
-   "target":"_num",
-   "line":129
+   "target":"max",
+   "line":130
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
-   "target":"shape_device_twin",
+   "target":"_num",
+   "line":131
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_confidence.py",
+   "source":"decision_confidence_endpoint",
+   "target":"_num",
    "line":132
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
+   "target":"_num",
+   "line":133
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_confidence.py",
+   "source":"decision_confidence_endpoint",
+   "target":"shape_device_twin",
+   "line":136
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_confidence.py",
+   "source":"decision_confidence_endpoint",
    "target":"_evidence_value",
-   "line":140
+   "line":144
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"today",
-   "line":141
+   "line":145
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"_satellite_value",
-   "line":142
+   "line":146
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"fuse_decision_confidence",
-   "line":151
+   "line":155
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"isoformat",
-   "line":151
+   "line":155
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"str",
-   "line":153
+   "line":157
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"_scalar",
    "target":"fetchval",
-   "line":160
+   "line":165
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"_scalar",
    "target":"int",
-   "line":166
+   "line":171
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"_num",
    "target":"float",
-   "line":174
+   "line":179
   },
   {
    "owner":"sahool-platform",
@@ -250227,147 +250227,147 @@
    "file":"services/sahool-platform/api/routers/evidence_map.py",
    "source":"_field_evidence_rows",
    "target":"fetch",
-   "line":66
+   "line":67
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/evidence_map.py",
    "source":"_field_evidence_rows",
    "target":"dict",
-   "line":69
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/evidence_map.py",
-   "source":"_field_evidence_rows",
-   "target":"get",
    "line":70
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/evidence_map.py",
    "source":"_field_evidence_rows",
-   "target":"hasattr",
+   "target":"get",
    "line":71
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/evidence_map.py",
    "source":"_field_evidence_rows",
-   "target":"isoformat",
+   "target":"hasattr",
    "line":72
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/evidence_map.py",
    "source":"_field_evidence_rows",
+   "target":"isoformat",
+   "line":73
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/evidence_map.py",
+   "source":"_field_evidence_rows",
    "target":"append",
-   "line":74
+   "line":75
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/evidence_map.py",
    "source":"_fields_only_rows",
    "target":"fetch",
-   "line":80
+   "line":81
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/evidence_map.py",
    "source":"_fields_only_rows",
    "target":"dict",
-   "line":83
+   "line":84
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/evidence_map.py",
    "source":"evidence_map_endpoint",
    "target":"get",
-   "line":86
+   "line":87
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/evidence_map.py",
    "source":"evidence_map_endpoint",
    "target":"Depends",
-   "line":88
+   "line":89
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/evidence_map.py",
    "source":"evidence_map_endpoint",
    "target":"require_permission",
-   "line":88
+   "line":89
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/evidence_map.py",
    "source":"evidence_map_endpoint",
    "target":"_evidence_map_enabled",
-   "line":95
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/evidence_map.py",
-   "source":"evidence_map_endpoint",
-   "target":"HTTPException",
    "line":96
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/evidence_map.py",
    "source":"evidence_map_endpoint",
+   "target":"HTTPException",
+   "line":97
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/evidence_map.py",
+   "source":"evidence_map_endpoint",
    "target":"tenant_connection",
-   "line":101
+   "line":102
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/evidence_map.py",
    "source":"evidence_map_endpoint",
    "target":"_field_evidence_rows",
-   "line":103
+   "line":104
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/evidence_map.py",
    "source":"evidence_map_endpoint",
    "target":"_fields_only_rows",
-   "line":105
+   "line":106
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/evidence_map.py",
    "source":"evidence_map_endpoint",
    "target":"_db_unavailable",
-   "line":107
+   "line":108
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/evidence_map.py",
    "source":"evidence_map_endpoint",
    "target":"isoformat",
-   "line":109
+   "line":110
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/evidence_map.py",
    "source":"evidence_map_endpoint",
    "target":"now",
-   "line":109
+   "line":110
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/evidence_map.py",
    "source":"evidence_map_endpoint",
    "target":"shape_evidence_map",
-   "line":109
+   "line":110
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/evidence_map.py",
    "source":"evidence_map_endpoint",
    "target":"str",
-   "line":110
+   "line":111
   },
   {
    "owner":"sahool-platform",

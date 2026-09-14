@@ -5,9 +5,9 @@
     "mapped_routes": 636,
     "surface_routes": 636
   },
-  "inventory_sha256": "65a2f99e6a51d5787f0c444eeacfd94c6d52342db0a40b7643cfcb9899ecef7b",
+  "inventory_sha256": "37fc1ecfe85c354c2a0445cfe08b8fd7e09be770feefbba01eaf81aea25f8144",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "65c1f480131929b3b472befd53bf14881174d5c35ad385629654652136c8d172",
+  "map_sha256": "fde7656164f455a3892458f64277ba4b0f5b7b83c1499eb4bc53a6a4d236501c",
   "routes": [
     {
       "classification": null,
@@ -1499,7 +1499,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/evidence_map.py",
       "function": "evidence_map_endpoint",
-      "line": 86,
+      "line": 87,
       "method": "GET",
       "owner": "field-management-service",
       "owner_type": "system-of-record-target",

@@ -4952,7 +4952,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/evidence_map.py",
-    "line": 87,
+    "line": 88,
     "method": "GET",
     "path": "/api/v1/evidence/map",
     "handler": "evidence_map_endpoint",
