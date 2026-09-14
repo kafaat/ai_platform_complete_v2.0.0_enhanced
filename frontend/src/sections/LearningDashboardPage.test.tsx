@@ -13,6 +13,9 @@ vi.mock('../hooks/useApi', () => hooks);
 
 const query = (data: unknown) => ({ data, isLoading: false, isError: false, refetch: vi.fn() });
 
+const collectionWarning = 'عتبة جمع العيّنات تقديريّة — بلوغها وحده لا يمنح اعتماداً زراعياً أو معايرة';
+const pendingReviewWarning = 'العيّنة بلغت العتبة لكنّ الدليل غير مُعتمَد — يلزم مراجعة مختصّ قبل وصفه «مُتحقَّقاً ميدانيّاً»';
+
 const evidence: PersistedEvidence = {
   region: 'jawf', sample_count: 30, persisted_rows: 30,
   field_verified_min_samples: 30, samples_to_verified: 0,
@@ -20,7 +23,7 @@ const evidence: PersistedEvidence = {
   review_status: 'unreviewed', success_rate: 0, success_flag_counts: {},
   last_evaluated_at: null, calibrated: false, source: 'persisted_outcomes',
   independence: { fields: 1, seasons: 1, farms: 1, tenants: 1, unknown_unit_samples: 0 },
-  warnings_ar: ['العيّنات المتكررة لا تثبت فعالية الممارسة.'],
+  warnings_ar: [collectionWarning, pendingReviewWarning],
 };
 
 const linkedSummary: LearningSummary = {
@@ -53,7 +56,8 @@ describe('LearningDashboardPage evidence and outcome counts', () => {
     expect(card.getByText('غير مراجَعة')).toBeInTheDocument();
     expect(card.getByText('30 / 30 عيّنة')).toBeInTheDocument();
     expect(card.getByText('اكتمال جمع العيّنات')).toBeInTheDocument();
-    expect(card.getByText(/بلوغ العتبة لا يمنح اعتماداً زراعياً/)).toBeInTheDocument();
+    expect(card.getAllByText(/لا يمنح اعتماداً زراعياً أو معايرة/)).toHaveLength(1);
+    expect(card.getAllByText(/مراجعة مختصّ/)).toHaveLength(1);
     expect(card.getByText('1 / 1 / 1 / 1')).toBeInTheDocument();
     expect(card.getByText(/معرّفات مميّزة/)).toBeInTheDocument();
     expect(card.getByText(`• ${evidence.warnings_ar[0]}`)).toBeInTheDocument();
@@ -75,12 +79,15 @@ describe('LearningDashboardPage evidence and outcome counts', () => {
   it('uses the reported review state and keeps calibration separate', () => {
     hooks.usePersistedEvidence.mockImplementation((region: string) => query(region === 'jawf' ? {
       ...evidence, review_status: 'reviewed', evidence_level: 'field_verified',
+      warnings_ar: [collectionWarning],
     } : undefined));
     render(<LearningDashboardPage />);
     const card = within(screen.getByRole('region', { name: 'دليل الجوف' }));
     expect(card.getByText('مُتحقَّق ميدانيّاً')).toBeInTheDocument();
     expect(card.getByText('مراجَعة من مختصّ')).toBeInTheDocument();
     expect(card.getByText(/تقديريّ غير مُعايَر/)).toBeInTheDocument();
+    expect(card.getAllByText(/لا يمنح اعتماداً زراعياً أو معايرة/)).toHaveLength(1);
+    expect(card.queryByText(/مراجعة مختصّ/)).not.toBeInTheDocument();
   });
 
   it('shows one linked case alongside both source rows and their counting basis', () => {

@@ -161,9 +161,6 @@ function RegionEvidenceCard({ region, regionAr }: { region: string; regionAr: st
                 تبقّى {ev.samples_to_verified} عيّنة لبلوغ عتبة الجمع.
               </div>
             )}
-            <p className="text-[10px] text-slate-400">
-              عتبة جمع تقديريّة؛ بلوغ العتبة لا يمنح اعتماداً زراعياً أو معايرة، ويلزم تقييم الدليل ومراجعة مختصّ.
-            </p>
           </div>
 
           {/* U01: جودة الدليل لا عدُّه — حالة المراجعة وأعداد الوحدات المستقلّة (حقول/مواسم/

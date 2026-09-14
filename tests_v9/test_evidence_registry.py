@@ -92,6 +92,19 @@ def test_field_verified_requires_threshold_and_review():
     assert few["evidence_level"] == "field_preliminary"
 
 
+@pytest.mark.parametrize("sample_count", [0, 3, 30])
+@pytest.mark.parametrize("reviewed", [False, True])
+def test_review_warning_matches_review_status(sample_count, reviewed):
+    e = aggregate_evidence("jawf", [_outcome(1, 1) for _ in range(sample_count)], reviewed=reviewed)
+    warnings = e["warnings_ar"]
+    assert e["review_status"] == ("reviewed" if reviewed else "unreviewed")
+    assert e["calibrated"] is False
+    assert sum("لا يمنح اعتماداً زراعياً أو معايرة" in w for w in warnings) == 1
+    assert sum("مراجعة مختصّ" in w for w in warnings) == (0 if reviewed else 1)
+    if reviewed:
+        assert not any("غير مُعتمَد" in w or "غير مُراجَع" in w for w in warnings)
+
+
 def test_thirty_rows_from_one_field_and_season_are_not_independent_evidence():
     """التجربة التي كشفت U01: 30 صفّاً للحقل والموسم نفسيهما بنسبة نجاح صفر."""
     rows = [{**_outcome(1, 0), "field_id": "fld_1", "season_id": "ssn_1"} for _ in range(30)]
@@ -105,7 +118,7 @@ def test_thirty_rows_from_one_field_and_season_are_not_independent_evidence():
         "tenants": 0,
         "unknown_unit_samples": 0,
     }
-    assert any("حقلٍ وموسمٍ واحد" in w for w in e["warnings_ar"])
+    assert any("معرّفات الحقول المتاحة: 1، والمواسم: 1" in w for w in e["warnings_ar"])
 
 
 def test_samples_without_unit_identity_are_declared_not_hidden():
@@ -124,7 +137,9 @@ def test_tenant_identity_does_not_prove_field_and_season_completeness():
         "unknown_unit_samples": 0,
     }
     warnings = " ".join(e["warnings_ar"])
-    assert "قد تكون ناقصة" in warnings
+    assert "معرّفات الحقول المتاحة: 0، والمواسم: 0" in warnings
+    assert "الهوية محدودة أو ناقصة" in warnings
+    assert "حقلٍ وموسمٍ واحد" not in warnings
     assert "كلّ العيّنات من حقل" not in warnings
     assert e["review_status"] == "unreviewed"
 

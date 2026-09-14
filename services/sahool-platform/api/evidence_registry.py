@@ -95,16 +95,16 @@ def aggregate_evidence(
     samples_to_verified = max(0, _FIELD_VERIFIED_MIN_SAMPLES - sample_count)
     independence = _independence(samples)
 
-    warnings_ar = [
-        "عتبة جمع العيّنات تقديريّة — بلوغها لا يمنح اعتماداً زراعياً أو معايرة؛ يلزم تقييم الدليل ومراجعة مختصّ"
-    ]
+    warnings_ar = ["عتبة جمع العيّنات تقديريّة — بلوغها وحده لا يمنح اعتماداً زراعياً أو معايرة"]
     if 0 < sample_count < _FIELD_VERIFIED_MIN_SAMPLES:
         warnings_ar.append(
             f"دليل أوّليّ ({sample_count}/{_FIELD_VERIFIED_MIN_SAMPLES}) — تبقّى {samples_to_verified} عيّنة لبلوغ عتبة الجمع"
         )
-    if evidence_level == "field_sample_complete":
+    if not reviewed:
         warnings_ar.append(
             "العيّنة بلغت العتبة لكنّ الدليل غير مُعتمَد — يلزم مراجعة مختصّ قبل وصفه «مُتحقَّقاً ميدانيّاً»"
+            if evidence_level == "field_sample_complete"
+            else "الدليل غير مُراجَع — يلزم تقييم الدليل ومراجعة مختصّ"
         )
     if sample_count > 0 and independence["unknown_unit_samples"] == sample_count:
         warnings_ar.append(
@@ -112,7 +112,8 @@ def aggregate_evidence(
         )
     elif sample_count > 1 and max(independence["fields"], independence["seasons"]) <= 1:
         warnings_ar.append(
-            "المعرّفات المتاحة في حدود حقلٍ وموسمٍ واحد، وقد تكون ناقصة — العدُّ لا يعني شواهد مستقلّة"
+            f"معرّفات الحقول المتاحة: {independence['fields']}، والمواسم: {independence['seasons']}"
+            " — الهوية محدودة أو ناقصة؛ العدّ لا يعني شواهد مستقلّة"
         )
 
     return {
