@@ -5,8 +5,10 @@
 **لا تعرض النتيجة وحدها، بل مستوى الدليل خلفها**.
 
 المستويات (تتبع مفردات ``evidence_registry`` المُدامة — لا مفردات جديدة):
-  • ``field_verified``    (مؤكَّد ميدانيّاً) — قياسات ميدانيّة ≥ عتبة التحقّق.
-  • ``field_preliminary`` (مدعوم أوّليّاً)  — 0 < قياسات < العتبة.
+  • ``field_verified``        (مؤكَّد ميدانيّاً) — لا يُمنَح بالعدّ وحدَه؛ يشترط مراجعةً
+    مُثبَتة لا يحملها هذا التجميع (U01 — Copilot على #1001: كانت ≥ العتبة ⇒ أخضر بلا مراجعة).
+  • ``field_sample_complete`` (عيّنة مكتملة)   — قياسات ≥ العتبة بانتظار مراجعة مختصّ.
+  • ``field_preliminary``     (مدعوم أوّليّاً)  — 0 < قياسات < العتبة.
   • ``indicative``        (إرشاديّ)        — قرار/نموذج فقط، بلا قياس ميدانيّ بعد.
   • ``needs_data``        (يحتاج بيانات)   — لا قرار ولا قياس لهذا الحقل (لا تلفيق).
 
@@ -25,16 +27,25 @@ EVIDENCE_VERIFIED_MIN_SAMPLES = 30
 # ترتيب المستويات (للأسوأ→الأفضل) + وسوم العرض (لا منطق ألوان في الواجهة يُختلَق).
 _TIER_AR = {
     "field_verified": "مؤكَّد ميدانيّاً",
+    "field_sample_complete": "عيّنة مكتملة — بانتظار المراجعة",
     "field_preliminary": "مدعوم (أوّليّ)",
     "indicative": "إرشاديّ",
     "needs_data": "يحتاج بيانات",
 }
 _TIER_COLOR = {
     "field_verified": "green",
+    "field_sample_complete": "amber",
     "field_preliminary": "amber",
     "indicative": "blue",
     "needs_data": "gray",
 }
+_TIER_ORDER = (
+    "field_verified",
+    "field_sample_complete",
+    "field_preliminary",
+    "indicative",
+    "needs_data",
+)
 
 
 def _as_int(value) -> int:
@@ -49,11 +60,12 @@ def _as_int(value) -> int:
 def _classify(decisions: int, outcomes: int) -> str:
     """يصنّف مستوى دليل حقل من عدد قراراته وقياساته المُدامة — حتميّ شفّاف.
 
-    لا قرار ولا قياس ⇒ needs_data (لا تلفيق). قياسات ≥ العتبة ⇒ field_verified. قياسات
-    أقلّ ⇒ field_preliminary. قرار بلا قياس ⇒ indicative (نموذج فقط، لم يُتحقَّق ميدانيّاً).
+    لا قرار ولا قياس ⇒ needs_data (لا تلفيق). قياسات ≥ العتبة ⇒ field_sample_complete (العدُّ
+    لا يعتمد؛ field_verified يشترط مراجعةً لا يحملها العدّ). قياسات أقلّ ⇒ field_preliminary.
+    قرار بلا قياس ⇒ indicative (نموذج فقط، لم يُتحقَّق ميدانيّاً).
     """
     if outcomes >= EVIDENCE_VERIFIED_MIN_SAMPLES:
-        return "field_verified"
+        return "field_sample_complete"
     if outcomes > 0:
         return "field_preliminary"
     if decisions > 0:
@@ -118,10 +130,7 @@ def shape_evidence_map(fields: list[dict], *, generated_at: str | None = None) -
             }
         )
 
-    legend = [
-        {"tier": t, "tier_ar": _TIER_AR[t], "color": _TIER_COLOR[t]}
-        for t in ("field_verified", "field_preliminary", "indicative", "needs_data")
-    ]
+    legend = [{"tier": t, "tier_ar": _TIER_AR[t], "color": _TIER_COLOR[t]} for t in _TIER_ORDER]
 
     return {
         "generated_at": generated_at,

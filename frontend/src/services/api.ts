@@ -841,8 +841,9 @@ export const fetchAgronomicReplay = (fieldId: string): Promise<AgronomicReplayRe
 // تقديريّة. الحقول بلا إحداثيّات (has_coords=false) لا تُرسَم (لا إحداثيّات مُختلَقة).
 // needs_data «لا دليل بعد» صادق (رماديّ) لا حالة إيجابيّة. لا fallback وهميّ: الخطأ
 // يُرفع لتعرض الواجهة حالة صادقة عبر .response?.status (مطابقةً لبقيّة صفحات العلم).
+// U01: field_sample_complete = قياسات ≥ العتبة بانتظار مراجعة مختصّ (العدُّ وحدَه لا يعتمد).
 export type EvidenceMapTier =
-  | 'field_verified' | 'field_preliminary' | 'indicative' | 'needs_data';
+  | 'field_verified' | 'field_sample_complete' | 'field_preliminary' | 'indicative' | 'needs_data';
 // لون الفئة من الخادم — يُربَط بألوان CSS/علامات محدّدة في الواجهة (لا فئات إضافيّة).
 export type EvidenceMapColor = 'green' | 'amber' | 'blue' | 'gray';
 export interface EvidenceMapLegendItem {

@@ -47,7 +47,9 @@ def _decision_confidence_enabled() -> bool:
 def _evidence_value(decisions: int, outcomes: int) -> tuple[float | None, str]:
     """يُحوّل عدّ القرارات/القياسات المُدامة لحقل إلى درجة دليل 0..1 + وصف — None إن لا شيء."""
     if outcomes >= EVIDENCE_VERIFIED_MIN_SAMPLES:
-        return 1.0, f"مؤكَّد ميدانيّاً ({outcomes} قياس)"
+        # U01 (Copilot على #1001): العدُّ وحدَه لا يعتمد — كانت ≥ العتبة ⇒ 1.0 «مؤكَّد» بلا مراجعة.
+        # الدرجةُ الكاملة محجوزة لدليلٍ مراجَع لا يحمله هذا العدّ.
+        return 0.8, f"عيّنة مكتملة ({outcomes} قياس) — بانتظار مراجعة مختصّ قبل الاعتماد"
     if outcomes > 0:
         return 0.6, f"مدعوم أوّليّاً ({outcomes}/{EVIDENCE_VERIFIED_MIN_SAMPLES} قياس)"
     if decisions > 0:

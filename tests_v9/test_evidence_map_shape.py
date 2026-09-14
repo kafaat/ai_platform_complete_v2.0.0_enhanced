@@ -38,16 +38,21 @@ def test_tiers_classified_by_persisted_counts():
         ]
     )
     tiers = {f["field_id"]: f["tier"] for f in out["fields"]}
-    assert tiers["f1"] == "field_verified"
+    # U01 (Copilot على #1001): العدُّ ≥ العتبة «عيّنة مكتملة» لا «مؤكَّد» — المراجعة ليست في العدّ.
+    assert tiers["f1"] == "field_sample_complete"
     assert tiers["f2"] == "field_preliminary"
     assert tiers["f3"] == "indicative"
     assert tiers["f4"] == "needs_data"
     assert out["totals_by_tier"] == {
-        "field_verified": 1,
+        "field_verified": 0,
+        "field_sample_complete": 1,
         "field_preliminary": 1,
         "indicative": 1,
         "needs_data": 1,
     }
+    assert all(f["tier"] != "field_verified" for f in out["fields"]), (
+        "العدُّ الخام لا يمنح field_verified — الاعتمادُ قرارُ مراجعة"
+    )
 
 
 def test_needs_data_is_explicit_not_green():
@@ -94,6 +99,7 @@ def test_legend_and_threshold_and_provenance():
     assert out["generated_at"] == "2026-06-20T12:00:00+00:00"
     assert [lg["tier"] for lg in out["legend"]] == [
         "field_verified",
+        "field_sample_complete",
         "field_preliminary",
         "indicative",
         "needs_data",

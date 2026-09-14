@@ -139,10 +139,10 @@ function RegionEvidenceCard({ region, regionAr }: { region: string; regionAr: st
               </span>
             </div>
             <div className="flex items-center justify-between text-[11px]">
-              <span className="text-slate-400">وحدات مستقلّة (حقول / مواسم / مزارع)</span>
+              <span className="text-slate-400">وحدات مستقلّة (حقول / مواسم / مزارع / مستأجِرون)</span>
               <span className="text-slate-200 font-medium" dir="ltr">
                 {ev.independence
-                  ? `${ev.independence.fields} / ${ev.independence.seasons} / ${ev.independence.farms}`
+                  ? `${ev.independence.fields} / ${ev.independence.seasons} / ${ev.independence.farms} / ${ev.independence.tenants}`
                   : '—'}
               </span>
             </div>

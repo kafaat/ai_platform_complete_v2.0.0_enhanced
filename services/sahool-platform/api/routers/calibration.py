@@ -140,6 +140,42 @@ def compute_region_evidence(
     )
 
 
+# قارئٌ واحد لصفوف الدليل المُدام (ثلاثُ نقاط): يختار هويّةَ الوحدة كاملةً — field_id وtenant_id —
+# فتصحّ أعدادُ الاستقلال (Copilot على #1001: كان tenant_id يُسقَط في القرّاء الثلاثة).
+_PERSISTED_EVIDENCE_SQL = (
+    "SELECT metrics, created_at, field_id, tenant_id FROM outcome_record WHERE region = $1 "
+    "ORDER BY created_at ASC"
+)
+
+# U01: لا مسارَ مراجعةٍ موثوق في API بعد — `field_verified` يشترط قراراً مراجَعاً لا يُقرأ ولا
+# يُخزَّن لهذه الصفوف، فبوّابةُ التكيّف من الدليل المُدام تبقى عند `field_sample_complete` **صراحةً**.
+_REVIEW_GATE = {
+    "reviewed": False,
+    "reason_ar": (
+        "لا مسارَ مراجعةٍ موثوق في API بعد — «مُتحقَّق ميدانيّاً» يشترط قرارَ مختصّ مُدام، "
+        "فالدليلُ المُدام يقف عند «عيّنة مكتملة» وبوّابةُ التطبيق الآليّ مغلقة حتّى يُربَط المسار"
+    ),
+}
+
+
+def _persisted_evidence_rows(db_rows) -> list[dict]:
+    rows: list[dict] = []
+    for r in db_rows:
+        m = r["metrics"]
+        if isinstance(m, str):
+            m = _json.loads(m)
+        created = r["created_at"]
+        rows.append(
+            {
+                "metrics": m,
+                "created_at": created.isoformat() if created else None,
+                "field_id": r["field_id"],
+                "tenant_id": str(r["tenant_id"]) if r["tenant_id"] is not None else None,
+            }
+        )
+    return rows
+
+
 @router.get("/api/v1/calibration/{region}/evidence/persisted")
 async def get_persisted_region_evidence(
     region: str,
@@ -156,27 +192,11 @@ async def get_persisted_region_evidence(
     prof = get_calibration(region)
     try:
         async with tenant_connection(user) as conn:
-            db_rows = await conn.fetch(
-                "SELECT metrics, created_at, field_id FROM outcome_record WHERE region = $1 "
-                "ORDER BY created_at ASC",
-                prof.region,
-            )
+            db_rows = await conn.fetch(_PERSISTED_EVIDENCE_SQL, prof.region)
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("قراءة دليل المنطقة المُدام", e) from e
 
-    rows: list[dict] = []
-    for r in db_rows:
-        m = r["metrics"]
-        if isinstance(m, str):
-            m = _json.loads(m)
-        created = r["created_at"]
-        rows.append(
-            {
-                "metrics": m,
-                "created_at": created.isoformat() if created else None,
-                "field_id": r["field_id"],  # U01: هويّة الوحدة لأعداد الاستقلال
-            }
-        )
+    rows = _persisted_evidence_rows(db_rows)
 
     return evidence_from_persisted_outcomes(
         prof.region,
@@ -235,12 +255,23 @@ def propose_region_adaptation(
     )
     # نستعمل دليل الطلب المُمرَّر (المتراكم) لا الفارغ.
     ev.update(req.evidence.model_dump())
+    # U01 (Copilot على #1001): حمولةُ الطلب لا تمنح «مُتحقَّقاً ميدانيّاً» — كان العميل يرسل
+    # `field_verified` فيبلغ `auto_apply_eligible` بلا مراجعة. الاعتمادُ قرارُ مراجعةٍ موثوق لا
+    # حقلَ طلب، فيُخفَّض إلى «عيّنة مكتملة» ويُعلَن السبب.
+    if ev.get("evidence_level") == "field_verified":
+        ev["evidence_level"] = "field_sample_complete"
+        ev["review_status"] = "unreviewed"
+        ev["warnings_ar"] = [
+            *(ev.get("warnings_ar") or []),
+            "مستوى «مُتحقَّق ميدانيّاً» لا يُقبَل من حمولة الطلب — خُفِّض إلى «عيّنة مكتملة» بانتظار المراجعة",
+        ]
     out = propose_calibration_adjustment(
         prof.to_dict(), ev, mean_stress_delta=req.mean_stress_delta
     )
     did = ensure_decision_id(req.decision_id)
     out["decision_id"] = did
     out["lineage"] = lineage_stage(did, "adaptation", region=prof.region)
+    out["review_gate"] = _REVIEW_GATE
     return out
 
 
@@ -265,27 +296,11 @@ async def propose_region_adaptation_from_evidence(
     prof = get_calibration(region)
     try:
         async with tenant_connection(user) as conn:
-            db_rows = await conn.fetch(
-                "SELECT metrics, created_at, field_id FROM outcome_record WHERE region = $1 "
-                "ORDER BY created_at ASC",
-                prof.region,
-            )
+            db_rows = await conn.fetch(_PERSISTED_EVIDENCE_SQL, prof.region)
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("قراءة دليل المنطقة للتكيّف", e) from e
 
-    rows: list[dict] = []
-    for r in db_rows:
-        m = r["metrics"]
-        if isinstance(m, str):
-            m = _json.loads(m)
-        created = r["created_at"]
-        rows.append(
-            {
-                "metrics": m,
-                "created_at": created.isoformat() if created else None,
-                "field_id": r["field_id"],  # U01: هويّة الوحدة لأعداد الاستقلال
-            }
-        )
+    rows = _persisted_evidence_rows(db_rows)
 
     ev = evidence_from_persisted_outcomes(
         prof.region,
@@ -300,6 +315,7 @@ async def propose_region_adaptation_from_evidence(
     out["lineage"] = lineage_stage(did, "adaptation", region=prof.region)
     out["evidence_source"] = "persisted_outcomes"
     out["evidence_used"] = ev
+    out["review_gate"] = _REVIEW_GATE
     return out
 
 
@@ -335,24 +351,8 @@ async def apply_region_adaptation_from_evidence(
     source_ar: str | None = None
     try:
         async with tenant_connection(user) as conn:
-            db_rows = await conn.fetch(
-                "SELECT metrics, created_at, field_id FROM outcome_record WHERE region = $1 "
-                "ORDER BY created_at ASC",
-                prof.region,
-            )
-            rows: list[dict] = []
-            for r in db_rows:
-                m = r["metrics"]
-                if isinstance(m, str):
-                    m = _json.loads(m)
-                created = r["created_at"]
-                rows.append(
-                    {
-                        "metrics": m,
-                        "created_at": created.isoformat() if created else None,
-                        "field_id": r["field_id"],  # U01: هويّة الوحدة لأعداد الاستقلال
-                    }
-                )
+            db_rows = await conn.fetch(_PERSISTED_EVIDENCE_SQL, prof.region)
+            rows = _persisted_evidence_rows(db_rows)
 
             ev = evidence_from_persisted_outcomes(
                 prof.region, rows, expert_calibrated=prof.evidence_level == "expert_opinion"
@@ -363,6 +363,7 @@ async def apply_region_adaptation_from_evidence(
             proposal["decision_id"] = did
             proposal["lineage"] = lineage_stage(did, "adaptation", region=prof.region)
             proposal["evidence_used"] = ev
+            proposal["review_gate"] = _REVIEW_GATE
 
             # غير مؤهَّل (محروس/بلا إشارة/بلا تغيير) ⇒ لا إدامة، نُعيد الاقتراح كما هو.
             if proposal.get("status") != "auto_apply_eligible":

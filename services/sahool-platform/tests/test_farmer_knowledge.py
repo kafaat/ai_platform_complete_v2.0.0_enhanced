@@ -207,6 +207,21 @@ class TestBlankReferencesAreNotEvidence:
         import json
 
         json.dumps(fk.to_dict())  # الدليلُ المحفوظ قابلٌ للتسلسل
+        # NaN/Infinity ليست JSON قياسيّاً ⇒ تُطبَّع إلى null (Copilot على #1001).
+        nan_fk = _mk(KnowledgeType.SPATIAL)
+        verify_against_data(
+            nan_fk,
+            data_supports=True,
+            evidence={
+                "method": "lab",
+                "reference_ids": ["lab_1"],
+                "score": float("nan"),
+                "bounds": [float("inf"), 0.5],
+            },
+        )
+        payload = json.loads(json.dumps(nan_fk.to_dict(), allow_nan=False))
+        assert payload["verification_evidence"]["score"] is None
+        assert payload["verification_evidence"]["bounds"] == [None, 0.5]
 
 
 class TestRejectedKnowledgeKeepsTheAuditTrail:

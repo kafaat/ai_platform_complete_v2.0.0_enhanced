@@ -22,6 +22,7 @@ knowledge.farmer_knowledge
 
 from __future__ import annotations
 
+import math
 from dataclasses import asdict, dataclass
 from enum import StrEnum
 
@@ -202,7 +203,10 @@ def _json_safe(value):
         return [_json_safe(v) for v in value]
     if isinstance(value, (set, frozenset)):
         return sorted((_json_safe(v) for v in value), key=str)
-    if value is None or isinstance(value, (str, int, float, bool)):
+    if isinstance(value, float):
+        # NaN/Infinity ليست JSON قياسيّاً (json.dumps يُصدِرها بصيغة غير قياسيّة) ⇒ None.
+        return value if math.isfinite(value) else None
+    if value is None or isinstance(value, (str, int, bool)):
         return value
     return str(value)
 

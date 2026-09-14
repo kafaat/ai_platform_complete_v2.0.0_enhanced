@@ -60,8 +60,11 @@ def _evidence_summary(region: str | None, orows: list) -> dict | None:
         {
             "metrics": _json.loads(r["metrics"]) if isinstance(r["metrics"], str) else r["metrics"],
             "created_at": r["created_at"],
-            # U01: هويّة الحقل لأعداد الاستقلال متى حملها الصفّ (لا اختلاق).
+            # U01: هويّة الوحدة (حقل + مستأجِر) لأعداد الاستقلال متى حملها الصفّ (لا اختلاق).
             "field_id": dict(r).get("field_id"),
+            "tenant_id": (
+                str(dict(r).get("tenant_id")) if dict(r).get("tenant_id") is not None else None
+            ),
         }
         for r in orows
     ]

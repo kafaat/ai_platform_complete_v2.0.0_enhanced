@@ -3418,7 +3418,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 144,
+    "line": 180,
     "method": "GET",
     "path": "/api/v1/calibration/{region}/evidence/persisted",
     "function": "get_persisted_region_evidence"
@@ -3426,7 +3426,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 202,
+    "line": 222,
     "method": "POST",
     "path": "/api/v1/calibration/feedback",
     "function": "compute_learning_feedback"
@@ -3434,7 +3434,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 220,
+    "line": 240,
     "method": "POST",
     "path": "/api/v1/calibration/{region}/adapt",
     "function": "propose_region_adaptation"
@@ -3442,7 +3442,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 253,
+    "line": 284,
     "method": "POST",
     "path": "/api/v1/calibration/{region}/adapt-from-evidence",
     "function": "propose_region_adaptation_from_evidence"
@@ -3450,7 +3450,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 314,
+    "line": 330,
     "method": "POST",
     "path": "/api/v1/calibration/{region}/adapt-from-evidence/apply",
     "function": "apply_region_adaptation_from_evidence"
@@ -3458,7 +3458,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 438,
+    "line": 439,
     "method": "POST",
     "path": "/api/v1/calibration/{region}/propose-values",
     "function": "propose_region_values"
@@ -3466,7 +3466,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 461,
+    "line": 462,
     "method": "POST",
     "path": "/api/v1/calibration/{region}/override",
     "function": "set_region_override"
@@ -3474,7 +3474,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 527,
+    "line": 528,
     "method": "GET",
     "path": "/api/v1/calibration/{region}/resolved",
     "function": "get_resolved_region_calibration"
@@ -3482,7 +3482,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 556,
+    "line": 557,
     "method": "GET",
     "path": "/api/v1/calibration/overrides/all",
     "function": "list_region_overrides"
@@ -3490,7 +3490,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 589,
+    "line": 590,
     "method": "DELETE",
     "path": "/api/v1/calibration/{region}/override",
     "function": "delete_region_override"
@@ -3498,7 +3498,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/calibration.py",
-    "line": 635,
+    "line": 636,
     "method": "GET",
     "path": "/api/v1/calibration/{region}/audit",
     "function": "get_region_calibration_audit"
@@ -3866,7 +3866,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_confidence.py",
-    "line": 74,
+    "line": 76,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/decision-confidence",
     "function": "decision_confidence_endpoint"
@@ -3938,7 +3938,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_explain.py",
-    "line": 72,
+    "line": 75,
     "method": "GET",
     "path": "/api/v1/decision/{decision_id}/explain",
     "function": "explain_decision_endpoint"

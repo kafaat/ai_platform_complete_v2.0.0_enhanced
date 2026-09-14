@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 632
   },
-  "inventory_sha256": "4bbccfc733959ae18c350525a46dead2685de6273a95aad51edacc2e84cd130b",
+  "inventory_sha256": "10c871a1b275aa81e25d9f59458379ecc199a77c3d46fae5ce058a4c36e96fac",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "303863757a3c1fe737c00d662886db713bd5c1d0689491bbc1e4bc702ed842ad"
+    "policy_sha256": "65c1f480131929b3b472befd53bf14881174d5c35ad385629654652136c8d172"
   },
   "routes": [
     {
@@ -42,7 +42,7 @@
     {
       "classification": "domain",
       "function": "delete_region_override",
-      "line": 588,
+      "line": 589,
       "method": "DELETE",
       "path": "/api/v1/calibration/{region}/override",
       "source": "api/routers/calibration.py"
@@ -378,7 +378,7 @@
     {
       "classification": "domain",
       "function": "list_region_overrides",
-      "line": 555,
+      "line": 556,
       "method": "GET",
       "path": "/api/v1/calibration/overrides/all",
       "source": "api/routers/calibration.py"
@@ -394,7 +394,7 @@
     {
       "classification": "domain",
       "function": "get_region_calibration_audit",
-      "line": 634,
+      "line": 635,
       "method": "GET",
       "path": "/api/v1/calibration/{region}/audit",
       "source": "api/routers/calibration.py"
@@ -402,7 +402,7 @@
     {
       "classification": "domain",
       "function": "get_persisted_region_evidence",
-      "line": 143,
+      "line": 179,
       "method": "GET",
       "path": "/api/v1/calibration/{region}/evidence/persisted",
       "source": "api/routers/calibration.py"
@@ -410,7 +410,7 @@
     {
       "classification": "domain",
       "function": "get_resolved_region_calibration",
-      "line": 526,
+      "line": 527,
       "method": "GET",
       "path": "/api/v1/calibration/{region}/resolved",
       "source": "api/routers/calibration.py"
@@ -690,7 +690,7 @@
     {
       "classification": "domain",
       "function": "explain_decision_endpoint",
-      "line": 71,
+      "line": 74,
       "method": "GET",
       "path": "/api/v1/decision/{decision_id}/explain",
       "source": "api/routers/decision_explain.py"
@@ -1106,7 +1106,7 @@
     {
       "classification": "domain",
       "function": "decision_confidence_endpoint",
-      "line": 73,
+      "line": 75,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/decision-confidence",
       "source": "api/routers/decision_confidence.py"
@@ -3026,7 +3026,7 @@
     {
       "classification": "domain",
       "function": "compute_learning_feedback",
-      "line": 201,
+      "line": 221,
       "method": "POST",
       "path": "/api/v1/calibration/feedback",
       "source": "api/routers/calibration.py"
@@ -3034,7 +3034,7 @@
     {
       "classification": "domain",
       "function": "propose_region_adaptation",
-      "line": 219,
+      "line": 239,
       "method": "POST",
       "path": "/api/v1/calibration/{region}/adapt",
       "source": "api/routers/calibration.py"
@@ -3042,7 +3042,7 @@
     {
       "classification": "domain",
       "function": "propose_region_adaptation_from_evidence",
-      "line": 252,
+      "line": 283,
       "method": "POST",
       "path": "/api/v1/calibration/{region}/adapt-from-evidence",
       "source": "api/routers/calibration.py"
@@ -3050,7 +3050,7 @@
     {
       "classification": "domain",
       "function": "apply_region_adaptation_from_evidence",
-      "line": 313,
+      "line": 329,
       "method": "POST",
       "path": "/api/v1/calibration/{region}/adapt-from-evidence/apply",
       "source": "api/routers/calibration.py"
@@ -3066,7 +3066,7 @@
     {
       "classification": "domain",
       "function": "set_region_override",
-      "line": 460,
+      "line": 461,
       "method": "POST",
       "path": "/api/v1/calibration/{region}/override",
       "source": "api/routers/calibration.py"
@@ -3074,7 +3074,7 @@
     {
       "classification": "domain",
       "function": "propose_region_values",
-      "line": 437,
+      "line": 438,
       "method": "POST",
       "path": "/api/v1/calibration/{region}/propose-values",
       "source": "api/routers/calibration.py"

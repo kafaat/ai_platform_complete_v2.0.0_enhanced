@@ -1136,7 +1136,7 @@
       "function": "delete_region_override",
       "method": "DELETE",
       "path": "/api/v1/calibration/{region}/override",
-      "line": 588,
+      "line": 589,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::DELETE /api/v1/calibration/{region}/override::delete_region_override"
@@ -1146,7 +1146,7 @@
       "function": "list_region_overrides",
       "method": "GET",
       "path": "/api/v1/calibration/overrides/all",
-      "line": 555,
+      "line": 556,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::GET /api/v1/calibration/overrides/all::list_region_overrides"
@@ -1156,7 +1156,7 @@
       "function": "get_region_calibration_audit",
       "method": "GET",
       "path": "/api/v1/calibration/{region}/audit",
-      "line": 634,
+      "line": 635,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::GET /api/v1/calibration/{region}/audit::get_region_calibration_audit"
@@ -1166,7 +1166,7 @@
       "function": "get_persisted_region_evidence",
       "method": "GET",
       "path": "/api/v1/calibration/{region}/evidence/persisted",
-      "line": 143,
+      "line": 179,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::GET /api/v1/calibration/{region}/evidence/persisted::get_persisted_region_evidence"
@@ -1176,7 +1176,7 @@
       "function": "get_resolved_region_calibration",
       "method": "GET",
       "path": "/api/v1/calibration/{region}/resolved",
-      "line": 526,
+      "line": 527,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::GET /api/v1/calibration/{region}/resolved::get_resolved_region_calibration"
@@ -1206,7 +1206,7 @@
       "function": "compute_learning_feedback",
       "method": "POST",
       "path": "/api/v1/calibration/feedback",
-      "line": 201,
+      "line": 221,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::POST /api/v1/calibration/feedback::compute_learning_feedback"
@@ -1216,7 +1216,7 @@
       "function": "apply_region_adaptation_from_evidence",
       "method": "POST",
       "path": "/api/v1/calibration/{region}/adapt-from-evidence/apply",
-      "line": 313,
+      "line": 329,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::POST /api/v1/calibration/{region}/adapt-from-evidence/apply::apply_region_adaptation_from_evidence"
@@ -1226,7 +1226,7 @@
       "function": "propose_region_adaptation_from_evidence",
       "method": "POST",
       "path": "/api/v1/calibration/{region}/adapt-from-evidence",
-      "line": 252,
+      "line": 283,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::POST /api/v1/calibration/{region}/adapt-from-evidence::propose_region_adaptation_from_evidence"
@@ -1236,7 +1236,7 @@
       "function": "propose_region_adaptation",
       "method": "POST",
       "path": "/api/v1/calibration/{region}/adapt",
-      "line": 219,
+      "line": 239,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::POST /api/v1/calibration/{region}/adapt::propose_region_adaptation"
@@ -1256,7 +1256,7 @@
       "function": "set_region_override",
       "method": "POST",
       "path": "/api/v1/calibration/{region}/override",
-      "line": 460,
+      "line": 461,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::POST /api/v1/calibration/{region}/override::set_region_override"
@@ -1266,7 +1266,7 @@
       "function": "propose_region_values",
       "method": "POST",
       "path": "/api/v1/calibration/{region}/propose-values",
-      "line": 437,
+      "line": 438,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/calibration.py::POST /api/v1/calibration/{region}/propose-values::propose_region_values"
@@ -1727,7 +1727,7 @@
       "function": "decision_confidence_endpoint",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/decision-confidence",
-      "line": 73,
+      "line": 75,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/decision_confidence.py::GET /api/v1/fields/{field_id}/decision-confidence::decision_confidence_endpoint"
@@ -1817,7 +1817,7 @@
       "function": "explain_decision_endpoint",
       "method": "GET",
       "path": "/api/v1/decision/{decision_id}/explain",
-      "line": 71,
+      "line": 74,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_explain.py::GET /api/v1/decision/{decision_id}/explain::explain_decision_endpoint"

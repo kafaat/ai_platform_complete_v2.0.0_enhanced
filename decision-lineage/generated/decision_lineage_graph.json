@@ -1344,7 +1344,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 250,
+      "evidence_count": 252,
       "owners": [
         "ai_agronomist",
         "auth",
@@ -1482,6 +1482,7 @@
         "services/sahool-platform/api/pivot_geometry.py",
         "services/sahool-platform/api/prescriptions.py",
         "services/sahool-platform/api/routers/boundaries.py",
+        "services/sahool-platform/api/routers/calibration.py",
         "services/sahool-platform/api/routers/crop_twin.py",
         "services/sahool-platform/api/routers/decision_dispatch.py",
         "services/sahool-platform/api/routers/decision_impact.py",
@@ -1530,6 +1531,7 @@
         "services/sahool-platform/storage/lite_store.py",
         "services/sahool-platform/tests/test_agro_intelligence_endpoints.py",
         "services/sahool-platform/tests/test_boundary_confidence.py",
+        "services/sahool-platform/tests/test_calibration_endpoint.py",
         "services/sahool-platform/tests/test_canonical_well_capability.py",
         "services/sahool-platform/tests/test_crop_cards.py",
         "services/sahool-platform/tests/test_crop_decision_bridge.py",
@@ -2578,6 +2580,7 @@
         "services/sahool-platform/api/lexicographic_mpc_bridge.py",
         "services/sahool-platform/api/main.py",
         "services/sahool-platform/api/phase_runtime_store.py",
+        "services/sahool-platform/api/routers/calibration.py",
         "services/sahool-platform/api/routers/crop_twin.py",
         "services/sahool-platform/api/routers/decision_dispatch.py",
         "services/sahool-platform/api/routers/decision_impact.py",
@@ -2601,7 +2604,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 172,
-      "target_evidence_count": 250,
+      "target_evidence_count": 252,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2632,7 +2635,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 250,
+      "source_evidence_count": 252,
       "target_evidence_count": 32,
       "static_supported": true,
       "runtime_verified": false
@@ -2791,5 +2794,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "8d338f091baaef9d2c021b64ac7244dc23f04da631915ef63878a20a29178f4d"
+  "content_sha256": "54ff5e6880d34b649f686a1d10436f11d6455592a149fa90781ea98f55e8fc40"
 }

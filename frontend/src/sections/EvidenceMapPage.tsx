@@ -208,7 +208,11 @@ export default function EvidenceMapPage() {
                             <div style={{ fontSize: 12 }}>
                               معدّل النجاح: {successRateText(f.success_rate)}
                             </div>
-                            {f.tier !== 'field_verified' && (
+                            {f.tier === 'field_sample_complete' ? (
+                              <div style={{ fontSize: 12, color: '#b45309' }}>
+                                العيّنة مكتملة — بانتظار مراجعة مختصّ قبل الاعتماد
+                              </div>
+                            ) : f.tier !== 'field_verified' && (
                               <div style={{ fontSize: 12, color: '#b45309' }}>
                                 تبقّى {f.samples_to_verified} عيّنة للتحقّق
                               </div>

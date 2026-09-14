@@ -13,6 +13,7 @@ describe('LearningDashboardPage — evidence quality is rendered, not only count
     expect(SRC).toContain('ev.independence.fields');
     expect(SRC).toContain('ev.independence.seasons');
     expect(SRC).toContain('ev.independence.farms');
+    expect(SRC).toContain('ev.independence.tenants'); // Copilot على #1001: بُعد المستأجِر كان مخفيّاً
     expect(SRC).toContain('unknown_unit_samples');
     expect(SRC).toContain('evidence-quality-');
   });

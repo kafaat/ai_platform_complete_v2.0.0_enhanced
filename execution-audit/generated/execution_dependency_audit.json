@@ -5,7 +5,7 @@
   "runtime_verified":false,
   "python_files_parsed":1892,
   "route_handlers":1050,
-  "call_edges":78038,
+  "call_edges":78057,
   "dead_code_candidates":633,
   "duplicate_function_groups":60,
   "route_owners":27,
@@ -3199,7 +3199,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":144,
+   "line":180,
    "handler":"get_persisted_region_evidence",
    "method":"GET",
    "path":"/api/v1/calibration/{region}/evidence/persisted"
@@ -3207,7 +3207,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":202,
+   "line":222,
    "handler":"compute_learning_feedback",
    "method":"POST",
    "path":"/api/v1/calibration/feedback"
@@ -3215,7 +3215,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":220,
+   "line":240,
    "handler":"propose_region_adaptation",
    "method":"POST",
    "path":"/api/v1/calibration/{region}/adapt"
@@ -3223,7 +3223,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":253,
+   "line":284,
    "handler":"propose_region_adaptation_from_evidence",
    "method":"POST",
    "path":"/api/v1/calibration/{region}/adapt-from-evidence"
@@ -3231,7 +3231,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":314,
+   "line":330,
    "handler":"apply_region_adaptation_from_evidence",
    "method":"POST",
    "path":"/api/v1/calibration/{region}/adapt-from-evidence/apply"
@@ -3239,7 +3239,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":438,
+   "line":439,
    "handler":"propose_region_values",
    "method":"POST",
    "path":"/api/v1/calibration/{region}/propose-values"
@@ -3247,7 +3247,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":461,
+   "line":462,
    "handler":"set_region_override",
    "method":"POST",
    "path":"/api/v1/calibration/{region}/override"
@@ -3255,7 +3255,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":527,
+   "line":528,
    "handler":"get_resolved_region_calibration",
    "method":"GET",
    "path":"/api/v1/calibration/{region}/resolved"
@@ -3263,7 +3263,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":556,
+   "line":557,
    "handler":"list_region_overrides",
    "method":"GET",
    "path":"/api/v1/calibration/overrides/all"
@@ -3271,7 +3271,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":589,
+   "line":590,
    "handler":"delete_region_override",
    "method":"DELETE",
    "path":"/api/v1/calibration/{region}/override"
@@ -3279,7 +3279,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "line":635,
+   "line":636,
    "handler":"get_region_calibration_audit",
    "method":"GET",
    "path":"/api/v1/calibration/{region}/audit"
@@ -3647,7 +3647,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
-   "line":74,
+   "line":76,
    "handler":"decision_confidence_endpoint",
    "method":"GET",
    "path":"/api/v1/fields/{field_id}/decision-confidence"
@@ -3719,7 +3719,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
-   "line":72,
+   "line":75,
    "handler":"explain_decision_endpoint",
    "method":"GET",
    "path":"/api/v1/decision/{decision_id}/explain"
@@ -190958,112 +190958,42 @@
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"_as_int",
    "target":"int",
-   "line":43
+   "line":54
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"_has_coords",
    "target":"get",
-   "line":66
+   "line":78
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"_has_coords",
    "target":"get",
-   "line":66
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"_has_coords",
-   "target":"float",
-   "line":68
+   "line":78
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"_has_coords",
    "target":"float",
-   "line":69
+   "line":80
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"_has_coords",
+   "target":"float",
+   "line":81
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"shape_evidence_map",
    "target":"_as_int",
-   "line":91
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"get",
-   "line":91
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"_as_int",
-   "line":92
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"get",
-   "line":92
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"_as_int",
-   "line":93
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"get",
-   "line":93
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"_classify",
-   "line":94
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"_has_coords",
-   "line":96
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"round",
-   "line":99
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"append",
-   "line":100
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/evidence_map.py",
-   "source":"shape_evidence_map",
-   "target":"get",
-   "line":102
+   "line":103
   },
   {
    "owner":"sahool-platform",
@@ -191076,8 +191006,22 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"shape_evidence_map",
+   "target":"_as_int",
+   "line":104
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
    "target":"get",
    "line":104
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
+   "target":"_as_int",
+   "line":105
   },
   {
    "owner":"sahool-platform",
@@ -191090,22 +191034,29 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"shape_evidence_map",
-   "target":"get",
+   "target":"_classify",
    "line":106
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"shape_evidence_map",
-   "target":"get",
-   "line":107
+   "target":"_has_coords",
+   "line":108
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"shape_evidence_map",
-   "target":"max",
-   "line":113
+   "target":"round",
+   "line":111
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
+   "target":"append",
+   "line":112
   },
   {
    "owner":"sahool-platform",
@@ -191118,8 +191069,57 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/evidence_map.py",
    "source":"shape_evidence_map",
+   "target":"get",
+   "line":115
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
+   "target":"get",
+   "line":116
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
+   "target":"get",
+   "line":117
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
+   "target":"get",
+   "line":118
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
+   "target":"get",
+   "line":119
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
+   "target":"max",
+   "line":125
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
+   "target":"get",
+   "line":126
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/evidence_map.py",
+   "source":"shape_evidence_map",
    "target":"len",
-   "line":131
+   "line":140
   },
   {
    "owner":"sahool-platform",
@@ -237863,359 +237863,345 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_persisted_region_evidence",
-   "target":"get",
-   "line":143
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_persisted_region_evidence",
-   "target":"Depends",
-   "line":146
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_persisted_region_evidence",
-   "target":"get_calibration",
-   "line":156
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_persisted_region_evidence",
-   "target":"tenant_connection",
-   "line":158
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_persisted_region_evidence",
-   "target":"fetch",
-   "line":159
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_persisted_region_evidence",
-   "target":"_db_unavailable",
+   "source":"_persisted_evidence_rows",
+   "target":"isinstance",
    "line":165
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_persisted_region_evidence",
-   "target":"isinstance",
-   "line":170
+   "source":"_persisted_evidence_rows",
+   "target":"loads",
+   "line":166
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_persisted_region_evidence",
-   "target":"loads",
+   "source":"_persisted_evidence_rows",
+   "target":"append",
+   "line":168
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"_persisted_evidence_rows",
+   "target":"isoformat",
    "line":171
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_persisted_region_evidence",
-   "target":"append",
+   "source":"_persisted_evidence_rows",
+   "target":"str",
    "line":173
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_persisted_region_evidence",
-   "target":"isoformat",
-   "line":176
+   "target":"get",
+   "line":179
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"get_persisted_region_evidence",
+   "target":"Depends",
+   "line":182
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"get_persisted_region_evidence",
+   "target":"get_calibration",
+   "line":192
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"get_persisted_region_evidence",
+   "target":"tenant_connection",
+   "line":194
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"get_persisted_region_evidence",
+   "target":"fetch",
+   "line":195
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"get_persisted_region_evidence",
+   "target":"_db_unavailable",
+   "line":197
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"get_persisted_region_evidence",
+   "target":"_persisted_evidence_rows",
+   "line":199
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_persisted_region_evidence",
    "target":"evidence_from_persisted_outcomes",
-   "line":181
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"compute_learning_feedback",
-   "target":"post",
    "line":201
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"compute_learning_feedback",
+   "target":"post",
+   "line":221
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"compute_learning_feedback",
    "target":"Depends",
-   "line":204
+   "line":224
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"compute_learning_feedback",
    "target":"learning_feedback",
-   "line":210
+   "line":230
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"compute_learning_feedback",
    "target":"model_dump",
-   "line":210
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"propose_region_adaptation",
-   "target":"post",
-   "line":219
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"propose_region_adaptation",
-   "target":"Depends",
-   "line":223
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"propose_region_adaptation",
-   "target":"get_calibration",
    "line":230
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation",
-   "target":"aggregate_evidence",
-   "line":231
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"propose_region_adaptation",
-   "target":"model_dump",
-   "line":237
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"propose_region_adaptation",
-   "target":"update",
-   "line":237
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"propose_region_adaptation",
-   "target":"propose_calibration_adjustment",
-   "line":238
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"propose_region_adaptation",
-   "target":"to_dict",
+   "target":"post",
    "line":239
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation",
+   "target":"Depends",
+   "line":243
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"propose_region_adaptation",
+   "target":"get_calibration",
+   "line":250
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"propose_region_adaptation",
+   "target":"aggregate_evidence",
+   "line":251
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"propose_region_adaptation",
+   "target":"model_dump",
+   "line":257
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"propose_region_adaptation",
+   "target":"update",
+   "line":257
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"propose_region_adaptation",
+   "target":"get",
+   "line":261
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"propose_region_adaptation",
+   "target":"get",
+   "line":265
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"propose_region_adaptation",
+   "target":"propose_calibration_adjustment",
+   "line":268
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"propose_region_adaptation",
+   "target":"to_dict",
+   "line":269
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"propose_region_adaptation",
    "target":"ensure_decision_id",
-   "line":241
+   "line":271
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation",
    "target":"lineage_stage",
-   "line":243
+   "line":273
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation_from_evidence",
    "target":"post",
-   "line":252
+   "line":283
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation_from_evidence",
    "target":"Depends",
-   "line":256
+   "line":287
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation_from_evidence",
    "target":"get_calibration",
-   "line":265
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"propose_region_adaptation_from_evidence",
-   "target":"tenant_connection",
-   "line":267
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"propose_region_adaptation_from_evidence",
-   "target":"fetch",
-   "line":268
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"propose_region_adaptation_from_evidence",
-   "target":"_db_unavailable",
-   "line":274
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"propose_region_adaptation_from_evidence",
-   "target":"isinstance",
-   "line":279
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"propose_region_adaptation_from_evidence",
-   "target":"loads",
-   "line":280
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"propose_region_adaptation_from_evidence",
-   "target":"append",
-   "line":282
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"propose_region_adaptation_from_evidence",
-   "target":"isoformat",
-   "line":285
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"propose_region_adaptation_from_evidence",
-   "target":"evidence_from_persisted_outcomes",
-   "line":290
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"propose_region_adaptation_from_evidence",
-   "target":"propose_calibration_adjustment",
-   "line":295
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"propose_region_adaptation_from_evidence",
-   "target":"to_dict",
    "line":296
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation_from_evidence",
-   "target":"ensure_decision_id",
+   "target":"tenant_connection",
    "line":298
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_adaptation_from_evidence",
+   "target":"fetch",
+   "line":299
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"propose_region_adaptation_from_evidence",
+   "target":"_db_unavailable",
+   "line":301
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"propose_region_adaptation_from_evidence",
+   "target":"_persisted_evidence_rows",
+   "line":303
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"propose_region_adaptation_from_evidence",
+   "target":"evidence_from_persisted_outcomes",
+   "line":305
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"propose_region_adaptation_from_evidence",
+   "target":"propose_calibration_adjustment",
+   "line":310
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"propose_region_adaptation_from_evidence",
+   "target":"to_dict",
+   "line":311
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"propose_region_adaptation_from_evidence",
+   "target":"ensure_decision_id",
+   "line":313
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"propose_region_adaptation_from_evidence",
    "target":"lineage_stage",
-   "line":300
+   "line":315
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"post",
-   "line":313
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"apply_region_adaptation_from_evidence",
-   "target":"Depends",
-   "line":317
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"apply_region_adaptation_from_evidence",
-   "target":"ensure_decision_id",
-   "line":327
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"apply_region_adaptation_from_evidence",
-   "target":"HTTPException",
    "line":329
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
-   "target":"get_calibration",
+   "target":"Depends",
    "line":333
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
-   "target":"tenant_connection",
-   "line":337
+   "target":"ensure_decision_id",
+   "line":343
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
-   "target":"fetch",
-   "line":338
+   "target":"HTTPException",
+   "line":345
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
-   "target":"isinstance",
-   "line":346
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"apply_region_adaptation_from_evidence",
-   "target":"loads",
-   "line":347
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"apply_region_adaptation_from_evidence",
-   "target":"append",
+   "target":"get_calibration",
    "line":349
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
-   "target":"isoformat",
-   "line":352
+   "target":"tenant_connection",
+   "line":353
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"apply_region_adaptation_from_evidence",
+   "target":"fetch",
+   "line":354
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"apply_region_adaptation_from_evidence",
+   "target":"_persisted_evidence_rows",
+   "line":355
   },
   {
    "owner":"sahool-platform",
@@ -238250,560 +238236,560 @@
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"get",
-   "line":368
+   "line":369
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"get",
-   "line":374
+   "line":375
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"validate_region_calibration",
-   "line":377
+   "line":378
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"HTTPException",
-   "line":381
+   "line":382
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"execute",
-   "line":384
+   "line":385
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"str",
-   "line":393
+   "line":394
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"dumps",
-   "line":395
+   "line":396
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"str",
-   "line":397
+   "line":398
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"_emit_domain_event",
-   "line":399
+   "line":400
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"keys",
-   "line":405
+   "line":406
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"list",
-   "line":405
+   "line":406
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"_append_calibration_audit",
-   "line":410
+   "line":411
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"_db_unavailable",
-   "line":416
+   "line":417
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"apply_region_adaptation_from_evidence",
    "target":"apply_region_override",
-   "line":421
+   "line":422
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_values",
    "target":"post",
-   "line":437
+   "line":438
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_values",
    "target":"Depends",
-   "line":441
+   "line":442
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_values",
    "target":"validate_region_calibration",
-   "line":448
+   "line":449
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_values",
    "target":"items",
-   "line":450
+   "line":451
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"propose_region_values",
    "target":"model_dump",
-   "line":450
+   "line":451
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
    "target":"post",
-   "line":460
+   "line":461
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
    "target":"Depends",
-   "line":464
+   "line":465
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
    "target":"items",
-   "line":473
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"set_region_override",
-   "target":"model_dump",
-   "line":473
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"set_region_override",
-   "target":"validate_region_calibration",
    "line":474
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
+   "target":"model_dump",
+   "line":474
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"set_region_override",
+   "target":"validate_region_calibration",
+   "line":475
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"set_region_override",
    "target":"HTTPException",
-   "line":477
+   "line":478
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
    "target":"get_calibration",
-   "line":479
+   "line":480
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
    "target":"tenant_connection",
-   "line":482
+   "line":483
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
    "target":"_read_override_values",
-   "line":485
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"set_region_override",
-   "target":"execute",
    "line":486
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
+   "target":"execute",
+   "line":487
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"set_region_override",
    "target":"str",
-   "line":495
+   "line":496
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
    "target":"dumps",
-   "line":497
+   "line":498
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
    "target":"str",
-   "line":499
+   "line":500
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
    "target":"_emit_domain_event",
-   "line":501
+   "line":502
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
    "target":"keys",
-   "line":507
+   "line":508
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
    "target":"list",
-   "line":507
+   "line":508
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
    "target":"_append_calibration_audit",
-   "line":511
+   "line":512
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
    "target":"_db_unavailable",
-   "line":515
+   "line":516
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"set_region_override",
    "target":"apply_region_override",
-   "line":522
+   "line":523
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_resolved_region_calibration",
    "target":"get",
-   "line":526
+   "line":527
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_resolved_region_calibration",
    "target":"Depends",
-   "line":529
+   "line":530
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_resolved_region_calibration",
    "target":"get_calibration",
-   "line":537
+   "line":538
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_resolved_region_calibration",
    "target":"tenant_connection",
-   "line":539
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_resolved_region_calibration",
-   "target":"fetchrow",
    "line":540
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_resolved_region_calibration",
+   "target":"fetchrow",
+   "line":541
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"get_resolved_region_calibration",
    "target":"_db_unavailable",
-   "line":545
+   "line":546
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_resolved_region_calibration",
    "target":"apply_region_override",
-   "line":548
+   "line":549
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_resolved_region_calibration",
    "target":"isinstance",
-   "line":550
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_resolved_region_calibration",
-   "target":"loads",
    "line":551
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_resolved_region_calibration",
-   "target":"apply_region_override",
+   "target":"loads",
    "line":552
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"get_resolved_region_calibration",
+   "target":"apply_region_override",
+   "line":553
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"list_region_overrides",
    "target":"get",
-   "line":555
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"list_region_overrides",
-   "target":"Depends",
    "line":556
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"list_region_overrides",
-   "target":"tenant_connection",
-   "line":562
+   "target":"Depends",
+   "line":557
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"list_region_overrides",
-   "target":"fetch",
+   "target":"tenant_connection",
    "line":563
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"list_region_overrides",
+   "target":"fetch",
+   "line":564
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"list_region_overrides",
    "target":"_db_unavailable",
-   "line":568
+   "line":569
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"list_region_overrides",
    "target":"isinstance",
-   "line":573
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"list_region_overrides",
-   "target":"loads",
    "line":574
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"list_region_overrides",
+   "target":"loads",
+   "line":575
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"list_region_overrides",
    "target":"append",
-   "line":576
+   "line":577
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"list_region_overrides",
    "target":"isoformat",
-   "line":582
+   "line":583
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"list_region_overrides",
    "target":"len",
-   "line":585
+   "line":586
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"delete_region_override",
    "target":"delete",
-   "line":588
+   "line":589
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"delete_region_override",
    "target":"Depends",
-   "line":591
+   "line":592
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"delete_region_override",
    "target":"get_calibration",
-   "line":597
+   "line":598
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"delete_region_override",
    "target":"tenant_connection",
-   "line":599
+   "line":600
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"delete_region_override",
    "target":"_read_override_values",
-   "line":601
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"delete_region_override",
-   "target":"execute",
    "line":602
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"delete_region_override",
+   "target":"execute",
+   "line":603
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"delete_region_override",
    "target":"_append_calibration_audit",
-   "line":605
+   "line":606
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"delete_region_override",
    "target":"_db_unavailable",
-   "line":609
+   "line":610
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"_audit_row",
    "target":"isinstance",
-   "line":616
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"_audit_row",
-   "target":"loads",
    "line":617
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"_audit_row",
-   "target":"isinstance",
-   "line":619
+   "target":"loads",
+   "line":618
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"_audit_row",
-   "target":"loads",
+   "target":"isinstance",
    "line":620
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"_audit_row",
+   "target":"loads",
+   "line":621
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"_audit_row",
    "target":"str",
-   "line":623
+   "line":624
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"_audit_row",
    "target":"isoformat",
-   "line":630
+   "line":631
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_region_calibration_audit",
    "target":"get",
-   "line":634
+   "line":635
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_region_calibration_audit",
    "target":"Depends",
-   "line":637
+   "line":638
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_region_calibration_audit",
    "target":"get_calibration",
-   "line":645
+   "line":646
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_region_calibration_audit",
    "target":"tenant_connection",
-   "line":647
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/calibration.py",
-   "source":"get_region_calibration_audit",
-   "target":"fetch",
    "line":648
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_region_calibration_audit",
+   "target":"fetch",
+   "line":649
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/calibration.py",
+   "source":"get_region_calibration_audit",
    "target":"_db_unavailable",
-   "line":654
+   "line":655
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_region_calibration_audit",
    "target":"_audit_row",
-   "line":656
+   "line":657
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/calibration.py",
    "source":"get_region_calibration_audit",
    "target":"len",
-   "line":657
+   "line":658
   },
   {
    "owner":"sahool-platform",
@@ -240805,13 +240791,6 @@
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"_satellite_value",
    "target":"int",
-   "line":63
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/decision_confidence.py",
-   "source":"_satellite_value",
-   "target":"int",
    "line":65
   },
   {
@@ -240833,139 +240812,132 @@
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"_satellite_value",
    "target":"int",
-   "line":70
+   "line":71
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_confidence.py",
+   "source":"_satellite_value",
+   "target":"int",
+   "line":72
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"get",
-   "line":73
+   "line":75
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"Depends",
-   "line":76
+   "line":78
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"require_permission",
-   "line":76
+   "line":78
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"_decision_confidence_enabled",
-   "line":83
+   "line":85
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"HTTPException",
-   "line":84
+   "line":86
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"now",
-   "line":88
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/decision_confidence.py",
-   "source":"decision_confidence_endpoint",
-   "target":"tenant_connection",
    "line":90
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
+   "target":"tenant_connection",
+   "line":92
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_confidence.py",
+   "source":"decision_confidence_endpoint",
    "target":"fetch",
-   "line":93
+   "line":95
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"_scalar",
-   "line":101
+   "line":103
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"_scalar",
-   "line":102
+   "line":104
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"fetchval",
-   "line":105
+   "line":107
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"_db_unavailable",
-   "line":112
+   "line":114
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"isinstance",
-   "line":117
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/decision_confidence.py",
-   "source":"decision_confidence_endpoint",
-   "target":"total_seconds",
    "line":119
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
-   "target":"append",
-   "line":120
+   "target":"total_seconds",
+   "line":121
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
-   "target":"str",
+   "target":"append",
    "line":122
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
-   "target":"max",
+   "target":"str",
    "line":124
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
-   "target":"_num",
-   "line":125
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/decision_confidence.py",
-   "source":"decision_confidence_endpoint",
-   "target":"_num",
+   "target":"max",
    "line":126
   },
   {
@@ -240979,71 +240951,85 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
+   "target":"_num",
+   "line":128
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_confidence.py",
+   "source":"decision_confidence_endpoint",
+   "target":"_num",
+   "line":129
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_confidence.py",
+   "source":"decision_confidence_endpoint",
    "target":"shape_device_twin",
-   "line":130
+   "line":132
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"_evidence_value",
-   "line":138
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/decision_confidence.py",
-   "source":"decision_confidence_endpoint",
-   "target":"today",
-   "line":139
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/decision_confidence.py",
-   "source":"decision_confidence_endpoint",
-   "target":"_satellite_value",
    "line":140
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
+   "target":"today",
+   "line":141
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_confidence.py",
+   "source":"decision_confidence_endpoint",
+   "target":"_satellite_value",
+   "line":142
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_confidence.py",
+   "source":"decision_confidence_endpoint",
    "target":"fuse_decision_confidence",
-   "line":149
+   "line":151
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"isoformat",
-   "line":149
+   "line":151
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"decision_confidence_endpoint",
    "target":"str",
-   "line":151
+   "line":153
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"_scalar",
    "target":"fetchval",
-   "line":158
+   "line":160
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"_scalar",
    "target":"int",
-   "line":164
+   "line":166
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_confidence.py",
    "source":"_num",
    "target":"float",
-   "line":172
+   "line":174
   },
   {
    "owner":"sahool-platform",
@@ -242302,134 +242288,169 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"_evidence_summary",
-   "target":"evidence_from_persisted_outcomes",
-   "line":68
+   "target":"dict",
+   "line":66
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
-   "source":"explain_decision_endpoint",
+   "source":"_evidence_summary",
+   "target":"dict",
+   "line":66
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_explain.py",
+   "source":"_evidence_summary",
    "target":"get",
+   "line":66
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_explain.py",
+   "source":"_evidence_summary",
+   "target":"get",
+   "line":66
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_explain.py",
+   "source":"_evidence_summary",
+   "target":"str",
+   "line":66
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_explain.py",
+   "source":"_evidence_summary",
+   "target":"evidence_from_persisted_outcomes",
    "line":71
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
-   "target":"Query",
+   "target":"get",
    "line":74
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
+   "target":"Query",
+   "line":77
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_explain.py",
+   "source":"explain_decision_endpoint",
    "target":"Depends",
-   "line":75
+   "line":78
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"require_permission",
-   "line":75
+   "line":78
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"_decision_studio_enabled",
-   "line":84
+   "line":87
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"HTTPException",
-   "line":85
+   "line":88
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"tenant_connection",
-   "line":90
+   "line":93
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"fetchrow",
-   "line":91
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/decision_explain.py",
-   "source":"explain_decision_endpoint",
-   "target":"fetch",
    "line":94
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
+   "target":"fetch",
+   "line":97
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_explain.py",
+   "source":"explain_decision_endpoint",
    "target":"_db_unavailable",
-   "line":101
+   "line":104
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"HTTPException",
-   "line":105
+   "line":108
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"_shape_decision_row",
-   "line":107
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/decision_explain.py",
-   "source":"explain_decision_endpoint",
-   "target":"isinstance",
-   "line":109
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/decision_explain.py",
-   "source":"explain_decision_endpoint",
-   "target":"loads",
    "line":110
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
-   "target":"explain_decision",
+   "target":"isinstance",
    "line":112
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
-   "target":"_shape_outcome_row",
+   "target":"loads",
    "line":113
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
+   "target":"explain_decision",
+   "line":115
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_explain.py",
+   "source":"explain_decision_endpoint",
+   "target":"_shape_outcome_row",
+   "line":116
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/decision_explain.py",
+   "source":"explain_decision_endpoint",
    "target":"_evidence_summary",
-   "line":114
+   "line":117
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/decision_explain.py",
    "source":"explain_decision_endpoint",
    "target":"len",
-   "line":125
+   "line":128
   },
   {
    "owner":"sahool-platform",
@@ -366413,132 +366434,125 @@
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"prior_weight",
    "target":"min",
-   "line":146
+   "line":147
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"prior_weight",
    "target":"round",
-   "line":147
+   "line":148
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"explain_ar",
    "target":"get",
-   "line":160
+   "line":161
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"to_dict",
    "target":"asdict",
-   "line":165
+   "line":166
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"to_dict",
    "target":"round",
-   "line":170
+   "line":171
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_evidence_is_referenced",
    "target":"isinstance",
-   "line":176
+   "line":177
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_evidence_is_referenced",
    "target":"get",
-   "line":178
+   "line":179
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_evidence_is_referenced",
    "target":"get",
-   "line":182
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
-   "source":"_evidence_is_referenced",
-   "target":"isinstance",
    "line":183
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_evidence_is_referenced",
+   "target":"isinstance",
+   "line":184
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
+   "source":"_evidence_is_referenced",
    "target":"all",
-   "line":187
+   "line":188
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_evidence_is_referenced",
    "target":"isinstance",
-   "line":187
+   "line":188
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_evidence_is_referenced",
    "target":"strip",
-   "line":187
+   "line":188
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_evidence_is_referenced",
    "target":"bool",
-   "line":189
+   "line":190
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_evidence_is_referenced",
    "target":"isinstance",
-   "line":189
+   "line":190
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_evidence_is_referenced",
    "target":"strip",
-   "line":189
+   "line":190
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_json_safe",
    "target":"isinstance",
-   "line":199
+   "line":200
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_json_safe",
    "target":"items",
-   "line":200
+   "line":201
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_json_safe",
    "target":"str",
-   "line":200
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
-   "source":"_json_safe",
-   "target":"isinstance",
    "line":201
   },
   {
@@ -366546,63 +366560,84 @@
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_json_safe",
    "target":"isinstance",
-   "line":203
+   "line":202
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_json_safe",
-   "target":"sorted",
+   "target":"isinstance",
    "line":204
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_json_safe",
-   "target":"isinstance",
+   "target":"sorted",
    "line":205
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_json_safe",
+   "target":"isinstance",
+   "line":206
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
+   "source":"_json_safe",
+   "target":"isfinite",
+   "line":208
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
+   "source":"_json_safe",
+   "target":"isinstance",
+   "line":209
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
+   "source":"_json_safe",
    "target":"str",
-   "line":207
+   "line":211
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"verify_against_data",
    "target":"_json_safe",
-   "line":229
+   "line":233
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"verify_against_data",
    "target":"isinstance",
-   "line":229
+   "line":233
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"verify_against_data",
    "target":"_evidence_is_referenced",
-   "line":236
+   "line":240
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"verify_against_data",
    "target":"_json_safe",
-   "line":244
+   "line":248
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"verify_against_data",
    "target":"isinstance",
-   "line":244
+   "line":248
   },
   {
    "owner":"sahool-platform",
@@ -375546,51 +375581,100 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_calibration_endpoint.py",
-   "source":"test_adapt_eligible_under_evidence",
+   "source":"test_adapt_does_not_trust_a_client_supplied_field_verified",
    "target":"AdaptRequest",
-   "line":95
+   "line":97
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_calibration_endpoint.py",
-   "source":"test_adapt_eligible_under_evidence",
+   "source":"test_adapt_does_not_trust_a_client_supplied_field_verified",
    "target":"EvidenceRecord",
-   "line":96
+   "line":98
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_calibration_endpoint.py",
-   "source":"test_adapt_eligible_under_evidence",
+   "source":"test_adapt_does_not_trust_a_client_supplied_field_verified",
    "target":"propose_region_adaptation",
-   "line":99
+   "line":101
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_calibration_endpoint.py",
-   "source":"test_propose_values_accepts_good",
-   "target":"ProposeValuesRequest",
-   "line":106
+   "source":"test_adapt_gate_opens_only_for_reviewed_evidence",
+   "target":"range",
+   "line":115
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_calibration_endpoint.py",
-   "source":"test_propose_values_accepts_good",
-   "target":"propose_region_values",
-   "line":107
+   "source":"test_adapt_gate_opens_only_for_reviewed_evidence",
+   "target":"aggregate_evidence",
+   "line":116
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_calibration_endpoint.py",
-   "source":"test_propose_values_rejects_bad",
-   "target":"ProposeValuesRequest",
+   "source":"test_adapt_gate_opens_only_for_reviewed_evidence",
+   "target":"aggregate_evidence",
    "line":117
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_calibration_endpoint.py",
+   "source":"test_adapt_gate_opens_only_for_reviewed_evidence",
+   "target":"get_calibration",
+   "line":118
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_calibration_endpoint.py",
+   "source":"test_adapt_gate_opens_only_for_reviewed_evidence",
+   "target":"to_dict",
+   "line":118
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_calibration_endpoint.py",
+   "source":"test_adapt_gate_opens_only_for_reviewed_evidence",
+   "target":"propose_calibration_adjustment",
+   "line":120
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_calibration_endpoint.py",
+   "source":"test_adapt_gate_opens_only_for_reviewed_evidence",
+   "target":"propose_calibration_adjustment",
+   "line":122
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_calibration_endpoint.py",
+   "source":"test_propose_values_accepts_good",
+   "target":"ProposeValuesRequest",
+   "line":128
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_calibration_endpoint.py",
+   "source":"test_propose_values_accepts_good",
+   "target":"propose_region_values",
+   "line":129
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_calibration_endpoint.py",
+   "source":"test_propose_values_rejects_bad",
+   "target":"ProposeValuesRequest",
+   "line":139
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_calibration_endpoint.py",
    "source":"test_propose_values_rejects_bad",
    "target":"propose_region_values",
-   "line":118
+   "line":140
   },
   {
    "owner":"sahool-platform",
@@ -404225,44 +404309,93 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_scalar_reference_ids_are_not_a_reference_list",
+   "target":"_mk",
+   "line":211
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_scalar_reference_ids_are_not_a_reference_list",
+   "target":"verify_against_data",
+   "line":212
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_scalar_reference_ids_are_not_a_reference_list",
+   "target":"float",
+   "line":218
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_scalar_reference_ids_are_not_a_reference_list",
+   "target":"float",
+   "line":219
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_scalar_reference_ids_are_not_a_reference_list",
+   "target":"dumps",
+   "line":222
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_scalar_reference_ids_are_not_a_reference_list",
+   "target":"loads",
+   "line":222
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_scalar_reference_ids_are_not_a_reference_list",
+   "target":"to_dict",
+   "line":222
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
    "source":"test_evidence_and_actor_are_recorded_while_status_stays_rejected",
    "target":"_mk",
-   "line":215
+   "line":230
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
    "source":"test_evidence_and_actor_are_recorded_while_status_stays_rejected",
    "target":"verify_against_data",
-   "line":216
+   "line":231
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
    "source":"test_method_and_audit_fields_survive_with_the_basis_flag",
    "target":"_mk",
-   "line":232
+   "line":247
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
    "source":"test_method_and_audit_fields_survive_with_the_basis_flag",
    "target":"verify_against_data",
-   "line":233
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
-   "source":"test_method_and_audit_fields_survive_with_the_basis_flag",
-   "target":"_mk",
    "line":248
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
    "source":"test_method_and_audit_fields_survive_with_the_basis_flag",
+   "target":"_mk",
+   "line":263
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_method_and_audit_fields_survive_with_the_basis_flag",
    "target":"verify_against_data",
-   "line":249
+   "line":264
   },
   {
    "owner":"sahool-platform",
@@ -558624,7 +558757,7 @@
    "symbol":"TestRejectedKnowledgeKeepsTheAuditTrail",
    "kind":"class",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
-   "line":212,
+   "line":227,
    "owner":"sahool-platform",
    "decorated_route":false,
    "reference_count":0,
@@ -558635,7 +558768,7 @@
    "symbol":"TestUnreferencedClaimKeepsTheSubmittedEvidence",
    "kind":"class",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
-   "line":229,
+   "line":244,
    "owner":"sahool-platform",
    "decorated_route":false,
    "reference_count":0,
