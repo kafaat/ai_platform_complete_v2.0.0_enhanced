@@ -5973,3 +5973,10 @@ C01..C14؛ لا تُرفع قدرة إلى runtime_verified أو production_cert
 - **المصدر:** `docs/runbooks/CUSTOMER_PRACTICE_DEFERRED_WORK_AR.md:1`؛ `scripts/ops/fieldview_import_preview.py:1`؛ `shared/feature_store/practice_review.py:1`؛ `tests_v9/test_controller_edge_adapter.py:1`.
 - **المتاح:** معاينة ملفات وإعداد بيانات مرشحة واختبارات معزولة؛ لا قاعدة تعلم جديدة أو اعتماد زراعي آلي.
 - **الإغلاق:** عينة مزود مخولة مع الحفظ ثم القراءة ومنع التكرار الدائم؛ قياس جهاز وإقرارات وانقطاع/رجوع؛ حالات يمنية مستقلة ومراجعة زراعية مؤرخة. لا يُستعمل عدد الصفوف أو نجاح pytest بديلاً.
+
+## استكمال مراجعة main — عرض التعلم (2026-09-14)
+
+| المعرّف | الفجوة المثبتة | النطاق | المصدر | الحالة والدليل |
+|---|---|---|---|---|
+| REPORT4-LEARNING-UI-CONFLATES-COLLECTION-AND-APPROVAL-01 | نص تقدم العينة وتحذيرات الخادم يربطان بلوغ العدد بالتحقق رغم فصل الحالة في #1001؛ وتسمية المعرّفات توحي باستقلال غير مثبت. | frontend/learning | `frontend/src/sections/LearningDashboardPage.tsx:105` · `services/sahool-platform/api/evidence_registry.py:98` | **fixed** في شريحة 2026-09-14: عتبة جمع تقديرية، مراجعة ومعايرة منفصلتان، ودلالة الهوية صريحة. `docs/testing/LEARNING_DASHBOARD_EVIDENCE_20260914.md:1`؛ الاختبارات لا تغلق غياب مسار المراجعة المدام. |
+| REPORT4-LEARNING-UI-HIDES-CASE-COUNTS-01 | كانت عدادات الحالات والصفوف حسب المصدر متاحة في API منذ #1001 دون عرض، واللوحة تصف جميع النتائج بالمقيسة وتختلق صفراً عند غياب عد المناطق. | frontend/learning | `frontend/src/sections/LearningDashboardPage.tsx:71` · `services/sahool-platform/api/learning_summary.py:223` | **fixed** في شريحة 2026-09-14: لوحة الحالات وصفوف المصدرين من العقد القائم؛ المفقود غير الصفر؛ الحالة بحسب الربط لا استقلال إحصائي. `docs/testing/LEARNING_DASHBOARD_EVIDENCE_20260914.md:1`. |

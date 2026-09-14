@@ -1,12 +1,12 @@
 // ═══════════════════════════════════════════════════════════════
 // SAHOOL — LearningDashboardPage (لوحة رصد التعلّم / النَّسَب)
 // قراءة فقط: لقطة موحّدة لحلقة التعلّم — كم قراراً أُدِيم؟ كم نتيجة؟ ما نسبة
-// النجاح؟ وأين تقف كلّ منطقة يمنيّة نحو «مُتحقَّق ميدانيّاً»؟ تستهلك:
+// النجاح؟ وما حالة جمع العيّنات ومراجعة الدليل لكلّ منطقة؟ تستهلك:
 //   GET /api/v1/decision/records (سرد القرارات المُدامة)
 //   GET /api/v1/calibration/{region}/evidence/persisted (دليل كلّ منطقة)
 //   GET /api/v1/learning/summary (تلخيص — أفضل-جهد؛ null إن لم تتوفّر بعد)
 // صدق: لا أرقام مُختلَقة. الدليل المتراكم تقديريّ غير مُعايَر (calibrated=false،
-// source=persisted_outcomes) حتى تُجمَع عيّنات كافية — تُبرَز warnings_ar صراحةً.
+// source=persisted_outcomes)؛ اكتمال العدّ لا يمنح اعتماداً أو معايرة.
 // غياب البيانات/النقطة ⇒ حالة فارغة صادقة لا تلفيق.
 // (يطابق أنماط LineagePage/CalibrationPage بصريّاً ولونيّاً.)
 // ═══════════════════════════════════════════════════════════════
@@ -18,6 +18,7 @@ import {
   useDecisionRecords, usePersistedEvidence, useLearningSummary,
 } from '../hooks/useApi';
 import { ErrorState, LoadingState, EmptyState } from '../components/StateViews';
+import type { LearningOutcomeReconciliation } from '../services/api';
 
 // المناطق اليمنيّة المدعومة (يطابق نصّ المهمّة وLineagePage).
 const REGIONS: { id: string; ar: string }[] = [
@@ -53,13 +54,49 @@ function StatCard({
   icon, label, value, sub,
 }: { icon: React.ReactNode; label: string; value: string; sub?: string }) {
   return (
-    <div className="rounded-xl border p-4 space-y-1" style={{ background: '#1e293b', borderColor: '#334155' }}>
+    <div role="group" aria-label={label} className="rounded-xl border p-4 space-y-1" style={{ background: '#1e293b', borderColor: '#334155' }}>
       <div className="flex items-center gap-2 text-[11px] text-slate-400">
         {icon}{label}
       </div>
       <div className="text-2xl font-bold text-slate-100">{value}</div>
       {sub && <div className="text-[11px] text-slate-500">{sub}</div>}
     </div>
+  );
+}
+
+function displayCount(count: number | null | undefined): string {
+  return typeof count === 'number' && Number.isSafeInteger(count) && count >= 0 ? String(count) : '—';
+}
+
+function OutcomeCounts({ reconciliation }: { reconciliation?: LearningOutcomeReconciliation | null }) {
+  const counts = reconciliation?.enabled === false ? undefined : reconciliation;
+  const items = [
+    { label: 'الحالات بحسب الربط المتاح', value: counts?.independent_case_count },
+    { label: 'صفوف النتائج', value: counts?.total },
+    { label: 'صفوف أثر القرار', value: counts?.rows_by_source?.outcome_record },
+    { label: 'صفوف تعلّم الغلة', value: counts?.rows_by_source?.recommendation_outcomes },
+  ];
+  return (
+    <section aria-labelledby="outcome-counts-title" className="rounded-xl border p-4 space-y-3"
+      style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <h3 id="outcome-counts-title" className="text-base font-bold text-slate-100">الحالات ومصادر النتائج</h3>
+      <dl className="grid grid-cols-2 gap-3">
+        {items.map(({ label, value }) => (
+          <div key={label}>
+            <dt className="text-[11px] text-slate-400">{label}</dt>
+            <dd className="text-xl font-bold text-slate-100">{displayCount(value)}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="text-[11px] text-slate-300">
+        {counts?.sample_count_basis === 'rows' ? 'أساس عدّ العينات: صفوف النتائج' : 'أساس عدّ العينات: غير متاح'}
+      </p>
+      <p className="text-[11px] text-slate-400">
+        تُجمع الصفوف المرتبطة بالقرار نفسه في حالة واحدة، ويُعدّ كل صف غير مرتبط حالةً.
+        هذا العدّ لا يثبت استقلال الحقول أو المزارع ولا فعالية الممارسة.
+        قد تشمل صفوف النتائج سجلات لم تكتمل بعد؛ عيّنات الدليل تتطلب قياساً مؤهّلاً.
+      </p>
+    </section>
   );
 }
 
@@ -74,7 +111,7 @@ function RegionEvidenceCard({ region, regionAr }: { region: string; regionAr: st
     : 0;
 
   return (
-    <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+    <section aria-label={`دليل ${regionAr}`} className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <MapPin className="w-4 h-4 text-emerald-400" />
@@ -107,10 +144,10 @@ function RegionEvidenceCard({ region, regionAr }: { region: string; regionAr: st
             </span>
           </div>
 
-          {/* شريط تقدّم العيّنات نحو التحقّق */}
+          {/* عتبة جمع تقديريّة؛ الاسم القديم في API لا يجعلها عتبة اعتماد. */}
           <div className="space-y-1">
             <div className="flex items-center justify-between text-[11px] text-slate-400">
-              <span>التقدّم نحو التحقّق الميدانيّ</span>
+              <span>اكتمال جمع العيّنات</span>
               <span className="text-slate-300 font-medium">
                 {ev.sample_count} / {ev.field_verified_min_samples} عيّنة
               </span>
@@ -121,9 +158,12 @@ function RegionEvidenceCard({ region, regionAr }: { region: string; regionAr: st
             </div>
             {ev.samples_to_verified > 0 && (
               <div className="text-[10px] text-slate-500">
-                تبقّى {ev.samples_to_verified} عيّنة للوصول إلى «مُتحقَّق ميدانيّاً».
+                تبقّى {ev.samples_to_verified} عيّنة لبلوغ عتبة الجمع.
               </div>
             )}
+            <p className="text-[10px] text-slate-400">
+              عتبة جمع تقديريّة؛ بلوغ العتبة لا يمنح اعتماداً زراعياً أو معايرة، ويلزم تقييم الدليل ومراجعة مختصّ.
+            </p>
           </div>
 
           {/* U01: جودة الدليل لا عدُّه — حالة المراجعة وأعداد الوحدات المستقلّة (حقول/مواسم/
@@ -139,7 +179,7 @@ function RegionEvidenceCard({ region, regionAr }: { region: string; regionAr: st
               </span>
             </div>
             <div className="flex items-center justify-between text-[11px]">
-              <span className="text-slate-400">وحدات مستقلّة (حقول / مواسم / مزارع / مستأجِرون)</span>
+              <span className="text-slate-400">معرّفات مميّزة (حقول / مواسم / مزارع / مستأجرون)</span>
               <span className="text-slate-200 font-medium" dir="ltr">
                 {ev.independence
                   ? `${ev.independence.fields} / ${ev.independence.seasons} / ${ev.independence.farms} / ${ev.independence.tenants}`
@@ -148,9 +188,12 @@ function RegionEvidenceCard({ region, regionAr }: { region: string; regionAr: st
             </div>
             {ev.independence && ev.independence.unknown_unit_samples > 0 && (
               <div className="text-[10px] text-amber-300/90">
-                {ev.independence.unknown_unit_samples} عيّنة بلا هويّة حقل/موسم — استقلالُها غير قابل للإثبات.
+                {ev.independence.unknown_unit_samples} عيّنة بلا أيّ معرّف للحقل أو الموسم أو المزرعة أو المستأجر.
               </div>
             )}
+            <p className="text-[10px] text-slate-400">
+              هذا العدّ لا يكشف النقص في كلّ معرّف على حدة، ولا يثبت استقلال الشواهد.
+            </p>
           </div>
 
           {/* إبراز صريح: غير مُعايَر (calibrated=false) + warnings_ar */}
@@ -167,7 +210,7 @@ function RegionEvidenceCard({ region, regionAr }: { region: string; regionAr: st
           )}
         </>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -175,9 +218,7 @@ export default function LearningDashboardPage() {
   const records = useDecisionRecords();
   const learning = useLearningSummary();
 
-  // إجماليّات الدليل المُجمَّعة من بطاقات المناطق (تُملأ عبر onEvidence).
-  // نستخدم كائناً عاديّاً عبر ref-like state بسيط: نُجمّع من learning.summary إن
-  // توفّرت (مصدر موحّد)، وإلّا نعتمد على قرارات السرد + بطاقات المناطق.
+  // الإجماليّات من ملخّص الخادم؛ لا تُستنتج الحالات من عدد الصفوف.
   const summary = learning.data ?? null;
 
   // عدد القرارات المُدامة — من سرد القرارات (مصدر مُثبَّت في هذا الفرع).
@@ -213,10 +254,8 @@ export default function LearningDashboardPage() {
         <h2 className="text-xl font-bold text-slate-100">لوحة رصد التعلّم والنَّسَب</h2>
       </div>
       <p className="text-sm text-slate-400">
-        لقطة موحّدة لحلقة التعلّم: كم قراراً أُدِيم وأين، وتقدّم كلّ منطقة يمنيّة نحو
-        <span className="text-emerald-300"> التحقّق الميدانيّ</span>. صدق: الدليل المتراكم
-        <span className="text-amber-300"> تقديريّ غير مُعايَر</span> (calibrated=false) حتى تُجمَع عيّنات كافية —
-        لا أرقام قاطعة مُلفَّقة، والفراغ يُعرَض حالةً صادقة.
+        تعرّف على القرارات والنتائج المسجّلة، واكتمال جمع العيّنات وحالة مراجعتها في كلّ منطقة.
+        اكتمال العيّنة يختلف عن الاعتماد الزراعي والمعايرة؛ عدد السجلات وحده لا يثبت فعالية الممارسة.
       </p>
 
       {isLoading && <LoadingState message="جارٍ جلب لقطة التعلّم…" />}
@@ -254,9 +293,9 @@ export default function LearningDashboardPage() {
               sub="إجماليّ سجلّ القرارات (decision_record)" />
             <StatCard
               icon={<CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
-              label="نتائج مقيسة"
+              label="سجلات النتائج"
               value={outcomeCount != null ? String(outcomeCount) : '—'}
-              sub={outcomeCount != null ? 'من تلخيص حلقة التعلّم' : 'تلخيص التعلّم غير متاح بعد'} />
+              sub={outcomeCount != null ? 'تشمل النتائج المكتملة وغير المكتملة' : 'تلخيص التعلّم غير متاح بعد'} />
             <StatCard
               icon={<Activity className="w-3.5 h-3.5 text-emerald-400" />}
               label="نسبة النجاح"
@@ -264,10 +303,12 @@ export default function LearningDashboardPage() {
               sub={successRate != null ? 'تقديريّ غير مُعايَر' : 'بلا بيانات كافية بعد'} />
             <StatCard
               icon={<FlaskConical className="w-3.5 h-3.5 text-emerald-400" />}
-              label="مناطق نحو التحقّق"
-              value={regionsVerified != null ? `${regionsVerified} / ${REGIONS.length}` : `0 / ${REGIONS.length}`}
-              sub="مُتحقَّق ميدانيّاً (field_verified)" />
+              label="مناطق متحقّقة ميدانياً"
+              value={displayCount(regionsVerified)}
+              sub="بحسب مستوى الدليل الوارد في الملخّص" />
           </section>
+
+          <OutcomeCounts reconciliation={summary?.outcome_reconciliation} />
 
           {/* بانر الصدق العامّ */}
           <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1a1400', borderColor: '#f59e0b33' }}>
@@ -310,11 +351,11 @@ export default function LearningDashboardPage() {
               hint="إدامة القرارات قد تكون مُطفأة (SAHOOL_AUTO_PERSIST_DECISIONS)، أو لم تُتّخذ قرارات بعد. لا أرقام مُختلَقة — تُعرَض الحالة كما هي." />
           )}
 
-          {/* ═══════════ تقدّم المناطق نحو التحقّق ═══════════ */}
+          {/* ═══════════ جمع العيّنات ومراجعة الدليل ═══════════ */}
           <section className="space-y-3">
             <div className="flex items-center gap-2">
               <FlaskConical className="w-4 h-4 text-emerald-400" />
-              <h3 className="text-base font-bold text-slate-100">تقدّم المناطق نحو التحقّق الميدانيّ</h3>
+              <h3 className="text-base font-bold text-slate-100">جمع العيّنات ومراجعة الدليل حسب المنطقة</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {REGIONS.map(r => (

@@ -12,7 +12,7 @@ Calibration لاحقاً. **لا تعديل آليّ للمعايرة هنا** (
 
 from __future__ import annotations
 
-# أدنى عدد عيّنات ميدانيّة لاعتبار المنطقة «مُتحقَّقة ميدانيّاً». ⚠ تقديريّ غير معايَر.
+# عتبة جمع تقديريّة؛ الاسم التاريخيّ لا يمنح اعتماداً أو معايرة بعدّ الصفوف.
 _FIELD_VERIFIED_MIN_SAMPLES = 30
 
 
@@ -95,19 +95,25 @@ def aggregate_evidence(
     samples_to_verified = max(0, _FIELD_VERIFIED_MIN_SAMPLES - sample_count)
     independence = _independence(samples)
 
-    warnings_ar = ["عتبة التحقّق الميدانيّ تقديريّة — تحتاج معايرة"]
+    warnings_ar = [
+        "عتبة جمع العيّنات تقديريّة — بلوغها لا يمنح اعتماداً زراعياً أو معايرة؛ يلزم تقييم الدليل ومراجعة مختصّ"
+    ]
     if 0 < sample_count < _FIELD_VERIFIED_MIN_SAMPLES:
         warnings_ar.append(
-            f"دليل أوّليّ ({sample_count}/{_FIELD_VERIFIED_MIN_SAMPLES}) — يلزم {samples_to_verified} عيّنة للتحقّق"
+            f"دليل أوّليّ ({sample_count}/{_FIELD_VERIFIED_MIN_SAMPLES}) — تبقّى {samples_to_verified} عيّنة لبلوغ عتبة الجمع"
         )
     if evidence_level == "field_sample_complete":
         warnings_ar.append(
             "العيّنة بلغت العتبة لكنّ الدليل غير مُعتمَد — يلزم مراجعة مختصّ قبل وصفه «مُتحقَّقاً ميدانيّاً»"
         )
     if sample_count > 0 and independence["unknown_unit_samples"] == sample_count:
-        warnings_ar.append("العيّنات بلا هويّة حقل/موسم — استقلالُ الشواهد غير قابل للإثبات")
+        warnings_ar.append(
+            "العيّنات بلا هويّة حقل أو موسم أو مزرعة أو مستأجر — استقلالُ الشواهد غير قابل للإثبات"
+        )
     elif sample_count > 1 and max(independence["fields"], independence["seasons"]) <= 1:
-        warnings_ar.append("كلّ العيّنات من حقلٍ وموسمٍ واحد — العدُّ لا يعني شواهد مستقلّة")
+        warnings_ar.append(
+            "المعرّفات المتاحة في حدود حقلٍ وموسمٍ واحد، وقد تكون ناقصة — العدُّ لا يعني شواهد مستقلّة"
+        )
 
     return {
         "region": region,
@@ -140,7 +146,7 @@ def evidence_from_persisted_outcomes(
     aggregate_evidence (evaluated_at=created_at) ثمّ يفوّض إليه — **مصدر واحد** لمنطق العتبة
     والمستوى (لا تكرار). نقيّ حتميّ (لا I/O): الاستعلام يجري في الموجِّه ويُمرَّر ناتجه هنا.
 
-    صدق: الدليل الآن مدعوم بنتائج **مُدامة** (لا حمولة طلب عابرة) — يتراكم نحو عتبة التحقّق
+    صدق: الدليل الآن مدعوم بنتائج **مُدامة** (لا حمولة طلب عابرة) — يتراكم نحو عتبة الجمع
     عبر الزمن. الناقص (metrics فارغة) لا يُحتسب عيّنة (aggregate_evidence يُسقِط n_evaluated=0).
     """
     outcomes: list[dict] = []

@@ -64,6 +64,11 @@ def test_field_preliminary_below_threshold():
     e = aggregate_evidence("tihama", [_outcome(1, 1) for _ in range(5)])
     assert e["evidence_level"] == "field_preliminary"
     assert e["samples_to_verified"] == e["field_verified_min_samples"] - 5
+    # The warnings are rendered by clients: collection must not promise approval.
+    warnings = " ".join(e["warnings_ar"])
+    assert "25 عيّنة لبلوغ عتبة الجمع" in warnings
+    assert "لا يمنح اعتماداً زراعياً أو معايرة" in warnings
+    assert "عيّنة للتحقّق" not in warnings
 
 
 def test_threshold_alone_yields_sample_complete_not_field_verified():
@@ -107,6 +112,21 @@ def test_samples_without_unit_identity_are_declared_not_hidden():
     e = aggregate_evidence("ibb", [_outcome(1, 1) for _ in range(4)])
     assert e["independence"]["unknown_unit_samples"] == 4
     assert any("بلا هويّة" in w for w in e["warnings_ar"])
+
+
+def test_tenant_identity_does_not_prove_field_and_season_completeness():
+    e = aggregate_evidence("jawf", [{**_outcome(1, 1), "tenant_id": "tenant_1"}] * 4)
+    assert e["independence"] == {
+        "fields": 0,
+        "seasons": 0,
+        "farms": 0,
+        "tenants": 1,
+        "unknown_unit_samples": 0,
+    }
+    warnings = " ".join(e["warnings_ar"])
+    assert "قد تكون ناقصة" in warnings
+    assert "كلّ العيّنات من حقل" not in warnings
+    assert e["review_status"] == "unreviewed"
 
 
 def test_last_evaluated_at_is_max():
