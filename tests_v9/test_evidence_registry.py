@@ -124,7 +124,7 @@ def test_thirty_rows_from_one_field_and_season_are_not_independent_evidence():
 def test_samples_without_unit_identity_are_declared_not_hidden():
     e = aggregate_evidence("ibb", [_outcome(1, 1) for _ in range(4)])
     assert e["independence"]["unknown_unit_samples"] == 4
-    assert any("بلا هويّة" in w for w in e["warnings_ar"])
+    assert sum("4 من 4" in w and "بلا هوية" in w for w in e["warnings_ar"]) == 1
 
 
 def test_unknown_identity_warned_in_multi_dimension_batch():

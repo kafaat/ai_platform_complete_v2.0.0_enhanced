@@ -149,16 +149,37 @@ describe('LearningDashboardPage evidence and outcome counts', () => {
   });
 
   it('does not equate the all-identifiers-missing counter with missing field or season identity', () => {
+    const identityWarning = '2 من 30 عيّنة بلا هوية حقل أو موسم أو مزرعة أو مستأجر';
     hooks.usePersistedEvidence.mockImplementation((region: string) => query(region === 'jawf' ? {
       ...evidence, review_status: undefined,
       independence: { fields: 0, seasons: 0, farms: 0, tenants: 1, unknown_unit_samples: 2 },
+      warnings_ar: [...evidence.warnings_ar, identityWarning],
     } : undefined));
     render(<LearningDashboardPage />);
     const quality = within(screen.getByTestId('evidence-quality-jawf'));
     expect(quality.getByText('0 / 0 / 0 / 1')).toBeInTheDocument();
-    expect(quality.getByText(/2 عيّنة بلا أيّ معرّف للحقل أو الموسم أو المزرعة أو المستأجر/)).toBeInTheDocument();
+    expect(screen.getByText(`• ${identityWarning}`)).toBeInTheDocument();
     expect(quality.getByText(/هذا العدّ لا يكشف النقص في كلّ معرّف على حدة/)).toBeInTheDocument();
     expect(quality.queryByText('مراجَعة من مختصّ')).not.toBeInTheDocument();
+  });
+
+  it.each([
+    { samples: 10, unknown: 3, fields: 3, seasons: 2 },
+    { samples: 4, unknown: 4, fields: 0, seasons: 0 },
+  ])('renders one counted server warning for unidentified rows: %j', ({ samples, unknown, fields, seasons }) => {
+    const identityWarning = `${unknown} من ${samples} عيّنة بلا هوية حقل أو موسم أو مزرعة أو مستأجر`;
+    hooks.usePersistedEvidence.mockImplementation((region: string) => query(region === 'jawf' ? {
+      ...evidence, sample_count: samples, samples_to_verified: 30 - samples,
+      sample_completeness: 'below_threshold', evidence_level: 'field_preliminary',
+      independence: { fields, seasons, farms: 0, tenants: 0, unknown_unit_samples: unknown },
+      warnings_ar: [collectionWarning, identityWarning],
+    } : undefined));
+    render(<LearningDashboardPage />);
+    const card = within(screen.getByRole('region', { name: 'دليل الجوف' }));
+    expect(card.getAllByText(/بلا (?:أيّ معرّف|هوية)/)).toHaveLength(1);
+    expect(card.getByText(`• ${identityWarning}`)).toBeInTheDocument();
+    expect(card.getByText(`${fields} / ${seasons} / 0 / 0`)).toBeInTheDocument();
+    expect(card.getByText(/هذا العدّ لا يكشف النقص في كلّ معرّف على حدة/)).toBeInTheDocument();
   });
 });
 

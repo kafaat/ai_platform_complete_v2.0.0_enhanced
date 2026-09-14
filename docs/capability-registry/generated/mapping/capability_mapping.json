@@ -4994,6 +4994,14 @@
           ]
         },
         {
+          "path": "frontend/src/sections/LearningDashboardPage.test.tsx",
+          "score": 10,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
           "path": "frontend/src/lib/permissions.ts",
           "score": 9,
           "signals": [
@@ -5004,14 +5012,6 @@
         {
           "path": "frontend/src/services/api/fieldOperating.ts",
           "score": 9,
-          "signals": [
-            "content:farm",
-            "content:farms"
-          ]
-        },
-        {
-          "path": "frontend/src/sections/LearningDashboardPage.test.tsx",
-          "score": 8,
           "signals": [
             "content:farm",
             "content:farms"
