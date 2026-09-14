@@ -46,7 +46,7 @@ medium,agriai-engine,function,simulation_capability_report,services/agriai-engin
 medium,agriai-engine,function,teardown_module,services/agriai-engine/tests/test_production_readiness_truth.py,60,0,review_before_delete,False
 medium,ai-agronomist,class,ABTestingRuntime,services/ai_agronomist/ab_testing.py,1,0,review_before_delete,False
 medium,ai-agronomist,function,store_backend_name,services/ai_agronomist/agent_stores.py,161,0,review_before_delete,False
-medium,ai-agronomist,function,build_evidence_response,services/ai_agronomist/ai_evidence_runtime.py,645,0,review_before_delete,False
+medium,ai-agronomist,function,build_evidence_response,services/ai_agronomist/ai_evidence_runtime.py,688,0,review_before_delete,False
 medium,ai-agronomist,class,ChaosRuntime,services/ai_agronomist/chaos_runtime.py,1,0,review_before_delete,False
 medium,ai-agronomist,class,ComplianceValidator,services/ai_agronomist/compliance_validator.py,1,0,review_before_delete,False
 medium,ai-agronomist,function,has_decision_keys,services/ai_agronomist/decision_contracts.py,58,0,review_before_delete,False
@@ -159,7 +159,7 @@ medium,sahool-platform,class,EmitEventExecutionRequestPort,services/sahool-platf
 medium,sahool-platform,function,resolve_source_paths,services/sahool-platform/api/irrigation_path_query.py,63,0,review_before_delete,False
 medium,sahool-platform,function,compensate_dispatch_failure,services/sahool-platform/api/irrigation_reservation_adapter.py,334,0,review_before_delete,False
 medium,sahool-platform,function,plan_and_maybe_emit,services/sahool-platform/api/lexicographic_mpc_bridge.py,96,0,review_before_delete,False
-medium,sahool-platform,function,rate_limit_middleware,services/sahool-platform/api/main.py,892,0,review_before_delete,False
+medium,sahool-platform,function,rate_limit_middleware,services/sahool-platform/api/main.py,901,0,review_before_delete,False
 medium,sahool-platform,function,should_fail,services/sahool-platform/api/offline_pending_db.py,71,0,review_before_delete,False
 medium,sahool-platform,function,reclaim_stuck_processing,services/sahool-platform/api/offline_pending_db.py,253,0,review_before_delete,False
 medium,sahool-platform,function,clear_processed,services/sahool-platform/api/offline_pending_db.py,279,0,review_before_delete,False
@@ -355,7 +355,10 @@ medium,sahool-platform,class,TestMemoryDensity,services/sahool-platform/tests/te
 medium,sahool-platform,class,TestEventsAroundRecommendation,services/sahool-platform/tests/test_farm_memory.py,274,0,review_before_delete,False
 medium,sahool-platform,class,TestFarmerAgency,services/sahool-platform/tests/test_farmer_agency.py,11,0,review_before_delete,False
 medium,sahool-platform,class,TestFarmerKnowledge,services/sahool-platform/tests/test_farmer_knowledge.py,18,0,review_before_delete,False
-medium,sahool-platform,class,TestConservativeWeight,services/sahool-platform/tests/test_farmer_knowledge.py,60,0,review_before_delete,False
+medium,sahool-platform,class,TestConservativeWeight,services/sahool-platform/tests/test_farmer_knowledge.py,82,0,review_before_delete,False
+medium,sahool-platform,class,TestBlankReferencesAreNotEvidence,services/sahool-platform/tests/test_farmer_knowledge.py,155,0,review_before_delete,False
+medium,sahool-platform,class,TestRejectedKnowledgeKeepsTheAuditTrail,services/sahool-platform/tests/test_farmer_knowledge.py,227,0,review_before_delete,False
+medium,sahool-platform,class,TestUnreferencedClaimKeepsTheSubmittedEvidence,services/sahool-platform/tests/test_farmer_knowledge.py,244,0,review_before_delete,False
 medium,sahool-platform,class,TestSuccessDefinitions,services/sahool-platform/tests/test_feedback_closure.py,17,0,review_before_delete,False
 medium,sahool-platform,class,TestLagWindow,services/sahool-platform/tests/test_feedback_closure.py,42,0,review_before_delete,False
 medium,sahool-platform,class,TestBiasAwareness,services/sahool-platform/tests/test_feedback_closure.py,77,0,review_before_delete,False
@@ -427,6 +430,7 @@ medium,sahool-platform,class,TestTraceableSources,services/sahool-platform/tests
 medium,sahool-platform,class,TestUntraceableDoesNotApply,services/sahool-platform/tests/test_learning_source_lineage.py,41,0,review_before_delete,False
 medium,sahool-platform,class,TestSummaryShowsSourceCounts,services/sahool-platform/tests/test_learning_source_lineage.py,60,0,review_before_delete,False
 medium,sahool-platform,class,TestNoOrphanClassifierTotal,services/sahool-platform/tests/test_learning_source_lineage.py,80,0,review_before_delete,False
+medium,sahool-platform,class,TestTraceableIsNotApproved,services/sahool-platform/tests/test_learning_source_lineage.py,106,0,review_before_delete,False
 medium,sahool-platform,class,TestOrphanOutcomes,services/sahool-platform/tests/test_loop_referential_integrity.py,12,0,review_before_delete,False
 medium,sahool-platform,class,TestOrphanDispatches,services/sahool-platform/tests/test_loop_referential_integrity.py,45,0,review_before_delete,False
 medium,sahool-platform,class,TestReconciliationReport,services/sahool-platform/tests/test_loop_referential_integrity.py,59,0,review_before_delete,False
@@ -454,7 +458,7 @@ medium,sahool-platform,class,TestRateLimiter,services/sahool-platform/tests/test
 medium,sahool-platform,class,TestRateLimitEndToEnd,services/sahool-platform/tests/test_orchestrator_and_api.py,226,0,review_before_delete,False
 medium,sahool-platform,class,TestNormalize,services/sahool-platform/tests/test_outcome_reconciler.py,12,0,review_before_delete,False
 medium,sahool-platform,class,TestHonestSuccessDerivation,services/sahool-platform/tests/test_outcome_reconciler.py,48,0,review_before_delete,False
-medium,sahool-platform,class,TestReconcile,services/sahool-platform/tests/test_outcome_reconciler.py,83,0,review_before_delete,False
+medium,sahool-platform,class,TestReconcile,services/sahool-platform/tests/test_outcome_reconciler.py,98,0,review_before_delete,False
 medium,sahool-platform,class,TestPHIGate,services/sahool-platform/tests/test_pesticide.py,14,0,review_before_delete,False
 medium,sahool-platform,class,TestRRI,services/sahool-platform/tests/test_pesticide.py,33,0,review_before_delete,False
 medium,sahool-platform,class,TestSafetyInvariants,services/sahool-platform/tests/test_pesticide.py,49,0,review_before_delete,False
@@ -622,7 +626,7 @@ medium,shared,function,project_observation,shared/precision_agriculture/pail_om_
 medium,shared,function,import_observation_projection,shared/precision_agriculture/pail_om_edge.py,110,0,review_before_delete,False
 medium,shared,function,bind_plot_outcomes,shared/precision_agriculture/trial_spatial.py,264,0,review_before_delete,False
 medium,shared,function,verify_access_token,shared/security/access_tokens.py,35,0,review_before_delete,False
-medium,shared,function,wildcard_with_credentials,shared/security/cors_policy.py,78,0,review_before_delete,False
+medium,shared,function,wildcard_with_credentials,shared/security/cors_policy.py,90,0,review_before_delete,False
 medium,shared,function,require_attested_reviewer,shared/security/gateway_deps.py,71,0,review_before_delete,False
 medium,shared,function,logbook_size_ok,shared/security/season_logbook.py,68,0,review_before_delete,False
 medium,shared,function,is_weak_secret,shared/security/secret_guard.py,64,0,review_before_delete,False

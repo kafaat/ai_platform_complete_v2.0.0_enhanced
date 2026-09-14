@@ -1524,6 +1524,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/sections/LearningDashboardPage.static.test.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/src/sections/LearningDashboardPage.tsx",
     "kind": "web"
   },
@@ -2836,6 +2840,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/local-ai-rag/init_retry.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/local-ai-rag/main.py",
     "kind": "backend"
   },
@@ -3361,10 +3369,6 @@
   },
   {
     "path": "services/sahool-platform/api/evidence_map.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/sahool-platform/api/evidence_registry.py",
     "kind": "backend"
   },
   {
@@ -5592,10 +5596,6 @@
     "kind": "tests"
   },
   {
-    "path": "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
-    "kind": "tests"
-  },
-  {
     "path": "services/sahool-platform/tests/test_loop_referential_integrity.py",
     "kind": "tests"
   },
@@ -6756,6 +6756,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ai_advice_persistence_and_grounding_honesty.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ai_agronomist_main_decomposition_guard.py",
     "kind": "tests"
   },
@@ -7721,6 +7725,10 @@
   },
   {
     "path": "tests_v9/test_live_pg_role_closure_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_local_ai_rag_init_retry.py",
     "kind": "tests"
   },
   {

@@ -1,12 +1,12 @@
 {
   "$comment": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01 — المسح الأوّل لسطح التأكيدات الساكنة على نصّ المصدر. `prohibitions_without_a_stated_reason` **مَعدودة لا محكومٌ عليها**: لم يُثبَت أنّ أيّاً منها خاطئ، بل أنّ سببه غير مكتوب. الأساس يمنع النموّ، وسدادُه بكتابة السبب الحقيقيّ لا بنسخ عبارة. و`positive_pinning_a_call` **يُنشَر ولا يُحرَس**: معيار الفجوة (هل يبقى التأكيد صحيحاً بعد إعادة صياغة صحيحة؟) غير قابل للحسم آليّاً، ومُصنِّفٌ استدلاليّ يُنتِج قائمةً تُقرأ ديناً وهي ما طابق نمطاً.",
   "gap": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01",
-  "measured_on": "40404fa343edfe36ea0c678f75fd5bcc39f22142",
+  "measured_on": "93d28b9b3d387b0485ec3a5f70a1a252b0855d98",
   "scope": "assert على نصّ مصدر فقط — متغيّر أُسنِد من read_text/read/getsource في الاختبار نفسه، مُشتقٌّ بالبنية لا بالاسم. ما يُؤكَّد على جسم استجابة أو حمولة JSON خارج النطاق: هناك التأكيد هو العقد.",
   "totals": {
-    "source_text_assertions": 2278,
-    "positive_pinning_a_call": 324,
-    "prohibitions": 186
+    "source_text_assertions": 2304,
+    "positive_pinning_a_call": 334,
+    "prohibitions": 191
   },
   "prohibitions_without_a_stated_reason": {
     "services/agriai-engine/tests/test_production_readiness_truth.py": {

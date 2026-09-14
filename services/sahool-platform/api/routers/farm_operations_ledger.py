@@ -7,10 +7,13 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 import uuid
 from datetime import date
 
+from core import farm_operations_ledger as ledger_core
 from core.erp_projection_contract import build_projection_envelope
 from core.farm_closed_loop import (
     OperationEvent,
@@ -35,10 +38,14 @@ from pydantic import BaseModel, Field, field_validator
 from api import main as api_main
 from api.feature_registry import is_enabled
 from api.main import (
+    CommandStore,
     Permission,
     UserSchema,
     _assert_field_in_tenant,
     _db_unavailable,
+    _idem_key,
+    _idempotent,
+    get_pool,
     require_permission,
     tenant_connection,
 )
@@ -208,147 +215,107 @@ class OperationLedgerIn(BaseModel):
         return _non_negative_or_none(v, "cost_amount")
 
 
+def _request_digest(req: OperationLedgerIn) -> str:
+    """بصمةُ الحمولة الكاملة (JSON مرتَّب) — تُميِّز الإعادةَ الصادقة عن إعادة استعمال المفتاح."""
+    canonical = json.dumps(req.model_dump(mode="json"), sort_keys=True, ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
 @router.post("/api/v1/farm-ledger/operations", status_code=201)
 async def create_operation_ledger_record(
     req: OperationLedgerIn,
     user: UserSchema = Depends(require_permission(Permission.ACTIVITY_EXECUTE)),
+    idem: str | None = Depends(_idem_key),
 ):
-    """يحفظ سجل عمل يوميّاً ومرفقاته الرقابية. لا يزامن ERP ولا يخصم مخزوناً هنا."""
+    """يحفظ سجل عمل يوميّاً ومرفقاته الرقابية. لا يزامن ERP ولا يخصم مخزوناً هنا.
+
+    U06: ``Idempotency-Key`` يُسجِّل الأمر مرّةً في ``commands`` (معاملة ``tenant_connection``) ويُعيد النتيجةَ حرفيّاً؛ المفتاحُ نفسه بحمولةٍ مختلفة ⇒ 409 **قبل** كلّ فحوص النطاق (فهي داخل العمل).
+    """
     _require_enabled()
     if api_main._DB_POOL is None:
         raise HTTPException(status_code=503, detail="farm_operations_ledger_database_unavailable")
-    if not (req.field_id or req.production_unit_id or req.farm_id):
-        raise HTTPException(status_code=422, detail="field_or_production_unit_or_farm_required")
     operation_id = "oplog_" + uuid.uuid4().hex[:12]
     try:
         async with tenant_connection(user) as conn:
             tenant_id = str(user.tenant_id)
-            if req.field_id:
-                await _assert_field_in_tenant(conn, req.field_id)
-            await _assert_season_in_tenant(conn, tenant_id, req.season_id)
-            await _assert_production_unit_in_tenant(conn, tenant_id, req.production_unit_id)
-            await _assert_farm_in_tenant(conn, tenant_id, req.farm_id)
-            async with conn.transaction():
-                await conn.execute(
-                    """INSERT INTO farm_operation_ledger
-                       (operation_id, tenant_id, season_id, production_unit_id, farm_id, field_id,
-                        operation_type, operation_date, execution_mode, contractor_id, status,
-                        notes, cost_amount, cost_category, currency, sync_status, created_by,
-                        created_at, updated_at)
-                       VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11,
-                               $12, $13, $14, $15, $16, $17, now(), now())""",
-                    operation_id,
-                    str(user.tenant_id),
-                    req.season_id,
-                    req.production_unit_id,
-                    req.farm_id,
-                    req.field_id,
-                    req.operation_type,
-                    req.operation_date,
-                    req.execution_mode,
-                    req.contractor_id,
-                    req.status,
-                    req.notes,
-                    req.cost_amount,
-                    req.cost_category,
-                    req.currency,
-                    req.sync_status,
-                    user.user_id,
-                )
-                if req.water:
+
+            async def _persist() -> dict:
+                if not (req.field_id or req.production_unit_id or req.farm_id):
+                    raise HTTPException(
+                        status_code=422, detail="field_or_production_unit_or_farm_required"
+                    )
+                if req.field_id:
+                    await _assert_field_in_tenant(conn, req.field_id)
+                await _assert_season_in_tenant(conn, tenant_id, req.season_id)
+                await _assert_production_unit_in_tenant(conn, tenant_id, req.production_unit_id)
+                await _assert_farm_in_tenant(conn, tenant_id, req.farm_id)
+                async with conn.transaction():
                     await conn.execute(
-                        """INSERT INTO farm_water_records
-                           (tenant_id, operation_id, record_date, farm_id, field_id, well_id, pump_id,
-                            pivot_id, hours_operated, water_volume_m3, measurement_method, notes)
-                           VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)""",
-                        str(user.tenant_id),
+                        """INSERT INTO farm_operation_ledger
+                           (operation_id, tenant_id, season_id, production_unit_id, farm_id, field_id,
+                            operation_type, operation_date, execution_mode, contractor_id, status,
+                            notes, cost_amount, cost_category, currency, sync_status, created_by,
+                            created_at, updated_at)
+                           VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11,
+                                   $12, $13, $14, $15, $16, $17, now(), now())""",
                         operation_id,
-                        req.operation_date,
+                        str(user.tenant_id),
+                        req.season_id,
+                        req.production_unit_id,
                         req.farm_id,
                         req.field_id,
-                        req.water.well_id,
-                        req.water.pump_id,
-                        req.water.pivot_id,
-                        req.water.hours_operated,
-                        req.water.water_volume_m3,
-                        req.water.measurement_method,
-                        req.water.notes,
-                    )
-                if req.energy:
-                    await conn.execute(
-                        """INSERT INTO farm_energy_records
-                           (tenant_id, operation_id, record_date, energy_source, kwh, diesel_liters,
-                            hours_operated, equipment_id, well_id, pivot_id, notes)
-                           VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)""",
-                        str(user.tenant_id),
-                        operation_id,
+                        req.operation_type,
                         req.operation_date,
-                        req.energy.energy_source,
-                        req.energy.kwh,
-                        req.energy.diesel_liters,
-                        req.energy.hours_operated,
-                        req.energy.equipment_id,
-                        req.energy.well_id,
-                        req.energy.pivot_id,
-                        req.energy.notes,
+                        req.execution_mode,
+                        req.contractor_id,
+                        req.status,
+                        req.notes,
+                        req.cost_amount,
+                        req.cost_category,
+                        req.currency,
+                        req.sync_status,
+                        user.user_id,
                     )
-                for e in req.equipment:
-                    await conn.execute(
-                        """INSERT INTO farm_equipment_records
-                           (tenant_id, operation_id, record_date, equipment_id, operator_id, hours_worked,
-                            fuel_liters, maintenance_cost, notes)
-                           VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9)""",
-                        str(user.tenant_id),
-                        operation_id,
-                        req.operation_date,
-                        e.equipment_id,
-                        e.operator_id,
-                        e.hours_worked,
-                        e.fuel_liters,
-                        e.maintenance_cost,
-                        e.notes,
+                    await ledger_core.persist_operation_subrecords(  # داخل المعاملة نفسها
+                        conn,
+                        tenant_id=str(user.tenant_id),
+                        operation_id=operation_id,
+                        record_date=req.operation_date,
+                        farm_id=req.farm_id,
+                        field_id=req.field_id,
+                        water=req.water,
+                        energy=req.energy,
+                        equipment=req.equipment,
+                        labor=req.labor,
+                        inputs=req.inputs,
                     )
-                for labor in req.labor:
-                    await conn.execute(
-                        """INSERT INTO farm_labor_records
-                           (tenant_id, operation_id, record_date, worker_id, workers_count, hours,
-                            wage_amount, notes)
-                           VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8)""",
-                        str(user.tenant_id),
-                        operation_id,
-                        req.operation_date,
-                        labor.worker_id,
-                        labor.workers_count,
-                        labor.hours,
-                        labor.wage_amount,
-                        labor.notes,
-                    )
-                for i in req.inputs:
-                    await conn.execute(
-                        """INSERT INTO farm_input_records
-                           (tenant_id, operation_id, record_date, input_type, inventory_item_id, quantity,
-                            unit, estimated_cost, notes)
-                           VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9)""",
-                        str(user.tenant_id),
-                        operation_id,
-                        req.operation_date,
-                        i.input_type,
-                        i.inventory_item_id,
-                        i.quantity,
-                        i.unit,
-                        i.estimated_cost,
-                        i.notes,
-                    )
+                return {
+                    "operation_id": operation_id,
+                    "persisted": True,
+                    "sync_status": req.sync_status,
+                    "message_ar": "حُفظ سجل العملية الزراعية",
+                }
+
+            if idem:
+                result = await _idempotent(
+                    CommandStore(get_pool(), conn=conn),
+                    idem,
+                    _persist,
+                    command_type="farm_ledger.operation.create",
+                    actor_id=str(user.user_id),
+                    tenant_id=tenant_id,
+                    payload={
+                        "operation_id": operation_id,
+                        "request_digest": _request_digest(req),
+                    },
+                )
+            else:
+                result = await _persist()
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("حفظ سجل العمليات الزراعية", e) from e
-    return {
-        "operation_id": operation_id,
-        "persisted": True,
-        "sync_status": req.sync_status,
-        "message_ar": "حُفظ سجل العملية الزراعية",
-    }
+    return result
 
 
 @router.get("/api/v1/farm-ledger/operations")
@@ -439,7 +406,9 @@ async def farm_ledger_summary(
                     COALESCE(SUM(cost_amount), 0)::float AS total_cost,
                     COALESCE(SUM(cost_amount) FILTER (WHERE cost_category IN ('administration','overhead','supervision','security','management')), 0)::float AS indirect_cost,
                     COALESCE(SUM(cost_amount) FILTER (WHERE sync_status IN ('ready_for_sync','synced','sync_failed')), 0)::float AS syncable_cost,
-                    COALESCE((SELECT SUM(water_volume_m3) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id), 0)::float AS water_volume_m3,
+                    (SELECT SUM(water_volume_m3) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::float AS water_volume_m3,
+                    (SELECT COUNT(*) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::int AS water_records_total,
+                    (SELECT COUNT(water_volume_m3) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::int AS water_records_measured,
                     COALESCE((SELECT SUM(kwh) FROM farm_energy_records e JOIN ops ON ops.operation_id = e.operation_id), 0)::float AS energy_kwh,
                     COALESCE((SELECT SUM(diesel_liters) FROM farm_energy_records e JOIN ops ON ops.operation_id = e.operation_id), 0)::float AS diesel_liters,
                     COALESCE((SELECT SUM(hours_worked) FROM farm_equipment_records q JOIN ops ON ops.operation_id = q.operation_id), 0)::float AS equipment_hours,
@@ -468,7 +437,7 @@ async def farm_ledger_summary(
             "direct_cost": total - indirect,
             "indirect_cost": indirect,
             "cost_breakdown": {r["category"]: float(r["amount"] or 0.0) for r in breakdown_rows},
-            "water_volume_m3": float(row["water_volume_m3"] or 0.0),
+            **ledger_core.water_summary_payload(row),
             "energy_kwh": float(row["energy_kwh"] or 0.0),
             "diesel_liters": float(row["diesel_liters"] or 0.0),
             "equipment_hours": float(row["equipment_hours"] or 0.0),
@@ -973,7 +942,9 @@ async def _fetch_ledger_summary_for_season(conn, tenant_id: str, season_id: str)
             COALESCE(SUM(cost_amount), 0)::float AS total_cost,
             COALESCE(SUM(cost_amount) FILTER (WHERE cost_category IN ('administration','overhead','supervision','security','management')), 0)::float AS indirect_cost,
             COALESCE(SUM(cost_amount) FILTER (WHERE sync_status IN ('ready_for_sync','synced','sync_failed')), 0)::float AS syncable_cost,
-            COALESCE((SELECT SUM(water_volume_m3) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id), 0)::float AS water_volume_m3,
+            (SELECT SUM(water_volume_m3) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::float AS water_volume_m3,
+            (SELECT COUNT(*) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::int AS water_records_total,
+            (SELECT COUNT(water_volume_m3) FROM farm_water_records w JOIN ops ON ops.operation_id = w.operation_id)::int AS water_records_measured,
             COALESCE((SELECT SUM(kwh) FROM farm_energy_records e JOIN ops ON ops.operation_id = e.operation_id), 0)::float AS energy_kwh,
             COALESCE((SELECT SUM(diesel_liters) FROM farm_energy_records e JOIN ops ON ops.operation_id = e.operation_id), 0)::float AS diesel_liters,
             COALESCE((SELECT SUM(hours_worked) FROM farm_equipment_records q JOIN ops ON ops.operation_id = q.operation_id), 0)::float AS equipment_hours,
@@ -999,7 +970,7 @@ async def _fetch_ledger_summary_for_season(conn, tenant_id: str, season_id: str)
         indirect_cost=indirect,
         currency="YER",
         cost_breakdown={r["category"]: float(r["amount"] or 0.0) for r in breakdown_rows},
-        water_volume_m3=float(row["water_volume_m3"] or 0.0),
+        **ledger_core.water_summary_from_row(row),
         energy_kwh=float(row["energy_kwh"] or 0.0),
         diesel_liters=float(row["diesel_liters"] or 0.0),
         equipment_hours=float(row["equipment_hours"] or 0.0),

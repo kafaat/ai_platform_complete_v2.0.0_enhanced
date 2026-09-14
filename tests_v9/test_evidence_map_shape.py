@@ -38,16 +38,47 @@ def test_tiers_classified_by_persisted_counts():
         ]
     )
     tiers = {f["field_id"]: f["tier"] for f in out["fields"]}
-    assert tiers["f1"] == "field_verified"
+    # U01 (Copilot على #1001): العدُّ ≥ العتبة «عيّنة مكتملة» لا «مؤكَّد» — المراجعة ليست في العدّ.
+    assert tiers["f1"] == "field_sample_complete"
     assert tiers["f2"] == "field_preliminary"
     assert tiers["f3"] == "indicative"
     assert tiers["f4"] == "needs_data"
     assert out["totals_by_tier"] == {
-        "field_verified": 1,
+        "field_verified": 0,
+        "field_sample_complete": 1,
         "field_preliminary": 1,
         "indicative": 1,
         "needs_data": 1,
     }
+    assert all(f["tier"] != "field_verified" for f in out["fields"]), (
+        "العدُّ الخام لا يمنح field_verified — الاعتمادُ قرارُ مراجعة"
+    )
+
+
+def test_count_only_consumers_count_evaluated_rows_only():
+    """Copilot على #1001: كان COUNT(*) يعدّ صفوف outcome_record الفارغة (n_evaluated=0) التي
+    يُسقِطها سجلُّ الدليل — فتبدو 30 سجلّاً بلا قياس «عيّنة مكتملة» في الخريطة وبدرجة 0.8 في الثقة."""
+    from pathlib import Path
+
+    from api.evidence_map import EVALUATED_OUTCOME_PREDICATE
+
+    assert "n_evaluated" in EVALUATED_OUTCOME_PREDICATE and "> 0" in EVALUATED_OUTCOME_PREDICATE
+    assert "CASE WHEN" in EVALUATED_OUTCOME_PREDICATE  # لا تحويلَ لنصّ غير رقميّ قبل فحصه
+    routers = Path(__file__).resolve().parents[1] / "services/sahool-platform/api/routers"
+    ev_map = (routers / "evidence_map.py").read_text(encoding="utf-8")
+    assert (
+        ev_map.count("FILTER (WHERE {EVALUATED_OUTCOME_PREDICATE})") == 2
+    )  # cnt + last_outcome_at
+    assert "success IS TRUE AND {EVALUATED_OUTCOME_PREDICATE}" in ev_map
+    assert "COUNT(*) AS cnt FROM decision_record" in ev_map  # القراراتُ تُعدّ كلُّها (لا metrics فيها)
+    assert "SELECT field_id, COUNT(*) AS cnt, " not in ev_map, (
+        "عدُّ outcome_record بلا شرط التقييم يُضخِّم العيّنة بصفوف بلا قياس"
+    )
+    dc = (routers / "decision_confidence.py").read_text(encoding="utf-8")
+    assert "field_id, predicate=EVALUATED_OUTCOME_PREDICATE" in dc
+    assert '_scalar(conn, "outcome_record", field_id)\n' not in dc, (
+        "عدُّ outcome_record بلا شرط التقييم يمنح درجةَ «عيّنة مكتملة» لحقل بلا قياس"
+    )
 
 
 def test_needs_data_is_explicit_not_green():
@@ -94,6 +125,7 @@ def test_legend_and_threshold_and_provenance():
     assert out["generated_at"] == "2026-06-20T12:00:00+00:00"
     assert [lg["tier"] for lg in out["legend"]] == [
         "field_verified",
+        "field_sample_complete",
         "field_preliminary",
         "indicative",
         "needs_data",

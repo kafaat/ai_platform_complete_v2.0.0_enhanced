@@ -30,15 +30,18 @@ const REGIONS: { id: string; ar: string }[] = [
 
 // شارة مستوى الدليل — نفس ألوان CalibrationPage/LineagePage (تناسق بصريّ).
 const EVIDENCE_AR: Record<string, string> = {
-  field_verified:    'مُتحقَّق ميدانيّاً',
-  field_preliminary: 'ميدانيّ أوّليّ',
-  expert_opinion:    'رأي خبير',
-  none:              'لا دليل',
+  field_verified:        'مُتحقَّق ميدانيّاً',
+  // U01: العتبة بلغت لكن لا مراجعة مختصّ — لا تُعرَض شارة «مُتحقَّق» قبل الاعتماد.
+  field_sample_complete: 'عيّنة مكتملة — بانتظار المراجعة',
+  field_preliminary:     'ميدانيّ أوّليّ',
+  expert_opinion:        'رأي خبير',
+  none:                  'لا دليل',
 };
 const evidenceStyle = (level: string): { bg: string; color: string } => {
   switch (level) {
-    case 'field_verified':    return { bg: '#0c2a1a', color: '#4ade80' };
-    case 'field_preliminary': return { bg: '#2a1a00', color: '#fbbf24' };
+    case 'field_verified':        return { bg: '#0c2a1a', color: '#4ade80' };
+    case 'field_sample_complete': return { bg: '#2a1a00', color: '#fbbf24' };
+    case 'field_preliminary':     return { bg: '#2a1a00', color: '#fbbf24' };
     case 'expert_opinion':    return { bg: '#0a1f2e', color: '#38bdf8' };
     case 'none':              return { bg: '#2a0d0d', color: '#f87171' };
     default:                  return { bg: '#1e293b', color: '#94a3b8' };
@@ -123,6 +126,33 @@ function RegionEvidenceCard({ region, regionAr }: { region: string; regionAr: st
             )}
           </div>
 
+          {/* U01: جودة الدليل لا عدُّه — حالة المراجعة وأعداد الوحدات المستقلّة (حقول/مواسم/
+              مزارع) والعيّنات مجهولة الوحدة. 30 صفّاً من حقلٍ واحد ليست 30 شاهداً. */}
+          <div className="rounded-lg border p-2.5 space-y-1" style={{ background: '#0f172a', borderColor: '#334155' }}
+            data-testid={`evidence-quality-${region}`}>
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-slate-400">حالة المراجعة</span>
+              <span className="font-semibold"
+                style={{ color: ev.review_status === 'reviewed' ? '#4ade80' : '#fbbf24' }}>
+                {ev.review_status === 'reviewed' ? 'مراجَعة من مختصّ'
+                  : ev.review_status === 'unreviewed' ? 'غير مراجَعة' : '—'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-slate-400">وحدات مستقلّة (حقول / مواسم / مزارع / مستأجِرون)</span>
+              <span className="text-slate-200 font-medium" dir="ltr">
+                {ev.independence
+                  ? `${ev.independence.fields} / ${ev.independence.seasons} / ${ev.independence.farms} / ${ev.independence.tenants}`
+                  : '—'}
+              </span>
+            </div>
+            {ev.independence && ev.independence.unknown_unit_samples > 0 && (
+              <div className="text-[10px] text-amber-300/90">
+                {ev.independence.unknown_unit_samples} عيّنة بلا هويّة حقل/موسم — استقلالُها غير قابل للإثبات.
+              </div>
+            )}
+          </div>
+
           {/* إبراز صريح: غير مُعايَر (calibrated=false) + warnings_ar */}
           {!ev.calibrated && (
             <div className="rounded-lg border p-2.5 space-y-1" style={{ background: '#1a1400', borderColor: '#f59e0b33' }}>
@@ -162,9 +192,13 @@ export default function LearningDashboardPage() {
 
   // النتائج/نسبة النجاح/المناطق المُتحقَّقة — من learning/summary إن توفّرت فقط
   // (لا نُلفّق هذه الأرقام من سرد القرارات وحده، فهو لا يحمل النتائج). null ⇒ «—».
-  const outcomeCount = summary?.outcome_count ?? null;
-  const successRate = summary?.success_rate ?? null;
-  const regionsVerified = summary?.regions_verified ?? null;
+  // العقد الحاليّ يضع الإجماليّ تحت `overall` (كانت تُقرأ من الجذر فتظهر «—» على بيانات
+  // موجودة — Copilot على #1001)، والمناطقُ المُتحقَّقة تُعدّ من بطاقات المناطق نفسها.
+  const outcomeCount = summary?.overall?.outcome_count ?? null;
+  const successRate = summary?.overall?.success_rate ?? null;
+  const regionsVerified = summary?.regions
+    ? summary.regions.filter((r) => r.evidence_level === 'field_verified').length
+    : null;
 
   const isLoading = records.isLoading || learning.isLoading;
   const recordsDegraded = Boolean(records.data?.degraded);

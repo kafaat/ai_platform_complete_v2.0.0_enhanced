@@ -271,7 +271,12 @@ export const fetchDecisionLineage = (decisionId: string): Promise<DecisionLineag
     .get<DecisionLineage>(`/api/v1/decision/${encodeURIComponent(decisionId)}/lineage`)
     .then(r => r.data);
 
-export type EvidenceLevel = 'none' | 'field_preliminary' | 'field_verified' | 'expert_opinion';
+export type EvidenceLevel =
+  | 'none'
+  | 'field_preliminary'
+  | 'field_sample_complete' // U01: العتبة بلا مراجعة مختصّ
+  | 'field_verified'
+  | 'expert_opinion';
 export interface PersistedEvidence {
   region:                     string;
   sample_count:               number;
@@ -281,6 +286,16 @@ export interface PersistedEvidence {
   last_evaluated_at:          string | null;
   field_verified_min_samples: number;
   samples_to_verified:        number;
+  // U01: اكتمالُ العيّنة ≠ الاعتماد — الحالتان تُعرَضان مع أعداد الوحدات المستقلّة.
+  sample_completeness?:       'empty' | 'below_threshold' | 'threshold_reached' | string;
+  review_status?:             'reviewed' | 'unreviewed' | string;
+  independence?: {
+    fields: number;
+    seasons: number;
+    farms: number;
+    tenants: number;
+    unknown_unit_samples: number;
+  };
   calibrated:                 false;
   source:                     'persisted_outcomes';
   persisted_rows:             number;

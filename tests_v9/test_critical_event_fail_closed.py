@@ -106,11 +106,12 @@ async def test_non_critical_event_failure_swallowed(main_mod, monkeypatch):
     _patch_emit(monkeypatch, main_mod, raise_exc=RuntimeError("table missing"))
     user = _FakeUser()
     assert "ALERT_CREATED" not in main_mod.CRITICAL_EVENT_TYPES
-    # لا يرفع — best-effort. الإرجاع None ضمنيّ.
+    # لا يرفع — best-effort. لكنّ الابتلاع يُعلَن: يُعيد False (لا None صامتة) كي يُبلِغ
+    # المُنادي الإدامةَ الحقيقيّة — التدقيق الموحَّد 2026-09-13 (P0، حدث المستشار).
     result = await main_mod._emit_domain_event(
         _FakeConn(), user, "ALERT_CREATED", "alert", "a1", {}
     )
-    assert result is None
+    assert result is False
 
 
 async def test_critical_false_forces_best_effort(main_mod, monkeypatch):

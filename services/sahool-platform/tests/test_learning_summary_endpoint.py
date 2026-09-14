@@ -44,3 +44,28 @@ def test_flag_on_recognized(monkeypatch):
     """العلم المُفعَّل يُقرأ صحيحاً (يتجاوز حاجز الـ404؛ القراءة تكامليّة)."""
     monkeypatch.setenv("FEATURE_LEARNING_DASHBOARD", "true")
     assert _learning_dashboard_enabled() is True
+
+
+def test_optional_reads_run_inside_savepoints():
+    """Copilot على #1001: جدولٌ اختياريّ غائب كان يُفسِد المعاملة الخارجيّة فيعود 503 رغم الالتقاط.
+
+    كلُّ قراءة اختياريّة (recommendation_outcomes/dispatch_decisions هنا، والقراءاتُ الستّ
+    التكميليّة في حالة الحقل-الموسم: المؤشّرات · عجز الماء · المهام · outcome_record ·
+    التوصيات · الربط) تجري داخل ``async with conn.transaction()`` — نقطةُ حفظ تُرتَدّ
+    وحدَها — والالتقاطُ خارجها.
+    """
+    import re
+    from pathlib import Path
+
+    routers = Path(__file__).resolve().parents[1] / "api" / "routers"
+    summary = (routers / "learning_summary.py").read_text(encoding="utf-8")
+    body = summary.split("async def get_learning_summary(", 1)[1]
+    # كلُّ `try:` اختياريّ يتبعه مباشرةً `async with conn.transaction():` (نقطة حفظ).
+    tries = re.findall(r"try:\n\s+(\S[^\n]*)", body)
+    assert len(tries) >= 2
+    assert all(t.startswith("async with conn.transaction():") for t in tries[1:]), tries
+    seasons = (routers / "seasons.py").read_text(encoding="utf-8")
+    state = seasons.split("assemble_field_season_state\n", 1)[1]
+    inner = re.findall(r"            try:\n\s+(\S[^\n]*)", state)
+    assert len(inner) == 6, inner
+    assert all(t.startswith("async with conn.transaction():") for t in inner), inner

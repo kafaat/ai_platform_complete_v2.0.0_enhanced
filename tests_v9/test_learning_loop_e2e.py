@@ -78,10 +78,26 @@ def test_loop_gated_with_few_field_outcomes():
     assert proposal["applied"] is False
 
 
-def test_loop_eligible_after_enough_verified_evidence():
-    """30 نتيجة مُتحقَّقة + إجهاد أسوأ ⇒ auto_apply_eligible يخفض p بلا تطبيق خفيّ."""
+def test_thirty_unreviewed_outcomes_stay_gated_until_expert_review():
+    """U01: العتبة بلا مراجعة ⇒ field_sample_complete ⇒ بوّابة التكيّف تبقى مغلقة."""
     outcomes = [_good_outcome() for _ in range(30)]
     evidence = aggregate_evidence("jawf", outcomes)
+    assert evidence["sample_count"] == 30
+    assert evidence["evidence_level"] == "field_sample_complete"
+    proposal = propose_calibration_adjustment(
+        {"region": "jawf", "raw_fraction": 0.5}, evidence, mean_stress_delta=2.0
+    )
+    assert proposal["status"] == "gated"
+    assert proposal["applied"] is False
+    fb = learning_feedback([evidence])
+    assert fb["regions"][0]["action"] == "expert_review"
+    assert fb["summary"]["n_sample_complete"] == 1 and fb["summary"]["n_verified"] == 0
+
+
+def test_loop_eligible_after_enough_verified_evidence():
+    """30 نتيجة مُتحقَّقة **ومراجَعة** + إجهاد أسوأ ⇒ auto_apply_eligible يخفض p بلا تطبيق خفيّ."""
+    outcomes = [_good_outcome() for _ in range(30)]
+    evidence = aggregate_evidence("jawf", outcomes, reviewed=True)
     assert evidence["sample_count"] == 30
     assert evidence["evidence_level"] == "field_verified"
 
@@ -100,7 +116,7 @@ def test_loop_eligible_after_enough_verified_evidence():
 def test_loop_no_signal_when_evidence_but_no_direction():
     """30 نتيجة مُتحقَّقة لكن بلا فرق إجهاد ⇒ no_signal (الدليل كافٍ، لا إشارة)."""
     outcomes = [_good_outcome() for _ in range(30)]
-    evidence = aggregate_evidence("jawf", outcomes)
+    evidence = aggregate_evidence("jawf", outcomes, reviewed=True)
     assert evidence["evidence_level"] == "field_verified"
 
     proposal = propose_calibration_adjustment(

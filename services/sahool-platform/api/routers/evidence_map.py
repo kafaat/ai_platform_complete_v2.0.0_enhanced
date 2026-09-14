@@ -19,7 +19,7 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.evidence_map import shape_evidence_map
+from api.evidence_map import EVALUATED_OUTCOME_PREDICATE, shape_evidence_map
 from api.main import (
     Permission,
     UserSchema,
@@ -56,10 +56,11 @@ async def _field_evidence_rows(conn) -> list[dict]:
         "LEFT JOIN (SELECT field_id, COUNT(*) AS cnt FROM decision_record "
         "           WHERE field_id IS NOT NULL GROUP BY field_id) d "
         "       ON d.field_id = f.field_id "
-        "LEFT JOIN (SELECT field_id, COUNT(*) AS cnt, "
-        "                  COUNT(*) FILTER (WHERE success IS TRUE) AS successes, "
-        "                  MAX(created_at) AS last_outcome_at FROM outcome_record "
-        "           WHERE field_id IS NOT NULL GROUP BY field_id) o "
+        # الصفوفُ المُقيَّمة فقط (n_evaluated > 0) — كما في سجلّ الدليل (Copilot على #1001).
+        f"LEFT JOIN (SELECT field_id, COUNT(*) FILTER (WHERE {EVALUATED_OUTCOME_PREDICATE}) AS cnt, "
+        f"                  COUNT(*) FILTER (WHERE success IS TRUE AND {EVALUATED_OUTCOME_PREDICATE}) AS successes, "
+        f"                  MAX(created_at) FILTER (WHERE {EVALUATED_OUTCOME_PREDICATE}) AS last_outcome_at "
+        "           FROM outcome_record WHERE field_id IS NOT NULL GROUP BY field_id) o "
         "       ON o.field_id = f.field_id "
         f"ORDER BY f.field_id LIMIT {_MAX_FIELDS}"
     )

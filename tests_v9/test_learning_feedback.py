@@ -104,3 +104,44 @@ def test_summary_counts():
     assert s["n_preliminary"] == 1
     assert s["n_verified"] == 1
     assert s["mean_success_rate"] == pytest.approx((0.8 + 0.9) / 2, abs=1e-3)
+
+
+def test_expert_review_regions_are_listed_as_needing_review():
+    """Copilot على #1001: مراجعةُ المختصّ (U01) تدخل قائمة regions_needing_review كمراجعة المعايرة."""
+    from api.evidence_registry import aggregate_evidence
+    from api.learning_feedback import learning_feedback
+
+    ev = aggregate_evidence(
+        "jawf", [{"n_evaluated": 1, "n_success": 1, "success_flags": []} for _ in range(30)]
+    )
+    assert ev["evidence_level"] == "field_sample_complete"
+    out = learning_feedback([ev])
+    assert out["regions"][0]["action"] == "expert_review"
+    assert "jawf" in out["summary"]["regions_needing_review"]
+
+
+def test_sample_complete_with_low_success_still_requires_expert_review():
+    """Copilot على #1001 (مكتومة): كانت النسبةُ المنخفضة تحجب فرعَ field_sample_complete فتظهر
+    شارةُ المعايرة بدل مراجعة المختصّ رغم أنّ العيّنة مكتملة وغير مراجَعة."""
+    out = learning_feedback(
+        [
+            _ev(
+                "tihama",
+                level="field_sample_complete",
+                n=30,
+                rate=0.3,
+                flags={"irrigation_followed": 25, "yield_met": 5, "stress_avoided": 4},
+            )
+        ]
+    )
+    r = out["regions"][0]
+    assert r["action"] == "expert_review"
+    assert r["priority"] == 3  # النسبةُ المنخفضة ترفع الأولويّة ولا تغيّر الإجراء
+    assert any(t in r["review_targets"] for t in ("kc_dyn_max", "uptake_fractions", "raw_fraction"))
+    assert "0.3" in r["recommendation_ar"]
+    assert "tihama" in out["summary"]["regions_needing_review"]
+    # نسبةٌ جيّدة مع عيّنة مكتملة ⇒ الإجراء نفسه بأولويّة عاديّة وبلا أهداف معايرة.
+    good = learning_feedback([_ev("ibb", level="field_sample_complete", n=30, rate=0.9)])
+    assert good["regions"][0]["action"] == "expert_review"
+    assert good["regions"][0]["priority"] == 2
+    assert good["regions"][0]["review_targets"] == []

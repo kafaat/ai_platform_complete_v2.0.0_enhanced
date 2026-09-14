@@ -91,15 +91,37 @@ def test_adapt_gated_without_evidence():
     assert out["applied"] is False
 
 
-def test_adapt_eligible_under_evidence():
+def test_adapt_does_not_trust_a_client_supplied_field_verified():
+    """U01 (Copilot على #1001): كان العميل يرسل `field_verified` فيبلغ auto_apply_eligible بلا مراجعة.
+    حمولةُ الطلب لا تمنح الاعتماد — تُخفَّض إلى «عيّنة مكتملة» ويُعلَن السبب وبوّابةُ المراجعة."""
     req = AdaptRequest(
         evidence=EvidenceRecord(region="jawf", evidence_level="field_verified", sample_count=40),
-        mean_stress_delta=2.0,  # إجهاد أسوأ ⇒ خفض p
+        mean_stress_delta=2.0,  # إجهاد أسوأ ⇒ كان يخفض p
     )
     out = propose_region_adaptation(region="jawf", req=req, user=_USER)
-    assert out["status"] == "auto_apply_eligible"
-    assert out["applied"] is False  # يقترح لا يطبّق
-    assert out["proposals"][0]["proposed"] < out["proposals"][0]["current"]
+    assert out["status"] == "gated"
+    assert out["applied"] is False and out["proposals"] == []
+    assert "field_sample_complete" in out["gate"]["reason_ar"]
+    assert out["review_gate"]["reviewed"] is False
+    assert "مراجعة" in out["review_gate"]["reason_ar"]
+
+
+def test_adapt_gate_opens_only_for_reviewed_evidence():
+    """البوّابةُ نفسها تفتح حين يأتي الدليلُ من السجلّ بمراجعة مُثبَتة (لا من حمولة عميل)."""
+    from api.adaptive_calibration import propose_calibration_adjustment
+    from api.calibration import get_calibration
+    from api.evidence_registry import aggregate_evidence
+
+    samples = [{"n_evaluated": 1, "n_success": 1, "success_flags": []} for _ in range(40)]
+    unreviewed = aggregate_evidence("jawf", samples)
+    reviewed = aggregate_evidence("jawf", samples, reviewed=True)
+    prof = get_calibration("jawf").to_dict()
+    assert (
+        propose_calibration_adjustment(prof, unreviewed, mean_stress_delta=2.0)["status"] == "gated"
+    )
+    ok = propose_calibration_adjustment(prof, reviewed, mean_stress_delta=2.0)
+    assert ok["status"] == "auto_apply_eligible"
+    assert ok["proposals"][0]["proposed"] < ok["proposals"][0]["current"]
 
 
 def test_propose_values_accepts_good():
