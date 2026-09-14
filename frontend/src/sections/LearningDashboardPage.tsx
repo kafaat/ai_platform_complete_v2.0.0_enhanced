@@ -183,11 +183,6 @@ function RegionEvidenceCard({ region, regionAr }: { region: string; regionAr: st
                   : '—'}
               </span>
             </div>
-            {ev.independence && ev.independence.unknown_unit_samples > 0 && (
-              <div className="text-[10px] text-amber-300/90">
-                {ev.independence.unknown_unit_samples} عيّنة بلا أيّ معرّف للحقل أو الموسم أو المزرعة أو المستأجر.
-              </div>
-            )}
             <p className="text-[10px] text-slate-400">
               هذا العدّ لا يكشف النقص في كلّ معرّف على حدة، ولا يثبت استقلال الشواهد.
             </p>
