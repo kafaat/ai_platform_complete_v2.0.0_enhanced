@@ -86,6 +86,8 @@ def preview_fieldview_planting(
     Only documented hectare units are accepted; local units need a reviewed map.
     """
     _text(tenant_id, "tenant_id")
+    if not isinstance(document, dict):
+        raise ValueError("FeatureCollection required (JSON object)")
     if document.get("type") != "FeatureCollection" or not isinstance(
         document.get("features"), list
     ):

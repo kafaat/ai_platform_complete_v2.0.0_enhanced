@@ -62,6 +62,12 @@ def preview(doc=None, mapping=None):
     )
 
 
+@pytest.mark.parametrize("value", [None, [], "FeatureCollection", 7, 1.5, True])
+def test_non_object_document_is_rejected_with_validation_error(value):
+    with pytest.raises(ValueError, match="FeatureCollection required"):
+        preview_fieldview_planting(value, tenant_id="t1", field_bindings=bindings())
+
+
 def test_documented_summary_reuses_ledger_without_claiming_persistence():
     result = preview()
     assert (

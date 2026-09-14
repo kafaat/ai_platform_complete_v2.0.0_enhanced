@@ -264,7 +264,7 @@ def review_practice_dataset(
     return {
         "policy": policy,
         "policy_sha256": _digest(policy),
-        "source_sha256": _digest(list(unique.values())),
+        "source_sha256": _digest(records),
         "consents_sha256": _digest(consents),
         "status": "blocked" if blocked else "prepared_for_review",
         "blocked_reasons": blocked,

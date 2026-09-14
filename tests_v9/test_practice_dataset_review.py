@@ -154,10 +154,22 @@ def test_same_customer_and_transferred_field_cannot_cross_partitions():
 
 def test_repeated_messages_do_not_become_independent_cases_and_conflicts_fail():
     payload = request()
+    original = review(payload)
     payload["records"].extend([copy.deepcopy(payload["records"][0]) for _ in range(30)])
+    raw_records = copy.deepcopy(payload["records"])
     result = review(payload)
     assert result["duplicates"] == 30 and result["unique_cases"] == 2
     assert result["cohorts"][0]["customers"] == 2
+    assert result["source_sha256"] != original["source_sha256"]
+    assert result["partitions"] == original["partitions"]
+    for partition in ("train", "evaluation"):
+        for key in ("content_hash", "dataset_version_id", "row_count"):
+            assert result["manifests"][partition][key] == original["manifests"][partition][key]
+    assert result["source_sha256"] == review(copy.deepcopy(payload))["source_sha256"]
+    assert payload["records"] == raw_records
+    reordered = copy.deepcopy(payload)
+    reordered["records"].insert(0, reordered["records"].pop())
+    assert review(reordered)["source_sha256"] != result["source_sha256"]
     payload["records"][-1]["labels"]["yield_kg"] = 500
     with pytest.raises(ValueError, match="conflicting"):
         review(payload)
