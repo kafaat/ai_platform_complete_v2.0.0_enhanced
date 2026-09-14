@@ -5973,3 +5973,24 @@ C01..C14؛ لا تُرفع قدرة إلى runtime_verified أو production_cert
 - **المصدر:** `docs/runbooks/CUSTOMER_PRACTICE_DEFERRED_WORK_AR.md:1`؛ `scripts/ops/fieldview_import_preview.py:1`؛ `shared/feature_store/practice_review.py:1`؛ `tests_v9/test_controller_edge_adapter.py:1`.
 - **المتاح:** معاينة ملفات وإعداد بيانات مرشحة واختبارات معزولة؛ لا قاعدة تعلم جديدة أو اعتماد زراعي آلي.
 - **الإغلاق:** عينة مزود مخولة مع الحفظ ثم القراءة ومنع التكرار الدائم؛ قياس جهاز وإقرارات وانقطاع/رجوع؛ حالات يمنية مستقلة ومراجعة زراعية مؤرخة. لا يُستعمل عدد الصفوف أو نجاح pytest بديلاً.
+
+## استكمال مراجعة main — عرض التعلم (2026-09-14)
+
+| المعرّف | الفجوة المثبتة | النطاق | المصدر | الحالة والدليل |
+|---|---|---|---|---|
+| REPORT4-LEARNING-UI-CONFLATES-COLLECTION-AND-APPROVAL-01 | نص تقدم العينة وتحذيرات الخادم يربطان بلوغ العدد بالتحقق رغم فصل الحالة في #1001؛ وتسمية المعرّفات توحي باستقلال غير مثبت. | frontend/learning | `frontend/src/sections/LearningDashboardPage.tsx:105` · `services/sahool-platform/api/evidence_registry.py:98` | **fixed** في شريحة 2026-09-14: عتبة جمع تقديرية، مراجعة ومعايرة منفصلتان، ودلالة الهوية صريحة. `docs/testing/LEARNING_DASHBOARD_EVIDENCE_20260914.md:1`؛ الاختبارات لا تغلق غياب مسار المراجعة المدام. |
+| REPORT4-LEARNING-UI-HIDES-CASE-COUNTS-01 | كانت عدادات الحالات والصفوف حسب المصدر متاحة في API منذ #1001 دون عرض، واللوحة تصف جميع النتائج بالمقيسة وتختلق صفراً عند غياب عد المناطق. | frontend/learning | `frontend/src/sections/LearningDashboardPage.tsx:71` · `services/sahool-platform/api/learning_summary.py:223` | **fixed** في شريحة 2026-09-14: لوحة الحالات وصفوف المصدرين من العقد القائم؛ المفقود غير الصفر؛ الحالة بحسب الربط لا استقلال إحصائي. `docs/testing/LEARNING_DASHBOARD_EVIDENCE_20260914.md:1`. |
+
+| REPORT4-LEARNING-WARNINGS-CONTRADICT-REVIEW-01 | مراجعة #1004: طلب المراجعة يظهر مع الحالة المراجَعة ويتكرر في البطاقة؛ وصياغة الهوية توحي بحقل وموسم معلومين عند صفر معرّفات. | frontend/learning | `services/sahool-platform/api/evidence_registry.py:98` · `frontend/src/sections/LearningDashboardPage.tsx:200` · #1004 | **fixed** محلياً (2026-09-14)، بانتظار CI على الرأس الجديد: طلب مراجعة مشروط ومرة واحدة، تحذيرات الخادم وحدها في البطاقة، وأعداد الهوية الفعلية. 18 اختبار سجل دليل و15 اختبار واجهة؛ `docs/testing/LEARNING_DASHBOARD_EVIDENCE_20260914.md`. |
+
+استكمال #1004 بعد مراجعة `4d9c3d88` (2026-09-14): امتد إصلاح دلالة الجمع إلى `frontend/src/sections/LineagePage.tsx:288`، وتحذير الهوية إلى كل بُعد مستقل في `services/sahool-platform/api/evidence_registry.py:113`. تُعرض النسبة المجمّعة كمؤشر وصفي للصفوف المحسومة مع ذكر أثر القرار وتعلّم الغلة؛ لا تُدّعى نسب لكل مصدر غير موجودة في العقد. التحقق الحالي: 23 اختبار سجل دليل و18 اختبار واجهة ناجحة؛ نتائج 18/15 أعلاه تخص الجولة السابقة. الدليل: `docs/testing/LEARNING_DASHBOARD_EVIDENCE_20260914.md`، قسم مراجعة المستهلك المشترك.
+
+استكمال تحذير الهوية في #1004 بعد مراجعة `76406076` (2026-09-14): عولجت حالة الصفوف المجهولة داخل دفعة متعددة الحقول والمواسم بمسار مستقل؛ يمكن أن يجتمع مع تحذير ضيق النطاق. 25 اختبار سجل دليل ناجحاً، بعد فشل حالتي الرجوع على المصدر السابق. العرض يمرر `warnings_ar` كاملة؛ لا تغيير للعتبة أو الاعتماد. فصل حساب نسبة النجاح حسب المصدر خارج نطاق الشريحة صراحة. الدليل: `docs/testing/LEARNING_DASHBOARD_EVIDENCE_20260914.md`، قسم استكمال الدفعة مختلطة الهوية؛ فحوص GitHub على الرأس التالي مستقلة.
+
+## REPORT4-LEARNING-SUCCESS-RATE-SOURCE-SPLIT-01
+
+- **الحالة:** open — خارج نطاق #1004 صراحة، وفق خيار المالك في مراجعة 2026-09-14.
+- **المصدر والأساس:** `services/sahool-platform/api/learning_summary.py` (`summary.overall.success_rate`) و`services/sahool-platform/core/outcome_reconciler.py`؛ أساس الإصلاح `7640607648b289cca75726dff14da8f30e58224c`.
+- **المطلوب:** عقد ملخص يفصل نسبة الصفوف المحسومة بحسب `outcome_record` و`recommendation_outcomes` ومقام كل مصدر، مع اختبارات القيم المفقودة والنتائج المرتبطة. لا تستنتج النسب من عدادات الصفوف.
+- **حد الإغلاق الحالي:** واجهة #1004 تصف المؤشر المجمّع ومصدريه فقط؛ هذا لا ينفذ فصل الحساب ولا يثبت فعالية ممارسة أو استقلال الحالات.
+- **شرط الإغلاق اللاحق:** حساب وعرض النسب والمقامات حسب المصدر في شريحة مستقلة على العقد القائم، بدليل اختبارات؛ لا خدمة أو مخزن موازٍ.

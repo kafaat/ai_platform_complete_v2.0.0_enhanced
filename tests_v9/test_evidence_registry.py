@@ -64,6 +64,11 @@ def test_field_preliminary_below_threshold():
     e = aggregate_evidence("tihama", [_outcome(1, 1) for _ in range(5)])
     assert e["evidence_level"] == "field_preliminary"
     assert e["samples_to_verified"] == e["field_verified_min_samples"] - 5
+    # The warnings are rendered by clients: collection must not promise approval.
+    warnings = " ".join(e["warnings_ar"])
+    assert "25 عيّنة لبلوغ عتبة الجمع" in warnings
+    assert "لا يمنح اعتماداً زراعياً أو معايرة" in warnings
+    assert "عيّنة للتحقّق" not in warnings
 
 
 def test_threshold_alone_yields_sample_complete_not_field_verified():
@@ -87,6 +92,19 @@ def test_field_verified_requires_threshold_and_review():
     assert few["evidence_level"] == "field_preliminary"
 
 
+@pytest.mark.parametrize("sample_count", [0, 3, 30])
+@pytest.mark.parametrize("reviewed", [False, True])
+def test_review_warning_matches_review_status(sample_count, reviewed):
+    e = aggregate_evidence("jawf", [_outcome(1, 1) for _ in range(sample_count)], reviewed=reviewed)
+    warnings = e["warnings_ar"]
+    assert e["review_status"] == ("reviewed" if reviewed else "unreviewed")
+    assert e["calibrated"] is False
+    assert sum("لا يمنح اعتماداً زراعياً أو معايرة" in w for w in warnings) == 1
+    assert sum("مراجعة مختصّ" in w for w in warnings) == (0 if reviewed else 1)
+    if reviewed:
+        assert not any("غير مُعتمَد" in w or "غير مُراجَع" in w for w in warnings)
+
+
 def test_thirty_rows_from_one_field_and_season_are_not_independent_evidence():
     """التجربة التي كشفت U01: 30 صفّاً للحقل والموسم نفسيهما بنسبة نجاح صفر."""
     rows = [{**_outcome(1, 0), "field_id": "fld_1", "season_id": "ssn_1"} for _ in range(30)]
@@ -100,13 +118,81 @@ def test_thirty_rows_from_one_field_and_season_are_not_independent_evidence():
         "tenants": 0,
         "unknown_unit_samples": 0,
     }
-    assert any("حقلٍ وموسمٍ واحد" in w for w in e["warnings_ar"])
+    assert any("معرّفات الحقول المتاحة: 1، والمواسم: 1" in w for w in e["warnings_ar"])
 
 
 def test_samples_without_unit_identity_are_declared_not_hidden():
     e = aggregate_evidence("ibb", [_outcome(1, 1) for _ in range(4)])
     assert e["independence"]["unknown_unit_samples"] == 4
     assert any("بلا هويّة" in w for w in e["warnings_ar"])
+
+
+def test_unknown_identity_warned_in_multi_dimension_batch():
+    rows = [
+        {**_outcome(1, 1), "field_id": f"field_{i % 3}", "season_id": f"season_{i % 2}"}
+        for i in range(7)
+    ] + [_outcome(1, 1) for _ in range(3)]
+    e = aggregate_evidence("jawf", rows)
+    assert e["sample_count"] == 10
+    assert e["independence"]["unknown_unit_samples"] == 3
+    assert e["independence"]["fields"] == 3
+    assert e["independence"]["seasons"] == 2
+    assert sum("3 من 10" in w and "هوية" in w for w in e["warnings_ar"]) == 1
+    assert not any("الهوية محدودة" in w for w in e["warnings_ar"])
+
+
+def test_unknown_identity_and_narrow_scope_coexist():
+    rows = [
+        {**_outcome(1, 1), "field_id": "field_1", "season_id": f"season_{i}"} for i in range(3)
+    ] + [_outcome(1, 1) for _ in range(2)]
+    e = aggregate_evidence("jawf", rows)
+    assert e["sample_count"] == 5
+    assert e["independence"]["unknown_unit_samples"] == 2
+    assert e["independence"]["fields"] == 1
+    assert e["independence"]["seasons"] == 3
+    assert sum("2 من 5" in w and "هوية" in w for w in e["warnings_ar"]) == 1
+    assert any("معرّفات الحقول المتاحة: 1، والمواسم: 3" in w for w in e["warnings_ar"])
+    assert any("الهوية محدودة" in w for w in e["warnings_ar"])
+
+
+def test_tenant_identity_does_not_prove_field_and_season_completeness():
+    e = aggregate_evidence("jawf", [{**_outcome(1, 1), "tenant_id": "tenant_1"}] * 4)
+    assert e["independence"] == {
+        "fields": 0,
+        "seasons": 0,
+        "farms": 0,
+        "tenants": 1,
+        "unknown_unit_samples": 0,
+    }
+    warnings = " ".join(e["warnings_ar"])
+    assert "معرّفات الحقول المتاحة: 0، والمواسم: 0" in warnings
+    assert "الهوية محدودة أو ناقصة" in warnings
+    assert "حقلٍ وموسمٍ واحد" not in warnings
+    assert "كلّ العيّنات من حقل" not in warnings
+    assert e["review_status"] == "unreviewed"
+
+
+@pytest.mark.parametrize("fields,seasons", [(0, 2), (2, 0), (1, 2), (2, 1), (2, 2)])
+def test_identity_warning_checks_field_and_season_dimensions_separately(fields, seasons):
+    rows = [
+        {
+            **_outcome(1, 1),
+            "tenant_id": "tenant_1",
+            "field_id": f"field_{i % fields}" if fields else None,
+            "season_id": f"season_{i % seasons}" if seasons else None,
+        }
+        for i in range(2)
+    ]
+    e = aggregate_evidence("jawf", rows)
+    assert e["independence"]["fields"] == fields
+    assert e["independence"]["seasons"] == seasons
+    assert e["independence"]["unknown_unit_samples"] == 0
+    identity_warnings = [w for w in e["warnings_ar"] if "معرّفات الحقول المتاحة" in w]
+    if fields <= 1 or seasons <= 1:
+        assert len(identity_warnings) == 1
+        assert f"معرّفات الحقول المتاحة: {fields}، والمواسم: {seasons}" in identity_warnings[0]
+    else:
+        assert identity_warnings == []
 
 
 def test_last_evaluated_at_is_max():

@@ -4220,6 +4220,7 @@
       "ui_consumers": [],
       "mobile_consumers": [],
       "tests": [
+        "docs/testing/LEARNING_DASHBOARD_EVIDENCE_20260914.md",
         "services/decision-service/tests/test_activation_evidence_contract.py",
         "services/decision-service/tests/test_agronomic_evidence_contract.py",
         "services/decision-service/tests/test_decision_evidence_read.py",
@@ -4243,8 +4244,7 @@
         "tests_v9/test_d09_live_evidence_receipt.py",
         "tests_v9/test_evidence_contract_v62_3.py",
         "tests_v9/test_evidence_graph_nodes_migration_v149.py",
-        "tests_v9/test_evidence_lab_contract.py",
-        "tests_v9/test_evidence_map_shape.py"
+        "tests_v9/test_evidence_lab_contract.py"
       ],
       "runtime": {
         "metrics": [],
@@ -4287,7 +4287,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 9
+        "tests": 10
       }
     },
     {
