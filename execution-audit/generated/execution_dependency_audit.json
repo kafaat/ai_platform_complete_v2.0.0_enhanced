@@ -5,7 +5,7 @@
   "runtime_verified":false,
   "python_files_parsed":1892,
   "route_handlers":1050,
-  "call_edges":77904,
+  "call_edges":77913,
   "dead_code_candidates":632,
   "duplicate_function_groups":60,
   "route_owners":27,
@@ -214884,111 +214884,104 @@
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"_stable_digest",
    "target":"hexdigest",
-   "line":120
+   "line":121
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"_stable_digest",
    "target":"sha256",
-   "line":120
+   "line":121
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"_stable_digest",
    "target":"dumps",
-   "line":121
+   "line":122
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"_stable_digest",
    "target":"encode",
-   "line":121
+   "line":122
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"fetchrow",
-   "line":142
+   "line":143
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"dict",
-   "line":149
+   "line":150
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"execute",
-   "line":152
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"fetch",
    "line":153
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
+   "target":"fetch",
+   "line":154
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
    "target":"dict",
-   "line":161
+   "line":162
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"_stable_digest",
-   "line":162
+   "line":163
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"sorted",
-   "line":162
+   "line":163
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"recommendation_outcome_eligibility",
-   "line":171
+   "line":172
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"append",
-   "line":173
+   "line":174
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"str",
-   "line":175
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"get",
    "line":176
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
-   "target":"float",
+   "target":"get",
    "line":177
   },
   {
@@ -214996,35 +214989,21 @@
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"float",
-   "line":177
+   "line":178
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
+   "target":"float",
+   "line":178
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"abs",
-   "line":178
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"len",
-   "line":178
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"round",
-   "line":178
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"sum",
-   "line":178
+   "line":179
   },
   {
    "owner":"sahool-platform",
@@ -215058,8 +215037,22 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
+   "target":"round",
+   "line":180
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
+   "target":"sum",
+   "line":180
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
    "target":"len",
-   "line":184
+   "line":181
   },
   {
    "owner":"sahool-platform",
@@ -215073,34 +215066,34 @@
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"len",
-   "line":185
+   "line":186
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
+   "target":"len",
+   "line":186
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"_stable_digest",
-   "line":194
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"execute",
    "line":195
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
-   "target":"len",
-   "line":204
+   "target":"execute",
+   "line":196
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
-   "target":"dumps",
+   "target":"len",
    "line":205
   },
   {
@@ -215114,50 +215107,57 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
-   "target":"_stable_digest",
-   "line":218
+   "target":"dumps",
+   "line":207
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
-   "target":"execute",
+   "target":"_stable_digest",
    "line":219
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
+   "target":"execute",
+   "line":220
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
    "target":"dumps",
-   "line":228
+   "line":229
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"fetchval",
-   "line":231
+   "line":232
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
    "target":"UUID",
-   "line":235
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_feedback.py",
-   "source":"process_season_closed_event",
-   "target":"dumps",
    "line":236
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_feedback.py",
    "source":"process_season_closed_event",
+   "target":"dumps",
+   "line":237
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_feedback.py",
+   "source":"process_season_closed_event",
    "target":"str",
-   "line":245
+   "line":246
   },
   {
    "owner":"sahool-platform",
@@ -215248,147 +215248,133 @@
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"_region_key",
    "target":"get",
-   "line":104
+   "line":108
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"_region_key",
    "target":"isinstance",
-   "line":105
+   "line":109
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"_region_key",
    "target":"strip",
-   "line":105
+   "line":109
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"summarize_learning",
    "target":"set",
-   "line":124
+   "line":128
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"summarize_learning",
    "target":"_region_key",
-   "line":130
+   "line":134
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"summarize_learning",
    "target":"append",
-   "line":130
+   "line":134
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"summarize_learning",
    "target":"setdefault",
-   "line":130
+   "line":134
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"summarize_learning",
    "target":"_region_key",
-   "line":132
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_summary.py",
-   "source":"summarize_learning",
-   "target":"append",
-   "line":132
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_summary.py",
-   "source":"summarize_learning",
-   "target":"setdefault",
-   "line":132
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_summary.py",
-   "source":"summarize_learning",
-   "target":"set",
-   "line":134
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_summary.py",
-   "source":"summarize_learning",
-   "target":"set",
-   "line":134
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_summary.py",
-   "source":"summarize_learning",
-   "target":"sorted",
-   "line":134
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_summary.py",
-   "source":"summarize_learning",
-   "target":"summarize_region",
    "line":136
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"summarize_learning",
-   "target":"get",
+   "target":"append",
+   "line":136
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_summary.py",
+   "source":"summarize_learning",
+   "target":"setdefault",
+   "line":136
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_summary.py",
+   "source":"summarize_learning",
+   "target":"set",
    "line":138
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"summarize_learning",
-   "target":"get",
-   "line":139
+   "target":"set",
+   "line":138
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_summary.py",
+   "source":"summarize_learning",
+   "target":"sorted",
+   "line":138
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"summarize_learning",
    "target":"summarize_region",
-   "line":145
+   "line":140
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"summarize_learning",
-   "target":"bool",
+   "target":"get",
+   "line":142
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_summary.py",
+   "source":"summarize_learning",
+   "target":"get",
+   "line":143
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_summary.py",
+   "source":"summarize_learning",
+   "target":"summarize_region",
    "line":149
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"summarize_learning",
+   "target":"bool",
+   "line":153
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_summary.py",
+   "source":"summarize_learning",
    "target":"len",
-   "line":154
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_summary.py",
-   "source":"_learning_row_from_unified_outcome",
-   "target":"get",
-   "line":169
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_summary.py",
-   "source":"_learning_row_from_unified_outcome",
-   "target":"get",
-   "line":171
+   "line":158
   },
   {
    "owner":"sahool-platform",
@@ -215402,14 +215388,21 @@
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"_learning_row_from_unified_outcome",
    "target":"get",
-   "line":173
+   "line":175
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"_learning_row_from_unified_outcome",
    "target":"get",
-   "line":178
+   "line":177
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_summary.py",
+   "source":"_learning_row_from_unified_outcome",
+   "target":"get",
+   "line":177
   },
   {
    "owner":"sahool-platform",
@@ -215423,69 +215416,83 @@
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"_learning_row_from_unified_outcome",
    "target":"get",
+   "line":180
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_summary.py",
+   "source":"_learning_row_from_unified_outcome",
+   "target":"get",
    "line":181
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_summary.py",
+   "source":"_learning_row_from_unified_outcome",
+   "target":"get",
+   "line":182
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_summary.py",
+   "source":"_learning_row_from_unified_outcome",
+   "target":"get",
+   "line":187
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_summary.py",
+   "source":"_learning_row_from_unified_outcome",
+   "target":"get",
+   "line":188
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_summary.py",
+   "source":"_learning_row_from_unified_outcome",
+   "target":"get",
+   "line":190
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"summarize_learning_with_reconciled_outcomes",
    "target":"reconcile_outcomes",
-   "line":203
+   "line":212
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"summarize_learning_with_reconciled_outcomes",
    "target":"_learning_row_from_unified_outcome",
-   "line":208
+   "line":217
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"summarize_learning_with_reconciled_outcomes",
    "target":"summarize_learning",
-   "line":209
+   "line":218
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"summarize_learning_with_reconciled_outcomes",
    "target":"len",
-   "line":219
+   "line":228
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"summarize_learning_with_reconciled_outcomes",
    "target":"_independent_case_count",
-   "line":223
+   "line":232
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"summarize_learning_with_reconciled_outcomes",
    "target":"dict",
-   "line":224
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_summary.py",
-   "source":"_independent_case_count",
-   "target":"get",
-   "line":232
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_summary.py",
-   "source":"_independent_case_count",
-   "target":"get",
-   "line":232
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/learning_summary.py",
-   "source":"_independent_case_count",
-   "target":"get",
    "line":233
   },
   {
@@ -215493,49 +215500,70 @@
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"_independent_case_count",
    "target":"get",
-   "line":233
+   "line":241
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_summary.py",
+   "source":"_independent_case_count",
+   "target":"get",
+   "line":241
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_summary.py",
+   "source":"_independent_case_count",
+   "target":"get",
+   "line":242
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/learning_summary.py",
+   "source":"_independent_case_count",
+   "target":"get",
+   "line":242
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"_independent_case_count",
    "target":"len",
-   "line":233
+   "line":242
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"_independent_case_count",
    "target":"sum",
-   "line":233
+   "line":242
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"_independent_case_count",
    "target":"get",
-   "line":234
+   "line":243
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"_independent_case_count",
    "target":"int",
-   "line":234
+   "line":243
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"_independent_case_count",
    "target":"len",
-   "line":235
+   "line":244
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/learning_summary.py",
    "source":"_independent_case_count",
    "target":"max",
-   "line":235
+   "line":244
   },
   {
    "owner":"sahool-platform",
@@ -421840,6 +421868,41 @@
    "source":"test_non_finite_values_do_not_leak_into_the_delta_payload",
    "target":"float",
    "line":206
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
+   "source":"test_reconciled_rows_keep_unit_identity_for_independence_counts",
+   "target":"summarize_learning_with_reconciled_outcomes",
+   "line":218
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
+   "source":"test_reconciled_rows_keep_unit_identity_for_independence_counts",
+   "target":"_ts",
+   "line":228
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
+   "source":"test_reconciled_rows_keep_unit_identity_for_independence_counts",
+   "target":"range",
+   "line":230
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
+   "source":"test_reconciled_rows_keep_unit_identity_for_independence_counts",
+   "target":"_ts",
+   "line":243
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
+   "source":"test_reconciled_rows_keep_unit_identity_for_independence_counts",
+   "target":"next",
+   "line":247
   },
   {
    "owner":"sahool-platform",

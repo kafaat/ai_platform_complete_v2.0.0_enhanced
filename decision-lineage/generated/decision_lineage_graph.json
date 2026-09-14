@@ -1343,7 +1343,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 248,
+      "evidence_count": 249,
       "owners": [
         "ai_agronomist",
         "auth",
@@ -1472,6 +1472,7 @@
         "services/sahool-platform/api/irrigation_reservation_adapter.py",
         "services/sahool-platform/api/lab_store.py",
         "services/sahool-platform/api/learning_feedback.py",
+        "services/sahool-platform/api/learning_summary.py",
         "services/sahool-platform/api/lexicographic_mpc_bridge.py",
         "services/sahool-platform/api/machinery_export.py",
         "services/sahool-platform/api/main.py",
@@ -2570,6 +2571,7 @@
         "services/sahool-platform/api/decision_sor_mode.py",
         "services/sahool-platform/api/irrigation_closed_loop_learning.py",
         "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+        "services/sahool-platform/api/learning_summary.py",
         "services/sahool-platform/api/lexicographic_mpc_bridge.py",
         "services/sahool-platform/api/main.py",
         "services/sahool-platform/api/phase_runtime_store.py",
@@ -2596,7 +2598,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 172,
-      "target_evidence_count": 248,
+      "target_evidence_count": 249,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2627,7 +2629,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 248,
+      "source_evidence_count": 249,
       "target_evidence_count": 32,
       "static_supported": true,
       "runtime_verified": false
@@ -2786,5 +2788,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "7579a62040edf314b5f7024b643f09d6a3603ef556ad101407adb8ead8f89d40"
+  "content_sha256": "a573deb9cfc355a80b7ae167a9bc8fbf6dd7cf1709701e6fb80aa8449ffa6f64"
 }
