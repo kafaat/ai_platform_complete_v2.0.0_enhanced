@@ -5615,7 +5615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f82c59acd592275f575d85087a80adf484a55a90ee7c3fa656292f6ade748d2e"
+          "content": "42f60619f1a4a949dbd2c2806f10f8be3ad1bffd0e442c098dbaeddd91083ef3"
         }
       ],
       "name": "frontend/src/sections/LearningDashboardPage.test.tsx",
@@ -5625,7 +5625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e7cf13080148080475051da7a89b43c3ba830e48e0c8d0c29118f94460db2d36"
+          "content": "7948fb2c63ec588e233e44361a14650fd96ce07d4594b2898ba023ac7da03f10"
         }
       ],
       "name": "frontend/src/sections/LearningDashboardPage.tsx",
@@ -16535,7 +16535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bccafcb37d66f297ffada0767c77bf0db705ec5f97d25def336ad6de681a68df"
+          "content": "63c1f786dcc46aed1ec59c45c85831d8fa94e11cac22c8c0c570bc998ad44240"
         }
       ],
       "name": "services/sahool-platform/api/evidence_registry.py",
