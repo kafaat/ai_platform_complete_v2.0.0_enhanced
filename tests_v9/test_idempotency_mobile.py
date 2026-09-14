@@ -266,6 +266,26 @@ async def test_same_key_with_a_different_payload_is_a_conflict_not_a_replay(m):
     assert "مختلفة" in str(e.value.detail)
 
 
+async def test_legacy_row_without_a_digest_conflicts_with_a_digest_bearing_replay(m):
+    """Copilot على #1001: صفُّ أمرٍ قديم بلا request_digest كان يُعاد نتيجتُه لطلبٍ ببصمة ولو
+    اختلفت الحمولة — لا يمكن إثباتُ التطابق فيُعامَل تعارضاً."""
+    from fastapi import HTTPException
+
+    store = _FakeStore()
+
+    async def work():
+        return {"operation_id": "oplog_legacy"}
+
+    kw = dict(command_type="farm_ledger.operation.create", actor_id="u1", tenant_id=_TID)
+    legacy = await m._idempotent(store, _CID, work, payload={"operation_id": "oplog_legacy"}, **kw)
+    assert legacy == {"operation_id": "oplog_legacy"}
+    with pytest.raises(HTTPException) as e:
+        await m._idempotent(
+            store, _CID, work, payload={"operation_id": "x", "request_digest": "d9"}, **kw
+        )
+    assert e.value.status_code == 409
+
+
 async def test_routes_without_a_digest_keep_the_old_replay_semantics(m):
     store = _FakeStore()
 

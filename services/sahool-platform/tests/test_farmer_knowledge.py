@@ -168,6 +168,13 @@ class TestBlankReferencesAreNotEvidence:
             fk, data_supports=True, evidence={"method": "ndvi", "reference_ids": [" x "]}
         )
         assert fk.verification_status == VerificationStatus.CONFIRMED
+        # قائمةٌ مختلطة تخرق العقد كلَّه — لا ترشيحَ جزئيّ يؤكّد (Copilot على #1001).
+        mixed = _mk(KnowledgeType.SPATIAL)
+        verify_against_data(
+            mixed, data_supports=True, evidence={"method": "ndvi", "reference_ids": ["scene-1", 7]}
+        )
+        assert mixed.verification_status == VerificationStatus.PENDING
+        assert mixed.verification_evidence["basis"] == "unreferenced_claim"
 
     def test_scalar_reference_ids_are_not_a_reference_list(self):
         """Copilot على #1001: `reference_ids: "scene-1"` كان يُقطَّع حروفاً فيؤكّد بلا قائمة مراجع."""
@@ -186,6 +193,12 @@ class TestBlankReferencesAreNotEvidence:
                 fk, data_supports=True, evidence={"method": "ndvi", "reference_ids": seq}
             )
             assert fk.verification_status == VerificationStatus.PENDING, seq
+            # الدليلُ المحفوظ (المرفوض للتأكيد) يبقى قابلاً للتسلسل — المجموعةُ تصير قائمة مرتّبة.
+            import json
+
+            assert json.loads(json.dumps(fk.to_dict()))["verification_evidence"][
+                "reference_ids"
+            ] == ["s1"]
         fk = _mk(KnowledgeType.SPATIAL)
         verify_against_data(
             fk, data_supports=True, evidence={"method": "ndvi", "reference_ids": ["s1"]}

@@ -782,10 +782,10 @@ async def _idempotent(store, command_id, do_work, *, command_type, actor_id, ten
         await store.mark_succeeded(command_id, result)
         return result
     existing = await store.get(command_id)  # موجود مسبقاً
-    # U06: المفتاحُ نفسه بحمولةٍ مختلفة تعارضٌ يُسمّى (حين يحمل الطرفان request_digest).
+    # U06: طلبٌ ببصمة يُقارَن ببصمة الصفّ؛ صفٌّ قديم بلا بصمة لا يُعامَل إعادةً صادقة (Copilot #1001).
     wanted = (payload or {}).get("request_digest")
     stored = ((existing.payload if existing is not None else None) or {}).get("request_digest")
-    if wanted and stored and wanted != stored:
+    if wanted and (stored is None or wanted != stored):
         detail = "Idempotency-Key أُعيد استعماله بحمولةٍ مختلفة — استعمل مفتاحاً جديداً"
         raise HTTPException(status_code=409, detail=detail)
     if existing is not None and existing.status == CommandStatus.SUCCEEDED:

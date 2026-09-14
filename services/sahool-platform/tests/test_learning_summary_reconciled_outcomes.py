@@ -226,15 +226,22 @@ def test_recommendation_outcomes_carry_farm_id_into_independence_counts():
     from core.outcome_reconciler import normalize_recommendation_outcome
 
     item = normalize_recommendation_outcome(
-        {"outcome_id": "ro", "field_id": "fld_1", "farm_id": "farm_9", "season_id": "s1"}
+        {
+            "outcome_id": "ro",
+            "tenant_id": "t-1",
+            "field_id": "fld_1",
+            "farm_id": "farm_9",
+            "season_id": "s1",
+        }
     )
-    assert item["farm_id"] == "farm_9"
+    assert item["farm_id"] == "farm_9" and item["tenant_id"] == "t-1"
     out = summarize_learning_with_reconciled_outcomes(
         decision_rows=[],
         outcome_records=[],
         recommendation_outcomes=[
             {
                 "outcome_id": f"ro_{i}",
+                "tenant_id": "t-1",
                 "field_id": f"fld_{i}",
                 "farm_id": "farm_9" if i < 2 else "farm_10",
                 "season_id": "s1",
@@ -250,15 +257,24 @@ def test_recommendation_outcomes_carry_farm_id_into_independence_counts():
     )
     independence = out["overall"]["independence"]
     assert independence["farms"] == 2 and independence["fields"] == 3
+    assert independence["tenants"] == 1  # Copilot على #1001: كان tenant_id لا يُمرَّر أبداً ⇒ 0
     assert independence["unknown_unit_samples"] == 0
-    # مسارا القراءة يختاران farm_id فعلاً (لا يكفي أن يقبله الموحِّد).
+    # مسارا القراءة يختاران farm_id وtenant_id فعلاً (لا يكفي أن يقبلهما الموحِّد).
     routers = Path(__file__).resolve().parents[1] / "api/routers"
     summary_src = (routers / "learning_summary.py").read_text(encoding="utf-8")
-    assert "ro.field_id, ro.farm_id, ro.season_id" in summary_src
-    assert '"farm_id": r["farm_id"]' in summary_src
+    assert "ro.tenant_id, ro.field_id, ro.farm_id, ro.season_id" in summary_src
+    assert "SELECT outcome_id, tenant_id, field_id, region" in summary_src
+    assert (
+        '"farm_id": r["farm_id"]' in summary_src
+        and summary_src.count('"tenant_id": str(r["tenant_id"])') == 2
+    )
     seasons_src = (routers / "seasons.py").read_text(encoding="utf-8")
-    assert "ro.field_id, ro.farm_id, ro.season_id" in seasons_src
-    assert '"farm_id": r["farm_id"]' in seasons_src
+    assert "ro.tenant_id, ro.field_id, ro.farm_id, ro.season_id" in seasons_src
+    assert "SELECT outcome_id, tenant_id, field_id, region" in seasons_src
+    assert (
+        '"farm_id": r["farm_id"]' in seasons_src
+        and seasons_src.count('"tenant_id": str(r["tenant_id"])') == 2
+    )
     # v49 بلا region: كلا المسارين يشتقّها من الحقل كي لا تسقط صفوفُ الغلّة في `_unspecified`.
     for src in (summary_src, seasons_src):
         assert "LEFT JOIN fields f ON f.field_id = ro.field_id" in src

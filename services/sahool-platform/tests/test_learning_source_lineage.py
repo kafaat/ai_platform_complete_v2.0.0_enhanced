@@ -170,6 +170,15 @@ class TestTraceableIsNotApproved:
             }
         )
         assert r["review_status"] == "unreviewed" and r["agronomically_approved"] is False
+        # قائمةٌ مختلطة (عضوٌ صالح + عضوٌ خاطئ) تُرفَض كلُّها — لا ترشيحَ جزئيّ (Copilot على #1001).
+        mixed = resolve_learning_source(
+            {
+                "source_type": "human_feedback",
+                "source_id": "hf_1",
+                "review": {"reviewer_id": "a", "verdict": "approved", "evidence_ids": ["ok_1", 7]},
+            }
+        )
+        assert mixed["review_status"] == "unreviewed" and mixed["review"]["evidence_ids"] == []
         ok = resolve_learning_source(
             {
                 "source_type": "human_feedback",

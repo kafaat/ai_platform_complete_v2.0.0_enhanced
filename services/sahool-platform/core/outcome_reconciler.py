@@ -39,6 +39,7 @@ def normalize_outcome_record(row: dict) -> dict:
         "outcome_id": row.get("outcome_id"),
         "field_id": row.get("field_id"),
         "farm_id": row.get("farm_id"),  # v79 لا يحمله ⇒ None (لا يُختلَق)
+        "tenant_id": row.get("tenant_id"),  # لعدّ استقلال المستأجِرين (Copilot على #1001)
         "region": row.get("region"),
         "season_id": None,  # v79 لا يحمل season_id مباشرةً
         "decision_id": row.get("decision_id"),
@@ -114,6 +115,7 @@ def normalize_recommendation_outcome(row: dict) -> dict:
         # v49 يحمل farm_id (وحدةُ التكرار) — كان يُسقَط هنا فتبقى أعدادُ استقلال المزارع صفراً
         # (Copilot على #1001).
         "farm_id": row.get("farm_id"),
+        "tenant_id": row.get("tenant_id"),
         "region": row.get("region"),
         "season_id": row.get("season_id"),
         "decision_id": None,

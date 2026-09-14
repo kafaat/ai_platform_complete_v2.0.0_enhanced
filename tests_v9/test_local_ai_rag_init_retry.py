@@ -40,6 +40,14 @@ def test_backoff_is_exponential_and_capped(retry):
     assert retry.backoff_seconds(9, base=5, cap=60) == 60
 
 
+def test_backoff_stays_bounded_for_huge_attempt_budgets(retry):
+    """Copilot على #1001 (مكتومة): `2 ** (attempt-1)` كان يُحسَب قبل `min` — سقفٌ ضخم يبني عدداً
+    هائلاً (تعليق/MemoryError) عند جدولة الإعادة."""
+    assert retry.backoff_seconds(10**9, base=5, cap=60) == 60
+    assert retry.backoff_seconds(10**9, base=0, cap=60) == 0.0
+    assert retry.backoff_seconds(3, base=5, cap=12) == 12  # يتوقّف عند السقف
+
+
 def test_backoff_fails_closed_on_negative_or_non_finite_bounds(retry):
     """Copilot على #1001 (مكتومة): قاعدةٌ سالبة كانت تُعيد زمناً سالباً ⇒ حلقةُ إعادة ضيّقة."""
     for base, cap in ((-5, 60), (5, -1), (float("nan"), 60), (5, float("inf"))):

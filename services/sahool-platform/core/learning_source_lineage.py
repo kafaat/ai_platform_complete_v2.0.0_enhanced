@@ -108,9 +108,11 @@ def resolve_agronomic_review(update: dict) -> dict:
     # مفرد (`"claim-1"`) ليس قائمةً تُقطَّع حروفاً، والمجموعةُ مرفوضة لأنّ ترتيبها غيرُ حتميّ
     # فتختلف بصمةُ التدقيق لمدخل واحد (Copilot على #1001).
     raw_ids = block.get("evidence_ids")
-    if not isinstance(raw_ids, list):
+    # القائمةُ كلُّها يجب أن تكون نصوصاً غير فارغة — عضوٌ واحد خاطئ يُبطِل القائمة كلَّها بدل
+    # ترشيحه بصمت فيُعتمَد تحديثٌ مشوَّه (Copilot على #1001).
+    if not isinstance(raw_ids, list) or not all(isinstance(e, str) and e.strip() for e in raw_ids):
         raw_ids = []
-    evidence = [e.strip() for e in raw_ids if isinstance(e, str) and e.strip()]
+    evidence = [e.strip() for e in raw_ids]
     # هويّةُ المراجِع نصٌّ غير فارغ فقط — رقمٌ أو قيمةٌ صادقة أخرى ليست مراجِعاً (Copilot على #1001).
     reviewer = reviewer.strip() or None if isinstance(reviewer, str) else None
     if verdict == "rejected" and reviewer:

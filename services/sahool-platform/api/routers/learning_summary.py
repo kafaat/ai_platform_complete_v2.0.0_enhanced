@@ -68,7 +68,7 @@ async def get_learning_summary(
         async with tenant_connection(user) as conn:
             drows = await conn.fetch("SELECT region, created_at FROM decision_record")
             orows = await conn.fetch(
-                "SELECT outcome_id, field_id, region, decision_id, success, metrics, "
+                "SELECT outcome_id, tenant_id, field_id, region, decision_id, success, metrics, "
                 "planned, actual, stage, created_at FROM outcome_record"
             )
             # Optional v49/v66 bridge: these tables may be absent in partial deployments.
@@ -83,7 +83,7 @@ async def get_learning_summary(
                     # v49 بلا عمود region — يُشتقّ من الحقل (fields.region) كي تُجمَّع صفوفُ
                     # تعلّم الغلّة تحت منطقتها لا تحت `_unspecified` (Copilot على #1001).
                     rorows = await conn.fetch(
-                        "SELECT ro.outcome_id, ro.field_id, ro.farm_id, ro.season_id, ro.crop, "
+                        "SELECT ro.outcome_id, ro.tenant_id, ro.field_id, ro.farm_id, ro.season_id, ro.crop, "
                         "ro.recommendation_id, ro.predicted_yield_t_ha, ro.actual_yield_t_ha, "
                         "ro.accepted, ro.matured_within_lag, ro.issued_at, ro.outcome_recorded_at, "
                         "f.region AS region FROM recommendation_outcomes ro "
@@ -106,6 +106,7 @@ async def get_learning_summary(
     outcome_rows = [
         {
             "outcome_id": r["outcome_id"],
+            "tenant_id": str(r["tenant_id"]) if r["tenant_id"] is not None else None,
             "field_id": r["field_id"],
             "region": r["region"],
             "decision_id": r["decision_id"],
@@ -121,6 +122,7 @@ async def get_learning_summary(
     recommendation_outcomes = [
         {
             "outcome_id": r["outcome_id"],
+            "tenant_id": str(r["tenant_id"]) if r["tenant_id"] is not None else None,
             "field_id": r["field_id"],
             "farm_id": r["farm_id"],  # U01: وحدةُ التكرار تصل إلى أعداد الاستقلال
             "region": r["region"],  # من fields.region (v49 بلا منطقة)

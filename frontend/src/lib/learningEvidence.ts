@@ -514,5 +514,6 @@ export const OBS_CONFIDENCE_OPTIONS: { key: string; label_ar: string }[] = [
 export const EVIDENCE_LEVEL_OPTIONS: { key: string; label_ar: string }[] = [
   { key: 'none', label_ar: 'لا دليل' },
   { key: 'field_preliminary', label_ar: 'أوّليّ ميدانيّ' },
+  { key: 'field_sample_complete', label_ar: 'عيّنة مكتملة — بانتظار المراجعة' },
   { key: 'field_verified', label_ar: 'مُتحقَّق ميدانيّاً' },
 ];

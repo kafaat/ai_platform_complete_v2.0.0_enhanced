@@ -20,6 +20,16 @@ describe('LearningDashboardPage — evidence quality is rendered, not only count
     expect(SRC).toContain('field_sample_complete');
     expect(SRC).toMatch(/field_sample_complete:\s*'عيّنة مكتملة/);
   });
+  it('every consumer of the shared EvidenceLevel renders field_sample_complete', () => {
+    // Copilot على #1001: LineagePage/CalibrationPage كانتا تعرضان المفتاح الخام بلون افتراضيّ.
+    for (const page of ['LineagePage.tsx', 'CalibrationPage.tsx']) {
+      const src = readFileSync(resolve(__dirname, page), 'utf8');
+      expect(src, page).toMatch(/field_sample_complete:\s*'عيّنة مكتملة/);
+      expect(src, page).toContain("case 'field_sample_complete':");
+    }
+    const lib = readFileSync(resolve(__dirname, '../lib/learningEvidence.ts'), 'utf8');
+    expect(lib).toContain("{ key: 'field_sample_complete'");
+  });
   it('reads the aggregate counters from summary.overall, not the response root', () => {
     // Copilot على #1001: العقد يضع الإجماليّ تحت `overall`؛ القراءة من الجذر تعرض «—» على بيانات موجودة.
     expect(SRC).toContain('summary?.overall?.outcome_count');

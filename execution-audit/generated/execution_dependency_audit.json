@@ -5,7 +5,7 @@
   "runtime_verified":false,
   "python_files_parsed":1892,
   "route_handlers":1050,
-  "call_edges":78013,
+  "call_edges":78038,
   "dead_code_candidates":633,
   "duplicate_function_groups":60,
   "route_owners":27,
@@ -95310,77 +95310,70 @@
    "file":"services/local-ai-rag/init_retry.py",
    "source":"backoff_seconds",
    "target":"float",
-   "line":72
+   "line":75
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"backoff_seconds",
    "target":"max",
-   "line":72
+   "line":78
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"backoff_seconds",
+   "target":"range",
+   "line":78
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"backoff_seconds",
+   "target":"float",
+   "line":82
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"backoff_seconds",
    "target":"min",
-   "line":72
+   "line":82
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
    "target":"int",
-   "line":92
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/init_retry.py",
-   "source":"run_init_with_retry",
-   "target":"max",
-   "line":92
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/init_retry.py",
-   "source":"run_init_with_retry",
-   "target":"range",
-   "line":93
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/init_retry.py",
-   "source":"run_init_with_retry",
-   "target":"init_fn",
-   "line":96
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/init_retry.py",
-   "source":"run_init_with_retry",
-   "target":"isawaitable",
-   "line":98
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/init_retry.py",
-   "source":"run_init_with_retry",
-   "target":"dict",
    "line":102
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
-   "target":"type",
-   "line":104
+   "target":"max",
+   "line":102
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
-   "target":"error",
-   "line":107
+   "target":"range",
+   "line":103
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"run_init_with_retry",
+   "target":"init_fn",
+   "line":106
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"run_init_with_retry",
+   "target":"isawaitable",
+   "line":108
   },
   {
    "owner":"local-ai-rag",
@@ -95393,29 +95386,50 @@
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
-   "target":"backoff_seconds",
+   "target":"type",
    "line":114
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
-   "target":"warning",
-   "line":115
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/init_retry.py",
-   "source":"run_init_with_retry",
-   "target":"do_sleep",
-   "line":122
+   "target":"error",
+   "line":117
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/init_retry.py",
    "source":"run_init_with_retry",
    "target":"dict",
-   "line":123
+   "line":122
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"run_init_with_retry",
+   "target":"backoff_seconds",
+   "line":124
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"run_init_with_retry",
+   "target":"warning",
+   "line":125
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"run_init_with_retry",
+   "target":"do_sleep",
+   "line":132
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/init_retry.py",
+   "source":"run_init_with_retry",
+   "target":"dict",
+   "line":133
   },
   {
    "owner":"local-ai-rag",
@@ -275055,8 +275069,8 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"get_learning_summary",
-   "target":"_loads",
-   "line":113
+   "target":"str",
+   "line":109
   },
   {
    "owner":"sahool-platform",
@@ -275076,56 +275090,35 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"get_learning_summary",
+   "target":"_loads",
+   "line":116
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/learning_summary.py",
+   "source":"get_learning_summary",
+   "target":"str",
+   "line":125
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/learning_summary.py",
+   "source":"get_learning_summary",
    "target":"summarize_learning_with_reconciled_outcomes",
-   "line":145
+   "line":147
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"get_learning_summary",
    "target":"_isoformat_stamps",
-   "line":152
+   "line":154
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"_iso",
    "target":"get",
-   "line":168
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/learning_summary.py",
-   "source":"_isoformat_stamps",
-   "target":"get",
-   "line":168
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/learning_summary.py",
-   "source":"_iso",
-   "target":"hasattr",
-   "line":169
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/learning_summary.py",
-   "source":"_isoformat_stamps",
-   "target":"hasattr",
-   "line":169
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/learning_summary.py",
-   "source":"_iso",
-   "target":"isoformat",
-   "line":170
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/learning_summary.py",
-   "source":"_isoformat_stamps",
-   "target":"isoformat",
    "line":170
   },
   {
@@ -275133,14 +275126,35 @@
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"_isoformat_stamps",
    "target":"get",
+   "line":170
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/learning_summary.py",
+   "source":"_iso",
+   "target":"hasattr",
+   "line":171
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/learning_summary.py",
+   "source":"_isoformat_stamps",
+   "target":"hasattr",
+   "line":171
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/learning_summary.py",
+   "source":"_iso",
+   "target":"isoformat",
    "line":172
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/learning_summary.py",
    "source":"_isoformat_stamps",
-   "target":"_iso",
-   "line":173
+   "target":"isoformat",
+   "line":172
   },
   {
    "owner":"sahool-platform",
@@ -275155,6 +275169,20 @@
    "source":"_isoformat_stamps",
    "target":"_iso",
    "line":175
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/learning_summary.py",
+   "source":"_isoformat_stamps",
+   "target":"get",
+   "line":176
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/learning_summary.py",
+   "source":"_isoformat_stamps",
+   "target":"_iso",
+   "line":177
   },
   {
    "owner":"sahool-platform",
@@ -285422,8 +285450,8 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
-   "target":"_loads",
-   "line":613
+   "target":"str",
+   "line":609
   },
   {
    "owner":"sahool-platform",
@@ -285443,71 +285471,85 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
-   "target":"transaction",
-   "line":624
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/seasons.py",
-   "source":"field_season_state_endpoint",
-   "target":"fetch",
-   "line":626
+   "target":"_loads",
+   "line":616
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
    "target":"transaction",
-   "line":657
+   "line":625
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
    "target":"fetch",
-   "line":658
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/seasons.py",
-   "source":"field_season_state_endpoint",
-   "target":"_db_unavailable",
-   "line":671
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/seasons.py",
-   "source":"field_season_state_endpoint",
-   "target":"isinstance",
-   "line":674
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/seasons.py",
-   "source":"field_season_state_endpoint",
-   "target":"loads",
-   "line":676
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/seasons.py",
-   "source":"field_season_state_endpoint",
-   "target":"isinstance",
-   "line":679
+   "line":627
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
    "target":"str",
-   "line":679
+   "line":640
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/seasons.py",
+   "source":"field_season_state_endpoint",
+   "target":"transaction",
+   "line":659
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/seasons.py",
+   "source":"field_season_state_endpoint",
+   "target":"fetch",
+   "line":660
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/seasons.py",
+   "source":"field_season_state_endpoint",
+   "target":"_db_unavailable",
+   "line":673
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/seasons.py",
+   "source":"field_season_state_endpoint",
+   "target":"isinstance",
+   "line":676
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/seasons.py",
+   "source":"field_season_state_endpoint",
+   "target":"loads",
+   "line":678
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/seasons.py",
+   "source":"field_season_state_endpoint",
+   "target":"isinstance",
+   "line":681
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/seasons.py",
+   "source":"field_season_state_endpoint",
+   "target":"str",
+   "line":681
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/seasons.py",
    "source":"field_season_state_endpoint",
    "target":"assemble_field_season_state",
-   "line":681
+   "line":683
   },
   {
    "owner":"sahool-platform",
@@ -345832,8 +345874,15 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/learning_source_lineage.py",
    "source":"resolve_agronomic_review",
+   "target":"all",
+   "line":113
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/learning_source_lineage.py",
+   "source":"resolve_agronomic_review",
    "target":"isinstance",
-   "line":111
+   "line":113
   },
   {
    "owner":"sahool-platform",
@@ -345848,20 +345897,6 @@
    "source":"resolve_agronomic_review",
    "target":"strip",
    "line":113
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/learning_source_lineage.py",
-   "source":"resolve_agronomic_review",
-   "target":"strip",
-   "line":113
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/learning_source_lineage.py",
-   "source":"resolve_agronomic_review",
-   "target":"isinstance",
-   "line":115
   },
   {
    "owner":"sahool-platform",
@@ -345874,22 +345909,22 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/learning_source_lineage.py",
    "source":"resolve_agronomic_review",
-   "target":"get",
-   "line":129
+   "target":"isinstance",
+   "line":117
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/learning_source_lineage.py",
-   "source":"summarize_learning_sources",
-   "target":"get",
-   "line":144
+   "source":"resolve_agronomic_review",
+   "target":"strip",
+   "line":117
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/learning_source_lineage.py",
-   "source":"summarize_learning_sources",
+   "source":"resolve_agronomic_review",
    "target":"get",
-   "line":145
+   "line":131
   },
   {
    "owner":"sahool-platform",
@@ -345923,7 +345958,7 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/learning_source_lineage.py",
    "source":"summarize_learning_sources",
-   "target":"len",
+   "target":"get",
    "line":150
   },
   {
@@ -345937,15 +345972,29 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/learning_source_lineage.py",
    "source":"summarize_learning_sources",
+   "target":"len",
+   "line":152
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/learning_source_lineage.py",
+   "source":"summarize_learning_sources",
    "target":"get",
-   "line":160
+   "line":153
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/learning_source_lineage.py",
+   "source":"summarize_learning_sources",
+   "target":"get",
+   "line":162
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/learning_source_lineage.py",
    "source":"summarize_learning_sources",
    "target":"round",
-   "line":161
+   "line":163
   },
   {
    "owner":"sahool-platform",
@@ -348535,21 +348584,21 @@
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_outcome_record",
    "target":"get",
-   "line":44
+   "line":43
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_outcome_record",
    "target":"get",
-   "line":46
+   "line":45
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_outcome_record",
    "target":"get",
-   "line":48
+   "line":47
   },
   {
    "owner":"sahool-platform",
@@ -348584,21 +348633,14 @@
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_outcome_record",
    "target":"get",
-   "line":54
+   "line":53
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"recommendation_outcome_eligibility",
-   "target":"_num",
-   "line":69
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"recommendation_outcome_eligibility",
+   "source":"normalize_outcome_record",
    "target":"get",
-   "line":69
+   "line":55
   },
   {
    "owner":"sahool-platform",
@@ -348618,92 +348660,85 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"recommendation_outcome_eligibility",
-   "target":"isfinite",
-   "line":75
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"recommendation_outcome_eligibility",
-   "target":"isfinite",
-   "line":75
+   "target":"_num",
+   "line":71
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"recommendation_outcome_eligibility",
    "target":"get",
-   "line":77
+   "line":71
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"recommendation_outcome_eligibility",
+   "target":"isfinite",
+   "line":76
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"recommendation_outcome_eligibility",
+   "target":"isfinite",
+   "line":76
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"recommendation_outcome_eligibility",
    "target":"get",
-   "line":79
+   "line":78
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"recommendation_outcome_eligibility",
+   "target":"get",
+   "line":80
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"_derive_rec_success",
    "target":"recommendation_outcome_eligibility",
-   "line":91
+   "line":92
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"_derive_rec_success",
    "target":"_num",
-   "line":93
+   "line":94
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"_derive_rec_success",
    "target":"_num",
-   "line":93
+   "line":94
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"_derive_rec_success",
    "target":"get",
-   "line":93
+   "line":94
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"_derive_rec_success",
    "target":"get",
-   "line":93
+   "line":94
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"_finite",
    "target":"isfinite",
-   "line":98
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"normalize_recommendation_outcome",
-   "target":"_finite",
-   "line":107
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"normalize_recommendation_outcome",
-   "target":"_num",
-   "line":107
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"normalize_recommendation_outcome",
-   "target":"get",
-   "line":107
+   "line":99
   },
   {
    "owner":"sahool-platform",
@@ -348730,8 +348765,22 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
+   "target":"_finite",
+   "line":109
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"normalize_recommendation_outcome",
+   "target":"_num",
+   "line":109
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"normalize_recommendation_outcome",
    "target":"get",
-   "line":112
+   "line":109
   },
   {
    "owner":"sahool-platform",
@@ -348745,7 +348794,7 @@
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
    "target":"get",
-   "line":116
+   "line":114
   },
   {
    "owner":"sahool-platform",
@@ -348766,34 +348815,34 @@
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
    "target":"get",
+   "line":119
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"normalize_recommendation_outcome",
+   "target":"get",
    "line":120
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
+   "target":"get",
+   "line":122
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"normalize_recommendation_outcome",
    "target":"_derive_rec_success",
-   "line":121
+   "line":123
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
    "target":"round",
-   "line":126
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"normalize_recommendation_outcome",
-   "target":"bool",
-   "line":128
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"normalize_recommendation_outcome",
-   "target":"get",
    "line":128
   },
   {
@@ -348801,20 +348850,20 @@
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
    "target":"bool",
-   "line":129
+   "line":130
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
    "target":"get",
-   "line":129
+   "line":130
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
-   "target":"recommendation_outcome_eligibility",
+   "target":"bool",
    "line":131
   },
   {
@@ -348822,13 +348871,13 @@
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
    "target":"get",
-   "line":132
+   "line":131
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
-   "target":"get",
+   "target":"recommendation_outcome_eligibility",
    "line":133
   },
   {
@@ -348836,7 +348885,7 @@
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"normalize_recommendation_outcome",
    "target":"get",
-   "line":135
+   "line":134
   },
   {
    "owner":"sahool-platform",
@@ -348848,93 +348897,107 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"normalize_recommendation_outcome",
+   "target":"get",
+   "line":137
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"normalize_recommendation_outcome",
+   "target":"get",
+   "line":137
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
    "target":"append",
-   "line":161
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"reconcile_outcomes",
-   "target":"normalize_outcome_record",
-   "line":161
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"reconcile_outcomes",
-   "target":"normalize_recommendation_outcome",
    "line":163
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
-   "target":"get",
+   "target":"normalize_outcome_record",
+   "line":163
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"reconcile_outcomes",
+   "target":"normalize_recommendation_outcome",
    "line":165
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
-   "target":"append",
-   "line":169
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"reconcile_outcomes",
    "target":"get",
-   "line":174
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"reconcile_outcomes",
-   "target":"get",
-   "line":175
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/outcome_reconciler.py",
-   "source":"reconcile_outcomes",
-   "target":"get",
-   "line":180
+   "line":167
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
    "target":"append",
+   "line":171
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"reconcile_outcomes",
+   "target":"get",
+   "line":176
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"reconcile_outcomes",
+   "target":"get",
+   "line":177
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"reconcile_outcomes",
+   "target":"get",
    "line":182
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/outcome_reconciler.py",
+   "source":"reconcile_outcomes",
+   "target":"append",
+   "line":184
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
    "target":"setdefault",
-   "line":182
+   "line":184
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
    "target":"items",
-   "line":185
+   "line":187
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
    "target":"len",
-   "line":186
+   "line":188
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/outcome_reconciler.py",
    "source":"reconcile_outcomes",
    "target":"len",
-   "line":191
+   "line":193
   },
   {
    "owner":"sahool-platform",
@@ -366412,78 +366475,134 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_evidence_is_referenced",
+   "target":"all",
+   "line":187
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
+   "source":"_evidence_is_referenced",
    "target":"isinstance",
-   "line":185
+   "line":187
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_evidence_is_referenced",
    "target":"strip",
-   "line":185
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
-   "source":"_evidence_is_referenced",
-   "target":"strip",
-   "line":185
+   "line":187
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_evidence_is_referenced",
    "target":"bool",
-   "line":186
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
-   "source":"_evidence_is_referenced",
-   "target":"bool",
-   "line":186
+   "line":189
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_evidence_is_referenced",
    "target":"isinstance",
-   "line":186
+   "line":189
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"_evidence_is_referenced",
    "target":"strip",
-   "line":186
+   "line":189
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
+   "source":"_json_safe",
+   "target":"isinstance",
+   "line":199
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
+   "source":"_json_safe",
+   "target":"items",
+   "line":200
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
+   "source":"_json_safe",
+   "target":"str",
+   "line":200
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
+   "source":"_json_safe",
+   "target":"isinstance",
+   "line":201
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
+   "source":"_json_safe",
+   "target":"isinstance",
+   "line":203
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
+   "source":"_json_safe",
+   "target":"sorted",
+   "line":204
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
+   "source":"_json_safe",
+   "target":"isinstance",
+   "line":205
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
+   "source":"_json_safe",
+   "target":"str",
+   "line":207
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"verify_against_data",
-   "target":"dict",
-   "line":208
+   "target":"_json_safe",
+   "line":229
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"verify_against_data",
    "target":"isinstance",
-   "line":208
+   "line":229
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"verify_against_data",
    "target":"_evidence_is_referenced",
-   "line":215
+   "line":236
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
+   "source":"verify_against_data",
+   "target":"_json_safe",
+   "line":244
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/knowledge/farmer_knowledge.py",
    "source":"verify_against_data",
    "target":"isinstance",
-   "line":223
+   "line":244
   },
   {
    "owner":"sahool-platform",
@@ -404015,100 +404134,135 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
-   "source":"test_scalar_reference_ids_are_not_a_reference_list",
+   "source":"test_whitespace_reference_ids_keep_pending",
    "target":"_mk",
-   "line":175
+   "line":172
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
-   "source":"test_scalar_reference_ids_are_not_a_reference_list",
+   "source":"test_whitespace_reference_ids_keep_pending",
    "target":"verify_against_data",
-   "line":176
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
-   "source":"test_scalar_reference_ids_are_not_a_reference_list",
-   "target":"_mk",
-   "line":184
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
-   "source":"test_scalar_reference_ids_are_not_a_reference_list",
-   "target":"verify_against_data",
-   "line":185
+   "line":173
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
    "source":"test_scalar_reference_ids_are_not_a_reference_list",
    "target":"_mk",
-   "line":189
+   "line":182
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
    "source":"test_scalar_reference_ids_are_not_a_reference_list",
    "target":"verify_against_data",
-   "line":190
+   "line":183
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_scalar_reference_ids_are_not_a_reference_list",
+   "target":"_mk",
+   "line":191
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_scalar_reference_ids_are_not_a_reference_list",
+   "target":"verify_against_data",
+   "line":192
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
    "source":"test_scalar_reference_ids_are_not_a_reference_list",
    "target":"dumps",
-   "line":196
+   "line":199
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_scalar_reference_ids_are_not_a_reference_list",
+   "target":"loads",
+   "line":199
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
    "source":"test_scalar_reference_ids_are_not_a_reference_list",
    "target":"to_dict",
-   "line":196
+   "line":199
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
-   "source":"test_evidence_and_actor_are_recorded_while_status_stays_rejected",
+   "source":"test_scalar_reference_ids_are_not_a_reference_list",
    "target":"_mk",
    "line":202
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
-   "source":"test_evidence_and_actor_are_recorded_while_status_stays_rejected",
+   "source":"test_scalar_reference_ids_are_not_a_reference_list",
    "target":"verify_against_data",
    "line":203
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_scalar_reference_ids_are_not_a_reference_list",
+   "target":"dumps",
+   "line":209
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_scalar_reference_ids_are_not_a_reference_list",
+   "target":"to_dict",
+   "line":209
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_evidence_and_actor_are_recorded_while_status_stays_rejected",
+   "target":"_mk",
+   "line":215
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
+   "source":"test_evidence_and_actor_are_recorded_while_status_stays_rejected",
+   "target":"verify_against_data",
+   "line":216
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
    "source":"test_method_and_audit_fields_survive_with_the_basis_flag",
    "target":"_mk",
-   "line":219
+   "line":232
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
    "source":"test_method_and_audit_fields_survive_with_the_basis_flag",
    "target":"verify_against_data",
-   "line":220
+   "line":233
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
    "source":"test_method_and_audit_fields_survive_with_the_basis_flag",
    "target":"_mk",
-   "line":235
+   "line":248
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
    "source":"test_method_and_audit_fields_survive_with_the_basis_flag",
    "target":"verify_against_data",
-   "line":236
+   "line":249
   },
   {
    "owner":"sahool-platform",
@@ -422154,14 +422308,14 @@
    "file":"services/sahool-platform/tests/test_learning_source_lineage.py",
    "source":"test_blank_evidence_ids_do_not_approve",
    "target":"resolve_learning_source",
-   "line":173
+   "line":174
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_source_lineage.py",
-   "source":"test_non_string_reviewer_is_not_a_reviewer",
+   "source":"test_blank_evidence_ids_do_not_approve",
    "target":"resolve_learning_source",
-   "line":185
+   "line":182
   },
   {
    "owner":"sahool-platform",
@@ -422173,30 +422327,37 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_source_lineage.py",
+   "source":"test_non_string_reviewer_is_not_a_reviewer",
+   "target":"resolve_learning_source",
+   "line":203
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_source_lineage.py",
    "source":"test_scalar_evidence_ids_are_not_a_list_of_evidence",
    "target":"resolve_learning_source",
-   "line":206
+   "line":215
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_source_lineage.py",
    "source":"test_scalar_evidence_ids_are_not_a_list_of_evidence",
    "target":"frozenset",
-   "line":217
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_learning_source_lineage.py",
-   "source":"test_scalar_evidence_ids_are_not_a_list_of_evidence",
-   "target":"resolve_learning_source",
-   "line":218
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_learning_source_lineage.py",
-   "source":"test_scalar_evidence_ids_are_not_a_list_of_evidence",
-   "target":"resolve_learning_source",
    "line":226
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_source_lineage.py",
+   "source":"test_scalar_evidence_ids_are_not_a_list_of_evidence",
+   "target":"resolve_learning_source",
+   "line":227
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_source_lineage.py",
+   "source":"test_scalar_evidence_ids_are_not_a_list_of_evidence",
+   "target":"resolve_learning_source",
+   "line":235
   },
   {
    "owner":"sahool-platform",
@@ -422525,84 +422686,98 @@
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_recommendation_outcomes_carry_farm_id_into_independence_counts",
    "target":"summarize_learning_with_reconciled_outcomes",
-   "line":232
+   "line":238
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_recommendation_outcomes_carry_farm_id_into_independence_counts",
    "target":"_ts",
-   "line":246
+   "line":253
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_recommendation_outcomes_carry_farm_id_into_independence_counts",
    "target":"range",
-   "line":248
+   "line":255
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_recommendation_outcomes_carry_farm_id_into_independence_counts",
    "target":"Path",
-   "line":255
+   "line":263
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_recommendation_outcomes_carry_farm_id_into_independence_counts",
    "target":"resolve",
-   "line":255
+   "line":263
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_recommendation_outcomes_carry_farm_id_into_independence_counts",
    "target":"read_text",
-   "line":256
+   "line":264
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
+   "source":"test_recommendation_outcomes_carry_farm_id_into_independence_counts",
+   "target":"count",
+   "line":269
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_recommendation_outcomes_carry_farm_id_into_independence_counts",
    "target":"read_text",
-   "line":259
+   "line":271
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
+   "source":"test_recommendation_outcomes_carry_farm_id_into_independence_counts",
+   "target":"count",
+   "line":276
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_reconciled_rows_keep_unit_identity_for_independence_counts",
    "target":"summarize_learning_with_reconciled_outcomes",
-   "line":270
+   "line":286
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_reconciled_rows_keep_unit_identity_for_independence_counts",
    "target":"_ts",
-   "line":280
+   "line":296
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_reconciled_rows_keep_unit_identity_for_independence_counts",
    "target":"range",
-   "line":282
+   "line":298
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_reconciled_rows_keep_unit_identity_for_independence_counts",
    "target":"_ts",
-   "line":295
+   "line":311
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
    "source":"test_reconciled_rows_keep_unit_identity_for_independence_counts",
    "target":"next",
-   "line":299
+   "line":315
   },
   {
    "owner":"sahool-platform",
@@ -558449,7 +558624,7 @@
    "symbol":"TestRejectedKnowledgeKeepsTheAuditTrail",
    "kind":"class",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
-   "line":199,
+   "line":212,
    "owner":"sahool-platform",
    "decorated_route":false,
    "reference_count":0,
@@ -558460,7 +558635,7 @@
    "symbol":"TestUnreferencedClaimKeepsTheSubmittedEvidence",
    "kind":"class",
    "file":"services/sahool-platform/tests/test_farmer_knowledge.py",
-   "line":216,
+   "line":229,
    "owner":"sahool-platform",
    "decorated_route":false,
    "reference_count":0,

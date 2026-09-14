@@ -69,7 +69,17 @@ def backoff_seconds(attempt: int, *, base: float, cap: float) -> float:
     """
     if not (math.isfinite(base) and math.isfinite(cap)) or base < 0 or cap < 0:
         raise ValueError(f"backoff base/cap must be finite and >= 0 (got {base!r}, {cap!r})")
-    return float(min(cap, base * (2 ** max(0, attempt - 1))))
+    # مضاعفةٌ محدودة بدل ``2 ** (attempt-1)`` المفتوح: سقفُ محاولاتٍ ضخم كان يبني عدداً صحيحاً
+    # هائلاً قبل ``min`` (تعليقٌ/MemoryError عند جدولة الإعادة؛ Copilot على #1001). الحلقة تتوقّف
+    # حين يبلغ التأخيرُ السقفَ — عددُ الدورات ≤ log2(cap/base).
+    delay = float(base)
+    if delay <= 0:
+        return 0.0
+    for _ in range(max(0, attempt - 1)):
+        if delay >= cap:
+            break
+        delay *= 2
+    return float(min(cap, delay))
 
 
 async def run_init_with_retry(

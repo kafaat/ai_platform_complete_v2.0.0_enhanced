@@ -598,14 +598,15 @@ async def field_season_state_endpoint(
             try:
                 async with conn.transaction():
                     rows = await conn.fetch(
-                        "SELECT outcome_id, field_id, region, decision_id, success, metrics, "
-                        "planned, actual, stage, created_at FROM outcome_record "
+                        "SELECT outcome_id, tenant_id, field_id, region, decision_id, success, "
+                        "metrics, planned, actual, stage, created_at FROM outcome_record "
                         "WHERE field_id = $1",
                         field_id,
                     )
                 outcome_records = [
                     {
                         "outcome_id": r["outcome_id"],
+                        "tenant_id": str(r["tenant_id"]) if r["tenant_id"] is not None else None,
                         "field_id": r["field_id"],
                         "region": r["region"],
                         "decision_id": r["decision_id"],
@@ -624,7 +625,7 @@ async def field_season_state_endpoint(
                 async with conn.transaction():
                     # v49 بلا region — تُشتقّ من الحقل كما في لوحة التعلّم (Copilot على #1001).
                     rows = await conn.fetch(
-                        "SELECT ro.outcome_id, ro.field_id, ro.farm_id, ro.season_id, ro.crop, "
+                        "SELECT ro.outcome_id, ro.tenant_id, ro.field_id, ro.farm_id, ro.season_id, ro.crop, "
                         "ro.recommendation_id, ro.predicted_yield_t_ha, ro.actual_yield_t_ha, "
                         "ro.accepted, ro.matured_within_lag, ro.issued_at, ro.outcome_recorded_at, "
                         "f.region AS region FROM recommendation_outcomes ro "
@@ -636,6 +637,7 @@ async def field_season_state_endpoint(
                 recommendation_outcomes = [
                     {
                         "outcome_id": r["outcome_id"],
+                        "tenant_id": str(r["tenant_id"]) if r["tenant_id"] is not None else None,
                         "field_id": r["field_id"],
                         "farm_id": r["farm_id"],
                         "region": r["region"],

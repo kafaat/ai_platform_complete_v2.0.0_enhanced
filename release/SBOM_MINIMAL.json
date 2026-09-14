@@ -4285,7 +4285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9147fadcaa8077f3f5df207d84e171e2fd6770a6471e3882d4b31e75891fafea"
+          "content": "1a6d244032d9d9a68c72c8200c6b352ba59a118735979ba02d36d71822b4b6db"
         }
       ],
       "name": "frontend/src/lib/learningEvidence.ts",
@@ -4895,7 +4895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e5a04801cbd1199cf848aa86778ebe4ed92dfbdc01df0246644c6788cdcd2c3e"
+          "content": "b429c7897e81f0550d8bf9cfc0e04770106c26af3f2abceb636849d0ee7b2493"
         }
       ],
       "name": "frontend/src/sections/CalibrationPage.tsx",
@@ -5605,7 +5605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c8c73bf20c0213a2a29ec3595a2f33987c77c9b7581678003ab4989338fc8f68"
+          "content": "f786aa45f170978720a41e1d66f56137bc47bcb5b1f959e27b7e9c836caf9182"
         }
       ],
       "name": "frontend/src/sections/LearningDashboardPage.static.test.ts",
@@ -5625,7 +5625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "09cb3027f030b9c2505a873b73e67af29b165699497a562d96efd6f8ccc4f7c6"
+          "content": "11335cddb5b9fbea61780dda9fed2d03d17079fa0b8c8da1fb93cd480049f314"
         }
       ],
       "name": "frontend/src/sections/LineagePage.tsx",
@@ -13365,7 +13365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ff818b20d95aa3f223bb018d41b99c5d4ee3841682c2acda35fd49db74317386"
+          "content": "80654a2cdf9bcdfc4d3ff897ef4a4f8eddfdec84e95036a979727fdf53d47c9f"
         }
       ],
       "name": "services/local-ai-rag/init_retry.py",
@@ -17385,7 +17385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ce3d7c00929eaa08a76537c7375bdb01ceff13029950904142a1e03af410f8bf"
+          "content": "5ae2c1ae6493fe3685f6c7f7c0bd902a458906db20627f99020637056a61b55c"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -18715,7 +18715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "63d024c70e5ee50049d080919b0d5a35e3bff6ec8e1ae71115dff303cb844c81"
+          "content": "eb00d8d524fe69fc739942705ccdce2f54452d766f20656cef8b05f62f7cfd39"
         }
       ],
       "name": "services/sahool-platform/api/routers/learning_summary.py",
@@ -19165,7 +19165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4407f4848dc4a51762183ad87bf51f28ef45a5b819f927f72c9b9c2732be9513"
+          "content": "d36f6d7fa0bb89e7ec4a0aa3490b5fa24dedf89d30a2d05f2b4c1b30b7014372"
         }
       ],
       "name": "services/sahool-platform/api/routers/seasons.py",
@@ -22425,7 +22425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "94739beff03482afd2d12d6dbfb1fb0842651fe4c751a4aeaaa2f972e3d12638"
+          "content": "d62fe837fc0134f80514e8a790b112152ba37dcca6e4d5677066bc0055d5ed6d"
         }
       ],
       "name": "services/sahool-platform/core/learning_source_lineage.py",
@@ -22585,7 +22585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8169ad653863fbed45f1fe3adfa7d029c02900de9ffaa75b08c4127756e00f2d"
+          "content": "d17ccd065d3a1545b447a6ac10ebeb2d69f97a907695cc587049e6e4ebfc7e6c"
         }
       ],
       "name": "services/sahool-platform/core/outcome_reconciler.py",
@@ -23665,7 +23665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1002aa2c2ed35c789cde9ff59dcbd6383973cd683fecc126b8581717a1d02d72"
+          "content": "4c70302fb08f6e12d4cdb7d4a79553a0b46005d740689adee5ec15398a7dca20"
         }
       ],
       "name": "services/sahool-platform/knowledge/farmer_knowledge.py",
@@ -25335,7 +25335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f306ec2593a0c035d394cc47056aa87245324e3c992d34f3538a0da2bfdde860"
+          "content": "a22c2e6b9183b4bb8bc19f2db99e8ebaca07b094839c4e7e3672285bbbe48d6c"
         }
       ],
       "name": "services/sahool-platform/tests/test_farmer_knowledge.py",
@@ -26245,7 +26245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "403118d4b767e16efbfc7e82daa9e4d7796810be6ee879a1b0e7585e49ffab41"
+          "content": "de6858883f45f9dd857938471a75ec4631da94248ef8a6ab3135414b22633243"
         }
       ],
       "name": "services/sahool-platform/tests/test_learning_source_lineage.py",
@@ -26265,7 +26265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "038be56742d93d139ff988f4ca233eeb6414ac1b5f2c367a5e827b0ffb2cbf7f"
+          "content": "fb2b797c26d76a1e1f1824bdf408f6fc48b2af2971b32af4eef5be3d3a53ac07"
         }
       ],
       "name": "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",

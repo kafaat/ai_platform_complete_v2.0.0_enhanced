@@ -180,10 +180,31 @@ def _evidence_is_referenced(evidence: dict | None) -> bool:
     # (`"scene-1"`) ليس قائمةً تُقطَّع حروفاً، والمجموعةُ/الصفُّ مرفوضان: الدليلُ يُحفَظ كما قُدِّم
     # ويُسلسَل في to_dict، والمجموعةُ لا تُسلسَل وترتيبُها غيرُ حتميّ (Copilot على #1001).
     raw_refs = evidence.get("reference_ids")
-    if not isinstance(raw_refs, list):
+    if not isinstance(raw_refs, list) or not raw_refs:
         return False
-    refs = [r.strip() for r in raw_refs if isinstance(r, str) and r.strip()]
-    return isinstance(method, str) and bool(method.strip()) and bool(refs)
+    # كلُّ الأعضاء نصوصٌ غير فارغة — قائمةٌ مختلطة (`["scene-1", 7]`) تخرق العقد فلا تؤكّد
+    # (Copilot على #1001: كان الترشيحُ الجزئيّ يُبقي عضواً صالحاً فيؤكّد).
+    if not all(isinstance(r, str) and r.strip() for r in raw_refs):
+        return False
+    return isinstance(method, str) and bool(method.strip())
+
+
+def _json_safe(value):
+    """يُطبّع الدليلَ المُقدَّم إلى قيم JSON صرفة كي يبقى أثرُ التدقيق قابلاً للتسلسل في ``to_dict``.
+
+    Copilot على #1001: مجموعةٌ في ``reference_ids`` كانت تُحفَظ كما هي (لا تؤكّد لكنّها تُحفَظ)
+    فيرفع ``json.dumps(to_dict())``. المجموعاتُ تُرتَّب نصّيّاً (حتميّة)، والصفوفُ قوائم، وما
+    ليس JSON يُحفَظ نصّاً.
+    """
+    if isinstance(value, dict):
+        return {str(k): _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(v) for v in value]
+    if isinstance(value, (set, frozenset)):
+        return sorted((_json_safe(v) for v in value), key=str)
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    return str(value)
 
 
 def verify_against_data(
@@ -205,7 +226,7 @@ def verify_against_data(
     """
     # أثرُ التدقيق (الدليل ومَن أجراه) يُحفَظ كما قُدِّم في كلّ الأحوال — حتّى على المرفوضة
     # (Copilot على #1001: كانت الإعادةُ المبكّرة تُسقِطه بصمت).
-    knowledge.verification_evidence = dict(evidence) if isinstance(evidence, dict) else None
+    knowledge.verification_evidence = _json_safe(evidence) if isinstance(evidence, dict) else None
     knowledge.verified_by = verified_by
     if knowledge.verification_status == VerificationStatus.REJECTED:
         return knowledge  # سببية بلا آلية تبقى مرفوضة — الحالة لا تتغيّر
@@ -220,7 +241,7 @@ def verify_against_data(
         # يُحفَظ ما قدّمه المُنادي (الطريقة/المراجع/حقول التدقيق) ويُضاف الأساسُ لا يُستبدَل
         # به (Copilot على #1001).
         knowledge.verification_evidence = {
-            **(evidence if isinstance(evidence, dict) else {}),
+            **(_json_safe(evidence) if isinstance(evidence, dict) else {}),
             "basis": "unreferenced_claim",
         }
     return knowledge
