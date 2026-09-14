@@ -1,0 +1,94 @@
+{
+  "records": [
+    {
+      "tenant_id": "t1",
+      "customer_id": "train-customer",
+      "field_id": "field-train-customer",
+      "operation_id": "op-train-customer",
+      "source_record_id": "ledger-train-customer",
+      "region": "synthetic-region",
+      "crop": "synthetic-crop",
+      "language": "ar",
+      "season_id": "synthetic-2026",
+      "features": {
+        "water_m3": 0.0
+      },
+      "feature_units": {
+        "water_m3": "m3"
+      },
+      "labels": {
+        "yield_kg": 100.0
+      },
+      "label_unit": "kg",
+      "reported_result": "unchanged",
+      "event_time": "2026-06-01T00:00:00Z",
+      "feature_available_at": "2026-06-01T01:00:00Z",
+      "decision_at": "2026-06-02T00:00:00Z",
+      "matures_at": "2026-06-10T00:00:00Z",
+      "outcome_at": "2026-06-11T00:00:00Z",
+      "outcome_recorded_at": "2026-06-12T00:00:00Z"
+    },
+    {
+      "tenant_id": "t1",
+      "customer_id": "held-out-customer",
+      "field_id": "field-held-out-customer",
+      "operation_id": "op-held-out-customer",
+      "source_record_id": "ledger-held-out-customer",
+      "region": "synthetic-region",
+      "crop": "synthetic-crop",
+      "language": "ar",
+      "season_id": "synthetic-2026",
+      "features": {
+        "water_m3": 0.0
+      },
+      "feature_units": {
+        "water_m3": "m3"
+      },
+      "labels": {
+        "yield_kg": 100.0
+      },
+      "label_unit": "kg",
+      "reported_result": "unchanged",
+      "event_time": "2026-08-01T00:00:00Z",
+      "feature_available_at": "2026-08-01T01:00:00Z",
+      "decision_at": "2026-08-02T00:00:00Z",
+      "matures_at": "2026-08-10T00:00:00Z",
+      "outcome_at": "2026-08-11T00:00:00Z",
+      "outcome_recorded_at": "2026-08-12T00:00:00Z"
+    }
+  ],
+  "policy": {
+    "tenant_id": "t1",
+    "as_of": "2026-09-13T00:00:00Z",
+    "split_at": "2026-07-01T00:00:00Z",
+    "held_out_customers": [
+      "held-out-customer"
+    ],
+    "feature_names": [
+      "water_m3"
+    ],
+    "feature_units": {
+      "water_m3": "m3"
+    },
+    "label_name": "yield_kg",
+    "label_unit": "kg"
+  },
+  "consents": {
+    "train-customer": {
+      "tenant_id": "t1",
+      "purpose": "shared_learning",
+      "status": "active",
+      "source_record_id": "consent-train-customer",
+      "granted_at": "2026-01-01T00:00:00Z",
+      "valid_until": "2027-01-01T00:00:00Z"
+    },
+    "held-out-customer": {
+      "tenant_id": "t1",
+      "purpose": "shared_learning",
+      "status": "active",
+      "source_record_id": "consent-held-out-customer",
+      "granted_at": "2026-01-01T00:00:00Z",
+      "valid_until": "2027-01-01T00:00:00Z"
+    }
+  }
+}

@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
@@ -125,3 +126,83 @@ def test_authorization_is_required():
 
 
 pytestmark = pytest.mark.unit
+
+
+def test_same_device_ids_do_not_allow_another_tenants_telemetry():
+    h = handshake(mode="human_approved_control")
+    other = replace(h, tenant_id="other-tenant")
+    original = telemetry(h)
+    foreign = telemetry(other)
+    assert original.payload_digest != foreign.payload_digest
+    snapshot = build_controller_capability_snapshot(handshake=h, telemetry=foreign, now=NOW)
+    assert not snapshot.operational_eligible
+    assert "CONTROLLER_TELEMETRY_IDENTITY_MISMATCH" in snapshot.blocking_reasons
+    with pytest.raises(PermissionError):
+        prepare_controller_command_request(
+            snapshot=snapshot,
+            command_type="start",
+            parameters={},
+            decision_id="d1",
+            authorization_id="a1",
+        )
+
+
+def test_clock_rollback_does_not_make_future_telemetry_fresh():
+    h = handshake()
+    snapshot = build_controller_capability_snapshot(
+        handshake=h, telemetry=telemetry(h), now=NOW - timedelta(seconds=1)
+    )
+    assert not snapshot.telemetry_fresh and not snapshot.operational_eligible
+    assert "CONTROLLER_TELEMETRY_OBSERVED_IN_FUTURE" in snapshot.blocking_reasons
+
+
+@pytest.mark.parametrize("maximum_age", [-1, True, float("inf")])
+def test_invalid_freshness_window_is_rejected(maximum_age):
+    h = handshake()
+    with pytest.raises(ValueError, match="AGE_INVALID"):
+        build_controller_capability_snapshot(
+            handshake=h, telemetry=telemetry(h), now=NOW, maximum_age_seconds=maximum_age
+        )
+
+
+def test_outage_requires_fresh_telemetry_and_still_does_not_dispatch():
+    h = handshake(mode="human_approved_control")
+    old = telemetry(h)
+    reconnect_at = NOW + timedelta(minutes=30)
+    stale = build_controller_capability_snapshot(handshake=h, telemetry=old, now=reconnect_at)
+    with pytest.raises(PermissionError):
+        prepare_controller_command_request(
+            snapshot=stale,
+            command_type="start",
+            parameters={},
+            decision_id="d1",
+            authorization_id="a1",
+        )
+    with pytest.raises(ValueError, match="REPLAY"):
+        normalize_controller_telemetry(
+            handshake=h,
+            payload={},
+            sequence_number=1,
+            previous_sequence_number=1,
+            observed_at=reconnect_at,
+            received_at=reconnect_at,
+            source_message_id="replayed",
+        )
+    fresh = normalize_controller_telemetry(
+        handshake=h,
+        payload={"connection_status": "online", "operating_state": "idle"},
+        sequence_number=2,
+        previous_sequence_number=1,
+        observed_at=reconnect_at,
+        received_at=reconnect_at,
+        source_message_id="after-outage",
+    )
+    snapshot = build_controller_capability_snapshot(handshake=h, telemetry=fresh, now=reconnect_at)
+    request = prepare_controller_command_request(
+        snapshot=snapshot,
+        command_type="start",
+        parameters={},
+        decision_id="reviewed-d2",
+        authorization_id="a2",
+    )
+    assert request["dispatch_allowed"] is False

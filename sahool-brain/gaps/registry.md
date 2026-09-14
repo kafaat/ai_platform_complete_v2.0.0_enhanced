@@ -5964,3 +5964,12 @@ Timing follow-up: final source registry656; run34281851595 measured654 in five s
 
 الأحكام التاريخية عن NATS أو GUC أو عدد اختبارات الخدمة تُقرأ مع التصحيحات
 C01..C14؛ لا تُرفع قدرة إلى runtime_verified أو production_certified بهذه الشريحة.
+
+
+## CUSTOMER-PRACTICE-DEFERRED-LIVE-VALIDATION-01
+
+- **الحالة:** open — اكتمال الأدوات المحلية لا يثبت التكامل أو النتائج الميدانية.
+- **الأساس:** `d786d18b5ae7a79d8ec4eae488695f115052cafd`.
+- **المصدر:** `docs/runbooks/CUSTOMER_PRACTICE_DEFERRED_WORK_AR.md:1`؛ `scripts/ops/fieldview_import_preview.py:1`؛ `shared/feature_store/practice_review.py:1`؛ `tests_v9/test_controller_edge_adapter.py:1`.
+- **المتاح:** معاينة ملفات وإعداد بيانات مرشحة واختبارات معزولة؛ لا قاعدة تعلم جديدة أو اعتماد زراعي آلي.
+- **الإغلاق:** عينة مزود مخولة مع الحفظ ثم القراءة ومنع التكرار الدائم؛ قياس جهاز وإقرارات وانقطاع/رجوع؛ حالات يمنية مستقلة ومراجعة زراعية مؤرخة. لا يُستعمل عدد الصفوف أو نجاح pytest بديلاً.

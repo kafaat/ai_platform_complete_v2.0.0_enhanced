@@ -4400,6 +4400,7 @@
         "tests_v9/test_copilot_review_876_regressions.py",
         "tests_v9/test_decision_review_backfill_verify.py",
         "tests_v9/test_decision_review_boundary_guard.py",
+        "tests_v9/test_practice_dataset_review.py",
         "tests_v9/test_security_review_fixes.py"
       ],
       "runtime": {
@@ -4435,7 +4436,7 @@
           "path": "services/decision-service/migrations/012_model_activation_approval_command.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=23, tests=16, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=23, tests=17, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

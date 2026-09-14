@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 585,
+      "evidence_count": 586,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -607,6 +607,7 @@
         "shared/contracts/soil/use_policy.py",
         "shared/enterprise_gis/phase7_enterprise.py",
         "shared/enterprise_gis/phase8_global_scale.py",
+        "shared/feature_store/practice_review.py",
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py",
         "shared/field_change_summary.py",
@@ -629,7 +630,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 490,
+      "evidence_count": 491,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -1126,6 +1127,7 @@
         "shared/enterprise_gis/phase7_enterprise.py",
         "shared/enterprise_gis/phase8_global_scale.py",
         "shared/enterprise_gis/test_phase7_enterprise.py",
+        "shared/feature_store/practice_review.py",
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py",
         "shared/field_runtime_cohesion.py",
@@ -1344,7 +1346,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 252,
+      "evidence_count": 253,
       "owners": [
         "ai_agronomist",
         "auth",
@@ -1603,6 +1605,7 @@
         "shared/contracts/soil/p3.py",
         "shared/contracts/soil/p4.py",
         "shared/contracts/soil/p5.py",
+        "shared/feature_store/practice_review.py",
         "shared/federated_agent_runtime.py",
         "shared/gis/phase5_runtime.py",
         "shared/governance/chemical_lineage.py",
@@ -2422,8 +2425,8 @@
         "services/sahool-platform/api/temporal_arbitration.py",
         "services/sahool-platform/api/trial_engine.py"
       ],
-      "source_evidence_count": 585,
-      "target_evidence_count": 490,
+      "source_evidence_count": 586,
+      "target_evidence_count": 491,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2531,7 +2534,7 @@
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py"
       ],
-      "source_evidence_count": 490,
+      "source_evidence_count": 491,
       "target_evidence_count": 172,
       "static_supported": true,
       "runtime_verified": false
@@ -2604,7 +2607,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 172,
-      "target_evidence_count": 252,
+      "target_evidence_count": 253,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2635,7 +2638,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 252,
+      "source_evidence_count": 253,
       "target_evidence_count": 32,
       "static_supported": true,
       "runtime_verified": false
@@ -2794,5 +2797,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "54ff5e6880d34b649f686a1d10436f11d6455592a149fa90781ea98f55e8fc40"
+  "content_sha256": "852be91258a96329ebee67ba4b4801b6d49438b9ff1d2808e5526c6ae23537fa"
 }
