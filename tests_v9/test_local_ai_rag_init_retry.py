@@ -47,6 +47,32 @@ def test_backoff_fails_closed_on_negative_or_non_finite_bounds(retry):
             retry.backoff_seconds(1, base=base, cap=cap)
 
 
+def test_non_numeric_attempt_budget_falls_back_instead_of_killing_the_import(retry):
+    """Copilot على #1001: `int(os.getenv(...))` على نصّ غير رقميّ كان يُسقِط الوحدة عند الاستيراد."""
+    assert retry.int_or_default("abc", 6, name="X") == 6
+    assert retry.int_or_default("", 6, name="X") == 6
+    assert retry.int_or_default(None, 6, name="X") == 6
+    assert retry.int_or_default(" 3 ", 6, name="X") == 3
+    assert retry.int_or_default("-2", 6, name="X") == -2  # التقييدُ الأدنى مسؤوليّةُ المُنادي
+    src = MAIN.read_text(encoding="utf-8")
+    assert 'int_or_default(\n    os.getenv("RAG_INIT_MAX_ATTEMPTS", "6")' in src
+    assert 'int(os.getenv("RAG_INIT_MAX_ATTEMPTS"' not in src, (
+        "نصٌّ غير رقميّ في RAG_INIT_MAX_ATTEMPTS يُسقِط الخدمة قبل /readyz — يجب أن يمرّ بحدود الإعداد"
+    )
+
+
+def test_lifespan_owns_and_cancels_the_init_task():
+    """Copilot على #1001 (مكتومة): مهمّةُ التهيئة كانت fire-and-forget — تستمرّ بعد الإيقاف وتتسرّب."""
+    src = MAIN.read_text(encoding="utf-8")
+    lifespan = src.split("async def lifespan(", 1)[1].split("\n\n\n", 1)[0]
+    assert "init_task = asyncio.create_task(_init_models_background())" in lifespan
+    assert "finally:" in lifespan and "init_task.cancel()" in lifespan
+    assert "with suppress(asyncio.CancelledError):\n                await init_task" in lifespan
+    assert "asyncio.create_task(_init_models_background())\n" not in src.replace(
+        "init_task = asyncio.create_task(_init_models_background())\n", ""
+    ), "إنشاءُ مهمّةٍ بلا احتفاظ بمرجعها يعني تهيئةً تستمرّ بعد توقّف التطبيق"
+
+
 def test_config_boundary_normalises_backoff_values(retry):
     """القيمُ غير الصالحة تُستبدَل بالافتراضيّ عند الحدود (لا في منتصف حلقة الإعادة)."""
     ok = retry.non_negative_float("2.5", 5.0, name="X")

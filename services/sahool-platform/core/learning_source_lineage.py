@@ -110,8 +110,8 @@ def resolve_agronomic_review(update: dict) -> dict:
     if not isinstance(raw_ids, (list, tuple, set, frozenset)):
         raw_ids = []
     evidence = [e.strip() for e in raw_ids if isinstance(e, str) and e.strip()]
-    if isinstance(reviewer, str):
-        reviewer = reviewer.strip() or None
+    # هويّةُ المراجِع نصٌّ غير فارغ فقط — رقمٌ أو قيمةٌ صادقة أخرى ليست مراجِعاً (Copilot على #1001).
+    reviewer = reviewer.strip() or None if isinstance(reviewer, str) else None
     if verdict == "rejected" and reviewer:
         status = "rejected"
     elif verdict == "approved" and reviewer and evidence:

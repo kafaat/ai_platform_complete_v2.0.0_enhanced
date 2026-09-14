@@ -179,6 +179,27 @@ class TestTraceableIsNotApproved:
         )
         assert ok["review_status"] == "approved" and ok["review"]["evidence_ids"] == ["or_9"]
 
+    def test_non_string_reviewer_is_not_a_reviewer(self):
+        """Copilot على #1001: `reviewer_id: 7` كان يمرّ صادقاً فيُعتمَد بلا هويّة مراجِع صالحة."""
+        for bad in (7, True, {"id": "a"}, ["a"], 0.5):
+            r = resolve_learning_source(
+                {
+                    "source_type": "human_feedback",
+                    "source_id": "hf_1",
+                    "review": {"reviewer_id": bad, "verdict": "approved", "evidence_ids": ["e1"]},
+                }
+            )
+            assert r["review_status"] == "unreviewed", bad
+            assert r["review"]["reviewer_id"] is None
+        rejected = resolve_learning_source(
+            {
+                "source_type": "human_feedback",
+                "source_id": "hf_1",
+                "review": {"reviewer_id": 7, "verdict": "rejected", "evidence_ids": []},
+            }
+        )
+        assert rejected["review_status"] == "unreviewed"  # رفضٌ بلا مراجِع صالح لا يُحتسَب أيضاً
+
     def test_scalar_evidence_ids_are_not_a_list_of_evidence(self):
         """Copilot على #1001: `evidence_ids: "claim-1"` كان يُقطَّع حروفاً فيُعتمَد بلا قائمة."""
         for scalar in ("claim-1", 7, {"id": "x"}, True):

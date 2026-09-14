@@ -622,11 +622,14 @@ async def field_season_state_endpoint(
                 outcome_records = []
             try:
                 async with conn.transaction():
+                    # v49 بلا region — تُشتقّ من الحقل كما في لوحة التعلّم (Copilot على #1001).
                     rows = await conn.fetch(
-                        "SELECT outcome_id, field_id, farm_id, season_id, crop, recommendation_id, "
-                        "predicted_yield_t_ha, actual_yield_t_ha, accepted, matured_within_lag, "
-                        "issued_at, outcome_recorded_at FROM recommendation_outcomes "
-                        "WHERE field_id = $1 AND (season_id = $2 OR season_id IS NULL)",
+                        "SELECT ro.outcome_id, ro.field_id, ro.farm_id, ro.season_id, ro.crop, "
+                        "ro.recommendation_id, ro.predicted_yield_t_ha, ro.actual_yield_t_ha, "
+                        "ro.accepted, ro.matured_within_lag, ro.issued_at, ro.outcome_recorded_at, "
+                        "f.region AS region FROM recommendation_outcomes ro "
+                        "LEFT JOIN fields f ON f.field_id = ro.field_id "
+                        "WHERE ro.field_id = $1 AND (ro.season_id = $2 OR ro.season_id IS NULL)",
                         field_id,
                         season_id,
                     )
@@ -635,6 +638,7 @@ async def field_season_state_endpoint(
                         "outcome_id": r["outcome_id"],
                         "field_id": r["field_id"],
                         "farm_id": r["farm_id"],
+                        "region": r["region"],
                         "season_id": r["season_id"],
                         "crop": r["crop"],
                         "recommendation_id": r["recommendation_id"],

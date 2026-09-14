@@ -14,7 +14,7 @@ import logging
 import os
 import re
 import tempfile
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -431,7 +431,10 @@ async def query_rag(question: str, tenant_id: str, k: int = 5) -> dict:
 # حالة التهيئة الخلفيّة — تُقرأ في /readyz فيُميَّز «قيد التحميل» عن «فشلت نهائيّاً بعد
 # N محاولات» (التدقيق الموحَّد 2026-09-13، P0: كانت محاولةً واحدة بلا إعادة، فغيابُ Qdrant
 # عند الإقلاع يترك الخدمة 503 إلى الأبد وتقول /readyz «قيد التحميل»).
-_INIT_MAX_ATTEMPTS_RAW = int(os.getenv("RAG_INIT_MAX_ATTEMPTS", "6"))
+# نصٌّ غير رقميّ لا يُسقِط الوحدة عند الاستيراد — الافتراضيّ مع تحذير (Copilot على #1001).
+_INIT_MAX_ATTEMPTS_RAW = init_retry.int_or_default(
+    os.getenv("RAG_INIT_MAX_ATTEMPTS", "6"), 6, name="RAG_INIT_MAX_ATTEMPTS", log=logger
+)
 # القيمةُ المُقيَّدة هي ما يُنفَّذ وما يُبلَّغ في /readyz — صفرٌ أو سالب يعني محاولةً واحدة
 # ويُسجَّل تحذيرٌ بدل أن يرى المشغّل `init_attempts: 1` مع `init_max_attempts: 0` (Copilot على #1001).
 INIT_MAX_ATTEMPTS = max(1, _INIT_MAX_ATTEMPTS_RAW)
@@ -475,11 +478,19 @@ async def _init_models_background() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Local AI RAG starting (سحب النماذج يجري في الخلفيّة)...")
-    # fire-and-forget: التطبيق حيّ فوراً للفحوص؛ النماذج تُحمَّل في الخلفيّة.
-    asyncio.create_task(_init_models_background())
+    # التطبيق حيّ فوراً للفحوص؛ النماذج تُحمَّل في الخلفيّة — والمهمّةُ مملوكةٌ لدورة الحياة
+    # لا مُهمَلة: عند الإيقاف أثناء تراجعٍ أو انتظار تبعيّة تُلغى وتُنتظَر فلا تستمرّ التهيئة
+    # بعد توقّف التطبيق ولا تتسرّب في اختبارات دورة الحياة (Copilot على #1001).
+    init_task = asyncio.create_task(_init_models_background())
     logger.info("خادم RAG HTTP جاهز — النماذج تُحمَّل في الخلفيّة")
-    yield
-    logger.info("Local AI RAG stopped")
+    try:
+        yield
+    finally:
+        if not init_task.done():
+            init_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await init_task
+        logger.info("Local AI RAG stopped")
 
 
 # C-07 FIX: JWT auth for RAG endpoints

@@ -773,7 +773,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 570,
+      "line": 581,
       "method": "POST",
       "path": "/v1/query",
       "function": "query_endpoint"
@@ -781,7 +781,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 580,
+      "line": 591,
       "method": "POST",
       "path": "/v1/ingest",
       "function": "ingest_endpoint"

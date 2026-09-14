@@ -13365,7 +13365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "55a74db04181e580181aff88efd169ef896e9b06feb639963a6ea5ccb0d91341"
+          "content": "ff818b20d95aa3f223bb018d41b99c5d4ee3841682c2acda35fd49db74317386"
         }
       ],
       "name": "services/local-ai-rag/init_retry.py",
@@ -13375,7 +13375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "09c44a82cd6b69476b9d13a3bce8d35d2c9e1078a4fc64ddba513b92358da639"
+          "content": "8ec107394ade7ff78a5e28f09a3df9c3f3c0672173ea1feb24057ceae64aebf0"
         }
       ],
       "name": "services/local-ai-rag/main.py",
@@ -19165,7 +19165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4ea0ef447725d4dc016789e4d7214782beda32245571b4f035df584278200147"
+          "content": "4407f4848dc4a51762183ad87bf51f28ef45a5b819f927f72c9b9c2732be9513"
         }
       ],
       "name": "services/sahool-platform/api/routers/seasons.py",
@@ -22425,7 +22425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5835ec85c1d7e607a6d824179c5fabf8d8e92292fd4ab839bcd1a8d3a9e2ca0e"
+          "content": "3f38189fd39250c40b232e0b1cb739621fc4a4f705030635ebf620ee1e51f550"
         }
       ],
       "name": "services/sahool-platform/core/learning_source_lineage.py",
@@ -26245,7 +26245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ceb6e420a448c8b4a47cd1cd4a4b156fb3fa6dc52940239185d02067cda5fd31"
+          "content": "7e1da8077712dbfbec10a79b59e84dd9b4ab50c377a7a5865161fd7a2b6b9ab1"
         }
       ],
       "name": "services/sahool-platform/tests/test_learning_source_lineage.py",
@@ -26265,7 +26265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "10e52c601798d216947dff675b9fd9cf62ae012aab57795c025fea6e5a8c5a59"
+          "content": "038be56742d93d139ff988f4ca233eeb6414ac1b5f2c367a5e827b0ffb2cbf7f"
         }
       ],
       "name": "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",

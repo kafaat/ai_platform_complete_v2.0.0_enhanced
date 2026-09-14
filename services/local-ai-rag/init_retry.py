@@ -44,6 +44,24 @@ def non_negative_float(
     return value
 
 
+def int_or_default(
+    raw: str | None, default: int, *, name: str, log: logging.Logger | None = None
+) -> int:
+    """يقرأ قيمةَ إعدادٍ صحيحةً وإلّا يُعيد الافتراضيّ مع تحذير — لا يُسقِط الوحدة عند الاستيراد.
+
+    Copilot على #1001: تحويلُ سقف المحاولات بـ``int(...)`` مباشرةً على نصّ غير رقميّ كان يرفع
+    عند استيراد ``main`` فلا تبلغ الخدمةُ ``/readyz`` ولا حلقةَ الإعادة أصلاً. التقييدُ الأدنى
+    (``max(1, …)``) يبقى مسؤوليّةَ المُنادي كما هو موثَّق هناك.
+    """
+    if raw is None or not str(raw).strip():
+        return int(default)
+    try:
+        return int(str(raw).strip())
+    except (TypeError, ValueError):
+        (log or _log).warning("%s=%r غير صالح (يلزم عددٌ صحيح) — استُعمِل %s", name, raw, default)
+        return int(default)
+
+
 def backoff_seconds(attempt: int, *, base: float, cap: float) -> float:
     """تراجعٌ أسّيّ محدود: base·2^(attempt-1) بسقف cap. نقيّ؛ attempt يبدأ من 1.
 
