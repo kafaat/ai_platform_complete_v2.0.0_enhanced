@@ -106,11 +106,7 @@ def aggregate_evidence(
             if evidence_level == "field_sample_complete"
             else "الدليل غير مُراجَع — يلزم تقييم الدليل ومراجعة مختصّ"
         )
-    if sample_count > 0 and independence["unknown_unit_samples"] == sample_count:
-        warnings_ar.append(
-            "العيّنات بلا هويّة حقل أو موسم أو مزرعة أو مستأجر — استقلالُ الشواهد غير قابل للإثبات"
-        )
-    elif independence["unknown_unit_samples"] > 0:
+    if independence["unknown_unit_samples"] > 0:
         warnings_ar.append(
             f"{independence['unknown_unit_samples']} من {sample_count} عيّنة بلا هوية حقل أو موسم أو مزرعة أو مستأجر"
             " — استقلالُ الشواهد غير قابل للإثبات"

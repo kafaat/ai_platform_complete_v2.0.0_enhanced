@@ -14,7 +14,8 @@ describe('LearningDashboardPage — evidence quality is rendered, not only count
     expect(SRC).toContain('ev.independence.seasons');
     expect(SRC).toContain('ev.independence.farms');
     expect(SRC).toContain('ev.independence.tenants'); // Copilot على #1001: بُعد المستأجِر كان مخفيّاً
-    expect(SRC).toContain('unknown_unit_samples');
+    // عدد العيّنات المجهولة يأتي في تحذير الخادم؛ اختبارات React تثبت عرضه مرة واحدة.
+    expect(SRC).toContain('ev.warnings_ar.map');
     expect(SRC).toContain('evidence-quality-');
   });
   it('labels the sample-complete level distinctly from field_verified', () => {
