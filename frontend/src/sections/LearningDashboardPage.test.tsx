@@ -1,13 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import type { LearningSummary } from '../services/api';
 import type { PersistedEvidence } from '../services/api/calibration';
 import LearningDashboardPage from './LearningDashboardPage';
+import LineagePage from './LineagePage';
 
 const hooks = vi.hoisted(() => ({
   useDecisionRecords: vi.fn(),
   useLearningSummary: vi.fn(),
   usePersistedEvidence: vi.fn(),
+  useDecisionLineage: vi.fn(),
 }));
 vi.mock('../hooks/useApi', () => hooks);
 
@@ -40,6 +42,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   hooks.useDecisionRecords.mockReturnValue(query({ decisions: [], count: 1 }));
   hooks.useLearningSummary.mockReturnValue(query(linkedSummary));
+  hooks.useDecisionLineage.mockReturnValue(query(null));
   hooks.usePersistedEvidence.mockImplementation((region: string) => query(region === 'jawf' ? evidence : undefined));
 });
 
@@ -100,6 +103,10 @@ describe('LearningDashboardPage evidence and outcome counts', () => {
     expect(screen.getByText(/لا يثبت استقلال الحقول أو المزارع/)).toBeInTheDocument();
     expect(within(screen.getByRole('group', { name: 'سجلات النتائج' })).getByText('2')).toBeInTheDocument();
     expect(screen.queryByText('نتائج مقيسة')).not.toBeInTheDocument();
+    const rate = within(screen.getByRole('group', { name: 'مؤشر نجاح الصفوف المحسومة' }));
+    expect(rate.getByText('50%')).toBeInTheDocument();
+    expect(rate.getByText(/أثر القرار وتعلّم الغلة/)).toBeInTheDocument();
+    expect(rate.getByText(/لا يثبت فعالية ممارسة أو استقلال الحالات/)).toBeInTheDocument();
   });
 
   it('does not derive missing case or source counts from the total', () => {
@@ -152,5 +159,39 @@ describe('LearningDashboardPage evidence and outcome counts', () => {
     expect(quality.getByText(/2 عيّنة بلا أيّ معرّف للحقل أو الموسم أو المزرعة أو المستأجر/)).toBeInTheDocument();
     expect(quality.getByText(/هذا العدّ لا يكشف النقص في كلّ معرّف على حدة/)).toBeInTheDocument();
     expect(quality.queryByText('مراجَعة من مختصّ')).not.toBeInTheDocument();
+  });
+});
+
+describe('LineagePage shares the collection and review semantics', () => {
+  it.each([
+    { count: 29, reviewed: false, level: 'field_preliminary' },
+    { count: 30, reviewed: false, level: 'field_sample_complete' },
+    { count: 30, reviewed: true, level: 'field_verified' },
+  ] as const)('renders collection separately from approval: %j', ({ count, reviewed, level }) => {
+    hooks.usePersistedEvidence.mockImplementation((region: string) => query(region === 'jawf' ? {
+      ...evidence, sample_count: count, samples_to_verified: 30 - count,
+      review_status: reviewed ? 'reviewed' : 'unreviewed', evidence_level: level,
+      sample_completeness: count < 30 ? 'below_threshold' : 'threshold_reached',
+      warnings_ar: reviewed ? [collectionWarning] : [collectionWarning,
+        count < 30 ? 'الدليل غير مُراجَع — يلزم تقييم الدليل ومراجعة مختصّ' : pendingReviewWarning],
+    } : undefined));
+    render(<LineagePage />);
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'jawf' } });
+    expect(screen.getByText('اكتمال جمع العيّنات')).toBeInTheDocument();
+    expect(screen.getByText(`${count} / 30 عيّنة`)).toBeInTheDocument();
+    expect(screen.getAllByText(/لا يمنح اعتماداً زراعياً أو معايرة/)).toHaveLength(1);
+    expect(screen.queryByText(/التقدّم نحو التحقّق الميدانيّ/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/للوصول إلى «مُتحقَّق/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/حتى تُجمَع عيّنات كافية/)).not.toBeInTheDocument();
+    if (count < 30) {
+      expect(screen.getByText('تبقّى 1 عيّنة لبلوغ عتبة الجمع.')).toBeInTheDocument();
+    }
+    if (reviewed) {
+      expect(screen.getByText('مُتحقَّق ميدانيّاً')).toBeInTheDocument();
+      expect(screen.queryByText(/مراجعة مختصّ/)).not.toBeInTheDocument();
+    } else {
+      expect(screen.queryByText('مُتحقَّق ميدانيّاً')).not.toBeInTheDocument();
+      expect(screen.getAllByText(/مراجعة مختصّ/)).toHaveLength(1);
+    }
   });
 });

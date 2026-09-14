@@ -110,7 +110,7 @@ def aggregate_evidence(
         warnings_ar.append(
             "العيّنات بلا هويّة حقل أو موسم أو مزرعة أو مستأجر — استقلالُ الشواهد غير قابل للإثبات"
         )
-    elif sample_count > 1 and max(independence["fields"], independence["seasons"]) <= 1:
+    elif sample_count > 1 and (independence["fields"] <= 1 or independence["seasons"] <= 1):
         warnings_ar.append(
             f"معرّفات الحقول المتاحة: {independence['fields']}، والمواسم: {independence['seasons']}"
             " — الهوية محدودة أو ناقصة؛ العدّ لا يعني شواهد مستقلّة"

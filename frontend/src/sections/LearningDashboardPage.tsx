@@ -295,9 +295,12 @@ export default function LearningDashboardPage() {
               sub={outcomeCount != null ? 'تشمل النتائج المكتملة وغير المكتملة' : 'تلخيص التعلّم غير متاح بعد'} />
             <StatCard
               icon={<Activity className="w-3.5 h-3.5 text-emerald-400" />}
-              label="نسبة النجاح"
+              label="مؤشر نجاح الصفوف المحسومة"
               value={successRate != null ? `${(successRate * 100).toFixed(0)}%` : '—'}
-              sub={successRate != null ? 'تقديريّ غير مُعايَر' : 'بلا بيانات كافية بعد'} />
+              sub={successRate == null ? 'بلا بيانات كافية بعد'
+                : summary?.outcome_reconciliation?.enabled === true
+                  ? 'يجمع صفوف أثر القرار وتعلّم الغلة المتاحة؛ لا يثبت فعالية ممارسة أو استقلال الحالات'
+                  : 'مؤشر وصفي للصفوف؛ لا يثبت فعالية الممارسة أو استقلال الحالات'} />
             <StatCard
               icon={<FlaskConical className="w-3.5 h-3.5 text-emerald-400" />}
               label="مناطق متحقّقة ميدانياً"

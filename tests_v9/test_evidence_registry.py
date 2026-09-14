@@ -144,6 +144,29 @@ def test_tenant_identity_does_not_prove_field_and_season_completeness():
     assert e["review_status"] == "unreviewed"
 
 
+@pytest.mark.parametrize("fields,seasons", [(0, 2), (2, 0), (1, 2), (2, 1), (2, 2)])
+def test_identity_warning_checks_field_and_season_dimensions_separately(fields, seasons):
+    rows = [
+        {
+            **_outcome(1, 1),
+            "tenant_id": "tenant_1",
+            "field_id": f"field_{i % fields}" if fields else None,
+            "season_id": f"season_{i % seasons}" if seasons else None,
+        }
+        for i in range(2)
+    ]
+    e = aggregate_evidence("jawf", rows)
+    assert e["independence"]["fields"] == fields
+    assert e["independence"]["seasons"] == seasons
+    assert e["independence"]["unknown_unit_samples"] == 0
+    identity_warnings = [w for w in e["warnings_ar"] if "معرّفات الحقول المتاحة" in w]
+    if fields <= 1 or seasons <= 1:
+        assert len(identity_warnings) == 1
+        assert f"معرّفات الحقول المتاحة: {fields}، والمواسم: {seasons}" in identity_warnings[0]
+    else:
+        assert identity_warnings == []
+
+
 def test_last_evaluated_at_is_max():
     outs = [
         _outcome(1, 1, ts="2026-01-01"),

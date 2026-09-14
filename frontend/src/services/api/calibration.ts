@@ -233,9 +233,9 @@ export const fetchCalibrationAudit = (region: string): Promise<CalibrationAudit 
 
 // ── سلسلة النَّسَب المُدامة + الدليل المتراكم (قراءة فقط) ──
 // تُظهر للمستخدم أثر القرار المحفوظ ونتائجه التالية (decision → outcomes)، وتراكم
-// الدليل الميدانيّ لكلّ منطقة نحو التحقّق. صدق: الدليل المتراكم تقديريّ غير مُعايَر
-// (calibrated=false, source=persisted_outcomes) حتى تُجمَع عيّنات كافية — تُعرَض
-// warnings_ar صراحةً. لا fallback وهميّ: الخطأ (404/503) يُرفع لتعرض الواجهة حالة صادقة.
+// الدليل الميدانيّ لكلّ منطقة نحو عتبة الجمع التقديريّة. صدق: العدد لا يمنح اعتماداً
+// أو معايرة (calibrated=false, source=persisted_outcomes)؛ تُعرَض warnings_ar كما هي.
+// لا fallback وهميّ: الخطأ (404/503) يُرفع لتعرض الواجهة حالة صادقة.
 export interface LineageDecision {
   decision_id:    string;
   field_id:       string;
