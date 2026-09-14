@@ -176,10 +176,12 @@ def _evidence_is_referenced(evidence: dict | None) -> bool:
     if not isinstance(evidence, dict):
         return False
     method = evidence.get("method")
-    # مراجعُ نصّيّة غير فارغة بعد التشذيب — `" "` ليس مرجعاً (Copilot على #1001).
-    refs = [
-        r.strip() for r in (evidence.get("reference_ids") or []) if isinstance(r, str) and r.strip()
-    ]
+    # مراجعُ **قائمةٌ** من نصوص غير فارغة بعد التشذيب — `" "` ليس مرجعاً، ونصٌّ مفرد
+    # (`"scene-1"`) ليس قائمةً تُقطَّع حروفاً (Copilot على #1001).
+    raw_refs = evidence.get("reference_ids")
+    if not isinstance(raw_refs, (list, tuple, set, frozenset)):
+        return False
+    refs = [r.strip() for r in raw_refs if isinstance(r, str) and r.strip()]
     return isinstance(method, str) and bool(method.strip()) and bool(refs)
 
 
@@ -200,11 +202,13 @@ def verify_against_data(
     يُحفَظ على الوحدة، و**التأكيد** يشترط دليلاً مرجعيّاً — تأييدٌ بلا مرجع يبقى
     ``PENDING`` مع تسجيل ``data_agreement``؛ التعارضُ يُخفِّض بلا هذا الشرط (خفضٌ آمن).
     """
-    if knowledge.verification_status == VerificationStatus.REJECTED:
-        return knowledge  # سببية بلا آلية تبقى مرفوضة
-    knowledge.data_agreement = data_supports
+    # أثرُ التدقيق (الدليل ومَن أجراه) يُحفَظ كما قُدِّم في كلّ الأحوال — حتّى على المرفوضة
+    # (Copilot على #1001: كانت الإعادةُ المبكّرة تُسقِطه بصمت).
     knowledge.verification_evidence = dict(evidence) if isinstance(evidence, dict) else None
     knowledge.verified_by = verified_by
+    if knowledge.verification_status == VerificationStatus.REJECTED:
+        return knowledge  # سببية بلا آلية تبقى مرفوضة — الحالة لا تتغيّر
+    knowledge.data_agreement = data_supports
     if not data_supports:
         knowledge.verification_status = VerificationStatus.CONTRADICTED
     elif _evidence_is_referenced(evidence):

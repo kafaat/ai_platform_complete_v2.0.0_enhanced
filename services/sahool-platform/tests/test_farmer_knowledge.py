@@ -169,6 +169,39 @@ class TestBlankReferencesAreNotEvidence:
         )
         assert fk.verification_status == VerificationStatus.CONFIRMED
 
+    def test_scalar_reference_ids_are_not_a_reference_list(self):
+        """Copilot على #1001: `reference_ids: "scene-1"` كان يُقطَّع حروفاً فيؤكّد بلا قائمة مراجع."""
+        for scalar in ("scene-1", 3, {"id": "s"}, True):
+            fk = _mk(KnowledgeType.SPATIAL)
+            verify_against_data(
+                fk, data_supports=True, evidence={"method": "ndvi", "reference_ids": scalar}
+            )
+            assert fk.verification_status == VerificationStatus.PENDING, scalar
+            assert fk.verification_evidence["basis"] == "unreferenced_claim"
+        for seq in (["s1"], ("s1",), {"s1"}):
+            fk = _mk(KnowledgeType.SPATIAL)
+            verify_against_data(
+                fk, data_supports=True, evidence={"method": "ndvi", "reference_ids": seq}
+            )
+            assert fk.verification_status == VerificationStatus.CONFIRMED, seq
+
+
+class TestRejectedKnowledgeKeepsTheAuditTrail:
+    def test_evidence_and_actor_are_recorded_while_status_stays_rejected(self):
+        """Copilot على #1001 (مكتومة): الإعادةُ المبكّرة للمرفوضة كانت تُسقِط الدليلَ والمُراجِع بصمت."""
+        fk = _mk(KnowledgeType.CAUSAL, mechanism="")  # مرفوضة (سببيّة بلا آلية)
+        verify_against_data(
+            fk,
+            data_supports=True,
+            evidence={"method": "trial", "reference_ids": ["trial_7"]},
+            verified_by="agronomist:3",
+        )
+        assert fk.verification_status == VerificationStatus.REJECTED
+        assert fk.verification_evidence == {"method": "trial", "reference_ids": ["trial_7"]}
+        assert fk.verified_by == "agronomist:3"
+        assert fk.data_agreement is None  # لا حكمَ بيانات على المرفوضة — الحالة لا تتغيّر
+        assert fk.prior_weight == 0.0
+
 
 class TestUnreferencedClaimKeepsTheSubmittedEvidence:
     def test_method_and_audit_fields_survive_with_the_basis_flag(self):

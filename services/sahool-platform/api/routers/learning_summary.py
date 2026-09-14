@@ -77,7 +77,7 @@ async def get_learning_summary(
             dispatch_rows = []
             try:
                 rorows = await conn.fetch(
-                    "SELECT outcome_id, field_id, season_id, crop, recommendation_id, "
+                    "SELECT outcome_id, field_id, farm_id, season_id, crop, recommendation_id, "
                     "predicted_yield_t_ha, actual_yield_t_ha, accepted, matured_within_lag, "
                     "issued_at, outcome_recorded_at FROM recommendation_outcomes"
                 )
@@ -113,6 +113,7 @@ async def get_learning_summary(
         {
             "outcome_id": r["outcome_id"],
             "field_id": r["field_id"],
+            "farm_id": r["farm_id"],  # U01: وحدةُ التكرار تصل إلى أعداد الاستقلال
             "season_id": r["season_id"],
             "crop": r["crop"],
             "recommendation_id": r["recommendation_id"],

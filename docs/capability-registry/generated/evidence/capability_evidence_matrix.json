@@ -1577,6 +1577,7 @@
         "services/sahool-platform/tests/test_farmer_knowledge.py",
         "services/sahool-platform/tests/test_farmonaut.py",
         "services/sahool-platform/tests/test_learning.py",
+        "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
         "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py",
         "services/sahool-platform/tests/test_prediction_calibration.py",
         "services/sahool-platform/tests/test_reports.py",

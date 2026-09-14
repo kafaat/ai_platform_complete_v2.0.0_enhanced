@@ -615,7 +615,7 @@ async def field_season_state_endpoint(
                 outcome_records = []
             try:
                 rows = await conn.fetch(
-                    "SELECT outcome_id, field_id, season_id, crop, recommendation_id, "
+                    "SELECT outcome_id, field_id, farm_id, season_id, crop, recommendation_id, "
                     "predicted_yield_t_ha, actual_yield_t_ha, accepted, matured_within_lag, "
                     "issued_at, outcome_recorded_at FROM recommendation_outcomes "
                     "WHERE field_id = $1 AND (season_id = $2 OR season_id IS NULL)",
@@ -626,6 +626,7 @@ async def field_season_state_endpoint(
                     {
                         "outcome_id": r["outcome_id"],
                         "field_id": r["field_id"],
+                        "farm_id": r["farm_id"],
                         "season_id": r["season_id"],
                         "crop": r["crop"],
                         "recommendation_id": r["recommendation_id"],

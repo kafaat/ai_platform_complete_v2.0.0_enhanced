@@ -25,7 +25,7 @@
       "tests": 1791,
       "web": 457
     },
-    "unmapped_artifacts": 2167,
+    "unmapped_artifacts": 2166,
     "ambiguous_artifacts": 419
   },
   "capabilities": [
@@ -5192,6 +5192,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
+          "score": 9,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_prediction_calibration.py",
           "score": 9,
           "signals": [
@@ -5358,7 +5366,7 @@
         "events": 22,
         "web": 14,
         "mobile": 2,
-        "tests": 25,
+        "tests": 26,
         "governance": 0,
         "other_evidence": 14
       },
@@ -41007,10 +41015,6 @@
     },
     {
       "path": "services/sahool-platform/tests/test_learning_summary_endpoint.py",
-      "kind": "tests"
-    },
-    {
-      "path": "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
       "kind": "tests"
     },
     {

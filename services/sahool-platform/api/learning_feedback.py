@@ -29,6 +29,16 @@ _FLAG_REVIEW_TARGETS: dict[str, list[str]] = {
 }
 
 
+def _review_targets(n: int, flag_counts: dict) -> list[str]:
+    """أضعف جوانب النجاح ⇒ عائلات معاملات مُرشَّحة للمراجعة (الأندر تكراراً أوّلاً)."""
+    weak = sorted(_FLAG_REVIEW_TARGETS, key=lambda f: flag_counts.get(f, 0))
+    targets: list[str] = []
+    for f in weak:
+        if flag_counts.get(f, 0) <= n * _LOW_SUCCESS_THRESHOLD:
+            targets.extend(_FLAG_REVIEW_TARGETS[f])
+    return list(dict.fromkeys(targets))  # إزالة التكرار
+
+
 def _region_feedback(ev: dict) -> dict:
     """تغذية راجعة لمنطقة واحدة من سجلّ دليلها — اقتراح لا أمر."""
     region = ev.get("region", "_generic")
@@ -37,31 +47,30 @@ def _region_feedback(ev: dict) -> dict:
     rate = ev.get("success_rate")
     flag_counts = ev.get("success_flag_counts", {}) or {}
 
-    review_targets: list[str] = []
+    low_rate = rate is not None and rate < _LOW_SUCCESS_THRESHOLD
+    review_targets: list[str] = _review_targets(n, flag_counts) if low_rate else []
     if n == 0:
         action = "collect_data"
         priority = 3
         rec = f"لا دليل ميدانيّ لـ{region} — ابدأ جمع قياسات النتائج (ريّ/إجهاد/إنتاج)"
-    elif rate is not None and rate < _LOW_SUCCESS_THRESHOLD:
+    elif level == "field_sample_complete":
+        # U01: العيّنة اكتملت لكن لا اعتماد بعد — بوّابةُ المراجعة تسبق تصنيفَ النسبة
+        # (Copilot على #1001: كانت النسبةُ المنخفضة تحجب هذا الفرع)؛ النسبةُ المنخفضة ترفع
+        # الأولويّة وتحمل أهدافَ المعايرة معها، والإجراءُ يبقى مراجعةَ مختصّ.
+        action = "expert_review"
+        priority = 3 if low_rate else 2
+        rec = f"عيّنة {region} بلغت العتبة ({n}) — تلزم مراجعة مختصّ قبل اعتماد الدليل"
+        if low_rate:
+            rec += f"؛ ونسبةُ النجاح منخفضة ({rate}) فراجِع المعاملات المُرشَّحة معها"
+    elif low_rate:
         action = "review_calibration"
         priority = 3
-        # أضعف جوانب النجاح ⇒ عائلات معاملات مُرشَّحة (الأندر تكراراً).
-        weak = sorted(_FLAG_REVIEW_TARGETS, key=lambda f: flag_counts.get(f, 0))
-        for f in weak:
-            if flag_counts.get(f, 0) <= n * _LOW_SUCCESS_THRESHOLD:
-                review_targets.extend(_FLAG_REVIEW_TARGETS[f])
-        review_targets = list(dict.fromkeys(review_targets))  # إزالة التكرار
         rec = f"نسبة نجاح القرار منخفضة في {region} ({rate}) — راجِع المعاملات يدويّاً"
     elif level == "field_preliminary":
         action = "verify"
         priority = 2
         need = ev.get("samples_to_verified", 0)
         rec = f"دليل أوّليّ لـ{region} — اجمع {need} عيّنة إضافيّة للتحقّق الميدانيّ"
-    elif level == "field_sample_complete":
-        # U01: العيّنة اكتملت لكن لا اعتماد بعد — المطلوب مراجعةُ مختصّ لا مزيدُ عدّ.
-        action = "expert_review"
-        priority = 2
-        rec = f"عيّنة {region} بلغت العتبة ({n}) — تلزم مراجعة مختصّ قبل اعتماد الدليل"
     else:  # field_verified بنسبة نجاح جيّدة
         action = "monitor"
         priority = 1
@@ -148,10 +157,15 @@ async def process_season_closed_event(
         "SELECT evaluation FROM decision_learning_runs WHERE event_id=$1", event_id
     )
     if existing is not None:
+        stored = existing["evaluation"]
+        # JSONB عبر اتّصال asyncpg خام (العامل بلا codec) يصل نصّاً — يُفكّ قبل التحويل
+        # (Copilot على #1001: كان `dict(str)` يرفع فينكسر مسارُ الإعادة بعد أوّل إغلاق ناجح).
+        if isinstance(stored, (str, bytes, bytearray)):
+            stored = json.loads(stored)
         return {
             "status": "replayed",
             "idempotent_replay": True,
-            "evaluation": dict(existing["evaluation"] or {}),
+            "evaluation": dict(stored or {}),
         }
 
     # الترتيبُ بأعمدة الجدول الفعليّة (v49: outcome_id/issued_at/outcome_recorded_at) — كان

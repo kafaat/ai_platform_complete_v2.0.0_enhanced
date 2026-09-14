@@ -292,6 +292,7 @@ def test_farm_ledger_operation_create_is_idempotent_by_contract():
     # غائب كان يُردّ 404/422 قبل مقارنة البصمة — الآن 409 أوّلاً، والإعادةُ الصادقة لا تُعيد الفحص.
     persist_at = src.index("async def _persist(")
     for guard in (
+        "field_or_production_unit_or_farm_required",  # فحصُ النطاق غير الفارغ (422) كذلك
         "_assert_field_in_tenant(",
         "_assert_season_in_tenant(",
         "_assert_production_unit_in_tenant(",

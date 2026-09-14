@@ -219,6 +219,46 @@ def test_non_finite_values_do_not_leak_into_the_delta_payload():
     json.dumps(row, allow_nan=False)  # تسلسلٌ صارم لا يفشل
 
 
+def test_recommendation_outcomes_carry_farm_id_into_independence_counts():
+    """Copilot على #1001: الموحِّد كان يُسقِط farm_id (v49) فتبقى أعدادُ استقلال المزارع صفراً."""
+    from pathlib import Path
+
+    from core.outcome_reconciler import normalize_recommendation_outcome
+
+    item = normalize_recommendation_outcome(
+        {"outcome_id": "ro", "field_id": "fld_1", "farm_id": "farm_9", "season_id": "s1"}
+    )
+    assert item["farm_id"] == "farm_9"
+    out = summarize_learning_with_reconciled_outcomes(
+        decision_rows=[],
+        outcome_records=[],
+        recommendation_outcomes=[
+            {
+                "outcome_id": f"ro_{i}",
+                "field_id": f"fld_{i}",
+                "farm_id": "farm_9" if i < 2 else "farm_10",
+                "season_id": "s1",
+                "region": "jawf",
+                "predicted_yield_t_ha": 4.0,
+                "actual_yield_t_ha": 4.1,
+                "accepted": True,
+                "matured_within_lag": True,
+                "outcome_recorded_at": _ts(1),
+            }
+            for i in range(3)
+        ],
+    )
+    independence = out["overall"]["independence"]
+    assert independence["farms"] == 2 and independence["fields"] == 3
+    assert independence["unknown_unit_samples"] == 0
+    # مسارا القراءة يختاران farm_id فعلاً (لا يكفي أن يقبله الموحِّد).
+    routers = Path(__file__).resolve().parents[1] / "api/routers"
+    for name in ("learning_summary.py", "seasons.py"):
+        src = (routers / name).read_text(encoding="utf-8")
+        assert "SELECT outcome_id, field_id, farm_id, season_id" in src, name
+        assert '"farm_id": r["farm_id"]' in src, name
+
+
 def test_reconciled_rows_keep_unit_identity_for_independence_counts():
     """Copilot على #1001: الصفُّ المضغوط كان يُسقِط field_id/season_id فتبقى أعداد الاستقلال صفراً."""
     out = summarize_learning_with_reconciled_outcomes(

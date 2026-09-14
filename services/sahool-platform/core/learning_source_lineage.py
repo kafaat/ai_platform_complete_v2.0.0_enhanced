@@ -58,6 +58,11 @@ def resolve_learning_source(update: dict) -> dict:
 
     يقبل الحقول مسطّحة على ``update`` أو مُعشَّشة تحت ``update['source']``.
     يُعيد قاموساً بكلّ حقول النَّسَب + ``traceability_status`` + ``applies`` (bool).
+
+    **حدٌّ مُعلَن (U07):** حقولُ المراجعة (``review_status``/``agronomically_approved``/``review``)
+    تُحسَب هنا وتُعرَض في الملخّص، لكنّ كاتبَ ``online_learning_updates`` (``phase_runtime_store``)
+    لا يُديمها — الجدولُ (v151) لا يملك عموداً لها، وإضافتُه هجرةٌ خلف GATE-01. الصفوفُ
+    المقروءة بلا ``review_status`` تُعَدّ ``unreviewed`` (لا اعتماداً ضمنيّاً).
     """
     src = update.get("source") if isinstance(update.get("source"), dict) else {}
     source_type = _pick(update, src, "source_type")
@@ -99,10 +104,12 @@ def resolve_agronomic_review(update: dict) -> dict:
         return {"review_status": "unreviewed", "agronomically_approved": False, "review": None}
     reviewer = block.get("reviewer_id")
     verdict = block.get("verdict")
-    # معرّفاتُ الأدلّة نصوصٌ غير فارغة بعد التشذيب — `" "` ليس دليلاً (Copilot على #1001).
-    evidence = [
-        e.strip() for e in (block.get("evidence_ids") or []) if isinstance(e, str) and e.strip()
-    ]
+    # معرّفاتُ الأدلّة **قائمةٌ** من نصوص غير فارغة بعد التشذيب — `" "` ليس دليلاً، ونصٌّ
+    # مفرد (`"claim-1"`) ليس قائمةً تُقطَّع حروفاً (Copilot على #1001).
+    raw_ids = block.get("evidence_ids")
+    if not isinstance(raw_ids, (list, tuple, set, frozenset)):
+        raw_ids = []
+    evidence = [e.strip() for e in raw_ids if isinstance(e, str) and e.strip()]
     if isinstance(reviewer, str):
         reviewer = reviewer.strip() or None
     if verdict == "rejected" and reviewer:

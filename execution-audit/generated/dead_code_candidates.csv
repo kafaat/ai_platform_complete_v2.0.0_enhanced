@@ -357,7 +357,8 @@ medium,sahool-platform,class,TestFarmerAgency,services/sahool-platform/tests/tes
 medium,sahool-platform,class,TestFarmerKnowledge,services/sahool-platform/tests/test_farmer_knowledge.py,18,0,review_before_delete,False
 medium,sahool-platform,class,TestConservativeWeight,services/sahool-platform/tests/test_farmer_knowledge.py,82,0,review_before_delete,False
 medium,sahool-platform,class,TestBlankReferencesAreNotEvidence,services/sahool-platform/tests/test_farmer_knowledge.py,155,0,review_before_delete,False
-medium,sahool-platform,class,TestUnreferencedClaimKeepsTheSubmittedEvidence,services/sahool-platform/tests/test_farmer_knowledge.py,173,0,review_before_delete,False
+medium,sahool-platform,class,TestRejectedKnowledgeKeepsTheAuditTrail,services/sahool-platform/tests/test_farmer_knowledge.py,189,0,review_before_delete,False
+medium,sahool-platform,class,TestUnreferencedClaimKeepsTheSubmittedEvidence,services/sahool-platform/tests/test_farmer_knowledge.py,206,0,review_before_delete,False
 medium,sahool-platform,class,TestSuccessDefinitions,services/sahool-platform/tests/test_feedback_closure.py,17,0,review_before_delete,False
 medium,sahool-platform,class,TestLagWindow,services/sahool-platform/tests/test_feedback_closure.py,42,0,review_before_delete,False
 medium,sahool-platform,class,TestBiasAwareness,services/sahool-platform/tests/test_feedback_closure.py,77,0,review_before_delete,False

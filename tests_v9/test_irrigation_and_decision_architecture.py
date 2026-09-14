@@ -222,3 +222,30 @@ async def test_season_learning_locks_before_the_replay_check_and_orders_by_real_
     columns = _recommendation_outcomes_columns()
     assert referenced and referenced <= columns, (referenced - columns, columns)
     assert "created_at" not in order_by and " id" not in order_by
+
+
+class _RawJsonbConn(Conn):
+    """اتّصالُ asyncpg خام بلا codec: JSONB يصل **نصّاً** (كما في عامل التعلّم القانونيّ)."""
+
+    async def fetchrow(self, sql, *args):
+        self.calls.append(("fetchrow", sql, args))
+        if "decision_learning_runs" in sql:
+            return {"evaluation": '{"status": "review_ready", "outcome_count": 3}'}
+        return None
+
+
+@pytest.mark.asyncio
+async def test_replay_decodes_jsonb_evaluation_delivered_as_text():
+    """Copilot على #1001 (مكتومة): `dict(str)` كان يرفع فينكسر مسارُ الإعادة بعد أوّل إغلاق ناجح."""
+    mod = _load("services/sahool-platform/api/learning_feedback.py", "learning_feedback_jsonb")
+    conn = _RawJsonbConn()
+    result = await mod.process_season_closed_event(
+        conn,
+        event_id="evt-text",
+        tenant_id="00000000-0000-0000-0000-000000000001",
+        field_id="fld-1",
+        season_id="ssn-1",
+    )
+    assert result["idempotent_replay"] is True
+    assert result["evaluation"] == {"status": "review_ready", "outcome_count": 3}
+    assert not any("emit_event" in call[1] for call in conn.calls)

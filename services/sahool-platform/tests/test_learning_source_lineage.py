@@ -178,3 +178,26 @@ class TestTraceableIsNotApproved:
             }
         )
         assert ok["review_status"] == "approved" and ok["review"]["evidence_ids"] == ["or_9"]
+
+    def test_scalar_evidence_ids_are_not_a_list_of_evidence(self):
+        """Copilot على #1001: `evidence_ids: "claim-1"` كان يُقطَّع حروفاً فيُعتمَد بلا قائمة."""
+        for scalar in ("claim-1", 7, {"id": "x"}, True):
+            r = resolve_learning_source(
+                {
+                    "source_type": "human_feedback",
+                    "source_id": "hf_1",
+                    "review": {"reviewer_id": "a", "verdict": "approved", "evidence_ids": scalar},
+                }
+            )
+            assert r["review_status"] == "unreviewed", scalar
+            assert r["review"]["evidence_ids"] == []
+        # الأشكالُ التسلسليّة كلُّها مقبولة (قائمة/صفّ/مجموعة).
+        for seq in (["e1"], ("e1",), {"e1"}):
+            r = resolve_learning_source(
+                {
+                    "source_type": "human_feedback",
+                    "source_id": "hf_1",
+                    "review": {"reviewer_id": "a", "verdict": "approved", "evidence_ids": seq},
+                }
+            )
+            assert r["review_status"] == "approved", seq

@@ -58,8 +58,12 @@ def test_router_summary_queries_do_not_coalesce_water_to_zero():
 
     router = Path(__file__).resolve().parents[1] / "api/routers/farm_operations_ledger.py"
     src = router.read_text(encoding="utf-8")
-    assert "COALESCE((SELECT SUM(water_volume_m3)" not in src
-    assert 'float(row["water_volume_m3"] or 0.0)' not in src
+    assert "COALESCE((SELECT SUM(water_volume_m3)" not in src, (
+        "COALESCE(…,0) يحوّل الموسمَ غير المقيس إلى صفر أمتار مكعّبة فيتعلّم النموذج ريّاً بلا ماء"
+    )
+    assert 'float(row["water_volume_m3"] or 0.0)' not in src, (
+        "`or 0.0` يُسقِط None (لا قياس) إلى 0 (لا استهلاك) — دلالتان مختلفتان"
+    )
     assert src.count("AS water_records_total") == 2
     assert src.count("AS water_records_measured") == 2
     assert "water_summary_payload(row)" in src and "water_summary_from_row(row)" in src

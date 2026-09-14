@@ -229,20 +229,21 @@ async def create_operation_ledger_record(
 ):
     """يحفظ سجل عمل يوميّاً ومرفقاته الرقابية. لا يزامن ERP ولا يخصم مخزوناً هنا.
 
-    U06: ``Idempotency-Key`` (UUID) يُسجِّل الأمر مرّةً في ``commands`` داخل معاملة ``tenant_connection``
-    ويُعيد النتيجةَ المخزَّنة حرفيّاً؛ المفتاحُ نفسه بحمولةٍ مختلفة ⇒ 409 **قبل** فحوص النطاق (فهي داخل العمل).
+    U06: ``Idempotency-Key`` يُسجِّل الأمر مرّةً في ``commands`` (معاملة ``tenant_connection``) ويُعيد النتيجةَ حرفيّاً؛ المفتاحُ نفسه بحمولةٍ مختلفة ⇒ 409 **قبل** كلّ فحوص النطاق (فهي داخل العمل).
     """
     _require_enabled()
     if api_main._DB_POOL is None:
         raise HTTPException(status_code=503, detail="farm_operations_ledger_database_unavailable")
-    if not (req.field_id or req.production_unit_id or req.farm_id):
-        raise HTTPException(status_code=422, detail="field_or_production_unit_or_farm_required")
     operation_id = "oplog_" + uuid.uuid4().hex[:12]
     try:
         async with tenant_connection(user) as conn:
             tenant_id = str(user.tenant_id)
 
             async def _persist() -> dict:
+                if not (req.field_id or req.production_unit_id or req.farm_id):
+                    raise HTTPException(
+                        status_code=422, detail="field_or_production_unit_or_farm_required"
+                    )
                 if req.field_id:
                     await _assert_field_in_tenant(conn, req.field_id)
                 await _assert_season_in_tenant(conn, tenant_id, req.season_id)
@@ -275,8 +276,7 @@ async def create_operation_ledger_record(
                         req.sync_status,
                         user.user_id,
                     )
-                    # السجلّاتُ الفرعيّة في وحدة النطاق، داخل المعاملة نفسها (راتشِت حجم الراوتر).
-                    await ledger_core.persist_operation_subrecords(
+                    await ledger_core.persist_operation_subrecords(  # داخل المعاملة نفسها
                         conn,
                         tenant_id=str(user.tenant_id),
                         operation_id=operation_id,
