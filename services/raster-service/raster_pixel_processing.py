@@ -131,13 +131,15 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
             bounds = list(transform_bounds(src_crs, "EPSG:4326", *src.bounds))
         else:
             bounds = list(src.bounds)
-        arr = src.read(1).astype("float32")
+        arr = src.read(1, masked=True).astype("float32").filled(np.nan)
         if src.nodata is not None:
             arr = np.where(arr == src.nodata, np.nan, arr)
         transform = src.transform
 
     valid = np.isfinite(arr)
     vals = arr[valid]
+    if not vals.size:
+        raise ctx.HTTPException(422, {"code": "raw_raster_no_valid_pixels", "valid_pixels": 0})
     total_px = int(valid.size) if hasattr(valid, "size") else 0
     valid_ratio = (float(valid.sum()) / float(total_px)) if total_px else 0.0
     topographic_qa = _topographic_qa_for_indicator(
@@ -266,6 +268,8 @@ def process_precomputed_truecolor(ctx, req):
         valid = np.ones(arr.shape[1:], dtype=bool)
     total_px = int(valid.size) if hasattr(valid, "size") else 0
     valid_ratio = (float(valid.sum()) / float(total_px)) if total_px else 0.0
+    if not valid.any():
+        raise ctx.HTTPException(422, {"code": "raw_raster_no_valid_pixels", "valid_pixels": 0})
     topographic_qa = _topographic_qa_for_indicator(
         ctx, req=req, raster_crs=src_crs, raster_transform=transform, raster_shape=valid.shape
     )
@@ -806,6 +810,8 @@ def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=Non
 
         valid = np.isfinite(arr)
         vals = arr[valid]
+        if not vals.size:
+            raise ctx.HTTPException(422, {"code": "raw_raster_no_valid_pixels", "valid_pixels": 0})
         total_px = int(valid.size) if hasattr(valid, "size") else 0
         valid_ratio = (float(valid.sum()) / float(total_px)) if total_px else 0.0
         qa_layer_present = bool(

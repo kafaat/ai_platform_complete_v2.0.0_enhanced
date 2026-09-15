@@ -135,7 +135,7 @@ def grid_from_array(arr, index: str, grid: int) -> dict:
             "mean": round(float(finite.mean()), 4),
         }
     else:
-        stats = {"min": 0.0, "max": 0.0, "mean": 0.0}
+        stats = {"min": None, "max": None, "mean": None}
 
     zones = classify_zones(grid_vals, index, rows, cols)
     return {"rows": rows, "cols": cols, "grid": grid_vals, "stats": stats, "zones": zones}

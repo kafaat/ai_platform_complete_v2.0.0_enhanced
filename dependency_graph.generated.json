@@ -1,5 +1,5 @@
 {
-  "edge_count": 819,
+  "edge_count": 818,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -1002,6 +1002,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/field_context.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://alerts",
+      "to": "db://alerts",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/main.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -1013,16 +1023,6 @@
     },
     {
       "evidence": "services/sahool-platform/api/routers/alerts.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://alerts",
-      "to": "db://alerts",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/routers/field_ai_context.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -1512,7 +1512,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/drawing_features.py",
+      "evidence": "services/sahool-platform/api/field_context.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -1522,7 +1522,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/field_ai_context.py",
+      "evidence": "services/sahool-platform/api/routers/drawing_features.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -1652,7 +1652,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/admin.py",
+      "evidence": "services/sahool-platform/api/field_context.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -1662,7 +1662,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/field_ai_context.py",
+      "evidence": "services/sahool-platform/api/routers/admin.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -3462,7 +3462,7 @@
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/field_ai_context.py",
+      "evidence": "services/sahool-platform/api/field_context.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -3633,16 +3633,6 @@
     },
     {
       "evidence": "services/sahool-platform/api/phase_runtime_workers.py",
-      "from": "sahool-platform",
-      "from_kind": "component",
-      "protocol": "postgres",
-      "relation": "READS",
-      "resource": "db://seasons",
-      "to": "db://seasons",
-      "to_kind": "resource"
-    },
-    {
-      "evidence": "services/sahool-platform/api/routers/field_ai_context.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -4682,7 +4672,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:321",
+      "evidence": "nginx/nginx.v9.conf:323",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4722,7 +4712,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:259",
+      "evidence": "nginx/nginx.v9.conf:261",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4802,7 +4792,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:327",
+      "evidence": "nginx/nginx.v9.conf:329",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4832,7 +4822,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:331",
+      "evidence": "nginx/nginx.v9.conf:332",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4872,7 +4862,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:311",
+      "evidence": "nginx/nginx.v9.conf:313",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4892,7 +4882,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:237",
+      "evidence": "nginx/nginx.v9.conf:239",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -4922,7 +4912,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:298",
+      "evidence": "nginx/nginx.v9.conf:299",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5012,7 +5002,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:242",
+      "evidence": "nginx/nginx.v9.conf:245",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5042,7 +5032,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:286",
+      "evidence": "nginx/nginx.v9.conf:288",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5052,7 +5042,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:268",
+      "evidence": "nginx/nginx.v9.conf:269",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5242,7 +5232,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:302",
+      "evidence": "nginx/nginx.v9.conf:304",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5252,7 +5242,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:305",
+      "evidence": "nginx/nginx.v9.conf:308",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -5352,7 +5342,7 @@
       "to_kind": "component"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:314",
+      "evidence": "nginx/nginx.v9.conf:317",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
@@ -8210,7 +8200,7 @@
     "CALLS": 43,
     "CONSUMES": 1,
     "EMITS": 1,
-    "READS": 421,
+    "READS": 420,
     "ROUTES_TO": 71,
     "WRITES": 282
   },
@@ -8227,8 +8217,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 704,
-      "resolved": 703,
+      "observed": 703,
+      "resolved": 702,
       "unresolved_component_paths": 0
     }
   }

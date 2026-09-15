@@ -95,7 +95,7 @@ def grid_from_cog(
     path = object_store_module.to_gdal_path(cog_url)
     try:
         with rasterio.open(path) as src:
-            arr = src.read(1).astype("float64")
+            arr = src.read(1, masked=True).astype("float64").filled(np.nan)
             if src.nodata is not None:
                 arr = np.where(arr == src.nodata, np.nan, arr)
             if src.crs is not None:
@@ -105,6 +105,8 @@ def grid_from_cog(
     except Exception:  # noqa: BLE001
         return None
 
+    if not np.isfinite(arr).any():
+        return None  # a historical all-nodata COG is not an observation
     part = ig.grid_from_array(arr, index, grid)
     result = {
         "field_id": layer.get("field_id") or "",

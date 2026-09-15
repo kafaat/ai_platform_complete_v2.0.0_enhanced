@@ -2794,14 +2794,6 @@
     "kind": "web",
     "candidates": [
       {
-        "capability_id": "WX-004",
-        "score": 12,
-        "signals": [
-          "content:ET0",
-          "content:et0"
-        ]
-      },
-      {
         "capability_id": "SAT-003",
         "score": 12,
         "signals": [
@@ -9337,28 +9329,6 @@
         "signals": [
           "content:ET0",
           "content:et0"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "tests_v9/test_agriai_engine_features_20260702.py",
-    "kind": "tests",
-    "candidates": [
-      {
-        "capability_id": "WX-006",
-        "score": 12,
-        "signals": [
-          "content:GDD",
-          "content:gdd"
-        ]
-      },
-      {
-        "capability_id": "SAT-003",
-        "score": 10,
-        "signals": [
-          "content:NDVI",
-          "content:ndvi"
         ]
       }
     ]

@@ -139,11 +139,11 @@ def test_guardrail_result_names_unchecked_generated_text(runtime):
 
 def test_chat_suppresses_generated_text_without_rag_grounding_in_source(runtime):
     src = Path(runtime.__file__).read_text(encoding="utf-8")
-    assert "if gen is not None and not _generation_is_grounded(annotations):" in src
-    assert 'generation_status = "suppressed_ungrounded"' in src
-    # الحجب يسبق وسم generated_grounded (لا نصّ مولَّد بلا مقتطفات يبلغ المستخدم).
-    assert src.index('generation_status = "suppressed_ungrounded"') < src.index(
-        'mode = "generated_grounded"'
+    assert "if _generation_is_grounded(annotations)" in src
+    assert '"suppressed_ungrounded"' in src
+    assert '"suppressed_unvalidated_output"' in src
+    assert "answer_ar = gen.text" not in src, (
+        "Unchecked free text cannot cross the publication gate"
     )
 
 

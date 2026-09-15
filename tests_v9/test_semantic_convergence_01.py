@@ -227,13 +227,13 @@ def test_evidence_authority_is_not_declared_none_while_kg_shapes_evidence():
     for path in (
         "expansion_terms_change_rag_query_selection",
         "kg_edges_enter_evidence_ids",
-        "kg_edges_contribute_to_confidence",
+        "kg_edges_are_reference_only",
     ):
         assert path in _RUNTIME_SRC
     # وسلطةُ القرار تبقى معدومةً فعلاً — وهذا ما لم يتغيّر.
     assert '"decision_authority": "none"' in _RUNTIME_SRC
     # والأثر القائم مقيسٌ على المصدر لا مفترَض:
-    assert "EvidenceStrength.KG" in _RUNTIME_SRC
+    assert "kg_edges_are_reference_only" in _RUNTIME_SRC
 
 
 @pytest.mark.asyncio

@@ -258,7 +258,8 @@ def test_endpoint_recommend_returns_hashes_and_token_gate(monkeypatch):
     assert r.status_code == 200
     data = r.json()
     assert "evidence_hash" in data and "replay_hash" in data
-    assert data["evidence_sufficient"] is True  # NDVI+soil_ph مشتقّان
+    assert data["evidence_sufficient"] is False  # scalars have no measurement provenance
+    assert data["recommendation"] is None
     assert data["plan"]["best"] in {"wheat", "barley"}
 
 

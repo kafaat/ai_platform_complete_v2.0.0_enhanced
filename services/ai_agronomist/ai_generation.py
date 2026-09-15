@@ -598,7 +598,7 @@ async def generate(
     audit_saver: tool_loop.AuditSaver | None = None,
     approval_saver: tool_loop.ApprovalSaver | None = None,
     allowed_tools: set[str] | None = None,
-    timeout: float = 20.0,
+    timeout: float | None = None,
 ) -> GenResult | None:
     """يولّد جواباً مؤرَّضاً أو يعيد ``None`` (للسقوط الآمن إلى الأدلّة). لا يرفع
     استثناءً للمستدعي مهما فشل المزوّد.
@@ -610,6 +610,14 @@ async def generate(
     cfg = resolve_generation(requested_model)
     if cfg is None:
         return None
+    if timeout is None:
+        default_timeout = 20.0 if provider_is_external(cfg.provider) else 60.0
+        try:
+            timeout = float(os.getenv("AI_GENERATION_TIMEOUT_SECONDS", str(default_timeout)))
+            if not 1 <= timeout <= 90:
+                timeout = default_timeout
+        except ValueError:
+            timeout = default_timeout
     prepared = prepare_context_for_provider(cfg, context_text, policy)
     if prepared is None:
         logger.info(

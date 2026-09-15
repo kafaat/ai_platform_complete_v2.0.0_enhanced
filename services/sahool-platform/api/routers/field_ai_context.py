@@ -17,6 +17,7 @@ from core.ai_policy_envelope import build_ai_policy_envelope, load_tenant_ai_pol
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from api import field_context as context_reads
 from api.main import Permission, UserSchema, require_permission, tenant_connection
 from api.raster_service_client import get_available_dates, get_indicator_grid
 
@@ -278,18 +279,7 @@ async def _optional_active_season(
     conn, field_id: str, tenant_id: str
 ) -> tuple[dict[str, Any] | None, str | None]:
     try:
-        row = await conn.fetchrow(
-            """
-            SELECT to_jsonb(s.*) AS payload
-            FROM seasons s
-            WHERE s.field_id = $1 AND s.tenant_id = $2::uuid
-              AND COALESCE(s.status, 'active') IN ('active', 'current', 'in_progress')
-            ORDER BY COALESCE(s.started_at, s.start_date, s.created_at) DESC NULLS LAST
-            LIMIT 1
-            """,
-            field_id,
-            tenant_id,
-        )
+        row = await context_reads.read_ai_context_active_season(conn, field_id, tenant_id)
         return (_normalise_row_dict(row["payload"]) if row else None), None
     except Exception as exc:  # noqa: BLE001
         return None, f"تعذّر جلب الموسم النشط: {exc}"
@@ -299,18 +289,8 @@ async def _optional_events(
     conn, field_id: str, tenant_id: str, limit: int
 ) -> tuple[dict[str, Any], str | None]:
     try:
-        rows = await conn.fetch(
-            """
-            SELECT event_id, event_type, payload, actor_id, occurred_at
-            FROM events
-            WHERE tenant_id = $2::uuid
-              AND (entity_id = $1 OR payload->>'field_id' = $1)
-            ORDER BY occurred_at DESC
-            LIMIT $3
-            """,
-            field_id,
-            tenant_id,
-            max(1, min(limit, _CONTEXT_MAX_ITEMS["events"])),
+        rows = await context_reads.read_ai_context_events(
+            conn, field_id, tenant_id, max(1, min(limit, _CONTEXT_MAX_ITEMS["events"]))
         )
         raw_events = [
             {
@@ -341,17 +321,7 @@ async def _optional_drawings(
     conn, field_id: str, tenant_id: str
 ) -> tuple[dict[str, Any], str | None]:
     try:
-        rows = await conn.fetch(
-            """
-            SELECT feature_id, kind, workflow, properties, measurements, validation, version, updated_at
-            FROM drawing_features
-            WHERE tenant_id = $1::uuid AND field_id = $2 AND deleted_at IS NULL
-            ORDER BY updated_at DESC
-            LIMIT 200
-            """,
-            tenant_id,
-            field_id,
-        )
+        rows = await context_reads.read_ai_context_drawings(conn, field_id, tenant_id)
         raw_features = [
             {
                 "id": r["feature_id"],
@@ -398,17 +368,7 @@ async def _optional_alerts(
     conn, field_id: str, tenant_id: str
 ) -> tuple[dict[str, Any], str | None]:
     try:
-        rows = await conn.fetch(
-            """
-            SELECT to_jsonb(a.*) AS payload
-            FROM alerts a
-            WHERE a.tenant_id = $1::uuid AND (a.field_id = $2 OR a.payload->>'field_id' = $2)
-            ORDER BY COALESCE(a.created_at, a.updated_at) DESC NULLS LAST
-            LIMIT 50
-            """,
-            tenant_id,
-            field_id,
-        )
+        rows = await context_reads.read_ai_context_alerts(conn, field_id, tenant_id)
         raw_alerts = [_redact_context(_normalise_row_dict(r["payload"])) for r in rows]
         alerts, omitted = _budget_list(raw_alerts, max_items=_CONTEXT_MAX_ITEMS["alerts"])
         return {
@@ -431,17 +391,7 @@ async def _optional_recommendations(
     conn, field_id: str, tenant_id: str
 ) -> tuple[dict[str, Any], str | None]:
     try:
-        rows = await conn.fetch(
-            """
-            SELECT to_jsonb(r.*) AS payload
-            FROM recommendations r
-            WHERE r.tenant_id = $1::uuid AND (r.field_id = $2 OR r.payload->>'field_id' = $2)
-            ORDER BY COALESCE(r.created_at, r.updated_at) DESC NULLS LAST
-            LIMIT 50
-            """,
-            tenant_id,
-            field_id,
-        )
+        rows = await context_reads.read_ai_context_recommendations(conn, field_id, tenant_id)
         raw_recommendations = [_redact_context(_normalise_row_dict(r["payload"])) for r in rows]
         recommendations, omitted = _budget_list(
             raw_recommendations, max_items=_CONTEXT_MAX_ITEMS["recommendations"]

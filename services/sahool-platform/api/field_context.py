@@ -32,10 +32,10 @@ from fastapi import HTTPException
 _STAGE_DAY_BOUNDS = ((30, "initial"), (60, "development"), (120, "mid"))
 
 
-def _growth_stage(days_since_sowing: int | None) -> str:
-    """يُرجع مرحلة النموّ من عدد الأيّام منذ البذار. None/غير معروف ⇒ 'mid'."""
+def _growth_stage(days_since_sowing: int | None) -> str | None:
+    """يُرجع مرحلة النموّ من عدد الأيّام منذ البذار. None/غير معروف ⇒ None."""
     if days_since_sowing is None or days_since_sowing < 0:
-        return "mid"
+        return None
     for bound, stage in _STAGE_DAY_BOUNDS:
         if days_since_sowing <= bound:
             return stage
@@ -44,50 +44,16 @@ def _growth_stage(days_since_sowing: int | None) -> str:
 
 async def _field_weather_context(
     conn, field_id: str
-) -> tuple[float, float, str | None, str, int | None]:
-    """يجلب (lat, lon, crop, stage, days_since_sowing) للحقل + موسمه النشط (404).
-
-    المحصول من الموسم النشط (أحدث active) إن وُجد، وإلّا من عمود fields.crop.
-    المرحلة خاصّة بالمحصول من بطاقته (phenology عبر season_phenology) إن توفّرت
-    وتاريخ البذار معروف، وإلّا التقدير العامّ _growth_stage، وإلّا 'mid'.
-    days_since_sowing عمر المحصول (لـKc الطوريّ) أو None إن غاب تاريخ البذار.
-    يرفع 404 إن غاب الحقل، و422 إن لم تتوفّر إحداثيّات الحقل (الطقس يحتاجها).
-    """
-    from core.season_phenology import current_stage, resolve_crop_id
-
-    row = await conn.fetchrow("SELECT lat, lon, crop FROM fields WHERE field_id = $1", field_id)
-    if row is None:
-        raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
-    if row["lat"] is None or row["lon"] is None:
+) -> tuple[float, float, str | None, str | None, int | None]:
+    """Weather and recommendations use the same active season and crop card."""
+    lat, lon, crop, stage, sowing_date = await _field_season_context(conn, field_id)
+    if lat is None or lon is None:
         raise HTTPException(
             status_code=422,
             detail="الحقل بلا إحداثيّات (lat/lon) — لا يمكن جلب الطقس. حدّد موقع الحقل أوّلاً.",
         )
-    season = await conn.fetchrow(
-        "SELECT crops, sowing_date FROM seasons "
-        "WHERE field_id = $1 AND status = 'active' ORDER BY created_at DESC LIMIT 1",
-        field_id,
-    )
-    crop: str | None = row["crop"]
-    stage = "mid"
-    days_since_sowing: int | None = None
-    if season is not None:
-        import json as _json
-
-        crops = season["crops"]
-        if isinstance(crops, str):
-            try:
-                crops = _json.loads(crops)
-            except (ValueError, TypeError):
-                crops = []
-        if isinstance(crops, list) and crops:
-            crop = str(crops[0])
-        if season["sowing_date"] is not None:
-            days_since_sowing = (date.today() - season["sowing_date"]).days
-            # مرحلة خاصّة بالمحصول من بطاقته إن وُجدت phenology، وإلّا التقدير العامّ.
-            _ph = current_stage(resolve_crop_id(crop), days_since_sowing)
-            stage = _ph["stage"] if _ph else _growth_stage(days_since_sowing)
-    return float(row["lat"]), float(row["lon"]), crop, stage, days_since_sowing
+    age = (date.today() - sowing_date).days if sowing_date is not None else None
+    return lat, lon, crop, stage, age
 
 
 async def _latest_soil_moisture(conn, field_id: str):
@@ -133,7 +99,7 @@ async def _field_season_context(conn, field_id: str):
         field_id,
     )
     crop: str | None = row["crop"]
-    stage = "mid"
+    stage = None
     sowing_date = None
     if season is not None:
         import json as _json
@@ -148,7 +114,11 @@ async def _field_season_context(conn, field_id: str):
             crop = str(crops[0])
         sowing_date = season["sowing_date"]
         if sowing_date is not None:
-            stage = _growth_stage((date.today() - sowing_date).days)
+            from core.season_phenology import current_stage, resolve_crop_id
+
+            age = (date.today() - sowing_date).days
+            phase = current_stage(resolve_crop_id(crop), age) if age >= 0 else None
+            stage = phase["stage"] if phase else _growth_stage(age)
     lat = float(row["lat"]) if row["lat"] is not None else None
     lon = float(row["lon"]) if row["lon"] is not None else None
     return lat, lon, crop, stage, sowing_date
@@ -273,3 +243,86 @@ async def _load_recommendation_policy(conn) -> set[str] | None:
     except Exception:  # noqa: BLE001 — best-effort: أيّ خطأ ⇒ None (سلوك افتراضيّ)
         logging.exception("recommendation policy load failed; defaulting to all engines")
         return None
+
+
+async def read_ai_context_active_season(conn, field_id, tenant_id):
+    async with conn.transaction():  # savepoint: an optional read must not abort the pack
+        row = await conn.fetchrow(
+            """
+            SELECT to_jsonb(s.*) AS payload
+            FROM seasons s
+            WHERE s.field_id = $1 AND s.tenant_id = $2::uuid
+              AND COALESCE(s.status, 'active') IN ('active', 'current', 'in_progress')
+            ORDER BY s.created_at DESC NULLS LAST, s.season_id
+            LIMIT 1
+            """,
+            field_id,
+            tenant_id,
+        )
+    return row
+
+
+async def read_ai_context_events(conn, field_id, tenant_id, limit):
+    async with conn.transaction():  # savepoint: an optional read must not abort the pack
+        rows = await conn.fetch(
+            """
+            SELECT event_id, event_type, payload, actor_id, occurred_at
+            FROM events
+            WHERE tenant_id = $2::uuid
+              AND (entity_id = $1 OR payload->>'field_id' = $1)
+            ORDER BY occurred_at DESC
+            LIMIT $3
+            """,
+            field_id,
+            tenant_id,
+            limit,
+        )
+    return rows
+
+
+async def read_ai_context_drawings(conn, field_id, tenant_id):
+    async with conn.transaction():  # savepoint: an optional read must not abort the pack
+        rows = await conn.fetch(
+            """
+            SELECT feature_id, kind, workflow, properties, measurements, validation, version, updated_at
+            FROM drawing_features
+            WHERE tenant_id = $1::uuid AND field_id = $2 AND deleted_at IS NULL
+            ORDER BY updated_at DESC
+            LIMIT 200
+            """,
+            tenant_id,
+            field_id,
+        )
+    return rows
+
+
+async def read_ai_context_alerts(conn, field_id, tenant_id):
+    async with conn.transaction():  # savepoint: an optional read must not abort the pack
+        rows = await conn.fetch(
+            """
+            SELECT to_jsonb(a.*) AS payload
+            FROM alerts a
+            WHERE a.tenant_id = $1::uuid AND a.field_id = $2
+            ORDER BY COALESCE(a.created_at, a.updated_at) DESC NULLS LAST
+            LIMIT 50
+            """,
+            tenant_id,
+            field_id,
+        )
+    return rows
+
+
+async def read_ai_context_recommendations(conn, field_id, tenant_id):
+    async with conn.transaction():  # savepoint: an optional read must not abort the pack
+        rows = await conn.fetch(
+            """
+            SELECT to_jsonb(r.*) AS payload
+            FROM recommendations r
+            WHERE r.tenant_id = $1::uuid AND r.field_id = $2
+            ORDER BY COALESCE(r.issued_at, r.created_at) DESC NULLS LAST
+            LIMIT 50
+            """,
+            tenant_id,
+            field_id,
+        )
+    return rows

@@ -1,3 +1,4 @@
+import ast
 from pathlib import Path
 
 import pytest
@@ -17,7 +18,14 @@ def test_v49_5_events_query_is_explicitly_tenant_scoped():
     src = _src()
     assert "async def _optional_events(" in src
     assert "tenant_id: str" in src
-    assert "WHERE tenant_id = $2::uuid" in src
+    assert "await context_reads.read_ai_context_events(" in src
+    reads = (ROOT / "services/sahool-platform/api/field_context.py").read_text(encoding="utf-8")
+    query = next(
+        node
+        for node in ast.parse(reads).body
+        if isinstance(node, ast.AsyncFunctionDef) and node.name == "read_ai_context_events"
+    )
+    assert "WHERE tenant_id = $2::uuid" in ast.get_source_segment(reads, query)
     assert "operations, warn = await _optional_events(conn, field_id, str(user.tenant_id)" in src
 
 

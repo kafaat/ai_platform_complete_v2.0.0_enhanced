@@ -56,6 +56,7 @@ from api.field_models import (
 from api.field_timeline import assemble_timeline
 from api.geospatial_integrity import validate_field_geometry
 from api.gis_geometry_guard import geometry_metadata, guard_field_geometry
+from api.imagery_automation import _kick_imagery_processing
 
 # بقيّة التبعيّات/النماذج/المساعِدات المشتركة تبقى في api.main وتُستورَد من هناك.
 from api.main import (
@@ -143,60 +144,6 @@ from api.zones_kmeans import ZoneCell, delineate_zones
 router = APIRouter()
 
 
-# ─── تفعيل الصور الحقيقيّة (Sentinel-2 عبر raster-service) ────────────────────
-# عند إنشاء/تحديث حدّ حقل نُطلِق مساراً مُستهدَفاً للبيانات الحقيقيّة: بحث «أفضل مشهد»
-# (raster GET /imagery/best عبر Element84) ثمّ معالجة COG لكلّ مؤشّر (raster POST
-# /v1/fields/{id}/process-from-stac) → real_data=true في «المؤشّرات المكانيّة» فقط بعد
-# قراءة COG حقيقيّ (لا محاكاة). نُشغّله عبر BackgroundTasks (بعد الالتزام، خارج معاملة
-# المستأجِر) كي لا تُحبَس وصلة القاعدة طوال نداءات HTTP (حتى ٣٠ث). أفضل-جهد تامّ: فشل
-# الأتمتة/raster لا يكسر إنشاء/تحديث الحقل (يُسجَّل تحذير، لا تلفيق).
-async def _kick_imagery_processing(
-    *, field_id: str, tenant_id: str, geometry: object, reason: str
-) -> None:
-    """يُطلِق المعالجة المُستهدَفة بعد إنشاء/تحديث حقل (BackgroundTasks، بعد الالتزام).
-
-    يحسب bbox من الهندسة عبر حارس الهندسة ثمّ يستدعي trigger_field_imagery_processing
-    (imagery/best + process-from-stac). معزول وأفضل-جهد: أيّ تعذّر يُبتلَع بصمت (لا يؤثّر
-    على ردّ الكتابة). صدق: يعتمد raster-service الحقيقيّ؛ لا يُختلَق شيء عند تعذّره."""
-    try:
-        from api.imagery_automation import imagery_automation
-
-        guarded = guard_field_geometry(geometry)
-        res = await imagery_automation.trigger_field_imagery_processing(
-            field_id=field_id,
-            tenant_id=tenant_id,
-            bbox=guarded.bbox,
-            geometry=guarded.geometry,
-            reason=reason,
-        )
-        # تشخيص: أظهِر نتيجة الإطلاق في docker logs بدل الصمت — يكشف سبب عدم ظهور NDVI
-        # الحقيقيّ (queued / no_scene / missing_bands / error) دون الحاجة لتتبّع الراستر.
-        status = (res or {}).get("status")
-        if (res or {}).get("queued"):
-            logging.info(
-                "إطلاق معالجة صور الحقل %s (%s): %s · scene=%s",
-                field_id,
-                reason,
-                status,
-                (res or {}).get("scene_id"),
-            )
-        else:
-            logging.warning(
-                "لم تُطلَق معالجة صور الحقل %s (%s): %s · %s",
-                field_id,
-                reason,
-                status,
-                (res or {}).get("note_ar") or (res or {}).get("error"),
-            )
-    except Exception as e:  # noqa: BLE001 — أفضل-جهد
-        logging.warning(
-            "تعذّر إطلاق معالجة الصور المُستهدَفة للحقل %s (%s): %s",
-            field_id,
-            reason,
-            type(e).__name__,
-        )
-
-
 # ─── جوهر إدراج حقل واحد ضمن معاملة قائمة (DRY) ───────────────────────────────
 # مُستخرَج من _persist_field._work() ليُعاد استخدامه حرفيّاً في create_field
 # (عبر _persist_field) وفي نقطتَي merge/split الذرّيّتين. يفترض أنّ المستدعي يُمرّر
@@ -266,6 +213,18 @@ async def _insert_field_within_tx(
         ownership_type,
         country,
         region,
+    )
+    # Persist the processing intent in the same transaction as the field. The
+    # post-response kick is a latency optimization; the existing scheduler can
+    # recover the intent after a process interruption.
+    from api.imagery_automation import imagery_automation
+
+    guarded = guard_field_geometry(geometry)
+    await imagery_automation.register_on_connection(
+        conn,
+        field_id=field_id,
+        tenant_id=str(user.tenant_id),
+        bbox=imagery_automation._bbox_from_guard_bbox(guarded.bbox),
     )
     # حدث domain ضمن نفس المعاملة (نمط outbox) — يُغلق فجوة «كتابة بلا حدث».
     _created_payload = {

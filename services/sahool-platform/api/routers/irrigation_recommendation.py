@@ -367,6 +367,13 @@ async def field_irrigation_recommendation(
         ledger_age_hours=ledger_age_hours,
         taw_source=taw_source,
     )
+    if stage is None:
+        state = {
+            **state,
+            "available": False,
+            "status": "insufficient_data" if state["available"] else state["status"],
+            "limitations": [*state["limitations"], "growth_stage_unavailable"],
+        }
 
     inputs = {
         "depletion_mm": round(float(depletion_mm), 2) if depletion_mm is not None else None,

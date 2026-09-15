@@ -195,3 +195,5 @@ def assert_indicator_accepts_validated_product(product: ValidatedRasterProduct) 
         raise TypeError("indicator computation requires ValidatedRasterProduct")
     if product.quality_score is None or product.pixel_qa.get("quality_score") is None:
         raise ValueError("ValidatedRasterProduct missing quality score")
+    if product.valid_pixel_ratio <= 0:
+        raise ValueError("raw_raster_no_valid_pixels")

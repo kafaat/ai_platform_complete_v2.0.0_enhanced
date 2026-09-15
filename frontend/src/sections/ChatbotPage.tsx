@@ -20,7 +20,7 @@ const renderMarkdown = (s: string) =>
 //   ✅ تاريخ المحادثة مستمر (sessionStorage)
 //   ✅ تقييم الردود (👍/👎) مع تسجيل
 //   ✅ نسخ الرد بضغطة زر
-//   ✅ Fallback لـ KB المحلي عند انقطاع الاتصال
+//   ✅ إعلان تعذّر جلب الأدلة عند فشل الاتصال
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
@@ -93,53 +93,11 @@ interface AiChatResponse {
   mode?: string;
   generation_provider?: string | null;
   generation_model?: string | null;
+  generation_status?: string;
   ai_context_pack_readiness?: { warnings?: string[]; requires_imagery_backfill_24_months?: boolean } | null;
   harness?: HarnessTransparency | null;
 }
 const MODEL_STORE_KEY = 'sahool.ai.model';
-
-function buildSystemPrompt(c: LiveContext): string {
-  const farm = c.count === 0
-    ? '- لا توجد حقول مُسجّلة بعد لهذا المستخدم (اطلب منه إضافة حقل أوّلاً قبل التوصيات الرقميّة).'
-    : [
-        `- عدد الحقول: ${c.count} (إجمالي ${c.totalArea.toFixed(1)} هـ)`,
-        `- متوسّط NDVI الحاليّ: ${c.avgNdvi != null ? c.avgNdvi.toFixed(2) : 'غير متاح'}`,
-        `- المحاصيل: ${c.crops.length ? c.crops.join('، ') : 'غير محدّدة'}`,
-      ].join('\n');
-  const weather = c.w
-    ? `- الطقس الحاليّ: ${c.w.tmean}°م، رطوبة ${c.w.humidity_pct}٪، رياح ${c.w.wind_speed_kmh} كم/س${c.w.et0_mm != null ? `، ET0 ${c.w.et0_mm} مم` : ''}`
-    : '- الطقس الحاليّ: غير متاح (خدمة الطقس متعذّرة الآن)';
-  return [
-    'أنت مستشار زراعيّ ذكيّ متخصّص لمنصّة "سهول" للزراعة الذكيّة اليمنيّة.',
-    'السياق الحيّ للمزرعة (مشتقّ من بيانات المستخدم الفعليّة، لا قيم افتراضيّة):',
-    farm,
-    weather,
-    '',
-    'القواعد:',
-    '1. أجب دائماً بالعربيّة الفصحى الواضحة.',
-    '2. اذكر الأرقام والوحدات بدقّة.',
-    '3. لا تذكر رقماً غير وارد في السياق أعلاه؛ إن غابت بيانات قل بصدق إنّها غير متاحة.',
-    '4. قدّم توصيات عمليّة قابلة للتطبيق واربطها بالبيانات المتاحة.',
-    '5. كن موجزاً (3-5 جمل) ما لم يُطلب شرح تفصيليّ.',
-  ].join('\n');
-}
-
-// ── قاعدة معرفة احتياطيّة (بلا إنترنت) — إرشاد عامّ لا ادّعاء بأرقام المزرعة ──
-const KB: Record<string, string> = {
-  ndvi: 'NDVI يتراوح -1 إلى +1: >0.6 غطاء صحّي، 0.3-0.6 متوسّط، <0.3 إجهاد. المعادلة (NIR-Red)/(NIR+Red). تابعه كلّ ~5 أيّام عبر Sentinel-2 لرصد الاتّجاه.',
-  ري: 'الريّ بالتنقيط (~90% كفاءة) عموماً الأفضل. احسب الاحتياج من ET0 اليوميّ ورطوبة التربة. الريّ الصباحيّ الباكر يقلّل فقد البخر. راجع لوحة توصية الريّ لحقلك للرقم الدقيق.',
-  سماد: 'وقت وكميّة التسميد يعتمدان على مرحلة المحصول وتحليل التربة (N-P-K وpH). في مراحل الملء غالباً يُخفَّض النيتروجين. أرفِق تحليل تربة حديثاً للحصول على جرعة دقيقة.',
-  آفات: 'الرطوبة المرتفعة والحرارة المعتدلة تزيد مخاطر المنّ والأصداء. افحص أسبوعيّاً، وراقب سرعة الرياح قبل الرشّ. راجع لوحة مخاطر الأمراض لحقلك للتقدير الحيّ.',
-  wofost: 'محرّك محاكاة المحصول يقدّر الإنتاجيّة من GDD المتراكم وLAI ومدخلات الطقس/التربة. شغّل محاكاة الموسم لحقلك للحصول على تقدير برقم ونطاق وثقة.',
-};
-
-function localFallback(q: string): string {
-  const ql = q.toLowerCase();
-  for (const [key, val] of Object.entries(KB)) {
-    if (ql.includes(key)) return val;
-  }
-  return 'تعذّر الاتّصال بالمستشار الآن. أعد المحاولة عند توفّر الإنترنت، أو راجع لوحات الحقل (المؤشّرات/التوصيات) للبيانات الحيّة.';
-}
 
 function evidenceSourceText(src: AiEvidenceSource): string {
   const label = src.label_ar || src.key;
@@ -194,6 +152,7 @@ interface Msg {
   mode?: string;
   generationProvider?: string | null;
   generationModel?: string | null;
+  generationStatus?: string;
   evidenceIds?: string[];
   evidenceSources?: AiEvidenceSource[];
   readinessWarnings?: string[];
@@ -247,17 +206,20 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
               <div className="flex items-center gap-2">
                 {msg.source === 'ai-runtime'
                   ? <><Sparkles className="w-3 h-3 text-violet-400" /><span className="text-[10px] text-slate-400">SAHOOL AI Runtime · RAG/KG/Field Memory</span></>
-                  : <><AlertCircle className="w-3 h-3 text-amber-400" /><span className="text-[10px] text-amber-500">وضع بلا إنترنت</span></>
+                  : <><AlertCircle className="w-3 h-3 text-amber-400" /><span className="text-[10px] text-amber-500">تعذّر جلب الأدلة</span></>
                 }
                 {msg.confidence != null && (
-                  <span className="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-full px-1.5 py-0.5">
-                    ثقة {Math.round(msg.confidence * 100)}٪
+                  <span title="جودة الأدلة كما أبلغت عنها مصادرها؛ ليست احتمال صحة الإجابة" className="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-full px-1.5 py-0.5">
+                    جودة الدليل {Math.round(msg.confidence * 100)}٪
                   </span>
                 )}
                 {msg.mode && <span className="text-[10px] text-slate-400">{msg.mode}</span>}
                 {msg.generationProvider && <span className="text-[10px] text-violet-500">{msg.generationProvider}{msg.generationModel ? ` · ${msg.generationModel}` : ''}</span>}
                 {msg.tokens && <span className="text-[10px] text-slate-300 mr-auto">{msg.tokens} token</span>}
               </div>
+              {msg.generationStatus?.startsWith('suppressed_') && (
+                <p className="text-[11px] text-amber-700">لم تُعرض إجابة النموذج لأن الأدلة والتحقق المتاحين لا يكفيان لاعتمادها.</p>
+              )}
               {msg.evidenceSources && msg.evidenceSources.length > 0 && (
                 <div className="flex flex-wrap gap-1" data-testid="ai-evidence-sources">
                   {msg.evidenceSources.slice(0, 6).map(src => (
@@ -432,7 +394,7 @@ export function ChatbotPage() {
   // سياق المزرعة الحيّ (حقول + طقس) — يُحقَن في كلّ طلب بدل القيم الثابتة.
   const fieldsQ  = useFields();
   const weatherQ = useWeatherForecast();
-  const { fieldId: activeFieldId, field: activeField } = useSelectedField();
+  const { fieldId: activeFieldId } = useSelectedField();
   const ctx: LiveContext = useMemo(() => {
     const list: ChatbotField[] = (fieldsQ.data as { fields?: ChatbotField[] } | undefined)?.fields ?? [];
     const ndvis = list.map((f) => +(f.ndvi || 0)).filter((n) => n > 0);
@@ -512,11 +474,6 @@ export function ChatbotPage() {
     setMessages(m => [...m, userMsg]);
     setInput(''); setLoading(true);
 
-    // Build recent conversation history for the AI runtime
-    const history = messages
-      .filter(m => m.id !== 'welcome')
-      .slice(-8) // last 4 exchanges
-      .map(m => ({ role: m.role, content: m.content }));
 
     try {
       // المرحلة الثانية: الدردشة تمر عبر SAHOOL AI Agronomist Runtime، لا mock ولا مسار دردشة مفقود.
@@ -528,16 +485,7 @@ export function ChatbotPage() {
         language: 'ar',
         final_k: 5,
         model: selectedModel || undefined,
-        current_field_state: {
-          farm_summary:    buildSystemPrompt(ctx),
-          active_field_name: activeField?.name ?? null,
-          avg_ndvi:        ctx.avgNdvi,
-          field_count:     ctx.count,
-          weather_current: ctx.w,
-          ai_context_pack: aiContext || undefined,
-          ai_context_summary_ar: aiContext?.ai_context_summary_ar,
-          recent_turns:    history,
-        },
+
       });
 
       const data = res.data as AiChatResponse;
@@ -550,6 +498,7 @@ export function ChatbotPage() {
         mode: data.mode,
         generationProvider: data.generation_provider,
         generationModel: data.generation_model,
+        generationStatus: data.generation_status,
         evidenceIds: Array.isArray(data.evidence_ids) ? data.evidence_ids : [],
         evidenceSources: Array.isArray(data.evidence_sources) ? data.evidence_sources : [],
         harness: data.harness || undefined,
@@ -560,12 +509,11 @@ export function ChatbotPage() {
       setMessages(m => [...m, botMsg]);
       setLatestId(botMsg.id);
 
-    } catch (err) {
-      // Fallback to local KB
-      const fallback = localFallback(text);
+    } catch {
       const botMsg: Msg = {
         id:`b_${Date.now()}`, role:'assistant', source:'fallback',
-        content:fallback, timestamp:new Date(),
+        content:'تعذّر جلب أدلة المستشار الآن. تحقّق من الاتصال وتسجيل الدخول ثم أعد المحاولة.',
+        timestamp:new Date(),
       };
       setMessages(m => [...m, botMsg]);
       setLatestId(botMsg.id);
@@ -573,7 +521,7 @@ export function ChatbotPage() {
 
     setLoading(false);
     setTimeout(() => inputRef.current?.focus(), 100);
-  }, [messages, loading, ctx, activeFieldId, activeField?.name, selectedModel, aiContext]);
+  }, [loading, activeFieldId, selectedModel]);
 
   const clear = () => {
     setMessages([WELCOME]);

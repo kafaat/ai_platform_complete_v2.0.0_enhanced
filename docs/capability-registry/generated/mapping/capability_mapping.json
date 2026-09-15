@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5326,
+    "files_scanned": 5328,
     "files_by_kind": {
       "backend": 1208,
       "database": 277,
       "governance": 62,
       "mobile": 55,
-      "other": 1473,
-      "tests": 1793,
+      "other": 1474,
+      "tests": 1794,
       "web": 458
     },
     "unmapped_artifacts": 2167,
-    "ambiguous_artifacts": 420
+    "ambiguous_artifacts": 419
   },
   "capabilities": [
     {
@@ -5504,195 +5504,195 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields @ services/sahool-platform/api/routers/fields.py:579",
+          "value": "/api/v1/fields @ services/sahool-platform/api/routers/fields.py:538",
           "score": 18
         },
         {
-          "value": "/api/v1/fields @ services/sahool-platform/api/routers/fields.py:602",
+          "value": "/api/v1/fields @ services/sahool-platform/api/routers/fields.py:561",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/import @ services/sahool-platform/api/routers/fields.py:626",
+          "value": "/api/v1/fields/import @ services/sahool-platform/api/routers/fields.py:585",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/merge @ services/sahool-platform/api/routers/fields.py:1848",
+          "value": "/api/v1/fields/merge @ services/sahool-platform/api/routers/fields.py:1807",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/split @ services/sahool-platform/api/routers/fields.py:1973",
+          "value": "/api/v1/fields/split @ services/sahool-platform/api/routers/fields.py:1932",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/validate-geometry @ services/sahool-platform/api/routers/fields.py:3623",
+          "value": "/api/v1/fields/validate-geometry @ services/sahool-platform/api/routers/fields.py:3582",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1073",
+          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1032",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1277",
+          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1236",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1278",
+          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1237",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1722",
+          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1681",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/activities @ services/sahool-platform/api/routers/fields.py:2954",
+          "value": "/api/v1/fields/{field_id}/activities @ services/sahool-platform/api/routers/fields.py:2913",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/activities @ services/sahool-platform/api/routers/fields.py:3092",
+          "value": "/api/v1/fields/{field_id}/activities @ services/sahool-platform/api/routers/fields.py:3051",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/alerts/derived @ services/sahool-platform/api/routers/fields.py:4081",
+          "value": "/api/v1/fields/{field_id}/alerts/derived @ services/sahool-platform/api/routers/fields.py:4040",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/alerts/evaluate @ services/sahool-platform/api/routers/fields.py:3476",
+          "value": "/api/v1/fields/{field_id}/alerts/evaluate @ services/sahool-platform/api/routers/fields.py:3435",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/geometry/history @ services/sahool-platform/api/routers/fields.py:1566",
+          "value": "/api/v1/fields/{field_id}/geometry/history @ services/sahool-platform/api/routers/fields.py:1525",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/geometry/revert/{revision} @ services/sahool-platform/api/routers/fields.py:1613",
+          "value": "/api/v1/fields/{field_id}/geometry/revert/{revision} @ services/sahool-platform/api/routers/fields.py:1572",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/growth-narrative @ services/sahool-platform/api/routers/fields.py:3226",
+          "value": "/api/v1/fields/{field_id}/growth-narrative @ services/sahool-platform/api/routers/fields.py:3185",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/history @ services/sahool-platform/api/routers/fields.py:3778",
+          "value": "/api/v1/fields/{field_id}/history @ services/sahool-platform/api/routers/fields.py:3737",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/imagery/backfill @ services/sahool-platform/api/routers/fields.py:967",
+          "value": "/api/v1/fields/{field_id}/imagery/backfill @ services/sahool-platform/api/routers/fields.py:926",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:1039",
+          "value": "/api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:998",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/imagery/process-date @ services/sahool-platform/api/routers/fields.py:708",
+          "value": "/api/v1/fields/{field_id}/imagery/process-date @ services/sahool-platform/api/routers/fields.py:667",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/imagery/refresh @ services/sahool-platform/api/routers/fields.py:764",
+          "value": "/api/v1/fields/{field_id}/imagery/refresh @ services/sahool-platform/api/routers/fields.py:723",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/input-traceability @ services/sahool-platform/api/routers/fields.py:3121",
+          "value": "/api/v1/fields/{field_id}/input-traceability @ services/sahool-platform/api/routers/fields.py:3080",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/pins @ services/sahool-platform/api/routers/fields.py:3895",
+          "value": "/api/v1/fields/{field_id}/pins @ services/sahool-platform/api/routers/fields.py:3854",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/prescriptions/nitrogen @ services/sahool-platform/api/routers/fields.py:3656",
+          "value": "/api/v1/fields/{field_id}/prescriptions/nitrogen @ services/sahool-platform/api/routers/fields.py:3615",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/recommendations @ services/sahool-platform/api/routers/fields.py:2856",
+          "value": "/api/v1/fields/{field_id}/recommendations @ services/sahool-platform/api/routers/fields.py:2815",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3495",
+          "value": "/api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3454",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3537",
+          "value": "/api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3496",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2109",
+          "value": "/api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2068",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2320",
+          "value": "/api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2279",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/seasons/{season_id} @ services/sahool-platform/api/routers/fields.py:2347",
+          "value": "/api/v1/fields/{field_id}/seasons/{season_id} @ services/sahool-platform/api/routers/fields.py:2306",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/soil-lab-tests @ services/sahool-platform/api/routers/fields.py:3266",
+          "value": "/api/v1/fields/{field_id}/soil-lab-tests @ services/sahool-platform/api/routers/fields.py:3225",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/soil-lab-tests @ services/sahool-platform/api/routers/fields.py:3325",
+          "value": "/api/v1/fields/{field_id}/soil-lab-tests @ services/sahool-platform/api/routers/fields.py:3284",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/soil-lab-tests/{test_id} @ services/sahool-platform/api/routers/fields.py:3349",
+          "value": "/api/v1/fields/{field_id}/soil-lab-tests/{test_id} @ services/sahool-platform/api/routers/fields.py:3308",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/soil-moisture @ services/sahool-platform/api/routers/fields.py:2516",
+          "value": "/api/v1/fields/{field_id}/soil-moisture @ services/sahool-platform/api/routers/fields.py:2475",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/state @ services/sahool-platform/api/routers/fields.py:4053",
+          "value": "/api/v1/fields/{field_id}/state @ services/sahool-platform/api/routers/fields.py:4012",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/state/full @ services/sahool-platform/api/routers/fields.py:4107",
+          "value": "/api/v1/fields/{field_id}/state/full @ services/sahool-platform/api/routers/fields.py:4066",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/terrain @ services/sahool-platform/api/routers/fields.py:1098",
+          "value": "/api/v1/fields/{field_id}/terrain @ services/sahool-platform/api/routers/fields.py:1057",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/timeline @ services/sahool-platform/api/routers/fields.py:3758",
+          "value": "/api/v1/fields/{field_id}/timeline @ services/sahool-platform/api/routers/fields.py:3717",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/trueup @ services/sahool-platform/api/routers/fields.py:3564",
+          "value": "/api/v1/fields/{field_id}/trueup @ services/sahool-platform/api/routers/fields.py:3523",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/walk-plan @ services/sahool-platform/api/routers/fields.py:3978",
+          "value": "/api/v1/fields/{field_id}/walk-plan @ services/sahool-platform/api/routers/fields.py:3937",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/walk-plan/pdf @ services/sahool-platform/api/routers/fields.py:3988",
+          "value": "/api/v1/fields/{field_id}/walk-plan/pdf @ services/sahool-platform/api/routers/fields.py:3947",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:4021",
+          "value": "/api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:3980",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/wind/drift-risk @ services/sahool-platform/api/routers/fields.py:2777",
+          "value": "/api/v1/fields/{field_id}/wind/drift-risk @ services/sahool-platform/api/routers/fields.py:2736",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/wind/prevailing @ services/sahool-platform/api/routers/fields.py:2702",
+          "value": "/api/v1/fields/{field_id}/wind/prevailing @ services/sahool-platform/api/routers/fields.py:2661",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/workspace @ services/sahool-platform/api/routers/fields.py:1189",
+          "value": "/api/v1/fields/{field_id}/workspace @ services/sahool-platform/api/routers/fields.py:1148",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/yield-estimate @ services/sahool-platform/api/routers/fields.py:3685",
+          "value": "/api/v1/fields/{field_id}/yield-estimate @ services/sahool-platform/api/routers/fields.py:3644",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/zones @ services/sahool-platform/api/routers/fields.py:4007",
+          "value": "/api/v1/fields/{field_id}/zones @ services/sahool-platform/api/routers/fields.py:3966",
           "score": 18
         },
         {
@@ -5712,7 +5712,7 @@
           "score": 13
         },
         {
-          "value": "/api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:396",
+          "value": "/api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:405",
           "score": 13
         },
         {
@@ -5760,83 +5760,83 @@
       ],
       "events": [
         {
-          "value": "field.create @ services/sahool-platform/api/routers/fields.py:562",
+          "value": "field.create @ services/sahool-platform/api/routers/fields.py:521",
           "score": 18
         },
         {
-          "value": "field.created @ services/sahool-platform/api/routers/fields.py:229",
+          "value": "field.created @ services/sahool-platform/api/routers/fields.py:176",
           "score": 18
         },
         {
-          "value": "field.created @ services/sahool-platform/api/routers/fields.py:552",
+          "value": "field.created @ services/sahool-platform/api/routers/fields.py:511",
           "score": 18
         },
         {
-          "value": "field.created @ services/sahool-platform/api/routers/fields.py:621",
+          "value": "field.created @ services/sahool-platform/api/routers/fields.py:580",
           "score": 18
         },
         {
-          "value": "field.created @ services/sahool-platform/api/routers/fields.py:685",
+          "value": "field.created @ services/sahool-platform/api/routers/fields.py:644",
           "score": 18
         },
         {
-          "value": "field.geometry.reverted @ services/sahool-platform/api/routers/fields.py:1688",
+          "value": "field.geometry.reverted @ services/sahool-platform/api/routers/fields.py:1647",
           "score": 18
         },
         {
-          "value": "field.geometry.reverted @ services/sahool-platform/api/routers/fields.py:1697",
+          "value": "field.geometry.reverted @ services/sahool-platform/api/routers/fields.py:1656",
           "score": 18
         },
         {
-          "value": "field.geometry.reverted @ services/sahool-platform/api/routers/fields.py:1717",
+          "value": "field.geometry.reverted @ services/sahool-platform/api/routers/fields.py:1676",
           "score": 18
         },
         {
-          "value": "field.geometry.updated @ services/sahool-platform/api/routers/fields.py:1518",
+          "value": "field.geometry.updated @ services/sahool-platform/api/routers/fields.py:1477",
           "score": 18
         },
         {
-          "value": "field.geometry.updated @ services/sahool-platform/api/routers/fields.py:1561",
+          "value": "field.geometry.updated @ services/sahool-platform/api/routers/fields.py:1520",
           "score": 18
         },
         {
-          "value": "field.merge @ services/sahool-platform/api/routers/fields.py:1952",
+          "value": "field.merge @ services/sahool-platform/api/routers/fields.py:1911",
           "score": 18
         },
         {
-          "value": "field.merged @ services/sahool-platform/api/routers/fields.py:1921",
+          "value": "field.merged @ services/sahool-platform/api/routers/fields.py:1880",
           "score": 18
         },
         {
-          "value": "field.merged @ services/sahool-platform/api/routers/fields.py:1968",
+          "value": "field.merged @ services/sahool-platform/api/routers/fields.py:1927",
           "score": 18
         },
         {
-          "value": "field.split @ services/sahool-platform/api/routers/fields.py:2056",
+          "value": "field.split @ services/sahool-platform/api/routers/fields.py:2015",
           "score": 18
         },
         {
-          "value": "field.split @ services/sahool-platform/api/routers/fields.py:2083",
+          "value": "field.split @ services/sahool-platform/api/routers/fields.py:2042",
           "score": 18
         },
         {
-          "value": "field.split @ services/sahool-platform/api/routers/fields.py:2104",
+          "value": "field.split @ services/sahool-platform/api/routers/fields.py:2063",
           "score": 18
         },
         {
-          "value": "field.update @ services/sahool-platform/api/routers/fields.py:1542",
+          "value": "field.update @ services/sahool-platform/api/routers/fields.py:1501",
           "score": 18
         },
         {
-          "value": "field.updated @ services/sahool-platform/api/routers/fields.py:1510",
+          "value": "field.updated @ services/sahool-platform/api/routers/fields.py:1469",
           "score": 18
         },
         {
-          "value": "field.updated @ services/sahool-platform/api/routers/fields.py:1530",
+          "value": "field.updated @ services/sahool-platform/api/routers/fields.py:1489",
           "score": 18
         },
         {
-          "value": "soil_lab.published @ services/sahool-platform/api/routers/fields.py:3462",
+          "value": "soil_lab.published @ services/sahool-platform/api/routers/fields.py:3421",
           "score": 18
         },
         {
@@ -6521,195 +6521,195 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields @ services/sahool-platform/api/routers/fields.py:579",
+          "value": "/api/v1/fields @ services/sahool-platform/api/routers/fields.py:538",
           "score": 19
         },
         {
-          "value": "/api/v1/fields @ services/sahool-platform/api/routers/fields.py:602",
+          "value": "/api/v1/fields @ services/sahool-platform/api/routers/fields.py:561",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/import @ services/sahool-platform/api/routers/fields.py:626",
+          "value": "/api/v1/fields/import @ services/sahool-platform/api/routers/fields.py:585",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/merge @ services/sahool-platform/api/routers/fields.py:1848",
+          "value": "/api/v1/fields/merge @ services/sahool-platform/api/routers/fields.py:1807",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/split @ services/sahool-platform/api/routers/fields.py:1973",
+          "value": "/api/v1/fields/split @ services/sahool-platform/api/routers/fields.py:1932",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/validate-geometry @ services/sahool-platform/api/routers/fields.py:3623",
+          "value": "/api/v1/fields/validate-geometry @ services/sahool-platform/api/routers/fields.py:3582",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1073",
+          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1032",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1277",
+          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1236",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1278",
+          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1237",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1722",
+          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1681",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/activities @ services/sahool-platform/api/routers/fields.py:2954",
+          "value": "/api/v1/fields/{field_id}/activities @ services/sahool-platform/api/routers/fields.py:2913",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/activities @ services/sahool-platform/api/routers/fields.py:3092",
+          "value": "/api/v1/fields/{field_id}/activities @ services/sahool-platform/api/routers/fields.py:3051",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/alerts/derived @ services/sahool-platform/api/routers/fields.py:4081",
+          "value": "/api/v1/fields/{field_id}/alerts/derived @ services/sahool-platform/api/routers/fields.py:4040",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/alerts/evaluate @ services/sahool-platform/api/routers/fields.py:3476",
+          "value": "/api/v1/fields/{field_id}/alerts/evaluate @ services/sahool-platform/api/routers/fields.py:3435",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/geometry/history @ services/sahool-platform/api/routers/fields.py:1566",
+          "value": "/api/v1/fields/{field_id}/geometry/history @ services/sahool-platform/api/routers/fields.py:1525",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/geometry/revert/{revision} @ services/sahool-platform/api/routers/fields.py:1613",
+          "value": "/api/v1/fields/{field_id}/geometry/revert/{revision} @ services/sahool-platform/api/routers/fields.py:1572",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/growth-narrative @ services/sahool-platform/api/routers/fields.py:3226",
+          "value": "/api/v1/fields/{field_id}/growth-narrative @ services/sahool-platform/api/routers/fields.py:3185",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/history @ services/sahool-platform/api/routers/fields.py:3778",
+          "value": "/api/v1/fields/{field_id}/history @ services/sahool-platform/api/routers/fields.py:3737",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/imagery/backfill @ services/sahool-platform/api/routers/fields.py:967",
+          "value": "/api/v1/fields/{field_id}/imagery/backfill @ services/sahool-platform/api/routers/fields.py:926",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:1039",
+          "value": "/api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:998",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/imagery/process-date @ services/sahool-platform/api/routers/fields.py:708",
+          "value": "/api/v1/fields/{field_id}/imagery/process-date @ services/sahool-platform/api/routers/fields.py:667",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/imagery/refresh @ services/sahool-platform/api/routers/fields.py:764",
+          "value": "/api/v1/fields/{field_id}/imagery/refresh @ services/sahool-platform/api/routers/fields.py:723",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/input-traceability @ services/sahool-platform/api/routers/fields.py:3121",
+          "value": "/api/v1/fields/{field_id}/input-traceability @ services/sahool-platform/api/routers/fields.py:3080",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/pins @ services/sahool-platform/api/routers/fields.py:3895",
+          "value": "/api/v1/fields/{field_id}/pins @ services/sahool-platform/api/routers/fields.py:3854",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/prescriptions/nitrogen @ services/sahool-platform/api/routers/fields.py:3656",
+          "value": "/api/v1/fields/{field_id}/prescriptions/nitrogen @ services/sahool-platform/api/routers/fields.py:3615",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/recommendations @ services/sahool-platform/api/routers/fields.py:2856",
+          "value": "/api/v1/fields/{field_id}/recommendations @ services/sahool-platform/api/routers/fields.py:2815",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3495",
+          "value": "/api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3454",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3537",
+          "value": "/api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3496",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2109",
+          "value": "/api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2068",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2320",
+          "value": "/api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2279",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/seasons/{season_id} @ services/sahool-platform/api/routers/fields.py:2347",
+          "value": "/api/v1/fields/{field_id}/seasons/{season_id} @ services/sahool-platform/api/routers/fields.py:2306",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/soil-lab-tests @ services/sahool-platform/api/routers/fields.py:3266",
+          "value": "/api/v1/fields/{field_id}/soil-lab-tests @ services/sahool-platform/api/routers/fields.py:3225",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/soil-lab-tests @ services/sahool-platform/api/routers/fields.py:3325",
+          "value": "/api/v1/fields/{field_id}/soil-lab-tests @ services/sahool-platform/api/routers/fields.py:3284",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/soil-lab-tests/{test_id} @ services/sahool-platform/api/routers/fields.py:3349",
+          "value": "/api/v1/fields/{field_id}/soil-lab-tests/{test_id} @ services/sahool-platform/api/routers/fields.py:3308",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/soil-moisture @ services/sahool-platform/api/routers/fields.py:2516",
+          "value": "/api/v1/fields/{field_id}/soil-moisture @ services/sahool-platform/api/routers/fields.py:2475",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/state @ services/sahool-platform/api/routers/fields.py:4053",
+          "value": "/api/v1/fields/{field_id}/state @ services/sahool-platform/api/routers/fields.py:4012",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/state/full @ services/sahool-platform/api/routers/fields.py:4107",
+          "value": "/api/v1/fields/{field_id}/state/full @ services/sahool-platform/api/routers/fields.py:4066",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/terrain @ services/sahool-platform/api/routers/fields.py:1098",
+          "value": "/api/v1/fields/{field_id}/terrain @ services/sahool-platform/api/routers/fields.py:1057",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/timeline @ services/sahool-platform/api/routers/fields.py:3758",
+          "value": "/api/v1/fields/{field_id}/timeline @ services/sahool-platform/api/routers/fields.py:3717",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/trueup @ services/sahool-platform/api/routers/fields.py:3564",
+          "value": "/api/v1/fields/{field_id}/trueup @ services/sahool-platform/api/routers/fields.py:3523",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/walk-plan @ services/sahool-platform/api/routers/fields.py:3978",
+          "value": "/api/v1/fields/{field_id}/walk-plan @ services/sahool-platform/api/routers/fields.py:3937",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/walk-plan/pdf @ services/sahool-platform/api/routers/fields.py:3988",
+          "value": "/api/v1/fields/{field_id}/walk-plan/pdf @ services/sahool-platform/api/routers/fields.py:3947",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:4021",
+          "value": "/api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:3980",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/wind/drift-risk @ services/sahool-platform/api/routers/fields.py:2777",
+          "value": "/api/v1/fields/{field_id}/wind/drift-risk @ services/sahool-platform/api/routers/fields.py:2736",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/wind/prevailing @ services/sahool-platform/api/routers/fields.py:2702",
+          "value": "/api/v1/fields/{field_id}/wind/prevailing @ services/sahool-platform/api/routers/fields.py:2661",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/workspace @ services/sahool-platform/api/routers/fields.py:1189",
+          "value": "/api/v1/fields/{field_id}/workspace @ services/sahool-platform/api/routers/fields.py:1148",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/yield-estimate @ services/sahool-platform/api/routers/fields.py:3685",
+          "value": "/api/v1/fields/{field_id}/yield-estimate @ services/sahool-platform/api/routers/fields.py:3644",
           "score": 19
         },
         {
-          "value": "/api/v1/fields/{field_id}/zones @ services/sahool-platform/api/routers/fields.py:4007",
+          "value": "/api/v1/fields/{field_id}/zones @ services/sahool-platform/api/routers/fields.py:3966",
           "score": 19
         },
         {
@@ -7254,83 +7254,83 @@
       ],
       "events": [
         {
-          "value": "field.create @ services/sahool-platform/api/routers/fields.py:562",
+          "value": "field.create @ services/sahool-platform/api/routers/fields.py:521",
           "score": 19
         },
         {
-          "value": "field.created @ services/sahool-platform/api/routers/fields.py:229",
+          "value": "field.created @ services/sahool-platform/api/routers/fields.py:176",
           "score": 19
         },
         {
-          "value": "field.created @ services/sahool-platform/api/routers/fields.py:552",
+          "value": "field.created @ services/sahool-platform/api/routers/fields.py:511",
           "score": 19
         },
         {
-          "value": "field.created @ services/sahool-platform/api/routers/fields.py:621",
+          "value": "field.created @ services/sahool-platform/api/routers/fields.py:580",
           "score": 19
         },
         {
-          "value": "field.created @ services/sahool-platform/api/routers/fields.py:685",
+          "value": "field.created @ services/sahool-platform/api/routers/fields.py:644",
           "score": 19
         },
         {
-          "value": "field.geometry.reverted @ services/sahool-platform/api/routers/fields.py:1688",
+          "value": "field.geometry.reverted @ services/sahool-platform/api/routers/fields.py:1647",
           "score": 19
         },
         {
-          "value": "field.geometry.reverted @ services/sahool-platform/api/routers/fields.py:1697",
+          "value": "field.geometry.reverted @ services/sahool-platform/api/routers/fields.py:1656",
           "score": 19
         },
         {
-          "value": "field.geometry.reverted @ services/sahool-platform/api/routers/fields.py:1717",
+          "value": "field.geometry.reverted @ services/sahool-platform/api/routers/fields.py:1676",
           "score": 19
         },
         {
-          "value": "field.geometry.updated @ services/sahool-platform/api/routers/fields.py:1518",
+          "value": "field.geometry.updated @ services/sahool-platform/api/routers/fields.py:1477",
           "score": 19
         },
         {
-          "value": "field.geometry.updated @ services/sahool-platform/api/routers/fields.py:1561",
+          "value": "field.geometry.updated @ services/sahool-platform/api/routers/fields.py:1520",
           "score": 19
         },
         {
-          "value": "field.merge @ services/sahool-platform/api/routers/fields.py:1952",
+          "value": "field.merge @ services/sahool-platform/api/routers/fields.py:1911",
           "score": 19
         },
         {
-          "value": "field.merged @ services/sahool-platform/api/routers/fields.py:1921",
+          "value": "field.merged @ services/sahool-platform/api/routers/fields.py:1880",
           "score": 19
         },
         {
-          "value": "field.merged @ services/sahool-platform/api/routers/fields.py:1968",
+          "value": "field.merged @ services/sahool-platform/api/routers/fields.py:1927",
           "score": 19
         },
         {
-          "value": "field.split @ services/sahool-platform/api/routers/fields.py:2056",
+          "value": "field.split @ services/sahool-platform/api/routers/fields.py:2015",
           "score": 19
         },
         {
-          "value": "field.split @ services/sahool-platform/api/routers/fields.py:2083",
+          "value": "field.split @ services/sahool-platform/api/routers/fields.py:2042",
           "score": 19
         },
         {
-          "value": "field.split @ services/sahool-platform/api/routers/fields.py:2104",
+          "value": "field.split @ services/sahool-platform/api/routers/fields.py:2063",
           "score": 19
         },
         {
-          "value": "field.update @ services/sahool-platform/api/routers/fields.py:1542",
+          "value": "field.update @ services/sahool-platform/api/routers/fields.py:1501",
           "score": 19
         },
         {
-          "value": "field.updated @ services/sahool-platform/api/routers/fields.py:1510",
+          "value": "field.updated @ services/sahool-platform/api/routers/fields.py:1469",
           "score": 19
         },
         {
-          "value": "field.updated @ services/sahool-platform/api/routers/fields.py:1530",
+          "value": "field.updated @ services/sahool-platform/api/routers/fields.py:1489",
           "score": 19
         },
         {
-          "value": "soil_lab.published @ services/sahool-platform/api/routers/fields.py:3462",
+          "value": "soil_lab.published @ services/sahool-platform/api/routers/fields.py:3421",
           "score": 19
         },
         {
@@ -9652,195 +9652,195 @@
           "score": 20
         },
         {
-          "value": "/api/v1/fields @ services/sahool-platform/api/routers/fields.py:579",
+          "value": "/api/v1/fields @ services/sahool-platform/api/routers/fields.py:538",
           "score": 18
         },
         {
-          "value": "/api/v1/fields @ services/sahool-platform/api/routers/fields.py:602",
+          "value": "/api/v1/fields @ services/sahool-platform/api/routers/fields.py:561",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/import @ services/sahool-platform/api/routers/fields.py:626",
+          "value": "/api/v1/fields/import @ services/sahool-platform/api/routers/fields.py:585",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/merge @ services/sahool-platform/api/routers/fields.py:1848",
+          "value": "/api/v1/fields/merge @ services/sahool-platform/api/routers/fields.py:1807",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/split @ services/sahool-platform/api/routers/fields.py:1973",
+          "value": "/api/v1/fields/split @ services/sahool-platform/api/routers/fields.py:1932",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/validate-geometry @ services/sahool-platform/api/routers/fields.py:3623",
+          "value": "/api/v1/fields/validate-geometry @ services/sahool-platform/api/routers/fields.py:3582",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1073",
+          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1032",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1277",
+          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1236",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1278",
+          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1237",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1722",
+          "value": "/api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1681",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/activities @ services/sahool-platform/api/routers/fields.py:2954",
+          "value": "/api/v1/fields/{field_id}/activities @ services/sahool-platform/api/routers/fields.py:2913",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/activities @ services/sahool-platform/api/routers/fields.py:3092",
+          "value": "/api/v1/fields/{field_id}/activities @ services/sahool-platform/api/routers/fields.py:3051",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/alerts/derived @ services/sahool-platform/api/routers/fields.py:4081",
+          "value": "/api/v1/fields/{field_id}/alerts/derived @ services/sahool-platform/api/routers/fields.py:4040",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/alerts/evaluate @ services/sahool-platform/api/routers/fields.py:3476",
+          "value": "/api/v1/fields/{field_id}/alerts/evaluate @ services/sahool-platform/api/routers/fields.py:3435",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/geometry/history @ services/sahool-platform/api/routers/fields.py:1566",
+          "value": "/api/v1/fields/{field_id}/geometry/history @ services/sahool-platform/api/routers/fields.py:1525",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/geometry/revert/{revision} @ services/sahool-platform/api/routers/fields.py:1613",
+          "value": "/api/v1/fields/{field_id}/geometry/revert/{revision} @ services/sahool-platform/api/routers/fields.py:1572",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/growth-narrative @ services/sahool-platform/api/routers/fields.py:3226",
+          "value": "/api/v1/fields/{field_id}/growth-narrative @ services/sahool-platform/api/routers/fields.py:3185",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/history @ services/sahool-platform/api/routers/fields.py:3778",
+          "value": "/api/v1/fields/{field_id}/history @ services/sahool-platform/api/routers/fields.py:3737",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/imagery/backfill @ services/sahool-platform/api/routers/fields.py:967",
+          "value": "/api/v1/fields/{field_id}/imagery/backfill @ services/sahool-platform/api/routers/fields.py:926",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:1039",
+          "value": "/api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:998",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/imagery/process-date @ services/sahool-platform/api/routers/fields.py:708",
+          "value": "/api/v1/fields/{field_id}/imagery/process-date @ services/sahool-platform/api/routers/fields.py:667",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/imagery/refresh @ services/sahool-platform/api/routers/fields.py:764",
+          "value": "/api/v1/fields/{field_id}/imagery/refresh @ services/sahool-platform/api/routers/fields.py:723",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/input-traceability @ services/sahool-platform/api/routers/fields.py:3121",
+          "value": "/api/v1/fields/{field_id}/input-traceability @ services/sahool-platform/api/routers/fields.py:3080",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/pins @ services/sahool-platform/api/routers/fields.py:3895",
+          "value": "/api/v1/fields/{field_id}/pins @ services/sahool-platform/api/routers/fields.py:3854",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/prescriptions/nitrogen @ services/sahool-platform/api/routers/fields.py:3656",
+          "value": "/api/v1/fields/{field_id}/prescriptions/nitrogen @ services/sahool-platform/api/routers/fields.py:3615",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/recommendations @ services/sahool-platform/api/routers/fields.py:2856",
+          "value": "/api/v1/fields/{field_id}/recommendations @ services/sahool-platform/api/routers/fields.py:2815",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3495",
+          "value": "/api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3454",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3537",
+          "value": "/api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3496",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2109",
+          "value": "/api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2068",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2320",
+          "value": "/api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2279",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/seasons/{season_id} @ services/sahool-platform/api/routers/fields.py:2347",
+          "value": "/api/v1/fields/{field_id}/seasons/{season_id} @ services/sahool-platform/api/routers/fields.py:2306",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/soil-lab-tests @ services/sahool-platform/api/routers/fields.py:3266",
+          "value": "/api/v1/fields/{field_id}/soil-lab-tests @ services/sahool-platform/api/routers/fields.py:3225",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/soil-lab-tests @ services/sahool-platform/api/routers/fields.py:3325",
+          "value": "/api/v1/fields/{field_id}/soil-lab-tests @ services/sahool-platform/api/routers/fields.py:3284",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/soil-lab-tests/{test_id} @ services/sahool-platform/api/routers/fields.py:3349",
+          "value": "/api/v1/fields/{field_id}/soil-lab-tests/{test_id} @ services/sahool-platform/api/routers/fields.py:3308",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/soil-moisture @ services/sahool-platform/api/routers/fields.py:2516",
+          "value": "/api/v1/fields/{field_id}/soil-moisture @ services/sahool-platform/api/routers/fields.py:2475",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/state @ services/sahool-platform/api/routers/fields.py:4053",
+          "value": "/api/v1/fields/{field_id}/state @ services/sahool-platform/api/routers/fields.py:4012",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/state/full @ services/sahool-platform/api/routers/fields.py:4107",
+          "value": "/api/v1/fields/{field_id}/state/full @ services/sahool-platform/api/routers/fields.py:4066",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/terrain @ services/sahool-platform/api/routers/fields.py:1098",
+          "value": "/api/v1/fields/{field_id}/terrain @ services/sahool-platform/api/routers/fields.py:1057",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/timeline @ services/sahool-platform/api/routers/fields.py:3758",
+          "value": "/api/v1/fields/{field_id}/timeline @ services/sahool-platform/api/routers/fields.py:3717",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/trueup @ services/sahool-platform/api/routers/fields.py:3564",
+          "value": "/api/v1/fields/{field_id}/trueup @ services/sahool-platform/api/routers/fields.py:3523",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/walk-plan @ services/sahool-platform/api/routers/fields.py:3978",
+          "value": "/api/v1/fields/{field_id}/walk-plan @ services/sahool-platform/api/routers/fields.py:3937",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/walk-plan/pdf @ services/sahool-platform/api/routers/fields.py:3988",
+          "value": "/api/v1/fields/{field_id}/walk-plan/pdf @ services/sahool-platform/api/routers/fields.py:3947",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:4021",
+          "value": "/api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:3980",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/wind/drift-risk @ services/sahool-platform/api/routers/fields.py:2777",
+          "value": "/api/v1/fields/{field_id}/wind/drift-risk @ services/sahool-platform/api/routers/fields.py:2736",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/wind/prevailing @ services/sahool-platform/api/routers/fields.py:2702",
+          "value": "/api/v1/fields/{field_id}/wind/prevailing @ services/sahool-platform/api/routers/fields.py:2661",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/workspace @ services/sahool-platform/api/routers/fields.py:1189",
+          "value": "/api/v1/fields/{field_id}/workspace @ services/sahool-platform/api/routers/fields.py:1148",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/yield-estimate @ services/sahool-platform/api/routers/fields.py:3685",
+          "value": "/api/v1/fields/{field_id}/yield-estimate @ services/sahool-platform/api/routers/fields.py:3644",
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/zones @ services/sahool-platform/api/routers/fields.py:4007",
+          "value": "/api/v1/fields/{field_id}/zones @ services/sahool-platform/api/routers/fields.py:3966",
           "score": 18
         },
         {
@@ -10048,83 +10048,83 @@
           "score": 26
         },
         {
-          "value": "field.create @ services/sahool-platform/api/routers/fields.py:562",
+          "value": "field.create @ services/sahool-platform/api/routers/fields.py:521",
           "score": 18
         },
         {
-          "value": "field.created @ services/sahool-platform/api/routers/fields.py:229",
+          "value": "field.created @ services/sahool-platform/api/routers/fields.py:176",
           "score": 18
         },
         {
-          "value": "field.created @ services/sahool-platform/api/routers/fields.py:552",
+          "value": "field.created @ services/sahool-platform/api/routers/fields.py:511",
           "score": 18
         },
         {
-          "value": "field.created @ services/sahool-platform/api/routers/fields.py:621",
+          "value": "field.created @ services/sahool-platform/api/routers/fields.py:580",
           "score": 18
         },
         {
-          "value": "field.created @ services/sahool-platform/api/routers/fields.py:685",
+          "value": "field.created @ services/sahool-platform/api/routers/fields.py:644",
           "score": 18
         },
         {
-          "value": "field.geometry.reverted @ services/sahool-platform/api/routers/fields.py:1688",
+          "value": "field.geometry.reverted @ services/sahool-platform/api/routers/fields.py:1647",
           "score": 18
         },
         {
-          "value": "field.geometry.reverted @ services/sahool-platform/api/routers/fields.py:1697",
+          "value": "field.geometry.reverted @ services/sahool-platform/api/routers/fields.py:1656",
           "score": 18
         },
         {
-          "value": "field.geometry.reverted @ services/sahool-platform/api/routers/fields.py:1717",
+          "value": "field.geometry.reverted @ services/sahool-platform/api/routers/fields.py:1676",
           "score": 18
         },
         {
-          "value": "field.geometry.updated @ services/sahool-platform/api/routers/fields.py:1518",
+          "value": "field.geometry.updated @ services/sahool-platform/api/routers/fields.py:1477",
           "score": 18
         },
         {
-          "value": "field.geometry.updated @ services/sahool-platform/api/routers/fields.py:1561",
+          "value": "field.geometry.updated @ services/sahool-platform/api/routers/fields.py:1520",
           "score": 18
         },
         {
-          "value": "field.merge @ services/sahool-platform/api/routers/fields.py:1952",
+          "value": "field.merge @ services/sahool-platform/api/routers/fields.py:1911",
           "score": 18
         },
         {
-          "value": "field.merged @ services/sahool-platform/api/routers/fields.py:1921",
+          "value": "field.merged @ services/sahool-platform/api/routers/fields.py:1880",
           "score": 18
         },
         {
-          "value": "field.merged @ services/sahool-platform/api/routers/fields.py:1968",
+          "value": "field.merged @ services/sahool-platform/api/routers/fields.py:1927",
           "score": 18
         },
         {
-          "value": "field.split @ services/sahool-platform/api/routers/fields.py:2056",
+          "value": "field.split @ services/sahool-platform/api/routers/fields.py:2015",
           "score": 18
         },
         {
-          "value": "field.split @ services/sahool-platform/api/routers/fields.py:2083",
+          "value": "field.split @ services/sahool-platform/api/routers/fields.py:2042",
           "score": 18
         },
         {
-          "value": "field.split @ services/sahool-platform/api/routers/fields.py:2104",
+          "value": "field.split @ services/sahool-platform/api/routers/fields.py:2063",
           "score": 18
         },
         {
-          "value": "field.update @ services/sahool-platform/api/routers/fields.py:1542",
+          "value": "field.update @ services/sahool-platform/api/routers/fields.py:1501",
           "score": 18
         },
         {
-          "value": "field.updated @ services/sahool-platform/api/routers/fields.py:1510",
+          "value": "field.updated @ services/sahool-platform/api/routers/fields.py:1469",
           "score": 18
         },
         {
-          "value": "field.updated @ services/sahool-platform/api/routers/fields.py:1530",
+          "value": "field.updated @ services/sahool-platform/api/routers/fields.py:1489",
           "score": 18
         },
         {
-          "value": "soil_lab.published @ services/sahool-platform/api/routers/fields.py:3462",
+          "value": "soil_lab.published @ services/sahool-platform/api/routers/fields.py:3421",
           "score": 18
         },
         {
@@ -11977,7 +11977,7 @@
           "score": 20
         },
         {
-          "value": "/internal/events/ai-advice @ services/sahool-platform/api/routers/internal_service.py:163",
+          "value": "/internal/events/ai-advice @ services/sahool-platform/api/routers/internal_service.py:180",
           "score": 20
         },
         {
@@ -16970,7 +16970,7 @@
           "score": 18
         },
         {
-          "value": "sahool.imagery_automation @ services/sahool-platform/api/imagery_automation.py:42",
+          "value": "sahool.imagery_automation @ services/sahool-platform/api/imagery_automation.py:43",
           "score": 18
         },
         {
@@ -18685,7 +18685,7 @@
           "score": 12
         },
         {
-          "value": "/api/v1/fields/{field_id}/ai-context-pack @ services/sahool-platform/api/routers/field_ai_context.py:701",
+          "value": "/api/v1/fields/{field_id}/ai-context-pack @ services/sahool-platform/api/routers/field_ai_context.py:651",
           "score": 12
         },
         {
@@ -18817,7 +18817,7 @@
           "score": 12
         },
         {
-          "value": "/v1/recommend @ services/agriai-engine/main.py:246",
+          "value": "/v1/recommend @ services/agriai-engine/main.py:242",
           "score": 12
         },
         {
@@ -19195,7 +19195,27 @@
           "score": 12
         },
         {
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:108",
+          "score": 12
+        },
+        {
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:205",
+          "score": 12
+        },
+        {
           "value": "canonical_field_state.v1 @ services/sahool-platform/core/field_digital_twin.py:69",
+          "score": 12
+        },
+        {
+          "value": "canonical_field_state.v1 @ tests_v9/test_readiness_software_repairs.py:252",
+          "score": 12
+        },
+        {
+          "value": "canonical_field_state.v1 @ tests_v9/test_readiness_software_repairs.py:266",
+          "score": 12
+        },
+        {
+          "value": "canonical_field_state.v1 @ tests_v9/test_readiness_software_repairs.py:276",
           "score": 12
         },
         {
@@ -19548,26 +19568,6 @@
         },
         {
           "value": "operation.irrigation.completed @ tests_v9/test_event_replay.py:41",
-          "score": 12
-        },
-        {
-          "value": "operation.irrigation.completed @ tests_v9/test_event_replay.py:46",
-          "score": 12
-        },
-        {
-          "value": "operation.irrigation.completed @ tests_v9/test_v10_modules.py:283",
-          "score": 12
-        },
-        {
-          "value": "operation.irrigation.completed @ tests_v9/test_v10_modules.py:284",
-          "score": 12
-        },
-        {
-          "value": "operation.irrigation.completed @ tests_v9/test_wired_endpoints.py:218",
-          "score": 12
-        },
-        {
-          "value": "operation.irrigation.start @ services/sahool-platform/tests/test_yield_heuristics.py:134",
           "score": 12
         }
       ],
@@ -21534,7 +21534,7 @@
       "production_certified": false,
       "evidence_truncated": {
         "backend": 23,
-        "events": 40,
+        "events": 45,
         "tests": 74
       },
       "evidence_counts": {
@@ -28827,6 +28827,14 @@
           "score": 15
         },
         {
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:108",
+          "score": 15
+        },
+        {
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:205",
+          "score": 15
+        },
+        {
           "value": "soil_render.py @ tests_v9/test_soil_layer_v31_7.py:19",
           "score": 15
         },
@@ -28839,7 +28847,7 @@
           "score": 15
         },
         {
-          "value": "sahool.ai.model @ frontend/src/sections/ChatbotPage.tsx:99",
+          "value": "sahool.ai.model @ frontend/src/sections/ChatbotPage.tsx:100",
           "score": 11
         },
         {
@@ -29184,7 +29192,7 @@
         "backend": 14,
         "routes": 35,
         "database": 9,
-        "events": 6,
+        "events": 8,
         "web": 5,
         "mobile": 0,
         "tests": 11,
@@ -29924,7 +29932,7 @@
           "score": 16
         },
         {
-          "value": "/api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:396",
+          "value": "/api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:405",
           "score": 16
         },
         {
@@ -30882,7 +30890,7 @@
           "score": 16
         },
         {
-          "value": "/api/v1/fields/{field_id}/ai-context-pack @ services/sahool-platform/api/routers/field_ai_context.py:701",
+          "value": "/api/v1/fields/{field_id}/ai-context-pack @ services/sahool-platform/api/routers/field_ai_context.py:651",
           "score": 15
         }
       ],
@@ -30908,7 +30916,16 @@
           ]
         }
       ],
-      "events": [],
+      "events": [
+        {
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:108",
+          "score": 12
+        },
+        {
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:205",
+          "score": 12
+        }
+      ],
       "web": [],
       "mobile": [],
       "tests": [
@@ -30982,14 +30999,14 @@
         "backend": 4,
         "routes": 6,
         "database": 4,
-        "events": 0,
+        "events": 2,
         "web": 0,
         "mobile": 0,
         "tests": 4,
         "governance": 0,
         "other_evidence": 3
       },
-      "coverage_dimensions": 4,
+      "coverage_dimensions": 5,
       "mapped": true
     },
     {
@@ -31485,7 +31502,7 @@
           "score": 12
         },
         {
-          "value": "/api/v1/fields/{field_id}/ai-context-pack @ services/sahool-platform/api/routers/field_ai_context.py:701",
+          "value": "/api/v1/fields/{field_id}/ai-context-pack @ services/sahool-platform/api/routers/field_ai_context.py:651",
           "score": 12
         },
         {
@@ -31804,10 +31821,6 @@
           "score": 12
         },
         {
-          "value": "sahool.ai.model @ frontend/src/sections/ChatbotPage.tsx:99",
-          "score": 12
-        },
-        {
           "value": "sahool.api.openmeteo @ services/sahool-platform/api/connectors/openmeteo.py:35",
           "score": 12
         },
@@ -32059,14 +32072,6 @@
         },
         {
           "path": "frontend/src/lib/districtsWeather.ts",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
-          "path": "frontend/src/sections/ChatbotPage.tsx",
           "score": 12,
           "signals": [
             "content:ET0",
@@ -32878,8 +32883,8 @@
         "backend": 58,
         "routes": 48,
         "database": 0,
-        "events": 90,
-        "web": 19,
+        "events": 89,
+        "web": 18,
         "mobile": 0,
         "tests": 59,
         "governance": 0,
@@ -35134,6 +35139,14 @@
       "database": [],
       "events": [
         {
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:108",
+          "score": 12
+        },
+        {
+          "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:205",
+          "score": 12
+        },
+        {
           "value": "field_workspace_imagery.py @ services/sahool-platform/tests/test_ui27_backend_facades_guard.py:13",
           "score": 10
         }
@@ -35187,7 +35200,7 @@
         "backend": 2,
         "routes": 6,
         "database": 0,
-        "events": 1,
+        "events": 3,
         "web": 0,
         "mobile": 0,
         "tests": 2,
@@ -46931,14 +46944,6 @@
       "kind": "web",
       "candidates": [
         {
-          "capability_id": "WX-004",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
           "capability_id": "SAT-003",
           "score": 12,
           "signals": [
@@ -53474,28 +53479,6 @@
           "signals": [
             "content:ET0",
             "content:et0"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "tests_v9/test_agriai_engine_features_20260702.py",
-      "kind": "tests",
-      "candidates": [
-        {
-          "capability_id": "WX-006",
-          "score": 12,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
-          "capability_id": "SAT-003",
-          "score": 10,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
           ]
         }
       ]

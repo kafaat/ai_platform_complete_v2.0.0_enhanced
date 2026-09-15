@@ -6001,3 +6001,7 @@ C01..C14؛ لا تُرفع قدرة إلى runtime_verified أو production_cert
 | المعرّف | الفجوة | النطاق | المصدر | الحالة والدليل |
 |---|---|---|---|---|
 | REPORT4-LEARNING-IDENTITY-WARNING-PRESENTATION-01 | مراجعة #1004 على `f85f40be`: لوحة التعلم تكرر تحذير الصفوف المجهولة، والتحذير الشامل لا يذكر العدد والمقام. | frontend/learning | `services/sahool-platform/api/evidence_registry.py` · `frontend/src/sections/LearningDashboardPage.tsx` · review 5201957328 | **fixed** محلياً في متابعة مستقلة: تحذير خادم واحد معدود لكل صفوف مجهولة، مع إبقاء العدادات وتحذير ضيق النطاق؛ 25 اختبار Python و20 اختبار واجهة وTypeScript ناجحة. `docs/testing/LEARNING_DASHBOARD_EVIDENCE_20260914.md`، قسم المتابعة المستقلة. CI مستقل عند النشر. |
+
+## READINESS-SOFTWARE-20260915-01 — إصلاحات تدقيق الجاهزية
+
+**الحالة: open — إغلاق برمجي جزئي موثّق.** [المصدر والاختبارات وحدود كل بند](../../docs/testing/readiness_software_repairs_20260915.md). إصلاحات السياق والراستر والمصادقة والمراحل محققة محلياً كما يبيّن الدليل؛ B6 محتوى باحتواء نشر النص غير المتحقق، وM4 يعالج دوام تسجيل الصور فقط. اعتماد corpus والتشغيل الحي وonboarding الكامل ومدخلات المالية باقية.

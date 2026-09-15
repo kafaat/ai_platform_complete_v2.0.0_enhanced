@@ -299,7 +299,7 @@ def certify(
         "POST",
         f"{rag_url.rstrip('/')}/v1/search",
         payload={"tenant_id": tenant_id + "-other", "query": hybrid_query, "final_k": 5},
-        headers={"X-Tenant-Id": tenant_id},
+        headers={"X-Tenant-Id": tenant_id, "X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")},
         timeout_s=timeout_s,
     )
     checks.append(
@@ -312,7 +312,10 @@ def certify(
         "POST",
         f"{rag_url.rstrip('/')}/v1/search",
         payload={"tenant_id": GLOBAL_REFERENCE_TENANT, "query": hybrid_query, "final_k": 5},
-        headers={"X-Tenant-Id": GLOBAL_REFERENCE_TENANT},
+        headers={
+            "X-Tenant-Id": GLOBAL_REFERENCE_TENANT,
+            "X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", ""),
+        },
         timeout_s=timeout_s,
     )
     checks.append(
@@ -325,7 +328,7 @@ def certify(
         "POST",
         f"{rag_url.rstrip('/')}/v1/search",
         payload={"tenant_id": tenant_id, "query": hybrid_query, "final_k": 5},
-        headers={"X-Tenant-Id": tenant_id},
+        headers={"X-Tenant-Id": tenant_id, "X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")},
         timeout_s=timeout_s,
     )
     annotations = (hybrid.body or {}).get("annotations") if hybrid.status == 200 else None

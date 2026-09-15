@@ -14,8 +14,13 @@ from core.rag.production_qdrant import (
 from fastapi import Depends, FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 
+from shared.security.access_tokens import access_token_verification_key, verify_access_token
 from shared.security.gateway_deps import require_service_token
-from shared.security.trusted_tenant import TrustedTenantError, resolve_trusted_tenant
+from shared.security.trusted_tenant import (
+    TrustedTenantError,
+    resolve_trusted_tenant,
+    service_token_ok,
+)
 
 app = FastAPI(title="SAHOOL Production RAG Retrieval", version="2026.2")
 QDRANT_URL = os.getenv("QDRANT_URL", "http://sahool-qdrant:6333")
@@ -203,19 +208,49 @@ async def ingest(
         raise HTTPException(502, str(exc)) from exc
 
 
+def _verify_search_user(authorization: str) -> str:
+    """Verify the auth-issued token with the shared verifier; gateway checks revocation."""
+    try:
+        access_token_verification_key()
+    except ValueError as exc:
+        raise HTTPException(503, "rag_search_authentication_unavailable") from exc
+    try:
+        claims = verify_access_token(authorization.split(None, 1)[1].strip())
+    except (ValueError, IndexError) as exc:
+        raise HTTPException(403, "rag_search_authentication_failed") from exc
+    return claims["tenant_id"]
+
+
+async def _search_identity(
+    x_agent_token: str | None = Header(default=None, alias="X-Agent-Token"),
+    authorization: str | None = Header(default=None),
+    x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
+) -> str:
+    if service_token_ok(x_agent_token, os.getenv("SAHOOL_AGENT_TOKEN", "")):
+        trusted = x_tenant_id
+    elif authorization and authorization.lower().startswith("bearer "):
+        trusted = _verify_search_user(authorization)
+        if x_tenant_id and trusted != x_tenant_id.strip():
+            raise HTTPException(403, "tenant_mismatch")
+    else:
+        raise HTTPException(403, "rag_search_authentication_required")
+    try:
+        return resolve_trusted_tenant(trusted, None)
+    except TrustedTenantError as exc:
+        raise HTTPException(403, exc.code) from exc
+
+
 @app.post("/v1/search")
-async def search(
-    req: SearchRequest, x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id")
-):
-    # SEC-3: the gateway-injected X-Tenant-Id is the ONLY tenant source of truth.
-    # The body tenant_id may only echo it; a missing header or a body mismatch
-    # fails closed with 403 (prevents cross-tenant retrieval via a spoofed body).
+async def search(req: SearchRequest, x_tenant_id: str = Depends(_search_identity)):
+    # The body may only echo the verified JWT tenant or authenticated service tenant.
     try:
         tenant_id = resolve_trusted_tenant(x_tenant_id, req.tenant_id)
     except TrustedTenantError as exc:
         raise HTTPException(status_code=403, detail=exc.code) from exc
     if tenant_id == GLOBAL_REFERENCE_TENANT:
         raise HTTPException(status_code=403, detail="GLOBAL_REFERENCE_TENANT_RESERVED")
+    if tenant_id == "__seed_quarantine__":
+        raise HTTPException(status_code=403, detail="SEED_QUARANTINE_TENANT_RESERVED")
     try:
         _ensure_sparse_index()
     except Exception as exc:  # noqa: BLE001

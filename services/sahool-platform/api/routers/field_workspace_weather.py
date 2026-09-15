@@ -348,6 +348,15 @@ async def field_irrigation_advice_facade(
     except Exception as exc:  # noqa: BLE001
         raise _db_unavailable("قراءة سياق الحقل", exc) from exc
 
+    if stage is None:
+        raise HTTPException(
+            422,
+            {
+                "code": "FIELD_GROWTH_STAGE_UNAVAILABLE",
+                "message_ar": "يلزم موسم وتاريخ زراعة صالحان لحساب احتياج الري.",
+            },
+        )
+
     try:
         forecast = await get_weather_forecast(lat, lon, days=3)
         current = await get_current_weather(lat, lon)

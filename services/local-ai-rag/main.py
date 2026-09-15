@@ -112,6 +112,12 @@ _llm: ChatOllama | None = None
 # ══════════════════════════════════════════════════════════════
 # Ollama Health Check
 # ══════════════════════════════════════════════════════════════
+def _model_name(name: str) -> str:
+    """Ollama returns an explicit latest tag for untagged requests."""
+    name = name.strip()
+    return name if ":" in name.rsplit("/", 1)[-1] else f"{name}:latest"
+
+
 async def wait_for_ollama(timeout: float = 120.0):
     start = asyncio.get_event_loop().time()
     async with httpx.AsyncClient(timeout=60.0) as client:
@@ -120,20 +126,24 @@ async def wait_for_ollama(timeout: float = 120.0):
                 r = await client.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=5.0)
                 if r.status_code == 200:
                     models = r.json().get("models", [])
-                    model_names = [m.get("name", "") for m in models]
-                    if LLM_MODEL in model_names and EMBED_MODEL in model_names:
+                    model_names = {_model_name(m.get("name", "")) for m in models}
+                    missing = [
+                        m for m in (LLM_MODEL, EMBED_MODEL) if _model_name(m) not in model_names
+                    ]
+                    if not missing:
                         logger.info(f"Ollama ready. Models: {model_names}")
                         return True
                     # النماذج غير حاضرة بعد: نطلب السحب ثمّ **نعيد الفحص** في الدورة
                     # التالية. لا نُرجِع True هنا (كان يُعلِن الجاهزيّة زوراً قبل اكتمال
                     # السحب، فيفشل أوّل /query بـ500 بدل انتظار صادق).
                     logger.info(f"Ollama up. Pulling {LLM_MODEL} + {EMBED_MODEL}...")
-                    await client.post(
-                        f"{OLLAMA_BASE_URL}/api/pull", json={"name": LLM_MODEL}, timeout=300.0
-                    )
-                    await client.post(
-                        f"{OLLAMA_BASE_URL}/api/pull", json={"name": EMBED_MODEL}, timeout=300.0
-                    )
+                    for model in dict.fromkeys(missing):
+                        response = await client.post(
+                            f"{OLLAMA_BASE_URL}/api/pull",
+                            json={"name": model, "stream": False},
+                            timeout=300.0,
+                        )
+                        response.raise_for_status()
             except Exception as e:  # noqa: BLE001
                 logger.warning("تعذّر سحب نماذج Ollama (محاولة): %s", type(e).__name__)
             await asyncio.sleep(5)
@@ -329,7 +339,7 @@ async def _shadow_canonical_retrieval(
             response = await client.post(
                 f"{RAG_RETRIEVAL_URL}/v1/search",
                 json=payload,
-                headers={"X-Tenant-Id": tenant_id},
+                headers={"X-Tenant-Id": tenant_id, "X-Agent-Token": AGENT_TOKEN},
             )
         response.raise_for_status()
         annotations = response.json().get("annotations") or []

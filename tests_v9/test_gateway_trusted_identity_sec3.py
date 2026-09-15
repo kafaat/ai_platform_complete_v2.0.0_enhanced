@@ -313,23 +313,30 @@ def _rag_search_body(tenant="tenant-1"):
     return {"tenant_id": tenant, "query": "q"}
 
 
-def test_rag_search_missing_header_rejected():
+def test_rag_search_missing_header_rejected(monkeypatch):
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "unit-rag-token")
     _M, client = _rag_client()
-    r = client.post("/v1/search", json=_rag_search_body())
+    r = client.post(
+        "/v1/search", json=_rag_search_body(), headers={"X-Agent-Token": "unit-rag-token"}
+    )
     assert r.status_code == 403
     assert r.json()["detail"] == ERROR_MISSING_TENANT
 
 
-def test_rag_search_body_mismatch_rejected():
+def test_rag_search_body_mismatch_rejected(monkeypatch):
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "unit-rag-token")
     _M, client = _rag_client()
     r = client.post(
-        "/v1/search", json=_rag_search_body("tenant-EVIL"), headers={"X-Tenant-Id": "tenant-1"}
+        "/v1/search",
+        json=_rag_search_body("tenant-EVIL"),
+        headers={"X-Tenant-Id": "tenant-1", "X-Agent-Token": "unit-rag-token"},
     )
     assert r.status_code == 403
     assert r.json()["detail"] == ERROR_TENANT_MISMATCH
 
 
 def test_rag_search_matching_tenant_uses_trusted_value(monkeypatch):
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "unit-rag-token")
     M, client = _rag_client()
     captured = {}
 
@@ -346,7 +353,9 @@ def test_rag_search_matching_tenant_uses_trusted_value(monkeypatch):
     # حين يتعذّر ترطيب BM25 مقصودٌ ويبقى مفروضاً في كلّ مسارٍ آخر، ومُثبَتٌ بالزرع.
     monkeypatch.setattr(M, "_sparse_ready", True, raising=False)
     r = client.post(
-        "/v1/search", json=_rag_search_body("tenant-1"), headers={"X-Tenant-Id": "tenant-1"}
+        "/v1/search",
+        json=_rag_search_body("tenant-1"),
+        headers={"X-Tenant-Id": "tenant-1", "X-Agent-Token": "unit-rag-token"},
     )
     assert r.status_code == 200
     assert captured["tenant_id"] == "tenant-1"

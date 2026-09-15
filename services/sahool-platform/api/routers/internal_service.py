@@ -67,6 +67,7 @@ async def internal_field_state(
             "لا fallback إلى execution_ledger."
         ),
     ),
+    ai_context: bool = Query(False, description="Attach the platform-owned AI context and policy."),
     _: None = Depends(_require_service_token),
 ):
     """الحالة القانونيّة للحقل لقنوات الخدمة (supervisor→guardrails).
@@ -100,12 +101,28 @@ async def internal_field_state(
         raise
     except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
         raise main._db_unavailable("قراءة الحالة القانونيّة (خدمة)", e) from e
-    if canonical_state is None:
+    context_pack = None
+    if ai_context is True:
+        from api.routers.field_ai_context import field_ai_context_pack
+
+        context_pack = await field_ai_context_pack(
+            field_id,
+            days=730,
+            include_weather=True,
+            include_imagery=True,
+            include_events=True,
+            user=_ServiceUser(tenant_id),
+        )
+        if hasattr(context_pack, "model_dump"):
+            context_pack = context_pack.model_dump(mode="json")
+    if canonical_state is None and context_pack is None:
         return result["state"]
 
     # الحالة تُركَّب داخليّاً لتغذية التوأم/التعلّم، لكنّ إرفاقها في الاستجابة يحكمه
     # عقد المعاملَين وحدهما: canonical صراحةً، أو twin (المشتقّ منها فيرافقها دليلاً).
     response = {"state": result["state"]}
+    if context_pack is not None:
+        response["ai_context_pack"] = context_pack
     if canonical or twin:
         response["canonical_field_state"] = canonical_state
     if twin:

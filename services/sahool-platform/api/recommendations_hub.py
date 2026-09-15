@@ -71,7 +71,7 @@ class RecommendationContext:
 
     field_id: str
     crop: str | None = None
-    stage: str = "mid"
+    stage: str | None = None
     today: date | None = None  # لحساب نافذة الحصاد (افتراضيّاً اليوم الفعليّ)
     sowing_date: date | None = None
     # سياق الطقس (من Open-Meteo) — None ⇒ غير متاح، نتخطّى توصيات الطقس.
@@ -155,7 +155,12 @@ def _normalize_crop(crop: str | None) -> str | None:
 
 def _irrigation_rec(ctx: RecommendationContext) -> Recommendation | None:
     """توصية ريّ من irrigation_advice — تتطلّب ET₀ **والمطر**. None إن غاب أيّهما."""
-    if ctx.et0_mm is None or ctx.rain_recent_mm is None or ctx.forecast_rain_mm is None:
+    if (
+        ctx.stage is None
+        or ctx.et0_mm is None
+        or ctx.rain_recent_mm is None
+        or ctx.forecast_rain_mm is None
+    ):
         return None
     advice = irrigation_advice(
         et0_mm=ctx.et0_mm,
@@ -185,8 +190,10 @@ def _irrigation_rec(ctx: RecommendationContext) -> Recommendation | None:
 
 
 def _fertilizer_rec(ctx: RecommendationContext) -> Recommendation | None:
-    """إرشاد تسميد مبسّط بحسب المرحلة. يتطلّب مرحلة معروفة (افتراضيّاً mid)."""
-    stage = ctx.stage if ctx.stage in _FERT_STAGE_GUIDANCE else "mid"
+    """إرشاد تسميد مبسّط بحسب المرحلة. يتطلّب مرحلة معروفة."""
+    if ctx.stage not in _FERT_STAGE_GUIDANCE:
+        return None  # no stage-specific fertilizer advice without a known season phase
+    stage = ctx.stage
     priority, title, detail = _FERT_STAGE_GUIDANCE[stage]
     crop = _normalize_crop(ctx.crop)
     if crop:

@@ -13,7 +13,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 247,
+      "line": 243,
       "method": "POST",
       "path": "/v1/recommend",
       "function": "recommend"
@@ -773,7 +773,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 581,
+      "line": 591,
       "method": "POST",
       "path": "/v1/query",
       "function": "query_endpoint"
@@ -781,7 +781,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 591,
+      "line": 601,
       "method": "POST",
       "path": "/v1/ingest",
       "function": "ingest_endpoint"
@@ -789,7 +789,7 @@
     {
       "service": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 164,
+      "line": 169,
       "method": "POST",
       "path": "/v1/ingest",
       "function": "ingest"
@@ -797,7 +797,7 @@
     {
       "service": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 207,
+      "line": 244,
       "method": "POST",
       "path": "/v1/search",
       "function": "search"

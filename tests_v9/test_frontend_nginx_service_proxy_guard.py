@@ -86,25 +86,26 @@ def _block_span(src: str, header: str) -> tuple[int, int]:
 
 
 def test_auth_request_only_in_authenticated_dev_gateways():
-    """auth_request مسموح **حصراً** داخل البوّابتين المصادَقتين (`/api/raster/` +
-    `/api/remote-sensing-workspace/` + `/_auth_verify`) ومحظور في بقيّة وكلاء التطوير.
+    """auth_request محصور في بوابات الراستر ومساحة الاستشعار والمستشار.
 
     خلفيّة: بلاطة <img> للحزمة الإنتاجية لا تحمل tid/ترويسات ⇒ 403. أُصلِح بجعل
     `/api/raster/` يحاكي عقد الإنتاج (كوكي sahool_at ⇒ auth_request ⇒ X-Tenant-Id موثّق).
     RS-9 workspace أُلحِق بالنمط نفسه لأنّ الخدمات اللاحقة (indicators/decision) تثق
     بترويسة X-Tenant-Id — تمريرها من العميل = انتحال مستأجِر. الحارس يقيّد auth_request
-    بهذين المسارين بالضبط ويمنع انحداره إلى بقيّة البوّابة، **ويُلزم** بقاءه في كليهما.
+    بالمسارات المعلنة ويمنع انحداره إلى بقيّة البوّابة، ويلزم بقاء التحقق فيها.
     """
     src = _read(_FRONTEND_NGINX)
     verify_span = _block_span(src, "location = /_auth_verify")
     raster_span = _block_span(src, "location ^~ /api/raster/")
     workspace_span = _block_span(src, "location ^~ /api/remote-sensing-workspace/")
+    ai_span = _block_span(src, "location ^~ /api/ai-agronomist/")
 
     def _allowed(pos: int) -> bool:
         return (
             (verify_span[0] <= pos < verify_span[1])
             or (raster_span[0] <= pos < raster_span[1])
             or (workspace_span[0] <= pos < workspace_span[1])
+            or (ai_span[0] <= pos < ai_span[1])
         )
 
     offenders = []
@@ -113,7 +114,7 @@ def test_auth_request_only_in_authenticated_dev_gateways():
             continue
         if not _allowed(src.index(ln)):
             offenders.append(ln.strip())
-    assert not offenders, f"auth_request خارج البوّابتين المصادَقتين (انحدار): {offenders}"
+    assert not offenders, f"auth_request خارج البوابات المصادقة المعلنة: {offenders}"
     # الاتجاه العكسيّ: كلا البوّابتين يجب أن تحملا auth_request فعلاً (لا تليين صامت)،
     # وبوّابة RS-9 يجب ألّا تمرّر X-Tenant-Id من العميل أبداً.
     workspace_block = src[workspace_span[0] : workspace_span[1]]
@@ -122,6 +123,11 @@ def test_auth_request_only_in_authenticated_dev_gateways():
     assert "auth_request /_auth_verify;" in workspace_block
     assert "$http_x_tenant_id" not in workspace_block, "بوّابة RS-9 تمرّر tenant العميل (انتحال)"
     assert "auth_request_set" in workspace_block
+    ai_block = src[ai_span[0] : ai_span[1]]
+    assert "auth_request /_auth_verify;" in ai_block
+    assert "$http_x_tenant_id" not in ai_block, "AI gateway tenant identity must come from auth"
+    assert 'proxy_set_header X-Agent-Token "";' in ai_block
+    assert "auth_request_set" in ai_block
 
 
 def test_raster_still_present_before_catchall():

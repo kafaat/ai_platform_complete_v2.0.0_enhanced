@@ -1853,9 +1853,9 @@
     },
     {
       "code_readers": [
+        "services/sahool-platform/api/field_context.py",
         "services/sahool-platform/api/main.py",
         "services/sahool-platform/api/routers/alerts.py",
-        "services/sahool-platform/api/routers/field_ai_context.py",
         "services/sahool-platform/api/routers/field_priority_queue.py",
         "services/sahool-platform/api/routers/indicators.py",
         "services/sahool-platform/api/routers/nl_gis.py",
@@ -2675,8 +2675,8 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/drawing_features.py",
-        "services/sahool-platform/api/routers/field_ai_context.py"
+        "services/sahool-platform/api/field_context.py",
+        "services/sahool-platform/api/routers/drawing_features.py"
       ],
       "code_writers": [
         "services/sahool-platform/api/routers/drawing_features.py"
@@ -2812,8 +2812,8 @@
         "services/sahool-platform/api/data_lineage.py",
         "services/sahool-platform/api/event_bus.py",
         "services/sahool-platform/api/event_replay.py",
+        "services/sahool-platform/api/field_context.py",
         "services/sahool-platform/api/routers/admin.py",
-        "services/sahool-platform/api/routers/field_ai_context.py",
         "services/sahool-platform/api/routers/field_workspace_timeline.py",
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/yield_heuristics.py"
@@ -5858,7 +5858,7 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/routers/field_ai_context.py",
+        "services/sahool-platform/api/field_context.py",
         "services/sahool-platform/api/routers/recommendations.py"
       ],
       "code_writers": [
@@ -6107,7 +6107,6 @@
         "services/sahool-platform/api/field_context.py",
         "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_workers.py",
-        "services/sahool-platform/api/routers/field_ai_context.py",
         "services/sahool-platform/api/routers/field_completeness.py",
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/harvest_traceability.py",

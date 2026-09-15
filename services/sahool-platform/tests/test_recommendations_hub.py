@@ -116,10 +116,10 @@ class TestGracefulDegradation:
         assert "yield" not in _cats(recs)
         assert "fertilizer" in _cats(recs)
 
-    def test_empty_context_still_returns_fertilizer(self):
-        # أدنى سياق ممكن: لا محصول، لا طقس، لا بذار ⇒ يبقى التسميد العامّ فقط.
+    def test_empty_context_does_not_invent_stage_based_fertilizer(self):
+        # غياب المرحلة يمنع التسميد المرحلي؛ لا تُفترض مرحلة mid.
         recs = build_recommendations(RecommendationContext(field_id="f1"))
-        assert _cats(recs) == {"fertilizer"}
+        assert recs == []
 
 
 class TestYieldWindow:
