@@ -1,0 +1,157 @@
+{
+  "schema": "sahool.ci_repair_observation/v1",
+  "observed_at": "2026-09-09T14:17:54.922717+00:00",
+  "pr": 974,
+  "subject": {
+    "commit_sha": "62751f9e6b38f0cbbb5346465e677c97ac6a6b07",
+    "tree_sha": "fc98950e4be5c0388b609c3fb988c87b06328bcd",
+    "base_sha": "7407eae2ba006a4c4c07018988a0f680e176abea"
+  },
+  "scope": "Local repair checks and their published CI observations; this is not a production certificate.",
+  "runtime_verified": false,
+  "production_certified": false,
+  "authorization_consumption": {
+    "record": "docs/architecture/gates/adjudications/GATE01-ADJ-2026-09-08-001.json",
+    "status": "CONSUMED",
+    "merge_sha": "7407eae2ba006a4c4c07018988a0f680e176abea",
+    "matched_blobs": {
+      "docs/architecture/db_ownership.yml": "b73cabdcd744d19c48a57ea241d86e7f848bca92",
+      "migrations/MANIFEST.txt": "9625e309c6b72c6a3eba99165bb67f2f66fbbfda"
+    }
+  },
+  "targeted_tests": {
+    "command": [
+      "-m",
+      "pytest",
+      "-q",
+      "tests_v9/test_gate01_frozen_path_guard.py",
+      "tests/release/test_phase14_release_packaging_contracts.py"
+    ],
+    "exit_code": 0,
+    "passed": 54,
+    "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0\nrootdir: /workspace/scratch/00c505d4cc21/pr974-fix\nconfigfile: pytest.ini\nplugins: anyio-4.15.1, xdist-3.8.0, hypothesis-6.167.1, Faker-40.38.0, cov-7.1.0, respx-0.23.1, asyncio-1.4.0\nasyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function\ncollected 54 items\n\ntests_v9/test_gate01_frozen_path_guard.py .............................. [ 55%]\n....................                                                     [ 92%]\ntests/release/test_phase14_release_packaging_contracts.py ....           [100%]\n\n============================== 54 passed in 4.72s ==============================\n",
+    "stderr": ""
+  },
+  "preflight": {
+    "command": "BASE=7407eae2ba006a4c4c07018988a0f680e176abea bash scripts/ci/preflight.sh --no-fetch",
+    "exit_code": 0,
+    "failed_groups": 0,
+    "skipped_groups": 0,
+    "range_head_during_run": "0186b6f41ec821b97ac19ecdf6cc4449b6cbcf4e",
+    "working_tree_sha": "fc98950e4be5c0388b609c3fb988c87b06328bcd",
+    "range_limit": "The staged repair was tested before the local HEAD advanced. Git-range checks saw the previous HEAD; the full committed brain transition later failed in CI because the observation had not been stored outside sahool-brain. This record supplies the actual observation; recheck the committed range after adding it. Individual skipped tests remain skipped.",
+    "stdout": "═══ preflight (default) — أساس المقارنة: 7407eae2ba006a4c4c07018988a0f680e176abea ═══\n── ٠) قاعدة المقارنة وحداثة الفرع\n   ✓ base=7407eae2ba006a4c4c07018988a0f680e176abea merge-base=7407eae2 behind=0\n── ٠أ) عقد المتطلّبات (docs/architecture/preflight_required.json)\n   ✓ كلّ ما يُعلِنه العقد موجود\n── ٠ب) الفهرس قبل التوليد\n   ✓ لا ملفّات غير متعقَّبة\n   ⚠ 1 تعديلاً غير مُدرَج — ما يُقاس ليس ما سيُدفَع. نفّذ: git add -A\n── ٠ج) probe_leak\n   ✓\n── ١أ) ruff check .\n   ✓\n── ١ب) ruff format --check .\n   ✓\n── ٢ب) no_merge_conflict_markers\n   ✓\n── ٢أ) no_manual_backup_files\n   ✓\n── ٢ز) cross_service_path_contract\n   ✓\n── ٢ج) bidi_control_char\n   ✓\n── ٢د) non_ascii_fixture_path\n   ✓\n── ٢ﻫ) json_duplicate_key\n   ✓\n── ٢و) text_encoding_locale\n   ✓\n── ٣أ) claim_base_guard\n   ✓\n── ٣ب) guard_mutation (ساكن)\n   ✓\n── ٣ج) guard_mutation (زرع مقصور)\n   ✓ لا حارسَ مُواصَفاً مسّه التغيير — لا زرعَ مطلوب\n── ٤أ) compose_env_contract\n   ✓\n── ٤د) compose_no_default_secrets\n   ✓\n── ٤ﻫ) compose_auth_sink\n   ✓\n── ٤و) generated_write_targets\n   ✓\n── ٤ب) env_compose_drift\n   ✓\n── ٤ج) compose_runtime_target\n   ✓\n── ٤ز) db_writer_ownership\n   ✓\n── ٥أ) arch_test_ci_coverage\n   ✓\n── ٥ب) marker_coverage\n   ✓\n── ٥ج) platform_module_budget\n   ✓\n── ٦أ) brain_deferral\n   ✓\n── ٦د) brain_duplicate_gap_identity\n   ✓\n── ٦ب) brain_state_transition\n   ✓\n── ٦ج) brain_commit_claim\n   ✓\n     ملاحظة: ٦ج تقرأ الرسائل **المُلتزَمة**. التزِم ثمّ أعِد هذه الخطوة وحدها.\n── ٧) verify_all_generated --check\n   ✓\n── ٨أ) pytest -m unit\n   ✓\n── ٨ب) pytest tests/\n   ✓\n── ٨ج) pytest services/sahool-platform/tests (شكل CI)\n   ✓\n── ١١ب) Capability-Impact المقترح لمتن الـPR\n   Capability-Impact: NONE  (لا مسار من مساراتك يمسّ قدرة مُسجَّلة)\n\n═══ إخفاقات: 0 · متخطّاة: 0 ═══\nأخضر على ما قِيس — وهي أقلّيّةُ البوّابات (§٣.١٧؛ العددُ الحيّ في GUARD_CATALOGUE).\nاشتقّ عقود نطاقك من مساراتك المُعدَّلة قبل الدفع.\n"
+  },
+  "committed_capability_impact": {
+    "schema_version": "2.0.0",
+    "changed_paths": [
+      "docs/architecture/gates/adjudications/GATE01-ADJ-2026-09-08-001.json",
+      "frontend/package-lock.json",
+      "release/FILE_CHECKSUMS.sha256",
+      "release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+      "release/SBOM_MINIMAL.json",
+      "sahool-brain/decisions/ledger.md",
+      "sahool-brain/gaps/registry.md",
+      "sahool-brain/hot.md",
+      "sahool-brain/log.md"
+    ],
+    "direct": [
+      "IRR-003",
+      "IRR-009",
+      "SEC-003"
+    ],
+    "transitive": [
+      "IRR-004",
+      "IRR-005",
+      "IRR-006",
+      "IRR-007",
+      "IRR-008",
+      "IRR-010"
+    ],
+    "affected": [
+      "IRR-003",
+      "IRR-004",
+      "IRR-005",
+      "IRR-006",
+      "IRR-007",
+      "IRR-008",
+      "IRR-009",
+      "IRR-010",
+      "SEC-003"
+    ],
+    "matched_paths": {
+      "IRR-003": [
+        "sahool-brain/gaps/registry.md",
+        "sahool-brain/hot.md",
+        "sahool-brain/log.md"
+      ],
+      "IRR-009": [
+        "sahool-brain/gaps/registry.md"
+      ],
+      "SEC-003": [
+        "sahool-brain/hot.md"
+      ]
+    },
+    "matched_sources": {
+      "IRR-003": [
+        "registry:evidence"
+      ],
+      "IRR-009": [
+        "registry:evidence"
+      ],
+      "SEC-003": [
+        "registry:evidence"
+      ]
+    },
+    "governance_wide": false,
+    "runtime_claims": false,
+    "production_certification": false,
+    "git": {
+      "base": "7407eae2ba006a4c4c07018988a0f680e176abea",
+      "head": "HEAD",
+      "merge_base": "7407eae2ba006a4c4c07018988a0f680e176abea"
+    },
+    "declaration": {
+      "mode": "explicit",
+      "declared": [
+        "IRR-003",
+        "IRR-009",
+        "SEC-003"
+      ],
+      "missing_direct": [],
+      "unknown_capabilities": [],
+      "unaffected_declared": [],
+      "errors": [],
+      "required": true,
+      "subject": {
+        "kind": "live_pr_body",
+        "pr_number": 974,
+        "sha256": "8a9c8b5e1036fd9abff8c9494b092220d560e0613b708e92f29416da9e468759"
+      }
+    },
+    "decision": "PASS"
+  },
+  "remote_observations": [
+    {
+      "job": "release-package",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/34362208510/job/102501780969"
+    },
+    {
+      "job": "pytest-contracts",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/34362208510/job/102501780783"
+    },
+    {
+      "job": "gate01-physical-effect-freeze",
+      "conclusion": "success",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/34362208470/job/102501779566"
+    },
+    {
+      "job": "branch-protection-contract",
+      "conclusion": "failure",
+      "reason": "HTTP 401 for BRANCH_PROTECTION_AUDITOR_TOKEN; not evidence that main protection is disabled.",
+      "url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/34362208423/job/102501778811"
+    }
+  ]
+}
