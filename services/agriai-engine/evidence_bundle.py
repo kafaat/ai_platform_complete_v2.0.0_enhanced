@@ -16,6 +16,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+from datetime import datetime
 from enum import Enum
 from typing import Any
 
@@ -88,6 +89,7 @@ def make_evidence_item(
     unit: str | None = None,
     observed_at: str | None = None,
     strength: Any,
+    confidence: float | None = None,
 ) -> dict[str, Any]:
     """يبني بند دليل مُصنّفاً واحداً (dict قانونيّ الشكل).
 
@@ -102,6 +104,7 @@ def make_evidence_item(
         "observed_at": str(observed_at) if observed_at is not None else None,
         "strength": st.value,
         "weight": EVIDENCE_WEIGHTS[st],
+        "confidence": confidence,
     }
 
 
@@ -149,10 +152,21 @@ def bundle_hash(bundle: dict[str, Any]) -> str:
     return content_hash(bundle)
 
 
+def evidence_is_usable(item: dict[str, Any]) -> bool:
+    """Only explicitly sourced, dated observations can support evidence sufficiency."""
+    if not item.get("source") or item.get("value") is None or not item.get("observed_at"):
+        return False
+    try:
+        observed = datetime.fromisoformat(str(item["observed_at"]).replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    return observed.tzinfo is not None
+
+
 def compose_confidence(items: list[dict[str, Any]]) -> float:
     """مُركّب ثقة موزون بهرميّة الأدلّة (مرآة decision_contracts.compose_confidence).
 
-    كلّ بند قد يحمل ``confidence`` في [0,1]؛ في غيابه نفترض 1.0 (وجود قياس مؤكّد).
+    كلّ بند قد يحمل ``confidence`` في [0,1]؛ غيابه أو غياب زمن القياس لا يمنح ثقة.
     RAG/KG لا يهيمنان: وزنهما منخفض أصلاً. يُرجع 0.0 لحزمة فارغة (fail-closed).
     """
     if not items:
@@ -162,10 +176,12 @@ def compose_confidence(items: list[dict[str, Any]]) -> float:
     for it in items:
         st = _coerce_strength(it.get("strength"))
         weight = EVIDENCE_WEIGHTS[st]
-        conf = it.get("confidence", 1.0)
+        conf = it.get("confidence") if evidence_is_usable(it) else None
         try:
             conf = float(conf)
         except (TypeError, ValueError):
+            conf = 0.0
+        if not math.isfinite(conf):
             conf = 0.0
         weighted += max(0.0, min(1.0, conf)) * weight
         total_weight += weight

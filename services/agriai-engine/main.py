@@ -112,6 +112,7 @@ class EvidenceItemIn(BaseModel):
     unit: str | None = None
     observed_at: str | None = None
     strength: str
+    confidence: float | None = Field(default=None, ge=0, le=1, allow_inf_nan=False)
 
 
 class CandidateIn(BaseModel):
@@ -128,8 +129,8 @@ class RecommendRequest(BaseModel):
 
     field_id: str = ""
     crop: str = "wheat"
-    ndvi: float = Field(0.5, ge=-1.0, le=1.0)
-    soil_ph: float = Field(7.0, ge=0, le=14)
+    ndvi: float | None = Field(default=None, ge=-1.0, le=1.0)
+    soil_ph: float | None = Field(default=None, ge=0, le=14)
     evidence: list[EvidenceItemIn] = Field(default_factory=list)
     candidates: list[CandidateIn] = Field(default_factory=list)
     weather: dict[str, Any] = Field(default_factory=dict)
@@ -193,7 +194,11 @@ def _context_inputs(
 def _build_bundle(
     req_evidence: list[EvidenceItemIn], *, ndvi: float | None, soil_ph: float | None
 ) -> dict[str, Any]:
-    """يبني حزمة أدلّة قانونيّة من الأدلّة الصريحة + مشتقّات (NDVI/soil_ph) إن وُجدت."""
+    """Keep explicit evidence and preserve legacy scalars as unverified inputs.
+
+    A scalar has no acquisition time or source identity. Receiving one does not
+    establish that a satellite or laboratory measured it.
+    """
     items: list[dict[str, Any]] = []
     for ev in req_evidence:
         items.append(
@@ -204,21 +209,12 @@ def _build_bundle(
                 unit=ev.unit,
                 observed_at=ev.observed_at,
                 strength=ev.strength,
+                confidence=ev.confidence,
             )
         )
-    if ndvi is not None:
-        items.append(
-            eb.make_evidence_item(
-                source="satellite", kind="ndvi", value=ndvi, unit="index", strength="satellite"
-            )
-        )
-    if soil_ph is not None:
-        items.append(
-            eb.make_evidence_item(
-                source="lab", kind="soil_ph", value=soil_ph, unit="pH", strength="lab"
-            )
-        )
-    return eb.assemble_bundle(items)
+    return eb.assemble_bundle(
+        items, context={"unverified_inputs": {"ndvi": ndvi, "soil_ph": soil_ph}}
+    )
 
 
 def _candidates_to_plan(
@@ -280,7 +276,9 @@ async def recommend(req: RecommendRequest, x_agent_token: str = Header(None)):
     }
     envelope = rp.build_envelope(replay_inputs, {"plan": plan}, evidence_hash=evidence_hash)
 
-    evidence_sufficient = bool(bundle["items"])
+    evidence_sufficient = context_validation["complete"] and any(
+        eb.evidence_is_usable(item) for item in bundle["items"]
+    )
     notes = []
     if not evidence_sufficient:
         notes.append("لا أدلّة كافية — الثقة منخفضة عمداً (fail-closed)")
@@ -298,7 +296,9 @@ async def recommend(req: RecommendRequest, x_agent_token: str = Header(None)):
         "recommendation": {
             "crop": plan["best"],
             "expected_profit": plan["best_expected_profit"],
-        },
+        }
+        if evidence_sufficient
+        else None,
         "notes": notes,
     }
 

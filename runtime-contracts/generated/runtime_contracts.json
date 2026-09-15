@@ -186,6 +186,7 @@
       },
       "configuration": [
         "AI_GENERATION_ENABLED",
+        "AI_GENERATION_TIMEOUT_SECONDS",
         "AI_MODEL",
         "AI_MODELS",
         "AI_PROVIDER",
@@ -1498,7 +1499,8 @@
         "tracing_instrumented": false
       },
       "secrets": [
-        "QDRANT_API_KEY"
+        "QDRANT_API_KEY",
+        "SAHOOL_AGENT_TOKEN"
       ],
       "service": "rag-retrieval",
       "source_service": "rag-retrieval",

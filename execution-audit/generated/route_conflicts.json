@@ -142,7 +142,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 664,
+          "line": 674,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/health",
@@ -333,7 +333,7 @@
         },
         {
           "function": "healthz",
-          "line": 646,
+          "line": 656,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/healthz",
@@ -389,7 +389,7 @@
         },
         {
           "function": "healthz",
-          "line": 109,
+          "line": 114,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/healthz",
@@ -524,7 +524,7 @@
         },
         {
           "function": "metrics",
-          "line": 114,
+          "line": 119,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/metrics",
@@ -675,7 +675,7 @@
         },
         {
           "function": "readyz",
-          "line": 669,
+          "line": 679,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/readyz",
@@ -731,7 +731,7 @@
         },
         {
           "function": "readyz",
-          "line": 127,
+          "line": 132,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/readyz",
@@ -1045,7 +1045,7 @@
       "registrations": [
         {
           "function": "ingest_endpoint",
-          "line": 591,
+          "line": 601,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
           "path": "/v1/ingest",
@@ -1053,7 +1053,7 @@
         },
         {
           "function": "ingest",
-          "line": 164,
+          "line": 169,
           "method": "POST",
           "module": "services/rag-retrieval/main.py",
           "path": "/v1/ingest",
@@ -1123,7 +1123,7 @@
         },
         {
           "function": "query_endpoint",
-          "line": 581,
+          "line": 591,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
           "path": "/v1/query",
@@ -1138,7 +1138,7 @@
       "registrations": [
         {
           "function": "recommend",
-          "line": 247,
+          "line": 243,
           "method": "POST",
           "module": "services/agriai-engine/main.py",
           "path": "/v1/recommend",
@@ -1159,7 +1159,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1098,
-  "route_inventory_sha256": "5589f09cfe545a7ea87cb775d297c20fdb08c20eb7d7b0ac064e51831a5b0738",
+  "route_inventory_sha256": "3af837d54e88244cde6705f11dcfda2648503513a7c85e9e5db03c3e70a37762",
   "runtime_verified": false,
   "schema_version": 1
 }

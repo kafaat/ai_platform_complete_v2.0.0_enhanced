@@ -28,6 +28,7 @@ import os
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
+from api.gis_geometry_guard import guard_field_geometry
 from api.raster_service_client import (
     get_best_imagery_scene,
     get_job_result,
@@ -177,7 +178,7 @@ class ImageryAutomation:
         if tenant_id:
             await conn.execute("SELECT set_config('app.current_tenant', $1, true)", str(tenant_id))
 
-    async def load_from_db(self) -> int:
+    async def load_from_db(self, *, only_new: bool = False) -> int:
         """يحمّل الحقول المتابَعة + آخر صورة معروفة من القاعدة عند الإقلاع.
 
         صدق: لو لا pool، لا يفعل شيئاً ويُرجع 0. هذا يمنع إعادة معالجة صور
@@ -199,6 +200,8 @@ class ImageryAutomation:
                     "new_images_found, check_errors FROM imagery_automation_fields"
                 )
                 for r in rows:
+                    if only_new and r["field_id"] in self._fields:
+                        continue
                     self._fields[r["field_id"]] = TrackedField(
                         field_id=r["field_id"],
                         bbox=[r["bbox_west"], r["bbox_south"], r["bbox_east"], r["bbox_north"]],
@@ -213,6 +216,25 @@ class ImageryAutomation:
         except Exception as e:  # noqa: BLE001
             logger.warning("فشل تحميل أتمتة الصور من القاعدة: %s", e)
         return loaded
+
+    async def register_on_connection(
+        self, conn, *, field_id: str, tenant_id: str, bbox: list[float]
+    ) -> None:
+        """Commit the initial tracking intent with the field; no provider I/O.
+
+        The caller owns the tenant transaction. A failure must roll it back,
+        otherwise an acknowledged field could again lose its processing intent.
+        """
+        if not tenant_id or len(bbox) != 4:
+            raise ValueError("tenant and four bounds are required")
+        await conn.execute(
+            "INSERT INTO imagery_automation_fields "
+            "(field_id, tenant_id, bbox_west, bbox_south, bbox_east, bbox_north) "
+            "VALUES ($1,$2::uuid,$3,$4,$5,$6) ON CONFLICT (field_id) DO NOTHING",
+            field_id,
+            tenant_id,
+            *bbox,
+        )
 
     async def _persist_field(self, tf: TrackedField) -> None:
         if self._pool is None:
@@ -579,6 +601,9 @@ class ImageryAutomation:
         العزل والحتميّة محفوظان: الفشل يبقى لكلّ حقل، و``gather`` يُرجِع بترتيب الدخل لا
         بترتيب الإتمام فتبقى قائمة ``errors`` مستقرّة بين التشغيلات.
         """
+        # Recover committed registrations even if the HTTP BackgroundTask was
+        # lost. The existing scheduler remains the single retry owner.
+        await self.load_from_db(only_new=True)
         if not self._fields:
             return {
                 "scanned": 0,
@@ -951,3 +976,55 @@ class ImageryAutomation:
 
 # مثيل وحيد للتطبيق
 imagery_automation = ImageryAutomation()
+
+
+# ─── تفعيل الصور الحقيقيّة (Sentinel-2 عبر raster-service) ────────────────────
+# عند إنشاء/تحديث حدّ حقل نُطلِق مساراً مُستهدَفاً للبيانات الحقيقيّة: بحث «أفضل مشهد»
+# (raster GET /imagery/best عبر Element84) ثمّ معالجة COG لكلّ مؤشّر (raster POST
+# /v1/fields/{id}/process-from-stac) → real_data=true في «المؤشّرات المكانيّة» فقط بعد
+# قراءة COG حقيقيّ (لا محاكاة). نُشغّله عبر BackgroundTasks (بعد الالتزام، خارج معاملة
+# المستأجِر) كي لا تُحبَس وصلة القاعدة طوال نداءات HTTP (حتى ٣٠ث). أفضل-جهد تامّ: فشل
+# الأتمتة/raster لا يكسر إنشاء/تحديث الحقل (يُسجَّل تحذير، لا تلفيق).
+async def _kick_imagery_processing(
+    *, field_id: str, tenant_id: str, geometry: object, reason: str
+) -> None:
+    """يُطلِق المعالجة المُستهدَفة بعد إنشاء/تحديث حقل (BackgroundTasks، بعد الالتزام).
+
+    يحسب bbox من الهندسة عبر حارس الهندسة ثمّ يستدعي trigger_field_imagery_processing
+    (imagery/best + process-from-stac). معزول وأفضل-جهد: أيّ تعذّر يُبتلَع بصمت (لا يؤثّر
+    على ردّ الكتابة). صدق: يعتمد raster-service الحقيقيّ؛ لا يُختلَق شيء عند تعذّره."""
+    try:
+        guarded = guard_field_geometry(geometry)
+        res = await imagery_automation.trigger_field_imagery_processing(
+            field_id=field_id,
+            tenant_id=tenant_id,
+            bbox=guarded.bbox,
+            geometry=guarded.geometry,
+            reason=reason,
+        )
+        # تشخيص: أظهِر نتيجة الإطلاق في docker logs بدل الصمت — يكشف سبب عدم ظهور NDVI
+        # الحقيقيّ (queued / no_scene / missing_bands / error) دون الحاجة لتتبّع الراستر.
+        status = (res or {}).get("status")
+        if (res or {}).get("queued"):
+            logging.info(
+                "إطلاق معالجة صور الحقل %s (%s): %s · scene=%s",
+                field_id,
+                reason,
+                status,
+                (res or {}).get("scene_id"),
+            )
+        else:
+            logging.warning(
+                "لم تُطلَق معالجة صور الحقل %s (%s): %s · %s",
+                field_id,
+                reason,
+                status,
+                (res or {}).get("note_ar") or (res or {}).get("error"),
+            )
+    except Exception as e:  # noqa: BLE001 — أفضل-جهد
+        logging.warning(
+            "تعذّر إطلاق معالجة الصور المُستهدَفة للحقل %s (%s): %s",
+            field_id,
+            reason,
+            type(e).__name__,
+        )

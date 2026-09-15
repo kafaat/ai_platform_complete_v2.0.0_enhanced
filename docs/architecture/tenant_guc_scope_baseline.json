@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "1c1870e2278afb88dc12cde381dfebafd3922d1b",
+  "measured_on": "d1ee207dbf6c8493ea7ce7abd53dd2a236c2ac9b",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "d903d2c3ed79d50f030a5fecf7426f960d800a638d93cab3dedcc881613310d4",
+  "measurement_input_digest": "6afe3dcb13e88bfc041dec2b51c3fc1c17703cd35714e0157f2f7ebdbb9372c9",
   "measurement_algorithm_digest": "5e1674674f2856600b7a8a67f9e383a7f122d1f39acd605826ec75bd98fc4641",
-  "measurement_basis_digest": "44a25e66d48f0677fd64103eef0f4297aadffac055551b86a5ea9c8e9f83ee53",
+  "measurement_basis_digest": "38ea72721d475d34c4cf55034c50dbf11a3cb2ab06933067d603e71965ef0ba0",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -92,7 +92,7 @@
     },
     {
       "path": "services/sahool-platform/api/imagery_automation.py",
-      "sha256": "a15912159785874cc0e3b992237ef281a7f3affaa53fd7cb6ae86aebc144bc68"
+      "sha256": "0b803c55250e5ac3a766f4d42521eb59d87844014a863cad38523c1cb7f1b3ea"
     },
     {
       "path": "services/sahool-platform/api/irrigation_reservation_adapter.py",
@@ -183,7 +183,7 @@
     "services/mcp_servers/shared/oauth_middleware.py:40",
     "services/raster-service/backfill_scan_worker.py:101",
     "services/raster-service/cache_invalidation_worker.py:87",
-    "services/sahool-platform/api/imagery_automation.py:178",
+    "services/sahool-platform/api/imagery_automation.py:179",
     "services/sahool-platform/api/phase_runtime_store.py:98",
     "services/sahool-platform/api/phase_runtime_store.py:99",
     "services/sahool-platform/api/phase_runtime_workers.py:49",

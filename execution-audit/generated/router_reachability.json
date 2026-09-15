@@ -271,7 +271,7 @@
     },
     {
       "kind": "app",
-      "line": 543,
+      "line": 553,
       "module": "services.local-ai-rag.main",
       "node_id": "services.local-ai-rag.main:app",
       "route_count": 5,
@@ -370,7 +370,7 @@
     },
     {
       "kind": "app",
-      "line": 20,
+      "line": 25,
       "module": "services.rag-retrieval.main",
       "node_id": "services.rag-retrieval.main:app",
       "route_count": 5,
@@ -1099,7 +1099,7 @@
     },
     {
       "kind": "router",
-      "line": 23,
+      "line": 24,
       "module": "services.sahool-platform.api.routers.field_ai_context",
       "node_id": "services.sahool-platform.api.routers.field_ai_context:router",
       "route_count": 1,
@@ -1198,7 +1198,7 @@
     },
     {
       "kind": "router",
-      "line": 143,
+      "line": 144,
       "module": "services.sahool-platform.api.routers.fields",
       "node_id": "services.sahool-platform.api.routers.fields:router",
       "route_count": 48,
@@ -2613,7 +2613,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "9df98becc0790342cf3707a5328787e44200577351781221bee88f698047b9e6",
+  "inventory_sha256": "398f2cbda81d20dca5a82f43ba4966b46a3484efa1cd14cc1707ae2cde0355e3",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {
@@ -3589,7 +3589,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 23,
+      "line": 24,
       "module": "services.sahool-platform.api.routers.field_ai_context",
       "node_id": "services.sahool-platform.api.routers.field_ai_context:router",
       "route_count": 1,
@@ -3699,7 +3699,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 143,
+      "line": 144,
       "module": "services.sahool-platform.api.routers.fields",
       "node_id": "services.sahool-platform.api.routers.fields:router",
       "route_count": 48,

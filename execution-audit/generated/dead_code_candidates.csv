@@ -8,8 +8,8 @@ high,raster-service,function,_require_layer_tenant,services/raster-service/raste
 high,raster-service,function,_require_layer_tenant_authorized,services/raster-service/raster_main_runtime.py,93,0,review_before_delete,False
 high,raster-service,function,_clean_cache,services/raster-service/test_c7_latest_cache_provenance.py,40,0,review_before_delete,False
 high,raster-service,function,_clean_cache,services/raster-service/test_cdse_empty_raster_not_cached.py,70,0,review_before_delete,False
-high,sahool-platform,function,_record_to_json,services/sahool-platform/api/routers/field_ai_context.py,59,0,review_before_delete,False
-high,sahool-platform,function,_conflict_changed_fields,services/sahool-platform/api/routers/fields.py,1244,0,review_before_delete,False
+high,sahool-platform,function,_record_to_json,services/sahool-platform/api/routers/field_ai_context.py,60,0,review_before_delete,False
+high,sahool-platform,function,_conflict_changed_fields,services/sahool-platform/api/routers/fields.py,1203,0,review_before_delete,False
 high,sahool-platform,function,_facts_snapshot_hash,services/sahool-platform/api/routers/irrigation_mpc.py,190,0,review_before_delete,False
 high,sahool-platform,function,_source_current_state,services/sahool-platform/api/routers/irrigation_mpc.py,208,0,review_before_delete,False
 high,sahool-platform,function,_weather_tile_interpolation_payload,services/sahool-platform/api/routers/weather.py,425,0,review_before_delete,False
@@ -46,7 +46,7 @@ medium,agriai-engine,function,simulation_capability_report,services/agriai-engin
 medium,agriai-engine,function,teardown_module,services/agriai-engine/tests/test_production_readiness_truth.py,60,0,review_before_delete,False
 medium,ai-agronomist,class,ABTestingRuntime,services/ai_agronomist/ab_testing.py,1,0,review_before_delete,False
 medium,ai-agronomist,function,store_backend_name,services/ai_agronomist/agent_stores.py,161,0,review_before_delete,False
-medium,ai-agronomist,function,build_evidence_response,services/ai_agronomist/ai_evidence_runtime.py,688,0,review_before_delete,False
+medium,ai-agronomist,function,build_evidence_response,services/ai_agronomist/ai_evidence_runtime.py,713,0,review_before_delete,False
 medium,ai-agronomist,class,ChaosRuntime,services/ai_agronomist/chaos_runtime.py,1,0,review_before_delete,False
 medium,ai-agronomist,class,ComplianceValidator,services/ai_agronomist/compliance_validator.py,1,0,review_before_delete,False
 medium,ai-agronomist,function,has_decision_keys,services/ai_agronomist/decision_contracts.py,58,0,review_before_delete,False
@@ -170,11 +170,11 @@ medium,sahool-platform,function,validate_response,services/sahool-platform/api/o
 medium,sahool-platform,function,prescription_to_csv,services/sahool-platform/api/prescriptions.py,338,0,review_before_delete,False
 medium,sahool-platform,function,get_field_terrain,services/sahool-platform/api/raster_service_client.py,347,0,review_before_delete,False
 medium,sahool-platform,function,field_to_pdf_bytes,services/sahool-platform/api/reports.py,237,0,review_before_delete,False
-medium,sahool-platform,function,field_imagery_available_dates,services/sahool-platform/api/routers/fields.py,838,0,review_before_delete,False
-medium,sahool-platform,function,field_imagery_timeline,services/sahool-platform/api/routers/fields.py,874,0,review_before_delete,False
-medium,sahool-platform,function,field_irrigation_advice,services/sahool-platform/api/routers/fields.py,2544,0,review_before_delete,False
-medium,sahool-platform,function,field_disease_risk,services/sahool-platform/api/routers/fields.py,2636,0,review_before_delete,False
-medium,sahool-platform,function,field_unified_timeline,services/sahool-platform/api/routers/fields.py,3832,0,review_before_delete,False
+medium,sahool-platform,function,field_imagery_available_dates,services/sahool-platform/api/routers/fields.py,797,0,review_before_delete,False
+medium,sahool-platform,function,field_imagery_timeline,services/sahool-platform/api/routers/fields.py,833,0,review_before_delete,False
+medium,sahool-platform,function,field_irrigation_advice,services/sahool-platform/api/routers/fields.py,2503,0,review_before_delete,False
+medium,sahool-platform,function,field_disease_risk,services/sahool-platform/api/routers/fields.py,2595,0,review_before_delete,False
+medium,sahool-platform,function,field_unified_timeline,services/sahool-platform/api/routers/fields.py,3791,0,review_before_delete,False
 medium,sahool-platform,function,send_to_subscriber,services/sahool-platform/api/routers/notifications.py,316,0,review_before_delete,False
 medium,sahool-platform,function,irrigation_due_by_soil,services/sahool-platform/api/soil_water.py,119,0,review_before_delete,False
 medium,sahool-platform,function,generate_block_assignments,services/sahool-platform/api/trial_randomization.py,108,0,review_before_delete,False
@@ -625,7 +625,6 @@ medium,shared,function,agricultural_evaluation_profile,shared/mlops/runtime.py,2
 medium,shared,function,project_observation,shared/precision_agriculture/pail_om_edge.py,31,0,review_before_delete,False
 medium,shared,function,import_observation_projection,shared/precision_agriculture/pail_om_edge.py,110,0,review_before_delete,False
 medium,shared,function,bind_plot_outcomes,shared/precision_agriculture/trial_spatial.py,264,0,review_before_delete,False
-medium,shared,function,verify_access_token,shared/security/access_tokens.py,35,0,review_before_delete,False
 medium,shared,function,wildcard_with_credentials,shared/security/cors_policy.py,90,0,review_before_delete,False
 medium,shared,function,require_attested_reviewer,shared/security/gateway_deps.py,71,0,review_before_delete,False
 medium,shared,function,logbook_size_ok,shared/security/season_logbook.py,68,0,review_before_delete,False

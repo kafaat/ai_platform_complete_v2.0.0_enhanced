@@ -370,7 +370,9 @@ def test_next_actions_accepts_real_recommendation_priority_vocabulary():
 
     recs = [
         r.to_dict()
-        for r in build_recommendations(RecommendationContext(field_id="f1", crop="wheat"))
+        for r in build_recommendations(
+            RecommendationContext(field_id="f1", crop="wheat", stage="mid")
+        )
     ]
     assert any(r["priority"] == "high" for r in recs), "exercise the actual producer contract"
     actions = sw._next_actions({"missing": []}, {"recommendations": recs}, [])

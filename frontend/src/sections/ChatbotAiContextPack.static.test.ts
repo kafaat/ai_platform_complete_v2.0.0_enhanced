@@ -7,9 +7,11 @@ const chatbot = readFileSync(join(root, 'src/sections/ChatbotPage.tsx'), 'utf8')
 const router = readFileSync(join(root, '../services/sahool-platform/api/routers/field_ai_context.py'), 'utf8');
 
 describe('Chatbot AI context pack integration', () => {
-  it('loads and injects the field AI context pack into chat requests', () => {
+  it('displays the context pack and leaves request evidence to the server', () => {
     expect(chatbot).toContain('ai-context-pack');
-    expect(chatbot).toContain('ai_context_pack: aiContext');
+    expect(chatbot).not.toContain('ai_context_pack: aiContext');
+    expect(chatbot).not.toContain('current_field_state:');
+    expect(chatbot).toContain('field_id: activeFieldId || undefined');
     expect(chatbot).toContain('ai_context_summary_ar');
     expect(chatbot).toContain('سياق الحقل للذكاء');
   });

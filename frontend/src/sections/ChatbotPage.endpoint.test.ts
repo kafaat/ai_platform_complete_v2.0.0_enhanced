@@ -16,6 +16,12 @@ describe('ChatbotPage — نقطة الدردشة', () => {
     expect(src).toContain("kongApi.post('/api/ai-agronomist/chat'");
   });
 
+  it('يرسل هوية الحقل ويترك بناء الدليل للخادم', () => {
+    expect(src).toContain('field_id: activeFieldId || undefined');
+    expect(src).not.toContain('current_field_state:');
+    expect(src).not.toContain('X-Agent-Token');
+  });
+
   it('لا يستدعي الـproxy المفقود /api/chat ولا مسار /api/agent/query القديم', () => {
     expect(src).not.toContain('/api/chat');
     expect(src).not.toContain("kongApi.post('/api/agent/query'");

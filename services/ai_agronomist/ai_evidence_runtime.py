@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import math
 import os
 from collections.abc import Callable
 from contextlib import asynccontextmanager
@@ -87,9 +88,9 @@ async def _fetch_canonical_field_state(
     try:
         resp = await client.get(
             f"{PLATFORM_URL.rstrip('/')}/internal/fields/{field_id}/state",
-            params={"tenant_id": tenant_id},
+            params={"tenant_id": tenant_id, "canonical": "true", "ai_context": "true"},
             headers={"X-Agent-Token": AGENT_TOKEN},
-            timeout=7.0,
+            timeout=30.0,
         )
         if resp.status_code == 404:
             return {"status": "not_found", "field_id": field_id}
@@ -99,7 +100,19 @@ async def _fetch_canonical_field_state(
                 "http_status": resp.status_code,
                 "detail": resp.text[:500],
             }
-        return resp.json()
+        payload = resp.json()
+        canonical = payload.get("canonical_field_state")
+        pack = payload.get("ai_context_pack")
+        if (
+            not isinstance(canonical, dict)
+            or canonical.get("schema_version") != "canonical_field_state.v1"
+            or canonical.get("field_id") != field_id
+            or not isinstance(pack, dict)
+            or pack.get("field_id") != field_id
+            or str(pack.get("tenant_id")) != tenant_id
+        ):
+            return {"status": "unavailable", "reason": "canonical_context_identity_mismatch"}
+        return {**canonical, "ai_context_pack": pack}
     except Exception as exc:  # noqa: BLE001
         return {"status": "unavailable", "reason": str(exc)}
 
@@ -184,28 +197,32 @@ def _extract_evidence_ids(rag_payload: dict[str, Any], kg_payload: dict[str, Any
 def _confidence_from_payloads(
     rag_payload: dict[str, Any], kg_payload: dict[str, Any], field_state: dict[str, Any] | None
 ) -> float:
+    # Retrieval ranking scores (including RRF) and KG edges are not calibrated
+    # confidence. Only owner-declared, usable canonical products contribute.
     items: list[EvidenceItem] = []
-    for row in rag_payload.get("annotations", []) or []:
-        if isinstance(row, dict):
-            score = row.get("score") or row.get("confidence") or 0.5
-            try:
-                items.append(EvidenceItem(EvidenceStrength.RAG, float(score), verified=False))
-            except Exception:  # noqa: BLE001
-                items.append(EvidenceItem(EvidenceStrength.RAG, 0.5, verified=False))
-    for row in kg_payload.get("edges", []) or []:
-        if isinstance(row, dict):
-            items.append(EvidenceItem(EvidenceStrength.KG, 0.65, verified=False))
-    if field_state and field_state.get("status") not in {"unavailable", "not_found"}:
-        # Field state is a verified platform context source, but this runtime still cannot emit decisions.
-        items.append(EvidenceItem(EvidenceStrength.SATELLITE, 0.70, verified=True))
-        ai_pack = _extract_ai_context_pack(field_state)
-        if ai_pack:
-            imagery = ai_pack.get("imagery_timeline") or {}
-            weather = ai_pack.get("weather_history") or {}
-            if isinstance(imagery, dict) and _source_count(imagery.get("total_dates")) > 0:
-                items.append(EvidenceItem(EvidenceStrength.SATELLITE, 0.75, verified=True))
-            if isinstance(weather, dict) and weather.get("available"):
-                items.append(EvidenceItem(EvidenceStrength.WEATHER, 0.80, verified=True))
+    if (
+        not isinstance(field_state, dict)
+        or field_state.get("schema_version") != "canonical_field_state.v1"
+    ):
+        return 0.0
+    for name, strength in (
+        ("soil", EvidenceStrength.LAB),
+        ("weather", EvidenceStrength.WEATHER),
+        ("spectral", EvidenceStrength.SATELLITE),
+    ):
+        product = field_state.get(name)
+        if not isinstance(product, dict):
+            continue
+        if product.get("quality_status") not in {"validated", "verified"}:
+            continue
+        if product.get("operational_eligible") is False or product.get("limitations"):
+            continue
+        # Preserve an explicit zero. Availability alone never supplies a score.
+        value = product.get("confidence")
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            continue
+        if math.isfinite(value) and 0 <= value <= 1:
+            items.append(EvidenceItem(strength, value, verified=True))
     return compose_confidence(items)
 
 
@@ -603,7 +620,7 @@ def _evidence_sources(
 
 
 def _generation_is_grounded(annotations: dict[str, Any]) -> bool:
-    """«مؤرَّض» = RAG أعاد مقتطفاً معرفيّاً واحداً على الأقلّ.
+    """Check retrieval presence only; this does not validate any generated claim.
 
     حوافُّ KG وحالةُ الحقل سياقٌ مفيد لكنّها ليست شاهداً نصّيّاً يُسنَد إليه ادّعاءٌ مولَّد؛
     نصٌّ مولَّد فوق صفر مقتطفات هو توليدٌ حرّ يحمل وسمَ التأريض زوراً (RAG-10).
@@ -628,6 +645,14 @@ def _guardrail_result(mode: str, generation_status: str) -> dict[str, Any]:
     الفرق المعلَن: جوابُ أدلّة بلا نصّ مولَّد (لا شيء ليُحجَز) مقابل نصٍّ مولَّد أُعيد
     للمستخدم **بلا** فحص حاجز — الثانية تُسمّى باسمها بدل عبارة «لا قرار» الثابتة.
     """
+    if generation_status == "suppressed_unvalidated_output":
+        return {
+            "status": "blocked",
+            "reason": "unstructured_output_has_no_claim_or_action_validation",
+            "generated_text_checked": False,
+            "generation_status": generation_status,
+            "decision_validation": "not_executed",
+        }
     if mode == "generated_grounded":
         return {
             "status": "not_executed",
@@ -769,7 +794,7 @@ async def build_evidence_response(
                 },
                 # SEC-3: forward the trusted tenant so rag-retrieval enforces the same
                 # X-Tenant-Id-source-of-truth guard on this internal service-to-service call.
-                headers={"X-Tenant-Id": tenant_id},
+                headers={"X-Tenant-Id": tenant_id, "X-Agent-Token": AGENT_TOKEN},
                 timeout=10.0,
             )
         if rag_resp.status_code >= 400:
@@ -779,19 +804,8 @@ async def build_evidence_response(
     annotations = {
         "rag": rag_payload.get("annotations", []),
         "knowledge_graph": kg_payload.get("edges", []),
-        # ── وسمُ السلطة يقول ما يقع، لا ما نتمنّاه ──────────────────────────────
-        # كُتِب أوّلاً `evidence_authority: "none"` وهو **غير صحيح من طرفٍ إلى طرف**،
-        # رفعه المالك بقياسٍ لا رأي: `_extract_evidence_ids` تُدرِج كلّ حافّة KG في
-        # معرّفات الأدلّة، و`_confidence_from_payloads` تمنح كلّ حافّة
-        # `EvidenceStrength.KG` بوزن 0.65 — وكلاهما سابقٌ لهذه الشريحة. وأضافت هذه
-        # الشريحة أثراً ثالثاً: عبارات التوسعة تُغيّر استعلام RAG، فتُغيّر الوثائق
-        # المُسترجَعة ⇒ التوصيفات ⇒ معرّفات الأدلّة ⇒ الثقة.
-        #
-        # فالتمييز الصحيح: **سلطةُ القرار** غائبة فعلاً (لا مسار من حافّةٍ إلى مُشغِّل
-        # ولا إلى اعتماد قرار)، أمّا **التأثير في اختيار الدليل** فقائم. وكتابة
-        # «none» عليه كانت تُعمي قارئ الاستجابة عن أثرٍ حقيقيّ. وإسقاط KG من حساب
-        # الثقة قرارٌ يسبق هذه الشريحة ويخصّ سلوكاً على `main`، فيُحكَّم مستقلّاً؛
-        # والواجب هنا ألّا نصف القائم وصفاً كاذباً.
+        # KG can change retrieval selection and reference IDs, but contributes
+        # no measurement confidence and holds no decision authority.
         "graph_retrieval_expansion": {
             "mode": "reference_only",
             "terms": graph_terms,
@@ -800,7 +814,7 @@ async def build_evidence_response(
             "evidence_influence_paths": [
                 "expansion_terms_change_rag_query_selection",
                 "kg_edges_enter_evidence_ids",
-                "kg_edges_contribute_to_confidence",
+                "kg_edges_are_reference_only",
             ],
             "governed_relations_only": sorted(RETRIEVAL_CONTEXT_RELATIONS),
             # يفرّق «KG غاب» عن «KG لم يجد»: كلاهما `edges: []` ولا يُميَّزان بغيره.
@@ -833,11 +847,13 @@ async def build_evidence_response(
     evidence_ids = list(dict.fromkeys(evidence_ids))[:30]
     evidence_sources = _evidence_sources(rag_payload, kg_payload, field_state)
     confidence = _confidence_from_payloads(rag_payload, kg_payload, field_state)
+    available_sources = [s["label_ar"] for s in evidence_sources if s.get("available")]
     answer_ar = (
-        "جمعتُ سياقاً معرفياً من RAG وKnowledge Graph"
-        + (" وحالة الحقل القانونية" if field_state is not None else "")
-        + ". هذه طبقة تفسير وتأصيل فقط؛ أي توصية تنفيذية نهائية يجب أن تمر عبر منسّق ذكاء الحقل والحواجز."
+        "المصادر المتاحة: " + "، ".join(available_sources) + "."
+        if available_sources
+        else "لم تتوفر أدلة كافية للإجابة عن السؤال."
     )
+    answer_ar += " أي توصية تنفيذية تحتاج تقييماً من منسّق ذكاء الحقل والحواجز."
 
     # توليد اختياريّ مؤرَّض فوق الأدلّة (مسار OpenRouter/سحابيّ) — خلف راية عامّة +
     # سياسة المستأجِر، بمفتاح من البيئة، مع سقوط آمن إلى جواب الأدلّة أعلاه عند أيّ
@@ -891,18 +907,16 @@ async def build_evidence_response(
             )
             # حُوول التوليد فعلاً: None ⇒ فشل مزوّد/إجابة فارغة (مُدهوَر)، لا تصميم.
             generation_status = "succeeded" if gen is not None else "attempted_failed"
-        # احتواء التوليد غير المؤرَّض (التدقيق الموحَّد 2026-09-13، RAG-10/P0): كان
-        # ``generated_grounded`` يُوسَم لمجرّد أنّ النموذج أجاب — ولو كانت مقتطفات RAG
-        # صفراً (سياقُ KG وحدَه أو لا شيء). النصُّ المولَّد بلا مقتطف معرفيّ يُحجَب ويبقى
-        # جوابُ الأدلّة، ويُعلَن السبب؛ الوسمُ «مؤرَّض» يعني أنّ RAG أعاد شواهد فعلاً.
-        if gen is not None and not _generation_is_grounded(annotations):
-            generation_status = "suppressed_ungrounded"
-            generation_model = gen.model
-            generation_provider = gen.provider
-            gen = None
         if gen is not None:
-            answer_ar = gen.text
-            mode = "generated_grounded"
+            # Guardrails accepts typed proposals from the decision owner. A
+            # retrieved paragraph does not prove that arbitrary model prose is
+            # entailed or safe. Keep tool receipts, but never publish unchecked
+            # free text as a grounded recommendation.
+            generation_status = (
+                "suppressed_unvalidated_output"
+                if _generation_is_grounded(annotations)
+                else "suppressed_ungrounded"
+            )
             generation_model = gen.model
             generation_provider = gen.provider
             provider_tool_calls = list(gen.tool_calls or [])
@@ -999,8 +1013,9 @@ async def build_evidence_response(
         "tool_calls_truncated": bool(tool_result.get("truncated")) or provider_tool_truncated,
         "provider_tool_rounds": provider_tool_rounds,
         "confidence": confidence,
-        # صدق: لا حاجزَ يُنفَّذ هنا على أيّ نصّ. حين يُعاد نصٌّ مولَّد يُقال ذلك صراحةً
-        # بدل عبارة ثابتة توحي بأنّ «لا قرار» يعني «لا شيء يحتاج حاجزاً».
+        "confidence_basis": "owner_reported_evidence_quality",
+        "confidence_calibrated": False,
+        # The publication boundary is separate from typed decision validation.
         "guardrail_result": _guardrail_result(mode, generation_status),
         "audit_event": audit_event,
         "decision_authority": "field_intelligence_coordinator",

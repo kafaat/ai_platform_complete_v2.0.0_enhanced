@@ -27,7 +27,8 @@ def service_modules(rel_dir: str) -> str:
 def test_chatbot_uses_ai_agronomist_runtime_not_legacy_agent_or_mock_chat():
     src = read("frontend/src/sections/ChatbotPage.tsx")
     assert "kongApi.post('/api/ai-agronomist/chat'" in src
-    assert "current_field_state" in src
+    assert "current_field_state:" not in src, "Public chat must use server-owned field evidence"
+    assert "field_id: activeFieldId || undefined" in src
     assert "activeFieldId" in src
     # سياق الحقل صار عبر hook `useSelectedField` + جلب `ai-context-pack` (بديل store مُفكَّك)؛
     # الحارس يتحقّق من الربط الفعليّ بسياق الحقل لا باسم store بائت.

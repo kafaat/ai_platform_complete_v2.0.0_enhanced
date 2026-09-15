@@ -89,13 +89,13 @@ def _fake_et0_product(**over):
     return base
 
 
-def _patch(monkeypatch, conn, *, engine=None, engine_raises=None):
+def _patch(monkeypatch, conn, *, engine=None, engine_raises=None, stage="mid"):
     @contextlib.asynccontextmanager
     async def _tc(_user):
         yield conn
 
     async def _ctx(_conn, _field_id):
-        return (16.0, 44.9, "wheat", "mid", 40)
+        return (16.0, 44.9, "wheat", stage, 40 if stage is not None else None)
 
     async def _engine(**_kw):
         if engine_raises is not None:
@@ -125,6 +125,21 @@ async def test_ready_produces_candidate(monkeypatch):
     assert "should_irrigate" in out["recommendation"]
     assert out["calibrated"] is False
     assert any(e.startswith("water-ledger:") for e in out["evidence_ids"])
+
+
+@pytest.mark.asyncio
+async def test_missing_growth_stage_does_not_use_mid_stage_kc(monkeypatch):
+    _patch(
+        monkeypatch,
+        _FakeConn(depletion_mm=60.0),
+        stage=None,
+        engine_raises=AssertionError("Unknown stage must block before weather evaluation"),
+    )
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert out["status"] == "insufficient_data"
+    assert out["recommendation"] is None
+    assert out["inputs"]["stage"] is None
+    assert "growth_stage_unavailable" in out["limitations"]
 
 
 @pytest.mark.asyncio

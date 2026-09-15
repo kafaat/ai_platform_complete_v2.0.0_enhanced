@@ -29,10 +29,13 @@ def test_two_year_context_sources_are_explicit():
     assert "ndmi" in src
 
 
-def test_chatbot_injects_ai_context_pack():
+def test_chatbot_displays_context_while_runtime_fetches_trusted_pack():
     src = CHAT.read_text(encoding="utf-8")
     assert "ai-context-pack" in src
     assert "FieldAiContextPack" in src
-    assert "ai_context_pack: aiContext" in src
+    assert "ai_context_pack: aiContext" not in src, "A browser pack is not trusted evidence"
+    assert "current_field_state:" not in src, "Public callers cannot attest canonical field state"
+    runtime = (ROOT / "services/ai_agronomist/ai_evidence_runtime.py").read_text(encoding="utf-8")
+    assert '"ai_context": "true"' in runtime
     assert "ai_context_summary_ar" in src
     assert "سياق الحقل للذكاء" in src
