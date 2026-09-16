@@ -149,7 +149,12 @@ SUBSTANTIVE_PREFIXES = (
 )
 SUBSTANTIVE_EXACT = {
     "requirements.services.direct.lock",
-    "REPORT_INDEX.md",
+    # `REPORT_INDEX.md` **كان هنا وهو إعلانٌ ميّت** — مقيسٌ أثناء معالجة مراجعة Copilot ٣
+    # على #1012: `check_changed_files` يستبعد ما هو report-like من الجوهريّ **قبل** أيّ
+    # نظرٍ إلى هذه المجموعة، والاسمُ يحمل التلميح `REPORT` فـ`is_substantive` تُرجِع True
+    # ولا يُستعمَل ذلك قطّ. إعلانٌ يصف حكماً لا يقع هو الصنفُ الذي يُطارَد في هذا
+    # المستودع، فنُقِل إلى موضعه العامل: `REGENERATION_ARTIFACT_EXACT` أعلاه (يكتبه
+    # `report_index_guard.py --write`)، وأُزيل من هنا بدل أن يبقى زينةً.
     # `.github/CODEOWNERS` هو **أداةُ التفويض** لا تقريرَ تقدّم — نفسُ صنف
     # `docs/architecture/gates/` أعلاه وبالحجّة عينها: خطوةٌ **واجبة** يجب أن تكون
     # قابلةً للهبوط بلا اختلاق تغييرٍ لا صلةَ له.
