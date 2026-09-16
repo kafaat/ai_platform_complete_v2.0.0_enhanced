@@ -429,11 +429,24 @@ async def ensure_field_cog(
                 )
                 observable = False
             if not observable:
+                # تشخيص المشهد الفارغ: البايتات تُحذَف بعد قليل ولا تُؤرشَف، فلو لم
+                # يُسجَّل **طلبُها** هنا صار السببُ غيرَ منسوب لاحقاً — وهذا ما حدث في
+                # واقعة CDSE المفتوحة: سطرٌ بلا bbox ولا نافذة ولا عتبة سُحُب، فتعذّر
+                # الفصلُ بين «لا مشهد في النافذة» و«السُّحُب أقصتها» و«القناع أفرغها».
+                # المُسجَّل هنا طلبٌ لا محتوى: لا بايتات ولا أسرار.
                 logger.info(
-                    "CDSE returned an empty raster (%s/%s) — not cached: %s",
+                    "CDSE returned an empty raster (%s/%s) — not cached: "
+                    "window=%s..%s bbox=%s max_cloud_pct=%s mosaicking=%s "
+                    "bytes=%s polygon_mask=%s",
                     field_id,
                     internal,
                     date_from,
+                    date_to,
+                    list(field_bbox),
+                    MAX_CLOUD_PCT,
+                    mosaicking_order,
+                    len(geotiff_bytes),
+                    bool(field_geom),
                 )
                 _unlink_best_effort(cog_path, "راستر فارغ من CDSE ⇒ لا يُخزَّن")
                 return None

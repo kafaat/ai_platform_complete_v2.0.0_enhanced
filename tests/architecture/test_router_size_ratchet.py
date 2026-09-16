@@ -35,7 +35,7 @@ CEILING = 800
 
 #: الأساسُ المُجمَّد — مقيسٌ على `9613db9a` بـ`wc -l`. **يُخفَّض عند التقسيم ولا يُرفَع.**
 FROZEN_OVERSIZE: dict[str, int] = {
-    "services/sahool-platform/api/routers/fields.py": 4200,
+    "services/sahool-platform/api/routers/fields.py": 4199,
     "services/sahool-platform/api/routers/weather.py": 3022,
     "services/raster-service/routers/fields.py": 1712,
     "services/sahool-platform/api/routers/farm_operations_ledger.py": 1029,

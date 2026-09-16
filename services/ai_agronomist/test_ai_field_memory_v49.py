@@ -27,7 +27,7 @@ def _pack():
         "drawing_context": {"total": 2},
         "alerts_context": {"total": 1},
         "recommendations_context": {"total": 1},
-        "readiness": {"warnings": ["warning-a"], "requires_imagery_backfill_24_months": False},
+        "readiness": {"warnings": ["warning-a"], "imagery_history_absent": False},
     }
 
 

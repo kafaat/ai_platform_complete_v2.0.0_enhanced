@@ -186,8 +186,10 @@ class ImageryAutomation:
 
         عابر للمستأجِرين بالتصميم: مجدوِل خلفيّ يفحص الصور لكلّ الحقول المتابَعة
         عبر المستأجِرين، فلا يُضبط app.current_tenant على هذه الاتّصالات الخام
-        قصداً. تحت الدور المُقيَّد (NOBYPASSRLS/FORCE RLS) تحتاج هذه المسارات
-        دوراً خدميّاً مخصّصاً (BYPASSRLS) — متابعة نشر، لا تغيير سلوك.
+        قصداً. والجدول تحت ENABLE+FORCE RLS بسياسة قراءة فاشلة-مغلقة، فالقراءة
+        بلا سياق تُرجِع **صفر صفوف بلا استثناء** تحت دور مُقيَّد. لذلك يُوصَل
+        هذا المُجدوِل بمسبح المهامّ (BYPASSRLS) في `api/main.py` كالطقس تماماً؛
+        ووصلُه بمسبح التطبيق يُنتِج عطلاً صامتاً لا يُميَّز عن غياب الحقول.
         """
         if self._pool is None:
             return 0
@@ -985,6 +987,80 @@ imagery_automation = ImageryAutomation()
 # قراءة COG حقيقيّ (لا محاكاة). نُشغّله عبر BackgroundTasks (بعد الالتزام، خارج معاملة
 # المستأجِر) كي لا تُحبَس وصلة القاعدة طوال نداءات HTTP (حتى ٣٠ث). أفضل-جهد تامّ: فشل
 # الأتمتة/raster لا يكسر إنشاء/تحديث الحقل (يُسجَّل تحذير، لا تلفيق).
+async def bind_recovery_pool(pool) -> bool:
+    """يربط مسبح الاستعادة **بعد إثبات** أنّ دوره يقرأ الجدول عبر المستأجرين.
+
+    مراجعة #1009: `_JOBS_POOL or _DB_POOL` وحده لا يكفي. مسبح المهامّ يُصنَع من
+    `JOBS_DATABASE_URL` وإلّا **من نفس وصلة التطبيق**، ويصير `None` عند فشل إنشائه —
+    ففي نشرٍ يفرض RLS بدورٍ مُقيَّد يعود المُجدوِل إلى الدور نفسه ويُرجِع صفر صفوف
+    بصمت: العطلُ عينُه الذي جاء هذا التغيير ليُغلقه.
+
+    فالقرار يُتَّخذ بقياس الدور لا بهويّة الكائن: دورٌ يتجاوز RLS ⇒ يُربَط. دورٌ
+    مُقيَّد ⇒ **لا يُربَط** ويُعلَن السبب بمستوى حرج، فيصير الصفرُ مُصرَّحاً به بدل
+    أن يُقرأ «لا حقول مُتابَعة». وتعذُّرُ القياس نفسه (بيئةٌ بلا `pg_roles`) لا يحجب:
+    يُربَط كما كان — لا نكسر بيئات التطوير على فحصٍ لم يجرِ.
+
+    يُرجِع: هل رُبِط المسبح.
+    """
+    if pool is None:
+        return False
+    from core.db_role_guard import ROLE_PROBE_SQL, role_can_bypass_rls
+
+    try:
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow(ROLE_PROBE_SQL)
+    except Exception as e:  # noqa: BLE001 — تعذّر القياس ⇒ لا يحجب (كحارس الدور)
+        logger.debug("تعذّر فحص دور مسبح استعادة الصور: %s", e)
+        imagery_automation.set_pool(pool)
+        return True
+    if row is None or role_can_bypass_rls(row["rolsuper"], row["rolbypassrls"]):
+        imagery_automation.set_pool(pool)
+        return True
+    logger.critical(
+        "🔓 مجدوِل الصور بلا مسبح: دور %s مُقيَّد (NOBYPASSRLS) و`imagery_automation_fields` "
+        "تحت FORCE RLS بقراءةٍ فاشلةٍ-مغلقة ⇒ الاستعادة عبر المستأجرين مستحيلة. "
+        "اضبط JOBS_DATABASE_URL على دورٍ خدميّ. لا يُربَط المسبح كي لا يُقرأ الصفرُ متابعةً.",
+        row.get("rolname") if hasattr(row, "get") else "current_user",
+    )
+    return False
+
+
+async def register_field_tracking_intents(
+    conn,
+    *,
+    field_id: str,
+    tenant_id: str,
+    geometry: object,
+    lat: float | None,
+    lon: float | None,
+) -> dict[str, bool]:
+    """يُثبِّت نيّتَي متابعة الصور والطقس في معاملة إنشاء الحقل نفسها.
+
+    المُستدعي يملك المعاملة، وأيّ فشل يُرجِعها: حقلٌ مُعترَفٌ به لا يجوز أن يفقد نيّة
+    معالجته. الإطلاقُ بعد الردّ تسريعٌ فقط، والمُجدوِل يستعيد النيّة الملتزَمة.
+
+    فجوة M4 كانت في الطقس لا في الصور: تسجيلُ الإحداثيّة كان في نقطة أتمتة يدويّة
+    وحدها، فحقلٌ جديد لا يُسحَب طقسُه حتّى يمرّ عليه مشغّل. وبلا إحداثيّة مركز لا
+    تسجيلَ طقس — لا يُختلَق موقع. أمّا التربةُ وتعبئةُ التاريخ فتبقيان خارج هذا
+    العقد: الأولى مسارٌ مخبريّ بشريّ، والثانية نداءُ مزوّد لا يُنفَّذ داخل معاملة.
+    """
+    from api.weather_automation import weather_automation
+
+    guarded = guard_field_geometry(geometry)
+    await imagery_automation.register_on_connection(
+        conn,
+        field_id=field_id,
+        tenant_id=tenant_id,
+        bbox=imagery_automation._bbox_from_guard_bbox(guarded.bbox),
+    )
+    weather_registered = lat is not None and lon is not None
+    if weather_registered:
+        await weather_automation.register_on_connection(
+            conn, lat=float(lat), lon=float(lon), field_id=field_id
+        )
+    return {"imagery": True, "weather": weather_registered}
+
+
 async def _kick_imagery_processing(
     *, field_id: str, tenant_id: str, geometry: object, reason: str
 ) -> None:

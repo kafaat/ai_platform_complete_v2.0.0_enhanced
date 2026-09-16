@@ -309,7 +309,7 @@ async def _start_scheduler():
     فحص النضارة لا يحتاج تبعيّات. لا نسجّل مهمّة فارغة تدّعي عملاً.
     """
     from api.agronomic_consistency import check_decision_freshness, compute_data_ages
-    from api.imagery_automation import imagery_automation
+    from api.imagery_automation import bind_recovery_pool, imagery_automation
     from api.scheduler import cluster_singleton, register_default_tasks, scheduler
     from api.weather_automation import weather_automation
 
@@ -323,9 +323,10 @@ async def _start_scheduler():
         # HIGH-002: مجدوِل الطقس (load_from_db/refresh_all) يقرأ إحداثيّات كلّ المستأجرين
         # بلا سياق ⇒ مسبح المهامّ (sahool_jobs/BYPASSRLS) كي لا تكسره RLS الجديدة (v73)
         # على weather_automation_locations/cache. التطبيق يقرأ طقس حقله بسياق المستأجِر
-        # (RLS) في مسار آخر. imagery يبقى على مسبح التطبيق (لا RLS جديدة على جداوله هنا).
+        # (RLS) في مسار آخر. ومجدوِل الصور مثلُه: جدولُه تحت ENABLE+FORCE بقراءةٍ
+        # فاشلةٍ-مغلقة، فمسبح التطبيق يُنتِج صفراً صامتاً (العقد في docstring الوحدة).
         weather_automation.set_pool(_JOBS_POOL or _DB_POOL)
-        imagery_automation.set_pool(_DB_POOL)
+        await bind_recovery_pool(_JOBS_POOL or _DB_POOL)
         try:
             wn = await weather_automation.load_from_db()
             inum = await imagery_automation.load_from_db()
