@@ -6010,3 +6010,10 @@ C01..C14؛ لا تُرفع قدرة إلى runtime_verified أو production_cert
 ## READINESS-SOFTWARE-20260915-01 — إصلاحات تدقيق الجاهزية
 
 **الحالة: open — إغلاق برمجي جزئي موثّق.** [المصدر والاختبارات وحدود كل بند](../../docs/testing/readiness_software_repairs_20260915.md). إصلاحات السياق والراستر والمصادقة والمراحل محققة محلياً كما يبيّن الدليل؛ B6 محتوى باحتواء نشر النص غير المتحقق، وM4 يعالج دوام تسجيل الصور فقط. اعتماد corpus والتشغيل الحي وonboarding الكامل ومدخلات المالية باقية.
+
+## EXTERNAL-REFERENCE-WITHOUT-SHA-01 — مراجع خارجيّة بلا SHA في مقابلات نسيج القرار
+
+- **الحالة:** open — الفجوة في وثيقة PR #1011 (`docs/architecture/DECISION_FABRIC_SOURCE_COMPARISON_20260916.md` @ `a19543ef`) التي لم تُدمَج بعد؛ القياسُ البديل مسجَّل في الشجرة.
+- **المصدر والأساس:** قسم «External source references used for the comparison» في تلك الوثيقة يُسمّي `landingbj/LinkMind` · `OpenAgentFlow/OpenAgentFlow` · `OpenMind/OM1` · `dromara/wgai` بالاسم بلا SHA ولا تاريخ، وآخرُ التزامٍ في LinkMind يحمل تاريخَ يوم القياس نفسه — فأحكامٌ معماريّة أُسنِدت إلى هدفٍ يتحرّك يوميّاً بلا مرساة (صنف «رقمٌ يصف كوناً لم يعد قائماً» منذ اليوم الأوّل).
+- **المقيس:** [`docs/audits/DECISION_FABRIC_EXTERNAL_SOURCE_VERIFICATION_20260916.md`](../../docs/audits/DECISION_FABRIC_EXTERNAL_SOURCE_VERIFICATION_20260916.md) يُثبِّت الـSHA الأربعة (`dc40c029` · `84e00a16` · `397e57ca` · `dbf8988b`) ويقيس كلَّ دعوى بـ`path:line`: ثلاثٌ مؤكَّدة، وواحدة (WGAI) مؤكَّدة بحدود كلمة «monitoring». لا دعوى مكذوبة. وأُضيف ما أغفلته الوثيقة: السببُ المقيس لـFinding 6 (LLM في OM1 هو مُختارُ الفعل — `internal/runtime/runtime.go:506→546`).
+- **شرط الإغلاق:** نقلُ كتلة التثبيت وجملة Finding 6 من §٧ في وثيقة التحقّق إلى الوثيقة الأصل (في #1011 قبل دمجها أو في شريحة لاحقة). لا يُغلَق بوجود وثيقة التحقّق وحدها.
