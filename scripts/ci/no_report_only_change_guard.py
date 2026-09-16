@@ -50,6 +50,19 @@ REGENERATION_ARTIFACT_PREFIXES = ("docs/capability-registry/generated/",)
 # بخطّ اليد ويطلبها `validate_release_package.py` بعينها — بادئةٌ كانت ستجعلها مصنوعاً
 # يُلوندَر خلف وثيقة. تُعدَّد ملفّاتُ الإصدار التي يكتبها مولِّدٌ فعلاً (`build_release_bundle.py`
 # · `platform_route_release_binding.py` · `generate_dependency_sbom.py`) لا غير.
+#
+# **المعيارُ المُلزِم للعضويّة هنا (مراجعة Copilot ٣ على #1012، مقيسةٌ في المولِّدات):**
+# ملفٌّ يحمل **حقلاً مُحكَّماً بخطّ اليد** ليس مصنوعَ إعادة توليد ولو أعاد المولِّدُ كتابتَه —
+# لأنّ المولِّد **يحمله كما هو** ولا يشتقّه، فإدراجُه يفتح ذلك الحقلَ خلف وثيقة. مُستبعَدان
+# بهذا المعيار، وكلاهما كان هنا فأُخرِج:
+#   · `fake_connection_debt.json` — `proven_live` «قرارٌ مقيس لا مُشتقّ»، يُحمَل عبر
+#     إعادة التوليد (`fake_connection_debt_guard.py` في `_generate`: `carried = …`).
+#     إدراجُه كان يسمح بادّعاء إثباتٍ حيٍّ خلف وثيقةٍ ومصنوعات.
+#   · `brain_deferral_baseline.json` — `exempt_lines` «يُستدعى مرّة … ثمّ يُقلَّص يدويّاً»
+#     (`brain_deferral_registry_guard.py` في `write_baseline`)، و`load_baseline` يثق به.
+#     إدراجُه كان يسمح بإضافة إعفاءٍ يتخطّى حارسَ التأجيلات.
+# والباقي مفحوصٌ بالمعيار نفسه: لا مفتاحَ إعفاءٍ/إثباتٍ/تحكيمٍ في أيٍّ منها، ومولِّداتُها
+# لا تحمل شيئاً قُدُماً.
 REGENERATION_ARTIFACT_EXACT = {
     "release/FILE_CHECKSUMS.sha256",
     "release/SAHOOL_RELEASE_MANIFEST_20260626.json",
@@ -57,12 +70,14 @@ REGENERATION_ARTIFACT_EXACT = {
     "release/SBOM_DEPENDENCIES.cdx.json",
     "release/PLATFORM_ROUTE_GOVERNANCE_BINDING.json",
     "docs/architecture/assertion_presence_baseline.json",
-    "docs/architecture/brain_deferral_baseline.json",
     "docs/architecture/db_writer_ownership_baseline.json",
-    "docs/architecture/fake_connection_debt.json",
     "docs/architecture/generated_write_targets.json",
+    "docs/architecture/manifest_registry.json",
+    "docs/architecture/s4_kg_consumer_freeze.json",
+    "docs/architecture/s5_exec_01_edge_freeze.json",
     "docs/architecture/source_text_assertion_inventory.json",
     "docs/architecture/tenant_guc_scope_baseline.json",
+    "REPORT_INDEX.md",
 }
 REPORT_NAME_HINTS = (
     "REPORT",
@@ -214,10 +229,19 @@ def check_changed_files(paths: list[str]) -> None:
     # «وثائقيّ فقط» حرفيّاً: لا شيء في التغيير سوى وثائق + الدماغ + مصنوعات إعادة
     # التوليد. أيُّ ملفٍّ آخر — تقريرٌ بخطّ اليد، سجلُّ اعتماد، `.md` خارج `docs/` —
     # يُخرِج التغييرَ من الاستثناء إلى الحكم القديم.
+    #
+    # والدماغُ **بلاحقته لا ببادئته** (مراجعة Copilot ٣ على #1012): البادئةُ الخام كانت
+    # تُمرِّر `sahool-brain/extra.py` مع تقريرٍ مولَّد فيصير `outside_docs_only` فارغاً —
+    # أي شيفرةٌ تحت الدماغ تعبر «وثائقيّاً». وعقدُ الدماغ في `sahool-brain/README.md`
+    # يصفه قاعدةَ معرفةٍ Markdown، فالحدُّ يطابق العقدَ المُعلَن.
     outside_docs_only = [
         p
         for p in clean
-        if not (is_plain_doc(p) or p.startswith("sahool-brain/") or is_regeneration_artifact(p))
+        if not (
+            is_plain_doc(p)
+            or (p.startswith("sahool-brain/") and Path(p).suffix == ".md")
+            or is_regeneration_artifact(p)
+        )
     ]
     if report_like and not substantive:
         if plain_docs and not outside_docs_only:

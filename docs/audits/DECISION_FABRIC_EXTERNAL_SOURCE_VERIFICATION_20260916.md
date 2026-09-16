@@ -160,9 +160,12 @@ declare -A PIN=(
 )
 for r in "${!PIN[@]}"; do
   d="$EXT/$r"; sha="${PIN[$r]}"
+  # عزلٌ صريح: دليلٌ قائمٌ من قياسٍ سابق قد يحمل ملفّاتٍ غيرَ متتبَّعة، و`checkout`
+  # لا يمسحها — فتُقرأ شجرةٌ مخلوطة بدل المصدر المثبَّت. نبدأ من فارغٍ دائماً.
+  rm -rf "$d"
   mkdir -p "$d"
   git -C "$d" init -q
-  git -C "$d" remote add origin "https://github.com/$r" 2>/dev/null || true
+  git -C "$d" remote add origin "https://github.com/$r"
   # جلبُ الـSHA بعينه (لا الفرع). فشلُه = التحقّق غير متاح — لا ارتداد إلى default branch.
   GIT_LFS_SKIP_SMUDGE=1 git -C "$d" fetch -q --depth 1 origin "$sha" \
     || { echo "VERIFICATION UNAVAILABLE: cannot fetch pinned $sha for $r" >&2; exit 2; }
@@ -174,14 +177,18 @@ done
 
 # LinkMind — نحوُ تعبيرات المسار (يُتوقَّع: A|B polling · A,B failover · A&B parallel)
 sed -n 326,333p "$EXT/landingbj/linkmind/lagi-web/src/main/resources/lagi.yml"
-# OM1 — LLM ← executeActions في الحلقة نفسها: **كلا** الرمزين واجبان في الشريحة 500-550،
-# وغيابُ أيٍّ منهما فشلٌ (لا يكفي أن يمرّ grep بأحدهما). الأرقامُ المطبوعة نسبيّةٌ إلى الشريحة:
-# السطرُ n هنا = 499+n في الملفّ (:506 و:530/:546 المستشهَدُ بها في §٤).
+# OM1 — الدعوى في §٤ ليست «الرمزان موجودان» بل **الترتيب**: نداءُ النموذج يسبق المُنفِّذ
+# في الحلقة نفسها. فيُقاس أوّلُ سطرِ `cortexLLM.Call` وآخرُ سطرِ `executeActions` المُستدعى
+# (لا التعريف ولا التعليق) ويُشترَط أن يسبق الأوّلُ الثاني — وإلّا فالسلسلةُ المُدّعاة زالت.
+# الأرقامُ المطلقة: السطرُ n في الشريحة = 499+n في الملفّ (:506 و:530/:546 في §٤).
 om1_slice="$(sed -n 500,550p "$EXT/OpenMind/om1/internal/runtime/runtime.go")"
-for tok in 'cortexLLM.Call' 'executeActions'; do
-  grep -q -F "$tok" <<<"$om1_slice" || { echo "OM1 chain broken: '$tok' absent from runtime.go:500-550" >&2; exit 5; }
-done
-printf '%s\n' "$om1_slice" | grep -n 'cortexLLM.Call\|executeActions'
+om1_call="$(printf '%s\n' "$om1_slice" | grep -n -F 'cortexLLM.Call' | head -1 | cut -d: -f1)"
+om1_exec="$(printf '%s\n' "$om1_slice" | grep -nE '(^|[^a-zA-Z])rt\.executeActions\(' | tail -1 | cut -d: -f1)"
+[ -n "$om1_call" ] && [ -n "$om1_exec" ] \
+  || { echo "OM1 chain broken: call=$om1_call exec=$om1_exec in runtime.go:500-550" >&2; exit 5; }
+[ "$om1_call" -lt "$om1_exec" ] \
+  || { echo "OM1 order broken: LLM call at $((499+om1_call)) does not precede executor at $((499+om1_exec))" >&2; exit 5; }
+echo "OM1 chain OK: cortexLLM.Call@$((499+om1_call)) → rt.executeActions@$((499+om1_exec))"
 # OpenAgentFlow — هدفُ التشغيل الوحيد (يُتوقَّع: Unsupported runtime … supported: "langgraph")
 sed -n 375,380p "$EXT/OpenAgentFlow/openagentflow/compiler/validator.js"
 # WGAI — «لا تطابق» (grep status 1) قيمةٌ مقيسة؛ أمّا status ≥ 2 (ملفٌّ لا يُقرأ، صلاحيّات…)

@@ -277,9 +277,46 @@ def test_runtime_config_code_with_regenerated_artifacts_is_substantive():
 
 
 def test_runtime_service_config_with_release_bundle_is_substantive():
-    # إعدادُ تشغيلٍ تقرؤه خدمة (`terrain_source_registry.py` في raster-service) + الحزمة.
-    result = _run("config/terrain_sources.yml", "release/FILE_CHECKSUMS.sha256")
+    # إعدادُ تشغيلٍ غيرُ بايثونيّ تحت `config/` + الحزمة. المسارُ هنا **افتراضيّ** عمداً:
+    # اسمُ ملفٍّ حقيقيّ كان يُدخِل كلمةَ نطاقٍ في شاهدِ حوكمةٍ فيصير دليلاً معجميّاً
+    # لقدرةٍ لا يخدمها — والصنفُ مُغلَقٌ من جذره بتسمية هذا الملفّ شاهدَ حوكمة في
+    # `capability_mapping_engine.META_GOVERNANCE_FILES`، وهذه الصياغةُ حزامٌ ثانٍ.
+    result = _run("config/example_runtime_source.yml", "release/FILE_CHECKSUMS.sha256")
     assert result.returncode == 0, result.stderr
+
+
+def test_a_baseline_carrying_a_hand_adjudicated_field_is_not_a_regeneration_artifact():
+    # مراجعة Copilot ٣ على #1012: `fake_connection_debt.json` يحمل `proven_live` —
+    # «قرارٌ مقيس لا مُشتقّ» يحمله المولِّد كما هو. لو عُدَّ مصنوعاً لَمرّ ادّعاءُ
+    # إثباتٍ حيٍّ خلف وثيقةٍ ومصنوعات. وكذلك `brain_deferral_baseline.json` بـ`exempt_lines`
+    # التي «تُقلَّص يدويّاً» ويثق بها `load_baseline`.
+    for baseline in (
+        "docs/architecture/fake_connection_debt.json",
+        "docs/architecture/brain_deferral_baseline.json",
+    ):
+        result = _run(
+            "docs/adr/0002-notes.md",
+            baseline,
+            "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        )
+        assert result.returncode != 0, f"لُوندِر حقلٌ مُحكَّمٌ بخطّ اليد عبر {baseline}"
+        assert "report-only" in result.stderr
+
+
+def test_a_non_markdown_file_under_the_brain_does_not_launder_artifacts():
+    # مراجعة Copilot ٣ على #1012: البادئةُ الخام كانت تُمرِّر أيّ ملفّ تحت `sahool-brain/`.
+    # عقدُ الدماغ Markdown، فشيفرةٌ هناك ليست «وثائقيّة».
+    #
+    # والوثيقةُ في القائمة **شرطُ تكذيب** لا زينة: بدونها يكون `plain_docs` فارغاً فلا
+    # يُطرَق استثناءُ الوثائق أصلاً، فيمرّ الاختبارُ أخضرَ مع البادئة الخام وبدونها —
+    # اختبارٌ لا يُكذِّب. مع الوثيقة يصير الفرقُ مرئيّاً: خامٌّ ⇒ يعبر، بلاحقةٍ ⇒ يُحجَب.
+    result = _run(
+        "docs/adr/0002-notes.md",
+        "sahool-brain/extra.py",
+        "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+    )
+    assert result.returncode != 0, "شيفرةٌ تحت الدماغ عبرت بوصفها وثائقيّة"
+    assert "report-only" in result.stderr
 
 
 def test_a_report_named_config_file_stays_report_like():

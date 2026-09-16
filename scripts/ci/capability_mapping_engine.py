@@ -83,6 +83,14 @@ META_GOVERNANCE_FILES = {
     "docs/runbooks/GUARD_CATALOGUE.md",
     "tests_v9/test_live_gap_closure_runbook_contract.py",
     "tests_v9/test_nats_subject_ownership_contract.py",
+    # WITNESS-EXCLUDED-IN-ONE-CENSUS-ONLY-01 — **مقيسٌ على #1012:** شاهدُ حارس
+    # «لا تقارير فقط» يذكر مسارات المستودع بحكم موضوعه، فحالةٌ تُسمّي ملفَّ إعداد
+    # أدخلت كلمةَ نطاق فربطه الماسحُ بـGIS-003 ورفعت عدّةَ شواهدها 38 → 39 —
+    # إشارةُ قدرةٍ كاذبة، ثمّ حجبت بوّابةُ الأثر إعلاناً صادقاً حتّى أُضيفت القدرةُ
+    # المزعومة إلى السطر. وهو **صنفُ #857 بعينه** (SAT-007 بكلمة «change»).
+    # و`capability_linker` كان يستبعده سلفاً (`META_GOVERNANCE_PREFIXES`) — فالزوجُ
+    # كان محروساً نصفَه: جردان لشاهدٍ واحد، أحدُهما يُعفيه والآخر يقرؤه دليلاً.
+    "tests_v9/test_no_report_only_change_guard.py",
 }
 # Extension point for whole witness classes (e.g. a future registries/ subdir). Empty today:
 # every measured witness is an individual file, and breadth must be argued per entry.

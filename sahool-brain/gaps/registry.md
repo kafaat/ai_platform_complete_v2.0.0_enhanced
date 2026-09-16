@@ -6039,3 +6039,12 @@ C01..C14؛ لا تُرفع قدرة إلى runtime_verified أو production_cert
 - **الصنف:** #857 بعينه (frontend «ليس كوداً») — «حارسٌ يمنع علاجَ حارسٍ آخر»: علاجُ `release-package` هو ما يُحمِّر `no-report-only-change`.
 - **العلاج (بإذن المالك الصريح، على الشجرة المجرودة لا المظنونة):** `config/` بادئةً جوهريّة. الجردُ 12 ملفّاً: شيفرةُ تشغيلٍ وإعداداتُه (`.py` · `terrain_sources.yml` تقرؤه raster-service · `ai-model-runtimes/`) ومدخلاتُ حرّاسٍ سلوكيّة (`endpoint_ui_coverage*.json` · `service_feature_ui_contracts.json` · `security_exceptions.json` لـ`waiver_expiry_guard` · `platform_catalog_overrides.yml`) وأداتا تطوير (`pip.conf` · `setup_pip_mirror.ps1`). الملفّان المُسمَّيان تقريراً (`evidence_lab_matrix.json` · `indicators_registry.json`) يبقيان تقريرَين لأنّ الجوهريّ يُستبعَد منه ما هو report-like قبل البادئة — مُثبَت بحالة.
 - **الدليل:** 3 حالات جديدة (#1011 حرفيّاً · إعدادُ خدمة + حزمة · ملفٌّ تقريريّ داخل `config/` يبقى محجوباً) ⇒ 25/25؛ طفرةٌ تُسقِط `config/` مقتولة (5/5 مع سابقاتها)؛ محاكاةُ #1011 بعد العلاج rc=0.
+
+## WITNESS-EXCLUDED-IN-ONE-CENSUS-ONLY-01 — شاهدُ حوكمةٍ مُعفًى في جردٍ ومقروءٌ دليلاً في الآخر
+
+- **الحالة:** fixed — مقيسٌ على #1012: حالةٌ في `tests_v9/test_no_report_only_change_guard.py` سمّت ملفَّ إعدادٍ فأدخلت كلمةَ نطاق، فربطها `capability_mapping_engine` بـ`GIS-003` ورفع عدّةَ شواهدها 38 → 39، ثمّ حجبت بوّابةُ الأثر إعلاناً صادقاً بـ`missing_direct: GIS-003`.
+- **المصدر:** [`capability_mapping_engine.py`](../../scripts/ci/capability_mapping_engine.py) (`META_GOVERNANCE_FILES` · `ALIASES["GIS-003"]`) مقابل [`capability_linker.py`](../../scripts/ci/capability_linker.py) (`META_GOVERNANCE_PREFIXES`).
+- **الصنف:** «حارسٌ يحرس نصفَ الزوج» — الشاهدُ نفسه مُستبعَدٌ من جردٍ ومقروءٌ دليلاً في جردٍ آخر، فالإعفاءُ الأوّل يبدو كافياً وهو نصفُ علاج. **وهو صنفُ #857 بعينه** (شاهدٌ رُبِط بـSAT-007 لمجرّد كلمة «change»).
+- **حدُّ صدقٍ عن نفسي:** علاجي الأوّل كان **إضافة `GIS-003` إلى سطر الأثر** — أي قبولُ الإشارة الكاذبة بوصفها اشتقاقاً صادقاً بدل معالجة سببها. أمسكه مراجعٌ آليّ لا أنا.
+- **العلاج:** الشاهدُ في `META_GOVERNANCE_FILES` (إعفاءٌ بالاسم لا بالشجرة، كسياسة الملفّ)، وصياغةُ الحالة حُيِّدت حزاماً ثانياً، ويسقط `GIS-003` من الأثر بإعادة التوليد.
+- **الباقي مفتوحاً:** لا اختبارَ يفرض **تطابقَ** قائمتَي الإعفاء بين الجردَين؛ شاهدٌ جديد قد يُضاف إلى إحداهما وحدها فيعود الصنف. مرشَّحٌ لشريحةٍ لاحقة.
