@@ -1179,6 +1179,17 @@ jobs:
           RLS_ISOLATION_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_rls_tenant_isolation_live_pg.py
 
+      # الشاهدُ أعلاه يُنشئ جدولَه وسياستَه بنفسه، فيُثبِت أنّ **المحرّك يعزل** لا أنّ
+      # **سياسات الهجرات صحيحة** — وهو يقول ذلك صراحةً. هذه الخطوةُ تقيس السياسةَ
+      # المُهاجَرة نفسَها على `imagery_automation_fields`: الجدولُ الذي وُلد منه عطلٌ
+      # صامت مقيس (#1009) حين قرأه المُجدوِل بلا سياق فأعطى صفراً بلا استثناء.
+      - name: Imagery automation RLS certification (migrated policy, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          IMAGERY_RLS_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_imagery_automation_rls_live_pg.py
+
   decision-service-tests:
     name: Decision Service Tests
     runs-on: ubuntu-24.04

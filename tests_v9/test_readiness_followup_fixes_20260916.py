@@ -108,6 +108,37 @@ def test_migration_really_forces_rls_on_the_imagery_automation_table():
     assert "FORCE ROW LEVEL SECURITY" in sql
 
 
+def test_ci_step_pins_the_flag_that_turns_a_missing_database_into_a_failure():
+    """مراجعة #1014 (مكتومة): الشهادةُ الحيّة تتخطّى نفسَها بلا DSN.
+
+    شاهدُ `imagery_automation_fields` مُعلَّم `integration` وله `skipif` على مستوى
+    الوحدة، فحذفُ العَلَم أو إعادةُ تسميته في تحريرٍ لاحق — مع غياب الـDSN — تجعل
+    **وظيفةً مخصَّصةً للشهادة تخضرّ بلا أن تقيس السياسةَ المُهاجَرة**. وهذا صنفُ
+    «التخطّي الصامت يُقرَأ نجاحاً» بعينه.
+
+    فيُثبَّت العقدُ ساكناً هنا — في اختبار وحدةٍ يعمل دائماً لا في ملفٍّ يتخطّى نفسه —
+    على غرار `test_hil_ci_requires_the_live_database_certificate`.
+    """
+    import yaml
+
+    workflow = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
+    steps = workflow["jobs"]["integration-tests"]["steps"]
+    target = "pytest -v -m integration -rs tests_v9/test_imagery_automation_rls_live_pg.py"
+    selected = [step for step in steps if step.get("run", "").strip() == target]
+    assert len(selected) == 1, "خطوةُ شهادة RLS لأتمتة الصور غائبة أو مكرّرة"
+    env = selected[0].get("env") or {}
+    assert env.get("IMAGERY_RLS_CERTIFICATION_REQUIRED") == "1", (
+        "بلا العَلَم يصير غيابُ القاعدة تخطّياً أخضرَ في وظيفةٍ تُعلِن أنّها تشهد"
+    )
+    # والعَلَمُ وحده لا يكفي: بلا DSN يرفع الملفُّ استثناءً عند الجمع، وبـDSN خاطئ
+    # يقيس قاعدةً أخرى. الاثنان مُثبَّتان نصّاً كي لا يُعاد توجيهُهما صامتَين.
+    assert env.get("TEST_DATABASE_ADMIN_URL"), "بلا DSN إداريّ لا تهيئةَ صفوفٍ ولا قياسَ دور"
+    assert env.get("TEST_DATABASE_URL"), "بلا DSN مُقيَّد تُقاس السياسةُ بدورٍ يتجاوزها"
+    assert "sahool_app_test" in env["TEST_DATABASE_URL"], (
+        "الـDSN المحروس يجب أن يكون الدورَ المُقيَّد لا المُدير"
+    )
+
+
 # ── ٢) راية تاريخ الصور تقول ما تقيس ────────────────────────────────────────
 
 

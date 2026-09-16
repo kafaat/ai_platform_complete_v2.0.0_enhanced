@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5335,
+    "files_scanned": 5337,
     "files_by_kind": {
       "backend": 1208,
       "database": 277,
       "governance": 62,
       "mobile": 55,
       "other": 1476,
-      "tests": 1799,
+      "tests": 1801,
       "web": 458
     },
     "unmapped_artifacts": 2169,
@@ -292,6 +292,14 @@
             "content:Human approval",
             "content:approval workflow"
           ]
+        },
+        {
+          "path": "tests_v9/test_guardrails_evaluate_http_contract.py",
+          "score": 8,
+          "signals": [
+            "content:Human approval",
+            "content:approval workflow"
+          ]
         }
       ],
       "governance": [],
@@ -316,7 +324,7 @@
         "events": 2,
         "web": 0,
         "mobile": 0,
-        "tests": 2,
+        "tests": 3,
         "governance": 0,
         "other_evidence": 1
       },
@@ -24478,6 +24486,10 @@
           "score": 17
         },
         {
+          "value": "public.imagery_automation_fields @ tests_v9/test_imagery_automation_rls_live_pg.py:40",
+          "score": 17
+        },
+        {
           "value": "api.imagery_automation @ tests_v9/test_roadmap_phase23.py:1560",
           "score": 15
         },
@@ -24775,6 +24787,15 @@
             "content:Tenant RLS",
             "content:rls",
             "content:row level security",
+            "content:tenant isolation"
+          ]
+        },
+        {
+          "path": "tests_v9/test_imagery_automation_rls_live_pg.py",
+          "score": 17,
+          "signals": [
+            "path:rls",
+            "content:rls",
             "content:tenant isolation"
           ]
         },
@@ -25851,10 +25872,10 @@
         "backend": 13,
         "routes": 30,
         "database": 100,
-        "events": 46,
+        "events": 47,
         "web": 0,
         "mobile": 0,
-        "tests": 65,
+        "tests": 66,
         "governance": 0,
         "other_evidence": 73
       },

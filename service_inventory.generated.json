@@ -111,7 +111,7 @@
     "service": "guardrails-engine",
     "domain": "AI Safety & Governance",
     "python_files": 14,
-    "python_loc": 1730,
+    "python_loc": 1733,
     "tests": 1,
     "routes": 9,
     "main": "services/guardrails-engine/main.py",
