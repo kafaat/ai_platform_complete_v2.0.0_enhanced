@@ -1,0 +1,41 @@
+name: DTJW3P PR preflight
+on:
+  push:
+    branches: [codex/dtjw3p-pr-preflight-20260917]
+    paths: [.github/workflows/dtjw3p-pr-preflight.yml]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: claude/project-exploration-dtjw3p
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Install governance dependencies
+        run: pip install pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0
+      - name: Verify exact branch and ancestry
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = 6ee0131052ff2b95a13283fa2eff51d3d5613da7
+          git fetch origin main
+          git merge-base --is-ancestor 18328ad2461cb5fbace17703dd800af9bdf01d1d HEAD
+          echo "main=$(git rev-parse origin/main)"
+          echo "head=$(git rev-parse HEAD)"
+          git status --porcelain
+      - name: Verify generated tree and release package
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/ci/capability_mapping_engine.py --check
+          python -u scripts/ci/verify_all_generated.py --check
+          python scripts/release/validate_release_package.py
+          git diff --check origin/main...HEAD
+          test -z "$(git status --porcelain)"
