@@ -1,6 +1,6 @@
 {
   "fail_closed": true,
-  "plan_sha256": "82145b911b82689e87c50051efefe78af92689297ba385d4b0dc56e40a1fd34f",
+  "plan_sha256": "21b89c5ac664155bbacb5747f442127f4a026853aac02c2c66bbfab7cf929a13",
   "schema_version": "1.0",
   "services": [
     {
@@ -217,6 +217,11 @@
           "path": "/healthz"
         },
         {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "/metrics"
+        },
+        {
           "kind": "readiness",
           "method": "GET",
           "path": "/readyz"
@@ -413,6 +418,11 @@
           "kind": "health",
           "method": "GET",
           "path": "/healthz"
+        },
+        {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "/metrics"
         },
         {
           "kind": "readiness",
@@ -649,7 +659,13 @@
     },
     {
       "base_url_env": "RASTER_TILER_SERVICE_BASE_URL",
-      "probes": [],
+      "probes": [
+        {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "/metrics"
+        }
+      ],
       "production_certified": false,
       "required_evidence_fields": [
         "schema_version",
@@ -1118,6 +1134,11 @@
           "path": "/healthz"
         },
         {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "/metrics"
+        },
+        {
           "kind": "readiness",
           "method": "GET",
           "path": "/readyz"
@@ -1157,5 +1178,5 @@
       "source_service": "weather-signal-engine"
     }
   ],
-  "source_contract_sha256": "c6a5c791b06ad7cd8d065b51feee9bb42a98f2a2c48821e55e47e1d570f56583"
+  "source_contract_sha256": "52011eb9dc216caeaae4d7e39f31986ac45e87a707aff3e92e347f0bbfe4b925"
 }

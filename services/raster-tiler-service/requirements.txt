@@ -77,3 +77,5 @@ uvicorn==0.52.4
 uvloop==0.22.1
 watchfiles==1.2.0
 websockets==17.1
+# نقطة /metrics: الهدف مُعلَن في prometheus/prometheus.yml منذ البداية وكانت النقطة غائبة.
+prometheus-client==0.20.0

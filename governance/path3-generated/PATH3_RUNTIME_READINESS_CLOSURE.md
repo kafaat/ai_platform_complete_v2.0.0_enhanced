@@ -2,7 +2,7 @@
 
 - Status: **READY_FOR_LIVE_EXECUTION**
 - Checks: **8/8 PASS**
-- Compose-resolved probeable services: **27/27**
+- Compose-resolved probeable services: **28/28**
 - MCP deployments required: **4**
 - Runtime verified services: **0**
 - Production certified services: **0**

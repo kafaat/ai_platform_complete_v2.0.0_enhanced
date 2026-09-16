@@ -1,6 +1,6 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "fa4dff2c2ec0343ab8a39cfcca38499ee8b9bccb",
+  "measured_on": "6941bb614ec786be7a676d644a0889ade569b17b",
   "measurement_contract_version": 2,
   "measurement_input_digest": "bd02fd5543fe055e01d092abbed120c6a7b140ea9833ebde84c3de477e7c79e5",
   "measurement_algorithm_digest": "5e1674674f2856600b7a8a67f9e383a7f122d1f39acd605826ec75bd98fc4641",

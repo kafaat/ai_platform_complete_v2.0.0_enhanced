@@ -8016,6 +8016,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_prometheus_target_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_provider_tool_schema_required_guard.py",
     "kind": "tests"
   },
