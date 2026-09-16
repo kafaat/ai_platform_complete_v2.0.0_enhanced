@@ -25,7 +25,7 @@
       "tests": 1795,
       "web": 458
     },
-    "unmapped_artifacts": 2167,
+    "unmapped_artifacts": 2166,
     "ambiguous_artifacts": 419
   },
   "capabilities": [
@@ -10691,6 +10691,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_no_report_only_change_guard.py",
+          "score": 8,
+          "signals": [
+            "content:dem",
+            "content:terrain"
+          ]
+        },
+        {
           "path": "tests_v9/test_outbox_idempotent_consumption.py",
           "score": 8,
           "signals": [
@@ -11038,7 +11046,7 @@
         "events": 51,
         "web": 12,
         "mobile": 0,
-        "tests": 38,
+        "tests": 39,
         "governance": 0,
         "other_evidence": 34
       },
@@ -43330,10 +43338,6 @@
     },
     {
       "path": "tests_v9/test_no_merge_conflict_markers_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_no_report_only_change_guard.py",
       "kind": "tests"
     },
     {

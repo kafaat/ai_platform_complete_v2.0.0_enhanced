@@ -174,12 +174,25 @@ done
 
 # LinkMind — نحوُ تعبيرات المسار (يُتوقَّع: A|B polling · A,B failover · A&B parallel)
 sed -n 326,333p "$EXT/landingbj/linkmind/lagi-web/src/main/resources/lagi.yml"
-# OM1 — LLM ← executeActions في الحلقة نفسها (يُتوقَّع سطران على الأقلّ: :506 و:530/:546)
-sed -n 500,550p "$EXT/OpenMind/om1/internal/runtime/runtime.go" | grep -n 'cortexLLM.Call\|executeActions'
+# OM1 — LLM ← executeActions في الحلقة نفسها: **كلا** الرمزين واجبان في الشريحة 500-550،
+# وغيابُ أيٍّ منهما فشلٌ (لا يكفي أن يمرّ grep بأحدهما). الأرقامُ المطبوعة نسبيّةٌ إلى الشريحة:
+# السطرُ n هنا = 499+n في الملفّ (:506 و:530/:546 المستشهَدُ بها في §٤).
+om1_slice="$(sed -n 500,550p "$EXT/OpenMind/om1/internal/runtime/runtime.go")"
+for tok in 'cortexLLM.Call' 'executeActions'; do
+  grep -q -F "$tok" <<<"$om1_slice" || { echo "OM1 chain broken: '$tok' absent from runtime.go:500-550" >&2; exit 5; }
+done
+printf '%s\n' "$om1_slice" | grep -n 'cortexLLM.Call\|executeActions'
 # OpenAgentFlow — هدفُ التشغيل الوحيد (يُتوقَّع: Unsupported runtime … supported: "langgraph")
 sed -n 375,380p "$EXT/OpenAgentFlow/openagentflow/compiler/validator.js"
-# WGAI — «لا تطابق» قيمةٌ مقيسة لا فشلُ shell (grep يُرجِع 1 عند صفر تطابق تحت pipefail)
-wgai_hits="$({ grep -rn 'openai\|chat/completions' --include='*.java' --include='*.yml' "$EXT/dromara/wgai" || true; } | wc -l)"
+# WGAI — «لا تطابق» (grep status 1) قيمةٌ مقيسة؛ أمّا status ≥ 2 (ملفٌّ لا يُقرأ، صلاحيّات…)
+# فتعذُّرُ قياسٍ لا صفرٌ — يُحفَظ status ولا يُبتلَع بـ`|| true`.
+set +e
+wgai_matches="$(grep -rn 'openai\|chat/completions' --include='*.java' --include='*.yml' "$EXT/dromara/wgai")"
+wgai_status=$?
+set -e
+[ "$wgai_status" -le 1 ] || { echo "VERIFICATION UNAVAILABLE: grep exited $wgai_status scanning wgai" >&2; exit 6; }
+wgai_hits=0
+[ -z "$wgai_matches" ] || wgai_hits="$(printf '%s\n' "$wgai_matches" | wc -l)"
 echo "wgai external-LLM tokens in java/yml: $wgai_hits   # يُتوقَّع 0"
 ```
 

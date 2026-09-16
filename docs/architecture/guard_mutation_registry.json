@@ -4475,6 +4475,12 @@
           "find": "        if plain_docs and not outside_docs_only:",
           "replace": "        if plain_docs or not outside_docs_only:",
           "why": "توسيعُ الاستثناء من «كلّ التقارير مصنوعاتُ توليد» إلى «توجد وثيقة» يجعل أيَّ Markdown مفتاحاً يفتح تقريراً بخطّ اليد أو سجلَّ الاعتماد — وهو بعينه ما يحرسه الحارس"
+        },
+        {
+          "expect": "test_runtime_config_code_with_regenerated_artifacts_is_substantive",
+          "find": "    \"config/\",\n)\nSUBSTANTIVE_EXACT = {",
+          "replace": ")\nSUBSTANTIVE_EXACT = {",
+          "why": "إسقاط config/ من التصنيف يعيد العطل المقيس على #1011 حرفيّاً: شيفرةُ تشغيلٍ حقيقيّة + مصنوعاتُ إعادة التوليد الإلزاميّة تُحجَب «report-only» — الـPR تمرّ ما دامت لم تُصلِح حزمتَها وتُحجَب لحظةَ إصلاحها"
         }
       ],
       "test": "tests_v9/test_no_report_only_change_guard.py"

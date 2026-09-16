@@ -30,8 +30,8 @@ REPORT_SUFFIXES = (".md", ".csv", ".json")
 #
 # صنفُ «بوّابةٌ لا تُغلَق بعملٍ صحيح» للمرّة الرابعة في هذا الملفّ (بعد `sahool-brain/`
 # و`docs/architecture/gates/` و`.github/CODEOWNERS`)، والعلاجُ على نمطها: يُعرَّف
-# **مصنوعُ إعادة التوليد** تعريفاً صريحاً ضيّقاً — دليلُ التوليد، وحزمةُ الإصدار،
-# وملفّاتُ القياس التي يُعيد `verify_all_generated.py --fix` ختمَ `measured_on` فيها —
+# **مصنوعُ إعادة التوليد** تعريفاً صريحاً ضيّقاً — دليلُ التوليد، وملفّاتُ الإصدار التي
+# يكتبها مولِّد، وملفّاتُ القياس التي يُعيد `verify_all_generated.py --fix` ختمَ `measured_on` فيها —
 # فإذا لم يكن في التغيير شيءٌ سوى وثائق بخطّ اليد + الدماغ + هذه المصنوعات، فالتغييرُ
 # وثائقيّ كما يَعِد الرأس. المصنوعاتُ تابعةٌ لِما ولّدها.
 #
@@ -45,11 +45,17 @@ REPORT_SUFFIXES = (".md", ".csv", ".json")
 # وما **لا** يفتحه: تقريرٌ مكتوبٌ بخطّ اليد باسمٍ تقريريّ (`FOO_REPORT.md`) أو سجلُّ
 # الاعتماد بجوار وثيقة — ليس مصنوعَ إعادة توليد فيبقى محجوباً؛ ومصنوعاتٌ مولَّدة **بلا**
 # وثيقة — تبقى «exclusively generated» كما ينصّ الرأس.
-REGENERATION_ARTIFACT_PREFIXES = (
-    "docs/capability-registry/generated/",
-    "release/",
-)
+REGENERATION_ARTIFACT_PREFIXES = ("docs/capability-registry/generated/",)
+# `release/` **ليست** بادئةً هنا (مراجعة Copilot على #1012): تحتها `DEPLOYMENT_READINESS_CHECKLIST.md`
+# بخطّ اليد ويطلبها `validate_release_package.py` بعينها — بادئةٌ كانت ستجعلها مصنوعاً
+# يُلوندَر خلف وثيقة. تُعدَّد ملفّاتُ الإصدار التي يكتبها مولِّدٌ فعلاً (`build_release_bundle.py`
+# · `platform_route_release_binding.py` · `generate_dependency_sbom.py`) لا غير.
 REGENERATION_ARTIFACT_EXACT = {
+    "release/FILE_CHECKSUMS.sha256",
+    "release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+    "release/SBOM_MINIMAL.json",
+    "release/SBOM_DEPENDENCIES.cdx.json",
+    "release/PLATFORM_ROUTE_GOVERNANCE_BINDING.json",
     "docs/architecture/assertion_presence_baseline.json",
     "docs/architecture/brain_deferral_baseline.json",
     "docs/architecture/db_writer_ownership_baseline.json",
@@ -111,6 +117,20 @@ SUBSTANTIVE_PREFIXES = (
     # This does NOT weaken the control that matters: `branch_protection_contract_guard`
     # still demands code-owner review on this exact path, and it is a separate gate.
     "docs/architecture/gates/",
+    # RUNTIME-CONFIG-TREE-NOT-SUBSTANTIVE-01 — **مقيسٌ على #1011:** `config/guardrail_feature_flags.py`
+    # شيفرةُ تشغيلٍ يستوردها `services/ai_agronomist/runtime_guardrail_adapter.py` و
+    # `services/sahool-platform/core/internal_orchestrator.py`، وتعديلُها + المصنوعاتُ التي
+    # يُوجِبها المستودعُ (إعادة التوليد) كان يُصنَّف «report-only» — فالـPR تمرّ ما دامت
+    # **لم تُصلِح** حزمتَها، وتُحجَب لحظةَ إصلاحها. صنفُ #857 بعينه (frontend «ليس كوداً»).
+    #
+    # الشجرةُ مجرودة لا مظنونة (12 ملفّاً): شيفرةُ تشغيلٍ وإعداداتُه (`.py` · `terrain_sources.yml`
+    # لخدمة raster · `ai-model-runtimes/`) ومدخلاتُ حرّاسٍ سلوكيّة (تغطيةُ الواجهات وإعفاءاتُها ·
+    # عقودُ الميزات · استثناءاتُ الأمن التي يقرؤها `waiver_expiry_guard`) — الصنفُ نفسه الذي
+    # يُعفي `runtime-verification/` و`docs/architecture/gates/` أعلاه. وملفّاها المُسمَّيان
+    # تقريراً (`evidence_lab_matrix.json` · `indicators_registry.json`) يبقيان تقريرَين:
+    # `check_changed_files` يستبعد ما هو report-like من الجوهريّ **قبل** النظر إلى البادئة،
+    # مُثبَتاً بـ`test_a_report_named_config_file_stays_report_like`.
+    "config/",
 )
 SUBSTANTIVE_EXACT = {
     "requirements.services.direct.lock",

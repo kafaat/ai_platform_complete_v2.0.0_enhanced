@@ -229,7 +229,68 @@ def test_a_brain_file_alone_does_not_launder_regenerated_artifacts_as_a_doc():
         "sahool-brain/log.md",
         "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
     )
+    # مراجعة Copilot على #1012: غيابُ التشخيص الجديد وحده لا يُثبِت شيئاً — تنفيذٌ معطوب
+    # يُرجِع `_ok` كان سيمرّ. الإثباتُ هو الحجبُ نفسه: رمزُ خروجٍ غيرُ صفريّ ورسالتُه.
+    assert result.returncode != 0, "الدماغُ وحده لَوندَر تقريراً مولَّداً"
+    assert "report-only" in result.stderr
     assert "docs_with_regenerated_artifacts" not in result.stdout
+
+
+def test_a_hand_maintained_release_checklist_is_not_a_regeneration_artifact():
+    # مراجعة Copilot على #1012: بادئةُ `release/` كانت تجعل كلَّ ملفٍّ تقريريّ هناك مصنوعَ
+    # توليد — و`DEPLOYMENT_READINESS_CHECKLIST.md` قائمةٌ بخطّ اليد يطلبها
+    # `validate_release_package.py` بعينها. وثيقةٌ مرافِقة لا تُلوندِرها.
+    result = _run(
+        "docs/adr/0002-notes.md",
+        "release/DEPLOYMENT_READINESS_CHECKLIST.md",
+    )
+    assert result.returncode != 0, "لُوندِرت قائمةُ إصدارٍ بخطّ اليد عبر بادئة release/"
+    assert "report-only" in result.stderr
+
+
+def test_generator_written_release_files_are_regeneration_artifacts():
+    # ما يكتبه `build_release_bundle.py` فعلاً (لا كلُّ `release/`) يبقى مصنوعَ توليد.
+    result = _run(
+        "docs/adr/0002-notes.md",
+        "release/FILE_CHECKSUMS.sha256",
+        "release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+        "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+    )
+    assert result.returncode == 0, result.stderr
+    assert "docs_with_regenerated_artifacts" in result.stdout
+
+
+def test_runtime_config_code_with_regenerated_artifacts_is_substantive():
+    # RUNTIME-CONFIG-TREE-NOT-SUBSTANTIVE-01 — قائمةُ ملفّات #1011 بعد علاجها الإلزاميّ حرفيّاً:
+    # شيفرةُ تشغيلٍ تحت `config/` (يستوردها runtime_guardrail_adapter وinternal_orchestrator)
+    # + وثيقةُ المقارنة + ما تُعيد `regenerate_all_generated.sh` ختمَه. كانت تُحجَب «report-only»
+    # لأنّ `config/` لم تكن كوداً في التصنيف — وتمرّ عبر الجوهريّة لا عبر استثناء الوثائق.
+    result = _run(
+        "config/guardrail_feature_flags.py",
+        "docs/architecture/DECISION_FABRIC_SOURCE_COMPARISON_20260916.md",
+        "docs/architecture/source_text_assertion_inventory.json",
+        "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "release/FILE_CHECKSUMS.sha256",
+    )
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "no_report_only_change_guard_ok"
+
+
+def test_runtime_service_config_with_release_bundle_is_substantive():
+    # إعدادُ تشغيلٍ تقرؤه خدمة (`terrain_source_registry.py` في raster-service) + الحزمة.
+    result = _run("config/terrain_sources.yml", "release/FILE_CHECKSUMS.sha256")
+    assert result.returncode == 0, result.stderr
+
+
+def test_a_report_named_config_file_stays_report_like():
+    # البادئةُ لا تُلوندِر ملفّاً تقريريّاً بالاسم داخلها: `indicators_registry.json` يحمل
+    # تلميح REGISTRY فيبقى تقريراً، والجوهريُّ يُستبعَد منه ما هو report-like قبل البادئة.
+    result = _run(
+        "config/indicators_registry.json",
+        "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+    )
+    assert result.returncode != 0, "لُوندِر تقريرٌ مُسمًّى عبر بادئة config/"
+    assert "report-only" in result.stderr
 
 
 def test_a_report_named_doc_is_not_a_plain_doc():
