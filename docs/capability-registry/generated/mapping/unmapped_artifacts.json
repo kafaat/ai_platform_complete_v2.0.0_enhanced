@@ -7852,10 +7852,6 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/test_no_report_only_change_guard.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests_v9/test_no_tracked_temporary_probe.py",
     "kind": "tests"
   },
