@@ -31,11 +31,20 @@ import pytest
 
 pytestmark = [pytest.mark.integration, pytest.mark.security]
 
-asyncpg = pytest.importorskip("asyncpg")
+_CERTIFICATION_REQUIRED = os.getenv("IMAGERY_RLS_CERTIFICATION_REQUIRED") == "1"
+
+# مراجعة #1014: `importorskip` قبل قراءة العَلَم كان يجعل غيابَ `asyncpg` على مُشغِّل الشهادة
+# تخطّياً أخضرَ للوحدة كلّها — فالبوّابةُ تُعلِن شهادةً ولم تقِس شيئاً. النمطُ نفسُه في
+# `test_irr_f01_reservation_live_pg.py`: تحت العَلَم يُرفَع خطأُ الاستيراد لا يُتخطّى.
+try:
+    import asyncpg
+except ImportError:
+    if _CERTIFICATION_REQUIRED:
+        raise
+    asyncpg = pytest.importorskip("asyncpg", reason="asyncpg غير مثبّت")
 
 _ADMIN_DSN = os.getenv("TEST_DATABASE_ADMIN_URL") or ""
 _APP_DSN = os.getenv("TEST_DATABASE_URL") or ""
-_CERTIFICATION_REQUIRED = os.getenv("IMAGERY_RLS_CERTIFICATION_REQUIRED") == "1"
 
 _TABLE = "public.imagery_automation_fields"
 _TENANT_A = "aaaaaaaa-0000-4000-8000-00000000000a"

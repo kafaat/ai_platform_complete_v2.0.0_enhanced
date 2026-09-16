@@ -108,8 +108,11 @@ def test_evaluation_refuses_an_unauthorized_caller(guardrails, headers):
     assert response.status_code == 401
     detail = response.json().get("detail", "")
     # مراجعة #1013: الرسالةُ كانت تسمّي `/v1/validate` دائماً، فمن يصطدم بها على
-    # التقييم يطارد مساراً لم يستدعه. لا تُسمّى مساراً بعينه.
+    # التقييم يطارد مساراً لم يستدعه. لا تُسمّى مساراً بعينه — ولا هذا المسارُ نفسُه
+    # (مراجعة #1014): الرسالةُ محايدةٌ للمسارَين معاً، فارتدادٌ إلى «/v1/evaluate» انحدارٌ أيضاً.
     assert "/v1/validate" not in detail, "رسالةُ الرفض تسمّي مساراً آخر ⇒ تشخيصٌ مُضلِّل"
+    assert "/v1/evaluate" not in detail, "رسالةُ الرفض تسمّي مساراً بعينه ⇒ ليست محايدة"
+    assert "توكن خدمة غير صالح" in detail
 
 
 @pytest.mark.parametrize("path", ["/v1/evaluate", "/v1/validate"])
