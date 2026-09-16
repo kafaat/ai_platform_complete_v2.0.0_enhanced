@@ -1,0 +1,65 @@
+name: PR1015 Copilot YAML fix
+on:
+  push:
+    branches: [codex/pr1015-copilot-yaml-fix]
+    paths: [.github/workflows/pr1015-copilot-yaml-fix.yml]
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: claude/project-exploration-dtjw3p
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Apply measured review correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = 6ee0131052ff2b95a13283fa2eff51d3d5613da7
+          p=docs/audits/DECISION_FABRIC_EXTERNAL_SOURCE_VERIFICATION_20260916.md
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('docs/audits/DECISION_FABRIC_EXTERNAL_SOURCE_VERIFICATION_20260916.md')
+          s=p.read_text(encoding='utf-8')
+          old="wgai_matches=\"$(grep -rniE 'openai|chat/completions' --include='*.java' --include='*.yml' \"$EXT/dromara/wgai\")\""
+          new="wgai_matches=\"$(grep -rniE 'openai|chat/completions' --include='*.java' --include='*.yml' --include='*.yaml' \"$EXT/dromara/wgai\")\""
+          assert old in s, 'expected pinned WGAI verifier command not found'
+          s=s.replace(old,new,1)
+          old_label='echo "wgai external-LLM tokens in java/yml: $wgai_hits   # يُتوقَّع 0"'
+          new_label='echo "wgai external-LLM tokens in java/yml/yaml: $wgai_hits   # يُتوقَّع 0"'
+          assert old_label in s
+          s=s.replace(old_label,new_label,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+          grep -F -- "--include='*.yaml'" "$p"
+          grep -F 'java/yml/yaml' "$p"
+          git diff --check
+      - name: Regenerate and verify before push
+        shell: bash
+        run: |
+          set -euo pipefail
+          pip install PyYAML==6.0.2 jsonschema==4.26.0
+          git add -A
+          python -u scripts/ci/verify_all_generated.py --fix
+          git add -A
+          python scripts/ci/capability_mapping_engine.py --check
+          python -u scripts/ci/verify_all_generated.py --check
+          python scripts/release/validate_release_package.py
+          git diff --cached --check
+      - name: Commit and push to PR branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix(audit): scan WGAI yaml files in pinned verifier'
+          python -u scripts/ci/verify_all_generated.py --check
+          test -z "$(git status --porcelain)"
+          git push origin HEAD:claude/project-exploration-dtjw3p
