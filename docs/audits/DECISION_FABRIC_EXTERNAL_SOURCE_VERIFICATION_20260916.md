@@ -225,13 +225,13 @@ printf '%s\n' "$oaf_slice"
 set +e
 # والبحثُ غيرُ حسّاسٍ للحالة: `OpenAI` أو `OPENAI` كانا يُعدّان صفراً فيصير «غيرُ مقيس»
 # استنتاجاً من مسحٍ لم يَرَ ما يبحث عنه (مراجعة Copilot ٥ على #1012).
-wgai_matches="$(grep -rniE 'openai|chat/completions' --include='*.java' --include='*.yml' "$EXT/dromara/wgai")"
+wgai_matches="$(grep -rniE 'openai|chat/completions' --include='*.java' --include='*.yml' --include='*.yaml' "$EXT/dromara/wgai")"
 wgai_status=$?
 set -e
 [ "$wgai_status" -le 1 ] || { echo "VERIFICATION UNAVAILABLE: grep exited $wgai_status scanning wgai" >&2; exit 6; }
 wgai_hits=0
 [ -z "$wgai_matches" ] || wgai_hits="$(printf '%s\n' "$wgai_matches" | wc -l)"
-echo "wgai external-LLM tokens in java/yml: $wgai_hits   # يُتوقَّع 0"
+echo "wgai external-LLM tokens in java/yml/yaml: $wgai_hits   # يُتوقَّع 0"
 ```
 
 الأسطرُ المستشهَدُ بها في §٣–§٦ صحيحةٌ **عند هذه الـSHA وحدها**؛ للاستشهاد بـ«الحالة
