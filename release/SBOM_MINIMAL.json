@@ -4415,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "59402f83eb56025ccc32409ad9fd8d3f76c4bd3135877fe54fecbaec7ab3d71d"
+          "content": "46d98da21b43a30ce18154d537d916c0890c0a092db54865127739315950b194"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -13095,7 +13095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b6f7a5a7694fa0f946a4539d8853f59f02c42c1f649d6f7c87e48987660b0c0a"
+          "content": "2d369ff1f400978cfeb7da54c88fb27392a11c67b358ec3b97c2f3dd2ce20ea3"
         }
       ],
       "name": "services/guardrails-engine/main.py",
@@ -13145,7 +13145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "eee5b4d6af3f5a7fbc12ac1786e65b44b872005c62cfcfec3e74bfdad4abcbe4"
+          "content": "01a70166563705a93be00801106ec478f6976904e1a19ffeeb1f8891b3db7fa5"
         }
       ],
       "name": "services/guardrails-engine/routers/validation.py",
@@ -17495,7 +17495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8085b18e97077d76b3c8d98a934f9f707bd44bb30ebc3042b10198ca5f5d4223"
+          "content": "dc8fdceec27cf9e1ce16e411bd269ee8ff29f8b7cf99a1e5563a29254661c895"
         }
       ],
       "name": "services/sahool-platform/api/onboarding.py",
@@ -18485,7 +18485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7ead927032e5c5360fb18f17b304e31631b7bdd2d457b599a8df46b5e1b15004"
+          "content": "19d44ef66653a5364cee4bff1f8e03cfd63d1f157fc898c659bdc669d9728006"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -22095,7 +22095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "80a6e14d12c2a01baeb0a35ac4b8ee94ce7bfbaec680c79510a186cf89379da2"
+          "content": "6c90bf202eecfd8cf2cdffcfa31471a25be1b3f55cc55d64ac286cae3a2334a4"
         }
       ],
       "name": "services/sahool-platform/core/field_intelligence_coordinator.py",
@@ -30635,6 +30635,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "f79c1ac756f7e746bf69ce795c9f4db1a78421a2f42f9b9ca227a1fa31ee773f"
+        }
+      ],
+      "name": "shared/ai/structured_advisory.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "866a3e800b86b60f5ea8a8b5aeb5f5d786b3c7193dff2fc80fe0f0bfcf93f932"
         }
       ],
@@ -31389,6 +31399,16 @@
         }
       ],
       "name": "shared/federated_agents_phase11.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2e07c0071c539bbd388b9ed49fca08d13e0c4b08b496dee3e6e8f960183421d6"
+        }
+      ],
+      "name": "shared/field_bootstrap.py",
       "type": "file"
     },
     {

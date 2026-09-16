@@ -214,10 +214,10 @@ async def _insert_field_within_tx(
         country,
         region,
     )
-    # نيّتا متابعة الصور والطقس تُثبَّتان مع الحقل في معاملته (M4؛ العقد في الوحدة).
-    from api.imagery_automation import register_field_tracking_intents
+    # نيّاتُ الإنشاء الثلاث تُثبَّت مع الحقل في معاملته (العقد في الوحدة).
+    from api.onboarding import register_field_creation_intents
 
-    await register_field_tracking_intents(
+    await register_field_creation_intents(
         conn,
         field_id=field_id,
         tenant_id=str(user.tenant_id),

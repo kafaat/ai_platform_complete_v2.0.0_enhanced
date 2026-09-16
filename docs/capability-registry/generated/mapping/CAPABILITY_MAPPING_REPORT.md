@@ -12,9 +12,9 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **49**
-- Files scanned: **5330**
+- Files scanned: **5335**
 - Ambiguous artifacts queued: **419**
-- Unmapped artifacts queued: **2168**
+- Unmapped artifacts queued: **2169**
 
 ## Capability coverage
 
@@ -22,7 +22,7 @@
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|
 | DEC-001 | decision | 3 | 0 | 0 | 5 | 0 | 0 | 3 | 3 |
 | DEC-002 | decision | 1 | 0 | 0 | 2 | 0 | 0 | 4 | 3 |
-| DEC-003 | decision | 2 | 0 | 0 | 0 | 0 | 0 | 1 | 2 |
+| DEC-003 | decision | 2 | 0 | 0 | 2 | 0 | 0 | 2 | 3 |
 | DEC-004 | decision | 9 | 20 | 24 | 30 | 0 | 0 | 15 | 5 |
 | DEC-005 | decision | 5 | 86 | 5 | 3 | 0 | 0 | 3 | 5 |
 | DEC-006 | decision | 2 | 0 | 0 | 8 | 0 | 0 | 3 | 3 |
@@ -93,7 +93,7 @@
 | SOIL-005 | soil | 5 | 0 | 0 | 2 | 0 | 0 | 2 | 3 |
 | WX-001 | weather | 1 | 4 | 0 | 3 | 0 | 0 | 2 | 4 |
 | WX-002 | weather | 22 | 62 | 8 | 57 | 9 | 0 | 24 | 6 |
-| WX-003 | weather | 4 | 6 | 4 | 2 | 0 | 0 | 4 | 5 |
+| WX-003 | weather | 4 | 6 | 4 | 3 | 0 | 0 | 5 | 5 |
 | WX-004 | weather | 58 | 48 | 0 | 89 | 18 | 0 | 59 | 5 |
 | WX-005 | weather | 9 | 29 | 0 | 6 | 2 | 0 | 6 | 5 |
 | WX-006 | weather | 85 | 26 | 33 | 28 | 17 | 0 | 46 | 6 |

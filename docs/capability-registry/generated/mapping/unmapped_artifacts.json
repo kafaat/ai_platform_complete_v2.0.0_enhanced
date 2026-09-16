@@ -6904,6 +6904,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_b6m4_platform_store.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_backfill_failure_reason_persisted.py",
     "kind": "tests"
   },

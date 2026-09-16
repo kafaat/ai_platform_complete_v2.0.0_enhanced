@@ -80,3 +80,17 @@ async def get_workflow(workflow_id: str, claims: dict = Depends(main._gr_authn))
     if status is None or str(status.get("tenant_id")) != str(claims.get("tenant_id")):
         raise HTTPException(status_code=404, detail="Workflow not found")
     return status
+
+
+@router.post("/v1/evaluate", response_model=main.GuardrailsResult)
+async def evaluate_action_only(
+    request: main.GuardrailsRequest, _svc: bool = Depends(main._require_service_token)
+):
+    """Read-only safety evaluation; never creates approval workflows.
+
+    Separate URL is deliberate: an older deployment returns 404, instead of
+    silently ignoring evaluation_only on /validate and writing a workflow.
+    Existing evidence completeness and service-token checks still apply.
+    """
+    request = request.model_copy(update={"evaluation_only": True, "auto_approve_low_risk": False})
+    return await main.get_guardrails_engine().validate(request)
