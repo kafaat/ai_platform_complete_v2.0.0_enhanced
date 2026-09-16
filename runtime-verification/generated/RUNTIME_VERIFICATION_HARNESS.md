@@ -5,8 +5,8 @@
 ## Summary
 
 - Services: **32**
-- Services with probeable endpoints: **27**
-- Planned probes: **110**
+- Services with probeable endpoints: **28**
+- Planned probes: **114**
 - Valid live evidence files: **0**
 - Runtime verified services: **0**
 - Production certified services: **0**
@@ -24,13 +24,13 @@ Each evidence file must bind the tested Git SHA, immutable live runtime identity
 | ai_agronomist | 6 | not verified |
 | auth | 4 | not verified |
 | decision-service | 4 | not verified |
-| edge-inference | 2 | not verified |
+| edge-inference | 3 | not verified |
 | erp-bridge | 4 | not verified |
 | field-management-service | 3 | not verified |
 | field-segmentation | 3 | not verified |
 | gis-workflow-service | 0 | not verified |
 | guardrails-engine | 4 | not verified |
-| indicators-service | 3 | not verified |
+| indicators-service | 4 | not verified |
 | knowledge-graph | 3 | not verified |
 | local-ai-rag | 3 | not verified |
 | mcp_servers | 3 | not verified |
@@ -38,7 +38,7 @@ Each evidence file must bind the tested Git SHA, immutable live runtime identity
 | qdrant-seed | 0 | not verified |
 | rag-retrieval | 3 | not verified |
 | raster-service | 3 | not verified |
-| raster-tiler-service | 0 | not verified |
+| raster-tiler-service | 1 | not verified |
 | remote-sensing-workspace-bff | 2 | not verified |
 | sahool-platform | 17 | not verified |
 | sam2-inference | 3 | not verified |
@@ -49,5 +49,5 @@ Each evidence file must bind the tested Git SHA, immutable live runtime identity
 | vegetation-analysis-service | 7 | not verified |
 | video-processor | 3 | not verified |
 | weather-polygon-worker | 0 | not verified |
-| weather-service | 3 | not verified |
+| weather-service | 4 | not verified |
 | weather-signal-engine | 0 | not verified |

@@ -10,12 +10,12 @@
     "target_plan_hash_matches": true
   },
   "closed": true,
-  "closure_sha256": "236ca409fc625c20925b3c9a3e62a2241ed72f2b4b2a286c93ea3206a3db6b53",
+  "closure_sha256": "d476a76b4b712366de9164e8fe0c28ac2d45948abcee5cedbd33b75af30e923d",
   "fanout_targets": {
     "mcp_servers": 4
   },
   "missing_services": [],
-  "planned_services": 27,
+  "planned_services": 28,
   "production_certified_services": 0,
   "required_profiles": {
     "model-registry-adapter": [
@@ -25,7 +25,7 @@
       "gpu"
     ]
   },
-  "resolved_services": 27,
+  "resolved_services": 28,
   "runtime_verified_services": 0,
   "schema_version": 1,
   "status": "READY_FOR_LIVE_EXECUTION",

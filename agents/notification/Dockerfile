@@ -15,6 +15,10 @@ COPY agents/base_agent.py /app/base_agent.py
 COPY agents/notification/ /app/
 RUN useradd -m sahool && chown -R sahool:sahool /app
 USER sahool
+# المنفذ مُعلَن صراحةً: `agent.py` يشغّل uvicorn على 8123، وPrometheus يسحب
+# `sahool-notification-agent:8123`. وبلا `EXPOSE` تصير الصورةُ غيرَ واصفةٍ لنفسها
+# فيتعذّر على حارس عقد الأهداف قياسُ تطابق المنفذ (مراجعة #1010).
+EXPOSE 8123
 # الصورة لا تثبّت curl — نستخدم python (متوفّر) ونطلب /healthz على المنفذ 8123.
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
   CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8123/healthz', timeout=3).read()" || exit 1

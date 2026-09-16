@@ -7,7 +7,7 @@
 - Services: **32**
 - Health contract: **27**
 - Readiness contract: **26**
-- Metrics endpoint or instrumentation: **13**
+- Metrics endpoint or instrumentation: **17**
 - Tracing instrumentation: **4**
 - Declared configuration/secrets: **30**
 - Complete static contracts: **2**
@@ -22,13 +22,13 @@
 | ai_agronomist | 85.7% | ✓ | ✓ | ✓ | — | ✓ |
 | auth | 85.7% | ✓ | ✓ | ✓ | — | ✓ |
 | decision-service | 71.4% | ✓ | ✓ | — | — | ✓ |
-| edge-inference | 71.4% | ✓ | ✓ | — | — | ✓ |
+| edge-inference | 85.7% | ✓ | ✓ | ✓ | — | ✓ |
 | erp-bridge | 71.4% | ✓ | ✓ | — | — | ✓ |
 | field-management-service | 71.4% | ✓ | ✓ | — | — | ✓ |
 | field-segmentation | 71.4% | ✓ | ✓ | — | — | ✓ |
 | gis-workflow-service | 0.0% | — | — | — | — | — |
 | guardrails-engine | 85.7% | ✓ | ✓ | ✓ | — | ✓ |
-| indicators-service | 71.4% | ✓ | ✓ | — | — | ✓ |
+| indicators-service | 85.7% | ✓ | ✓ | ✓ | — | ✓ |
 | knowledge-graph | 85.7% | ✓ | ✓ | ✓ | — | ✓ |
 | local-ai-rag | 85.7% | ✓ | ✓ | — | ✓ | ✓ |
 | mcp_servers | 71.4% | ✓ | ✓ | — | ✓ | ✓ |
@@ -36,7 +36,7 @@
 | qdrant-seed | 28.6% | — | — | — | — | ✓ |
 | rag-retrieval | 85.7% | ✓ | ✓ | ✓ | — | ✓ |
 | raster-service | 85.7% | ✓ | ✓ | ✓ | — | ✓ |
-| raster-tiler-service | 28.6% | — | — | — | — | — |
+| raster-tiler-service | 42.9% | — | — | ✓ | — | — |
 | remote-sensing-workspace-bff | 71.4% | ✓ | ✓ | — | — | ✓ |
 | sahool-platform | 85.7% | ✓ | ✓ | ✓ | — | ✓ |
 | sam2-inference | 71.4% | ✓ | ✓ | — | — | ✓ |
@@ -47,7 +47,7 @@
 | vegetation-analysis-service | 100.0% | ✓ | ✓ | ✓ | ✓ | ✓ |
 | video-processor | 71.4% | ✓ | ✓ | — | — | ✓ |
 | weather-polygon-worker | 42.9% | — | — | — | — | ✓ |
-| weather-service | 71.4% | ✓ | ✓ | — | — | ✓ |
+| weather-service | 85.7% | ✓ | ✓ | ✓ | — | ✓ |
 | weather-signal-engine | 42.9% | — | — | — | — | ✓ |
 
 ## Interpretation

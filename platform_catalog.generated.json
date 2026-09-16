@@ -17503,7 +17503,7 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1114,
+    "route_rows": 1118,
     "ui_waivers": 52,
     "unique_method_path": 999
   },
@@ -17628,15 +17628,19 @@
         "agriai-engine",
         "ai_agronomist",
         "auth",
+        "edge-inference",
         "guardrails-engine",
+        "indicators-service",
         "knowledge-graph",
         "rag-retrieval",
         "raster-service",
+        "raster-tiler-service",
         "sahool-platform",
         "soil-service",
         "supervisor-agent",
         "tts-service",
-        "vegetation-analysis-service"
+        "vegetation-analysis-service",
+        "weather-service"
       ],
       "decision": "عقد مقاييس Prometheus محلّيّ بالخدمة.",
       "expires_on": null,
@@ -17761,7 +17765,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "219f916477ea76c9c0f5076239a3bc6486ec0e4214d683c2e04c380e7b205742",
+  "fingerprint": "c25c36e800e4e594ca74112b5ae2f01f7c2e18560a8bfe4ac4e03a3f95d61927",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
