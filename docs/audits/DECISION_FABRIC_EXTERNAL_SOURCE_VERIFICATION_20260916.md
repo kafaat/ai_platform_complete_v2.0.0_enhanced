@@ -175,22 +175,39 @@ for r in "${!PIN[@]}"; do
   echo "pinned OK: $r @ $sha"
 done
 
-# LinkMind — نحوُ تعبيرات المسار (يُتوقَّع: A|B polling · A,B failover · A&B parallel)
-sed -n 326,333p "$EXT/landingbj/linkmind/lagi-web/src/main/resources/lagi.yml"
+# LinkMind — نحوُ تعبيرات المسار. الطباعةُ وحدها لا تُثبِت شيئاً: شريحةٌ فارغة أو نحوٌ
+# تبدّل كانا يخرجان بـ0. فالرموزُ الثلاثة واجبةٌ في الشريحة وإلّا فالدعوى نُقِضت.
+lm_slice="$(sed -n 326,333p "$EXT/landingbj/linkmind/lagi-web/src/main/resources/lagi.yml")"
+for tok in 'A|B' 'A,B' 'A&B'; do
+  grep -qF "$tok" <<<"$lm_slice" \
+    || { echo "LinkMind claim contradicted: '$tok' absent from lagi.yml:326-333" >&2; exit 7; }
+done
+printf '%s\n' "$lm_slice"
 # OM1 — الدعوى في §٤ ليست «الرمزان موجودان» بل **الترتيب**: نداءُ النموذج يسبق المُنفِّذ
 # في الحلقة نفسها. فيُقاس أوّلُ سطرِ `cortexLLM.Call` وآخرُ سطرِ `executeActions` المُستدعى
 # (لا التعريف ولا التعليق) ويُشترَط أن يسبق الأوّلُ الثاني — وإلّا فالسلسلةُ المُدّعاة زالت.
 # الأرقامُ المطلقة: السطرُ n في الشريحة = 499+n في الملفّ (:506 و:530/:546 في §٤).
 om1_slice="$(sed -n 500,550p "$EXT/OpenMind/om1/internal/runtime/runtime.go")"
+# الاستخراجُ خارج `errexit` عمداً: تحت `pipefail` يُنهي `grep` الخالي من تطابقٍ السكربتَ
+# بـ1 عند الإسناد، فلا يُبلَغ فحصُ الخلوّ أدناه ويعود «الرمز مفقود» برمزِ خروجٍ غيرِ
+# الموثَّق. مقيسٌ على مراجعة Copilot ٤ في #1012: كان يخرج 1 والموثَّق 5.
+set +e
 om1_call="$(printf '%s\n' "$om1_slice" | grep -n -F 'cortexLLM.Call' | head -1 | cut -d: -f1)"
 om1_exec="$(printf '%s\n' "$om1_slice" | grep -nE '(^|[^a-zA-Z])rt\.executeActions\(' | tail -1 | cut -d: -f1)"
+set -e
 [ -n "$om1_call" ] && [ -n "$om1_exec" ] \
   || { echo "OM1 chain broken: call=$om1_call exec=$om1_exec in runtime.go:500-550" >&2; exit 5; }
 [ "$om1_call" -lt "$om1_exec" ] \
   || { echo "OM1 order broken: LLM call at $((499+om1_call)) does not precede executor at $((499+om1_exec))" >&2; exit 5; }
 echo "OM1 chain OK: cortexLLM.Call@$((499+om1_call)) → rt.executeActions@$((499+om1_exec))"
-# OpenAgentFlow — هدفُ التشغيل الوحيد (يُتوقَّع: Unsupported runtime … supported: "langgraph")
-sed -n 375,380p "$EXT/OpenAgentFlow/openagentflow/compiler/validator.js"
+# OpenAgentFlow — هدفُ التشغيل الوحيد. الدعوى في §٥ أنّ غيرَ langgraph مرفوض، فالرمزان
+# واجبان في الشريحة لا مطبوعَين فحسب.
+oaf_slice="$(sed -n 375,380p "$EXT/OpenAgentFlow/openagentflow/compiler/validator.js")"
+for tok in 'Unsupported runtime' 'langgraph'; do
+  grep -qF "$tok" <<<"$oaf_slice" \
+    || { echo "OpenAgentFlow claim contradicted: '$tok' absent from validator.js:375-380" >&2; exit 8; }
+done
+printf '%s\n' "$oaf_slice"
 # WGAI — «لا تطابق» (grep status 1) قيمةٌ مقيسة؛ أمّا status ≥ 2 (ملفٌّ لا يُقرأ، صلاحيّات…)
 # فتعذُّرُ قياسٍ لا صفرٌ — يُحفَظ status ولا يُبتلَع بـ`|| true`.
 set +e

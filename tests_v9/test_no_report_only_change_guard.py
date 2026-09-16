@@ -1,7 +1,10 @@
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
 
 pytestmark = pytest.mark.unit
 
@@ -207,6 +210,42 @@ def test_the_certification_registry_beside_a_doc_stays_blocked():
     )
     assert result.returncode != 0
     assert "report-only" in result.stderr
+
+
+def test_every_exact_regeneration_artifact_lands_with_a_doc_and_is_blocked_alone():
+    """كلُّ مدخلٍ في `REGENERATION_ARTIFACT_EXACT` مُختبَرٌ بعينه في الاتّجاهين.
+
+    مراجعة Copilot ٤ على #1012: القائمةُ كانت تُختبَر بعيّنةٍ منها، ونزعُ أيّ مدخلٍ
+    غيرِ مُختبَر يُعيد الشريحةَ الوثائقيّة إلى «غيرِ قابلةٍ للهبوط» **صامتاً**. ولأنّ
+    الحاجزَ صار يشمل المصنوعات (`gated`)، يُقاس الاتّجاهُ الثاني أيضاً: المدخلُ وحده
+    محجوب. فالجدولُ يُقرَأ من المصدر لا يُنسَخ، فمدخلٌ جديد يدخل الاختبارَ تلقائيّاً.
+    """
+    import importlib.util as ilu
+
+    spec = ilu.spec_from_file_location(
+        "guard_under_test", ROOT / "scripts/ci/no_report_only_change_guard.py"
+    )
+    assert spec is not None and spec.loader is not None
+    guard = ilu.module_from_spec(spec)
+    spec.loader.exec_module(guard)
+
+    entries = sorted(guard.REGENERATION_ARTIFACT_EXACT)
+    assert entries, "قائمةُ المصنوعات فارغة — الاختبارُ يمرّ بلا قياس"
+    for artifact in entries:
+        with_doc = _run("docs/adr/0002-notes.md", artifact)
+        assert with_doc.returncode == 0, f"{artifact} لا يهبط مع وثيقة: {with_doc.stderr}"
+        alone = _run(artifact)
+        assert alone.returncode != 0, f"{artifact} عبر وحده بلا وثيقة ولا شيفرة"
+        assert "report-only" in alone.stderr
+
+
+def test_a_lone_generated_artifact_is_blocked_even_without_a_report_name():
+    # مراجعة Copilot ٤ على #1012: `is_report_like` أسماءٌ ولاحقات، فهذان لا يطابقانها
+    # وكانا يمرّان منفردَين بينما يَعِد العقدُ بحجبهما. المقياسُ صار واحداً.
+    for artifact in ("release/FILE_CHECKSUMS.sha256", "release/SBOM_MINIMAL.json"):
+        result = _run(artifact)
+        assert result.returncode != 0, f"{artifact} عبر وحده"
+        assert "report-only" in result.stderr
 
 
 def test_regenerated_artifacts_without_a_doc_stay_blocked():

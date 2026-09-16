@@ -4460,7 +4460,7 @@
         },
         {
           "expect": "test_report_only_change_is_blocked",
-          "find": "    if report_like and not substantive:",
+          "find": "    if (report_like or artifacts_only) and not substantive:",
           "replace": "    if False:",
           "why": "نزع قاعدة الحجب نفسها ⇒ تقارير مولَّدة وحدها تعبر كتغيير مشروع — الحارس أخضر إلى الأبد وهو يحرس لا شيء"
         },
@@ -4493,6 +4493,12 @@
           "find": "            or (p.startswith(\"sahool-brain/\") and Path(p).suffix == \".md\")",
           "replace": "            or p.startswith(\"sahool-brain/\")",
           "why": "ردُّ إعفاء الدماغ إلى بادئةٍ خام يُمرِّر شيفرةً تحته (`sahool-brain/extra.py`) مع تقريرٍ مولَّد بوصفها «وثائقيّة» — وعقدُ الدماغ Markdown"
+        },
+        {
+          "expect": "test_a_lone_generated_artifact_is_blocked_even_without_a_report_name",
+          "find": "    if (report_like or artifacts_only) and not substantive:",
+          "replace": "    if report_like and not substantive:",
+          "why": "نزعُ ذراع «لا شيء سوى مصنوعات» يعيد العطل المقيس في مراجعة Copilot ٤ على #1012: `release/FILE_CHECKSUMS.sha256` و`SBOM_MINIMAL.json` لا يطابقان أسماءَ التقارير ولا لاحقاتِها فيمرّان منفردَين، والعقدُ المكتوب يَعِد بحجبهما"
         }
       ],
       "test": "tests_v9/test_no_report_only_change_guard.py"

@@ -230,6 +230,20 @@ def check_changed_files(paths: list[str]) -> None:
         return
     substantive = [p for p in clean if is_substantive(p) and not is_report_like(p)]
     report_like = [p for p in clean if is_report_like(p)]
+    # GATE-TRIGGER-BLIND-TO-ITS-OWN-ARTIFACT-LIST-01 — **مقيسٌ على #1012 (مراجعة Copilot ٤):**
+    # الحاجزُ يُطلَق بـ`is_report_like` وحدها، وهي أسماءٌ ولاحقات — فمصنوعٌ مولَّد لا
+    # يطابقها (`release/FILE_CHECKSUMS.sha256` لاحقتُه `.sha256`، و`SBOM_MINIMAL.json` بلا
+    # تلميحٍ في اسمه) كان **يمرّ وحده** بينما يقول العقدُ المكتوب إنّ «مصنوعاتٍ بلا وثيقة
+    # تبقى محجوبة». القياس: الملفّان أعلاه rc=0 منفردَين.
+    #
+    # **والعلاجُ ضيّقٌ عمداً — تغييرٌ لا شيءَ فيه إلّا مصنوعات:** أوّلُ صياغةٍ لي جعلت كلَّ
+    # مصنوعٍ يُطلِق الحاجزَ، فكسرت **صيانةَ الدماغ الواجبة** (`sahool-brain/*.md` + بيان
+    # الإصدار، بلا ملفٍّ تحت `docs/`) التي يفرضها CLAUDE.md ويحرسها
+    # `test_brain_maintenance_is_docs_not_report_only` منذ ما قبل هذه الشريحة — أي أنّ
+    # علاجَ ثغرةٍ كان سيصنع «بوّابةً لا تُغلَق بعملٍ صحيح» للمرّة الخامسة في هذا الملفّ.
+    # فالإطلاقُ الإضافيّ مقصورٌ على الحالة التي اشتكى منها المراجع حرفيّاً: **لا شيء في
+    # التغيير سوى مصنوعات**.
+    artifacts_only = bool(clean) and all(is_regeneration_artifact(p) for p in clean)
     plain_docs = [p for p in clean if is_plain_doc(p)]
     # «وثائقيّ فقط» حرفيّاً: لا شيء في التغيير سوى وثائق + الدماغ + مصنوعات إعادة
     # التوليد. أيُّ ملفٍّ آخر — تقريرٌ بخطّ اليد، سجلُّ اعتماد، `.md` خارج `docs/` —
@@ -248,7 +262,7 @@ def check_changed_files(paths: list[str]) -> None:
             or is_regeneration_artifact(p)
         )
     ]
-    if report_like and not substantive:
+    if (report_like or artifacts_only) and not substantive:
         if plain_docs and not outside_docs_only:
             print("no_report_only_change_guard_docs_with_regenerated_artifacts")
             return
