@@ -152,6 +152,7 @@ guardrails-engine,services/guardrails-engine/routers/health.py,54,GET,/runtime-i
 guardrails-engine,services/guardrails-engine/routers/validation.py,28,POST,/v1/validate,validate_action,versioned
 guardrails-engine,services/guardrails-engine/routers/validation.py,42,POST,/v1/approve/{workflow_id},approve_workflow,versioned
 guardrails-engine,services/guardrails-engine/routers/validation.py,71,GET,/v1/workflow/{workflow_id},get_workflow,versioned
+guardrails-engine,services/guardrails-engine/routers/validation.py,86,POST,/v1/evaluate,evaluate_action_only,versioned
 indicators-service,services/indicators-service/main.py,63,GET,/healthz,healthz,infra
 indicators-service,services/indicators-service/main.py,68,GET,/health,legacy_health,infra
 indicators-service,services/indicators-service/main.py,73,GET,/metrics,metrics,infra

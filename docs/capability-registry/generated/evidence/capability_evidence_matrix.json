@@ -258,10 +258,11 @@
       ]
     },
     {
-      "assessed_maturity": 2,
+      "assessed_maturity": 3,
       "assessment_reasons": [
         "repository_implementation_present",
         "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -292,13 +293,13 @@
         "backend": true,
         "database": false,
         "documentation": true,
-        "events": false,
+        "events": true,
         "integration_tests": true,
         "mobile": false,
         "production": false,
         "runtime": false,
         "runtime_instrumentation": true,
-        "unit_tests": false,
+        "unit_tests": true,
         "web": false
       },
       "evidence_records": [
@@ -323,7 +324,7 @@
           "type": "documentation"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "events"
         },
@@ -353,7 +354,7 @@
           "type": "runtime_instrumentation"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "unit_tests"
         },
@@ -363,7 +364,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 5,
+      "evidence_score": 7,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -374,13 +375,15 @@
         "tests_v9/test_guardrails_contract.py"
       ],
       "learning_linked": false,
-      "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -1,
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Human approval",
-      "unit_test_paths": []
+      "unit_test_paths": [
+        "tests_v9/test_b6m4_structured_advisory.py"
+      ]
     },
     {
       "assessed_maturity": 3,
@@ -9835,7 +9838,8 @@
       "unit_test_paths": [
         "services/ai_agronomist/test_ai_field_memory_v49.py",
         "tests_v9/test_ai_policy_envelope_v52.py",
-        "tests_v9/test_ai_provider_native_multiround_audit_v58.py"
+        "tests_v9/test_ai_provider_native_multiround_audit_v58.py",
+        "tests_v9/test_b6m4_field_bootstrap.py"
       ]
     },
     {
@@ -10836,10 +10840,10 @@
   "source_mapping": "docs/capability-registry/generated/mapping/capability_mapping.json",
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
-    "aligned": 28,
-    "average_assessed_maturity": 2.05,
+    "aligned": 29,
+    "average_assessed_maturity": 2.06,
     "capability_count": 81,
-    "declared_above_evidence": 50,
+    "declared_above_evidence": 49,
     "evidence_above_declared": 3,
     "production_certified": 0,
     "promotion_preconditions_satisfied": 0,

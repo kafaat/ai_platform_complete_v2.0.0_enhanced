@@ -3,10 +3,10 @@
   "schema_version":1,
   "evidence_scope":"static_repository_only",
   "runtime_verified":false,
-  "python_files_parsed":1893,
-  "route_handlers":1053,
-  "call_edges":78304,
-  "dead_code_candidates":632,
+  "python_files_parsed":1895,
+  "route_handlers":1054,
+  "call_edges":78804,
+  "dead_code_candidates":637,
   "duplicate_function_groups":60,
   "route_owners":27,
   "automatic_deletions":0
@@ -1211,6 +1211,14 @@
    "handler":"get_workflow",
    "method":"GET",
    "path":"/v1/workflow/{workflow_id}"
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/routers/validation.py",
+   "line":86,
+   "handler":"evaluate_action_only",
+   "method":"POST",
+   "path":"/v1/evaluate"
   },
   {
    "owner":"indicators-service",
@@ -90616,34 +90624,20 @@
    "file":"services/guardrails-engine/main.py",
    "source":"canonical_user_id",
    "target":"field_validator",
-   "line":50
+   "line":51
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"canonical_user_id",
    "target":"isascii",
-   "line":53
+   "line":54
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"canonical_user_id",
    "target":"isdecimal",
-   "line":53
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"canonical_user_id",
-   "target":"isinstance",
-   "line":53
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"canonical_user_id",
-   "target":"int",
    "line":54
   },
   {
@@ -90651,6 +90645,13 @@
    "file":"services/guardrails-engine/main.py",
    "source":"canonical_user_id",
    "target":"isinstance",
+   "line":54
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"canonical_user_id",
+   "target":"int",
    "line":55
   },
   {
@@ -90658,601 +90659,587 @@
    "file":"services/guardrails-engine/main.py",
    "source":"canonical_user_id",
    "target":"isinstance",
-   "line":55
+   "line":56
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"canonical_user_id",
+   "target":"isinstance",
+   "line":56
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"canonical_user_id",
    "target":"ValueError",
-   "line":56
+   "line":57
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"canonical_tenant_id",
    "target":"field_validator",
-   "line":59
+   "line":60
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"canonical_tenant_id",
    "target":"UUID",
-   "line":64
+   "line":65
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"canonical_tenant_id",
    "target":"str",
-   "line":64
+   "line":65
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"validate_evidence",
    "target":"model_validator",
-   "line":66
+   "line":67
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"validate_evidence",
    "target":"contract_violations",
-   "line":68
+   "line":69
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"validate_evidence",
    "target":"ValueError",
-   "line":70
+   "line":71
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"validate_evidence",
    "target":"join",
-   "line":70
+   "line":71
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"__init__",
    "target":"ChemicalSafetyTier",
-   "line":94
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"__init__",
-   "target":"EnvironmentalSafetyTier",
-   "line":95
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"__init__",
-   "target":"EconomicSafetyTier",
    "line":96
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"__init__",
-   "target":"HumanApprovalWorkflow",
+   "target":"EnvironmentalSafetyTier",
    "line":97
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"__init__",
-   "target":"ActionDiffGenerator",
+   "target":"EconomicSafetyTier",
    "line":98
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"__init__",
+   "target":"HumanApprovalWorkflow",
+   "line":99
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"__init__",
+   "target":"ActionDiffGenerator",
+   "line":100
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"validate",
    "target":"now",
-   "line":108
+   "line":110
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"validate",
    "target":"contract_violations",
-   "line":112
+   "line":114
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"validate",
    "target":"join",
-   "line":116
+   "line":118
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"validate",
    "target":"GuardrailsResult",
-   "line":117
+   "line":119
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"validate",
    "target":"int",
-   "line":139
+   "line":141
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"validate",
    "target":"now",
-   "line":139
+   "line":141
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"validate",
    "target":"total_seconds",
-   "line":139
+   "line":141
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"validate",
    "target":"append",
-   "line":151
+   "line":153
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"validate",
    "target":"append",
-   "line":159
+   "line":161
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"validate",
    "target":"append",
-   "line":168
+   "line":170
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"validate",
    "target":"_calculate_overall_risk",
-   "line":171
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"validate",
-   "target":"all",
-   "line":178
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"validate",
-   "target":"create",
-   "line":186
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"validate",
-   "target":"generate",
-   "line":191
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"validate",
-   "target":"_generate_arabic_explanation",
-   "line":196
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"validate",
-   "target":"_suggest_modifications",
-   "line":205
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"validate",
-   "target":"int",
-   "line":207
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"validate",
-   "target":"now",
-   "line":207
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"validate",
-   "target":"total_seconds",
-   "line":207
+   "line":173
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"validate",
    "target":"GuardrailsResult",
-   "line":209
+   "line":178
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"validate",
+   "target":"int",
+   "line":185
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"validate",
+   "target":"now",
+   "line":185
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"validate",
+   "target":"total_seconds",
+   "line":185
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"validate",
+   "target":"all",
+   "line":193
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"validate",
+   "target":"create",
+   "line":201
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"validate",
+   "target":"generate",
+   "line":206
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"validate",
+   "target":"_generate_arabic_explanation",
+   "line":211
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"validate",
+   "target":"_suggest_modifications",
+   "line":220
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"validate",
+   "target":"int",
+   "line":222
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"validate",
+   "target":"now",
+   "line":222
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"validate",
+   "target":"total_seconds",
+   "line":222
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"validate",
+   "target":"GuardrailsResult",
+   "line":224
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_calculate_overall_risk",
    "target":"get",
-   "line":232
+   "line":247
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_calculate_overall_risk",
    "target":"get",
-   "line":233
+   "line":248
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_calculate_overall_risk",
    "target":"get",
-   "line":233
+   "line":248
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_generate_arabic_explanation",
    "target":"get",
-   "line":265
+   "line":280
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_generate_arabic_explanation",
    "target":"_format_findings",
-   "line":271
+   "line":286
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_generate_arabic_explanation",
    "target":"_format_findings",
-   "line":274
+   "line":289
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_generate_arabic_explanation",
    "target":"_format_findings",
-   "line":276
+   "line":291
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_generate_arabic_explanation",
    "target":"_format_suggestions",
-   "line":276
+   "line":291
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_format_findings",
    "target":"get",
-   "line":281
+   "line":296
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_format_findings",
    "target":"get",
-   "line":282
+   "line":297
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_format_findings",
    "target":"get",
-   "line":283
+   "line":298
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_format_findings",
    "target":"append",
-   "line":284
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_format_findings",
-   "target":"get",
-   "line":285
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_format_findings",
-   "target":"get",
-   "line":285
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_format_findings",
-   "target":"join",
-   "line":287
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_format_suggestions",
-   "target":"get",
-   "line":292
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_format_suggestions",
-   "target":"append",
-   "line":293
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_format_suggestions",
-   "target":"get",
-   "line":293
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_format_suggestions",
-   "target":"get",
-   "line":293
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_format_suggestions",
-   "target":"join",
-   "line":294
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_suggest_modifications",
-   "target":"get",
    "line":299
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
-   "source":"_suggest_modifications",
-   "target":"append",
+   "source":"_format_findings",
+   "target":"get",
    "line":300
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
-   "source":"_suggest_modifications",
+   "source":"_format_findings",
    "target":"get",
+   "line":300
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_format_findings",
+   "target":"join",
    "line":302
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
-   "source":"_suggest_modifications",
+   "source":"_format_suggestions",
    "target":"get",
-   "line":303
+   "line":307
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_format_suggestions",
+   "target":"append",
+   "line":308
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_format_suggestions",
+   "target":"get",
+   "line":308
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_format_suggestions",
+   "target":"get",
+   "line":308
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_format_suggestions",
+   "target":"join",
+   "line":309
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_suggest_modifications",
    "target":"get",
-   "line":303
+   "line":314
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_suggest_modifications",
+   "target":"append",
+   "line":315
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_suggest_modifications",
    "target":"get",
-   "line":304
+   "line":317
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_suggest_modifications",
    "target":"get",
-   "line":305
+   "line":318
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_suggest_modifications",
    "target":"get",
-   "line":306
+   "line":318
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_suggest_modifications",
+   "target":"get",
+   "line":319
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_suggest_modifications",
+   "target":"get",
+   "line":320
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_suggest_modifications",
+   "target":"get",
+   "line":321
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"get_guardrails_engine",
    "target":"SAHOOLGuardrailsEngine",
-   "line":319
+   "line":334
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"lifespan",
    "target":"get_guardrails_engine",
-   "line":328
+   "line":343
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"lifespan",
    "target":"assert_dsn_role_rls_safe",
-   "line":333
+   "line":348
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"lifespan",
    "target":"getenv",
-   "line":333
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"invalid_request_handler",
-   "target":"exception_handler",
-   "line":345
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"invalid_request_handler",
-   "target":"errors",
    "line":348
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"invalid_request_handler",
+   "target":"exception_handler",
+   "line":360
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"invalid_request_handler",
+   "target":"errors",
+   "line":363
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"invalid_request_handler",
    "target":"JSONResponse",
-   "line":349
+   "line":364
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"workflow_unavailable_handler",
    "target":"exception_handler",
-   "line":352
+   "line":367
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"workflow_unavailable_handler",
    "target":"JSONResponse",
-   "line":354
+   "line":369
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_require_service_token",
-   "target":"_Header",
-   "line":397
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_require_service_token",
-   "target":"HTTPException",
-   "line":403
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_require_service_token",
-   "target":"compare_digest",
-   "line":407
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_require_service_token",
-   "target":"HTTPException",
-   "line":408
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_verify",
    "target":"_Header",
    "line":412
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
+   "source":"_require_service_token",
+   "target":"HTTPException",
+   "line":418
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_require_service_token",
+   "target":"compare_digest",
+   "line":422
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_require_service_token",
+   "target":"HTTPException",
+   "line":423
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_verify",
+   "target":"_Header",
+   "line":427
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
    "target":"len",
-   "line":414
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_verify",
-   "target":"HTTPException",
-   "line":415
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_verify",
-   "target":"startswith",
-   "line":416
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_verify",
-   "target":"HTTPException",
-   "line":417
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_verify",
-   "target":"decode",
-   "line":419
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_verify",
-   "target":"split",
-   "line":420
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_verify",
-   "target":"HTTPException",
-   "line":426
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_verify",
-   "target":"get",
-   "line":428
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_verify",
-   "target":"HTTPException",
    "line":429
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
-   "target":"get",
+   "target":"HTTPException",
+   "line":430
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_verify",
+   "target":"startswith",
    "line":431
   },
   {
@@ -91266,147 +91253,140 @@
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
-   "target":"get",
-   "line":433
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_verify",
-   "target":"HTTPException",
+   "target":"decode",
    "line":434
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
-   "target":"UUID",
-   "line":438
+   "target":"split",
+   "line":435
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_verify",
+   "target":"HTTPException",
+   "line":441
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
    "target":"get",
-   "line":438
+   "line":443
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_verify",
+   "target":"HTTPException",
+   "line":444
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_verify",
+   "target":"get",
+   "line":446
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_verify",
+   "target":"HTTPException",
+   "line":447
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_verify",
+   "target":"get",
+   "line":448
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_verify",
+   "target":"HTTPException",
+   "line":449
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_verify",
+   "target":"UUID",
+   "line":453
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_verify",
+   "target":"get",
+   "line":453
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
    "target":"str",
-   "line":438
+   "line":453
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
    "target":"HTTPException",
-   "line":440
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_authn",
-   "target":"_Header",
-   "line":444
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_authn",
-   "target":"len",
-   "line":450
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_authn",
-   "target":"HTTPException",
-   "line":451
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_authn",
-   "target":"startswith",
-   "line":452
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_authn",
-   "target":"HTTPException",
-   "line":453
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_authn",
-   "target":"decode",
    "line":455
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
-   "target":"split",
-   "line":456
+   "target":"_Header",
+   "line":459
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
-   "target":"HTTPException",
-   "line":462
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_authn",
-   "target":"get",
-   "line":464
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_authn",
-   "target":"HTTPException",
+   "target":"len",
    "line":465
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
-   "target":"get",
+   "target":"HTTPException",
    "line":466
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
-   "target":"HTTPException",
+   "target":"startswith",
    "line":467
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
-   "target":"UUID",
-   "line":471
+   "target":"HTTPException",
+   "line":468
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
-   "target":"get",
-   "line":471
+   "target":"decode",
+   "line":470
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
-   "target":"str",
+   "target":"split",
    "line":471
   },
   {
@@ -91414,7 +91394,63 @@
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
    "target":"HTTPException",
-   "line":473
+   "line":477
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_authn",
+   "target":"get",
+   "line":479
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_authn",
+   "target":"HTTPException",
+   "line":480
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_authn",
+   "target":"get",
+   "line":481
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_authn",
+   "target":"HTTPException",
+   "line":482
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_authn",
+   "target":"UUID",
+   "line":486
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_authn",
+   "target":"get",
+   "line":486
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_authn",
+   "target":"str",
+   "line":486
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_authn",
+   "target":"HTTPException",
+   "line":488
   },
   {
    "owner":"guardrails-engine",
@@ -91814,6 +91850,41 @@
    "source":"get_workflow",
    "target":"HTTPException",
    "line":81
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/routers/validation.py",
+   "source":"evaluate_action_only",
+   "target":"post",
+   "line":85
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/routers/validation.py",
+   "source":"evaluate_action_only",
+   "target":"Depends",
+   "line":87
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/routers/validation.py",
+   "source":"evaluate_action_only",
+   "target":"model_copy",
+   "line":95
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/routers/validation.py",
+   "source":"evaluate_action_only",
+   "target":"get_guardrails_engine",
+   "line":96
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/routers/validation.py",
+   "source":"evaluate_action_only",
+   "target":"validate",
+   "line":96
   },
   {
    "owner":"guardrails-engine",
@@ -222699,42 +222770,595 @@
    "file":"services/sahool-platform/api/onboarding.py",
    "source":"get_questionnaire",
    "target":"model_dump",
-   "line":227
+   "line":239
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/onboarding.py",
    "source":"get_questionnaire",
    "target":"sum",
-   "line":228
+   "line":240
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/onboarding.py",
    "source":"validate_response",
    "target":"get",
-   "line":236
+   "line":248
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/onboarding.py",
    "source":"validate_response",
    "target":"len",
-   "line":239
+   "line":251
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/onboarding.py",
    "source":"validate_response",
    "target":"get",
-   "line":241
+   "line":253
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/onboarding.py",
    "source":"validate_response",
    "target":"len",
-   "line":241
+   "line":253
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"_require_bootstrap_tenant",
+   "target":"_BootstrapUUID",
+   "line":265
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"_require_bootstrap_tenant",
+   "target":"str",
+   "line":265
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"_require_bootstrap_tenant",
+   "target":"fetchval",
+   "line":266
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"_require_bootstrap_tenant",
+   "target":"str",
+   "line":267
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"_require_bootstrap_tenant",
+   "target":"RuntimeError",
+   "line":268
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"_require_bootstrap_tenant",
+   "target":"is_in_transaction",
+   "line":269
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"_require_bootstrap_tenant",
+   "target":"RuntimeError",
+   "line":270
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"enqueue_field_bootstrap",
+   "target":"_require_bootstrap_tenant",
+   "line":283
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"enqueue_field_bootstrap",
+   "target":"_new_bootstrap_journal",
+   "line":284
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"enqueue_field_bootstrap",
+   "target":"from_bytes",
+   "line":288
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"enqueue_field_bootstrap",
+   "target":"digest",
+   "line":289
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"enqueue_field_bootstrap",
+   "target":"encode",
+   "line":289
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"enqueue_field_bootstrap",
+   "target":"sha256",
+   "line":289
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"enqueue_field_bootstrap",
+   "target":"execute",
+   "line":292
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"enqueue_field_bootstrap",
+   "target":"fetchval",
+   "line":293
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"enqueue_field_bootstrap",
+   "target":"int",
+   "line":302
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"enqueue_field_bootstrap",
+   "target":"fetchval",
+   "line":303
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"enqueue_field_bootstrap",
+   "target":"dumps",
+   "line":309
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"enqueue_field_bootstrap",
+   "target":"dumps",
+   "line":316
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"enqueue_field_bootstrap",
+   "target":"RuntimeError",
+   "line":319
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"enqueue_field_bootstrap",
+   "target":"int",
+   "line":320
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"__init__",
+   "target":"type",
+   "line":333
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"__init__",
+   "target":"ValueError",
+   "line":334
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"__init__",
+   "target":"_BootstrapUUID",
+   "line":336
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"__init__",
+   "target":"str",
+   "line":336
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"due_job_ids",
+   "target":"type",
+   "line":340
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"due_job_ids",
+   "target":"ValueError",
+   "line":341
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"due_job_ids",
+   "target":"_connect",
+   "line":342
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"due_job_ids",
+   "target":"_require_bootstrap_tenant",
+   "line":343
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"due_job_ids",
+   "target":"fetch",
+   "line":344
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"due_job_ids",
+   "target":"int",
+   "line":356
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"claim",
+   "target":"type",
+   "line":359
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"claim",
+   "target":"ValueError",
+   "line":360
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"claim",
+   "target":"_bootstrap_uuid4",
+   "line":361
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"claim",
+   "target":"str",
+   "line":361
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"claim",
+   "target":"_connect",
+   "line":362
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"claim",
+   "target":"_require_bootstrap_tenant",
+   "line":363
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"claim",
+   "target":"fetchrow",
+   "line":364
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"claim",
+   "target":"loads",
+   "line":380
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"claim",
+   "target":"isinstance",
+   "line":381
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"claim",
+   "target":"loads",
+   "line":385
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"claim",
+   "target":"isinstance",
+   "line":386
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"claim",
+   "target":"_validate_bootstrap_journal",
+   "line":390
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"claim",
+   "target":"RuntimeError",
+   "line":396
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"claim",
+   "target":"fetchval",
+   "line":397
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"claim",
+   "target":"_BootstrapLeaseLost",
+   "line":409
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"claim",
+   "target":"_ClaimedBootstrapJob",
+   "line":410
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"checkpoint",
+   "target":"_save",
+   "line":413
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"finish",
+   "target":"_save",
+   "line":416
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"_save",
+   "target":"_validate_bootstrap_journal",
+   "line":419
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"_save",
+   "target":"RuntimeError",
+   "line":421
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"_save",
+   "target":"_connect",
+   "line":436
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"_save",
+   "target":"_require_bootstrap_tenant",
+   "line":437
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"_save",
+   "target":"fetchval",
+   "line":438
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"_save",
+   "target":"dumps",
+   "line":451
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"_save",
+   "target":"sum",
+   "line":456
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"_save",
+   "target":"values",
+   "line":456
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"_save",
+   "target":"_BootstrapLeaseLost",
+   "line":459
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"maybe_enqueue_field_bootstrap",
+   "target":"getenv",
+   "line":471
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"maybe_enqueue_field_bootstrap",
+   "target":"lower",
+   "line":471
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"maybe_enqueue_field_bootstrap",
+   "target":"strip",
+   "line":471
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"maybe_enqueue_field_bootstrap",
+   "target":"_require_bootstrap_tenant",
+   "line":473
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"maybe_enqueue_field_bootstrap",
+   "target":"fetchval",
+   "line":474
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"maybe_enqueue_field_bootstrap",
+   "target":"isinstance",
+   "line":479
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"maybe_enqueue_field_bootstrap",
+   "target":"RuntimeError",
+   "line":480
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"maybe_enqueue_field_bootstrap",
+   "target":"enqueue_field_bootstrap",
+   "line":481
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"maybe_enqueue_field_bootstrap",
+   "target":"astimezone",
+   "line":486
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"run_field_bootstrap_once",
+   "target":"getenv",
+   "line":509
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"run_field_bootstrap_once",
+   "target":"lower",
+   "line":509
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"run_field_bootstrap_once",
+   "target":"strip",
+   "line":509
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"run_field_bootstrap_once",
+   "target":"PlatformBootstrapStore",
+   "line":511
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"run_field_bootstrap_once",
+   "target":"due_job_ids",
+   "line":513
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"run_field_bootstrap_once",
+   "target":"claim",
+   "line":514
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"load_geometry",
+   "target":"load_current_geometry_digest",
+   "line":522
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"run_field_bootstrap_once",
+   "target":"load_current_geometry_digest",
+   "line":522
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"run_field_bootstrap_once",
+   "target":"_advance_bootstrap",
+   "line":527
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"run_field_bootstrap_once",
+   "target":"int",
+   "line":537
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"register_field_creation_intents",
+   "target":"register_field_tracking_intents",
+   "line":559
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "source":"register_field_creation_intents",
+   "target":"maybe_enqueue_field_bootstrap",
+   "line":562
   },
   {
    "owner":"sahool-platform",
@@ -259371,7 +259995,7 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/fields.py",
    "source":"_insert_field_within_tx",
-   "target":"register_field_tracking_intents",
+   "target":"register_field_creation_intents",
    "line":220
   },
   {
@@ -339082,6 +339706,139 @@
    "source":"_derive_policy",
    "target":"append",
    "line":479
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "source":"preview_model_advisory",
+   "target":"load_current_canonical",
+   "line":503
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "source":"preview_model_advisory",
+   "target":"load_owner_candidates",
+   "line":504
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "source":"preview_model_advisory",
+   "target":"evidence_fingerprint",
+   "line":507
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "source":"preview_model_advisory",
+   "target":"preview_advisory",
+   "line":509
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "source":"make_candidate_evaluator",
+   "target":"urlsplit",
+   "line":529
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "source":"make_candidate_evaluator",
+   "target":"ValueError",
+   "line":538
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "source":"make_candidate_evaluator",
+   "target":"ValueError",
+   "line":540
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "source":"evaluate",
+   "target":"post",
+   "line":543
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "source":"make_candidate_evaluator",
+   "target":"post",
+   "line":543
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "source":"evaluate",
+   "target":"rstrip",
+   "line":544
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "source":"make_candidate_evaluator",
+   "target":"rstrip",
+   "line":544
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "source":"evaluate",
+   "target":"RuntimeError",
+   "line":551
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "source":"make_candidate_evaluator",
+   "target":"RuntimeError",
+   "line":551
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "source":"evaluate",
+   "target":"json",
+   "line":552
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "source":"make_candidate_evaluator",
+   "target":"json",
+   "line":552
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "source":"evaluate",
+   "target":"isinstance",
+   "line":553
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "source":"make_candidate_evaluator",
+   "target":"isinstance",
+   "line":553
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "source":"evaluate",
+   "target":"RuntimeError",
+   "line":554
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "source":"make_candidate_evaluator",
+   "target":"RuntimeError",
+   "line":554
   },
   {
    "owner":"sahool-platform",
@@ -520042,6 +520799,1329 @@
   },
   {
    "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"digest",
+   "target":"hexdigest",
+   "line":57
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"digest",
+   "target":"sha256",
+   "line":57
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"digest",
+   "target":"dumps",
+   "line":58
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"digest",
+   "target":"encode",
+   "line":58
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"_number",
+   "target":"type",
+   "line":63
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"_number",
+   "target":"isfinite",
+   "line":66
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"_keys",
+   "target":"isinstance",
+   "line":72
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"_keys",
+   "target":"set",
+   "line":72
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"_keys",
+   "target":"AdvisoryRejected",
+   "line":73
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"_unique_pairs",
+   "target":"AdvisoryRejected",
+   "line":81
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"isinstance",
+   "line":87
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"AdvisoryRejected",
+   "line":88
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"encode",
+   "line":90
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"len",
+   "line":90
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"AdvisoryRejected",
+   "line":92
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"AdvisoryRejected",
+   "line":94
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"invalid_constant",
+   "target":"AdvisoryRejected",
+   "line":97
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"AdvisoryRejected",
+   "line":97
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"loads",
+   "line":100
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"AdvisoryRejected",
+   "line":106
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"_keys",
+   "line":107
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"AdvisoryRejected",
+   "line":113
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"isinstance",
+   "line":114
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"AdvisoryRejected",
+   "line":115
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"fullmatch",
+   "line":116
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"isinstance",
+   "line":116
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"AdvisoryRejected",
+   "line":119
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"isinstance",
+   "line":121
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"len",
+   "line":121
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"AdvisoryRejected",
+   "line":122
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"isinstance",
+   "line":123
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"len",
+   "line":123
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"AdvisoryRejected",
+   "line":124
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"AdvisoryRejected",
+   "line":126
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"set",
+   "line":127
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"_keys",
+   "line":129
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"isinstance",
+   "line":130
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"AdvisoryRejected",
+   "line":131
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"add",
+   "line":132
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"_number",
+   "line":133
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"AdvisoryRejected",
+   "line":134
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"fullmatch",
+   "line":135
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"isinstance",
+   "line":135
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"AdvisoryRejected",
+   "line":138
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"any",
+   "line":139
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"fullmatch",
+   "line":139
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"isinstance",
+   "line":139
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"AdvisoryRejected",
+   "line":140
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"len",
+   "line":141
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"len",
+   "line":141
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"set",
+   "line":141
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"parse_model_output",
+   "target":"AdvisoryRejected",
+   "line":142
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"isinstance",
+   "line":154
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"get",
+   "line":155
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"get",
+   "line":156
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"get",
+   "line":157
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"isinstance",
+   "line":157
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"fullmatch",
+   "line":158
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"AdvisoryRejected",
+   "line":160
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"any",
+   "line":174
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"AdvisoryRejected",
+   "line":175
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"digest",
+   "line":176
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"AdvisoryRejected",
+   "line":177
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"isinstance",
+   "line":178
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"AdvisoryRejected",
+   "line":179
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"sorted",
+   "line":181
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"get",
+   "line":182
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"isinstance",
+   "line":183
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"get",
+   "line":186
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"isinstance",
+   "line":186
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"get",
+   "line":187
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"get",
+   "line":188
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"get",
+   "line":189
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"get",
+   "line":192
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"get",
+   "line":192
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"digest",
+   "line":193
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"AdvisoryRejected",
+   "line":195
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"len",
+   "line":198
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"walk",
+   "target":"len",
+   "line":198
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"isinstance",
+   "line":200
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"sorted",
+   "line":200
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"walk",
+   "target":"isinstance",
+   "line":200
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"walk",
+   "target":"sorted",
+   "line":200
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"len",
+   "line":201
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"walk",
+   "target":"len",
+   "line":201
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"isinstance",
+   "line":205
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"walk",
+   "target":"isinstance",
+   "line":205
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"fullmatch",
+   "line":206
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"walk",
+   "target":"fullmatch",
+   "line":206
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"endswith",
+   "line":208
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"walk",
+   "target":"endswith",
+   "line":208
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"_number",
+   "line":212
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"walk",
+   "target":"_number",
+   "line":212
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"isinstance",
+   "line":214
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"walk",
+   "target":"isinstance",
+   "line":214
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"walk",
+   "line":215
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"fact_catalog",
+   "target":"walk",
+   "line":217
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"evidence_fingerprint",
+   "target":"fact_catalog",
+   "line":230
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"evidence_fingerprint",
+   "target":"digest",
+   "line":240
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"evidence_fingerprint",
+   "target":"get",
+   "line":240
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"validated_copy",
+   "target":"UUID",
+   "line":258
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"validated_copy",
+   "target":"str",
+   "line":258
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"validated_copy",
+   "target":"AdvisoryRejected",
+   "line":260
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"validated_copy",
+   "target":"isinstance",
+   "line":262
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"validated_copy",
+   "target":"len",
+   "line":263
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"validated_copy",
+   "target":"isinstance",
+   "line":264
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"validated_copy",
+   "target":"isinstance",
+   "line":266
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"validated_copy",
+   "target":"fullmatch",
+   "line":267
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"validated_copy",
+   "target":"type",
+   "line":268
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"validated_copy",
+   "target":"isinstance",
+   "line":270
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"validated_copy",
+   "target":"isinstance",
+   "line":272
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"validated_copy",
+   "target":"isinstance",
+   "line":274
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"validated_copy",
+   "target":"AdvisoryRejected",
+   "line":278
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"validated_copy",
+   "target":"add",
+   "line":283
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"validated_copy",
+   "target":"AdvisoryRejected",
+   "line":285
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"validated_copy",
+   "target":"AdvisoryRejected",
+   "line":289
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"validated_copy",
+   "target":"loads",
+   "line":291
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"validated_copy",
+   "target":"dumps",
+   "line":292
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"validated_copy",
+   "target":"AdvisoryRejected",
+   "line":297
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"validated_copy",
+   "target":"OwnerCandidate",
+   "line":298
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"candidate_id",
+   "target":"digest",
+   "line":311
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"candidate_id",
+   "target":"sorted",
+   "line":320
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"UUID",
+   "line":358
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"str",
+   "line":358
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"AdvisoryRejected",
+   "line":360
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"isinstance",
+   "line":361
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"len",
+   "line":361
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"AdvisoryRejected",
+   "line":362
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"parse_model_output",
+   "line":363
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"fact_catalog",
+   "line":364
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"evidence_fingerprint",
+   "line":365
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"AdvisoryRejected",
+   "line":367
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"get",
+   "line":370
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"AdvisoryRejected",
+   "line":372
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"append",
+   "line":373
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"dict",
+   "line":373
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"isinstance",
+   "line":376
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"AdvisoryRejected",
+   "line":377
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"validated_copy",
+   "line":378
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"evidence_fingerprint",
+   "line":382
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"AdvisoryRejected",
+   "line":384
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"AdvisoryRejected",
+   "line":386
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"any",
+   "line":388
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"AdvisoryRejected",
+   "line":389
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"get",
+   "line":391
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"get",
+   "line":391
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"get",
+   "line":391
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"wait_for",
+   "line":408
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"evaluate",
+   "line":409
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"evaluation_request",
+   "line":409
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"_evaluation_summary",
+   "line":411
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"update",
+   "line":411
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"append",
+   "line":414
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"append",
+   "line":418
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"append",
+   "line":423
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"preview_advisory",
+   "target":"join",
+   "line":434
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"_evaluation_summary",
+   "target":"isinstance",
+   "line":444
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"_evaluation_summary",
+   "target":"get",
+   "line":445
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"_evaluation_summary",
+   "target":"get",
+   "line":446
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"_evaluation_summary",
+   "target":"get",
+   "line":447
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"_evaluation_summary",
+   "target":"get",
+   "line":448
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"_evaluation_summary",
+   "target":"get",
+   "line":451
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"_evaluation_summary",
+   "target":"isinstance",
+   "line":452
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"_evaluation_summary",
+   "target":"isinstance",
+   "line":457
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"_evaluation_summary",
+   "target":"get",
+   "line":458
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"_evaluation_summary",
+   "target":"any",
+   "line":463
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"_evaluation_summary",
+   "target":"set",
+   "line":463
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"_evaluation_summary",
+   "target":"get",
+   "line":464
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"_evaluation_summary",
+   "target":"values",
+   "line":464
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"_evaluation_summary",
+   "target":"get",
+   "line":467
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"model_selection_context",
+   "target":"UUID",
+   "line":482
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"model_selection_context",
+   "target":"str",
+   "line":482
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"model_selection_context",
+   "target":"AdvisoryRejected",
+   "line":484
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"model_selection_context",
+   "target":"fact_catalog",
+   "line":485
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"model_selection_context",
+   "target":"isinstance",
+   "line":486
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"model_selection_context",
+   "target":"len",
+   "line":486
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"model_selection_context",
+   "target":"AdvisoryRejected",
+   "line":487
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"model_selection_context",
+   "target":"set",
+   "line":489
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"model_selection_context",
+   "target":"isinstance",
+   "line":491
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"model_selection_context",
+   "target":"AdvisoryRejected",
+   "line":492
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"model_selection_context",
+   "target":"validated_copy",
+   "line":493
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"model_selection_context",
+   "target":"evidence_fingerprint",
+   "line":497
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"model_selection_context",
+   "target":"AdvisoryRejected",
+   "line":499
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"model_selection_context",
+   "target":"AdvisoryRejected",
+   "line":502
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"model_selection_context",
+   "target":"add",
+   "line":503
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"model_selection_context",
+   "target":"append",
+   "line":504
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"model_selection_context",
+   "target":"evidence_fingerprint",
+   "line":508
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"model_selection_context",
+   "target":"list",
+   "line":509
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/structured_advisory.py",
+   "source":"model_selection_context",
+   "target":"values",
+   "line":509
+  },
+  {
+   "owner":"shared",
    "file":"shared/ai/tool_audit.py",
    "source":"redact_params",
    "target":"items",
@@ -535320,6 +537400,1434 @@
    "source":"run_phase11_federation_cycle",
    "target":"asdict",
    "line":769
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_hash",
+   "target":"hexdigest",
+   "line":49
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_hash",
+   "target":"sha256",
+   "line":49
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_hash",
+   "target":"dumps",
+   "line":50
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_hash",
+   "target":"encode",
+   "line":50
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_timestamp",
+   "target":"isinstance",
+   "line":55
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_timestamp",
+   "target":"timedelta",
+   "line":55
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_timestamp",
+   "target":"utcoffset",
+   "line":55
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_timestamp",
+   "target":"BootstrapError",
+   "line":56
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_timestamp",
+   "target":"isoformat",
+   "line":57
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_time",
+   "target":"isinstance",
+   "line":61
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_time",
+   "target":"BootstrapError",
+   "line":62
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_time",
+   "target":"fromisoformat",
+   "line":63
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_time",
+   "target":"timedelta",
+   "line":64
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_time",
+   "target":"utcoffset",
+   "line":64
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_time",
+   "target":"BootstrapError",
+   "line":65
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_two_years_before",
+   "target":"min",
+   "line":71
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_two_years_before",
+   "target":"monthrange",
+   "line":71
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_two_years_before",
+   "target":"replace",
+   "line":71
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_hex",
+   "target":"all",
+   "line":76
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_hex",
+   "target":"isinstance",
+   "line":76
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"_hex",
+   "target":"len",
+   "line":76
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"new_journal",
+   "target":"UUID",
+   "line":87
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"new_journal",
+   "target":"str",
+   "line":87
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"new_journal",
+   "target":"BootstrapError",
+   "line":89
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"new_journal",
+   "target":"isinstance",
+   "line":90
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"new_journal",
+   "target":"len",
+   "line":90
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"new_journal",
+   "target":"BootstrapError",
+   "line":91
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"new_journal",
+   "target":"get",
+   "line":92
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"new_journal",
+   "target":"isinstance",
+   "line":92
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"new_journal",
+   "target":"BootstrapError",
+   "line":93
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"new_journal",
+   "target":"_hash",
+   "line":94
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"new_journal",
+   "target":"_timestamp",
+   "line":95
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"new_journal",
+   "target":"date",
+   "line":96
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"new_journal",
+   "target":"timedelta",
+   "line":96
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"new_journal",
+   "target":"_two_years_before",
+   "line":97
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"new_journal",
+   "target":"date",
+   "line":97
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"new_journal",
+   "target":"isoformat",
+   "line":102
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"new_journal",
+   "target":"isoformat",
+   "line":103
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"new_journal",
+   "target":"_hash",
+   "line":118
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"new_journal",
+   "target":"deepcopy",
+   "line":124
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"request_key",
+   "target":"BootstrapError",
+   "line":130
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"request_key",
+   "target":"_hash",
+   "line":131
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"get",
+   "line":135
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"isinstance",
+   "line":135
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"BootstrapError",
+   "line":136
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"get",
+   "line":137
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"isinstance",
+   "line":139
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"set",
+   "line":140
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"_hash",
+   "line":141
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"get",
+   "line":141
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"BootstrapError",
+   "line":143
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"UUID",
+   "line":145
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"str",
+   "line":145
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"fromisoformat",
+   "line":146
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"fromisoformat",
+   "line":146
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"_time",
+   "line":147
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"_time",
+   "line":148
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"BootstrapError",
+   "line":150
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"isinstance",
+   "line":153
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"len",
+   "line":154
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"_hex",
+   "line":155
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"BootstrapError",
+   "line":157
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"_two_years_before",
+   "line":158
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"date",
+   "line":158
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"date",
+   "line":158
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"timedelta",
+   "line":158
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"BootstrapError",
+   "line":159
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"get",
+   "line":161
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"get",
+   "line":162
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"type",
+   "line":162
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"BootstrapError",
+   "line":164
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"get",
+   "line":165
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"_time",
+   "line":166
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"get",
+   "line":167
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"isinstance",
+   "line":167
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"set",
+   "line":167
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"set",
+   "line":167
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"BootstrapError",
+   "line":168
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"items",
+   "line":169
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"isinstance",
+   "line":171
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"get",
+   "line":172
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"type",
+   "line":172
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"get",
+   "line":174
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"type",
+   "line":174
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"get",
+   "line":176
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"type",
+   "line":176
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"get",
+   "line":178
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"BootstrapError",
+   "line":180
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"get",
+   "line":182
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"_time",
+   "line":183
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"get",
+   "line":184
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"validate_receipt",
+   "line":185
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"get",
+   "line":188
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"get",
+   "line":188
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"BootstrapError",
+   "line":190
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"any",
+   "line":191
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"BootstrapError",
+   "line":194
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"get",
+   "line":197
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"get",
+   "line":197
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_journal",
+   "target":"BootstrapError",
+   "line":200
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"isinstance",
+   "line":217
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"set",
+   "line":217
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"BootstrapError",
+   "line":218
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"dumps",
+   "line":220
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"encode",
+   "line":220
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"BootstrapError",
+   "line":222
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"len",
+   "line":223
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"BootstrapError",
+   "line":224
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"request_key",
+   "line":228
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"any",
+   "line":231
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"get",
+   "line":231
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"items",
+   "line":231
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"BootstrapError",
+   "line":232
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"get",
+   "line":233
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"BootstrapError",
+   "line":235
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"get",
+   "line":236
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"isinstance",
+   "line":237
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"len",
+   "line":237
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"BootstrapError",
+   "line":238
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"isinstance",
+   "line":244
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"len",
+   "line":245
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"BootstrapError",
+   "line":247
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"get",
+   "line":249
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"isinstance",
+   "line":251
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"set",
+   "line":252
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"get",
+   "line":253
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"get",
+   "line":254
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"get",
+   "line":255
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"get",
+   "line":256
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"get",
+   "line":257
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"type",
+   "line":257
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"BootstrapError",
+   "line":260
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"get",
+   "line":264
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"BootstrapError",
+   "line":266
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"_hex",
+   "line":268
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"get",
+   "line":268
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"get",
+   "line":268
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"type",
+   "line":268
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"BootstrapError",
+   "line":269
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"validate_receipt",
+   "target":"deepcopy",
+   "line":270
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"now",
+   "line":297
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"type",
+   "line":307
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"isfinite",
+   "line":308
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"BootstrapError",
+   "line":311
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"deepcopy",
+   "line":312
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"validate_journal",
+   "line":313
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"finish",
+   "line":315
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"load_geometry_digest",
+   "line":319
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"superseded",
+   "target":"load_geometry_digest",
+   "line":319
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"update",
+   "line":321
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"superseded",
+   "target":"update",
+   "line":321
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"_timestamp",
+   "line":325
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"clock",
+   "line":325
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"superseded",
+   "target":"_timestamp",
+   "line":325
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"superseded",
+   "target":"clock",
+   "line":325
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"finish",
+   "line":327
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"superseded",
+   "target":"finish",
+   "line":327
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"superseded",
+   "line":331
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"any",
+   "line":336
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"any",
+   "line":339
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"update",
+   "line":340
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"clock",
+   "line":346
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"_timestamp",
+   "line":347
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"_time",
+   "line":348
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"get",
+   "line":348
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"min",
+   "line":353
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"get",
+   "line":355
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"_time",
+   "line":356
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"update",
+   "line":366
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"checkpoint",
+   "line":367
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"get",
+   "line":369
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"update",
+   "line":371
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"_timestamp",
+   "line":374
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"timedelta",
+   "line":374
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"checkpoint",
+   "line":376
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"update",
+   "line":378
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"_timestamp",
+   "line":383
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"_timestamp",
+   "line":385
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"checkpoint",
+   "line":386
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"request_key",
+   "line":391
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"wait_for",
+   "line":394
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"deepcopy",
+   "line":395
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"handler",
+   "line":395
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"validate_receipt",
+   "line":403
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"str",
+   "line":405
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"superseded",
+   "line":408
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"update",
+   "line":412
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"min",
+   "line":422
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"_timestamp",
+   "line":423
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"clock",
+   "line":423
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"timedelta",
+   "line":423
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"checkpoint",
+   "line":424
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"superseded",
+   "line":426
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"all",
+   "line":428
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"any",
+   "line":432
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"bool",
+   "line":437
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"get",
+   "line":437
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"clock",
+   "line":438
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"_timestamp",
+   "line":439
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"_timestamp",
+   "line":441
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"get",
+   "line":441
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"items",
+   "line":442
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"min",
+   "line":447
+  },
+  {
+   "owner":"shared",
+   "file":"shared/field_bootstrap.py",
+   "source":"advance",
+   "target":"finish",
+   "line":449
   },
   {
    "owner":"shared",
@@ -557309,7 +560817,7 @@
    "symbol":"invalid_request_handler",
    "kind":"function",
    "file":"services/guardrails-engine/main.py",
-   "line":346,
+   "line":361,
    "owner":"guardrails-engine",
    "decorated_route":false,
    "reference_count":0,
@@ -557320,7 +560828,7 @@
    "symbol":"workflow_unavailable_handler",
    "kind":"function",
    "file":"services/guardrails-engine/main.py",
-   "line":353,
+   "line":368,
    "owner":"guardrails-engine",
    "decorated_route":false,
    "reference_count":0,
@@ -558409,7 +561917,18 @@
    "symbol":"validate_response",
    "kind":"function",
    "file":"services/sahool-platform/api/onboarding.py",
-   "line":232,
+   "line":244,
+   "owner":"sahool-platform",
+   "decorated_route":false,
+   "reference_count":0,
+   "confidence":"medium",
+   "action":"review_before_delete"
+  },
+  {
+   "symbol":"run_field_bootstrap_once",
+   "kind":"function",
+   "file":"services/sahool-platform/api/onboarding.py",
+   "line":490,
    "owner":"sahool-platform",
    "decorated_route":false,
    "reference_count":0,
@@ -558751,6 +562270,28 @@
    "kind":"function",
    "file":"services/sahool-platform/core/field_event_sourcing.py",
    "line":78,
+   "owner":"sahool-platform",
+   "decorated_route":false,
+   "reference_count":0,
+   "confidence":"medium",
+   "action":"review_before_delete"
+  },
+  {
+   "symbol":"preview_model_advisory",
+   "kind":"function",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "line":486,
+   "owner":"sahool-platform",
+   "decorated_route":false,
+   "reference_count":0,
+   "confidence":"medium",
+   "action":"review_before_delete"
+  },
+  {
+   "symbol":"make_candidate_evaluator",
+   "kind":"function",
+   "file":"services/sahool-platform/core/field_intelligence_coordinator.py",
+   "line":519,
    "owner":"sahool-platform",
    "decorated_route":false,
    "reference_count":0,
@@ -563037,6 +566578,17 @@
    "action":"review_before_delete"
   },
   {
+   "symbol":"model_selection_context",
+   "kind":"function",
+   "file":"shared/ai/structured_advisory.py",
+   "line":472,
+   "owner":"shared",
+   "decorated_route":false,
+   "reference_count":0,
+   "confidence":"medium",
+   "action":"review_before_delete"
+  },
+  {
    "symbol":"build_audit_record",
    "kind":"function",
    "file":"shared/ai/tool_audit.py",
@@ -563173,6 +566725,17 @@
    "kind":"function",
    "file":"shared/feature_store/runtime.py",
    "line":255,
+   "owner":"shared",
+   "decorated_route":false,
+   "reference_count":0,
+   "confidence":"medium",
+   "action":"review_before_delete"
+  },
+  {
+   "symbol":"new_journal",
+   "kind":"function",
+   "file":"shared/field_bootstrap.py",
+   "line":80,
    "owner":"shared",
    "decorated_route":false,
    "reference_count":0,

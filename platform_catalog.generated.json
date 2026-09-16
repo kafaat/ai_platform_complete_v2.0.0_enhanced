@@ -1851,6 +1851,23 @@
     },
     {
       "approval_required": false,
+      "capability_id": "guardrails-engine.evaluate",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/evaluate"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "guardrails-engine",
+      "producer": "guardrails-engine",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "guardrails-engine.runtime-identity",
       "consumers": [
         "frontend"
@@ -17492,7 +17509,7 @@
   ],
   "counts": {
     "backend_components": 32,
-    "capabilities": 827,
+    "capabilities": 828,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 93,
     "capabilities_idempotent": 48,
@@ -17503,9 +17520,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1118,
+    "route_rows": 1119,
     "ui_waivers": 52,
-    "unique_method_path": 999
+    "unique_method_path": 1000
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -17765,7 +17782,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "c25c36e800e4e594ca74112b5ae2f01f7c2e18560a8bfe4ac4e03a3f95d61927",
+  "fingerprint": "e651fec8a2e3e434295b4902142f239b055b2b6516c24645bf0155546caa1ea5",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17815,16 +17832,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 818,
+      "edge_count": 821,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 43,
         "CONSUMES": 1,
         "EMITS": 1,
-        "READS": 420,
+        "READS": 422,
         "ROUTES_TO": 71,
-        "WRITES": 282
+        "WRITES": 283
       }
     },
     "u3_wiring_ownership": {
