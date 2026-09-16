@@ -169,3 +169,74 @@ def test_plain_docs_outside_certification_path_pass():
     # وثيقة عاديّة بلا تلميح تقرير خارج مسار الاعتماد ليست report-like أصلاً.
     result = _run("docs/adr/0001-topology.md")
     assert result.returncode == 0, result.stderr
+
+
+def test_a_plain_doc_with_regenerated_artifacts_is_docs_only():
+    # DOCS-ONLY-SLICE-UNLANDABLE-UNDER-MANDATORY-REGENERATION-01 — مقيسٌ على #1012 حرفيّاً:
+    # وثيقةُ تدقيقٍ بخطّ اليد + الدماغ + ما أعاد `regenerate_all_generated.sh` ختمَه.
+    # الرأسُ يَعِد بـ«docs-only allowed»، والتصنيفُ كان يحجبها لأنّ الوثيقة لا تُرى
+    # والمصنوعاتُ المولَّدة وحدها هي ما يُرى.
+    result = _run(
+        "docs/audits/DECISION_FABRIC_EXTERNAL_SOURCE_VERIFICATION_20260916.md",
+        "sahool-brain/hot.md",
+        "docs/architecture/source_text_assertion_inventory.json",
+        "docs/capability-registry/generated/impact/impact_index_summary.json",
+        "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "release/FILE_CHECKSUMS.sha256",
+    )
+    assert result.returncode == 0, result.stderr
+    assert "docs_with_regenerated_artifacts" in result.stdout
+
+
+def test_a_hand_edited_report_beside_a_doc_stays_blocked():
+    # الاستثناءُ للمصنوعات المولَّدة وحدها: تقريرٌ بخطّ اليد باسمٍ تقريريّ بجوار وثيقةٍ
+    # عاديّة ليس مصنوعَ توليد — فالوثيقةُ لا تُلوندِره.
+    result = _run("docs/adr/0002-notes.md", "FOO_REPORT_20260916.md")
+    assert result.returncode != 0, "لُوندِر تقريرٌ بخطّ اليد عبر وثيقةٍ مرافِقة"
+    assert "report-only" in result.stderr
+
+
+def test_the_certification_registry_beside_a_doc_stays_blocked():
+    # سجلُّ الاعتماد ليس مصنوعَ إعادة توليد — وإن عدّه `generated_write_targets.json`
+    # هدفَ كتابة، لأنّه يُكتَب **جزئيّاً** (حقولٌ قانونيّة بخطّ اليد). وثيقةٌ مرافِقة
+    # لا تجعله وثائقيّاً؛ ولذلك القائمةُ صريحة لا مشتقّة من ذلك الجرد.
+    result = _run(
+        "docs/adr/0002-notes.md",
+        "capabilities/registry/capabilities.json",
+        "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+    )
+    assert result.returncode != 0
+    assert "report-only" in result.stderr
+
+
+def test_regenerated_artifacts_without_a_doc_stay_blocked():
+    # «exclusively generated reports» كما ينصّ رأسُ الحارس — بلا وثيقةٍ بخطّ اليد
+    # تبقى المصنوعاتُ وحدها محجوبة (وهو ما تُثبِّته الحالاتُ الأقدم أيضاً).
+    result = _run(
+        "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+        "docs/architecture/source_text_assertion_inventory.json",
+        "release/FILE_CHECKSUMS.sha256",
+    )
+    assert result.returncode != 0
+    assert "report-only" in result.stderr
+
+
+def test_a_brain_file_alone_does_not_launder_regenerated_artifacts_as_a_doc():
+    # الدماغُ مُعفًى بذاته (`test_brain_maintenance_is_docs_not_report_only`) لكنّه ليس
+    # «وثيقةً بخطّ اليد» بمعنى هذا الاستثناء — وإلّا صار كلُّ سطرٍ في `log.md` مفتاحاً
+    # يفتح المصنوعاتِ المولَّدة. الحالةُ القائمة تمرّ بالإعفاء القديم لا بالجديد.
+    result = _run(
+        "sahool-brain/log.md",
+        "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+    )
+    assert "docs_with_regenerated_artifacts" not in result.stdout
+
+
+def test_a_report_named_doc_is_not_a_plain_doc():
+    # وثيقةٌ بخطّ اليد لكن باسمٍ تقريريّ تقريرٌ لا وثيقة — لا تفتح الاستثناء لنفسها.
+    result = _run(
+        "docs/audits/SOMETHING_REPORT_20260916.md",
+        "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+    )
+    assert result.returncode != 0
+    assert "report-only" in result.stderr

@@ -4463,6 +4463,18 @@
           "find": "    if report_like and not substantive:",
           "replace": "    if False:",
           "why": "نزع قاعدة الحجب نفسها ⇒ تقارير مولَّدة وحدها تعبر كتغيير مشروع — الحارس أخضر إلى الأبد وهو يحرس لا شيء"
+        },
+        {
+          "expect": "test_a_plain_doc_with_regenerated_artifacts_is_docs_only",
+          "find": "        if plain_docs and not outside_docs_only:",
+          "replace": "        if False:",
+          "why": "نزع استثناء الوثيقة + مصنوعات إعادة التوليد يعيد العطل المقيس على #1012 حرفيّاً: شريحةٌ وثائقيّة تُطيع إعادةَ التوليد الإلزاميّة تُحجَب «report-only» إلى الأبد — والرأسُ يَعِد بعكسه"
+        },
+        {
+          "expect": "test_a_hand_edited_report_beside_a_doc_stays_blocked",
+          "find": "        if plain_docs and not outside_docs_only:",
+          "replace": "        if plain_docs or not outside_docs_only:",
+          "why": "توسيعُ الاستثناء من «كلّ التقارير مصنوعاتُ توليد» إلى «توجد وثيقة» يجعل أيَّ Markdown مفتاحاً يفتح تقريراً بخطّ اليد أو سجلَّ الاعتماد — وهو بعينه ما يحرسه الحارس"
         }
       ],
       "test": "tests_v9/test_no_report_only_change_guard.py"

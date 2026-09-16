@@ -17,6 +17,45 @@ import sys
 from pathlib import Path
 
 REPORT_SUFFIXES = (".md", ".csv", ".json")
+
+# DOCS-ONLY-SLICE-UNLANDABLE-UNDER-MANDATORY-REGENERATION-01 — **مقيسٌ على #1012.**
+#
+# الحارس يَعِد في رأسه بأنّ «docs-only changes» مسموحة، والتصنيفُ يُصدِّق ذلك لوثيقةٍ
+# **وحدها** (`test_plain_docs_outside_certification_path_pass`). لكنّ CLAUDE.md يُلزِم
+# بإعادة توليد المصنوعات بعد أيّ إضافة، وإعادةُ التوليد تُعيد ختمَ ملفّاتٍ تحمل تلميحاتِ
+# التقارير في أسمائها (`CAPABILITY_MAPPING_REPORT.md` · `*_inventory.json` ·
+# `*_summary.json`). فوثيقةُ تدقيقٍ مكتوبةٌ بخطّ اليد + المصنوعاتُ التي أوجبها المستودعُ
+# نفسُه = «report-only» بالتصنيف، **وغيرُ قابلةٍ للهبوط أبداً** — لأنّ الوثيقة لا تُرى
+# (ليست جوهريّة ولا تقريراً) والمصنوعاتُ وحدها هي ما يُرى.
+#
+# صنفُ «بوّابةٌ لا تُغلَق بعملٍ صحيح» للمرّة الرابعة في هذا الملفّ (بعد `sahool-brain/`
+# و`docs/architecture/gates/` و`.github/CODEOWNERS`)، والعلاجُ على نمطها: يُعرَّف
+# **مصنوعُ إعادة التوليد** تعريفاً صريحاً ضيّقاً — دليلُ التوليد، وحزمةُ الإصدار،
+# وملفّاتُ القياس التي يُعيد `verify_all_generated.py --fix` ختمَ `measured_on` فيها —
+# فإذا لم يكن في التغيير شيءٌ سوى وثائق بخطّ اليد + الدماغ + هذه المصنوعات، فالتغييرُ
+# وثائقيّ كما يَعِد الرأس. المصنوعاتُ تابعةٌ لِما ولّدها.
+#
+# **ولماذا قائمةٌ صريحة لا `generated_write_targets.json`:** ذلك الجردُ يعدّ كلَّ ما
+# يكتبه سكربت، ومنه ما يُكتَب **جزئيّاً** (`capabilities/registry/capabilities.json`:
+# حقولٌ قانونيّة بخطّ اليد وحقولُ إسقاطٍ مولَّدة). اعتبارُه مصنوعاً يجعل تعديلَ حقلِ
+# اعتمادٍ يدويّاً يمرّ خلف وثيقة — وهو بعينه ما وُجِد الحارسُ ليحجبه.
+#
+# وما **لا** يفتحه: تقريرٌ مكتوبٌ بخطّ اليد باسمٍ تقريريّ (`FOO_REPORT.md`) أو سجلُّ
+# الاعتماد بجوار وثيقة — ليس مصنوعَ إعادة توليد فيبقى محجوباً؛ ومصنوعاتٌ مولَّدة **بلا**
+# وثيقة — تبقى «exclusively generated» كما ينصّ الرأس.
+REGENERATION_ARTIFACT_PREFIXES = (
+    "docs/capability-registry/generated/",
+    "release/",
+)
+REGENERATION_ARTIFACT_EXACT = {
+    "docs/architecture/assertion_presence_baseline.json",
+    "docs/architecture/brain_deferral_baseline.json",
+    "docs/architecture/db_writer_ownership_baseline.json",
+    "docs/architecture/fake_connection_debt.json",
+    "docs/architecture/generated_write_targets.json",
+    "docs/architecture/source_text_assertion_inventory.json",
+    "docs/architecture/tenant_guc_scope_baseline.json",
+}
 REPORT_NAME_HINTS = (
     "REPORT",
     "INVENTORY",
@@ -125,6 +164,23 @@ def is_substantive(path: str) -> bool:
     return False
 
 
+def is_regeneration_artifact(path: str) -> bool:
+    if path in REGENERATION_ARTIFACT_EXACT:
+        return True
+    return any(path.startswith(prefix) for prefix in REGENERATION_ARTIFACT_PREFIXES)
+
+
+def is_plain_doc(path: str) -> bool:
+    """وثيقةٌ بخطّ اليد: Markdown تحت `docs/` ليس تقريراً بالاسم، ولا جوهريّاً، ولا
+    مصنوعَ توليد. الدماغُ ليس منها (مُعفًى بذاته ولا يُلوندِر غيرَه)، و`.md` خارج
+    `docs/` ليس منها — الاستثناءُ على الدليل المقصود لا على اللاحقة."""
+    if not path.startswith("docs/") or Path(path).suffix != ".md":
+        return False
+    if is_report_like(path) or is_substantive(path) or is_regeneration_artifact(path):
+        return False
+    return True
+
+
 def check_changed_files(paths: list[str]) -> None:
     clean = [p.strip() for p in paths if p.strip()]
     if not clean:
@@ -132,7 +188,19 @@ def check_changed_files(paths: list[str]) -> None:
         return
     substantive = [p for p in clean if is_substantive(p) and not is_report_like(p)]
     report_like = [p for p in clean if is_report_like(p)]
+    plain_docs = [p for p in clean if is_plain_doc(p)]
+    # «وثائقيّ فقط» حرفيّاً: لا شيء في التغيير سوى وثائق + الدماغ + مصنوعات إعادة
+    # التوليد. أيُّ ملفٍّ آخر — تقريرٌ بخطّ اليد، سجلُّ اعتماد، `.md` خارج `docs/` —
+    # يُخرِج التغييرَ من الاستثناء إلى الحكم القديم.
+    outside_docs_only = [
+        p
+        for p in clean
+        if not (is_plain_doc(p) or p.startswith("sahool-brain/") or is_regeneration_artifact(p))
+    ]
     if report_like and not substantive:
+        if plain_docs and not outside_docs_only:
+            print("no_report_only_change_guard_docs_with_regenerated_artifacts")
+            return
         raise SystemExit(
             "report-only change detected; include code/test/guard/workflow/runbook/evidence changes or mark as docs-only outside certification path"
         )
