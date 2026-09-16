@@ -1,0 +1,217 @@
+name: PR 1008 isolated repair lab
+
+on:
+  push:
+    branches: [codex/pr1008-repair-lab-20260916]
+    paths: [.github/workflows/pr1008-repair-lab.yml]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pr1008-isolated-repair-lab
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: 06ba36d192a56275c392095e69460c76cb08f9bf
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Install the governance job dependencies
+        run: pip install pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0
+      - name: Reproduce the reported drift on the pinned PR head
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/pr1008-evidence"
+          test "$(git rev-parse HEAD)" = 06ba36d192a56275c392095e69460c76cb08f9bf
+          test -z "$(git status --porcelain)"
+          set +e
+          python scripts/ci/capability_mapping_engine.py --check > "$RUNNER_TEMP/pr1008-evidence/before.log" 2>&1
+          result=$?
+          set -e
+          cat "$RUNNER_TEMP/pr1008-evidence/before.log"
+          test "$result" -eq 1
+          grep -F 'generated-artifact drift' "$RUNNER_TEMP/pr1008-evidence/before.log"
+      - name: Isolate the auth configuration and add regression coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root_config = Path('railway.json')
+          config = json.loads(root_config.read_text(encoding='utf-8'))
+          assert config['build'] == {'builder': 'DOCKERFILE', 'dockerfilePath': 'services/auth/Dockerfile'}
+          destination = Path('services/auth/railway.json')
+          assert not destination.exists()
+          root_config.rename(destination)
+
+          tests = Path('tests/deploy/test_phase15_deployment_readiness_contracts.py')
+          original = tests.read_text(encoding='utf-8')
+          assert 'test_railway_auth_configuration_is_service_scoped' not in original
+          original = original.replace('import subprocess\n', 'import json\nimport shlex\nimport subprocess\n', 1)
+          addition = '''
+
+          def test_railway_auth_configuration_is_service_scoped():
+              # Root defaults are shared by every service that uses this repository.
+              assert not (ROOT / "railway.json").exists()
+              assert not (ROOT / "railway.toml").exists()
+              assert (ROOT / "services/auth/railway.json").is_file()
+
+
+          def test_railway_auth_configuration_selects_only_its_dockerfile():
+              config = json.loads((ROOT / "services/auth/railway.json").read_text(encoding="utf-8"))
+              assert config["build"] == {
+                  "builder": "DOCKERFILE",
+                  "dockerfilePath": "services/auth/Dockerfile",
+              }
+              assert "deploy" not in config
+              assert (ROOT / config["build"]["dockerfilePath"]).is_file()
+
+
+          def test_railway_auth_dockerfile_requires_repository_root_context():
+              config = json.loads((ROOT / "services/auth/railway.json").read_text(encoding="utf-8"))
+              dockerfile = ROOT / config["build"]["dockerfilePath"]
+              sources = []
+              for line in dockerfile.read_text(encoding="utf-8").splitlines():
+                  if line.startswith("COPY "):
+                      sources.extend(shlex.split(line)[1:-1])
+              assert "shared/" in sources
+              assert "services/auth/requirements.txt" in sources
+              for source in sources:
+                  assert (ROOT / source).exists(), source
+          '''
+          import textwrap
+          tests.write_text(original.rstrip() + '\n' + textwrap.dedent(addition), encoding='utf-8')
+
+          runbook = Path('docs/runbooks/RAILWAY_AUTH_DEPLOYMENT.md')
+          assert not runbook.exists()
+          runbook.write_text('''# Railway auth deployment configuration
+
+          This repository contains separately deployed services. Do not put a service-specific
+          build override in a root `railway.json` or `railway.toml`: Railway configuration files
+          take precedence over dashboard settings and a root default can select the auth image
+          for another service using the same repository.
+
+          ## Select the configuration for sahool-auth only
+
+          In the **sahool-auth** service settings, use:
+
+          | Setting | Value |
+          | --- | --- |
+          | Root Directory | `/` |
+          | Railway Config File | `/services/auth/railway.json` |
+          | Builder | `DOCKERFILE` |
+          | Dockerfile Path | `services/auth/Dockerfile` |
+
+          The custom configuration-file path must be selected explicitly; it is not inferred
+          from Root Directory. Keep the repository root as the build context because the
+          Dockerfile copies both `shared/` and `services/auth/`.
+
+          Do not select this config for platform, frontend, or migration services. They must
+          retain their own Dockerfile paths. This change adds no start-command, health-check,
+          variable, or deployment override.
+
+          ## Activation and verification
+
+          Merging a pull request into main does not update a Railway service tracking a
+          different deployment branch. Apply the tested revision to the intended deployment
+          branch and verify its source SHA before starting a deployment. The per-service
+          dashboard builder/path settings also remain valid without a custom config file.
+
+          Preserve the existing build identity arguments `SAHOOL_GIT_SHA`, `SAHOOL_BUILD_ID`,
+          `SAHOOL_SOURCE_REPOSITORY`, and `SAHOOL_SOURCE_REF`. Confirm image build success and
+          the service health check separately; passing repository checks is not deployment
+          proof. The current Dockerfile listens on port 8000, so keep the service target port
+          consistent rather than assuming a PORT variable changes the Dockerfile command.
+
+          ## Repository verification
+
+          ```bash
+          git add -A
+          python scripts/ci/verify_all_generated.py --fix
+          python scripts/ci/capability_mapping_engine.py --check
+          python scripts/ci/verify_all_generated.py --check
+          python -m pytest -q tests/deploy/test_phase15_deployment_readiness_contracts.py
+          python scripts/release/validate_release_package.py
+          ```
+
+          Generated outputs must be refreshed by their owning generators. Do not hand-edit
+          hashes, change maturity assertions, or relax drift gates to accommodate this file.
+          ''', encoding='utf-8')
+          # Multiline literal indentation is formatting only, not runbook content.
+          runbook.write_text(textwrap.dedent(runbook.read_text(encoding='utf-8')), encoding='utf-8')
+          PY
+          git add -A
+          git diff --cached --check
+      - name: Run deployment regression tests before regeneration
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pytest -q tests/deploy/test_phase15_deployment_readiness_contracts.py 2>&1 | tee "$RUNNER_TEMP/pr1008-evidence/deployment-tests.log"
+      - name: Regenerate the complete discovered chain to a fixed point
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -u scripts/ci/verify_all_generated.py --fix 2>&1 | tee "$RUNNER_TEMP/pr1008-evidence/regeneration.log"
+          git add -A
+          git diff --cached --check
+      - name: Run mapping, downstream, release and deployment regression suites
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pytest -q \
+            tests/architecture/test_capability_mapping_engine.py \
+            tests/architecture/test_capability_evidence_maturity_engine.py \
+            tests/architecture/test_capability_parity_investment_engine.py \
+            tests/architecture/test_capability_roadmap_linker.py \
+            tests/architecture/test_capability_management_engine.py \
+            tests/ci/test_phase16_ci_cd_gates.py \
+            tests/deploy/test_phase15_deployment_readiness_contracts.py \
+            tests/release/test_phase14_release_packaging_contracts.py \
+            tests/observability/test_phase13_observability_assets.py \
+            tests/security/test_phase12_final_production_gates.py \
+            2>&1 | tee "$RUNNER_TEMP/pr1008-evidence/regression-tests.log"
+      - name: Commit the candidate locally and verify the committed tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'fix(railway): scope auth config and refresh generated governance artifacts'
+          python scripts/ci/capability_mapping_engine.py --check 2>&1 | tee "$RUNNER_TEMP/pr1008-evidence/mapping-check.log"
+          python -u scripts/ci/verify_all_generated.py --check 2>&1 | tee "$RUNNER_TEMP/pr1008-evidence/generated-check.log"
+          python scripts/release/validate_release_package.py 2>&1 | tee "$RUNNER_TEMP/pr1008-evidence/release-check.log"
+          test -z "$(git status --porcelain)"
+          git rev-parse HEAD > "$RUNNER_TEMP/pr1008-evidence/candidate-sha.txt"
+          git diff --stat 06ba36d192a56275c392095e69460c76cb08f9bf HEAD > "$RUNNER_TEMP/pr1008-evidence/change-stat.txt"
+          git diff --binary 06ba36d192a56275c392095e69460c76cb08f9bf HEAD > "$RUNNER_TEMP/pr1008-evidence/repair.patch"
+      - name: Publish tested candidate to an isolated evidence branch only
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Never modifies the PR branch, main, production, or a branch that already exists.
+          test -z "$(git ls-remote --heads origin refs/heads/codex/pr1008-repair-result-20260916)"
+          git push origin HEAD:refs/heads/codex/pr1008-repair-result-20260916
+          echo "Candidate: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve repair evidence even when a gate fails
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pr1008-repair-evidence
+          path: ${{ runner.temp }}/pr1008-evidence/
+          retention-days: 7
+          if-no-files-found: error
