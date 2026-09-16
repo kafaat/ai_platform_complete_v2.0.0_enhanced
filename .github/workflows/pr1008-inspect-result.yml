@@ -1,0 +1,116 @@
+name: PR 1008 candidate inspection
+
+on:
+  push:
+    branches: [codex/pr1008-repair-lab-20260916]
+    paths: [.github/workflows/pr1008-inspect-result.yml]
+
+permissions:
+  contents: read
+
+# Wait for the repair job to publish its tested candidate. No live service is touched.
+concurrency:
+  group: pr1008-isolated-repair-lab
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: codex/pr1008-repair-result-20260916
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Install inspection dependencies
+        run: pip install pytest==9.1.1 PyYAML==6.0.2
+      - name: Prove the new regressions fail on the defects they protect against
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/pr1008-inspection"
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          report = Path(os.environ['RUNNER_TEMP']) / 'pr1008-inspection'
+          test_file = 'tests/deploy/test_phase15_deployment_readiness_contracts.py'
+          config_path = Path('services/auth/railway.json')
+          dockerfile = Path('services/auth/Dockerfile')
+          config_bytes = config_path.read_bytes()
+          dockerfile_bytes = dockerfile.read_bytes()
+          results = []
+
+          def rejects(case, name):
+              proc = subprocess.run([sys.executable, '-m', 'pytest', '-q', test_file + '::' + name], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
+              (report / (case + '.log')).write_text(proc.stdout, encoding='utf-8')
+              assert proc.returncode == 1, proc.stdout
+              assert '1 failed' in proc.stdout and name in proc.stdout, proc.stdout
+              results.append({'case': case, 'defect_detected': True})
+
+          for filename, payload in [('railway.json', config_bytes), ('railway.toml', b'[build]\nbuilder = "DOCKERFILE"\ndockerfilePath = "services/auth/Dockerfile"\n')]:
+              path = Path(filename)
+              assert not path.exists()
+              try:
+                  path.write_bytes(payload)
+                  rejects('global-' + filename, 'test_railway_auth_configuration_is_service_scoped')
+              finally:
+                  path.unlink(missing_ok=True)
+          try:
+              config = json.loads(config_bytes)
+              config['build']['dockerfilePath'] = 'services/sahool-platform/Dockerfile'
+              config_path.write_text(json.dumps(config) + '\n', encoding='utf-8')
+              rejects('wrong-service-image', 'test_railway_auth_configuration_selects_only_its_dockerfile')
+          finally:
+              config_path.write_bytes(config_bytes)
+          try:
+              assert b'COPY shared/ /app/shared/' in dockerfile_bytes
+              dockerfile.write_bytes(dockerfile_bytes.replace(b'COPY shared/ /app/shared/\n', b'', 1))
+              rejects('missing-shared-build-input', 'test_railway_auth_dockerfile_requires_repository_root_context')
+          finally:
+              dockerfile.write_bytes(dockerfile_bytes)
+          subprocess.run(['git', 'diff', '--exit-code'], check=True)
+          assert not subprocess.check_output(['git', 'status', '--porcelain']).strip()
+          (report / 'negative-regressions.json').write_text(json.dumps(results, indent=2) + '\n', encoding='utf-8')
+          print('4/4 negative regression cases detected; repository restored byte-for-byte')
+          PY
+      - name: Derive and validate the exact declaration from the committed tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          report = Path(os.environ['RUNNER_TEMP']) / 'pr1008-inspection'
+          base = subprocess.check_output(['git', 'rev-parse', 'origin/main'], text=True).strip()
+          head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          command = [sys.executable, 'scripts/ci/pr_capability_impact_gate.py', '--base', base, '--head', head]
+          first = subprocess.run(command + ['--output', str(report / 'impact-undeclared.json')], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
+          assert first.returncode in (0, 1), first.stdout
+          data = json.loads((report / 'impact-undeclared.json').read_text(encoding='utf-8'))
+          declaration = ', '.join(data['affected']) if data['affected'] else 'NONE'
+          second = subprocess.run(command + ['--declared', declaration, '--output', str(report / 'impact-validated.json')], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
+          assert second.returncode == 0, second.stdout
+          (report / 'summary.json').write_text(json.dumps({'head': head, 'base': base, 'negative_regressions_detected': 4, 'capability_declaration': 'Capability-Impact: ' + declaration, 'impact_validation': 'PASS'}, indent=2) + '\n', encoding='utf-8')
+          print((report / 'summary.json').read_text(encoding='utf-8'))
+          assert not subprocess.check_output(['git', 'status', '--porcelain']).strip()
+          PY
+      - name: Preserve candidate inspection evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pr1008-candidate-inspection
+          path: ${{ runner.temp }}/pr1008-inspection/
+          retention-days: 7
+          if-no-files-found: error
