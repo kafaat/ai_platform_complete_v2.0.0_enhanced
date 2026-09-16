@@ -4460,7 +4460,7 @@
         },
         {
           "expect": "test_report_only_change_is_blocked",
-          "find": "    if (report_like or artifacts_only) and not substantive:",
+          "find": "    if (report_like or artifacts_only or (has_artifact and outside_docs_only)) and not substantive:",
           "replace": "    if False:",
           "why": "نزع قاعدة الحجب نفسها ⇒ تقارير مولَّدة وحدها تعبر كتغيير مشروع — الحارس أخضر إلى الأبد وهو يحرس لا شيء"
         },
@@ -4496,9 +4496,15 @@
         },
         {
           "expect": "test_a_lone_generated_artifact_is_blocked_even_without_a_report_name",
-          "find": "    if (report_like or artifacts_only) and not substantive:",
-          "replace": "    if report_like and not substantive:",
+          "find": "    if (report_like or artifacts_only or (has_artifact and outside_docs_only)) and not substantive:",
+          "replace": "    if (report_like or (has_artifact and outside_docs_only)) and not substantive:",
           "why": "نزعُ ذراع «لا شيء سوى مصنوعات» يعيد العطل المقيس في مراجعة Copilot ٤ على #1012: `release/FILE_CHECKSUMS.sha256` و`SBOM_MINIMAL.json` لا يطابقان أسماءَ التقارير ولا لاحقاتِها فيمرّان منفردَين، والعقدُ المكتوب يَعِد بحجبهما"
+        },
+        {
+          "expect": "test_an_artifact_riding_with_an_unapproved_path_is_blocked",
+          "find": "    if (report_like or artifacts_only or (has_artifact and outside_docs_only)) and not substantive:",
+          "replace": "    if (report_like or artifacts_only) and not substantive:",
+          "why": "نزعُ الذراع الثالثة يعيد العطل المقيس في مراجعة Copilot ٥ على #1012: ملفٌّ بخطّ اليد خارج `docs/` بلا تلميحٍ في اسمه (`RELEASE_NOTES_20260626.md`) يحمل مصنوعاً معه ويعبر، لأنّ `artifacts_only` يشترط أن يكون كلُّ مسارٍ مصنوعاً"
         }
       ],
       "test": "tests_v9/test_no_report_only_change_guard.py"

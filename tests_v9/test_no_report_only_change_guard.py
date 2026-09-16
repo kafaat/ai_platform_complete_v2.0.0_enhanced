@@ -239,6 +239,23 @@ def test_every_exact_regeneration_artifact_lands_with_a_doc_and_is_blocked_alone
         assert "report-only" in alone.stderr
 
 
+def test_an_artifact_riding_with_an_unapproved_path_is_blocked():
+    # مراجعة Copilot ٥ على #1012: `artifacts_only` يشترط أن يكون **كلُّ** مسارٍ مصنوعاً،
+    # فملفٌّ بخطّ اليد خارج `docs/` (ولا تلميحَ تقريرٍ في اسمه) يركب مع مصنوعٍ ويعبر.
+    # المقيس: `RELEASE_NOTES_20260626.md` — مطلوبةٌ بعينها في `validate_release_package.py` —
+    # مع `release/FILE_CHECKSUMS.sha256` كانت rc=0.
+    result = _run("RELEASE_NOTES_20260626.md", "release/FILE_CHECKSUMS.sha256")
+    assert result.returncode != 0, "مصنوعٌ عبر خلف ملفٍّ غيرِ مُقرّ"
+    assert "report-only" in result.stderr
+
+
+def test_substantive_code_still_lands_with_artifacts_after_the_third_arm():
+    # الذراعُ الثالثة تُطلِق الحاجزَ لكنّ `substantive` تُخرِج التغييرَ — وإلّا صارت
+    # البوّابةُ تحجب شيفرةً حقيقيّة أعادت توليدَ حزمتها.
+    result = _run("services/sahool-platform/api/routers/fields.py", "release/FILE_CHECKSUMS.sha256")
+    assert result.returncode == 0, result.stderr
+
+
 def test_a_lone_generated_artifact_is_blocked_even_without_a_report_name():
     # مراجعة Copilot ٤ على #1012: `is_report_like` أسماءٌ ولاحقات، فهذان لا يطابقانها
     # وكانا يمرّان منفردَين بينما يَعِد العقدُ بحجبهما. المقياسُ صار واحداً.

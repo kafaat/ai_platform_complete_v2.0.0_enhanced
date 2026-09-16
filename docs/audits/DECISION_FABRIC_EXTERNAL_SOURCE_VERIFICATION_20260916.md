@@ -175,8 +175,13 @@ for r in "${!PIN[@]}"; do
   echo "pinned OK: $r @ $sha"
 done
 
-# LinkMind — نحوُ تعبيرات المسار. الطباعةُ وحدها لا تُثبِت شيئاً: شريحةٌ فارغة أو نحوٌ
-# تبدّل كانا يخرجان بـ0. فالرموزُ الثلاثة واجبةٌ في الشريحة وإلّا فالدعوى نُقِضت.
+# LinkMind — دعوى §٣ شقّان: **تعبيرُ مسارٍ مُعَدٌّ فعلاً** (`lagi.yml:92`) و**نحوٌ يُعرِّفه**
+# (`:326-333`). فحصُ النحو وحده لا يكفي: نسخةٌ تُبقي التوثيق وتنزع الإعدادَ تمرّ خضراء
+# والدعوى نصفُها ساقط. فالسطران يُقاسان معاً.
+lm_route="$(sed -n 92p "$EXT/landingbj/linkmind/lagi-web/src/main/resources/lagi.yml")"
+grep -qF 'route: best((landing&qwen),(kimi|chatgpt))' <<<"$lm_route" \
+  || { echo "LinkMind claim contradicted: configured route expression absent from lagi.yml:92" >&2; exit 7; }
+printf 'lagi.yml:92 %s\n' "$lm_route"
 lm_slice="$(sed -n 326,333p "$EXT/landingbj/linkmind/lagi-web/src/main/resources/lagi.yml")"
 for tok in 'A|B' 'A,B' 'A&B'; do
   grep -qF "$tok" <<<"$lm_slice" \
@@ -211,7 +216,9 @@ printf '%s\n' "$oaf_slice"
 # WGAI — «لا تطابق» (grep status 1) قيمةٌ مقيسة؛ أمّا status ≥ 2 (ملفٌّ لا يُقرأ، صلاحيّات…)
 # فتعذُّرُ قياسٍ لا صفرٌ — يُحفَظ status ولا يُبتلَع بـ`|| true`.
 set +e
-wgai_matches="$(grep -rn 'openai\|chat/completions' --include='*.java' --include='*.yml' "$EXT/dromara/wgai")"
+# والبحثُ غيرُ حسّاسٍ للحالة: `OpenAI` أو `OPENAI` كانا يُعدّان صفراً فيصير «غيرُ مقيس»
+# استنتاجاً من مسحٍ لم يَرَ ما يبحث عنه (مراجعة Copilot ٥ على #1012).
+wgai_matches="$(grep -rniE 'openai|chat/completions' --include='*.java' --include='*.yml' "$EXT/dromara/wgai")"
 wgai_status=$?
 set -e
 [ "$wgai_status" -le 1 ] || { echo "VERIFICATION UNAVAILABLE: grep exited $wgai_status scanning wgai" >&2; exit 6; }

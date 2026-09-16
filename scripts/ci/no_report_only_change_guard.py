@@ -244,6 +244,7 @@ def check_changed_files(paths: list[str]) -> None:
     # فالإطلاقُ الإضافيّ مقصورٌ على الحالة التي اشتكى منها المراجع حرفيّاً: **لا شيء في
     # التغيير سوى مصنوعات**.
     artifacts_only = bool(clean) and all(is_regeneration_artifact(p) for p in clean)
+    has_artifact = any(is_regeneration_artifact(p) for p in clean)
     plain_docs = [p for p in clean if is_plain_doc(p)]
     # «وثائقيّ فقط» حرفيّاً: لا شيء في التغيير سوى وثائق + الدماغ + مصنوعات إعادة
     # التوليد. أيُّ ملفٍّ آخر — تقريرٌ بخطّ اليد، سجلُّ اعتماد، `.md` خارج `docs/` —
@@ -262,7 +263,13 @@ def check_changed_files(paths: list[str]) -> None:
             or is_regeneration_artifact(p)
         )
     ]
-    if (report_like or artifacts_only) and not substantive:
+    # والذراعُ الثالثة (مراجعة Copilot ٥ على #1012): مصنوعٌ يركب مع **مسارٍ غيرِ مُقرّ** —
+    # لا وثيقةً تحت `docs/` ولا Markdown دماغٍ ولا مصنوعاً — كان يعبر لأنّ `artifacts_only`
+    # يشترط أن يكون **كلُّ** مسارٍ مصنوعاً، و`is_report_like` أسماءٌ ولاحقات. المقيس:
+    # `RELEASE_NOTES_20260626.md` (بخطّ اليد، مطلوبةٌ بعينها في `validate_release_package.py`)
+    # مع `release/FILE_CHECKSUMS.sha256` ⇒ rc=0. فالاستثناءُ كان أضيقَ من الحاجز في اتّجاه
+    # وأوسعَ في آخر. والشيفرةُ لا تتأذّى: مسارٌ جوهريّ يُخرِج التغييرَ عبر `substantive`.
+    if (report_like or artifacts_only or (has_artifact and outside_docs_only)) and not substantive:
         if plain_docs and not outside_docs_only:
             print("no_report_only_change_guard_docs_with_regenerated_artifacts")
             return
