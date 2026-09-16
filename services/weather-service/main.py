@@ -23,6 +23,7 @@ readiness_probe = rt.readiness_probe
 app.get("/healthz")(rt.healthz)
 app.get("/health")(rt.health)
 app.get("/readyz")(rt.readyz)
+app.get("/metrics")(rt.metrics)
 app.get("/")(rt.root)
 app.get("/contract")(rt.contract)
 app.post("/v1/weather/raw/process")(rt.raw_weather_process)

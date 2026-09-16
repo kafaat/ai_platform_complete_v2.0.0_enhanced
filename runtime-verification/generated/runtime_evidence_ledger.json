@@ -1,7 +1,7 @@
 {
   "fail_closed": true,
-  "ledger_sha256": "e42bcba855694acffb98e007684f3e7a83673220803d9164a11df1c6cfbd1b97",
-  "plan_sha256": "82145b911b82689e87c50051efefe78af92689297ba385d4b0dc56e40a1fd34f",
+  "ledger_sha256": "e745abb15d372b43e665d01c2aa808e951a1dff6ca95200241bd2592808812ac",
+  "plan_sha256": "21b89c5ac664155bbacb5747f442127f4a026853aac02c2c66bbfab7cf929a13",
   "schema_version": "2.0",
   "services": [
     {
@@ -57,7 +57,7 @@
     {
       "evidence_files": [],
       "latest_valid_evidence": null,
-      "planned_probe_count": 2,
+      "planned_probe_count": 3,
       "probeable": true,
       "production_certified": false,
       "runtime_verified": false,
@@ -117,7 +117,7 @@
     {
       "evidence_files": [],
       "latest_valid_evidence": null,
-      "planned_probe_count": 3,
+      "planned_probe_count": 4,
       "probeable": true,
       "production_certified": false,
       "runtime_verified": false,
@@ -197,8 +197,8 @@
     {
       "evidence_files": [],
       "latest_valid_evidence": null,
-      "planned_probe_count": 0,
-      "probeable": false,
+      "planned_probe_count": 1,
+      "probeable": true,
       "production_certified": false,
       "runtime_verified": false,
       "service": "raster-tiler-service",
@@ -307,7 +307,7 @@
     {
       "evidence_files": [],
       "latest_valid_evidence": null,
-      "planned_probe_count": 3,
+      "planned_probe_count": 4,
       "probeable": true,
       "production_certified": false,
       "runtime_verified": false,

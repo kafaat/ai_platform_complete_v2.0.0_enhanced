@@ -17,7 +17,7 @@
         },
         {
           "function": "root",
-          "line": 155,
+          "line": 166,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/",
@@ -40,7 +40,7 @@
         },
         {
           "function": "capabilities",
-          "line": 102,
+          "line": 113,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/capabilities",
@@ -71,7 +71,7 @@
         },
         {
           "function": "contract",
-          "line": 125,
+          "line": 136,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/contract",
@@ -507,12 +507,28 @@
           "receiver": "router"
         },
         {
+          "function": "metrics",
+          "line": 389,
+          "method": "GET",
+          "module": "services/edge-inference/main.py",
+          "path": "/metrics",
+          "receiver": "app"
+        },
+        {
           "function": "metrics_endpoint",
           "line": 46,
           "method": "GET",
           "module": "services/guardrails-engine/routers/health.py",
           "path": "/metrics",
           "receiver": "router"
+        },
+        {
+          "function": "metrics",
+          "line": 73,
+          "method": "GET",
+          "module": "services/indicators-service/main.py",
+          "path": "/metrics",
+          "receiver": "app"
         },
         {
           "function": "metrics",
@@ -537,6 +553,14 @@
           "module": "services/raster-service/routers/observability.py",
           "path": "/metrics",
           "receiver": "router"
+        },
+        {
+          "function": "metrics",
+          "line": 16,
+          "method": "GET",
+          "module": "services/raster-tiler-service/main.py",
+          "path": "/metrics",
+          "receiver": "app"
         },
         {
           "function": "metrics",
@@ -627,7 +651,7 @@
         },
         {
           "function": "readyz",
-          "line": 389,
+          "line": 399,
           "method": "GET",
           "module": "services/edge-inference/main.py",
           "path": "/readyz",
@@ -659,7 +683,7 @@
         },
         {
           "function": "ready",
-          "line": 73,
+          "line": 84,
           "method": "GET",
           "module": "services/indicators-service/main.py",
           "path": "/readyz",
@@ -898,7 +922,7 @@
         },
         {
           "function": "runtime_evidence_identity",
-          "line": 55,
+          "line": 56,
           "method": "GET",
           "module": "services/weather-service/main.py",
           "path": "/runtime-identity",
@@ -1158,8 +1182,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1098,
-  "route_inventory_sha256": "f99ec3f498328446525139fa68d19b45000cef3d09bc3bbababd9a2f1101a493",
+  "route_count": 1101,
+  "route_inventory_sha256": "5fe0b0aede0a5499a3effd1eb85417b54e16a159767f12d5d3dece9b8ab80e24",
   "runtime_verified": false,
   "schema_version": 1
 }

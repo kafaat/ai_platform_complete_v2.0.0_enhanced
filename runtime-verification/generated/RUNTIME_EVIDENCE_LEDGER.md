@@ -16,13 +16,13 @@
 | ai_agronomist | 6 | 0 | false |
 | auth | 4 | 0 | false |
 | decision-service | 4 | 0 | false |
-| edge-inference | 2 | 0 | false |
+| edge-inference | 3 | 0 | false |
 | erp-bridge | 4 | 0 | false |
 | field-management-service | 3 | 0 | false |
 | field-segmentation | 3 | 0 | false |
 | gis-workflow-service | 0 | 0 | false |
 | guardrails-engine | 4 | 0 | false |
-| indicators-service | 3 | 0 | false |
+| indicators-service | 4 | 0 | false |
 | knowledge-graph | 3 | 0 | false |
 | local-ai-rag | 3 | 0 | false |
 | mcp_servers | 3 | 0 | false |
@@ -30,7 +30,7 @@
 | qdrant-seed | 0 | 0 | false |
 | rag-retrieval | 3 | 0 | false |
 | raster-service | 3 | 0 | false |
-| raster-tiler-service | 0 | 0 | false |
+| raster-tiler-service | 1 | 0 | false |
 | remote-sensing-workspace-bff | 2 | 0 | false |
 | sahool-platform | 17 | 0 | false |
 | sam2-inference | 3 | 0 | false |
@@ -41,5 +41,5 @@
 | vegetation-analysis-service | 7 | 0 | false |
 | video-processor | 3 | 0 | false |
 | weather-polygon-worker | 0 | 0 | false |
-| weather-service | 3 | 0 | false |
+| weather-service | 4 | 0 | false |
 | weather-signal-engine | 0 | 0 | false |

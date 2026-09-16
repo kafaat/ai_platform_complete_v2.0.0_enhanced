@@ -579,12 +579,12 @@
           "dockerfile": true,
           "entrypoint": true,
           "health": true,
-          "metrics_endpoint_or_instrumentation": false,
+          "metrics_endpoint_or_instrumentation": true,
           "readiness": true,
           "tracing_instrumentation": false
         },
-        "passed": 5,
-        "score_pct": 71.4,
+        "passed": 6,
+        "score_pct": 85.7,
         "total": 7
       },
       "configuration": [
@@ -614,7 +614,9 @@
         "health": [
           "/healthz"
         ],
-        "metrics": [],
+        "metrics": [
+          "/metrics"
+        ],
         "readiness": [
           "/readyz"
         ]
@@ -628,7 +630,9 @@
           "services/edge-inference/models/yield_estimator.py",
           "services/edge-inference/sync_service.py"
         ],
-        "metrics": [],
+        "metrics": [
+          "services/edge-inference/main.py"
+        ],
         "routes": [
           "services/edge-inference/download_models.py",
           "services/edge-inference/main.py",
@@ -641,7 +645,7 @@
       },
       "observability": {
         "metric_names": [],
-        "metrics_instrumented": false,
+        "metrics_instrumented": true,
         "trace_spans": [],
         "tracing_instrumented": false
       },
@@ -1013,12 +1017,12 @@
           "dockerfile": true,
           "entrypoint": true,
           "health": true,
-          "metrics_endpoint_or_instrumentation": false,
+          "metrics_endpoint_or_instrumentation": true,
           "readiness": true,
           "tracing_instrumentation": false
         },
-        "passed": 5,
-        "score_pct": 71.4,
+        "passed": 6,
+        "score_pct": 85.7,
         "total": 7
       },
       "configuration": [
@@ -1038,7 +1042,9 @@
           "/health",
           "/healthz"
         ],
-        "metrics": [],
+        "metrics": [
+          "/metrics"
+        ],
         "readiness": [
           "/readyz"
         ]
@@ -1050,7 +1056,9 @@
           "services/indicators-service/observation_runtime.py",
           "services/indicators-service/observation_timeline.py"
         ],
-        "metrics": [],
+        "metrics": [
+          "services/indicators-service/main.py"
+        ],
         "routes": [
           "services/indicators-service/main.py",
           "services/indicators-service/observation_runtime.py",
@@ -1061,7 +1069,7 @@
       },
       "observability": {
         "metric_names": [],
-        "metrics_instrumented": false,
+        "metrics_instrumented": true,
         "trace_spans": [],
         "tracing_instrumented": false
       },
@@ -1756,12 +1764,12 @@
           "dockerfile": true,
           "entrypoint": true,
           "health": false,
-          "metrics_endpoint_or_instrumentation": false,
+          "metrics_endpoint_or_instrumentation": true,
           "readiness": false,
           "tracing_instrumentation": false
         },
-        "passed": 2,
-        "score_pct": 28.6,
+        "passed": 3,
+        "score_pct": 42.9,
         "total": 7
       },
       "configuration": [],
@@ -1773,13 +1781,17 @@
       "domain": "Imagery & Raster",
       "endpoints": {
         "health": [],
-        "metrics": [],
+        "metrics": [
+          "/metrics"
+        ],
         "readiness": []
       },
       "entrypoint": "services/raster-tiler-service/main.py",
       "evidence_paths": {
         "configuration": [],
-        "metrics": [],
+        "metrics": [
+          "services/raster-tiler-service/main.py"
+        ],
         "routes": [
           "services/raster-tiler-service/main.py"
         ],
@@ -1787,7 +1799,7 @@
       },
       "observability": {
         "metric_names": [],
-        "metrics_instrumented": false,
+        "metrics_instrumented": true,
         "trace_spans": [],
         "tracing_instrumented": false
       },
@@ -3340,12 +3352,12 @@
           "dockerfile": true,
           "entrypoint": true,
           "health": true,
-          "metrics_endpoint_or_instrumentation": false,
+          "metrics_endpoint_or_instrumentation": true,
           "readiness": true,
           "tracing_instrumentation": false
         },
-        "passed": 5,
-        "score_pct": 71.4,
+        "passed": 6,
+        "score_pct": 85.7,
         "total": 7
       },
       "configuration": [
@@ -3371,7 +3383,9 @@
           "/health",
           "/healthz"
         ],
-        "metrics": [],
+        "metrics": [
+          "/metrics"
+        ],
         "readiness": [
           "/readyz"
         ]
@@ -3383,7 +3397,9 @@
           "services/weather-service/open_meteo.py",
           "services/weather-service/tests/test_weather_redis_live_optional.py"
         ],
-        "metrics": [],
+        "metrics": [
+          "services/weather-service/weather_runtime.py"
+        ],
         "routes": [
           "services/weather-service/cache.py",
           "services/weather-service/canonical_daily_weather_series.py",
@@ -3418,7 +3434,7 @@
       },
       "observability": {
         "metric_names": [],
-        "metrics_instrumented": false,
+        "metrics_instrumented": true,
         "trace_spans": [],
         "tracing_instrumented": false
       },

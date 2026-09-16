@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5329,
+    "files_scanned": 5330,
     "files_by_kind": {
       "backend": 1208,
       "database": 277,
       "governance": 62,
       "mobile": 55,
       "other": 1474,
-      "tests": 1795,
+      "tests": 1796,
       "web": 458
     },
-    "unmapped_artifacts": 2167,
+    "unmapped_artifacts": 2168,
     "ambiguous_artifacts": 419
   },
   "capabilities": [
@@ -18873,7 +18873,7 @@
           "score": 10
         },
         {
-          "value": "/ @ services/indicators-service/main.py:154",
+          "value": "/ @ services/indicators-service/main.py:165",
           "score": 8
         },
         {
@@ -18893,11 +18893,11 @@
           "score": 8
         },
         {
-          "value": "/capabilities @ services/indicators-service/main.py:101",
+          "value": "/capabilities @ services/indicators-service/main.py:112",
           "score": 8
         },
         {
-          "value": "/contract @ services/indicators-service/main.py:124",
+          "value": "/contract @ services/indicators-service/main.py:135",
           "score": 8
         },
         {
@@ -18925,7 +18925,11 @@
           "score": 8
         },
         {
-          "value": "/readyz @ services/indicators-service/main.py:72",
+          "value": "/metrics @ services/indicators-service/main.py:72",
+          "score": 8
+        },
+        {
+          "value": "/readyz @ services/indicators-service/main.py:83",
           "score": 8
         },
         {
@@ -18933,11 +18937,11 @@
           "score": 8
         },
         {
-          "value": "/v1/fields/{field_id}/observation-timeline @ services/indicators-service/main.py:195",
+          "value": "/v1/fields/{field_id}/observation-timeline @ services/indicators-service/main.py:206",
           "score": 8
         },
         {
-          "value": "/v1/fields/{field_id}/observations @ services/indicators-service/main.py:164",
+          "value": "/v1/fields/{field_id}/observations @ services/indicators-service/main.py:175",
           "score": 8
         },
         {
@@ -18953,15 +18957,15 @@
           "score": 8
         },
         {
-          "value": "/v1/indicators/catalog @ services/indicators-service/main.py:91",
+          "value": "/v1/indicators/catalog @ services/indicators-service/main.py:102",
           "score": 8
         },
         {
-          "value": "/v1/indicators/compute @ services/indicators-service/main.py:146",
+          "value": "/v1/indicators/compute @ services/indicators-service/main.py:157",
           "score": 8
         },
         {
-          "value": "/v1/indicators/ownership @ services/indicators-service/main.py:86",
+          "value": "/v1/indicators/ownership @ services/indicators-service/main.py:97",
           "score": 8
         },
         {
@@ -21539,7 +21543,7 @@
       },
       "evidence_counts": {
         "backend": 100,
-        "routes": 87,
+        "routes": 88,
         "database": 42,
         "events": 100,
         "web": 49,
@@ -22833,6 +22837,15 @@
           ]
         },
         {
+          "path": "services/raster-tiler-service/main.py",
+          "score": 15,
+          "signals": [
+            "path:raster tile",
+            "content:raster tile",
+            "content:tilejson"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/routers/gis_cloud_native.py",
           "score": 15,
           "signals": [
@@ -22871,14 +22884,6 @@
           "signals": [
             "content:cog",
             "content:tilejson"
-          ]
-        },
-        {
-          "path": "services/raster-tiler-service/main.py",
-          "score": 11,
-          "signals": [
-            "path:raster tile",
-            "content:raster tile"
           ]
         },
         {
@@ -22984,6 +22989,10 @@
           "score": 15
         },
         {
+          "value": "/metrics @ services/raster-tiler-service/main.py:15",
+          "score": 15
+        },
+        {
           "value": "/mosaicjson @ services/sahool-platform/api/routers/gis_cloud_native.py:514",
           "score": 15
         },
@@ -23033,6 +23042,10 @@
         },
         {
           "value": "/rasters/{raster_id}/tiles/{z}/{x}/{y}.png @ services/sahool-platform/api/routers/gis_cloud_native.py:558",
+          "score": 15
+        },
+        {
+          "value": "/runtime-identity @ services/raster-tiler-service/main.py:10",
           "score": 15
         },
         {
@@ -23154,10 +23167,6 @@
         {
           "value": "/v1/tiles/{layer_id}/{z}/{x}/{y}.png @ services/raster-service/routers/tiles.py:25",
           "score": 12
-        },
-        {
-          "value": "/runtime-identity @ services/raster-tiler-service/main.py:10",
-          "score": 11
         },
         {
           "value": "/v1/cog/registry/preview @ services/raster-service/routers/imagery.py:129",
@@ -23658,6 +23667,22 @@
             "content:raster tile",
             "content:tilejson"
           ]
+        },
+        {
+          "path": "prometheus/alerts.yml",
+          "score": 8,
+          "signals": [
+            "content:raster tile",
+            "content:tilejson"
+          ]
+        },
+        {
+          "path": "prometheus/prometheus.yml",
+          "score": 8,
+          "signals": [
+            "content:raster tile",
+            "content:tilejson"
+          ]
         }
       ],
       "ambiguous": [],
@@ -23666,14 +23691,14 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 13,
-        "routes": 69,
+        "routes": 70,
         "database": 0,
         "events": 14,
         "web": 1,
         "mobile": 0,
         "tests": 23,
         "governance": 0,
-        "other_evidence": 26
+        "other_evidence": 28
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -30017,7 +30042,7 @@
           "score": 12
         },
         {
-          "value": "/runtime-identity @ services/weather-service/main.py:54",
+          "value": "/runtime-identity @ services/weather-service/main.py:55",
           "score": 12
         },
         {
@@ -31607,7 +31632,7 @@
           "score": 12
         },
         {
-          "value": "/runtime-identity @ services/weather-service/main.py:54",
+          "value": "/runtime-identity @ services/weather-service/main.py:55",
           "score": 12
         },
         {
@@ -43506,6 +43531,10 @@
     },
     {
       "path": "tests_v9/test_projection_worker_disabled_idle.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_prometheus_target_contract.py",
       "kind": "tests"
     },
     {

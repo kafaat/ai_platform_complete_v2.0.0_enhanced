@@ -4415,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "55c759791e13cca1dc41db3c416b865922b8a3ef559b8ccbad67acfcd1265136"
+          "content": "59402f83eb56025ccc32409ad9fd8d3f76c4bd3135877fe54fecbaec7ab3d71d"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -12575,7 +12575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "68081adadcd37d1417b986309c6246d75a40589a428eedf7756f63bea8292bb7"
+          "content": "7b66a3c2ffaa8866720d9d5f2ba3de98d34d3fcc297c030690752d932e6cacbf"
         }
       ],
       "name": "services/edge-inference/main.py",
@@ -12645,7 +12645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0ea59bf4ccbfb6cee1a0f76c5d636e5bede4fb6ab30d79879486bcd25f6976f1"
+          "content": "0ab64265c21279b58f7444b22aae89e4602d0d20a407cb6b2b729c092ce9e186"
         }
       ],
       "name": "services/edge-inference/requirements.txt",
@@ -13235,7 +13235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8480edca314a8c5ba1fe504d7136a719c72a3340d8be2bcb02a6a7b2f206cafe"
+          "content": "91f93bb651913ba1670e5b57c86a50c2201cd06aa4d9515db0f10f807c5dbe36"
         }
       ],
       "name": "services/indicators-service/main.py",
@@ -13265,7 +13265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f196b79ac660b142e56d5339b9c0c6e309c5364961d6a00b7fdcca7a483e51b2"
+          "content": "61afc4101f0ab46f4a7ba3266b14af9e4e5774a7b8d1c8dc0941eed7673c646c"
         }
       ],
       "name": "services/indicators-service/requirements.txt",
@@ -15555,7 +15555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f59f0dae6115024f5bf7cea9352765e8756a904bb55ed94cca9308a59956f881"
+          "content": "6b6660ce83359d40a5a1dafb1ac21587bac587577c3e70bdff1e2105cf80e65f"
         }
       ],
       "name": "services/raster-tiler-service/main.py",
@@ -15565,7 +15565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2101721337b270cd20927761995ee2160dc294f12434d2becedaebdcdc4d46b8"
+          "content": "c36dee64e10e7a44abe8ad58c1b428c96c6cb18774e67a6664a93080472462cf"
         }
       ],
       "name": "services/raster-tiler-service/requirements.txt",
@@ -30145,7 +30145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a9695e6e5eee68ce8d0d18f25ba245c369c683b31b967ea6eab437b7d5678119"
+          "content": "5adfaf61d0a6960f7a98ebaca6cfe9d6553327d1838ae4ced52f7a55852ba91d"
         }
       ],
       "name": "services/weather-service/main.py",
@@ -30195,7 +30195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "da7f96995e698c9333e80ce0e46f7ad0dc7213e9cf28842795825d98302e8cd9"
+          "content": "f0fb91d9c0c3738571a973e2cfa639d71afedc31061e498916c23eaab4c571ee"
         }
       ],
       "name": "services/weather-service/requirements.txt",
@@ -30515,7 +30515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "36ada07d0ede6d93729850604b42dce6ebe6639612d0f38f3aec06be82da09ef"
+          "content": "6cd2e47adbea76b85329a8f6f96d6a2de381e0b10654f2be0fa51982d892ffe8"
         }
       ],
       "name": "services/weather-service/weather_runtime.py",
