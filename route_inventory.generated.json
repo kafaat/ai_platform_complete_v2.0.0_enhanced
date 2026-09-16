@@ -1224,6 +1224,14 @@
     "function": "get_workflow"
   },
   {
+    "service": "guardrails-engine",
+    "file": "services/guardrails-engine/routers/validation.py",
+    "line": 86,
+    "method": "POST",
+    "path": "/v1/evaluate",
+    "function": "evaluate_action_only"
+  },
+  {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
     "line": 63,

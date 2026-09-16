@@ -66,8 +66,8 @@ medium,auth,function,verify_recovery_code,services/auth/mfa_crypto.py,209,0,revi
 medium,auth,function,register_failure,services/auth/mfa_crypto.py,222,0,review_before_delete,False
 medium,decision-service,function,now_iso,services/decision-service/persistence.py,39,0,review_before_delete,False
 medium,gis-workflow-service,function,assemble_print_map_svg,services/gis-workflow-service/svg_print_map.py,82,0,review_before_delete,False
-medium,guardrails-engine,function,invalid_request_handler,services/guardrails-engine/main.py,346,0,review_before_delete,False
-medium,guardrails-engine,function,workflow_unavailable_handler,services/guardrails-engine/main.py,353,0,review_before_delete,False
+medium,guardrails-engine,function,invalid_request_handler,services/guardrails-engine/main.py,361,0,review_before_delete,False
+medium,guardrails-engine,function,workflow_unavailable_handler,services/guardrails-engine/main.py,368,0,review_before_delete,False
 medium,mcp-servers,class,NDVIRequest,services/mcp_servers/sentinel_hub_server.py,150,0,review_before_delete,False
 medium,mcp-servers,function,set_tenant_context,services/mcp_servers/shared/oauth_middleware.py,34,0,review_before_delete,False
 medium,mcp-servers,function,clear_tenant_context,services/mcp_servers/shared/oauth_middleware.py,39,0,review_before_delete,False
@@ -166,7 +166,8 @@ medium,sahool-platform,function,clear_processed,services/sahool-platform/api/off
 medium,sahool-platform,class,SyncContractIssue,services/sahool-platform/api/offline_sync_contracts.py,30,0,review_before_delete,False
 medium,sahool-platform,function,validate_sync_batch,services/sahool-platform/api/offline_sync_contracts.py,119,0,review_before_delete,False
 medium,sahool-platform,function,fetch_synced_operations,services/sahool-platform/api/offline_sync_db.py,185,0,review_before_delete,False
-medium,sahool-platform,function,validate_response,services/sahool-platform/api/onboarding.py,232,0,review_before_delete,False
+medium,sahool-platform,function,validate_response,services/sahool-platform/api/onboarding.py,244,0,review_before_delete,False
+medium,sahool-platform,function,run_field_bootstrap_once,services/sahool-platform/api/onboarding.py,490,0,review_before_delete,False
 medium,sahool-platform,function,prescription_to_csv,services/sahool-platform/api/prescriptions.py,338,0,review_before_delete,False
 medium,sahool-platform,function,get_field_terrain,services/sahool-platform/api/raster_service_client.py,347,0,review_before_delete,False
 medium,sahool-platform,function,field_to_pdf_bytes,services/sahool-platform/api/reports.py,237,0,review_before_delete,False
@@ -198,6 +199,8 @@ medium,sahool-platform,class,CostCategory,services/sahool-platform/core/farm_cos
 medium,sahool-platform,class,BusinessUnitType,services/sahool-platform/core/farm_operations_ledger.py,16,0,review_before_delete,False
 medium,sahool-platform,class,ProductionUnitType,services/sahool-platform/core/farm_operations_ledger.py,27,0,review_before_delete,False
 medium,sahool-platform,function,utc_now_iso,services/sahool-platform/core/field_event_sourcing.py,78,0,review_before_delete,False
+medium,sahool-platform,function,preview_model_advisory,services/sahool-platform/core/field_intelligence_coordinator.py,486,0,review_before_delete,False
+medium,sahool-platform,function,make_candidate_evaluator,services/sahool-platform/core/field_intelligence_coordinator.py,519,0,review_before_delete,False
 medium,sahool-platform,function,state_explanation_ar,services/sahool-platform/core/field_lifecycle.py,119,0,review_before_delete,False
 medium,sahool-platform,class,ConfidenceComposer,services/sahool-platform/core/guardrails.py,283,0,review_before_delete,False
 medium,sahool-platform,function,evaluate_harvest_feedback,services/sahool-platform/core/harvest_feedback.py,48,0,review_before_delete,False
@@ -587,6 +590,7 @@ medium,soil-service,function,persist_snapshot,services/soil-service/soil_store.p
 medium,weather-service,function,memory_cache_only,services/weather-service/tests/test_crop_stress_endpoints.py,118,0,review_before_delete,False
 medium,weather-service,function,patch_openmeteo,services/weather-service/tests/test_p3_weather_service_runtime.py,43,0,review_before_delete,False
 medium,shared,function,has_capability,shared/ai/capabilities.py,77,0,review_before_delete,False
+medium,shared,function,model_selection_context,shared/ai/structured_advisory.py,472,0,review_before_delete,False
 medium,shared,function,build_audit_record,shared/ai/tool_audit.py,54,0,review_before_delete,False
 medium,shared,function,tools_by_risk,shared/ai/tool_registry.py,332,0,review_before_delete,False
 medium,shared,function,tool_names_for,shared/ai/tool_schema.py,232,0,review_before_delete,False
@@ -600,6 +604,7 @@ medium,shared,class,RasterAssetPersistedEventV1,shared/contracts/remote_sensing/
 medium,shared,class,RasterAssetFailedEventV1,shared/contracts/remote_sensing/events/raster_events_v1.py,32,0,review_before_delete,False
 medium,shared,function,is_canonical_field_geometry,shared/domain/field_geometry.py,92,0,review_before_delete,False
 medium,shared,function,build_feature_lineage_manifest,shared/feature_store/runtime.py,255,0,review_before_delete,False
+medium,shared,function,new_journal,shared/field_bootstrap.py,80,0,review_before_delete,False
 medium,shared,function,transform_to_map_projection,shared/gis/crs_service.py,164,0,review_before_delete,False
 medium,shared,class,HttpDiagnosisResolver,shared/governance/chemical_lineage.py,128,0,review_before_delete,False
 medium,shared,function,require_tenant,shared/helpers.py,197,0,review_before_delete,False

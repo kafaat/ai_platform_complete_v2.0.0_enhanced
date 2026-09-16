@@ -226,7 +226,7 @@
     },
     {
       "kind": "app",
-      "line": 337,
+      "line": 352,
       "module": "services.guardrails-engine.main",
       "node_id": "services.guardrails-engine.main:app",
       "route_count": 0,
@@ -247,7 +247,7 @@
       "line": 24,
       "module": "services.guardrails-engine.routers.validation",
       "node_id": "services.guardrails-engine.routers.validation:router",
-      "route_count": 3,
+      "route_count": 4,
       "statically_reachable": false,
       "symbol": "router"
     },
@@ -2613,7 +2613,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "61f05d382d700af596cd0c1682cd914ddef043761c21fa0167a26b2f3750f97f",
+  "inventory_sha256": "f1d126ebbecf6b640c057d8a10f421fa1162453598066ede70706d3c484276d7",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {
@@ -2762,7 +2762,7 @@
       "line": 24,
       "module": "services.guardrails-engine.routers.validation",
       "node_id": "services.guardrails-engine.routers.validation:router",
-      "route_count": 3,
+      "route_count": 4,
       "safe_to_delete": false,
       "symbol": "router"
     },
