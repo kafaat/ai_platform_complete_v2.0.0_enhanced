@@ -6021,3 +6021,58 @@ C01..C14؛ لا تُرفع قدرة إلى runtime_verified أو production_cert
 ## READINESS-SOFTWARE-20260915-01 — إصلاحات تدقيق الجاهزية
 
 **الحالة: open — إغلاق برمجي جزئي موثّق.** [المصدر والاختبارات وحدود كل بند](../../docs/testing/readiness_software_repairs_20260915.md). إصلاحات السياق والراستر والمصادقة والمراحل محققة محلياً كما يبيّن الدليل؛ B6 محتوى باحتواء نشر النص غير المتحقق، وM4 يعالج دوام تسجيل الصور فقط. اعتماد corpus والتشغيل الحي وonboarding الكامل ومدخلات المالية باقية.
+
+## EXTERNAL-REFERENCE-WITHOUT-SHA-01 — مراجع خارجيّة بلا SHA في مقابلات نسيج القرار
+
+- **الحالة:** open — الفجوة في وثيقة PR #1011 (`docs/architecture/DECISION_FABRIC_SOURCE_COMPARISON_20260916.md` @ `a19543ef`) التي لم تُدمَج بعد؛ القياسُ البديل مسجَّل في الشجرة.
+- **المصدر والأساس:** قسم «External source references used for the comparison» في تلك الوثيقة يُسمّي `landingbj/LinkMind` · `OpenAgentFlow/OpenAgentFlow` · `OpenMind/OM1` · `dromara/wgai` بالاسم بلا SHA ولا تاريخ، وآخرُ التزامٍ في LinkMind يحمل تاريخَ يوم القياس نفسه — فأحكامٌ معماريّة أُسنِدت إلى هدفٍ يتحرّك يوميّاً بلا مرساة (صنف «رقمٌ يصف كوناً لم يعد قائماً» منذ اليوم الأوّل).
+- **المقيس:** [`docs/audits/DECISION_FABRIC_EXTERNAL_SOURCE_VERIFICATION_20260916.md`](../../docs/audits/DECISION_FABRIC_EXTERNAL_SOURCE_VERIFICATION_20260916.md) يُثبِّت الـSHA الأربعة (`dc40c029` · `84e00a16` · `397e57ca` · `dbf8988b`) ويقيس كلَّ دعوى بـ`path:line`: ثلاثٌ مؤكَّدة، وواحدة (WGAI) مؤكَّدة بحدود كلمة «monitoring». لا دعوى مكذوبة. وأُضيف ما أغفلته الوثيقة: السببُ المقيس لـFinding 6 (LLM في OM1 هو مُختارُ الفعل — `internal/runtime/runtime.go:506→546`).
+- **شرط الإغلاق:** نقلُ كتلة التثبيت وجملة Finding 6 من §٧ في وثيقة التحقّق إلى الوثيقة الأصل (في #1011 قبل دمجها أو في شريحة لاحقة). لا يُغلَق بوجود وثيقة التحقّق وحدها.
+
+## DOCS-ONLY-SLICE-UNLANDABLE-UNDER-MANDATORY-REGENERATION-01 — شريحةٌ وثائقيّة تُطيع إعادةَ التوليد فتُحجَب «report-only»
+
+- **الحالة:** fixed — مقيسٌ على #1012 (`6de08a8d`): `no-report-only-change` احمرّ على وثيقة تدقيق + الدماغ + مصنوعات `regenerate_all_generated.sh` وحدها؛ أُعيد إنتاجه محلّيّاً بنفس قائمة الملفّات ثمّ خضرّ بعد العلاج.
+- **المصدر:** [`no_report_only_change_guard.py`](../../scripts/ci/no_report_only_change_guard.py) — رأسُه يَعِد «allows docs-only changes» وتصنيفُه لا يرى الوثيقة (ليست جوهريّة ولا تقريراً) ويرى المصنوعاتِ المعادَ ختمُها (`CAPABILITY_MAPPING_REPORT.md` · `*_inventory.json` · `*_summary.json`) تقاريرَ. وCLAUDE.md يُلزِم بإعادة التوليد بعد كلّ إضافة ⇒ كلُّ شريحةٍ وثائقيّة تُضيف ملفّاً غيرُ قابلةٍ للهبوط بالبنية. لا سابقةَ لوثيقة `docs/audits/` هبطت وحدها: كلُّها ركبت مع تغييرٍ جوهريّ (`62fc7b01` · `bba61eea`).
+- **الصنف:** «بوّابةٌ لا تُغلَق بعملٍ صحيح» — الرابعةُ في هذا الملفّ بعد `sahool-brain/` (#683-era) و`docs/architecture/gates/` (#959) و`.github/CODEOWNERS` (#976).
+- **العلاج:** استثناءٌ ضيّق: إذا لم يكن في التغيير شيءٌ سوى Markdown تحت `docs/` (ليس تقريراً بالاسم) + الدماغ + مصنوعاتِ إعادة توليد **مُعدَّدةٍ صراحةً** (دليل التوليد · `release/` · سبعةُ ملفّات قياس يُعيد `--fix` ختمَها) ⇒ وثائقيّ. **مرفوضٌ عمداً** اشتقاقُ المصنوعات من `generated_write_targets.json` لأنّه يعدّ `capabilities/registry/capabilities.json` هدفَ كتابة وهو مكتوبٌ جزئيّاً بخطّ اليد — فكان الاستثناءُ سيفتح سجلَّ الاعتماد خلف وثيقة (أسقطه `test_the_certification_registry_beside_a_doc_stays_blocked` قبل التضييق).
+- **الدليل:** 6 حالات جديدة في `tests_v9/test_no_report_only_change_guard.py` (22/22)؛ طفرتان مسجَّلتان (نزعُ الاستثناء · توسيعُه إلى «توجد وثيقة») مقتولتان 4/4 مع القديمتين.
+- **حدُّ صدق:** القائمةُ الصريحة تبيت: ملفُّ قياسٍ جديد يُعيد `--fix` ختمَه ولا يُضاف هنا يُعيد الصنفَ لتلك الشريحة وحدها — بحمرةٍ صريحة لا بصمت.
+
+## RUNTIME-CONFIG-TREE-NOT-SUBSTANTIVE-01 — شيفرةُ تشغيلٍ تحت `config/` تُحجَب «report-only» لحظةَ إصلاح حزمتها
+
+- **الحالة:** fixed — مقيسٌ على #1011 بالمحاكاة من #1012: قائمةُ ملفّات #1011 كما دُفعت تمرّ الحارس (rc=0) **لأنّها لم تُعِد التوليد قطّ** (وهذا سببُ حمرتها الأصليّة: checksum + mapping drift)، وقائمتُها + مصنوعاتُ علاجها الإلزاميّ ⇒ rc=1 «report-only». أي أنّ الـPR تمرّ ما دامت لم تُصلِح حزمتَها وتُحجَب لحظةَ إصلاحها.
+- **المصدر:** [`no_report_only_change_guard.py`](../../scripts/ci/no_report_only_change_guard.py) (`SUBSTANTIVE_PREFIXES`) — `config/guardrail_feature_flags.py` يستورده `services/ai_agronomist/runtime_guardrail_adapter.py:13` و`services/sahool-platform/core/internal_orchestrator.py:57`؛ `is_substantive('config/guardrail_feature_flags.py') = False` قبل العلاج.
+- **الصنف:** #857 بعينه (frontend «ليس كوداً») — «حارسٌ يمنع علاجَ حارسٍ آخر»: علاجُ `release-package` هو ما يُحمِّر `no-report-only-change`.
+- **العلاج (بإذن المالك الصريح، على الشجرة المجرودة لا المظنونة):** `config/` بادئةً جوهريّة. الجردُ 12 ملفّاً: شيفرةُ تشغيلٍ وإعداداتُه (`.py` · `terrain_sources.yml` تقرؤه raster-service · `ai-model-runtimes/`) ومدخلاتُ حرّاسٍ سلوكيّة (`endpoint_ui_coverage*.json` · `service_feature_ui_contracts.json` · `security_exceptions.json` لـ`waiver_expiry_guard` · `platform_catalog_overrides.yml`) وأداتا تطوير (`pip.conf` · `setup_pip_mirror.ps1`). الملفّان المُسمَّيان تقريراً (`evidence_lab_matrix.json` · `indicators_registry.json`) يبقيان تقريرَين لأنّ الجوهريّ يُستبعَد منه ما هو report-like قبل البادئة — مُثبَت بحالة.
+- **الدليل:** 3 حالات جديدة (#1011 حرفيّاً · إعدادُ خدمة + حزمة · ملفٌّ تقريريّ داخل `config/` يبقى محجوباً) ⇒ 25/25؛ طفرةٌ تُسقِط `config/` مقتولة (5/5 مع سابقاتها)؛ محاكاةُ #1011 بعد العلاج rc=0.
+
+## WITNESS-EXCLUDED-IN-ONE-CENSUS-ONLY-01 — شاهدُ حوكمةٍ مُعفًى في جردٍ ومقروءٌ دليلاً في الآخر
+
+- **الحالة:** fixed — مقيسٌ على #1012: حالةٌ في `tests_v9/test_no_report_only_change_guard.py` سمّت ملفَّ إعدادٍ فأدخلت كلمةَ نطاق، فربطها `capability_mapping_engine` بـ`GIS-003` ورفع عدّةَ شواهدها 38 → 39، ثمّ حجبت بوّابةُ الأثر إعلاناً صادقاً بـ`missing_direct: GIS-003`.
+- **المصدر:** [`capability_mapping_engine.py`](../../scripts/ci/capability_mapping_engine.py) (`META_GOVERNANCE_FILES` · `ALIASES["GIS-003"]`) مقابل [`capability_linker.py`](../../scripts/ci/capability_linker.py) (`META_GOVERNANCE_PREFIXES`).
+- **الصنف:** «حارسٌ يحرس نصفَ الزوج» — الشاهدُ نفسه مُستبعَدٌ من جردٍ ومقروءٌ دليلاً في جردٍ آخر، فالإعفاءُ الأوّل يبدو كافياً وهو نصفُ علاج. **وهو صنفُ #857 بعينه** (شاهدٌ رُبِط بـSAT-007 لمجرّد كلمة «change»).
+- **حدُّ صدقٍ عن نفسي:** علاجي الأوّل كان **إضافة `GIS-003` إلى سطر الأثر** — أي قبولُ الإشارة الكاذبة بوصفها اشتقاقاً صادقاً بدل معالجة سببها. أمسكه مراجعٌ آليّ لا أنا.
+- **العلاج:** الشاهدُ في `META_GOVERNANCE_FILES` (إعفاءٌ بالاسم لا بالشجرة، كسياسة الملفّ)، وصياغةُ الحالة حُيِّدت حزاماً ثانياً، ويسقط `GIS-003` من الأثر بإعادة التوليد.
+- **الباقي مفتوحاً:** لا اختبارَ يفرض **تطابقَ** قائمتَي الإعفاء بين الجردَين؛ شاهدٌ جديد قد يُضاف إلى إحداهما وحدها فيعود الصنف. مرشَّحٌ لشريحةٍ لاحقة.
+
+## GATE-TRIGGER-BLIND-TO-ITS-OWN-ARTIFACT-LIST-01 — حاجزٌ يُطلَق بمقياسٍ أضيقَ من عقده المكتوب
+
+- **الحالة:** fixed — مقيسٌ على #1012 (مراجعة Copilot ٤): `release/FILE_CHECKSUMS.sha256` و`release/SBOM_MINIMAL.json` يمرّان **منفردَين** (rc=0) بينما ينصّ عقدُ الحارس المكتوب على أنّ «مصنوعاتٍ مولَّدة بلا وثيقة تبقى محجوبة».
+- **المصدر:** [`no_report_only_change_guard.py`](../../scripts/ci/no_report_only_change_guard.py) (`check_changed_files`) — الإطلاقُ كان بـ`is_report_like` وحدها وهي **أسماءٌ ولاحقات**، ولاحقةُ `.sha256` خارجها و`SBOM_MINIMAL` بلا تلميحٍ في اسمه؛ بينما `REGENERATION_ARTIFACT_EXACT` يعدّهما مصنوعَين في الاستثناء. **مقياسان لشيءٍ واحد في دالّةٍ واحدة.**
+- **العلاج:** ذراعٌ ثانية للإطلاق — «لا شيء في التغيير سوى مصنوعات» — بجوار `is_report_like`. **وضيقُها مقصود:** أوّلُ صياغةٍ جعلت كلَّ مصنوعٍ يُطلِق الحاجزَ فكسرت **صيانةَ الدماغ الواجبة** (`sahool-brain/*.md` + بيان الإصدار بلا ملفٍّ تحت `docs/`) التي يحرسها `test_brain_maintenance_is_docs_not_report_only` منذ ما قبل هذه الشريحة — أي أنّ علاجَ ثغرةٍ كاد يصنع «بوّابةً لا تُغلَق بعملٍ صحيح» للمرّة الخامسة في هذا الملفّ. أمسكه الجناحُ قبل الدفع.
+- **الدليل:** 31/31؛ حالةٌ مُعمَّمة تقرأ `REGENERATION_ARTIFACT_EXACT` **من المصدر** فتفحص كلّ مدخلٍ في الاتّجاهين (مع وثيقة ⇒ يهبط · وحده ⇒ محجوب)، فمدخلٌ جديد يدخل القياسَ تلقائيّاً؛ وطفرةٌ تنزع الذراع — مقتولة (8/8).
+
+## SCANNER-COUNTS-A-PATH-LITERAL-AS-A-USAGE-01 — اسمُ الجردِ يقع في نمطِ ما يجرده
+
+- **الحالة:** fixed للحالة · **مفتوحٌ بنيويّاً** — مقيسٌ على #1012 (مراجعة Copilot ٥): شاهدُ حارس «لا تقارير فقط» يُسمّي `docs/architecture/fake_connection_debt.json` **مساراً في وسائطِ حالةٍ ونصِّ تعليق**، واسمُ الأساس يطابق `fake_conn\w*` — فأدرجه التوليدُ في الأساس **ديناً** وهو لا يُنشئ اتّصالاً وهميّاً ولا يستعمله. أساسٌ يؤكّد واقعةً غير قائمة.
+- **المصدر:** [`fake_connection_debt_guard.py`](../../scripts/ci/fake_connection_debt_guard.py) (`_FAKE` · `_SELF`) · [`fake_connection_debt.json`](../../docs/architecture/fake_connection_debt.json).
+- **الصنف:** «حارسٌ يُطلِق على توثيق ما يمنعه» — والحارسُ نفسُه يوثّقه في رأسه ويذكر أنّ كاتبَه وقع فيه عند أوّل تشغيل، وأنّ `probe_leak_guard` وقع فيه بعد #802. **وهذه ثالثةٌ.** وهو أيضاً ثالثُ تلوّثٍ معجميٍّ في هذه الشريحة بعد `GIS-003` — النمطُ واحد: نصُّ شاهدِ حوكمةٍ يدخل جرداً مُشتقّاً فيصير دليلاً.
+- **العلاج (للحالة):** الشاهدُ في `_SELF` بمُسوِّغٍ مكتوب، ثمّ إعادةُ توليد الأساس.
+- **الحدّ المفتوح:** **اسمُ الملفّ الذي يحمل الجردَ يقع في نمطِ ما يجرده**، فكلُّ شاهدٍ يُشير إليه مشروعاً سيُلوَّث ويحتاج إدراجاً يدويّاً. العلاجُ البنيويّ — ألّا يُحسَب **مسارٌ نصّيّ** استعمالاً (تمييزُ الرمز عن المسار) — لم يُنفَّذ، وهو شريحةٌ مستقلّة.
+
+## GATE-EXCEPTION-NARROWER-THAN-ITS-TRIGGER-01 — مصنوعٌ يركب مع مسارٍ غيرِ مُقرّ فيعبر
+
+- **الحالة:** fixed — مقيسٌ على #1012 (مراجعة Copilot ٥): `RELEASE_NOTES_20260626.md` (بخطّ اليد، مطلوبةٌ بعينها في `validate_release_package.py`) مع `release/FILE_CHECKSUMS.sha256` ⇒ **rc=0**.
+- **المصدر:** [`no_report_only_change_guard.py`](../../scripts/ci/no_report_only_change_guard.py) (`check_changed_files`) — `artifacts_only` يشترط أن يكون **كلُّ** مسارٍ مصنوعاً، و`is_report_like` أسماءٌ ولاحقات، فملفٌّ بخطّ اليد خارج `docs/` بلا تلميحٍ في اسمه لا يُطلِق شيئاً ويحمل المصنوعَ معه.
+- **الصنف:** استثناءٌ أضيقُ من حاجزه في اتّجاه وأوسعُ في آخر — `outside_docs_only` كان مُعرَّفاً لهذه الحالة بالضبط ولا يُستشار لأنّ الحاجزَ لا يُطلَق.
+- **العلاج:** ذراعٌ ثالثة — مصنوعٌ حاضرٌ **و**مسارٌ غيرُ مُقرّ معه ⇒ يُطلَق. والشيفرةُ لا تتأذّى: مسارٌ جوهريّ يُخرِج التغييرَ عبر `substantive` (مُثبَتٌ بحالة)، وصيانةُ الدماغ تبقى تهبط (`outside_docs_only` فارغة).
