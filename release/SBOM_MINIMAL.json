@@ -11305,6 +11305,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "7314852fbd5a83161d4974e73a31d7b330e7ef00c972c7b73a8f8eb89bf77a10"
+        }
+      ],
+      "name": "services/auth/railway.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "3797087e4eb8da0a0851cf5ef098e836aca3a8595fda83d23f86b6ba230a47fb"
         }
       ],
