@@ -17,11 +17,12 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: '3.12'
-      - name: Install dependencies
+      - name: Install repository-declared test dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0 httpx
+          pip install -r requirements-dev.txt
+          pip install -r tests_v9/requirements-test.txt
+          pip install -r services/sahool-platform/api/requirements.txt
       - name: Inspect and implement consolidated follow-up
         shell: bash
         run: |
