@@ -21,11 +21,11 @@
       "database": 277,
       "governance": 62,
       "mobile": 55,
-      "other": 1477,
-      "tests": 1799,
+      "other": 1478,
+      "tests": 1798,
       "web": 458
     },
-    "unmapped_artifacts": 2169,
+    "unmapped_artifacts": 2168,
     "ambiguous_artifacts": 420
   },
   "capabilities": [
@@ -43412,10 +43412,6 @@
     },
     {
       "path": "tests_v9/test_no_merge_conflict_markers_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_no_report_only_change_guard.py",
       "kind": "tests"
     },
     {
