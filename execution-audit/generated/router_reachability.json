@@ -202,7 +202,7 @@
       "line": 35,
       "module": "services.edge-inference.main",
       "node_id": "services.edge-inference.main:app",
-      "route_count": 6,
+      "route_count": 7,
       "statically_reachable": true,
       "symbol": "app"
     },
@@ -256,7 +256,7 @@
       "line": 47,
       "module": "services.indicators-service.main",
       "node_id": "services.indicators-service.main:app",
-      "route_count": 11,
+      "route_count": 12,
       "statically_reachable": true,
       "symbol": "app"
     },
@@ -2613,7 +2613,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "398f2cbda81d20dca5a82f43ba4966b46a3484efa1cd14cc1707ae2cde0355e3",
+  "inventory_sha256": "61f05d382d700af596cd0c1682cd914ddef043761c21fa0167a26b2f3750f97f",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {

@@ -162,7 +162,11 @@ groups:
   - name: sahool-production-slos
     rules:
       - alert: SahoolRasterTileJSONUnavailable
-        expr: up{job=~"raster-service|raster-tiler|titiler|vegetation-service"} == 0
+        # `titiler` مرفوعة من الاسم: الصورةُ منبعيّة غير معدَّلة
+        # (developmentseed/titiler) ولا تكشف /metrics، فلم يكن لها هدفُ سحبٍ قطّ
+        # وكان ذكرُها يدّعي تغطيةً غير قائمة. الغطاءُ الحقيقيّ عليها هو غلافُنا
+        # `raster-tiler` المُضاف هنا. الفجوةُ مُسجَّلة لا مُسكَتة.
+        expr: up{job=~"raster-service|raster-tiler|vegetation-service"} == 0
         for: 3m
         labels:
           severity: critical

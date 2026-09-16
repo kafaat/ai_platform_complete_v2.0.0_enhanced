@@ -69,6 +69,17 @@ async def legacy_health():
     return await healthz()
 
 
+@app.get("/metrics")
+async def metrics():
+    """مقاييس Prometheus. الهدفُ مُعلَنٌ في `prometheus/prometheus.yml` منذ البداية
+    وكانت النقطةُ غائبة ⇒ ٤٠٤ ⇒ `up=0` دائماً، وقاعدةُ التنبيه على `up==0` تُطلِق
+    أبداً فتُدرِّب المُشغِّل على تجاهلها. «مُعلَنٌ ليس يعمل»."""
+    from fastapi import Response
+    from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
 @app.get("/readyz")
 async def ready():
     manifest = _manifest()

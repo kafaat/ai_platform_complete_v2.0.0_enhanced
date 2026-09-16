@@ -701,7 +701,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 87,
+      "line": 98,
       "method": "GET",
       "path": "/v1/indicators/ownership",
       "function": "ownership"
@@ -709,7 +709,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 92,
+      "line": 103,
       "method": "GET",
       "path": "/v1/indicators/catalog",
       "function": "catalog"
@@ -717,7 +717,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 147,
+      "line": 158,
       "method": "POST",
       "path": "/v1/indicators/compute",
       "function": "compute_indicator"
@@ -725,7 +725,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 165,
+      "line": 176,
       "method": "GET",
       "path": "/v1/fields/{field_id}/observations",
       "function": "field_observations"
@@ -733,7 +733,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 196,
+      "line": 207,
       "method": "GET",
       "path": "/v1/fields/{field_id}/observation-timeline",
       "function": "observation_timeline"
@@ -845,7 +845,7 @@
     {
       "service": "weather-service",
       "file": "services/weather-service/main.py",
-      "line": 55,
+      "line": 56,
       "method": "GET",
       "path": "/runtime-identity",
       "function": "runtime_evidence_identity"

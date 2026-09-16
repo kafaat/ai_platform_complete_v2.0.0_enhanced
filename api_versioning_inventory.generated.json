@@ -1192,6 +1192,15 @@
     "file": "services/edge-inference/main.py",
     "line": 389,
     "method": "GET",
+    "path": "/metrics",
+    "handler": "metrics",
+    "classification": "infra"
+  },
+  {
+    "service": "edge-inference",
+    "file": "services/edge-inference/main.py",
+    "line": 399,
+    "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
     "classification": "infra"
@@ -1390,6 +1399,15 @@
     "file": "services/indicators-service/main.py",
     "line": 73,
     "method": "GET",
+    "path": "/metrics",
+    "handler": "metrics",
+    "classification": "infra"
+  },
+  {
+    "service": "indicators-service",
+    "file": "services/indicators-service/main.py",
+    "line": 84,
+    "method": "GET",
     "path": "/readyz",
     "handler": "ready",
     "classification": "infra"
@@ -1397,7 +1415,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 87,
+    "line": 98,
     "method": "GET",
     "path": "/v1/indicators/ownership",
     "handler": "ownership",
@@ -1406,7 +1424,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 92,
+    "line": 103,
     "method": "GET",
     "path": "/v1/indicators/catalog",
     "handler": "catalog",
@@ -1415,7 +1433,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 102,
+    "line": 113,
     "method": "GET",
     "path": "/capabilities",
     "handler": "capabilities",
@@ -1424,7 +1442,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 125,
+    "line": 136,
     "method": "GET",
     "path": "/contract",
     "handler": "contract",
@@ -1433,7 +1451,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 147,
+    "line": 158,
     "method": "POST",
     "path": "/v1/indicators/compute",
     "handler": "compute_indicator",
@@ -1442,7 +1460,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 155,
+    "line": 166,
     "method": "GET",
     "path": "/",
     "handler": "root",
@@ -1451,7 +1469,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 165,
+    "line": 176,
     "method": "GET",
     "path": "/v1/fields/{field_id}/observations",
     "handler": "field_observations",
@@ -1460,7 +1478,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 196,
+    "line": 207,
     "method": "GET",
     "path": "/v1/fields/{field_id}/observation-timeline",
     "handler": "observation_timeline",
@@ -2760,6 +2778,15 @@
     "method": "GET",
     "path": "/runtime-identity",
     "handler": "runtime_identity",
+    "classification": "infra"
+  },
+  {
+    "service": "raster-tiler-service",
+    "file": "services/raster-tiler-service/main.py",
+    "line": 16,
+    "method": "GET",
+    "path": "/metrics",
+    "handler": "metrics",
     "classification": "infra"
   },
   {
@@ -9704,7 +9731,7 @@
   {
     "service": "weather-service",
     "file": "services/weather-service/main.py",
-    "line": 55,
+    "line": 56,
     "method": "GET",
     "path": "/runtime-identity",
     "handler": "runtime_evidence_identity",
