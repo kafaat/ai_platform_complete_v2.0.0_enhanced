@@ -118,8 +118,9 @@ Zenoh في الشيفرة فعلاً (`go.mod:8` `eclipse-zenoh/zenoh-go v1.9.0`
 
 ```markdown
 - LinkMind: `landingbj/LinkMind` @ `dc40c029d44abdb5056fe91aa4735c839749cbaa` (2026-09-16) —
-  route expressions `lagi.yml:92,326-333`; parser `ai/router/utils/RouteExprParser.java:37-38,83-84`;
-  sequential failover `ai/router/FailOverRoute.java:29-46`.
+  route expressions `lagi-web/src/main/resources/lagi.yml:92,326-333`;
+  parser `lagi-core/src/main/java/ai/router/utils/RouteExprParser.java:37-38,83-84`;
+  sequential failover `lagi-core/src/main/java/ai/router/FailOverRoute.java:29-46`.
 - OpenAgentFlow: `OpenAgentFlow/OpenAgentFlow` @ `397e57ca0668e97669e850b277ed1878e580e7b4` (2026-08-02) —
   IR `spec/SPEC.md:16`; three-phase validator `spec/SEMANTICS.md:17-23`; graph checks
   `compiler/validator.js:417,480-494,591`. Compile-time structural only: `@min/@max` runtime
@@ -128,7 +129,8 @@ Zenoh في الشيفرة فعلاً (`go.mod:8` `eclipse-zenoh/zenoh-go v1.9.0`
   input/action registries `internal/inputs/sensor.go:59`, `internal/actions/action.go:47`;
   HAL is assumed to be vendor-provided (`README.md:192-194`); Zenoh in code, ROS2 via bridge docs.
 - WGAI: `dromara/wgai` @ `dbf8988b9167b09a7724ab49d39a14a3065d2b58` (2026-09-08) —
-  offline deployment `README_EN.md:28`; in-JVM ONNX inference `…/tab/AIModel/OnnxModelCacheService.java:3-5`;
+  offline deployment `README_EN.md:28`; in-JVM ONNX inference
+  `wgai-module-system/wgai-system-biz/src/main/java/org/jeecg/modules/tab/AIModel/OnnxModelCacheService.java:3-5`;
   third-party API config `README_EN.md:98` (offline-capable, not offline-only).
 ```
 
@@ -141,18 +143,45 @@ action executor (`internal/runtime/runtime.go:506` → `:530`/`:546`), i.e. gene
 so confining the OM1 pattern to the device boundary is a measured necessity, not caution.
 ```
 
-## ٨ — إعادة القياس
+## ٨ — إعادة القياس (جنائيّة: عند الـSHA المثبَّت لا عند رأس الفرع)
+
+القاعدة: **تعذُّرُ جلب الـSHA المثبَّت = تعذُّرُ التحقّق**، لا «استعمل أحدث نسخة». السكربت
+يفشل فوراً إن لم يُجلَب الـSHA أو لم يطابقه `HEAD` بعد الفصل، ولا يقرأ ملفّاً قبل ذلك.
 
 ```bash
-for r in landingbj/linkmind OpenAgentFlow/openagentflow OpenMind/om1 dromara/wgai; do
-  GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 "https://github.com/$r" "/tmp/ext/$r"
+#!/usr/bin/env bash
+set -euo pipefail
+EXT="${EXT:-/tmp/ext}"
+declare -A PIN=(
+  [landingbj/linkmind]=dc40c029d44abdb5056fe91aa4735c839749cbaa
+  [OpenAgentFlow/openagentflow]=397e57ca0668e97669e850b277ed1878e580e7b4
+  [OpenMind/om1]=84e00a1672d17d012c24ae6b300365594265bd37
+  [dromara/wgai]=dbf8988b9167b09a7724ab49d39a14a3065d2b58
+)
+for r in "${!PIN[@]}"; do
+  d="$EXT/$r"; sha="${PIN[$r]}"
+  mkdir -p "$d"
+  git -C "$d" init -q
+  git -C "$d" remote add origin "https://github.com/$r" 2>/dev/null || true
+  # جلبُ الـSHA بعينه (لا الفرع). فشلُه = التحقّق غير متاح — لا ارتداد إلى default branch.
+  GIT_LFS_SKIP_SMUDGE=1 git -C "$d" fetch -q --depth 1 origin "$sha" \
+    || { echo "VERIFICATION UNAVAILABLE: cannot fetch pinned $sha for $r" >&2; exit 2; }
+  git -C "$d" checkout -q --detach FETCH_HEAD
+  head="$(git -C "$d" rev-parse HEAD)"
+  [ "$head" = "$sha" ] || { echo "HEAD $head != pinned $sha for $r" >&2; exit 3; }
+  echo "pinned OK: $r @ $sha"
 done
-git -C /tmp/ext/landingbj/linkmind rev-parse HEAD          # قارِن بـ dc40c029…
-sed -n 326,333p /tmp/ext/landingbj/linkmind/lagi-web/src/main/resources/lagi.yml
-sed -n 500,550p /tmp/ext/OpenMind/om1/internal/runtime/runtime.go | grep -n 'cortexLLM.Call\|executeActions'
-sed -n 375,380p /tmp/ext/OpenAgentFlow/openagentflow/compiler/validator.js
-grep -rn 'openai\|chat/completions' --include='*.java' --include='*.yml' /tmp/ext/dromara/wgai | wc -l   # 0
+
+# LinkMind — نحوُ تعبيرات المسار (يُتوقَّع: A|B polling · A,B failover · A&B parallel)
+sed -n 326,333p "$EXT/landingbj/linkmind/lagi-web/src/main/resources/lagi.yml"
+# OM1 — LLM ← executeActions في الحلقة نفسها (يُتوقَّع سطران على الأقلّ: :506 و:530/:546)
+sed -n 500,550p "$EXT/OpenMind/om1/internal/runtime/runtime.go" | grep -n 'cortexLLM.Call\|executeActions'
+# OpenAgentFlow — هدفُ التشغيل الوحيد (يُتوقَّع: Unsupported runtime … supported: "langgraph")
+sed -n 375,380p "$EXT/OpenAgentFlow/openagentflow/compiler/validator.js"
+# WGAI — «لا تطابق» قيمةٌ مقيسة لا فشلُ shell (grep يُرجِع 1 عند صفر تطابق تحت pipefail)
+wgai_hits="$({ grep -rn 'openai\|chat/completions' --include='*.java' --include='*.yml' "$EXT/dromara/wgai" || true; } | wc -l)"
+echo "wgai external-LLM tokens in java/yml: $wgai_hits   # يُتوقَّع 0"
 ```
 
-إن اختلف `rev-parse HEAD` عن الـSHA المثبَّت فالقياسُ أعلاه يبقى صحيحاً **عند ذلك الـSHA** وحده؛
-أعد القياس قبل الاستشهاد بـ«الحالة الراهنة».
+الأسطرُ المستشهَدُ بها في §٣–§٦ صحيحةٌ **عند هذه الـSHA وحدها**؛ للاستشهاد بـ«الحالة
+الراهنة» أعد القياس على SHA جديد وثبِّته في §٢ بدل استبدال الأرقام في مكانها.
