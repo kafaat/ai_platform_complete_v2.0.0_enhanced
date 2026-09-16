@@ -24,6 +24,22 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 
+def _first_measured(*values: object) -> float | None:
+    """أوّل قيمة عدديّة محسوبة فعلاً، وإلّا None — لا يُسقِط الغياب إلى صفر.
+
+    الصفرُ المقيس قيمةٌ صحيحة تُعاد كما هي؛ والمعدومُ وغيرُ العدديّ وغيرُ المنتهي
+    ليست قياساً. يستبدل نمط ``a or b or 0`` الذي كان يخلط «لا حساب» بـ«لا حاجة».
+    """
+    for value in values:
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            continue
+        number = float(value)
+        if number != number or number in (float("inf"), float("-inf")):
+            continue
+        return number
+    return None
+
+
 class GuardrailSeverity(str, Enum):
     HALT = "halt"  # خط أحمر — يوقف التوصية تماماً
     WARN = "warn"  # تحذير — لا يوقف لكن يخفض الثقة
@@ -439,7 +455,9 @@ class RecommendationPonytail:
         irr = field_state.irrigation_state or {}
         return {
             "response_type": "computed_field_state_hint",
-            "amount_mm": irr.get("etc_mm") or irr.get("net_irrigation_mm") or 0,
+            # `or 0` كان يحوّل «لا كميّة محسوبة» إلى «صفر مِلّيمتر» — دلالتان مختلفتان،
+            # وهذا هو الصنف نفسه المُغلَق في U04 لحجم الماء. الغياب يبقى None صريحاً.
+            "amount_mm": _first_measured(irr.get("etc_mm"), irr.get("net_irrigation_mm")),
             "next_date": irr.get("next_date"),
             "source": "FAO56",
             "confidence": field_state.confidence,
@@ -471,10 +489,16 @@ class RecommendationPonytail:
         self, intent: PonytailIntent, field_state: FieldStateSnapshot
     ) -> dict[str, Any]:
         irr = field_state.irrigation_state or {}
-        amount = irr.get("etc_mm") or irr.get("net_irrigation_mm") or 0
+        amount = _first_measured(irr.get("etc_mm"), irr.get("net_irrigation_mm"))
         when = irr.get("next_date") or "عند نافذة الري التالية"
+        # جملةٌ تقول «يحتاج 0 مم» عن كميّةٍ غير محسوبة تُقرأ قياساً؛ الغيابُ يُسمّى.
+        answer = (
+            f"الحقل يحتاج {amount} مم ري في {when}."
+            if amount is not None
+            else f"كميّة الريّ غير محسوبة من حالة الحقل؛ النافذة التالية {when}."
+        )
         return {
-            "answer": f"الحقل يحتاج {amount} مم ري في {when}.",
+            "answer": answer,
             "source": "Ponytail-OneLiner",
             "confidence": field_state.confidence,
             "evidence_level": "governing",

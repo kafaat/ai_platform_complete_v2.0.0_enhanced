@@ -53,9 +53,18 @@ scrape_configs:
     static_configs:
       - targets: ['sahool-guardrails-engine:8000']
 
+  # المنفذ 8100 لا 8000: `services/edge-inference/Dockerfile.arm64` يُصرّح EXPOSE 8100
+  # ويُشغّل uvicorn عليه، و`EDGE_INFERENCE_URL` في compose يشير إلى 8100. كان الهدف
+  # على 8000 فيُرفَض الاتّصال أصلاً (لا 404) ⇒ `up=0` دائماً. نفس صنف أسماء DNS أعلاه.
+  # وظيفة `raster-tiler` مُسمّاة في قاعدة SahoolRasterTileJSONUnavailable وكانت
+  # بلا هدفٍ إطلاقاً ⇒ تنبيهٌ لا يُطلِق أبداً. المنفذ 8088 كما يُصرّح Dockerfile.
+  - job_name: 'raster-tiler'
+    static_configs:
+      - targets: ['raster-tiler-service:8088']
+
   - job_name: 'edge-inference'
     static_configs:
-      - targets: ['sahool-edge:8000']
+      - targets: ['sahool-edge:8100']
 
   - job_name: 'notification-agent'
     static_configs:

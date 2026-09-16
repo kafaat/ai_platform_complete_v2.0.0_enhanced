@@ -23,8 +23,15 @@ COMPOSE = ROOT / "docker-compose.v9.yml"
 # httpx is the canonical-observation adapter's upstream HTTP client (reads from
 # raster-service). It is not a DB/cache/broker driver, so it stays allowed while
 # the forbidden set below keeps the service infrastructure-free.
-ALLOWED_REQUIREMENTS = {"fastapi", "uvicorn", "httpx"}
-FORBIDDEN_RUNTIME_DEPS = {"asyncpg", "redis", "nats-py", "prometheus-client"}
+ALLOWED_REQUIREMENTS = {"fastapi", "uvicorn", "httpx", "prometheus-client"}
+# `prometheus-client` خرجت من هذه المجموعة بتغيّر مقدّمتها لا بتخفيف الحارس: الغرضُ
+# المُعلَن أعلاه «بلا اقتران Postgres/Redis/NATS»، وهي مُسلسِلُ مقاييس بلا أيّ اقتران
+# شبكيّ — دخلت القائمة يومَ كانت **غير مستعملة** لا لأنّها بنيةٌ تحتيّة. وصارت مستعملة
+# لسببٍ مقيس: هدفُ السحب لهذه الخدمة مُعلَنٌ في `prometheus.yml` منذ البداية وكانت
+# النقطةُ غائبة ⇒ ٤٠٤ ⇒ `up=0` دائماً وتنبيهٌ يُطلِق أبداً (جولة حيّة 2026-09-16).
+# والسائقاتُ الثلاثة تبقى ممنوعة، ووجودُ النقطة نفسه محروسٌ بـ
+# `tests_v9/test_prometheus_target_contract.py` فلا تبقى التبعيّة بلا مُبرِّر.
+FORBIDDEN_RUNTIME_DEPS = {"asyncpg", "redis", "nats-py"}
 FORBIDDEN_COMPOSE_ENV = {"DATABASE_URL", "REDIS_URL", "NATS_URL"}
 FORBIDDEN_COMPOSE_DEPS = {"sahool-postgres", "sahool-redis", "sahool-nats"}
 

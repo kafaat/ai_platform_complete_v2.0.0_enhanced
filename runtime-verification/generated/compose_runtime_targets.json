@@ -4,7 +4,7 @@
   "production_certified": false,
   "runtime_verified": false,
   "schema_version": 1,
-  "source_plan_sha256": "82145b911b82689e87c50051efefe78af92689297ba385d4b0dc56e40a1fd34f",
+  "source_plan_sha256": "21b89c5ac664155bbacb5747f442127f4a026853aac02c2c66bbfab7cf929a13",
   "targets": [
     {
       "base_url": "http://sahool-actuator-service:8000",
@@ -334,6 +334,23 @@
       "source_service": "raster-service"
     },
     {
+      "base_url": "http://raster-tiler-service:8088",
+      "base_url_env": "RASTER_TILER_SERVICE_BASE_URL",
+      "candidate_matches": [
+        "raster-tiler-service"
+      ],
+      "compose_service": "raster-tiler-service",
+      "members": [],
+      "port": 8088,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "raster-tiler-service",
+      "source_service": "raster-tiler-service"
+    },
+    {
       "base_url": "http://sahool-remote-sensing-workspace-bff:8185",
       "base_url_env": "REMOTE_SENSING_WORKSPACE_BFF_BASE_URL",
       "candidate_matches": [
@@ -506,5 +523,5 @@
       "source_service": "weather-service"
     }
   ],
-  "targets_sha256": "4a123b8dd7b9b68b13913afc94eecf568dd47e67187f3c15c856459ec3247385"
+  "targets_sha256": "fe4bc5f5f4468baba31b566906232e6ed4e779ea7daec67e92af317c4c376697"
 }

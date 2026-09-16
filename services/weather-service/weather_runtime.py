@@ -74,6 +74,17 @@ def health():
     return healthz()
 
 
+def metrics():
+    """مقاييس Prometheus. الهدفُ مُعلَنٌ في `prometheus/prometheus.yml` منذ البداية
+    وكانت النقطةُ غائبة ⇒ ٤٠٤ ⇒ `up=0` دائماً، وقاعدةُ التنبيه على `up==0` تُطلِق
+    أبداً فتُدرِّب المُشغِّل على تجاهلها. «مُعلَنٌ ليس يعمل»: الإعلانُ في الإعدادات
+    لا يُنشِئ النقطة."""
+    from fastapi import Response
+    from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
 # مِسبارُ الجهوزيّة يُنادى بإيقاع المُنسِّق (كلَّ ثوانٍ)، وكان كلُّ نداءٍ يُخرِج
 # طلباً حقيقيّاً إلى Open-Meteo عبر `readiness_probe` ⇒ `fetch_current`. فحصُ
 # «أأنا حيّ؟» كان يستهلك حصّةَ المزوّد ويُقيَّد بزمنه — والخدمةُ لها مخبّأٌ يعمل

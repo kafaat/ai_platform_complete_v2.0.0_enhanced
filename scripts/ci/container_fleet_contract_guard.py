@@ -42,6 +42,13 @@ NO_READYZ_HEALTHCHECK = [
     "services/supervisor-agent/Dockerfile",
     "services/sahool-platform/Dockerfile",
     "services/sam2-inference/Dockerfile",
+    # خدمات الذكاء المعتمدة على Ollama/Qdrant: الفصل قائم في مصدرها (healthz حياة
+    # دائمة الـ200 · readyz يفشل ٥٠٣ حتى تجهز النماذج/الفهرس) وكان **بلا حارس**،
+    # فتحويلُ فحص الصحّة إلى الجاهزيّة فيها يمرّ صامتاً ويجعل بطءَ تحميل النموذج
+    # إعادةَ تشغيلٍ دوريّة. الحارسان القائمان يغطّيان غير خدمات الذكاء وحدها.
+    "services/local-ai-rag/Dockerfile",
+    "services/rag-retrieval/Dockerfile",
+    "services/ai_agronomist/Dockerfile",
 ]
 
 

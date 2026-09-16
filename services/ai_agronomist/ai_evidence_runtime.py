@@ -514,8 +514,12 @@ def _ai_context_memory_lines(pack: dict[str, Any] | None) -> list[str]:
     readiness = pack.get("readiness") or {}
     if isinstance(readiness, dict):
         warnings = readiness.get("warnings") or []
-        if readiness.get("requires_imagery_backfill_24_months"):
-            lines.append("  - جاهزية الصور: تحتاج تشغيل backfill سنتين قبل تحليل بصري كامل.")
+        if readiness.get("imagery_history_absent"):
+            _win = readiness.get("imagery_observed_window_days")
+            _win_ar = f" خلال {_win} يوماً" if isinstance(_win, int) else ""
+            lines.append(
+                f"  - جاهزية الصور: لا مشهد واحد{_win_ar}؛ شغّل backfill قبل أيّ تحليل بصريّ."
+            )
         if warnings:
             lines.append("  - تحذيرات الجاهزية: " + "؛ ".join(str(w)[:180] for w in warnings[:4]))
     return lines
@@ -939,7 +943,7 @@ async def build_evidence_response(
     # الأدوات المُوجَّهة بالنموذج تُوصَل لاحقاً)، لكنّ البنية والرصد حقيقيّان.
     _pack = ai_pack if isinstance(ai_pack, dict) else {}
     _readiness = _pack.get("readiness") or {}
-    if _readiness.get("requires_imagery_backfill_24_months"):
+    if _readiness.get("imagery_history_absent"):
         _raster_state = observation_context.RASTER_NOT_RENDERED
     elif _readiness.get("complete"):
         _raster_state = observation_context.RASTER_READY
