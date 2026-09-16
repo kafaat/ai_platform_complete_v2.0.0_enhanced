@@ -34,14 +34,71 @@ if str(PLATFORM) not in sys.path:
 # ── ١) مجدوِل الصور على مسبح المهامّ (BYPASSRLS) كالطقس ──────────────────────
 
 
-def test_imagery_scheduler_is_wired_to_the_jobs_pool_like_weather():
+def test_imagery_scheduler_binds_its_pool_through_the_role_proving_path():
     src = (PLATFORM / "api/main.py").read_text(encoding="utf-8")
-    assert "imagery_automation.set_pool(_JOBS_POOL or _DB_POOL)" in src, (
+    assert "await bind_recovery_pool(_JOBS_POOL or _DB_POOL)" in src, (
         "قراءة المُجدوِل بلا سياق تحت FORCE RLS تُرجِع صفر صفوف بلا استثناء ⇒ عطل صامت"
     )
     assert "imagery_automation.set_pool(_DB_POOL)" not in src, (
         "مسبح التطبيق يُخضِع قراءةَ المُجدوِل لسياسة المستأجِر فيصير «لا حقول مُتابَعة» كاذباً"
     )
+
+
+class _RolePool:
+    """مسبح وهميّ يُعيد صفَّ دورٍ واحداً، أو يرفع عند تعذّر القياس."""
+
+    def __init__(self, row, raises: bool = False):
+        self._row, self._raises = row, raises
+
+    def acquire(self):
+        pool = self
+
+        class _Ctx:
+            async def __aenter__(self):
+                if pool._raises:
+                    raise RuntimeError("no pg_roles")
+                return SimpleNamespace(fetchrow=AsyncMock(return_value=pool._row))
+
+            async def __aexit__(self, *exc):
+                return False
+
+        return _Ctx()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("row", "raises", "bound"),
+    [
+        ({"rolsuper": False, "rolbypassrls": True}, False, True),  # دور خدميّ ⇒ يُربَط
+        ({"rolsuper": True, "rolbypassrls": False}, False, True),  # superuser ⇒ يُربَط
+        ({"rolsuper": False, "rolbypassrls": False}, False, False),  # مُقيَّد ⇒ فشل مُعلَن
+        (None, True, True),  # تعذّر القياس ⇒ لا يحجب بيئة التطوير
+    ],
+)
+async def test_restricted_role_refuses_to_bind_instead_of_reading_zero_silently(row, raises, bound):
+    """مراجعة #1009: `_JOBS_POOL or _DB_POOL` قد يكون الدورَ المُقيَّد نفسه.
+
+    مسبحُ المهامّ يُصنَع من وصلة التطبيق حين تغيب `JOBS_DATABASE_URL`، ويصير None
+    عند فشل إنشائه — فالقرار يجب أن يُقاس بالدور لا بهويّة الكائن.
+    """
+    import api.imagery_automation as mod
+
+    automation = mod.imagery_automation
+    previous = automation._pool
+    automation._pool = None
+    try:
+        pool = _RolePool(row, raises=raises)
+        assert await mod.bind_recovery_pool(pool) is bound
+        assert (automation._pool is pool) is bound
+    finally:
+        automation._pool = previous
+
+
+@pytest.mark.asyncio
+async def test_absent_pool_binds_nothing():
+    import api.imagery_automation as mod
+
+    assert await mod.bind_recovery_pool(None) is False
 
 
 def test_migration_really_forces_rls_on_the_imagery_automation_table():
@@ -57,10 +114,23 @@ def test_migration_really_forces_rls_on_the_imagery_automation_table():
 def test_readiness_flag_names_what_it_measures_and_declares_its_window():
     src = (PLATFORM / "api/routers/field_ai_context.py").read_text(encoding="utf-8")
     assert '"imagery_history_absent"' in src
-    assert '"imagery_observed_window_days": days' in src
+    assert '"imagery_observed_window_days": days if include_imagery else None' in src
     assert "requires_imagery_backfill_24_months" not in src.replace(
         "`requires_imagery_backfill_24_months`", ""
     ), "الاسمُ القديم يَعِد بأربعة وعشرين شهراً ولا يقيس إلّا خلوّ النافذة المطلوبة"
+
+
+def test_unrequested_imagery_reports_unknown_not_verified_absence():
+    """مراجعة #1009: `include_imagery=False` يترك الجرد على افتراضه الصفريّ.
+
+    قراءةُ ذلك «غياباً مُتحقَّقاً» تُشغّل تعبئةً بلا سبب؛ ما لم يُقَس يُعلَن None.
+    """
+    src = (PLATFORM / "api/routers/field_ai_context.py").read_text(encoding="utf-8")
+    block = src.split('"imagery_history_absent"')[1].split("evidence_freshness_score")[0]
+    assert "if include_imagery else None" in block
+    assert block.count("if include_imagery else None") == 2, (
+        "الرايةُ ونافذتُها كلتاهما تُعلَنان مجهولتين حين لا يُستعلَم عن الصور"
+    )
 
 
 def test_no_consumer_still_reads_the_retired_flag():
@@ -133,7 +203,6 @@ async def test_weather_registration_uses_callers_transaction_and_failure_propaga
     await automation.register_on_connection(conn, lat=15.0, lon=44.0, field_id="f1")
     sql = conn.execute.call_args.args[0]
     assert "INSERT INTO weather_automation_locations" in sql
-    assert "ON CONFLICT (location_key) DO UPDATE" in sql
     assert conn.execute.call_args.args[-1] == "f1"
 
     conn.execute.side_effect = RuntimeError("database unavailable")
@@ -142,6 +211,44 @@ async def test_weather_registration_uses_callers_transaction_and_failure_propaga
 
     with pytest.raises(ValueError):
         await automation.register_on_connection(conn, lat=15.0, lon=44.0, field_id="")
+
+
+@pytest.mark.asyncio
+async def test_second_field_in_the_same_rounded_cell_never_steals_or_fails():
+    """مراجعة #1009: المفتاح موقعٌ مُقرَّب والصفّ يحمل ارتباطاً واحداً.
+
+    `DO UPDATE` كان يسرق ارتباطَ حقلٍ سابق، ويُفشِل **إنشاء الحقل** حين يملك الصفَّ
+    مستأجِرٌ آخر لأنّ الصفّ غير مرئيّ تحت FORCE RLS فيُخفِق تحديثُ التعارض.
+    """
+    from api.weather_automation import WeatherAutomation
+
+    automation = WeatherAutomation()
+    conn = SimpleNamespace(execute=AsyncMock())
+    await automation.register_on_connection(conn, lat=15.0, lon=44.0, field_id="first")
+    sql = conn.execute.call_args.args[0]
+    assert "ON CONFLICT (location_key) DO NOTHING" in sql
+    assert "DO UPDATE" not in sql, "تحديثُ التعارض يسرق ارتباطاً قائماً أو يُفشِل إنشاء الحقل"
+    # حقلٌ ثانٍ في الخليّة نفسها: المفتاح واحد والارتباطُ لأوّل كاتب، بلا استثناء.
+    await automation.register_on_connection(conn, lat=15.0004, lon=44.0004, field_id="second")
+    assert conn.execute.call_args.args[1] == automation._key_str(15.0, 44.0)
+
+
+@pytest.mark.asyncio
+async def test_registration_does_not_seed_the_in_memory_scheduler_before_commit():
+    """مراجعة #1009: معاملةٌ قد تتراجع (merge/split) بعد هذا النداء.
+
+    زرعُ الذاكرة قبل الالتزام يترك حقلاً مُتراجَعاً عنه قيدَ المعالجة في `refresh_all`؛
+    الذاكرةُ تُبنى من `load_from_db` أي من المُلتزَم وحده.
+    """
+    from api.weather_automation import WeatherAutomation
+
+    automation = WeatherAutomation()
+    conn = SimpleNamespace(execute=AsyncMock())
+    await automation.register_on_connection(conn, lat=15.0, lon=44.0, field_id="f1")
+    assert automation.registered_count() == 0
+    src = (PLATFORM / "api/weather_automation.py").read_text(encoding="utf-8")
+    body = src.split("async def register_on_connection")[1].split("def unregister_location")[0]
+    assert "self.register_location(" not in body
 
 
 def test_field_creation_calls_the_shared_intent_helper():

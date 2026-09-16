@@ -309,7 +309,7 @@ async def _start_scheduler():
     فحص النضارة لا يحتاج تبعيّات. لا نسجّل مهمّة فارغة تدّعي عملاً.
     """
     from api.agronomic_consistency import check_decision_freshness, compute_data_ages
-    from api.imagery_automation import imagery_automation
+    from api.imagery_automation import bind_recovery_pool, imagery_automation
     from api.scheduler import cluster_singleton, register_default_tasks, scheduler
     from api.weather_automation import weather_automation
 
@@ -326,7 +326,7 @@ async def _start_scheduler():
         # (RLS) في مسار آخر. ومجدوِل الصور مثلُه: جدولُه تحت ENABLE+FORCE بقراءةٍ
         # فاشلةٍ-مغلقة، فمسبح التطبيق يُنتِج صفراً صامتاً (العقد في docstring الوحدة).
         weather_automation.set_pool(_JOBS_POOL or _DB_POOL)
-        imagery_automation.set_pool(_JOBS_POOL or _DB_POOL)
+        await bind_recovery_pool(_JOBS_POOL or _DB_POOL)
         try:
             wn = await weather_automation.load_from_db()
             inum = await imagery_automation.load_from_db()

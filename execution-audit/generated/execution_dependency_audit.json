@@ -5,7 +5,7 @@
   "runtime_verified":false,
   "python_files_parsed":1893,
   "route_handlers":1050,
-  "call_edges":78285,
+  "call_edges":78293,
   "dead_code_candidates":632,
   "duplicate_function_groups":60,
   "route_owners":27,
@@ -203871,121 +203871,184 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/imagery_automation.py",
+   "source":"bind_recovery_pool",
+   "target":"acquire",
+   "line":1010
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/imagery_automation.py",
+   "source":"bind_recovery_pool",
+   "target":"fetchrow",
+   "line":1011
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/imagery_automation.py",
+   "source":"bind_recovery_pool",
+   "target":"debug",
+   "line":1013
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/imagery_automation.py",
+   "source":"bind_recovery_pool",
+   "target":"set_pool",
+   "line":1014
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/imagery_automation.py",
+   "source":"bind_recovery_pool",
+   "target":"role_can_bypass_rls",
+   "line":1016
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/imagery_automation.py",
+   "source":"bind_recovery_pool",
+   "target":"set_pool",
+   "line":1017
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/imagery_automation.py",
+   "source":"bind_recovery_pool",
+   "target":"critical",
+   "line":1019
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/imagery_automation.py",
+   "source":"bind_recovery_pool",
+   "target":"get",
+   "line":1023
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/imagery_automation.py",
+   "source":"bind_recovery_pool",
+   "target":"hasattr",
+   "line":1023
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/imagery_automation.py",
    "source":"register_field_tracking_intents",
    "target":"guard_field_geometry",
-   "line":1011
+   "line":1049
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/imagery_automation.py",
    "source":"register_field_tracking_intents",
    "target":"register_on_connection",
-   "line":1012
+   "line":1050
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/imagery_automation.py",
    "source":"register_field_tracking_intents",
    "target":"_bbox_from_guard_bbox",
-   "line":1016
+   "line":1054
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/imagery_automation.py",
    "source":"register_field_tracking_intents",
    "target":"register_on_connection",
-   "line":1020
+   "line":1058
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/imagery_automation.py",
    "source":"register_field_tracking_intents",
    "target":"float",
-   "line":1021
+   "line":1059
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/imagery_automation.py",
    "source":"register_field_tracking_intents",
    "target":"float",
-   "line":1021
+   "line":1059
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/imagery_automation.py",
    "source":"_kick_imagery_processing",
    "target":"guard_field_geometry",
-   "line":1035
+   "line":1073
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/imagery_automation.py",
    "source":"_kick_imagery_processing",
    "target":"trigger_field_imagery_processing",
-   "line":1036
+   "line":1074
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/imagery_automation.py",
    "source":"_kick_imagery_processing",
    "target":"get",
-   "line":1045
+   "line":1083
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/imagery_automation.py",
    "source":"_kick_imagery_processing",
    "target":"get",
-   "line":1046
+   "line":1084
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/imagery_automation.py",
    "source":"_kick_imagery_processing",
    "target":"info",
-   "line":1047
+   "line":1085
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/imagery_automation.py",
    "source":"_kick_imagery_processing",
    "target":"get",
-   "line":1052
+   "line":1090
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/imagery_automation.py",
    "source":"_kick_imagery_processing",
    "target":"warning",
-   "line":1055
+   "line":1093
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/imagery_automation.py",
    "source":"_kick_imagery_processing",
    "target":"get",
-   "line":1060
+   "line":1098
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/imagery_automation.py",
    "source":"_kick_imagery_processing",
    "target":"get",
-   "line":1060
+   "line":1098
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/imagery_automation.py",
    "source":"_kick_imagery_processing",
    "target":"warning",
-   "line":1063
+   "line":1101
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/imagery_automation.py",
    "source":"_kick_imagery_processing",
    "target":"type",
-   "line":1067
+   "line":1105
   },
   {
    "owner":"sahool-platform",
@@ -218180,7 +218243,7 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
-   "target":"set_pool",
+   "target":"bind_recovery_pool",
    "line":329
   },
   {
@@ -255456,70 +255519,42 @@
    "file":"services/sahool-platform/api/routers/field_ai_context.py",
    "source":"field_ai_context_pack",
    "target":"get",
-   "line":733
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/field_ai_context.py",
-   "source":"field_ai_context_pack",
-   "target":"int",
-   "line":733
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/field_ai_context.py",
-   "source":"field_ai_context_pack",
-   "target":"bool",
-   "line":735
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/field_ai_context.py",
-   "source":"field_ai_context_pack",
-   "target":"get",
-   "line":735
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/field_ai_context.py",
-   "source":"field_ai_context_pack",
-   "target":"round",
    "line":736
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_ai_context.py",
    "source":"field_ai_context_pack",
-   "target":"sum",
-   "line":737
+   "target":"int",
+   "line":736
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/field_ai_context.py",
+   "source":"field_ai_context_pack",
+   "target":"bool",
+   "line":739
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_ai_context.py",
    "source":"field_ai_context_pack",
    "target":"get",
+   "line":739
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/field_ai_context.py",
+   "source":"field_ai_context_pack",
+   "target":"round",
    "line":740
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_ai_context.py",
    "source":"field_ai_context_pack",
-   "target":"get",
+   "target":"sum",
    "line":741
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/field_ai_context.py",
-   "source":"field_ai_context_pack",
-   "target":"get",
-   "line":742
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/field_ai_context.py",
-   "source":"field_ai_context_pack",
-   "target":"get",
-   "line":743
   },
   {
    "owner":"sahool-platform",
@@ -255539,50 +255574,50 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_ai_context.py",
    "source":"field_ai_context_pack",
-   "target":"isinstance",
+   "target":"get",
+   "line":746
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/field_ai_context.py",
+   "source":"field_ai_context_pack",
+   "target":"get",
    "line":747
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_ai_context.py",
    "source":"field_ai_context_pack",
-   "target":"max",
+   "target":"get",
+   "line":748
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/field_ai_context.py",
+   "source":"field_ai_context_pack",
+   "target":"get",
    "line":749
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_ai_context.py",
    "source":"field_ai_context_pack",
-   "target":"len",
+   "target":"isinstance",
    "line":751
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_ai_context.py",
    "source":"field_ai_context_pack",
-   "target":"get",
+   "target":"max",
+   "line":753
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/field_ai_context.py",
+   "source":"field_ai_context_pack",
+   "target":"len",
    "line":755
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/field_ai_context.py",
-   "source":"field_ai_context_pack",
-   "target":"get",
-   "line":756
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/field_ai_context.py",
-   "source":"field_ai_context_pack",
-   "target":"get",
-   "line":757
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/field_ai_context.py",
-   "source":"field_ai_context_pack",
-   "target":"get",
-   "line":758
   },
   {
    "owner":"sahool-platform",
@@ -255602,50 +255637,78 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_ai_context.py",
    "source":"field_ai_context_pack",
-   "target":"isinstance",
+   "target":"get",
+   "line":761
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/field_ai_context.py",
+   "source":"field_ai_context_pack",
+   "target":"get",
    "line":762
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_ai_context.py",
    "source":"field_ai_context_pack",
+   "target":"get",
+   "line":763
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/field_ai_context.py",
+   "source":"field_ai_context_pack",
+   "target":"get",
+   "line":764
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/field_ai_context.py",
+   "source":"field_ai_context_pack",
+   "target":"isinstance",
+   "line":766
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/field_ai_context.py",
+   "source":"field_ai_context_pack",
    "target":"_apply_final_context_budget",
-   "line":771
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/field_ai_context.py",
-   "source":"field_ai_context_pack",
-   "target":"extend",
-   "line":773
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/field_ai_context.py",
-   "source":"field_ai_context_pack",
-   "target":"_summary_ar",
    "line":775
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_ai_context.py",
    "source":"field_ai_context_pack",
+   "target":"extend",
+   "line":777
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/field_ai_context.py",
+   "source":"field_ai_context_pack",
+   "target":"_summary_ar",
+   "line":779
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/field_ai_context.py",
+   "source":"field_ai_context_pack",
    "target":"build_ai_policy_envelope",
-   "line":778
+   "line":782
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_ai_context.py",
    "source":"field_ai_context_pack",
    "target":"str",
-   "line":778
+   "line":782
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_ai_context.py",
    "source":"field_ai_context_pack",
    "target":"FieldAiContextPack",
-   "line":779
+   "line":783
   },
   {
    "owner":"sahool-platform",
@@ -308754,175 +308817,168 @@
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"register_on_connection",
    "target":"ValueError",
-   "line":195
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/weather_automation.py",
-   "source":"register_on_connection",
-   "target":"register_location",
-   "line":196
+   "line":207
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"register_on_connection",
    "target":"execute",
-   "line":197
+   "line":208
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"register_on_connection",
    "target":"_key_str",
-   "line":202
+   "line":212
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"unregister_location",
    "target":"_key",
-   "line":209
+   "line":219
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"unregister_location",
    "target":"pop",
-   "line":211
+   "line":221
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"unregister_location",
    "target":"pop",
-   "line":212
+   "line":222
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"get_cached",
    "target":"_key",
-   "line":217
+   "line":227
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"get_cached",
    "target":"get",
-   "line":217
+   "line":227
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"registered_count",
    "target":"len",
-   "line":220
+   "line":230
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"status",
    "target":"len",
-   "line":224
+   "line":234
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"status",
    "target":"len",
-   "line":225
+   "line":235
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"status",
    "target":"to_dict",
-   "line":227
+   "line":237
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"status",
    "target":"values",
-   "line":227
+   "line":237
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"refresh_all",
    "target":"items",
-   "line":245
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/weather_automation.py",
-   "source":"refresh_all",
-   "target":"list",
-   "line":245
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/weather_automation.py",
-   "source":"refresh_all",
-   "target":"fetch_current",
-   "line":247
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/weather_automation.py",
-   "source":"refresh_all",
-   "target":"describe_weather_ar",
    "line":255
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"refresh_all",
+   "target":"list",
+   "line":255
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/weather_automation.py",
+   "source":"refresh_all",
+   "target":"fetch_current",
+   "line":257
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/weather_automation.py",
+   "source":"refresh_all",
+   "target":"describe_weather_ar",
+   "line":265
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/weather_automation.py",
+   "source":"refresh_all",
    "target":"get",
-   "line":258
+   "line":268
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"refresh_all",
    "target":"CachedWeather",
-   "line":260
+   "line":270
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"refresh_all",
    "target":"time",
-   "line":260
+   "line":270
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"refresh_all",
    "target":"_persist_cache",
-   "line":261
+   "line":271
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"refresh_all",
    "target":"append",
-   "line":265
+   "line":275
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"refresh_all",
    "target":"type",
-   "line":265
+   "line":275
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/weather_automation.py",
    "source":"refresh_all",
    "target":"warning",
-   "line":266
+   "line":276
   },
   {
    "owner":"sahool-platform",

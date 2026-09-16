@@ -190,15 +190,25 @@ class WeatherAutomation:
 
         سياسة `v73` تشترط في WITH CHECK وجودَ صفّ `fields` بالمستأجِر نفسه؛ وهو
         موجودٌ داخل هذه المعاملة لأنّ إدراج الحقل يسبقه.
+
+        **`DO NOTHING` لا `DO UPDATE` عن قصد** (مراجعة #1009): المفتاح موقعٌ مُقرَّب
+        إلى ثلاث خانات (~١١٠م) والصفّ يحمل `field_id` واحداً، وهذا المسار يعمل الآن
+        لكلّ حقل. فـ`DO UPDATE` كان: (أ) يسرق ارتباطَ حقلٍ سابق في الخليّة نفسها،
+        و(ب) يُفشِل **إنشاء الحقل** حين يملك الصفَّ مستأجِرٌ آخر — لأنّ الصفّ غير
+        مرئيّ تحت FORCE RLS فيُخفِق تحديثُ التعارض. والموقعُ هو ما يُسحَب طقسُه،
+        فبقاءُ أوّل ارتباطٍ يخدم الحقلين معاً. الارتباطُ بطاقةُ نَسَبٍ لا مفتاحَ سحب.
+        وحدُّه مُعلَن: `field_id` واحد لكلّ خليّة، لأوّل كاتب.
+
+        ولا تُمَسّ الذاكرة هنا: `register_location` كان يُدخِل الحقل في سجلّ المُجدوِل
+        **قبل** التزام المعاملة، فيبقى حقلٌ مُتراجَعٌ عنه (merge/split) قيدَ المعالجة
+        في `refresh_all`. الذاكرةُ تُبنى من `load_from_db` أي من المُلتزَم وحده.
         """
         if not field_id:
             raise ValueError("field_id مطلوب لتسجيل متابعة الطقس")
-        self.register_location(lat, lon, field_id)
         await conn.execute(
             "INSERT INTO weather_automation_locations "
             "(location_key, lat, lon, field_id) VALUES ($1,$2,$3,$4) "
-            "ON CONFLICT (location_key) DO UPDATE SET "
-            "lat=EXCLUDED.lat, lon=EXCLUDED.lon, field_id=EXCLUDED.field_id",
+            "ON CONFLICT (location_key) DO NOTHING",
             self._key_str(lat, lon),
             lat,
             lon,

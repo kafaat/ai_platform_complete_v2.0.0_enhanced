@@ -16985,7 +16985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e15e5a598bda24047af513f5f3de1192086c6f4062e7a7d9502d3cf48f323035"
+          "content": "e2db8d333fd6377ec0e72c85bf502541bce0e42ae5919e118e8c6dc1fc9f6645"
         }
       ],
       "name": "services/sahool-platform/api/imagery_automation.py",
@@ -17395,7 +17395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a0c9ecfca1ad2dc985df45791557c1b71e93a39f3ad26299a494d2e7bd0637f1"
+          "content": "b86cdcd1aacafacf33b9fb7bb7631791ed52ce30439ae80f381e4a135f71f7fe"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -18375,7 +18375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ac979732f5990b94d4beec27daf20bcae7785da7597f78eef206af7bde12de67"
+          "content": "c5799a487b90a3e700430be09333c3c0336a8860157a97e6e89cb428c5447c4a"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_ai_context.py",
@@ -19895,7 +19895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "43e894e5e704c5dca52e304904d47761e5cd141233e3b637c3d1c40530233cdd"
+          "content": "f29b47d87489cca2bc64b3b7f1b55fc5eb1433260c422a54472ab815032275d0"
         }
       ],
       "name": "services/sahool-platform/api/weather_automation.py",
