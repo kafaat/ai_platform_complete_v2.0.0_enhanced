@@ -1,0 +1,90 @@
+name: PR 1008 conflict resolver
+on:
+  push:
+    branches: [codex/pr1008-conflict-resolver-20260916]
+permissions:
+  contents: write
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: railway/fix-deploy-8e816b
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Install governance dependencies
+        run: pip install pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0
+      - name: Merge current main and resolve generated conflicts by regeneration
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected_head=351c606b5db2ee4b5ad2b365a4974d9a006d8c79
+          expected_main=0f240f53c6eb41cac51c5ae0c55c14579446107e
+          test "$(git rev-parse HEAD)" = "$expected_head"
+          git fetch origin main
+          test "$(git rev-parse origin/main)" = "$expected_main"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          set +e
+          git merge --no-ff --no-commit origin/main
+          rc=$?
+          set -e
+          test "$rc" -ne 0
+          mapfile -t conflicts < <(git diff --name-only --diff-filter=U | sort)
+          printf '%s\n' "${conflicts[@]}"
+          expected=(
+            docs/architecture/db_writer_ownership_baseline.json
+            docs/architecture/fake_connection_debt.json
+            docs/architecture/generated_write_targets.json
+            docs/architecture/source_text_assertion_inventory.json
+            docs/architecture/tenant_guc_scope_baseline.json
+            docs/capability-registry/generated/impact/impact_index_summary.json
+            docs/capability-registry/generated/management/management_manifest.json
+            docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md
+            docs/capability-registry/generated/mapping/capability_mapping.json
+            docs/capability-registry/generated/mapping/mapping_manifest.json
+            release/FILE_CHECKSUMS.sha256
+            release/SAHOOL_RELEASE_MANIFEST_20260626.json
+          )
+          mapfile -t expected_sorted < <(printf '%s\n' "${expected[@]}" | sort)
+          test "$(printf '%s\n' "${conflicts[@]}")" = "$(printf '%s\n' "${expected_sorted[@]}")"
+          # Every conflict is generated/measurement state. Preserve main as the starting
+          # point, then let the owning generators recompute from the merged source tree.
+          git checkout --theirs -- "${conflicts[@]}"
+          git add "${conflicts[@]}"
+          test -z "$(git diff --name-only --diff-filter=U)"
+          python -u scripts/ci/verify_all_generated.py --fix
+          git add -A
+          git diff --cached --check
+      - name: Verify regenerated merged tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/ci/capability_mapping_engine.py --check
+          python -u scripts/ci/verify_all_generated.py --check
+          python -m pytest -q \
+            tests/architecture/test_capability_mapping_engine.py \
+            tests/architecture/test_capability_evidence_maturity_engine.py \
+            tests/architecture/test_capability_parity_investment_engine.py \
+            tests/architecture/test_capability_roadmap_linker.py \
+            tests/architecture/test_capability_management_engine.py \
+            tests/ci/test_phase16_ci_cd_gates.py \
+            tests/deploy/test_phase15_deployment_readiness_contracts.py \
+            tests/release/test_phase14_release_packaging_contracts.py \
+            tests/observability/test_phase13_observability_assets.py \
+            tests/security/test_phase12_final_production_gates.py
+          python scripts/release/validate_release_package.py
+          git diff --cached --check
+      - name: Commit and push resolved merge
+        shell: bash
+        run: |
+          set -euo pipefail
+          git commit -m 'merge(main): resolve PR 1008 generated artifacts by regeneration'
+          python scripts/ci/capability_mapping_engine.py --check
+          python -u scripts/ci/verify_all_generated.py --check
+          test -z "$(git status --porcelain)"
+          git push origin HEAD:railway/fix-deploy-8e816b
