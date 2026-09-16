@@ -372,7 +372,8 @@
         "runtime_verified": "consistent_with_authority"
       },
       "integration_test_paths": [
-        "tests_v9/test_guardrails_contract.py"
+        "tests_v9/test_guardrails_contract.py",
+        "tests_v9/test_guardrails_evaluate_http_contract.py"
       ],
       "learning_linked": false,
       "maturity_alignment": "aligned",
@@ -7845,6 +7846,7 @@
         "tests_v9/test_execution_lineage_migrations.py",
         "tests_v9/test_field_state_projection.py",
         "tests_v9/test_fii_rls_write_fail_closed_postgres.py",
+        "tests_v9/test_imagery_automation_rls_live_pg.py",
         "tests_v9/test_infra_hardening_72h_static.py",
         "tests_v9/test_invitations.py",
         "tests_v9/test_irrigation_closed_loop_learning.py",
