@@ -3670,6 +3670,7 @@
         "services/sahool-platform/api/field_state_projection.py",
         "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
         "services/sahool-platform/api/main.py",
+        "services/sahool-platform/api/onboarding.py",
         "services/sahool-platform/api/phase_runtime_workers.py",
         "services/sahool-platform/api/routers/automation.py",
         "services/sahool-platform/api/routers/break_glass.py",
@@ -5717,8 +5718,12 @@
       "write_policy_with_check": false
     },
     {
-      "code_readers": [],
-      "code_writers": [],
+      "code_readers": [
+        "services/sahool-platform/api/onboarding.py"
+      ],
+      "code_writers": [
+        "services/sahool-platform/api/onboarding.py"
+      ],
       "created_in": "init_v8.sql",
       "has_tenant_id": true,
       "manifest_position": 0,

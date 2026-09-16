@@ -1,7 +1,7 @@
 capability_id,domain,title,mapped,coverage_dimensions,backend,routes,database,events,web,mobile,tests,governance
 DEC-001,decision,Decision evidence,True,3,3,0,0,5,0,0,3,0
 DEC-002,decision,Decision candidate,True,3,1,0,0,2,0,0,4,0
-DEC-003,decision,Human approval,True,2,2,0,0,0,0,0,1,0
+DEC-003,decision,Human approval,True,3,2,0,0,2,0,0,2,0
 DEC-004,decision,Execution request,True,5,9,20,24,30,0,0,15,1
 DEC-005,decision,Dispatch authorization,True,5,5,86,5,3,0,0,3,0
 DEC-006,decision,Execution receipt,True,3,2,0,0,8,0,0,3,0
@@ -72,7 +72,7 @@ SOIL-004,soil,pH EC SOM nutrients,True,4,1,0,7,3,0,0,1,0
 SOIL-005,soil,Soil water properties,True,3,5,0,0,2,0,0,2,0
 WX-001,weather,Current weather,True,4,1,4,0,3,0,0,2,0
 WX-002,weather,Weather forecast,True,6,22,62,8,57,9,0,24,0
-WX-003,weather,Weather history,True,5,4,6,4,2,0,0,4,0
+WX-003,weather,Weather history,True,5,4,6,4,3,0,0,5,0
 WX-004,weather,ET0,True,5,58,48,0,89,18,0,59,0
 WX-005,weather,VPD,True,5,9,29,0,6,2,0,6,0
 WX-006,weather,GDD,True,6,85,26,33,28,17,0,46,0

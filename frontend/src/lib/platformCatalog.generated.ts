@@ -14,11 +14,11 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = 'c25c36e800e4e594ca74112b5ae2f01f7c2e18560a8bfe4ac4e03a3f95d61927';
+export const PLATFORM_CATALOG_FINGERPRINT = 'e651fec8a2e3e434295b4902142f239b055b2b6516c24645bf0155546caa1ea5';
 
 export const PLATFORM_CATALOG_COUNTS = {
   "backend_components": 32,
-  "capabilities": 827,
+  "capabilities": 828,
   "capabilities_approval_gated": 8,
   "capabilities_field_scoped": 93,
   "capabilities_idempotent": 48,
@@ -29,9 +29,9 @@ export const PLATFORM_CATALOG_COUNTS = {
   "duplicate_groups_classified": 12,
   "indicator_products": 34,
   "ownership_conflicts": 0,
-  "route_rows": 1118,
+  "route_rows": 1119,
   "ui_waivers": 52,
-  "unique_method_path": 999
+  "unique_method_path": 1000
 } as const;
 
 export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
@@ -135,7 +135,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "wiringDisposition": "standalone-job"
   },
   {
-    "capabilityCount": 4,
+    "capabilityCount": 5,
     "domain": "decision-governance",
     "id": "guardrails-engine",
     "tested": true,
