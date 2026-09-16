@@ -89,6 +89,16 @@ No sensor driver should write a recommendation or execution command directly.  E
 actuation/decision boundaries should be extended rather than introducing an OM1 runtime as
 a second orchestrator.
 
+Measured reason (OM1 @ `84e00a1672d17d012c24ae6b300365594265bd37`, 2026-09-15): OM1's core
+loop hands the LLM's tool calls straight to the action executor
+(`internal/runtime/runtime.go:506` `cortexLLM.Call` → `:530` `rt.executeActions`), i.e.
+generated language *is* the action-selecting authority there. That is exactly what
+Finding 1 rejects for SAHOOL, so confining the OM1 pattern to the device boundary is a
+measured necessity, not caution. Two further corrections to the description above: OM1 is
+Go (not Python) at that revision, and its ROS2 integration is via a Zenoh/CDR bridge — only
+Zenoh appears in Go code (`plugins/actions/unitree/go2/autonomy/move.go`); the HAL itself is
+assumed to be vendor-provided (`README.md:192-194`).
+
 ## Finding 7 — OpenAgentFlow pattern belongs in declarative validation, not authority
 
 OpenAgentFlow's useful idea is a validated workflow/IR that catches invalid state flow before
@@ -106,10 +116,10 @@ or blocks explicitly.  External-provider absence must never be rewritten as a me
 
 ## Immediate code correction made with this review
 
-`config/guardrail_feature_flags.py` contained three repeated definitions of the same core
-flags.  The values happened to agree, but the file had multiple textual sources of truth and
-could silently diverge in a later edit.  This branch reduces every flag to one definition
-without changing defaults.
+`config/guardrail_feature_flags.py` contained duplicate definitions of the same core
+flags (the initial assignments and a later `globals().get` block).  The values happened to
+agree, but the file had multiple textual sources of truth and could silently diverge in a
+later edit.  This branch reduces every flag to one definition without changing defaults.
 
 ## Implementation order
 
@@ -125,11 +135,33 @@ without changing defaults.
 
 ## External source references used for the comparison
 
-- LinkMind: `landingbj/LinkMind` — centralized model routing/failover and middleware pattern.
-- OpenAgentFlow: `OpenAgentFlow/OpenAgentFlow` — declarative workflow specification and
-  semantic validation pattern.
-- OM1: `OpenMind/OM1` — modular inputs/actions and HAL integration pattern.
-- WGAI: `dromara/wgai` — local deployment, model/video/monitoring integration patterns.
+Every reference is pinned to the exact commit that was read (shallow, read-only clones on
+2026-09-16). Line numbers hold at these revisions only; a re-measurement script that fetches
+each SHA by hash, detaches it, and asserts the cited evidence lives in
+`docs/audits/DECISION_FABRIC_EXTERNAL_SOURCE_VERIFICATION_20260916.md` §8.
+
+- LinkMind: `landingbj/LinkMind` @ `dc40c029d44abdb5056fe91aa4735c839749cbaa` (2026-09-16) —
+  configured route expression `lagi-web/src/main/resources/lagi.yml:92`
+  (`route: best((landing&qwen),(kimi|chatgpt))`), grammar `:326-333`;
+  parser `lagi-core/src/main/java/ai/router/utils/RouteExprParser.java:37-38,83-84`;
+  sequential failover `lagi-core/src/main/java/ai/router/FailOverRoute.java:29-46`.
+  Failover also exists at backend level (`ai/llm/service/LlmRouteService.java:52-70`) and
+  key-pool level (`ai/llm/adapter/impl/ProxyLlmAdapter.java:193-196`) — all provider
+  routing, never authority routing.
+- OpenAgentFlow: `OpenAgentFlow/OpenAgentFlow` @ `397e57ca0668e97669e850b277ed1878e580e7b4` (2026-08-02) —
+  IR `spec/SPEC.md:16`; three-phase validator `spec/SEMANTICS.md:17-23`; graph checks
+  `compiler/validator.js:417,480-494,591`. Compile-time structural only: `@min/@max` runtime
+  bounds are TODO (`todo.md:10-12`); sole runtime target LangGraph (`validator.js:377-379`).
+- OM1: `OpenMind/OM1` @ `84e00a1672d17d012c24ae6b300365594265bd37` (2026-09-15), Go —
+  input/action registries `internal/inputs/sensor.go:59`, `internal/actions/action.go:47`;
+  HAL is assumed to be vendor-provided (`README.md:192-194`); LLM → executor chain
+  `internal/runtime/runtime.go:506 → :530`; Zenoh in code, ROS2 via bridge docs.
+- WGAI: `dromara/wgai` @ `dbf8988b9167b09a7724ab49d39a14a3065d2b58` (2026-09-08) —
+  offline deployment `README_EN.md:28`; in-JVM ONNX inference
+  `wgai-module-system/wgai-system-biz/src/main/java/org/jeecg/modules/tab/AIModel/OnnxModelCacheService.java:3-5`;
+  third-party API config `README_EN.md:98` (offline-capable, not offline-only). The
+  advertised ChatGPT path is not locatable in Java/YAML at this revision (case-insensitive
+  scan: 0 hits) — recorded as unmeasured, not absent.
 
 These projects are architectural references only; no external source code is copied into
 SAHOOL by this change.
