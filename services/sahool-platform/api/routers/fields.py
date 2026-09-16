@@ -214,17 +214,16 @@ async def _insert_field_within_tx(
         country,
         region,
     )
-    # Persist the processing intent in the same transaction as the field. The
-    # post-response kick is a latency optimization; the existing scheduler can
-    # recover the intent after a process interruption.
-    from api.imagery_automation import imagery_automation
+    # نيّتا متابعة الصور والطقس تُثبَّتان مع الحقل في معاملته (M4؛ العقد في الوحدة).
+    from api.imagery_automation import register_field_tracking_intents
 
-    guarded = guard_field_geometry(geometry)
-    await imagery_automation.register_on_connection(
+    await register_field_tracking_intents(
         conn,
         field_id=field_id,
         tenant_id=str(user.tenant_id),
-        bbox=imagery_automation._bbox_from_guard_bbox(guarded.bbox),
+        geometry=geometry,
+        lat=lat,
+        lon=lon,
     )
     # حدث domain ضمن نفس المعاملة (نمط outbox) — يُغلق فجوة «كتابة بلا حدث».
     _created_payload = {

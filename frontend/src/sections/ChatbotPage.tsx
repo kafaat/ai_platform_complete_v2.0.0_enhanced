@@ -66,7 +66,7 @@ interface FieldAiContextPack {
   weather_history?: { available?: boolean; summary?: Record<string, unknown> };
   operations_timeline?: { total?: number };
   drawing_context?: { total?: number; counts_by_kind?: Record<string, number> };
-  readiness?: { complete?: boolean; warnings?: string[]; requires_imagery_backfill_24_months?: boolean };
+  readiness?: { complete?: boolean; warnings?: string[]; imagery_history_absent?: boolean; imagery_observed_window_days?: number };
 }
 
 // نموذج ذكاء قابل للاختيار (يأتي من كتالوج AI_MODELS عبر /api/v1/ai/models).
@@ -94,7 +94,7 @@ interface AiChatResponse {
   generation_provider?: string | null;
   generation_model?: string | null;
   generation_status?: string;
-  ai_context_pack_readiness?: { warnings?: string[]; requires_imagery_backfill_24_months?: boolean } | null;
+  ai_context_pack_readiness?: { warnings?: string[]; imagery_history_absent?: boolean; imagery_observed_window_days?: number } | null;
   harness?: HarnessTransparency | null;
 }
 const MODEL_STORE_KEY = 'sahool.ai.model';
@@ -611,8 +611,8 @@ export function ChatbotPage() {
               <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
                 مناطق/محاور: {aiContext.drawing_context?.total ?? 0}
               </span>
-              {aiContext.readiness?.requires_imagery_backfill_24_months && (
-                <span className="text-amber-600">يحتاج backfill سنتين للصور.</span>
+              {aiContext.readiness?.imagery_history_absent && (
+                <span className="text-amber-600">لا مشاهد أقمار{typeof aiContext.readiness?.imagery_observed_window_days === 'number' ? ` خلال ${aiContext.readiness.imagery_observed_window_days} يوماً` : ''}؛ شغّل backfill.</span>
               )}
             </>
           ) : (

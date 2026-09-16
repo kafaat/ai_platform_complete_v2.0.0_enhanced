@@ -95,7 +95,7 @@
       "dynamic_expr": "subject",
       "file": "services/sahool-platform/api/main.py",
       "kind": "producer",
-      "line": 572,
+      "line": 573,
       "queue": null,
       "subject": null
     },
@@ -117,7 +117,7 @@
       "dynamic_expr": "GuardrailEvent('agent.guardrail', rule, intent.field_id, action.value, reason)",
       "file": "services/sahool-platform/core/guardrails.py",
       "kind": "producer",
-      "line": 327,
+      "line": 343,
       "queue": null,
       "subject": null
     },

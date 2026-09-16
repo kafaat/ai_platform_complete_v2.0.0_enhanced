@@ -180,6 +180,31 @@ class WeatherAutomation:
         self.register_location(lat, lon, field_id)
         await self._persist_location(lat, lon, field_id)
 
+    async def register_on_connection(self, conn, *, lat: float, lon: float, field_id: str) -> None:
+        """يُثبِّت نيّة متابعة الطقس مع الحقل في معاملة المُستدعي؛ بلا نداء مزوّد.
+
+        نظيرُ `ImageryAutomation.register_on_connection` بالعقد نفسه: المُستدعي يملك
+        المعاملة، والفشل يجب أن يُرجِعها. كان تسجيلُ الموقع يجري في نقطة أتمتة يدويّة
+        وحدها، فحقلٌ مُنشَأ حديثاً لا يُسحَب طقسُه حتّى يمرّ عليه مشغّل — وهذه فجوة
+        M4 لا عطلُ مجدوِل.
+
+        سياسة `v73` تشترط في WITH CHECK وجودَ صفّ `fields` بالمستأجِر نفسه؛ وهو
+        موجودٌ داخل هذه المعاملة لأنّ إدراج الحقل يسبقه.
+        """
+        if not field_id:
+            raise ValueError("field_id مطلوب لتسجيل متابعة الطقس")
+        self.register_location(lat, lon, field_id)
+        await conn.execute(
+            "INSERT INTO weather_automation_locations "
+            "(location_key, lat, lon, field_id) VALUES ($1,$2,$3,$4) "
+            "ON CONFLICT (location_key) DO UPDATE SET "
+            "lat=EXCLUDED.lat, lon=EXCLUDED.lon, field_id=EXCLUDED.field_id",
+            self._key_str(lat, lon),
+            lat,
+            lon,
+            field_id,
+        )
+
     def unregister_location(self, lat: float, lon: float) -> bool:
         k = self._key(lat, lon)
         existed = k in self._locations

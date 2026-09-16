@@ -726,7 +726,12 @@ async def field_ai_context_pack(
         "readiness": {
             "complete": not warnings,
             "warnings": warnings,
-            "requires_imagery_backfill_24_months": int(imagery.get("total_dates", 0) or 0) == 0,
+            # صدق التسمية: المقيس هنا «لا مشهد واحد داخل النافذة المطلوبة»، لا تغطيةُ
+            # أربعةٍ وعشرين شهراً. الاسمُ السابق `requires_imagery_backfill_24_months`
+            # كان يَعِد بما لا يقيس: حقلٌ بمشهد واحد يُبلِّغ «لا حاجة للتعبئة» بينما
+            # تاريخُه فارغٌ عمليّاً. والنافذةُ نفسها تُعلَن كي لا يُقرأ الغياب مطلقاً.
+            "imagery_history_absent": int(imagery.get("total_dates", 0) or 0) == 0,
+            "imagery_observed_window_days": days,
             "weather_history_available": bool(weather.get("available")),
             "evidence_freshness_score": round(
                 sum(
