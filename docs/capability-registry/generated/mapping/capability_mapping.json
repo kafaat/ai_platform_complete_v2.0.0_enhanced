@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5337,
+    "files_scanned": 5338,
     "files_by_kind": {
       "backend": 1208,
       "database": 277,
       "governance": 62,
       "mobile": 55,
-      "other": 1477,
+      "other": 1478,
       "tests": 1800,
       "web": 458
     },
     "unmapped_artifacts": 2168,
-    "ambiguous_artifacts": 419
+    "ambiguous_artifacts": 420
   },
   "capabilities": [
     {
@@ -220,6 +220,14 @@
             "content:Decision candidate",
             "content:decision candidate"
           ]
+        },
+        {
+          "path": "docs/architecture/DECISION_FABRIC_SOURCE_COMPARISON_20260916.md",
+          "score": 8,
+          "signals": [
+            "content:Decision candidate",
+            "content:decision candidate"
+          ]
         }
       ],
       "ambiguous": [],
@@ -235,7 +243,7 @@
         "mobile": 0,
         "tests": 4,
         "governance": 0,
-        "other_evidence": 2
+        "other_evidence": 3
       },
       "coverage_dimensions": 3,
       "mapped": true
@@ -35074,6 +35082,14 @@
           ]
         },
         {
+          "path": "docs/architecture/DECISION_FABRIC_SOURCE_COMPARISON_20260916.md",
+          "score": 8,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "docs/contracts/IRRIGATION-DECISION-INTELLIGENCE-CORR1.md",
           "score": 8,
           "signals": [
@@ -35135,7 +35151,7 @@
         "mobile": 0,
         "tests": 46,
         "governance": 0,
-        "other_evidence": 21
+        "other_evidence": 22
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -45099,6 +45115,28 @@
             "content:Weather forecast",
             "content:forecast",
             "content:weather forecast"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/architecture/DECISION_FABRIC_SOURCE_COMPARISON_20260916.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 8,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "DEC-002",
+          "score": 8,
+          "signals": [
+            "content:Decision candidate",
+            "content:decision candidate"
           ]
         }
       ]
