@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5330,
+    "files_scanned": 5335,
     "files_by_kind": {
       "backend": 1208,
       "database": 277,
       "governance": 62,
       "mobile": 55,
-      "other": 1474,
-      "tests": 1796,
+      "other": 1477,
+      "tests": 1798,
       "web": 458
     },
     "unmapped_artifacts": 2168,
@@ -264,10 +264,27 @@
       ],
       "routes": [],
       "database": [],
-      "events": [],
+      "events": [
+        {
+          "value": "canonical_field_state.v1 @ tests_v9/test_b6m4_structured_advisory.py:49",
+          "score": 10
+        },
+        {
+          "value": "canonical_weather_state.v1 @ tests_v9/test_b6m4_structured_advisory.py:39",
+          "score": 10
+        }
+      ],
       "web": [],
       "mobile": [],
       "tests": [
+        {
+          "path": "tests_v9/test_b6m4_structured_advisory.py",
+          "score": 10,
+          "signals": [
+            "content:Human approval",
+            "content:approval workflow"
+          ]
+        },
         {
           "path": "tests_v9/test_guardrails_contract.py",
           "score": 10,
@@ -296,14 +313,14 @@
         "backend": 2,
         "routes": 0,
         "database": 0,
-        "events": 0,
+        "events": 2,
         "web": 0,
         "mobile": 0,
-        "tests": 1,
+        "tests": 2,
         "governance": 0,
         "other_evidence": 1
       },
-      "coverage_dimensions": 2,
+      "coverage_dimensions": 3,
       "mapped": true
     },
     {
@@ -30958,6 +30975,10 @@
         {
           "value": "canonical_field_state.v1 @ services/ai_agronomist/ai_evidence_runtime.py:205",
           "score": 12
+        },
+        {
+          "value": "sahool.field_bootstrap.v1 @ shared/field_bootstrap.py:22",
+          "score": 10
         }
       ],
       "web": [],
@@ -30965,6 +30986,14 @@
       "tests": [
         {
           "path": "tests_v9/test_ai_policy_envelope_v52.py",
+          "score": 12,
+          "signals": [
+            "content:Weather history",
+            "content:weather history"
+          ]
+        },
+        {
+          "path": "tests_v9/test_b6m4_field_bootstrap.py",
           "score": 12,
           "signals": [
             "content:Weather history",
@@ -31017,6 +31046,14 @@
           ]
         },
         {
+          "path": "shared/field_bootstrap.py",
+          "score": 10,
+          "signals": [
+            "content:Weather history",
+            "content:weather history"
+          ]
+        },
+        {
           "path": "SAHOOL_AGENT_TOOL_LOOP_LIVE_WIRING_V57_REPORT_20260701.md",
           "score": 8,
           "signals": [
@@ -31033,12 +31070,12 @@
         "backend": 4,
         "routes": 6,
         "database": 4,
-        "events": 2,
+        "events": 3,
         "web": 0,
         "mobile": 0,
-        "tests": 4,
+        "tests": 5,
         "governance": 0,
-        "other_evidence": 3
+        "other_evidence": 4
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -42418,6 +42455,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_b6m4_platform_store.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_backfill_failure_reason_persisted.py",
       "kind": "tests"
     },
@@ -43355,10 +43396,6 @@
     },
     {
       "path": "tests_v9/test_no_merge_conflict_markers_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests_v9/test_no_report_only_change_guard.py",
       "kind": "tests"
     },
     {

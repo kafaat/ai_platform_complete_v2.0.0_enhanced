@@ -149,6 +149,7 @@ guardrails-engine,GET,/runtime-identity,runtime_identity,services/guardrails-eng
 guardrails-engine,POST,/v1/validate,validate_action,services/guardrails-engine/routers/validation.py,28
 guardrails-engine,POST,/v1/approve/{workflow_id},approve_workflow,services/guardrails-engine/routers/validation.py,42
 guardrails-engine,GET,/v1/workflow/{workflow_id},get_workflow,services/guardrails-engine/routers/validation.py,71
+guardrails-engine,POST,/v1/evaluate,evaluate_action_only,services/guardrails-engine/routers/validation.py,86
 indicators-service,GET,/healthz,healthz,services/indicators-service/main.py,63
 indicators-service,GET,/health,legacy_health,services/indicators-service/main.py,68
 indicators-service,GET,/metrics,metrics,services/indicators-service/main.py,73

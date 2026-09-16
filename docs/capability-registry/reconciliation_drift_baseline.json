@@ -3,7 +3,6 @@
     "evidence_maturity": {
       "identities": [
         "DEC-001:declared_above_evidence:evidence-maturity",
-        "DEC-003:declared_above_evidence:evidence-maturity",
         "DEC-008:declared_above_evidence:evidence-maturity",
         "DEC-009:declared_above_evidence:evidence-maturity",
         "FM-001:declared_above_evidence:evidence-maturity",

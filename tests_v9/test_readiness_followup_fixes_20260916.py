@@ -252,8 +252,16 @@ async def test_registration_does_not_seed_the_in_memory_scheduler_before_commit(
 
 
 def test_field_creation_calls_the_shared_intent_helper():
-    src = (PLATFORM / "api/routers/fields.py").read_text(encoding="utf-8")
-    assert "register_field_tracking_intents(" in src
+    """العقدُ بعد دمج حزمة B6/M4: الراوتر ينادي مدخلاً واحداً، والمدخلُ يُفوّض لتسجيل
+    المتابعة. الفحصُ على الطرفين مقصود — لو استُبدل المدخلُ يوماً بتسجيلٍ يُسقِط الطقس
+    (كما كانت الحزمةُ تفعل حرفيّاً) لَما احمرّ فحصُ الراوتر وحده."""
+    router = (PLATFORM / "api/routers/fields.py").read_text(encoding="utf-8")
+    assert "register_field_creation_intents(" in router
+    entry = (PLATFORM / "api/onboarding.py").read_text(encoding="utf-8")
+    assert "register_field_tracking_intents(" in entry, (
+        "مدخلُ الإنشاء لا يُفوّض لتسجيل الصور والطقس ⇒ نيّةُ الطقس تسقط صامتة"
+    )
+    assert "maybe_enqueue_field_bootstrap(" in entry
 
 
 # ── ٤) حرّاس الحاويات يغطّون خدمات الذكاء ────────────────────────────────────

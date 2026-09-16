@@ -479,3 +479,79 @@ def _derive_policy(state: CanonicalFieldState, economics: dict | None = None) ->
             decision["recommendations_ar"].append("🎯 هدفك أقصى إنتاج — لا تؤخّر معالجة الإجهاد.")
 
     return decision
+
+
+# READINESS-B6: the existing decision owner remains the authority. This helper
+# never accepts a caller-authored state, action body, farm context or approval.
+async def preview_model_advisory(
+    model_text: str,
+    *,
+    tenant_id: str,
+    field_id: str,
+    load_current_canonical,
+    load_owner_candidates,
+    evaluate_candidate,
+) -> dict:
+    """Re-load state after generation, then evaluate owner-issued selections.
+
+    The integration layer must supply tenant-scoped owner loaders, not callbacks
+    built from HTTP request dictionaries. This path does not register/approve a
+    decision or dispatch a task. Missing candidates stay missing, not fabricated.
+    """
+    from shared.ai.structured_advisory import evidence_fingerprint, preview_advisory
+
+    state = await load_current_canonical(tenant_id=tenant_id, field_id=field_id)
+    candidates = await load_owner_candidates(
+        tenant_id=tenant_id,
+        field_id=field_id,
+        evidence_fingerprint=evidence_fingerprint(state, field_id=field_id),
+    )
+    return await preview_advisory(
+        model_text,
+        tenant_id=tenant_id,
+        field_id=field_id,
+        state=state,
+        candidates=candidates,
+        evaluate=evaluate_candidate,
+    )
+
+
+def make_candidate_evaluator(*, http_client, guardrails_url: str, service_token: str):
+    """Use only the evaluation-only endpoint, NEVER fallback to /v1/validate.
+
+    Rolling deployment: an old guardrails instance returns 404 before performing
+    work. Passing a new flag to the old /validate would be unsafe: the old model
+    could ignore the flag and create approval workflows while rendering a preview.
+    http_client is the existing owner-managed asynchronous HTTP client.
+    """
+    from urllib.parse import urlsplit
+
+    endpoint = urlsplit(guardrails_url)
+    if (
+        endpoint.scheme not in {"http", "https"}
+        or not endpoint.netloc
+        or endpoint.username
+        or endpoint.password
+        or endpoint.query
+        or endpoint.fragment
+    ):
+        raise ValueError("guardrails_service_url_invalid")
+    if not service_token:
+        raise ValueError("guardrails_service_token_missing")
+
+    async def evaluate(payload: dict) -> dict:
+        response = await http_client.post(
+            guardrails_url.rstrip("/") + "/v1/evaluate",
+            json=payload,
+            headers={"X-Agent-Token": service_token},
+            timeout=10.0,
+            follow_redirects=False,
+        )
+        if response.status_code != 200:
+            raise RuntimeError("guardrails_evaluation_unavailable")
+        data = response.json()
+        if not isinstance(data, dict):
+            raise RuntimeError("guardrails_evaluation_malformed")
+        return data
+
+    return evaluate

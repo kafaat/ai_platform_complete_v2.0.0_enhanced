@@ -1377,6 +1377,15 @@
     "classification": "versioned"
   },
   {
+    "service": "guardrails-engine",
+    "file": "services/guardrails-engine/routers/validation.py",
+    "line": 86,
+    "method": "POST",
+    "path": "/v1/evaluate",
+    "handler": "evaluate_action_only",
+    "classification": "versioned"
+  },
+  {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
     "line": 63,

@@ -4460,9 +4460,51 @@
         },
         {
           "expect": "test_report_only_change_is_blocked",
-          "find": "    if report_like and not substantive:",
+          "find": "    if (report_like or artifacts_only or (has_artifact and outside_docs_only)) and not substantive:",
           "replace": "    if False:",
           "why": "نزع قاعدة الحجب نفسها ⇒ تقارير مولَّدة وحدها تعبر كتغيير مشروع — الحارس أخضر إلى الأبد وهو يحرس لا شيء"
+        },
+        {
+          "expect": "test_a_plain_doc_with_regenerated_artifacts_is_docs_only",
+          "find": "        if plain_docs and not outside_docs_only:",
+          "replace": "        if False:",
+          "why": "نزع استثناء الوثيقة + مصنوعات إعادة التوليد يعيد العطل المقيس على #1012 حرفيّاً: شريحةٌ وثائقيّة تُطيع إعادةَ التوليد الإلزاميّة تُحجَب «report-only» إلى الأبد — والرأسُ يَعِد بعكسه"
+        },
+        {
+          "expect": "test_a_hand_edited_report_beside_a_doc_stays_blocked",
+          "find": "        if plain_docs and not outside_docs_only:",
+          "replace": "        if plain_docs or not outside_docs_only:",
+          "why": "توسيعُ الاستثناء من «كلّ التقارير مصنوعاتُ توليد» إلى «توجد وثيقة» يجعل أيَّ Markdown مفتاحاً يفتح تقريراً بخطّ اليد أو سجلَّ الاعتماد — وهو بعينه ما يحرسه الحارس"
+        },
+        {
+          "expect": "test_runtime_config_code_with_regenerated_artifacts_is_substantive",
+          "find": "    \"config/\",\n)\nSUBSTANTIVE_EXACT = {",
+          "replace": ")\nSUBSTANTIVE_EXACT = {",
+          "why": "إسقاط config/ من التصنيف يعيد العطل المقيس على #1011 حرفيّاً: شيفرةُ تشغيلٍ حقيقيّة + مصنوعاتُ إعادة التوليد الإلزاميّة تُحجَب «report-only» — الـPR تمرّ ما دامت لم تُصلِح حزمتَها وتُحجَب لحظةَ إصلاحها"
+        },
+        {
+          "expect": "test_a_baseline_carrying_a_hand_adjudicated_field_is_not_a_regeneration_artifact",
+          "find": "    \"docs/architecture/manifest_registry.json\",",
+          "replace": "    \"docs/architecture/manifest_registry.json\",\n    \"docs/architecture/fake_connection_debt.json\",",
+          "why": "إعادةُ ملفٍّ يحمل حقلاً مُحكَّماً بخطّ اليد (`proven_live` يحمله المولِّد ولا يشتقّه) إلى مصنوعات إعادة التوليد تفتح ادّعاءَ إثباتٍ حيٍّ خلف وثيقة — مقيسٌ على مراجعة Copilot ٣ في #1012"
+        },
+        {
+          "expect": "test_a_non_markdown_file_under_the_brain_does_not_launder_artifacts",
+          "find": "            or (p.startswith(\"sahool-brain/\") and Path(p).suffix == \".md\")",
+          "replace": "            or p.startswith(\"sahool-brain/\")",
+          "why": "ردُّ إعفاء الدماغ إلى بادئةٍ خام يُمرِّر شيفرةً تحته (`sahool-brain/extra.py`) مع تقريرٍ مولَّد بوصفها «وثائقيّة» — وعقدُ الدماغ Markdown"
+        },
+        {
+          "expect": "test_a_lone_generated_artifact_is_blocked_even_without_a_report_name",
+          "find": "    if (report_like or artifacts_only or (has_artifact and outside_docs_only)) and not substantive:",
+          "replace": "    if (report_like or (has_artifact and outside_docs_only)) and not substantive:",
+          "why": "نزعُ ذراع «لا شيء سوى مصنوعات» يعيد العطل المقيس في مراجعة Copilot ٤ على #1012: `release/FILE_CHECKSUMS.sha256` و`SBOM_MINIMAL.json` لا يطابقان أسماءَ التقارير ولا لاحقاتِها فيمرّان منفردَين، والعقدُ المكتوب يَعِد بحجبهما"
+        },
+        {
+          "expect": "test_an_artifact_riding_with_an_unapproved_path_is_blocked",
+          "find": "    if (report_like or artifacts_only or (has_artifact and outside_docs_only)) and not substantive:",
+          "replace": "    if (report_like or artifacts_only) and not substantive:",
+          "why": "نزعُ الذراع الثالثة يعيد العطل المقيس في مراجعة Copilot ٥ على #1012: ملفٌّ بخطّ اليد خارج `docs/` بلا تلميحٍ في اسمه (`RELEASE_NOTES_20260626.md`) يحمل مصنوعاً معه ويعبر، لأنّ `artifacts_only` يشترط أن يكون كلُّ مسارٍ مصنوعاً"
         }
       ],
       "test": "tests_v9/test_no_report_only_change_guard.py"

@@ -6904,6 +6904,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_b6m4_platform_store.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_backfill_failure_reason_persisted.py",
     "kind": "tests"
   },
@@ -7841,10 +7845,6 @@
   },
   {
     "path": "tests_v9/test_no_merge_conflict_markers_guard.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests_v9/test_no_report_only_change_guard.py",
     "kind": "tests"
   },
   {
