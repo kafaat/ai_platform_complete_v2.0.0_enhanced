@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 588,
+      "evidence_count": 591,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -167,6 +167,7 @@
         "services/gis-workflow-service/run_bundle.py",
         "services/guardrails-engine/contracts.py",
         "services/guardrails-engine/main.py",
+        "services/guardrails-engine/routers/validation.py",
         "services/guardrails-engine/tiers/economic_tier.py",
         "services/indicators-service/__init__.py",
         "services/indicators-service/main.py",
@@ -570,6 +571,7 @@
         "services/weather-service/tests/test_thermal_stress.py",
         "services/weather-service/thermal_stress.py",
         "services/weather-service/weather_runtime.py",
+        "shared/ai/structured_advisory.py",
         "shared/ai/tool_schema.py",
         "shared/autonomous_farm_os_phase9.py",
         "shared/contracts/indicator_observation.schema.json",
@@ -612,6 +614,7 @@
         "shared/feature_store/practice_review.py",
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py",
+        "shared/field_bootstrap.py",
         "shared/field_change_summary.py",
         "shared/field_runtime_cohesion.py",
         "shared/governance/chemical_lineage.py",
@@ -632,7 +635,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 491,
+      "evidence_count": 492,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -1116,6 +1119,7 @@
         "services/weather-service/tests/test_p3_weather_service_runtime.py",
         "services/weather-service/weather_runtime.py",
         "shared/ai/capabilities.py",
+        "shared/ai/structured_advisory.py",
         "shared/ai/tool_registry.py",
         "shared/ai/tool_schema.py",
         "shared/autonomous_farm_os_phase9.py",
@@ -1348,7 +1352,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 253,
+      "evidence_count": 255,
       "owners": [
         "ai_agronomist",
         "auth",
@@ -1516,6 +1520,7 @@
         "services/sahool-platform/core/execution_control_plane.py",
         "services/sahool-platform/core/farm_closed_loop.py",
         "services/sahool-platform/core/farm_costing.py",
+        "services/sahool-platform/core/field_intelligence_coordinator.py",
         "services/sahool-platform/core/guardrails.py",
         "services/sahool-platform/core/historical_loader.py",
         "services/sahool-platform/core/historical_onboarding.py",
@@ -1596,6 +1601,7 @@
         "services/supervisor-agent/main.py",
         "services/supervisor-agent/tool_contracts.py",
         "services/vegetation-analysis-service/test_rs_review_hardening.py",
+        "shared/ai/structured_advisory.py",
         "shared/ai/tool_audit.py",
         "shared/ai/tool_schema.py",
         "shared/contracts/remote_sensing/diagnosis_v1.py",
@@ -2429,8 +2435,8 @@
         "services/sahool-platform/api/routers/weather.py",
         "services/sahool-platform/api/temporal_arbitration.py"
       ],
-      "source_evidence_count": 588,
-      "target_evidence_count": 491,
+      "source_evidence_count": 591,
+      "target_evidence_count": 492,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2538,7 +2544,7 @@
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py"
       ],
-      "source_evidence_count": 491,
+      "source_evidence_count": 492,
       "target_evidence_count": 172,
       "static_supported": true,
       "runtime_verified": false
@@ -2611,7 +2617,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 172,
-      "target_evidence_count": 253,
+      "target_evidence_count": 255,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2642,7 +2648,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 253,
+      "source_evidence_count": 255,
       "target_evidence_count": 32,
       "static_supported": true,
       "runtime_verified": false
@@ -2801,5 +2807,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "2ba92b2bdd53111ec5388668343d5944889360b4f323dd2996827f03bf282933"
+  "content_sha256": "47c9173ccb84352e9bfd525306043f59a692209d92930f7652e32ce523584c41"
 }

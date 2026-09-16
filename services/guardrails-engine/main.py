@@ -46,6 +46,7 @@ class GuardrailsRequest(BaseModel):
     tenant_id: str
     request_source: Literal["agent", "user", "system", "edge"] = "agent"
     auto_approve_low_risk: bool = Field(default=True)
+    evaluation_only: bool = Field(default=False)
 
     @field_validator("user_id", mode="before")
     @classmethod
@@ -73,6 +74,7 @@ class GuardrailsRequest(BaseModel):
 
 class GuardrailsResult(BaseModel):
     allowed: bool
+    evaluation_only: bool = False
     tier_checks: list[dict[str, Any]]
     overall_risk: Literal["LOW", "MEDIUM", "HIGH", "CRITICAL"]
     requires_human_approval: bool
@@ -169,6 +171,19 @@ class SAHOOLGuardrailsEngine:
 
         # Calculate overall risk
         overall_risk = self._calculate_overall_risk(checks)
+
+        # READINESS-B6: /v1/evaluate never creates approvals or changes state.
+        # A passing technical evaluation is not permission to execute an action.
+        if request.evaluation_only:
+            return GuardrailsResult(
+                allowed=False,
+                evaluation_only=True,
+                tier_checks=checks,
+                overall_risk=overall_risk,
+                requires_human_approval=True,
+                arabic_explanation="تقييم فقط؛ لا موافقة تنفيذية ولا إجراء منفذ.",
+                processing_time_ms=int((datetime.now(UTC) - start_time).total_seconds() * 1000),
+            )
 
         # Only LOW can be automatically approved, and only when the caller opted in.
         # Warnings and an explicit request for manual review create a durable workflow.

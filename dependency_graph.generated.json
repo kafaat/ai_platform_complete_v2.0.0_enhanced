@@ -1,5 +1,5 @@
 {
-  "edge_count": 818,
+  "edge_count": 821,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -2282,6 +2282,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/onboarding.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://fields",
+      "to": "db://fields",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/phase_runtime_workers.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -3379,6 +3389,16 @@
       "relation": "READS",
       "resource": "db://prescriptions",
       "to": "db://prescriptions",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/onboarding.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://processing_jobs",
+      "to": "db://processing_jobs",
       "to_kind": "resource"
     },
     {
@@ -7422,6 +7442,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/api/onboarding.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://processing_jobs",
+      "to": "db://processing_jobs",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/spatial_sync.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -8200,9 +8230,9 @@
     "CALLS": 43,
     "CONSUMES": 1,
     "EMITS": 1,
-    "READS": 420,
+    "READS": 422,
     "ROUTES_TO": 71,
-    "WRITES": 282
+    "WRITES": 283
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -8217,8 +8247,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 703,
-      "resolved": 702,
+      "observed": 706,
+      "resolved": 705,
       "unresolved_component_paths": 0
     }
   }

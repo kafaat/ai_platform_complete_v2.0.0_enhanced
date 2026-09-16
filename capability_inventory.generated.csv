@@ -116,6 +116,7 @@ field-management-service.internal.fields,query,field-management-service,GET /int
 field-management-service.internal.fields.field_id,query,field-management-service,GET /internal/fields/{field_id},,route,False
 field-segmentation.segment,command,field-segmentation,POST /v1/segment,frontend,route,False
 guardrails-engine.approve.workflow_id,command,guardrails-engine,POST /v1/approve/{workflow_id},frontend,route,False
+guardrails-engine.evaluate,command,guardrails-engine,POST /v1/evaluate,frontend,route,False
 guardrails-engine.runtime-identity,query,guardrails-engine,GET /runtime-identity,frontend,route,False
 guardrails-engine.validate,command,guardrails-engine,POST /v1/validate,frontend,route,False
 guardrails-engine.workflow.workflow_id,query,guardrails-engine,GET /v1/workflow/{workflow_id},frontend,route,False
