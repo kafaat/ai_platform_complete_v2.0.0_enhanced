@@ -79,7 +79,10 @@ def _irrigation_request() -> dict:
 
 
 def test_the_route_and_its_dependency_are_actually_wired(guardrails):
-    paths = {route.path for route in guardrails.app.routes}
+    # مخطّطُ OpenAPI لا `app.routes`: FastAPI ≥ 0.141 يُمثّل `include_router` بعقدة
+    # `_IncludedRouter` بلا `path`، فالتعدادُ المباشر يحمرّ على إصدارٍ أحدث من المُثبَّت
+    # (0.136.3) بينما التوصيلُ سليم. المخطّطُ يُحسَب بالمسار الكامل في الإصدارَين.
+    paths = set(guardrails.app.openapi()["paths"])
     assert "/v1/evaluate" in paths, "المسارُ غيرُ مُسجَّل ⇒ ٤٠٤ على المُستدعي رغم خضرة الوحدات"
     assert "/v1/validate" in paths, "المسارُ القديم يبقى بسلوكه الافتراضيّ"
 
@@ -107,6 +110,26 @@ def test_evaluation_refuses_an_unauthorized_caller(guardrails, headers):
     # مراجعة #1013: الرسالةُ كانت تسمّي `/v1/validate` دائماً، فمن يصطدم بها على
     # التقييم يطارد مساراً لم يستدعه. لا تُسمّى مساراً بعينه.
     assert "/v1/validate" not in detail, "رسالةُ الرفض تسمّي مساراً آخر ⇒ تشخيصٌ مُضلِّل"
+
+
+@pytest.mark.parametrize("path", ["/v1/evaluate", "/v1/validate"])
+def test_an_unconfigured_token_fails_closed_with_a_route_neutral_message(
+    guardrails, monkeypatch, path
+):
+    """فرعُ 503: بلا توكنٍ مضبوط تُغلَق المساراتُ كلُّها، ورسالتُها لا تسمّي مساراً بعينه.
+
+    مراجعةُ #1014: حالتا الرفض السابقتان تعملان والتوكنُ مضبوط، فلا تبلغان هذا الفرع —
+    وإعادةُ «/v1/validate» إلى رسالته كانت تمرّ خضراء. التوكنُ يُقرأ عند الاستيراد، فيُفرَّغ
+    على الوحدة المُحمَّلة لا على البيئة.
+    """
+    monkeypatch.setattr(guardrails, "_GR_AGENT_TOKEN", "")
+    client = TestClient(guardrails.app)
+    response = client.post(path, json=_irrigation_request(), headers={"X-Agent-Token": TOKEN})
+    assert response.status_code == 503, "بلا توكنٍ مضبوط يجب أن يُغلَق المسار لا أن يُفتَح"
+    detail = response.json().get("detail", "")
+    assert "SAHOOL_AGENT_TOKEN" in detail, "الرسالةُ لا تسمّي المتغيّرَ الناقص ⇒ لا يُصلَح"
+    assert "/v1/validate" not in detail, "رسالةُ 503 تسمّي مساراً آخر ⇒ تشخيصٌ مُضلِّل"
+    assert "/v1/evaluate" not in detail
 
 
 def test_a_low_risk_evaluation_is_still_not_an_authorization(guardrails):

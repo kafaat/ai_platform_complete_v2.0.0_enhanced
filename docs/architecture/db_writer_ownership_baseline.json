@@ -1,7 +1,7 @@
 {
   "$comment": "كتاباتٌ لم يأذن بها docs/architecture/db_ownership.yml — مَعدودةٌ لا محكومٌ عليها. لم يُثبَت أنّ كلّاً منها خطأ؛ بعضُها قد يكون العقدُ هو المخطئ فيه. الأساسُ راتشِتٌ ينزل ولا يصعد: يُخفَّض بنقل الكتابة إلى مالكها أو بتصحيح العقد بأساسٍ مُعلَن.",
   "contract": "docs/architecture/db_ownership.yml",
-  "measured_on": "9c7592acf13f65c21dc2a10f903be7dc07d146fe",
+  "measured_on": "9c4be359b30d3f9c2499b58b7240e96f3c5a8b86",
   "violation_count": 73,
   "violations": {
     "actuator_command_outbox::sahool-platform": [
