@@ -166,3 +166,16 @@ def test_predict_metadata_surfaces_verified_artifact_digest(monkeypatch):
 
     assert body["metadata"]["artifact_digest"] == digest
     assert body["metadata"]["model"] == "sam2"
+
+
+def test_every_documented_sam2_compose_surface_wires_checkpoint_digest():
+    for rel in ("docker-compose.v9.yml", "docker-compose.fixed.yml"):
+        text = (ROOT / rel).read_text(encoding="utf-8")
+        assert "sahool-sam2-inference:" in text
+        assert "SAM2_CHECKPOINT_SHA256: ${SAM2_CHECKPOINT_SHA256:-}" in text
+
+
+def test_sam2_deployment_runbook_requires_digest_and_verifies_bytes():
+    text = (ROOT / "docs" / "SAM2_DEPLOYMENT.md").read_text(encoding="utf-8")
+    assert "SAM2_CHECKPOINT_SHA256=<64-hex-sha256>" in text
+    assert "sha256sum -c -" in text
