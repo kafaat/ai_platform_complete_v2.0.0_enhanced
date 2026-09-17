@@ -35,7 +35,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d6b6d678c93c03919814772eb30d60515f299903d840d4911a08925c15d3fd4c"
+          "content": "c2662e8e2a6d54ab8abb1e076424e307204b63968b64ebb3c10e3d805427d739"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cdebe05fec8e1f7e02d12a49f91f854debfc903546a3094e307dc69159737ebe"
+          "content": "f919176fcd0ff74bbb25cd586d41d7ce773995f2e4f5a189817c8139a69f936c"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -12765,7 +12765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e07f3688797ceb6ec4569de9f40e307fa7799ec330d3cc2fdb4131a2a7c504cb"
+          "content": "c412b54884c5e8b3019db2963476c6f24970f3b8eef45821ebd97f64e25e00d5"
         }
       ],
       "name": "services/field-segmentation/main.py",
@@ -28435,7 +28435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "592984153fecc606582e066b0e5a7bedb3047ab2e380306b2108b16dd3e721dd"
+          "content": "1526e2be4bf757a98deb7900a92127810ba0e104955bbcde61c4ca38897ebb7f"
         }
       ],
       "name": "services/sam2-inference/main.py",
@@ -28455,7 +28455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5938cd1ecbccdb4b11d778b409bd8c2589dda6affb066123201622d07ecd8efa"
+          "content": "60bc226f96d8a5c0406476416a3e55a7fde714059a2cc23040f12df3107f292f"
         }
       ],
       "name": "services/sam2-inference/sam2_runtime.py",
