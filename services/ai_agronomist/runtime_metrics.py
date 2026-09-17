@@ -1,20 +1,14 @@
-"""Small Prometheus-compatible metric accumulator for tests and local runtime."""
+"""قشرةُ إعادة تصدير — الوحدةُ انتقلت إلى `shared.ai.recommendation_runtime.runtime_metrics` (AI-RUNTIME-WIRING-01).
 
-from __future__ import annotations
+تبقى هنا كي لا يتغيّر مستهلكوها داخل هذه الخدمة واختباراتُها؛ لا منطقَ فيها.
+"""
 
-from collections import Counter
-from dataclasses import dataclass, field
+from shared.ai.recommendation_runtime.runtime_metrics import (
+    RuntimeMetrics,
+    runtime_metrics,
+)
 
-
-@dataclass
-class RuntimeMetrics:
-    counters: Counter = field(default_factory=Counter)
-
-    def inc(self, name: str, amount: int = 1) -> None:
-        self.counters[name] += amount
-
-    def snapshot(self) -> dict[str, int]:
-        return dict(self.counters)
-
-
-runtime_metrics = RuntimeMetrics()
+__all__ = [
+    "RuntimeMetrics",
+    "runtime_metrics",
+]

@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5340,
+    "files_scanned": 5351,
     "files_by_kind": {
       "backend": 1208,
       "database": 277,
       "governance": 62,
       "mobile": 55,
-      "other": 1478,
-      "tests": 1802,
+      "other": 1488,
+      "tests": 1803,
       "web": 458
     },
-    "unmapped_artifacts": 2170,
+    "unmapped_artifacts": 2171,
     "ambiguous_artifacts": 420
   },
   "capabilities": [
@@ -3889,6 +3889,14 @@
           ]
         },
         {
+          "path": "shared/ai/recommendation_runtime/multi_tenant_runtime_validator.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "shared/security/service_tenant_assertion.py",
           "score": 14,
           "signals": [
@@ -3926,7 +3934,7 @@
         "mobile": 0,
         "tests": 27,
         "governance": 0,
-        "other_evidence": 12
+        "other_evidence": 13
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -43133,6 +43141,10 @@
     },
     {
       "path": "tests_v9/test_guard_mutation_registry_schema_delta.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_guardrail_flags_reach_every_image.py",
       "kind": "tests"
     },
     {
