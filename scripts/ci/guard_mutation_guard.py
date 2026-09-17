@@ -68,6 +68,13 @@ for _stream in (sys.stdout, sys.stderr):
 ROOT = Path(__file__).resolve().parents[2]
 CI = ROOT / "scripts" / "ci"
 REGISTRY = ROOT / "docs" / "architecture" / "guard_mutation_registry.json"
+#: مهلةُ الزرعة الواحدة (استدعاءُ pytest واحد). **مقيسٌ لا مُفترَض:** أبطأُ ملفِّ اختبارٍ
+#: مرصود ~10ث (يبني مستودعات git)، والاختبارُ المسمّى وحده ~0.5ث، والحزمةُ كلُّها
+#: 3:45–5:04. فعشرُ دقائق سقفٌ فوق كلّ مرصودٍ بعشرات الأضعاف، وتحت سقف الحزمة (30)
+#: بما يُبقي بقيّتَها قابلةً للقياس. بلا مهلة كانت زرعةٌ معلَّقة تحرق سقفَ الوظيفة كلَّه
+#: بلا اسمٍ ولا حكم — «فشلٌ بالمهلة يُقرَأ عطلاً في الاختبارات لا تعليقاً في زرعة».
+PLANT_TIMEOUT_SECONDS = int(os.environ.get("SAHOOL_MUTATION_PLANT_TIMEOUT_SECONDS", "600"))
+PLANT_TIMEOUT_MARKER = "PLANT TIMED OUT after"
 #: سطحُ الحجب المُجمَّد — كلُّ ثلاثيّة (حارس، workflow، وظيفة) قائمةٍ يومَ التجميد.
 BLOCKING_SURFACE_BASELINE = ROOT / "docs" / "architecture" / "blocking_surface_baseline.json"
 #: إقراراتُ ما زِيد بعد التجميد — أربعُ خصائصَ لكلّ زيادة.
@@ -350,24 +357,35 @@ def _run_tests(test_file: str, root: Path) -> tuple[int, str]:
         env["TMPDIR"] = tmp
         env["TEMP"] = tmp
         env["TMP"] = tmp
-        res = subprocess.run(
-            [
-                sys.executable,
-                "-m",
-                "pytest",
-                test_file,
-                "-q",
-                "--no-cov",
-                "-p",
-                "no:cacheprovider",
-            ],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            cwd=root,
-            env=env,
-        )
+        try:
+            res = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "pytest",
+                    test_file,
+                    "-q",
+                    "--no-cov",
+                    "-p",
+                    "no:cacheprovider",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                cwd=root,
+                env=env,
+                timeout=PLANT_TIMEOUT_SECONDS,
+            )
+        except subprocess.TimeoutExpired as exc:
+            # زرعةٌ معلَّقة كانت تحرق سقفَ الوظيفة كلَّه (٣٠ دقيقة للحزمة) بلا اسمٍ ولا حكم:
+            # المهلةُ على مستوى الزرعة تسمّي الطفرةَ التي علّقت وتُبقي بقيّةَ الحزمة قابلةً
+            # للقياس. الخرجُ الجزئيّ يُلحَق لأنّه غالباً يحمل آخرَ اختبارٍ بدأ.
+            partial = "".join(
+                part.decode("utf-8", "replace") if isinstance(part, bytes) else (part or "")
+                for part in (exc.stdout, exc.stderr)
+            )
+            return 124, f"{PLANT_TIMEOUT_MARKER} {PLANT_TIMEOUT_SECONDS}s\n{partial}"
     return res.returncode, res.stdout + res.stderr
 
 
@@ -390,10 +408,20 @@ def _run_tests_for_mutation(test_file: str, expected: str, root: Path) -> tuple[
     code, out = _run_tests(f"{test_file}::{expected}", root)
     if ran_at_all(out) and code != 0 and expected in failing_tests(out):
         return code, out
+    if timed_out(out):
+        # زرعةٌ علّقت على الاختبار المسمّى وحده لن تُحسَم بإعادتها على الملفّ كاملاً —
+        # التراجعُ هنا يُضاعِف المهلةَ المحروقة ولا يُضيف حكماً.
+        return code, out
     return _run_tests(test_file, root)
 
 
+def timed_out(out: str) -> bool:
+    return out.startswith(PLANT_TIMEOUT_MARKER)
+
+
 def _outcome(code: int, out: str, expected: str) -> tuple[str, tuple[str, ...]]:
+    if timed_out(out):
+        return "timed_out", tuple()
     if not ran_at_all(out):
         return "runner_did_not_run", tuple()
     if code == 0:
@@ -546,7 +574,15 @@ def _run_mutations_in_place(
                     f"✗ {label}: **الاستعادة لم تُعِد المصدر إلى أصله** — كلّ طفرة تالية"
                     "\n    تعمل على شجرة ملوَّثة، وأحكامها لا تخصّ ما زُرِع فيها."
                 )
-            if not ran_at_all(out):
+            if timed_out(out):
+                failures.append(
+                    f"✗ {label}: **الزرعةُ علّقت** ولم تُحسَم خلال {PLANT_TIMEOUT_SECONDS}ث —"
+                    f"\n    الاختبار: {test_file}::{m['expect']} · الحدّ: {PLANT_TIMEOUT_SECONDS}ث."
+                    "\n    لا قتلٌ ولا خضرة. طفرةٌ تُعلِّق اختبارَها عطلٌ بذاته (حلقةٌ لا"
+                    "\n    نهائيّة، أو انتظارُ موردٍ غائب) ويُشخَّص من هنا لا من سقف الوظيفة."
+                    f"\n    آخر ما طُبِع:\n    {out.strip()[-300:]}"
+                )
+            elif not ran_at_all(out):
                 failures.append(
                     f"✗ {label}: **المُشغِّل لم يُشغّل اختباراً** — لا انهيار الحارس"
                     "\n    ولا سلامته مُثبَتان هنا. الأرجح بيئة بلا pytest أو بلا"
