@@ -21,8 +21,27 @@ import pytest
 pytestmark = [pytest.mark.integration]
 
 _SERVICE_DIR = Path(__file__).resolve().parents[1] / "services" / "vegetation-analysis-service"
-if str(_SERVICE_DIR) not in sys.path:
-    sys.path.insert(0, str(_SERVICE_DIR))
+
+
+def _ensure_service_path() -> None:
+    """Install the service import root at execution time, not only collection time.
+
+    ``load_service_main`` deliberately removes stale roots of *other* services from
+    ``sys.path`` to prevent cross-service imports.  Pytest collects this module long
+    before all tests execute, so a collection-time insertion can legitimately be
+    removed by a loader test that runs earlier.  Re-establishing our own explicit
+    import root immediately before importing ``anomaly_store`` makes this test
+    independent of suite ordering while preserving the loader isolation contract.
+    """
+    service_dir = str(_SERVICE_DIR)
+    while service_dir in sys.path:
+        sys.path.remove(service_dir)
+    sys.path.insert(0, service_dir)
+
+
+# Keep collection-time compatibility for helpers imported by plugins/fixtures, but
+# correctness does not depend on this surviving until the test body runs.
+_ensure_service_path()
 
 
 def _dsn() -> str:
@@ -47,6 +66,7 @@ def _anomaly_payload(tenant: str, ref: str) -> dict:
 
 @pytest.mark.asyncio
 async def test_cross_tenant_read_and_transition_are_blocked_by_rls():
+    _ensure_service_path()
     from anomaly_store import AnomalyNotFound
     from anomaly_store_pg import PostgresAnomalyStore
 
