@@ -88,7 +88,8 @@ DEDUP_TOLERANCE_M = float(os.getenv("SAM2_POLYGON_DEDUP_TOLERANCE_M", "0.5").str
 _PREDICTOR = None  # SAM2ImagePredictor أو None
 _MODEL_LOAD_ERROR: str | None = None  # سبب فشل التحميل (للتشخيص الصادق)
 # رمز سبب مُصنَّف (للتشخيص الآليّ في /readyz): None عند التحميل، وإلّا أحد:
-#   cuda_unavailable · weights_missing · library_missing · load_failed.
+#   checkpoint_digest_missing_or_invalid · checkpoint_digest_mismatch · weights_missing ·
+#   cuda_unavailable · library_missing · load_failed.
 _MODEL_LOAD_REASON_CODE: str | None = None
 _MODEL_ARTIFACT_DIGEST: str | None = None
 
