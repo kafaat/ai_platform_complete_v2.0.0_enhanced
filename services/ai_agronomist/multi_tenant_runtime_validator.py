@@ -1,29 +1,16 @@
-"""Multi-tenant runtime validation."""
+"""قشرةُ إعادة تصدير — الوحدةُ انتقلت إلى `shared.ai.recommendation_runtime.multi_tenant_runtime_validator` (AI-RUNTIME-WIRING-01).
 
-from __future__ import annotations
+تبقى هنا كي لا يتغيّر مستهلكوها داخل هذه الخدمة واختباراتُها؛ لا منطقَ فيها.
+"""
 
-from typing import Any
+from shared.ai.recommendation_runtime.multi_tenant_runtime_validator import (
+    MultiTenantRuntimeValidator,
+    TenantIsolationViolation,
+    validate_tenant_payload,
+)
 
-
-class TenantIsolationViolation(PermissionError):
-    pass
-
-
-def validate_tenant_payload(expected_tenant_id: str, payload: Any, *, path: str = "$") -> None:
-    if isinstance(payload, dict):
-        actual = payload.get("tenant_id")
-        if actual is not None and str(actual) != str(expected_tenant_id):
-            raise TenantIsolationViolation(
-                f"tenant leak at {path}: {actual} != {expected_tenant_id}"
-            )
-        for key, value in payload.items():
-            validate_tenant_payload(expected_tenant_id, value, path=f"{path}.{key}")
-    elif isinstance(payload, (list, tuple)):
-        for idx, item in enumerate(payload):
-            validate_tenant_payload(expected_tenant_id, item, path=f"{path}[{idx}]")
-
-
-class MultiTenantRuntimeValidator:
-    def validate(self, tenant_id: str, payload: Any) -> bool:
-        validate_tenant_payload(tenant_id, payload)
-        return True
+__all__ = [
+    "MultiTenantRuntimeValidator",
+    "TenantIsolationViolation",
+    "validate_tenant_payload",
+]

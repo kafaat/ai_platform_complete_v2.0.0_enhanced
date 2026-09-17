@@ -23,6 +23,8 @@ import pytest
 pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
+#: اسمُ الوحدة نفسُه في موضعَيها: القشرةُ في `services/ai_agronomist/` والأصلُ في
+#: `shared/ai/recommendation_runtime/` — المستهلكُ يُقاس أينما استورد.
 PIPELINE_MODULE = "recommendation_runtime_pipeline"
 REGISTRY = ROOT / "sahool-brain/gaps/registry.md"
 PLATFORM = ROOT / "services/sahool-platform"
