@@ -5160,6 +5160,10 @@ scripts/ci/capability_mapping_engine.py:270      ["git","ls-files","-z"]
 ## GUARDRAIL-FLAGS-FILE-NOT-IN-ANY-IMAGE-01 — رايات الحواجز الأربع لا تصل إلى أيّ حاوية
 
 - **الحالة:** fixed — التعريفُ الواحد في `shared/ai/recommendation_runtime/flags.py` (تنسخه الصورتان) يقرأ `SAHOOL_<FLAG>` من البيئة بدلالاتٍ صريحة (قيمةٌ غيرُ مفهومة = الافتراض لا تفعيل)؛ `config/guardrail_feature_flags.py` صار إعادةَ تصدير بلا تعريف؛ والمستهلكان (`internal_orchestrator.py` · المُهيّئ المحروس) يستوردان من `shared/` **بلا** `try/except` — غيابُ الوحدة عطلُ توصيلٍ يُرى لا يُبتلَع. الشاهد `tests_v9/test_guardrail_flags_reach_every_image.py` (10 حالات؛ ثلاثُ طفرات مقتولة: عودةُ البديل الصامت · تعريفٌ ثانٍ في `config/` · تجاهلُ البيئة). **حدُّ صدق:** القراءةُ عند الاستيراد لا عند كلّ نداء — قلبُ راية يحتاج إعادةَ تشغيل الحاوية، وهو المقصود.
+
+## GUARDRAIL-FLAGS-FILE-NOT-IN-ANY-IMAGE-01 — رايات الحواجز الأربع لا تصل إلى أيّ حاوية
+
+- **الحالة:** open — اكتُشفت أثناء تسجيل `AI-RUNTIME-WIRING-01` (2026-09-17)؛ تُعالَج في شريحتها.
 - **المصدر:** [`config/guardrail_feature_flags.py`](../../config/guardrail_feature_flags.py) في جذر المستودع، ومستهلكاه `services/sahool-platform/core/internal_orchestrator.py:56-65` و`services/ai_agronomist/runtime_guardrail_adapter.py:12-22` كلاهما يستورده داخل `try/except` بافتراضاتٍ بديلة. ولا يُنسخ `config/` في `services/sahool-platform/Dockerfile` ولا في `services/ai_agronomist/Dockerfile` — فالاستيرادُ يسقط إلى الافتراضات في **كلّ** حاوية، ولا تُقلَب رايةٌ منها في التشغيل بأيّ وسيلة.
 - **الخاصّيّة المنتهَكة:** «رايةٌ تُوثَّق على أنّها مرحلةُ تفعيل ولا يمكن تفعيلُها» — الوثائقُ (#1011 Finding 5) تقرأ `ENABLE_PONYTAIL_GUARDRAILS=False` قراراً مرحليّاً، وهو في الحاوية حقيقةٌ بنيويّة. والاختباراتُ تراها من الجذر فتقيس كوناً غيرَ المنشور.
 - **العلاج المُقترَح:** قراءةُ الرايات من البيئة (`SAHOOL_GUARDRAIL_*`) داخل `shared/` مع الافتراضات نفسها، وإسقاطُ الاستيراد الصامت؛ وشاهدٌ يقارن `COPY` في الصورتين بما يستورده مستهلكوهما (الصنف: «استيرادٌ يعمل في الاختبار وينكسر في الحاوية»).
