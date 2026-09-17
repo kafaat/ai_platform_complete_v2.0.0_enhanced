@@ -90470,55 +90470,41 @@
    "file":"services/guardrails-engine/main.py",
    "source":"_require_service_token",
    "target":"_Header",
-   "line":412
+   "line":414
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_require_service_token",
    "target":"HTTPException",
-   "line":422
+   "line":424
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_require_service_token",
    "target":"compare_digest",
-   "line":426
+   "line":428
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_require_service_token",
    "target":"HTTPException",
-   "line":427
+   "line":429
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
    "target":"_Header",
-   "line":431
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_verify",
-   "target":"len",
    "line":433
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
-   "target":"HTTPException",
-   "line":434
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_verify",
-   "target":"startswith",
+   "target":"len",
    "line":435
   },
   {
@@ -90532,50 +90518,50 @@
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
-   "target":"decode",
+   "target":"startswith",
+   "line":437
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_verify",
+   "target":"HTTPException",
    "line":438
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
+   "target":"decode",
+   "line":440
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_verify",
    "target":"split",
-   "line":439
+   "line":441
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
    "target":"HTTPException",
-   "line":445
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_verify",
-   "target":"get",
    "line":447
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
-   "target":"HTTPException",
-   "line":448
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_verify",
    "target":"get",
-   "line":450
+   "line":449
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
    "target":"HTTPException",
-   "line":451
+   "line":450
   },
   {
    "owner":"guardrails-engine",
@@ -90595,56 +90581,56 @@
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
+   "target":"get",
+   "line":454
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_verify",
+   "target":"HTTPException",
+   "line":455
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_verify",
    "target":"UUID",
-   "line":457
+   "line":459
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
    "target":"get",
-   "line":457
+   "line":459
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
    "target":"str",
-   "line":457
+   "line":459
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
    "target":"HTTPException",
-   "line":459
+   "line":461
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
    "target":"_Header",
-   "line":463
+   "line":465
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
    "target":"len",
-   "line":469
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_authn",
-   "target":"HTTPException",
-   "line":470
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_authn",
-   "target":"startswith",
    "line":471
   },
   {
@@ -90658,36 +90644,36 @@
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
-   "target":"decode",
+   "target":"startswith",
+   "line":473
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_authn",
+   "target":"HTTPException",
    "line":474
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
+   "target":"decode",
+   "line":476
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_authn",
    "target":"split",
-   "line":475
+   "line":477
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
    "target":"HTTPException",
-   "line":481
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_authn",
-   "target":"get",
    "line":483
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_authn",
-   "target":"HTTPException",
-   "line":484
   },
   {
    "owner":"guardrails-engine",
@@ -90707,29 +90693,43 @@
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
-   "target":"UUID",
-   "line":490
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_authn",
    "target":"get",
-   "line":490
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_authn",
-   "target":"str",
-   "line":490
+   "line":487
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
    "target":"HTTPException",
+   "line":488
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_authn",
+   "target":"UUID",
    "line":492
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_authn",
+   "target":"get",
+   "line":492
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_authn",
+   "target":"str",
+   "line":492
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_authn",
+   "target":"HTTPException",
+   "line":494
   },
   {
    "owner":"guardrails-engine",
