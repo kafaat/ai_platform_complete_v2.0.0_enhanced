@@ -890,3 +890,56 @@ def test_a_malformed_shard_argument_fails_closed(raw) -> None:
 
 def test_no_shard_argument_means_the_whole_universe() -> None:
     assert gmg.parse_shard(None) is None
+
+
+# ─── MUT-SHARD-JOB-01: مهلةٌ لكلّ زرعة — التعليقُ حكمٌ مُسمًّى لا حرقٌ لسقف الوظيفة ───
+
+
+def test_a_hung_plant_is_named_not_burned(monkeypatch, tmp_path: Path) -> None:
+    """`subprocess.run` بلا `timeout` كان يترك زرعةً معلَّقة تحرق سقف الحزمة (٣٠ دقيقة) بلا اسم."""
+    import subprocess
+
+    def hang(*args, **kwargs):
+        assert kwargs.get("timeout") == gmg.PLANT_TIMEOUT_SECONDS, "المهلة لا تُمرَّر إلى المُشغِّل"
+        raise subprocess.TimeoutExpired(
+            cmd=args[0], timeout=kwargs["timeout"], output="collecting ..."
+        )
+
+    monkeypatch.setattr(gmg.subprocess, "run", hang)
+    code, out = gmg._run_tests("tests_v9/test_x.py::test_y", tmp_path)
+    assert code == 124
+    assert out.startswith(gmg.PLANT_TIMEOUT_MARKER)
+    assert "collecting" in out, "الخرجُ الجزئيّ يُلحَق ليُعرَف آخرُ ما بدأ"
+    assert gmg._outcome(code, out, "test_y") == ("timed_out", ())
+
+
+def test_a_timed_out_narrow_run_does_not_burn_the_timeout_twice(monkeypatch) -> None:
+    calls = _recording_runner(
+        monkeypatch,
+        {"tests_v9/test_x.py::test_y": (124, f"{gmg.PLANT_TIMEOUT_MARKER} 600s\n")},
+    )
+    code, out = gmg._run_tests_for_mutation("tests_v9/test_x.py", "test_y", ROOT)
+    assert code == 124 and gmg.timed_out(out)
+    assert calls == ["tests_v9/test_x.py::test_y"], "التراجعُ إلى الملفّ الكامل يُضاعِف المهلةَ المحروقة"
+
+
+def test_a_timeout_is_a_failure_of_the_sweep_not_a_runner_absence(
+    monkeypatch, tmp_path: Path
+) -> None:
+    """في المكنسة الحيّة يُطبَع «علّقت» لا «المُشغِّل لم يُشغّل اختباراً» — فالتشخيص يبدأ من الطفرة."""
+    ci = _fake_repo(tmp_path)
+    monkeypatch.setattr(
+        gmg, "_run_tests", lambda *a, **k: (124, f"{gmg.PLANT_TIMEOUT_MARKER} 600s\n")
+    )
+    reg = _reg(mutated=_spec("v < 0", "v < -99", "test_negative_is_rejected"))
+    failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
+    assert failures and any("علّقت" in f for f in failures), failures
+    assert any("test_fake.py::test_negative_is_rejected" in f and "600" in f for f in failures), (
+        "التشخيصُ يسمّي الطفرةَ والاختبارَ والحدّ — وإلّا بدأ القارئُ من سقف الوظيفة"
+    )
+    assert not any("لم يُشغّل اختباراً" in f for f in failures), (
+        "التعليقُ يُقرَأ غيابَ مُشغِّل ⇒ تشخيصٌ في الاتّجاه الخطأ"
+    )
+    assert (ci / "fake_guard.py").read_text(encoding="utf-8") == _GUARD_SRC, (
+        "المصدرُ يُستعاد بعد التعليق"
+    )
