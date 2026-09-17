@@ -34,6 +34,29 @@ def _belongs_to(module, root: Path) -> bool:
 
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
+_SERVICES_ROOT = (_REPO_ROOT / "services").resolve()
+
+
+def _is_other_service_path(entry: str, root: Path) -> bool:
+    """هل عنصر ``sys.path`` جذرُ خدمةٍ أخرى تحت ``services/``؟
+
+    اختبارات الخدمات تضيف جذوراً عديدة إلى ``sys.path`` في العملية نفسها. إبقاءُ جذر
+    خدمةٍ سابقة يسمح لـ``router_registry``/``routers`` العامّين أن يُحلّا من الخدمة
+    الخطأ بعد حذف الملفّ من الخدمة الجاري اختبارها. نعزل **جذور الخدمات فقط**؛ لا
+    نحذف جذر المستودع ولا site-packages، حتى تبقى التبعيات المشتركة والخارجية مرئية.
+    """
+    if not entry:
+        return False
+    try:
+        candidate = Path(entry).resolve()
+        current = root.resolve()
+        return (
+            candidate != current
+            and candidate.parent == _SERVICES_ROOT
+            and candidate.is_dir()
+        )
+    except (OSError, ValueError):
+        return False
 
 
 def _is_internal_module(name: str | None, root: Path) -> bool:
@@ -55,9 +78,16 @@ def _is_internal_module(name: str | None, root: Path) -> bool:
 def load_service_main(service_dir: str, *, required_attrs: tuple[str, ...]):
     """يُحمّل main.py لخدمة بعينها رغم عموميّة الاسم عبر الخدمات (نمط #570)."""
     root = Path(service_dir).resolve()
-    while service_dir in sys.path:
-        sys.path.remove(service_dir)
-    sys.path.insert(0, service_dir)
+
+    # SERVICE-LOADER-CROSS-SERVICE-PATH-CONTAMINATION-01: لا يكفي تنظيف
+    # ``sys.modules``. جذرُ خدمةٍ سابقة في ``sys.path`` يستطيع توفير اسم عام مثل
+    # ``router_registry`` لخدمةٍ أخرى، فيتحول «ملف داخلي محذوف» إلى ImportError من
+    # الملف الخطأ. أزل جذور الخدمات الأخرى قبل الاستيراد، واترك repo/site-packages.
+    sys.path[:] = [p for p in sys.path if not _is_other_service_path(p, root)]
+    root_s = str(root)
+    while root_s in sys.path:
+        sys.path.remove(root_s)
+    sys.path.insert(0, root_s)
 
     # **إعادةُ الاستيراد ليست مجّانيّة.** لو كانت وحدةُ الخدمة نفسها محمَّلةً سلفاً،
     # فالإسقاطُ ثمّ الاستيراد يُنتج كائنَ وحدةٍ **ثانياً** لنفس الملفّ — ومن استورد
