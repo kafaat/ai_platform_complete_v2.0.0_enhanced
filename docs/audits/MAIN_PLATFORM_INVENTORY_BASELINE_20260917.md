@@ -1,0 +1,127 @@
+# Main Platform Inventory Baseline — 2026-09-17
+
+**Source commit:** `d3734df17c635250139587f35af8dcb24358a6f2` (`main` at inventory start)
+
+## Purpose
+
+This is an **inventory baseline, not a certification and not a verdict**. It precedes diagnostic, operational, analytical, integration, and live tests. Its job is to define what exists, what is declared, how components are expected to connect, and which edges remain unresolved.
+
+The generated platform catalogue remains a source, not unquestioned truth. `wired` and `tested` are static-derived attributes; configured/activated state requires runtime evidence.
+
+## Component surface
+
+`component_inventory.generated.csv` contains 36 component records at the source commit. The principal domains are:
+
+- execution: actuator-service
+- simulation/experimental: agriai-engine
+- agents: ai_agronomist, supervisor-agent
+- identity: auth
+- decision governance: decision-service, guardrails-engine, model-registry-adapter
+- edge: edge-inference
+- ERP projection: erp-bridge
+- fields: field-management-service, field-segmentation
+- user interfaces: frontend, mobile
+- GIS publication: gis-workflow-service
+- indicators: indicators-service
+- knowledge/RAG: knowledge-graph, local-ai-rag, rag-retrieval, qdrant-seed
+- agents/MCP: mcp_servers
+- notifications/channels: notification-agent, telegram-bot
+- remote sensing: raster-service, raster-tiler-service, remote-sensing-workspace-bff
+- platform core: sahool-platform and its worker deployment units
+- segmentation inference: sam2-inference
+- ground ingest: scout-ingest-service
+- soil: soil-service
+- media: tts-service, video-processor
+- vegetation interpretation: vegetation-analysis-service
+- weather: weather-service, weather-polygon-worker, weather-signal-engine
+
+## Declared data ownership surface
+
+The catalogue reports table ownership counts that must be reconciled against migrations, readers, writers, RLS and runtime use. Notable declared counts include:
+
+- sahool-platform: 196
+- decision-service: 42
+- field-management-service: 32
+- soil-service: 32
+- agriai-engine: 21
+- erp-bridge: 15
+- raster-service: 13
+- scout-ingest-service: 11
+- weather-service: 8
+- actuator-service: 7
+- mcp_servers: 6
+
+These are hypotheses to verify, not proof of correct ownership.
+
+## Static state requiring investigation
+
+The generated inventory itself exposes asymmetric states that later tests must explain rather than normalize away:
+
+- `agriai-engine`: `wired=False`, `tested=True`.
+- `raster-tiler-service`: `wired=True`, `tested=False`.
+- `sam2-inference`: `wired=True`, `tested=False`.
+- `weather-polygon-worker`: `wired=True`, `tested=False`.
+- `weather-signal-engine`: `wired=True`, `tested=False`.
+- frontend/mobile/notification-agent/telegram-bot/qdrant-seed have blank fields in parts of the static wired/tested surface; blank is not automatically `false`.
+
+## Inventory graph contract
+
+Before writing the diagnostic scanners, the inventory is modeled as edges:
+
+`component -> deployment unit -> capability/route -> producer -> consumer -> table -> event subject -> worker -> external provider -> UI/mobile caller -> test evidence -> runtime evidence`
+
+Each edge has one of three evidence states only:
+
+- `resolved`: supported by a concrete source artifact/call site.
+- `declared`: present in a registry/catalogue but not yet independently resolved.
+- `unresolved`: insufficient evidence; no negative conclusion is inferred.
+
+No `unresolved` edge is automatically classified as orphan/dead/no-consumer.
+
+## Reconciliation dimensions
+
+The inventory pass must reconcile independently:
+
+1. Components: catalogue vs repository directories vs compose deployment units.
+2. Routes/capabilities: generated catalogue/OpenAPI/router declarations vs real callers.
+3. Database: declared ownership vs migrations vs writers/readers vs RLS policy surface.
+4. Events: subject registry vs publish sites vs subscribe sites vs worker deployment.
+5. Runtime topology: compose services/networks/ports vs gateway/BFF/upstream references.
+6. AI: runtime pipelines/models/tools/RAG/guardrails vs production entrypoints and container COPY boundaries.
+7. External integrations: weather, satellite/STAC/CDSE, ERP, notification channels, object/vector stores and any fallback providers.
+8. User surfaces: frontend/mobile routes and API clients vs backend capabilities.
+9. Operations: workers, schedulers, queues, retries, DLQs, idempotency and approval boundaries.
+10. Evidence: tests, generated guards and runtime evidence ledgers mapped back to the exact component/edge they actually prove.
+
+## Known main observation relevant to the AI graph
+
+At this baseline commit, `AI-RUNTIME-WIRING-01` is recorded before implementation: `RecommendationRuntimePipeline` has no non-test consumer and the platform image does not copy the `services/ai_agronomist` implementation. The next inventory pass must therefore distinguish source-level availability from image/runtime reachability.
+
+The same commit records that `config/guardrail_feature_flags.py` is not copied into any image while consumers import it behind fallback behavior. This belongs in the deployment/runtime-boundary inventory, not in a generic source-code existence count.
+
+## Required inventory artifacts before diagnostic probes
+
+The intended normalized inventory set is:
+
+- `components.json`
+- `deployment_units.json`
+- `capabilities.json`
+- `routes.json`
+- `database_ownership.json`
+- `event_topology.json`
+- `workers_schedulers.json`
+- `external_integrations.json`
+- `frontend_consumers.json`
+- `mobile_consumers.json`
+- `ai_runtime_graph.json`
+- `observability_surface.json`
+- `test_evidence_map.json`
+- `integration_edges.json`
+- `unresolved_edges.json`
+- `inventory_manifest.json`
+
+These artifacts are descriptive. They do not contain release verdicts or blocking thresholds.
+
+## Sequencing rule
+
+Do not implement `hardcoded_value_scanner`, `silent_fallback_scanner`, `contract_drift_scanner`, or live certification tests until this inventory graph has been populated sufficiently to tell a scanner which architectural role a source location or edge represents. The scanners should consume inventory context rather than rediscovering architecture independently.
