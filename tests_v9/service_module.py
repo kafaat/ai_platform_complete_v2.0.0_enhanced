@@ -129,7 +129,9 @@ def load_service_main(service_dir: str, *, required_attrs: tuple[str, ...]):
     # معاً تمرّان فحص السمات وهما وحدتان مختلفتان.
     loaded = Path(mod.__file__ or "").resolve()
     if not loaded.is_relative_to(root):
-        raise AssertionError(f"استُورد main خاطئ (تصادم أسماء): {loaded} خارج {root}")
+        raise AssertionError(
+            f"استُورد main خاطئ (تصادم أسماء): {loaded} خارج {root}"
+        )
     missing = [a for a in required_attrs if not hasattr(mod, a)]
     if missing:
         raise AssertionError(f"استُورد main خاطئ (تصادم أسماء) — ينقصه {missing}")
