@@ -2971,6 +2971,7 @@
         "services/sahool-platform/tests/test_work_order_from_recommendation.py",
         "tests_v9/test_irrigation_recommendation_policy.py",
         "tests_v9/test_recommendation_enriched_passthrough.py",
+        "tests_v9/test_recommendation_runtime_reachability.py",
         "tests_v9/test_recommendation_work_order_idempotency.py",
         "tests_v9/test_v152_recommendation_feedback_deprecation_static.py"
       ],
@@ -3008,7 +3009,7 @@
           "path": "services/ai_agronomist/recommendation_events.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=17, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=18, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": "5",

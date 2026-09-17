@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5339,
+    "files_scanned": 5340,
     "files_by_kind": {
       "backend": 1208,
       "database": 277,
       "governance": 62,
       "mobile": 55,
       "other": 1478,
-      "tests": 1801,
+      "tests": 1802,
       "web": 458
     },
-    "unmapped_artifacts": 2169,
+    "unmapped_artifacts": 2170,
     "ambiguous_artifacts": 420
   },
   "capabilities": [
@@ -43761,6 +43761,10 @@
     },
     {
       "path": "tests_v9/test_recommendation_enriched_passthrough.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_recommendation_runtime_reachability.py",
       "kind": "tests"
     },
     {
