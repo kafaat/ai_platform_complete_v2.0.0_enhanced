@@ -44,6 +44,8 @@ def _is_internal_module(name: str | None, root: Path) -> bool:
     if not name or name == "main":
         return True
     top = name.split(".")[0]
+    if top in _GENERIC_ROOTS:
+        return True
     for base in (root, _REPO_ROOT):
         if (base / top).is_dir() or (base / f"{top}.py").is_file():
             return True

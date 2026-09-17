@@ -59,6 +59,14 @@ def test_a_missing_internal_module_is_a_hard_failure(fake_service):
     _must_fail_hard(service, "انحدارُ توصيلٍ")
 
 
+def test_a_deleted_internal_module_file_is_a_hard_failure(fake_service):
+    service = fake_service("from router_registry import router\napp = object()\n")
+    doomed = service / "router_registry.py"
+    doomed.write_text("router = object()\n", encoding="utf-8")
+    doomed.unlink()
+    _must_fail_hard(service, "انحدارُ توصيلٍ")
+
+
 def test_a_missing_external_package_still_skips(fake_service):
     service = fake_service("import definitely_not_an_installed_package_sahool\napp = object()\n")
     with pytest.raises(pytest.skip.Exception, match="تبعيّة خارجيّة ناقصة"):
