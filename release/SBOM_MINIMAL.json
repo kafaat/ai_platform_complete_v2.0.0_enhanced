@@ -22255,7 +22255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0faa84cdb38eac537363cc403a34706cb294f38551cfdaeba24841d25fd6d3f4"
+          "content": "88fdd04267cd2472ce2051fde691470b7c13191392889c571ec009ae5e65cfb3"
         }
       ],
       "name": "services/sahool-platform/core/internal_orchestrator.py",

@@ -343716,517 +343716,489 @@
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_infer_ponytail_intent",
    "target":"lower",
-   "line":78
+   "line":81
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_infer_ponytail_intent",
    "target":"PonytailIntent",
-   "line":80
+   "line":83
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_infer_ponytail_intent",
    "target":"get",
-   "line":83
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_infer_ponytail_intent",
-   "target":"str",
-   "line":83
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_infer_ponytail_intent",
-   "target":"PonytailIntent",
    "line":86
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_infer_ponytail_intent",
-   "target":"get",
-   "line":89
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_infer_ponytail_intent",
    "target":"str",
-   "line":89
+   "line":86
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_infer_ponytail_intent",
    "target":"PonytailIntent",
+   "line":89
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_infer_ponytail_intent",
+   "target":"get",
    "line":92
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_infer_ponytail_intent",
-   "target":"get",
-   "line":95
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_infer_ponytail_intent",
    "target":"str",
-   "line":95
+   "line":92
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_infer_ponytail_intent",
    "target":"PonytailIntent",
-   "line":97
+   "line":95
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_infer_ponytail_intent",
    "target":"get",
-   "line":100
+   "line":98
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_infer_ponytail_intent",
    "target":"str",
+   "line":98
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_infer_ponytail_intent",
+   "target":"PonytailIntent",
    "line":100
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_field_state_snapshot_from_inputs",
+   "source":"_infer_ponytail_intent",
    "target":"get",
-   "line":107
+   "line":103
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_infer_ponytail_intent",
+   "target":"str",
+   "line":103
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_field_state_snapshot_from_inputs",
    "target":"get",
-   "line":108
+   "line":110
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_field_state_snapshot_from_inputs",
+   "target":"get",
+   "line":111
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_field_state_snapshot_from_inputs",
    "target":"isinstance",
-   "line":108
+   "line":111
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_field_state_snapshot_from_inputs",
    "target":"float",
-   "line":109
+   "line":112
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_field_state_snapshot_from_inputs",
    "target":"get",
-   "line":109
+   "line":112
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_field_state_snapshot_from_inputs",
    "target":"hasattr",
-   "line":113
+   "line":116
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_field_state_snapshot_from_inputs",
    "target":"dict",
-   "line":114
+   "line":117
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_field_state_snapshot_from_inputs",
    "target":"isinstance",
-   "line":115
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_field_state_snapshot_from_inputs",
-   "target":"str",
    "line":118
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_field_state_snapshot_from_inputs",
+   "target":"str",
+   "line":121
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_field_state_snapshot_from_inputs",
    "target":"get",
-   "line":119
+   "line":122
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_field_state_snapshot_from_inputs",
    "target":"FieldStateSnapshot",
-   "line":120
+   "line":123
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_field_state_snapshot_from_inputs",
    "target":"get",
-   "line":124
+   "line":127
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_evidence_from_inputs",
    "target":"get",
-   "line":133
+   "line":136
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_evidence_from_inputs",
    "target":"EvidenceSummary",
-   "line":134
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_evidence_from_inputs",
-   "target":"bool",
-   "line":135
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_evidence_from_inputs",
-   "target":"get",
-   "line":135
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_evidence_from_inputs",
-   "target":"bool",
-   "line":136
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_evidence_from_inputs",
-   "target":"get",
-   "line":136
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_evidence_from_inputs",
-   "target":"bool",
    "line":137
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_evidence_from_inputs",
+   "target":"bool",
+   "line":138
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_evidence_from_inputs",
+   "target":"get",
+   "line":138
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_evidence_from_inputs",
+   "target":"bool",
+   "line":139
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_evidence_from_inputs",
+   "target":"get",
+   "line":139
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_evidence_from_inputs",
+   "target":"bool",
+   "line":140
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_blocked_by_ponytail_response",
    "target":"EnrichedRecommendation",
-   "line":146
+   "line":149
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_blocked_by_ponytail_response",
    "target":"asdict",
-   "line":152
+   "line":155
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_blocked_by_ponytail_response",
    "target":"isoformat",
-   "line":155
+   "line":158
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_blocked_by_ponytail_response",
    "target":"now",
-   "line":155
+   "line":158
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"authorize",
-   "line":198
+   "line":201
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"now",
-   "line":200
+   "line":203
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"strftime",
-   "line":200
+   "line":203
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"EnrichedRecommendation",
-   "line":204
+   "line":207
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"asdict",
-   "line":209
+   "line":212
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"isoformat",
-   "line":212
+   "line":215
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"now",
-   "line":212
+   "line":215
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"SearchContext",
-   "line":216
+   "line":219
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"find_similar_recommendations",
-   "line":225
+   "line":228
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"cross_reference_summary",
-   "line":230
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"orchestrate_recommendation",
-   "target":"build_provenance",
    "line":233
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
-   "target":"date",
+   "target":"build_provenance",
    "line":236
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"orchestrate_recommendation",
+   "target":"date",
+   "line":239
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"isoformat",
-   "line":236
+   "line":239
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"now",
-   "line":236
+   "line":239
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"RecommendationPonytail",
-   "line":243
+   "line":246
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"filter",
-   "line":244
+   "line":247
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"_infer_ponytail_intent",
-   "line":245
+   "line":248
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"_field_state_snapshot_from_inputs",
-   "line":251
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"orchestrate_recommendation",
-   "target":"_evidence_from_inputs",
    "line":254
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
+   "target":"_evidence_from_inputs",
+   "line":257
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"orchestrate_recommendation",
    "target":"_blocked_by_ponytail_response",
-   "line":262
+   "line":265
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"generate_recommendation",
-   "line":272
+   "line":275
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"EnrichedRecommendation",
-   "line":283
+   "line":286
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"str",
-   "line":285
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"orchestrate_recommendation",
-   "target":"asdict",
    "line":288
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
+   "target":"asdict",
+   "line":291
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"orchestrate_recommendation",
    "target":"str",
-   "line":290
+   "line":293
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"isoformat",
-   "line":291
+   "line":294
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"now",
-   "line":291
+   "line":294
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"EnrichedRecommendation",
-   "line":295
+   "line":298
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"to_log_dict",
-   "line":297
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"orchestrate_recommendation",
-   "target":"asdict",
    "line":300
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
-   "target":"isoformat",
+   "target":"asdict",
    "line":303
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"orchestrate_recommendation",
+   "target":"isoformat",
+   "line":306
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"now",
-   "line":303
+   "line":306
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"enforce_pipeline",
-   "line":308
+   "line":311
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrator_summary",
    "target":"get",
-   "line":324
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"orchestrator_summary",
-   "target":"get",
-   "line":325
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"orchestrator_summary",
-   "target":"get",
-   "line":326
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"orchestrator_summary",
-   "target":"get",
-   "line":327
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"orchestrator_summary",
-   "target":"len",
    "line":327
   },
   {
@@ -344235,6 +344207,34 @@
    "source":"orchestrator_summary",
    "target":"get",
    "line":328
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"orchestrator_summary",
+   "target":"get",
+   "line":329
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"orchestrator_summary",
+   "target":"get",
+   "line":330
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"orchestrator_summary",
+   "target":"len",
+   "line":330
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"orchestrator_summary",
+   "target":"get",
+   "line":331
   },
   {
    "owner":"sahool-platform",

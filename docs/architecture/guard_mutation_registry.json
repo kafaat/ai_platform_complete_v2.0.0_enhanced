@@ -3970,7 +3970,7 @@
         },
         {
           "expect": "test_a_runner_that_never_ran_is_not_evidence",
-          "find": "            if not ran_at_all(out):",
+          "find": "            elif not ran_at_all(out):",
           "replace": "            if False:",
           "why": "اعتبار انهيار المُشغِّل دليلاً ⇒ بيئة بلا pytest تُبلَّغ «حمرّ بغير الاختبار المُتوقَّع»"
         },
