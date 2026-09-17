@@ -219,6 +219,14 @@ services:
       MODEL_CACHE: /models
       PEST_MODEL_PATH: /models/pest_detector_int8.onnx
       YIELD_MODEL_PATH: /models/yield_estimator_int8.onnx
+      # EDGE-MODEL-DIGEST-CONTRACT-UNENFORCED-01: المسارُ يقول أين، والبصمةُ تقول هل يصلح —
+      # وفصلُهما هو عطلُ «الاسمُ يُفعِّل» الذي أُغلق في EDGE-MODEL-ARTIFACT-INTEGRITY-01. كان هذا
+      # السطحُ يشحن المسارَين بلا بصمتَيهما، و`AUTO_DOWNLOAD_MODELS` مفعَّلٌ فوقه بينما
+      # `download_models.py:49` يرفض التنزيل بلا بصمةٍ صالحة — فلا يُنزَّل شيءٌ ويردّ كلُّ
+      # استدلالٍ 503 دائماً. فارغٌ بالافتراض كما في `docker-compose.v9.yml`: التزويدُ مسؤوليّةُ
+      # المُشغِّل، والغيابُ يُرى ولا يُبتلَع.
+      PEST_MODEL_SHA256: ${PEST_MODEL_SHA256:-}
+      YIELD_MODEL_SHA256: ${YIELD_MODEL_SHA256:-}
       SAHOOL_AGENT_TOKEN: "${SAHOOL_AGENT_TOKEN:-}"
     volumes:
       - edge_data:/data

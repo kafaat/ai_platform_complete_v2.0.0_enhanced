@@ -7324,6 +7324,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_edge_model_digest_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_edge_sync_recovery.py",
     "kind": "tests"
   },

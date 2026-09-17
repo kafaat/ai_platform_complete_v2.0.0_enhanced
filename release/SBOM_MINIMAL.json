@@ -55,7 +55,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "51b62fe9f20269b32715bbca1a481c43a5431ab9de61de5a94d64c8dd9c002a2"
+          "content": "cda08df69b6f99deb47477e5b48919dad84b293aa1a002f484a612692f19b2a6"
         }
       ],
       "name": "docker-compose.light.yml",

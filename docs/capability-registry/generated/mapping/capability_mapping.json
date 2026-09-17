@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5352,
+    "files_scanned": 5353,
     "files_by_kind": {
       "backend": 1208,
       "database": 277,
       "governance": 62,
       "mobile": 55,
       "other": 1488,
-      "tests": 1804,
+      "tests": 1805,
       "web": 458
     },
-    "unmapped_artifacts": 2172,
+    "unmapped_artifacts": 2173,
     "ambiguous_artifacts": 420
   },
   "capabilities": [
@@ -42917,6 +42917,10 @@
     },
     {
       "path": "tests_v9/test_edge_model_artifact_integrity.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_edge_model_digest_contract.py",
       "kind": "tests"
     },
     {
