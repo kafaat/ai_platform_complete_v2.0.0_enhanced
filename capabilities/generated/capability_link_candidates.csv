@@ -1134,6 +1134,7 @@ IRR-005,test,services/sahool-platform/tests/test_work_order_from_recommendation.
 IRR-005,test,tests_v9/test_irrigation_recommendation_policy.py,7,applied
 IRR-005,test,tests_v9/test_recommendation_enriched_passthrough.py,3,applied
 IRR-005,test,tests_v9/test_recommendation_runtime_reachability.py,3,applied
+IRR-005,test,tests_v9/test_recommendation_wiring_preconditions.py,3,applied
 IRR-005,test,tests_v9/test_recommendation_work_order_idempotency.py,3,applied
 IRR-005,test,tests_v9/test_v152_recommendation_feedback_deprecation_static.py,3,applied
 IRR-006,api,DELETE /api/v1/irrigation/schedules/{schedule_id} @ services/sahool-platform/api/routers/irrigation.py:357,3,applied
