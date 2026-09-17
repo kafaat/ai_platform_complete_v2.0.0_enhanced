@@ -20,7 +20,9 @@
 from __future__ import annotations
 
 import ast
+import importlib.util
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -28,15 +30,44 @@ import pytest
 pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def _compose_files() -> list[Path]:
+    """`compose_files` من السطح المشترك، مُحمَّلاً بمساره **بلا تعديل `sys.path`**.
+
+    `sys.path.insert` على مستوى الوحدة يبقى نافذاً بقيّةَ جلسة pytest، فيُقحِم ~٢٠٠ وحدةً
+    من `scripts/ci` في فضاء الاستيراد لكلّ اختبارٍ يليه — وهو عينُ العطل الذي أُصلح في
+    `tests_v9/service_module.py` اليوم (#1017): تلويثُ مسارٍ عامٍّ من أجل استيرادٍ محلّيّ.
+    والعُرفُ القائم في `tests_v9` هو `spec_from_file_location`، فيُتَّبع.
+    """
+    spec = importlib.util.spec_from_file_location(
+        "_compose_surface_for_edge_digest", ROOT / "scripts" / "ci" / "compose_surface.py"
+    )
+    assert spec and spec.loader, "تعذّر تحميل سطح compose المشترك"
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return list(module.compose_files())
+
+
 EDGE = ROOT / "services/edge-inference"
 MANIFEST = EDGE / "models_manifest/edge_models.required.json"
 EDGE_MAIN = EDGE / "main.py"
 GATE = EDGE / "model_artifact_gate.py"
-SAM2_RUNTIME = ROOT / "services/sam2-inference/sam2_runtime.py"
 
 
 def _manifest() -> list[dict]:
     return json.loads(MANIFEST.read_text(encoding="utf-8"))["required_models"]
+
+
+def _ships_env(compose_text: str, env_name: str) -> bool:
+    """يقبل صيغتَي compose كلتَيهما: خريطةً (``ENV: value``) وقائمةً (``- ENV=value``).
+
+    البحثُ عن `"ENV:"` وحده يفوّت صيغةَ القائمة فيُنتج **حمرةً كاذبة** عند تمثيلٍ مختلف
+    لنفس الحقيقة — وهو الوجهُ المقابل لِما يُقاس هنا (مراجعةُ #1022).
+    """
+    return (
+        re.search(rf"^\s*-?\s*{re.escape(env_name)}\s*[:=]", compose_text, re.MULTILINE) is not None
+    )
 
 
 def _model_env_map() -> dict[str, tuple[str, str]]:
@@ -93,31 +124,50 @@ def test_the_two_declarations_of_the_contract_agree_in_both_directions() -> None
         )
 
 
-def test_every_declared_digest_variable_is_actually_consumed_by_the_gate() -> None:
-    """`sha256_env` كان حقلاً مُعلَناً بلا إنفاذ — صفرُ مراجع في `scripts/` و`tests_v9/`.
+def _gate_function(name: str) -> ast.AST:
+    tree = ast.parse(GATE.read_text(encoding="utf-8"))
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == name:
+            return node
+    raise AssertionError(f"اختفت `{name}` من المُهيّئ — العقدُ فقد حلقةً")
 
-    الحدُّ هنا مقصود: يُقاس أنّ المُهيّئ **يستهلك** الاسمَ الممرَّر إليه، لا أنّ النصّ يذكره.
+
+def test_the_declared_digest_name_is_threaded_end_to_end_into_the_environment_read() -> None:
+    """السلسلةُ تُقاس حلقةً حلقة: `sha256_env` ⇐ `model_capability` ⇐ `expected_sha256` ⇐ `getenv`.
+
+    **الصياغةُ الأولى كانت أضعفَ من دعواها** (مراجعةُ #1022): قبلت **أيَّ** `os.getenv` في الملفّ.
+    فلو صار `expected_sha256` يقرأ اسماً ثابتاً — أو اسماً لا علاقة له بالمُمرَّر — لمرّت خضراء
+    والعقدُ مقطوع. الربطُ الآن صريحٌ في الطرفين معاً، فلا تكفي مصادفةُ وجود نداء.
     """
-    gate = ast.parse(GATE.read_text(encoding="utf-8"))
-    getenv_args = {
-        node.args[0].value
-        for node in ast.walk(gate)
-        if isinstance(node, ast.Call)
-        and isinstance(node.func, ast.Attribute)
-        and node.func.attr == "getenv"
-        and node.args
-        and isinstance(node.args[0], ast.Constant)
-    }
-    reads_a_passed_name = any(
+    reader = _gate_function("expected_sha256")
+    param = reader.args.args[0].arg
+    threaded = any(
         isinstance(node, ast.Call)
         and isinstance(node.func, ast.Attribute)
         and node.func.attr == "getenv"
         and node.args
         and isinstance(node.args[0], ast.Name)
-        for node in ast.walk(gate)
+        and node.args[0].id == param
+        for node in ast.walk(reader)
     )
-    assert reads_a_passed_name or getenv_args, (
-        "المُهيّئ لم يعد يقرأ أيَّ متغيّرِ بيئة — البصمةُ المعتمدة بلا مصدر"
+    assert threaded, (
+        f"`expected_sha256` لم يعد يمرّر وسيطَه `{param}` إلى `os.getenv` — "
+        "البصمةُ المعتمدة تُقرأ من مصدرٍ آخر، والاسمُ المُعلَن صار زينة"
+    )
+
+    caller = _gate_function("model_capability")
+    passes_declared_name = any(
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "expected_sha256"
+        and node.args
+        and isinstance(node.args[0], ast.Name)
+        and node.args[0].id == "sha_env_name"
+        for node in ast.walk(caller)
+    )
+    assert passes_declared_name, (
+        "`model_capability` لم يعد يمرّر `sha_env_name` إلى `expected_sha256` — "
+        "اسمُ البصمة المُعلَن في البيان لا يبلغ القراءةَ من البيئة"
     )
 
 
@@ -138,8 +188,8 @@ def test_every_surface_that_ships_a_model_path_also_ships_its_digest() -> None:
     عطل «الاسمُ يُفعِّل» الذي أُغلق في `EDGE-MODEL-ARTIFACT-INTEGRITY-01`. فمن يشحن الأوّلَ
     يشحن الثاني. وسطحٌ لا يشحن المسارَ أصلاً خارجَ القاعدة — لا يدّعي تشغيلَ النموذج.
     """
-    surfaces = sorted(ROOT.glob("docker-compose*.yml"))
-    assert surfaces, "لا ملفّاتِ compose — تغيّرت بنيةُ النشر، حدِّث هذا الشاهد"
+    surfaces = _compose_files()
+    assert surfaces, "سطحُ compose المشترك فارغ — تغيّرت بنيةُ النشر، حدِّث هذا الشاهد"
 
     offenders: list[str] = []
     covered: list[str] = []
@@ -147,10 +197,10 @@ def test_every_surface_that_ships_a_model_path_also_ships_its_digest() -> None:
         path_env, sha_env = model["env"], model["sha256_env"]
         for surface in surfaces:
             text = surface.read_text(encoding="utf-8")
-            if f"{path_env}:" not in text:
+            if not _ships_env(text, path_env):
                 continue  # لا يدّعي تشغيلَ هذا النموذج
             covered.append(f"{surface.name}:{path_env}")
-            if f"{sha_env}:" not in text:
+            if not _ships_env(text, sha_env):
                 offenders.append(f"{surface.name}: يشحن {path_env} بلا {sha_env}")
 
     assert covered, "لا سطحَ يشحن مسارَ نموذجٍ — تغيّرت البنية، حدِّث الشاهدَ لا الادّعاء"
