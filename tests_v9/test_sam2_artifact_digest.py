@@ -79,3 +79,90 @@ def test_model_load_verifies_artifact_before_importing_torch(monkeypatch):
     assert rt._PREDICTOR is None
     assert rt._MODEL_ARTIFACT_DIGEST is None
     assert rt._MODEL_LOAD_REASON_CODE == "checkpoint_digest_missing_or_invalid"
+
+
+def _load_main(monkeypatch):
+    svc = ROOT / "services" / "sam2-inference"
+    monkeypatch.syspath_prepend(str(svc))
+    sys.modules.pop("sam2_runtime", None)
+    sys.modules.pop("_sam2_digest_main", None)
+    spec = importlib.util.spec_from_file_location("_sam2_digest_main", svc / "main.py")
+    assert spec and spec.loader
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_readyz_surfaces_verified_artifact_digest(monkeypatch):
+    import asyncio
+
+    main = _load_main(monkeypatch)
+    digest = "a" * 64
+    main.rt._PREDICTOR = object()
+    main.rt._MODEL_ARTIFACT_DIGEST = digest
+    main.rt._MODEL_LOAD_ERROR = None
+    main.rt._MODEL_LOAD_REASON_CODE = None
+
+    body = asyncio.run(main.readyz())
+
+    assert body["artifact_digest"] == digest
+    assert body["artifact_digest_verified"] is True
+    assert body["status"] == "ready"
+
+
+def test_predict_metadata_surfaces_verified_artifact_digest(monkeypatch):
+    import asyncio
+    import contextlib
+    import numpy as np
+
+    main = _load_main(monkeypatch)
+    digest = "b" * 64
+
+    class Predictor:
+        def set_image(self, _rgb):
+            return None
+
+        def predict(self, **_kwargs):
+            return [np.ones((2, 2), dtype=np.uint8)], [0.9], None
+
+    class TorchStub:
+        bfloat16 = object()
+
+        @staticmethod
+        def inference_mode():
+            return contextlib.nullcontext()
+
+        @staticmethod
+        def autocast(*_args, **_kwargs):
+            return contextlib.nullcontext()
+
+    main.rt.AGENT_TOKEN = "token"
+    main.rt._PREDICTOR = Predictor()
+    main.rt._MODEL_ARTIFACT_DIGEST = digest
+    monkeypatch.setitem(sys.modules, "torch", TorchStub)
+    monkeypatch.setattr(main.rt, "_resolve_image_url", lambda *_args: "memory://image")
+    monkeypatch.setattr(
+        main.rt,
+        "_read_rgb",
+        lambda *_args: (np.zeros((2, 2, 3), dtype=np.uint8), object(), None),
+    )
+    monkeypatch.setattr(
+        main.rt,
+        "_build_prompt",
+        lambda *_args: (np.array([[0, 0]]), np.array([1]), None),
+    )
+    monkeypatch.setattr(
+        main.rt,
+        "_mask_to_polygon",
+        lambda *_args: {
+            "type": "Polygon",
+            "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 0]]],
+        },
+    )
+
+    req = main.rt.PredictRequest(mode="auto")
+    body = asyncio.run(main.predict(req, x_agent_token="token"))
+
+    assert body["metadata"]["artifact_digest"] == digest
+    assert body["metadata"]["model"] == "sam2"
