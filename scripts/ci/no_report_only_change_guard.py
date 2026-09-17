@@ -78,6 +78,15 @@ REGENERATION_ARTIFACT_EXACT = {
     "docs/architecture/source_text_assertion_inventory.json",
     "docs/architecture/tenant_guc_scope_baseline.json",
     "REPORT_INDEX.md",
+    # أربعةُ أهدافِ كتابةٍ من `generated_write_targets.json` كانت ناقصةً من القائمة رغم أنّها
+    # اشتقاقٌ صرف (مراجعة Copilot ٦ على #1012): لا مفتاحَ إعفاءٍ/إثباتٍ/تحكيمٍ فيها ومولِّداتُها
+    # (`route_conflict_guard` · `router_reachability_guard` · `path3_runtime_readiness_closure`)
+    # لا تحمل شيئاً قُدُماً. لا تُعاد ختمُها بكلّ تشغيل، بل حين يتغيّر ما تشتقّه — فكانت، حين
+    # تتغيّر مع وثيقة، تُقرأ «مساراً غيرَ معتمَد» فتُحجَب الشريحةُ الوثائقيّة بالصنف نفسه.
+    "execution-audit/generated/route_conflicts.json",
+    "execution-audit/generated/router_reachability.json",
+    "governance/path3-generated/PATH3_RUNTIME_READINESS_CLOSURE.json",
+    "governance/path3-generated/PATH3_RUNTIME_READINESS_CLOSURE.md",
 }
 REPORT_NAME_HINTS = (
     "REPORT",
