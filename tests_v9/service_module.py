@@ -33,6 +33,23 @@ def _belongs_to(module, root: Path) -> bool:
         return False
 
 
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def _is_internal_module(name: str | None, root: Path) -> bool:
+    """هل الوحدةُ الغائبة من الشجرة (داخليّة) أم حزمةٌ خارجيّة؟ — بالمسار لا بالتخمين.
+
+    اسمٌ مجهول يُعدّ داخليّاً: التخطّي عند الجهل هو بعينه «التخطّي الصامت يُقرَأ نجاحاً».
+    """
+    if not name or name == "main":
+        return True
+    top = name.split(".")[0]
+    for base in (root, _REPO_ROOT):
+        if (base / top).is_dir() or (base / f"{top}.py").is_file():
+            return True
+    return False
+
+
 def load_service_main(service_dir: str, *, required_attrs: tuple[str, ...]):
     """يُحمّل main.py لخدمة بعينها رغم عموميّة الاسم عبر الخدمات (نمط #570)."""
     root = Path(service_dir).resolve()
@@ -60,8 +77,21 @@ def load_service_main(service_dir: str, *, required_attrs: tuple[str, ...]):
     purge_generic_modules()
     try:
         mod = importlib.import_module("main")
+    except ModuleNotFoundError as e:
+        # **التخطّي لحزمةٍ خارجيّة غائبة فقط.** كان كلُّ `ImportError` يصير تخطّياً، فانكسارُ
+        # `router_registry` أو `routers.validation` — التوصيلُ الذي يقيسه عقدُ HTTP على
+        # الخدمة نفسها — كان يُتخطّى وCI أخضر (مراجعة Copilot على #1014؛ صنف «التخطّي
+        # الصامت يُقرَأ نجاحاً»). الداخليُّ يُصنَّف بالمسار: وحدةٌ لها ملفٌّ تحت جذر الخدمة
+        # أو جذر المستودع، أو الخدمةُ نفسُها (`main`)، أو اسمٌ لم يُعرَف (فشلٌ مغلق).
+        if _is_internal_module(e.name, root):
+            raise AssertionError(
+                f"فشلُ استيرادٍ داخليّ في {root.name}: {e} — انحدارُ توصيلٍ لا تبعيّةٌ ناقصة"
+            ) from e
+        pytest.skip(f"تبعيّة خارجيّة ناقصة: {e}", allow_module_level=True)
     except ImportError as e:
-        pytest.skip(f"تبعيّة ناقصة: {e}", allow_module_level=True)
+        # `ImportError` بلا `ModuleNotFoundError`: الوحدةُ وُجِدت وانكسر استيرادُها
+        # (اسمٌ غائب من وحدةٍ داخليّة، أو استيرادٌ دائريّ) — عطلٌ في الشجرة لا في البيئة.
+        raise AssertionError(f"انكسر استيرادُ {root.name}: {e}") from e
 
     # هويّة الوحدة تُثبَت بمسارها، لا تُستدَلّ من سماتها: خدمتان تحملان `app` و`router`
     # معاً تمرّان فحص السمات وهما وحدتان مختلفتان.
