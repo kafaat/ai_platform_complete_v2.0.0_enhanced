@@ -8184,6 +8184,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_recommendation_wiring_preconditions.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_recommendations_field_state_gate.py",
     "kind": "tests"
   },
