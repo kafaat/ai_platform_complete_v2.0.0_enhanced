@@ -19,12 +19,15 @@ from typing import Any
 from .human_review_repository import InMemoryReviewRepository, ReviewRecord, new_review_id
 from .multi_tenant_runtime_validator import MultiTenantRuntimeValidator
 from .recommendation_events import RecommendationEvent, RecommendationEventPublisher
-from .runtime_metrics import runtime_metrics
 
-try:
-    from .runtime_guardrail_adapter import guarded_runtime_context
-except Exception:  # pragma: no cover
-    guarded_runtime_context = None  # type: ignore
+# استيرادٌ مباشر بلا `try/except`. كان مُلتقَطاً بـ`except Exception` مع بديلٍ `None`،
+# وذلك **تجاوزٌ صامتٌ لحاجزٍ** لا مجرّدَ إخفاءِ عطلِ استيراد: المسارُ البديل كان يفحص
+# `canonical_field_state` وحده ويُمرّر السياقَ كما هو — فلا `assert_no_decision_keys`
+# على مخرجات الأدوات، ولا تجريدَ لـRAG/KG من مدخلات القرار. أي أنّ انكسارَ استيرادٍ
+# واحد كان يُسقِط سلطةَ القرار ويُبقي الخطَّ يعمل. والمُهيّئُ في الحزمة نفسِها ويستورد
+# `.flags` التي تُقرأ من البيئة، فغيابُه عطلُ توصيلٍ يجب أن يُرى لا أن يُبتلَع.
+from .runtime_guardrail_adapter import guarded_runtime_context
+from .runtime_metrics import runtime_metrics
 
 
 @dataclass(frozen=True)
@@ -59,13 +62,7 @@ class RecommendationRuntimePipeline:
         self.tenant_validator.validate(tenant_id, context)
         runtime_metrics.inc("recommendation_runtime_requests_total")
 
-        if guarded_runtime_context is not None:
-            prepared = guarded_runtime_context(context)
-        else:
-            if not context.get("canonical_field_state"):
-                runtime_metrics.inc("recommendation_blocked_total")
-                return RuntimePipelineResult("blocked_missing_field_state", None, None, 0)
-            prepared = context
+        prepared = guarded_runtime_context(context)
 
         if not prepared.get("canonical_field_state"):
             runtime_metrics.inc("recommendation_blocked_total")

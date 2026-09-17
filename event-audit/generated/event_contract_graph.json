@@ -150,7 +150,7 @@
       "dynamic_expr": "RecommendationEvent(tenant_id=tenant_id, field_id=field_id, recommendation_id=rec_id, event_type='created', payload={'intent': intent})",
       "file": "shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
       "kind": "producer",
-      "line": 78,
+      "line": 75,
       "queue": null,
       "subject": null
     },
@@ -161,7 +161,7 @@
       "dynamic_expr": "RecommendationEvent(tenant_id=tenant_id, field_id=field_id, recommendation_id=rec_id, event_type='review_required', payload={'review_id': review.review_id})",
       "file": "shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
       "kind": "producer",
-      "line": 110,
+      "line": 107,
       "queue": null,
       "subject": null
     },

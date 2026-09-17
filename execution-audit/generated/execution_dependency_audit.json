@@ -5,7 +5,7 @@
   "runtime_verified":false,
   "python_files_parsed":1904,
   "route_handlers":1054,
-  "call_edges":78807,
+  "call_edges":78804,
   "dead_code_candidates":637,
   "duplicate_function_groups":60,
   "route_owners":27,
@@ -520466,252 +520466,231 @@
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"__init__",
    "target":"InMemoryReviewRepository",
-   "line":46
+   "line":49
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"__init__",
    "target":"RecommendationEventPublisher",
-   "line":47
+   "line":50
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"__init__",
    "target":"MultiTenantRuntimeValidator",
-   "line":48
+   "line":51
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"validate",
-   "line":59
+   "line":62
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"inc",
-   "line":60
-  },
-  {
-   "owner":"shared",
-   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"guarded_runtime_context",
    "line":63
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
-   "target":"get",
+   "target":"guarded_runtime_context",
    "line":65
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
-   "target":"inc",
-   "line":66
-  },
-  {
-   "owner":"shared",
-   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"RuntimePipelineResult",
+   "target":"get",
    "line":67
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
-   "target":"get",
-   "line":70
-  },
-  {
-   "owner":"shared",
-   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
-   "source":"execute",
    "target":"inc",
-   "line":71
+   "line":68
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"RuntimePipelineResult",
-   "line":72
+   "line":69
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"recommendation_engine",
-   "line":74
+   "line":71
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"validate",
+   "line":72
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"get",
+   "line":74
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"str",
+   "line":74
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"publish",
    "line":75
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
-   "target":"get",
-   "line":77
-  },
-  {
-   "owner":"shared",
-   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"str",
-   "line":77
-  },
-  {
-   "owner":"shared",
-   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"publish",
-   "line":78
-  },
-  {
-   "owner":"shared",
-   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
-   "source":"execute",
    "target":"RecommendationEvent",
-   "line":79
+   "line":76
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"get",
-   "line":88
+   "line":85
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"lower",
-   "line":88
+   "line":85
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"str",
-   "line":88
+   "line":85
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"get",
-   "line":89
+   "line":86
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"lower",
-   "line":89
+   "line":86
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"str",
-   "line":89
+   "line":86
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"bool",
-   "line":95
+   "line":92
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"get",
-   "line":95
+   "line":92
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"create_review",
-   "line":99
+   "line":96
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"ReviewRecord",
-   "line":100
+   "line":97
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"new_review_id",
-   "line":101
+   "line":98
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"inc",
-   "line":109
+   "line":106
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"publish",
-   "line":110
+   "line":107
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"RecommendationEvent",
-   "line":111
+   "line":108
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"RuntimePipelineResult",
-   "line":119
+   "line":116
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
    "target":"len",
+   "line":120
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"RuntimePipelineResult",
    "line":123
   },
   {
    "owner":"shared",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
    "source":"execute",
-   "target":"RuntimePipelineResult",
-   "line":126
-  },
-  {
-   "owner":"shared",
-   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
-   "source":"execute",
    "target":"len",
-   "line":127
+   "line":124
   },
   {
    "owner":"shared",
@@ -566591,7 +566570,7 @@
    "symbol":"RecommendationRuntimePipeline",
    "kind":"class",
    "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
-   "line":38,
+   "line":41,
    "owner":"shared",
    "decorated_route":false,
    "reference_count":0,
