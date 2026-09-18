@@ -272,25 +272,24 @@ def test_the_control_shows_both_rows_land_when_they_are_eligible_from_the_start(
 
 
 def test_a_row_skipped_for_a_removable_reason_is_bound_to_the_registry_status() -> None:
-    """الفقدُ مقيَّدٌ بالحالة في الاتّجاهين — فالإصلاحُ يُطالِب بالإغلاق ولا يُعاقَب عليه.
+    """حالة واحدة للفجوة الجامعة: يكفي بقاء الفقد في أي شاهد كي تبقى مفتوحة.
 
-    شاهدٌ يؤكّد «القراءةُ 10 تُفقَد» وحدَه يُجمّد العطل عقداً. فالمقيسُ هو الاتّفاق:
-    فقدٌ ⇒ الفجوةُ `open`؛ ولا فقدَ ⇒ الحالةُ تُقلَب في الالتزام نفسِه.
+    تُقاس الحالات كلها قبل الحكم. زوال سبب واحد لا يغلق فجوة بقي لها سبب آخر،
+    وزوال الفقد في الجميع يستلزم مراجعة الحالة مع دليل الإغلاق الحي المطلوب.
     """
     status = _gap_status(GAP_ID)
-    for case in CASES:
-        persisted = _run(case)
-        lost = 10 not in persisted
-        if lost:
-            assert status == "open", (
-                f"{case}: القراءةُ القديمة ما تزال تُفقَد بعد زوال سبب التخطّي "
-                f"(المحفوظ {persisted}) والقسمُ يقول `{status}` — إغلاقٌ بلا إصلاح"
-            )
-        else:
-            assert status != "open", (
-                f"{case}: صارت القراءةُ القديمة تعود بعد زوال سبب التخطّي "
-                f"(المحفوظ {persisted}) والقسمُ ما يزال `open` — اقلب الحالةَ بقياسها"
-            )
+    outcomes = {case: _run(case) for case in CASES}
+    lost_cases = [case for case, persisted in outcomes.items() if 10 not in persisted]
+    if lost_cases:
+        assert status == "open", (
+            f"الفقد باقٍ في {lost_cases} والقسم يقول `{status}` — إغلاق بلا إصلاح؛ "
+            f"المحفوظ بحسب الحالة: {outcomes}"
+        )
+    else:
+        assert status != "open", (
+            "زوال الفقد في جميع الشواهد يستلزم مراجعة حالة الفجوة بدليلها؛ "
+            f"المحفوظ بحسب الحالة: {outcomes}"
+        )
 
 
 def test_moving_the_cursor_below_the_mapping_check_is_not_the_fix() -> None:
@@ -310,3 +309,28 @@ def test_moving_the_cursor_below_the_mapping_check_is_not_the_fix() -> None:
         f"نقلُ رفع المؤشّر أسفلَ فحص المحوّل صار كافياً وحدَه (المحفوظ {persisted}) — "
         "تغيّر نموذجُ الاستئناف، فأعِد قراءةَ القسم قبل البناء عليه"
     )
+
+
+@pytest.mark.parametrize("status", ["open", "fixed"])
+@pytest.mark.parametrize(
+    "lost_cases",
+    [(), ("unbound_device",), ("unsupported_type",), CASES],
+    ids=["neither", "unbound-only", "unsupported-only", "both"],
+)
+def test_registry_binding_aggregates_all_witness_cases(monkeypatch, status, lost_cases) -> None:
+    """يقيس حكم ربط الحالة بنتائج معلومة، لا الاستئناف أو معاملات قاعدة البيانات."""
+    examined = []
+
+    def measured(case):
+        examined.append(case)
+        return [11] if case in lost_cases else [10, 11]
+
+    monkeypatch.setitem(globals(), "_run", measured)
+    monkeypatch.setitem(globals(), "_gap_status", lambda _: status)
+    verdict = test_a_row_skipped_for_a_removable_reason_is_bound_to_the_registry_status
+    if (status == "open") == bool(lost_cases):
+        verdict()
+    else:
+        with pytest.raises(AssertionError):
+            verdict()
+    assert examined == list(CASES), "يجب قياس كل الحالات قبل حكم الفجوة الجامعة"
