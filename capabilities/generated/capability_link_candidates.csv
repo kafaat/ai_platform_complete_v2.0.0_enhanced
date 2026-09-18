@@ -1094,6 +1094,7 @@ INT-003,test,tests/runtime/test_phase9_iot_execution_runtime.py,3,applied
 INT-003,test,tests_v9/test_iot_devices.py,3,applied
 INT-003,test,tests_v9/test_mqtt_anonymous_off_guard.py,3,applied
 INT-003,test,tests_v9/test_sensor_confidence_shape.py,3,applied
+INT-003,test,tests_v9/test_sensor_telemetry_consumer_reachability.py,3,applied
 IRR-001,service,services/sahool-platform/api/main.py,10,applied
 IRR-001,test,services/sahool-platform/tests/test_canonical_well_capability.py,3,applied
 IRR-002,api,POST /v1/soil/irrigation-water/samples @ services/soil-service/routers/p1_products.py:128,2,applied
@@ -1350,6 +1351,7 @@ PA-005,api,GET /api/v1/devices/{device_id}/telemetry @ services/sahool-platform/
 PA-005,api,POST /api/v1/devices/{device_id}/telemetry @ services/sahool-platform/api/routers/devices.py:123,2,applied
 PA-005,api,POST /v1/phase9/autonomy/iot/telemetry/verify @ services/sahool-platform/api/phase9_autonomous_farm_os.py:251,2,applied
 PA-005,test,services/sahool-platform/tests/test_soil_telemetry.py,3,applied
+PA-005,test,tests_v9/test_sensor_telemetry_consumer_reachability.py,3,applied
 SAT-001,api,GET /api/v1/gis/cloud-native/scene-processing-plan @ services/sahool-platform/api/routers/gis_cloud_native.py:264,2,applied
 SAT-001,api,GET /api/v1/gis/cloud-native/scene-ranking @ services/sahool-platform/api/routers/gis_cloud_native.py:247,2,applied
 SAT-001,api,GET /api/v1/gis/cloud-native/stac @ services/sahool-platform/api/routers/gis_cloud_native.py:181,2,applied
