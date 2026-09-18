@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5353,
+    "files_scanned": 5355,
     "files_by_kind": {
-      "backend": 1208,
+      "backend": 1209,
       "database": 277,
       "governance": 62,
       "mobile": 55,
-      "other": 1488,
+      "other": 1489,
       "tests": 1805,
       "web": 458
     },
-    "unmapped_artifacts": 2173,
+    "unmapped_artifacts": 2174,
     "ambiguous_artifacts": 420
   },
   "capabilities": [
@@ -37985,6 +37985,10 @@
     },
     {
       "path": "services/auth/otp.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/auth/railway.json",
       "kind": "backend"
     },
     {
