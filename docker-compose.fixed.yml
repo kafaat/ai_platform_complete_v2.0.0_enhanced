@@ -1215,6 +1215,7 @@ services:
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
       # مسار الأوزان داخل volume sam2-models (للقراءة فقط).
       SAM2_CHECKPOINT: ${SAM2_CHECKPOINT:-/models/sam2_hiera_large.pt}
+      SAM2_CHECKPOINT_SHA256: ${SAM2_CHECKPOINT_SHA256:-}
       SAM2_MODEL_CFG: ${SAM2_MODEL_CFG:-sam2_hiera_l.yaml}
     volumes:
       # أوزان SAM2 (للقراءة فقط) — املأها قبل التشغيل (انظر الـrunbook).
