@@ -128,6 +128,12 @@ def test_check_names_survive_the_slice_and_unit_tests_is_a_singleton() -> None:
     )
     required = set(contract["required_contexts"])
     present = {j.get("name") for j in jobs.values()}
+    # أسماءُ حزم المصفوفة تُعلَن **حرفيّاً** في `include` (MUT-SHARD-JOB-01) — فهي سياقاتٌ
+    # يُبلِّغها GitHub بالاسم كما كُتِبت، وتُحسَب حاضرةً من هناك لا من `name` المشتقّ.
+    for job in jobs.values():
+        for entry in ((job.get("strategy") or {}).get("matrix") or {}).get("include") or []:
+            if isinstance(entry, dict) and isinstance(entry.get("check_name"), str):
+                present.add(entry["check_name"])
     missing = required - present
     assert not missing, f"أسماءٌ مطلوبة في حماية الفرع غابت عن ci.yml: {sorted(missing)}"
 
@@ -188,3 +194,20 @@ def test_the_sweep_stays_in_unit_tests_until_the_ruleset_is_set() -> None:
         assert sweep_in_unit_tests, (
             "المكنسة خرجت من Unit Tests وأسماءُ الحزم ليست في العقد — نافذةُ صمت: تحمرّ ولا تحجب"
         )
+
+
+def test_every_shard_plants_its_defects() -> None:
+    """الحزمةُ التي لا تزرع لا تحرس — واسمٌ مطلوبٌ في الـRuleset بلا زرعٍ خضرةٌ فارغة.
+
+    بعد نزع المكنسة من *Unit Tests* صارت `mutation-sweep` المكنسةَ الحاجبة الوحيدة،
+    فخطوةُ الزرع فيها هي كلُّ ما يحجب الطفرات. وتُطابَق بهويّة الخطوة لا بنصّ الأمر
+    وحده (`MUTATION-ANCHOR-MATCHES-A-COMMAND-NOT-A-STEP-01`).
+    """
+    steps = _ci()["jobs"]["mutation-sweep"]["steps"]
+    plant = [
+        s
+        for s in steps
+        if s.get("name") == "Plant this shard's defects"
+        and "guard_mutation_guard.py --run --shard ${{ matrix.shard }}" in str(s.get("run", ""))
+    ]
+    assert len(plant) == 1, "خطوةُ الزرع في حزم المكنسة غائبةٌ أو مكرّرة — خضرةٌ بلا زرع"

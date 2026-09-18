@@ -254,11 +254,20 @@ def test_the_mechanism_declares_its_own_addition():
 
 
 def test_the_live_tree_has_no_undeclared_addition():
-    """الشجرةُ الحيّةُ نظيفةٌ الآن — وهذا ما يجعل أوّلَ زيادةٍ قادمةٍ مرئيّة."""
+    """الشجرةُ الحيّةُ نظيفةٌ الآن — وهذا ما يجعل أوّلَ زيادةٍ قادمةٍ مرئيّة.
+
+    **ويُمرَّر سجلُّ التقاعد كما يُمرّره المسارُ المُنفِّذ** (`guard_mutation_guard`
+    يقرأ `retired` من الأساس نفسِه). فالصياغةُ الأولى حذفته، ودالّةُ الاستقصاء تُرجِع
+    ملاحظاتِ **الاتّجاهات كلِّها** لا الزيادات وحدَها — فكان تقاعدٌ مُقَرٌّ حسب الأصول
+    يُسقِط اختباراً اسمُه عن الزيادات. أي قارئٌ أضيقُ من دعواه يُنتج حمرةً كاذبة،
+    ويدفع من يُقاعِد حارساً إلى الظنّ بأنّ إقراره لم يُقبَل.
+    """
     findings = MOD.blocking_surface_findings(
         MOD.discover_blocking_surface(),
         MOD._load_surface_json(BASELINE, "legacy_blocking"),
         MOD._load_surface_json(ADDITIONS, "additions"),
+        MOD.registered_mutation_tests(MOD.load_registry()),
+        MOD._load_surface_json(BASELINE, "retired"),
     )
     assert findings == [], findings
 

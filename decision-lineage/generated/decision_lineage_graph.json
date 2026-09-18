@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 593,
+      "evidence_count": 595,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -233,6 +233,7 @@
         "services/sahool-platform/api/decision_lineage.py",
         "services/sahool-platform/api/decision_service_client.py",
         "services/sahool-platform/api/decision_sor_mode.py",
+        "services/sahool-platform/api/device_registry.py",
         "services/sahool-platform/api/event_bus.py",
         "services/sahool-platform/api/evidence_corroboration.py",
         "services/sahool-platform/api/evidence_map.py",
@@ -285,6 +286,7 @@
         "services/sahool-platform/api/routers/failures.py",
         "services/sahool-platform/api/routers/features.py",
         "services/sahool-platform/api/routers/field_ai_context.py",
+        "services/sahool-platform/api/routers/field_completeness.py",
         "services/sahool-platform/api/routers/field_intelligence.py",
         "services/sahool-platform/api/routers/field_workspace_imagery.py",
         "services/sahool-platform/api/routers/fields.py",
@@ -2448,7 +2450,7 @@
         "services/sahool-platform/api/routers/weather.py",
         "services/sahool-platform/api/temporal_arbitration.py"
       ],
-      "source_evidence_count": 593,
+      "source_evidence_count": 595,
       "target_evidence_count": 500,
       "static_supported": true,
       "runtime_verified": false
@@ -2820,5 +2822,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "fa19ecf52d1a299a51ee45a639774f47e4826ccf809f4b3eecd68300d1d82b35"
+  "content_sha256": "4721eaa03086cc4a2144e0ba8c5871a5f13afe320a1254551a47da42d71d93a0"
 }

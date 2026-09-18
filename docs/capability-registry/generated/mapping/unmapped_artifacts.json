@@ -2392,6 +2392,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/auth/railway.json",
+    "kind": "backend"
+  },
+  {
     "path": "services/auth/router_registry.py",
     "kind": "backend"
   },
@@ -6548,6 +6552,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/deploy/test_railway_migration_runner.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/e2e_runtime/test_phase3_runtime_integration_contracts.py",
     "kind": "tests"
   },
@@ -7321,6 +7329,10 @@
   },
   {
     "path": "tests_v9/test_edge_model_artifact_integrity.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_edge_model_digest_contract.py",
     "kind": "tests"
   },
   {
@@ -8196,6 +8208,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_reconciliation_cursor_resumption.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_redis_mandatory_in_production.py",
     "kind": "tests"
   },
@@ -8333,6 +8349,10 @@
   },
   {
     "path": "tests_v9/test_sensor_confidence_shape.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_sensor_telemetry_consumer_reachability.py",
     "kind": "tests"
   },
   {

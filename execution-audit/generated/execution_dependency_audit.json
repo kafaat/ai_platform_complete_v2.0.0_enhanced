@@ -188876,56 +188876,56 @@
    "file":"services/sahool-platform/api/device_registry.py",
    "source":"list_device_types",
    "target":"as_dict",
-   "line":162
+   "line":164
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/device_registry.py",
    "source":"list_device_types",
    "target":"values",
-   "line":162
+   "line":164
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/device_registry.py",
    "source":"get_device_type",
    "target":"get",
-   "line":167
+   "line":169
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/device_registry.py",
    "source":"get_device_type",
    "target":"as_dict",
-   "line":168
+   "line":170
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/device_registry.py",
    "source":"kinds",
    "target":"sorted",
-   "line":173
+   "line":175
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/device_registry.py",
    "source":"kinds",
    "target":"values",
-   "line":173
+   "line":175
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/device_registry.py",
    "source":"for_kind",
    "target":"as_dict",
-   "line":178
+   "line":180
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/device_registry.py",
    "source":"for_kind",
    "target":"values",
-   "line":178
+   "line":180
   },
   {
    "owner":"sahool-platform",
@@ -255740,70 +255740,70 @@
    "file":"services/sahool-platform/api/routers/field_completeness.py",
    "source":"field_data_completeness",
    "target":"tenant_connection",
-   "line":80
+   "line":81
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_completeness.py",
    "source":"field_data_completeness",
    "target":"_assert_field_in_tenant",
-   "line":82
+   "line":83
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_completeness.py",
    "source":"field_data_completeness",
    "target":"fetchrow",
-   "line":84
+   "line":85
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_completeness.py",
    "source":"field_data_completeness",
    "target":"HTTPException",
-   "line":90
+   "line":91
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_completeness.py",
    "source":"field_data_completeness",
    "target":"fetchrow",
-   "line":93
+   "line":94
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_completeness.py",
    "source":"field_data_completeness",
    "target":"fetchval",
-   "line":101
+   "line":102
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_completeness.py",
    "source":"field_data_completeness",
    "target":"_ndvi_present",
-   "line":107
+   "line":108
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_completeness.py",
    "source":"field_data_completeness",
    "target":"_latest_soil_moisture",
-   "line":109
+   "line":110
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_completeness.py",
    "source":"field_data_completeness",
    "target":"_db_unavailable",
-   "line":113
+   "line":114
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_completeness.py",
    "source":"field_data_completeness",
    "target":"score_field_completeness",
-   "line":125
+   "line":126
   },
   {
    "owner":"sahool-platform",
