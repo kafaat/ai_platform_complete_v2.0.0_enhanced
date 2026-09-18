@@ -8204,6 +8204,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_reconciliation_cursor_resumption.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_redis_mandatory_in_production.py",
     "kind": "tests"
   },
