@@ -4,30 +4,20 @@ on:
     branches: [ops/conflict-resolution-20260918]
 permissions:
   contents: write
+  actions: read
 concurrency:
-  group: temporary-conflict-resolution-20260918
+  group: temporary-conflict-resolution-resume-${{ github.run_id }}
   cancel-in-progress: false
 jobs:
   resolve:
-    name: Resolve PR ${{ matrix.pr }} against pinned main
+    name: Resume validated PR 1021 candidate
     runs-on: ubuntu-24.04
     timeout-minutes: 60
-    strategy:
-      fail-fast: false
-      max-parallel: 2
-      matrix:
-        include:
-          - pr: 1021
-            head: 45d5205ee7acb4e1a4d182d451dc26cb80cdc012
-            branch: codex/edge-model-artifact-digest-01
-          - pr: 1023
-            head: e3e62de41b1dff00c92322157ceb5b0396407fa9
-            branch: fix/railway-migration-runner
     env:
       MAIN_SHA: 3873838bbdc3cbcac6ba52ac6b0a7ca3f2ce991b
-      PR_SHA: ${{ matrix.head }}
-      PR_BRANCH: ${{ matrix.branch }}
-      PR_NUMBER: ${{ matrix.pr }}
+      PR_SHA: 45d5205ee7acb4e1a4d182d451dc26cb80cdc012
+      PR_BRANCH: codex/edge-model-artifact-digest-01
+      PR_NUMBER: '1021'
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
@@ -41,7 +31,16 @@ jobs:
       - name: Install existing test dependencies and the pinned formatter
         timeout-minutes: 10
         run: python -m pip install -r tests_v9/requirements-test.txt ruff==0.15.8
-      - name: Resolve, regenerate, and validate an isolated worktree
+      - name: Recover the exact previously regenerated snapshot
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          github-token: ${{ github.token }}
+          repository: kafaat/ai_platform_complete_v2.0.0_enhanced
+          run-id: 35379278784
+          artifact-ids: 10561743910
+          path: ${{ runner.temp }}/restored
+          merge-multiple: true
+      - name: Resume, validate, and publish a new candidate ref only
         shell: bash
         run: |
           set -euo pipefail
@@ -53,7 +52,6 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/evidence"
-          git bundle create "$RUNNER_TEMP/evidence/repository.bundle" --all
           if [ -d "$RUNNER_TEMP/candidate" ]; then
             git -C "$RUNNER_TEMP/candidate" bundle create "$RUNNER_TEMP/evidence/candidate.bundle" HEAD
             git -C "$RUNNER_TEMP/candidate" status --porcelain=v1 > "$RUNNER_TEMP/evidence/status.txt"
@@ -65,7 +63,7 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
-          name: conflict-resolution-pr${{ matrix.pr }}-${{ github.run_id }}
+          name: conflict-resolution-pr1021-${{ github.run_id }}
           path: ${{ runner.temp }}/evidence/
           if-no-files-found: error
           retention-days: 7

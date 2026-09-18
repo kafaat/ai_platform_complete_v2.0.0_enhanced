@@ -18,6 +18,8 @@ def main() -> None:
     if os.environ.get("GITHUB_REPOSITORY") != REPO:
         raise SystemExit("wrong_repository")
     number = os.environ["PR_NUMBER"]
+    if number != "1021":
+        raise SystemExit("resume_scope_is_pr1021_only")
     head, branch = EXPECTED[number]
     if (os.environ["PR_SHA"], os.environ["PR_BRANCH"], os.environ["MAIN_SHA"]) != (head, branch, MAIN):
         raise SystemExit("unexpected_input_identity")
@@ -48,24 +50,23 @@ def main() -> None:
     run(["git", "merge", "--no-ff", "--no-commit", MAIN], allowed=(0, 1))
     conflicts = run(["git", "diff", "--name-only", "--diff-filter=U"], capture=True).stdout.splitlines()
     (evidence / "initial_conflicts.json").write_text(json.dumps(conflicts, indent=2) + "\n")
-    if "docs/architecture/generated_write_targets.json" in conflicts:
-        run([sys.executable, "scripts/ci/generated_write_targets.py", "--generate"])
-        run(["git", "add", "docs/architecture/generated_write_targets.json"])
-    if conflicts:
-        run([sys.executable, "scripts/ci/resolve_merge_conflicts.py", "--dry-run"])
-        run([sys.executable, "scripts/ci/resolve_merge_conflicts.py"])
+    import hashlib
+    patch = Path(os.environ["RUNNER_TEMP"]) / "restored" / "worktree.patch"
+    if hashlib.sha256(patch.read_bytes()).hexdigest() != "8c957b93ed96a6cd5d1629acf33d1504c816f3ed0cae72392b9764a90a40c8fd":
+        raise SystemExit("regenerated_patch_digest_mismatch")
+    # Restore the reviewed old-head base without clearing the merge's second parent,
+    # then replay the exact generated worktree recovered from the first attempt.
+    run(["git", "restore", "--source=HEAD", "--staged", "--worktree", "--", "."])
+    if run(["git", "rev-parse", "--verify", "MERGE_HEAD"], capture=True).stdout.strip() != MAIN:
+        raise SystemExit("merge_parent_lost")
+    run(["git", "apply", "--index", "--whitespace=nowarn", str(patch)])
     if run(["git", "diff", "--name-only", "--diff-filter=U"], capture=True).stdout.strip():
-        raise SystemExit("source_conflicts_require_explicit_review")
-    changed = run(["git", "diff", MAIN, "--name-only", "--diff-filter=ACM", "--", "*.py"], capture=True).stdout.splitlines()
-    if changed:
-        run(["ruff", "check", "--select", "I", "--fix", *changed])
-        run(["ruff", "format", *changed])
+        raise SystemExit("replayed_patch_left_conflicts")
     run(["ruff", "check", "."])
     run(["ruff", "format", "--check", "."])
+    run([sys.executable, "scripts/ci/verify_all_generated.py", "--check"])
     run(["git", "add", "-A"])
-    run(["bash", "scripts/ci/regenerate_all_generated.sh"])
-    run(["git", "add", "-A"])
-    run(["git", "diff", "--cached", "--check"])
+    run(["git", "-c", "core.whitespace=cr-at-eol", "diff", "--cached", "--check"])
     run(["git", "commit", "-m", f"fix(ci): reconcile PR #{number} with current main and regenerate owned artifacts"])
     run(["bash", "scripts/ci/preflight.sh", "--fast"])
     run([sys.executable, "-m", "pytest", "-q", "-m", "unit", "--cov=services", "--cov-report=xml:" + str(evidence / "coverage.xml"), "--cov-fail-under=43", "--junitxml=" + str(evidence / "unit.xml")])
@@ -78,6 +79,8 @@ def main() -> None:
     sha = run(["git", "rev-parse", "HEAD"], capture=True).stdout.strip()
     tree = run(["git", "rev-parse", "HEAD^{tree}"], capture=True).stdout.strip()
     (evidence / "resolved.diff").write_text(run(["git", "diff", MAIN, "HEAD"], capture=True).stdout)
+    changed_paths = run(["git", "diff", MAIN, "HEAD", "--name-only"], capture=True).stdout.splitlines()
+    (evidence / "capability_impact.json").write_text(run([sys.executable, "scripts/ci/capability_impact.py", "--json", *changed_paths], capture=True).stdout)
     if remote_sha("refs/heads/main") != MAIN or remote_sha("refs/heads/" + branch) != head:
         raise SystemExit("remote_moved_before_candidate_publish")
     destination = f"refs/heads/ops/resolved-pr{number}-20260918"
