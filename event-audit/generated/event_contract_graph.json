@@ -45,39 +45,6 @@
       "subject": null
     },
     {
-      "client_expr": "self.client",
-      "component": "ai_agronomist",
-      "durable": null,
-      "dynamic_expr": "event.subject()",
-      "file": "services/ai_agronomist/recommendation_events.py",
-      "kind": "producer",
-      "line": 61,
-      "queue": null,
-      "subject": null
-    },
-    {
-      "client_expr": "self.event_publisher",
-      "component": "ai_agronomist",
-      "durable": null,
-      "dynamic_expr": "RecommendationEvent(tenant_id=tenant_id, field_id=field_id, recommendation_id=rec_id, event_type='created', payload={'intent': intent})",
-      "file": "services/ai_agronomist/recommendation_runtime_pipeline.py",
-      "kind": "producer",
-      "line": 78,
-      "queue": null,
-      "subject": null
-    },
-    {
-      "client_expr": "self.event_publisher",
-      "component": "ai_agronomist",
-      "durable": null,
-      "dynamic_expr": "RecommendationEvent(tenant_id=tenant_id, field_id=field_id, recommendation_id=rec_id, event_type='review_required', payload={'review_id': review.review_id})",
-      "file": "services/ai_agronomist/recommendation_runtime_pipeline.py",
-      "kind": "producer",
-      "line": 110,
-      "queue": null,
-      "subject": null
-    },
-    {
       "client_expr": "self",
       "component": "sahool-platform",
       "durable": null,
@@ -166,6 +133,39 @@
       "subject": null
     },
     {
+      "client_expr": "self.client",
+      "component": "shared",
+      "durable": null,
+      "dynamic_expr": "event.subject()",
+      "file": "shared/ai/recommendation_runtime/recommendation_events.py",
+      "kind": "producer",
+      "line": 61,
+      "queue": null,
+      "subject": null
+    },
+    {
+      "client_expr": "self.event_publisher",
+      "component": "shared",
+      "durable": null,
+      "dynamic_expr": "RecommendationEvent(tenant_id=tenant_id, field_id=field_id, recommendation_id=rec_id, event_type='created', payload={'intent': intent})",
+      "file": "shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+      "kind": "producer",
+      "line": 75,
+      "queue": null,
+      "subject": null
+    },
+    {
+      "client_expr": "self.event_publisher",
+      "component": "shared",
+      "durable": null,
+      "dynamic_expr": "RecommendationEvent(tenant_id=tenant_id, field_id=field_id, recommendation_id=rec_id, event_type='review_required', payload={'review_id': review.review_id})",
+      "file": "shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+      "kind": "producer",
+      "line": 107,
+      "queue": null,
+      "subject": null
+    },
+    {
       "client_expr": "js",
       "component": "shared",
       "durable": null,
@@ -235,7 +235,7 @@
     "consumer_only_subjects": 1,
     "cross_component_duplicate_durables": 0,
     "dynamic_contracts": 16,
-    "files_scanned": 1190,
+    "files_scanned": 1199,
     "matched_subjects": 0,
     "producer_only_subjects": 1,
     "production_certified": false,

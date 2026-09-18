@@ -108,6 +108,75 @@ def test_migration_really_forces_rls_on_the_imagery_automation_table():
     assert "FORCE ROW LEVEL SECURITY" in sql
 
 
+def test_ci_step_pins_the_flag_that_turns_a_missing_database_into_a_failure():
+    """مراجعة #1014 (مكتومة): الشهادةُ الحيّة تتخطّى نفسَها بلا DSN.
+
+    شاهدُ `imagery_automation_fields` مُعلَّم `integration` وله `skipif` على مستوى
+    الوحدة، فحذفُ العَلَم أو إعادةُ تسميته في تحريرٍ لاحق — مع غياب الـDSN — تجعل
+    **وظيفةً مخصَّصةً للشهادة تخضرّ بلا أن تقيس السياسةَ المُهاجَرة**. وهذا صنفُ
+    «التخطّي الصامت يُقرَأ نجاحاً» بعينه.
+
+    فيُثبَّت العقدُ ساكناً هنا — في اختبار وحدةٍ يعمل دائماً لا في ملفٍّ يتخطّى نفسه —
+    على غرار `test_hil_ci_requires_the_live_database_certificate`.
+    """
+    import yaml
+
+    workflow = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
+    steps = workflow["jobs"]["integration-tests"]["steps"]
+    target = "pytest -v -m integration -rs tests_v9/test_imagery_automation_rls_live_pg.py"
+    selected = [step for step in steps if step.get("run", "").strip() == target]
+    assert len(selected) == 1, "خطوةُ شهادة RLS لأتمتة الصور غائبة أو مكرّرة"
+    env = selected[0].get("env") or {}
+    assert env.get("IMAGERY_RLS_CERTIFICATION_REQUIRED") == "1", (
+        "بلا العَلَم يصير غيابُ القاعدة تخطّياً أخضرَ في وظيفةٍ تُعلِن أنّها تشهد"
+    )
+    # والعَلَمُ وحده لا يكفي: بلا DSN يرفع الملفُّ استثناءً عند الجمع، وبـDSN خاطئ
+    # يقيس قاعدةً أخرى. الاثنان مُثبَّتان نصّاً كي لا يُعاد توجيهُهما صامتَين.
+    assert env.get("TEST_DATABASE_ADMIN_URL"), "بلا DSN إداريّ لا تهيئةَ صفوفٍ ولا قياسَ دور"
+    assert env.get("TEST_DATABASE_URL"), "بلا DSN مُقيَّد تُقاس السياسةُ بدورٍ يتجاوزها"
+    assert "sahool_app_test" in env["TEST_DATABASE_URL"], (
+        "الـDSN المحروس يجب أن يكون الدورَ المُقيَّد لا المُدير"
+    )
+
+
+def _load_live_witness_with_driver_blocked(monkeypatch, *, certification: bool):
+    """يُحمِّل ملفَّ الشاهد الحيّ من مساره و`asyncpg` محجوب — كما لو كان المُشغِّل بلا سائق."""
+    import importlib.util
+
+    monkeypatch.setitem(sys.modules, "asyncpg", None)  # None ⇒ ImportError عند الاستيراد
+    monkeypatch.setenv("IMAGERY_RLS_CERTIFICATION_REQUIRED", "1" if certification else "0")
+    monkeypatch.setenv("TEST_DATABASE_ADMIN_URL", "postgresql://admin@localhost/x")
+    monkeypatch.setenv("TEST_DATABASE_URL", "postgresql://sahool_app_test@localhost/x")
+    path = ROOT / "tests_v9/test_imagery_automation_rls_live_pg.py"
+    spec = importlib.util.spec_from_file_location("_imagery_rls_witness_probe", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_a_missing_driver_is_a_hard_failure_under_certification(monkeypatch):
+    """مراجعة #1014: `importorskip` قبل قراءة العَلَم كان يُخضِّر الشهادةَ بلا سائق.
+
+    تحت `IMAGERY_RLS_CERTIFICATION_REQUIRED=1` يجب أن يُرفَع خطأُ الاستيراد نفسُه عند الجمع،
+    لا أن تُتخطّى الوحدة — وإلّا أعلنت وظيفةُ الشهادة خضرةً ولم تقِس شيئاً.
+    """
+    # لا `pytest.raises(ImportError)` وحده: لو تخطّى الملفُّ نفسَه لخرج استثناءُ التخطّي
+    # من هذا الاختبار فسُجِّل «متخطّى» لا «فاشل» — وهو الصنفُ نفسُه الذي يُكذَّب هنا.
+    try:
+        _load_live_witness_with_driver_blocked(monkeypatch, certification=True)
+    except ImportError:
+        return
+    except pytest.skip.Exception:
+        pytest.fail("غيابُ السائق صار تخطّياً تحت الشهادة — بوّابةٌ تخضرّ بلا قياس")
+    pytest.fail("الشاهدُ حُمِّل بلا سائق ولم يرفع شيئاً")
+
+
+def test_a_missing_driver_still_skips_outside_certification(monkeypatch):
+    """خارج الشهادة يبقى غيابُ السائق تخطّياً مُعلَّلاً لا فشلاً — كي لا يُعاقَب تطويرٌ بلا قاعدة."""
+    with pytest.raises(pytest.skip.Exception):
+        _load_live_witness_with_driver_blocked(monkeypatch, certification=False)
+
+
 # ── ٢) راية تاريخ الصور تقول ما تقيس ────────────────────────────────────────
 
 

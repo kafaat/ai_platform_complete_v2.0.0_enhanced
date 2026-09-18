@@ -45,6 +45,13 @@ from core.cross_reference_finder import (
     cross_reference_summary,
     find_similar_recommendations,
 )
+from core.guardrails import (
+    EvidenceSummary,
+    FieldStateSnapshot,
+    PonytailAction,
+    PonytailIntent,
+    RecommendationPonytail,
+)
 from core.recommendation_bridge import (
     ContextPipelineError,
     EnrichedRecommendation,
@@ -53,23 +60,18 @@ from core.recommendation_bridge import (
 )
 from core.recommendation_engine import Recommendation, generate_recommendation
 
-try:  # Safe defaults keep legacy behavior unless explicitly enabled.
-    from config.guardrail_feature_flags import (
-        ENABLE_LEGACY_RECOMMENDATION_FALLBACK,
-        ENABLE_PONYTAIL_GUARDRAILS,
-        REQUIRE_CANONICAL_FIELD_STATE,
-    )
-except Exception:  # pragma: no cover - config package may be absent in embedded tests
-    ENABLE_PONYTAIL_GUARDRAILS = False
-    ENABLE_LEGACY_RECOMMENDATION_FALLBACK = True
-    REQUIRE_CANONICAL_FIELD_STATE = True
-
-from core.guardrails import (
-    EvidenceSummary,
-    FieldStateSnapshot,
-    PonytailAction,
-    PonytailIntent,
-    RecommendationPonytail,
+# GUARDRAIL-FLAGS-FILE-NOT-IN-ANY-IMAGE-01: كان الاستيراد من `config/` داخل `try/except`
+# بافتراضاتٍ صامتة — و`config/` لا تنسخه صورةُ المنصّة، فكانت الراياتُ افتراضاتٍ لا تُقلَب في
+# الحاوية بأيّ وسيلة. `shared/` تنسخها الصورة، والرايةُ تُقرأ من `SAHOOL_<FLAG>`. لا بديلَ
+# صامتاً: غيابُ الوحدة عطلُ توصيلٍ يُرى لا يُبتلَع.
+#
+# `ENABLE_LEGACY_RECOMMENDATION_FALLBACK` لا تُقرأ هنا بل يقرؤها
+# `services/sahool-platform/tests/test_runtime_ponytail_integration.py:22` من هذه الوحدة —
+# إعادةُ تصديرٍ مقصودة، لذا `noqa` باسم مستهلكها لا بحذفها. أمّا
+# `REQUIRE_CANONICAL_FIELD_STATE` فمستهلكُها `runtime_guardrail_adapter` وحده، فلا تُستورد هنا.
+from shared.ai.recommendation_runtime.flags import (
+    ENABLE_LEGACY_RECOMMENDATION_FALLBACK,  # noqa: F401
+    ENABLE_PONYTAIL_GUARDRAILS,
 )
 
 

@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5337,
+    "files_scanned": 5355,
     "files_by_kind": {
       "backend": 1209,
       "database": 277,
       "governance": 62,
       "mobile": 55,
-      "other": 1478,
-      "tests": 1798,
+      "other": 1489,
+      "tests": 1805,
       "web": 458
     },
-    "unmapped_artifacts": 2169,
-    "ambiguous_artifacts": 419
+    "unmapped_artifacts": 2174,
+    "ambiguous_artifacts": 420
   },
   "capabilities": [
     {
@@ -220,6 +220,14 @@
             "content:Decision candidate",
             "content:decision candidate"
           ]
+        },
+        {
+          "path": "docs/architecture/DECISION_FABRIC_SOURCE_COMPARISON_20260916.md",
+          "score": 8,
+          "signals": [
+            "content:Decision candidate",
+            "content:decision candidate"
+          ]
         }
       ],
       "ambiguous": [],
@@ -235,7 +243,7 @@
         "mobile": 0,
         "tests": 4,
         "governance": 0,
-        "other_evidence": 2
+        "other_evidence": 3
       },
       "coverage_dimensions": 3,
       "mapped": true
@@ -292,6 +300,14 @@
             "content:Human approval",
             "content:approval workflow"
           ]
+        },
+        {
+          "path": "tests_v9/test_guardrails_evaluate_http_contract.py",
+          "score": 8,
+          "signals": [
+            "content:Human approval",
+            "content:approval workflow"
+          ]
         }
       ],
       "governance": [],
@@ -316,7 +332,7 @@
         "events": 2,
         "web": 0,
         "mobile": 0,
-        "tests": 2,
+        "tests": 3,
         "governance": 0,
         "other_evidence": 1
       },
@@ -3873,6 +3889,14 @@
           ]
         },
         {
+          "path": "shared/ai/recommendation_runtime/multi_tenant_runtime_validator.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "shared/security/service_tenant_assertion.py",
           "score": 14,
           "signals": [
@@ -3910,7 +3934,7 @@
         "mobile": 0,
         "tests": 27,
         "governance": 0,
-        "other_evidence": 12
+        "other_evidence": 13
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -24478,6 +24502,10 @@
           "score": 17
         },
         {
+          "value": "public.imagery_automation_fields @ tests_v9/test_imagery_automation_rls_live_pg.py:49",
+          "score": 17
+        },
+        {
           "value": "api.imagery_automation @ tests_v9/test_roadmap_phase23.py:1560",
           "score": 15
         },
@@ -24775,6 +24803,15 @@
             "content:Tenant RLS",
             "content:rls",
             "content:row level security",
+            "content:tenant isolation"
+          ]
+        },
+        {
+          "path": "tests_v9/test_imagery_automation_rls_live_pg.py",
+          "score": 17,
+          "signals": [
+            "path:rls",
+            "content:rls",
             "content:tenant isolation"
           ]
         },
@@ -25851,10 +25888,10 @@
         "backend": 13,
         "routes": 30,
         "database": 100,
-        "events": 46,
+        "events": 47,
         "web": 0,
         "mobile": 0,
-        "tests": 65,
+        "tests": 66,
         "governance": 0,
         "other_evidence": 73
       },
@@ -35053,6 +35090,14 @@
           ]
         },
         {
+          "path": "docs/architecture/DECISION_FABRIC_SOURCE_COMPARISON_20260916.md",
+          "score": 8,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "docs/contracts/IRRIGATION-DECISION-INTELLIGENCE-CORR1.md",
           "score": 8,
           "signals": [
@@ -35114,7 +35159,7 @@
         "mobile": 0,
         "tests": 46,
         "governance": 0,
-        "other_evidence": 21
+        "other_evidence": 22
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -42879,6 +42924,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_edge_model_digest_contract.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_edge_sync_recovery.py",
       "kind": "tests"
     },
@@ -43100,6 +43149,10 @@
     },
     {
       "path": "tests_v9/test_guard_mutation_registry_schema_delta.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_guardrail_flags_reach_every_image.py",
       "kind": "tests"
     },
     {
@@ -43731,6 +43784,14 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_recommendation_runtime_reachability.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_recommendation_wiring_preconditions.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_recommendations_field_state_gate.py",
       "kind": "tests"
     },
@@ -43900,6 +43961,10 @@
     },
     {
       "path": "tests_v9/test_service_map_image_pin_parity.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_service_module_loader.py",
       "kind": "tests"
     },
     {
@@ -45082,6 +45147,28 @@
             "content:Weather forecast",
             "content:forecast",
             "content:weather forecast"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/architecture/DECISION_FABRIC_SOURCE_COMPARISON_20260916.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 8,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "DEC-002",
+          "score": 8,
+          "signals": [
+            "content:Decision candidate",
+            "content:decision candidate"
           ]
         }
       ]

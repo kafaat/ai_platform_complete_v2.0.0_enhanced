@@ -405,22 +405,28 @@ if (
         "RS256 مطلوب في الإنتاج: اضبط JWT_PUBLIC_KEY (HS256 لا يُنهي shared trust domain). "
         "للترحيل المؤقّت فقط: SAHOOL_ALLOW_HS256_IN_PROD=1."
     )
-# توكن خدمة للنداءات خدمة-لخدمة على /validate (supervisor → guardrails)
+# توكن خدمة للنداءات خدمة-لخدمة على مسارات الحواجز كلِّها — `/v1/validate` و`/v1/evaluate`
+# معاً عبر `_require_service_token` (supervisor → guardrails). كان التعليقُ يسمّي
+# `/validate` وحده فيُضلِّل عن سطح الحماية (مراجعة Copilot على #1014).
 _GR_AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 
 
 def _require_service_token(x_agent_token: str = _Header(None)):
-    """يفرض توكن خدمة على /v1/validate. صدق: بلا توكن مضبوط → فشل-مغلق.
+    """يفرض توكن خدمة على مسارات الحواجز خدمة-لخدمة. صدق: بلا توكن مضبوط → فشل-مغلق.
 
-    منع باب خلفي: لا يُقبل /v1/validate من أيّ جهة بلا توكن الخدمة الصحيح.
+    منع باب خلفي: لا يُقبل أيّ من هذه المسارات من أيّ جهة بلا توكن الخدمة الصحيح.
+
+    الرسالةُ لا تسمّي مساراً بعينه (مراجعة #1013): التبعيّةُ نفسُها تحرس `/v1/validate`
+    و`/v1/evaluate`، وكانت تقول «/v1/validate» في الحالتين — فمن يصطدم بـ401 على
+    التقييم يطارد مساراً لم يستدعه. والرسالةُ الخاطئة في نداء الطوارئ أسوأ من المقتضبة.
     """
     if not _GR_AGENT_TOKEN:
-        raise HTTPException(503, "SAHOOL_AGENT_TOKEN غير مضبوط — /v1/validate معطّل بأمان")
+        raise HTTPException(503, "SAHOOL_AGENT_TOKEN غير مضبوط — مسارات الحواجز معطّلة بأمان")
     # L5 FIX: مقارنة بزمن ثابت (كـodoo-bridge) لإغلاق قناة توقيت جانبيّة.
     import hmac as _hmac
 
     if not x_agent_token or not _hmac.compare_digest(x_agent_token, _GR_AGENT_TOKEN):
-        raise HTTPException(401, "توكن خدمة غير صالح لـ/v1/validate")
+        raise HTTPException(401, "توكن خدمة غير صالح لمسارات الحواجز")
     return True
 
 

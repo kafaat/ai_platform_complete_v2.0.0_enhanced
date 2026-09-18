@@ -105,8 +105,9 @@ Zenoh في الشيفرة فعلاً (`go.mod:8` `eclipse-zenoh/zenoh-go v1.9.0`
 
 ## ٧ — الحكم الكلّيّ وما يلزم #1011
 
-**لا دعوى خارجيّة مكذوبة.** ثلاثٌ مؤكَّدة بالكامل (LinkMind · OM1 · OpenAgentFlow — الأخيرة
-بحدود نطاق مُعلَنة)، وواحدة (WGAI) مؤكَّدة في جوهرها وملتبسة في كلمة. الاستنتاجاتُ المعماريّة
+**لا دعوى خارجيّة مكذوبة.** اثنتان مؤكَّدتان بالكامل (LinkMind · OM1)، وواحدة مؤكَّدة
+**ضمن نطاقها المُعلَن** (OpenAgentFlow — حكمُ §٥ «مؤكَّد بحدود»: تحقّقٌ بنيويّ وقتَ الترجمة
+وهدفٌ وحيد)، وواحدة (WGAI) مؤكَّدة في جوهرها وملتبسة في كلمة. الاستنتاجاتُ المعماريّة
 الثمانية في #1011 تبقى قائمةً على ما قِيس — بل قياسُ OM1 يقوّي Finding 1 وFinding 6 أكثر ممّا
 ادّعته الوثيقة نفسها.
 
@@ -147,6 +148,12 @@ so confining the OM1 pattern to the device boundary is a measured necessity, not
 
 القاعدة: **تعذُّرُ جلب الـSHA المثبَّت = تعذُّرُ التحقّق**، لا «استعمل أحدث نسخة». السكربت
 يفشل فوراً إن لم يُجلَب الـSHA أو لم يطابقه `HEAD` بعد الفصل، ولا يقرأ ملفّاً قبل ذلك.
+
+**نطاقُه المُعلَن:** يُعيد قياسَ **المراسي الحاسمة** لكلّ حكم (سطرُ المسار وقواعدُ التعبير في
+LinkMind · ترتيبُ `cortexLLM.Call` قبل `executeActions` في OM1 · رسالةُ «Unsupported runtime»
+في OpenAgentFlow · غيابُ استدعاء OpenAI في WGAI)، لا كلَّ ملفٍّ استُشهد به في §٣–§٦. ملفّاتُ
+المحلّل والمستهلك المذكورة في §٣ (`RouteExprParser.java` · مواضعُ الاستهلاك) تُقرأ يدويّاً عند
+الـSHA نفسه؛ فرقمُ خروجٍ صفر يعني «المراسي قائمة»، لا «كلُّ سطرٍ في هذه الوثيقة أُعيد قياسُه».
 
 ```bash
 #!/usr/bin/env bash
@@ -218,13 +225,13 @@ printf '%s\n' "$oaf_slice"
 set +e
 # والبحثُ غيرُ حسّاسٍ للحالة: `OpenAI` أو `OPENAI` كانا يُعدّان صفراً فيصير «غيرُ مقيس»
 # استنتاجاً من مسحٍ لم يَرَ ما يبحث عنه (مراجعة Copilot ٥ على #1012).
-wgai_matches="$(grep -rniE 'openai|chat/completions' --include='*.java' --include='*.yml' "$EXT/dromara/wgai")"
+wgai_matches="$(grep -rniE 'openai|chat/completions' --include='*.java' --include='*.yml' --include='*.yaml' "$EXT/dromara/wgai")"
 wgai_status=$?
 set -e
 [ "$wgai_status" -le 1 ] || { echo "VERIFICATION UNAVAILABLE: grep exited $wgai_status scanning wgai" >&2; exit 6; }
 wgai_hits=0
 [ -z "$wgai_matches" ] || wgai_hits="$(printf '%s\n' "$wgai_matches" | wc -l)"
-echo "wgai external-LLM tokens in java/yml: $wgai_hits   # يُتوقَّع 0"
+echo "wgai external-LLM tokens in java/yml/yaml: $wgai_hits   # يُتوقَّع 0"
 ```
 
 الأسطرُ المستشهَدُ بها في §٣–§٦ صحيحةٌ **عند هذه الـSHA وحدها**؛ للاستشهاد بـ«الحالة

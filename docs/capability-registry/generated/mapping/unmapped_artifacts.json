@@ -7328,6 +7328,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_edge_model_digest_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_edge_sync_recovery.py",
     "kind": "tests"
   },
@@ -7549,6 +7553,10 @@
   },
   {
     "path": "tests_v9/test_guard_mutation_registry_schema_delta.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_guardrail_flags_reach_every_image.py",
     "kind": "tests"
   },
   {
@@ -8180,6 +8188,14 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_recommendation_runtime_reachability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_recommendation_wiring_preconditions.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_recommendations_field_state_gate.py",
     "kind": "tests"
   },
@@ -8349,6 +8365,10 @@
   },
   {
     "path": "tests_v9/test_service_map_image_pin_parity.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_service_module_loader.py",
     "kind": "tests"
   },
   {
