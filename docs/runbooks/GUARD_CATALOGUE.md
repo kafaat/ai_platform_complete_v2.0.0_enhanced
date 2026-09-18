@@ -486,7 +486,7 @@
 
 **يفرض:** لا حارس بلا عطلٍ مزروع يُثبِت أنّه يُطلِق — GUARDS-WITHOUT-A-PLANTED-DEFECT-01.
 
-**يحجب في:** `capability-governance.yml` → `blocking-surface-advisory` · `ci.yml` → `lint` · `ci.yml` → `mutation-sweep` · `ci.yml` → `unit-tests`
+**يحجب في:** `capability-governance.yml` → `blocking-surface-advisory` · `ci.yml` → `lint` · `ci.yml` → `mutation-sweep`
 
 **الاختبار الشاهد:** `tests_v9/test_guard_mutation_guard.py`
 
