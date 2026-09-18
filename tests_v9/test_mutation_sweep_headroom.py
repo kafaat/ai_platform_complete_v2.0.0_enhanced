@@ -291,8 +291,25 @@ def test_the_sweep_still_runs_inside_the_job_the_ruleset_actually_requires():
     """
     steps = _unit_tests_job().get("steps") or []
     runs = [str(s.get("run") or "") for s in steps if isinstance(s, dict)]
-    assert any("guard_mutation_guard.py --run" in r for r in runs), (
-        "مكنسةُ الطفرات لم تعد خطوةً في *Unit Tests*. إن نُقِلت عمداً فتأكّد أنّ اسم "
-        "الوظيفة الجديدة أُضيف إلى الفحوص المطلوبة في الـRuleset، ثمّ حدّث هذا العقد — "
-        "وإلّا فقد كفّت عن الحجب بلا أن تحمرّ."
+    contract = json.loads(
+        (ROOT / "docs/architecture/required_status_checks_contract.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    required = set(contract["required_contexts"])
+    shard_names = {f"Mutation Sweep {i}/5" for i in range(1, 6)}
+    sweep_in_unit_tests = any("guard_mutation_guard.py --run" in r for r in runs)
+
+    if shard_names <= required:
+        # الحزمُ الخمس هي ما يحجب، والنسخةُ الكاملة هنا ازدواجٌ يُعيد *Unit Tests*
+        # مساراً حرجاً بلا أن يزيد الحجب شيئاً.
+        assert not sweep_in_unit_tests, (
+            "أسماءُ الحزم الخمس مطلوبةٌ والمكنسةُ الكاملة ما تزال خطوةً في *Unit Tests* — "
+            "ازدواجٌ مقيسٌ يُبقي الوظيفة طويلةً بلا حجبٍ إضافيّ."
+        )
+        return
+    assert not (shard_names & required), "بعضُ الحزم مطلوبةٌ وبعضُها لا — تغطيةٌ نصفيّة"
+    assert sweep_in_unit_tests, (
+        "مكنسةُ الطفرات لم تعد خطوةً في *Unit Tests* وأسماءُ الحزم ليست في الفحوص المطلوبة — "
+        "كفّت عن الحجب بلا أن تحمرّ."
     )
