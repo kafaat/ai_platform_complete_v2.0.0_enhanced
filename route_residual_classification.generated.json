@@ -980,7 +980,7 @@
     {
       "service": "field-segmentation",
       "file": "services/field-segmentation/main.py",
-      "line": 370,
+      "line": 371,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -989,7 +989,7 @@
     {
       "service": "field-segmentation",
       "file": "services/field-segmentation/main.py",
-      "line": 375,
+      "line": 376,
       "method": "GET",
       "path": "/health",
       "function": "legacy_health",
@@ -998,7 +998,7 @@
     {
       "service": "field-segmentation",
       "file": "services/field-segmentation/main.py",
-      "line": 380,
+      "line": 381,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -1007,7 +1007,7 @@
     {
       "service": "field-segmentation",
       "file": "services/field-segmentation/main.py",
-      "line": 391,
+      "line": 392,
       "method": "POST",
       "path": "/v1/segment",
       "function": "segment",
@@ -1340,7 +1340,7 @@
     {
       "service": "sam2-inference",
       "file": "services/sam2-inference/main.py",
-      "line": 105,
+      "line": 106,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -1349,7 +1349,7 @@
     {
       "service": "sam2-inference",
       "file": "services/sam2-inference/main.py",
-      "line": 110,
+      "line": 111,
       "method": "GET",
       "path": "/health",
       "function": "legacy_health",
@@ -1358,7 +1358,7 @@
     {
       "service": "sam2-inference",
       "file": "services/sam2-inference/main.py",
-      "line": 115,
+      "line": 116,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",

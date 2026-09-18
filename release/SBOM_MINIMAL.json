@@ -55,7 +55,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "51b62fe9f20269b32715bbca1a481c43a5431ab9de61de5a94d64c8dd9c002a2"
+          "content": "cda08df69b6f99deb47477e5b48919dad84b293aa1a002f484a612692f19b2a6"
         }
       ],
       "name": "docker-compose.light.yml",
@@ -11305,6 +11305,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "7314852fbd5a83161d4974e73a31d7b330e7ef00c972c7b73a8f8eb89bf77a10"
+        }
+      ],
+      "name": "services/auth/railway.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "3797087e4eb8da0a0851cf5ef098e836aca3a8595fda83d23f86b6ba230a47fb"
         }
       ],
@@ -16405,7 +16415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b613b8a60bec2cb38b4d197454a46decb3752f0c18ac9b0cb854ce870b4b2cb4"
+          "content": "28ff5b2f0c1b0ec1c4f365798cf5992d500de53b1d72fccaa26a777241e0ace3"
         }
       ],
       "name": "services/sahool-platform/api/device_registry.py",
@@ -17395,7 +17405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b86cdcd1aacafacf33b9fb7bb7631791ed52ce30439ae80f381e4a135f71f7fe"
+          "content": "58ed592ec5d2fc71ee4ba4af5331405e979fb689c2c06e91ff3e4774e7ffa6ff"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -18385,7 +18395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "10f9be6766028d50af7328da70975c4ecec1cb611db248e933f991d7d4dd28bf"
+          "content": "e24bcdcb79efb66b2d264bc720e18204d6f79698c16fd8189a4ffb8b38430554"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_completeness.py",
@@ -18485,7 +18495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "19d44ef66653a5364cee4bff1f8e03cfd63d1f157fc898c659bdc669d9728006"
+          "content": "6188cc8a08b47c1c71aecba8a81fcf6709e0d07acd1330d070f468926e31f292"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",

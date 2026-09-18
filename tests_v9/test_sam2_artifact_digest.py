@@ -114,6 +114,7 @@ def test_readyz_surfaces_verified_artifact_digest(monkeypatch):
 def test_predict_metadata_surfaces_verified_artifact_digest(monkeypatch):
     import asyncio
     import contextlib
+
     import numpy as np
 
     main = _load_main(monkeypatch)

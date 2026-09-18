@@ -140,10 +140,10 @@ field-management-service,services/field-management-service/main.py,232,GET,/cont
 field-management-service,services/field-management-service/main.py,251,GET,/,root
 field-management-service,services/field-management-service/main.py,260,GET,/internal/fields/{field_id},internal_get_field
 field-management-service,services/field-management-service/main.py,292,GET,/internal/fields,internal_list_fields
-field-segmentation,services/field-segmentation/main.py,370,GET,/healthz,healthz
-field-segmentation,services/field-segmentation/main.py,375,GET,/health,legacy_health
-field-segmentation,services/field-segmentation/main.py,380,GET,/readyz,readyz
-field-segmentation,services/field-segmentation/main.py,391,POST,/v1/segment,segment
+field-segmentation,services/field-segmentation/main.py,371,GET,/healthz,healthz
+field-segmentation,services/field-segmentation/main.py,376,GET,/health,legacy_health
+field-segmentation,services/field-segmentation/main.py,381,GET,/readyz,readyz
+field-segmentation,services/field-segmentation/main.py,392,POST,/v1/segment,segment
 guardrails-engine,services/guardrails-engine/routers/health.py,22,GET,/healthz,healthz
 guardrails-engine,services/guardrails-engine/routers/health.py,22,GET,/health,healthz
 guardrails-engine,services/guardrails-engine/routers/health.py,27,GET,/readyz,readyz
@@ -953,9 +953,9 @@ sahool-platform,services/sahool-platform/api/routers/yield_map_ingestion.py,256,
 sahool-platform,services/sahool-platform/api/routers/yield_map_ingestion.py,290,GET,/api/v1/fields/{field_id}/yield-map-records,query_yield_map_records
 sahool-platform,services/sahool-platform/tests/test_correlation_middleware.py,18,GET,/probe,probe
 sam2-inference,services/sam2-inference/main.py,24,POST,/v1/predict,predict
-sam2-inference,services/sam2-inference/main.py,105,GET,/healthz,healthz
-sam2-inference,services/sam2-inference/main.py,110,GET,/health,legacy_health
-sam2-inference,services/sam2-inference/main.py,115,GET,/readyz,readyz
+sam2-inference,services/sam2-inference/main.py,106,GET,/healthz,healthz
+sam2-inference,services/sam2-inference/main.py,111,GET,/health,legacy_health
+sam2-inference,services/sam2-inference/main.py,116,GET,/readyz,readyz
 scout-ingest-service,services/scout-ingest-service/field_forms_api.py,195,POST,/internal/field-forms/definitions,create_definition
 scout-ingest-service,services/scout-ingest-service/field_forms_api.py,230,POST,/internal/field-forms/definitions/{code}/versions,create_version
 scout-ingest-service,services/scout-ingest-service/field_forms_api.py,278,POST,/internal/field-forms/versions/{version_id}/publish,publish_version

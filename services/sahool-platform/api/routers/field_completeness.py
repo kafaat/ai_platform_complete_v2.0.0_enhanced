@@ -72,7 +72,8 @@ async def field_data_completeness(
       - ``soil_lab_tests`` حيث ``status IN ('approved','published')`` — حضور تحليل
         تربة مخبريّ معتمَد.
       - ``imagery_automation_fields.last_ndvi_mean`` — قراءة دفاعيّة (قد تغيب).
-      - أجهزة رطوبة التربة عبر ``_latest_soil_moisture`` (device_telemetry).
+      - أجهزة رطوبة التربة عبر ``_latest_soil_moisture`` (المخزن القانونيّ
+        ``soil_observations``).
     """
     from api.main import _assert_field_in_tenant, _latest_soil_moisture
 
