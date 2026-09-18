@@ -3,10 +3,18 @@
 **المقيس.** `POST /api/v1/devices/{device_id}/telemetry` يقبل قراءةَ `soil_moisture`،
 يردّ **201** ورسالةَ «سُجّلت القراءة»، ويكتب في `device_telemetry`. وكلُّ مستهلكٍ زراعيٍّ
 لرطوبة التربة يقرأ من `soil_observations` عبر `_latest_soil_moisture` — نقطةُ الحقل،
-واكتمالُ الحقل، وتوأمُ المياه، ومكنسةُ النضارة. والجدولان **منفصلان**: قارئا
-`device_telemetry` الوحيدان هما صدى النقطة نفسِها وبطّاريّةُ التوأم، وليس فيهما حكمٌ زراعيّ.
+واكتمالُ الحقل، وتوأمُ المياه، ومكنسةُ النضارة. فالمسارُ **التلقائيّ** بين الجدولين
+منقطع: لا عاملٌ ولا مجدوِلٌ ولا سيرُ عملٍ ينقل قراءةً من الأوّل إلى الثاني.
 
-فالنتيجةُ أنّ جهازاً يدفع رطوبةَ تربةٍ ينال **نجاحاً**، ولا تبلغ قراءتُه قراراً واحداً.
+**وثمّة جسرٌ واحد، وهو ليس تلقائيّاً** (كشفته مراجعةُ المالك، وكانت دعواي الأولى
+**مطلَقةً وكاذبة**): `scripts/soil/reconcile_historical.py::reconcile_device_telemetry`
+يقرأ `device_telemetry` ويكتب `soil_observations` ويُدرِج مهمّةَ إسقاط. لكنّه أداةُ
+مشغّلٍ تُستدعى باليد (`--tenant` + `DATABASE_URL`)، لا يستدعيها شيءٌ في الشجرة. وما
+تُدرجه يحمل `'suspect'` وثقةً 0.60 و`depth_unknown`/`calibration_unknown` — وذلك
+بحسب `SOIL-MOISTURE-UNIT-IDENTITY-01` شاهدٌ مرئيٌّ **لا يُهيّئ** توأمَ المياه.
+
+فالنتيجةُ أنّ جهازاً يدفع رطوبةَ تربةٍ ينال **نجاحاً**، ولا تبلغ قراءتُه قراراً واحداً
+ما لم يُشغّل مشغّلٌ بشريٌّ ردماً بأثرٍ رجعيّ — وحتّى حينئذٍ تصل شاهداً لا بذرة.
 الصنفُ هو «النجاحُ الصامت» نفسُه الذي أُغلق أربعَ مرّاتٍ في هذا المستودع، ووجهُه هنا
 أخبثُ: العطلُ في **الصمت** لا في الرفض — الرفضُ كان سيُعلِم الدافعَ فوراً.
 
@@ -127,6 +135,69 @@ def test_the_separation_is_bound_to_the_registry_status_in_both_directions() -> 
             "القسمُ يقول إنّ الفجوة أُغلقت، والجدولان ما زالا منفصلَين "
             f"(يُكتَب {sorted(written)} · يُقرَأ {sorted(read)}) — إغلاقٌ بلا مسار"
         )
+
+
+BACKFILL = ROOT / "scripts/soil/reconcile_historical.py"
+BACKFILL_FUNC = "reconcile_device_telemetry"
+
+
+def test_the_one_bridge_is_named_and_is_an_operator_tool_not_a_pipeline() -> None:
+    """الجسرُ يُسمّى ويُقاس — لأنّ إنكارَه هو ما أخطأتُ فيه أوّلاً.
+
+    دعواي الأولى قالت «قارئا `device_telemetry` في الشجرة كلِّها اثنان»، وكانت
+    **كاذبة**: بحثتُ في `services/` ووصفتُ النتيجةَ بأنّها الشجرةُ كلُّها — قارئٌ أضيقُ
+    من دعواه، وهو الصنفُ الذي تُغلقه هذه الشريحة نفسُها. كشفته مراجعةُ المالك.
+
+    فبدل تليين النصّ، يُقاس الجسرُ: موجودٌ، ويقرأ الجدولَ ويكتب المخزنَ القانونيّ،
+    **ولا يستدعيه شيء**. فإن صار يوماً مُستدعًى من عاملٍ أو مجدوِل، احمرّ هذا الشاهد
+    وطالب بإعادة قراءة الفجوة — وهو ما كانت الدعوى المطلَقة تعجز عنه.
+    """
+    assert BACKFILL.exists(), f"{BACKFILL.name}: اختفى الردمُ — أعِد قراءةَ الفجوة"
+    sql = _sql_text(_function(BACKFILL, BACKFILL_FUNC))
+
+    # **تُقرأ الجُمَلُ لا النصّ.** أوّلُ صياغةٍ اكتفت بـ`"device_telemetry" in sql`،
+    # فنجت طفرةُ تحويل `FROM` إلى جدولٍ آخر: الاسمُ باقٍ في اسم نقطة الحفظ وفي
+    # `jsonb_build_object('legacy_table', …)` وفي مفتاح إزالة التكرار. قارئٌ أوسعُ من
+    # دعواه ⇒ خُضرةٌ كاذبة — الصنفُ الذي تُغلقه هذه الشريحة، ظاهراً في شيفرتها.
+    read = set(re.findall(r"\bFROM\s+(\w+)", sql, re.IGNORECASE))
+    written = set(re.findall(r"\bINSERT\s+INTO\s+(\w+)", sql, re.IGNORECASE))
+    assert "device_telemetry" in read, (
+        f"`{BACKFILL_FUNC}` لم يعد يقرأ `device_telemetry` (يقرأ {sorted(read)}) — "
+        "تغيّر الجسرُ الوحيد، فأعِد قراءةَ الفجوة وقسمَها"
+    )
+    assert "soil_observations" in written, (
+        f"`{BACKFILL_FUNC}` لم يعد يكتب `soil_observations` (يكتب {sorted(written)}) — "
+        "تغيّر الجسرُ الوحيد، فأعِد قراءةَ الفجوة وقسمَها"
+    )
+
+    # مُشغَّلٌ باليد: مدخلُه `main` بوسيطٍ إلزاميّ، لا دالّةٌ يستدعيها عامل.
+    entry = _function(BACKFILL, "main")
+    required = {
+        node.args[0].value
+        for node in ast.walk(entry)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "add_argument"
+        and node.args
+        and isinstance(node.args[0], ast.Constant)
+    }
+    assert "--tenant" in required, (
+        "فقد الردمُ وسيطَ المستأجر الإلزاميّ — لم يعد أداةَ مشغّلٍ بالضرورة، أعِد القراءة"
+    )
+
+
+def test_the_backfilled_rows_land_as_suspect_so_they_witness_but_do_not_seed() -> None:
+    """ما يصل عبر الردم يصل **شاهداً لا بذرة** — وهذا حدُّ صدقِ الجسر.
+
+    `SOIL-MOISTURE-UNIT-IDENTITY-01` يسجّل أنّ `accepted` وحدَها تهيّئ توأمَ المياه،
+    و`suspect` تُقارَن ويُنشَر خلافُها ولا تهيّئ. فلو صار الردمُ يكتب `accepted` لتغيّر
+    أثرُ الجسر على القرار تغيّراً جوهريّاً بلا أن يقول أحد.
+    """
+    sql = _sql_text(_function(BACKFILL, BACKFILL_FUNC))
+    assert "'suspect'" in sql, (
+        "لم يعد الردمُ يكتب `suspect` — صارت قراءةُ جدول الأجهزة تبلغ القرارَ بوزنٍ آخر، "
+        "فأعِد قراءةَ الفجوة وقسمَها قبل البناء عليها"
+    )
 
 
 def _prose_blocks(path: Path) -> list[str]:
