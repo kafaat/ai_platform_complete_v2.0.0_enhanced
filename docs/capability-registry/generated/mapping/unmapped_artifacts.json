@@ -8344,6 +8344,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_sensor_telemetry_consumer_reachability.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_service_consumer_closure_20260723.py",
     "kind": "tests"
   },
