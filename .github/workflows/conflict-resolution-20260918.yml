@@ -1,0 +1,71 @@
+name: Temporary PR conflict resolution 20260918
+on:
+  push:
+    branches: [ops/conflict-resolution-20260918]
+permissions:
+  contents: write
+concurrency:
+  group: temporary-conflict-resolution-20260918
+  cancel-in-progress: false
+jobs:
+  resolve:
+    name: Resolve PR ${{ matrix.pr }} against pinned main
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - pr: 1021
+            head: 45d5205ee7acb4e1a4d182d451dc26cb80cdc012
+            branch: codex/edge-model-artifact-digest-01
+          - pr: 1023
+            head: e3e62de41b1dff00c92322157ceb5b0396407fa9
+            branch: fix/railway-migration-runner
+    env:
+      MAIN_SHA: 3873838bbdc3cbcac6ba52ac6b0a7ca3f2ce991b
+      PR_SHA: ${{ matrix.head }}
+      PR_BRANCH: ${{ matrix.branch }}
+      PR_NUMBER: ${{ matrix.pr }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tests_v9/requirements-test.txt
+      - name: Install existing test dependencies and the pinned formatter
+        timeout-minutes: 10
+        run: python -m pip install -r tests_v9/requirements-test.txt ruff==0.15.8
+      - name: Resolve, regenerate, and validate an isolated worktree
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/evidence"
+          python .github/maintenance/resolve_prs_20260918.py 2>&1 | tee "$RUNNER_TEMP/evidence/operation.log"
+      - name: Preserve source and diagnostics even on failure
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/evidence"
+          git bundle create "$RUNNER_TEMP/evidence/repository.bundle" --all
+          if [ -d "$RUNNER_TEMP/candidate" ]; then
+            git -C "$RUNNER_TEMP/candidate" bundle create "$RUNNER_TEMP/evidence/candidate.bundle" HEAD
+            git -C "$RUNNER_TEMP/candidate" status --porcelain=v1 > "$RUNNER_TEMP/evidence/status.txt"
+            git -C "$RUNNER_TEMP/candidate" diff --binary HEAD > "$RUNNER_TEMP/evidence/worktree.patch"
+            git -C "$RUNNER_TEMP/candidate" diff --name-only --diff-filter=U > "$RUNNER_TEMP/evidence/unresolved.txt"
+          fi
+          cd "$RUNNER_TEMP/evidence"
+          find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: conflict-resolution-pr${{ matrix.pr }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/evidence/
+          if-no-files-found: error
+          retention-days: 7
