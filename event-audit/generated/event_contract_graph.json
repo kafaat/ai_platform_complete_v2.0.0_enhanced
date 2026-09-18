@@ -62,7 +62,7 @@
       "dynamic_expr": "subject",
       "file": "services/sahool-platform/api/main.py",
       "kind": "producer",
-      "line": 575,
+      "line": 573,
       "queue": null,
       "subject": null
     },

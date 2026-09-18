@@ -217716,1071 +217716,1092 @@
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
    "target":"acquire",
+   "line":351
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_start_scheduler",
+   "target":"acquire",
+   "line":351
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_freshness_sweep",
+   "target":"fetch",
    "line":352
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
-   "target":"acquire",
+   "target":"fetch",
    "line":352
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
-   "target":"fetch",
-   "line":353
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_start_scheduler",
-   "target":"fetch",
-   "line":353
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_freshness_sweep",
    "target":"type",
-   "line":357
+   "line":356
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
    "target":"warning",
-   "line":357
+   "line":356
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"type",
-   "line":357
+   "line":356
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"warning",
-   "line":357
+   "line":356
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
    "target":"str",
+   "line":364
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_start_scheduler",
+   "target":"str",
+   "line":364
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_freshness_sweep",
+   "target":"UserSchema",
    "line":365
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
-   "target":"str",
+   "target":"UserSchema",
    "line":365
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
-   "target":"UserSchema",
-   "line":366
+   "target":"tenant_connection",
+   "line":372
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
-   "target":"UserSchema",
-   "line":366
+   "target":"tenant_connection",
+   "line":372
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
-   "target":"tenant_connection",
+   "target":"fetch",
    "line":373
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
-   "target":"tenant_connection",
+   "target":"fetch",
    "line":373
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
-   "target":"fetch",
-   "line":374
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_start_scheduler",
-   "target":"fetch",
-   "line":374
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_freshness_sweep",
    "target":"extend",
-   "line":377
+   "line":376
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"extend",
-   "line":377
+   "line":376
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
    "target":"type",
-   "line":379
+   "line":378
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
    "target":"warning",
-   "line":379
+   "line":378
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"type",
-   "line":379
+   "line":378
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"warning",
-   "line":379
+   "line":378
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
    "target":"len",
-   "line":382
+   "line":381
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
    "target":"start_run",
-   "line":382
+   "line":381
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"len",
-   "line":382
+   "line":381
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"start_run",
-   "line":382
+   "line":381
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
    "target":"tenant_connection",
-   "line":386
+   "line":385
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"tenant_connection",
-   "line":386
+   "line":385
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
    "target":"time",
-   "line":387
+   "line":386
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"time",
-   "line":387
+   "line":386
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
    "target":"fetchrow",
-   "line":389
+   "line":388
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"fetchrow",
-   "line":389
+   "line":388
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
    "target":"float",
-   "line":395
+   "line":394
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"float",
-   "line":395
+   "line":394
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
    "target":"_latest_soil_moisture",
-   "line":401
+   "line":399
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"_latest_soil_moisture",
+   "line":399
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_freshness_sweep",
+   "target":"timestamp",
+   "line":401
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_start_scheduler",
+   "target":"timestamp",
    "line":401
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
-   "target":"timestamp",
-   "line":403
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_start_scheduler",
-   "target":"timestamp",
-   "line":403
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_freshness_sweep",
    "target":"fetchrow",
-   "line":406
+   "line":404
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"fetchrow",
-   "line":406
+   "line":404
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
    "target":"float",
-   "line":416
+   "line":414
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"float",
-   "line":416
+   "line":414
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
    "target":"compute_data_ages",
-   "line":421
+   "line":419
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"compute_data_ages",
-   "line":421
+   "line":419
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
    "target":"check_decision_freshness",
-   "line":427
+   "line":425
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"check_decision_freshness",
-   "line":427
+   "line":425
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
    "target":"mark_evaluated",
-   "line":432
+   "line":430
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"mark_evaluated",
-   "line":432
+   "line":430
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
    "target":"join",
-   "line":435
+   "line":433
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"join",
-   "line":435
+   "line":433
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
    "target":"warning",
+   "line":434
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_start_scheduler",
+   "target":"warning",
+   "line":434
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_freshness_sweep",
+   "target":"mark_errored",
    "line":436
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
-   "target":"warning",
+   "target":"mark_errored",
    "line":436
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
-   "target":"mark_errored",
+   "target":"debug",
+   "line":437
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_freshness_sweep",
+   "target":"type",
+   "line":437
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_start_scheduler",
+   "target":"debug",
+   "line":437
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_start_scheduler",
+   "target":"type",
+   "line":437
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_freshness_sweep",
+   "target":"finish",
    "line":438
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
-   "target":"mark_errored",
+   "target":"finish",
    "line":438
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_freshness_sweep",
-   "target":"debug",
-   "line":439
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_freshness_sweep",
-   "target":"type",
-   "line":439
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_start_scheduler",
-   "target":"debug",
-   "line":439
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_start_scheduler",
-   "target":"type",
-   "line":439
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_freshness_sweep",
-   "target":"finish",
+   "target":"info",
    "line":440
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
-   "target":"finish",
+   "target":"info",
    "line":440
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
-   "source":"_freshness_sweep",
-   "target":"info",
-   "line":442
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_start_scheduler",
-   "target":"info",
-   "line":442
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"refresh_all",
-   "line":447
+   "line":445
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_weather_sweep",
    "target":"refresh_all",
+   "line":445
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_start_scheduler",
+   "target":"get",
+   "line":446
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_weather_sweep",
+   "target":"get",
+   "line":446
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_start_scheduler",
+   "target":"info",
    "line":447
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
-   "source":"_start_scheduler",
-   "target":"get",
-   "line":448
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_weather_sweep",
-   "target":"get",
-   "line":448
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_start_scheduler",
-   "target":"info",
-   "line":449
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
    "source":"_weather_sweep",
    "target":"info",
-   "line":449
+   "line":447
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_imagery_sweep",
    "target":"scan_all",
-   "line":454
+   "line":452
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"scan_all",
+   "line":452
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_imagery_sweep",
+   "target":"get",
+   "line":453
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_start_scheduler",
+   "target":"get",
+   "line":453
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_imagery_sweep",
+   "target":"info",
    "line":454
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
-   "source":"_imagery_sweep",
-   "target":"get",
-   "line":455
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_start_scheduler",
-   "target":"get",
-   "line":455
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_imagery_sweep",
-   "target":"info",
-   "line":456
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"info",
-   "line":456
+   "line":454
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_alerts_sweep",
    "target":"acquire",
-   "line":470
+   "line":468
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"acquire",
-   "line":470
+   "line":468
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_alerts_sweep",
    "target":"fetch",
-   "line":471
+   "line":469
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"fetch",
-   "line":471
+   "line":469
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_alerts_sweep",
    "target":"type",
-   "line":475
+   "line":473
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_alerts_sweep",
    "target":"warning",
-   "line":475
+   "line":473
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"type",
-   "line":475
+   "line":473
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"warning",
-   "line":475
+   "line":473
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_alerts_sweep",
    "target":"str",
-   "line":484
+   "line":482
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"str",
-   "line":484
+   "line":482
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_alerts_sweep",
    "target":"UserSchema",
-   "line":485
+   "line":483
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"UserSchema",
-   "line":485
+   "line":483
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_alerts_sweep",
    "target":"tenant_connection",
-   "line":492
+   "line":490
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"tenant_connection",
-   "line":492
+   "line":490
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_alerts_sweep",
    "target":"fetch",
-   "line":493
+   "line":491
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"fetch",
-   "line":493
+   "line":491
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_alerts_sweep",
    "target":"extend",
-   "line":496
+   "line":494
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"extend",
+   "line":494
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_alerts_sweep",
+   "target":"type",
    "line":496
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_alerts_sweep",
-   "target":"type",
-   "line":498
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_alerts_sweep",
    "target":"warning",
-   "line":498
+   "line":496
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"type",
-   "line":498
+   "line":496
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"warning",
-   "line":498
+   "line":496
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_alerts_sweep",
    "target":"len",
-   "line":501
+   "line":499
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_alerts_sweep",
    "target":"start_run",
-   "line":501
+   "line":499
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"len",
-   "line":501
+   "line":499
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"start_run",
-   "line":501
+   "line":499
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_alerts_sweep",
    "target":"_evaluate_field_alerts_persist",
-   "line":505
+   "line":503
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"_evaluate_field_alerts_persist",
+   "line":503
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_alerts_sweep",
+   "target":"mark_evaluated",
+   "line":504
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_start_scheduler",
+   "target":"mark_evaluated",
+   "line":504
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_alerts_sweep",
+   "target":"add_alerts",
    "line":505
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_alerts_sweep",
-   "target":"mark_evaluated",
-   "line":506
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_start_scheduler",
-   "target":"mark_evaluated",
-   "line":506
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_alerts_sweep",
-   "target":"add_alerts",
-   "line":507
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_alerts_sweep",
    "target":"len",
-   "line":507
+   "line":505
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"add_alerts",
-   "line":507
+   "line":505
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"len",
-   "line":507
+   "line":505
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_alerts_sweep",
    "target":"len",
-   "line":508
+   "line":506
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"len",
-   "line":508
+   "line":506
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_alerts_sweep",
    "target":"mark_errored",
-   "line":510
+   "line":508
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"mark_errored",
+   "line":508
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_alerts_sweep",
+   "target":"debug",
+   "line":509
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_alerts_sweep",
+   "target":"type",
+   "line":509
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_start_scheduler",
+   "target":"debug",
+   "line":509
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_start_scheduler",
+   "target":"type",
+   "line":509
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_alerts_sweep",
+   "target":"finish",
+   "line":510
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_start_scheduler",
+   "target":"finish",
    "line":510
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_alerts_sweep",
-   "target":"debug",
-   "line":511
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_alerts_sweep",
-   "target":"type",
-   "line":511
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_start_scheduler",
-   "target":"debug",
-   "line":511
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_start_scheduler",
-   "target":"type",
-   "line":511
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_alerts_sweep",
-   "target":"finish",
+   "target":"info",
    "line":512
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
-   "target":"finish",
+   "target":"info",
    "line":512
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_alerts_sweep",
-   "target":"info",
-   "line":514
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_start_scheduler",
-   "target":"info",
-   "line":514
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"register_default_tasks",
-   "line":518
+   "line":516
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"cluster_singleton",
-   "line":519
+   "line":517
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"cluster_singleton",
-   "line":522
+   "line":520
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"cluster_singleton",
-   "line":525
+   "line":523
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"cluster_singleton",
-   "line":530
+   "line":528
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"int",
-   "line":533
+   "line":531
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"getenv",
-   "line":534
+   "line":532
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_scheduler",
    "target":"start",
-   "line":537
+   "line":535
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_outbox_worker",
    "target":"nats_publishers_enabled",
-   "line":556
+   "line":554
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_outbox_worker",
    "target":"info",
-   "line":557
+   "line":555
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_outbox_worker",
    "target":"warning",
-   "line":564
+   "line":562
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_outbox_worker",
    "target":"getenv",
-   "line":571
+   "line":569
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_outbox_worker",
    "target":"connect",
-   "line":572
+   "line":570
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_publish",
    "target":"publish",
-   "line":575
+   "line":573
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_outbox_worker",
    "target":"publish",
-   "line":575
+   "line":573
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_outbox_worker",
    "target":"OutboxWorker",
-   "line":579
+   "line":577
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_outbox_worker",
    "target":"create_task",
-   "line":580
+   "line":578
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_outbox_worker",
    "target":"run",
-   "line":580
+   "line":578
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_outbox_worker",
    "target":"info",
-   "line":583
+   "line":581
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_outbox_worker",
    "target":"redact_broker_url",
-   "line":583
+   "line":581
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_start_outbox_worker",
    "target":"warning",
-   "line":585
+   "line":583
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_stop_outbox_worker",
    "target":"stop",
-   "line":591
+   "line":589
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_stop_outbox_worker",
    "target":"cancel",
-   "line":593
+   "line":591
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_stop_outbox_worker",
    "target":"suppress",
-   "line":595
+   "line":593
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_stop_outbox_worker",
    "target":"drain",
-   "line":600
+   "line":598
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_stop_outbox_worker",
    "target":"warning",
-   "line":602
+   "line":600
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_stop_scheduler",
    "target":"stop",
-   "line":609
+   "line":607
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_close_db_pool",
    "target":"close",
-   "line":615
+   "line":613
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"get_pool",
    "target":"HTTPException",
-   "line":623
+   "line":621
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"tenant_connection",
    "target":"get_pool",
-   "line":642
+   "line":640
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"tenant_connection",
    "target":"acquire",
-   "line":643
+   "line":641
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"tenant_connection",
    "target":"transaction",
-   "line":644
+   "line":642
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"tenant_connection",
    "target":"execute",
-   "line":646
+   "line":644
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"tenant_connection",
+   "target":"str",
+   "line":648
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"tenant_connection",
+   "target":"str",
+   "line":649
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"tenant_connection",
+   "target":"hasattr",
+   "line":650
   },
   {
    "owner":"sahool-platform",
@@ -218792,141 +218813,127 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
-   "source":"tenant_connection",
-   "target":"str",
-   "line":651
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"tenant_connection",
-   "target":"hasattr",
-   "line":652
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"tenant_connection",
-   "target":"str",
-   "line":652
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
    "source":"_emit_domain_event",
    "target":"transaction",
-   "line":713
+   "line":711
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_emit_domain_event",
    "target":"EventBus",
-   "line":714
+   "line":712
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_emit_domain_event",
    "target":"emit",
-   "line":714
+   "line":712
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_emit_domain_event",
    "target":"get_pool",
-   "line":714
+   "line":712
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_emit_domain_event",
    "target":"str",
-   "line":717
+   "line":715
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_emit_domain_event",
    "target":"str",
-   "line":718
+   "line":716
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_emit_domain_event",
    "target":"str",
-   "line":721
+   "line":719
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_emit_domain_event",
    "target":"error",
-   "line":727
+   "line":725
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_emit_domain_event",
    "target":"warning",
-   "line":730
+   "line":728
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_idem_key",
    "target":"Header",
-   "line":741
+   "line":739
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_idem_key",
    "target":"strip",
-   "line":749
+   "line":747
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_idem_key",
    "target":"UUID",
-   "line":755
+   "line":753
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_idem_key",
    "target":"HTTPException",
-   "line":757
+   "line":755
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_idempotent",
    "target":"new",
-   "line":775
+   "line":773
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_idempotent",
    "target":"insert",
-   "line":783
+   "line":781
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_idempotent",
    "target":"do_work",
-   "line":784
+   "line":782
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_idempotent",
    "target":"mark_succeeded",
+   "line":783
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_idempotent",
+   "target":"get",
    "line":785
   },
   {
@@ -218941,622 +218948,629 @@
    "file":"services/sahool-platform/api/main.py",
    "source":"_idempotent",
    "target":"get",
-   "line":789
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_idempotent",
-   "target":"get",
-   "line":790
+   "line":788
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_idempotent",
    "target":"HTTPException",
-   "line":793
+   "line":791
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_idempotent",
    "target":"HTTPException",
-   "line":796
+   "line":794
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_rate_client_key",
    "target":"get",
-   "line":843
+   "line":841
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_rate_client_key",
    "target":"split",
-   "line":845
+   "line":843
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_rate_client_key",
    "target":"strip",
-   "line":845
+   "line":843
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_rate_client_key",
    "target":"get",
-   "line":846
+   "line":844
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_prune_rate_buckets",
    "target":"items",
-   "line":853
+   "line":851
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_prune_rate_buckets",
    "target":"pop",
-   "line":854
+   "line":852
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_build_rate_redis",
    "target":"getenv",
-   "line":865
+   "line":863
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_build_rate_redis",
    "target":"from_url",
+   "line":869
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_build_rate_redis",
+   "target":"ping",
+   "line":870
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_build_rate_redis",
+   "target":"info",
    "line":871
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_build_rate_redis",
-   "target":"ping",
-   "line":872
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_build_rate_redis",
-   "target":"info",
-   "line":873
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_build_rate_redis",
    "target":"warning",
-   "line":876
+   "line":874
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_rate_check_redis",
    "target":"incr",
-   "line":891
+   "line":889
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_rate_check_redis",
    "target":"expire",
-   "line":893
+   "line":891
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_rate_check_redis",
    "target":"ttl",
-   "line":895
+   "line":893
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_rate_check_redis",
    "target":"isinstance",
-   "line":896
+   "line":894
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_rate_check_redis",
    "target":"max",
-   "line":896
+   "line":894
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_rate_check_redis",
    "target":"warning",
-   "line":899
+   "line":897
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"rate_limit_middleware",
    "target":"middleware",
-   "line":903
+   "line":901
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"rate_limit_middleware",
    "target":"call_next",
-   "line":911
+   "line":909
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"rate_limit_middleware",
    "target":"_rate_client_key",
-   "line":912
+   "line":910
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"rate_limit_middleware",
    "target":"to_thread",
+   "line":914
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"rate_limit_middleware",
+   "target":"JSONResponse",
    "line":916
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"rate_limit_middleware",
-   "target":"JSONResponse",
-   "line":918
+   "target":"str",
+   "line":919
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"rate_limit_middleware",
-   "target":"str",
+   "target":"call_next",
    "line":921
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"rate_limit_middleware",
-   "target":"call_next",
-   "line":923
+   "target":"time",
+   "line":926
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"rate_limit_middleware",
-   "target":"time",
+   "target":"len",
    "line":928
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"rate_limit_middleware",
-   "target":"len",
+   "target":"_prune_rate_buckets",
+   "line":929
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"rate_limit_middleware",
+   "target":"get",
    "line":930
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"rate_limit_middleware",
-   "target":"_prune_rate_buckets",
-   "line":931
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"rate_limit_middleware",
-   "target":"get",
-   "line":932
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"rate_limit_middleware",
    "target":"int",
-   "line":938
+   "line":936
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"rate_limit_middleware",
    "target":"max",
-   "line":938
+   "line":936
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"rate_limit_middleware",
    "target":"JSONResponse",
-   "line":939
+   "line":937
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"rate_limit_middleware",
    "target":"str",
-   "line":942
+   "line":940
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"rate_limit_middleware",
    "target":"call_next",
-   "line":944
+   "line":942
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_clamp_list_window",
    "target":"int",
-   "line":1058
+   "line":1056
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_clamp_list_window",
    "target":"max",
-   "line":1058
+   "line":1056
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_clamp_list_window",
    "target":"min",
-   "line":1058
+   "line":1056
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_clamp_list_window",
    "target":"int",
-   "line":1059
+   "line":1057
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_clamp_list_window",
    "target":"max",
-   "line":1059
+   "line":1057
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_build_versioned_update",
    "target":"len",
-   "line":1080
+   "line":1078
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_build_versioned_update",
    "target":"append",
-   "line":1088
+   "line":1086
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_normalize_role",
    "target":"get",
-   "line":1121
+   "line":1119
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_normalize_role",
    "target":"lower",
-   "line":1121
+   "line":1119
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_normalize_role",
    "target":"str",
-   "line":1121
+   "line":1119
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_normalize_role",
    "target":"strip",
-   "line":1121
+   "line":1119
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"create_token",
    "target":"token_hex",
-   "line":1132
+   "line":1130
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"create_token",
    "target":"now",
-   "line":1133
+   "line":1131
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"create_token",
    "target":"timedelta",
-   "line":1134
+   "line":1132
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"create_token",
    "target":"encode",
-   "line":1136
+   "line":1134
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_build_denylist",
    "target":"getenv",
-   "line":1159
+   "line":1157
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_build_denylist",
    "target":"from_url",
-   "line":1164
+   "line":1162
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_build_denylist",
    "target":"ping",
-   "line":1165
+   "line":1163
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_build_denylist",
    "target":"info",
-   "line":1166
+   "line":1164
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_build_denylist",
    "target":"RedisDenylist",
+   "line":1165
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_build_denylist",
+   "target":"_is_production",
    "line":1167
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_build_denylist",
-   "target":"_is_production",
+   "target":"RuntimeError",
+   "line":1168
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_build_denylist",
+   "target":"warning",
    "line":1169
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_build_denylist",
-   "target":"RuntimeError",
+   "target":"_is_production",
    "line":1170
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_build_denylist",
-   "target":"warning",
-   "line":1171
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_build_denylist",
-   "target":"_is_production",
+   "target":"RuntimeError",
    "line":1172
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_build_denylist",
-   "target":"RuntimeError",
-   "line":1174
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_build_denylist",
    "target":"InMemoryDenylist",
-   "line":1175
+   "line":1173
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"get_current_user",
    "target":"Header",
-   "line":1181
+   "line":1179
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"get_current_user",
    "target":"startswith",
-   "line":1183
+   "line":1181
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"get_current_user",
    "target":"HTTPException",
-   "line":1184
+   "line":1182
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"get_current_user",
    "target":"replace",
-   "line":1186
+   "line":1184
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"get_current_user",
    "target":"decode",
-   "line":1188
+   "line":1186
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"get_current_user",
    "target":"type",
-   "line":1192
+   "line":1190
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"get_current_user",
    "target":"warning",
-   "line":1192
+   "line":1190
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"get_current_user",
    "target":"HTTPException",
-   "line":1193
+   "line":1191
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"get_current_user",
    "target":"get",
-   "line":1196
+   "line":1194
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"get_current_user",
    "target":"HTTPException",
-   "line":1197
+   "line":1195
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"get_current_user",
    "target":"get",
-   "line":1201
+   "line":1199
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"get_current_user",
    "target":"is_token_revoked",
-   "line":1201
+   "line":1199
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"get_current_user",
    "target":"HTTPException",
-   "line":1202
+   "line":1200
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"get_current_user",
    "target":"_normalize_role",
-   "line":1204
+   "line":1202
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"get_current_user",
    "target":"get",
-   "line":1204
+   "line":1202
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"get_current_user",
    "target":"get",
-   "line":1207
+   "line":1205
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"get_current_user",
    "target":"get",
+   "line":1206
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"get_current_user",
+   "target":"HTTPException",
    "line":1208
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"get_current_user",
-   "target":"HTTPException",
+   "target":"UserSchema",
    "line":1210
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"get_current_user",
-   "target":"UserSchema",
-   "line":1212
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"get_current_user",
    "target":"get",
-   "line":1216
+   "line":1214
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_dep",
    "target":"Depends",
-   "line":1232
+   "line":1230
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"require_permission",
    "target":"Depends",
-   "line":1232
+   "line":1230
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_dep",
    "target":"has_permission",
-   "line":1233
+   "line":1231
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"require_permission",
    "target":"has_permission",
-   "line":1233
+   "line":1231
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_dep",
    "target":"record",
-   "line":1237
+   "line":1235
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"require_permission",
    "target":"record",
+   "line":1235
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_dep",
+   "target":"str",
+   "line":1237
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"require_permission",
+   "target":"str",
    "line":1237
   },
   {
@@ -219564,336 +219578,329 @@
    "file":"services/sahool-platform/api/main.py",
    "source":"_dep",
    "target":"str",
-   "line":1239
+   "line":1238
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"require_permission",
    "target":"str",
-   "line":1239
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_dep",
-   "target":"str",
-   "line":1240
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"require_permission",
-   "target":"str",
-   "line":1240
+   "line":1238
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_dep",
    "target":"HTTPException",
-   "line":1244
+   "line":1242
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"require_permission",
    "target":"HTTPException",
-   "line":1244
+   "line":1242
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_centroid_from_bbox",
    "target":"round",
-   "line":1291
+   "line":1289
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_centroid_from_bbox",
    "target":"round",
-   "line":1292
+   "line":1290
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_reverse_geocode",
    "target":"locate_field",
+   "line":1318
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_reverse_geocode",
+   "target":"get",
+   "line":1319
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_reverse_geocode",
+   "target":"get",
    "line":1320
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_reverse_geocode",
-   "target":"get",
-   "line":1321
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_reverse_geocode",
-   "target":"get",
-   "line":1322
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_db_unavailable",
    "target":"type",
-   "line":1338
+   "line":1336
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_db_unavailable",
    "target":"warning",
-   "line":1338
+   "line":1336
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_db_unavailable",
    "target":"HTTPException",
-   "line":1339
+   "line":1337
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_assert_field_in_tenant",
    "target":"fetchval",
-   "line":1371
+   "line":1369
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_assert_field_in_tenant",
    "target":"HTTPException",
-   "line":1373
+   "line":1371
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_activity_event_type",
    "target":"activity_event_for",
-   "line":1437
+   "line":1435
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_obj",
    "target":"isinstance",
-   "line":1442
+   "line":1440
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_activity",
    "target":"isinstance",
-   "line":1442
+   "line":1440
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_obj",
    "target":"loads",
-   "line":1444
+   "line":1442
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_activity",
    "target":"loads",
-   "line":1444
+   "line":1442
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_d",
    "target":"isoformat",
-   "line":1450
+   "line":1448
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_activity",
    "target":"isoformat",
-   "line":1450
+   "line":1448
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_activity",
    "target":"ActivitySummary",
-   "line":1452
+   "line":1450
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_activity",
    "target":"_obj",
+   "line":1456
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_row_to_activity",
+   "target":"_d",
+   "line":1457
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_row_to_activity",
+   "target":"_d",
    "line":1458
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_activity",
-   "target":"_d",
-   "line":1459
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_row_to_activity",
-   "target":"_d",
-   "line":1460
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_row_to_activity",
    "target":"isoformat",
-   "line":1462
+   "line":1460
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_task",
    "target":"TaskSummary",
-   "line":1479
+   "line":1477
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_task",
    "target":"str",
-   "line":1480
+   "line":1478
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_task",
    "target":"isoformat",
-   "line":1485
+   "line":1483
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_task",
    "target":"float",
-   "line":1489
+   "line":1487
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_task",
    "target":"isoformat",
-   "line":1495
+   "line":1493
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_task",
    "target":"isoformat",
-   "line":1496
+   "line":1494
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_obj",
    "target":"isinstance",
-   "line":1515
+   "line":1513
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_soil_test",
    "target":"isinstance",
-   "line":1515
+   "line":1513
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_obj",
    "target":"loads",
-   "line":1517
+   "line":1515
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_soil_test",
    "target":"loads",
-   "line":1517
+   "line":1515
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_d",
    "target":"isoformat",
-   "line":1523
+   "line":1521
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_soil_test",
    "target":"isoformat",
-   "line":1523
+   "line":1521
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_soil_test",
    "target":"SoilLabTestSummary",
-   "line":1525
+   "line":1523
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_soil_test",
    "target":"_d",
-   "line":1530
+   "line":1528
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_soil_test",
    "target":"_obj",
-   "line":1531
+   "line":1529
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_soil_test",
    "target":"_d",
-   "line":1534
+   "line":1532
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_soil_test",
    "target":"_d",
-   "line":1535
+   "line":1533
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_prefs",
    "target":"isinstance",
-   "line":1579
+   "line":1577
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_prefs",
    "target":"loads",
-   "line":1581
+   "line":1579
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_prefs",
    "target":"NotificationPreferences",
-   "line":1584
+   "line":1582
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_row_to_prefs",
+   "target":"bool",
+   "line":1583
   },
   {
    "owner":"sahool-platform",
@@ -219920,365 +219927,372 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_row_to_prefs",
-   "target":"bool",
-   "line":1591
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_row_to_prefs",
    "target":"list",
-   "line":1593
+   "line":1591
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_log_alert_deliveries",
    "target":"fetchrow",
-   "line":1618
+   "line":1616
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_log_alert_deliveries",
    "target":"str",
-   "line":1621
+   "line":1619
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_log_alert_deliveries",
    "target":"str",
-   "line":1622
+   "line":1620
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_log_alert_deliveries",
    "target":"warning",
-   "line":1625
+   "line":1623
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_log_alert_deliveries",
    "target":"_row_to_prefs",
-   "line":1629
+   "line":1627
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_log_alert_deliveries",
    "target":"NotificationPrefs",
-   "line":1630
+   "line":1628
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_log_alert_deliveries",
    "target":"AlertInput",
-   "line":1642
+   "line":1640
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_log_alert_deliveries",
    "target":"to_thread",
-   "line":1653
+   "line":1651
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_log_alert_deliveries",
    "target":"warning",
-   "line":1655
+   "line":1653
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_log_alert_deliveries",
    "target":"info",
-   "line":1658
+   "line":1656
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"tenant_connection",
-   "line":1709
+   "line":1707
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"_field_weather_context",
-   "line":1710
+   "line":1708
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"_latest_soil_moisture",
-   "line":1712
+   "line":1710
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"fetchval",
-   "line":1715
+   "line":1713
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"fetchrow",
-   "line":1719
+   "line":1717
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"isinstance",
-   "line":1726
+   "line":1724
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"loads",
-   "line":1727
+   "line":1725
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"_db_unavailable",
-   "line":1733
+   "line":1731
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"fetch_daily_forecast",
-   "line":1736
+   "line":1734
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"fetch_current",
-   "line":1737
+   "line":1735
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"HTTPException",
-   "line":1741
+   "line":1739
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"alert_rain_context",
-   "line":1752
+   "line":1750
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"resolve_crop_id",
-   "line":1758
+   "line":1756
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"stage_kc",
-   "line":1758
+   "line":1756
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"irrigation_advice",
-   "line":1759
+   "line":1757
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"get",
-   "line":1769
+   "line":1767
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"_historical_rain_3d_mm",
-   "line":1772
+   "line":1770
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"get",
-   "line":1777
+   "line":1775
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"FieldAlertContext",
-   "line":1778
+   "line":1776
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"float",
-   "line":1791
+   "line":1789
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"evaluate_field_alerts",
-   "line":1796
+   "line":1794
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"thresholds_from_policy",
-   "line":1796
+   "line":1794
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"tenant_connection",
-   "line":1801
+   "line":1799
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"fetch",
-   "line":1803
+   "line":1801
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"uuid4",
-   "line":1812
+   "line":1810
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"execute",
-   "line":1813
+   "line":1811
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"str",
-   "line":1819
+   "line":1817
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"_emit_domain_event",
-   "line":1829
+   "line":1827
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"add",
-   "line":1842
+   "line":1840
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"append",
-   "line":1843
+   "line":1841
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"AlertSummary",
-   "line":1844
+   "line":1842
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_evaluate_field_alerts_persist",
    "target":"_db_unavailable",
-   "line":1857
+   "line":1855
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_parse_date",
    "target":"fromisoformat",
-   "line":1876
+   "line":1874
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_parse_date",
    "target":"strip",
-   "line":1876
+   "line":1874
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_parse_date",
    "target":"HTTPException",
-   "line":1878
+   "line":1876
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_parse_iso_utc",
    "target":"fromisoformat",
-   "line":2006
+   "line":2004
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_parse_iso_utc",
    "target":"replace",
-   "line":2006
+   "line":2004
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_parse_iso_utc",
    "target":"HTTPException",
-   "line":2008
+   "line":2006
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_parse_iso_utc",
    "target":"replace",
-   "line":2010
+   "line":2008
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_issue_tags_from_event",
    "target":"lower",
-   "line":2066
+   "line":2064
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_issue_tags_from_event",
+   "target":"get",
+   "line":2067
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_issue_tags_from_event",
+   "target":"append",
+   "line":2068
   },
   {
    "owner":"sahool-platform",
@@ -220333,148 +220347,134 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_issue_tags_from_event",
+   "target":"get",
+   "line":2075
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/main.py",
+   "source":"_issue_tags_from_event",
    "target":"append",
    "line":2076
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
-   "source":"_issue_tags_from_event",
-   "target":"get",
-   "line":2077
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_issue_tags_from_event",
-   "target":"get",
-   "line":2077
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_issue_tags_from_event",
-   "target":"append",
-   "line":2078
+   "source":"_build_walk_plan",
+   "target":"ApplicationMethod",
+   "line":2110
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_build_walk_plan",
-   "target":"ApplicationMethod",
+   "target":"HTTPException",
    "line":2112
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_build_walk_plan",
-   "target":"HTTPException",
-   "line":2114
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
-   "source":"_build_walk_plan",
    "target":"EquipmentSpec",
-   "line":2115
+   "line":2113
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_build_walk_plan",
    "target":"ZoneRateInput",
-   "line":2123
+   "line":2121
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_build_walk_plan",
    "target":"generate_walk_plan",
-   "line":2125
+   "line":2123
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_build_walk_plan",
    "target":"HTTPException",
-   "line":2135
+   "line":2133
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_build_walk_plan",
    "target":"str",
-   "line":2135
+   "line":2133
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_get_workflow_store",
    "target":"getenv",
-   "line":2501
+   "line":2499
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_get_workflow_store",
    "target":"PostgresWorkflowStore",
-   "line":2503
+   "line":2501
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_get_workflow_store",
    "target":"str",
-   "line":2504
+   "line":2502
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_get_workflow_store",
    "target":"get",
-   "line":2505
+   "line":2503
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_get_workflow_store",
    "target":"InMemoryWorkflowStore",
-   "line":2507
+   "line":2505
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_rebuild_pydantic_models",
    "target":"dir",
-   "line":2521
+   "line":2519
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_rebuild_pydantic_models",
    "target":"getattr",
-   "line":2522
+   "line":2520
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_rebuild_pydantic_models",
    "target":"isinstance",
-   "line":2524
+   "line":2522
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_rebuild_pydantic_models",
    "target":"issubclass",
-   "line":2524
+   "line":2522
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
    "source":"_rebuild_pydantic_models",
    "target":"model_rebuild",
-   "line":2525
+   "line":2523
   },
   {
    "owner":"sahool-platform",
@@ -561807,7 +561807,7 @@
    "symbol":"rate_limit_middleware",
    "kind":"function",
    "file":"services/sahool-platform/api/main.py",
-   "line":904,
+   "line":902,
    "owner":"sahool-platform",
    "decorated_route":false,
    "reference_count":0,
