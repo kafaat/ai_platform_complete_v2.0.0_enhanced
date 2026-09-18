@@ -8300,6 +8300,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_sam2_artifact_digest.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_sam2_polygon_cleaning_20260702.py",
     "kind": "tests"
   },

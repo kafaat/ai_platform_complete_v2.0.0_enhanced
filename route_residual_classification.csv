@@ -106,10 +106,10 @@ field-management-service,services/field-management-service/main.py,232,GET,/cont
 field-management-service,services/field-management-service/main.py,251,GET,/,root,legacy_alias
 field-management-service,services/field-management-service/main.py,260,GET,/internal/fields/{field_id},internal_get_field,internal_endpoint
 field-management-service,services/field-management-service/main.py,292,GET,/internal/fields,internal_list_fields,internal_endpoint
-field-segmentation,services/field-segmentation/main.py,370,GET,/healthz,healthz,health
-field-segmentation,services/field-segmentation/main.py,375,GET,/health,legacy_health,health
-field-segmentation,services/field-segmentation/main.py,380,GET,/readyz,readyz,readiness
-field-segmentation,services/field-segmentation/main.py,391,POST,/v1/segment,segment,business_endpoint
+field-segmentation,services/field-segmentation/main.py,371,GET,/healthz,healthz,health
+field-segmentation,services/field-segmentation/main.py,376,GET,/health,legacy_health,health
+field-segmentation,services/field-segmentation/main.py,381,GET,/readyz,readyz,readiness
+field-segmentation,services/field-segmentation/main.py,392,POST,/v1/segment,segment,business_endpoint
 indicators-service,services/indicators-service/main.py,63,GET,/healthz,healthz,health
 indicators-service,services/indicators-service/main.py,68,GET,/health,legacy_health,health
 indicators-service,services/indicators-service/main.py,73,GET,/metrics,metrics,metrics
@@ -146,9 +146,9 @@ remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,39,GE
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,44,GET,/readyz,readyz,readiness
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,109,GET,/v1/fields/{field_id}/remote-sensing-workspace,workspace,business_endpoint
 sam2-inference,services/sam2-inference/main.py,24,POST,/v1/predict,predict,business_endpoint
-sam2-inference,services/sam2-inference/main.py,105,GET,/healthz,healthz,health
-sam2-inference,services/sam2-inference/main.py,110,GET,/health,legacy_health,health
-sam2-inference,services/sam2-inference/main.py,115,GET,/readyz,readyz,readiness
+sam2-inference,services/sam2-inference/main.py,106,GET,/healthz,healthz,health
+sam2-inference,services/sam2-inference/main.py,111,GET,/health,legacy_health,health
+sam2-inference,services/sam2-inference/main.py,116,GET,/readyz,readyz,readiness
 scout-ingest-service,services/scout-ingest-service/main.py,178,GET,/healthz,healthz,health
 scout-ingest-service,services/scout-ingest-service/main.py,183,GET,/readyz,readyz,readiness
 scout-ingest-service,services/scout-ingest-service/main.py,216,GET,/internal/scouting/external-observations,read_external_observations,internal_endpoint

@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5357,
+    "files_scanned": 5358,
     "files_by_kind": {
       "backend": 1209,
       "database": 277,
       "governance": 62,
       "mobile": 55,
       "other": 1489,
-      "tests": 1807,
+      "tests": 1808,
       "web": 458
     },
-    "unmapped_artifacts": 2176,
+    "unmapped_artifacts": 2177,
     "ambiguous_artifacts": 420
   },
   "capabilities": [
@@ -43893,6 +43893,10 @@
     },
     {
       "path": "tests_v9/test_sahool_inspector.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_sam2_artifact_digest.py",
       "kind": "tests"
     },
     {
