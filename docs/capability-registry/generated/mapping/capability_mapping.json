@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5360,
+    "files_scanned": 5361,
     "files_by_kind": {
       "backend": 1209,
       "database": 277,
       "governance": 62,
       "mobile": 55,
       "other": 1491,
-      "tests": 1808,
+      "tests": 1809,
       "web": 458
     },
-    "unmapped_artifacts": 2177,
+    "unmapped_artifacts": 2178,
     "ambiguous_artifacts": 420
   },
   "capabilities": [
@@ -42152,6 +42152,10 @@
     },
     {
       "path": "tests/deploy/test_phase15_deployment_readiness_contracts.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/deploy/test_railway_migration_runner.py",
       "kind": "tests"
     },
     {
