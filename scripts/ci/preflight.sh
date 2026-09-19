@@ -397,6 +397,14 @@ run "٦أ) brain_deferral"          python3 scripts/ci/brain_deferral_registry_g
 require_file scripts/ci/brain_duplicate_gap_identity_guard.py "٦د) brain_duplicate_gap_identity" \
   && run "٦د) brain_duplicate_gap_identity" python3 scripts/ci/brain_duplicate_gap_identity_guard.py
 
+# ٦و) ANNOTATED-SUPERSESSION-CLOSES-A-GAP-WITHOUT-A-WITNESS-01: ٦د يمسك العنوانَين
+# **المتلاصقَين** (فسادُ union)، وهذا يمسك الضدّ تماماً — عنوانَين مفصولَين بمتنٍ
+# و**موسومَين** بحيث يصير أحدُهما تاريخاً والآخر إغلاقاً. الوسمُ دخل في #1031 بلا
+# كلفة، فيُدفَع هنا: شاهدٌ مُستشهَدٌ به موجودٌ في الشجرة، وتناقضٌ غيرُ موسومٍ يحجب.
+# ساكنٌ ومحلّيّ، أقلّ من ثانيتين، ولا يحتاج `$BASE`.
+require_file scripts/ci/brain_annotated_supersession_guard.py "٦و) brain_annotated_supersession" \
+  && run "٦و) brain_annotated_supersession" python3 scripts/ci/brain_annotated_supersession_guard.py
+
 if git rev-parse --verify "$BASE" >/dev/null 2>&1; then
   run "٦ب) brain_state_transition" python3 scripts/ci/brain_state_transition_guard.py --base "$BASE" --head HEAD
   run "٦ج) brain_commit_claim"     python3 scripts/ci/brain_commit_claim_guard.py --base "$BASE" --head HEAD
