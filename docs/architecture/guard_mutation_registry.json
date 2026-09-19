@@ -5380,6 +5380,47 @@
         }
       ],
       "test": "tests_v9/test_certification_evidence_is_produced_not_assumed.py"
+    },
+    "brain_annotated_supersession_guard.py": {
+      "test": "tests_v9/test_brain_annotated_supersession_guard.py",
+      "mutations": [
+        {
+          "expect": "test_an_annotated_closure_without_a_cited_witness_is_reported",
+          "find": "        if not superseded or current is None or current.get(\"state\") not in CLOSING:",
+          "replace": "        if True:",
+          "why": "نزعُ البند ② كلِّه ⇒ يعود المسارُ الذي فتح الفجوة أخضرَ: تُنسَخ فجوةٌ `open`، تُوسَم النسخةُ `fixed` بـ`current` والأصلُ `historical`، فتختفي من كلّ عدٍّ يُقرأ بلا حارسٍ يحمرّ"
+        },
+        {
+          "expect": "test_a_reopening_is_never_asked_for_a_closure_witness",
+          "find": "        if not superseded or current is None or current.get(\"state\") not in CLOSING:",
+          "replace": "        if current is None:",
+          "why": "إسقاطُ شرطِ الاتّجاه ⇒ يُطالَب مدخلٌ `current` حالتُه `open` بشاهدِ إغلاق، فتصير إعادةُ فتحِ فجوةٍ وُسِمت مرّةً **مستحيلة**. هذا صنفُ «حارسٍ لا يقبل حالةً صادقة» المُغلَق في #1026 — لا إيجابيٌّ كاذب ولا سلبيّ، بل استحالة"
+        },
+        {
+          "expect": "test_a_wired_guard_that_is_gone_from_the_tree_is_not_a_witness",
+          "find": "    if not target.is_file():",
+          "replace": "    if False:",
+          "why": "نزعُ فحص الوجود ⇒ اسمٌ ما زال مذكوراً في workflow لحارسٍ حُذِف ملفُّه يُقبَل ثمناً لإغلاق. وهذه الطفرةُ **نجت أوّلَ قياس**: ذراعُ الاختبارات كانت مُغطّاةً صدفةً عبر `except OSError`، وذراعُ الحرّاس غيرَ مُغطّاةٍ بتاتاً — فأُضيف الشاهدُ ولم تُستبدَل الطفرةُ بألطفَ منها"
+        },
+        {
+          "expect": "test_an_empty_test_file_is_not_a_witness",
+          "find": "            return \"def test_\" in target.read_text(encoding=\"utf-8\", errors=\"replace\")",
+          "replace": "            return True",
+          "why": "قبولُ ملفٍّ باسمٍ صحيحٍ بلا دالّةِ اختبار ⇒ ثمنُ الإغلاق يصير `touch`، أي صفراً بخطوةٍ إضافيّة"
+        },
+        {
+          "expect": "test_an_unannotated_contradiction_is_reported",
+          "find": "    for gap_id in sorted(report[\"contradictory_sections\"]):",
+          "replace": "    for gap_id in sorted({}):",
+          "why": "نزعُ البند ① ⇒ معرِّفٌ واحدٌ بحالتين بلا وسمِ تاريخ يمرّ. و`gap-registry-report` تحمل `continue-on-error` فلا تحجب، أي أنّ نزعَه يترك التناقضَ بلا حاجبٍ واحد في الشجرة"
+        },
+        {
+          "expect": "test_the_guard_runs_where_its_job_runs_without_any_dependency",
+          "find": "    workflows = ROOT / \".github/workflows\"",
+          "replace": "    import yaml  # noqa: F401\n\n    workflows = ROOT / \".github/workflows\"",
+          "why": "إعادةُ تبعيّةٍ لا تُثبِّتها وظيفةُ `no-report-only-change` — حرّاسُ الدماغ الخمسةُ فيها بايثون قياسيّةٌ صرفة. هذا هو العطلُ الذي وقع فعلاً على أوّل تشغيلٍ لهذا الحارس في CI (`ModuleNotFoundError: No module named 'yaml'` عبر `guard_catalogue`)، بينما مرّ `preflight --fast` أخضرَ لأنّ `PyYAML` مُثبَّتةٌ محلّيّاً: أخضرُ قِيس في كونٍ غيرِ المنشور"
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

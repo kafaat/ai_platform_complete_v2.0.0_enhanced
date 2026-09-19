@@ -46,6 +46,15 @@ jobs:
       # `32efdc90..cb6598fe` (يسقط) وعلى دمج اصطناعيّ يأخذ الجانب الفارغ.
       - name: An append-only journal may not shrink, on any parent
         run: python scripts/ci/brain_append_only_guard.py --base "origin/${BASE_REF}" --head HEAD
+      # ANNOTATED-SUPERSESSION-CLOSES-A-GAP-WITHOUT-A-WITNESS-01: أدخل #1031 وسمَ
+      # `current`/`historical` ليحسم العناوين المكرّرة — علاجٌ صحيح حفظ نصَّ الاكتشاف
+      # بدل محوه. لكنّه دخل **بلا كلفة**: قارئٌ واحد يقرؤه، واختبارٌ واحد يفحص
+      # **شكلَه** فقط، ولا شيء يربط `current` بكونها فعلاً المتأخّرة. فبقي أخضرَ أن
+      # تنسخ عنوانَ فجوةٍ `open`، تسم النسخةَ `fixed` بـ`current` والأصلَ
+      # `historical`، فتختفي الفجوة من كلّ عدٍّ يُقرأ. و`gap-registry-report` حاملةٌ
+      # `continue-on-error` فلا تحجب حتّى على تناقضٍ صريح.
+      - name: An annotated supersession may not close a gap for free
+        run: python scripts/ci/brain_annotated_supersession_guard.py
 
   # ── وظيفةٌ مستقلّة عمداً ────────────────────────────────────────────────────
   # GATE01-DIAGNOSIS-HIDDEN-BY-THE-JOB-NAME-01: كان هذا الفحص خطوةً داخل وظيفة

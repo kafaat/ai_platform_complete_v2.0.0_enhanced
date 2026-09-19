@@ -7948,8 +7948,24 @@ json كي تبقى التسلسلةُ حرفاً بحرف. والحزمةُ ال
 لا تُستنتج إصلاحات تشغيلية من زيادة عداد fixed. اكتُشف أن اقتباسًا في صف APPEND-ONLY-GUARD-FORBIDS-ROW-DEDUPLICATION-01 كان يخفي عبارة انتظار CI؛ حُدثت الحالة بدليل دمج #987 عند `08fa080e` ونجاح فحوص رأسه النهائي، مع حفظ الانتظار كنص تاريخي. شواهد القياس 20/20، واختبارات الإلحاق والهوية والصور 79/79. القياس ما زال report-only، ولا تفعيل إنتاجي ولا تغيير سياسة حجب في هذه الجلسة.
 
 
+## 2026-09-19 — ثمنُ الوسم: `ANNOTATED-SUPERSESSION-CLOSES-A-GAP-WITHOUT-A-WITNESS-01`
+
+الأساس `c3ebd6a7f9bf33bb3bde138533f99f493acd8740` (دمج #1031). قِيست مفرداتُ الوسم التي أدخلتها تلك الشريحة: قارئٌ واحد (`scripts/ci/gap_registry_measure.py`) واختبارٌ واحد (`tests/architecture/test_gap_registry_measure.py`)، وفحصُه شكليٌّ بحتاً — `current` واحدةٌ لكلّ مجموعة، وموضعُ التعليق، وتعليقٌ مجهولٌ يُبلَّغ. أُضيف `scripts/ci/brain_annotated_supersession_guard.py` ببندَين: تناقضٌ غيرُ موسومٍ يحجب (`contradictory_section_id_count = 0` اليوم)، وخلافةٌ مُغلِقة (`historical` مفتوحٌ + `current` مُغلِق) تلزمها استشهادٌ بمسارٍ موجودٍ في الشجرة يصلح شاهداً — ملفُّ اختبارٍ فيه `def test_`، أو حارسٌ في `scripts/ci/` تستدعيه workflow فعلاً. يقرأ من محرّك القياس نفسِه لا من مُحلِّلٍ ثانٍ.
+
+المقيسُ على هذا الرأس: مجموعةٌ واحدةٌ ذاتُ خلافةٍ مُغلِقة (`GUARDRAIL-FLAGS-FILE-NOT-IN-ANY-IMAGE-01`) وهي تستوفي الشرط، و١٣ من ١٤ مجموعةً موسومةً بلا سطرِ حالةٍ أصلاً فتمرّ. الشواهد ١٦ في `tests_v9/test_brain_annotated_supersession_guard.py`، والطفراتُ ٥/٥ مقتولةٌ عبر `guard_mutation_guard.py --run`. طفرةُ `is_file()` نجت أوّلَ قياس — ذراعُ الاختبارات كانت مُغطّاةً صدفةً عبر `except OSError` وذراعُ الحرّاس غيرَ مُغطّاةٍ بتاتاً — فأُضيف شاهدٌ ولم تُستبدَل الطفرة. الوصلُ في `no-report-only-change.yml` وفي `preflight.sh` §٦و، والزيادةُ مُقرَّةٌ في `blocking_surface_additions.json` بالخصائص الأربع (`impact: merge`). القياسُ في `gap_registry_measure` يبقى report-only كما نصّ #1031؛ لا ترقيةَ لعدد غيرِ المصنَّف ولا تفعيلَ إنتاجيّ في هذه الشريحة.
 ## 2026-09-19 — #1030: تجديد مصنوعات مشغّل ترحيل Railway
 
 الرأس المقاس `9ff50572ff7180c43addac1d7cb462f8bdf1856a` يضم `main@c3ebd6a7f9bf33bb3bde138533f99f493acd8740`. فشل [Capability Governance 35444293839](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/35444293839) في mapping drift لأربع مصنوعات، وانتهت Repository Tests في [35444293784](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/35444293784) إلى 811 ناجحًا و8 متخطاة وفشل واحد للانحراف نفسه. أُعيد إنتاجه محليًا بالأداة القانونية؛ نجح اختبارا مشغّل Railway وRuff على كامل الشجرة قبل التوليد.
 
 ملفّا المصدر هما `deploy/railway/Dockerfile.migrate` و`tests/deploy/test_railway_migration_runner.py`. يُحفظ محتواهما، ويُعالج الانحراف بإعادة توليد mapping ثم `scripts/ci/regenerate_all_generated.sh` الذي يبني الإصدار أخيرًا ويفحصه بعد البناء. سجل الفجوات بلا تغيير: اختبارات تركيب Dockerfile لا تثبت تنفيذ ترحيلات حيّة أو جاهزية إنتاج.
+
+
+## 2026-09-19 — دمجُ `main` بعد #1030، وعطلان لي أمسكتهما البوّابات لا أنا
+
+الأساس `15c9c7f1` (دمج #1030). التعارضُ **١٢ ملفّاً، كلُّها مصنوعاتٌ مولَّدة — صفرُ تعارضِ مصدر**؛ حُلَّ `docs/architecture/generated_write_targets.json` إلى جانب `main` **أوّلاً** لأنّه الوثيقةُ التي يقرأ منها `resolve_merge_conflicts.py` تصنيفَه، ثمّ الباقي به، ثمّ إعادةُ توليدٍ كاملة والحزمةُ آخِراً. وملفّاتُ الدماغ الثلاثة **ضُمَّت** فبقي مدخلُ #1030 ومدخلي معاً.
+
+`GUARD-IMPORTS-A-DEPENDENCY-ITS-JOB-NEVER-INSTALLS-01` مُسجَّلة: أوّلُ تشغيلٍ لـ`brain_annotated_supersession_guard` على CI سقط بـ`ModuleNotFoundError: No module named 'yaml'` — استوردتُ `guard_catalogue` لأنّه «القارئُ القائم» وهو يستورد `PyYAML`، ووظيفةُ `no-report-only-change` لا تُثبِّت تبعيّةً واحدة. و`preflight --fast` مرّ أخضرَ لأنّ `PyYAML` مُثبَّتةٌ محلّيّاً — **أخضرُ قِيس في كونٍ غيرِ المنشور**. العلاجُ قراءةُ نصّ الـworkflows بالمكتبة القياسيّة، لا تثبيتُ التبعيّة في وظيفةٍ بقيت بلا تبعيّاتٍ عمداً. والحدُّ ضاق بصدق («مذكورٌ» لا «مُستدعًى») والاتّجاهُ مقيس: ٢٨٦ مقابل ٢٧٤، وفي القديم وليس في الجديد = لا شيء.
+
+**وعطلٌ ثانٍ في شاهد العلاج نفسِه:** `subprocess.run(..., text=True)` بلا `encoding="utf-8"` يفكّ مخرَجَ الحارس العربيَّ بترميز الآلة — نفسُ `GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01` المقتبَس في رأس الحارس. أمسكه `tests_v9/test_text_encoding_locale.py`. **وثالثٌ:** سمّيتُ معرِّفَ الفجوة في رسالة التزامٍ قبل تسجيله، فأسقطني `brain_commit_claim_guard` — قاعدةُ «المعرِّفُ قبل استعماله» وقعتُ فيها بعد أن كتبتُها. الثلاثةُ أمسكتها البوّاباتُ لا أنا.
+
+المقيسُ بعد الدمج: ١٨ شاهداً · **٦/٦ طفرات** · `blocking_surface_ok` (303 · 4 إقراراً) · إعادةُ التوليد و`verify_all_generated --check` rc=0 (**5920** بصمة، والحزمةُ آخِراً) · `preflight --fast` إخفاقات=0 متخطّاة=0.

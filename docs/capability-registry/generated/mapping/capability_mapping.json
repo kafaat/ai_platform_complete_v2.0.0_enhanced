@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5361,
+    "files_scanned": 5363,
     "files_by_kind": {
       "backend": 1209,
       "database": 277,
       "governance": 62,
       "mobile": 55,
-      "other": 1491,
-      "tests": 1809,
+      "other": 1492,
+      "tests": 1810,
       "web": 458
     },
-    "unmapped_artifacts": 2178,
+    "unmapped_artifacts": 2179,
     "ambiguous_artifacts": 420
   },
   "capabilities": [
@@ -42544,6 +42544,10 @@
     },
     {
       "path": "tests_v9/test_blocking_surface_freeze.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_brain_annotated_supersession_guard.py",
       "kind": "tests"
     },
     {
