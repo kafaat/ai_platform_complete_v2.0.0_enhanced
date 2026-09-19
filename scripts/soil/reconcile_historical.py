@@ -37,6 +37,16 @@ SOIL_READING_PROPERTIES = (
     ("potassium", "potassium_mg_kg", "mg/kg"),
     ("organic_matter", "organic_matter_pct", "%"),
 )
+# JSONB-PARAMETER-TYPE-UNDETERMINABLE-ON-LIVE-PG-01. `jsonb_build_object` takes
+# `anyelement`, so a bare `$n` inside it has no inferable type and PostgreSQL refuses
+# to PREPARE the statement: `IndeterminateDatatypeError: could not determine data type
+# of parameter`. Both arms carried this since the script was written, and nothing
+# caught it because nothing runs this script against a live database — the gap record
+# says so in as many words: no worker, no scheduler, no workflow calls it. The offline
+# witness could not catch it either: its connection double never PREPAREs anything.
+# Found by the live acceptance added for RECONCILIATION-CURSOR-SKIPS-ROWS-THAT-BECOME-
+# ELIGIBLE-01, on the first run that reached a real server. The `::bigint` cast is the
+# whole fix; the legacy ids are BIGSERIAL in both source tables.
 TELEMETRY_MAP = {
     "soil_moisture": ("soil_moisture", "%"),
     "soil_temperature": ("soil_temperature", "degC"),
@@ -148,7 +158,7 @@ async def reconcile_soil_readings(conn, tenant_id: str, batch: int) -> Stats:
                        confidence, idempotency_key, provenance)
                    VALUES ($1,'soil-observation.v1',$2::uuid,$3,$4,to_jsonb($5::numeric),$6,
                            0,$7,$8,$8,'sensor',$9,'legacy_soil_readings_backfill',$10,'[]'::jsonb,
-                           0.65,$11,jsonb_build_object('legacy_table','soil_readings','legacy_id',$12))
+                           0.65,$11,jsonb_build_object('legacy_table','soil_readings','legacy_id',$12::bigint))
                    ON CONFLICT (tenant_id,idempotency_key) DO NOTHING""",
                 f"obs_legacy_sr_{row['id']}_{prop}",
                 tenant_id,
@@ -223,7 +233,7 @@ async def _process_telemetry_row(
                procedure_id,quality_status,quality_flags,confidence,idempotency_key,provenance)
            VALUES ($1,'soil-observation.v1',$2::uuid,$3,$4,to_jsonb($5::numeric),$6,0,30,$7,$8,
                    'sensor',$9,'device_telemetry_backfill','suspect','["depth_unknown","calibration_unknown"]'::jsonb,
-                   0.60,$10,jsonb_build_object('legacy_table','device_telemetry','legacy_id',$11))
+                   0.60,$10,jsonb_build_object('legacy_table','device_telemetry','legacy_id',$11::bigint))
            ON CONFLICT(tenant_id,idempotency_key) DO NOTHING""",
         f"obs_legacy_dt_{row['telemetry_id']}_{prop}",
         tenant_id,

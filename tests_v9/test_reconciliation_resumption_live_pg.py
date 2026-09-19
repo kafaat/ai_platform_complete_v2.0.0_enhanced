@@ -90,6 +90,7 @@ async def live():
             "soil_profile_projection_jobs",
             "device_telemetry",
             "iot_devices",
+            "fields",
         ):
             try:
                 await conn.execute(f"DELETE FROM {table} WHERE tenant_id=$1::uuid", tenant)  # noqa: S608
@@ -98,30 +99,53 @@ async def live():
         await conn.close()
 
 
-async def _seed(conn, tenant: str, *, bind_device: bool) -> None:
+#: حقلٌ خاصٌّ بهذا الاختبار. `iot_devices.field_id` **مفتاحٌ أجنبيٌّ إلى `fields`**
+#: (`v24_iot_devices.sql`)، فربطُ جهازٍ بحقلٍ لا وجودَ له يسقط على القيد لا على المنطق.
+_FIELD = "field_live_recon"
+
+
+async def _seed(conn, tenant: str, *, bind_device: bool) -> list[int]:
+    """يُهيّئ الحدَّ الأدنى بالمخطَّط **الحقيقيّ**.
+
+    أوّلُ صياغةٍ لي أدرجت في `iot_devices` بثلاثة أعمدة فقط، والمخطَّطُ يشترط `name`
+    و`type` NOT NULL (و`type` تحت `CHECK`)، و`field_id` مقيَّدٌ بـ`fields`. فسقط
+    الشاهدُ في CI بـ`NotNullViolationError` — ولم يمسكه قياسي المحلّيّ لأنّ هذه
+    الحاوية بلا PostGIS فتعذّر تطبيق `v9`/`v24`، فقِستُ عقدَ v231 وحدَه. **الشاهدُ
+    الحيُّ كشف ما لا يكشفه الساكن: العقدَ الفعليَّ للجداول المجاورة.**
+    """
     moment = datetime(2026, 9, 19, tzinfo=UTC)
     await conn.execute(
-        "INSERT INTO iot_devices(device_id,tenant_id,field_id) VALUES ($1,$2::uuid,$3)",
-        "dev_live_10",
+        "INSERT INTO fields(field_id,name,tenant_id) VALUES ($1,$2,$3::uuid) "
+        "ON CONFLICT (field_id) DO NOTHING",
+        _FIELD,
+        "حقلُ شاهدِ المصالحة",
         tenant,
-        "field_live_A" if bind_device else None,
     )
-    await conn.execute(
-        "INSERT INTO iot_devices(device_id,tenant_id,field_id) VALUES ($1,$2::uuid,$3)",
-        "dev_live_11",
-        tenant,
-        "field_live_A",
-    )
-    for telemetry_id, device in ((10, "dev_live_10"), (11, "dev_live_11")):
+    for device, bound in (("dev_live_10", bind_device), ("dev_live_11", True)):
         await conn.execute(
-            """INSERT INTO device_telemetry(telemetry_id,tenant_id,device_id,sensor_type,
-                                            value,unit,recorded_at,received_at)
-               VALUES ($1,$2::uuid,$3,'soil_moisture',25.0,'%',$4,$4)""",
-            telemetry_id,
-            tenant,
+            "INSERT INTO iot_devices(device_id,tenant_id,name,type,field_id) "
+            "VALUES ($1,$2::uuid,$3,'soil_moisture',$4)",
             device,
-            moment,
+            tenant,
+            f"جهازُ {device}",
+            _FIELD if bound else None,
         )
+    # المعرّفُ يُولَّد ولا يُملى: `telemetry_id` مفتاحٌ أوّليٌّ **عابرٌ للمستأجرين**،
+    # وقاعدةُ *Integration Tests* مشتركة — ففرضُ 10/11 يتصادم مع صفوفِ اختبارٍ آخر.
+    ids: list[int] = []
+    for device in ("dev_live_10", "dev_live_11"):
+        ids.append(
+            await conn.fetchval(
+                """INSERT INTO device_telemetry(tenant_id,device_id,sensor_type,
+                                                value,unit,recorded_at,received_at)
+                   VALUES ($1::uuid,$2,'soil_moisture',25.0,'%',$3,$3)
+                   RETURNING telemetry_id""",
+                tenant,
+                device,
+                moment,
+            )
+        )
+    return ids
 
 
 async def test_the_deferral_ledger_exists_with_its_declared_contract(live) -> None:
@@ -162,7 +186,7 @@ async def test_a_passed_row_is_recorded_then_recovered_on_live_postgres(live) ->
     """الدعوى كاملةً على قاعدةٍ حيّة: المؤشّرُ يتجاوز · السجلُّ يحفظ · الجولةُ تستردّ."""
     conn, tenant = live
     module = _reconcile()
-    await _seed(conn, tenant, bind_device=False)
+    low, high = await _seed(conn, tenant, bind_device=False)
 
     first = await module.reconcile_device_telemetry(conn, tenant, 100)
     assert first.deferred == 1, f"لم يُسجَّل التأجيل: {first}"
@@ -173,20 +197,21 @@ async def test_a_passed_row_is_recorded_then_recovered_on_live_postgres(live) ->
             SOURCE,
             tenant,
         )
-        == 11
+        == high
     ), "المؤشّرُ لم يتجاوز — النموذجُ صار يتوقّف بدل أن يكتب"
     row = await conn.fetchrow(
         "SELECT reason,resolved_at FROM soil_reconciliation_deferrals "
-        "WHERE source_name=$1 AND tenant_id=$2::uuid AND source_id=10",
+        "WHERE source_name=$1 AND tenant_id=$2::uuid AND source_id=$3",
         SOURCE,
         tenant,
+        low,
     )
     assert row["reason"] == "device_field_unbound" and row["resolved_at"] is None
 
     # زوالُ السبب: رُبط الجهازُ بحقل.
     await conn.execute(
         "UPDATE iot_devices SET field_id=$1 WHERE device_id='dev_live_10' AND tenant_id=$2::uuid",
-        "field_live_A",
+        _FIELD,
         tenant,
     )
     second = await module.reconcile_device_telemetry(conn, tenant, 100)
@@ -195,16 +220,18 @@ async def test_a_passed_row_is_recorded_then_recovered_on_live_postgres(live) ->
 
     persisted = await conn.fetchval(
         "SELECT count(*) FROM soil_observations WHERE tenant_id=$1::uuid "
-        "AND provenance->>'legacy_id'='10'",
+        "AND provenance->>'legacy_id'=$2",
         tenant,
+        str(low),
     )
     assert persisted == 1, "القراءةُ 10 لم تبلغ soil_observations على قاعدةٍ حيّة"
 
     kept = await conn.fetchrow(
         "SELECT resolved_at,examinations FROM soil_reconciliation_deferrals "
-        "WHERE source_name=$1 AND tenant_id=$2::uuid AND source_id=10",
+        "WHERE source_name=$1 AND tenant_id=$2::uuid AND source_id=$3",
         SOURCE,
         tenant,
+        low,
     )
     assert kept is not None, "المدخلُ حُذِف عند الحسم — الفراغُ يصير ذا معنيين"
     assert kept["resolved_at"] is not None and kept["examinations"] >= 2

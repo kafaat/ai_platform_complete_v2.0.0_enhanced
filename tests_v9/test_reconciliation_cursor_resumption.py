@@ -49,7 +49,7 @@ REGISTRY = ROOT / "sahool-brain/gaps/registry.md"
 GAP_ID = "RECONCILIATION-CURSOR-SKIPS-ROWS-THAT-BECOME-ELIGIBLE-01"
 #: بصمةُ blob للمصدر الذي قِيس. تغيُّرُها يُفشِل الشاهدَ **عمداً**: بديلُ الاتّصال
 #: يحاكي محمولاتِ استعلاماتٍ بعينها، فمصدرٌ آخر يعني وصفاً لم يُراجَع.
-PINNED_BLOB = "3c5460b644fbcf45437ca494a1a24c5690435344"
+PINNED_BLOB = "57773aa49c72b3cd1acd0086a9bd2d7828c1f2be"
 TENANT = "00000000-0000-4000-8000-000000000001"
 FUTURE_SENSOR = "future_soil_sensor"
 SOURCE_NAME = "device_telemetry"
