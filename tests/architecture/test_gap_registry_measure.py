@@ -79,13 +79,15 @@ def test_workflow_report_is_independent_nonblocking_and_bound_to_head():
     job = report_job()
     assert "needs" not in job
     assert job["continue-on-error"] is True
+    measure = next(step for step in job["steps"] if step.get("id") == "measure")
+    assert measure["env"]["EVIDENCE_DIR"] == "${{ runner.temp }}/gap-registry-measurement"
     checkout = next(step for step in job["steps"] if "actions/checkout@" in step.get("uses", ""))
     assert checkout["with"]["ref"] == "${{ github.event.pull_request.head.sha || github.sha }}"
     upload = next(
         step for step in job["steps"] if "actions/upload-artifact@" in step.get("uses", "")
     )
     assert "${{ github.event.pull_request.head.sha || github.sha }}" in upload["with"]["name"]
-    assert upload["with"]["path"] == "${{ env.EVIDENCE_DIR }}/"
+    assert upload["with"]["path"] == measure["env"]["EVIDENCE_DIR"] + "/"
     assert upload["with"]["if-no-files-found"] == "error"
 
 
