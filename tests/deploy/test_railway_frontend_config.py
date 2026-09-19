@@ -74,10 +74,11 @@ def test_invalid_environment_fails_before_writing_config(key, value):
 def test_system_dns_supports_ipv4_and_ipv6(tmp_path):
     config = tmp_path / "resolv.conf"
     config.write_text(
-        "search railway.internal\nnameserver fd12::10\nnameserver 10.0.0.2 # resolver\n"
+        "search railway.internal\nnameserver fd12::10\nnameserver 10.0.0.2 # resolver\n",
+        encoding="utf-8",
     )
     assert adapter.read_nameservers(config) == ["[fd12::10]", "10.0.0.2"]
-    config.write_text("search railway.internal\n")
+    config.write_text("search railway.internal\n", encoding="utf-8")
     with pytest.raises(ValueError, match="No nameservers"):
         adapter.read_nameservers(config)
 
