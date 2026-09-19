@@ -3882,6 +3882,60 @@
           "find": "    if adj.get(\"one_time\") is False:",
           "replace": "    if False:",
           "why": "`one_time: false` يُقرأ ترخيصاً بإعادة الاستعمال بدل وضعٍ غير منفَّذ ⇒ حقلٌ إعلانيّ يُسكِت فحص دورة الحياة بلا أن يمنحه أحد ذلك، فيُعيد GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01 من حيث أُغلِقت."
+        },
+        {
+          "expect": "test_an_issued_authorization_without_an_expiry_is_rejected",
+          "find": "    raw = adj.get(\"expires_on\")\n    if raw is None:",
+          "replace": "    raw = adj.get(\"expires_on\")\n    if False:  # mutated: الغيابُ يُقرأ خلوداً",
+          "why": "إغفالُ الحقل يصير باباً صامتاً: تفويضٌ بلا أجلٍ يمرّ، فيعود `GATE01-AUTHORIZATION-NEVER-EXPIRES-01` من حيث أُغلِق — وحقلٌ إعلانيٌّ لا يفرضه شيء هو بعينه الفرقُ بين `expired_at` المفروض و`# Expiry:` الخامل."
+        },
+        {
+          "expect": "test_an_expired_issued_authorization_is_rejected",
+          "find": "    if expires < today:",
+          "replace": "    if False:  # mutated: المنقضي يُقرأ سارياً",
+          "why": "أجلٌ لا يُقارَن هو أجلٌ غيرُ موجود. والطفرةُ مستقلّةٌ عن سابقتها: تلك تحرس **وجودَ** الحقل وهذه تحرس **إعمالَه** — وحقلٌ حاضرٌ لا يُقرأ يمرّ على الأولى ويسقط على الثانية."
+        },
+        {
+          "expect": "test_an_authorization_expiring_today_is_still_valid",
+          "find": "    if expires < today:",
+          "replace": "    if expires <= today:  # mutated: ينتهي اليوم ⇒ سقط اليوم",
+          "why": "الخطأُ في الجهة الأخرى: إذنٌ مُنِح «حتّى الثلاثين» يسقط صباحَ الثلاثين فيخسر صاحبُه يوماً مُنِحه. وتضييقٌ يبدو أشدَّ حرصاً هو عطلٌ مثل تساهُله."
+        },
+        {
+          "expect": "test_expiry_is_not_enforced_on_a_settled_authorization",
+          "find": "    if status == \"ISSUED\":\n        errs.extend(_expiry_errors(adj, ident))",
+          "replace": "    errs.extend(_expiry_errors(adj, ident))  # mutated: يُفرَض على المُستهلَك أيضاً",
+          "why": "فرضُ الأجل بأثرٍ رجعيّ يُحمِّر المستودعَ على خمسةِ تفويضاتٍ استُهلِكت صحيحةً قبل وجود الحقل — وحارسٌ يُدين ماضياً امتثل لعقدِ زمانه يُدرَّب قارئُه على تعطيله."
+        },
+        {
+          "expect": "test_a_near_expiry_warns_before_it_blocks",
+          "find": "        if left <= EXPIRY_WARNING_DAYS:\n            out.append(\n                f\"{adj.get('adjudication_id', '<بلا معرّف>')}: يبقى {left} يوماً على أجل \"",
+          "replace": "        if False:  # mutated: لا تحذير قبل الحجب\n            out.append(\n                f\"{adj.get('adjudication_id', '<بلا معرّف>')}: يبقى {left} يوماً على أجل \"",
+          "why": "بلا التحذير يصير أوّلُ خبرٍ عن الأجل هو الحجبَ نفسه — وهي الإصابةُ المنشورة بحرفها: ستّةُ إعفاءاتٍ انتهت دفعةً واحدةً فحجبت البناء بلا إنذار. **ومرساها مُوسَّعةٌ عمداً:** الصيغةُ المختصرة صارت تتكرّر بعد إضافة `alias_deadline_warnings`، فسقط الزرعُ على تصادمِ نصوصٍ لا على عطل — والمراسي نصّيّةٌ بالتصميم."
+        },
+        {
+          "expect": "test_an_acknowledgement_without_a_deadline_is_rejected",
+          "find": "            due = _parse_day(entry.get(\"decision_due_on\"))\n            if due is None:",
+          "replace": "            due = _parse_day(entry.get(\"decision_due_on\"))\n            if False:  # mutated: إقرارٌ بلا أجلٍ يُقبَل",
+          "why": "حذفُ الحقل يصير طريقَ الخلاص من الأجل، فيعود الإقرارُ إعفاءً دائماً — وهو ما يصف الإقرارُ نفسَه بأنّه ليسه («تسجيلُ حالةٍ تنتظر حكماً، لا إعفاء»)."
+        },
+        {
+          "expect": "test_a_lapsed_acknowledgement_blocks_again",
+          "find": "            elif due < date.today():",
+          "replace": "            elif False:  # mutated: المنقضي يبقى ساكتاً",
+          "why": "سكوتٌ لا ينقضي هو السكوتُ الأصليُّ بعينه. والمقيس أنّ النظيرَ الحيَّ مُسّ في ٤ من ٤ من الشرائح المُحكَّمة — فالثقبُ يُستعمَل في كلّ مرّة، وأجلٌ لا يُقارَن لا يسدّه."
+        },
+        {
+          "expect": "test_a_live_acknowledgement_still_silences_the_report",
+          "find": "            if due is None:",
+          "replace": "            if True:  # mutated: كلُّ إقرارٍ يحجب",
+          "why": "حجبٌ داخل المدّة يجعل تسجيلَ الحالة مستحيلاً: لا صيغةَ للإقرار تمرّ، فيُطفَأ الحقلُ أو يُطفَأ الحارس. صنفُ «حارسٍ لا يقبل حالةً صادقة» المُغلَق في #1026."
+        },
+        {
+          "expect": "test_the_alias_deadline_warns_before_it_blocks",
+          "find": "        if left <= EXPIRY_WARNING_DAYS:\n            out.append(f\"{path}: يبقى {left} يوماً على أجل حسم النظير ({due.isoformat()}).\")",
+          "replace": "        if False:  # mutated: لا تحذير قبل حجب النظير\n            out.append(f\"{path}: يبقى {left} يوماً على أجل حسم النظير ({due.isoformat()}).\")",
+          "why": "شحنُ «يحذّر قبل أن يحجب» للتفويضات وتركُ الإقرار يحجب فجأةً تناقضٌ في الملفّ نفسِه — والقاعدةُ واحدة: أوّلُ خبرٍ عن الأجل يجب ألّا يكون الحجب."
         }
       ],
       "test": "tests_v9/test_gate01_frozen_path_guard.py"

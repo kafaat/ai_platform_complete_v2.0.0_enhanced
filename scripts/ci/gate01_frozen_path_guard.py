@@ -51,6 +51,7 @@ import os
 import re
 import subprocess
 import sys
+from datetime import date
 from pathlib import Path
 
 # ── ترميزُ الخرج عند التحميل — `GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01`
@@ -182,6 +183,32 @@ def alias_escape_errors(policy: dict, root: Path = ROOT) -> list[str]:
         entry = acknowledged.get(frozen_path) or {}
         known = entry.get("live_alias")
         if known is not None and aliases == [known]:
+            # ── `GATE01-ALIAS-ACKNOWLEDGEMENT-HAS-NO-DEADLINE-01` ────────────────
+            #
+            # الإقرارُ **تسجيلُ حالةٍ تنتظر حكماً، لا إعفاء** — هكذا يصف نفسَه في
+            # السياسة. لكنّه كان **بلا أجل**، و`owner_decision: PENDING` لا ينتهي من
+            # تلقائه. والمقيس أنّ النظيرَ الحيَّ `scripts_v9/run_migrations.sql` مُسّ
+            # في **٤ من ٤** من الشرائح المُحكَّمة بعد تأسيس البوّابة — فالثقبُ ليس
+            # نظريّاً، ويُستعمَل في كلّ مرّة.
+            #
+            # فالسكوتُ صار **موقوتاً**: ينقضي الأجلُ ⇒ يعود الإبلاغُ حاجباً. وهي
+            # دلالةُ `expired_at` نفسُها المطبَّقة على الإقرار: استثناءٌ لا ينتهي ليس
+            # استثناءً، وإنّما سياسةٌ جديدة لم يُقرّها أحد.
+            #
+            # **وقرارُ رفع الأجل أو الحكم قرارُ مالك** — والحارسُ لا يُقرّر، يُوقِّت.
+            due = _parse_day(entry.get("decision_due_on"))
+            if due is None:
+                errors.append(
+                    f"{frozen_path}: إقرارُ نظيرٍ بلا `decision_due_on` — والسكوتُ بلا "
+                    "أجلٍ ليس تسجيلَ حالةٍ بل إعفاءٌ دائم "
+                    "(GATE01-ALIAS-ACKNOWLEDGEMENT-HAS-NO-DEADLINE-01)."
+                )
+            elif due < date.today():
+                errors.append(
+                    f"{frozen_path}: انقضى أجلُ حسم النظير ({due.isoformat()}) وما زال "
+                    f"{known!r} خارج التجميد — احسِم (صحّح المسار · أزِل النظير · مدّد "
+                    "بقرارٍ مُعلَن). المقيس: مُسّ النظيرُ في ٤ من ٤ من الشرائح المُحكَّمة."
+                )
             continue
         extra = [a for a in aliases if a != known]
         errors.append(
@@ -231,6 +258,86 @@ def load_adjudications(directory: Path = ADJUDICATIONS) -> list[dict]:
     return out
 
 
+#: كم يوماً قبل الأجل يبدأ التحذير. «حذّر قبل الانتهاء لا بعده» — ممارسةٌ منشورة
+#: نشأت من إصابةٍ حقيقيّة: ستّةُ إعفاءاتٍ انتهت دفعةً واحدةً فحجبت البناء بلا إنذار.
+EXPIRY_WARNING_DAYS = 14
+
+
+def _parse_day(value) -> date | None:
+    """`YYYY-MM-DD` أو `None`. وما لا يُحلَّل ليس أجلاً — فيُعامَل معاملةَ الغائب."""
+    if not isinstance(value, str):
+        return None
+    try:
+        return date.fromisoformat(value.strip()[:10])
+    except ValueError:
+        return None
+
+
+def _expiry_errors(adj: dict, ident: str, today: date | None = None) -> list[str]:
+    """أسبابُ رفض تفويضٍ `ISSUED` لأجله. الفارغةُ تعني أنّه ما يزال في مدّته."""
+    today = today or date.today()
+    raw = adj.get("expires_on")
+    if raw is None:
+        return [
+            f"{ident}: تفويضٌ `ISSUED` بلا `expires_on` — الغيابُ ليس خلوداً. "
+            "أضِف أجلاً (`YYYY-MM-DD`) أو اختمه `CONSUMED` (GATE01-AUTHORIZATION-NEVER-EXPIRES-01)."
+        ]
+    expires = _parse_day(raw)
+    if expires is None:
+        return [f"{ident}: `expires_on` = {raw!r} لا يُحلَّل تاريخاً — وما لا يُقرأ ليس أجلاً"]
+    if expires < today:
+        return [
+            f"{ident}: تفويضٌ `ISSUED` انقضى أجلُه ({expires.isoformat()} < {today.isoformat()}) "
+            "— الإذنُ المنتهي ليس إذناً. أعِد التحكيمَ بأجلٍ جديد أو اختمه."
+        ]
+    return []
+
+
+def expiry_warnings(adjudications: list[dict], today: date | None = None) -> list[str]:
+    """تحذيراتٌ **لا تحجب** عن تفويضاتٍ `ISSUED` يقترب أجلُها.
+
+    الحجبُ عند الانقضاء يقع في `_expiry_errors`؛ وهذا يسبقه بأربعةَ عشرَ يوماً كي لا
+    يكون أوّلُ خبرٍ عن الأجل هو الحجبُ نفسه.
+    """
+    today = today or date.today()
+    out: list[str] = []
+    # ترشيحٌ بقائمةٍ لا بـ`continue` داخل الحلقة **لسببٍ مقيس**: صيغةُ الشرط
+    # `if adj.get("status") != "ISSUED":` قائمةٌ حرفيّاً في `stale_authorization_errors`،
+    # وهي **مرسى طفرةٍ مُسجَّلة**. وتكرارُها هنا جعل الزرعَ غيرَ محدَّد الموضع فسقط
+    # `guard_mutation_guard` — لا على عطلٍ في المنطق بل على **تصادم نصوص**. والمراسي
+    # نصّيّة بالتصميم، فإضافةُ شيفرةٍ قد تُبطِل تكذيباً قائماً في ملفٍّ لم يُقصَد.
+    live = [a for a in adjudications if a.get("status") == "ISSUED"]
+    for adj in live:
+        expires = _parse_day(adj.get("expires_on"))
+        if expires is None or expires < today:
+            continue  # الغائبُ والمنقضي يحجبان أعلاه — والتحذيرُ عنهما تكرارٌ مُضلِّل
+        left = (expires - today).days
+        if left <= EXPIRY_WARNING_DAYS:
+            out.append(
+                f"{adj.get('adjudication_id', '<بلا معرّف>')}: يبقى {left} يوماً على أجل "
+                f"التفويض ({expires.isoformat()}) — احسِمه قبل أن يحجب."
+            )
+    return out
+
+
+def alias_deadline_warnings(policy: dict, today: date | None = None) -> list[str]:
+    """تحذيرٌ **لا يحجب** عن أجل حسمِ نظيرٍ يقترب.
+
+    وُجِد لأنّ شحنَ «يحذّر قبل أن يحجب» للتفويضات وحدَها، وتركَ الإقرار يحجب فجأةً،
+    تناقضٌ في نفس الملفّ — والقاعدةُ واحدة: أوّلُ خبرٍ عن الأجل يجب ألّا يكون الحجبَ.
+    """
+    today = today or date.today()
+    out: list[str] = []
+    for path, entry in sorted((policy.get("alias_mismatch_acknowledged") or {}).items()):
+        due = _parse_day((entry or {}).get("decision_due_on"))
+        if due is None or due < today:
+            continue  # الغائبُ والمنقضي يحجبان — والتحذيرُ عنهما تكرارٌ مُضلِّل
+        left = (due - today).days
+        if left <= EXPIRY_WARNING_DAYS:
+            out.append(f"{path}: يبقى {left} يوماً على أجل حسم النظير ({due.isoformat()}).")
+    return out
+
+
 def _authorization_errors(
     adj: dict, policy: dict, touched: set[str], blobs: dict[str, str | None]
 ) -> list[str]:
@@ -258,6 +365,25 @@ def _authorization_errors(
             f"{ident}: `one_time: false` — وضعٌ غير منفَّذ: لا تفويض مُعاد الاستعمال في "
             "هذا المستودع. أصدِر تفويضاً لكلّ رقعة، أو نفِّذ الوضع بحدوده أوّلاً."
         )
+
+    # ── `GATE01-AUTHORIZATION-NEVER-EXPIRES-01` ─────────────────────────────────
+    #
+    # **العطل المقيس:** خمسةُ تفويضاتٍ في الشجرة، وفيها `adjudicated_on`، و**لا واحدَ
+    # فيه أجل**. والضمانةُ الوحيدة ضدّ البائت هي `stale_authorization_errors`، وهي
+    # تُمسِك **الهابطَ غيرَ المختوم** وحده. فتفويضٌ `ISSUED` **لم تهبط بايتاتُه** يبقى
+    # صالحاً إلى الأبد: يكفي أن تُعاد تلك البايتاتُ بعينها بعد شهورٍ فيمرّ.
+    #
+    # **والسابقةُ الصناعيّةُ حادّة، وهي سببُ اختيار «مفروض» على «موثَّق»:** صيغةُ
+    # `.trivyignore` النصّيّة لا تدعم انتهاءً، فترويسةُ `# Expiry: YYYY-MM-DD` فيها
+    # **خاملةٌ توثّق التزاماً لا يفرضه شيء**؛ وصيغةُ `.trivyignore.yaml` تُلزِم
+    # `expired_at` و**الماسحُ يُسقِط المنتهيَ عند الفحص** فيعود الاكتشافُ يُفشِل البناء.
+    # حقلُنا كان أسوأ من الخامل: **غيرَ موجود**.
+    #
+    # **والغيابُ يفشل مغلقاً** على نفس قاعدة `one_time` أعلاه: تفويضٌ `ISSUED` بلا أجل
+    # يُرفَض، وإلّا صار إغفالُ الحقل بابَ خلودٍ صامتاً. ولا يُفرَض على `CONSUMED`:
+    # الأجلُ يحكم إذناً **حيّاً**، وفرضُه بأثرٍ رجعيّ يُبطِل تاريخاً مختوماً صحيحاً.
+    if status == "ISSUED":
+        errs.extend(_expiry_errors(adj, ident))
 
     baseline = adj.get("phase0_baseline_ref") or {}
     if baseline.get("must_match_policy") is not False:
@@ -414,6 +540,11 @@ def main(argv: list[str] | None = None) -> int:
     # يُكتشَف بالمسّ — يُكتشَف بوجود النظير. ولو رُبِط بالمسّ لبقي صامتاً إلى أن يمسّه
     # أحدٌ، وهو الأوان الذي وُجِد ليسبقه.
     errors = errors + alias_escape_errors(policy)
+    # التحذيرُ يُطبَع في الحالتين: قبل الحجب لأنّه قد يكون سببَ الحجب القادم، وبعد
+    # الخضرة لأنّ خضرةً تسكت عن أجلٍ يقترب تُخفي الحجبَ الذي ستراه بعد أسبوع.
+    warnings = expiry_warnings(adjudications) + alias_deadline_warnings(policy)
+    for w in warnings:
+        print(f"  ⏳ {w}")
     if errors:
         print("gate01_frozen_path_guard_failed")
         for e in errors:
