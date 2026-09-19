@@ -4415,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "46d98da21b43a30ce18154d537d916c0890c0a092db54865127739315950b194"
+          "content": "a8263901641454ec40086e468a86e84c2ad21b2cfb7d4f933c2cc5b2ec9b25cc"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6725,7 +6725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "93c9380ae36bb29008b596e001a83cb5993075dc9ae147d0541260ce54c6dea1"
+          "content": "aadf3fe32cddde66b372452b7d8c59024f7547f1aa6c79cb09e706a0de6aa1b7"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -8129,6 +8129,16 @@
         }
       ],
       "name": "migrations/v230_drawing_features.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ca64a39e4555711f9e0ebf33a25a85476df5f17adf3a344a00aad11a5990f5bc"
+        }
+      ],
+      "name": "migrations/v231_soil_reconciliation_deferrals.sql",
       "type": "file"
     },
     {

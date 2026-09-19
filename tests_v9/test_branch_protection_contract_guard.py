@@ -560,26 +560,49 @@ def _run_changed(tmp_path: Path, document, changed: list[str]) -> int:
     )
 
 
-def test_touching_the_authorization_path_requires_code_owner_review(tmp_path):
-    """PR تُصدِر تفويضاً ومراجعةُ مالكي الكود غير مفروضة ⇒ حجب."""
-    assert _run_changed(tmp_path, _envelope(_rules(True)), [ADJUDICATION]) == 1
+def test_touching_the_authorization_path_reports_but_no_longer_blocks(tmp_path, capsys):
+    """PR تُصدِر تفويضاً ومراجعةُ مالكي الكود غير مفروضة ⇒ **يُبلِّغ ولا يحجب**.
+
+    كان هذا الشاهدُ يقيس `== 1`. وعطّل المالكُ البندَ صراحةً (2026-09-19، #1033) بعد أن
+    عُرِضت بدائلُه الثلاثة، فصار `== 0`. والشاهدُ لا يُحذَف ولا يُخفَّض إلى لا شيء:
+    **يقيس أنّ القياس بقي**. ولولا التأكيدُ على المخرَج لكان نزعُ `code_owner_violations`
+    كلِّه يمرّ — أي لصار التعطيلُ صمتاً بدل أن يكون إعلاناً.
+    """
+    assert _run_changed(tmp_path, _envelope(_rules(True)), [ADJUDICATION]) == 0
+    out = capsys.readouterr().out
+    assert MOD.CODE_OWNER_PARAMETER in out
+    assert "إرشاديّ" in out
+    assert "ADVISORY" in out
 
 
 def test_touching_the_authorization_path_passes_when_code_owners_are_required(tmp_path):
     assert _run_changed(tmp_path, _envelope(_rules_with_code_owner(True)), [ADJUDICATION]) == 0
 
 
-def test_an_unrelated_pr_is_not_blocked_by_the_conditional_term(tmp_path):
+def test_an_unrelated_pr_is_not_blocked_by_the_conditional_term(tmp_path, capsys):
     """البند مشروط بالمسّ — وإلّا حجب كلّ دمجٍ في المستودع على إعدادٍ لا يملكه وكيل.
 
     وهذا هو الفرق بين حمايةٍ متناسبة و«أساسٍ يُدرَّب قارئه على تعطيله».
+
+    **وقياسُ الشرطيّة انتقل من رمز الخروج إلى المخرَج** بعد أن صار البند إرشاديّاً:
+    رمزُ الخروج صار `0` في الحالتين، فشاهدٌ يقيسه وحدَه لا يفرّق بين «لم يُطلَق البند»
+    و«أُطلِق على كلّ شيء» — وطفرةُ `touches_authorization → True` كانت تنجو منه.
     """
     assert _run_changed(tmp_path, _envelope(_rules(True)), ["README.md"]) == 0
+    out = capsys.readouterr().out
+    assert MOD.CODE_OWNER_PARAMETER not in out
+    assert "ADVISORY" not in out
 
 
-def test_a_missing_code_owner_key_is_not_read_as_enabled(tmp_path):
-    """الغياب مخالفةٌ لا سكوت — نفس قاعدة البند الدائم."""
-    assert _run_changed(tmp_path, _envelope(_rules(True)), [ADJUDICATION]) == 1
+def test_a_missing_code_owner_key_is_still_not_read_as_enabled(tmp_path, capsys):
+    """الغياب مخالفةٌ لا سكوت — والتعطيلُ غيّر **أثرَ** المخالفة لا **قراءتَها**.
+
+    مفتاحٌ غائبٌ كان يُقرأ مخالفةً؛ ويبقى كذلك. ولو قُرِئ تفعيلاً لاختفى السطرُ
+    الإرشاديُّ أيضاً — فيصير المستودعُ يظنّ الشرطَ نافذاً وهو غائب، وذاك عطلٌ آخر
+    لا علاقةَ له بقرار الحجب.
+    """
+    assert _run_changed(tmp_path, _envelope(_rules(True)), [ADJUDICATION]) == 0
+    assert MOD.CODE_OWNER_PARAMETER in capsys.readouterr().out
 
 
 def test_a_policy_change_alone_does_not_trigger_the_term(tmp_path):

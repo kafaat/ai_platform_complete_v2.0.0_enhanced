@@ -1221,6 +1221,18 @@ tables:
     writers: [soil-service]
     readers: []
     source: "migrations/v157_soil_projection_jobs_reconciliation.sql"
+  soil_reconciliation_deferrals:
+    # RECONCILIATION-CURSOR-SKIPS-ROWS-THAT-BECOME-ELIGIBLE-01. كاتبٌ واحدٌ في العقد
+    # كشقيقَيه `soil_reconciliation_checkpoints` و`soil_profile_projection_jobs`.
+    # وأوّلُ صياغةٍ لي أعلنت `writers: [soil-service, scripts]` لتُرضي
+    # `db_writer_ownership_guard` — فرفضها `build_platform_catalog` بـ
+    # `ownership conflict (multi_writer)`: نموذجُ هذا المستودع مالكٌ واحدٌ لا قائمة.
+    # فكتابةُ `scripts/soil/reconcile_historical.py` تُسجَّل ديناً **مُعلَناً** في
+    # `db_writer_ownership_baseline.json` كما سُجِّلت للشقيقَين بالضبط، لا كاتباً ثانياً.
+    owner: soil-service
+    writers: [soil-service]
+    readers: []
+    source: "migrations/v231_soil_reconciliation_deferrals.sql"
   lab_samples:
     owner: sahool-platform
     writers: [sahool-platform]

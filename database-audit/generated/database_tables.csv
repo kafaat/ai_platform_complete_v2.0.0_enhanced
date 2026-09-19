@@ -299,6 +299,7 @@ soil_readings,init_v8.sql,0,True,True,False,0,False,True,0,1
 soil_reclamation_assessments,v163_soil_p3_assessment_products.sql,168,True,False,False,0,False,True,0,0
 soil_reclamation_economics,v163_soil_p3_assessment_products.sql,168,True,False,False,0,False,True,0,0
 soil_reconciliation_checkpoints,v157_soil_projection_jobs_reconciliation.sql,162,True,True,True,0,False,False,0,0
+soil_reconciliation_deferrals,v231_soil_reconciliation_deferrals.sql,228,True,True,True,1,True,False,0,0
 soil_regional_calibrations,v165_soil_p5_validation_calibration_certification.sql,170,True,False,False,0,False,True,0,0
 soil_runtime_certification_evidence,v166_soil_p6_runtime_certification.sql,171,True,True,True,0,False,False,0,0
 soil_runtime_certification_runs,v166_soil_p6_runtime_certification.sql,171,True,True,True,0,False,False,0,0

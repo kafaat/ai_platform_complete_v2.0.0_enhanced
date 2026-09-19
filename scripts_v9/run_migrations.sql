@@ -601,5 +601,7 @@
 \i migrations/v229_market_mcp_schema.sql
 \echo '═══ 228. v230_drawing_features.sql ═══'
 \i migrations/v230_drawing_features.sql
-\echo '═══ 229. v206_rls_final_hardening.sql ═══'
+\echo '═══ 229. v231_soil_reconciliation_deferrals.sql ═══'
+\i migrations/v231_soil_reconciliation_deferrals.sql
+\echo '═══ 230. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

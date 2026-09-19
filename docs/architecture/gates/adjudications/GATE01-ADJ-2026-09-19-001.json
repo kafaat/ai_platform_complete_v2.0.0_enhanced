@@ -1,0 +1,46 @@
+{
+  "schema": "sahool.gate01_adjudication/v1",
+  "version": 1,
+  "adjudication_id": "GATE01-ADJ-2026-09-19-001",
+  "gate_id": "GATE-01",
+  "status": "ISSUED",
+  "approved_by": "owner",
+  "adjudicated_on": "2026-09-19",
+  "pr": 1033,
+  "one_time": true,
+  "phase0_baseline_ref": {
+    "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
+    "must_match_policy": true
+  },
+  "allowed_paths": [
+    "docs/architecture/db_ownership.yml",
+    "migrations/MANIFEST.txt"
+  ],
+  "allowed_gap_closures": [
+    "RECONCILIATION-CURSOR-SKIPS-ROWS-THAT-BECOME-ELIGIBLE-01"
+  ],
+  "authorized_patch_sha256": "9252a06e7ad02a12d237e8add92f11478ef6de9bc7119dbf70e18e4ebfd3f5ea",
+  "authorized_blobs": {
+    "docs/architecture/db_ownership.yml": "5db991864e1107e79c8910f34d054d211918998d",
+    "migrations/MANIFEST.txt": "4a50317f82f00294f608b7c1aea13b8a65ed7018"
+  },
+  "bindings": {
+    "require_patch_digest": true,
+    "require_paths_subset": true,
+    "require_baseline_match": true,
+    "require_exact_head_sha": false,
+    "observed_head_sha_at_issue": "148164d7f68a7b32486e6fab596f87a0104ffe2d"
+  },
+  "authorization_source": {
+    "kind": "current_user_instruction",
+    "text_ar": "صُغ التفويض باسمي على السابقة",
+    "context_ar": "جوابٌ صريح على سؤالٍ عرض ثلاثة خيارات (أصوغه بالنيابة · يكتبه المالك بنفسه · إعادةُ تصميم الشريحة بلا هجرة)، بعد عرضِ أنّ GATE-01 يحجب وأنّ التفويضات الأربعة CONSUMED. ويسبقه اختيارُه الصريح لنموذج «سجلّ تأجيل دائم» في سؤالٍ نصّ على أنّه يحتاج هجرة. وأُعيد إصدارُ هذا السجلّ **بعد** اكتمال التغييرات بتوجيه المالك نفسِه: «لا ينبغي إصدار التفويض قبل اكتمال التغييرات لأنه byte-bound». لا تفويضَ دفعٍ ولا دمجٍ مستنتج."
+  },
+  "scope_limit_ar": "مساران مأذونان لا غير: تسجيلُ v231_soil_reconciliation_deferrals.sql في MANIFEST.txt **قبل** v206 (فيبقى v206 آخرَ مدخل .sql كما يشترط apply_in_compose.sh وتسعةُ اختباراتٍ ساكنة)، وتسجيلُ ملكيّة الجدول الجديد في db_ownership.yml بكاتبٍ واحد (soil-service) كشقيقَيه. لا مسارَ تشغيلٍ فيزيائيّ، ولا v228، ولا تغييرَ لحالة GATE-01 العالميّة.",
+  "provenance_honesty": {
+    "record_authored_by": "agent-for-current-user-instruction",
+    "independently_signed": false,
+    "guard_binds": "bytes_only",
+    "note_ar": "سجلٌّ لطلبٍ صريح في الجلسة، لا توقيعٌ مستقلّ. الوكيلُ كاتبُ الرقعة وكاتبُ السجلّ معاً. و`branch_protection_contract_guard` يقول الشيءَ نفسَه ويحجب عليه: «التفويضُ يُصدره من يحتاجه» ما لم يُفرَض `require_code_owner_review` في Ruleset — و.github/CODEOWNERS:19 يُسمّي المالكَ فعلاً لكنّ الملفّ خاملٌ بلا الإعداد. فالمنشأُ المستقلّ يقع في إعدادات GitHub لا في هذا الملفّ، وهذا حدُّ صدقٍ مُعلَنٌ لا خفاء فيه."
+  }
+}

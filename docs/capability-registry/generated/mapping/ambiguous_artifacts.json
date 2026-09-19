@@ -1035,19 +1035,19 @@
         ]
       },
       {
+        "capability_id": "SOIL-001",
+        "score": 12,
+        "signals": [
+          "content:Soil profile",
+          "content:soil profile"
+        ]
+      },
+      {
         "capability_id": "OPS-004",
         "score": 12,
         "signals": [
           "content:Field forms",
           "content:field form"
-        ]
-      },
-      {
-        "capability_id": "FM-008",
-        "score": 12,
-        "signals": [
-          "content:erp bridge",
-          "content:odoo bridge"
         ]
       }
     ]
