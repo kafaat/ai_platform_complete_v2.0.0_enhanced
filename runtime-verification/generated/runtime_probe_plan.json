@@ -1,6 +1,6 @@
 {
   "fail_closed": true,
-  "plan_sha256": "06e2562a76fa4e7e68e4f9773ed23bfbacda5d2c7936cf300f2873efbda1166b",
+  "plan_sha256": "4dcc9f361c91266c5db8c327895fe695a14803d40b5e4c3054dbb734d3100b22",
   "schema_version": "1.0",
   "services": [
     {
@@ -103,16 +103,6 @@
           "kind": "readiness",
           "method": "GET",
           "path": "/readyz"
-        },
-        {
-          "kind": "readiness",
-          "method": "GET",
-          "path": "ready"
-        },
-        {
-          "kind": "readiness",
-          "method": "GET",
-          "path": "ready_dates"
         }
       ],
       "production_certified": false,
@@ -734,11 +724,6 @@
           "path": "/healthz"
         },
         {
-          "kind": "health",
-          "method": "GET",
-          "path": "state_of_health_percent"
-        },
-        {
           "kind": "metrics",
           "method": "GET",
           "path": "/api/v1/weather/metrics.prom"
@@ -747,21 +732,6 @@
           "kind": "metrics",
           "method": "GET",
           "path": "/metrics"
-        },
-        {
-          "kind": "metrics",
-          "method": "GET",
-          "path": "metric_delta"
-        },
-        {
-          "kind": "metrics",
-          "method": "GET",
-          "path": "metric_deltas"
-        },
-        {
-          "kind": "metrics",
-          "method": "GET",
-          "path": "metrics"
         },
         {
           "kind": "readiness",
@@ -787,16 +757,6 @@
           "kind": "readiness",
           "method": "GET",
           "path": "/readyz"
-        },
-        {
-          "kind": "readiness",
-          "method": "GET",
-          "path": "cog_ready"
-        },
-        {
-          "kind": "readiness",
-          "method": "GET",
-          "path": "dispatch_ready"
         }
       ],
       "production_certified": false,
@@ -899,11 +859,6 @@
           "kind": "readiness",
           "method": "GET",
           "path": "/readyz"
-        },
-        {
-          "kind": "readiness",
-          "method": "GET",
-          "path": "oldest_ready_age_seconds"
         }
       ],
       "production_certified": false,
@@ -938,16 +893,6 @@
           "kind": "health",
           "method": "GET",
           "path": "/healthz/deps"
-        },
-        {
-          "kind": "health",
-          "method": "GET",
-          "path": "health_distribution"
-        },
-        {
-          "kind": "health",
-          "method": "GET",
-          "path": "health_status"
         },
         {
           "kind": "metrics",
@@ -1028,11 +973,6 @@
           "path": "/healthz"
         },
         {
-          "kind": "health",
-          "method": "GET",
-          "path": "health"
-        },
-        {
           "kind": "metrics",
           "method": "GET",
           "path": "/metrics"
@@ -1041,16 +981,6 @@
           "kind": "readiness",
           "method": "GET",
           "path": "/readyz"
-        },
-        {
-          "kind": "readiness",
-          "method": "GET",
-          "path": "ready"
-        },
-        {
-          "kind": "readiness",
-          "method": "GET",
-          "path": "{main.RASTER_SERVICE_URL}/readyz"
         }
       ],
       "production_certified": false,
@@ -1178,5 +1108,5 @@
       "source_service": "weather-signal-engine"
     }
   ],
-  "source_contract_sha256": "6f3ed1064425afc156ad022ad0838be895bc5f5efeadb368ca59ea1fdd6a6a64"
+  "source_contract_sha256": "01fc16e50d93484219f202acdd380f19a677ea46ecfe2ab2b37100a826791557"
 }

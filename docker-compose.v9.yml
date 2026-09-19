@@ -436,7 +436,8 @@ services:
     # service's own retry/backoff — not a self-healthcheck in the distroless image.
   sahool-ollama:
     environment:
-      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-5m}
+      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-30m}
+      OLLAMA_CONTEXT_LENGTH: ${OLLAMA_CONTEXT_LENGTH:-8192}
     image: ${OLLAMA_IMAGE:-ollama/ollama:0.32.5@sha256:4dea9fb511947e24a84237bb636b0203abcb2ff0d3fbc7b4ff865deb91362131}
     mem_limit: 4g
     security_opt:

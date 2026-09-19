@@ -2823,6 +2823,9 @@ Unit and repository suites passed on `bd7bca34b`; the platform-only rerun resolv
 المرجع #1030، رأس `9ff50572ff7180c43addac1d7cb462f8bdf1856a` وأساس `c3ebd6a7f9bf33bb3bde138533f99f493acd8740`. القرار: الحفاظ على ملفّي مشغّل Railway، وتجديد المصنوعات بعد إدراج جميع تغييرات المصدر، مع بناء release أخيرًا عبر `scripts/ci/regenerate_all_generated.sh`. السبب: فشل CI والفحص المحلي متطابقان في mapping drift؛ لا يُعالجان بتحرير JSON يدويًا أو تغيير حدود الحراس. لا تغيير لحالات الفجوات ولا ادعاء تنفيذ حي من فحوص بنية الصورة.
 
 
+## 2026-09-19 — publish owner-verified numeric selections only
+
+Base SHA `0af0603ad5ce2a5be89f2039d4b094b975f517a0`. Consume existing `shared/ai/structured_advisory.py` through the platform owner and existing internal advice event, so no second decision authority or new route is introduced. Fresh canonical state and a persisted digest-bound receipt are required; free text and action candidates remain suppressed. Reason: retrieval presence alone does not validate a generated claim. Witness: `tests_v9/test_v25_advisory_publication.py`; operator acceptance: `docs/runbooks/V25_AI_LOCAL_ACCEPTANCE.md`.
 ## 2026-09-19 — المؤشّرُ يتقدّم والسجلُّ يتذكّر
 
 المرجع `main@0af0603a` وفجوة `RECONCILIATION-CURSOR-SKIPS-ROWS-THAT-BECOME-ELIGIBLE-01`. **القرار:** يبقى المؤشّرُ علامةَ ماءٍ عليا تتقدّم بحرّيّة، ويُكتَب ما تجاوزه في سجلٍّ دائم يُقرأ قبل كلّ مسح. **السبب:** مؤشّرٌ يرفض تجاوزَ صفٍّ غيرِ محسوم يُجمّد المصالحةَ كلَّها عند أوّل نوعٍ لن يُحوَّل أبداً — تقدّمٌ مستحيل، وهو صنفُ «حارسٍ لا يقبل حالةً صادقة» المُغلَق في #1026. وهو نصُّ T16 في مصفوفة القبول: لا يتجاوز checkpoint غيرَ المحسوم بلا سجلٍّ يسمح بإعادة المطابقة.
@@ -2857,3 +2860,8 @@ Unit and repository suites passed on `bd7bca34b`; the platform-only rerun resolv
 تُثبِت أنّ الهويّة الثانية متوفّرة؛ الناقصُ الإعدادُ لا الشخص.
 
 **PR:** #1033 · **الأساس:** `50e0a54ac`
+
+
+## 2026-09-19 — #1036: ختم الإذن المستهلك بدليل الدمج
+
+القرار على أساس `3432eec2`: ختم تفويض #1033 في `docs/architecture/gates/adjudications/GATE01-ADJ-2026-09-19-001.json` بعد إثبات دمج `ebcf4527` وتطابق البايتات. السبب أن الحارس كشف سجلًا بائتًا كما صُمم؛ العلاج إنهاء دورة التفويض القائم، مع إبقاء GATE-01 مغلقة ونطاق الإذن محفوظًا. الشاهد: `tests_v9/test_gate01_frozen_path_guard.py` (50 ناجحًا) وأمر CI نفسه بعد الختم.

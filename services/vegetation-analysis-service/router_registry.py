@@ -21,14 +21,20 @@ def register_routers(app) -> list[str]:
     آمن: غياب الحزمة أو تعذّر استيراد وحدة لا يُسقِط التطبيق (يُسجَّل ويُتخطّى).
     """
     registered: list[str] = []
+    # Keep liveness available when a router fails, but never advertise complete
+    # readiness with missing API capabilities (e.g. an unwritable SQLite volume).
+    failures: dict[str, str] = {}
+    app.state.router_import_failures = failures
     try:
         import routers as _routers_pkg
-    except ImportError:
+    except ImportError as exc:
+        failures["routers"] = type(exc).__name__
         return registered
     for mod_info in sorted(pkgutil.iter_modules(_routers_pkg.__path__)):
         try:
             mod = importlib.import_module(f"routers.{mod_info.name}")
-        except Exception:  # noqa: BLE001 — وحدة معطّلة لا تُسقِط الخدمة كلّها
+        except Exception as exc:  # noqa: BLE001 — تُسجَّل في الجاهزية بدل إسقاط الصحة
+            failures[mod_info.name] = type(exc).__name__
             logger.exception("تعذّر استيراد راوتر routers.%s — يُتخطّى", mod_info.name)
             continue
         router = getattr(mod, "router", None)

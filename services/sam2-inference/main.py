@@ -115,7 +115,7 @@ async def legacy_health():
 @app.get("/readyz")
 async def readyz():
     loaded = rt._PREDICTOR is not None
-    return {
+    body = {
         "status": "ready" if loaded else "degraded",
         "service": "sam2-inference",
         "implemented_runtime": loaded,
@@ -127,6 +127,11 @@ async def readyz():
         "artifact_digest": rt._MODEL_ARTIFACT_DIGEST,
         "artifact_digest_verified": bool(rt._MODEL_ARTIFACT_DIGEST),
     }
+    if not loaded:
+        from starlette.responses import JSONResponse
+
+        return JSONResponse(body, status_code=503)
+    return body
 
 
 if __name__ == "__main__":

@@ -9,6 +9,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import math
 import os
 import uuid
 from pathlib import Path
@@ -230,15 +231,32 @@ except ImportError:
 
 async def _embed(text: str, http: httpx.AsyncClient) -> list[float]:
     """تضمين نصّ عبر Ollama (/api/embeddings) — نفس نموذج RAG. يرفع عند الفشل."""
-    r = await http.post(
-        f"{OLLAMA_BASE_URL}/api/embeddings",
-        json={"model": EMBED_MODEL, "prompt": text},
-        timeout=60.0,
-    )
-    r.raise_for_status()
+    # Cold loading is a startup operation, with a separate budget from interactive
+    # generation. Retries never change corpus visibility or write partial vectors.
+    for attempt in range(3):
+        try:
+            r = await http.post(
+                f"{OLLAMA_BASE_URL}/api/embeddings",
+                json={"model": EMBED_MODEL, "prompt": text},
+                timeout=180.0,
+            )
+            r.raise_for_status()
+            break
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code not in {429, 500, 502, 503, 504} or attempt == 2:
+                raise
+        except httpx.TransportError:
+            if attempt == 2:
+                raise
+        logger.warning("embedding runtime unavailable; retry %s/3", attempt + 2)
+        await asyncio.sleep(2**attempt)
     vec = r.json().get("embedding")
-    if not vec:
-        raise ValueError("Ollama لم يُعِد متجه تضمين")
+    if (
+        not isinstance(vec, list)
+        or not vec
+        or any(type(value) not in (int, float) or not math.isfinite(value) for value in vec)
+    ):
+        raise ValueError("Ollama returned an invalid embedding vector")
     return vec
 
 
@@ -248,6 +266,9 @@ async def seed():
     # الاستثناء قبل التضمين وقبل فحص الـprovenance: الوثيقة المستثناة خارج هذا
     # البذر كلّه، لا وثيقةٌ ضُمِّنت ثم أُسقطت في آخر خطوة.
     knowledge = [doc for doc in KNOWLEDGE_BASE if f"seed:{doc['id']}" not in excluded]
+    if not knowledge:
+        logger.info("No seed documents remain after exclusions; no writes performed")
+        return
     if excluded:
         logger.info(
             "⛔ استُثني %d هويّة محجورة من البذر (بقي %d من %d)",
@@ -280,6 +301,8 @@ async def seed():
             raise RuntimeError("required Qdrant seed embedding failed") from e
 
     dim = len(vectors[0])
+    if any(len(vector) != dim for vector in vectors):
+        raise RuntimeError("inconsistent seed embedding dimensions; no writes performed")
     logger.info(f"✅ وُلّد تضمين {len(vectors)} وثيقة (بُعد={dim}, نموذج={EMBED_MODEL})")
 
     client = AsyncQdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)

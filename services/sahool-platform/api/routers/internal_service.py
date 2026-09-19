@@ -196,10 +196,14 @@ async def internal_ai_advice_event(
         "decision_authority": "field_intelligence_coordinator",
         "runtime": "ai_agronomist",
     }
+    validation = None
     try:
         async with main.tenant_connection(actor) as conn:
             if req.field_id:
                 await main._assert_field_in_tenant(conn, req.field_id)
+            if req.model_output is not None:
+                validation = await _preview_advice_facts(conn, req)
+                payload["advisory_validation"] = validation
             # غير حرج بالتصميم (تسجيلٌ للأثر لا كتابةُ عمل)، لكنّ الردّ يجب أن يقول ما
             # حدث فعلاً: كان ``ok: True`` ثابتاً حتّى حين ابتُلع فشلُ الإصدار (التدقيق
             # الموحَّد 2026-09-13، P0). المُستهلِك (ai_agronomist) يعرض ``persisted``.
@@ -222,7 +226,38 @@ async def internal_ai_advice_event(
         "reason": None if persisted else "outbox_emit_failed_non_critical",
         "event_type": "ai.suggestion.generated",
         "entity_id": req.field_id or req.tenant_id,
+        "advisory_validation": validation,
     }
+
+
+async def _preview_advice_facts(conn, req) -> dict:
+    """Reload owner data after generation; no model-authored action can cross here."""
+    from core.field_intelligence_coordinator import preview_model_advisory
+
+    from shared.ai.structured_advisory import AdvisoryRejected, digest
+
+    async def current_state(**scope):
+        return await _compose_canonical(conn, **scope)
+
+    async def owner_candidates(**_scope):
+        # There is no production owner-candidate loader on this chat path yet.
+        # An empty catalog rejects every attempted action ID, never fabricates one.
+        return []
+
+    try:
+        if not req.field_id:
+            raise AdvisoryRejected("field_id_required")
+        result = await preview_model_advisory(
+            req.model_output,
+            tenant_id=req.tenant_id,
+            field_id=req.field_id,
+            load_current_canonical=current_state,
+            load_owner_candidates=owner_candidates,
+            evaluate_candidate=None,
+        )
+        return {"status": "verified", "model_output_digest": digest(req.model_output), **result}
+    except AdvisoryRejected as exc:
+        return {"status": "blocked", "reason": str(exc)}
 
 
 async def _compose_canonical(conn, *, tenant_id: str, field_id: str) -> dict:

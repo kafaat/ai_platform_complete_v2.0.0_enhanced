@@ -3764,6 +3764,8 @@ RLS يمرّ الفحص لأيّ مستأجِر، وتحته لا يمرّ لأ�
   وإمّا تصديقاً مستقلّاً يفحصه الحارس. وكلاهما يلزمه طفرةٌ تُكذّبه.
 ## GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01 — `fixed` (2026-08-13 · رصده المالك)
 
+**2026-09-19 recurrence (#1036):** تفويض #1033 بقي `ISSUED` بعد دمجه في `ebcf45270ee48c2929638dbb4aa44b0ac0f2b2ed` عند `2026-09-19T18:22:15Z`. تحقق GitHub من الدمج وتطابقت بصمتا `authorized_blobs` مع شجرته. أُعيد إنتاج فشل [بوابة CI](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/35464098238) محليًا ثم خُتم السجل `CONSUMED` مع دليل الدمج، فمر الحارس ونجحت الاختبارات الخمسون. الكاشف عمل كما صُمم؛ الحالة تبقى `fixed`، والختم الآلي بعد الدمج غير منفذ.
+
 **2026-09-09 recurrence:** `cb0dc6cbd` consumes `GATE01-ADJ-2026-09-08-001` after #990 merged at `7407eae2`. Both authorized blob hashes were verified against that merge tree. The existing guard correctly blocked unrelated changes until the record was stamped; its policy and byte bindings were not changed. Evidence: [main repair report](../../docs/testing/main_irrigation_guardrails_repairs_20260909.md).
 
 **الوعد كُتِب وفُرِض عند الاستعمال، ولم يُنهَ عند الدمج.** التفويض يحمل `one_time: true`
@@ -6241,6 +6243,13 @@ C01..C14؛ لا تُرفع قدرة إلى runtime_verified أو production_cert
 - **والاتّجاهُ مقيسٌ لا مظنون:** النصّيُّ **٢٨٦** واليمائيُّ **٢٧٤**، و«في القديم وليس في الجديد = **لا شيء**». فقارئٌ أضيقُ من سابقه كان سيرفض إغلاقاً صحيحاً — وهو الاتّجاهُ الخطر، ويحرسه شاهدٌ ثانٍ.
 - **وعطلٌ ثانٍ لي في شاهد العلاج نفسِه:** `subprocess.run(..., text=True)` بلا `encoding="utf-8"` يفكّ مخرَجَ الحارس العربيَّ بترميز الآلة، فيسقط تحت `LC_ALL=C` وهو يقرأ نجاحاً — وهو `GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01` المقتبَسُ في رأس الحارس نفسِه. أمسكه `tests_v9/test_text_encoding_locale.py` عليَّ في `preflight`، لا أنا.
 
+
+### V25-AI-RUNTIME-LOCAL-ACCEPTANCE-01
+
+- الحالة: **open**. Source repairs and local tests do not close hardware/data acceptance.
+- المصدر: `docs/runbooks/V25_AI_LOCAL_ACCEPTANCE.md`; `tests_v9/test_v25_advisory_publication.py`; `tests_v9/test_v25_seed_and_raster_quality.py`; `tests_v9/test_ai_runtime_readiness.py`.
+- النطاق: cold startup, truthful readiness, zero-pixel rejection, browser RAG/TTS routing, owner-verified numeric chat. Existing `AI-RUNTIME-WIRING-01` remains open: production action-candidate loading is not added by this change.
+- شرط الإغلاق: source/image identities plus authenticated v25 evidence, approved model and corpus provisioning, actual GPU inference and isolated event delivery. `runtime_verified=0`; `production_certified=false`.
 ## JSONB-PARAMETER-TYPE-UNDETERMINABLE-ON-LIVE-PG-01 — سكربتٌ لم يُشغَّل قطّ على قاعدةٍ حيّة
 
 - **الحالة:** fixed — `::bigint` على الوسيط داخل `jsonb_build_object` في **الذراعَين** (`soil_readings` و`device_telemetry`). الشاهد `tests_v9/test_reconciliation_resumption_live_pg.py` على PostgreSQL حيّ؛ **مُكذَّبٌ بالزرع**: نزعُ التحويل يُسقط شاهدَين من ثلاثة.

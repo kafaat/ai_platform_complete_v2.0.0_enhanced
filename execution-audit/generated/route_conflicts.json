@@ -118,7 +118,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 376,
+          "line": 377,
           "method": "GET",
           "module": "services/field-segmentation/main.py",
           "path": "/health",
@@ -261,7 +261,7 @@
         },
         {
           "function": "healthz",
-          "line": 113,
+          "line": 131,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/healthz",
@@ -301,7 +301,7 @@
         },
         {
           "function": "healthz",
-          "line": 371,
+          "line": 372,
           "method": "GET",
           "module": "services/field-segmentation/main.py",
           "path": "/healthz",
@@ -492,7 +492,7 @@
         },
         {
           "function": "metrics",
-          "line": 304,
+          "line": 322,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/metrics",
@@ -596,7 +596,7 @@
         },
         {
           "function": "metrics",
-          "line": 58,
+          "line": 61,
           "method": "GET",
           "module": "services/vegetation-analysis-service/routers/health.py",
           "path": "/metrics",
@@ -627,7 +627,7 @@
         },
         {
           "function": "readyz",
-          "line": 323,
+          "line": 341,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/readyz",
@@ -667,7 +667,7 @@
         },
         {
           "function": "readyz",
-          "line": 381,
+          "line": 382,
           "method": "GET",
           "module": "services/field-segmentation/main.py",
           "path": "/readyz",
@@ -1139,7 +1139,7 @@
       "registrations": [
         {
           "function": "query",
-          "line": 360,
+          "line": 383,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/query",
@@ -1170,7 +1170,7 @@
         },
         {
           "function": "recommend",
-          "line": 393,
+          "line": 416,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/recommend",
@@ -1183,7 +1183,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1102,
-  "route_inventory_sha256": "b10184765457e718ecd6086c66f4d4f1bd28ab73d7d4f2a5d32ad39117aa8e8f",
+  "route_inventory_sha256": "2df3334aadfc0ed4451d530657f6e2b82bf8aab32c74e4305279d923d98cb3b8",
   "runtime_verified": false,
   "schema_version": 1
 }

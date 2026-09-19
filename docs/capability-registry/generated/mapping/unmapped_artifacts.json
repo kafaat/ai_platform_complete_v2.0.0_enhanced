@@ -6828,6 +6828,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ai_runtime_readiness.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ai_tool_executor_v55.py",
     "kind": "tests"
   },
@@ -8589,6 +8593,14 @@
   },
   {
     "path": "tests_v9/test_v208_runbook_role_matches_role_model.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_v25_advisory_publication.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_v25_seed_and_raster_quality.py",
     "kind": "tests"
   },
   {

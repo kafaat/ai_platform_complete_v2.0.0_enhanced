@@ -70,6 +70,7 @@ from raster_field_runtime import (
     logger,
     object_store,
 )
+from raster_indicator_product import eligible_observation_product
 
 router = APIRouter()
 
@@ -917,11 +918,10 @@ async def field_indicator_observation_bundle(
             unavailable[public_name] = "product_unavailable"
             continue
         result = _grid_from_cog(layer, _display_index(public_name), date, grid)
-        if result is None or not result.get("real_data"):
-            unavailable[public_name] = "product_unreadable"
+        if (product := eligible_observation_product(result)) is None:
+            unavailable[public_name] = "product_quality_unavailable"
             continue
         observations[public_name] = result
-        product = result.get("indicator_product") or {}
         provenance = product.get("provenance") or {}
         scene_id = provenance.get("scene_id") or layer.get("scene_id")
         acquisition = (

@@ -13,7 +13,7 @@
 |---|---:|---:|---|
 | actuator-service | 4 | 0 | false |
 | agriai-engine | 4 | 0 | false |
-| ai_agronomist | 6 | 0 | false |
+| ai_agronomist | 4 | 0 | false |
 | auth | 4 | 0 | false |
 | decision-service | 4 | 0 | false |
 | edge-inference | 3 | 0 | false |
@@ -32,13 +32,13 @@
 | raster-service | 3 | 0 | false |
 | raster-tiler-service | 1 | 0 | false |
 | remote-sensing-workspace-bff | 2 | 0 | false |
-| sahool-platform | 17 | 0 | false |
+| sahool-platform | 11 | 0 | false |
 | sam2-inference | 3 | 0 | false |
 | scout-ingest-service | 2 | 0 | false |
-| soil-service | 5 | 0 | false |
-| supervisor-agent | 7 | 0 | false |
+| soil-service | 4 | 0 | false |
+| supervisor-agent | 5 | 0 | false |
 | tts-service | 4 | 0 | false |
-| vegetation-analysis-service | 7 | 0 | false |
+| vegetation-analysis-service | 4 | 0 | false |
 | video-processor | 3 | 0 | false |
 | weather-polygon-worker | 0 | 0 | false |
 | weather-service | 4 | 0 | false |

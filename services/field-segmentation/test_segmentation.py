@@ -209,6 +209,19 @@ def _fake_response(mod, *, status_code: int, json_body):
 def test_configured_model_flag_true(monkeypatch):
     """خادم مُهيّأ (خلفيّة + عنوان استدلال) ⇒ _model_configured و/readyz يبلّغان True."""
     mod, client = _configured(monkeypatch)
+    import httpx
+
+    client_type = httpx.AsyncClient
+    monkeypatch.setattr(
+        mod.httpx,
+        "AsyncClient",
+        lambda **kwargs: client_type(
+            transport=httpx.MockTransport(
+                lambda request: httpx.Response(503, json={"status": "degraded"})
+            ),
+            **kwargs,
+        ),
+    )
     assert mod._model_configured() is True
     assert client.get("/readyz").json()["model_configured"] is True
 

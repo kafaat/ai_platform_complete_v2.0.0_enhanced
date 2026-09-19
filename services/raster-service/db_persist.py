@@ -145,6 +145,14 @@ async def insert_raster_asset(
         logger.warning("raster_assets insert skipped: invalid tenant_id=%r", tenant_id)
         return False
 
+    # An all-masked COG is a retained processing artifact, not an observation.
+    # Keep the asset/provenance for diagnosis, but never publish it as ready.
+    if valid_pixel_ratio is not None and valid_pixel_ratio <= 0:
+        index_quality_flags = list(dict.fromkeys([*(index_quality_flags or []), "no_valid_pixels"]))
+        quality_score = 0.0
+        if asset_status == "ready":
+            asset_status = "failed"
+
     conn = await _connect()
     if conn is None:
         return False
@@ -790,6 +798,7 @@ async def fetch_latest_asset(
               -- لا يُقدَّم كصورة صالحة للخريطة. الاستعادة بإعادة معالجة تُنتج 'ready'.
               -- (يستفيد من idx_raster_assets_ready الجزئيّ WHERE asset_status='ready'.)
               AND asset_status = 'ready'
+              AND (valid_pixel_ratio IS NULL OR valid_pixel_ratio > 0)
             -- أحدث تاريخ يفوز (دلالة latest)، ثمّ الأفضل جودةً (idx_raster_assets_quality_pick).
             ORDER BY acquisition_date DESC NULLS LAST,
                      quality_score DESC NULLS LAST,
@@ -885,6 +894,7 @@ async def list_asset_dates(
               AND acquisition_date IS NOT NULL
               AND tenant_id = $3::uuid
               AND asset_status = 'ready'  -- v11-F1: الشريط الزمنيّ يعرض الجاهز فقط (لا stale)
+              AND (valid_pixel_ratio IS NULL OR valid_pixel_ratio > 0)
             ORDER BY ad DESC
             LIMIT $4
         ) recent
@@ -933,6 +943,7 @@ async def list_available_asset_dates(
               AND tenant_id = $2::uuid
               AND acquisition_date IS NOT NULL
               AND asset_status = 'ready'  -- v11-F1: التواريخ المتاحة = الجاهزة فقط (لا stale)
+              AND (valid_pixel_ratio IS NULL OR valid_pixel_ratio > 0)
               AND ($3::text[] IS NULL OR index_name = ANY($3::text[]))
             ORDER BY acquisition_date DESC
             LIMIT $4
@@ -956,6 +967,7 @@ async def list_available_asset_dates(
         WHERE a.field_id = $1
           AND a.tenant_id = $2::uuid
           AND a.asset_status = 'ready'  -- v11-F1: صفوف جاهزة فقط (لا stale/pending)
+          AND (a.valid_pixel_ratio IS NULL OR a.valid_pixel_ratio > 0)
           AND ($3::text[] IS NULL OR a.index_name = ANY($3::text[]))
         ORDER BY a.acquisition_date DESC, a.index_name,
                  (a.cog_uri IS NOT NULL AND a.cog_uri <> '') DESC,

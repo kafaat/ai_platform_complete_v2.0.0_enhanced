@@ -12,9 +12,9 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **49**
-- Files scanned: **5366**
+- Files scanned: **5372**
 - Ambiguous artifacts queued: **420**
-- Unmapped artifacts queued: **2180**
+- Unmapped artifacts queued: **2183**
 
 ## Capability coverage
 
@@ -81,7 +81,7 @@
 | SEC-001 | security | 13 | 30 | 100 | 47 | 0 | 0 | 66 | 5 |
 | SEC-002 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-003 | security | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 2 |
-| SEC-004 | security | 7 | 22 | 23 | 5 | 5 | 4 | 18 | 7 |
+| SEC-004 | security | 7 | 23 | 23 | 5 | 5 | 4 | 18 | 7 |
 | SEC-005 | security | 0 | 0 | 4 | 0 | 0 | 0 | 1 | 2 |
 | SEC-006 | security | 2 | 7 | 0 | 3 | 0 | 0 | 10 | 4 |
 | SEC-007 | security | 2 | 0 | 7 | 52 | 0 | 0 | 10 | 4 |
@@ -92,7 +92,7 @@
 | SOIL-004 | soil | 1 | 0 | 7 | 3 | 0 | 0 | 1 | 4 |
 | SOIL-005 | soil | 5 | 0 | 0 | 2 | 0 | 0 | 2 | 3 |
 | WX-001 | weather | 1 | 4 | 0 | 3 | 0 | 0 | 2 | 4 |
-| WX-002 | weather | 22 | 62 | 8 | 57 | 9 | 0 | 24 | 6 |
+| WX-002 | weather | 22 | 62 | 8 | 57 | 9 | 0 | 25 | 6 |
 | WX-003 | weather | 4 | 6 | 4 | 3 | 0 | 0 | 5 | 5 |
 | WX-004 | weather | 58 | 48 | 0 | 89 | 18 | 0 | 59 | 5 |
 | WX-005 | weather | 9 | 29 | 0 | 6 | 2 | 0 | 6 | 5 |

@@ -17,6 +17,7 @@ Ollama) فوق طبقة RAG+KG الأساسيّة — لا يحلّ محلّها
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
@@ -65,6 +66,7 @@ _GROUNDED_SYSTEM_AR = (
     "(سياق RAG + روابط Knowledge Graph + حالة الحقل). لا تخترع أرقاماً أو مصادر، وإن "
     "نقصت الأدلّة فقل ذلك بصدق. هذا تفسير استشاريّ فقط؛ القرار التنفيذيّ النهائيّ يعود "
     "لمنسّق ذكاء الحقل والحواجز. أجب بالعربيّة الفصحى بإيجاز (٣–٥ جمل) وبدقّة في الوحدات."
+    " إذا أُرفق عقد sahool.structured_advisory.v1 فاتبع تعليماته وأعد JSON مطابقاً فقط."
 )
 
 
@@ -308,6 +310,39 @@ def resolve_generation(requested_model: str | None = None) -> GenConfig | None:
     return GenConfig(
         "local", f"{base.rstrip('/')}/v1/chat/completions", headers, model, "openai_chat"
     )
+
+
+async def preload_local_generation() -> dict[str, str]:
+    """Load the configured local model without user data or model downloads.
+
+    Startup has its own bounded budget. Interactive generation keeps its shorter
+    deadline, and the native request inherits the Ollama server's context/residency.
+    This receipt describes startup only, not a guarantee of indefinite residency.
+    """
+    cfg = resolve_generation() if generation_enabled() else None
+    if cfg is None or cfg.provider != "local":
+        return {"status": "not_requested"}
+    base = cfg.endpoint.removesuffix("/v1/chat/completions")
+    try:
+        async with asyncio.timeout(180):
+            async with httpx.AsyncClient(timeout=180.0) as client:
+                response = await client.post(
+                    base + "/api/generate",
+                    headers=cfg.headers,
+                    json={"model": cfg.model, "prompt": "", "stream": False},
+                )
+                response.raise_for_status()
+                payload = response.json()
+                if (
+                    not isinstance(payload, dict)
+                    or payload.get("done") is not True
+                    or payload.get("error")
+                ):
+                    raise ValueError("local_model_preload_incomplete")
+        return {"status": "completed", "model": cfg.model}
+    except (httpx.HTTPError, TimeoutError, ValueError) as exc:
+        logger.warning("Local model startup preload failed (%s)", type(exc).__name__)
+        return {"status": "failed", "reason": type(exc).__name__, "model": cfg.model}
 
 
 def _provider_tools(cfg: GenConfig, allowed_capabilities: list[str] | None) -> list[dict[str, Any]]:

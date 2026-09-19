@@ -7971,6 +7971,13 @@ json كي تبقى التسلسلةُ حرفاً بحرف. والحزمةُ ال
 المقيسُ بعد الدمج: ١٨ شاهداً · **٦/٦ طفرات** · `blocking_surface_ok` (303 · 4 إقراراً) · إعادةُ التوليد و`verify_all_generated --check` rc=0 (**5920** بصمة، والحزمةُ آخِراً) · `preflight --fast` إخفاقات=0 متخطّاة=0.
 
 
+## 2026-09-19 — v25 AI runtime repair and bounded publication
+
+Base `0af0603ad5ce2a5be89f2039d4b094b975f517a0`. Adopted a reviewed snapshot of existing readiness repairs and frontend runtime-DNS work (`d5602f1c`); isolated branch preserves other worktrees. Added current-owner revalidation of model-selected numeric facts and startup preload. Source/tests: `tests_v9/test_v25_advisory_publication.py`, `tests_v9/test_v25_seed_and_raster_quality.py`, `tests_v9/test_ai_runtime_readiness.py`, `frontend/tests/test_nginx_runtime.py`. Live requirements: `docs/runbooks/V25_AI_LOCAL_ACCEPTANCE.md`. Candidate-action wiring, source/model provisioning and live acceptance remain open. No live certification.
+
+### Follow-up source findings — 2026-09-19
+
+The sample environment overrode the existing SAM2 CUDA 12.8 default with CUDA 12.4 and supplied port 8000 without the prediction path. Aligned the template with the Dockerfile and Compose defaults; existing local environment files still require inspection. A generated readiness probe also came from `state.get("ready")`: the runtime-contract extractor now requires a local absolute path, excluding response keys and upstream URLs. Regression witnesses: `test_sample_environment_preserves_sam2_build_and_predict_defaults` and `test_service_scan_does_not_turn_response_keys_into_probe_routes`; both fail on the preceding source. The local acceptance runbook includes rollout and rollback requirements. No operational gap is closed by these source changes.
 ## 2026-09-19 — نموذجُ استئناف المصالحة: سجلُّ تأجيلٍ دائم، وارتباطٌ مقيسٌ بـRailway
 
 الأساس `0af0603a`. أُغلقت `RECONCILIATION-CURSOR-SKIPS-ROWS-THAT-BECOME-ELIGIBLE-01` بتغيير **نموذج الاستئناف** لا بترتيب سطر (النقلُ الساذج كان مُكذَّباً في #1025). الهجرة `v231_soil_reconciliation_deferrals.sql`: مفتاحٌ مركّب، ومفرداتُ سببٍ مغلقةٌ بـ`CHECK` (`device_field_unbound` · `device_not_registered` · `sensor_type_unmapped`)، وفهرسٌ جزئيّ على المفتوح، وRLS ENABLE+FORCE. و`resolved_at` بدل الحذف: جدولٌ يُحذَف منه عند النجاح يجعل الفراغَ يعني «لم يُؤجَّل شيء» و«أُسقط كلُّ شيء» معاً.
@@ -8010,3 +8017,18 @@ json كي تبقى التسلسلةُ حرفاً بحرف. والحزمةُ ال
   `guard_mutation_guard --run --only branch_protection_contract_guard.py` ⇒ `guard_mutation_guard_ok`
   (٢٥/٢٥، منها الطفراتُ ١٧ و١٨ و١٩ بعد إعادة كتابتها/تقوية شواهدها).
 - **الحالة:** `GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01` ⇒ `open` (كانت `mitigated · open`).
+
+
+## 2026-09-19 — v25: فحص ما بعد الجمع وتصحيح حدّ الراوتر
+
+الفرع ضمّ `main@ebcf4527` في `16752438`، وبعده نجح 319 اختبارًا موجّهًا. الفحص الشامل على `b61d0218` سجّل 7257 ناجحًا وإخفاقين في الوحدة، و811 ناجحًا وإخفاقًا في `tests/`، و4351 ناجحًا في اختبارات المنصة. عولج إخفاقا الوحدة في `d63e47ce`: فحص دالة الراستر كاملة عبر AST، وإرجاع قاموس جاهزية Vegetation مع رمز HTTP الصحيح. إخفاق الراوتر كشف نمو `fields.py` بثلاثة أسطر؛ نُقل التحقق من أهلية المنتج إلى `raster_indicator_product.py` وأصبح الراوتر عند أساسه القائم 1712، دون رفعه. حدّثت عينات اختبارات الراستر لتُمرّر نسبة بكسلات مقيسة؛ الاختبار الصناعي يحسبها من COG نفسه. نجح 38 اختبارًا لعقود المنتج والحزمة وحارس الحجم بعد ذلك، بما فيها قبول قيمة مؤشر صفر عند وجود بكسلات صالحة ورفض غياب الجودة. المصادر: `tests_v9/test_v25_seed_and_raster_quality.py` و`services/raster-service/test_clip_grid.py` و`services/raster-service/test_indicator_observation_bundle.py` و`tests/architecture/test_router_size_ratchet.py`. لا تغيير لحالة القبول المحلي ولا ادعاء تحقق GPU حي.
+
+
+## 2026-09-19 — v25: إيصال الجواب جزء من حدّ النشر
+
+في مراجعة `fa11b7a9` ظهر أن حجب `answer_ar` عند غياب الحفظ أو اختلاف البصمة لا يكفي: `advisory_validation` ونسخته داخل `audit_event` كانتا تعيدان الحقائق المختارة. أُضيفت assertions لحالتي `not_persisted` و`receipt_mismatch` في `tests_v9/test_v25_advisory_publication.py`؛ فشلتا قبل التصحيح. صار الإيصال العام غير المقبول حالة حجب مقتضبة بلا claims أو جواب، ثم نجح 85 اختبارًا لمسار النشر والعقد البنيوي وحفظ التدقيق. حالة القبول الحي تبقى مفتوحة؛ هذا إثبات لعقد الاستجابة في `services/ai_agronomist/ai_evidence_runtime.py`.
+
+
+## 2026-09-19 — #1036: استهلاك تفويض #1033 بعد الدمج
+
+على `3432eec2` أُعيد إنتاج فشل `gate01_frozen_path_guard` الذي أرسله المالك. أثبت [#1033](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1033) الدمج في `ebcf45270ee48c2929638dbb4aa44b0ac0f2b2ed`، وتطابقت بصمتا `docs/architecture/db_ownership.yml` و`migrations/MANIFEST.txt` مع التفويض. صار السجل `CONSUMED` ويحمل وقت الدمج ورابطه وبصمته؛ لم تُعدّل السياسة أو المسارات المجمّدة أو الحارس. إعادة أمر CI مرّت، و`tests_v9/test_gate01_frozen_path_guard.py` أعطى 50 ناجحًا. هذا إصلاح سجل استهلاك؛ لا تفويض جديد ولا دليل تشغيل محلي.
