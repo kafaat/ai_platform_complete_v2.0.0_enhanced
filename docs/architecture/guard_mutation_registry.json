@@ -5440,6 +5440,35 @@
           "why": "إعادةُ تبعيّةٍ لا تُثبِّتها وظيفةُ `no-report-only-change` — حرّاسُ الدماغ الخمسةُ فيها بايثون قياسيّةٌ صرفة. هذا هو العطلُ الذي وقع فعلاً على أوّل تشغيلٍ لهذا الحارس في CI (`ModuleNotFoundError: No module named 'yaml'` عبر `guard_catalogue`)، بينما مرّ `preflight --fast` أخضرَ لأنّ `PyYAML` مُثبَّتةٌ محلّيّاً: أخضرُ قِيس في كونٍ غيرِ المنشور"
         }
       ]
+    },
+    "gap_heading_state_guard.py": {
+      "test": "tests_v9/test_gap_heading_state_guard.py",
+      "mutations": [
+        {
+          "expect": "test_growth_beyond_the_baseline_blocks",
+          "find": "    if measured <= baseline:\n        return []",
+          "replace": "    if True:\n        return []  # mutated: الراتشِت لا يحجب",
+          "why": "راتشِتٌ لا يحجب يُعيد العطلَ كما وقع: عنوانٌ جديد يحمل حالتَه في العنوان يختفي من كلّ عدٍّ يُقرأ ووظيفةُ القياس خضراء — وهو بعينه ما كشفه فارقُ مصنوعَتَي #1033 و#1035."
+        },
+        {
+          "expect": "test_equality_is_not_growth",
+          "find": "    if measured <= baseline:",
+          "replace": "    if measured < baseline:  # mutated: التساوي يُقرأ نموّاً",
+          "why": "الخطأُ في الجهة الأخرى: أساسٌ لم يتغيّر يُقرأ نموّاً فيُحمِرّ كلَّ PR لا تمسّ السجلّ أصلاً — وحمايةٌ تُوقِف العملَ كلَّه تُطفَأ، فتُنتِج حمايةً صفراً."
+        },
+        {
+          "expect": "test_the_message_names_the_remedy_and_the_rejected_spelling",
+          "find": "        \"`- **الحالة:** open — …` (`open`/`fixed`/`verified` حصراً؛ «مفتوحة» في \"\n        f\"العنوان لا تُقرأ). من اليتامى: {names}.\"",
+          "replace": "        f\"من اليتامى: {names}.\"  # mutated: رسالةٌ بلا علاج",
+          "why": "رسالةٌ تقول «ارتفع العدد» بلا الصيغة المقبولة تُرسِل قارئَها ليخمّن — والعطلُ نفسُه نشأ من أنّ الصيغة المرفوضة تبدو صحيحةً للقارئ البشريّ. فالعلاجُ في الرسالة جزءٌ من الحارس لا زينة."
+        },
+        {
+          "expect": "test_a_missing_baseline_fails_closed",
+          "find": "    baseline = json.loads(Path(args.baseline).read_text(encoding=\"utf-8\"))[\"baseline\"]",
+          "replace": "    try:\n        baseline = json.loads(Path(args.baseline).read_text(encoding=\"utf-8\"))[\"baseline\"]\n    except Exception:\n        baseline = 10**9  # mutated: أساسٌ مفقود يُقرأ سقفاً لا نهائيّاً",
+          "why": "أساسٌ مفقودٌ يُقرأ «لا حدّ» يُفرِّغ الراتشِت بلا أن يُحمِّره — «لم يُقرأ» تصير «لا شيء»، وهو الصنفُ الذي يطارده هذا المستودع في كلّ حارس."
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

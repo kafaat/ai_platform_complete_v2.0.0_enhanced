@@ -6552,6 +6552,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/deploy/test_railway_frontend_config.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/deploy/test_railway_migration_runner.py",
     "kind": "tests"
   },
@@ -7497,6 +7501,10 @@
   },
   {
     "path": "tests_v9/test_frontend_nginx_service_proxy_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_gap_heading_state_guard.py",
     "kind": "tests"
   },
   {
