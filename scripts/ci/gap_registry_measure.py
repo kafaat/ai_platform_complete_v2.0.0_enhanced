@@ -256,6 +256,31 @@ def measure(text: str) -> dict:
     gap_rows = [row for row in rows if row["kind"] == "gap"]
     non_state_rows = [row for row in rows if row["kind"] != "gap"]
     counts = Counter(row["state"] or "unclassified" for row in gap_rows)
+
+    # ── `GAP-HEADING-WITHOUT-A-STATE-RECORD-IS-INVISIBLE-01` ────────────────────
+    #
+    # **العطلُ مقيسٌ على مصنوعَتَي تشغيلٍ حقيقيَّتين، لا مفترَض.** أُضيف عنوانُ فجوةٍ
+    # جديد بصيغة `## <معرِّف> — مفتوحة (…)` — الحالةُ **عربيّةٌ في العنوان**. فارتفع
+    # `heading_count` (٢٦٣ ⇒ ٢٦٤) وبقي `section_state_count` عند ٤٢، و
+    # `unclassified_section_states` **فارغاً**. أي أنّ الفجوةَ لم تظهر `open` ولا حتّى
+    # `unclassified`: **اختفت من كلّ عدٍّ يُقرأ، والقياسُ أخضر**.
+    #
+    # **والسببُ بنيويّ لا إملائيّ:** `unclassified_*` تصف ما **رآه** القارئ ولم يفهمه.
+    # وما لم يُرَ أصلاً لا يقع في أيّ منها — فكلُّ حقول الشذوذ القائمة كانت عمياءَ عنه
+    # بالتصميم. هذا الحقلُ يسدّ الفرق: عنوانٌ **يحمل معرِّفاً** ولا يقابله سجلُّ حالة،
+    # لا في قسمٍ (`- **الحالة:**`) ولا في صفِّ جدول.
+    #
+    # **والعددُ المقيس ٢١٢ من ٢٦٤ — فهو ليس صفراً يُفرَض بل أساسٌ يُخفَّض.** أكثرُ
+    # عناوين هذا السجلّ سردٌ تاريخيّ لا مدخلُ حالة، فحقلٌ يُحمِّر على الكلّ يُطفَأ
+    # في أوّل أسبوع. والراتشِتُ في `docs/architecture/gap_heading_state_baseline.json`
+    # يمنع **النموّ** ولا يدّعي أنّ ما فيه سليم — نفسُ عقد `fake_connection_debt`.
+    stated_ids = {item["id"] for item in section_states}
+    row_ids = {row["id"] for row in rows if row.get("id")}
+    orphans = [
+        {"id": heading["id"], "line": heading["line"]}
+        for heading in headings
+        if heading["id"] not in stated_ids and heading["id"] not in row_ids
+    ]
     return {
         "schema_version": 2,
         "row_count": len(rows),
@@ -285,6 +310,10 @@ def measure(text: str) -> dict:
         "unclassified_section_states": [
             state for state in section_states if state["kind"] == "gap" and state["state"] is None
         ],
+        # يُصدَّران معاً عمداً: العددُ وحدَه يُقارَن بالأساس، والقائمةُ هي ما يجعل
+        # الفارقَ قابلاً للتشخيص بدل أن يكون رقماً يرتفع بلا اسم.
+        "orphan_gap_headings": orphans,
+        "orphan_gap_heading_count": len(orphans),
     }
 
 

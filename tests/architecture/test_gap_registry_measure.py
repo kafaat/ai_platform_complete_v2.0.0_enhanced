@@ -286,3 +286,67 @@ def test_workflow_command_emits_real_read_only_evidence(tmp_path, registry_exist
         assert (
             line == f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.relative_to(checkout)}"
         )
+
+
+# ── GAP-HEADING-WITHOUT-A-STATE-RECORD-IS-INVISIBLE-01 ─────────────────────────
+# **مقيسٌ على مصنوعَتَي تشغيلٍ حقيقيَّتين:** عنوانُ فجوةٍ بصيغة
+# `## <معرِّف> — مفتوحة (…)` رفع `heading_count` (٢٦٣ ⇒ ٢٦٤) وترك
+# `section_state_count` عند ٤٢ و`unclassified_section_states` فارغاً — فاختفت الفجوةُ
+# من كلّ عدٍّ يُقرأ ووظيفةُ القياس خضراء.
+#
+# **والسببُ بنيويّ:** حقولُ `unclassified_*` تصف ما **رآه** القارئُ ولم يفهمه، وما لم
+# يُرَ أصلاً لا يقع في أيٍّ منها. فهذه الشواهدُ تقيس الفرقَ بين «لم يُفهَم» و«لم يُرَ».
+
+_ORPHAN = "## GAP-ORPHAN-01 — مفتوحة (P2 حوكمة، 2026-09-19)\n\n- وصفٌ نثريٌّ بلا سطر حالة.\n"
+
+
+def test_an_arabic_state_in_the_heading_is_not_read_as_a_state():
+    """**الصنفُ بعينه كما وقع.** «مفتوحة» في العنوان ليست `open`."""
+    report = mod().measure(_ORPHAN)
+    assert report["heading_count"] == 1
+    assert report["section_state_count"] == 0
+    assert report["unclassified_section_states"] == []
+    assert [item["id"] for item in report["orphan_gap_headings"]] == ["GAP-ORPHAN-01"]
+    assert report["orphan_gap_heading_count"] == 1
+
+
+def test_a_heading_with_a_canonical_state_line_is_not_an_orphan():
+    """العلاجُ المُلزِم: سطرُ حالةٍ قانونيٌّ تحت العنوان."""
+    report = mod().measure("## GAP-OK-01\n\n- **الحالة:** **open** — سببٌ ما.\n")
+    assert report["section_state_count"] == 1
+    assert report["orphan_gap_headings"] == []
+
+
+def test_a_heading_documented_only_by_a_table_row_is_not_an_orphan():
+    """**اليُتمُ غيابُ سجلٍّ لا غيابُ قسم.**
+
+    كثيرٌ من مدخلات هذا السجلّ حالتُها في صفِّ جدولٍ لا في قسم. فحقلٌ يعدّ «عنواناً بلا
+    `- **الحالة:**`» كان سيُحمِّر على مدخلاتٍ **مرئيّةٍ تماماً** — أي يُنتِج ٢٦٤ عطلاً
+    كاذباً ويُطفَأ في أوّل أسبوع.
+    """
+    report = mod().measure(
+        "## GAP-ROWED-01\n\n| ID | Detail | Status |\n| --- | --- | --- |\n"
+        "| GAP-ROWED-01 | x | **open** |\n"
+    )
+    assert report["orphan_gap_headings"] == []
+
+
+@pytest.mark.parametrize(
+    "heading",
+    [
+        "## GAP-X-01 — مفتوحة",
+        "## GAP-X-01 — ✅ FIXED (2026-09-19)",
+        "## GAP-X-01 — OPEN (blocked on blessed environment)",
+        "## GAP-X-01 — مُصلَحة في مرشّح الدمج",
+    ],
+)
+def test_no_heading_shape_can_smuggle_a_state_past_the_state_count(heading):
+    """**لا صيغةَ عنوانٍ تُغني عن سجلّ الحالة** — ولا واحدةٌ منها تُقرأ حالةً.
+
+    وشمولُ `✅ FIXED` و`OPEN` الإنجليزيّتين مقصود: العطلُ ليس «عربيّة» بل **العنوانُ
+    موضعاً**. ولو قُصِر الشاهدُ على العربيّة لصار قارئاً أضيقَ من دعواه، فمرّت
+    `— ✅ FIXED` صامتةً وهي الصيغةُ الأكثرُ وروداً في هذا السجلّ.
+    """
+    report = mod().measure(heading + "\n\n- وصفٌ بلا سجلّ حالة.\n")
+    assert report["section_state_count"] == 0
+    assert report["orphan_gap_heading_count"] == 1
