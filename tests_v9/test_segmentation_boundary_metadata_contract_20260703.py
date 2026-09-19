@@ -29,6 +29,8 @@ def test_segmentation_response_carries_boundary_metadata_to_frontend_save():
     fields = _read("services/sahool-platform/api/routers/fields.py")
     assert '"metadata": metadata' in seg
     assert '"post_processing"' in sam2 and '"inference_ms"' in sam2
+    assert '"artifact_digest"' in sam2
+    assert '"artifact_digest",' in seg
     assert "setBoundaryMetadata" in add
     assert "boundary_metadata: boundaryMetadata" in add
     assert "sanitize_boundary_metadata" in fields

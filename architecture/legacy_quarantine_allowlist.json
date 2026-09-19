@@ -3,8 +3,8 @@
   "allowed": [
     "services/agriai-engine/main.py:mock_runtime",
     "services/ai_agronomist/agent_stores.py:mvp_in_memory",
-    "services/ai_agronomist/human_review_repository.py:mvp_in_memory",
-    "services/ai_agronomist/recommendation_events.py:mvp_in_memory",
+    "shared/ai/recommendation_runtime/human_review_repository.py:mvp_in_memory",
+    "shared/ai/recommendation_runtime/recommendation_events.py:mvp_in_memory",
     "services/guardrails-engine/human_in_loop.py:mvp_in_memory",
     "services/raster-service/db_persist.py:mvp_in_memory",
     "services/raster-service/main.py:mvp_in_memory",

@@ -1,3 +1,5 @@
+import json
+import shlex
 import subprocess
 from pathlib import Path
 
@@ -71,3 +73,33 @@ def test_deployment_readiness_validator_passes_for_production():
         check=False,
     )
     assert result.returncode == 0, result.stdout
+
+
+def test_railway_auth_configuration_is_service_scoped():
+    # Root defaults are shared by every service that uses this repository.
+    assert not (ROOT / "railway.json").exists()
+    assert not (ROOT / "railway.toml").exists()
+    assert (ROOT / "services/auth/railway.json").is_file()
+
+
+def test_railway_auth_configuration_selects_only_its_dockerfile():
+    config = json.loads((ROOT / "services/auth/railway.json").read_text(encoding="utf-8"))
+    assert config["build"] == {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "services/auth/Dockerfile",
+    }
+    assert "deploy" not in config
+    assert (ROOT / config["build"]["dockerfilePath"]).is_file()
+
+
+def test_railway_auth_dockerfile_requires_repository_root_context():
+    config = json.loads((ROOT / "services/auth/railway.json").read_text(encoding="utf-8"))
+    dockerfile = ROOT / config["build"]["dockerfilePath"]
+    sources = []
+    for line in dockerfile.read_text(encoding="utf-8").splitlines():
+        if line.startswith("COPY "):
+            sources.extend(shlex.split(line)[1:-1])
+    assert "shared/" in sources
+    assert "services/auth/requirements.txt" in sources
+    for source in sources:
+        assert (ROOT / source).exists(), source

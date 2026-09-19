@@ -118,7 +118,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 375,
+          "line": 376,
           "method": "GET",
           "module": "services/field-segmentation/main.py",
           "path": "/health",
@@ -190,7 +190,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 110,
+          "line": 111,
           "method": "GET",
           "module": "services/sam2-inference/main.py",
           "path": "/health",
@@ -301,7 +301,7 @@
         },
         {
           "function": "healthz",
-          "line": 370,
+          "line": 371,
           "method": "GET",
           "module": "services/field-segmentation/main.py",
           "path": "/healthz",
@@ -421,7 +421,7 @@
         },
         {
           "function": "healthz",
-          "line": 105,
+          "line": 106,
           "method": "GET",
           "module": "services/sam2-inference/main.py",
           "path": "/healthz",
@@ -667,7 +667,7 @@
         },
         {
           "function": "readyz",
-          "line": 380,
+          "line": 381,
           "method": "GET",
           "module": "services/field-segmentation/main.py",
           "path": "/readyz",
@@ -787,7 +787,7 @@
         },
         {
           "function": "readyz",
-          "line": 115,
+          "line": 116,
           "method": "GET",
           "module": "services/sam2-inference/main.py",
           "path": "/readyz",
@@ -1183,7 +1183,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1102,
-  "route_inventory_sha256": "09604350d52a34d43cc7172d938d9374e2a46d62e6215d3c121b34e29b9ffea8",
+  "route_inventory_sha256": "b10184765457e718ecd6086c66f4d4f1bd28ab73d7d4f2a5d32ad39117aa8e8f",
   "runtime_verified": false,
   "schema_version": 1
 }

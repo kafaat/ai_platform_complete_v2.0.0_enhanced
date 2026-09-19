@@ -120,7 +120,10 @@ def discover_invocation_sites() -> list[dict]:
                         "step_index": index,
                         "step_name": name.strip() if isinstance(name, str) else None,
                         "step_if": step.get("if"),
-                        "continue_on_error": bool(step.get("continue-on-error")),
+                        # Only a literal true guarantees that failure is tolerated.
+                        # Expressions may evaluate to false; do not assume an exemption.
+                        "continue_on_error": step.get("continue-on-error") is True
+                        or job.get("continue-on-error") is True,
                         "guards": guards,
                     }
                 )
@@ -131,6 +134,8 @@ def discover_invocations() -> dict[str, set[tuple[str, str]]]:
     """guard path -> {(workflow, job)} — where each guard actually blocks."""
     found: dict[str, set[tuple[str, str]]] = {}
     for site in discover_invocation_sites():
+        if site["continue_on_error"]:
+            continue
         for guard in site["guards"]:
             found.setdefault(guard, set()).add((site["workflow"], site["job"]))
     return found
@@ -244,7 +249,33 @@ def render() -> str:
         lines.append(f"| `{name}` | {statement} | {where} |")
     lines.append("")
 
-    unwired = sorted(name for name in registry if f"scripts/ci/{name}" not in invocations)
+    # Preserve advisory invocations in the inventory without calling them blockers
+    # or falsely declaring them unwired. The detailed evidence consumer uses all sites.
+    sites = discover_invocation_sites()
+    all_invoked = {guard for site in sites for guard in site["guards"]}
+    advisory = sorted(
+        {
+            (guard, site["workflow"], site["job"])
+            for site in sites
+            if site["continue_on_error"]
+            for guard in site["guards"]
+        }
+    )
+    if advisory:
+        lines += [
+            "---",
+            "",
+            f"## استدعاءات غير مانعة بحسب continue-on-error ({len(advisory)})",
+            "",
+            "يشمل التصريح على الخطوة أو الوظيفة؛ تبقى هذه الاستدعاءات ظاهرة ولا تُعدّ حجبًا.",
+            "",
+            "| الأداة | workflow | الوظيفة |",
+            "|---|---|---|",
+        ]
+        lines += [f"| `{Path(g).name}` | `{w}` | `{j}` |" for g, w, j in advisory]
+        lines.append("")
+
+    unwired = sorted(name for name in registry if f"scripts/ci/{name}" not in all_invoked)
     lines += [
         "---",
         "",

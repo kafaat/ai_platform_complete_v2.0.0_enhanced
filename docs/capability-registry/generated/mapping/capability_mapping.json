@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5339,
+    "files_scanned": 5372,
     "files_by_kind": {
-      "backend": 1208,
-      "database": 277,
+      "backend": 1209,
+      "database": 278,
       "governance": 62,
       "mobile": 55,
-      "other": 1478,
-      "tests": 1801,
+      "other": 1497,
+      "tests": 1813,
       "web": 458
     },
-    "unmapped_artifacts": 2169,
+    "unmapped_artifacts": 2182,
     "ambiguous_artifacts": 420
   },
   "capabilities": [
@@ -3889,6 +3889,14 @@
           ]
         },
         {
+          "path": "shared/ai/recommendation_runtime/multi_tenant_runtime_validator.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "path": "shared/security/service_tenant_assertion.py",
           "score": 14,
           "signals": [
@@ -3926,7 +3934,7 @@
         "mobile": 0,
         "tests": 27,
         "governance": 0,
-        "other_evidence": 12
+        "other_evidence": 13
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -9120,14 +9128,6 @@
           ]
         },
         {
-          "path": "docs/architecture/db_ownership.yml",
-          "score": 12,
-          "signals": [
-            "content:erp bridge",
-            "content:odoo bridge"
-          ]
-        },
-        {
           "path": "docker-compose.odoo-snippet.yml",
           "score": 11,
           "signals": [
@@ -9198,7 +9198,7 @@
         "mobile": 0,
         "tests": 7,
         "governance": 0,
-        "other_evidence": 10
+        "other_evidence": 9
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -12130,6 +12130,13 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "docs/audits/gap_registry_measurement_20260919.md",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "docs/implementation/FULL_CAPABILITY_PLAN_EXECUTION_20260728.md",
           "score": 20,
           "signals": [
@@ -12164,7 +12171,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 3
+        "other_evidence": 4
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -25874,7 +25881,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 767
+        "database": 771
       },
       "evidence_counts": {
         "backend": 13,
@@ -26736,6 +26743,14 @@
           ]
         },
         {
+          "path": "docs/runbooks/RAILWAY_FRONTEND_DEPLOYMENT.md",
+          "score": 10,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
           "path": "scripts/ci/env_compose_drift_allowlist.json",
           "score": 10,
           "signals": [
@@ -26789,7 +26804,7 @@
         "mobile": 4,
         "tests": 18,
         "governance": 0,
-        "other_evidence": 20
+        "other_evidence": 21
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -28267,7 +28282,7 @@
           "score": 8
         },
         {
-          "value": "soil-observation.v1 @ scripts/soil/reconcile_historical.py:83",
+          "value": "soil-observation.v1 @ scripts/soil/reconcile_historical.py:234",
           "score": 8
         },
         {
@@ -28481,6 +28496,14 @@
           ]
         },
         {
+          "path": "docs/architecture/db_ownership.yml",
+          "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
           "path": "docs/audits/SOIL_P0_DURABLE_LAB_PROJECTION_INTEGRATION_20260713.md",
           "score": 12,
           "signals": [
@@ -28574,7 +28597,7 @@
         "mobile": 0,
         "tests": 17,
         "governance": 1,
-        "other_evidence": 14
+        "other_evidence": 15
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -37980,6 +38003,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/auth/railway.json",
+      "kind": "backend"
+    },
+    {
       "path": "services/auth/router_registry.py",
       "kind": "backend"
     },
@@ -42136,6 +42163,14 @@
       "kind": "tests"
     },
     {
+      "path": "tests/deploy/test_railway_frontend_config.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/deploy/test_railway_migration_runner.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests/e2e_runtime/test_phase3_runtime_integration_contracts.py",
       "kind": "tests"
     },
@@ -42521,6 +42556,10 @@
     },
     {
       "path": "tests_v9/test_blocking_surface_freeze.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_brain_annotated_supersession_guard.py",
       "kind": "tests"
     },
     {
@@ -42912,6 +42951,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_edge_model_digest_contract.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_edge_sync_recovery.py",
       "kind": "tests"
     },
@@ -43068,6 +43111,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_gap_heading_state_guard.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_gap_landing_claims_name_a_real_commit.py",
       "kind": "tests"
     },
@@ -43133,6 +43180,10 @@
     },
     {
       "path": "tests_v9/test_guard_mutation_registry_schema_delta.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_guardrail_flags_reach_every_image.py",
       "kind": "tests"
     },
     {
@@ -43768,11 +43819,23 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_recommendation_wiring_preconditions.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_recommendations_field_state_gate.py",
       "kind": "tests"
     },
     {
       "path": "tests_v9/test_recommendations_for_field.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_reconciliation_cursor_resumption.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_reconciliation_resumption_live_pg.py",
       "kind": "tests"
     },
     {
@@ -43868,6 +43931,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_sam2_artifact_digest.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_sam2_polygon_cleaning_20260702.py",
       "kind": "tests"
     },
@@ -43916,6 +43983,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_sensor_telemetry_consumer_reachability.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_service_consumer_closure_20260723.py",
       "kind": "tests"
     },
@@ -43937,6 +44008,10 @@
     },
     {
       "path": "tests_v9/test_service_map_image_pin_parity.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_service_module_loader.py",
       "kind": "tests"
     },
     {
@@ -45301,19 +45376,19 @@
           ]
         },
         {
+          "capability_id": "SOIL-001",
+          "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
           "capability_id": "OPS-004",
           "score": 12,
           "signals": [
             "content:Field forms",
             "content:field form"
-          ]
-        },
-        {
-          "capability_id": "FM-008",
-          "score": 12,
-          "signals": [
-            "content:erp bridge",
-            "content:odoo bridge"
           ]
         }
       ]

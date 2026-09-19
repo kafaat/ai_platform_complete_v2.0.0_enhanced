@@ -19,6 +19,12 @@ import asyncpg
 class Stats:
     scanned: int = 0
     inserted: int = 0
+    # RECONCILIATION-CURSOR-SKIPS-ROWS-THAT-BECOME-ELIGIBLE-01: separate counters, not
+    # one. `scanned - inserted` cannot tell a row that was written down from a row that
+    # vanished, and that is exactly the difference this slice exists to make visible.
+    deferred: int = 0
+    reexamined: int = 0
+    resolved: int = 0
 
 
 SOIL_READING_PROPERTIES = (
@@ -31,6 +37,16 @@ SOIL_READING_PROPERTIES = (
     ("potassium", "potassium_mg_kg", "mg/kg"),
     ("organic_matter", "organic_matter_pct", "%"),
 )
+# JSONB-PARAMETER-TYPE-UNDETERMINABLE-ON-LIVE-PG-01. `jsonb_build_object` takes
+# `anyelement`, so a bare `$n` inside it has no inferable type and PostgreSQL refuses
+# to PREPARE the statement: `IndeterminateDatatypeError: could not determine data type
+# of parameter`. Both arms carried this since the script was written, and nothing
+# caught it because nothing runs this script against a live database — the gap record
+# says so in as many words: no worker, no scheduler, no workflow calls it. The offline
+# witness could not catch it either: its connection double never PREPAREs anything.
+# Found by the live acceptance added for RECONCILIATION-CURSOR-SKIPS-ROWS-THAT-BECOME-
+# ELIGIBLE-01, on the first run that reached a real server. The `::bigint` cast is the
+# whole fix; the legacy ids are BIGSERIAL in both source tables.
 TELEMETRY_MAP = {
     "soil_moisture": ("soil_moisture", "%"),
     "soil_temperature": ("soil_temperature", "degC"),
@@ -42,6 +58,66 @@ TELEMETRY_MAP = {
 
 async def _set_tenant(conn, tenant_id: str) -> None:
     await conn.execute("SELECT set_config('app.current_tenant', $1, false)", tenant_id)
+
+
+# ── RECONCILIATION-CURSOR-SKIPS-ROWS-THAT-BECOME-ELIGIBLE-01 ────────────────────
+# `last_source_id` is a single high-water mark over a FILTERED stream. Every row the
+# scan or the loop skips for a reason that can later disappear — a device with no
+# field, a sensor type with no mapping — is passed by the mark as soon as any later
+# eligible row in the same batch raises it, and no round returns to it.
+#
+# The mark is not the thing to fix. One that refuses to pass an unresolved row stalls
+# the whole backfill on the first sensor type nobody will ever map: progress becomes
+# impossible, which is the defect class closed in #1026. So the mark keeps advancing
+# and what it passed is written down, with its reason, and re-examined on every run.
+DEFERRAL_REASONS = ("device_field_unbound", "device_not_registered", "sensor_type_unmapped")
+
+
+async def _defer(conn, source: str, tenant_id: str, source_id: int, reason: str) -> None:
+    """Record a passed-over row, or note that it was examined again and still is not
+    processable. `examinations` is the honest counter: a deferral seen fifty times with
+    the same reason is an operator signal, not a silent retry."""
+    if reason not in DEFERRAL_REASONS:  # the CHECK in v231 says the same thing in SQL
+        raise ValueError(f"unknown deferral reason {reason!r}")
+    await conn.execute(
+        """INSERT INTO soil_reconciliation_deferrals(source_name,tenant_id,source_id,reason)
+           VALUES ($1,$2::uuid,$3,$4)
+           ON CONFLICT (source_name,tenant_id,source_id) DO UPDATE SET
+             reason=EXCLUDED.reason,
+             last_examined_at=NOW(),
+             examinations=soil_reconciliation_deferrals.examinations+1""",
+        source,
+        tenant_id,
+        source_id,
+        reason,
+    )
+
+
+async def _resolve_deferral(conn, source: str, tenant_id: str, source_id: int) -> None:
+    """Mark a deferral processed. The row is KEPT — deleting it would make a clean
+    table mean both "nothing was ever deferred" and "everything was quietly dropped"."""
+    await conn.execute(
+        """UPDATE soil_reconciliation_deferrals
+           SET resolved_at=NOW(), last_examined_at=NOW(),
+               examinations=examinations+1
+           WHERE source_name=$1 AND tenant_id=$2::uuid AND source_id=$3
+             AND resolved_at IS NULL""",
+        source,
+        tenant_id,
+        source_id,
+    )
+
+
+async def _open_deferrals(conn, source: str, tenant_id: str, limit: int) -> list[int]:
+    rows = await conn.fetch(
+        """SELECT source_id FROM soil_reconciliation_deferrals
+           WHERE source_name=$1 AND tenant_id=$2::uuid AND resolved_at IS NULL
+           ORDER BY source_id LIMIT $3""",
+        source,
+        tenant_id,
+        limit,
+    )
+    return [row["source_id"] for row in rows]
 
 
 async def reconcile_soil_readings(conn, tenant_id: str, batch: int) -> Stats:
@@ -82,7 +158,7 @@ async def reconcile_soil_readings(conn, tenant_id: str, batch: int) -> Stats:
                        confidence, idempotency_key, provenance)
                    VALUES ($1,'soil-observation.v1',$2::uuid,$3,$4,to_jsonb($5::numeric),$6,
                            0,$7,$8,$8,'sensor',$9,'legacy_soil_readings_backfill',$10,'[]'::jsonb,
-                           0.65,$11,jsonb_build_object('legacy_table','soil_readings','legacy_id',$12))
+                           0.65,$11,jsonb_build_object('legacy_table','soil_readings','legacy_id',$12::bigint))
                    ON CONFLICT (tenant_id,idempotency_key) DO NOTHING""",
                 f"obs_legacy_sr_{row['id']}_{prop}",
                 tenant_id,
@@ -123,6 +199,58 @@ async def reconcile_soil_readings(conn, tenant_id: str, batch: int) -> Stats:
     return stats
 
 
+# The eligibility predicate that used to live in the WHERE clause (`d.field_id IS NOT
+# NULL`) is gone, and the JOIN is now LEFT: a row must be SEEN to be recorded, and an
+# INNER JOIN hides telemetry whose device was never registered at all. Both passes read
+# the same shape so one row-level model decides eligibility, not two.
+_TELEMETRY_COLUMNS = """SELECT t.telemetry_id,t.device_id,t.sensor_type,t.value,t.unit,t.recorded_at,t.received_at,
+                  d.device_id AS joined_device_id, d.field_id
+           FROM device_telemetry t LEFT JOIN iot_devices d ON d.device_id=t.device_id"""
+
+
+async def _process_telemetry_row(
+    conn, tenant_id: str, row, stats: Stats, fields: set
+) -> str | None:
+    """Insert the observation, or return the reason this row is not processable yet.
+
+    One function for both passes. Two copies of this decision would drift, and the
+    forward scan and the re-examination would then disagree about what "eligible"
+    means — the failure mode that makes a ledger worse than no ledger.
+    """
+    if row["joined_device_id"] is None:
+        return "device_not_registered"
+    if row["field_id"] is None:
+        return "device_field_unbound"
+    mapping = TELEMETRY_MAP.get(row["sensor_type"])
+    if not mapping:
+        return "sensor_type_unmapped"
+    prop, default_unit = mapping
+    fields.add(row["field_id"])
+    result = await conn.execute(
+        """INSERT INTO soil_observations(
+               observation_id,contract_version,tenant_id,field_id,property,value_json,unit,
+               depth_from_cm,depth_to_cm,observed_at,received_at,source_type,source_id,
+               procedure_id,quality_status,quality_flags,confidence,idempotency_key,provenance)
+           VALUES ($1,'soil-observation.v1',$2::uuid,$3,$4,to_jsonb($5::numeric),$6,0,30,$7,$8,
+                   'sensor',$9,'device_telemetry_backfill','suspect','["depth_unknown","calibration_unknown"]'::jsonb,
+                   0.60,$10,jsonb_build_object('legacy_table','device_telemetry','legacy_id',$11::bigint))
+           ON CONFLICT(tenant_id,idempotency_key) DO NOTHING""",
+        f"obs_legacy_dt_{row['telemetry_id']}_{prop}",
+        tenant_id,
+        row["field_id"],
+        prop,
+        row["value"],
+        row["unit"] or default_unit,
+        row["recorded_at"],
+        row["received_at"],
+        row["device_id"],
+        f"device_telemetry:{row['telemetry_id']}:{prop}",
+        row["telemetry_id"],
+    )
+    stats.inserted += int(result.endswith("1"))
+    return None
+
+
 async def reconcile_device_telemetry(conn, tenant_id: str, batch: int) -> Stats:
     await _set_tenant(conn, tenant_id)
     checkpoint = (
@@ -132,47 +260,47 @@ async def reconcile_device_telemetry(conn, tenant_id: str, batch: int) -> Stats:
         )
         or 0
     )
+    stats = Stats()
+    fields: set[str] = set()
+
+    # ── Pass A: re-examine what earlier runs passed over ────────────────────────
+    # Before scanning forward, ask whether the reasons recorded earlier have gone. This
+    # is the whole point of the ledger: the cursor may pass an unresolved row, but only
+    # because something else remembers it.
+    deferred_ids = await _open_deferrals(conn, "device_telemetry", tenant_id, batch)
+    if deferred_ids:
+        for row in await conn.fetch(
+            f"""{_TELEMETRY_COLUMNS}
+           WHERE t.tenant_id=$1::uuid AND t.telemetry_id = ANY($2::bigint[])
+           ORDER BY t.telemetry_id""",
+            tenant_id,
+            deferred_ids,
+        ):
+            stats.reexamined += 1
+            reason = await _process_telemetry_row(conn, tenant_id, row, stats, fields)
+            if reason is None:
+                await _resolve_deferral(conn, "device_telemetry", tenant_id, row["telemetry_id"])
+                stats.resolved += 1
+            else:
+                await _defer(conn, "device_telemetry", tenant_id, row["telemetry_id"], reason)
+
+    # ── Pass B: scan forward ────────────────────────────────────────────────────
     rows = await conn.fetch(
-        """SELECT t.telemetry_id,t.device_id,t.sensor_type,t.value,t.unit,t.recorded_at,t.received_at,d.field_id
-           FROM device_telemetry t JOIN iot_devices d ON d.device_id=t.device_id
-           WHERE t.tenant_id=$1::uuid AND t.telemetry_id>$2 AND d.field_id IS NOT NULL
+        f"""{_TELEMETRY_COLUMNS}
+           WHERE t.tenant_id=$1::uuid AND t.telemetry_id>$2
            ORDER BY t.telemetry_id LIMIT $3""",
         tenant_id,
         checkpoint,
         batch,
     )
-    stats = Stats(scanned=len(rows))
+    stats.scanned = len(rows)
     last_id = checkpoint
-    fields: set[str] = set()
     for row in rows:
         last_id = max(last_id, row["telemetry_id"])
-        mapping = TELEMETRY_MAP.get(row["sensor_type"])
-        if not mapping:
-            continue
-        prop, default_unit = mapping
-        fields.add(row["field_id"])
-        result = await conn.execute(
-            """INSERT INTO soil_observations(
-                   observation_id,contract_version,tenant_id,field_id,property,value_json,unit,
-                   depth_from_cm,depth_to_cm,observed_at,received_at,source_type,source_id,
-                   procedure_id,quality_status,quality_flags,confidence,idempotency_key,provenance)
-               VALUES ($1,'soil-observation.v1',$2::uuid,$3,$4,to_jsonb($5::numeric),$6,0,30,$7,$8,
-                       'sensor',$9,'device_telemetry_backfill','suspect','["depth_unknown","calibration_unknown"]'::jsonb,
-                       0.60,$10,jsonb_build_object('legacy_table','device_telemetry','legacy_id',$11))
-               ON CONFLICT(tenant_id,idempotency_key) DO NOTHING""",
-            f"obs_legacy_dt_{row['telemetry_id']}_{prop}",
-            tenant_id,
-            row["field_id"],
-            prop,
-            row["value"],
-            row["unit"] or default_unit,
-            row["recorded_at"],
-            row["received_at"],
-            row["device_id"],
-            f"device_telemetry:{row['telemetry_id']}:{prop}",
-            row["telemetry_id"],
-        )
-        stats.inserted += int(result.endswith("1"))
+        reason = await _process_telemetry_row(conn, tenant_id, row, stats, fields)
+        if reason is not None:
+            await _defer(conn, "device_telemetry", tenant_id, row["telemetry_id"], reason)
+            stats.deferred += 1
     for field_id in fields:
         await conn.execute(
             """INSERT INTO soil_profile_projection_jobs(tenant_id,field_id,reason)

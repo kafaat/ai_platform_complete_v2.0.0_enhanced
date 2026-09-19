@@ -12,8 +12,8 @@
 ضمن commands — قبل القبول. هذا الملف نقيّ تماماً: لا قاعدة، لا شبكة، قابل للاختبار offline.
 
 التأريض (grounding): الأنواع وحقول القياس مأخوذة من مخطّط v24_iot_devices.sql
-(iot_devices.type CHECK + device_telemetry.sensor_type)، ومن main.py (DeviceRequest.type،
-_latest_soil_moisture يقرأ sensor_type='soil_moisture')، ومن actuator-service/main.py
+(iot_devices.type CHECK + device_telemetry.sensor_type)، ومن main.py (DeviceRequest.type)،
+ومن actuator-service/main.py
 (_INVERSE_COMMANDS: open↔close). الحقول المُستنتَجة (لا نصّ صريح في المخطّط) مُعلَّمة
 بكلمة "مُستنتَج" في الوصف ولا نخترع أنواعاً تتجاوز ما يدعمه CHECK في iot_devices.
 """
@@ -72,7 +72,9 @@ class DeviceType:
 # كلّ مدخل مُؤرَّض على المخطّط/الكود؛ الحقول التي لا نصّ صريح لها مُعلَّمة "مُستنتَج".
 _REGISTRY: dict[str, DeviceType] = {
     # مستشعر رطوبة التربة — iot_devices.type='soil_moisture' (v24 CHECK)؛
-    # device_telemetry.sensor_type='soil_moisture' (main.py _latest_soil_moisture).
+    # device_telemetry.sensor_type='soil_moisture' (جدولُ الابتلاع؛ والقراءةَ
+    # الزراعيّة يخدمها soil_observations — انظر الفجوة
+    # SENSOR-TELEMETRY-INGEST-REACHES-NO-AGRONOMIC-CONSUMER-01).
     "soil_moisture_sensor": DeviceType(
         id="soil_moisture_sensor",
         name_ar="مستشعر رطوبة التربة",

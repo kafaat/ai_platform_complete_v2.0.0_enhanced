@@ -46,6 +46,22 @@ jobs:
       # `32efdc90..cb6598fe` (يسقط) وعلى دمج اصطناعيّ يأخذ الجانب الفارغ.
       - name: An append-only journal may not shrink, on any parent
         run: python scripts/ci/brain_append_only_guard.py --base "origin/${BASE_REF}" --head HEAD
+      # ANNOTATED-SUPERSESSION-CLOSES-A-GAP-WITHOUT-A-WITNESS-01: أدخل #1031 وسمَ
+      # `current`/`historical` ليحسم العناوين المكرّرة — علاجٌ صحيح حفظ نصَّ الاكتشاف
+      # بدل محوه. لكنّه دخل **بلا كلفة**: قارئٌ واحد يقرؤه، واختبارٌ واحد يفحص
+      # **شكلَه** فقط، ولا شيء يربط `current` بكونها فعلاً المتأخّرة. فبقي أخضرَ أن
+      # تنسخ عنوانَ فجوةٍ `open`، تسم النسخةَ `fixed` بـ`current` والأصلَ
+      # `historical`، فتختفي الفجوة من كلّ عدٍّ يُقرأ. و`gap-registry-report` حاملةٌ
+      # `continue-on-error` فلا تحجب حتّى على تناقضٍ صريح.
+      - name: An annotated supersession may not close a gap for free
+        run: python scripts/ci/brain_annotated_supersession_guard.py
+      # GAP-HEADING-WITHOUT-A-STATE-RECORD-IS-INVISIBLE-01: عنوانُ فجوةٍ يحمل حالتَه في
+      # العنوان (`— مفتوحة` · `— ✅ FIXED`) لا يقابله سجلُّ حالةٍ قانونيّ، فلا يظهر
+      # `open` ولا `unclassified`: يختفي من كلّ عدٍّ يُقرأ ووظيفةُ القياس خضراء. مقيسٌ
+      # على مصنوعَتَي #1033 و#1035 (`heading_count` 263⇒264 و`section_state_count` 42
+      # ثابت). راتشِتٌ لا صفرٌ مفروض: المقيسُ 211 من 264، وأكثرُها سردٌ تاريخيّ.
+      - name: A gap heading may not carry its state where nothing reads it
+        run: python scripts/ci/gap_heading_state_guard.py
 
   # ── وظيفةٌ مستقلّة عمداً ────────────────────────────────────────────────────
   # GATE01-DIAGNOSIS-HIDDEN-BY-THE-JOB-NAME-01: كان هذا الفحص خطوةً داخل وظيفة

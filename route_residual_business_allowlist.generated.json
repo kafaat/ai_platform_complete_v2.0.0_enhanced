@@ -693,7 +693,7 @@
     {
       "service": "field-segmentation",
       "file": "services/field-segmentation/main.py",
-      "line": 391,
+      "line": 392,
       "method": "POST",
       "path": "/v1/segment",
       "function": "segment"

@@ -10,7 +10,12 @@
   "$measured_ar": "300 ثلاثيّةً · 271 حارساً · 49 منها له مواصفةُ طفرةٍ مسجَّلة (222 بلا تكذيبٍ مسجَّل).",
   "$why_this_sha_ar": "**خطُّ التجميد هو قاعدةُ الطلبِ الذي يُنزِل الآليّة، لا لقطةٌ أُخِذت قبله.** قِيس الأساسُ أوّلاً على `912ad691`، ثمّ دُمِج #979 فصار `main` عند `d3471e39` وزاد سطحُ الحجب **ستّ ثلاثيّات**. وإبقاءُ اللقطة القديمة كان سيُبلِّغ عن هذه الستّ بوصفها «زيادةً بلا إقرار» — وهي ليست زيادةً بعد التجميد، بل سبقته. فأُعيد القياسُ على القاعدة الجديدة: قاعدةُ الطلب قاعدةٌ تسري على كلّ داخلٍ بالتساوي، ولقطةٌ تُختار بعد رؤية النتيجة ليست كذلك.\n**وإفصاحٌ يلزم:** الستُّ الجديدةُ من #979 وكاتبُها هو كاتبُ هذه الآليّة نفسُه، فتوريثُها إعفاءٌ للنفس. ما يجعله مقبولاً أنّه بالقاعدة لا بالاستثناء، وأنّ `legacy_blocking` لا يشهد لها بشيء — و**لا واحدةَ منها لها طفرةٌ مسجَّلة** (قِيس: صفرٌ من ستّ)، فهي في الدَّين المعلَن لا خارجَه.",
   "$retired_means_ar": "**التقاعدُ مسموحٌ ومنطوق.** ثلاثيّةٌ في الأساس زالت من الشجرة تُبلَّغ حتّى تُدرَج هنا بسببٍ وتاريخ. ولا يُطلَب لها تكذيبٌ ولا شاهدٌ موجب — التقاعدُ إزالةُ حجبٍ لا إضافتُه، فلا شيءَ جديدٌ يُقاس؛ المطلوبُ أن يُقال **لماذا**.\n**والعطلُ المقيس الذي أوجبها:** نُزِع استدعاءُ حارسٍ من `ci.yml` على `a3124ccf` فهبط السطحُ ٣٠١ ⇒ ٣٠٠، ولم يشتكِ إلّا فحصُ انحراف الكتالوج — **وعلاجُه المنصوصُ عليه إعادةُ التوليد**، فإذا فُعِل قال الاثنان `guard_catalogue_ok` و`blocking_surface_ok`. فالعلاجُ الذي يأمر به النظامُ هو ما يمحو الدليل، ويبقى ملفُّ الحارس في مكانه يبدو حمايةً ولا يُشغّله شيء.",
-  "retired": {},
+  "retired": {
+    "scripts/ci/guard_mutation_guard.py::ci.yml::unit-tests": {
+      "reason": "نُقِلت المكنسةُ من *Unit Tests* إلى وظيفة الحزم `mutation-sweep`، وأسماءُ حزمها الخمس دخلت `required_status_checks_contract.json` في الالتزام نفسِه. فالحجبُ **لم يزل** بل انتقل: الثلاثيّةُ `guard_mutation_guard.py::ci.yml::mutation-sweep` قائمةٌ في الأساس، والحزمُ تعمل بالتوازي بدل ٣٠ دقيقةٍ تسلسليّةً داخل *Unit Tests*. وهذا تقاعدُ **موضعٍ** لا تقاعدُ حارس.",
+      "retired_on": "2026-09-18"
+    }
+  },
   "legacy_blocking": {
     "scripts/ci/action_pin_agreement_guard.py::sahool-production-gates.yml::supply-chain-static-scan": "legacy_blocking",
     "scripts/ci/agronomic_context_gate.py::ci.yml::structural-lint": "legacy_blocking",
@@ -122,6 +127,7 @@
     "scripts/ci/fii_rls_write_policy_gate.py::ci.yml::security-scan": "legacy_blocking",
     "scripts/ci/frontend_lint_debt_guard.py::ci.yml::frontend-typecheck": "legacy_blocking",
     "scripts/ci/functional_probe_runner.py::capability-governance.yml::capability-registry": "legacy_blocking",
+    "scripts/ci/gap_heading_state_guard.py::no-report-only-change.yml::no-report-only-change": "declared_2026_09_19_gap_heading_state",
     "scripts/ci/gate01_frozen_path_guard.py::no-report-only-change.yml::gate01-physical-effect-freeze": "legacy_blocking",
     "scripts/ci/gateway_reachability_guard.py::capability-governance.yml::capability-registry": "legacy_blocking",
     "scripts/ci/generate_indicator_artifacts.py::ci.yml::structural-lint": "legacy_blocking",

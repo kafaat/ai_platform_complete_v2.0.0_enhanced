@@ -307,6 +307,8 @@ def test_the_inventory_actually_reads_the_tree():
     # والعرضُ المُشتقّ لا ينحرف عن العرض الذي يُبنى عليه الكتالوج: تحليلٌ واحد، رؤيتان.
     projected: dict[str, set[tuple[str, str]]] = {}
     for site in sites:
+        if site["continue_on_error"]:
+            continue
         for guard in site["guards"]:
             projected.setdefault(guard, set()).add((site["workflow"], site["job"]))
     assert projected == CATALOGUE.discover_invocations()

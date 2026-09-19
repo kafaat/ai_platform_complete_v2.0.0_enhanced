@@ -344,6 +344,7 @@ def run_segmentation_model(
                 "model",
                 "model_version",
                 "checkpoint",
+                "artifact_digest",
                 "model_cfg",
                 "post_processing",
                 "vertices_before",

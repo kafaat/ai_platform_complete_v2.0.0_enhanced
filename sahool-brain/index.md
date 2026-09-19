@@ -15,6 +15,7 @@
 | [`schema/migrations.md`](schema/migrations.md) | فهرس الترحيلات بالمجال (97 ترحيلاً) |
 | [`gaps/registry.md`](gaps/registry.md) | سجلّ الفجوات الحيّ بالحالة |
 | [`reports/guard_surface_ledger.md`](reports/guard_surface_ledger.md) | لقطات **سطح الحجب** مقيَّدة بـSHA وبصمة الكتالوج (إلحاقيّ — المرجع المُلزِم هو الكتالوج المولَّد) |
+| [`reports/gate01_frozen_paths_deep_review.md`](reports/gate01_frozen_paths_deep_review.md) | مراجعةٌ عميقة لـ**GATE-01 والمسارات المجمَّدة**: كيف تعمل · أربعةُ أرقامٍ مقيسة (منها **ستُّ فجواتٍ مفتوحةٍ محجوزةٌ خلفها**) · أربعُ فجواتٍ بنيويّة · بحثٌ مقارن · ستُّ مقترحاتٍ مرتّبة. لقطةٌ مقيَّدةٌ بـ`ebcf4527`، لا سياسةٌ حيّة |
 | [`decisions/strategy.md`](decisions/strategy.md) | **استراتيجيّة Capstone**: توحيد قبل توسّع + مُلاءمة اليمن (توافق) |
 | [`decisions/ledger.md`](decisions/ledger.md) | فهرس القرارات (ADRs + decision_record + قرارات الجلسة) |
 | [`decisions/gis-direction.md`](decisions/gis-direction.md) | اتّجاه GIS في المتصفّح (إلهام GeoLibre) — الأفكار 1-4 منفَّذة |

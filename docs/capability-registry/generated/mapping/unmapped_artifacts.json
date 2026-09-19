@@ -2392,6 +2392,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/auth/railway.json",
+    "kind": "backend"
+  },
+  {
     "path": "services/auth/router_registry.py",
     "kind": "backend"
   },
@@ -6548,6 +6552,14 @@
     "kind": "tests"
   },
   {
+    "path": "tests/deploy/test_railway_frontend_config.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/deploy/test_railway_migration_runner.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/e2e_runtime/test_phase3_runtime_integration_contracts.py",
     "kind": "tests"
   },
@@ -6933,6 +6945,10 @@
   },
   {
     "path": "tests_v9/test_blocking_surface_freeze.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_brain_annotated_supersession_guard.py",
     "kind": "tests"
   },
   {
@@ -7324,6 +7340,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_edge_model_digest_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_edge_sync_recovery.py",
     "kind": "tests"
   },
@@ -7480,6 +7500,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_gap_heading_state_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_gap_landing_claims_name_a_real_commit.py",
     "kind": "tests"
   },
@@ -7545,6 +7569,10 @@
   },
   {
     "path": "tests_v9/test_guard_mutation_registry_schema_delta.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_guardrail_flags_reach_every_image.py",
     "kind": "tests"
   },
   {
@@ -8180,11 +8208,23 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_recommendation_wiring_preconditions.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_recommendations_field_state_gate.py",
     "kind": "tests"
   },
   {
     "path": "tests_v9/test_recommendations_for_field.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_reconciliation_cursor_resumption.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_reconciliation_resumption_live_pg.py",
     "kind": "tests"
   },
   {
@@ -8280,6 +8320,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_sam2_artifact_digest.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_sam2_polygon_cleaning_20260702.py",
     "kind": "tests"
   },
@@ -8328,6 +8372,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_sensor_telemetry_consumer_reachability.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_service_consumer_closure_20260723.py",
     "kind": "tests"
   },
@@ -8349,6 +8397,10 @@
   },
   {
     "path": "tests_v9/test_service_map_image_pin_parity.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_service_module_loader.py",
     "kind": "tests"
   },
   {

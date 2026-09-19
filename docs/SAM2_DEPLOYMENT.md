@@ -89,7 +89,12 @@ SEGMENTATION_INFERENCE_URL=http://sahool-sam2-inference:8080/predict
 
 # (اختياريّ) تجاوز مسار/إعداد الأوزان لو غيّرت الحجم.
 SAM2_CHECKPOINT=/models/sam2_hiera_large.pt
+# Required: compute from the exact approved checkpoint bytes on the deployment host.
+SAM2_CHECKPOINT_SHA256=<64-hex-sha256>
 SAM2_MODEL_CFG=sam2_hiera_l.yaml
+
+# Verify before startup; the runtime independently re-hashes the mounted bytes.
+printf "%s  %s\\n" "$SAM2_CHECKPOINT_SHA256" "$SAM2_CHECKPOINT" | sha256sum -c -
 ```
 
 > **مهمّ:** `SEGMENTATION_BACKEND`/`SEGMENTATION_INFERENCE_URL` لا تؤثّران إلّا حين

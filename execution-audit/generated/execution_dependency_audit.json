@@ -3,9 +3,9 @@
   "schema_version":1,
   "evidence_scope":"static_repository_only",
   "runtime_verified":false,
-  "python_files_parsed":1895,
+  "python_files_parsed":1904,
   "route_handlers":1054,
-  "call_edges":78804,
+  "call_edges":78816,
   "dead_code_candidates":637,
   "duplicate_function_groups":60,
   "route_owners":27,
@@ -1127,7 +1127,7 @@
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
-   "line":370,
+   "line":371,
    "handler":"healthz",
    "method":"GET",
    "path":"/healthz"
@@ -1135,7 +1135,7 @@
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
-   "line":375,
+   "line":376,
    "handler":"legacy_health",
    "method":"GET",
    "path":"/health"
@@ -1143,7 +1143,7 @@
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
-   "line":380,
+   "line":381,
    "handler":"readyz",
    "method":"GET",
    "path":"/readyz"
@@ -1151,7 +1151,7 @@
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
-   "line":391,
+   "line":392,
    "handler":"segment",
    "method":"POST",
    "path":"/v1/segment"
@@ -7391,7 +7391,7 @@
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/main.py",
-   "line":105,
+   "line":106,
    "handler":"healthz",
    "method":"GET",
    "path":"/healthz"
@@ -7399,7 +7399,7 @@
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/main.py",
-   "line":110,
+   "line":111,
    "handler":"legacy_health",
    "method":"GET",
    "path":"/health"
@@ -7407,7 +7407,7 @@
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/main.py",
-   "line":115,
+   "line":116,
    "handler":"readyz",
    "method":"GET",
    "path":"/readyz"
@@ -21748,153 +21748,6 @@
   },
   {
    "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"iter_structured_keys",
-   "target":"isinstance",
-   "line":39
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"iter_structured_keys",
-   "target":"items",
-   "line":40
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"iter_structured_keys",
-   "target":"lower",
-   "line":41
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"iter_structured_keys",
-   "target":"str",
-   "line":41
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"iter_structured_keys",
-   "target":"isinstance",
-   "line":43
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"assert_no_decision_keys",
-   "target":"intersection",
-   "line":50
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"assert_no_decision_keys",
-   "target":"iter_structured_keys",
-   "line":50
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"assert_no_decision_keys",
-   "target":"set",
-   "line":50
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"assert_no_decision_keys",
-   "target":"sorted",
-   "line":50
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"assert_no_decision_keys",
-   "target":"DecisionContractViolation",
-   "line":52
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"has_decision_keys",
-   "target":"bool",
-   "line":60
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"has_decision_keys",
-   "target":"intersection",
-   "line":60
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"has_decision_keys",
-   "target":"iter_structured_keys",
-   "line":60
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"has_decision_keys",
-   "target":"set",
-   "line":60
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"compose_confidence",
-   "target":"max",
-   "line":99
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"compose_confidence",
-   "target":"min",
-   "line":99
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"compose_confidence",
-   "target":"round",
-   "line":103
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"recommendation_inputs_from_context",
-   "target":"get",
-   "line":108
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"recommendation_inputs_from_context",
-   "target":"isinstance",
-   "line":108
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"recommendation_inputs_from_context",
-   "target":"isinstance",
-   "line":109
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "source":"recommendation_inputs_from_context",
-   "target":"items",
-   "line":112
-  },
-  {
-   "owner":"ai-agronomist",
    "file":"services/ai_agronomist/evidence_contract.py",
    "source":"_num",
    "target":"isinstance",
@@ -23792,90 +23645,6 @@
   },
   {
    "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/human_review_repository.py",
-   "source":"utc_now",
-   "target":"isoformat",
-   "line":17
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/human_review_repository.py",
-   "source":"utc_now",
-   "target":"now",
-   "line":17
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/human_review_repository.py",
-   "source":"add_decision",
-   "target":"KeyError",
-   "line":63
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/human_review_repository.py",
-   "source":"add_decision",
-   "target":"append",
-   "line":64
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/human_review_repository.py",
-   "source":"add_decision",
-   "target":"get",
-   "line":66
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/human_review_repository.py",
-   "source":"add_decision",
-   "target":"ReviewRecord",
-   "line":72
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/human_review_repository.py",
-   "source":"add_decision",
-   "target":"utc_now",
-   "line":80
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/human_review_repository.py",
-   "source":"get_review",
-   "target":"get",
-   "line":85
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/human_review_repository.py",
-   "source":"list_pending",
-   "target":"values",
-   "line":88
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/human_review_repository.py",
-   "source":"export_learning_dataset",
-   "target":"asdict",
-   "line":95
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/human_review_repository.py",
-   "source":"export_learning_dataset",
-   "target":"asdict",
-   "line":95
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/human_review_repository.py",
-   "source":"new_review_id",
-   "target":"uuid4",
-   "line":101
-  },
-  {
-   "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"_save_agent_tool_audit",
    "target":"append",
@@ -25168,69 +24937,6 @@
    "source":"recommend_zone_count",
    "target":"min",
    "line":146
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/multi_tenant_runtime_validator.py",
-   "source":"validate_tenant_payload",
-   "target":"isinstance",
-   "line":13
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/multi_tenant_runtime_validator.py",
-   "source":"validate_tenant_payload",
-   "target":"get",
-   "line":14
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/multi_tenant_runtime_validator.py",
-   "source":"validate_tenant_payload",
-   "target":"str",
-   "line":15
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/multi_tenant_runtime_validator.py",
-   "source":"validate_tenant_payload",
-   "target":"str",
-   "line":15
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/multi_tenant_runtime_validator.py",
-   "source":"validate_tenant_payload",
-   "target":"TenantIsolationViolation",
-   "line":16
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/multi_tenant_runtime_validator.py",
-   "source":"validate_tenant_payload",
-   "target":"items",
-   "line":19
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/multi_tenant_runtime_validator.py",
-   "source":"validate_tenant_payload",
-   "target":"isinstance",
-   "line":21
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/multi_tenant_runtime_validator.py",
-   "source":"validate_tenant_payload",
-   "target":"enumerate",
-   "line":22
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/multi_tenant_runtime_validator.py",
-   "source":"validate",
-   "target":"validate_tenant_payload",
-   "line":28
   },
   {
    "owner":"ai-agronomist",
@@ -28069,328 +27775,6 @@
   },
   {
    "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_events.py",
-   "source":"utc_now",
-   "target":"isoformat",
-   "line":29
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_events.py",
-   "source":"utc_now",
-   "target":"now",
-   "line":29
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_events.py",
-   "source":"subject",
-   "target":"get",
-   "line":43
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_events.py",
-   "source":"to_bytes",
-   "target":"asdict",
-   "line":46
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_events.py",
-   "source":"to_bytes",
-   "target":"dumps",
-   "line":46
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_events.py",
-   "source":"to_bytes",
-   "target":"encode",
-   "line":46
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_events.py",
-   "source":"publish",
-   "target":"append",
-   "line":58
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_events.py",
-   "source":"publish",
-   "target":"subject",
-   "line":58
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_events.py",
-   "source":"publish",
-   "target":"subject",
-   "line":61
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_events.py",
-   "source":"publish",
-   "target":"to_bytes",
-   "line":61
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"__init__",
-   "target":"InMemoryReviewRepository",
-   "line":46
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"__init__",
-   "target":"RecommendationEventPublisher",
-   "line":47
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"__init__",
-   "target":"MultiTenantRuntimeValidator",
-   "line":48
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"validate",
-   "line":59
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"inc",
-   "line":60
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"guarded_runtime_context",
-   "line":63
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"get",
-   "line":65
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"inc",
-   "line":66
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"RuntimePipelineResult",
-   "line":67
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"get",
-   "line":70
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"inc",
-   "line":71
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"RuntimePipelineResult",
-   "line":72
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"recommendation_engine",
-   "line":74
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"validate",
-   "line":75
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"get",
-   "line":77
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"str",
-   "line":77
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"publish",
-   "line":78
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"RecommendationEvent",
-   "line":79
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"get",
-   "line":88
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"lower",
-   "line":88
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"str",
-   "line":88
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"get",
-   "line":89
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"lower",
-   "line":89
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"str",
-   "line":89
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"bool",
-   "line":95
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"get",
-   "line":95
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"create_review",
-   "line":99
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"ReviewRecord",
-   "line":100
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"new_review_id",
-   "line":101
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"inc",
-   "line":109
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"publish",
-   "line":110
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"RecommendationEvent",
-   "line":111
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"RuntimePipelineResult",
-   "line":119
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"len",
-   "line":123
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"RuntimePipelineResult",
-   "line":126
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "source":"execute",
-   "target":"len",
-   "line":127
-  },
-  {
-   "owner":"ai-agronomist",
    "file":"services/ai_agronomist/runtime_evidence.py",
    "source":"_num",
    "target":"isinstance",
@@ -28787,111 +28171,6 @@
    "source":"zoning_is_evidence_backed",
    "target":"strip",
    "line":130
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/runtime_guardrail_adapter.py",
-   "source":"guarded_runtime_context",
-   "target":"get",
-   "line":40
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/runtime_guardrail_adapter.py",
-   "source":"guarded_runtime_context",
-   "target":"MissingCanonicalFieldState",
-   "line":41
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/runtime_guardrail_adapter.py",
-   "source":"guarded_runtime_context",
-   "target":"assert_no_decision_keys",
-   "line":45
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/runtime_guardrail_adapter.py",
-   "source":"guarded_runtime_context",
-   "target":"get",
-   "line":45
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/runtime_guardrail_adapter.py",
-   "source":"guarded_runtime_context",
-   "target":"get",
-   "line":47
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/runtime_guardrail_adapter.py",
-   "source":"guarded_runtime_context",
-   "target":"recommendation_inputs_from_context",
-   "line":48
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/runtime_guardrail_adapter.py",
-   "source":"guarded_runtime_context",
-   "target":"get",
-   "line":50
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/runtime_guardrail_adapter.py",
-   "source":"guarded_runtime_context",
-   "target":"get",
-   "line":50
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/runtime_guardrail_adapter.py",
-   "source":"guarded_runtime_context",
-   "target":"get",
-   "line":51
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/runtime_guardrail_adapter.py",
-   "source":"guarded_runtime_context",
-   "target":"isinstance",
-   "line":51
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/runtime_guardrail_adapter.py",
-   "source":"guarded_runtime_context",
-   "target":"get",
-   "line":53
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/runtime_guardrail_adapter.py",
-   "source":"guarded_runtime_context",
-   "target":"get",
-   "line":53
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/runtime_guardrail_adapter.py",
-   "source":"guarded_runtime_context",
-   "target":"get",
-   "line":54
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/runtime_guardrail_adapter.py",
-   "source":"guarded_runtime_context",
-   "target":"isinstance",
-   "line":54
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/runtime_metrics.py",
-   "source":"snapshot",
-   "target":"dict",
-   "line":17
   },
   {
    "owner":"ai-agronomist",
@@ -83456,98 +82735,98 @@
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"normalize_polygon",
-   "line":359
+   "line":360
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"HTTPException",
-   "line":362
+   "line":363
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"healthz",
    "target":"get",
-   "line":369
+   "line":370
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"legacy_health",
    "target":"get",
-   "line":374
+   "line":375
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"legacy_health",
    "target":"healthz",
-   "line":376
+   "line":377
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"readyz",
    "target":"get",
-   "line":379
+   "line":380
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"readyz",
    "target":"_model_configured",
-   "line":386
+   "line":387
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"segment",
    "target":"post",
-   "line":390
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"segment",
-   "target":"Header",
    "line":391
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"segment",
+   "target":"Header",
+   "line":392
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"segment",
    "target":"_require_service_token",
-   "line":398
+   "line":399
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"segment",
    "target":"normalize_polygon",
-   "line":405
+   "line":406
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"segment",
    "target":"_model_configured",
-   "line":416
+   "line":417
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"segment",
    "target":"HTTPException",
-   "line":418
+   "line":419
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"segment",
    "target":"run_segmentation_model",
-   "line":430
+   "line":431
   },
   {
    "owner":"field-segmentation",
@@ -91191,55 +90470,41 @@
    "file":"services/guardrails-engine/main.py",
    "source":"_require_service_token",
    "target":"_Header",
-   "line":412
+   "line":414
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_require_service_token",
    "target":"HTTPException",
-   "line":422
+   "line":424
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_require_service_token",
    "target":"compare_digest",
-   "line":426
+   "line":428
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_require_service_token",
    "target":"HTTPException",
-   "line":427
+   "line":429
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
    "target":"_Header",
-   "line":431
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_verify",
-   "target":"len",
    "line":433
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
-   "target":"HTTPException",
-   "line":434
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_verify",
-   "target":"startswith",
+   "target":"len",
    "line":435
   },
   {
@@ -91253,50 +90518,50 @@
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
-   "target":"decode",
+   "target":"startswith",
+   "line":437
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_verify",
+   "target":"HTTPException",
    "line":438
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
+   "target":"decode",
+   "line":440
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_verify",
    "target":"split",
-   "line":439
+   "line":441
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
    "target":"HTTPException",
-   "line":445
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_verify",
-   "target":"get",
    "line":447
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
-   "target":"HTTPException",
-   "line":448
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_verify",
    "target":"get",
-   "line":450
+   "line":449
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
    "target":"HTTPException",
-   "line":451
+   "line":450
   },
   {
    "owner":"guardrails-engine",
@@ -91316,56 +90581,56 @@
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
+   "target":"get",
+   "line":454
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_verify",
+   "target":"HTTPException",
+   "line":455
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_verify",
    "target":"UUID",
-   "line":457
+   "line":459
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
    "target":"get",
-   "line":457
+   "line":459
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
    "target":"str",
-   "line":457
+   "line":459
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_verify",
    "target":"HTTPException",
-   "line":459
+   "line":461
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
    "target":"_Header",
-   "line":463
+   "line":465
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
    "target":"len",
-   "line":469
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_authn",
-   "target":"HTTPException",
-   "line":470
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_authn",
-   "target":"startswith",
    "line":471
   },
   {
@@ -91379,36 +90644,36 @@
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
-   "target":"decode",
+   "target":"startswith",
+   "line":473
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_authn",
+   "target":"HTTPException",
    "line":474
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
+   "target":"decode",
+   "line":476
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_authn",
    "target":"split",
-   "line":475
+   "line":477
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
    "target":"HTTPException",
-   "line":481
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_authn",
-   "target":"get",
    "line":483
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_authn",
-   "target":"HTTPException",
-   "line":484
   },
   {
    "owner":"guardrails-engine",
@@ -91428,29 +90693,43 @@
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
-   "target":"UUID",
-   "line":490
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_authn",
    "target":"get",
-   "line":490
-  },
-  {
-   "owner":"guardrails-engine",
-   "file":"services/guardrails-engine/main.py",
-   "source":"_gr_authn",
-   "target":"str",
-   "line":490
+   "line":487
   },
   {
    "owner":"guardrails-engine",
    "file":"services/guardrails-engine/main.py",
    "source":"_gr_authn",
    "target":"HTTPException",
+   "line":488
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_authn",
+   "target":"UUID",
    "line":492
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_authn",
+   "target":"get",
+   "line":492
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_authn",
+   "target":"str",
+   "line":492
+  },
+  {
+   "owner":"guardrails-engine",
+   "file":"services/guardrails-engine/main.py",
+   "source":"_gr_authn",
+   "target":"HTTPException",
+   "line":494
   },
   {
    "owner":"guardrails-engine",
@@ -189597,56 +188876,56 @@
    "file":"services/sahool-platform/api/device_registry.py",
    "source":"list_device_types",
    "target":"as_dict",
-   "line":162
+   "line":164
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/device_registry.py",
    "source":"list_device_types",
    "target":"values",
-   "line":162
+   "line":164
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/device_registry.py",
    "source":"get_device_type",
    "target":"get",
-   "line":167
+   "line":169
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/device_registry.py",
    "source":"get_device_type",
    "target":"as_dict",
-   "line":168
+   "line":170
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/device_registry.py",
    "source":"kinds",
    "target":"sorted",
-   "line":173
+   "line":175
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/device_registry.py",
    "source":"kinds",
    "target":"values",
-   "line":173
+   "line":175
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/device_registry.py",
    "source":"for_kind",
    "target":"as_dict",
-   "line":178
+   "line":180
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/device_registry.py",
    "source":"for_kind",
    "target":"values",
-   "line":178
+   "line":180
   },
   {
    "owner":"sahool-platform",
@@ -256461,70 +255740,70 @@
    "file":"services/sahool-platform/api/routers/field_completeness.py",
    "source":"field_data_completeness",
    "target":"tenant_connection",
-   "line":80
+   "line":81
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_completeness.py",
    "source":"field_data_completeness",
    "target":"_assert_field_in_tenant",
-   "line":82
+   "line":83
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_completeness.py",
    "source":"field_data_completeness",
    "target":"fetchrow",
-   "line":84
+   "line":85
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_completeness.py",
    "source":"field_data_completeness",
    "target":"HTTPException",
-   "line":90
+   "line":91
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_completeness.py",
    "source":"field_data_completeness",
    "target":"fetchrow",
-   "line":93
+   "line":94
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_completeness.py",
    "source":"field_data_completeness",
    "target":"fetchval",
-   "line":101
+   "line":102
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_completeness.py",
    "source":"field_data_completeness",
    "target":"_ndvi_present",
-   "line":107
+   "line":108
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_completeness.py",
    "source":"field_data_completeness",
    "target":"_latest_soil_moisture",
-   "line":109
+   "line":110
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_completeness.py",
    "source":"field_data_completeness",
    "target":"_db_unavailable",
-   "line":113
+   "line":114
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/field_completeness.py",
    "source":"field_data_completeness",
    "target":"score_field_completeness",
-   "line":125
+   "line":126
   },
   {
    "owner":"sahool-platform",
@@ -344437,167 +343716,153 @@
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_infer_ponytail_intent",
    "target":"lower",
-   "line":79
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_infer_ponytail_intent",
-   "target":"PonytailIntent",
    "line":81
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_infer_ponytail_intent",
-   "target":"get",
-   "line":84
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_infer_ponytail_intent",
-   "target":"str",
-   "line":84
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_infer_ponytail_intent",
    "target":"PonytailIntent",
-   "line":87
+   "line":83
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_infer_ponytail_intent",
    "target":"get",
-   "line":90
+   "line":86
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_infer_ponytail_intent",
    "target":"str",
-   "line":90
+   "line":86
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_infer_ponytail_intent",
    "target":"PonytailIntent",
-   "line":93
+   "line":89
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_infer_ponytail_intent",
    "target":"get",
-   "line":96
+   "line":92
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_infer_ponytail_intent",
    "target":"str",
-   "line":96
+   "line":92
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_infer_ponytail_intent",
    "target":"PonytailIntent",
+   "line":95
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_infer_ponytail_intent",
+   "target":"get",
    "line":98
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_infer_ponytail_intent",
+   "target":"str",
+   "line":98
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_infer_ponytail_intent",
+   "target":"PonytailIntent",
+   "line":100
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_infer_ponytail_intent",
    "target":"get",
-   "line":101
+   "line":103
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_infer_ponytail_intent",
    "target":"str",
-   "line":101
+   "line":103
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_field_state_snapshot_from_inputs",
    "target":"get",
-   "line":108
+   "line":110
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_field_state_snapshot_from_inputs",
    "target":"get",
-   "line":109
+   "line":111
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_field_state_snapshot_from_inputs",
    "target":"isinstance",
-   "line":109
+   "line":111
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_field_state_snapshot_from_inputs",
    "target":"float",
-   "line":110
+   "line":112
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_field_state_snapshot_from_inputs",
    "target":"get",
-   "line":110
+   "line":112
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_field_state_snapshot_from_inputs",
    "target":"hasattr",
-   "line":114
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_field_state_snapshot_from_inputs",
-   "target":"dict",
-   "line":115
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_field_state_snapshot_from_inputs",
-   "target":"isinstance",
    "line":116
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_field_state_snapshot_from_inputs",
+   "target":"dict",
+   "line":117
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_field_state_snapshot_from_inputs",
+   "target":"isinstance",
+   "line":118
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_field_state_snapshot_from_inputs",
    "target":"str",
-   "line":119
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_field_state_snapshot_from_inputs",
-   "target":"get",
-   "line":120
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_field_state_snapshot_from_inputs",
-   "target":"FieldStateSnapshot",
    "line":121
   },
   {
@@ -344605,48 +343870,34 @@
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_field_state_snapshot_from_inputs",
    "target":"get",
-   "line":125
+   "line":122
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_field_state_snapshot_from_inputs",
+   "target":"FieldStateSnapshot",
+   "line":123
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_field_state_snapshot_from_inputs",
+   "target":"get",
+   "line":127
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_evidence_from_inputs",
    "target":"get",
-   "line":134
+   "line":136
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_evidence_from_inputs",
    "target":"EvidenceSummary",
-   "line":135
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_evidence_from_inputs",
-   "target":"bool",
-   "line":136
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_evidence_from_inputs",
-   "target":"get",
-   "line":136
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_evidence_from_inputs",
-   "target":"bool",
-   "line":137
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"_evidence_from_inputs",
-   "target":"get",
    "line":137
   },
   {
@@ -344659,275 +343910,289 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_evidence_from_inputs",
+   "target":"get",
+   "line":138
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_evidence_from_inputs",
+   "target":"bool",
+   "line":139
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_evidence_from_inputs",
+   "target":"get",
+   "line":139
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"_evidence_from_inputs",
+   "target":"bool",
+   "line":140
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_blocked_by_ponytail_response",
    "target":"EnrichedRecommendation",
-   "line":147
+   "line":149
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_blocked_by_ponytail_response",
    "target":"asdict",
-   "line":153
+   "line":155
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_blocked_by_ponytail_response",
    "target":"isoformat",
-   "line":156
+   "line":158
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"_blocked_by_ponytail_response",
    "target":"now",
-   "line":156
+   "line":158
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"authorize",
-   "line":199
+   "line":201
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"now",
-   "line":201
+   "line":203
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"strftime",
-   "line":201
+   "line":203
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"EnrichedRecommendation",
-   "line":205
+   "line":207
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"asdict",
-   "line":210
+   "line":212
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"isoformat",
-   "line":213
+   "line":215
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"now",
-   "line":213
+   "line":215
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"SearchContext",
-   "line":217
+   "line":219
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"find_similar_recommendations",
-   "line":226
+   "line":228
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"cross_reference_summary",
-   "line":231
+   "line":233
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"build_provenance",
-   "line":234
+   "line":236
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"date",
-   "line":237
+   "line":239
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"isoformat",
-   "line":237
+   "line":239
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"now",
-   "line":237
+   "line":239
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"RecommendationPonytail",
-   "line":244
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"orchestrate_recommendation",
-   "target":"filter",
-   "line":245
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"orchestrate_recommendation",
-   "target":"_infer_ponytail_intent",
    "line":246
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
+   "target":"filter",
+   "line":247
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"orchestrate_recommendation",
+   "target":"_infer_ponytail_intent",
+   "line":248
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"orchestrate_recommendation",
    "target":"_field_state_snapshot_from_inputs",
-   "line":252
+   "line":254
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"_evidence_from_inputs",
-   "line":255
+   "line":257
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"_blocked_by_ponytail_response",
-   "line":263
+   "line":265
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"generate_recommendation",
-   "line":273
+   "line":275
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"EnrichedRecommendation",
-   "line":284
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"orchestrate_recommendation",
-   "target":"str",
    "line":286
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
-   "target":"asdict",
-   "line":289
+   "target":"str",
+   "line":288
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
-   "target":"str",
+   "target":"asdict",
    "line":291
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
+   "target":"str",
+   "line":293
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"orchestrate_recommendation",
    "target":"isoformat",
-   "line":292
+   "line":294
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"now",
-   "line":292
+   "line":294
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"EnrichedRecommendation",
-   "line":296
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"orchestrate_recommendation",
-   "target":"to_log_dict",
    "line":298
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
+   "target":"to_log_dict",
+   "line":300
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"orchestrate_recommendation",
    "target":"asdict",
-   "line":301
+   "line":303
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"isoformat",
-   "line":304
+   "line":306
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"now",
-   "line":304
+   "line":306
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrate_recommendation",
    "target":"enforce_pipeline",
-   "line":309
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"orchestrator_summary",
-   "target":"get",
-   "line":325
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/core/internal_orchestrator.py",
-   "source":"orchestrator_summary",
-   "target":"get",
-   "line":326
+   "line":311
   },
   {
    "owner":"sahool-platform",
@@ -344947,15 +344212,29 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrator_summary",
-   "target":"len",
-   "line":328
+   "target":"get",
+   "line":329
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/core/internal_orchestrator.py",
    "source":"orchestrator_summary",
    "target":"get",
-   "line":329
+   "line":330
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"orchestrator_summary",
+   "target":"len",
+   "line":330
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/core/internal_orchestrator.py",
+   "source":"orchestrator_summary",
+   "target":"get",
+   "line":331
   },
   {
    "owner":"sahool-platform",
@@ -467189,62 +466468,153 @@
    "file":"services/sam2-inference/main.py",
    "source":"predict",
    "target":"int",
-   "line":98
+   "line":99
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/main.py",
    "source":"predict",
    "target":"sum",
-   "line":98
+   "line":99
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/main.py",
    "source":"predict",
    "target":"perf_counter",
-   "line":99
+   "line":100
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/main.py",
    "source":"predict",
    "target":"round",
-   "line":99
+   "line":100
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/main.py",
    "source":"healthz",
    "target":"get",
-   "line":104
+   "line":105
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/main.py",
    "source":"legacy_health",
    "target":"get",
-   "line":109
+   "line":110
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/main.py",
    "source":"legacy_health",
    "target":"healthz",
-   "line":111
+   "line":112
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/main.py",
    "source":"readyz",
    "target":"get",
-   "line":114
+   "line":115
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/main.py",
    "source":"readyz",
    "target":"bool",
+   "line":123
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/main.py",
+   "source":"readyz",
+   "target":"bool",
+   "line":128
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_checkpoint_sha256",
+   "target":"sha256",
+   "line":98
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_checkpoint_sha256",
+   "target":"open",
+   "line":99
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_checkpoint_sha256",
+   "target":"iter",
+   "line":100
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_checkpoint_sha256",
+   "target":"read",
+   "line":100
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_checkpoint_sha256",
+   "target":"update",
+   "line":101
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_checkpoint_sha256",
+   "target":"hexdigest",
+   "line":102
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_verify_checkpoint_artifact",
+   "target":"lower",
+   "line":107
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_verify_checkpoint_artifact",
+   "target":"strip",
+   "line":107
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_verify_checkpoint_artifact",
+   "target":"fullmatch",
+   "line":108
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_verify_checkpoint_artifact",
+   "target":"isfile",
+   "line":110
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_verify_checkpoint_artifact",
+   "target":"_checkpoint_sha256",
+   "line":112
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_require_service_token",
+   "target":"HTTPException",
    "line":122
   },
   {
@@ -467252,1155 +466622,1148 @@
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_require_service_token",
    "target":"HTTPException",
-   "line":94
+   "line":124
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_require_service_token",
-   "target":"HTTPException",
-   "line":96
+   "source":"_load_model",
+   "target":"_verify_checkpoint_artifact",
+   "line":148
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_load_model",
+   "target":"warning",
+   "line":154
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_load_model",
    "target":"is_available",
-   "line":120
+   "line":160
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_load_model",
    "target":"warning",
-   "line":123
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_load_model",
-   "target":"isfile",
-   "line":126
+   "line":163
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_load_model",
    "target":"warning",
-   "line":130
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_load_model",
-   "target":"warning",
-   "line":142
+   "line":175
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_load_model",
    "target":"device",
-   "line":145
+   "line":178
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_load_model",
    "target":"build_sam2",
-   "line":146
+   "line":179
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_load_model",
    "target":"SAM2ImagePredictor",
-   "line":147
+   "line":180
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_load_model",
    "target":"info",
-   "line":150
+   "line":183
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_load_model",
    "target":"type",
-   "line":153
+   "line":186
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_load_model",
    "target":"warning",
-   "line":155
+   "line":188
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_coerce_user_ring",
    "target":"isinstance",
-   "line":163
+   "line":196
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_coerce_user_ring",
    "target":"get",
-   "line":164
+   "line":197
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_coerce_user_ring",
    "target":"get",
-   "line":165
+   "line":198
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_coerce_user_ring",
    "target":"lower",
-   "line":165
+   "line":198
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_coerce_user_ring",
    "target":"str",
-   "line":165
+   "line":198
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_coerce_user_ring",
    "target":"isinstance",
-   "line":170
+   "line":203
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_coerce_user_ring",
    "target":"len",
-   "line":170
+   "line":203
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_coerce_user_ring",
    "target":"isinstance",
-   "line":174
+   "line":207
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_coerce_user_ring",
    "target":"len",
-   "line":174
+   "line":207
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_coerce_user_ring",
    "target":"append",
-   "line":177
+   "line":210
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_coerce_user_ring",
    "target":"float",
-   "line":177
+   "line":210
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_coerce_user_ring",
    "target":"float",
-   "line":177
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_resolve_image_url",
-   "target":"strip",
-   "line":195
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_resolve_image_url",
-   "target":"startswith",
-   "line":196
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_resolve_image_url",
-   "target":"len",
-   "line":201
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_resolve_image_url",
-   "target":"HTTPException",
-   "line":202
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_resolve_image_url",
-   "target":"_stac_latest_visual",
    "line":210
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_resolve_image_url",
+   "target":"strip",
+   "line":228
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_resolve_image_url",
+   "target":"startswith",
+   "line":229
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_resolve_image_url",
+   "target":"len",
+   "line":234
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_resolve_image_url",
    "target":"HTTPException",
-   "line":212
+   "line":235
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_resolve_image_url",
+   "target":"_stac_latest_visual",
+   "line":243
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_resolve_image_url",
+   "target":"HTTPException",
+   "line":245
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"now",
-   "line":230
+   "line":263
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"timedelta",
-   "line":231
+   "line":264
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"strftime",
-   "line":235
+   "line":268
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"strftime",
-   "line":235
+   "line":268
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"Client",
-   "line":241
+   "line":274
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"post",
-   "line":242
+   "line":275
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"raise_for_status",
-   "line":243
+   "line":276
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"json",
-   "line":244
+   "line":277
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"warning",
-   "line":246
+   "line":279
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"get",
-   "line":249
+   "line":282
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"get",
-   "line":252
+   "line":285
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"get",
-   "line":254
+   "line":287
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"get",
-   "line":255
+   "line":288
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"isinstance",
-   "line":256
+   "line":289
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"startswith",
-   "line":273
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_read_rgb",
-   "target":"open",
-   "line":277
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_read_rgb",
-   "target":"len",
-   "line":280
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_read_rgb",
-   "target":"to_epsg",
-   "line":282
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_read_rgb",
-   "target":"transform_bounds",
-   "line":283
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_read_rgb",
-   "target":"from_bounds",
-   "line":288
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_read_rgb",
-   "target":"warning",
-   "line":290
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_read_rgb",
-   "target":"int",
-   "line":295
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_read_rgb",
-   "target":"max",
-   "line":295
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_read_rgb",
-   "target":"round",
-   "line":295
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_read_rgb",
-   "target":"int",
-   "line":296
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_read_rgb",
-   "target":"max",
-   "line":296
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_read_rgb",
-   "target":"round",
-   "line":296
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_read_rgb",
-   "target":"float",
-   "line":299
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_read_rgb",
-   "target":"max",
-   "line":299
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_read_rgb",
-   "target":"int",
-   "line":300
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_read_rgb",
-   "target":"max",
-   "line":300
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_read_rgb",
-   "target":"int",
-   "line":301
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_read_rgb",
-   "target":"max",
-   "line":301
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_read_rgb",
-   "target":"read",
    "line":306
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
-   "target":"window_transform",
+   "target":"open",
+   "line":310
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_read_rgb",
+   "target":"len",
+   "line":313
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_read_rgb",
+   "target":"to_epsg",
    "line":315
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
-   "target":"scale",
+   "target":"transform_bounds",
+   "line":316
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_read_rgb",
+   "target":"from_bounds",
    "line":321
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
-   "target":"HTTPException",
-   "line":326
+   "target":"warning",
+   "line":323
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
-   "target":"type",
-   "line":331
+   "target":"int",
+   "line":328
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
-   "target":"transpose",
-   "line":336
+   "target":"max",
+   "line":328
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
-   "target":"isfinite",
-   "line":339
+   "target":"round",
+   "line":328
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
-   "target":"issubdtype",
-   "line":339
+   "target":"int",
+   "line":329
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_read_rgb",
+   "target":"max",
+   "line":329
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_read_rgb",
+   "target":"round",
+   "line":329
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"float",
-   "line":341
+   "line":332
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
-   "target":"percentile",
-   "line":341
+   "target":"max",
+   "line":332
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
-   "target":"float",
-   "line":342
+   "target":"int",
+   "line":333
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
-   "target":"percentile",
-   "line":342
+   "target":"max",
+   "line":333
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
-   "target":"astype",
-   "line":347
+   "target":"int",
+   "line":334
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
-   "target":"clip",
-   "line":347
+   "target":"max",
+   "line":334
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
-   "target":"astype",
+   "target":"read",
+   "line":339
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_read_rgb",
+   "target":"window_transform",
    "line":348
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
+   "target":"scale",
+   "line":354
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_read_rgb",
+   "target":"HTTPException",
+   "line":359
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_read_rgb",
+   "target":"type",
+   "line":364
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_read_rgb",
+   "target":"transpose",
+   "line":369
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_read_rgb",
+   "target":"isfinite",
+   "line":372
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_read_rgb",
+   "target":"issubdtype",
+   "line":372
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_read_rgb",
+   "target":"float",
+   "line":374
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_read_rgb",
+   "target":"percentile",
+   "line":374
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_read_rgb",
+   "target":"float",
+   "line":375
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_read_rgb",
+   "target":"percentile",
+   "line":375
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_read_rgb",
+   "target":"astype",
+   "line":380
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_read_rgb",
+   "target":"clip",
+   "line":380
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_read_rgb",
+   "target":"astype",
+   "line":381
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_read_rgb",
    "target":"ascontiguousarray",
-   "line":350
+   "line":383
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"list",
-   "line":374
+   "line":407
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"abs",
-   "line":377
+   "line":410
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"abs",
-   "line":377
+   "line":410
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"append",
-   "line":378
+   "line":411
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"list",
-   "line":378
+   "line":411
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"abs",
-   "line":380
+   "line":413
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"abs",
-   "line":380
+   "line":413
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"len",
-   "line":380
+   "line":413
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"append",
-   "line":381
+   "line":414
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"list",
-   "line":381
+   "line":414
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"list",
-   "line":383
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"asarray",
-   "line":399
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"astype",
-   "line":399
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"int",
-   "line":400
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"sum",
-   "line":400
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"HTTPException",
-   "line":401
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"rio_shapes",
-   "line":408
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"shape",
-   "line":412
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"append",
    "line":416
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"HTTPException",
-   "line":419
+   "target":"asarray",
+   "line":432
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"max",
-   "line":425
+   "target":"astype",
+   "line":432
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"abs",
-   "line":429
+   "target":"int",
+   "line":433
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"abs",
-   "line":429
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"max",
-   "line":429
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"_tol_in_crs_units",
-   "line":430
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"max",
-   "line":430
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"simplify",
-   "line":431
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"make_valid",
-   "line":440
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"buffer",
-   "line":442
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"getattr",
-   "line":444
+   "target":"sum",
+   "line":433
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
    "target":"HTTPException",
-   "line":447
+   "line":434
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"rio_shapes",
+   "line":441
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"shape",
+   "line":445
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"append",
+   "line":449
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"HTTPException",
+   "line":452
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
    "target":"max",
-   "line":451
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"mapping",
-   "line":453
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"to_epsg",
-   "line":457
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"transform_geom",
    "line":458
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"HTTPException",
-   "line":460
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"str",
+   "target":"abs",
    "line":462
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"get",
-   "line":466
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"get",
-   "line":467
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"lower",
-   "line":467
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"str",
-   "line":467
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"HTTPException",
-   "line":471
+   "target":"abs",
+   "line":462
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
    "target":"max",
-   "line":472
+   "line":462
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"HTTPException",
+   "target":"_tol_in_crs_units",
+   "line":463
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"max",
+   "line":463
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"simplify",
+   "line":464
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"make_valid",
+   "line":473
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"buffer",
    "line":475
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
+   "target":"getattr",
+   "line":477
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
    "target":"HTTPException",
-   "line":478
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"float",
    "line":480
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"float",
-   "line":480
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"_dedupe_ring",
+   "target":"max",
    "line":484
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"len",
+   "target":"mapping",
    "line":486
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"append",
-   "line":487
+   "target":"to_epsg",
+   "line":490
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"list",
-   "line":487
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"len",
-   "line":488
+   "target":"transform_geom",
+   "line":491
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
    "target":"HTTPException",
-   "line":489
+   "line":493
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"str",
+   "line":495
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"get",
+   "line":499
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"get",
+   "line":500
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"lower",
+   "line":500
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"str",
+   "line":500
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"HTTPException",
+   "line":504
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"max",
+   "line":505
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"HTTPException",
+   "line":508
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"HTTPException",
+   "line":511
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"float",
+   "line":513
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"float",
+   "line":513
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"_dedupe_ring",
+   "line":517
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"len",
+   "line":519
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"append",
+   "line":520
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"list",
+   "line":520
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"len",
+   "line":521
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"HTTPException",
+   "line":522
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_lonlat_to_pixel",
    "target":"to_epsg",
-   "line":505
+   "line":538
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_lonlat_to_pixel",
    "target":"warp_transform",
-   "line":506
+   "line":539
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_lonlat_to_pixel",
    "target":"rowcol",
-   "line":510
+   "line":543
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_lonlat_to_pixel",
    "target":"int",
-   "line":511
+   "line":544
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_lonlat_to_pixel",
    "target":"int",
-   "line":511
+   "line":544
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_build_prompt",
    "target":"_coerce_user_ring",
-   "line":523
+   "line":556
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_build_prompt",
    "target":"len",
-   "line":524
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"len",
-   "line":527
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"sum",
-   "line":527
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"len",
-   "line":528
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"sum",
-   "line":528
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"_lonlat_to_pixel",
-   "line":529
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"max",
-   "line":530
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"min",
-   "line":530
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"max",
-   "line":531
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"min",
-   "line":531
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"_lonlat_to_pixel",
-   "line":536
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"append",
-   "line":537
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"append",
-   "line":538
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"max",
-   "line":539
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"min",
-   "line":539
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"max",
-   "line":540
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"min",
-   "line":540
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"max",
-   "line":541
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"min",
-   "line":541
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"max",
-   "line":542
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"min",
-   "line":542
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"array",
-   "line":545
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"array",
-   "line":547
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"array",
-   "line":548
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"array",
    "line":557
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_build_prompt",
+   "target":"len",
+   "line":560
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"sum",
+   "line":560
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"len",
+   "line":561
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"sum",
+   "line":561
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"_lonlat_to_pixel",
+   "line":562
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"max",
+   "line":563
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"min",
+   "line":563
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"max",
+   "line":564
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"min",
+   "line":564
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"_lonlat_to_pixel",
+   "line":569
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"append",
+   "line":570
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"append",
+   "line":571
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"max",
+   "line":572
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"min",
+   "line":572
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"max",
+   "line":573
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"min",
+   "line":573
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"max",
+   "line":574
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"min",
+   "line":574
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"max",
+   "line":575
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"min",
+   "line":575
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
    "target":"array",
-   "line":558
+   "line":578
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"array",
+   "line":580
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"array",
+   "line":581
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"array",
+   "line":590
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"array",
+   "line":591
   },
   {
    "owner":"scout-ingest-service",
@@ -520799,6 +520162,727 @@
   },
   {
    "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"iter_structured_keys",
+   "target":"isinstance",
+   "line":39
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"iter_structured_keys",
+   "target":"items",
+   "line":40
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"iter_structured_keys",
+   "target":"lower",
+   "line":41
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"iter_structured_keys",
+   "target":"str",
+   "line":41
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"iter_structured_keys",
+   "target":"isinstance",
+   "line":43
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"assert_no_decision_keys",
+   "target":"intersection",
+   "line":50
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"assert_no_decision_keys",
+   "target":"iter_structured_keys",
+   "line":50
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"assert_no_decision_keys",
+   "target":"set",
+   "line":50
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"assert_no_decision_keys",
+   "target":"sorted",
+   "line":50
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"assert_no_decision_keys",
+   "target":"DecisionContractViolation",
+   "line":52
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"has_decision_keys",
+   "target":"bool",
+   "line":60
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"has_decision_keys",
+   "target":"intersection",
+   "line":60
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"has_decision_keys",
+   "target":"iter_structured_keys",
+   "line":60
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"has_decision_keys",
+   "target":"set",
+   "line":60
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"compose_confidence",
+   "target":"max",
+   "line":99
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"compose_confidence",
+   "target":"min",
+   "line":99
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"compose_confidence",
+   "target":"round",
+   "line":103
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"recommendation_inputs_from_context",
+   "target":"get",
+   "line":108
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"recommendation_inputs_from_context",
+   "target":"isinstance",
+   "line":108
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"recommendation_inputs_from_context",
+   "target":"isinstance",
+   "line":109
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "source":"recommendation_inputs_from_context",
+   "target":"items",
+   "line":112
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/flags.py",
+   "source":"flag",
+   "target":"getenv",
+   "line":20
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/flags.py",
+   "source":"flag",
+   "target":"lower",
+   "line":23
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/flags.py",
+   "source":"flag",
+   "target":"strip",
+   "line":23
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/human_review_repository.py",
+   "source":"utc_now",
+   "target":"isoformat",
+   "line":17
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/human_review_repository.py",
+   "source":"utc_now",
+   "target":"now",
+   "line":17
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/human_review_repository.py",
+   "source":"add_decision",
+   "target":"KeyError",
+   "line":63
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/human_review_repository.py",
+   "source":"add_decision",
+   "target":"append",
+   "line":64
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/human_review_repository.py",
+   "source":"add_decision",
+   "target":"get",
+   "line":66
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/human_review_repository.py",
+   "source":"add_decision",
+   "target":"ReviewRecord",
+   "line":72
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/human_review_repository.py",
+   "source":"add_decision",
+   "target":"utc_now",
+   "line":80
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/human_review_repository.py",
+   "source":"get_review",
+   "target":"get",
+   "line":85
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/human_review_repository.py",
+   "source":"list_pending",
+   "target":"values",
+   "line":88
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/human_review_repository.py",
+   "source":"export_learning_dataset",
+   "target":"asdict",
+   "line":95
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/human_review_repository.py",
+   "source":"export_learning_dataset",
+   "target":"asdict",
+   "line":95
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/human_review_repository.py",
+   "source":"new_review_id",
+   "target":"uuid4",
+   "line":101
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/multi_tenant_runtime_validator.py",
+   "source":"validate_tenant_payload",
+   "target":"isinstance",
+   "line":13
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/multi_tenant_runtime_validator.py",
+   "source":"validate_tenant_payload",
+   "target":"get",
+   "line":14
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/multi_tenant_runtime_validator.py",
+   "source":"validate_tenant_payload",
+   "target":"str",
+   "line":15
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/multi_tenant_runtime_validator.py",
+   "source":"validate_tenant_payload",
+   "target":"str",
+   "line":15
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/multi_tenant_runtime_validator.py",
+   "source":"validate_tenant_payload",
+   "target":"TenantIsolationViolation",
+   "line":16
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/multi_tenant_runtime_validator.py",
+   "source":"validate_tenant_payload",
+   "target":"items",
+   "line":19
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/multi_tenant_runtime_validator.py",
+   "source":"validate_tenant_payload",
+   "target":"isinstance",
+   "line":21
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/multi_tenant_runtime_validator.py",
+   "source":"validate_tenant_payload",
+   "target":"enumerate",
+   "line":22
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/multi_tenant_runtime_validator.py",
+   "source":"validate",
+   "target":"validate_tenant_payload",
+   "line":28
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_events.py",
+   "source":"utc_now",
+   "target":"isoformat",
+   "line":29
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_events.py",
+   "source":"utc_now",
+   "target":"now",
+   "line":29
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_events.py",
+   "source":"subject",
+   "target":"get",
+   "line":43
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_events.py",
+   "source":"to_bytes",
+   "target":"asdict",
+   "line":46
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_events.py",
+   "source":"to_bytes",
+   "target":"dumps",
+   "line":46
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_events.py",
+   "source":"to_bytes",
+   "target":"encode",
+   "line":46
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_events.py",
+   "source":"publish",
+   "target":"append",
+   "line":58
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_events.py",
+   "source":"publish",
+   "target":"subject",
+   "line":58
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_events.py",
+   "source":"publish",
+   "target":"subject",
+   "line":61
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_events.py",
+   "source":"publish",
+   "target":"to_bytes",
+   "line":61
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"__init__",
+   "target":"InMemoryReviewRepository",
+   "line":49
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"__init__",
+   "target":"RecommendationEventPublisher",
+   "line":50
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"__init__",
+   "target":"MultiTenantRuntimeValidator",
+   "line":51
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"validate",
+   "line":62
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"inc",
+   "line":63
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"guarded_runtime_context",
+   "line":65
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"get",
+   "line":67
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"inc",
+   "line":68
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"RuntimePipelineResult",
+   "line":69
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"recommendation_engine",
+   "line":71
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"validate",
+   "line":72
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"get",
+   "line":74
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"str",
+   "line":74
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"publish",
+   "line":75
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"RecommendationEvent",
+   "line":76
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"get",
+   "line":85
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"lower",
+   "line":85
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"str",
+   "line":85
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"get",
+   "line":86
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"lower",
+   "line":86
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"str",
+   "line":86
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"bool",
+   "line":92
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"get",
+   "line":92
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"create_review",
+   "line":96
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"ReviewRecord",
+   "line":97
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"new_review_id",
+   "line":98
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"inc",
+   "line":106
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"publish",
+   "line":107
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"RecommendationEvent",
+   "line":108
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"RuntimePipelineResult",
+   "line":116
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"len",
+   "line":120
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"RuntimePipelineResult",
+   "line":123
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "source":"execute",
+   "target":"len",
+   "line":124
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/runtime_guardrail_adapter.py",
+   "source":"guarded_runtime_context",
+   "target":"get",
+   "line":33
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/runtime_guardrail_adapter.py",
+   "source":"guarded_runtime_context",
+   "target":"MissingCanonicalFieldState",
+   "line":34
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/runtime_guardrail_adapter.py",
+   "source":"guarded_runtime_context",
+   "target":"assert_no_decision_keys",
+   "line":38
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/runtime_guardrail_adapter.py",
+   "source":"guarded_runtime_context",
+   "target":"get",
+   "line":38
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/runtime_guardrail_adapter.py",
+   "source":"guarded_runtime_context",
+   "target":"get",
+   "line":40
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/runtime_guardrail_adapter.py",
+   "source":"guarded_runtime_context",
+   "target":"recommendation_inputs_from_context",
+   "line":41
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/runtime_guardrail_adapter.py",
+   "source":"guarded_runtime_context",
+   "target":"get",
+   "line":43
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/runtime_guardrail_adapter.py",
+   "source":"guarded_runtime_context",
+   "target":"get",
+   "line":43
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/runtime_guardrail_adapter.py",
+   "source":"guarded_runtime_context",
+   "target":"get",
+   "line":44
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/runtime_guardrail_adapter.py",
+   "source":"guarded_runtime_context",
+   "target":"isinstance",
+   "line":44
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/runtime_guardrail_adapter.py",
+   "source":"guarded_runtime_context",
+   "target":"get",
+   "line":46
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/runtime_guardrail_adapter.py",
+   "source":"guarded_runtime_context",
+   "target":"get",
+   "line":46
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/runtime_guardrail_adapter.py",
+   "source":"guarded_runtime_context",
+   "target":"get",
+   "line":47
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/runtime_guardrail_adapter.py",
+   "source":"guarded_runtime_context",
+   "target":"isinstance",
+   "line":47
+  },
+  {
+   "owner":"shared",
+   "file":"shared/ai/recommendation_runtime/runtime_metrics.py",
+   "source":"snapshot",
+   "target":"dict",
+   "line":17
+  },
+  {
+   "owner":"shared",
    "file":"shared/ai/structured_advisory.py",
    "source":"digest",
    "target":"hexdigest",
@@ -560627,17 +560711,6 @@
    "action":"review_before_delete"
   },
   {
-   "symbol":"has_decision_keys",
-   "kind":"function",
-   "file":"services/ai_agronomist/decision_contracts.py",
-   "line":58,
-   "owner":"ai-agronomist",
-   "decorated_route":false,
-   "reference_count":0,
-   "confidence":"medium",
-   "action":"review_before_delete"
-  },
-  {
    "symbol":"DecisionMetrics",
    "kind":"class",
    "file":"services/ai_agronomist/decision_metrics.py",
@@ -560682,17 +560755,6 @@
    "action":"review_before_delete"
   },
   {
-   "symbol":"ReviewRepository",
-   "kind":"class",
-   "file":"services/ai_agronomist/human_review_repository.py",
-   "line":43,
-   "owner":"ai-agronomist",
-   "decorated_route":false,
-   "reference_count":0,
-   "confidence":"medium",
-   "action":"review_before_delete"
-  },
-  {
    "symbol":"PolicyEngine",
    "kind":"class",
    "file":"services/ai_agronomist/policy_engine.py",
@@ -560730,17 +560792,6 @@
    "kind":"function",
    "file":"services/ai_agronomist/provider_tooling.py",
    "line":182,
-   "owner":"ai-agronomist",
-   "decorated_route":false,
-   "reference_count":0,
-   "confidence":"medium",
-   "action":"review_before_delete"
-  },
-  {
-   "symbol":"RecommendationRuntimePipeline",
-   "kind":"class",
-   "file":"services/ai_agronomist/recommendation_runtime_pipeline.py",
-   "line":38,
    "owner":"ai-agronomist",
    "decorated_route":false,
    "reference_count":0,
@@ -566578,6 +566629,39 @@
    "action":"review_before_delete"
   },
   {
+   "symbol":"has_decision_keys",
+   "kind":"function",
+   "file":"shared/ai/recommendation_runtime/decision_contracts.py",
+   "line":58,
+   "owner":"shared",
+   "decorated_route":false,
+   "reference_count":0,
+   "confidence":"medium",
+   "action":"review_before_delete"
+  },
+  {
+   "symbol":"ReviewRepository",
+   "kind":"class",
+   "file":"shared/ai/recommendation_runtime/human_review_repository.py",
+   "line":43,
+   "owner":"shared",
+   "decorated_route":false,
+   "reference_count":0,
+   "confidence":"medium",
+   "action":"review_before_delete"
+  },
+  {
+   "symbol":"RecommendationRuntimePipeline",
+   "kind":"class",
+   "file":"shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+   "line":41,
+   "owner":"shared",
+   "decorated_route":false,
+   "reference_count":0,
+   "confidence":"medium",
+   "action":"review_before_delete"
+  },
+  {
    "symbol":"model_selection_context",
    "kind":"function",
    "file":"shared/ai/structured_advisory.py",
@@ -568225,7 +568309,7 @@
     {
      "file":"services/sam2-inference/sam2_runtime.py",
      "symbol":"_require_service_token",
-     "line":91,
+     "line":119,
      "owner":"sam2-inference"
     }
    ]

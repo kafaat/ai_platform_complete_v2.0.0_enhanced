@@ -405,7 +405,9 @@ if (
         "RS256 مطلوب في الإنتاج: اضبط JWT_PUBLIC_KEY (HS256 لا يُنهي shared trust domain). "
         "للترحيل المؤقّت فقط: SAHOOL_ALLOW_HS256_IN_PROD=1."
     )
-# توكن خدمة للنداءات خدمة-لخدمة على /validate (supervisor → guardrails)
+# توكن خدمة للنداءات خدمة-لخدمة على مسارات الحواجز كلِّها — `/v1/validate` و`/v1/evaluate`
+# معاً عبر `_require_service_token` (supervisor → guardrails). كان التعليقُ يسمّي
+# `/validate` وحده فيُضلِّل عن سطح الحماية (مراجعة Copilot على #1014).
 _GR_AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 
 

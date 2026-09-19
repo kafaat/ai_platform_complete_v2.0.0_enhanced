@@ -1,0 +1,25 @@
+# Build context: repository root. Select only for the Railway frontend service.
+FROM node:22-alpine AS builder
+WORKDIR /app
+COPY frontend/package.json frontend/package-lock.json frontend/.npmrc ./
+RUN npm ci --legacy-peer-deps
+COPY frontend/ ./
+# Auth and APIs use the same origin; upstream addresses are runtime-only values.
+ENV VITE_API_MODE=gateway VITE_MOCK_MODE=false VITE_API_URL=/api VITE_WS_URL=/ws
+RUN npm run build:docker
+
+# Named upstream resolution is available in open-source nginx since 1.27.3.
+FROM nginx:1.27.5-alpine
+RUN apk add --no-cache python3 \
+ && sed -i '/^user /d; s#pid */var/run/nginx.pid;#pid /tmp/nginx.pid;#; s#pid */run/nginx.pid;#pid /tmp/nginx.pid;#; s#include /etc/nginx/conf.d/\*.conf;#include /tmp/railway-frontend.conf;#' /etc/nginx/nginx.conf \
+ && chown -R nginx:nginx /var/cache/nginx
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY frontend/nginx.conf /opt/sahool/frontend-nginx.conf
+COPY deploy/railway/render_frontend.py /opt/sahool/render_frontend.py
+USER nginx
+ENV PORT=8080
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- "http://127.0.0.1:${PORT}/healthz" || exit 1
+ENTRYPOINT ["/bin/sh", "-c"]
+CMD ["python3 /opt/sahool/render_frontend.py && nginx -t && exec nginx -g 'daemon off;'"]

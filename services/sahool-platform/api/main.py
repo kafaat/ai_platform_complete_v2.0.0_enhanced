@@ -337,7 +337,7 @@ async def _start_scheduler():
     async def _freshness_sweep():
         # فحص نضارة بيانات القرار لكلّ حقل عبر المستأجِرين دوريّاً. يقرأ آخر طابع
         # زمنيّ فعليّ لكلّ مصدر من القاعدة (NDVI من imagery_automation_fields،
-        # رطوبة التربة من device_telemetry، الطقس من weather_automation_cache)،
+        # رطوبة التربة عبر _latest_soil_moisture، الطقس من weather_automation_cache)،
         # يحسب الأعمار عبر المنطق النقيّ compute_data_ages، ثمّ يمرّرها لفحص النضارة.
         # صدق: النضارة لا تحجب شيئاً — تُسجّل وتُعلِم فقط (طبقة ثقة لا بوّابة).
         # معزول: فشل حقل/مستأجِر لا يُسقط البقيّة. لو لا حقول → لا عمل.
@@ -395,7 +395,7 @@ async def _start_scheduler():
                         if ndvi_row is not None and ndvi_row["e"] is not None
                         else None
                     )
-                    # رطوبة التربة: أحدث قراءة صالحة من telemetry الأجهزة.
+                    # رطوبة التربة: أحدث قراءة صالحة عبر _latest_soil_moisture.
                     soil_reading = await _latest_soil_moisture(conn, field_id)
                     soil_at = (
                         soil_reading.recorded_at.timestamp() if soil_reading is not None else None

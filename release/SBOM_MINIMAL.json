@@ -35,7 +35,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d6b6d678c93c03919814772eb30d60515f299903d840d4911a08925c15d3fd4c"
+          "content": "c2662e8e2a6d54ab8abb1e076424e307204b63968b64ebb3c10e3d805427d739"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -55,7 +55,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "51b62fe9f20269b32715bbca1a481c43a5431ab9de61de5a94d64c8dd9c002a2"
+          "content": "cda08df69b6f99deb47477e5b48919dad84b293aa1a002f484a612692f19b2a6"
         }
       ],
       "name": "docker-compose.light.yml",
@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cdebe05fec8e1f7e02d12a49f91f854debfc903546a3094e307dc69159737ebe"
+          "content": "f919176fcd0ff74bbb25cd586d41d7ce773995f2e4f5a189817c8139a69f936c"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4415,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "46d98da21b43a30ce18154d537d916c0890c0a092db54865127739315950b194"
+          "content": "a8263901641454ec40086e468a86e84c2ad21b2cfb7d4f933c2cc5b2ec9b25cc"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6725,7 +6725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "93c9380ae36bb29008b596e001a83cb5993075dc9ae147d0541260ce54c6dea1"
+          "content": "aadf3fe32cddde66b372452b7d8c59024f7547f1aa6c79cb09e706a0de6aa1b7"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -8129,6 +8129,16 @@
         }
       ],
       "name": "migrations/v230_drawing_features.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ca64a39e4555711f9e0ebf33a25a85476df5f17adf3a344a00aad11a5990f5bc"
+        }
+      ],
+      "name": "migrations/v231_soil_reconciliation_deferrals.sql",
       "type": "file"
     },
     {
@@ -10865,7 +10875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0c4e06bb113d019b63ea5f8b5875f366307d7bfd643ae79f795c4417f96ebf79"
+          "content": "fb7256e972d43ff2edcd2ff8c3b5d3c3e3e6a69e143c1359e8f3fd695bf666ff"
         }
       ],
       "name": "services/ai_agronomist/decision_contracts.py",
@@ -10965,7 +10975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b2d1b109c9fd01f0ca1dcf119b9fe1c32ee075fe7ddcd92beca77a5637b87c85"
+          "content": "c254817fce143bc77a77a91231959db7556530db8cfe304a4210d1f05354983c"
         }
       ],
       "name": "services/ai_agronomist/human_review_repository.py",
@@ -10995,7 +11005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "74e5b07f4e4a3aa50a87e8b378096576653bc564dbcb98fe28a729606b2555e2"
+          "content": "c81c6cc636e9a8f05d57709e519e846729ed21220ba5cba736d75fded17c694d"
         }
       ],
       "name": "services/ai_agronomist/multi_tenant_runtime_validator.py",
@@ -11075,7 +11085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0a45b16232522d039df065b0f6248e347b50cf385065d12ffd2c6ebc991e4fb7"
+          "content": "08095d5e8aa476d04ee2e51fb4c5da93b39d05fd1cd2f4dded83a1ea83bc4c55"
         }
       ],
       "name": "services/ai_agronomist/recommendation_events.py",
@@ -11085,7 +11095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dc59f1abc1673dd5fbe7e4cda2519150ce89199efda84f0211fdda709fbd0b71"
+          "content": "f3454c2885edc4614aa77022602ed81315ca51925fa4e9dcbd0cc2be05f66f5f"
         }
       ],
       "name": "services/ai_agronomist/recommendation_runtime_pipeline.py",
@@ -11125,7 +11135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ab17329c2d5a5c6e7183a1bddb818999526fc376de508eefc584a33f0920d3ab"
+          "content": "6e75858dd75d174543251b580dd317602200e22db75448750d28e98c6765c539"
         }
       ],
       "name": "services/ai_agronomist/runtime_guardrail_adapter.py",
@@ -11135,7 +11145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "091c65fe4ccc3a6ad42a57b5525e84189c82fe2b9c25b807d22487dd5021b7a8"
+          "content": "4a75e84cfb012e8792e7fe8534264b8e37d808e877c905d6a9889e269db7550c"
         }
       ],
       "name": "services/ai_agronomist/runtime_metrics.py",
@@ -11299,6 +11309,16 @@
         }
       ],
       "name": "services/auth/otp.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7314852fbd5a83161d4974e73a31d7b330e7ef00c972c7b73a8f8eb89bf77a10"
+        }
+      ],
+      "name": "services/auth/railway.json",
       "type": "file"
     },
     {
@@ -12765,7 +12785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e07f3688797ceb6ec4569de9f40e307fa7799ec330d3cc2fdb4131a2a7c504cb"
+          "content": "c412b54884c5e8b3019db2963476c6f24970f3b8eef45821ebd97f64e25e00d5"
         }
       ],
       "name": "services/field-segmentation/main.py",
@@ -13095,7 +13115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ad0591105c7ac154fc068942a4056e6e7ee5854feff5419a7faa400c0d012dea"
+          "content": "d7c3ab4abfe3bde2415029c5e57ceb4e90b3c2b1a11f4308a65b1e51703d50d3"
         }
       ],
       "name": "services/guardrails-engine/main.py",
@@ -16405,7 +16425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b613b8a60bec2cb38b4d197454a46decb3752f0c18ac9b0cb854ce870b4b2cb4"
+          "content": "28ff5b2f0c1b0ec1c4f365798cf5992d500de53b1d72fccaa26a777241e0ace3"
         }
       ],
       "name": "services/sahool-platform/api/device_registry.py",
@@ -17395,7 +17415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b86cdcd1aacafacf33b9fb7bb7631791ed52ce30439ae80f381e4a135f71f7fe"
+          "content": "58ed592ec5d2fc71ee4ba4af5331405e979fb689c2c06e91ff3e4774e7ffa6ff"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -18385,7 +18405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "10f9be6766028d50af7328da70975c4ecec1cb611db248e933f991d7d4dd28bf"
+          "content": "e24bcdcb79efb66b2d264bc720e18204d6f79698c16fd8189a4ffb8b38430554"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_completeness.py",
@@ -18485,7 +18505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "19d44ef66653a5364cee4bff1f8e03cfd63d1f157fc898c659bdc669d9728006"
+          "content": "6188cc8a08b47c1c71aecba8a81fcf6709e0d07acd1330d070f468926e31f292"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -22255,7 +22275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "56c135ea0aceb5ac27dace18ae51f218d36502d224397299db00fbf394ce0677"
+          "content": "88fdd04267cd2472ce2051fde691470b7c13191392889c571ec009ae5e65cfb3"
         }
       ],
       "name": "services/sahool-platform/core/internal_orchestrator.py",
@@ -28435,7 +28455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "592984153fecc606582e066b0e5a7bedb3047ab2e380306b2108b16dd3e721dd"
+          "content": "1526e2be4bf757a98deb7900a92127810ba0e104955bbcde61c4ca38897ebb7f"
         }
       ],
       "name": "services/sam2-inference/main.py",
@@ -28455,7 +28475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5938cd1ecbccdb4b11d778b409bd8c2589dda6affb066123201622d07ecd8efa"
+          "content": "60bc226f96d8a5c0406476416a3e55a7fde714059a2cc23040f12df3107f292f"
         }
       ],
       "name": "services/sam2-inference/sam2_runtime.py",
@@ -30629,6 +30649,96 @@
         }
       ],
       "name": "shared/ai/provider_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3af64ef48e79855f237ae90069483b38f38d79e5866ff11898b66e8594746aec"
+        }
+      ],
+      "name": "shared/ai/recommendation_runtime/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0c4e06bb113d019b63ea5f8b5875f366307d7bfd643ae79f795c4417f96ebf79"
+        }
+      ],
+      "name": "shared/ai/recommendation_runtime/decision_contracts.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0b200500806727d390fd42bd0ef54bfa5dfddcd80234441be558176b454a9f04"
+        }
+      ],
+      "name": "shared/ai/recommendation_runtime/flags.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b2d1b109c9fd01f0ca1dcf119b9fe1c32ee075fe7ddcd92beca77a5637b87c85"
+        }
+      ],
+      "name": "shared/ai/recommendation_runtime/human_review_repository.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "74e5b07f4e4a3aa50a87e8b378096576653bc564dbcb98fe28a729606b2555e2"
+        }
+      ],
+      "name": "shared/ai/recommendation_runtime/multi_tenant_runtime_validator.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0a45b16232522d039df065b0f6248e347b50cf385065d12ffd2c6ebc991e4fb7"
+        }
+      ],
+      "name": "shared/ai/recommendation_runtime/recommendation_events.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6d5968d6768c4c4d5353d68ecb1e89f2bc2f6678cc4f8196c00d33e770574032"
+        }
+      ],
+      "name": "shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b863fa4f9f7911fe0576ad2f270589f60c3971f55499e0b6881706a616ad8f7f"
+        }
+      ],
+      "name": "shared/ai/recommendation_runtime/runtime_guardrail_adapter.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "091c65fe4ccc3a6ad42a57b5525e84189c82fe2b9c25b807d22487dd5021b7a8"
+        }
+      ],
+      "name": "shared/ai/recommendation_runtime/runtime_metrics.py",
       "type": "file"
     },
     {

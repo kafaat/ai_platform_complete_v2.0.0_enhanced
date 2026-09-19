@@ -89,6 +89,7 @@ async def predict(req: rt.PredictRequest, x_agent_token: str = Header(None)):
         "model_version": rt.VERSION,
         "checkpoint": os.path.basename(rt.SAM2_CHECKPOINT),
         "model_cfg": rt.SAM2_MODEL_CFG,
+        "artifact_digest": rt._MODEL_ARTIFACT_DIGEST,
         "post_processing": {
             "simplify_tolerance_m": rt.SIMPLIFY_TOLERANCE_M,
             "dedup_tolerance_m": rt.DEDUP_TOLERANCE_M,
@@ -123,6 +124,8 @@ async def readyz():
         "reason_code": rt._MODEL_LOAD_REASON_CODE,
         "reason": rt._MODEL_LOAD_ERROR,
         "checkpoint_expected": rt.SAM2_CHECKPOINT,
+        "artifact_digest": rt._MODEL_ARTIFACT_DIGEST,
+        "artifact_digest_verified": bool(rt._MODEL_ARTIFACT_DIGEST),
     }
 
 

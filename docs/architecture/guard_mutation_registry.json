@@ -79,10 +79,11 @@
           "test": "tests_v9/test_ci_pipeline_settings.py"
         },
         {
-          "expect": "test_the_sweep_still_runs_inside_the_job_the_ruleset_actually_requires",
-          "find": "      - name: guard-mutation guard (plant the defects)\n        run: python scripts/ci/guard_mutation_guard.py --run\n",
-          "replace": "      - name: guard-mutation guard (plant the defects)\n        run: echo skipped  # mutated: المكنسة تخرج من الوظيفة الحاجبة\n",
-          "why": "نقلُ المكنسة خارج *Unit Tests* بلا إضافةِ اسمِ الوظيفة الجديدة إلى الفحوص المطلوبة في الـRuleset يجعلها إرشاديّةً **صامتاً**. و`branch_protection_contract_guard` يفرض حلَّ المحادثات وحده ولا يُعدّد الفحوصَ بالاسم، فلا شيءَ في الشجرة يمنع ذلك. وهو صنفُ «حارسٌ كفّ عن الحجب بلا أن يحمرّ» بعينه. والمَرسى يضمّ سطرَ اسمِ الخطوة لا سطرَ `run` وحده: بعد MUT-SHARD-JOB-01 صار `--run` يظهر مرّتين (المكنسة الكاملة وحزمة المصفوفة)، فالمَرسى القصير يزرع في موضعٍ غير محدَّد."
+          "expect": "test_every_shard_plants_its_defects",
+          "find": "      - name: Plant this shard's defects\n        run: python scripts/ci/guard_mutation_guard.py --run --shard ${{ matrix.shard }}\n",
+          "replace": "      - name: Plant this shard's defects\n        run: echo skipped  # mutated: الحزمُ تُبلِّغ خضرةً بلا زرع\n",
+          "why": "`mutation-sweep` صارت المكنسةَ الحاجبةَ الوحيدة بعد نزع النسخة الكاملة من *Unit Tests*. خطوةُ زرعٍ تُستبدَل بـ`echo` تُبقي الأسماءَ الخمسةَ مطلوبةً في الـRuleset وتُخضِّرها بلا أن تزرع طفرةً واحدة — «حارسٌ كفّ عن الحجب بلا أن يحمرّ» في موضعه الجديد. والمَرسى يحمل هويّةَ الخطوة لا نصَّ الأمر وحده (`MUTATION-ANCHOR-MATCHES-A-COMMAND-NOT-A-STEP-01`). والمَرسى السابق كان على خطوة *Unit Tests* التي نُزِعت.",
+          "test": "tests_v9/test_ci_pipeline_settings.py"
         },
         {
           "expect": "test_hil_ci_requires_the_live_database_certificate",
@@ -2799,6 +2800,25 @@
           "why": "The wrong-port counterexample must be rejected by the actual validator."
         }
       ]
+    },
+    "scripts/soil/reconcile_historical.py": {
+      "$why_ar": "RECONCILIATION-CURSOR-SKIPS-ROWS-THAT-BECOME-ELIGIBLE-01: كان الاستئنافُ علامةَ ماءٍ عليا واحدة فوق تيّارٍ **مُرشَّح**، فكلُّ صفٍّ يُتخطَّى لسببٍ قابلٍ للزوال (جهازٌ بلا حقل · جهازٌ غيرُ مسجَّل · نوعٌ بلا محوّل) يعبره صفٌّ لاحقٌ مؤهّل ولا تعود إليه جولةٌ أبداً — فقدٌ صامت: لا خطأ ولا طابورٌ متضخّم، والجولةُ التالية تُرجِع صفراً وتبدو سليمة. والعلاجُ ليس مؤشّراً يتوقّف (ذاك تقدّمٌ مستحيل، صنفُ #1026)، بل سجلُّ تأجيلٍ دائم (v231) يُقرأ قبل كلّ مسح. الطفرتان تنزعان طرفَي السجلّ: الكتابةَ والقراءة.",
+      "mutations": [
+        {
+          "expect": "test_a_row_passed_for_a_removable_reason_is_recovered_after_the_reason_clears",
+          "test": "tests_v9/test_reconciliation_cursor_resumption.py",
+          "find": "            await _defer(conn, \"device_telemetry\", tenant_id, row[\"telemetry_id\"], reason)\n            stats.deferred += 1",
+          "replace": "            stats.deferred += 1  # mutated: السجلُّ لا يُكتَب",
+          "why": "سجلٌّ لا يُكتَب يعيد العطلَ الأصليَّ بالحرف: المؤشّرُ يتجاوز وما تجاوزه لا يعرفه أحد. مقيسٌ على الشواهد الثلاثة — الفقدُ يعود في `unbound_device` و`unsupported_type` و`unregistered_device` معاً."
+        },
+        {
+          "expect": "test_a_reason_that_never_clears_does_not_stall_later_rows",
+          "test": "tests_v9/test_reconciliation_cursor_resumption.py",
+          "find": "            stats.reexamined += 1",
+          "replace": "            stats.reexamined += 0  # mutated: عدّادُ إعادة الفحص لا يتقدّم",
+          "why": "عدّادٌ لا يتقدّم يجعل «أُعيد الفحص» غيرَ قابلٍ للتمييز عن «لم يُفحَص». والشاهدُ يقيس تقدّمَه على سببٍ لا يزول أبداً — وهو الموضعُ الذي يصير فيه السجلُّ كتابةً بلا قراءة."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
@@ -3184,10 +3204,10 @@
           "why": "خضرةٌ بلا عدّ لا يفرّق قارئُها بين «فُحِصت قاعدة فمرّت» و«لم يُفحَص شيء» — وهو بند «صفر checks منفَّذة» بصيغته القابلة للقياس"
         },
         {
-          "expect": "test_touching_the_authorization_path_requires_code_owner_review",
-          "find": "        if touches_authorization(changed):\n            problems += code_owner_violations(rules)",
-          "replace": "        pass  # mutated: البند المشروط لا يُقرأ أصلاً",
-          "why": "إسقاطُ البند يُعيد الفجوة P0 كما كانت: من يحتاج التفويض يُصدره في نفس الـPR، وطبقةُ AUTHORIZATION تُقرأ مكتملةً حتّى طبقة السلطة وهي ليست كذلك."
+          "expect": "test_touching_the_authorization_path_reports_but_no_longer_blocks",
+          "find": "    if not problems and touches_authorization(changed):\n        advisory = code_owner_violations(rules)",
+          "replace": "    pass  # mutated: البند المشروط لا يُقرأ أصلاً",
+          "why": "**ما تُثبِته هذه الطفرة تغيّر مع تعطيل البند (أمرُ المالك 2026-09-19)، فيُقال صراحةً:** كانت تُثبِت أنّ البند **يحجب**، وصارت تُثبِت أنّه **ما يزال يُقاس ويُعلَن**. الحجبُ لم يعد مُثبَتاً لأنّه لم يعد قائماً. وإسقاطُ القياس أسوأُ من إسقاط الحجب: تعطيلٌ مُعلَنٌ يُقرأ في السجلّ ويُراجَع، وتعطيلٌ صامتٌ يجعل المستودع يظنّ الشرطَ مفروضاً وهو ليس كذلك — فيصير `approved_by: owner` حقلاً نصّيّاً لا يعلم أحدٌ أنّه بلا منشأ."
         },
         {
           "expect": "test_an_unrelated_pr_is_not_blocked_by_the_conditional_term",
@@ -3196,10 +3216,10 @@
           "why": "بندٌ دائم يحجب **كلّ** دمجٍ في المستودع حتّى يُفعَّل إعدادٌ لا يملكه وكيل — وحمايةٌ تُوقِف العمل كلّه تُطفَأ، فتُنتِج حمايةً صفراً. التناسب شرطٌ في التصميم لا ذوق."
         },
         {
-          "expect": "test_a_missing_code_owner_key_is_not_read_as_enabled",
+          "expect": "test_a_missing_code_owner_key_is_still_not_read_as_enabled",
           "find": "    if any(value is True for value in observed):\n        return []",
           "replace": "    if not any(value is False for value in observed):\n        return []  # mutated: الغياب يُقرأ تفعيلاً",
-          "why": "الغياب يعني أنّ الشرط **لم يُرَ**، وقراءتُه «مُفعَّل» هي بعينها «نتيجةٌ عن سؤالٍ لم يُطرَح» — وهو الصنف الذي وُجِد هذا الملفّ كلّه ليطارده."
+          "why": "الغياب يعني أنّ الشرط **لم يُرَ**، وقراءتُه «مُفعَّل» هي بعينها «نتيجةٌ عن سؤالٍ لم يُطرَح» — وهو الصنف الذي وُجِد هذا الملفّ كلّه ليطارده. والتعطيلُ لم يمسّ هذا: تحت الطفرة يختفي السطرُ الإرشاديُّ نفسُه، فيُقرأ الشرطُ نافذاً وهو غائب — عطلٌ مستقلٌّ عن قرار الحجب."
         },
         {
           "expect": "test_a_context_missing_from_enforcement_is_a_silent_advisory_gate",
@@ -3862,6 +3882,60 @@
           "find": "    if adj.get(\"one_time\") is False:",
           "replace": "    if False:",
           "why": "`one_time: false` يُقرأ ترخيصاً بإعادة الاستعمال بدل وضعٍ غير منفَّذ ⇒ حقلٌ إعلانيّ يُسكِت فحص دورة الحياة بلا أن يمنحه أحد ذلك، فيُعيد GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01 من حيث أُغلِقت."
+        },
+        {
+          "expect": "test_an_issued_authorization_without_an_expiry_is_rejected",
+          "find": "    raw = adj.get(\"expires_on\")\n    if raw is None:",
+          "replace": "    raw = adj.get(\"expires_on\")\n    if False:  # mutated: الغيابُ يُقرأ خلوداً",
+          "why": "إغفالُ الحقل يصير باباً صامتاً: تفويضٌ بلا أجلٍ يمرّ، فيعود `GATE01-AUTHORIZATION-NEVER-EXPIRES-01` من حيث أُغلِق — وحقلٌ إعلانيٌّ لا يفرضه شيء هو بعينه الفرقُ بين `expired_at` المفروض و`# Expiry:` الخامل."
+        },
+        {
+          "expect": "test_an_expired_issued_authorization_is_rejected",
+          "find": "    if expires < today:",
+          "replace": "    if False:  # mutated: المنقضي يُقرأ سارياً",
+          "why": "أجلٌ لا يُقارَن هو أجلٌ غيرُ موجود. والطفرةُ مستقلّةٌ عن سابقتها: تلك تحرس **وجودَ** الحقل وهذه تحرس **إعمالَه** — وحقلٌ حاضرٌ لا يُقرأ يمرّ على الأولى ويسقط على الثانية."
+        },
+        {
+          "expect": "test_an_authorization_expiring_today_is_still_valid",
+          "find": "    if expires < today:",
+          "replace": "    if expires <= today:  # mutated: ينتهي اليوم ⇒ سقط اليوم",
+          "why": "الخطأُ في الجهة الأخرى: إذنٌ مُنِح «حتّى الثلاثين» يسقط صباحَ الثلاثين فيخسر صاحبُه يوماً مُنِحه. وتضييقٌ يبدو أشدَّ حرصاً هو عطلٌ مثل تساهُله."
+        },
+        {
+          "expect": "test_expiry_is_not_enforced_on_a_settled_authorization",
+          "find": "    if status == \"ISSUED\":\n        errs.extend(_expiry_errors(adj, ident))",
+          "replace": "    errs.extend(_expiry_errors(adj, ident))  # mutated: يُفرَض على المُستهلَك أيضاً",
+          "why": "فرضُ الأجل بأثرٍ رجعيّ يُحمِّر المستودعَ على خمسةِ تفويضاتٍ استُهلِكت صحيحةً قبل وجود الحقل — وحارسٌ يُدين ماضياً امتثل لعقدِ زمانه يُدرَّب قارئُه على تعطيله."
+        },
+        {
+          "expect": "test_a_near_expiry_warns_before_it_blocks",
+          "find": "        if left <= EXPIRY_WARNING_DAYS:\n            out.append(\n                f\"{adj.get('adjudication_id', '<بلا معرّف>')}: يبقى {left} يوماً على أجل \"",
+          "replace": "        if False:  # mutated: لا تحذير قبل الحجب\n            out.append(\n                f\"{adj.get('adjudication_id', '<بلا معرّف>')}: يبقى {left} يوماً على أجل \"",
+          "why": "بلا التحذير يصير أوّلُ خبرٍ عن الأجل هو الحجبَ نفسه — وهي الإصابةُ المنشورة بحرفها: ستّةُ إعفاءاتٍ انتهت دفعةً واحدةً فحجبت البناء بلا إنذار. **ومرساها مُوسَّعةٌ عمداً:** الصيغةُ المختصرة صارت تتكرّر بعد إضافة `alias_deadline_warnings`، فسقط الزرعُ على تصادمِ نصوصٍ لا على عطل — والمراسي نصّيّةٌ بالتصميم."
+        },
+        {
+          "expect": "test_an_acknowledgement_without_a_deadline_is_rejected",
+          "find": "            due = _parse_day(entry.get(\"decision_due_on\"))\n            if due is None:",
+          "replace": "            due = _parse_day(entry.get(\"decision_due_on\"))\n            if False:  # mutated: إقرارٌ بلا أجلٍ يُقبَل",
+          "why": "حذفُ الحقل يصير طريقَ الخلاص من الأجل، فيعود الإقرارُ إعفاءً دائماً — وهو ما يصف الإقرارُ نفسَه بأنّه ليسه («تسجيلُ حالةٍ تنتظر حكماً، لا إعفاء»)."
+        },
+        {
+          "expect": "test_a_lapsed_acknowledgement_blocks_again",
+          "find": "            elif due < date.today():",
+          "replace": "            elif False:  # mutated: المنقضي يبقى ساكتاً",
+          "why": "سكوتٌ لا ينقضي هو السكوتُ الأصليُّ بعينه. والمقيس أنّ النظيرَ الحيَّ مُسّ في ٤ من ٤ من الشرائح المُحكَّمة — فالثقبُ يُستعمَل في كلّ مرّة، وأجلٌ لا يُقارَن لا يسدّه."
+        },
+        {
+          "expect": "test_a_live_acknowledgement_still_silences_the_report",
+          "find": "            if due is None:",
+          "replace": "            if True:  # mutated: كلُّ إقرارٍ يحجب",
+          "why": "حجبٌ داخل المدّة يجعل تسجيلَ الحالة مستحيلاً: لا صيغةَ للإقرار تمرّ، فيُطفَأ الحقلُ أو يُطفَأ الحارس. صنفُ «حارسٍ لا يقبل حالةً صادقة» المُغلَق في #1026."
+        },
+        {
+          "expect": "test_the_alias_deadline_warns_before_it_blocks",
+          "find": "        if left <= EXPIRY_WARNING_DAYS:\n            out.append(f\"{path}: يبقى {left} يوماً على أجل حسم النظير ({due.isoformat()}).\")",
+          "replace": "        if False:  # mutated: لا تحذير قبل حجب النظير\n            out.append(f\"{path}: يبقى {left} يوماً على أجل حسم النظير ({due.isoformat()}).\")",
+          "why": "شحنُ «يحذّر قبل أن يحجب» للتفويضات وتركُ الإقرار يحجب فجأةً تناقضٌ في الملفّ نفسِه — والقاعدةُ واحدة: أوّلُ خبرٍ عن الأجل يجب ألّا يكون الحجب."
         }
       ],
       "test": "tests_v9/test_gate01_frozen_path_guard.py"
@@ -5379,6 +5453,76 @@
         }
       ],
       "test": "tests_v9/test_certification_evidence_is_produced_not_assumed.py"
+    },
+    "brain_annotated_supersession_guard.py": {
+      "test": "tests_v9/test_brain_annotated_supersession_guard.py",
+      "mutations": [
+        {
+          "expect": "test_an_annotated_closure_without_a_cited_witness_is_reported",
+          "find": "        if not superseded or current is None or current.get(\"state\") not in CLOSING:",
+          "replace": "        if True:",
+          "why": "نزعُ البند ② كلِّه ⇒ يعود المسارُ الذي فتح الفجوة أخضرَ: تُنسَخ فجوةٌ `open`، تُوسَم النسخةُ `fixed` بـ`current` والأصلُ `historical`، فتختفي من كلّ عدٍّ يُقرأ بلا حارسٍ يحمرّ"
+        },
+        {
+          "expect": "test_a_reopening_is_never_asked_for_a_closure_witness",
+          "find": "        if not superseded or current is None or current.get(\"state\") not in CLOSING:",
+          "replace": "        if current is None:",
+          "why": "إسقاطُ شرطِ الاتّجاه ⇒ يُطالَب مدخلٌ `current` حالتُه `open` بشاهدِ إغلاق، فتصير إعادةُ فتحِ فجوةٍ وُسِمت مرّةً **مستحيلة**. هذا صنفُ «حارسٍ لا يقبل حالةً صادقة» المُغلَق في #1026 — لا إيجابيٌّ كاذب ولا سلبيّ، بل استحالة"
+        },
+        {
+          "expect": "test_a_wired_guard_that_is_gone_from_the_tree_is_not_a_witness",
+          "find": "    if not target.is_file():",
+          "replace": "    if False:",
+          "why": "نزعُ فحص الوجود ⇒ اسمٌ ما زال مذكوراً في workflow لحارسٍ حُذِف ملفُّه يُقبَل ثمناً لإغلاق. وهذه الطفرةُ **نجت أوّلَ قياس**: ذراعُ الاختبارات كانت مُغطّاةً صدفةً عبر `except OSError`، وذراعُ الحرّاس غيرَ مُغطّاةٍ بتاتاً — فأُضيف الشاهدُ ولم تُستبدَل الطفرةُ بألطفَ منها"
+        },
+        {
+          "expect": "test_an_empty_test_file_is_not_a_witness",
+          "find": "            return \"def test_\" in target.read_text(encoding=\"utf-8\", errors=\"replace\")",
+          "replace": "            return True",
+          "why": "قبولُ ملفٍّ باسمٍ صحيحٍ بلا دالّةِ اختبار ⇒ ثمنُ الإغلاق يصير `touch`، أي صفراً بخطوةٍ إضافيّة"
+        },
+        {
+          "expect": "test_an_unannotated_contradiction_is_reported",
+          "find": "    for gap_id in sorted(report[\"contradictory_sections\"]):",
+          "replace": "    for gap_id in sorted({}):",
+          "why": "نزعُ البند ① ⇒ معرِّفٌ واحدٌ بحالتين بلا وسمِ تاريخ يمرّ. و`gap-registry-report` تحمل `continue-on-error` فلا تحجب، أي أنّ نزعَه يترك التناقضَ بلا حاجبٍ واحد في الشجرة"
+        },
+        {
+          "expect": "test_the_guard_runs_where_its_job_runs_without_any_dependency",
+          "find": "    workflows = ROOT / \".github/workflows\"",
+          "replace": "    import yaml  # noqa: F401\n\n    workflows = ROOT / \".github/workflows\"",
+          "why": "إعادةُ تبعيّةٍ لا تُثبِّتها وظيفةُ `no-report-only-change` — حرّاسُ الدماغ الخمسةُ فيها بايثون قياسيّةٌ صرفة. هذا هو العطلُ الذي وقع فعلاً على أوّل تشغيلٍ لهذا الحارس في CI (`ModuleNotFoundError: No module named 'yaml'` عبر `guard_catalogue`)، بينما مرّ `preflight --fast` أخضرَ لأنّ `PyYAML` مُثبَّتةٌ محلّيّاً: أخضرُ قِيس في كونٍ غيرِ المنشور"
+        }
+      ]
+    },
+    "gap_heading_state_guard.py": {
+      "test": "tests_v9/test_gap_heading_state_guard.py",
+      "mutations": [
+        {
+          "expect": "test_growth_beyond_the_baseline_blocks",
+          "find": "    if measured <= baseline:\n        return []",
+          "replace": "    if True:\n        return []  # mutated: الراتشِت لا يحجب",
+          "why": "راتشِتٌ لا يحجب يُعيد العطلَ كما وقع: عنوانٌ جديد يحمل حالتَه في العنوان يختفي من كلّ عدٍّ يُقرأ ووظيفةُ القياس خضراء — وهو بعينه ما كشفه فارقُ مصنوعَتَي #1033 و#1035."
+        },
+        {
+          "expect": "test_equality_is_not_growth",
+          "find": "    if measured <= baseline:",
+          "replace": "    if measured < baseline:  # mutated: التساوي يُقرأ نموّاً",
+          "why": "الخطأُ في الجهة الأخرى: أساسٌ لم يتغيّر يُقرأ نموّاً فيُحمِرّ كلَّ PR لا تمسّ السجلّ أصلاً — وحمايةٌ تُوقِف العملَ كلَّه تُطفَأ، فتُنتِج حمايةً صفراً."
+        },
+        {
+          "expect": "test_the_message_names_the_remedy_and_the_rejected_spelling",
+          "find": "        \"`- **الحالة:** open — …` (`open`/`fixed`/`verified` حصراً؛ «مفتوحة» في \"\n        f\"العنوان لا تُقرأ). من اليتامى: {names}.\"",
+          "replace": "        f\"من اليتامى: {names}.\"  # mutated: رسالةٌ بلا علاج",
+          "why": "رسالةٌ تقول «ارتفع العدد» بلا الصيغة المقبولة تُرسِل قارئَها ليخمّن — والعطلُ نفسُه نشأ من أنّ الصيغة المرفوضة تبدو صحيحةً للقارئ البشريّ. فالعلاجُ في الرسالة جزءٌ من الحارس لا زينة."
+        },
+        {
+          "expect": "test_a_missing_baseline_fails_closed",
+          "find": "    baseline = json.loads(Path(args.baseline).read_text(encoding=\"utf-8\"))[\"baseline\"]",
+          "replace": "    try:\n        baseline = json.loads(Path(args.baseline).read_text(encoding=\"utf-8\"))[\"baseline\"]\n    except Exception:\n        baseline = 10**9  # mutated: أساسٌ مفقود يُقرأ سقفاً لا نهائيّاً",
+          "why": "أساسٌ مفقودٌ يُقرأ «لا حدّ» يُفرِّغ الراتشِت بلا أن يُحمِّره — «لم يُقرأ» تصير «لا شيء»، وهو الصنفُ الذي يطارده هذا المستودع في كلّ حارس."
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

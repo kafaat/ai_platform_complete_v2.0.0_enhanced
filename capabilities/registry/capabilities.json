@@ -2972,6 +2972,7 @@
         "tests_v9/test_irrigation_recommendation_policy.py",
         "tests_v9/test_recommendation_enriched_passthrough.py",
         "tests_v9/test_recommendation_runtime_reachability.py",
+        "tests_v9/test_recommendation_wiring_preconditions.py",
         "tests_v9/test_recommendation_work_order_idempotency.py",
         "tests_v9/test_v152_recommendation_feedback_deprecation_static.py"
       ],
@@ -3009,7 +3010,7 @@
           "path": "services/ai_agronomist/recommendation_events.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=18, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=19, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": "5",
@@ -3627,7 +3628,8 @@
       "ui_consumers": [],
       "mobile_consumers": [],
       "tests": [
-        "services/sahool-platform/tests/test_soil_telemetry.py"
+        "services/sahool-platform/tests/test_soil_telemetry.py",
+        "tests_v9/test_sensor_telemetry_consumer_reachability.py"
       ],
       "runtime": {
         "metrics": [],
@@ -3649,7 +3651,7 @@
           "path": "services/sahool-platform/api/soil_telemetry.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=3, tests=1, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=3, tests=2, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": "5",
         "CropX": null,
@@ -5643,7 +5645,8 @@
         "tests/runtime/test_phase9_iot_execution_runtime.py",
         "tests_v9/test_iot_devices.py",
         "tests_v9/test_mqtt_anonymous_off_guard.py",
-        "tests_v9/test_sensor_confidence_shape.py"
+        "tests_v9/test_sensor_confidence_shape.py",
+        "tests_v9/test_sensor_telemetry_consumer_reachability.py"
       ],
       "runtime": {
         "metrics": [],
@@ -5673,7 +5676,7 @@
           "path": "services/sahool-platform/sensor_health.yaml"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=6, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=7, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": "5",

@@ -456,15 +456,15 @@ FM-003,api,GET /api/v1/weather/field-weather-summary @ services/sahool-platform/
 FM-003,api,GET /api/vegetation/v1/all_fields @ services/sahool-platform/api/routers/compat_gateway.py:53,2,applied
 FM-003,api,GET /contract @ services/field-management-service/main.py:232,3,applied
 FM-003,api,GET /health @ services/field-management-service/main.py:214,3,applied
-FM-003,api,GET /health @ services/field-segmentation/main.py:375,2,applied
+FM-003,api,GET /health @ services/field-segmentation/main.py:376,2,applied
 FM-003,api,GET /healthz @ services/field-management-service/main.py:209,3,applied
-FM-003,api,GET /healthz @ services/field-segmentation/main.py:370,2,applied
+FM-003,api,GET /healthz @ services/field-segmentation/main.py:371,2,applied
 FM-003,api,GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:393,2,applied
 FM-003,api,GET /internal/fields @ services/field-management-service/main.py:292,5,applied
 FM-003,api,GET /internal/fields/{field_id} @ services/field-management-service/main.py:260,5,applied
 FM-003,api,GET /internal/fields/{field_id}/state @ services/sahool-platform/api/routers/internal_service.py:52,4,applied
 FM-003,api,GET /readyz @ services/field-management-service/main.py:219,3,applied
-FM-003,api,GET /readyz @ services/field-segmentation/main.py:380,2,applied
+FM-003,api,GET /readyz @ services/field-segmentation/main.py:381,2,applied
 FM-003,api,GET /v1/all_fields @ services/vegetation-analysis-service/routers/analysis.py:145,2,applied
 FM-003,api,GET /v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1351,4,applied
 FM-003,api,GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:191,4,applied
@@ -619,7 +619,7 @@ FM-003,api,POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ ser
 FM-003,api,POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2353,2,applied
 FM-003,api,POST /v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2655,2,applied
 FM-003,api,POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2744,2,applied
-FM-003,api,POST /v1/segment @ services/field-segmentation/main.py:391,2,applied
+FM-003,api,POST /v1/segment @ services/field-segmentation/main.py:392,2,applied
 FM-003,api,PUT /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1237,4,applied
 FM-003,mobile,mobile/sahool_app/lib/features/field_forms/contract/condition_v1.dart,2,applied
 FM-003,mobile,mobile/sahool_app/lib/features/field_forms/contract/form_schema.dart,2,applied
@@ -1094,6 +1094,7 @@ INT-003,test,tests/runtime/test_phase9_iot_execution_runtime.py,3,applied
 INT-003,test,tests_v9/test_iot_devices.py,3,applied
 INT-003,test,tests_v9/test_mqtt_anonymous_off_guard.py,3,applied
 INT-003,test,tests_v9/test_sensor_confidence_shape.py,3,applied
+INT-003,test,tests_v9/test_sensor_telemetry_consumer_reachability.py,3,applied
 IRR-001,service,services/sahool-platform/api/main.py,10,applied
 IRR-001,test,services/sahool-platform/tests/test_canonical_well_capability.py,3,applied
 IRR-002,api,POST /v1/soil/irrigation-water/samples @ services/soil-service/routers/p1_products.py:128,2,applied
@@ -1134,6 +1135,7 @@ IRR-005,test,services/sahool-platform/tests/test_work_order_from_recommendation.
 IRR-005,test,tests_v9/test_irrigation_recommendation_policy.py,7,applied
 IRR-005,test,tests_v9/test_recommendation_enriched_passthrough.py,3,applied
 IRR-005,test,tests_v9/test_recommendation_runtime_reachability.py,3,applied
+IRR-005,test,tests_v9/test_recommendation_wiring_preconditions.py,3,applied
 IRR-005,test,tests_v9/test_recommendation_work_order_idempotency.py,3,applied
 IRR-005,test,tests_v9/test_v152_recommendation_feedback_deprecation_static.py,3,applied
 IRR-006,api,DELETE /api/v1/irrigation/schedules/{schedule_id} @ services/sahool-platform/api/routers/irrigation.py:357,3,applied
@@ -1349,6 +1351,7 @@ PA-005,api,GET /api/v1/devices/{device_id}/telemetry @ services/sahool-platform/
 PA-005,api,POST /api/v1/devices/{device_id}/telemetry @ services/sahool-platform/api/routers/devices.py:123,2,applied
 PA-005,api,POST /v1/phase9/autonomy/iot/telemetry/verify @ services/sahool-platform/api/phase9_autonomous_farm_os.py:251,2,applied
 PA-005,test,services/sahool-platform/tests/test_soil_telemetry.py,3,applied
+PA-005,test,tests_v9/test_sensor_telemetry_consumer_reachability.py,3,applied
 SAT-001,api,GET /api/v1/gis/cloud-native/scene-processing-plan @ services/sahool-platform/api/routers/gis_cloud_native.py:264,2,applied
 SAT-001,api,GET /api/v1/gis/cloud-native/scene-ranking @ services/sahool-platform/api/routers/gis_cloud_native.py:247,2,applied
 SAT-001,api,GET /api/v1/gis/cloud-native/stac @ services/sahool-platform/api/routers/gis_cloud_native.py:181,2,applied

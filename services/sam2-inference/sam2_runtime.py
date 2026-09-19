@@ -32,8 +32,10 @@ SAHOOL — services/sam2-inference/main.py
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import os
+import re
 import time  # noqa: F401 — إعادة تصدير (نمط main.X)
 
 from fastapi import FastAPI, Header, HTTPException  # noqa: F401 — إعادة تصدير (نمط main.X)
@@ -56,6 +58,9 @@ SAM2_CHECKPOINT = os.getenv("SAM2_CHECKPOINT", "/models/sam2_hiera_large.pt").st
 # ملفّ إعداد بنية النموذج (Hydra config name) — يُمرَّر لـbuild_sam2.
 # الافتراض يطابق checkpoint large أعلاه. عدّله لو غيّرت حجم النموذج.
 SAM2_MODEL_CFG = os.getenv("SAM2_MODEL_CFG", "sam2_hiera_l.yaml").strip()
+# SHA-256 approved by the model activation/provisioning boundary. A checkpoint path is not identity.
+SAM2_CHECKPOINT_SHA256 = os.getenv("SAM2_CHECKPOINT_SHA256", "").strip().lower()
+_SHA256_HEX = re.compile(r"^[0-9a-f]{64}$")
 
 # مصدر STAC اختياريّ لجلب صورة Sentinel-2 عند غياب image_ref صالح (Element84).
 EARTH_SEARCH_URL = os.getenv(
@@ -83,8 +88,31 @@ DEDUP_TOLERANCE_M = float(os.getenv("SAM2_POLYGON_DEDUP_TOLERANCE_M", "0.5").str
 _PREDICTOR = None  # SAM2ImagePredictor أو None
 _MODEL_LOAD_ERROR: str | None = None  # سبب فشل التحميل (للتشخيص الصادق)
 # رمز سبب مُصنَّف (للتشخيص الآليّ في /readyz): None عند التحميل، وإلّا أحد:
-#   cuda_unavailable · weights_missing · library_missing · load_failed.
+#   checkpoint_digest_missing_or_invalid · checkpoint_digest_mismatch · weights_missing ·
+#   cuda_unavailable · library_missing · load_failed.
 _MODEL_LOAD_REASON_CODE: str | None = None
+_MODEL_ARTIFACT_DIGEST: str | None = None
+
+
+def _checkpoint_sha256(path: str) -> str:
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _verify_checkpoint_artifact(path: str, expected: str) -> tuple[bool, str | None, str | None]:
+    """Verify exact checkpoint bytes before SAM2 imports/model construction."""
+    normalized = (expected or "").strip().lower()
+    if not _SHA256_HEX.fullmatch(normalized):
+        return False, None, "checkpoint_digest_missing_or_invalid"
+    if not os.path.isfile(path):
+        return False, None, "weights_missing"
+    actual = _checkpoint_sha256(path)
+    if actual != normalized:
+        return False, actual, "checkpoint_digest_mismatch"
+    return True, actual, None
 
 
 # ─── المصادقة ────────────────────────────────────────────────────────────
@@ -113,20 +141,25 @@ def _load_model() -> None:
 
     ملاحظة عتاد: لا يمكن تشغيل هذا هنا (لا GPU). تحقّق على RTX 4090.
     """
-    global _PREDICTOR, _MODEL_LOAD_ERROR, _MODEL_LOAD_REASON_CODE
+    global _PREDICTOR, _MODEL_LOAD_ERROR, _MODEL_LOAD_REASON_CODE, _MODEL_ARTIFACT_DIGEST
+    _PREDICTOR = None
+    _MODEL_ARTIFACT_DIGEST = None
     try:
+        verified, actual_digest, artifact_reason = _verify_checkpoint_artifact(
+            SAM2_CHECKPOINT, SAM2_CHECKPOINT_SHA256
+        )
+        if not verified:
+            _MODEL_LOAD_REASON_CODE = artifact_reason
+            _MODEL_LOAD_ERROR = f"SAM2 checkpoint artifact verification failed: {artifact_reason}"
+            logger.warning(_MODEL_LOAD_ERROR)
+            return
+        _MODEL_ARTIFACT_DIGEST = actual_digest
+
         import torch  # ثقيل — داخل الدالّة كي يُترجَم الملفّ بلا torch.
 
         if not torch.cuda.is_available():
             _MODEL_LOAD_ERROR = "torch.cuda.is_available() == False — لا GPU/CUDA متاح"
             _MODEL_LOAD_REASON_CODE = "cuda_unavailable"
-            logger.warning(_MODEL_LOAD_ERROR)
-            return
-
-        if not os.path.isfile(SAM2_CHECKPOINT):
-            # حالتك الحاليّة: GPU متاح لكن الأوزان غير مركّبة على volume النماذج.
-            _MODEL_LOAD_ERROR = f"أوزان SAM2 غير موجودة على {SAM2_CHECKPOINT}"
-            _MODEL_LOAD_REASON_CODE = "weights_missing"
             logger.warning(_MODEL_LOAD_ERROR)
             return
 
