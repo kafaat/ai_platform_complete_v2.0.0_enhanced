@@ -45,7 +45,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 118,
+      "line": 136,
       "method": "GET",
       "path": "/healthz/ai-provider",
       "function": "ai_provider_snapshot"
@@ -53,7 +53,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 126,
+      "line": 144,
       "method": "GET",
       "path": "/v1/approvals/pending",
       "function": "list_pending_approvals"
@@ -61,7 +61,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 146,
+      "line": 164,
       "method": "POST",
       "path": "/v1/approvals/approve",
       "function": "approve_tool_request"
@@ -69,7 +69,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 198,
+      "line": 216,
       "method": "POST",
       "path": "/v1/approvals/deny",
       "function": "deny_tool_request"
@@ -77,7 +77,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 244,
+      "line": 262,
       "method": "POST",
       "path": "/v1/approvals/resume",
       "function": "resume_approved_tool"
@@ -85,7 +85,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 288,
+      "line": 306,
       "method": "POST",
       "path": "/v1/prescription/export-preview",
       "function": "prescription_export_preview"
@@ -93,7 +93,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 360,
+      "line": 383,
       "method": "POST",
       "path": "/v1/query",
       "function": "query"
@@ -101,7 +101,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 371,
+      "line": 394,
       "method": "POST",
       "path": "/v1/chat",
       "function": "chat"
@@ -109,7 +109,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 382,
+      "line": 405,
       "method": "POST",
       "path": "/v1/explain",
       "function": "explain"
@@ -117,7 +117,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 393,
+      "line": 416,
       "method": "POST",
       "path": "/v1/recommend",
       "function": "recommend"
@@ -693,7 +693,7 @@
     {
       "service": "field-segmentation",
       "file": "services/field-segmentation/main.py",
-      "line": 392,
+      "line": 428,
       "method": "POST",
       "path": "/v1/segment",
       "function": "segment"

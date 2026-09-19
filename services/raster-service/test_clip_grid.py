@@ -196,6 +196,7 @@ def test_clip_index_bounds_and_grid():
         "created_at": "2026-05-01T09:00:00Z",
         "source_format": "sentinel2_l2a",
         "bounds_4326": bounds,
+        "valid_pixel_ratio": n_finite / out.size,
     }
     main._field_layers.setdefault("field_001", []).append("layer_test")
 
@@ -234,6 +235,7 @@ def test_clip_index_bounds_and_grid():
     assert ip["estimated"] is False
     assert ip["real_data"] is True
     assert ip["quality_gate_passed"] is True
+    assert ip["valid_pixel_ratio"] == n_finite / out.size
     # provenance مبنيّة من بيانات الطبقة الحقيقيّة (source_format/cog_url) لا مختلَقة
     assert ip["provenance"] is not None
     assert ip["provenance"]["source_uri"], "متوقّع source_uri من cog_url الحقيقيّ"

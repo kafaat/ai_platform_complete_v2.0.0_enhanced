@@ -9693,6 +9693,7 @@
       "runtime_verified": false,
       "title": "Weather forecast",
       "unit_test_paths": [
+        "frontend/tests/test_nginx_runtime.py",
         "services/sahool-platform/tests/_public_read_allowlist.json",
         "services/sahool-platform/tests/_public_read_taxonomy.json",
         "services/sahool-platform/tests/test_agronomic_context_composer.py",

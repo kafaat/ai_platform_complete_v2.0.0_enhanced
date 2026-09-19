@@ -16,6 +16,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from _nginx_contract import expand_upstream_targets
 
 pytestmark = pytest.mark.unit
 
@@ -26,7 +27,8 @@ API_TS = ROOT / "frontend" / "src" / "services" / "api.ts"
 
 def _read(rel_or_path) -> str:
     p = rel_or_path if isinstance(rel_or_path, Path) else ROOT / rel_or_path
-    return p.read_text(encoding="utf-8")
+    conf = p.read_text(encoding="utf-8")
+    return expand_upstream_targets(conf) if p == NGINX else conf
 
 
 def _block(conf: str, header: str) -> str:

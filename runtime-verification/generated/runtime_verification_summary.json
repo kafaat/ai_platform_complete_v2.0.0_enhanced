@@ -1,7 +1,7 @@
 {
   "evidence_files": 0,
   "invalid_or_stale_evidence_files": [],
-  "planned_probes": 114,
+  "planned_probes": 100,
   "production_certified_services": 0,
   "runtime_verified_services": 0,
   "schema_version": "1.0",

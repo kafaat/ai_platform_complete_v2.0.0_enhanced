@@ -82,7 +82,7 @@
     },
     {
       "kind": "app",
-      "line": 38,
+      "line": 56,
       "module": "services.ai_agronomist.main",
       "node_id": "services.ai_agronomist.main:app",
       "route_count": 13,
@@ -217,7 +217,7 @@
     },
     {
       "kind": "app",
-      "line": 53,
+      "line": 54,
       "module": "services.field-segmentation.main",
       "node_id": "services.field-segmentation.main:app",
       "route_count": 4,
@@ -397,7 +397,7 @@
     },
     {
       "kind": "router",
-      "line": 74,
+      "line": 75,
       "module": "services.raster-service.routers.fields",
       "node_id": "services.raster-service.routers.fields:router",
       "route_count": 18,
@@ -2596,7 +2596,7 @@
     },
     {
       "expression": "_tmp",
-      "line": 70,
+      "line": 76,
       "module": "services/vegetation-analysis-service/router_registry.py",
       "prefix": null,
       "resolved": false,
@@ -2613,7 +2613,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "f1d126ebbecf6b640c057d8a10f421fa1162453598066ede70706d3c484276d7",
+  "inventory_sha256": "4620ba1db61d90307961208fb836ea16c2ee524c964f5ae683064538252bc672",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {
@@ -2829,7 +2829,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 74,
+      "line": 75,
       "module": "services.raster-service.routers.fields",
       "node_id": "services.raster-service.routers.fields:router",
       "route_count": 18,
@@ -5081,7 +5081,7 @@
     {
       "classification": "review_only_dynamic_or_unresolved_include",
       "file": "services/vegetation-analysis-service/router_registry.py",
-      "line": 70,
+      "line": 76,
       "module": "services.vegetation-analysis-service.router_registry",
       "source": null,
       "target_expression": "_tmp"

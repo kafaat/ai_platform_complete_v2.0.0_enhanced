@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+import ast
 import inspect
 from pathlib import Path
 
@@ -30,10 +31,20 @@ RASTER_MAIN = REPO / "services" / "raster-service" / "main.py"
 RASTER_PERSIST = REPO / "services" / "raster-service" / "raster_asset_persistence.py"
 
 
-def _fn_body(src: str, marker: str, span: int = 1800) -> str:
-    idx = src.find(marker)
-    assert idx != -1, f"لم يُعثَر على {marker!r}"
-    return src[idx : idx + span]
+def _fn_body(src: str, marker: str) -> str:
+    name = marker.removeprefix("def ")
+    node = next(
+        (
+            node
+            for node in ast.walk(ast.parse(src))
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == name
+        ),
+        None,
+    )
+    assert node is not None, f"لم يُعثَر على {marker!r}"
+    body = ast.get_source_segment(src, node)
+    assert body is not None
+    return body
 
 
 # ─── v3-Finding-1 + v3-Finding-4: available-dates ─────────────────────────────
@@ -51,9 +62,7 @@ def test_available_dates_limits_distinct_dates_not_rows() -> None:
 
 def test_available_dates_picks_coherent_row_not_mixed_aggregates() -> None:
     """DISTINCT ON ينتقي صفّاً واحداً؛ لا خلط MIN(scene_id) مع MIN(cloud_pct)."""
-    body = _fn_body(
-        DB_PERSIST.read_text(encoding="utf-8"), "def list_available_asset_dates", span=2800
-    )
+    body = _fn_body(DB_PERSIST.read_text(encoding="utf-8"), "def list_available_asset_dates")
     assert "DISTINCT ON (a.acquisition_date, a.index_name)" in body, (
         "يجب DISTINCT ON لصفّ متماسك لكلّ (تاريخ، مؤشّر)"
     )
@@ -72,7 +81,7 @@ def test_available_dates_picks_coherent_row_not_mixed_aggregates() -> None:
 
 def test_fetch_latest_asset_is_quality_aware() -> None:
     """أحدث تاريخ يفوز أوّلاً، ثمّ quality_score DESC ثمّ cloud_pct ASC."""
-    body = _fn_body(DB_PERSIST.read_text(encoding="utf-8"), "def fetch_latest_asset", span=2400)
+    body = _fn_body(DB_PERSIST.read_text(encoding="utf-8"), "def fetch_latest_asset")
     order = body[body.find("ORDER BY") : body.find("LIMIT 1")]
     assert "acquisition_date DESC" in order, "دلالة latest: أحدث تاريخ أوّلاً"
     assert "quality_score DESC" in order, "بعد التاريخ: الأفضل جودةً"
@@ -86,7 +95,7 @@ def test_fetch_latest_asset_is_quality_aware() -> None:
 
 def test_insert_writes_v105_quality_columns() -> None:
     """INSERT يكتب quality_score/aoi_cloud_pct/cloud_mask_sources (كانت تُهمَل)."""
-    body = _fn_body(DB_PERSIST.read_text(encoding="utf-8"), "def insert_raster_asset", span=3200)
+    body = _fn_body(DB_PERSIST.read_text(encoding="utf-8"), "def insert_raster_asset")
     for col in ("quality_score", "aoi_cloud_pct", "cloud_mask_sources"):
         assert col in body, f"عمود v105 {col} غائب عن INSERT — ترتيب الجودة يصبح بلا أثر"
     # التوقيع يقبل القيم الجديدة.

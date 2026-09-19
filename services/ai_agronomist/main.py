@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import os
+from contextlib import asynccontextmanager, suppress
 from typing import Any
 
 import httpx
@@ -35,7 +37,23 @@ RAG_BASE_URL = os.getenv("RAG_BASE_URL", "http://sahool-rag-retrieval:8000")
 KNOWLEDGE_GRAPH_URL = os.getenv("KNOWLEDGE_GRAPH_URL", "http://sahool-knowledge-graph:8000")
 GUARDRAILS_URL = os.getenv("GUARDRAILS_URL", "http://sahool-guardrails-engine:8000")
 
-app = FastAPI(title="SAHOOL AI Agronomist Runtime", version=VERSION)
+
+@asynccontextmanager
+async def lifespan(app):
+    async def preload():
+        app.state.generation_startup = await ai_generation.preload_local_generation()
+
+    app.state.generation_startup = {"status": "pending"}
+    task = asyncio.create_task(preload())
+    try:
+        yield
+    finally:
+        task.cancel()
+        with suppress(asyncio.CancelledError):
+            await task
+
+
+app = FastAPI(title="SAHOOL AI Agronomist Runtime", version=VERSION, lifespan=lifespan)
 
 # V58.2 — swappable, persistent-ready approval/audit stores (memory default; Redis via
 # SAHOOL_AGENT_STORE_BACKEND=redis, fail-safe to memory). Replaces the v61.5 in-process
@@ -336,7 +354,12 @@ async def readyz() -> dict[str, Any]:
                 "details": {"rag": rag, "knowledge_graph": kg, "guardrails": guard},
             },
         )
-    return {"status": "ready", "service": "ai-agronomist", "dependencies": deps}
+    return {
+        "status": "ready",
+        "service": "ai-agronomist",
+        "dependencies": deps,
+        "generation_startup": getattr(app.state, "generation_startup", {"status": "not_started"}),
+    }
 
 
 async def _build_evidence_response(

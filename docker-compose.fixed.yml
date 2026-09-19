@@ -264,6 +264,9 @@ services:
   # FIX-07: أضف Ollama لخدمة local-ai-rag
   # ═══════════════════════════════════════════════════════════════
   sahool-ollama:
+    environment:
+      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-30m}
+      OLLAMA_CONTEXT_LENGTH: ${OLLAMA_CONTEXT_LENGTH:-8192}
     image: ollama/ollama:0.30.8
     restart: unless-stopped
     # GPU اختياري ومُعطَّل افتراضيّاً: حجز جهاز nvidia يُفشِل `up` على مضيف بلا

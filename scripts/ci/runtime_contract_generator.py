@@ -37,7 +37,9 @@ TEXT_SUFFIXES = {
 }
 EXCLUDED = {".git", "node_modules", ".venv", "venv", "dist", "build", "__pycache__", ".next"}
 ROUTE_RE = re.compile(
-    r"(?:@\w+\.)?(?:get|post|put|patch|delete|api_route)\(\s*[rubf]*[\"']([^\"']+)[\"']", re.I
+    # A dictionary key or an upstream URL is not a local probe path.
+    r"(?:@\w+\.)?(?:get|post|put|patch|delete|api_route)\(\s*[rubf]*[\"'](/[^\"']*)[\"']",
+    re.I,
 )
 ENV_CALL_RE = re.compile(r"(?:os\.getenv|os\.environ\.get|getenv)\(\s*[\"']([A-Z][A-Z0-9_]+)[\"']")
 ENV_INDEX_RE = re.compile(r"os\.environ\[\s*[\"']([A-Z][A-Z0-9_]+)[\"']\s*\]")
