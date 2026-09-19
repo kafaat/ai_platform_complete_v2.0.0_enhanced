@@ -35,6 +35,23 @@ jobs:
           tar -xzf "$RUNNER_TEMP/gateway-kit.tar.gz" -C "$RUNNER_TEMP/gateway-kit"
           test "$(git -C work rev-parse HEAD)" = a0bba343f5b4464f47f674848088fd8ba599220d
           python "$RUNNER_TEMP/gateway-kit/apply.py" work
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('work/nginx/tests/test_gateway_runtime.py')
+          s = p.read_text(encoding='utf-8')
+          replacements = {
+              '*, secure=True):': '*, secure=True, source_address=None):',
+              'context=ssl._create_unverified_context(),': 'context=ssl._create_unverified_context(), source_address=source_address,',
+              'self.http_port, timeout=3)': 'self.http_port, timeout=3, source_address=source_address)',
+              '# Public callers cannot turn the private readiness route into an SPA response.': '# Bind to a real denied source: 127.0.0.2 is outside the private ACL.\n            # X-Forwarded-For alone is correctly ignored from an untrusted peer.',
+              'self.request("/readyz", {"X-Forwarded-For": "203.0.113.9"})': 'self.request("/readyz", source_address=("127.0.0.2", 0))',
+              'self.request("/runtime-identity", {"X-Forwarded-For": "203.0.113.9"})': 'self.request("/runtime-identity", source_address=("127.0.0.2", 0))',
+          }
+          for old, new in replacements.items():
+              assert s.count(old) == 1, old
+              s = s.replace(old, new, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
       - name: Install existing test dependencies and pinned linter
         working-directory: work
         run: python -m pip install ruff==0.15.8 -r tests_v9/requirements-test.txt
@@ -80,7 +97,7 @@ jobs:
         working-directory: work
         run: |
           python -m pytest -q tests_v9/test_compose_nginx_upstream_contract.py tests_v9/test_v9_feature_transfer_20260702.py tests_v9/test_service_consumer_closure_20260723.py tests_v9/test_connectivity_tile_transport.py tests_v9/test_gateway_operational_endpoints_contract.py
-          python scripts/ci/nginx_compose_dns_gate.py
+          python scripts/ci/nginx_compose_dns_gate.py --compose docker-compose.v9.yml --nginx nginx/nginx.v9.conf --json "$RUNNER_TEMP/gateway-dns.json"
           python scripts/ci/v9_feature_transfer_gate.py
       - name: Regenerate the canonical inventories and release package
         working-directory: work
