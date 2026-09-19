@@ -20,6 +20,7 @@ import copy
 import importlib.util
 import json
 import sys
+from datetime import date, timedelta
 from pathlib import Path
 
 import pytest
@@ -53,6 +54,13 @@ def _policy(state="CLOSED"):
 _BLOBS = {_FROZEN_A: "a" * 40, _FROZEN_B: "c" * 40, _FROZEN_C: "e" * 40}
 
 
+#: أجلٌ **نسبيّ لا مثبَّت**. تاريخٌ بعيدٌ مكتوبٌ نصّاً يمرّ اليوم ويصير قنبلةً موقوتة:
+#: تحمرّ الأجنحةُ يوماً ما لسببٍ لا علاقةَ له بتغييرٍ أحدث — وهو صنفُ «أخضرُ قِيس في
+#: عالمٍ غير الذي سيُشغَّل فيه» بصيغته الزمنيّة.
+def _future(days: int = 90) -> str:
+    return (date.today() + timedelta(days=days)).isoformat()
+
+
 def _adj(**over):
     blobs = over.pop("authorized_blobs", {_FROZEN_A: "a" * 40, _FROZEN_B: "c" * 40})
     d = {
@@ -60,6 +68,7 @@ def _adj(**over):
         "adjudication_id": "ADJ-TEST-001",
         "gate_id": "GATE-01",
         "status": "ISSUED",
+        "expires_on": _future(),
         "phase0_baseline_ref": {"commit_sha": "b" * 40},
         "allowed_paths": sorted(blobs),
         "authorized_blobs": blobs,
@@ -495,9 +504,18 @@ def test_an_unacknowledged_live_alias_blocks(tmp_path):
 
 
 def test_an_acknowledgement_naming_the_exact_alias_is_accepted(tmp_path):
+    """الإقرارُ الذي يُسمّي النظيرَ بعينه يُسكِت الإبلاغَ — **ما دام في مدّته**.
+
+    أُضيف `decision_due_on` إلى المُهيّئ بعد
+    `GATE01-ALIAS-ACKNOWLEDGEMENT-HAS-NO-DEADLINE-01`: صار السكوتُ موقوتاً، وإقرارٌ بلا
+    أجلٍ يحجب. ودعوى هذا الشاهد لم تتغيّر — تغيّر شرطُها فصار مكتوباً.
+    """
     pol = _alias_policy(
         alias_mismatch_acknowledged={
-            "migrations/v9_absent.sql": {"live_alias": "migrations/v9_live.sql"}
+            "migrations/v9_absent.sql": {
+                "live_alias": "migrations/v9_live.sql",
+                "decision_due_on": _future(90),
+            }
         }
     )
     assert guard.alias_escape_errors(pol, root=_tree_with_alias(tmp_path)) == []
@@ -523,3 +541,159 @@ def test_an_acknowledgement_that_does_not_name_this_alias_still_blocks(tmp_path,
 def test_the_live_policy_has_no_unacknowledged_alias_escape():
     """الشجرةُ الحيّة: كلُّ نظيرٍ إمّا مُصحَّحُ المسار أو مُقَرٌّ باسمه."""
     assert guard.alias_escape_errors(guard.load_policy(_POLICY)) == []
+
+
+# ── GATE01-AUTHORIZATION-NEVER-EXPIRES-01 ──────────────────────────────────────
+# **العطل المقيس:** خمسةُ تفويضاتٍ في الشجرة، فيها `adjudicated_on` و**لا واحدَ فيه
+# أجل**. والضمانةُ الوحيدة ضدّ البائت كانت `stale_authorization_errors`، وهي تُمسِك
+# **الهابطَ غيرَ المختوم** وحده — فتفويضٌ `ISSUED` لم تهبط بايتاتُه يبقى صالحاً إلى
+# الأبد، ويكفي أن تُعاد تلك البايتاتُ بعينها بعد شهورٍ فيمرّ.
+#
+# **ولماذا «مفروض» لا «موثَّق»:** سابقةٌ منشورة ومقيسة — `# Expiry:` في صيغة
+# `.trivyignore` النصّيّة **خاملةٌ توثّق التزاماً لا يفرضه شيء**، بينما `expired_at`
+# في صيغة YAML يُسقِطه الماسحُ عند الفحص فيعود الاكتشافُ يُفشِل البناء. والفرقُ بينهما
+# هو الفرقُ كلُّه.
+
+
+def test_an_issued_authorization_without_an_expiry_is_rejected():
+    """**الغيابُ ليس خلوداً** — نفس قاعدة `one_time` و`require_code_owner_review`.
+
+    ولولا هذا الشاهد لكان إغفالُ الحقل بابَ خلودٍ **صامتاً**: تفويضٌ بلا أجلٍ يمرّ،
+    فيصير الحقلُ الجديد زينةً لا عقداً.
+    """
+    adj = _adj()
+    del adj["expires_on"]
+    errors, used = _run([_FROZEN_A, _FROZEN_B], adjs=[adj])
+    assert used is None
+    assert any("بلا `expires_on`" in e for e in errors), errors
+
+
+def test_an_expired_issued_authorization_is_rejected():
+    """الإذنُ المنتهي ليس إذناً — وهو **كلّ** ما يضيفه هذا الحقل."""
+    errors, used = _run([_FROZEN_A, _FROZEN_B], adjs=[_adj(expires_on=_future(-1))])
+    assert used is None
+    assert any("انقضى أجلُه" in e for e in errors), errors
+
+
+def test_an_unparsable_expiry_is_not_read_as_an_expiry():
+    """`expires_on: "soon"` ليس أجلاً. وما لا يُحلَّل يفشل مغلقاً كبقيّة الحقول."""
+    errors, used = _run([_FROZEN_A, _FROZEN_B], adjs=[_adj(expires_on="soon")])
+    assert used is None
+    assert any("لا يُحلَّل تاريخاً" in e for e in errors), errors
+
+
+def test_an_authorization_expiring_today_is_still_valid():
+    """**الحدُّ شاملٌ لا حصريّ.** أجلٌ ينتهي اليوم سارٍ اليوم.
+
+    والمقارنةُ `<` لا `<=` مقصودة: الإذنُ الممنوح «حتّى الثلاثين» يجب ألّا يسقط في
+    صباح الثلاثين، وإلّا خسِر صاحبُه يوماً مُنِحه — وذاك خطأٌ في الجهة الأخرى.
+    """
+    errors, used = _run([_FROZEN_A, _FROZEN_B], adjs=[_adj(expires_on=_future(0))])
+    assert errors == []
+    assert used == "ADJ-TEST-001"
+
+
+@pytest.mark.parametrize("status", ["CONSUMED", "REVOKED"])
+def test_expiry_is_not_enforced_on_a_settled_authorization(status):
+    """**لا أثرَ رجعيّاً على تاريخٍ مختوم.**
+
+    الأجلُ يحكم إذناً **حيّاً**. وفرضُه على `CONSUMED` كان يُحمِّر المستودعَ على
+    التفويضات الخمسة القائمة — وكلُّها استُعمِلت واستُهلِكت **صحيحةً** قبل أن يوجد
+    الحقل. حارسٌ يُدين ماضياً امتثل لعقدِ زمانه يُدرَّب قارئُه على تعطيله.
+    """
+    adj = _adj(status=status, expires_on=_future(-400))
+    del adj["expires_on"]
+    errors, _ = _run([_FROZEN_A, _FROZEN_B], adjs=[adj])
+    assert not any("expires_on" in e or "أجل" in e for e in errors), errors
+
+
+def test_a_near_expiry_warns_before_it_blocks():
+    """«حذّر قبل الانتهاء لا بعده».
+
+    ممارسةٌ منشورة نشأت من إصابةٍ حقيقيّة: ستّةُ إعفاءاتٍ انتهت دفعةً واحدة فحجبت
+    البناءَ بلا سابق إنذار. والتحذيرُ **لا يحجب** — وإلّا صار الأجلُ أقصرَ ممّا مُنِح.
+    """
+    near = _adj(expires_on=_future(guard.EXPIRY_WARNING_DAYS - 1))
+    assert guard.expiry_warnings([near])
+    assert _run([_FROZEN_A, _FROZEN_B], adjs=[near])[0] == []
+    assert not guard.expiry_warnings([_adj(expires_on=_future(guard.EXPIRY_WARNING_DAYS + 1))])
+
+
+def test_a_missing_or_expired_authorization_does_not_also_warn():
+    """التحذيرُ عن حالةٍ **تحجب** ملاحظةٌ مُضلِّلة: تُقرأ «ما زال أمامك وقت»."""
+    assert guard.expiry_warnings([_adj(expires_on=_future(-1))]) == []
+    adj = _adj()
+    del adj["expires_on"]
+    assert guard.expiry_warnings([adj]) == []
+
+
+# ── GATE01-ALIAS-ACKNOWLEDGEMENT-HAS-NO-DEADLINE-01 ────────────────────────────
+# الإقرارُ يصف نفسَه «تسجيلَ حالةٍ تنتظر حكماً، **لا إعفاء**» — وكان بلا أجل، و
+# `owner_decision: PENDING` لا ينتهي من تلقائه. والمقيس أنّ النظيرَ الحيّ
+# `scripts_v9/run_migrations.sql` مُسّ في **٤ من ٤** من الشرائح المُحكَّمة بعد تأسيس
+# البوّابة — فالثقبُ يُستعمَل في كلّ مرّة لا في الفرض.
+_ABSENT = "migrations/run_migrations.sql"
+_LIVE_ALIAS = "scripts_v9/run_migrations.sql"
+
+
+def _absent_alias_policy(tmp_path, **entry):
+    (tmp_path / "scripts_v9").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "scripts_v9" / "run_migrations.sql").write_text("-- x", encoding="utf-8")
+    policy = _policy()
+    policy["frozen_paths"] = [_ABSENT]
+    policy["not_yet_in_tree"] = [_ABSENT]
+    policy["alias_mismatch_acknowledged"] = {_ABSENT: {"live_alias": _LIVE_ALIAS, **entry}}
+    return policy
+
+
+def test_an_acknowledgement_without_a_deadline_is_rejected(tmp_path):
+    """**سكوتٌ بلا أجلٍ ليس تسجيلَ حالةٍ بل إعفاءٌ دائم.**
+
+    ولولا هذا الشاهد لكان حذفُ الحقل هو طريقَ الخلاص من الأجل — أي أنّ الأجل
+    يصير اختياريّاً، وهو بعينه ما يُصلِحه.
+    """
+    errors = guard.alias_escape_errors(_absent_alias_policy(tmp_path), root=tmp_path)
+    assert any("`decision_due_on`" in e for e in errors), errors
+
+
+def test_a_lapsed_acknowledgement_blocks_again(tmp_path):
+    """انقضاءُ الأجل يُعيد الإبلاغَ حاجباً — دلالةُ `expired_at` بعينها."""
+    policy = _absent_alias_policy(tmp_path, decision_due_on=_future(-1))
+    errors = guard.alias_escape_errors(policy, root=tmp_path)
+    assert any("انقضى أجلُ حسم النظير" in e for e in errors), errors
+
+
+def test_a_live_acknowledgement_still_silences_the_report(tmp_path):
+    """**الإقرارُ ما دام في مدّته يعمل كما صُمِّم.**
+
+    الأجلُ يُوقِّت السكوتَ ولا يُلغيه؛ ولو حجب داخل المدّة لصار تسجيلُ الحالة
+    مستحيلاً — وهو صنفُ «حارسٍ لا يقبل حالةً صادقة» المُغلَق في #1026.
+    """
+    policy = _absent_alias_policy(tmp_path, decision_due_on=_future(90))
+    assert guard.alias_escape_errors(policy, root=tmp_path) == []
+
+
+def test_the_alias_deadline_warns_before_it_blocks(tmp_path):
+    """نفسُ قاعدة التفويضات — أوّلُ خبرٍ عن الأجل يجب ألّا يكون الحجب."""
+    near = _absent_alias_policy(tmp_path, decision_due_on=_future(guard.EXPIRY_WARNING_DAYS - 1))
+    assert guard.alias_deadline_warnings(near)
+    assert guard.alias_escape_errors(near, root=tmp_path) == []
+    far = _absent_alias_policy(tmp_path, decision_due_on=_future(guard.EXPIRY_WARNING_DAYS + 1))
+    assert guard.alias_deadline_warnings(far) == []
+    assert (
+        guard.alias_deadline_warnings(_absent_alias_policy(tmp_path, decision_due_on=_future(-1)))
+        == []
+    )
+
+
+def test_an_unacknowledged_new_alias_is_still_blocked_regardless_of_any_deadline(tmp_path):
+    """**الأجلُ لا يوسّع الإقرار.** نظيرٌ ثانٍ لم يُقَرّ يبقى حاجباً في مدّته وخارجها.
+
+    الإقرارُ ضيّقٌ بالبناء — يُسمّي النظيرَ بعينه — والأجلُ يُوقِّته ولا يجعله مظلّة.
+    """
+    policy = _absent_alias_policy(tmp_path, decision_due_on=_future(90))
+    (tmp_path / "migrations").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "migrations" / "other").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "migrations" / "other" / "run_migrations.sql").write_text("-- y", encoding="utf-8")
+    errors = guard.alias_escape_errors(policy, root=tmp_path)
+    assert any("نظيراً حيّاً موجود" in e for e in errors), errors
