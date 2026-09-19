@@ -1,0 +1,44 @@
+{
+  "schema": "sahool.gate01_adjudication/v1",
+  "version": 1,
+  "adjudication_id": "GATE01-ADJ-2026-09-19-001",
+  "gate_id": "GATE-01",
+  "status": "ISSUED",
+  "approved_by": "owner",
+  "adjudicated_on": "2026-09-19",
+  "pr": 1033,
+  "one_time": true,
+  "phase0_baseline_ref": {
+    "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
+    "must_match_policy": true
+  },
+  "allowed_paths": [
+    "migrations/MANIFEST.txt"
+  ],
+  "allowed_gap_closures": [
+    "RECONCILIATION-CURSOR-SKIPS-ROWS-THAT-BECOME-ELIGIBLE-01"
+  ],
+  "authorized_patch_sha256": "b64d2de24810ffccff779711b2e200463c420006d25713c2f493bbe5d0ab5edb",
+  "authorized_blobs": {
+    "migrations/MANIFEST.txt": "4a50317f82f00294f608b7c1aea13b8a65ed7018"
+  },
+  "bindings": {
+    "require_patch_digest": true,
+    "require_paths_subset": true,
+    "require_baseline_match": true,
+    "require_exact_head_sha": false,
+    "observed_head_sha_at_issue": "639ec4a87a24f7677e3739acefb3e50d424224cb"
+  },
+  "authorization_source": {
+    "kind": "current_user_instruction",
+    "text_ar": "صُغ التفويض باسمي على السابقة",
+    "context_ar": "جوابٌ صريح على سؤالٍ عرض الخيارات الثلاثة (أصوغه بالنيابة · يكتبه المالك بنفسه · أُعيد تصميم الشريحة بلا هجرة)، بعد أن عُرِض عليه أنّ GATE-01 يحجب تعديل MANIFEST وأنّ التفويضات الأربعة القائمة CONSUMED. ويسبقه اختيارُه الصريح لنموذج «سجلّ تأجيل دائم» في سؤالٍ نصّ على أنّه **يحتاج هجرة**. لا تفويضَ دفعٍ ولا دمجٍ مستنتجٌ هنا."
+  },
+  "scope_limit_ar": "يسجّل v231_soil_reconciliation_deferrals.sql وحدها في MANIFEST.txt قبل هجرة التقوية النهائية v206، فيبقى v206 آخرَ مدخل .sql كما يشترط apply_in_compose.sh وقتَ التشغيل وتسعةُ اختباراتٍ ساكنة. **مسارٌ مأذونٌ واحدٌ لا غير**: لا db_ownership.yml ولا run_migrations.sql ولا أيَّ مسارِ تشغيلٍ فيزيائيّ، ولا تغييرَ لحالة GATE-01 العالميّة.",
+  "provenance_honesty": {
+    "record_authored_by": "agent-for-current-user-instruction",
+    "independently_signed": false,
+    "guard_binds": "bytes_only",
+    "note_ar": "سجلٌّ لطلبٍ صريح في الجلسة، لا توقيعٌ مستقلّ ولا شهادةُ صحّةٍ تشغيليّة. الوكيلُ هو كاتبُ الرقعة وكاتبُ هذا السجلّ معاً، وهذا حدُّ صدقٍ مُعلَن لا خفاء فيه: الحارسُ يربط بالبايتات ولا يُثبِت هويّةَ المُفوِّض. المراجعةُ المستقلّة وقرارُ الدمج خارج هذا السجلّ، والختمُ (CONSUMED) يقع بعد الدمج لا قبله."
+  }
+}
