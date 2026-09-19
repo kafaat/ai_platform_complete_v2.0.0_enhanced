@@ -1,0 +1,123 @@
+name: Gateway patch builder
+on:
+  push:
+    branches: [codex/gateway-patch-builder-20260920]
+permissions:
+  contents: write
+concurrency:
+  group: gateway-patch-builder-20260920
+  cancel-in-progress: false
+jobs:
+  prepare:
+    if: github.repository == 'kafaat/ai_platform_complete_v2.0.0_enhanced'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          path: kit
+          persist-credentials: false
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: a0bba343f5b4464f47f674848088fd8ba599220d
+          fetch-depth: 0
+          path: work
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Verify the patch kit and apply to the exact main tree
+        run: |
+          set -euo pipefail
+          cat kit/.gateway-patch-kit/part*.b64 | base64 -d > "$RUNNER_TEMP/gateway-kit.tar.gz"
+          echo "5f500ef54947b41c72f2c22ba72ebbce0809f346a0c3aa8fbacab7cf323d10b7  $RUNNER_TEMP/gateway-kit.tar.gz" | sha256sum -c -
+          mkdir "$RUNNER_TEMP/gateway-kit"
+          tar -xzf "$RUNNER_TEMP/gateway-kit.tar.gz" -C "$RUNNER_TEMP/gateway-kit"
+          test "$(git -C work rev-parse HEAD)" = a0bba343f5b4464f47f674848088fd8ba599220d
+          python "$RUNNER_TEMP/gateway-kit/apply.py" work
+      - name: Install existing test dependencies and pinned linter
+        working-directory: work
+        run: python -m pip install ruff==0.15.8 -r tests_v9/requirements-test.txt
+      - name: Format only changed Python files and record the source tree
+        working-directory: work
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c codex/gateway-startup-resilience-20260920
+          files=(scripts/ci/nginx_compose_dns_gate.py scripts/ci/v9_feature_transfer_gate.py tests_v9/_nginx_contract.py tests_v9/test_v9_feature_transfer_20260702.py tests_v9/test_service_consumer_closure_20260723.py tests_v9/test_connectivity_tile_transport.py tests_v9/test_compose_nginx_upstream_contract.py nginx/tests/test_gateway_runtime.py)
+          ruff check --fix "${files[@]}"
+          ruff format "${files[@]}"
+          git add -A
+          git diff --cached --check
+          git commit -m 'fix(gateway): decouple cold startup from backend health and refresh DNS'
+      - name: Run both actual nginx DNS and HTTP contracts
+        working-directory: work
+        timeout-minutes: 6
+        run: |
+          python3 frontend/tests/test_nginx_runtime.py --docker
+          python3 nginx/tests/test_gateway_runtime.py --docker
+      - name: Prove the gateway test rejects a reintroduced static DNS binding
+        working-directory: work
+        timeout-minutes: 3
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          source = Path('nginx/nginx.v9.conf').read_text(encoding='utf-8')
+          assert source.count('server sahool-auth:8000 resolve;') == 1
+          Path(os.environ['RUNNER_TEMP'], 'gateway-mutant.conf').write_text(source.replace('server sahool-auth:8000 resolve;', 'server sahool-auth:8000;', 1), encoding='utf-8')
+          PY
+          if python3 nginx/tests/test_gateway_runtime.py --docker --config "$RUNNER_TEMP/gateway-mutant.conf" > "$RUNNER_TEMP/gateway-mutant.log" 2>&1; then
+            cat "$RUNNER_TEMP/gateway-mutant.log"
+            echo 'ERROR: static DNS defect survived the runtime test'
+            exit 1
+          fi
+          grep -F 'host not found in upstream' "$RUNNER_TEMP/gateway-mutant.log"
+          echo 'Static DNS mutation killed for the expected reason'
+      - name: Run targeted contracts and existing gateway guards
+        working-directory: work
+        run: |
+          python -m pytest -q tests_v9/test_compose_nginx_upstream_contract.py tests_v9/test_v9_feature_transfer_20260702.py tests_v9/test_service_consumer_closure_20260723.py tests_v9/test_connectivity_tile_transport.py tests_v9/test_gateway_operational_endpoints_contract.py
+          python scripts/ci/nginx_compose_dns_gate.py
+          python scripts/ci/v9_feature_transfer_gate.py
+      - name: Regenerate the canonical inventories and release package
+        working-directory: work
+        timeout-minutes: 18
+        run: |
+          set -euo pipefail
+          git add -A
+          python scripts/ci/verify_all_generated.py --fix
+          git add -A
+          SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct) python scripts/release/build_release_bundle.py
+          python scripts/release/validate_release_package.py
+          git add -A
+      - name: Preflight the final content before publishing
+        working-directory: work
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          python scripts/ci/verify_all_generated.py --check
+          bash scripts/ci/preflight.sh --fast --no-fetch
+          git diff --check
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m 'build: regenerate gateway topology and release provenance'
+          fi
+          python scripts/ci/verify_all_generated.py --check
+          git diff --exit-code
+          git status --short
+      - name: Push only the verified branch, never main or the builder files
+        working-directory: work
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          test "$(git rev-parse origin/main)" = a0bba343f5b4464f47f674848088fd8ba599220d
+          test -z "$(git ls-files .gateway-patch-kit .github/workflows/gateway-patch-builder.yml)"
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/codex/gateway-startup-resilience-20260920
+          git log -2 --format='%H %s'
+          git diff --stat origin/main...HEAD
