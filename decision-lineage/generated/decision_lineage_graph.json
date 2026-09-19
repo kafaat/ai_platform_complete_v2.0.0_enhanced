@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 595,
+      "evidence_count": 597,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -184,10 +184,12 @@
         "services/model-registry-adapter/tests/test_runtime_contract.py",
         "services/qdrant-seed/seed.py",
         "services/rag-retrieval/main.py",
+        "services/raster-service/db_persist.py",
         "services/raster-service/dem_quality.py",
         "services/raster-service/imagery_source_gate.py",
         "services/raster-service/layer_lookup.py",
         "services/raster-service/main.py",
+        "services/raster-service/raster_indicator_product.py",
         "services/raster-service/raster_processing_runtime.py",
         "services/raster-service/routers/fields.py",
         "services/raster-service/routers/timeseries_routes.py",
@@ -639,7 +641,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 500,
+      "evidence_count": 501,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -865,6 +867,7 @@
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/gis_cloud_native.py",
         "services/sahool-platform/api/routers/gis_kernel.py",
+        "services/sahool-platform/api/routers/internal_service.py",
         "services/sahool-platform/api/routers/introduction.py",
         "services/sahool-platform/api/routers/irrigation_engineering.py",
         "services/sahool-platform/api/routers/irrigation_mpc.py",
@@ -1364,7 +1367,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 258,
+      "evidence_count": 260,
       "owners": [
         "ai_agronomist",
         "auth",
@@ -1409,6 +1412,7 @@
         "migrations/v9_foundation.sql",
         "migrations/v_ai_recommendation_runtime.sql",
         "services/ai_agronomist/advisory_contract.py",
+        "services/ai_agronomist/ai_evidence_runtime.py",
         "services/ai_agronomist/field_boundary_backends.py",
         "services/ai_agronomist/guardrail_events.py",
         "services/ai_agronomist/human_review_repository.py",
@@ -1509,6 +1513,7 @@
         "services/sahool-platform/api/routers/field_single.py",
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/gis_cloud_native.py",
+        "services/sahool-platform/api/routers/internal_service.py",
         "services/sahool-platform/api/routers/irrigation_engineering.py",
         "services/sahool-platform/api/routers/irrigation_mpc.py",
         "services/sahool-platform/api/routers/irrigation_recommendation.py",
@@ -2442,16 +2447,16 @@
         "services/sahool-platform/api/routers/field_ai_context.py",
         "services/sahool-platform/api/routers/field_intelligence.py",
         "services/sahool-platform/api/routers/fields.py",
+        "services/sahool-platform/api/routers/internal_service.py",
         "services/sahool-platform/api/routers/irrigation_recommendation.py",
         "services/sahool-platform/api/routers/learning_summary.py",
         "services/sahool-platform/api/routers/prescriptions.py",
         "services/sahool-platform/api/routers/recommendations.py",
         "services/sahool-platform/api/routers/seasons.py",
-        "services/sahool-platform/api/routers/weather.py",
-        "services/sahool-platform/api/temporal_arbitration.py"
+        "services/sahool-platform/api/routers/weather.py"
       ],
-      "source_evidence_count": 595,
-      "target_evidence_count": 500,
+      "source_evidence_count": 597,
+      "target_evidence_count": 501,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2559,7 +2564,7 @@
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py"
       ],
-      "source_evidence_count": 500,
+      "source_evidence_count": 501,
       "target_evidence_count": 172,
       "static_supported": true,
       "runtime_verified": false
@@ -2632,7 +2637,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 172,
-      "target_evidence_count": 258,
+      "target_evidence_count": 260,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2663,7 +2668,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 258,
+      "source_evidence_count": 260,
       "target_evidence_count": 32,
       "static_supported": true,
       "runtime_verified": false
@@ -2822,5 +2827,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "4721eaa03086cc4a2144e0ba8c5871a5f13afe320a1254551a47da42d71d93a0"
+  "content_sha256": "298839f0bd7c4356e1af05f5871100ef90a911e0d7470362b6548d8c0ef7970b"
 }

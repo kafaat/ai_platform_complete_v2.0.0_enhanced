@@ -23,7 +23,7 @@ async def healthz():
 
 
 @router.get("/readyz")
-async def readyz():
+async def readyz(http_response: Response):
     # في real-only الإنتاجيّ تصبح جاهزيّة raster-service شرطاً صلباً (السلطة الوحيدة
     # للمشاهدات)؛ خارج الإنتاج تبقى اختياريّة كما كانت — بلا تبعيّة صلبة.
     real_only = bool(main.VEGETATION_REAL_ONLY)
@@ -39,12 +39,15 @@ async def readyz():
             raster_detail = f"unavailable:{type(exc).__name__}"
     else:
         raster_ok = True
-    ready = raster_ok
+    router_failures = getattr(main.app.state, "router_import_failures", {})
+    ready = raster_ok and not router_failures
+    http_response.status_code = 200 if ready else 503
     return {
         "status": "ready" if ready else "not_ready",
         "service": "vegetation-analysis-service",
         "ready": ready,
         "implemented_runtime": True,
+        "router_import_failures": router_failures,
         "runtime_mode": "authoritative-raster-only" if real_only else "development-compatible",
         "dependencies": {
             "platform_api": "optional",

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+from _nginx_contract import expand_upstream_targets
 
 pytestmark = pytest.mark.unit
 
@@ -11,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 # These guards read nginx (where the contract actually lives) so the raster proxy
 # contract stays guarded: tenant injection + correct service + token forwarding.
 NGINX = (ROOT / "nginx/nginx.v9.conf").read_text(encoding="utf-8")
-FRONTEND_NGINX = (ROOT / "frontend/nginx.conf").read_text(encoding="utf-8")
+FRONTEND_NGINX = expand_upstream_targets((ROOT / "frontend/nginx.conf").read_text(encoding="utf-8"))
 COMPOSE = (ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8")
 REQ = (ROOT / "services/raster-service/requirements.txt").read_text(encoding="utf-8")
 

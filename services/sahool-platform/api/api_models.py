@@ -653,6 +653,7 @@ class InternalAIAdviceEventRequest(BaseModel):
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     selected_imagery_date: str | None = None
     endpoint_mode: str = "chat"
+    model_output: str | None = Field(default=None, max_length=32768)
 
 
 class ImageryFieldRegister(BaseModel):

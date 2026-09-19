@@ -1,13 +1,15 @@
 from pathlib import Path
 
 import pytest
+from _nginx_contract import expand_upstream_targets
 
 pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def _text(path: str) -> str:
-    return (ROOT / path).read_text(encoding="utf-8")
+    conf = (ROOT / path).read_text(encoding="utf-8")
+    return expand_upstream_targets(conf) if path == "frontend/nginx.conf" else conf
 
 
 def test_frontend_gateway_exact_operational_routes_precede_spa() -> None:

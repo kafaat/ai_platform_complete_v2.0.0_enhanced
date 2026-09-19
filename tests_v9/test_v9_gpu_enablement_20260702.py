@@ -91,7 +91,29 @@ def test_static_gpu_contract_gate_runs():
         [sys.executable, "scripts/ci/v9_gpu_contract_gate.py"],
         cwd=ROOT,
         text=True,
+        encoding="utf-8",
         capture_output=True,
     )
     assert p.returncode == 0, p.stdout + p.stderr
     assert "PASS" in p.stdout
+
+
+def test_sample_environment_preserves_sam2_build_and_predict_defaults():
+    sample = dict(
+        line.split("=", 1)
+        for line in (ROOT / ".env.example").read_text(encoding="utf-8").splitlines()
+        if line.startswith(("PYTORCH_CUDA_IMAGE=", "SEGMENTATION_INFERENCE_URL="))
+    )
+    dockerfile = (ROOT / "services/sam2-inference/Dockerfile").read_text(encoding="utf-8")
+    image = next(
+        line.split("=", 1)[1]
+        for line in dockerfile.splitlines()
+        if line.startswith("ARG PYTORCH_CUDA_IMAGE=")
+    )
+    overlay = load("docker-compose.v9.gpu.yml")["services"]["sahool-sam2-inference"]
+    assert overlay["build"]["args"]["PYTORCH_CUDA_IMAGE"] == f"${{PYTORCH_CUDA_IMAGE:-{image}}}"
+    assert sample["PYTORCH_CUDA_IMAGE"] == image
+    service = load("docker-compose.v9.yml")["services"]["sahool-field-segmentation"]
+    assert env(service)["SEGMENTATION_INFERENCE_URL"] == (
+        "${SEGMENTATION_INFERENCE_URL:-" + sample["SEGMENTATION_INFERENCE_URL"] + "}"
+    )

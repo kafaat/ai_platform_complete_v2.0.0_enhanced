@@ -100,3 +100,20 @@ def test_recovered_variables_are_present_in_the_generated_contract(
     assert var in entry[bucket], (
         f"{var} غائب عن {bucket} في عقد {service}؛ عودة الغياب تعني عودة العمى نفسه."
     )
+
+
+def test_service_scan_does_not_turn_response_keys_into_probe_routes(tmp_path, monkeypatch):
+    service = tmp_path / "services" / "fixture"
+    service.mkdir(parents=True)
+    (service / "main.py").write_text(
+        '@app.get("/readyz")\n'
+        "def ready():\n"
+        '    return state.get("ready")\n'
+        'health = state.get("health")\n'
+        'metrics = state.get("metrics")\n'
+        'upstream = client.get("http://upstream/readyz")\n',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(generator, "ROOT", tmp_path)
+    contract = generator.scan_service({"service": "fixture", "main": "services/fixture/main.py"})
+    assert contract["endpoints"] == {"health": [], "readiness": ["/readyz"], "metrics": []}

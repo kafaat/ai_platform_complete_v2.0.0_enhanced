@@ -122,7 +122,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 113,
+    "line": 131,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -130,7 +130,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 118,
+    "line": 136,
     "method": "GET",
     "path": "/healthz/ai-provider",
     "function": "ai_provider_snapshot"
@@ -138,7 +138,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 126,
+    "line": 144,
     "method": "GET",
     "path": "/v1/approvals/pending",
     "function": "list_pending_approvals"
@@ -146,7 +146,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 146,
+    "line": 164,
     "method": "POST",
     "path": "/v1/approvals/approve",
     "function": "approve_tool_request"
@@ -154,7 +154,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 198,
+    "line": 216,
     "method": "POST",
     "path": "/v1/approvals/deny",
     "function": "deny_tool_request"
@@ -162,7 +162,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 244,
+    "line": 262,
     "method": "POST",
     "path": "/v1/approvals/resume",
     "function": "resume_approved_tool"
@@ -170,7 +170,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 288,
+    "line": 306,
     "method": "POST",
     "path": "/v1/prescription/export-preview",
     "function": "prescription_export_preview"
@@ -178,7 +178,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 304,
+    "line": 322,
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
@@ -186,7 +186,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 323,
+    "line": 341,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -194,7 +194,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 360,
+    "line": 383,
     "method": "POST",
     "path": "/v1/query",
     "function": "query"
@@ -202,7 +202,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 371,
+    "line": 394,
     "method": "POST",
     "path": "/v1/chat",
     "function": "chat"
@@ -210,7 +210,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 382,
+    "line": 405,
     "method": "POST",
     "path": "/v1/explain",
     "function": "explain"
@@ -218,7 +218,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 393,
+    "line": 416,
     "method": "POST",
     "path": "/v1/recommend",
     "function": "recommend"
@@ -1130,7 +1130,7 @@
   {
     "service": "field-segmentation",
     "file": "services/field-segmentation/main.py",
-    "line": 371,
+    "line": 372,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -1138,7 +1138,7 @@
   {
     "service": "field-segmentation",
     "file": "services/field-segmentation/main.py",
-    "line": 376,
+    "line": 377,
     "method": "GET",
     "path": "/health",
     "function": "legacy_health"
@@ -1146,7 +1146,7 @@
   {
     "service": "field-segmentation",
     "file": "services/field-segmentation/main.py",
-    "line": 381,
+    "line": 382,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -1154,7 +1154,7 @@
   {
     "service": "field-segmentation",
     "file": "services/field-segmentation/main.py",
-    "line": 392,
+    "line": 428,
     "method": "POST",
     "path": "/v1/segment",
     "function": "segment"
@@ -1922,7 +1922,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 92,
+    "line": 93,
     "method": "GET",
     "path": "/v1/gis/admin-boundaries",
     "function": "gis_admin_boundaries"
@@ -1930,7 +1930,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 141,
+    "line": 142,
     "method": "POST",
     "path": "/v1/fields/{field_id}/process-from-stac",
     "function": "process_from_stac"
@@ -1938,7 +1938,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 226,
+    "line": 227,
     "method": "POST",
     "path": "/v1/fields/{field_id}/imagery/backfill",
     "function": "field_historical_backfill"
@@ -1946,7 +1946,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 608,
+    "line": 609,
     "method": "GET",
     "path": "/v1/fields/{field_id}/imagery/backfill/{run_id}",
     "function": "field_backfill_run_status"
@@ -1954,7 +1954,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 626,
+    "line": 627,
     "method": "POST",
     "path": "/v1/fields/{field_id}/imagery/process-date",
     "function": "field_process_date"
@@ -1962,7 +1962,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 695,
+    "line": 696,
     "method": "POST",
     "path": "/v1/fields/{field_id}/geometry/versions",
     "function": "create_field_geometry_version"
@@ -1970,7 +1970,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 724,
+    "line": 725,
     "method": "POST",
     "path": "/v1/fields/analytics/geoparquet/export",
     "function": "export_field_analytics_geoparquet"
@@ -1978,7 +1978,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 776,
+    "line": 777,
     "method": "POST",
     "path": "/v1/fields/{field_id}/process-cdse",
     "function": "process_cdse"
@@ -1986,7 +1986,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 844,
+    "line": 845,
     "method": "GET",
     "path": "/v1/fields/{field_id}/indicator-grid",
     "function": "field_indicator_grid"
@@ -1994,7 +1994,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 882,
+    "line": 883,
     "method": "GET",
     "path": "/v1/fields/{field_id}/indicator-observation-bundle",
     "function": "field_indicator_observation_bundle"
@@ -8602,7 +8602,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/health.py",
-    "line": 58,
+    "line": 61,
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"

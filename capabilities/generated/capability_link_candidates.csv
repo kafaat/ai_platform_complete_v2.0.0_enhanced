@@ -83,7 +83,7 @@ DEC-003,api,POST /api/v1/learning/activation-requests/{activation_request_id}/re
 DEC-003,api,POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:633,2,applied
 DEC-003,api,POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:684,2,applied
 DEC-003,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:523,2,applied
-DEC-003,api,POST /v1/approvals/approve @ services/ai_agronomist/main.py:146,2,applied
+DEC-003,api,POST /v1/approvals/approve @ services/ai_agronomist/main.py:164,2,applied
 DEC-003,api,POST /v1/approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:42,2,applied
 DEC-003,api,POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:721,3,applied
 DEC-003,api,POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2143,3,applied
@@ -456,24 +456,24 @@ FM-003,api,GET /api/v1/weather/field-weather-summary @ services/sahool-platform/
 FM-003,api,GET /api/vegetation/v1/all_fields @ services/sahool-platform/api/routers/compat_gateway.py:53,2,applied
 FM-003,api,GET /contract @ services/field-management-service/main.py:232,3,applied
 FM-003,api,GET /health @ services/field-management-service/main.py:214,3,applied
-FM-003,api,GET /health @ services/field-segmentation/main.py:376,2,applied
+FM-003,api,GET /health @ services/field-segmentation/main.py:377,2,applied
 FM-003,api,GET /healthz @ services/field-management-service/main.py:209,3,applied
-FM-003,api,GET /healthz @ services/field-segmentation/main.py:371,2,applied
+FM-003,api,GET /healthz @ services/field-segmentation/main.py:372,2,applied
 FM-003,api,GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:393,2,applied
 FM-003,api,GET /internal/fields @ services/field-management-service/main.py:292,5,applied
 FM-003,api,GET /internal/fields/{field_id} @ services/field-management-service/main.py:260,5,applied
 FM-003,api,GET /internal/fields/{field_id}/state @ services/sahool-platform/api/routers/internal_service.py:52,4,applied
 FM-003,api,GET /readyz @ services/field-management-service/main.py:219,3,applied
-FM-003,api,GET /readyz @ services/field-segmentation/main.py:381,2,applied
+FM-003,api,GET /readyz @ services/field-segmentation/main.py:382,2,applied
 FM-003,api,GET /v1/all_fields @ services/vegetation-analysis-service/routers/analysis.py:145,2,applied
 FM-003,api,GET /v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1351,4,applied
 FM-003,api,GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:191,4,applied
 FM-003,api,GET /v1/fields/{field_id}/cdse-tilejson @ services/raster-service/routers/cdse_tiles.py:255,4,applied
 FM-003,api,GET /v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png @ services/raster-service/routers/cdse_tiles.py:116,4,applied
 FM-003,api,GET /v1/fields/{field_id}/contours.geojson @ services/raster-service/routers/terrain_tiles.py:156,4,applied
-FM-003,api,GET /v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:608,4,applied
-FM-003,api,GET /v1/fields/{field_id}/indicator-grid @ services/raster-service/routers/fields.py:844,4,applied
-FM-003,api,GET /v1/fields/{field_id}/indicator-observation-bundle @ services/raster-service/routers/fields.py:882,4,applied
+FM-003,api,GET /v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:609,4,applied
+FM-003,api,GET /v1/fields/{field_id}/indicator-grid @ services/raster-service/routers/fields.py:845,4,applied
+FM-003,api,GET /v1/fields/{field_id}/indicator-observation-bundle @ services/raster-service/routers/fields.py:883,4,applied
 FM-003,api,GET /v1/fields/{field_id}/lineage @ services/decision-service/main.py:1055,4,applied
 FM-003,api,GET /v1/fields/{field_id}/observation-timeline @ services/indicators-service/main.py:207,4,applied
 FM-003,api,GET /v1/fields/{field_id}/observations @ services/indicators-service/main.py:176,4,applied
@@ -503,7 +503,7 @@ FM-003,api,GET /v1/fields/{field_id}/terrain @ services/raster-service/routers/f
 FM-003,api,GET /v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1615,4,applied
 FM-003,api,GET /v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1277,4,applied
 FM-003,api,GET /v1/fields/{field_id}/timeseries @ services/raster-service/routers/fields.py:1186,4,applied
-FM-003,api,GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:92,2,applied
+FM-003,api,GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:93,2,applied
 FM-003,api,GET /v1/indices @ services/raster-service/routers/observability.py:281,2,applied
 FM-003,api,GET /v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2390,2,applied
 FM-003,api,GET /v1/ndvi/current/{field_id} @ services/vegetation-analysis-service/routers/analysis.py:91,2,applied
@@ -574,16 +574,16 @@ FM-003,api,POST /internal/field-forms/definitions/{code}/versions @ services/sco
 FM-003,api,POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:465,2,applied
 FM-003,api,POST /internal/field-forms/versions/{version_id}/publish @ services/scout-ingest-service/field_forms_api.py:278,2,applied
 FM-003,api,POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:327,2,applied
-FM-003,api,POST /v1/fields/analytics/geoparquet/export @ services/raster-service/routers/fields.py:724,4,applied
+FM-003,api,POST /v1/fields/analytics/geoparquet/export @ services/raster-service/routers/fields.py:725,4,applied
 FM-003,api,POST /v1/fields/{field_id}/baseline-comparisons @ services/vegetation-analysis-service/routers/baselines.py:30,4,applied
 FM-003,api,POST /v1/fields/{field_id}/change @ services/raster-service/routers/fields.py:1129,4,applied
-FM-003,api,POST /v1/fields/{field_id}/geometry/versions @ services/raster-service/routers/fields.py:695,4,applied
-FM-003,api,POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:226,4,applied
-FM-003,api,POST /v1/fields/{field_id}/imagery/process-date @ services/raster-service/routers/fields.py:626,4,applied
+FM-003,api,POST /v1/fields/{field_id}/geometry/versions @ services/raster-service/routers/fields.py:696,4,applied
+FM-003,api,POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:227,4,applied
+FM-003,api,POST /v1/fields/{field_id}/imagery/process-date @ services/raster-service/routers/fields.py:627,4,applied
 FM-003,api,POST /v1/fields/{field_id}/post-execution-observations @ services/vegetation-analysis-service/routers/outcomes.py:45,4,applied
 FM-003,api,POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1050,4,applied
-FM-003,api,POST /v1/fields/{field_id}/process-cdse @ services/raster-service/routers/fields.py:776,4,applied
-FM-003,api,POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:141,4,applied
+FM-003,api,POST /v1/fields/{field_id}/process-cdse @ services/raster-service/routers/fields.py:777,4,applied
+FM-003,api,POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:142,4,applied
 FM-003,api,POST /v1/fields/{field_id}/signal-anomalies/detect @ services/vegetation-analysis-service/routers/anomalies.py:66,4,applied
 FM-003,api,POST /v1/fields/{field_id}/soil/actions/{action_type}/evaluate @ services/soil-service/routers/p4_workflow.py:38,4,applied
 FM-003,api,POST /v1/fields/{field_id}/soil/analog-estimate @ services/soil-service/routers/p3_products.py:76,4,applied
@@ -619,7 +619,7 @@ FM-003,api,POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ ser
 FM-003,api,POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2353,2,applied
 FM-003,api,POST /v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2655,2,applied
 FM-003,api,POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2744,2,applied
-FM-003,api,POST /v1/segment @ services/field-segmentation/main.py:392,2,applied
+FM-003,api,POST /v1/segment @ services/field-segmentation/main.py:428,2,applied
 FM-003,api,PUT /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1237,4,applied
 FM-003,mobile,mobile/sahool_app/lib/features/field_forms/contract/condition_v1.dart,2,applied
 FM-003,mobile,mobile/sahool_app/lib/features/field_forms/contract/form_schema.dart,2,applied
@@ -969,7 +969,7 @@ GIS-001,api,POST /api/v1/learning/activation-requests/{activation_request_id}/re
 GIS-001,api,POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:633,2,applied
 GIS-001,api,POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:684,2,applied
 GIS-001,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:523,2,applied
-GIS-001,api,POST /v1/fields/{field_id}/geometry/versions @ services/raster-service/routers/fields.py:695,2,applied
+GIS-001,api,POST /v1/fields/{field_id}/geometry/versions @ services/raster-service/routers/fields.py:696,2,applied
 GIS-001,api,POST /v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2193,2,applied
 GIS-001,api,POST /v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2234,2,applied
 GIS-001,api,POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2280,2,applied
@@ -1334,7 +1334,7 @@ PA-002,api,GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export 
 PA-002,api,POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:216,2,applied
 PA-002,api,POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:735,2,applied
 PA-002,api,POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1050,2,applied
-PA-002,api,POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:288,2,applied
+PA-002,api,POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:306,2,applied
 PA-002,service,services/vegetation-analysis-service/main.py,10,applied
 PA-002,test,tests_v9/test_canonical_vri_prescription.py,3,applied
 PA-002,test,tests_v9/test_fii_prescription_season_context_guard.py,3,applied
@@ -1374,8 +1374,8 @@ SAT-001,api,POST /v1/activation/satellite_cdse/begin @ services/decision-service
 SAT-001,api,POST /v1/activation/satellite_cdse/complete @ services/decision-service/main.py:1657,4,applied
 SAT-001,api,POST /v1/activation/satellite_cdse/reset @ services/decision-service/main.py:1691,4,applied
 SAT-001,api,POST /v1/activation/satellite_cdse/revoke @ services/decision-service/main.py:1676,4,applied
-SAT-001,api,POST /v1/fields/{field_id}/process-cdse @ services/raster-service/routers/fields.py:776,3,applied
-SAT-001,api,POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:141,3,applied
+SAT-001,api,POST /v1/fields/{field_id}/process-cdse @ services/raster-service/routers/fields.py:777,3,applied
+SAT-001,api,POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:142,3,applied
 SAT-001,api,POST /v1/scenes/quality-score @ services/raster-service/routers/imagery.py:114,3,applied
 SAT-001,api,POST /v1/stac/mosaicjson @ services/raster-service/routers/stac.py:33,3,applied
 SAT-001,mobile,mobile/sahool_app/lib/screens/satellite_screen.dart,2,applied
@@ -1475,14 +1475,14 @@ SAT-006,api,GET /api/v1/weather/historical @ services/sahool-platform/api/router
 SAT-006,api,GET /api/v1/weather/history/coverage @ services/sahool-platform/api/routers/operational_truth.py:203,2,applied
 SAT-006,api,GET /api/v1/weather/history/records @ services/sahool-platform/api/routers/operational_truth.py:172,2,applied
 SAT-006,api,GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:191,3,applied
-SAT-006,api,GET /v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:608,3,applied
+SAT-006,api,GET /v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:609,3,applied
 SAT-006,api,GET /v1/fields/{field_id}/observation-timeline @ services/indicators-service/main.py:207,2,applied
 SAT-006,api,GET /v1/imagery/backfill/policy @ services/raster-service/routers/imagery.py:22,5,applied
 SAT-006,api,GET /v1/weather/historical @ services/weather-service/main.py:32,2,applied
 SAT-006,api,POST /api/v1/fields/{field_id}/imagery/backfill @ services/sahool-platform/api/routers/fields.py:926,2,applied
 SAT-006,api,POST /api/v1/fields/{field_id}/timeline @ services/sahool-platform/api/routers/fields.py:3717,2,applied
 SAT-006,api,POST /api/v1/weather/history/records @ services/sahool-platform/api/routers/operational_truth.py:96,2,applied
-SAT-006,api,POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:226,5,applied
+SAT-006,api,POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:227,5,applied
 SAT-006,service,services/raster-service/main.py,10,applied
 SAT-006,test,services/indicators-service/tests/test_observation_timeline.py,3,applied
 SAT-006,test,services/raster-service/test_backfill_incremental_retry_guard.py,3,applied
@@ -1555,9 +1555,9 @@ SAT-009,api,GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-servi
 SAT-009,api,GET /v1/fields/{field_id}/cdse-tilejson @ services/raster-service/routers/cdse_tiles.py:255,5,applied
 SAT-009,api,GET /v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png @ services/raster-service/routers/cdse_tiles.py:116,5,applied
 SAT-009,api,GET /v1/fields/{field_id}/contours.geojson @ services/raster-service/routers/terrain_tiles.py:156,3,applied
-SAT-009,api,GET /v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:608,3,applied
-SAT-009,api,GET /v1/fields/{field_id}/indicator-grid @ services/raster-service/routers/fields.py:844,3,applied
-SAT-009,api,GET /v1/fields/{field_id}/indicator-observation-bundle @ services/raster-service/routers/fields.py:882,3,applied
+SAT-009,api,GET /v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:609,3,applied
+SAT-009,api,GET /v1/fields/{field_id}/indicator-grid @ services/raster-service/routers/fields.py:845,3,applied
+SAT-009,api,GET /v1/fields/{field_id}/indicator-observation-bundle @ services/raster-service/routers/fields.py:883,3,applied
 SAT-009,api,GET /v1/fields/{field_id}/pixel @ services/raster-service/routers/fields.py:971,3,applied
 SAT-009,api,GET /v1/fields/{field_id}/soil/sampling-plan @ services/raster-service/routers/soil_tiles.py:193,3,applied
 SAT-009,api,GET /v1/fields/{field_id}/soil/sampling-zones.geojson @ services/raster-service/routers/soil_tiles.py:166,3,applied
@@ -1566,7 +1566,7 @@ SAT-009,api,GET /v1/fields/{field_id}/terrain @ services/raster-service/routers/
 SAT-009,api,GET /v1/fields/{field_id}/tilejson @ services/raster-service/routers/fields.py:1615,5,applied
 SAT-009,api,GET /v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ services/raster-service/routers/fields.py:1277,5,applied
 SAT-009,api,GET /v1/fields/{field_id}/timeseries @ services/raster-service/routers/fields.py:1186,3,applied
-SAT-009,api,GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:92,3,applied
+SAT-009,api,GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:93,3,applied
 SAT-009,api,GET /v1/imagery/backfill/policy @ services/raster-service/routers/imagery.py:22,3,applied
 SAT-009,api,GET /v1/imagery/best @ services/raster-service/routers/imagery_search.py:65,3,applied
 SAT-009,api,GET /v1/imagery/dem @ services/raster-service/routers/imagery_search.py:186,3,applied
@@ -1605,14 +1605,14 @@ SAT-009,api,POST /api/v1/gis/cloud-native/cog-registry @ services/sahool-platfor
 SAT-009,api,POST /api/v1/weather/tile-cache/prune @ services/sahool-platform/api/routers/weather.py:2355,2,applied
 SAT-009,api,POST /v1/change/detect @ services/raster-service/routers/analysis.py:48,3,applied
 SAT-009,api,POST /v1/cog/registry/preview @ services/raster-service/routers/imagery.py:130,5,applied
-SAT-009,api,POST /v1/fields/analytics/geoparquet/export @ services/raster-service/routers/fields.py:724,3,applied
+SAT-009,api,POST /v1/fields/analytics/geoparquet/export @ services/raster-service/routers/fields.py:725,3,applied
 SAT-009,api,POST /v1/fields/{field_id}/change @ services/raster-service/routers/fields.py:1129,3,applied
-SAT-009,api,POST /v1/fields/{field_id}/geometry/versions @ services/raster-service/routers/fields.py:695,3,applied
-SAT-009,api,POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:226,3,applied
-SAT-009,api,POST /v1/fields/{field_id}/imagery/process-date @ services/raster-service/routers/fields.py:626,3,applied
+SAT-009,api,POST /v1/fields/{field_id}/geometry/versions @ services/raster-service/routers/fields.py:696,3,applied
+SAT-009,api,POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:227,3,applied
+SAT-009,api,POST /v1/fields/{field_id}/imagery/process-date @ services/raster-service/routers/fields.py:627,3,applied
 SAT-009,api,POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1050,3,applied
-SAT-009,api,POST /v1/fields/{field_id}/process-cdse @ services/raster-service/routers/fields.py:776,3,applied
-SAT-009,api,POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:141,3,applied
+SAT-009,api,POST /v1/fields/{field_id}/process-cdse @ services/raster-service/routers/fields.py:777,3,applied
+SAT-009,api,POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:142,3,applied
 SAT-009,api,POST /v1/fvc/compute @ services/raster-service/routers/analysis.py:85,3,applied
 SAT-009,api,POST /v1/imagery/mosaic/plan @ services/raster-service/routers/imagery.py:91,3,applied
 SAT-009,api,POST /v1/imagery/scenes/rank @ services/raster-service/routers/imagery.py:78,3,applied
@@ -1754,6 +1754,7 @@ SAT-009,test,tests_v9/test_raster_worker_heartbeat_guard_v21.py,3,applied
 SAT-009,test,tests_v9/test_tile_auth_cookie_guard.py,3,applied
 SAT-009,test,tests_v9/test_tile_mask_fail_closed_v29_8.py,3,applied
 SAT-009,test,tests_v9/test_tilejson_nginx_runtime_fix_20260626.py,3,applied
+SAT-009,test,tests_v9/test_v25_seed_and_raster_quality.py,3,applied
 SAT-009,test,tests_v9/test_vegetation_raster_ndvi.py,3,applied
 SEC-001,service,services/field-management-service/main.py,10,applied
 SEC-001,test,scripts_v9/test_tenant_isolation.sql,3,applied
