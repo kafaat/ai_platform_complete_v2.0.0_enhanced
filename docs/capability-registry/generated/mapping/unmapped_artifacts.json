@@ -6552,6 +6552,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/deploy/test_railway_frontend_config.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/deploy/test_railway_migration_runner.py",
     "kind": "tests"
   },
