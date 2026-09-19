@@ -127,6 +127,7 @@
     "scripts/ci/fii_rls_write_policy_gate.py::ci.yml::security-scan": "legacy_blocking",
     "scripts/ci/frontend_lint_debt_guard.py::ci.yml::frontend-typecheck": "legacy_blocking",
     "scripts/ci/functional_probe_runner.py::capability-governance.yml::capability-registry": "legacy_blocking",
+    "scripts/ci/gap_heading_state_guard.py::no-report-only-change.yml::no-report-only-change": "declared_2026_09_19_gap_heading_state",
     "scripts/ci/gate01_frozen_path_guard.py::no-report-only-change.yml::gate01-physical-effect-freeze": "legacy_blocking",
     "scripts/ci/gateway_reachability_guard.py::capability-governance.yml::capability-registry": "legacy_blocking",
     "scripts/ci/generate_indicator_artifacts.py::ci.yml::structural-lint": "legacy_blocking",
