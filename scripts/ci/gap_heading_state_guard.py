@@ -69,7 +69,7 @@ def evaluate(measured: int, baseline: int, orphans: list[dict]) -> list[str]:
         f"عناوينُ فجواتٍ بلا سجلِّ حالة: {measured} > الأساس {baseline} (+{added}). "
         "عنوانٌ بلا سطر حالةٍ قانونيّ **لا يظهر في أيّ عدٍّ يُقرأ** — لا `open` ولا "
         "`unclassified` — والقياسُ يبقى أخضر. أضِف تحته "
-        "`- **الحالة:** open — …` (‏`open`/`fixed`/`verified` حصراً؛ «مفتوحة» في "
+        "`- **الحالة:** open — …` (`open`/`fixed`/`verified` حصراً؛ «مفتوحة» في "
         f"العنوان لا تُقرأ). من اليتامى: {names}."
     ]
 

@@ -7496,6 +7496,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_gap_heading_state_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_gap_landing_claims_name_a_real_commit.py",
     "kind": "tests"
   },
