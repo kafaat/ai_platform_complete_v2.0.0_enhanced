@@ -17,6 +17,8 @@
 from __future__ import annotations
 
 import importlib.util
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -203,7 +205,44 @@ def test_unannotated_duplicate_headings_stay_out_of_scope():
     assert run(text) == []
 
 
-# ── ③ الشجرةُ الحيّة ─────────────────────────────────────────────────────────
+# ── ③ الوظيفةُ التي يعمل فيها لا تُثبِّت تبعيّةً واحدة ────────────────────────
+
+
+def test_the_guard_runs_where_its_job_runs_without_any_dependency(tmp_path):
+    """`GUARD-IMPORTS-A-DEPENDENCY-ITS-JOB-NEVER-INSTALLS-01` — مُعادُ إنتاجُه.
+
+    أوّلُ نسخةٍ من هذا الحارس استوردت `guard_catalogue` لأنّه «القارئُ القائم»، وهو
+    مبدأٌ صحيحٌ وكان **خاطئاً بالقياس**: ذلك الملفّ يستورد `PyYAML`، ووظيفةُ
+    `no-report-only-change` لا تُثبِّت تبعيّةً واحدة. فسقط بـ`ModuleNotFoundError`
+    في أوّل تشغيلٍ على CI بينما مرّ `preflight --fast` أخضرَ — لأنّ `PyYAML`
+    مُثبَّتةٌ في بيئتي. **أخضرُ قِيس في كونٍ غيرِ المنشور.**
+
+    والقياسُ هنا لا يقرأ الاستيرادات نصّاً: يُشغّل الحارسَ في عمليّةٍ فرعيّةٍ
+    و`yaml` فيها **يرمي عند الاستيراد** — فلو عاد أيُّ مسارٍ يستورده، حُمِّر.
+    """
+    (tmp_path / "yaml.py").write_text(
+        "raise ModuleNotFoundError(\"No module named 'yaml'\")\n", encoding="utf-8"
+    )
+    env = {"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "PYTHONPATH": str(tmp_path)}
+    result = subprocess.run(
+        [sys.executable, str(GUARD_PATH)], capture_output=True, text=True, env=env, cwd=ROOT
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "brain_annotated_supersession_guard_ok" in result.stdout
+
+
+def test_the_dependency_free_reader_never_narrows_the_yaml_one(tmp_path):
+    """الحدُّ ضاق بصدق («مذكور» لا «مُستدعًى») — ولا يجوز أن يضيق عن القديم.
+
+    قارئٌ أضيقُ من سابقه يرفض حارساً موصولاً بحقّ ⇒ **رفضٌ كاذبٌ لإغلاقٍ صحيح**.
+    مقيسٌ على الشجرة: النصّيُّ ٢٨٦ واليمائيُّ ٢٧٤، والفرقُ في اتّجاهٍ واحد.
+    """
+    catalogue = _load(ROOT / "scripts/ci/guard_catalogue.py", "guard_catalogue_for_comparison")
+    parsed = {g for site in catalogue.discover_invocation_sites() for g in site["guards"]}
+    assert parsed - GUARD._wired_guards() == set()
+
+
+# ── ④ الشجرةُ الحيّة ─────────────────────────────────────────────────────────
 
 
 def test_the_live_registry_satisfies_both_clauses():

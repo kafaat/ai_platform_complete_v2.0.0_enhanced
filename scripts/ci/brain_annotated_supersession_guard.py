@@ -89,6 +89,8 @@ CLOSING = ("fixed", "verified")
 _CODE_SPAN = re.compile(r"`([^`\n]+)`")
 _LINK_TARGET = re.compile(r"\]\(([^)\s]+)\)")
 _PATHLIKE = re.compile(r"^[\w./-]+/[\w.-]+\.[A-Za-z0-9]+$")
+# ذكرُ سكربتِ حارسٍ في نصّ workflow — بلا مُحلِّل YAML (انظر `_wired_guards`).
+_GUARD_MENTION = re.compile(r"\bscripts/ci/[\w./-]+\.(?:py|sh)\b")
 
 
 def _load_measure():
@@ -142,13 +144,33 @@ def _section_text(lines: list[str], heading_line: int) -> str:
 
 
 def _wired_guards() -> set[str]:
-    """`scripts/ci/*` التي تستدعيها workflow — من كتالوج الحرّاس نفسِه."""
-    spec = importlib.util.spec_from_file_location(
-        "guard_catalogue", ROOT / "scripts/ci/guard_catalogue.py"
-    )
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return {guard for site in module.discover_invocation_sites() for guard in site["guards"]}
+    """`scripts/ci/*` المذكورةُ في أيّ workflow — بمكتبة بايثون القياسيّة وحدها.
+
+    GUARD-IMPORTS-A-DEPENDENCY-ITS-JOB-NEVER-INSTALLS-01. كان هذا يستورد
+    `guard_catalogue.discover_invocation_sites()` لأنّه «القارئُ القائم»، وهو الاختيارُ
+    الصحيح مبدئيّاً وكان **خاطئاً بالقياس**: `guard_catalogue` يستورد `PyYAML`،
+    ووظيفةُ `no-report-only-change` لا تُثبِّت تبعيّةً واحدة — حرّاسُ الدماغ الخمسةُ
+    فيها بايثون قياسيّةٌ صرفة. فسقط الحارسُ بـ`ModuleNotFoundError` في أوّل تشغيلٍ
+    على CI، بينما مرّ `preflight --fast` أخضرَ لأنّ `PyYAML` مُثبَّتةٌ محلّيّاً.
+    **أخضرُ محلّيٌّ قِيس في كونٍ غيرِ المنشور** — وهو الصنفُ الذي يسجّله هذا المستودع
+    باسم «استيرادٌ يعمل في الاختبار وينكسر في الحاوية».
+
+    والعلاجُ ليس تثبيتَ `PyYAML` في الوظيفة: ذلك يوسّع سطحَ تبعيّةِ وظيفةٍ بقيت
+    بلا تبعيّاتٍ عمداً، ولأجل **سؤالٍ لا يحتاج مُحلِّل YAML أصلاً**.
+
+    **وحدُّ الدعوى ضاق بصدق:** «مذكورٌ في نصّ workflow» لا «تستدعيه وظيفةٌ بعينها».
+    الفرقُ لا يخدم مُلفِّقاً: من يستشهد بحارسٍ ليدفع ثمنَ إغلاق، فالمطلوبُ منه أن
+    يكون الحارسُ موجوداً في الشجرة **و**مذكوراً في CI؛ وأيُّهما غاب رُفِض. ونسبةُ
+    الاستدعاء إلى وظيفةٍ بعينها تخصّ الكتالوجَ وسطحَ الحجب، لا هذا السؤال.
+    """
+    workflows = ROOT / ".github/workflows"
+    if not workflows.is_dir():
+        return set()
+    mentioned: set[str] = set()
+    for path in sorted(workflows.glob("*.y*ml")):
+        text = path.read_text(encoding="utf-8", errors="replace")
+        mentioned.update(_GUARD_MENTION.findall(text))
+    return mentioned
 
 
 def findings(text: str, root: Path, wired_guards: set[str], measure) -> list[str]:

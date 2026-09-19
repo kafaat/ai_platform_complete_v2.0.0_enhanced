@@ -5413,6 +5413,12 @@
           "find": "    for gap_id in sorted(report[\"contradictory_sections\"]):",
           "replace": "    for gap_id in sorted({}):",
           "why": "نزعُ البند ① ⇒ معرِّفٌ واحدٌ بحالتين بلا وسمِ تاريخ يمرّ. و`gap-registry-report` تحمل `continue-on-error` فلا تحجب، أي أنّ نزعَه يترك التناقضَ بلا حاجبٍ واحد في الشجرة"
+        },
+        {
+          "expect": "test_the_guard_runs_where_its_job_runs_without_any_dependency",
+          "find": "    workflows = ROOT / \".github/workflows\"",
+          "replace": "    import yaml  # noqa: F401\n\n    workflows = ROOT / \".github/workflows\"",
+          "why": "إعادةُ تبعيّةٍ لا تُثبِّتها وظيفةُ `no-report-only-change` — حرّاسُ الدماغ الخمسةُ فيها بايثون قياسيّةٌ صرفة. هذا هو العطلُ الذي وقع فعلاً على أوّل تشغيلٍ لهذا الحارس في CI (`ModuleNotFoundError: No module named 'yaml'` عبر `guard_catalogue`)، بينما مرّ `preflight --fast` أخضرَ لأنّ `PyYAML` مُثبَّتةٌ محلّيّاً: أخضرُ قِيس في كونٍ غيرِ المنشور"
         }
       ]
     }
