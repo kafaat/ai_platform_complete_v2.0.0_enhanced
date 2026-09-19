@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5359,
+    "files_scanned": 5360,
     "files_by_kind": {
       "backend": 1209,
       "database": 277,
       "governance": 62,
       "mobile": 55,
-      "other": 1490,
+      "other": 1491,
       "tests": 1808,
       "web": 458
     },
@@ -12138,6 +12138,13 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "docs/audits/gap_registry_measurement_20260919.md",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "docs/implementation/FULL_CAPABILITY_PLAN_EXECUTION_20260728.md",
           "score": 20,
           "signals": [
@@ -12172,7 +12179,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 3
+        "other_evidence": 4
       },
       "coverage_dimensions": 5,
       "mapped": true
