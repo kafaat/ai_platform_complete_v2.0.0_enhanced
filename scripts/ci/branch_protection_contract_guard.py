@@ -101,7 +101,21 @@ CONTRACT_RULE_TYPE = "pull_request"
 #: الموصوف حرفيّاً في عقد `live_pg_schema_contract`. الفجوة المفتوحة واحدة، فالمفروض واحد.
 CONTRACT_PARAMETER = "required_review_thread_resolution"
 
-#: البند **المشروط** — يُفرَض حين تمسّ الـPR مسارَ التفويضات وحدها.
+#: البند **المشروط** — **مُعطَّلٌ عن الحجب بأمرِ المالك الصريح (2026-09-19، #1033)**.
+#: يبقى يُقاس ويُطبَع، ولا يدخل الحكم. والسببُ المُعلَن: الإعدادُ الذي يفرضه
+#: (`require_code_owner_review`) خارج المستودع، فبقاؤه حاجباً كان يجعل **كلّ** تفويضِ
+#: GATE-01 غيرَ قابلٍ للدمج إلى أن يُغيَّر إعدادُ GitHub — وهو ما لا يملكه وكيل.
+#: واختار المالكُ هذا على بديلَيه (تفعيلُ الإعداد · إخراجُ التفويض من الشريحة).
+#:
+#: **وما يُعاد بهذا التعطيل، صراحةً:** `GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01`
+#: تعود من `mitigated` إلى `open` بلا تخفيف. تفويضُ GATE-01 يصير **ذاتيَّ الإصدار بلا
+#: منشأٍ مفروض**: يكتب الوكيلُ `approved_by: owner` في ملفٍّ داخل الـPR نفسِها، ولا
+#: شيءَ يُثبِت أنّ مالكاً أذِن. والقياسُ الباقي (الطباعة) يمنع أن يصير هذا صمتاً —
+#: يُقرأ في السجلّ أنّ الشرط فُحِص وأنّه مُخالَف، ثمّ يمرّ.
+#:
+#: **وإعادتُه سطرٌ واحد:** أعِد `advisory` إلى `problems` في `main()`.
+#:
+#: والنصُّ الأصليُّ للبند يبقى كما كُتِب، لأنّه يشرح لماذا وُجِد:
 #: `GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01`: طبقة AUTHORIZATION في GATE-01 تقرأ
 #: `approved_by: owner` من ملفٍّ **في نفس الـPR**، فمن يحتاج التفويض يستطيع إصداره.
 #: والفرق عن البند أعلاه أنّ هذا **مشروط بالمسّ** لا دائم: بندٌ دائم يحجب كلّ دمجٍ في
@@ -518,8 +532,16 @@ def main(argv: list[str] | None = None) -> int:
         canonical = canonical_required_contexts()
         problems += required_checks_violations(rules, canonical)
         problems += stale_review_violations(rules)
-        if touches_authorization(changed):
-            problems += code_owner_violations(rules)
+
+    # ── البند المشروط: يُقاس ولا يحجب (أمرُ المالك 2026-09-19) ──────────────────
+    # يُحسَب **خارج** `problems` عمداً: إبقاؤه في القائمة ثمّ ترشيحه قبل الحكم كان
+    # يجعل الفرقَ بين «حاجب» و«إرشاديّ» سطراً يسهل أن يُقلَب سهواً. وهنا لا يلمس
+    # الحكمَ أصلاً، والوصلُ الوحيد لإعادته مُسمّى ومشروح أعلاه.
+    advisory: list[str] = []
+    if not problems and touches_authorization(changed):
+        advisory = code_owner_violations(rules)
+    for line in advisory:
+        print(f"  ⚠ [إرشاديّ — لا يحجب بأمر المالك] {line}")
 
     if problems:
         print("branch_protection_contract_guard: FAIL")
@@ -537,6 +559,13 @@ def main(argv: list[str] | None = None) -> int:
         f"فُحِصت {len(rules)} قاعدة نافذة، منها {len(pr_rules)} من نوع {CONTRACT_RULE_TYPE}، "
         f"و{len(canonical)} سياقاً مطلوباً مطابقاً للعقد)"
     )
+    # خضرةٌ تسكت عن بندٍ مُخالَفٍ تُقرأ «كلُّ شيءٍ سليم» وهو ليس ما قِيس.
+    if advisory:
+        print(
+            f"branch_protection_contract_guard: ADVISORY ({len(advisory)} مخالفةٌ للبند "
+            "المشروط لم تحجب — التفويضُ في هذه الـPR ذاتيُّ الإصدار بلا منشأٍ مفروض "
+            "(GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01، `open`))"
+        )
     return 0
 
 

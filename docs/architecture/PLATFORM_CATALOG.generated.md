@@ -3,7 +3,7 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `e651fec8a2e3e434295b4902142f239b055b2b6516c24645bf0155546caa1ea5`
+- fingerprint: `9008c350108886a4146b56ab151ed703800ffb55bc75828ba850d2bbb95d1558`
 - components: **36** (backend: 32)
 - route rows: **1119** → unique method/path: **1000**
 - capabilities (derived, uncurated): **828**
@@ -42,7 +42,7 @@
 | sahool-platform | service | platform-core | sahool-actuator-dispatch-worker, sahool-canonical-execution-learning-worker, sahool-irrigation-reservation-lifecycle-worker, sahool-model-registry-worker, sahool-phase-runtime-outbox-worker, sahool-plugin-runtime-worker, sahool-reservation-dispatch-relay-worker, sahool-water-ledger-worker | 196 | True |
 | sam2-inference | service | fields-boundary | sahool-sam2-inference | 0 | True |
 | scout-ingest-service | service | ground-ingest | sahool-scout-ingest, sahool-scout-ingest-projection | 11 | True |
-| soil-service | service | soil | sahool-soil-service | 32 | True |
+| soil-service | service | soil | sahool-soil-service | 33 | True |
 | supervisor-agent | service | agents | sahool-supervisor-agent | 0 | True |
 | telegram-bot | service | messaging-channel | sahool-telegram-bot | 0 | None |
 | tts-service | service | media | sahool-tts-service | 0 | True |

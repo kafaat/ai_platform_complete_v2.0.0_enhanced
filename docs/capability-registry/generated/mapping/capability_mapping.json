@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5363,
+    "files_scanned": 5366,
     "files_by_kind": {
       "backend": 1209,
-      "database": 277,
+      "database": 278,
       "governance": 62,
       "mobile": 55,
-      "other": 1492,
-      "tests": 1810,
+      "other": 1493,
+      "tests": 1811,
       "web": 458
     },
-    "unmapped_artifacts": 2179,
+    "unmapped_artifacts": 2180,
     "ambiguous_artifacts": 420
   },
   "capabilities": [
@@ -9128,14 +9128,6 @@
           ]
         },
         {
-          "path": "docs/architecture/db_ownership.yml",
-          "score": 12,
-          "signals": [
-            "content:erp bridge",
-            "content:odoo bridge"
-          ]
-        },
-        {
           "path": "docker-compose.odoo-snippet.yml",
           "score": 11,
           "signals": [
@@ -9206,7 +9198,7 @@
         "mobile": 0,
         "tests": 7,
         "governance": 0,
-        "other_evidence": 10
+        "other_evidence": 9
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -25889,7 +25881,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 767
+        "database": 771
       },
       "evidence_counts": {
         "backend": 13,
@@ -28282,7 +28274,7 @@
           "score": 8
         },
         {
-          "value": "soil-observation.v1 @ scripts/soil/reconcile_historical.py:83",
+          "value": "soil-observation.v1 @ scripts/soil/reconcile_historical.py:234",
           "score": 8
         },
         {
@@ -28496,6 +28488,14 @@
           ]
         },
         {
+          "path": "docs/architecture/db_ownership.yml",
+          "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
           "path": "docs/audits/SOIL_P0_DURABLE_LAB_PROJECTION_INTEGRATION_20260713.md",
           "score": 12,
           "signals": [
@@ -28589,7 +28589,7 @@
         "mobile": 0,
         "tests": 17,
         "governance": 1,
-        "other_evidence": 14
+        "other_evidence": 15
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -43819,6 +43819,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_reconciliation_resumption_live_pg.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_redis_mandatory_in_production.py",
       "kind": "tests"
     },
@@ -45356,19 +45360,19 @@
           ]
         },
         {
+          "capability_id": "SOIL-001",
+          "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
           "capability_id": "OPS-004",
           "score": 12,
           "signals": [
             "content:Field forms",
             "content:field form"
-          ]
-        },
-        {
-          "capability_id": "FM-008",
-          "score": 12,
-          "signals": [
-            "content:erp bridge",
-            "content:odoo bridge"
           ]
         }
       ]
