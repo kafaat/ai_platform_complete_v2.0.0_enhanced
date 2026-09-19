@@ -589,3 +589,52 @@ def test_lossless_row_deduplication_conflicts_require_preserved_audit_evidence(
     monkeypatch.setattr(duplicate, "ROOT", root)
     assert not duplicate.check([root / _REGISTRY])
     assert _ROW_A.encode() in after and closed.encode() in after
+
+
+# ── A-HISTORICAL-DIP-IS-NOT-REPAIRABLE-BY-A-LATER-COMMIT-01 ─────────────────────
+#
+# مقيسٌ على #1036 (2026-09-19): رأسُ الفرع كان **أكبرَ** من الأساس في السجلّات الأربعة
+# كلِّها — أي أنّ المحتوى سليم — والحجبُ قائم، لأنّ حلَّ التعارض جرى على خطوتَين فأنزل
+# التزامٌ وسيطٌ الملفَّين إلى مقاس `main` ثمّ استعادهما التزامٌ لاحق.
+#
+# والرسالةُ الثابتة كانت تصف علاجَ الرأس وحده. فقارئُها يُعيد البناء من كلا الوالدَين،
+# ويبقى أحمر، ويستنتج أنّ الحارسَ معطوب — والحقيقةُ أنّ العلاجَ الصحيح إعادةُ تشكيلِ
+# النافذة. صنفُ «رسالةٌ بلا علاج» في فرعه الثاني: علاجٌ حاضرٌ لكنّه لغير الحالة.
+
+
+def test_a_historical_dip_says_that_a_later_commit_cannot_repair_it(guard, tmp_path):
+    """الانخفاضُ الوسيطُ يُسمّى بموضعه، والعلاجُ المطبوع هو الذي يعمل عليه."""
+    before = (_HEADER + _ROW_A + _ROW_B).encode()
+    root = _dedup_repo(tmp_path, before)
+    parent = _dedup_git(root, "rev-parse", "HEAD")
+    dipped = _dedup_candidate(root, (_HEADER + _ROW_A).encode(), _REGISTRY, parent)
+    restored = _dedup_candidate(
+        root, (_HEADER + _ROW_A + _ROW_B + _ROW_A).encode(), _REGISTRY, dipped
+    )
+
+    blocking, _, _ = guard.check_range(parent, restored, files=(_REGISTRY,), root=root)
+    assert [f.code for f in blocking] == ["JOURNAL_SHRANK"]
+
+    remedy = guard.shrink_remedy(blocking, restored)
+    assert "محفورٌ في التاريخ لا في الرأس" in remedy
+    assert "أعِد تشكيلَ النافذة" in remedy
+    assert dipped[:8] in remedy, "العلاجُ لا يسمّي الالتزامَ الذي يجب إعادةُ تشكيله"
+
+
+def test_a_dip_at_the_head_keeps_the_tip_remedy_only(guard, tmp_path):
+    """**الحدّ الذي يمنع الرسالةَ من أن تصير ديكوراً.**
+
+    علاجُ التاريخ **مشتقٌّ** من كون الانخفاض في التزامٍ غيرِ الرأس. فإن طُبِع دائماً
+    صار نصّاً ثابتاً يُطالب بنقض تاريخٍ لا داعي له في أكثر الحالات شيوعاً — دمجٌ
+    يُكتب الآن وعلاجُه إعادةُ البناء من كلا الوالدَين، لا `--force-with-lease`.
+    """
+    before = (_HEADER + _ROW_A + _ROW_B).encode()
+    root = _dedup_repo(tmp_path, before)
+    parent = _dedup_git(root, "rev-parse", "HEAD")
+    dipped = _dedup_candidate(root, (_HEADER + _ROW_A).encode(), _REGISTRY, parent)
+
+    blocking, _, _ = guard.check_range(parent, dipped, files=(_REGISTRY,), root=root)
+    remedy = guard.shrink_remedy(blocking, dipped)
+    assert "كلا** الوالدَين" in remedy
+    assert "محفورٌ في التاريخ" not in remedy
+    assert "force-with-lease" not in remedy

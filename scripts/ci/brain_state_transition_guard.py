@@ -65,13 +65,63 @@ _CITED_AS_ZERO = re.compile(
 )
 
 
+# BRAIN-TRANSITION-GUARD-MATCHES-A-DISCUSSED-POLICY-STATE-01, the third false-positive
+# class. The token appears as the OBJECT of a sentence about a policy whose state happens
+# to be that token -- quoting a registered mutation's text, or prose explaining a gate
+# that is closed. `_CITED_AS_ZERO` does not reach it: nothing is being assigned a value.
+#
+# The anchor is typography, and it is measured, not chosen by taste. Over the 298 brain
+# lines this guard blocks today, 149 carry every one of their mentions inside a code span
+# or a quotation -- `CLOSED`, «قراءةَ CLOSED إذناً عامّاً». Marking a token as code or
+# quoting it is the act of NAMING a literal, not of asserting a state.
+#
+# The carve-out below is what keeps this from opening a hole, and it was measured too.
+# The recorded direction for this gap was "anchor on the heading", on the premise that a
+# claim in this repository never lands in prose. That premise is FALSE: `**SAM2** closed
+# (gated, env-unverified)` in sahool-brain/strategy.md is a genuine closure claim written
+# in running prose, and a heading-only anchor would release it. So prose keeps being read
+# -- only its quotations are exempt -- and the canonical claim positions (a heading, a
+# `- **الحالة:**` line) are read WHATEVER their typography, so backticking a real claim
+# where a real claim belongs cannot smuggle it past.
+#
+# Residual, stated rather than hidden: a claim written with its token inside backticks in
+# running prose escapes. That is the price of every semantic exemption here, and it is
+# the narrower price -- the alternative on offer released an entire syntactic position.
+_TYPESET_AS_QUOTATION = re.compile(r"`[^`\n]*`|«[^»\n]*»|“[^”\n]*”")
+_CANONICAL_CLAIM_POSITION = re.compile(
+    r"^\+\s{0,3}(?:#{1,6}\s|[-*]\s*\*\*\s*(?:الحالة|الحالةُ|status)\s*:?\s*\*\*)",
+    re.I,
+)
+
+
+# والاقتباسُ لا يُعفي إسناداً بقيمةٍ موجبة، وهذا الحدُّ **مقيسٌ لا احتياطيّ**: السطر
+# `` `production_certified: 1` `` ادّعاءٌ بعينه، وخطُّ الشيفرة لا يُغيّر ما يقوله. فلولا
+# هذا الشرط لكان إصلاحُ الإيجابيّة الكاذبة صنَع سلبيّةً كاذبةً أخطر — وهو بالضبط الفخّ
+# الذي وقعت فيه المحاولةُ الأولى لتضييق `_CITED_AS_ZERO` وسجّله رأسُ هذا الملفّ.
+_ASSIGNS_A_VALUE = re.compile(
+    r"(?<![\w-])(?:CLOSED|VERIFIED|RUNTIME_VERIFIED|PRODUCTION_CERTIFIED)"
+    r"(?:_[A-Z][A-Z_]*)?\s*[=:]\s*\S",
+    re.I,
+)
+
+
+def _blank(match: re.Match) -> str:
+    """يُفرِغ المقتبَس ويحفظ طولَه — فلا يلتحم ما كان مفصولاً."""
+    quotation = match.group(0)
+    if _ASSIGNS_A_VALUE.search(_CITED_AS_ZERO.sub("", quotation)):
+        return quotation
+    return " " * len(quotation)
+
+
 def _is_claim(line: str) -> bool:
-    """سطرٌ مُضاف يدّعي انتقال حالة — لا سطرٌ يقتبس قيمةً صفريّة."""
+    """سطرٌ مُضاف يدّعي انتقال حالة — لا سطرٌ يقتبس رمزاً أو قيمةً صفريّة."""
     if not CLOSED_RE.search(line):
         return False
     # كلّ ذكرٍ في السطر مقتبَسٌ بقيمة صفر ⇒ ليس ادّعاءً. ويكفي ذِكرٌ واحد غير مقتبَس
     # ليعود السطر ادّعاءً — فالفشل في الجهة الآمنة.
     stripped = _CITED_AS_ZERO.sub("", line)
+    if not _CANONICAL_CLAIM_POSITION.match(line):
+        stripped = _TYPESET_AS_QUOTATION.sub(_blank, stripped)
     return bool(CLOSED_RE.search(stripped))
 
 

@@ -59,6 +59,32 @@ def _measure_module():
     return module
 
 
+def level_errors(noncanonical: list[dict]) -> list[str]:
+    """`A-GAP-UNDER-A-DEEPER-HEADING-IS-INVISIBLE-TO-ITS-OWN-RATCHET-01`.
+
+    **صفرٌ مفروضٌ لا راتشِت، والفرقُ مقيسٌ لا مذهبيّ.** راتشِتُ اليتامى يقف عند ٢١١
+    لأنّ أكثرَ عناوين السجلّ سردٌ تاريخيّ — أمّا هذا فالمقيسُ فيه **صفر** بعد إصلاح
+    الحالة الوحيدة، فأرضيّةُ الصفر لا تُحمِّر على عملٍ طبيعيّ ولا تُطفَأ.
+
+    **ولماذا لا يكفي راتشِتُ اليتامى:** مدخلةٌ تحت `###` لا تدخل `heading_count`
+    أصلاً، فلا تصير يتيمةً، فلا يراها الراتشِتُ الذي وُجِد لهذا الصنف بعينه.
+    مقيسٌ على `a0bba343`: `V25-AI-RUNTIME-LOCAL-ACCEPTANCE-01` مفتوحةٌ في الملفّ
+    وغائبةٌ عن كلّ عدّ — والقياسُ أخضر. حارسٌ أعمى عن مدخل حارسه.
+    """
+    if not noncanonical:
+        return []
+    names = ", ".join(
+        f"{item['id']} (سطر {item['line']}، مستوى {item['level']})" for item in noncanonical[:5]
+    )
+    return [
+        f"مدخلاتُ فجواتٍ تحت عنوانٍ غيرِ قانونيّ: {len(noncanonical)}. "
+        "المعرّفُ تحت `###` أو أعمق **لا يدخل `heading_count` أصلاً**، فلا يصير يتيماً "
+        "ولا يراه راتشِتُ اليتامى — يغيب عن كلّ عدٍّ يُقرأ والقياسُ أخضر. "
+        "ارفعه إلى `## <معرِّف>` وضع تحته `- **الحالة:** open — …`. "
+        f"المعنيّة: {names}."
+    ]
+
+
 def evaluate(measured: int, baseline: int, orphans: list[dict]) -> list[str]:
     """أسبابُ الحجب. الفارغةُ تعني أنّ الأساس لم ينمُ."""
     if measured <= baseline:
@@ -87,6 +113,7 @@ def main(argv: list[str] | None = None) -> int:
 
     measured = report["orphan_gap_heading_count"]
     errors = evaluate(measured, baseline, report["orphan_gap_headings"])
+    errors += level_errors(report["noncanonical_heading_levels"])
     if errors:
         print("gap_heading_state_guard_failed")
         for line in errors:
@@ -95,7 +122,8 @@ def main(argv: list[str] | None = None) -> int:
     # الخضرةُ تُصرِّح بما قِيس: خضرةٌ بلا عدٍّ لا يفرّق قارئُها بين «قِيس فمرّ» و«لم يُقَس».
     print(
         f"gap_heading_state_guard_ok ({measured} يتيماً من {report['heading_count']} عنوان، "
-        f"الأساس {baseline} — راتشِتٌ ينزل ولا يصعد)"
+        f"الأساس {baseline} — راتشِتٌ ينزل ولا يصعد · "
+        f"{report['noncanonical_heading_level_count']} عنواناً غيرَ قانونيّ المستوى، الأرضيّة صفر)"
     )
     return 0
 
