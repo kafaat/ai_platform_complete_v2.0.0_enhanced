@@ -22,6 +22,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import yaml
 
 pytestmark = pytest.mark.unit
 
@@ -139,3 +140,62 @@ def test_the_sweep_discovers_the_catalogue_on_its_own():
     discovered = [step for step in sweep.discover() if "guard_catalogue" in step[0]]
     assert discovered, "the sweep must pick the catalogue up from the workflow"
     assert discovered[0][1] == ["--check"]
+
+
+@pytest.mark.parametrize(
+    ("job_continue", "step_continue", "nonblocking"),
+    [
+        (False, False, False),
+        (True, False, True),
+        (False, True, True),
+        (True, True, True),
+        ("${{ matrix.experimental }}", False, False),
+        (False, "${{ matrix.experimental }}", False),
+    ],
+)
+def test_nonblocking_invocations_stay_visible_without_expanding_blockers(
+    tool, tmp_path, monkeypatch, job_continue, step_continue, nonblocking
+):
+    workflow = {
+        "jobs": {
+            "report": {
+                "continue-on-error": job_continue,
+                "steps": [
+                    {
+                        "run": "python scripts/ci/probe.py --json",
+                        "continue-on-error": step_continue,
+                    }
+                ],
+            }
+        }
+    }
+    (tmp_path / "report.yml").write_text(yaml.safe_dump(workflow), encoding="utf-8")
+    monkeypatch.setattr(tool, "WORKFLOWS", tmp_path)
+    sites = tool.discover_invocation_sites()
+    assert len(sites) == 1
+    assert sites[0]["guards"] == ["scripts/ci/probe.py"]
+    assert sites[0]["continue_on_error"] is nonblocking
+    expected = {} if nonblocking else {"scripts/ci/probe.py": {("report.yml", "report")}}
+    assert tool.discover_invocations() == expected
+    rendered = tool.render()
+    assert "`probe.py`" in rendered
+    assert ("استدعاءات غير مانعة بحسب continue-on-error (1)" in rendered) is nonblocking
+
+
+def test_an_advisory_site_does_not_hide_a_blocking_site_for_the_same_tool(
+    tool, tmp_path, monkeypatch
+):
+    (tmp_path / "mixed.yml").write_text(
+        "jobs:\n"
+        "  advisory:\n"
+        "    continue-on-error: true\n"
+        "    steps:\n"
+        "      - run: python scripts/ci/probe.py\n"
+        "  blocking:\n"
+        "    steps:\n"
+        "      - run: python scripts/ci/probe.py\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(tool, "WORKFLOWS", tmp_path)
+    assert len(tool.discover_invocation_sites()) == 2
+    assert tool.discover_invocations() == {"scripts/ci/probe.py": {("mixed.yml", "blocking")}}

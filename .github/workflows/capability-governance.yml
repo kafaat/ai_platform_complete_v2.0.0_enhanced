@@ -7,6 +7,42 @@ on:
     branches: [main, develop]
 
 jobs:
+  # Measurement stays independent of blocking checks so their failures cannot
+  # suppress evidence from the real registry. Findings do not change gap states.
+  gap-registry-report:
+    name: Gap registry measurement (report-only)
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          # Measure the PR head, not GitHub's synthetic merge commit.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Measure the real gap registry without enforcing findings
+        id: measure
+        shell: bash
+        env:
+          EVIDENCE_DIR: ${{ runner.temp }}/gap-registry-measurement
+        run: |
+          set -euo pipefail
+          mkdir -p "$EVIDENCE_DIR"
+          git rev-parse HEAD > "$EVIDENCE_DIR/source-sha.txt"
+          sha256sum sahool-brain/gaps/registry.md scripts/ci/gap_registry_measure.py > "$EVIDENCE_DIR/SHA256SUMS"
+          python scripts/ci/gap_registry_measure.py --json sahool-brain/gaps/registry.md > "$EVIDENCE_DIR/gap-registry.json.tmp"
+          mv "$EVIDENCE_DIR/gap-registry.json.tmp" "$EVIDENCE_DIR/gap-registry.json"
+      - name: Upload gap registry measurement and source identity
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: gap-registry-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/gap-registry-measurement/
+          if-no-files-found: error
+          retention-days: 30
+
   capability-registry:
     runs-on: ubuntu-latest
     steps:
@@ -210,6 +246,7 @@ jobs:
             tests/architecture/test_verify_all_generated.py \
             tests/architecture/test_check_steps_are_read_only.py \
             tests/architecture/test_marker_coverage_guard.py \
+            tests/architecture/test_gap_registry_measure.py \
             tests/architecture/test_arch_test_ci_coverage_guard.py \
             tests/architecture/test_unenforced_report_list_tests.py \
             tests/architecture/test_jwt_decode_outside_shared_security_ratchet.py \
