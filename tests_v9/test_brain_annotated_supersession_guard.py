@@ -224,8 +224,17 @@ def test_the_guard_runs_where_its_job_runs_without_any_dependency(tmp_path):
         "raise ModuleNotFoundError(\"No module named 'yaml'\")\n", encoding="utf-8"
     )
     env = {"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "PYTHONPATH": str(tmp_path)}
+    # `encoding="utf-8"` صراحةً لا `text=True` وحدها: مخرَجُ الحارس عربيّ، و`text=True`
+    # تفكّ بترميز الآلة — فتحت `LC_ALL=C` يسقط الشاهدُ بـUnicodeDecodeError وهو يقرأ
+    # نجاحاً. نفسُ `GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01` المقتبَس في
+    # رأس الحارس نفسِه — أمسكه `test_text_encoding_locale` عليّ هنا.
     result = subprocess.run(
-        [sys.executable, str(GUARD_PATH)], capture_output=True, text=True, env=env, cwd=ROOT
+        [sys.executable, str(GUARD_PATH)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env=env,
+        cwd=ROOT,
     )
     assert result.returncode == 0, result.stdout + result.stderr
     assert "brain_annotated_supersession_guard_ok" in result.stdout
