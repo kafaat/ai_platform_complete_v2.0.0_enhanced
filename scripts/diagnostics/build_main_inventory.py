@@ -5,6 +5,7 @@ This program deliberately emits no verdict, score, threshold, or recommended fix
 It normalizes existing repository evidence into machine-readable inventory artifacts.
 Unknown relationships stay unresolved instead of being inferred as absent.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -28,8 +29,13 @@ def _sha256(path: Path) -> str:
 
 
 def _git_sha() -> str:
+    # `text=True` بلا `encoding` يفكّ الخرجَ بترميز الآلة، فيموت تحت `LC_ALL=C` — وهو
+    # الصنفُ المُسجَّل `GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01`، ويفرضه
+    # `tests_v9/test_text_encoding_locale.py` على كلّ ملفٍّ جديد. وSHA هنا ASCII خالص،
+    # لكنّ العقد على **الشكل** لا على ما يصادف أن يمرّ: مدخلٌ بلا ترميزٍ صريح يدخل
+    # الأساسَ ثمّ يُنسخ إلى موضعٍ يقرأ عربيّةً.
     return subprocess.check_output(
-        ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
+        ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True, encoding="utf-8"
     ).strip()
 
 
@@ -114,7 +120,9 @@ def deployment_units(components: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(rows, key=lambda item: (item["deployment_unit"], item["component_id"]))
 
 
-def integration_edges(capabilities: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+def integration_edges(
+    capabilities: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     resolved: list[dict[str, Any]] = []
     unresolved: list[dict[str, Any]] = []
     for cap in capabilities:
@@ -133,9 +141,7 @@ def integration_edges(capabilities: list[dict[str, Any]]) -> tuple[list[dict[str
                     "question_to_ask": "Which concrete source call-site or runtime trace proves this consumer edge?",
                 }
             )
-    return resolved, sorted(
-        unresolved, key=lambda item: (item["capability_id"] or "", item["to"])
-    )
+    return resolved, sorted(unresolved, key=lambda item: (item["capability_id"] or "", item["to"]))
 
 
 def placeholders() -> dict[str, list[dict[str, Any]]]:
@@ -187,8 +193,7 @@ def build(out: Path) -> None:
             "declared_consumer_edges_pending_resolution": len(unresolved),
         },
         "sources": [
-            {"path": str(path.relative_to(ROOT)), "sha256": _sha256(path)}
-            for path in sources
+            {"path": str(path.relative_to(ROOT)), "sha256": _sha256(path)} for path in sources
         ],
         "evidence_semantics": {
             "resolved": "supported by an independently located concrete source/runtime edge",

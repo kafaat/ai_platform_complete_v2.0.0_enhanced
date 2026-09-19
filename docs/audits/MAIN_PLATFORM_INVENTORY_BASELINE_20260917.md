@@ -125,3 +125,40 @@ These artifacts are descriptive. They do not contain release verdicts or blockin
 ## Sequencing rule
 
 Do not implement `hardcoded_value_scanner`, `silent_fallback_scanner`, `contract_drift_scanner`, or live certification tests until this inventory graph has been populated sufficiently to tell a scanner which architectural role a source location or edge represents. The scanners should consume inventory context rather than rediscovering architecture independently.
+
+---
+
+## إعادةُ قياسٍ — 2026-09-19 (لا استبدالَ للقطة أعلاه)
+
+**اللقطةُ فوق مثبَّتةٌ بـ`d3734df1` بنصّها، فلا تُعاد كتابتُها.** وثيقةٌ تُعلن مصدرَها ثمّ
+تُحدَّث أرقامُها في مكانها تصير تقول عن SHA ما لم يُقَس عنده — وهو صنفُ «أخضرُ قِيس في
+عالمٍ غير الذي يُقرأ فيه» في ثوبٍ وثائقيّ. فالقياسُ الجديد يُضاف **بجانبها**.
+
+**المقيس على** `f0126469f355` (ضمُّ `main@ecf91cbf8c46` إلى هذا الفرع):
+
+| السطح | لقطة 09-17 | الآن | الفارق |
+|---|---:|---:|---|
+| سجلّات المكوّنات | 36 | **36** | — |
+| ملكيّةُ الجداول · `sahool-platform` | 196 | **196** | — |
+| ملكيّةُ الجداول · `decision-service` | 42 | **42** | — |
+| ملكيّةُ الجداول · `soil-service` | 32 | **33** | **+1** |
+| ملكيّةُ الجداول · `field-management-service` | 32 | **32** | — |
+| ملكيّةُ الجداول · `agriai-engine` | 21 | **21** | — |
+
+**والزيادةُ الوحيدةُ مفسَّرةٌ بمصدرها:** `soil_reconciliation_deferrals` — سجلُّ التأجيل
+الذي أدخلته #1033 لإغلاق `RECONCILIATION-CURSOR-SKIPS-ROWS-THAT-BECOME-ELIGIBLE-01`.
+وإجماليُّ الجداول المُعلَنة **391**.
+
+**وحدودٌ مقيسةٌ في هذا الفرع نفسِه، تُقال لأنّها تُغيّر كيف تُقرأ اللقطتان:**
+
+- **المولِّدُ غيرُ موصول.** لا سيرَ عملٍ ولا اختبارَ يذكر `build_main_inventory.py`
+  (مقيسٌ بمسح الشجرة)، ومخرجُه تحت `artifacts/` وهو **مُتجاهَلٌ في `.gitignore``**.
+  فلا شيءَ يُعيد إنتاج هذه الأرقام تلقائيّاً ولا يحفظها؛ إعادةُ القياس فعلٌ بشريّ.
+- **الأسطحُ الفارغةُ مقصودةٌ لا ناقصة** (`database_ownership.json` · `event_topology.json`
+  · `routes.json` وسبعةٌ غيرُها): المولِّدُ يُعلن في شيفرته أنّها «تُعلن ما يجب أن
+  يحسمه المسحُ التالي بدل أن تدّعي أنّ علاقةً غيرَ مقيسة غيرُ موجودة». **لكنّ الملفَّ
+  على القرص يقول `[]` ولا يقول ذلك** — فقارئُ المصنوعة وحدَها لا يفرّق بين «قِيس فلم
+  يُوجَد» و«لم يُقَس». والأرقامُ أعلاه مأخوذةٌ من `db_ownership.yml` مباشرةً لا من تلك
+  المصنوعة.
+- **الحوافُّ غيرُ المحسومة 722 مقابل 0 محسومة** — والمولِّدُ يسمّيها كذلك صراحةً
+  (`evidence_state: declared`) ويرفق بكلٍّ منها سؤالَها. فهذا وصفٌ لا حكم.
