@@ -8027,3 +8027,8 @@ The sample environment overrode the existing SAM2 CUDA 12.8 default with CUDA 12
 ## 2026-09-19 — v25: إيصال الجواب جزء من حدّ النشر
 
 في مراجعة `fa11b7a9` ظهر أن حجب `answer_ar` عند غياب الحفظ أو اختلاف البصمة لا يكفي: `advisory_validation` ونسخته داخل `audit_event` كانتا تعيدان الحقائق المختارة. أُضيفت assertions لحالتي `not_persisted` و`receipt_mismatch` في `tests_v9/test_v25_advisory_publication.py`؛ فشلتا قبل التصحيح. صار الإيصال العام غير المقبول حالة حجب مقتضبة بلا claims أو جواب، ثم نجح 85 اختبارًا لمسار النشر والعقد البنيوي وحفظ التدقيق. حالة القبول الحي تبقى مفتوحة؛ هذا إثبات لعقد الاستجابة في `services/ai_agronomist/ai_evidence_runtime.py`.
+
+
+## 2026-09-19 — #1036: استهلاك تفويض #1033 بعد الدمج
+
+على `3432eec2` أُعيد إنتاج فشل `gate01_frozen_path_guard` الذي أرسله المالك. أثبت [#1033](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1033) الدمج في `ebcf45270ee48c2929638dbb4aa44b0ac0f2b2ed`، وتطابقت بصمتا `docs/architecture/db_ownership.yml` و`migrations/MANIFEST.txt` مع التفويض. صار السجل `CONSUMED` ويحمل وقت الدمج ورابطه وبصمته؛ لم تُعدّل السياسة أو المسارات المجمّدة أو الحارس. إعادة أمر CI مرّت، و`tests_v9/test_gate01_frozen_path_guard.py` أعطى 50 ناجحًا. هذا إصلاح سجل استهلاك؛ لا تفويض جديد ولا دليل تشغيل محلي.

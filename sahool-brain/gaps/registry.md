@@ -3764,6 +3764,8 @@ RLS يمرّ الفحص لأيّ مستأجِر، وتحته لا يمرّ لأ�
   وإمّا تصديقاً مستقلّاً يفحصه الحارس. وكلاهما يلزمه طفرةٌ تُكذّبه.
 ## GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01 — `fixed` (2026-08-13 · رصده المالك)
 
+**2026-09-19 recurrence (#1036):** تفويض #1033 بقي `ISSUED` بعد دمجه في `ebcf45270ee48c2929638dbb4aa44b0ac0f2b2ed` عند `2026-09-19T18:22:15Z`. تحقق GitHub من الدمج وتطابقت بصمتا `authorized_blobs` مع شجرته. أُعيد إنتاج فشل [بوابة CI](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/actions/runs/35464098238) محليًا ثم خُتم السجل `CONSUMED` مع دليل الدمج، فمر الحارس ونجحت الاختبارات الخمسون. الكاشف عمل كما صُمم؛ الحالة تبقى `fixed`، والختم الآلي بعد الدمج غير منفذ.
+
 **2026-09-09 recurrence:** `cb0dc6cbd` consumes `GATE01-ADJ-2026-09-08-001` after #990 merged at `7407eae2`. Both authorized blob hashes were verified against that merge tree. The existing guard correctly blocked unrelated changes until the record was stamped; its policy and byte bindings were not changed. Evidence: [main repair report](../../docs/testing/main_irrigation_guardrails_repairs_20260909.md).
 
 **الوعد كُتِب وفُرِض عند الاستعمال، ولم يُنهَ عند الدمج.** التفويض يحمل `one_time: true`
