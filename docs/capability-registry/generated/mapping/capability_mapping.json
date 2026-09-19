@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5363,
+    "files_scanned": 5365,
     "files_by_kind": {
       "backend": 1209,
-      "database": 277,
+      "database": 278,
       "governance": 62,
       "mobile": 55,
       "other": 1492,
-      "tests": 1810,
+      "tests": 1811,
       "web": 458
     },
-    "unmapped_artifacts": 2179,
+    "unmapped_artifacts": 2180,
     "ambiguous_artifacts": 420
   },
   "capabilities": [
@@ -25889,7 +25889,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 767
+        "database": 771
       },
       "evidence_counts": {
         "backend": 13,
@@ -28278,11 +28278,11 @@
           "score": 8
         },
         {
-          "value": "soil-observation.v1 @ scripts/soil/reconcile_historical.py:159",
+          "value": "soil-observation.v1 @ scripts/soil/reconcile_historical.py:149",
           "score": 8
         },
         {
-          "value": "soil-observation.v1 @ scripts/soil/reconcile_historical.py:83",
+          "value": "soil-observation.v1 @ scripts/soil/reconcile_historical.py:224",
           "score": 8
         },
         {
@@ -43816,6 +43816,10 @@
     },
     {
       "path": "tests_v9/test_reconciliation_cursor_resumption.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_reconciliation_resumption_live_pg.py",
       "kind": "tests"
     },
     {

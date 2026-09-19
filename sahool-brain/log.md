@@ -7969,3 +7969,16 @@ json كي تبقى التسلسلةُ حرفاً بحرف. والحزمةُ ال
 **وعطلٌ ثانٍ في شاهد العلاج نفسِه:** `subprocess.run(..., text=True)` بلا `encoding="utf-8"` يفكّ مخرَجَ الحارس العربيَّ بترميز الآلة — نفسُ `GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01` المقتبَس في رأس الحارس. أمسكه `tests_v9/test_text_encoding_locale.py`. **وثالثٌ:** سمّيتُ معرِّفَ الفجوة في رسالة التزامٍ قبل تسجيله، فأسقطني `brain_commit_claim_guard` — قاعدةُ «المعرِّفُ قبل استعماله» وقعتُ فيها بعد أن كتبتُها. الثلاثةُ أمسكتها البوّاباتُ لا أنا.
 
 المقيسُ بعد الدمج: ١٨ شاهداً · **٦/٦ طفرات** · `blocking_surface_ok` (303 · 4 إقراراً) · إعادةُ التوليد و`verify_all_generated --check` rc=0 (**5920** بصمة، والحزمةُ آخِراً) · `preflight --fast` إخفاقات=0 متخطّاة=0.
+
+
+## 2026-09-19 — نموذجُ استئناف المصالحة: سجلُّ تأجيلٍ دائم، وارتباطٌ مقيسٌ بـRailway
+
+الأساس `0af0603a`. أُغلقت `RECONCILIATION-CURSOR-SKIPS-ROWS-THAT-BECOME-ELIGIBLE-01` بتغيير **نموذج الاستئناف** لا بترتيب سطر (النقلُ الساذج كان مُكذَّباً في #1025). الهجرة `v231_soil_reconciliation_deferrals.sql`: مفتاحٌ مركّب، ومفرداتُ سببٍ مغلقةٌ بـ`CHECK` (`device_field_unbound` · `device_not_registered` · `sensor_type_unmapped`)، وفهرسٌ جزئيّ على المفتوح، وRLS ENABLE+FORCE. و`resolved_at` بدل الحذف: جدولٌ يُحذَف منه عند النجاح يجعل الفراغَ يعني «لم يُؤجَّل شيء» و«أُسقط كلُّ شيء» معاً.
+
+في المصدر: مروران — إعادةُ فحصِ المفتوح **قبل** المسح إلى الأمام، ودالّةُ أهليّةٍ واحدة (`_process_telemetry_row`) يستعملها المروران فلا يختلفان في معنى «مؤهَّل». والـ`JOIN` صار `LEFT` ومحمولُ `d.field_id IS NOT NULL` خرج من `WHERE`: ما لا يُرى لا يُكتَب. وعدّاداتُ `Stats` انفصلت (`deferred`/`reexamined`/`resolved`) لأنّ `scanned - inserted` لا يميّز المكتوبَ من الضائع.
+
+**الارتباطُ بـRailway مقيسٌ لا موصوف:** `deploy/railway/Dockerfile.migrate` (#1030) نقطةُ دخولها `apply_in_compose.sh` وفيه فحصٌ وقتَ التشغيل يشترط بقاءَ `v206_rls_final_hardening.sql` آخرَ مدخل `.sql` في `MANIFEST.txt` (٢٢٩ ⇒ ٢٣٠ مدخلاً). أُدرِجت v231 **قبله**؛ والمقابلُ قِيس: الترتيبُ الساذج يجعل الصورةَ تخرج بـ1 **قبل تطبيق أيّ هجرة**. ولم يُلمَس مشروعُ `sahool-staging` الحيّ بقرارِ المالك — العقدُ فقط.
+
+**المقيسُ حيّاً محلّيّاً على PostgreSQL 16** (لا PostGIS في الحاوية، فـ`v24`/`v155` لم تُطبَّقا والمسارُ الشامل في CI): v231 تُطبَّق وتُعاد ثلاث مرّات بـrc=0 والصفوفُ تنجو · `ON CONFLICT` يرفع `examinations` · `CHECK` يرفض سبباً خارج المفردات · RLS صادقة في الحقلين · `ANY($1::bigint[])` يعمل · والحسمُ لا يُفتَح ثانيةً.
+
+والقبولُ الحيُّ الكامل في `tests_v9/test_reconciliation_resumption_live_pg.py` داخل *Integration Tests* بعَلَم `RECONCILIATION_RESUMPTION_CERTIFICATION_REQUIRED=1` على عرف `CLAIM_LEASE_CERTIFICATION_REQUIRED`. **وعطلٌ لي أمسكتُه قبل الشحن:** مُحمِّلُ الوحدة في ذلك الملفّ كان ينفّذ بلا تسجيلٍ في `sys.modules`، و`@dataclass` يقرؤه وقتَ إنشاء `Stats` — سقط بـ`AttributeError` في أوّل تشغيل. **وثانٍ:** طفرةُ «نزعِ السجلّ» رشّحت كلّ حقلٍ من نوع list فطالت `arguments.args` وأتلفت الشجرة (`TypeError: required field "arg"`) — الطفرةُ التي تُتلِف الشجرة لا تقيس شيئاً، فصارت استبدالاً في الموضع.

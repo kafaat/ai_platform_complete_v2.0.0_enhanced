@@ -752,4 +752,5 @@ v228_worker_claim_lease.sql
 v229_market_mcp_schema.sql
 # v230: drawing persistence under the migration owner; DML-only runtime and FORCE-RLS.
 v230_drawing_features.sql
+v231_soil_reconciliation_deferrals.sql
 v206_rls_final_hardening.sql

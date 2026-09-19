@@ -1092,6 +1092,13 @@ jobs:
           CLAIM_LEASE_CERTIFICATION_REQUIRED: "1"
           # HIL must not skip its durable write/read and restricted-role proof on DB failure.
           HIL_CERTIFICATION_REQUIRED: "1"
+          # RECONCILIATION-CURSOR-SKIPS-ROWS-THAT-BECOME-ELIGIBLE-01: the closure condition
+          # written into the gap when it was registered is live evidence, and it was deferred
+          # because "no live database was available". That was true of a sandbox, never of
+          # this job: it runs Postgres on 5433 and applies the manifest twice. Without this
+          # flag, dropping TEST_DATABASE_URL one day would turn the certification into a
+          # green skip — the class this repository keeps closing.
+          RECONCILIATION_RESUMPTION_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration --tb=short
       # ── IRR-F01 live certification ─────────────────────────────────────────────────
       # The shared run above connects as the superuser sahool_test, so the live reservation

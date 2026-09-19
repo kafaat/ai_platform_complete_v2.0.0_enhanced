@@ -229,6 +229,7 @@
       "v228_worker_claim_lease.sql",
       "v229_market_mcp_schema.sql",
       "v230_drawing_features.sql",
+      "v231_soil_reconciliation_deferrals.sql",
       "v206_rls_final_hardening.sql"
     ],
     "missing": [],
@@ -1506,6 +1507,13 @@
       "has_using": true,
       "has_with_check": true,
       "name": "tenant_isolation",
+      "source": "v231_soil_reconciliation_deferrals.sql",
+      "table": "soil_reconciliation_deferrals"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "tenant_isolation",
       "source": "v114_cloud_native_gis_best_practices.sql",
       "table": "stac_item_registry"
     },
@@ -1638,17 +1646,17 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 229,
+    "manifest_entries": 230,
     "manifest_missing_count": 0,
-    "policies": 200,
+    "policies": 201,
     "production_certified": false,
-    "rls_enabled": 213,
-    "rls_forced": 194,
+    "rls_enabled": 214,
+    "rls_forced": 195,
     "runtime_verified": false,
-    "sql_files": 231,
-    "tables": 340,
+    "sql_files": 232,
+    "tables": 341,
     "tenant_rls_gaps": 135,
-    "tenant_tables": 320,
+    "tenant_tables": 321,
     "unlisted_sql_count": 0
   },
   "tables": [
@@ -6512,6 +6520,19 @@
       "table": "soil_reconciliation_checkpoints",
       "tenant_rls_gap": false,
       "write_policy_with_check": false
+    },
+    {
+      "code_readers": [],
+      "code_writers": [],
+      "created_in": "v231_soil_reconciliation_deferrals.sql",
+      "has_tenant_id": true,
+      "manifest_position": 228,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "soil_reconciliation_deferrals",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
     },
     {
       "code_readers": [],

@@ -2800,6 +2800,25 @@
           "why": "The wrong-port counterexample must be rejected by the actual validator."
         }
       ]
+    },
+    "scripts/soil/reconcile_historical.py": {
+      "$why_ar": "RECONCILIATION-CURSOR-SKIPS-ROWS-THAT-BECOME-ELIGIBLE-01: كان الاستئنافُ علامةَ ماءٍ عليا واحدة فوق تيّارٍ **مُرشَّح**، فكلُّ صفٍّ يُتخطَّى لسببٍ قابلٍ للزوال (جهازٌ بلا حقل · جهازٌ غيرُ مسجَّل · نوعٌ بلا محوّل) يعبره صفٌّ لاحقٌ مؤهّل ولا تعود إليه جولةٌ أبداً — فقدٌ صامت: لا خطأ ولا طابورٌ متضخّم، والجولةُ التالية تُرجِع صفراً وتبدو سليمة. والعلاجُ ليس مؤشّراً يتوقّف (ذاك تقدّمٌ مستحيل، صنفُ #1026)، بل سجلُّ تأجيلٍ دائم (v231) يُقرأ قبل كلّ مسح. الطفرتان تنزعان طرفَي السجلّ: الكتابةَ والقراءة.",
+      "mutations": [
+        {
+          "expect": "test_a_row_passed_for_a_removable_reason_is_recovered_after_the_reason_clears",
+          "test": "tests_v9/test_reconciliation_cursor_resumption.py",
+          "find": "            await _defer(conn, \"device_telemetry\", tenant_id, row[\"telemetry_id\"], reason)\n            stats.deferred += 1",
+          "replace": "            stats.deferred += 1  # mutated: السجلُّ لا يُكتَب",
+          "why": "سجلٌّ لا يُكتَب يعيد العطلَ الأصليَّ بالحرف: المؤشّرُ يتجاوز وما تجاوزه لا يعرفه أحد. مقيسٌ على الشواهد الثلاثة — الفقدُ يعود في `unbound_device` و`unsupported_type` و`unregistered_device` معاً."
+        },
+        {
+          "expect": "test_a_reason_that_never_clears_does_not_stall_later_rows",
+          "test": "tests_v9/test_reconciliation_cursor_resumption.py",
+          "find": "            stats.reexamined += 1",
+          "replace": "            stats.reexamined += 0  # mutated: عدّادُ إعادة الفحص لا يتقدّم",
+          "why": "عدّادٌ لا يتقدّم يجعل «أُعيد الفحص» غيرَ قابلٍ للتمييز عن «لم يُفحَص». والشاهدُ يقيس تقدّمَه على سببٍ لا يزول أبداً — وهو الموضعُ الذي يصير فيه السجلُّ كتابةً بلا قراءة."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
