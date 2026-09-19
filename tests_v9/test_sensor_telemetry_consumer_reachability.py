@@ -73,6 +73,36 @@ def _sql_text(func: ast.AST) -> str:
     )
 
 
+def _sql_text_of_path(path: Path, name: str) -> str:
+    """نصوصُ الدالّة **ومَن تستدعيه من جيرانها في الملفّ نفسِه** — لا الملفّ كلّه.
+
+    RECONCILIATION-CURSOR-SKIPS-ROWS-THAT-BECOME-ELIGIBLE-01 فكّك
+    `reconcile_device_telemetry` إلى مرورَين ودالّةِ أهليّةٍ واحدة
+    (`_process_telemetry_row`) وثابتِ أعمدةٍ مشترك (`_TELEMETRY_COLUMNS`). فصار
+    `_sql_text` على العقدة وحدَها يرى `soil_reconciliation_checkpoints` فقط، ويقول
+    «لم يعد يقرأ `device_telemetry`» — **حمرةٌ كاذبة عن جسرٍ لم يتغيّر**، وهي وجهُ
+    «قارئٍ أضيقَ من دعواه» بعد أن أغلق هذا الملفُّ وجهَه الآخر.
+
+    والعلاجُ **ليس** قراءةَ الملفّ كلِّه: ذلك يُعيد الوسعَ الذي يحذّر منه `_sql_text`
+    (استعلامُ ذراع `soil_readings` يدخل في حكمٍ عن ذراع `device_telemetry`). فتُتبَع
+    **الأسماءُ التي تستعملها الدالّةُ فعلاً**، مأخوذةً من شجرة النحو: كلُّ اسمٍ يظهر
+    داخلها ويُعرَّف في أعلى الملفّ (دالّةً أو ثابتاً) يدخل، وما عداه يبقى خارجاً.
+    فالمدى يتبع المسارَ لا الملفّ.
+    """
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    func = _function(path, name)
+    used = {n.id for n in ast.walk(func) if isinstance(n, ast.Name)}
+    collected = [func]
+    for node in tree.body:
+        if getattr(node, "name", None) in used and node is not func:
+            collected.append(node)
+        elif isinstance(node, ast.Assign) and any(
+            isinstance(t, ast.Name) and t.id in used for t in node.targets
+        ):
+            collected.append(node)
+    return "\n".join(_sql_text(node) for node in collected)
+
+
 def _table_read_by_the_agronomic_reader() -> set[str]:
     sql = _sql_text(_function(FIELD_CONTEXT, AGRONOMIC_READER))
     return set(re.findall(r"\bFROM\s+(\w+)", sql, re.IGNORECASE))
@@ -153,7 +183,7 @@ def test_the_one_bridge_is_named_and_is_an_operator_tool_not_a_pipeline() -> Non
     وطالب بإعادة قراءة الفجوة — وهو ما كانت الدعوى المطلَقة تعجز عنه.
     """
     assert BACKFILL.exists(), f"{BACKFILL.name}: اختفى الردمُ — أعِد قراءةَ الفجوة"
-    sql = _sql_text(_function(BACKFILL, BACKFILL_FUNC))
+    sql = _sql_text_of_path(BACKFILL, BACKFILL_FUNC)
 
     # **تُقرأ الجُمَلُ لا النصّ.** أوّلُ صياغةٍ اكتفت بـ`"device_telemetry" in sql`،
     # فنجت طفرةُ تحويل `FROM` إلى جدولٍ آخر: الاسمُ باقٍ في اسم نقطة الحفظ وفي
@@ -193,7 +223,7 @@ def test_the_backfilled_rows_land_as_suspect_so_they_witness_but_do_not_seed() -
     و`suspect` تُقارَن ويُنشَر خلافُها ولا تهيّئ. فلو صار الردمُ يكتب `accepted` لتغيّر
     أثرُ الجسر على القرار تغيّراً جوهريّاً بلا أن يقول أحد.
     """
-    sql = _sql_text(_function(BACKFILL, BACKFILL_FUNC))
+    sql = _sql_text_of_path(BACKFILL, BACKFILL_FUNC)
     assert "'suspect'" in sql, (
         "لم يعد الردمُ يكتب `suspect` — صارت قراءةُ جدول الأجهزة تبلغ القرارَ بوزنٍ آخر، "
         "فأعِد قراءةَ الفجوة وقسمَها قبل البناء عليها"
