@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Measure gap-registry state/identity structure without rewriting historical data."""
+
 from __future__ import annotations
 
 import argparse
@@ -13,9 +14,7 @@ REGISTRY = ROOT / "sahool-brain/gaps/registry.md"
 ID = r"[A-Z][A-Z0-9_.]*(?:-[A-Z0-9_.]+)+"
 ROW = re.compile(rf"^\|\s*(?P<id>{ID})(?P<label_suffix>[^|]*)\|(?P<rest>.*)$")
 HEADING = re.compile(rf"^##\s+(?P<id>{ID})\b")
-SECTION_STATE = re.compile(
-    r"^-\s*\*\*(?:الحالة|status)\s*:\*\*\s*(?P<value>.+?)\s*$", re.I
-)
+SECTION_STATE = re.compile(r"^-\s*\*\*(?:الحالة|status)\s*:\*\*\s*(?P<value>.+?)\s*$", re.I)
 CANON = ("open", "fixed", "verified")
 
 
