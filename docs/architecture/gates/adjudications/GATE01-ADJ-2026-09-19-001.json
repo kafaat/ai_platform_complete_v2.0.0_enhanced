@@ -3,7 +3,7 @@
   "version": 1,
   "adjudication_id": "GATE01-ADJ-2026-09-19-001",
   "gate_id": "GATE-01",
-  "status": "ISSUED",
+  "status": "CONSUMED",
   "approved_by": "owner",
   "adjudicated_on": "2026-09-19",
   "pr": 1033,
@@ -42,5 +42,12 @@
     "independently_signed": false,
     "guard_binds": "bytes_only",
     "note_ar": "سجلٌّ لطلبٍ صريح في الجلسة، لا توقيعٌ مستقلّ. الوكيلُ كاتبُ الرقعة وكاتبُ السجلّ معاً. و`branch_protection_contract_guard` يقول الشيءَ نفسَه ويحجب عليه: «التفويضُ يُصدره من يحتاجه» ما لم يُفرَض `require_code_owner_review` في Ruleset — و.github/CODEOWNERS:19 يُسمّي المالكَ فعلاً لكنّ الملفّ خاملٌ بلا الإعداد. فالمنشأُ المستقلّ يقع في إعدادات GitHub لا في هذا الملفّ، وهذا حدُّ صدقٍ مُعلَنٌ لا خفاء فيه."
+  },
+  "consumption": {
+    "merge_sha": "ebcf45270ee48c2929638dbb4aa44b0ac0f2b2ed",
+    "consumed_on": "2026-09-19",
+    "merged_at": "2026-09-19T18:22:15Z",
+    "merge_evidence_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1033",
+    "note_ar": "خُتم بعد التحقق من دمج #1033 ومن تطابق بصمتي الملفين المصرح بهما مع شجرة الدمج. الختم يستهلك التفويض القائم ولا يضيف إذنًا جديدًا أو يفتح GATE-01."
   }
 }
