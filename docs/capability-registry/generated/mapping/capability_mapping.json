@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5363,
+    "files_scanned": 5366,
     "files_by_kind": {
       "backend": 1209,
       "database": 277,
       "governance": 62,
       "mobile": 55,
-      "other": 1492,
-      "tests": 1810,
+      "other": 1494,
+      "tests": 1811,
       "web": 458
     },
-    "unmapped_artifacts": 2179,
+    "unmapped_artifacts": 2180,
     "ambiguous_artifacts": 420
   },
   "capabilities": [
@@ -26751,6 +26751,14 @@
           ]
         },
         {
+          "path": "docs/runbooks/RAILWAY_FRONTEND_DEPLOYMENT.md",
+          "score": 10,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
           "path": "scripts/ci/env_compose_drift_allowlist.json",
           "score": 10,
           "signals": [
@@ -26804,7 +26812,7 @@
         "mobile": 4,
         "tests": 18,
         "governance": 0,
-        "other_evidence": 20
+        "other_evidence": 21
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -42152,6 +42160,10 @@
     },
     {
       "path": "tests/deploy/test_phase15_deployment_readiness_contracts.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/deploy/test_railway_frontend_config.py",
       "kind": "tests"
     },
     {
