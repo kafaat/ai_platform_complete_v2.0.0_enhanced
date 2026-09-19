@@ -9128,14 +9128,6 @@
           ]
         },
         {
-          "path": "docs/architecture/db_ownership.yml",
-          "score": 12,
-          "signals": [
-            "content:erp bridge",
-            "content:odoo bridge"
-          ]
-        },
-        {
           "path": "docker-compose.odoo-snippet.yml",
           "score": 11,
           "signals": [
@@ -9206,7 +9198,7 @@
         "mobile": 0,
         "tests": 7,
         "governance": 0,
-        "other_evidence": 10
+        "other_evidence": 9
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -28496,6 +28488,14 @@
           ]
         },
         {
+          "path": "docs/architecture/db_ownership.yml",
+          "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
           "path": "docs/audits/SOIL_P0_DURABLE_LAB_PROJECTION_INTEGRATION_20260713.md",
           "score": 12,
           "signals": [
@@ -28589,7 +28589,7 @@
         "mobile": 0,
         "tests": 17,
         "governance": 1,
-        "other_evidence": 14
+        "other_evidence": 15
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -45360,19 +45360,19 @@
           ]
         },
         {
+          "capability_id": "SOIL-001",
+          "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
           "capability_id": "OPS-004",
           "score": 12,
           "signals": [
             "content:Field forms",
             "content:field form"
-          ]
-        },
-        {
-          "capability_id": "FM-008",
-          "score": 12,
-          "signals": [
-            "content:erp bridge",
-            "content:odoo bridge"
           ]
         }
       ]
