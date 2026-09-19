@@ -440,10 +440,6 @@
       "reads": 0,
       "subprocess": 1
     },
-    "tests_v9/test_v9_gpu_enablement_20260702.py": {
-      "reads": 0,
-      "subprocess": 1
-    },
     "tests_v9/test_vegetation_container_contract_guard.py": {
       "reads": 0,
       "subprocess": 1
