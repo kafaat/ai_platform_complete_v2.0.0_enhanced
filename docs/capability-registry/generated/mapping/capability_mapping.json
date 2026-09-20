@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5382,
+    "files_scanned": 5384,
     "files_by_kind": {
       "backend": 1209,
       "database": 278,
       "governance": 63,
       "mobile": 55,
-      "other": 1501,
-      "tests": 1818,
+      "other": 1502,
+      "tests": 1819,
       "web": 458
     },
-    "unmapped_artifacts": 2185,
+    "unmapped_artifacts": 2186,
     "ambiguous_artifacts": 420
   },
   "capabilities": [
@@ -43172,6 +43172,10 @@
     },
     {
       "path": "tests_v9/test_gap_landing_claims_name_a_real_commit.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_gap_registry_claim_guard.py",
       "kind": "tests"
     },
     {
