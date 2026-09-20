@@ -3053,3 +3053,5 @@ Base SHA `0af0603ad5ce2a5be89f2039d4b094b975f517a0`. Consume existing `shared/ai
 مولَّد» كليّاً. **الدرس:** بيئةُ القياس جزءٌ من القياس؛ ونتيجةٌ حمراءُ من مفسّرٍ خاطئ
 تُقرَأ شيفريّةً وهي بيئيّة — نفسُ صنف `LOCAL-GATE-RUNS-AN-UNPINNED-TOOL-…-01`
 المُسجَّل في هذه الجلسة نفسِها، بأداةٍ أخرى.
+
+- 2026-09-20 — #1047/#1048 follow-up (`a1908ec0`): reuse `build_main_inventory.py` and its artifact as the surface-count authority. Validate current journal claims against the same-commit artifact and its surface files because the DB ownership status line still omitted the earlier frontend promotion. No second list of measured surfaces is introduced.

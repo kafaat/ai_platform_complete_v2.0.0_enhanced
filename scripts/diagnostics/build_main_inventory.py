@@ -446,7 +446,7 @@ def build(out: Path) -> None:
             "declared_consumer_edges_pending_resolution": len(unresolved),
             "resolved_consumer_edges": len(resolved),
             # يُعلَن في الترويسة كي لا يحتاج القارئ أن يفتح عشرة ملفّات ليكتشف
-            # أنّ عشرة أسطحٍ لم تُقَس. عددٌ في الترويسة أصعبُ على الإغفال من صمت.
+            # حالة كل سطح. العدد مشتق من القياس، ولا يفترض بقاء أي سطح غير مقيس.
             "surfaces_not_measured": sum(
                 1 for s in surfaces.values() if s["measurement_state"] == "not_measured"
             ),

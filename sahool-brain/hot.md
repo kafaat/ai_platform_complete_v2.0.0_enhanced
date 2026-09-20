@@ -1217,3 +1217,5 @@
 
 
 > **2026-09-20 — متابعة آمنة فوق #1041:** أُدخل الأساس `a00f9f11821fef158eb27db1e5added0a4adc2e1` في رقعة `RAILWAY-DEPENDENCY-READINESS-20260920-01`، مع حفظ تعديل الواجهة في main ومصادر الجاهزية في `2b49660ac46ac02d8059571fd978f7dd2bac535c`. تعارضات المصنوعات السبعة تُحسم بإعادة التوليد من الشجرة المجمعة؛ الرقعة لم تُرفع بعد. دخول GitHub ما زال عند التحقق، وانتقال الإشعارات محجوب بالمراجعة التلقائية لاحتمال الانقطاع؛ النشر العامل لم يُوقف. المرجع التشغيلي: `docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md`.
+
+- 2026-09-20: Inventory count follow-up to #1047 (`b3109c7`): current surface counts are bound to `inventory_manifest.json` and the emitted surfaces by `scripts/ci/gap_registry_claim_guard.py`; the DB ownership gap entry retains the correctly scoped historical snapshot.

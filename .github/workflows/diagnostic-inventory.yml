@@ -8,6 +8,12 @@ on:
   pull_request:
     paths:
       - 'scripts/diagnostics/build_main_inventory.py'
+      - 'scripts/diagnostics/resolve_inventory_edges.py'
+      - 'scripts/ci/db_writer_ownership_guard.py'
+      - 'scripts/ci/gap_registry_claim_guard.py'
+      - 'docs/architecture/db_ownership.yml'
+      - 'sahool-brain/gaps/registry.md'
+      - 'tests_v9/test_gap_registry_claim_guard.py'
       - 'tests_v9/test_main_inventory_generator.py'
       - 'component_inventory.generated.csv'
       - 'platform_catalog.generated.json'
@@ -31,7 +37,7 @@ jobs:
       - name: Install the declared test dependencies
         run: pip install -r tests_v9/requirements-test.txt
       - name: Generator contract (unknown stays unknown · a changed relation shows up)
-        run: python -m pytest -q tests_v9/test_main_inventory_generator.py
+        run: python -m pytest -q tests_v9/test_main_inventory_generator.py tests_v9/test_gap_registry_claim_guard.py
       - name: Build the inventory twice from the same tree
         run: |
           python scripts/diagnostics/build_main_inventory.py --out artifacts/diagnostics/inventory
@@ -40,6 +46,8 @@ jobs:
         # نتيجةٌ لا تُعاد هي رأيٌ لا قياس. والمقارنةُ بايتيّة لا دلاليّة عمداً:
         # مصنوعٌ يتبدّل بايتُه بلا تبدّل معناه يُغرِق كلَّ مقارنةٍ لاحقةٍ في ضوضاء.
         run: diff -r artifacts/diagnostics/inventory artifacts/diagnostics/inventory-rerun
+      - name: Bind journal surface counts to the measured inventory artifact
+        run: python scripts/ci/gap_registry_claim_guard.py --inventory-manifest artifacts/diagnostics/inventory/inventory_manifest.json
       - name: State what was measured and what was not
         # الخضرةُ تُصرّح بما قِيس: عددُ الأسطح غيرِ المقيسة يُطبَع في السجلّ كي لا
         # يُقرأ «مرّ» على أنّه «كلُّ شيءٍ مقيس».
