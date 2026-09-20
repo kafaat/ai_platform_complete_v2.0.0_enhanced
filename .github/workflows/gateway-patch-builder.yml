@@ -51,6 +51,10 @@ jobs:
               assert s.count(old) == 1, old
               s = s.replace(old, new, 1)
           p.write_text(s, encoding='utf-8')
+          q = Path('work/tests_v9/test_compose_nginx_upstream_contract.py')
+          t = q.read_text(encoding='utf-8')
+          assert '.read_text()' in t, 'expected patched locale-sensitive read_text()'
+          q.write_text(t.replace('.read_text()', '.read_text(encoding="utf-8")'), encoding='utf-8')
           PY
       - name: Install existing test dependencies and pinned linter
         working-directory: work
