@@ -7,7 +7,7 @@
       "migrations": 238,
       "mobile": 135,
       "prometheus": 2,
-      "scripts": 452,
+      "scripts": 451,
       "services": 2014,
       "shared": 162,
       "tests": 141
@@ -133,5 +133,5 @@
     "bash scripts/chaos/run_chaos_tests.sh",
     "bash scripts/recovery/recovery_smoke.sh"
   ],
-  "total_size_bytes": 64374415
+  "total_size_bytes": 64383630
 }

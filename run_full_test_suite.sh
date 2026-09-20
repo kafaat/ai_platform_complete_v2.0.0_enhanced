@@ -21,7 +21,10 @@ echo "════════════════════════�
 # ── ٠. تثبيت أدوات الفحص (بيئة معزولة موصى بها) ──
 echo ""
 echo "━━━ [0/6] تثبيت أدوات الفحص ━━━"
-pip install -q pytest pytest-asyncio pytest-cov ruff bandit mypy \
+# `-c`: إصدارُ `ruff` من المصدر المشترَك مع CI. بلا القيد يجلب `pip` الأحدثَ فيقيس
+# هذا السكربتُ بغير ما تقيس به البوّابة الحاجبة — مقيسٌ مرّتين (log.md:4874 · 98a61c5f).
+pip install -q -c constraints-ci-tools.txt \
+    pytest pytest-asyncio pytest-cov ruff bandit mypy \
     python-jose[cryptography] fastapi pydantic httpx asyncpg redis \
     numpy 2>/dev/null
 echo "  ✓ الأدوات مثبّتة"

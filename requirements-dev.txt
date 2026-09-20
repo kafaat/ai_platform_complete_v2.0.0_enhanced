@@ -1,4 +1,8 @@
 # SAHOOL v9.1.0 — Development & Testing Dependencies
+#
+# أدواتُ الفحص التي يتغيّر حكمُها بتغيّر إصدارها تُثبَّت من مصدرٍ واحد مشترَكٍ مع CI.
+# `ruff>=0.4.0` كان يجلب الأحدث فيقيس المحلّيُّ بغير ما يقيس به الحاجب — مقيسٌ مرّتين.
+-c constraints-ci-tools.txt
 pytest>=8.2.0
 pytest-asyncio>=0.23.0
 pytest-xdist>=3.5.0
@@ -8,7 +12,7 @@ anyio>=4.0.0
 factory-boy>=3.3.0
 freezegun>=1.4.0
 respx>=0.20.2
-ruff>=0.4.0
+ruff  # الإصدارُ من constraints-ci-tools.txt — مصدرُ CI نفسُه
 black>=24.0.0
 isort>=5.13.0
 mypy>=1.10.0
