@@ -8,7 +8,7 @@
 // خطوات لاحقة (تدريجيّة): إعادة التسمية إلى Field Advisory ثمّ إزالة weather/irrigation-advice.
 // ═══════════════════════════════════════════════════════════════
 import { useSelectedField } from '../hooks/useSelectedField';
-import { CloudRain, Droplets, Bug, Map, Clock, Thermometer, Wind } from 'lucide-react';
+import { CloudRain, Droplets, Bug, Map, Thermometer, Wind } from 'lucide-react';
 import { useDiseaseRisk } from '../hooks/useApi';
 import {
   useFieldIrrigationRecommendation,

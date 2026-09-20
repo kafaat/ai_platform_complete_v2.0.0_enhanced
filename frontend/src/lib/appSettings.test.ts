@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SETTINGS_KEY, loadSettings, saveSettings, type AppSettings } from './appSettings';
 
 // مخزّن localStorage صغير في الذاكرة للاختبار (jsdom قد يوفّره، لكن نُثبّته صراحةً

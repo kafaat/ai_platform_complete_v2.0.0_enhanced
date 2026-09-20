@@ -24,8 +24,15 @@ function roundCoord(value: number): string {
   return value.toFixed(COORD_ROUND);
 }
 
+// شكلُ ردّ المسبار كما تقرؤه هذه الدالّةُ **فقط** — أضيقُ من الردّ الكامل عمداً:
+// نوعٌ يصف ما يُقرأ لا ما قد يصل، فلا يَعِد بحقلٍ لا يستعمله.
+interface HoverProbeReadout {
+  sample?: Record<string, unknown>;
+  operations?: Record<string, { score?: number; suitability?: string } | undefined>;
+}
+
 // قيمة الطبقة النشِطة من عيّنة المسبار + وحدتها (أو نسبة العملية).
-function formatReadout(layer: WeatherLayerKey, data: any): string {
+function formatReadout(layer: WeatherLayerKey, data: HoverProbeReadout | undefined): string {
   const cfg = layerConfig(layer);
   if (isOperationLayer(layer)) {
     const op = operationFromLayer(layer);
@@ -35,7 +42,7 @@ function formatReadout(layer: WeatherLayerKey, data: any): string {
     }
     return '—';
   }
-  const value = getLayerValue(layer, data?.sample ?? {}, {} as any);
+  const value = getLayerValue(layer, data?.sample ?? {});
   if (value == null || Number.isNaN(value)) return '—';
   const rounded = Math.abs(value) >= 100 ? Math.round(value) : Math.round(value * 10) / 10;
   return `${rounded} ${cfg.unit}`.trim();

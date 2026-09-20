@@ -3,7 +3,6 @@ import {
   CheckSquare,
   CircleDotDashed,
   CloudSun,
-  Combine,
   FlaskConical,
   Layers,
   Mountain,

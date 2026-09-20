@@ -5,7 +5,6 @@ import { resolve } from 'node:path';
 // نمط قراءة المصدر المعتمَد في المستودع (resolve(__dirname) بدل new URL(import.meta.url)
 // الذي يفشل في vitest بـ«URL must be of scheme file»).
 const hooks = readFileSync(resolve(__dirname, '../hooks/useApi.ts'), 'utf8');
-const api = readFileSync(resolve(__dirname, '../services/api.ts'), 'utf8');
 const apiClient = readFileSync(resolve(__dirname, '../services/api/client.ts'), 'utf8');
 
 describe('Satellite runtime fixes', () => {

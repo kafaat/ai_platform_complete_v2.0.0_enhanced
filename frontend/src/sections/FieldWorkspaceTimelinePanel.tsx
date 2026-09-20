@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Clock3, RefreshCw } from 'lucide-react';
+import { Clock3 } from 'lucide-react';
 import { getFieldUnifiedTimeline } from '../services/api/fieldTimeline';
 import { EmptyState, ErrorState, LoadingState } from '../components/StateViews';
 import { DegradedState } from '../components/product/DegradedState';

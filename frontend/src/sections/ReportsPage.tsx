@@ -22,7 +22,7 @@ import {
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import {
-  useCostAnalytics, useFields, useFarmSummary, useFieldReport,
+  useCostAnalytics, useFarmSummary, useFieldReport,
 } from '../hooks/useApi';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { useAuthStore } from '../hooks/useAuth';

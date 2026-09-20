@@ -299,11 +299,11 @@ function diseaseStripeRust(sample: Record<string, unknown> | undefined): number 
   return clamp01(band * wetness);
 }
 
-export function getLayerValue(layer: WeatherLayerKey, sample: Record<string, unknown> | undefined, fallback: WeatherMarker): number | null {
+export function getLayerValue(layer: WeatherLayerKey, sample: Record<string, unknown> | undefined, fallback?: WeatherMarker): number | null {
   if (isOperationLayer(layer)) return null;
   switch (layer) {
-    case 'temperature': return sampleNum(sample, 'temperature_2m_c') ?? fallback.tempC;
-    case 'wind': return sampleNum(sample, 'wind_speed_10m_kmh') ?? fallback.windSpeedKmh ?? null;
+    case 'temperature': return sampleNum(sample, 'temperature_2m_c') ?? fallback?.tempC ?? null;
+    case 'wind': return sampleNum(sample, 'wind_speed_10m_kmh') ?? fallback?.windSpeedKmh ?? null;
     case 'precipitation': return sampleNum(sample, 'precipitation_mm');
     case 'et0': return sampleNum(sample, 'et0_fao_evapotranspiration_mm');
     case 'vpd': return sampleNum(sample, 'vapour_pressure_deficit_kpa');
@@ -318,7 +318,7 @@ export function getLayerValue(layer: WeatherLayerKey, sample: Record<string, unk
     case 'soil_moisture': return sampleNum(sample, 'soil_moisture_1_to_3cm_m3m3') ?? sampleNum(sample, 'soil_moisture_0_to_1cm_m3m3');
     case 'pressure': return sampleNum(sample, 'pressure_msl_hpa');
     case 'clouds': return sampleNum(sample, 'cloud_cover_pct');
-    default: return fallback.tempC;
+    default: return fallback?.tempC ?? null;
   }
 }
 

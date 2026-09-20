@@ -12,7 +12,7 @@ function positiveAmount(value: string | number | null | undefined, label: string
   return n;
 }
 
-function isoDate(value: string | null | undefined, label: string): string | null {
+function isoDate(value: string | null | undefined, _label: string): string | null {
   const d = String(value ?? '').slice(0, 10);
   return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : null;
 }
