@@ -4202,7 +4202,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/devices.py",
-    "line": 42,
+    "line": 43,
     "method": "POST",
     "path": "/api/v1/devices",
     "function": "register_device"
@@ -4210,7 +4210,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/devices.py",
-    "line": 97,
+    "line": 98,
     "method": "GET",
     "path": "/api/v1/devices",
     "function": "list_devices"
@@ -4218,7 +4218,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/devices.py",
-    "line": 123,
+    "line": 124,
     "method": "POST",
     "path": "/api/v1/devices/{device_id}/telemetry",
     "function": "ingest_telemetry"
@@ -4226,7 +4226,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/devices.py",
-    "line": 167,
+    "line": 210,
     "method": "GET",
     "path": "/api/v1/devices/{device_id}/telemetry",
     "function": "list_telemetry"
@@ -4234,7 +4234,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/devices.py",
-    "line": 192,
+    "line": 235,
     "method": "GET",
     "path": "/api/v1/devices/fleet-health",
     "function": "devices_fleet_health"

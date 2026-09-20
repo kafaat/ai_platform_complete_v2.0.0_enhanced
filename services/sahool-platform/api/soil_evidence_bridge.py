@@ -1,7 +1,17 @@
-"""Publish approved laboratory evidence to soil-service's canonical evidence boundary."""
+"""ناشرُ المنصّة إلى حدّ التربة القانونيّ — أدلّةُ المختبر وقراءاتُ الحسّاسات.
+
+Publish approved laboratory evidence to soil-service's canonical evidence boundary.
+
+**ولماذا يسكن تحويلُ الحسّاس هنا لا في وحدةٍ جديدة:** الاتّجاهُ والحدُّ نفسُهما —
+المنصّةُ تنشر إلى `soil-service` الذي يملك `soil_observations` ويكتبه وحدَه
+(`docs/architecture/db_ownership.yml`). ووحدةٌ جديدة كانت تُنمّي عدّادَ وحدات
+المنصّة (٦٨٠ ⇒ ٦٨١) فيحمرّ `platform_module_budget`؛ ورفعُ الأساس لتمريرِ شريحةٍ
+هو ما تنهى عنه قاعدةُ الميزانيّات. فالموضعُ الصحيح وحدةٌ قائمةٌ تملك هذا الحدّ.
+"""
 
 from __future__ import annotations
 
+import hashlib
 import os
 from datetime import UTC, datetime
 from typing import Any
@@ -92,3 +102,109 @@ async def publish_soil_lab_evidence(
     receipt = response.json()
     receipt["result_by_canonical"] = result_by_canonical
     return receipt
+
+
+#: الخصائصُ التي لها مستهلكٌ زراعيٌّ مقيسٌ يقرأ `soil_observations`. غيرُها يبقى نبضةَ
+#: صحّةِ جهازٍ ولا يُحوَّل — فالتحويلُ بلا قارئٍ يصنع مساراً ثانياً ميّتاً.
+AGRONOMIC_PROPERTIES = frozenset({"soil_moisture"})
+
+_TIMEOUT_SECONDS = 8.0
+
+
+def _token() -> str | None:
+    return (
+        os.getenv("INTERNAL_SERVICE_TOKEN")
+        or os.getenv("SOIL_SERVICE_TOKEN")
+        or os.getenv("SAHOOL_AGENT_TOKEN")
+    )
+
+
+def idempotency_key(*, device_id: str, property_name: str, observed_at: datetime) -> str:
+    """مفتاحٌ مشتقٌّ من هويّة القراءة — فإعادةُ الدفع لا تُضاعِف ملاحظة.
+
+    مبنيٌّ على (الجهاز · الخاصّيّة · لحظةُ القياس) لا على وقت الوصول: دفعتان لقراءةٍ
+    واحدة تحملان اللحظةَ نفسَها، ومفتاحٌ من `now()` كان سيجعلهما ملاحظتَين.
+    """
+    raw = f"{device_id}|{property_name}|{observed_at.astimezone(UTC).isoformat()}"
+    return f"dev_{hashlib.sha256(raw.encode('utf-8')).hexdigest()[:48]}"
+
+
+def build_observation(
+    *,
+    tenant_id: str,
+    field_id: str,
+    device_id: str,
+    property_name: str,
+    value: Any,
+    unit: str | None,
+    observed_at: datetime,
+) -> dict[str, Any]:
+    """جسمُ الملاحظة كما يقبله عقدُ المالك — بلا حقلٍ يُعلِن ما لم يُقَس."""
+    return {
+        "tenant_id": tenant_id,
+        "field_id": field_id,
+        "property": property_name,
+        "value": value,
+        "unit": unit,
+        "observed_at": observed_at.astimezone(UTC).isoformat(),
+        "source_type": "sensor",
+        "source_id": device_id,
+        "idempotency_key": idempotency_key(
+            device_id=device_id, property_name=property_name, observed_at=observed_at
+        ),
+        "provenance": {"ingest_path": "platform.devices.telemetry", "device_id": device_id},
+    }
+
+
+async def forward_observation(
+    *,
+    tenant_id: str,
+    field_id: str,
+    device_id: str,
+    property_name: str,
+    value: Any,
+    unit: str | None,
+    observed_at: datetime,
+) -> dict[str, Any]:
+    """يُحوّل القراءةَ إلى مالكها ويُعيد نتيجةً **مُسمّاة** لا منطقيّةً عارية.
+
+    الردُّ يحمل `reached` و`reason`؛ و`reason` يظهر في ردّ النقطة كي يعلم الدافعُ
+    أنّ قراءتَه لم تبلغ قراراً — وهو ما كان غائباً فصار الصمتُ نجاحاً.
+    """
+    token = _token()
+    if not token:
+        return {"reached": False, "reason": "service_token_unset"}
+
+    base = os.getenv("SOIL_SERVICE_URL", "http://sahool-soil-service:8000").rstrip("/")
+    body = build_observation(
+        tenant_id=tenant_id,
+        field_id=field_id,
+        device_id=device_id,
+        property_name=property_name,
+        value=value,
+        unit=unit,
+        observed_at=observed_at,
+    )
+    try:
+        async with httpx.AsyncClient(timeout=_TIMEOUT_SECONDS) as client:
+            response = await client.post(
+                f"{base}/v1/soil/observations",
+                headers={"X-Agent-Token": token, "X-Tenant-Id": tenant_id},
+                json=body,
+            )
+    except httpx.HTTPError as exc:
+        return {"reached": False, "reason": f"transport_error:{type(exc).__name__}"}
+
+    if response.status_code not in (200, 201):
+        return {"reached": False, "reason": f"owner_rejected:{response.status_code}"}
+    try:
+        payload = response.json()
+    except ValueError:
+        return {"reached": False, "reason": "owner_response_not_json"}
+    if not isinstance(payload, dict):
+        return {"reached": False, "reason": "owner_response_not_object"}
+    return {
+        "reached": True,
+        "status": payload.get("status"),
+        "observation_id": payload.get("observation_id"),
+    }

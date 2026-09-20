@@ -495,11 +495,11 @@ sahool-platform,POST,/api/v1/learning/activation-commands/{activation_command_id
 sahool-platform,POST,/api/v1/learning/activation-commands/{activation_command_id}/receipt,record_registry_activation_receipt_bff,services/sahool-platform/api/routers/decision_review.py,868
 sahool-platform,POST,/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command,create_registry_rollback_command_bff,services/sahool-platform/api/routers/decision_review.py,900
 sahool-platform,GET,/api/v1/devices/twin,device_twin_endpoint,services/sahool-platform/api/routers/device_twin.py,79
-sahool-platform,POST,/api/v1/devices,register_device,services/sahool-platform/api/routers/devices.py,42
-sahool-platform,GET,/api/v1/devices,list_devices,services/sahool-platform/api/routers/devices.py,97
-sahool-platform,POST,/api/v1/devices/{device_id}/telemetry,ingest_telemetry,services/sahool-platform/api/routers/devices.py,123
-sahool-platform,GET,/api/v1/devices/{device_id}/telemetry,list_telemetry,services/sahool-platform/api/routers/devices.py,167
-sahool-platform,GET,/api/v1/devices/fleet-health,devices_fleet_health,services/sahool-platform/api/routers/devices.py,192
+sahool-platform,POST,/api/v1/devices,register_device,services/sahool-platform/api/routers/devices.py,43
+sahool-platform,GET,/api/v1/devices,list_devices,services/sahool-platform/api/routers/devices.py,98
+sahool-platform,POST,/api/v1/devices/{device_id}/telemetry,ingest_telemetry,services/sahool-platform/api/routers/devices.py,124
+sahool-platform,GET,/api/v1/devices/{device_id}/telemetry,list_telemetry,services/sahool-platform/api/routers/devices.py,210
+sahool-platform,GET,/api/v1/devices/fleet-health,devices_fleet_health,services/sahool-platform/api/routers/devices.py,235
 sahool-platform,POST,/api/v1/diagnose,diagnose_symptoms,services/sahool-platform/api/routers/diagnose.py,32
 sahool-platform,GET,/api/v1/diagnose/symptoms,diagnosis_symptom_catalog,services/sahool-platform/api/routers/diagnose.py,91
 sahool-platform,GET,/api/v1/districts,districts_index,services/sahool-platform/api/routers/districts.py,25

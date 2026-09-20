@@ -1349,8 +1349,8 @@ PA-003,api,POST /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahoo
 PA-003,test,services/sahool-platform/tests/test_yield_map_ingestion.py,5,applied
 PA-003,test,tests_v9/test_v215_yield_map_ingestion_static.py,5,applied
 PA-004,test,tests_v9/test_canonical_as_applied_irrigation.py,5,applied
-PA-005,api,GET /api/v1/devices/{device_id}/telemetry @ services/sahool-platform/api/routers/devices.py:167,2,applied
-PA-005,api,POST /api/v1/devices/{device_id}/telemetry @ services/sahool-platform/api/routers/devices.py:123,2,applied
+PA-005,api,GET /api/v1/devices/{device_id}/telemetry @ services/sahool-platform/api/routers/devices.py:210,2,applied
+PA-005,api,POST /api/v1/devices/{device_id}/telemetry @ services/sahool-platform/api/routers/devices.py:124,2,applied
 PA-005,api,POST /v1/phase9/autonomy/iot/telemetry/verify @ services/sahool-platform/api/phase9_autonomous_farm_os.py:251,2,applied
 PA-005,test,services/sahool-platform/tests/test_soil_telemetry.py,3,applied
 PA-005,test,tests_v9/test_sensor_telemetry_consumer_reachability.py,3,applied

@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import ast
 import re
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -113,6 +114,79 @@ def _table_written_by_the_ingest_endpoint() -> set[str]:
     return set(re.findall(r"\bINSERT\s+INTO\s+(\w+)", sql, re.IGNORECASE))
 
 
+#: مُحوِّلُ الملكيّة ومدخلُ المالك. البلوغُ **ليس** تقاطعَ جداولِ SQL وحدَه: العقدُ يجعل
+#: `soil_observations` مملوكاً لـ`soil-service` وكاتبَه الوحيد، فالمسارُ الصحيح يُحوِّل إلى
+#: المالك ولا يكتب من المنصّة. قارئٌ يقيس التقاطعَ وحدَه كان يرى التصميمَ **الخاطئ**
+#: (كتابةٌ مباشرة تُنشئ مخالفةَ ملكيّة) ويعمى عن الصحيح — أضيقُ من دعواه.
+FORWARDER = ROOT / "services/sahool-platform/api/soil_evidence_bridge.py"
+OWNER_INGEST_PATH = "/v1/soil/observations"
+OWNER_ROUTER = ROOT / "services/soil-service/routers/canonical.py"
+
+
+def _forwards_to_the_owner() -> bool:
+    """هل تُحوّل نقطةُ الابتلاع قراءتَها إلى مالك `soil_observations`؟
+
+    يُقرأ من مصدرَين معاً: استدعاءُ المُحوِّل داخل معالج الابتلاع (أو مساعِدِه في
+    الملفّ نفسِه)، **و** أنّ المُحوِّل يقصد مسارَ المالك حرفيّاً. أحدُهما وحدَه يمرّ
+    على توصيلٍ في الاسم فقط.
+    """
+    if not FORWARDER.exists():
+        return False
+    router_source = DEVICES_ROUTER.read_text(encoding="utf-8")
+    if "soil_evidence_bridge" not in router_source:
+        return False
+    return OWNER_INGEST_PATH in FORWARDER.read_text(encoding="utf-8")
+
+
+def test_the_owner_still_exposes_the_ingest_the_forwarder_targets() -> None:
+    """المسارُ المقصودُ موجودٌ عند مالكه — وإلّا فالتحويلُ إلى عدم.
+
+    يُقرأ من راوتر المالك لا من تسميةٍ: حذفُ النقطة هناك يُحمِّر هنا بدل أن يترك
+    المنصّةَ تُحوّل إلى 404 وتُعلن وصولاً.
+    """
+    assert OWNER_INGEST_PATH in OWNER_ROUTER.read_text(encoding="utf-8"), (
+        f"مالكُ `soil_observations` لم يعد يعرض `{OWNER_INGEST_PATH}` — "
+        "المسارُ المملوك انقطع، فحدِّث القسمَ والمُحوِّل معاً"
+    )
+
+
+def test_the_forwarder_does_not_declare_quality_or_rewrite_the_unit() -> None:
+    """حدّان يُبقيان القراءةَ شاهداً لا بذرة — وكلاهما فجوةٌ مجاورةٌ قائمة.
+
+    عقدُ `SoilObservation` يجعل `sensor` + `soil_moisture` بلا `quality_status`
+    صريح **`uncalibrated`**؛ فإرسالُ الحقل من المنصّة يتجاوز ذلك الحارسَ من خارجه.
+    و`SOIL-MOISTURE-UNIT-IDENTITY-01` يسجّل أنّ الوحدةَ تُقرأ `undeclared` — فتحويلُ
+    `%` إلى VWC هنا اختلاقُ معايرةٍ لا يملكها الجهاز.
+    """
+    # يُقرأ من **الحمولة المبنيّة** لا من نصّ الملفّ: قارئُ النصّ كان يلتقط `quality_status`
+    # و`VWC` من التوثيق الذي يشرح لماذا لا تُرسَلان — حارسٌ يحجب الفقرةَ التي تشرحه،
+    # وهو الصنفُ الذي أُمسِك في #1038. المقيسُ هنا مفاتيحُ القاموس المُعاد وقيمةُ الوحدة.
+    import sys
+
+    sys.path.insert(0, str(ROOT / "services/sahool-platform"))
+    from api.soil_evidence_bridge import build_observation
+
+    sentinel_unit = "%"
+    body = build_observation(
+        tenant_id="t",
+        field_id="f",
+        device_id="d",
+        property_name="soil_moisture",
+        value=21.5,
+        unit=sentinel_unit,
+        observed_at=datetime(2026, 1, 1, tzinfo=UTC),
+    )
+    assert "quality_status" not in body, (
+        f"المُحوِّل يُعلن جودةً ({body.get('quality_status')!r}) — "
+        "العقدُ يُنزِل قراءةَ الحسّاس إلى `uncalibrated` عمداً، وإرسالُ الحقل يتجاوزه من خارجه"
+    )
+    assert body["unit"] == sentinel_unit, (
+        f"المُحوِّل غيّر الوحدة ({sentinel_unit!r} ⇒ {body['unit']!r}) — "
+        "معايرةٌ لا يملكها الجهاز، و`SOIL-MOISTURE-UNIT-IDENTITY-01` يقرؤها `undeclared`"
+    )
+    assert body["source_type"] == "sensor", body["source_type"]
+
+
 def test_the_agronomic_reader_reads_the_canonical_store() -> None:
     """الحقيقةُ الأولى: القارئُ الزراعيُّ يقرأ `soil_observations` لا جدولَ الأجهزة."""
     tables = _table_read_by_the_agronomic_reader()
@@ -152,18 +226,22 @@ def test_the_separation_is_bound_to_the_registry_status_in_both_directions() -> 
     """
     read = _table_read_by_the_agronomic_reader()
     written = _table_written_by_the_ingest_endpoint()
-    reachable = bool(read & written)
+    same_process = bool(read & written)
+    via_owner = _forwards_to_the_owner()
+    reachable = same_process or via_owner
     status = _gap_status(GAP_ID)
 
     if reachable:
+        how = "كتابةً مباشرة" if same_process else f"تحويلاً إلى مالك `{OWNER_INGEST_PATH}`"
         assert status != "open", (
-            f"صارت نقطةُ الابتلاع تكتب ما يقرؤه المستهلكُ الزراعيّ ({sorted(read & written)}) "
-            "والقسمُ ما يزال `open` — اقلب الحالةَ بقياسها في الالتزام نفسِه"
+            f"صارت قراءةُ الابتلاع تبلغ المستهلكَ الزراعيَّ ({how}) والقسمُ ما يزال "
+            "`open` — اقلب الحالةَ بقياسها في الالتزام نفسِه"
         )
     else:
         assert status == "open", (
-            "القسمُ يقول إنّ الفجوة أُغلقت، والجدولان ما زالا منفصلَين "
-            f"(يُكتَب {sorted(written)} · يُقرَأ {sorted(read)}) — إغلاقٌ بلا مسار"
+            "القسمُ يقول إنّ الفجوة أُغلقت، ولا مسارَ يبلغ المستهلكَ الزراعيّ: "
+            f"يُكتَب {sorted(written)} · يُقرَأ {sorted(read)} · ولا تحويلَ إلى المالك — "
+            "إغلاقٌ بلا مسار"
         )
 
 
