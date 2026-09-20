@@ -69,7 +69,9 @@ jobs:
       # والمقيسُ 273/52. رقمٌ عن الحاضر يجب أن يصدق الآن؛ ورقمٌ عن شجرةٍ ماضيةٍ يجب
       # أن يذكر بصمتَها — وذاك وحدَه ما يُعفيه، كي لا يُحمِّر الحارسُ على السرد.
       - name: A hand-written count must equal what the registry measures
-        run: python scripts/ci/gap_registry_claim_guard.py
+        run: |
+          python -m pip install 'PyYAML==6.0.2'
+          python scripts/ci/gap_registry_claim_guard.py
 
   # ── وظيفةٌ مستقلّة عمداً ────────────────────────────────────────────────────
   # GATE01-DIAGNOSIS-HIDDEN-BY-THE-JOB-NAME-01: كان هذا الفحص خطوةً داخل وظيفة

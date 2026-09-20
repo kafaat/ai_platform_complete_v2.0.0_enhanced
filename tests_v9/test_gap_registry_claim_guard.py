@@ -9,6 +9,8 @@
 from __future__ import annotations
 
 import importlib.util
+import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -171,4 +173,78 @@ def test_the_live_registry_still_binds_at_least_one_present_tense_claim():
     found = guard.claims(_REGISTRY.read_text(encoding="utf-8"))
     assert any(not claim["historical"] for claim in found), (
         "لا ادّعاءَ عن الحاضر في السجلّ — الحارسُ أخضرُ لأنّه لم يجد ما يقيسه"
+    )
+
+
+def _inventory_artifact(tmp_path: Path) -> Path:
+    sha = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=_ROOT, text=True, encoding="utf-8"
+    ).strip()
+    for i in range(10):
+        name = f"surface_{i}.json"
+        (tmp_path / name).write_text(
+            json.dumps(
+                {
+                    "schema": "sahool.diagnostic-inventory.surface.v1",
+                    "surface": name,
+                    "measurement_state": "measured" if i < 2 else "not_measured",
+                }
+            ),
+            encoding="utf-8",
+        )
+    path = tmp_path / "inventory_manifest.json"
+    path.write_text(
+        json.dumps(
+            {
+                "schema": "sahool.diagnostic-inventory.v1",
+                "source_sha": sha,
+                "counts": {"surfaces_declared": 10, "surfaces_not_measured": 8},
+            }
+        ),
+        encoding="utf-8",
+    )
+    return path
+
+
+@pytest.mark.parametrize("claimed,expected", [(8, 0), (9, 1)])
+def test_current_surface_claim_is_compared_with_inventory_artifact(tmp_path, claimed, expected):
+    manifest = _inventory_artifact(tmp_path)
+    registry = tmp_path / "registry.md"
+    registry.write_text(
+        f"`surfaces_not_measured={claimed}` · `surfaces_declared=10`\n", encoding="utf-8"
+    )
+    assert guard.main(["--registry", str(registry), "--inventory-manifest", str(manifest)]) == (
+        expected
+    )
+
+
+@pytest.mark.parametrize("fault", ["stale_sha", "wrong_count", "missing_surface", "unknown_state"])
+def test_current_surface_claim_rejects_inconsistent_inventory_evidence(tmp_path, fault):
+    manifest = _inventory_artifact(tmp_path)
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    if fault == "stale_sha":
+        data["source_sha"] = "0" * 40
+    elif fault == "wrong_count":
+        data["counts"]["surfaces_not_measured"] = 9
+    elif fault == "missing_surface":
+        (tmp_path / "surface_0.json").unlink()
+    else:
+        surface_path = tmp_path / "surface_0.json"
+        surface = json.loads(surface_path.read_text(encoding="utf-8"))
+        surface["measurement_state"] = "unknown"
+        surface_path.write_text(json.dumps(surface), encoding="utf-8")
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    registry = tmp_path / "registry.md"
+    registry.write_text("`surfaces_not_measured=8`\n", encoding="utf-8")
+    assert guard.main(["--registry", str(registry), "--inventory-manifest", str(manifest)]) == 1
+
+
+def test_historical_surface_claim_does_not_require_current_inventory(tmp_path):
+    registry = tmp_path / "registry.md"
+    registry.write_text("At `b3109c7`: `surfaces_not_measured=8`\n", encoding="utf-8")
+    assert (
+        guard.main(
+            ["--registry", str(registry), "--inventory-manifest", str(tmp_path / "absent.json")]
+        )
+        == 0
     )

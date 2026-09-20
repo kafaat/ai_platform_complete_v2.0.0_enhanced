@@ -36,8 +36,11 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import json
 import re
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -66,6 +69,8 @@ CLAIM_KEYS: dict[str, str] = {
     "noncanonical": "noncanonical_heading_level_count",
     "contradictory_section_id_count": "contradictory_section_id_count",
     "unclassified": "_unclassified_total",
+    "surfaces_not_measured": "_inventory_surfaces_not_measured",
+    "surfaces_declared": "_inventory_surfaces_declared",
 }
 
 CLAIM_RE = re.compile(
@@ -152,9 +157,66 @@ def evaluate(found: list[dict[str, Any]], values: dict[str, int]) -> list[str]:
     return errors
 
 
+def inventory_values(manifest_path: Path, expected_sha: str) -> dict[str, int]:
+    """Read current inventory evidence and cross-check its counts against surface files."""
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if (
+        manifest.get("schema") != "sahool.diagnostic-inventory.v1"
+        or manifest.get("source_sha") != expected_sha
+    ):
+        raise ValueError("inventory_identity_mismatch")
+    states = []
+    for path in sorted(manifest_path.parent.glob("*.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(payload, dict) or payload.get("schema") != (
+            "sahool.diagnostic-inventory.surface.v1"
+        ):
+            continue
+        state = payload.get("measurement_state")
+        if payload.get("surface") != path.name or state not in {"measured", "not_measured"}:
+            raise ValueError("inventory_surface_invalid")
+        states.append(state)
+    if not states:
+        raise ValueError("inventory_surfaces_missing")
+    measured = {
+        "surfaces_declared": len(states),
+        "surfaces_not_measured": states.count("not_measured"),
+    }
+    for key, value in measured.items():
+        reported = manifest.get("counts", {}).get(key)
+        if type(reported) is not int or reported != value:
+            raise ValueError(f"inventory_count_mismatch:{key}")
+    return {CLAIM_KEYS[key]: value for key, value in measured.items()}
+
+
+def measure_inventory(manifest_path: Path | None) -> dict[str, int]:
+    """Reuse the canonical generator; never maintain a second surface registry."""
+    sha = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True, encoding="utf-8"
+    ).strip()
+    if manifest_path is not None:
+        return inventory_values(manifest_path, sha)
+    with tempfile.TemporaryDirectory(prefix="gap-inventory-") as directory:
+        subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "scripts/diagnostics/build_main_inventory.py"),
+                "--out",
+                directory,
+            ],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+        return inventory_values(Path(directory) / "inventory_manifest.json", sha)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="ربطُ الادّعاءات العدديّة في سجلّ الفجوات بقياسه")
     parser.add_argument("--registry", default=str(REGISTRY))
+    parser.add_argument("--inventory-manifest", type=Path)
     args = parser.parse_args(argv)
 
     path = Path(args.registry)
@@ -162,6 +224,12 @@ def main(argv: list[str] | None = None) -> int:
     report = _measure_module().measure(text)
     values = measured_values(report)
     found = claims(text)
+    if any(c["field"].startswith("_inventory_") and not c["historical"] for c in found):
+        try:
+            values.update(measure_inventory(args.inventory_manifest))
+        except (OSError, ValueError, subprocess.CalledProcessError) as exc:
+            print(f"gap_registry_claim_guard_failed: inventory_evidence_unavailable: {exc}")
+            return 1
     errors = evaluate(found, values)
 
     if errors:

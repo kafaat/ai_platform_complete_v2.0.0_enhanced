@@ -3087,3 +3087,4 @@ Railway المرفوضُ من المراجعة الآليّة.
 **الأساس:** `14c674bf` · **الشريحة:** هذا الـPR (رقمُه وSHA الدمج يُلحَقان عند الدمج —
 لا يُكتَب رقمٌ لم يصدر). `production_certified=false` في كلّ مصنوعة.
 
+- 2026-09-20 — #1047/#1048 follow-up (`a1908ec0`): reuse `build_main_inventory.py` and its artifact as the surface-count authority. Validate current journal claims against the same-commit artifact and its surface files because the DB ownership status line still omitted the earlier frontend promotion. No second list of measured surfaces is introduced.
