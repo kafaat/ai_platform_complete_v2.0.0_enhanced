@@ -146,6 +146,140 @@ def integration_edges(
     return resolved, sorted(unresolved, key=lambda item: (item["capability_id"] or "", item["to"]))
 
 
+def _ownership_engine():
+    """محرّكُ ملكيّة الكتابة **نفسُه** الذي يحجب في CI — لا نسخةٌ ثانية منه.
+
+    السؤالُ («أيُّ مكوّنٍ يملك الكتابة، وبأيّ عقدٍ معلَن؟») له مُجيبٌ قائمٌ في الشجرة:
+    `db_writer_ownership_guard`. وكتابةُ ماسحٍ ثانٍ هنا كانت ستُنتِج نمطَ كتابةٍ ثانياً
+    وقواعدَ استثناءٍ ثانية، فيختلف الجوابان عن سؤالٍ واحد **بلا ما يُظهِر الاختلاف**.
+    """
+    import importlib.util
+
+    path = ROOT / "scripts" / "ci" / "db_writer_ownership_guard.py"
+    if not path.exists():
+        return None
+    spec = importlib.util.spec_from_file_location("_dbw_guard_for_inventory", path)
+    if spec is None or spec.loader is None:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(module)
+    except Exception:
+        return None
+    return module
+
+
+#: ما لا يراه الماسح — يُحمَل **في المصنوعة** لا في تعليقٍ بجانبها.
+#:
+#: هذا هو الدرسُ الذي وُجِد هذا السطحُ لأجله بعينه: النيّةُ في تعليقٍ فوق الدالّة
+#: والقارئُ الآليُّ لا يقرأ التعليقات. فحدُّ الأداة يجب أن يكون حقلاً يُقرأ، وإلّا
+#: قُرئ `declared` (بلا موضعٍ مقيس) نفياً لوجود كاتب — وهو أخطرُ من `[]` العارية،
+#: لأنّه يحمل هيئةَ القياس.
+_OWNERSHIP_BLIND_SPOTS = [
+    "حرفيّاتُ SQL في ملفّات بايثون وحدَها تُمسَح: لا `.sql` ولا ترحيلات.",
+    "لا ORM ولا استعلامٌ يُركَّب في وقت التشغيل من أجزاء.",
+    "دليلا الاختبارات مستثنيان، فكاتبٌ لا يظهر إلّا فيهما لا يُرى.",
+    "ولذلك: `evidence_state=declared` تعني «لم يُعثَر على موضع» لا «لا كاتب».",
+]
+
+
+def database_ownership() -> dict[str, Any]:
+    """سطحُ ملكيّة الكتابة — مقيسٌ بطبقتَي دليلٍ لا بطبقةٍ واحدة.
+
+    **والفرقُ بين الطبقتين هو كلُّ الفائدة:** العقدُ سجلٌّ في المستودع، فهو دليلٌ
+    `declared`. وموضعُ الكتابة في المصدر دليلٌ `resolved`. ودمجُهما في رقمٍ واحد
+    كان سيُنتِج «٣٩١ حافّةَ ملكيّة» تُقرأ محقَّقةً وهي في أكثرها غيرُ مسنَدة.
+
+    فالصفوفُ تحمل الحالتين صراحةً، وتُضاف إليها حالةُ العقد (`authorised` ·
+    `not_authorised` · `outside_contract`) — فالكتابةُ المقيسةُ التي لم يأذن بها
+    العقدُ حافّةٌ حقيقيّةٌ أيضاً، وإخفاؤها يجعل السطحَ يصف عقداً لا شجرة.
+    """
+    guard = _ownership_engine()
+    contract_path = ROOT / "docs" / "architecture" / "db_ownership.yml"
+    if guard is None or not contract_path.exists():
+        # شجرةٌ بلا عقدٍ أو بلا محرّك: يبقى السطحُ غيرَ مقيس. الترقيةُ بالقياس لا
+        # بالتحرير — ولو أُرجِعت هنا صفوفٌ فارغةٌ بحالة `measured` لكان ذلك ادّعاءً.
+        return None
+
+    try:
+        contract = guard.load_contract()
+        measured = guard.write_sites(ROOT)
+    except SystemExit:
+        # `load_contract` تفشل صراحةً على عقدٍ غيرِ مقروء بدل أن تُبلِغ صفراً كاذباً.
+        return None
+
+    rows: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+
+    for key, sites in measured.items():
+        table, component = key.split("::", 1)
+        meta = contract.get(table)
+        if not isinstance(meta, dict):
+            state = "outside_contract"
+        elif guard._write_allowed(table, component, contract):
+            state = "authorised"
+        else:
+            state = "not_authorised"
+        seen.add((table, component))
+        rows.append(
+            {
+                "table": table,
+                "component": component,
+                "relation": "writer",
+                "evidence_state": "resolved",
+                "contract_state": state,
+                "sites": sites,
+                "declared_source": (meta or {}).get("source") if isinstance(meta, dict) else None,
+            }
+        )
+
+    for table, meta in contract.items():
+        if not isinstance(meta, dict):
+            continue
+        for component in meta.get("writers") or []:
+            if (table, component) in seen:
+                continue
+            rows.append(
+                {
+                    "table": table,
+                    "component": component,
+                    "relation": "writer",
+                    "evidence_state": "declared",
+                    "contract_state": "authorised",
+                    "sites": [],
+                    "declared_source": meta.get("source"),
+                }
+            )
+
+    rows.sort(key=lambda r: (r["table"], r["component"], r["evidence_state"]))
+    by_evidence = {"resolved": 0, "declared": 0}
+    by_contract = {"authorised": 0, "not_authorised": 0, "outside_contract": 0}
+    for row in rows:
+        by_evidence[row["evidence_state"]] += 1
+        by_contract[row["contract_state"]] += 1
+
+    return {
+        "schema": "sahool.diagnostic-inventory.surface.v1",
+        "surface": "database_ownership.json",
+        "measurement_state": "measured",
+        "rows": rows,
+        "row_count": len(rows),
+        "counts": {
+            "tables_in_contract": len(contract),
+            "by_evidence_state": by_evidence,
+            "by_contract_state": by_contract,
+        },
+        "engine": "scripts/ci/db_writer_ownership_guard.py",
+        "contract": "docs/architecture/db_ownership.yml",
+        "blind_spots_ar": _OWNERSHIP_BLIND_SPOTS,
+        "what_this_does_not_claim_ar": (
+            "لا يُدَّعى أنّ العقدَ صحيح، ولا أنّ حافّةً `declared` بلا كاتب. المقيسُ "
+            "موضعُ كتابةٍ وُجِد أو لم يُوجَد بماسحٍ حدودُه مُعلَنةٌ أعلاه؛ و"
+            "`not_authorised` تعني كتابةً مقيسةً لم يأذن بها العقد — لا حكماً بأنّها خطأ."
+        ),
+    }
+
+
 # ── `AN-UNMEASURED-SURFACE-SERIALISED-AS-AN-EMPTY-LIST-READS-AS-NO-RELATIONS-01` ──
 #
 # هذه الأسطحُ كانت تُكتب `[]` عارية. والنيّةُ كانت صادقة — «لم نقس بعد» — لكنّ الشكل
@@ -260,6 +394,12 @@ def build(out: Path) -> None:
     resolved = promoted
     _write(out / "integration_edges.json", resolved)
     _write(out / "unresolved_edges.json", unresolved)
+    # الترقيةُ **مشروطةٌ بإنتاج الصفوف**: على شجرةٍ بلا عقدٍ أو بلا محرّك يُرجِع
+    # القياسُ `None` فيبقى السطحُ `not_measured` بسؤاله ومرشّحاته. وهذا ليس احتياطاً:
+    # هو ما يجعل «الترقيةُ بالقياس لا بالتحرير» خاصّيّةً تُختبَر لا جملةً تُقال.
+    ownership = database_ownership()
+    if ownership is not None:
+        surfaces["database_ownership.json"] = ownership
 
     # **سطحٌ واحدٌ خرج من «لم يُقَس» لأنّه قِيس** — لا لأنّ أحداً قرّر ذلك. صفوفُه
     # هي الحوافُّ المحسومةُ بسلسلة أدلّة، وحدُّ الماسح مُعلَنٌ معها في الصفّ نفسِه:

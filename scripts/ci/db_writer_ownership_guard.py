@@ -103,12 +103,25 @@ def _sql_literals(tree: ast.AST):
                 yield node.value
 
 
-def survey() -> dict[str, list[str]]:
-    """{"<جدول>::<خدمة>": [ملفّات]} لكلّ كتابةٍ لم يأذن بها العقد."""
-    contract = load_contract()
+def write_sites(root: Path | None = None) -> dict[str, list[str]]:
+    """{"<جدول>::<خدمة>": [ملفّات]} لكلّ كتابةٍ **مقيسة** — مأذونةً كانت أو لا.
+
+    **المسحُ واحدٌ والترشيحُ بعدَه، عمداً.** كان هذا المسحُ يُسقِط المأذونَ به في
+    موضع الالتقاط فلا يبقى منه أثر، بينما هو نفسُه الدليلُ الذي يرفع حافّةً مُعلَنةً
+    من `declared` إلى `resolved` في جرد المكوّنات. فمَن أراد ذلك الدليلَ كان أمامه
+    أن يكتب ماسحاً ثانياً — بنمطِ كتابةٍ ثانٍ وقواعدِ استثناءٍ ثانية — فينحرف الجوابان
+    عن سؤالٍ واحد. والانحرافُ هنا صامت: لا شيء يُظهِره حتّى يُقارَن العددان بيدٍ.
+
+    فصار المسحُ يُعيد ما رآه كاملاً، و`survey` مُرشِّحاً فوقه. ولا يقدر أحدُهما أن
+    يرى ما لا يراه الآخر.
+
+    **وحدُّه مُعلَن:** حرفيّاتُ SQL في بايثون وحدَها. لا `.sql` ولا ORM ولا استعلامٌ
+    مُركَّبٌ في وقت التشغيل — فغيابُ موضعٍ هنا **ليس** نفياً لوجود كاتب.
+    """
+    base = ROOT if root is None else root
     found: dict[str, set[str]] = {}
-    for path in sorted(ROOT.rglob("*.py")):
-        rel = path.relative_to(ROOT)
+    for path in sorted(base.rglob("*.py")):
+        rel = path.relative_to(base)
         posix = "/" + rel.as_posix()
         if any(part in posix for part in _SKIP_PARTS) or rel.parts[0] == "tests":
             continue
@@ -120,9 +133,18 @@ def survey() -> dict[str, list[str]]:
         for sql in _sql_literals(tree):
             for match in _WRITE.finditer(sql):
                 table = match.group(1).lower()
-                if not _write_allowed(table, service, contract):
-                    found.setdefault(f"{table}::{service}", set()).add(rel.as_posix())
+                found.setdefault(f"{table}::{service}", set()).add(rel.as_posix())
     return {key: sorted(files) for key, files in sorted(found.items())}
+
+
+def survey() -> dict[str, list[str]]:
+    """{"<جدول>::<خدمة>": [ملفّات]} لكلّ كتابةٍ لم يأذن بها العقد."""
+    contract = load_contract()
+    return {
+        key: files
+        for key, files in write_sites().items()
+        if not _write_allowed(key.split("::", 1)[0], key.split("::", 1)[1], contract)
+    }
 
 
 def _head_sha() -> str:
