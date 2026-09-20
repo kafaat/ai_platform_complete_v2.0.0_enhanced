@@ -3,9 +3,9 @@
   "schema_version":1,
   "evidence_scope":"static_repository_only",
   "runtime_verified":false,
-  "python_files_parsed":1904,
+  "python_files_parsed":1905,
   "route_handlers":1054,
-  "call_edges":78913,
+  "call_edges":78980,
   "dead_code_candidates":635,
   "duplicate_function_groups":59,
   "route_owners":27,
@@ -127,7 +127,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":131,
+   "line":139,
    "handler":"healthz",
    "method":"GET",
    "path":"/healthz"
@@ -135,7 +135,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":136,
+   "line":144,
    "handler":"ai_provider_snapshot",
    "method":"GET",
    "path":"/healthz/ai-provider"
@@ -143,7 +143,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":144,
+   "line":152,
    "handler":"list_pending_approvals",
    "method":"GET",
    "path":"/v1/approvals/pending"
@@ -151,7 +151,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":164,
+   "line":172,
    "handler":"approve_tool_request",
    "method":"POST",
    "path":"/v1/approvals/approve"
@@ -159,7 +159,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":216,
+   "line":224,
    "handler":"deny_tool_request",
    "method":"POST",
    "path":"/v1/approvals/deny"
@@ -167,7 +167,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":262,
+   "line":270,
    "handler":"resume_approved_tool",
    "method":"POST",
    "path":"/v1/approvals/resume"
@@ -175,7 +175,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":306,
+   "line":314,
    "handler":"prescription_export_preview",
    "method":"POST",
    "path":"/v1/prescription/export-preview"
@@ -183,7 +183,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":322,
+   "line":330,
    "handler":"metrics",
    "method":"GET",
    "path":"/metrics"
@@ -191,7 +191,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":341,
+   "line":349,
    "handler":"readyz",
    "method":"GET",
    "path":"/readyz"
@@ -199,7 +199,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":383,
+   "line":393,
    "handler":"query",
    "method":"POST",
    "path":"/v1/query"
@@ -207,7 +207,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":394,
+   "line":404,
    "handler":"chat",
    "method":"POST",
    "path":"/v1/chat"
@@ -215,7 +215,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":405,
+   "line":415,
    "handler":"explain",
    "method":"POST",
    "path":"/v1/explain"
@@ -223,7 +223,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":416,
+   "line":426,
    "handler":"recommend",
    "method":"POST",
    "path":"/v1/recommend"
@@ -1071,7 +1071,7 @@
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
-   "line":209,
+   "line":211,
    "handler":"healthz",
    "method":"GET",
    "path":"/healthz"
@@ -1079,7 +1079,7 @@
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
-   "line":214,
+   "line":216,
    "handler":"legacy_health",
    "method":"GET",
    "path":"/health"
@@ -1087,7 +1087,7 @@
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
-   "line":219,
+   "line":221,
    "handler":"readyz",
    "method":"GET",
    "path":"/readyz"
@@ -1095,7 +1095,7 @@
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
-   "line":232,
+   "line":254,
    "handler":"contract",
    "method":"GET",
    "path":"/contract"
@@ -1103,7 +1103,7 @@
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
-   "line":251,
+   "line":273,
    "handler":"root",
    "method":"GET",
    "path":"/"
@@ -1111,7 +1111,7 @@
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
-   "line":260,
+   "line":282,
    "handler":"internal_get_field",
    "method":"GET",
    "path":"/internal/fields/{field_id}"
@@ -1119,7 +1119,7 @@
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
-   "line":292,
+   "line":314,
    "handler":"internal_list_fields",
    "method":"GET",
    "path":"/internal/fields"
@@ -2119,7 +2119,7 @@
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
-   "line":31,
+   "line":34,
    "handler":"healthz",
    "method":"GET",
    "path":"/healthz"
@@ -2127,7 +2127,7 @@
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
-   "line":36,
+   "line":39,
    "handler":"metrics",
    "method":"GET",
    "path":"/metrics"
@@ -2135,7 +2135,7 @@
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
-   "line":145,
+   "line":148,
    "handler":"tile_observability",
    "method":"GET",
    "path":"/v1/tiles/observability"
@@ -2143,7 +2143,7 @@
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
-   "line":186,
+   "line":189,
    "handler":"readyz",
    "method":"GET",
    "path":"/readyz"
@@ -2151,7 +2151,7 @@
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
-   "line":207,
+   "line":233,
    "handler":"tile_cache_stats",
    "method":"GET",
    "path":"/v1/tile-cache/stats"
@@ -2159,7 +2159,7 @@
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
-   "line":241,
+   "line":267,
    "handler":"raster_info",
    "method":"GET",
    "path":"/v1/info/{layer_id}"
@@ -2167,7 +2167,7 @@
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
-   "line":251,
+   "line":277,
    "handler":"providers_status",
    "method":"GET",
    "path":"/v1/providers/status"
@@ -2175,7 +2175,7 @@
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
-   "line":281,
+   "line":307,
    "handler":"field_indices",
    "method":"GET",
    "path":"/v1/indices"
@@ -24067,210 +24067,168 @@
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"_get_json",
-   "target":"str",
-   "line":127
+   "target":"isinstance",
+   "line":128
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"healthz",
+   "source":"_get_json",
+   "target":"get",
+   "line":129
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"_get_json",
    "target":"get",
    "line":130
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"ai_provider_snapshot",
+   "source":"healthz",
    "target":"get",
-   "line":135
+   "line":138
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"ai_provider_snapshot",
-   "target":"public_provider_snapshot",
-   "line":140
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"list_pending_approvals",
    "target":"get",
    "line":143
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
+   "source":"ai_provider_snapshot",
+   "target":"public_provider_snapshot",
+   "line":148
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
    "source":"list_pending_approvals",
-   "target":"Depends",
-   "line":145
+   "target":"get",
+   "line":151
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"list_pending_approvals",
    "target":"Depends",
-   "line":146
+   "line":153
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"list_pending_approvals",
+   "target":"Depends",
+   "line":154
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"list_pending_approvals",
    "target":"list_pending",
-   "line":157
+   "line":165
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"list_pending_approvals",
    "target":"get",
-   "line":158
+   "line":166
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"list_pending_approvals",
    "target":"str",
-   "line":158
+   "line":166
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"list_pending_approvals",
    "target":"str",
-   "line":158
+   "line":166
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"list_pending_approvals",
    "target":"len",
-   "line":160
+   "line":168
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"approve_tool_request",
    "target":"post",
-   "line":163
+   "line":171
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"approve_tool_request",
    "target":"Depends",
-   "line":166
+   "line":174
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"approve_tool_request",
    "target":"Depends",
-   "line":167
+   "line":175
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"approve_tool_request",
    "target":"_approval_for_decision",
-   "line":179
+   "line":187
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"approve_tool_request",
    "target":"approve",
-   "line":181
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"_utc_timestamp",
-   "line":184
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"HTTPException",
-   "line":187
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"str",
-   "line":187
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"_save_pending_approval",
-   "line":188
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"_save_agent_tool_audit",
    "line":189
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"approve_tool_request",
-   "target":"get",
-   "line":191
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"get",
+   "target":"_utc_timestamp",
    "line":192
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"approve_tool_request",
-   "target":"get",
-   "line":192
+   "target":"HTTPException",
+   "line":195
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"approve_tool_request",
-   "target":"isinstance",
-   "line":192
+   "target":"str",
+   "line":195
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"approve_tool_request",
-   "target":"get",
-   "line":193
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"get",
-   "line":194
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"get",
+   "target":"_save_pending_approval",
    "line":196
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"approve_tool_request",
-   "target":"get",
+   "target":"_save_agent_tool_audit",
    "line":197
   },
   {
@@ -24278,13 +24236,6 @@
    "file":"services/ai_agronomist/main.py",
    "source":"approve_tool_request",
    "target":"get",
-   "line":198
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"get",
    "line":199
   },
   {
@@ -24292,7 +24243,7 @@
    "file":"services/ai_agronomist/main.py",
    "source":"approve_tool_request",
    "target":"get",
-   "line":199
+   "line":200
   },
   {
    "owner":"ai-agronomist",
@@ -24307,6 +24258,13 @@
    "source":"approve_tool_request",
    "target":"isinstance",
    "line":200
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"approve_tool_request",
+   "target":"get",
+   "line":201
   },
   {
    "owner":"ai-agronomist",
@@ -24319,140 +24277,140 @@
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"approve_tool_request",
-   "target":"_approved_resume_envelope",
+   "target":"get",
    "line":204
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"approve_tool_request",
+   "target":"get",
+   "line":205
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"approve_tool_request",
+   "target":"get",
+   "line":206
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"approve_tool_request",
+   "target":"get",
+   "line":207
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"approve_tool_request",
+   "target":"get",
+   "line":207
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"approve_tool_request",
+   "target":"get",
+   "line":208
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"approve_tool_request",
+   "target":"isinstance",
+   "line":208
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"approve_tool_request",
+   "target":"get",
+   "line":210
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"approve_tool_request",
    "target":"_approved_resume_envelope",
-   "line":211
+   "line":212
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"post",
-   "line":215
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"Depends",
-   "line":218
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"Depends",
+   "source":"approve_tool_request",
+   "target":"_approved_resume_envelope",
    "line":219
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"deny_tool_request",
-   "target":"_approval_for_decision",
-   "line":225
+   "target":"post",
+   "line":223
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"deny_tool_request",
-   "target":"deny",
+   "target":"Depends",
+   "line":226
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"Depends",
    "line":227
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"deny_tool_request",
-   "target":"_utc_timestamp",
-   "line":230
+   "target":"_approval_for_decision",
+   "line":233
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"deny_tool_request",
-   "target":"HTTPException",
-   "line":234
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"str",
-   "line":234
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"_save_pending_approval",
+   "target":"deny",
    "line":235
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"deny_tool_request",
-   "target":"_save_agent_tool_audit",
-   "line":236
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"get",
+   "target":"_utc_timestamp",
    "line":238
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"deny_tool_request",
-   "target":"get",
-   "line":239
+   "target":"HTTPException",
+   "line":242
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"deny_tool_request",
-   "target":"get",
-   "line":239
+   "target":"str",
+   "line":242
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"deny_tool_request",
-   "target":"isinstance",
-   "line":239
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"get",
-   "line":240
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"get",
-   "line":241
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"get",
+   "target":"_save_pending_approval",
    "line":243
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"deny_tool_request",
-   "target":"get",
+   "target":"_save_agent_tool_audit",
    "line":244
   },
   {
@@ -24460,13 +24418,6 @@
    "file":"services/ai_agronomist/main.py",
    "source":"deny_tool_request",
    "target":"get",
-   "line":245
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"get",
    "line":246
   },
   {
@@ -24474,7 +24425,7 @@
    "file":"services/ai_agronomist/main.py",
    "source":"deny_tool_request",
    "target":"get",
-   "line":246
+   "line":247
   },
   {
    "owner":"ai-agronomist",
@@ -24489,6 +24440,13 @@
    "source":"deny_tool_request",
    "target":"isinstance",
    "line":247
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"get",
+   "line":248
   },
   {
    "owner":"ai-agronomist",
@@ -24500,79 +24458,79 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"get",
+   "line":251
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"get",
+   "line":252
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"get",
+   "line":253
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"get",
+   "line":254
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"get",
+   "line":254
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"get",
+   "line":255
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"isinstance",
+   "line":255
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"get",
+   "line":257
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
    "source":"resume_approved_tool",
    "target":"post",
-   "line":261
+   "line":269
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"resume_approved_tool",
    "target":"Depends",
-   "line":264
+   "line":272
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"resume_approved_tool",
    "target":"Depends",
-   "line":265
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"get",
-   "line":274
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"HTTPException",
-   "line":276
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"get",
-   "line":277
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"str",
-   "line":277
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"HTTPException",
-   "line":278
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"get",
-   "line":278
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"_approved_resume_envelope",
-   "line":279
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"_save_agent_tool_audit",
-   "line":280
+   "line":273
   },
   {
    "owner":"ai-agronomist",
@@ -24585,28 +24543,7 @@
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"resume_approved_tool",
-   "target":"get",
-   "line":283
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"get",
-   "line":283
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"isinstance",
-   "line":283
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"get",
+   "target":"HTTPException",
    "line":284
   },
   {
@@ -24620,7 +24557,14 @@
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"resume_approved_tool",
-   "target":"get",
+   "target":"str",
+   "line":285
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"HTTPException",
    "line":286
   },
   {
@@ -24628,14 +24572,21 @@
    "file":"services/ai_agronomist/main.py",
    "source":"resume_approved_tool",
    "target":"get",
+   "line":286
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"_approved_resume_envelope",
    "line":287
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"resume_approved_tool",
-   "target":"get",
-   "line":289
+   "target":"_save_agent_tool_audit",
+   "line":288
   },
   {
    "owner":"ai-agronomist",
@@ -24655,239 +24606,309 @@
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"resume_approved_tool",
-   "target":"_utc_timestamp",
+   "target":"get",
+   "line":291
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"isinstance",
+   "line":291
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"get",
    "line":292
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"get",
+   "line":293
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"get",
+   "line":294
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"get",
+   "line":295
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"get",
+   "line":297
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"get",
+   "line":298
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"get",
+   "line":299
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"_utc_timestamp",
+   "line":300
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"prescription_export_preview",
    "target":"post",
-   "line":305
+   "line":313
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"prescription_export_preview",
    "target":"build_prescription_export",
-   "line":316
+   "line":324
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"prescription_export_preview",
    "target":"setdefault",
-   "line":317
+   "line":325
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"metrics",
    "target":"get",
-   "line":321
+   "line":329
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"metrics",
    "target":"join",
-   "line":326
+   "line":334
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"metrics",
    "target":"Response",
-   "line":337
+   "line":345
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"readyz",
    "target":"get",
-   "line":340
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"readyz",
-   "target":"AsyncClient",
-   "line":342
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"readyz",
-   "target":"_get_json",
-   "line":343
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"readyz",
-   "target":"rstrip",
-   "line":343
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"readyz",
-   "target":"_get_json",
-   "line":344
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"readyz",
-   "target":"rstrip",
-   "line":344
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"readyz",
-   "target":"_get_json",
-   "line":345
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"readyz",
-   "target":"rstrip",
-   "line":345
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"readyz",
-   "target":"HTTPException",
    "line":348
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"readyz",
+   "target":"AsyncClient",
+   "line":350
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"readyz",
+   "target":"gather",
+   "line":351
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"readyz",
+   "target":"_get_json",
+   "line":352
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"readyz",
+   "target":"rstrip",
+   "line":352
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"readyz",
+   "target":"_get_json",
+   "line":353
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"readyz",
+   "target":"rstrip",
+   "line":353
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"readyz",
+   "target":"_get_json",
+   "line":354
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"readyz",
+   "target":"rstrip",
+   "line":354
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"readyz",
+   "target":"HTTPException",
+   "line":358
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"readyz",
    "target":"getattr",
-   "line":361
+   "line":371
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"_build_evidence_response",
    "target":"_build_evidence_response_runtime",
-   "line":372
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"query",
-   "target":"post",
    "line":382
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"query",
-   "target":"Header",
-   "line":385
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"query",
-   "target":"Header",
-   "line":386
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"query",
-   "target":"_build_evidence_response",
-   "line":388
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"chat",
    "target":"post",
-   "line":393
+   "line":392
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"chat",
+   "source":"query",
+   "target":"Header",
+   "line":395
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"query",
    "target":"Header",
    "line":396
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
+   "source":"query",
+   "target":"_build_evidence_response",
+   "line":398
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"chat",
+   "target":"post",
+   "line":403
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
    "source":"chat",
    "target":"Header",
-   "line":397
+   "line":406
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"chat",
-   "target":"_build_evidence_response",
-   "line":399
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"explain",
-   "target":"post",
-   "line":404
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"explain",
    "target":"Header",
    "line":407
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
+   "source":"chat",
+   "target":"_build_evidence_response",
+   "line":409
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"explain",
+   "target":"post",
+   "line":414
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
    "source":"explain",
    "target":"Header",
-   "line":408
+   "line":417
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"explain",
-   "target":"_build_evidence_response",
-   "line":410
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"recommend",
-   "target":"post",
-   "line":415
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"recommend",
    "target":"Header",
    "line":418
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
+   "source":"explain",
+   "target":"_build_evidence_response",
+   "line":420
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"recommend",
+   "target":"post",
+   "line":425
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
    "source":"recommend",
    "target":"Header",
-   "line":419
+   "line":428
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"recommend",
+   "target":"Header",
+   "line":429
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"recommend",
    "target":"_build_evidence_response",
-   "line":422
+   "line":432
   },
   {
    "owner":"ai-agronomist",
@@ -80201,147 +80222,133 @@
    "file":"services/field-management-service/main.py",
    "source":"_source_sha256",
    "target":"hexdigest",
-   "line":45
+   "line":47
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_source_sha256",
    "target":"read_bytes",
-   "line":45
+   "line":47
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_source_sha256",
    "target":"sha256",
-   "line":45
+   "line":47
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_runtime_source_identity",
    "target":"Path",
-   "line":49
+   "line":51
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_runtime_source_identity",
    "target":"resolve",
-   "line":49
+   "line":51
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_runtime_source_identity",
    "target":"is_file",
-   "line":52
+   "line":54
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_runtime_source_identity",
    "target":"is_file",
-   "line":57
+   "line":59
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_runtime_source_identity",
    "target":"_source_sha256",
-   "line":61
+   "line":63
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_runtime_source_identity",
    "target":"_source_sha256",
-   "line":62
+   "line":64
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_require_service_token",
    "target":"Header",
-   "line":85
+   "line":87
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_require_service_token",
    "target":"Header",
-   "line":86
+   "line":88
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_require_service_token",
    "target":"getenv",
-   "line":96
-  },
-  {
-   "owner":"field-management-service",
-   "file":"services/field-management-service/main.py",
-   "source":"_require_service_token",
-   "target":"compare_digest",
-   "line":97
-  },
-  {
-   "owner":"field-management-service",
-   "file":"services/field-management-service/main.py",
-   "source":"_require_service_token",
-   "target":"HTTPException",
    "line":98
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_require_service_token",
+   "target":"compare_digest",
+   "line":99
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"_require_service_token",
+   "target":"HTTPException",
+   "line":100
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"_require_service_token",
    "target":"getenv",
-   "line":102
+   "line":104
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_require_service_token",
    "target":"lower",
-   "line":102
+   "line":104
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_require_service_token",
    "target":"strip",
-   "line":102
+   "line":104
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_require_service_token",
    "target":"HTTPException",
-   "line":107
+   "line":109
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_require_service_token",
    "target":"HTTPException",
-   "line":112
-  },
-  {
-   "owner":"field-management-service",
-   "file":"services/field-management-service/main.py",
-   "source":"_require_tenant",
-   "target":"Header",
-   "line":117
-  },
-  {
-   "owner":"field-management-service",
-   "file":"services/field-management-service/main.py",
-   "source":"_require_tenant",
-   "target":"Header",
-   "line":118
+   "line":114
   },
   {
    "owner":"field-management-service",
@@ -80361,50 +80368,50 @@
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_require_tenant",
-   "target":"Depends",
+   "target":"Header",
    "line":121
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_require_tenant",
+   "target":"Header",
+   "line":122
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"_require_tenant",
+   "target":"Depends",
+   "line":123
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"_require_tenant",
    "target":"HTTPException",
-   "line":128
+   "line":130
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_require_tenant",
    "target":"getenv",
-   "line":129
+   "line":131
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_require_tenant",
    "target":"lower",
-   "line":129
+   "line":131
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_require_tenant",
    "target":"strip",
-   "line":129
-  },
-  {
-   "owner":"field-management-service",
-   "file":"services/field-management-service/main.py",
-   "source":"_require_tenant",
-   "target":"getenv",
-   "line":133
-  },
-  {
-   "owner":"field-management-service",
-   "file":"services/field-management-service/main.py",
-   "source":"_require_tenant",
-   "target":"getenv",
-   "line":134
+   "line":131
   },
   {
    "owner":"field-management-service",
@@ -80424,337 +80431,449 @@
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_require_tenant",
-   "target":"HTTPException",
+   "target":"getenv",
+   "line":137
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"_require_tenant",
+   "target":"getenv",
    "line":138
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_require_tenant",
+   "target":"HTTPException",
+   "line":140
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"_require_tenant",
    "target":"verify_tenant_assertion",
-   "line":141
+   "line":143
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_require_tenant",
    "target":"_claim_assertion_once",
-   "line":150
+   "line":152
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_require_tenant",
    "target":"HTTPException",
-   "line":152
+   "line":154
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_claim_assertion_once",
    "target":"getenv",
-   "line":160
+   "line":162
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_claim_assertion_once",
    "target":"HTTPException",
-   "line":163
+   "line":165
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_claim_assertion_once",
    "target":"from_url",
-   "line":168
-  },
-  {
-   "owner":"field-management-service",
-   "file":"services/field-management-service/main.py",
-   "source":"_claim_assertion_once",
-   "target":"set",
-   "line":169
-  },
-  {
-   "owner":"field-management-service",
-   "file":"services/field-management-service/main.py",
-   "source":"_claim_assertion_once",
-   "target":"HTTPException",
    "line":170
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_claim_assertion_once",
+   "target":"set",
+   "line":171
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"_claim_assertion_once",
    "target":"HTTPException",
-   "line":174
+   "line":172
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"_claim_assertion_once",
+   "target":"HTTPException",
+   "line":176
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_row_to_dict",
    "target":"dict",
-   "line":181
-  },
-  {
-   "owner":"field-management-service",
-   "file":"services/field-management-service/main.py",
-   "source":"_row_to_dict",
-   "target":"get",
-   "line":182
-  },
-  {
-   "owner":"field-management-service",
-   "file":"services/field-management-service/main.py",
-   "source":"_row_to_dict",
-   "target":"isinstance",
    "line":183
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_row_to_dict",
-   "target":"loads",
+   "target":"get",
+   "line":184
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"_row_to_dict",
+   "target":"isinstance",
    "line":185
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"_row_to_dict",
+   "target":"loads",
+   "line":187
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_connect",
    "target":"HTTPException",
-   "line":199
+   "line":201
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"_connect",
    "target":"connect",
-   "line":205
+   "line":207
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"healthz",
    "target":"get",
-   "line":208
+   "line":210
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"legacy_health",
    "target":"get",
-   "line":213
+   "line":215
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"legacy_health",
    "target":"healthz",
-   "line":215
+   "line":217
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"readyz",
    "target":"get",
-   "line":218
+   "line":220
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"readyz",
-   "target":"bool",
+   "target":"getenv",
+   "line":222
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"readyz",
+   "target":"lower",
+   "line":222
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"readyz",
+   "target":"strip",
+   "line":222
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"readyz",
+   "target":"getenv",
+   "line":223
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"readyz",
+   "target":"getenv",
    "line":224
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"readyz",
-   "target":"bool",
+   "target":"gather",
+   "line":225
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"readyz",
+   "target":"database_ready",
    "line":226
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"readyz",
-   "target":"_runtime_source_identity",
+   "target":"_optional_replay_store",
    "line":227
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"readyz",
+   "target":"redis_ready",
+   "line":227
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"readyz",
+   "target":"bool",
+   "line":231
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"readyz",
+   "target":"getenv",
+   "line":231
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"readyz",
+   "target":"strip",
+   "line":231
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"readyz",
+   "target":"bool",
+   "line":232
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"readyz",
+   "target":"len",
+   "line":233
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"readyz",
+   "target":"all",
+   "line":236
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"readyz",
+   "target":"values",
+   "line":236
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"readyz",
+   "target":"_runtime_source_identity",
+   "line":245
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"contract",
    "target":"get",
-   "line":231
+   "line":253
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"root",
    "target":"get",
-   "line":250
-  },
-  {
-   "owner":"field-management-service",
-   "file":"services/field-management-service/main.py",
-   "source":"internal_get_field",
-   "target":"get",
-   "line":259
-  },
-  {
-   "owner":"field-management-service",
-   "file":"services/field-management-service/main.py",
-   "source":"internal_get_field",
-   "target":"Depends",
-   "line":262
-  },
-  {
-   "owner":"field-management-service",
-   "file":"services/field-management-service/main.py",
-   "source":"internal_get_field",
-   "target":"_connect",
-   "line":271
-  },
-  {
-   "owner":"field-management-service",
-   "file":"services/field-management-service/main.py",
-   "source":"internal_get_field",
-   "target":"transaction",
    "line":272
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"internal_get_field",
+   "target":"get",
+   "line":281
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"internal_get_field",
+   "target":"Depends",
+   "line":284
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"internal_get_field",
+   "target":"_connect",
+   "line":293
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"internal_get_field",
+   "target":"transaction",
+   "line":294
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/main.py",
+   "source":"internal_get_field",
    "target":"execute",
-   "line":273
+   "line":295
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"internal_get_field",
    "target":"str",
-   "line":273
+   "line":295
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"internal_get_field",
    "target":"fetchrow",
-   "line":274
+   "line":296
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"internal_get_field",
    "target":"str",
-   "line":277
+   "line":299
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"internal_get_field",
    "target":"HTTPException",
-   "line":282
+   "line":304
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"internal_get_field",
    "target":"close",
-   "line":285
+   "line":307
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"internal_get_field",
    "target":"HTTPException",
-   "line":287
+   "line":309
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"internal_get_field",
    "target":"_row_to_dict",
-   "line":288
+   "line":310
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"internal_list_fields",
    "target":"get",
-   "line":291
+   "line":313
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"internal_list_fields",
    "target":"Depends",
-   "line":293
+   "line":315
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"internal_list_fields",
    "target":"_connect",
-   "line":298
+   "line":320
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"internal_list_fields",
    "target":"transaction",
-   "line":299
+   "line":321
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"internal_list_fields",
    "target":"execute",
-   "line":300
+   "line":322
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"internal_list_fields",
    "target":"str",
-   "line":300
+   "line":322
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"internal_list_fields",
    "target":"fetch",
-   "line":301
+   "line":323
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"internal_list_fields",
    "target":"str",
-   "line":303
+   "line":325
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"internal_list_fields",
    "target":"HTTPException",
-   "line":308
+   "line":330
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"internal_list_fields",
    "target":"close",
-   "line":311
+   "line":333
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/main.py",
    "source":"internal_list_fields",
    "target":"_row_to_dict",
-   "line":312
+   "line":334
   },
   {
    "owner":"field-management-service",
@@ -81265,126 +81384,238 @@
    "file":"services/field-management-service/tests/test_field_management_service_contract.py",
    "source":"test_readyz_envelope_has_required_keys",
    "target":"_load_main",
-   "line":143
+   "line":145
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/tests/test_field_management_service_contract.py",
+   "source":"test_readyz_envelope_has_required_keys",
+   "target":"Response",
+   "line":146
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/tests/test_field_management_service_contract.py",
    "source":"test_readyz_envelope_has_required_keys",
    "target":"readyz",
-   "line":144
+   "line":147
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/tests/test_field_management_service_contract.py",
    "source":"test_readyz_envelope_has_required_keys",
    "target":"run",
-   "line":144
+   "line":147
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/tests/test_field_management_service_contract.py",
    "source":"test_readyz_envelope_has_required_keys",
    "target":"isinstance",
-   "line":148
+   "line":151
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/tests/test_field_management_service_contract.py",
+   "source":"test_production_readiness_checks_dependencies",
+   "target":"parametrize",
+   "line":154
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/tests/test_field_management_service_contract.py",
+   "source":"test_production_readiness_checks_dependencies",
+   "target":"setenv",
+   "line":161
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/tests/test_field_management_service_contract.py",
+   "source":"test_production_readiness_checks_dependencies",
+   "target":"setenv",
+   "line":162
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/tests/test_field_management_service_contract.py",
+   "source":"test_production_readiness_checks_dependencies",
+   "target":"setenv",
+   "line":163
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/tests/test_field_management_service_contract.py",
+   "source":"test_production_readiness_checks_dependencies",
+   "target":"setenv",
+   "line":164
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/tests/test_field_management_service_contract.py",
+   "source":"test_production_readiness_checks_dependencies",
+   "target":"setenv",
+   "line":165
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/tests/test_field_management_service_contract.py",
+   "source":"test_production_readiness_checks_dependencies",
+   "target":"delenv",
+   "line":172
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/tests/test_field_management_service_contract.py",
+   "source":"test_production_readiness_checks_dependencies",
+   "target":"_load_main",
+   "line":173
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/tests/test_field_management_service_contract.py",
+   "source":"test_production_readiness_checks_dependencies",
+   "target":"setattr",
+   "line":181
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/tests/test_field_management_service_contract.py",
+   "source":"test_production_readiness_checks_dependencies",
+   "target":"setattr",
+   "line":182
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/tests/test_field_management_service_contract.py",
+   "source":"test_production_readiness_checks_dependencies",
+   "target":"TestClient",
+   "line":183
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/tests/test_field_management_service_contract.py",
+   "source":"test_production_readiness_checks_dependencies",
+   "target":"get",
+   "line":184
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/tests/test_field_management_service_contract.py",
+   "source":"test_production_readiness_checks_dependencies",
+   "target":"json",
+   "line":186
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/tests/test_field_management_service_contract.py",
+   "source":"test_production_readiness_checks_dependencies",
+   "target":"json",
+   "line":188
+  },
+  {
+   "owner":"field-management-service",
+   "file":"services/field-management-service/tests/test_field_management_service_contract.py",
+   "source":"test_production_readiness_checks_dependencies",
+   "target":"get",
+   "line":189
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/tests/test_field_management_service_contract.py",
    "source":"test_no_pyjwt_dependency",
    "target":"lower",
-   "line":174
+   "line":215
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/tests/test_field_management_service_contract.py",
    "source":"test_no_pyjwt_dependency",
    "target":"strip",
-   "line":174
+   "line":215
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/tests/test_field_management_service_contract.py",
    "source":"test_no_pyjwt_dependency",
    "target":"read_text",
-   "line":175
+   "line":216
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/tests/test_field_management_service_contract.py",
    "source":"test_no_pyjwt_dependency",
    "target":"splitlines",
-   "line":175
+   "line":216
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/tests/test_field_management_service_contract.py",
    "source":"test_no_pyjwt_dependency",
    "target":"startswith",
-   "line":176
+   "line":217
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/tests/test_field_management_service_contract.py",
    "source":"test_no_pyjwt_dependency",
    "target":"strip",
-   "line":176
+   "line":217
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/tests/test_field_management_service_contract.py",
    "source":"test_no_pyjwt_dependency",
    "target":"strip",
-   "line":176
+   "line":217
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/tests/test_field_management_service_contract.py",
    "source":"test_no_pyjwt_dependency",
    "target":"any",
-   "line":178
+   "line":219
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/tests/test_field_management_service_contract.py",
    "source":"test_no_pyjwt_dependency",
    "target":"any",
-   "line":182
+   "line":223
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/tests/test_field_management_service_contract.py",
    "source":"test_service_token_matches_env_secret",
    "target":"hex",
-   "line":187
+   "line":228
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/tests/test_field_management_service_contract.py",
    "source":"test_service_token_matches_env_secret",
    "target":"setenv",
-   "line":187
+   "line":228
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/tests/test_field_management_service_contract.py",
    "source":"test_service_token_matches_env_secret",
    "target":"urandom",
-   "line":187
+   "line":228
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/tests/test_field_management_service_contract.py",
    "source":"test_service_token_checked_before_tenant",
    "target":"index",
-   "line":206
+   "line":247
   },
   {
    "owner":"field-management-service",
    "file":"services/field-management-service/tests/test_field_management_service_contract.py",
    "source":"test_service_token_checked_before_tenant",
    "target":"index",
-   "line":207
+   "line":248
   },
   {
    "owner":"field-segmentation",
@@ -138686,125 +138917,97 @@
    "file":"services/raster-service/routers/observability.py",
    "source":"healthz",
    "target":"get",
-   "line":30
+   "line":33
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"get",
-   "line":35
+   "line":38
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"Counter",
-   "line":44
+   "line":47
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"get",
-   "line":44
+   "line":47
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"values",
-   "line":44
+   "line":47
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"_s",
    "target":"getattr",
-   "line":48
+   "line":51
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"_s",
    "target":"str",
-   "line":48
+   "line":51
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"getattr",
-   "line":48
+   "line":51
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"str",
-   "line":48
+   "line":51
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"items",
-   "line":54
+   "line":57
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"_s",
-   "line":55
+   "line":58
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"append",
-   "line":55
+   "line":58
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"len",
-   "line":59
+   "line":62
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"_s",
-   "line":63
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/routers/observability.py",
-   "source":"metrics",
-   "target":"get",
-   "line":63
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/routers/observability.py",
-   "source":"metrics",
-   "target":"sum",
-   "line":63
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/routers/observability.py",
-   "source":"metrics",
-   "target":"values",
-   "line":63
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/routers/observability.py",
-   "source":"metrics",
-   "target":"stac_health",
    "line":66
   },
   {
@@ -138812,104 +139015,111 @@
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"get",
-   "line":82
+   "line":66
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"metrics",
+   "target":"sum",
+   "line":66
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"metrics",
+   "target":"values",
+   "line":66
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"metrics",
+   "target":"stac_health",
+   "line":69
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"metrics",
+   "target":"get",
+   "line":85
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"items",
-   "line":110
+   "line":113
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"snapshot",
-   "line":110
+   "line":113
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"sorted",
-   "line":110
+   "line":113
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"append",
-   "line":111
+   "line":114
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"int",
-   "line":111
+   "line":114
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"items",
-   "line":126
+   "line":129
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"metadata_obs_snapshot",
-   "line":126
+   "line":129
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"sorted",
-   "line":126
+   "line":129
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"int",
-   "line":130
+   "line":133
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"debug",
-   "line":133
+   "line":136
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"type",
-   "line":133
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/routers/observability.py",
-   "source":"metrics",
-   "target":"items",
-   "line":135
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/routers/observability.py",
-   "source":"metrics",
-   "target":"sorted",
-   "line":135
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/routers/observability.py",
-   "source":"metrics",
-   "target":"replace",
    "line":136
   },
   {
@@ -138917,469 +139127,560 @@
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"items",
-   "line":137
+   "line":138
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"sorted",
-   "line":137
+   "line":138
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"metrics",
+   "target":"replace",
+   "line":139
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"metrics",
+   "target":"items",
+   "line":140
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"metrics",
+   "target":"sorted",
+   "line":140
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"append",
-   "line":139
+   "line":142
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"int",
-   "line":139
+   "line":142
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"PlainTextResponse",
-   "line":141
+   "line":144
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"metrics",
    "target":"join",
-   "line":141
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/routers/observability.py",
-   "source":"tile_observability",
-   "target":"get",
    "line":144
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"tile_observability",
-   "target":"dict",
-   "line":150
+   "target":"get",
+   "line":147
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"tile_observability",
    "target":"dict",
-   "line":151
+   "line":153
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"tile_observability",
+   "target":"dict",
+   "line":154
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"tile_observability",
    "target":"items",
-   "line":151
+   "line":154
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"tile_observability",
    "target":"getenv",
-   "line":152
+   "line":155
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"tile_observability",
    "target":"lower",
-   "line":152
+   "line":155
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"_terrain_soil_readiness",
    "target":"getenv",
-   "line":162
+   "line":165
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"_terrain_soil_readiness",
    "target":"bool",
-   "line":163
+   "line":166
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"_terrain_soil_readiness",
    "target":"isfile",
-   "line":163
+   "line":166
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"_terrain_soil_readiness",
    "target":"readable_layer_count",
-   "line":167
+   "line":170
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"_terrain_soil_readiness",
    "target":"is_source_configured",
-   "line":168
+   "line":171
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"_terrain_soil_readiness",
    "target":"bool",
-   "line":174
+   "line":177
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"readyz",
    "target":"get",
-   "line":185
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/routers/observability.py",
-   "source":"readyz",
-   "target":"_terrain_soil_readiness",
    "line":188
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"readyz",
-   "target":"AsyncClient",
-   "line":190
+   "target":"_terrain_soil_readiness",
+   "line":195
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"readyz",
-   "target":"get",
-   "line":191
+   "target":"gather",
+   "line":196
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"readyz",
-   "target":"JSONResponse",
+   "target":"database_ready",
+   "line":197
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"readyz",
+   "target":"getenv",
    "line":198
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"readyz",
+   "target":"to_thread",
+   "line":203
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"readyz",
+   "target":"AsyncClient",
+   "line":207
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"readyz",
+   "target":"get",
+   "line":208
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"readyz",
+   "target":"json",
+   "line":209
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"readyz",
+   "target":"isinstance",
+   "line":212
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"readyz",
+   "target":"get",
+   "line":213
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"readyz",
+   "target":"bool",
+   "line":214
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"readyz",
+   "target":"get",
+   "line":214
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"readyz",
+   "target":"all",
+   "line":219
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"readyz",
+   "target":"values",
+   "line":219
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"readyz",
    "target":"JSONResponse",
-   "line":200
+   "line":220
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"tile_cache_stats",
    "target":"get",
-   "line":206
+   "line":232
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"tile_cache_stats",
    "target":"Header",
-   "line":207
+   "line":233
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"tile_cache_stats",
    "target":"require_service_token",
-   "line":208
+   "line":234
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"tile_cache_stats",
    "target":"join",
-   "line":209
+   "line":235
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"tile_cache_stats",
    "target":"exists",
-   "line":213
+   "line":239
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"tile_cache_stats",
    "target":"walk",
-   "line":213
+   "line":239
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"tile_cache_stats",
    "target":"endswith",
-   "line":215
+   "line":241
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"tile_cache_stats",
    "target":"getsize",
-   "line":218
+   "line":244
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"tile_cache_stats",
    "target":"join",
-   "line":218
+   "line":244
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"tile_cache_stats",
    "target":"debug",
-   "line":226
+   "line":252
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"tile_cache_stats",
    "target":"join",
-   "line":228
+   "line":254
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"tile_cache_stats",
    "target":"type",
-   "line":229
+   "line":255
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"tile_cache_stats",
    "target":"getenv",
-   "line":232
+   "line":258
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"tile_cache_stats",
    "target":"lower",
-   "line":232
+   "line":258
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"raster_info",
    "target":"get",
-   "line":240
+   "line":266
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"raster_info",
    "target":"Header",
-   "line":241
+   "line":267
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"raster_info",
    "target":"require_service_token",
-   "line":243
+   "line":269
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"raster_info",
    "target":"get",
-   "line":244
+   "line":270
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"raster_info",
    "target":"HTTPException",
-   "line":246
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/routers/observability.py",
-   "source":"providers_status",
-   "target":"get",
-   "line":250
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/routers/observability.py",
-   "source":"providers_status",
-   "target":"active_providers",
-   "line":264
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/routers/observability.py",
-   "source":"providers_status",
-   "target":"planned_providers",
-   "line":265
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/routers/observability.py",
-   "source":"providers_status",
-   "target":"olmoearth_runtime_status",
    "line":272
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"providers_status",
+   "target":"get",
+   "line":276
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"providers_status",
+   "target":"active_providers",
+   "line":290
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"providers_status",
+   "target":"planned_providers",
+   "line":291
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"providers_status",
+   "target":"olmoearth_runtime_status",
+   "line":298
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"providers_status",
    "target":"wapor_readiness",
-   "line":275
+   "line":301
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"providers_status",
    "target":"worldcereal_readiness",
-   "line":276
+   "line":302
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"field_indices",
    "target":"get",
-   "line":280
+   "line":306
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"field_indices",
    "target":"Query",
-   "line":283
+   "line":309
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"field_indices",
    "target":"Query",
-   "line":284
+   "line":310
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"field_indices",
    "target":"Query",
-   "line":285
+   "line":311
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"field_indices",
    "target":"Query",
-   "line":286
+   "line":312
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"field_indices",
    "target":"Query",
-   "line":287
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/routers/observability.py",
-   "source":"field_indices",
-   "target":"Header",
-   "line":288
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/routers/observability.py",
-   "source":"field_indices",
-   "target":"require_service_token",
-   "line":299
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/routers/observability.py",
-   "source":"field_indices",
-   "target":"split",
-   "line":300
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/routers/observability.py",
-   "source":"field_indices",
-   "target":"strip",
-   "line":300
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/routers/observability.py",
-   "source":"field_indices",
-   "target":"strip",
-   "line":300
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/routers/observability.py",
-   "source":"field_indices",
-   "target":"rvi_from_sar_cog",
    "line":313
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"field_indices",
-   "target":"resolve_field_layer",
+   "target":"Header",
+   "line":314
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"field_indices",
+   "target":"require_service_token",
+   "line":325
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"field_indices",
+   "target":"split",
    "line":326
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"field_indices",
+   "target":"strip",
+   "line":326
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"field_indices",
+   "target":"strip",
+   "line":326
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"field_indices",
+   "target":"rvi_from_sar_cog",
+   "line":339
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"field_indices",
+   "target":"resolve_field_layer",
+   "line":352
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/observability.py",
+   "source":"field_indices",
    "target":"grid_from_cog",
-   "line":336
+   "line":362
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"field_indices",
    "target":"get",
-   "line":342
+   "line":368
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"field_indices",
    "target":"len",
-   "line":346
+   "line":372
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"field_indices",
    "target":"round",
-   "line":346
+   "line":372
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/routers/observability.py",
    "source":"field_indices",
    "target":"sum",
-   "line":346
+   "line":372
   },
   {
    "owner":"raster-service",
@@ -531380,6 +531681,174 @@
    "source":"assert_dsn_role_rls_safe",
    "target":"close",
    "line":118
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"database_ready",
+   "target":"timeout",
+   "line":25
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"database_ready",
+   "target":"connect",
+   "line":26
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"database_ready",
+   "target":"transaction",
+   "line":27
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"database_ready",
+   "target":"execute",
+   "line":28
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"database_ready",
+   "target":"fetchval",
+   "line":32
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"database_ready",
+   "target":"fetch",
+   "line":42
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"database_ready",
+   "target":"bool",
+   "line":44
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"database_ready",
+   "target":"fetchval",
+   "line":45
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"database_ready",
+   "target":"suppress",
+   "line":54
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"database_ready",
+   "target":"close",
+   "line":55
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"redis_ready",
+   "target":"timeout",
+   "line":66
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"redis_ready",
+   "target":"from_url",
+   "line":67
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"redis_ready",
+   "target":"bool",
+   "line":68
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"redis_ready",
+   "target":"ping",
+   "line":68
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"redis_ready",
+   "target":"suppress",
+   "line":73
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"redis_ready",
+   "target":"aclose",
+   "line":74
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"redis_ready",
+   "target":"wait_for",
+   "line":74
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"writable_directory_ready",
+   "target":"Path",
+   "line":80
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"writable_directory_ready",
+   "target":"mkdir",
+   "line":81
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"writable_directory_ready",
+   "target":"TemporaryFile",
+   "line":82
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"writable_directory_ready",
+   "target":"write",
+   "line":83
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"writable_directory_ready",
+   "target":"flush",
+   "line":84
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"writable_directory_ready",
+   "target":"fileno",
+   "line":85
+  },
+  {
+   "owner":"shared",
+   "file":"shared/dependency_readiness.py",
+   "source":"writable_directory_ready",
+   "target":"fsync",
+   "line":85
   },
   {
    "owner":"shared",

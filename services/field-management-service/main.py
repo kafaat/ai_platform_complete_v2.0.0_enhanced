@@ -22,14 +22,16 @@ Security contract (fail-closed, no platform fallback):
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import hmac
 import json
 import os
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
 
+from shared.dependency_readiness import database_ready, redis_ready
 from shared.security.service_tenant_assertion import (
     TenantAssertionError,
     verify_tenant_assertion,
@@ -216,16 +218,36 @@ async def legacy_health():
 
 
 @app.get("/readyz")
-async def readyz():
+async def readyz(response: Response):
+    production = os.getenv("SAHOOL_ENV", "development").strip().lower() in {"production", "prod"}
+    assertion_key = os.getenv("FIELD_SERVICE_TENANT_ASSERTION_KEY", "")
+    redis_url = os.getenv("FIELD_SERVICE_ASSERTION_REDIS_URL", "")
+    database, replay_store = await asyncio.gather(
+        database_ready(DATABASE_URL, table="fields", columns=_FIELD_COLUMNS),
+        redis_ready(redis_url) if production or redis_url else _optional_replay_store(),
+    )
+    dependencies = {
+        "database": database,
+        "service_token": bool(os.getenv("SAHOOL_AGENT_TOKEN", "").strip()),
+        "caller_allowlist": bool(_ALLOWED_CALLERS) if production else True,
+        "tenant_assertion": len(assertion_key) >= 32 if production else True,
+        "replay_store": replay_store,
+    }
+    ready = all(dependencies.values())
+    response.status_code = 200 if ready else 503
     return {
-        "status": "ready",
+        "status": "ready" if ready else "not_ready",
         "service": "field-management-service",
         "implemented_runtime": True,
-        "ready": bool(DATABASE_URL),
+        "ready": ready,
         "runtime_role": "field-owner",
-        "dependencies": {"database": bool(DATABASE_URL)},
+        "dependencies": dependencies,
         "source_identity": _runtime_source_identity(),
     }
+
+
+async def _optional_replay_store() -> bool:
+    return True
 
 
 @app.get("/contract")

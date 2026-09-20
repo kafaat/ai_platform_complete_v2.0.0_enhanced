@@ -6410,3 +6410,16 @@ C01..C14؛ لا تُرفع قدرة إلى runtime_verified أو production_cert
 - **التكذيب:** زرعٌ حيٌّ — إعادةُ `return {name: [] for name in _NOT_MEASURED}` تُسقِط **١٦/١٦** حالة، واستعادةُ المولّد تُعيدها خضراء.
 - **وما لا يُدَّعى، وهو أهمُّ ما في المدخلة:** **٧٢٢ حافّةً معلَنةً ما تزال غيرَ محسومة و٠ محسومة**، والأسطحُ العشرةُ ما تزال **غيرَ مقيسة**. لم يُرقَّ شيءٌ ولم يُختلَق حسمٌ كي يخضرّ تقرير. ما تغيّر أنّ المصنوعةَ صارت **تقول ما لم تقسه** بدل أن تبدو فارغة. والترقيةُ إلى `measured` تحتاج مقياساً يُنتِج صفوفَه — لا تحريراً.
 - **المصدر:** [`scripts/diagnostics/build_main_inventory.py`](../../scripts/diagnostics/build_main_inventory.py) · [`tests_v9/test_main_inventory_generator.py`](../../tests_v9/test_main_inventory_generator.py) · [`.github/workflows/diagnostic-inventory.yml`](../../.github/workflows/diagnostic-inventory.yml) · [`docs/audits/MAIN_PLATFORM_INVENTORY_BASELINE_20260917.md`](../../docs/audits/MAIN_PLATFORM_INVENTORY_BASELINE_20260917.md)
+
+## RAILWAY-DEPENDENCY-READINESS-20260920-01
+
+- **الحالة:** open — readiness checks repaired in code; live dependency rollout and domain acceptance remain unverified.
+- Source: `services/ai_agronomist/main.py`, `services/field-management-service/main.py`, `services/raster-service/routers/observability.py`, `shared/dependency_readiness.py`.
+- Evidence: `tests_v9/test_ai_runtime_readiness.py`, `services/field-management-service/tests/test_field_management_service_contract.py`; deployment gates in `docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md`.
+- Scope: reject 4xx/malformed readiness; check field database and replay store, Raster schema and writable work directory. Does not certify live corpus, image processing, S3 or a complete workspace rollout.
+
+- Continuation base: `7dce8ff1122b163ae2d7e31b5897784d84dfedb4` (#1039). This readiness patch is still unpublished. The 2026-09-20 live checks of the previously deployed field, vegetation and frontend readiness routes do not establish deployment of this source repair.
+
+- Final continuation base: `dac2cb0c5624555e3255199f9fdd0c9712c66ee8` (#1040). The readiness repair is still unpublished. Automatic approval review blocked the notification deployment handoff; the working instance was retained. Operational evidence does not establish deployment of this source repair; see `docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md`.
+
+- Follow-up base: `a00f9f11821fef158eb27db1e5added0a4adc2e1` (#1041). The gap remains open; source publication, notification handoff and domain acceptance are not established. Preserve current main changes and regenerate artifacts before required pre-push checks.

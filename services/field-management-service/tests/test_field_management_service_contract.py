@@ -140,12 +140,53 @@ def test_production_tenant_assertion_is_required_and_scoped(monkeypatch):
 def test_readyz_envelope_has_required_keys():
     import asyncio
 
+    from fastapi import Response
+
     mod = _load_main()
-    body = asyncio.run(mod.readyz())
+    response = Response()
+    body = asyncio.run(mod.readyz(response))
     for key in ("status", "service", "implemented_runtime", "ready", "dependencies"):
         assert key in body, f"readyz envelope missing {key}"
     assert body["implemented_runtime"] is True
     assert isinstance(body["dependencies"], dict)
+
+
+@pytest.mark.parametrize(
+    "missing",
+    [None, "database", "replay_store", "service_token", "caller_allowlist", "tenant_assertion"],
+)
+def test_production_readiness_checks_dependencies(monkeypatch, missing):
+    from fastapi.testclient import TestClient
+
+    monkeypatch.setenv("SAHOOL_ENV", "production")
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "service-token")
+    monkeypatch.setenv("FIELD_SERVICE_ALLOWED_CALLERS", "vegetation-analysis-service")
+    monkeypatch.setenv("FIELD_SERVICE_TENANT_ASSERTION_KEY", "k" * 32)
+    monkeypatch.setenv("FIELD_SERVICE_ASSERTION_REDIS_URL", "redis://readiness-fixture")
+    keys = {
+        "service_token": "SAHOOL_AGENT_TOKEN",
+        "caller_allowlist": "FIELD_SERVICE_ALLOWED_CALLERS",
+        "tenant_assertion": "FIELD_SERVICE_TENANT_ASSERTION_KEY",
+    }
+    if missing in keys:
+        monkeypatch.delenv(keys[missing])
+    mod = _load_main()
+
+    async def database(*args, **kwargs):
+        return missing != "database"
+
+    async def redis(*args, **kwargs):
+        return missing != "replay_store"
+
+    monkeypatch.setattr(mod, "database_ready", database)
+    monkeypatch.setattr(mod, "redis_ready", redis)
+    client = TestClient(mod.app)
+    response = client.get("/readyz")
+    assert response.status_code == (200 if missing is None else 503)
+    assert response.json()["ready"] is (missing is None)
+    if missing:
+        assert response.json()["dependencies"][missing] is False
+    assert client.get("/healthz").status_code == 200
 
 
 def test_source_contract_is_service_token_only_and_scoped():

@@ -122,9 +122,17 @@ class ApprovalDecisionRequest(BaseModel):
 async def _get_json(client: httpx.AsyncClient, url: str) -> tuple[bool, Any]:
     try:
         resp = await client.get(url, timeout=3.0)
-        return resp.status_code < 500, resp.json()
-    except Exception as exc:  # noqa: BLE001
-        return False, str(exc)
+        body = resp.json()
+        ready = (
+            resp.status_code == 200
+            and isinstance(body, dict)
+            and body.get("status") == "ready"
+            and body.get("ready", True) is True
+        )
+        return ready, body
+    except (httpx.HTTPError, ValueError):
+        # Do not expose internal URLs or credentials through public readiness.
+        return False, {"status": "unavailable"}
 
 
 @app.get("/healthz")
@@ -340,9 +348,11 @@ async def metrics() -> Response:
 @app.get("/readyz")
 async def readyz() -> dict[str, Any]:
     async with httpx.AsyncClient() as client:
-        rag_ok, rag = await _get_json(client, f"{RAG_BASE_URL.rstrip('/')}/readyz")
-        kg_ok, kg = await _get_json(client, f"{KNOWLEDGE_GRAPH_URL.rstrip('/')}/readyz")
-        guard_ok, guard = await _get_json(client, f"{GUARDRAILS_URL.rstrip('/')}/readyz")
+        (rag_ok, rag), (kg_ok, kg), (guard_ok, guard) = await asyncio.gather(
+            _get_json(client, f"{RAG_BASE_URL.rstrip('/')}/readyz"),
+            _get_json(client, f"{KNOWLEDGE_GRAPH_URL.rstrip('/')}/readyz"),
+            _get_json(client, f"{GUARDRAILS_URL.rstrip('/')}/readyz"),
+        )
     deps = {"rag": rag_ok, "knowledge_graph": kg_ok, "guardrails": guard_ok}
     if not (rag_ok and kg_ok and guard_ok):
         raise HTTPException(

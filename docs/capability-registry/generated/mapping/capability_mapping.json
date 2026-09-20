@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5384,
+    "files_scanned": 5386,
     "files_by_kind": {
       "backend": 1209,
       "database": 278,
       "governance": 63,
       "mobile": 55,
-      "other": 1502,
+      "other": 1504,
       "tests": 1819,
       "web": 458
     },
@@ -17642,6 +17642,15 @@
           ]
         },
         {
+          "path": "docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md",
+          "score": 12,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
           "path": "scripts/ci/raster_main_decomposition_gate.py",
           "score": 12,
           "signals": [
@@ -17799,7 +17808,7 @@
         "mobile": 0,
         "tests": 44,
         "governance": 0,
-        "other_evidence": 32
+        "other_evidence": 33
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -22997,35 +23006,35 @@
           "score": 22
         },
         {
-          "value": "/healthz @ services/raster-service/routers/observability.py:30",
+          "value": "/healthz @ services/raster-service/routers/observability.py:33",
           "score": 18
         },
         {
-          "value": "/metrics @ services/raster-service/routers/observability.py:35",
+          "value": "/metrics @ services/raster-service/routers/observability.py:38",
           "score": 18
         },
         {
-          "value": "/readyz @ services/raster-service/routers/observability.py:185",
+          "value": "/readyz @ services/raster-service/routers/observability.py:188",
           "score": 18
         },
         {
-          "value": "/v1/indices @ services/raster-service/routers/observability.py:280",
+          "value": "/v1/indices @ services/raster-service/routers/observability.py:306",
           "score": 18
         },
         {
-          "value": "/v1/info/{layer_id} @ services/raster-service/routers/observability.py:240",
+          "value": "/v1/info/{layer_id} @ services/raster-service/routers/observability.py:266",
           "score": 18
         },
         {
-          "value": "/v1/providers/status @ services/raster-service/routers/observability.py:250",
+          "value": "/v1/providers/status @ services/raster-service/routers/observability.py:276",
           "score": 18
         },
         {
-          "value": "/v1/tile-cache/stats @ services/raster-service/routers/observability.py:206",
+          "value": "/v1/tile-cache/stats @ services/raster-service/routers/observability.py:232",
           "score": 18
         },
         {
-          "value": "/v1/tiles/observability @ services/raster-service/routers/observability.py:144",
+          "value": "/v1/tiles/observability @ services/raster-service/routers/observability.py:147",
           "score": 18
         },
         {
@@ -26930,31 +26939,31 @@
       ],
       "routes": [
         {
-          "value": "/ @ services/field-management-service/main.py:250",
+          "value": "/ @ services/field-management-service/main.py:272",
           "score": 9
         },
         {
-          "value": "/contract @ services/field-management-service/main.py:231",
+          "value": "/contract @ services/field-management-service/main.py:253",
           "score": 9
         },
         {
-          "value": "/health @ services/field-management-service/main.py:213",
+          "value": "/health @ services/field-management-service/main.py:215",
           "score": 9
         },
         {
-          "value": "/healthz @ services/field-management-service/main.py:208",
+          "value": "/healthz @ services/field-management-service/main.py:210",
           "score": 9
         },
         {
-          "value": "/internal/fields @ services/field-management-service/main.py:291",
+          "value": "/internal/fields @ services/field-management-service/main.py:313",
           "score": 9
         },
         {
-          "value": "/internal/fields/{field_id} @ services/field-management-service/main.py:259",
+          "value": "/internal/fields/{field_id} @ services/field-management-service/main.py:281",
           "score": 9
         },
         {
-          "value": "/readyz @ services/field-management-service/main.py:218",
+          "value": "/readyz @ services/field-management-service/main.py:220",
           "score": 9
         }
       ],
