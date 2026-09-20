@@ -4031,6 +4031,12 @@
           "find": "        if fence:\n            continue",
           "replace": "        if False:\n            continue",
           "why": "قراءةُ ما داخل السياج دعوى ⇒ مثالٌ في توثيق الحارس أو في شاهدٍ يُحمِّر الحارسَ نفسَه — حقلٌ يُحمِّر على عملٍ طبيعيّ يُطفَأ."
+        },
+        {
+          "expect": "test_current_surface_claim_is_compared_with_inventory_artifact",
+          "find": "        elif claim[\"value\"] != measured:",
+          "replace": "        elif not claim[\"field\"].startswith(\"_inventory_\") and claim[\"value\"] != measured:",
+          "why": "Skip current inventory surface claims while retaining other journal comparisons: the measured 8/10 artifact then incorrectly accepts the stale 9/10 claim from main b3109c7 and the remaining status line in a1908ec0."
         }
       ],
       "test": "tests_v9/test_gap_registry_claim_guard.py"
