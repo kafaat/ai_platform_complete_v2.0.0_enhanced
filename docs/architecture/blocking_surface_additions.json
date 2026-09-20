@@ -57,6 +57,14 @@
       "impact": "merge",
       "$impact_ar": "الأثرُ عند الدمج: ما يُحرَس هو عقدُ الملكيّة في الشجرة، فموضعُ الحجب الصحيح هو لحظةُ دمج الـPR لا الإصدار ولا النشر. يعمل في وظيفة `Repository Structural Lint` بـ`ci.yml`، ويُشغَّل محلّيّاً ضمن `preflight`.",
       "$scope_limit_ar": "**أرضيّةُ صفرٍ لا راتشِت:** ٣٨٢ جدولاً في النطاق و**صفرُ** كاتبٍ إضافيّ اليوم، فلا يبدأ بدَينٍ يُدرَّب قارئُه على تجاوزه. **ولا يُنقِص المخالفاتِ الأربعَ والسبعين ولا يدّعي ذلك** — إنقاصُها يحتاج نقلَ الكتابة أي الاستخراجَ نفسَه. ولا يحكم على صحّة العقد، ولا يمنع تقاعدَ هدفٍ، ولا يقرأ تاريخ git. بندٌ واحدٌ لا ثانيَ له: كاتبٌ إضافيٌّ مُعلَنٌ على جدولٍ مالكُه هدفٌ حيّ."
+    },
+    "scripts/ci/gap_registry_claim_guard.py::diagnostic-inventory.yml::diagnostic-inventory": {
+      "counterexample": "Measured on main b3109c7 after #1047: the DB ownership registry entry says 9/10 unmeasured twice, while the canonical inventory artifact reports surfaces_not_measured=8 and surfaces_declared=10 because frontend_consumers was measured by #1044. #1048 at a1908ec0 corrects the explanatory paragraph but leaves 9/10 in the status line. The current claim must agree with the same-commit inventory artifact and its emitted surface files.",
+      "mutation": "test_current_surface_claim_is_compared_with_inventory_artifact",
+      "$mutation_ar": "الطفرة المسجلة تتجاوز مقارنة حقول الجرد وحدها، فتمر دعوى 9 رغم أن المصنوع يقيس 8؛ يرفضها الاختبار المسمى بالتشخيص نفسه.",
+      "positive_witness": "test_current_surface_claim_is_compared_with_inventory_artifact[8-0] accepts the correct current 8/10 artifact; test_historical_surface_claim_does_not_require_current_inventory preserves explicitly historical claims.",
+      "impact": "merge",
+      "$scope_limit_ar": "يربط الادعاءات الحالية ذات أسماء حقول الجرد القانونية بمصنوع الالتزام الحالي، ولا يرقّي الأسطح غير المقيسة ولا يغيّر ملكية قاعدة البيانات أو يطالب بإصلاح الدين التاريخي."
     }
   }
 }
