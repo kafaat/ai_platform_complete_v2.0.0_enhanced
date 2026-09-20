@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 632
   },
-  "inventory_sha256": "bde690835c0783b38459509f41d1a2a537d9d57db67416bebbed49170afc383d",
+  "inventory_sha256": "8acfe87d0a0e7cfed27938d9555c66e274b5dd076bca3ccde9eb86c99d9b314a",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "a496b355f74d6d6f584884c299deea55716a57ae0bb98ba3d8d2a4e74951af5d"
+    "policy_sha256": "002352e9772b118be30684392dbad01c93f8a3f680c053de5a479192b1b30f98"
   },
   "routes": [
     {
@@ -722,7 +722,7 @@
     {
       "classification": "domain",
       "function": "list_devices",
-      "line": 96,
+      "line": 97,
       "method": "GET",
       "path": "/api/v1/devices",
       "source": "api/routers/devices.py"
@@ -730,7 +730,7 @@
     {
       "classification": "domain",
       "function": "devices_fleet_health",
-      "line": 191,
+      "line": 234,
       "method": "GET",
       "path": "/api/v1/devices/fleet-health",
       "source": "api/routers/devices.py"
@@ -746,7 +746,7 @@
     {
       "classification": "domain",
       "function": "list_telemetry",
-      "line": 166,
+      "line": 209,
       "method": "GET",
       "path": "/api/v1/devices/{device_id}/telemetry",
       "source": "api/routers/devices.py"
@@ -3258,7 +3258,7 @@
     {
       "classification": "domain",
       "function": "register_device",
-      "line": 41,
+      "line": 42,
       "method": "POST",
       "path": "/api/v1/devices",
       "source": "api/routers/devices.py"
@@ -3266,7 +3266,7 @@
     {
       "classification": "domain",
       "function": "ingest_telemetry",
-      "line": 122,
+      "line": 123,
       "method": "POST",
       "path": "/api/v1/devices/{device_id}/telemetry",
       "source": "api/routers/devices.py"
