@@ -2123,7 +2123,7 @@
       "function": "devices_fleet_health",
       "method": "GET",
       "path": "/api/v1/devices/fleet-health",
-      "line": 191,
+      "line": 234,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/devices.py::GET /api/v1/devices/fleet-health::devices_fleet_health"
@@ -2133,7 +2133,7 @@
       "function": "list_telemetry",
       "method": "GET",
       "path": "/api/v1/devices/{device_id}/telemetry",
-      "line": 166,
+      "line": 209,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/devices.py::GET /api/v1/devices/{device_id}/telemetry::list_telemetry"
@@ -2143,7 +2143,7 @@
       "function": "list_devices",
       "method": "GET",
       "path": "/api/v1/devices",
-      "line": 96,
+      "line": 97,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/devices.py::GET /api/v1/devices::list_devices"
@@ -2153,7 +2153,7 @@
       "function": "ingest_telemetry",
       "method": "POST",
       "path": "/api/v1/devices/{device_id}/telemetry",
-      "line": 122,
+      "line": 123,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/devices.py::POST /api/v1/devices/{device_id}/telemetry::ingest_telemetry"
@@ -2163,7 +2163,7 @@
       "function": "register_device",
       "method": "POST",
       "path": "/api/v1/devices",
-      "line": 41,
+      "line": 42,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/devices.py::POST /api/v1/devices::register_device"
