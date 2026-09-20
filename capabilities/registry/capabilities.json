@@ -728,7 +728,8 @@
       "tests": [
         "services/sahool-platform/tests/test_data_inventory.py",
         "tests/architecture/test_generate_service_inventory.py",
-        "tests_v9/test_inventory_equipment.py"
+        "tests_v9/test_inventory_equipment.py",
+        "tests_v9/test_main_inventory_generator.py"
       ],
       "runtime": {
         "metrics": [],
@@ -758,7 +759,7 @@
           "path": "services/sahool-platform/core/data_inventory.yaml"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=7, tests=3, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=0, apis=7, tests=4, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

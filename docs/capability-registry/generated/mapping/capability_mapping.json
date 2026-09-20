@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5378,
+    "files_scanned": 5382,
     "files_by_kind": {
       "backend": 1209,
       "database": 278,
-      "governance": 62,
+      "governance": 63,
       "mobile": 55,
-      "other": 1499,
-      "tests": 1817,
+      "other": 1501,
+      "tests": 1818,
       "web": 458
     },
     "unmapped_artifacts": 2185,
@@ -8616,6 +8616,14 @@
       ],
       "events": [
         {
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:215",
+          "score": 14
+        },
+        {
+          "value": "sahool.diagnostic-inventory.v1 @ scripts/diagnostics/build_main_inventory.py:252",
+          "score": 14
+        },
+        {
           "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:928",
           "score": 12
         }
@@ -8684,6 +8692,14 @@
       ],
       "governance": [
         {
+          "path": ".github/workflows/diagnostic-inventory.yml",
+          "score": 14,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
           "path": ".github/workflows/service-inventory-drift.yml",
           "score": 14,
           "signals": [
@@ -8745,6 +8761,14 @@
           ]
         },
         {
+          "path": "docs/audits/MAIN_PLATFORM_INVENTORY_BASELINE_20260917.md",
+          "score": 14,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
           "path": "scripts/ci/generate_service_inventory.py",
           "score": 14,
           "signals": [
@@ -8754,6 +8778,14 @@
         },
         {
           "path": "scripts/ci/platform_main_subinventory_guard.py",
+          "score": 14,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
+        },
+        {
+          "path": "scripts/diagnostics/build_main_inventory.py",
           "score": 14,
           "signals": [
             "path:inventory",
@@ -8817,12 +8849,12 @@
         "backend": 8,
         "routes": 26,
         "database": 8,
-        "events": 1,
+        "events": 3,
         "web": 1,
         "mobile": 1,
         "tests": 5,
-        "governance": 3,
-        "other_evidence": 12
+        "governance": 4,
+        "other_evidence": 14
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -28321,6 +28353,13 @@
           ]
         },
         {
+          "path": "tests_v9/test_main_inventory_generator.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "services/soil-service/test_canonical_soil_profile.py",
           "score": 16,
           "signals": [
@@ -28599,7 +28638,7 @@
         "events": 39,
         "web": 1,
         "mobile": 0,
-        "tests": 17,
+        "tests": 18,
         "governance": 1,
         "other_evidence": 15
       },

@@ -8931,6 +8931,7 @@
         "tests_v9/test_canonical_root_zone_profile.py",
         "tests_v9/test_hourly_energy_aware_irrigation_mpc.py",
         "tests_v9/test_live_pg_fake_connection_debt.py",
+        "tests_v9/test_main_inventory_generator.py",
         "tests_v9/test_variety_policy_resolution.py"
       ]
     },
