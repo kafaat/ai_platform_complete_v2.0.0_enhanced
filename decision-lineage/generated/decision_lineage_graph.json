@@ -641,7 +641,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 502,
+      "evidence_count": 501,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -1162,7 +1162,6 @@
         "shared/memory/farm_memory.py",
         "shared/memory/import_engine.py",
         "shared/memory/models.py",
-        "shared/notification_consumers.py",
         "shared/test_autonomous_farm_os_phase9.py",
         "shared/test_continuous_learning_phase10.py",
         "shared/test_field_runtime_cohesion.py",
@@ -1368,7 +1367,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 260,
+      "evidence_count": 261,
       "owners": [
         "ai_agronomist",
         "auth",
@@ -1519,6 +1518,7 @@
         "services/sahool-platform/api/routers/irrigation_mpc.py",
         "services/sahool-platform/api/routers/irrigation_recommendation.py",
         "services/sahool-platform/api/routers/rbac.py",
+        "services/sahool-platform/api/routers/recommendations.py",
         "services/sahool-platform/api/routers/season_workspace.py",
         "services/sahool-platform/api/routers/soil_sampling.py",
         "services/sahool-platform/api/season_calendar_guard.py",
@@ -2033,7 +2033,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 292,
+      "evidence_count": 291,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2343,7 +2343,6 @@
         "shared/contracts/soil/soil_observation.v1.schema.json",
         "shared/dependency_readiness.py",
         "shared/enterprise_gis/phase8_global_scale.py",
-        "shared/notification_consumers.py",
         "shared/security/gateway_deps.py",
         "shared/security/service_tenant_assertion.py",
         "shared/security/trusted_tenant.py"
@@ -2460,7 +2459,7 @@
         "services/sahool-platform/api/routers/weather.py"
       ],
       "source_evidence_count": 597,
-      "target_evidence_count": 502,
+      "target_evidence_count": 501,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2568,7 +2567,7 @@
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py"
       ],
-      "source_evidence_count": 502,
+      "source_evidence_count": 501,
       "target_evidence_count": 172,
       "static_supported": true,
       "runtime_verified": false
@@ -2623,6 +2622,7 @@
         "services/sahool-platform/api/routers/decision_review.py",
         "services/sahool-platform/api/routers/irrigation_engineering.py",
         "services/sahool-platform/api/routers/irrigation_recommendation.py",
+        "services/sahool-platform/api/routers/recommendations.py",
         "services/sahool-platform/api/water_decision_bridge.py",
         "services/sahool-platform/core/learning_source_lineage.py",
         "services/sahool-platform/schemas/irrigation-contracts/v1.1-errata2/decision-evidence-envelope.schema.json",
@@ -2641,7 +2641,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 172,
-      "target_evidence_count": 260,
+      "target_evidence_count": 261,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2672,7 +2672,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 260,
+      "source_evidence_count": 261,
       "target_evidence_count": 32,
       "static_supported": true,
       "runtime_verified": false
@@ -2821,7 +2821,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 50,
-      "target_evidence_count": 292,
+      "target_evidence_count": 291,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -2831,5 +2831,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "291475da601c9dbe752fbd483ab165b9e2e0d2af7f4acabe48d9b5eac4004a77"
+  "content_sha256": "1302d8ed320c750dc45d2964299816bae2413121bb668bce1319040401c07cd2"
 }

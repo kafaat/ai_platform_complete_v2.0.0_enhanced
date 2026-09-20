@@ -38,6 +38,10 @@ ENABLE_DECISION_AUTHORITY_CONTRACTS = flag("ENABLE_DECISION_AUTHORITY_CONTRACTS"
 ENABLE_JETSTREAM_RECOMMENDATION_EVENTS = flag("ENABLE_JETSTREAM_RECOMMENDATION_EVENTS", False)
 ENABLE_RUNTIME_METRICS = flag("ENABLE_RUNTIME_METRICS", True)
 ENABLE_RAG_QDRANT_INTEGRATION = flag("ENABLE_RAG_QDRANT_INTEGRATION", False)
+#: `AI-RUNTIME-WIRING-01` الخطوة ②: يبلغ المستهلكُ الإنتاجيُّ `RecommendationRuntimePipeline`.
+#: مطفأةٌ افتراضاً، وقلبُها **لا يُقاس جاهزيّةً**: بندُ الإغلاق يشترط شهادةً حيّةً على
+#: القاعدة قبل التفعيل. وجودُ الراية يجعل القلبَ ممكناً في الحاوية — لا واقعاً.
+ENABLE_RUNTIME_PIPELINE_CONSUMER = flag("ENABLE_RUNTIME_PIPELINE_CONSUMER", False)
 
 GUARDRAIL_METRIC_NAMES = (
     "guardrail_trigger_total",

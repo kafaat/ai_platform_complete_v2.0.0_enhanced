@@ -588,7 +588,6 @@ medium,weather-service,function,patch_openmeteo,services/weather-service/tests/t
 medium,shared,function,has_capability,shared/ai/capabilities.py,77,0,review_before_delete,False
 medium,shared,function,has_decision_keys,shared/ai/recommendation_runtime/decision_contracts.py,58,0,review_before_delete,False
 medium,shared,class,ReviewRepository,shared/ai/recommendation_runtime/human_review_repository.py,43,0,review_before_delete,False
-medium,shared,class,RecommendationRuntimePipeline,shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py,41,0,review_before_delete,False
 medium,shared,function,build_audit_record,shared/ai/tool_audit.py,54,0,review_before_delete,False
 medium,shared,function,tools_by_risk,shared/ai/tool_registry.py,332,0,review_before_delete,False
 medium,shared,function,tool_names_for,shared/ai/tool_schema.py,232,0,review_before_delete,False

@@ -19075,7 +19075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6241971b52b06b92887f8c6540a3a597e8067881551f9e1db399c6ec1ed8a6da"
+          "content": "9738cf90b641d7280bcd076144f8f6d6436ecce2e1e01d2d610aa75939794ce2"
         }
       ],
       "name": "services/sahool-platform/api/routers/recommendations.py",
@@ -30685,7 +30685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0b200500806727d390fd42bd0ef54bfa5dfddcd80234441be558176b454a9f04"
+          "content": "e366c80d5b7f4598d87551daa1460ed9d8e0130140cd9819a2afe2242da4d3e5"
         }
       ],
       "name": "shared/ai/recommendation_runtime/flags.py",
