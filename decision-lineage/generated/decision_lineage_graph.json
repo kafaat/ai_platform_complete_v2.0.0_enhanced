@@ -641,7 +641,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 501,
+      "evidence_count": 502,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -1162,6 +1162,7 @@
         "shared/memory/farm_memory.py",
         "shared/memory/import_engine.py",
         "shared/memory/models.py",
+        "shared/notification_consumers.py",
         "shared/test_autonomous_farm_os_phase9.py",
         "shared/test_continuous_learning_phase10.py",
         "shared/test_field_runtime_cohesion.py",
@@ -2033,7 +2034,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 291,
+      "evidence_count": 292,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2343,6 +2344,7 @@
         "shared/contracts/soil/soil_observation.v1.schema.json",
         "shared/dependency_readiness.py",
         "shared/enterprise_gis/phase8_global_scale.py",
+        "shared/notification_consumers.py",
         "shared/security/gateway_deps.py",
         "shared/security/service_tenant_assertion.py",
         "shared/security/trusted_tenant.py"
@@ -2459,7 +2461,7 @@
         "services/sahool-platform/api/routers/weather.py"
       ],
       "source_evidence_count": 597,
-      "target_evidence_count": 501,
+      "target_evidence_count": 502,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2567,7 +2569,7 @@
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py"
       ],
-      "source_evidence_count": 501,
+      "source_evidence_count": 502,
       "target_evidence_count": 172,
       "static_supported": true,
       "runtime_verified": false
@@ -2821,7 +2823,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 50,
-      "target_evidence_count": 291,
+      "target_evidence_count": 292,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -2831,5 +2833,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "1302d8ed320c750dc45d2964299816bae2413121bb668bce1319040401c07cd2"
+  "content_sha256": "19219a81c69ceb22ef5e4885ca94768eb4e48d530d81ef597243b3b12d58a729"
 }
