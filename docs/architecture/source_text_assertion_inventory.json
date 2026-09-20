@@ -1,12 +1,12 @@
 {
   "$comment": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01 — المسح الأوّل لسطح التأكيدات الساكنة على نصّ المصدر. `prohibitions_without_a_stated_reason` **مَعدودة لا محكومٌ عليها**: لم يُثبَت أنّ أيّاً منها خاطئ، بل أنّ سببه غير مكتوب. الأساس يمنع النموّ، وسدادُه بكتابة السبب الحقيقيّ لا بنسخ عبارة. و`positive_pinning_a_call` **يُنشَر ولا يُحرَس**: معيار الفجوة (هل يبقى التأكيد صحيحاً بعد إعادة صياغة صحيحة؟) غير قابل للحسم آليّاً، ومُصنِّفٌ استدلاليّ يُنتِج قائمةً تُقرأ ديناً وهي ما طابق نمطاً.",
   "gap": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01",
-  "measured_on": "98a61c5f274e7c257a191c5191f428a0af2261f4",
+  "measured_on": "78b82464563f6011aa066b53102f12763517a543",
   "scope": "assert على نصّ مصدر فقط — متغيّر أُسنِد من read_text/read/getsource في الاختبار نفسه، مُشتقٌّ بالبنية لا بالاسم. ما يُؤكَّد على جسم استجابة أو حمولة JSON خارج النطاق: هناك التأكيد هو العقد.",
   "totals": {
-    "source_text_assertions": 2335,
+    "source_text_assertions": 2359,
     "positive_pinning_a_call": 340,
-    "prohibitions": 199
+    "prohibitions": 203
   },
   "prohibitions_without_a_stated_reason": {
     "services/agriai-engine/tests/test_production_readiness_truth.py": {
@@ -184,6 +184,10 @@
       "PLATFORM_API_URL": 1,
       "def internal_get_field(": 1,
       "def internal_list_fields(": 1
+    },
+    "tests_v9/test_local_preflight_contract.py": {
+      "SENSITIVE=": 1,
+      "ادفع بثقة": 1
     },
     "tests_v9/test_mapbox_basemap_contract_20260703.py": {
       "layersOfKind('basemap').map": 1,

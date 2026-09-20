@@ -636,9 +636,17 @@ jobs:
       # تتغيّر بين الإصدارات ⇒ تنسيق محلّيّ سليم يفشل في CI لا لشيء سوى انجراف الإصدار
       # (حدث فعلاً: ملفّ «already formatted» محلّيّاً صار «would reformat» في CI).
       # التثبيت يجعل التنسيق حتميّاً وقابلاً لإعادة الإنتاج محلّيّاً. حدّثه عمداً عند الرغبة.
+      #
+      # **والرقمُ لم يعد هنا بل في `constraints-ci-tools.txt`** — مصدرٌ واحد تشترك فيه
+      # هذه الوظيفةُ و`requirements-dev.txt` و`tests_v9/requirements-test.txt` و
+      # `run_full_test_suite.sh`. أربعةُ أرقامٍ متطابقةٍ اليوم أربعةُ انحرافاتٍ غداً،
+      # وقد وقع الانحرافُ مرّتين (`log.md:4874` بـ0.16.0 · و0.16.7 على `98a61c5f`).
+      # و`preflight.sh` يقرأ التثبيتَ من ذلك الملفّ **ويفشل إن لم تعد هذه السطرُ تُحيل
+      # إليه** — وإلّا صار ملفُّ القيود إعلاناً لا يحكم شيئاً.
+      #
       # PyYAML: `ci_unbounded_wait_guard` يقرأ الـworkflows كـYAML، وبيئة
       # `setup-python` لا تحمله — غيابُه أسقط الخطوة بـModuleNotFoundError (مقيس).
-      - run: pip install ruff==0.15.8 mypy PyYAML
+      - run: pip install -c constraints-ci-tools.txt ruff mypy PyYAML
       # نطاق كامل الشجرة (`.`): تحكمه استثناءات ruff.toml (extend-exclude) وتجاهلاته
       # لكلّ ملفّ. يُغلق ثغرة «الأخضر يقيس ما تختبره فقط» للـlint/format نهائيّاً —
       # كلّ ملفّ بايثون في المستودع (scripts/ tests/ alembic/ sdk/ sahool_ai/ …) مشمول.

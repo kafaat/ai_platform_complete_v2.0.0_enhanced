@@ -218,8 +218,8 @@ require_file scripts/ci/probe_leak_guard.py "٠ج) probe_leak" && run "٠ج) pro
 # ── ١) اللِّنت والتنسيق — بوّابة Lint & Format، كامل الشجرة ────────────────
 # **بشرط تطابق إصدار ruff، والشرطُ مقيسٌ لا احتياط.** الكتلةُ الورقيّة في §٢ من الرنبوك
 # كانت تحمل `pip install -q ruff==0.15.8` — «بالإصدار المثبَّت نفسه». ولمّا صارت §٢ هذا
-# السكربتَ **سقط التثبيت في الانتقال**: `need ruff` يقبل ما في `PATH`، و`requirements-dev.txt`
-# و`tests_v9/requirements-test.txt` يُطلِقانه (`ruff>=0.4.0`) — فالبيئةُ تجلب الأحدث.
+# السكربتَ **سقط التثبيت في الانتقال**: `need ruff` يقبل ما في `PATH`، وملفّا المتطلّبات
+# كانا يُطلِقانه (`ruff>=0.4.0`) — فالبيئةُ تجلب الأحدث. (وُحِّد المصدرُ لاحقاً.)
 #
 # والفارقُ ليس تجميليّاً: 0.16 تُنسّق **كتلَ الكود داخل Markdown**، فيقفز المفحوصُ من
 # ٣٣٣٣ ملفّاً إلى ٤٢٠٠ وتحمرّ ملفّاتٌ لا يمسّها تغييرك. مقيسٌ مرّتين في هذه الشجرة:
@@ -229,31 +229,66 @@ require_file scripts/ci/probe_leak_guard.py "٠ج) probe_leak" && run "٠ج) pro
 # **و`--fix` يجعلها أخطر:** `ruff format .` بإصدارٍ أحدث **يكتب** في تلك الملفّات، فيدخل
 # التنسيقُ التزامَك مصنوعاً لا مقصوداً. ولذلك الشرطُ يسبق الفرعين معاً.
 #
-# **والتثبيت مُشتقٌّ لا منسوخ:** يُقرأ من `.github/workflows/ci.yml` — البوّابةُ الحاجبةُ
-# نفسُها — فترقيتُها تنتقل وحدَها. رقمٌ يُكتَب هنا يبيت، وهو الصنفُ الأوّل الذي يرفضه
-# عقدُ هذا الملفّ (`tests_v9/test_local_preflight_contract.py`).
+# **والتثبيت مُشتقٌّ لا منسوخ:** يُقرأ من `constraints-ci-tools.txt` — المصدرِ الواحد
+# الذي تُثبّت منه CI ذاتُها و`requirements-dev.txt` و`tests_v9/requirements-test.txt` و
+# `run_full_test_suite.sh`. رقمٌ يُكتَب هنا يبيت، وهو الصنفُ الأوّل الذي يرفضه عقدُ هذا
+# الملفّ (`tests_v9/test_local_preflight_contract.py`).
+#
+# **وبندٌ ثانٍ يمنع ملفَّ القيود من أن يصير إعلاناً لا يحكم شيئاً:** يُتحقَّق أنّ
+# `ci.yml` ما تزال تُحيل إليه. فبدونه تُعدَّل الوظيفةُ إلى `pip install ruff` طليقاً،
+# ويبقى هذا السكربتُ يقارن بملفٍّ **لا تقرؤه CI** — أخضرُ عن سؤالٍ لم يعد مطروحاً، وهو
+# الصنفُ المُسجَّل `GATE-EXCEPTION-NARROWER-THAN-ITS-TRIGGER-01` في ثوبٍ آخر.
 if need ruff "١) ruff"; then
   ruff_pin_reason="$(
 python3 - <<'RUFFPINPY' 2>&1
 import re, subprocess, sys
 from pathlib import Path
 
+constraints = Path("constraints-ci-tools.txt")
 workflow = Path(".github/workflows/ci.yml")
 try:
-    text = workflow.read_text(encoding="utf-8")
+    text = constraints.read_text(encoding="utf-8")
 except Exception as exc:
-    print(f"تعذّرت قراءة {workflow}: {exc}", file=sys.stderr)
+    print(f"تعذّرت قراءة {constraints}: {exc}", file=sys.stderr)
     sys.exit(2)
 
-pins = sorted(set(re.findall(r"\bruff==([0-9][0-9A-Za-z.]*)", text)))
+# التعليقاتُ تُنزَع أوّلاً: نصُّ الحجّة في رأس الملفّ يذكر إصداراتٍ أخرى (0.16.0 · 0.16.7)،
+# ومسحٌ خام كان سيقرأها تثبيتاتٍ متعدّدة ويحجب على شرحٍ لا على قيد.
+lines = [line.split("#", 1)[0].strip() for line in text.splitlines()]
+pins = sorted({m.group(1) for m in (re.match(r"^ruff==([0-9][0-9A-Za-z.]*)$", ln) for ln in lines) if m})
 if not pins:
-    print(f"لم يُعثر على تثبيت ruff==… في {workflow}", file=sys.stderr)
+    print(f"لم يُعثر على تثبيت ruff==… في {constraints}", file=sys.stderr)
     sys.exit(3)
 # تثبيتان مختلفان يعنيان أنّ «إصدارَ CI» لم يعد مفرداً — والاختيارُ بينهما تخمين.
 if len(pins) > 1:
-    print(f"تثبيتاتُ ruff في {workflow} متعدّدة: {', '.join(pins)}", file=sys.stderr)
+    print(f"تثبيتاتُ ruff في {constraints} متعدّدة: {', '.join(pins)}", file=sys.stderr)
     sys.exit(5)
 pin = pins[0]
+
+# البندُ الثاني: ملفُّ القيود لا يحكم شيئاً إن لم تعد CI تُحيل إليه.
+try:
+    workflow_text = workflow.read_text(encoding="utf-8")
+except Exception as exc:
+    print(f"تعذّرت قراءة {workflow}: {exc}", file=sys.stderr)
+    sys.exit(2)
+# **أوامرُ التشغيل وحدَها، لا التعليقات.** مسحٌ نصّيٌّ خام يلتقط شرحَ الوظيفة نفسَه
+# (`# ثبّت إصدار ruff: \`pip install ruff\` (طليق) …`) فيُبلِّغ «ci.yml لا تُحيل» وهي
+# تُحيل — وقعتُ فيه هنا فعلاً. وهو الصنفُ المُسجَّل
+# `SCANNER-COUNTS-A-PATH-LITERAL-AS-A-USAGE-01` بعينه: نصٌّ يصف الأمرَ يُعَدّ أمراً.
+installs_ruff = [
+    ln
+    for ln in workflow_text.splitlines()
+    if re.match(r"\s*-?\s*run:", ln) and "pip install" in ln and re.search(r"\bruff\b", ln)
+]
+unconstrained = [ln for ln in installs_ruff if constraints.name not in ln]
+if not installs_ruff or unconstrained:
+    detail = unconstrained[0].strip() if unconstrained else "لا سطرَ تثبيتٍ لـruff"
+    print(
+        f"{workflow} لم تعد تُثبّت ruff عبر {constraints} ⇒ المقارنةُ هنا تقيس ملفّاً "
+        f"لا تقرؤه CI: {detail}",
+        file=sys.stderr,
+    )
+    sys.exit(6)
 
 try:
     out = subprocess.run(
@@ -269,8 +304,8 @@ if out.returncode != 0 or m is None:
 installed = m.group(1)
 if installed != pin:
     print(
-        f"إصدارُ ruff المثبَّت ({installed}) ≠ المثبَّت في {workflow} ({pin}) — "
-        f"`pip install ruff=={pin}`",
+        f"إصدارُ ruff المثبَّت ({installed}) ≠ المثبَّت في {constraints} ({pin}) — "
+        f"`pip install -c {constraints} ruff`",
         file=sys.stderr,
     )
     sys.exit(1)
