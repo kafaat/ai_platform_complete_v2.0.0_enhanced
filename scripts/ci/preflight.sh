@@ -216,12 +216,78 @@ fi
 require_file scripts/ci/probe_leak_guard.py "٠ج) probe_leak" && run "٠ج) probe_leak" python3 scripts/ci/probe_leak_guard.py
 
 # ── ١) اللِّنت والتنسيق — بوّابة Lint & Format، كامل الشجرة ────────────────
+# **بشرط تطابق إصدار ruff، والشرطُ مقيسٌ لا احتياط.** الكتلةُ الورقيّة في §٢ من الرنبوك
+# كانت تحمل `pip install -q ruff==0.15.8` — «بالإصدار المثبَّت نفسه». ولمّا صارت §٢ هذا
+# السكربتَ **سقط التثبيت في الانتقال**: `need ruff` يقبل ما في `PATH`، و`requirements-dev.txt`
+# و`tests_v9/requirements-test.txt` يُطلِقانه (`ruff>=0.4.0`) — فالبيئةُ تجلب الأحدث.
+#
+# والفارقُ ليس تجميليّاً: 0.16 تُنسّق **كتلَ الكود داخل Markdown**، فيقفز المفحوصُ من
+# ٣٣٣٣ ملفّاً إلى ٤٢٠٠ وتحمرّ ملفّاتٌ لا يمسّها تغييرك. مقيسٌ مرّتين في هذه الشجرة:
+# `sahool-brain/log.md:4874` يسجّلها بـ0.16.0 (٢٦ ملفّاً)، وتكرّرت بـ0.16.7 على
+# `98a61c5f` (ملفّان) بينما CI خضراءُ على الشجرة نفسها. **وحمرةٌ بيئيّةٌ تُقرأ شيفريّةً
+# أسوأ من تخطٍّ مُعلَن** — نفسُ حجّة شرط FastAPI في ٨ج.
+# **و`--fix` يجعلها أخطر:** `ruff format .` بإصدارٍ أحدث **يكتب** في تلك الملفّات، فيدخل
+# التنسيقُ التزامَك مصنوعاً لا مقصوداً. ولذلك الشرطُ يسبق الفرعين معاً.
+#
+# **والتثبيت مُشتقٌّ لا منسوخ:** يُقرأ من `.github/workflows/ci.yml` — البوّابةُ الحاجبةُ
+# نفسُها — فترقيتُها تنتقل وحدَها. رقمٌ يُكتَب هنا يبيت، وهو الصنفُ الأوّل الذي يرفضه
+# عقدُ هذا الملفّ (`tests_v9/test_local_preflight_contract.py`).
 if need ruff "١) ruff"; then
-  run "١أ) ruff check ."          ruff check .
-  if [ "$FIX" = 1 ]; then
-    run "١ب) ruff format ."       ruff format .
+  ruff_pin_reason="$(
+python3 - <<'RUFFPINPY' 2>&1
+import re, subprocess, sys
+from pathlib import Path
+
+workflow = Path(".github/workflows/ci.yml")
+try:
+    text = workflow.read_text(encoding="utf-8")
+except Exception as exc:
+    print(f"تعذّرت قراءة {workflow}: {exc}", file=sys.stderr)
+    sys.exit(2)
+
+pins = sorted(set(re.findall(r"\bruff==([0-9][0-9A-Za-z.]*)", text)))
+if not pins:
+    print(f"لم يُعثر على تثبيت ruff==… في {workflow}", file=sys.stderr)
+    sys.exit(3)
+# تثبيتان مختلفان يعنيان أنّ «إصدارَ CI» لم يعد مفرداً — والاختيارُ بينهما تخمين.
+if len(pins) > 1:
+    print(f"تثبيتاتُ ruff في {workflow} متعدّدة: {', '.join(pins)}", file=sys.stderr)
+    sys.exit(5)
+pin = pins[0]
+
+try:
+    out = subprocess.run(
+        ["ruff", "--version"], capture_output=True, text=True, encoding="utf-8", timeout=60
+    )
+except Exception as exc:
+    print(f"تعذّر تشغيل ruff --version: {exc}", file=sys.stderr)
+    sys.exit(4)
+m = re.search(r"([0-9][0-9A-Za-z.]*)", out.stdout)
+if out.returncode != 0 or m is None:
+    print(f"تعذّرت قراءة إصدار ruff المثبَّت: {out.stdout.strip()}{out.stderr.strip()}", file=sys.stderr)
+    sys.exit(4)
+installed = m.group(1)
+if installed != pin:
+    print(
+        f"إصدارُ ruff المثبَّت ({installed}) ≠ المثبَّت في {workflow} ({pin}) — "
+        f"`pip install ruff=={pin}`",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+RUFFPINPY
+)"
+  ruff_pin_rc=$?
+  if [ "$ruff_pin_rc" -eq 0 ]; then
+    run "١أ) ruff check ."          ruff check .
+    if [ "$FIX" = 1 ]; then
+      run "١ب) ruff format ."       ruff format .
+    else
+      run "١ب) ruff format --check ." ruff format --check .
+    fi
   else
-    run "١ب) ruff format --check ." ruff format --check .
+    echo "── ١) ruff (شكل CI)"
+    echo "   ⊘ متخطّاة: ${ruff_pin_reason:-تعذّر التحقّق من شرط ruff} — هاتان البوّابتان **لم تُقاسا**"
+    skipped=$((skipped + 2))
   fi
 fi
 

@@ -20,6 +20,7 @@ invariants exist to prevent.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -573,6 +574,149 @@ def test_the_platform_suite_skip_reason_names_non_version_pin_failures(tmp_path)
     assert missing_requirements.returncode != 0
     assert "تعذّرت قراءة" in missing_requirements.stderr
     assert "إصدارُ FastAPI المثبَّت" not in missing_requirements.stderr
+
+
+def _run_ruff_pin_block(
+    tmp_path: Path,
+    *,
+    workflow_pins: list[str] | None,
+    installed: str | None,
+) -> subprocess.CompletedProcess[str]:
+    """يُشغّل كتلةَ شرط ruff المشحونة على شجرةٍ مُختلَقة و`ruff` مُختلَق في `PATH`.
+
+    `workflow_pins=None` ⇒ لا ملفّ workflow أصلاً. `installed=None` ⇒ لا `ruff` في المسار.
+    """
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    if workflow_pins is not None:
+        (tmp_path / ".github/workflows").mkdir(parents=True)
+        body = "jobs:\n  lint:\n    steps:\n"
+        for pin in workflow_pins:
+            body += f"      - run: pip install ruff=={pin} mypy PyYAML\n"
+        if not workflow_pins:
+            body += "      - run: pip install mypy PyYAML\n"
+        (tmp_path / ".github/workflows/ci.yml").write_text(body, encoding="utf-8")
+
+    env = dict(os.environ)
+    if installed is not None:
+        binder = tmp_path / "bin"
+        binder.mkdir(parents=True, exist_ok=True)
+        shim = binder / "ruff"
+        shim.write_text(f'#!/bin/sh\necho "ruff {installed}"\n', encoding="utf-8")
+        shim.chmod(0o755)
+        env["PATH"] = f"{binder}:{env['PATH']}"
+    else:
+        # مسارٌ خالٍ عمداً: الكتلةُ يجب أن تقول «تعذّر تشغيل ruff» لا أن تنهار.
+        empty = tmp_path / "empty-bin"
+        empty.mkdir(parents=True, exist_ok=True)
+        env["PATH"] = str(empty)
+
+    return subprocess.run(
+        [sys.executable, "-"],
+        input=_extract_block("RUFFPINPY"),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        cwd=tmp_path,
+        env=env,
+        timeout=120,
+    )
+
+
+def test_the_lint_gate_is_skipped_loudly_when_ruff_differs_from_the_ci_pin(tmp_path):
+    """**الشرطُ مقيسٌ لا احتياط، ومرّتين في هذه الشجرة.**
+
+    كتلةُ §٢ الورقيّة كانت تحمل `pip install -q ruff==0.15.8`؛ ولمّا صارت §٢ سكربتاً
+    سقط التثبيت، و`requirements-dev.txt` يُطلِقه (`ruff>=0.4.0`). و0.16 تُنسّق كتلَ
+    الكود داخل Markdown فيقفز المفحوص ٣٣٣٣ ⇒ ٤٢٠٠: `log.md:4874` يسجّلها بـ0.16.0،
+    وتكرّرت بـ0.16.7 على `98a61c5f` بينما CI خضراء على الشجرة نفسها. فالتطابقُ ⇒ 0،
+    والاختلافُ ⇒ غيرُ صفر — تخطٍّ مُعلَن بدل حمرةٍ بيئيّة تُقرأ شيفريّة.
+    """
+    assert (
+        _run_ruff_pin_block(
+            tmp_path / "match", workflow_pins=["0.15.8"], installed="0.15.8"
+        ).returncode
+        == 0
+    )
+
+    mismatch = _run_ruff_pin_block(
+        tmp_path / "mismatch", workflow_pins=["0.15.8"], installed="0.16.7"
+    )
+    assert mismatch.returncode != 0, "إصدارٌ مختلفٌ يجب أن يُخرِج اللِّنتَ إلى التخطّي المُعلَن"
+    assert "إصدارُ ruff المثبَّت" in mismatch.stderr
+    assert "0.16.7" in mismatch.stderr and "0.15.8" in mismatch.stderr, (
+        "الرسالةُ تُسمّي الإصدارين — «غيرُ متطابق» وحدها لا تقول ما يُفعَل"
+    )
+    assert "pip install ruff==0.15.8" in mismatch.stderr, "العلاجُ سطرٌ يُنسَخ لا استنتاج"
+
+
+def test_the_ruff_pin_is_derived_from_the_workflow_not_typed_into_the_tool():
+    """الصنفُ الأوّل الذي يرفضه عقدُ هذا الملفّ: رقمٌ يُكتَب في السكربت يبيت.
+
+    التثبيتُ يُقرأ من البوّابة الحاجبة نفسِها، فترقيةُ `ci.yml` تنتقل وحدَها. ويُقاس
+    بأنّ الكتلةَ تتبع `ci.yml` إلى قيمةٍ **مختلقة** لا تساوي المثبَّتَ في الشجرة.
+    """
+    block = _extract_block("RUFFPINPY")
+    assert ".github/workflows/ci.yml" in block, "التثبيتُ يُشتقّ من البوّابة الحاجبة"
+
+    real_pin = re.findall(
+        r"\bruff==([0-9][0-9A-Za-z.]*)",
+        (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"),
+    )
+    assert real_pin, "ci.yml فقدت تثبيتَ ruff — العقدُ هنا يفترض وجودَه"
+    assert real_pin[0] not in block, (
+        f"إصدارُ ruff ({real_pin[0]}) مكتوبٌ في السكربت — نسخةٌ ثانية تنحرف عن CI"
+    )
+
+
+def test_a_fabricated_pin_is_followed_so_the_upgrade_travels_on_its_own(tmp_path):
+    """لو كان الرقمُ منسوخاً لمرّ هذا أخضرَ: workflow تقول `9.9.9` والمثبَّت `0.15.8`."""
+    followed = _run_ruff_pin_block(
+        tmp_path / "fabricated", workflow_pins=["9.9.9"], installed="0.15.8"
+    )
+    assert followed.returncode != 0
+    assert "9.9.9" in followed.stderr
+
+
+def test_the_ruff_pin_skip_reason_names_non_version_failures(tmp_path):
+    """كلُّ سببٍ رمزُ خروجٍ خاصّ به — «غيرُ صفر» وحدها تُخفي أيَّ عطلٍ وقع."""
+    missing_workflow = _run_ruff_pin_block(
+        tmp_path / "no-workflow", workflow_pins=None, installed="0.15.8"
+    )
+    assert missing_workflow.returncode == 2
+    assert "تعذّرت قراءة" in missing_workflow.stderr
+
+    no_pin = _run_ruff_pin_block(tmp_path / "no-pin", workflow_pins=[], installed="0.15.8")
+    assert no_pin.returncode == 3
+    assert "لم يُعثر على تثبيت" in no_pin.stderr
+
+    # تثبيتان مختلفان: الاختيارُ بينهما تخمين، والتخمينُ هو ما يُرفَض هنا.
+    ambiguous = _run_ruff_pin_block(
+        tmp_path / "ambiguous", workflow_pins=["0.15.8", "0.16.7"], installed="0.15.8"
+    )
+    assert ambiguous.returncode == 5
+    assert "متعدّدة" in ambiguous.stderr
+
+    absent = _run_ruff_pin_block(tmp_path / "absent", workflow_pins=["0.15.8"], installed=None)
+    assert absent.returncode == 4
+    assert "إصدارُ ruff المثبَّت" not in absent.stderr
+
+
+def test_the_ruff_skip_is_counted_and_gates_the_fix_branch_too():
+    """`--fix` أخطرُ من الفحص: `ruff format .` بإصدارٍ أحدث **يكتب** في تلك الملفّات.
+
+    فالشرطُ يجب أن يسبق الفرعين معاً، لا أن يحرس `--check` ويترك الكتابةَ طليقة.
+    """
+    text = _text()
+    gate_at = text.index('if [ "$ruff_pin_rc" -eq 0 ]')
+    skip_at = text.index('echo "   ⊘ متخطّاة: ${ruff_pin_reason')
+    assert text.index('run "١ب) ruff format ."') > gate_at, (
+        "فرعُ الكتابة يجب أن يقع داخل الشرط — وإلّا نسّق إصدارٌ غيرُ مثبَّت شجرتَك"
+    )
+    assert text.index('run "١أ) ruff check ."') > gate_at
+    assert text.index('run "١ب) ruff format ."') < skip_at
+    assert "skipped=$((skipped + 2))" in text[skip_at : skip_at + 400], (
+        "بوّابتان لم تُقاسا ⇒ يُعَدّان اثنتين؛ التخطّي المُبتلَع يُقرأ نجاحاً"
+    )
 
 
 def test_the_commit_claim_step_says_it_reads_committed_messages_only():

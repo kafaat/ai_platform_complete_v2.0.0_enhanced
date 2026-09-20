@@ -964,6 +964,20 @@
           "find": "if fastapi.__version__ != pin:\n",
           "replace": "if False:  # mutated: الجناحُ يُشغَّل على أيّ إصدار\n",
           "why": "إسقاطُ شرط تطابق الإصدار يُشغّل الجناحَ على FastAPI مختلفٍ عن المثبَّت في CI، فتحمرّ ٣٢ حالةً لسببٍ بيئيّ وتُقرأ شيفريّةً — حمرةٌ كاذبةٌ بدل تخطٍّ مُعلَن."
+        },
+        {
+          "expect": "test_the_lint_gate_is_skipped_loudly_when_ruff_differs_from_the_ci_pin",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "find": "if installed != pin:\n",
+          "replace": "if False:  # mutated: اللِّنتُ يُشغَّل على أيّ إصدار\n",
+          "why": "الكتلةُ الورقيّة في §٢ كانت تحمل `pip install -q ruff==0.15.8`، وسقط التثبيت لمّا صارت §٢ سكربتاً. و0.16 تُنسّق كتلَ الكود داخل Markdown (٣٣٣٣ ⇒ ٤٢٠٠ ملفّاً) فتحمرّ ملفّاتٌ لا يمسّها التغيير — مقيسٌ مرّتين: `log.md:4874` بـ0.16.0، وبـ0.16.7 على `98a61c5f` بينما CI خضراء على الشجرة نفسها. إسقاطُ الشرط يُعيد الحمرةَ البيئيّةَ التي تُقرأ شيفريّة، ويجعل `--fix` يُنسّق الشجرةَ بإصدارٍ لا يحجب."
+        },
+        {
+          "expect": "test_the_ruff_pin_is_derived_from_the_workflow_not_typed_into_the_tool",
+          "test": "tests_v9/test_local_preflight_contract.py",
+          "find": "pins = sorted(set(re.findall(r\"\\bruff==([0-9][0-9A-Za-z.]*)\", text)))\n",
+          "replace": "pins = [\"0.15.8\"]  # mutated: رقمٌ منسوخٌ لا مشتقّ\n",
+          "why": "رقمٌ يُكتَب في الأداة يبيت يومَ تُرقّي CI تثبيتَها — وهو الصنفُ الأوّل الذي يرفضه عقدُ هذا الملفّ («A number typed in ... reads as measurement»). الاشتقاقُ من `ci.yml` يجعل الترقيةَ تنتقل وحدَها."
         }
       ]
     },
