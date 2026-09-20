@@ -269,6 +269,43 @@ def check_range(
     return blocking, advisory, pairs
 
 
+_TIP_REMEDY = (
+    "\n  سجلّ إلحاقيّ لا يتقلّص ولا يُحذَف. إن كان هذا دمجاً، فالأرجح أنّه أخذ\n"
+    "  الجانب الفارغ: أعِد بناء المحتوى من **كلا** الوالدَين، لا من أحدهما."
+)
+
+
+def shrink_remedy(blocking: list[Finding], head: str) -> str:
+    """نصُّ العلاج — **مشتقٌّ من موضع الانخفاض** لا ثابتاً.
+
+    ``A-HISTORICAL-DIP-IS-NOT-REPAIRABLE-BY-A-LATER-COMMIT-01``. قِيس على #1036
+    (2026-09-19): رأسُ الفرع كان **أكبرَ** من الأساس في السجلّات الأربعة كلِّها، ومع ذلك
+    بقي الحجبُ قائماً — لأنّ حلَّ التعارض جرى على خطوتَين، فأنزل التزامٌ وسيطٌ الملفَّين
+    إلى مقاس ``main`` ثمّ استعادهما التزامٌ لاحق. والحارسُ يفحص **كلّ** زوج (التزام،
+    والد) لا الرأسَ وحده، فالانخفاضُ محفورٌ في الزوج.
+
+    والرسالةُ الثابتة كانت تصف علاجَ الرأس وحده («أعِد البناء من كلا الوالدَين»)، وهو
+    علاجٌ صحيحٌ **لدمجٍ يُكتب الآن** وعديمُ الأثر لانخفاضٍ هبط أمس: أيُّ التزامٍ فوقه
+    يترك الزوجَ كما هو. فقارئُها يُعيد البناء، ويبقى أحمر، ويستنتج أنّ الحارسَ معطوب.
+    رسالةٌ تصف علاجاً لا يعمل في الحالة المعروضة صنفُ عطلٍ مسجَّلٌ هنا باسم «رسالةٌ بلا
+    علاج»، وهذا فرعُه الثاني: علاجٌ حاضرٌ لكنّه لغير الحالة.
+    """
+    historical = sorted(
+        {f.commit for f in blocking if f.code == "JOURNAL_SHRANK" and f.commit != head}
+    )
+    if not historical:
+        return _TIP_REMEDY
+    return (
+        _TIP_REMEDY + "\n\n"
+        "  وهذا الانخفاضُ **محفورٌ في التاريخ لا في الرأس**: رأسُك قد يكون أكبرَ من\n"
+        "  الأساس في كلّ سجلّ ويبقى الحجبُ قائماً، فالفحصُ على الأزواج لا على الرأس.\n"
+        "  التزامٌ إصلاحيٌّ فوقه لا يُزيله — أعِد تشكيلَ النافذة نفسِها (ادمج التزامَ\n"
+        "  التجهيز مع التزام الاستعادة في التزامٍ واحد، أو أعِد بناءَ الضمّ من والدَيه)\n"
+        "  ثمّ ادفع بـ`--force-with-lease`.\n"
+        "  الالتزاماتُ المعنيّة: " + " · ".join(commit[:8] for commit in historical)
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     # GUARD-RUN-WITHOUT-THE-ARGUMENTS-CI-PASSES-01: بلا `--base` كان الحارس يفحص HEAD
@@ -306,11 +343,8 @@ def main(argv: list[str] | None = None) -> int:
         print("\nbrain_append_only_guard: FAIL", file=sys.stderr)
         for finding in blocking:
             print(finding, file=sys.stderr)
-        print(
-            "\n  سجلّ إلحاقيّ لا يتقلّص ولا يُحذَف. إن كان هذا دمجاً، فالأرجح أنّه أخذ\n"
-            "  الجانب الفارغ: أعِد بناء المحتوى من **كلا** الوالدَين، لا من أحدهما.",
-            file=sys.stderr,
-        )
+        head_sha = _git("rev-parse", args.head).stdout.strip()
+        print(shrink_remedy(blocking, head_sha), file=sys.stderr)
         return 1
 
     print("brain_append_only_guard_ok")

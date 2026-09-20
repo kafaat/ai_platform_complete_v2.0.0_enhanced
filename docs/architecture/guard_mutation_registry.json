@@ -860,6 +860,24 @@
       ],
       "test": "tests_v9/test_certify_artifact_contract.py"
     },
+    "scripts/ci/gap_registry_measure.py": {
+      "mutations": [
+        {
+          "expect": "test_a_deeper_gap_entry_is_caught_end_to_end",
+          "find": "    r\"^(?P<hashes>#{3,6})\\s+(?P<id>[A-Z][A-Za-z0-9_.]*(?:-[A-Za-z0-9_.]+)+)(?=\\s|$)\"",
+          "replace": "    r\"^(?P<hashes>#{7,9})\\s+(?P<id>[A-Z][A-Za-z0-9_.]*(?:-[A-Za-z0-9_.]+)+)(?=\\s|$)\"",
+          "why": "إعادةُ العمى عن العناوين الأعمق (مستوىً لا يقع في Markdown) ⇒ مدخلةٌ تحت `###` لا تدخل `heading_count` فلا تصير يتيمةً فلا يراها راتشِتُ اليتامى — حارسٌ أعمى عن مدخل حارسه.",
+          "test": "tests_v9/test_gap_heading_state_guard.py"
+        },
+        {
+          "expect": "test_a_section_title_that_is_not_a_gap_entry_is_not_reported",
+          "find": "(?P<id>[A-Z][A-Za-z0-9_.]*(?:-[A-Za-z0-9_.]+)+)(?=\\s|$)\"",
+          "replace": "(?P<id>[A-Z][A-Za-z0-9_.]*(?:-[A-Za-z0-9_.]+)+|[A-Z][A-Z0-9_.]*)(?=\\s|$)\"",
+          "why": "توسيعُ الشكل ليقبل الكلمة الكبيرة المفردة ⇒ `### HIL SQL follow-up` و`### MCP review follow-up` — عنوانا قسمٍ فوق جدولٍ تُقرأ صفوفُه أصلاً — يُبلَّغ عنهما عطلاً. وحقلٌ يُحمِّر على عملٍ طبيعيّ يُطفَأ، فتصير الحمايةُ صفراً.",
+          "test": "tests_v9/test_gap_heading_state_guard.py"
+        }
+      ]
+    },
     "scripts/ci/generated_write_targets.py": {
       "$why_ar": "CLASSIFIER-BLIND-TO-GENERATORS-OUTSIDE-generated-DIRS-01: المعيار «يكتبه» لا «يذكره». نكوصُه يُدخِل وثائقَ السياسة بيانَ الكتابة، فيأخذ حلُّ التعارض جانب main ويُعيد التوليد — أي يمحو طفراتٍ مكتوبة. **وهذا القسم لا `mutated`** لأنّ المِرقاب يكتشف `*_guard.py` وحدها، وهذه أداةُ اشتقاق لا حارس؛ تسميتُها حارساً لتمرّ كانت ستكذب على قارئ الكتالوج.",
       "mutations": [
@@ -2984,6 +3002,18 @@
           "find": "                if len(after) < len(before) and is_lossless_row_deduplication(path, before, after):",
           "replace": "                if False:",
           "why": "إبطالُ مسار القبول الضيّق نفسه ⇒ الشاهدُ الذي يجعل الحارسين يحكمان المرشّحَ نفسه يحمَرّ، ويعود الإصلاح lossless إلى `JOURNAL_SHRANK` رغم أنه أزال النسخ المتطابقة فقط"
+        },
+        {
+          "expect": "test_a_historical_dip_says_that_a_later_commit_cannot_repair_it",
+          "find": "        {f.commit for f in blocking if f.code == \"JOURNAL_SHRANK\" and f.commit != head}",
+          "replace": "        set()",
+          "why": "إسكاتُ اشتقاق موضع الانخفاض ⇒ تعود الرسالةُ الثابتة وحدها، فيُقال لقارئٍ انخفاضُه في التاريخ إنّ علاجَه إعادةُ البناء من كلا الوالدَين — علاجٌ لا يعمل على حالته، وهو ما وقع في #1036"
+        },
+        {
+          "expect": "test_a_dip_at_the_head_keeps_the_tip_remedy_only",
+          "find": "    if not historical:\n        return _TIP_REMEDY",
+          "replace": "    if False:\n        return _TIP_REMEDY",
+          "why": "طباعةُ علاج التاريخ دائماً ⇒ يُطالَب دمجٌ يُكتب الآن بنقض تاريخٍ لا داعي له. رسالةٌ صحيحةٌ في غير موضعها تُدرِّب قارئَها على تجاوزها"
         }
       ],
       "test": "tests_v9/test_brain_append_only_guard.py"
@@ -3092,9 +3122,27 @@
         },
         {
           "expect": "test_a_zero_valued_citation_is_not_a_closure_claim",
-          "find": "    stripped = _CITED_AS_ZERO.sub(\"\", line)\n    return bool(CLOSED_RE.search(stripped))",
+          "find": "    if not _CANONICAL_CLAIM_POSITION.match(line):\n        stripped = _TYPESET_AS_QUOTATION.sub(_blank, stripped)\n    return bool(CLOSED_RE.search(stripped))",
           "replace": "    return True",
           "why": "إعادة المطابقة الخام بلا مرساة دلاليّة ⇒ اقتباس `production_certified=0/81` نفياً يُقرأ ادّعاءً"
+        },
+        {
+          "expect": "test_a_claim_in_its_canonical_position_is_read_whatever_its_typography",
+          "find": "    if not _CANONICAL_CLAIM_POSITION.match(line):",
+          "replace": "    if True:",
+          "why": "نزعُ استثناء موضع الادّعاء القانونيّ ⇒ عنوانٌ أو سطرُ `- **الحالة:**` يحمل الرمزَ بين ` ` يُقرأ اقتباساً فيمرّ إغلاقٌ دماغيٌّ صرف من أخطر موضع — سلبيّةٌ كاذبةٌ يصنعها إصلاحُ إيجابيّةٍ كاذبة"
+        },
+        {
+          "expect": "test_bare_prose_is_still_read_because_a_claim_does_land_there",
+          "find": "_TYPESET_AS_QUOTATION = re.compile(r\"`[^`\\n]*`|«[^»\\n]*»|“[^”\\n]*”\")",
+          "replace": "_TYPESET_AS_QUOTATION = re.compile(r\"`[^`\\n]*`|«[^»\\n]*»|“[^”\\n]*”|\\*\\*[^*\\n]*\\*\\*\")",
+          "why": "توسيعُ المُرساة إلى الخطّ العريض ⇒ `**البوّابة CLOSED عالميّاً**` يُقرأ اقتباساً. والقياسُ يقول إنّ الادّعاءَ يقع في المتن فعلاً (`**SAM2** closed` في strategy.md)، فهذا التوسيعُ يُطلِق ادّعاءاتٍ حقيقيّة"
+        },
+        {
+          "expect": "test_a_bare_token_between_two_quotations_is_still_a_claim",
+          "find": "r\"`[^`\\n]*`|«[^»\\n]*»",
+          "replace": "r\"`.*`|«[^»\\n]*»",
+          "why": "نمطٌ جشِعٌ يبتلع ما بين اقتباسَين ⇒ رمزٌ عارٍ بينهما يُفرَّغ معهما. ثقبٌ صامت: السطرُ يبدو مقتبَساً وهو ليس كذلك"
         }
       ],
       "test": "tests_v9/test_brain_transition_guard_vocabulary.py"
@@ -5521,6 +5569,12 @@
           "find": "    baseline = json.loads(Path(args.baseline).read_text(encoding=\"utf-8\"))[\"baseline\"]",
           "replace": "    try:\n        baseline = json.loads(Path(args.baseline).read_text(encoding=\"utf-8\"))[\"baseline\"]\n    except Exception:\n        baseline = 10**9  # mutated: أساسٌ مفقود يُقرأ سقفاً لا نهائيّاً",
           "why": "أساسٌ مفقودٌ يُقرأ «لا حدّ» يُفرِّغ الراتشِت بلا أن يُحمِّره — «لم يُقرأ» تصير «لا شيء»، وهو الصنفُ الذي يطارده هذا المستودع في كلّ حارس."
+        },
+        {
+          "expect": "test_the_level_finding_is_blocking_not_advisory",
+          "find": "    errors += level_errors(report[\"noncanonical_heading_levels\"])",
+          "replace": "    errors += []",
+          "why": "فصلُ اكتشاف المستوى غير القانونيّ عن أسباب الحجب ⇒ يُقاس ويُطبَع ولا يحجب. وهذا بعينه ما وقع على `a0bba343`: «Gap registry measurement» تقريرٌ لا يحجب، فمرّت `V25-AI-RUNTIME-LOCAL-ACCEPTANCE-01` غائبةً عن كلّ عدّ والقياسُ أخضر."
         }
       ]
     }
