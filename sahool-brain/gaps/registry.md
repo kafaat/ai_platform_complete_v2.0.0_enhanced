@@ -6450,3 +6450,16 @@ C01..C14؛ لا تُرفع قدرة إلى runtime_verified أو production_cert
 - Final continuation base: `dac2cb0c5624555e3255199f9fdd0c9712c66ee8` (#1040). The readiness repair is still unpublished. Automatic approval review blocked the notification deployment handoff; the working instance was retained. Operational evidence does not establish deployment of this source repair; see `docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md`.
 
 - Follow-up base: `a00f9f11821fef158eb27db1e5added0a4adc2e1` (#1041). The gap remains open; source publication, notification handoff and domain acceptance are not established. Preserve current main changes and regenerate artifacts before required pre-push checks.
+
+## A-RATCHET-CLEARED-BY-DELETING-WHAT-IT-MEASURES-01
+
+- **الحالة:** **fixed** (2026-09-20) — البابُ أُغلِق بأرضيّة صفر؛ والـ٧٤ **لم تُنقَص** ولا يدّعي هذا إنقاصَها.
+- **العطلُ ليس فرضيّاً — نصُّ الأساس نفسُه يدعو إليه:** [`db_writer_ownership_baseline.json`](../../docs/architecture/db_writer_ownership_baseline.json) يقول عن مخالفاته «يُخفَّض بنقل الكتابة إلى مالكها **أو بتصحيح العقد**». والعلاجُ الثاني بابٌ مفتوح: إضافةُ الخدمة المخالِفة إلى `writers` تجعل الكتابةَ «مأذوناً بها» فتختفي المخالفة **بلا نقلِ سطرٍ واحد**.
+- **والقياسُ هو ما كشف أنّ هذا هدمٌ لا تصحيح:** **٧٤ من ٧٤** مخالفةً مالكُها المُعلَن **هدفُ استخراجٍ حيّ** في [`platform_extraction_map.json`](../../docs/architecture/platform_extraction_map.json). فـ`field-management-service` يملك ٢١ منها وله ١٣٥ مساراً هدفاً في الخريطة. أي أنّ العدّادَ **لا يقيس أخطاءً بل المسافةَ إلى البنية المقصودة**، و«تصحيحُ» العقد ليطابق شيفرةَ اليوم يُنزِله إلى الصفر **بينما البنيةُ تنحدر**.
+- **مُثبَتٌ بالزرع الحيّ على العقد الحقيقيّ لا على مِرقاة:** إضافةُ `sahool-platform` إلى `farm_energy_records.writers` أنزلت عدّادَ الحارس القائم **٧٤ ⇒ ٧٣**، والحارسُ الجديد أحمرَها وسمّى العلاجين. ثمّ استُعيد العقدُ (`dirty=0`).
+- **والقاعدةُ ضيّقةٌ عمداً:** جدولٌ مالكُه هدفُ استخراجٍ حيّ لا يكتسب كاتباً إضافيّاً مُعلَناً. **ولا يُمنَع التصحيحُ مطلقاً — يُمنَع أن يقع صامتاً:** إن تقاعد الهدفُ فعلاً، تُحدَّث الخريطةُ في التغيير نفسِه فيسقط الجدولُ من النطاق ويصير التصحيحُ مشروعاً. القرارُ يبقى ممكناً والصمتُ يصير مستحيلاً — وله شاهدٌ صريح، وإلّا صار الحارسُ «بوّابةً لا تُغلَق بعملٍ صحيح».
+- **وأرضيّةُ صفرٍ لا راتشِت، والفرقُ مقيس:** ٣٨٢ جدولاً في النطاق و**صفرُ** كاتبٍ إضافيّ اليوم. فلا تُحمِّر على عملٍ قائم ولا تُطفأ — بخلاف راتشِتٍ يبدأ بدَينٍ فيُدرَّب قارئُه على تجاوزه.
+- **والاستثناءُ الموثَّق محفوظ:** `mirror` جسرٌ انتقاليٌّ يحترمه `db_writer_ownership_guard`؛ وحارسان يختلفان في الاستثناء نفسِه يُنتِجان حكمين عن سؤالٍ واحد.
+- **التكذيب:** ٩ شواهد · **٤ طفرات مُسجَّلة مقتولة** (إسقاطُ الكشف · إسقاطُ حصر النطاق فيتجمّد العقد · إدانةُ الجسر الموثَّق · قبولُ خريطةٍ فارغة فيمرّ على كلّ شيء) · وزرعٌ حيٌّ على العقد الحقيقيّ.
+- **وما لا يُدَّعى صراحةً:** الـ٧٤ **باقيةٌ كما هي**. إنقاصُها يحتاج **نقلَ الكتابة** أي الاستخراجَ نفسَه — وهو البندان ٢ و٣ من خريطة المالك وما بعدهما. وهذا الحارسُ لا يحكم على أيّ مخالفةٍ ولا يقول إنّ العقدَ صحيح؛ يمنع طريقاً واحداً: أن يُقرأ العدّادُ منخفضاً وقد هُدِم ما كان يقيسه.
+- **المصدر:** [`ownership_extraction_alignment_guard.py`](../../scripts/ci/ownership_extraction_alignment_guard.py) · [`test_ownership_extraction_alignment_guard.py`](../../tests_v9/test_ownership_extraction_alignment_guard.py) · `ci.yml` · `69e9d447`

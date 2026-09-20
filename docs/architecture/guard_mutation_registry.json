@@ -5659,6 +5659,35 @@
         }
       ],
       "test": "tests_v9/test_visual_fixme_baseline_guard.py"
+    },
+    "ownership_extraction_alignment_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_an_extra_declared_writer_on_a_live_target_is_refused",
+          "find": "        extra = sorted(set(meta.get(\"writers\") or []) - allowed)\n",
+          "replace": "        extra = []  # mutated: لا كاتبَ إضافيّاً يُرى\n",
+          "why": "الحارسُ يصير أخضرَ على كلّ عقد، فيعود البابُ الذي وُجِد لإغلاقه مفتوحاً — ويُقرأ وجودُه تغطيةً لا يملكها."
+        },
+        {
+          "expect": "test_retiring_the_target_reopens_the_correction",
+          "find": "        if owner not in targets:\n            continue\n",
+          "replace": "        if False:  # mutated: النطاقُ يشمل كلّ جدولٍ لا الأهدافَ الحيّة\n            continue\n",
+          "why": "حصرُ النطاق بالأهداف الحيّة هو ما يُبقي بابَ التقاعد المشروع مفتوحاً. بإسقاطه يصير العقدُ مجمَّداً ولا يمكن تصحيحُه ولو تقاعد الهدفُ فعلاً — «بوّابةٌ لا تُغلَق بعملٍ صحيح»، وهي الصنفُ الذي يُطفَأ فتصير الحمايةُ صفراً."
+        },
+        {
+          "expect": "test_the_documented_interim_bridge_stays_allowed",
+          "find": "        allowed = {owner, meta.get(\"mirror\")} - {None}\n",
+          "replace": "        allowed = {owner} - {None}  # mutated: الجسرُ الموثَّق يُدان\n",
+          "why": "`mirror` جسرٌ انتقاليٌّ يحترمه `db_writer_ownership_guard`. وحارسان يختلفان في الاستثناء نفسِه يُنتِجان حكمين عن سؤالٍ واحد، فيُنذِر أحدُهما كذباً ويُدرَّب قارئُه على تجاهله."
+        },
+        {
+          "expect": "test_an_empty_extraction_map_fails_closed_not_open",
+          "find": "    if not isinstance(routes, list) or not routes:\n",
+          "replace": "    if not isinstance(routes, list):  # mutated: الخريطةُ الفارغة تُقبَل\n",
+          "why": "خريطةٌ بلا أهدافٍ تجعل النطاقَ خالياً فيمرّ الحارسُ على كلّ شيء — خُضرةٌ عن سؤالٍ لم يُطرَح، وهي أخطرُ من غياب الحارس."
+        }
+      ],
+      "test": "tests_v9/test_ownership_extraction_alignment_guard.py"
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",
