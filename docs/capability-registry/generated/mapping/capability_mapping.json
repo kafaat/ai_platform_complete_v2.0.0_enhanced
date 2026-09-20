@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5386,
+    "files_scanned": 5387,
     "files_by_kind": {
       "backend": 1209,
       "database": 278,
       "governance": 63,
       "mobile": 55,
-      "other": 1504,
+      "other": 1505,
       "tests": 1819,
       "web": 458
     },
@@ -8616,11 +8616,15 @@
       ],
       "events": [
         {
-          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:215",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:217",
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.v1 @ scripts/diagnostics/build_main_inventory.py:252",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:268",
+          "score": 14
+        },
+        {
+          "value": "sahool.diagnostic-inventory.v1 @ scripts/diagnostics/build_main_inventory.py:297",
           "score": 14
         },
         {
@@ -8839,6 +8843,13 @@
           "signals": [
             "path:inventory"
           ]
+        },
+        {
+          "path": "scripts/diagnostics/resolve_inventory_edges.py",
+          "score": 8,
+          "signals": [
+            "path:inventory"
+          ]
         }
       ],
       "ambiguous": [],
@@ -8849,12 +8860,12 @@
         "backend": 8,
         "routes": 26,
         "database": 8,
-        "events": 3,
+        "events": 4,
         "web": 1,
         "mobile": 1,
         "tests": 5,
         "governance": 4,
-        "other_evidence": 14
+        "other_evidence": 15
       },
       "coverage_dimensions": 7,
       "mapped": true

@@ -6411,6 +6411,19 @@ C01..C14؛ لا تُرفع قدرة إلى runtime_verified أو production_cert
 - **وما لا يُدَّعى، وهو أهمُّ ما في المدخلة:** **٧٢٢ حافّةً معلَنةً ما تزال غيرَ محسومة و٠ محسومة**، والأسطحُ العشرةُ ما تزال **غيرَ مقيسة**. لم يُرقَّ شيءٌ ولم يُختلَق حسمٌ كي يخضرّ تقرير. ما تغيّر أنّ المصنوعةَ صارت **تقول ما لم تقسه** بدل أن تبدو فارغة. والترقيةُ إلى `measured` تحتاج مقياساً يُنتِج صفوفَه — لا تحريراً.
 - **المصدر:** [`scripts/diagnostics/build_main_inventory.py`](../../scripts/diagnostics/build_main_inventory.py) · [`tests_v9/test_main_inventory_generator.py`](../../tests_v9/test_main_inventory_generator.py) · [`.github/workflows/diagnostic-inventory.yml`](../../.github/workflows/diagnostic-inventory.yml) · [`docs/audits/MAIN_PLATFORM_INVENTORY_BASELINE_20260917.md`](../../docs/audits/MAIN_PLATFORM_INVENTORY_BASELINE_20260917.md)
 
+## A-DECLARED-EDGE-WITHOUT-A-CALL-SITE-IS-NEITHER-PROVEN-NOR-ABSENT-01
+
+- **الحالة:** **open** — حُسِم صنفٌ واحدٌ بدليل، والباقي يبقى معلَناً لا منفيّاً.
+- **البند ١د من خريطة المالك.** الجردُ كان يُخرِج كلَّ الحوافّ `declared` وصفراً `resolved`. والمالكُ نصّ: «تتبّعِ العلاقات إلى أدلّة المصدر، **مع إبقاء المجهول مجهولاً**؛ ليست هذه ٧٢٢ عطلاً مثبتاً».
+- **والبنيةُ المقيسة قبل أيّ تصميم:** **٧٢٠ من ٧٢٢** حافّةً مستهلكُها `frontend`. فالصنفُ الغالبُ واحد: «الواجهةُ تستهلك قدرةَ خدمة» — وهو قابلٌ للحسم من الشجرة.
+- **والحسمُ سلسلةٌ من أربع خطوات، كلُّها مُشتقّةٌ لا مكتوبةٌ بيد:** ① `config/endpoints.ts` الاسمُ المنطقيُّ ⇒ بادئةُ العميل · ② `services/api/client.ts` نسخةُ axios ⇒ تلك البادئة · ③ موضعُ النداء الحرفيّ · ④ `frontend/nginx.conf` البادئةُ ⇒ مُجرىً أعلى ⇒ مكوّنٌ ومسارٌ داخليّ. ودليلُ كلّ حافّةٍ محسومةٍ يحمل **سطرَ كلِّ خطوة**.
+- **وخريطةُ المُجرَيات مُشتقّةٌ من الجرد نفسِه:** اسمُ المضيف في `nginx.conf` يُترجَم إلى معرّف مكوّنٍ عبر الأسماء المستعارة وخدمات compose. المقيس: **أحدَ عشرَ مُجرىً، صفرٌ بلا مكوّنٍ مطابق** — ولو انحرفت الخريطةُ لظهر العددُ في `gateway_upstreams_unmapped` ويُحمِّره شاهدٌ باسمه.
+- **وأوّلُ سطحٍ يخرج من «لم يُقَس»:** `frontend_consumers.json` صار `measured` بصفوفٍ حقيقيّة — لا لأنّ أحداً قرّر، بل لأنّه قِيس. والتسعةُ الباقيةُ على حالها.
+- **وحدُّ الأداة مُصدَّرٌ في المصنوعة لا في تعليق:** `scanner_blind_spots` يعدّ نداءات العملاء التي **لا مسارَ حرفيَّ لها** (يُبنى في وقت التشغيل). فغيابُ الدليل هنا **غيابُ رؤيةٍ لا غيابُ علاقة**، وقارئٌ يرى عددَ المحسوم بلا حدِّ الماسح يقرأ الباقيَ عطلاً وهو قد يكون رؤية.
+- **التكذيب:** ١٨ شاهداً، منها `test_a_resolved_edge_carries_its_whole_evidence_chain` (لا ترقيةَ بلا سلسلةٍ كاملة بأسطرها) و`test_the_live_tree_resolves_edges_with_evidence` (**زرعٌ حيٌّ على الشجرة الحقيقيّة** لا على تركيبةٍ صغيرة). وإبطالُ قارئ البوّابة يُسقِط الثاني — مقيسٌ لا مفترَض.
+- **وما لا يُدَّعى، وهو أهمُّ ما في المدخلة:** الحوافُّ الباقيةُ **ليست منفيّة**. منها ما يبنيه العميلُ ديناميّاً، ومنها ما يمرّ بمسارٍ لا يقرؤه هذا الماسح، ومنها ما قد لا يُنادى فعلاً — **ولا يفرّق بينها هذا القياس**. ولذلك تبقى المدخلةُ `open`.
+- **والخطوةُ التالية:** حوافُّ **خدمةٍ إلى خدمة** (field-segmentation→SAM2 · مخرجات النموذج→تحقّق المنصّة→إيصال التدقيق) تحتاج صنفَ دليلٍ آخر — موضعَ نداءٍ في مصدر Python لا في الواجهة — ولم يُبنَ بعد.
+- **المصدر:** [`scripts/diagnostics/resolve_inventory_edges.py`](../../scripts/diagnostics/resolve_inventory_edges.py) · [`tests_v9/test_main_inventory_generator.py`](../../tests_v9/test_main_inventory_generator.py) · `a00f9f11`
 ## RAILWAY-DEPENDENCY-READINESS-20260920-01
 
 - **الحالة:** open — readiness checks repaired in code; live dependency rollout and domain acceptance remain unverified.
