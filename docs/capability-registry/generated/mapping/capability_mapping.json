@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5392,
+    "files_scanned": 5391,
     "files_by_kind": {
       "backend": 1209,
       "database": 278,
-      "governance": 64,
+      "governance": 63,
       "mobile": 55,
       "other": 1507,
       "tests": 1821,
       "web": 458
     },
-    "unmapped_artifacts": 2187,
+    "unmapped_artifacts": 2188,
     "ambiguous_artifacts": 420
   },
   "capabilities": [
@@ -643,7 +643,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:587",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:596",
           "score": 12
         },
         {
@@ -2350,7 +2350,7 @@
           "score": 28
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:587",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:596",
           "score": 12
         },
         {
@@ -8616,15 +8616,19 @@
       ],
       "events": [
         {
-          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:217",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:262",
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:268",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:351",
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.v1 @ scripts/diagnostics/build_main_inventory.py:297",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:408",
+          "score": 14
+        },
+        {
+          "value": "sahool.diagnostic-inventory.v1 @ scripts/diagnostics/build_main_inventory.py:437",
           "score": 14
         },
         {
@@ -8860,7 +8864,7 @@
         "backend": 8,
         "routes": 26,
         "database": 8,
-        "events": 4,
+        "events": 5,
         "web": 1,
         "mobile": 1,
         "tests": 5,
@@ -11316,27 +11320,27 @@
       ],
       "routes": [
         {
-          "value": "/health @ agents/notification/agent.py:733",
+          "value": "/health @ agents/notification/agent.py:731",
           "score": 12
         },
         {
-          "value": "/healthz @ agents/notification/agent.py:734",
+          "value": "/healthz @ agents/notification/agent.py:732",
           "score": 12
         },
         {
-          "value": "/metrics @ agents/notification/agent.py:784",
+          "value": "/metrics @ agents/notification/agent.py:772",
           "score": 12
         },
         {
-          "value": "/notification/test @ agents/notification/agent.py:797",
+          "value": "/notification/test @ agents/notification/agent.py:785",
           "score": 12
         },
         {
-          "value": "/notifications/test @ agents/notification/agent.py:719",
+          "value": "/notifications/test @ agents/notification/agent.py:717",
           "score": 12
         },
         {
-          "value": "/readyz @ agents/notification/agent.py:739",
+          "value": "/readyz @ agents/notification/agent.py:737",
           "score": 12
         },
         {
@@ -11512,7 +11516,7 @@
           "score": 12
         },
         {
-          "value": "sahool.> @ agents/notification/agent.py:513",
+          "value": "sahool.> @ agents/notification/agent.py:522",
           "score": 12
         },
         {
@@ -11524,7 +11528,7 @@
           "score": 12
         },
         {
-          "value": "sahool.> @ tests_v9/test_notification_queue_rollout.py:79",
+          "value": "sahool.alerts.weather @ agents/notification/agent.py:451",
           "score": 12
         },
         {
@@ -11532,7 +11536,15 @@
           "score": 12
         },
         {
+          "value": "sahool.economic.analysis @ agents/notification/agent.py:457",
+          "score": 12
+        },
+        {
           "value": "sahool.economic.analysis @ event_publish_contracts.yaml:55",
+          "score": 12
+        },
+        {
+          "value": "sahool.events.> @ agents/notification/agent.py:462",
           "score": 12
         },
         {
@@ -11560,7 +11572,15 @@
           "score": 12
         },
         {
+          "value": "sahool.fertilizer.recommendation @ agents/notification/agent.py:454",
+          "score": 12
+        },
+        {
           "value": "sahool.fertilizer.recommendation @ event_publish_contracts.yaml:43",
+          "score": 12
+        },
+        {
+          "value": "sahool.inventory.low_stock @ agents/notification/agent.py:455",
           "score": 12
         },
         {
@@ -11568,11 +11588,19 @@
           "score": 12
         },
         {
+          "value": "sahool.irrigation.recommendation @ agents/notification/agent.py:453",
+          "score": 12
+        },
+        {
           "value": "sahool.irrigation.recommendation @ event_publish_contracts.yaml:39",
           "score": 12
         },
         {
-          "value": "sahool.notification.dead_letter @ agents/notification/agent.py:462",
+          "value": "sahool.notification.dead_letter @ agents/notification/agent.py:475",
+          "score": 12
+        },
+        {
+          "value": "sahool.pest.alert @ agents/notification/agent.py:452",
           "score": 12
         },
         {
@@ -11580,7 +11608,15 @@
           "score": 12
         },
         {
+          "value": "sahool.task.assigned @ agents/notification/agent.py:456",
+          "score": 12
+        },
+        {
           "value": "sahool.task.assigned @ event_publish_contracts.yaml:51",
+          "score": 12
+        },
+        {
+          "value": "sahool.tenant.*.satellite.*.computed @ agents/notification/agent.py:450",
           "score": 12
         },
         {
@@ -11594,42 +11630,6 @@
         {
           "value": "sahool.weather.forecast.updated @ event_publish_contracts.yaml:61",
           "score": 12
-        },
-        {
-          "value": "sahool.alerts.weather @ shared/notification_consumers.py:25",
-          "score": 11
-        },
-        {
-          "value": "sahool.economic.analysis @ shared/notification_consumers.py:31",
-          "score": 11
-        },
-        {
-          "value": "sahool.events.> @ shared/notification_consumers.py:33",
-          "score": 11
-        },
-        {
-          "value": "sahool.fertilizer.recommendation @ shared/notification_consumers.py:28",
-          "score": 11
-        },
-        {
-          "value": "sahool.inventory.low_stock @ shared/notification_consumers.py:29",
-          "score": 11
-        },
-        {
-          "value": "sahool.irrigation.recommendation @ shared/notification_consumers.py:27",
-          "score": 11
-        },
-        {
-          "value": "sahool.pest.alert @ shared/notification_consumers.py:26",
-          "score": 11
-        },
-        {
-          "value": "sahool.task.assigned @ shared/notification_consumers.py:30",
-          "score": 11
-        },
-        {
-          "value": "sahool.tenant.*.satellite.*.computed @ shared/notification_consumers.py:24",
-          "score": 11
         },
         {
           "value": "field.created @ tests_v9/test_outbox_delivery_attempts_v19_5.py:107",
@@ -11703,14 +11703,6 @@
         },
         {
           "path": "tests_v9/test_canonical_execution_learning_worker_subscriptions.py",
-          "score": 12,
-          "signals": [
-            "content:jetstream",
-            "content:nats"
-          ]
-        },
-        {
-          "path": "tests_v9/test_notification_queue_rollout.py",
           "score": 12,
           "signals": [
             "content:jetstream",
@@ -11855,14 +11847,6 @@
           ]
         },
         {
-          "path": "shared/notification_consumers.py",
-          "score": 11,
-          "signals": [
-            "content:jetstream",
-            "content:nats"
-          ]
-        },
-        {
           "path": "agents/base_agent.py",
           "score": 9,
           "signals": [
@@ -11952,12 +11936,12 @@
         "backend": 6,
         "routes": 15,
         "database": 2,
-        "events": 69,
+        "events": 68,
         "web": 0,
         "mobile": 0,
-        "tests": 11,
+        "tests": 10,
         "governance": 0,
-        "other_evidence": 22
+        "other_evidence": 21
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -14832,7 +14816,7 @@
           "score": 16
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:587",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:596",
           "score": 12
         }
       ],
@@ -28246,7 +28230,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:587",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:596",
           "score": 12
         },
         {
@@ -43652,6 +43636,10 @@
     },
     {
       "path": "tests_v9/test_outcome_measurement.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_ownership_extraction_alignment_guard.py",
       "kind": "tests"
     },
     {
