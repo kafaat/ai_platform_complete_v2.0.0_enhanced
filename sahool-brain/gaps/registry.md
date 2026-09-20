@@ -6431,6 +6431,18 @@ C01..C14؛ لا تُرفع قدرة إلى runtime_verified أو production_cert
 - **وما لا يُدَّعى:** رُقِّي **سطحٌ واحد** بهذه الشريحة. ولم يُدَّعَ أنّ العقدَ صحيح، ولا أنّ `not_authorised` خطأ — هي مَعدودةٌ لا محكومٌ عليها، كما ينصّ أساسُ الحارس.
 - **وتصحيحُ رقمٍ بات في هذا البند (2026-09-20)** — كان يقول «تسعةٌ تبقى `not_measured` والترويسةُ تقول ذلك (٩/١٠)»، وكان صادقاً يومَ كُتِب. ثمّ رقّى #1044 سطحَ `frontend_consumers` فصار المقيسُ **٨** ولم يتبدّل السطر: صنفُ [`A-HAND-WRITTEN-COUNT-IN-THE-JOURNAL-DRIFTS-FROM-ITS-OWN-MEASUREMENT-01`](#a-hand-written-count-in-the-journal-drifts-from-its-own-measurement-01) بعينه، في البند الذي يحذّر منه. **المقيسُ الآن** على `b3109c7b`: `surfaces_not_measured = 8` من ترويسة `inventory_manifest.json` المولَّدة. والعددُ الملزِم يُشتقّ من المصنوعة لا من هذا السطر؛ وما يُكتَب هنا مقيَّدٌ بـSHA قياسه.
 - **المصدر:** [`build_main_inventory.py`](../../scripts/diagnostics/build_main_inventory.py) · [`db_writer_ownership_guard.py`](../../scripts/ci/db_writer_ownership_guard.py) · [`test_main_inventory_generator.py`](../../tests_v9/test_main_inventory_generator.py) · #1039 · `51a99065` · **مدموجٌ في** #1047 · `b3109c7b`
+## AN-ENGINE-THAT-FAILS-TO-LOAD-IS-REPORTED-AS-AN-ABSENT-MEASURE-01
+
+- **الحالة:** **fixed** (2026-09-20) — الغيابُ يُرجِع `None`، والعطبُ يفشل صريحاً؛ ومفروضٌ بشاهدٍ وطفرةٍ مسجَّلة.
+- **العطلُ مقيسٌ في عملي أنا، لا مفترَض:** بناءُ سطح `routes` استورد المحرّكَ الحاجبَ `platform_route_classification.py` داخل `try/except Exception: return None`. فأبلغ الجردُ `measurement_state: not_measured` — **وهي هيئةُ الامتناع الصادق** — بينما المحرّكُ قائمٌ في الشجرة ويحجب في `platform-route-budget`.
+- **والسببُ التقنيُّ عامٌّ لا خاصّ:** `@dataclass` يستدعي `dataclasses._is_type` الذي يقرأ `sys.modules[cls.__module__].__dict__`. فما لم تُسجَّل الوحدةُ في `sys.modules` **قبل** `exec_module` سقط التحميلُ بـ`AttributeError` — أي أنّ **كلَّ محرّكٍ يحمل dataclass** كان سيُبلَّغ عنه «غيرُ موجود».
+- **ولماذا هذا أخطرُ من عطلٍ صاخب:** «لم يُقَس» عقدٌ يعني «امتنعنا عن الدعوى بصدق». فإذا صار مخبأً لكلّ عطلٍ في المحرّك، انقلب أصدقُ حقلٍ في المصنوعة إلى أكذبها — وهو `AN-UNMEASURED-SURFACE-…-01` مقلوباً: لا غيابٌ يُقرأ قياساً، بل **عطبٌ يلبس ثوبَ الصدق**.
+- **وعطبٌ ثانٍ من الصنف نفسِه كشفته طفرةٌ نجت:** زرعُ إسقاطِ شرط الترقية أبقى الشاهدَ أخضر، لأنّ الحارسَ الفعليّ لم يكن الشرطَ بل `except` ثانياً على قراءة `platform_extraction_map.json`. خريطةٌ **غائبة** ⇒ لم يُقَس (صادق)؛ خريطةٌ **موجودةٌ معطوبة** ⇒ «لم يُقَس» أيضاً (كذب). فُصِلا بـ`EXTRACTION_MAP_UNREADABLE`، فقُتِلت الطفرة. **والطفرةُ الناجية كانت الأداةَ التي وجدت العطلَ الثاني، لا إزعاجاً يُسكَت.**
+- **المُنفَّذ:** `_load_engine(path, alias)` واحدةٌ يمرّ بها المحرّكان: تُسجّل الوحدةَ قبل التنفيذ، وتُرجِع `None` للملفّ **غير الموجود**، وترفع `ENGINE_UNLOADABLE` للملفّ الموجود الذي لا يُحمَّل.
+- **التكذيب:** `test_an_engine_that_exists_but_cannot_load_fails_loudly_not_as_not_measured` (يزرع محرّكاً قائماً يرفع عند الاستيراد) · وطفرةٌ مُسجَّلة تُعيد الابتلاع فتُحمِّره.
+- **وما لا يُدَّعى:** لم تُفحَص بقيّةُ مواضع `except Exception` في الشجرة؛ المُصلَحُ مُحمِّلا المحرّكين في الجرد وقراءةُ خريطة الاستخراج. والصنفُ مُسجَّلٌ هنا كي يُفحَص عند كلّ استيرادِ محرّكٍ لاحق.
+- **المصدر:** [`build_main_inventory.py`](../../scripts/diagnostics/build_main_inventory.py) · [`test_main_inventory_generator.py`](../../tests_v9/test_main_inventory_generator.py) · `guard_mutation_registry.json` · `a1908ec0`
+
 ## A-DECLARED-EDGE-WITHOUT-A-CALL-SITE-IS-NEITHER-PROVEN-NOR-ABSENT-01
 
 - **الحالة:** **open** — حُسِم صنفٌ واحدٌ بدليل، والباقي يبقى معلَناً لا منفيّاً.

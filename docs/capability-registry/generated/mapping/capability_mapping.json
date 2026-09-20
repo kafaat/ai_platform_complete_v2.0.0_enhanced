@@ -8616,19 +8616,23 @@
       ],
       "events": [
         {
-          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:262",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:289",
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:351",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:422",
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:408",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:515",
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.v1 @ scripts/diagnostics/build_main_inventory.py:437",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:578",
+          "score": 14
+        },
+        {
+          "value": "sahool.diagnostic-inventory.v1 @ scripts/diagnostics/build_main_inventory.py:607",
           "score": 14
         },
         {
@@ -8864,7 +8868,7 @@
         "backend": 8,
         "routes": 26,
         "database": 8,
-        "events": 5,
+        "events": 6,
         "web": 1,
         "mobile": 1,
         "tests": 5,
@@ -27770,6 +27774,18 @@
           "score": 22
         },
         {
+          "value": "/api/v1/fields @ tests_v9/test_main_inventory_generator.py:395",
+          "score": 20
+        },
+        {
+          "value": "/api/v1/fields @ tests_v9/test_main_inventory_generator.py:405",
+          "score": 20
+        },
+        {
+          "value": "/healthz @ tests_v9/test_main_inventory_generator.py:390",
+          "score": 20
+        },
+        {
           "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1360",
           "score": 12
         },
@@ -28218,6 +28234,10 @@
           "score": 22
         },
         {
+          "value": "legacy_fields.py @ tests_v9/test_main_inventory_generator.py:437",
+          "score": 20
+        },
+        {
           "value": "soil-observation.v1 @ services/soil-service/test_canonical_soil_profile.py:44",
           "score": 16
         },
@@ -28657,9 +28677,9 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 13,
-        "routes": 92,
+        "routes": 95,
         "database": 14,
-        "events": 39,
+        "events": 40,
         "web": 1,
         "mobile": 0,
         "tests": 18,

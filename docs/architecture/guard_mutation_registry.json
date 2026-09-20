@@ -2882,6 +2882,27 @@
           "find": "                    \"relation\": \"writer\",\n                    \"evidence_state\": \"declared\",\n",
           "replace": "                    \"relation\": \"writer\",\n                    \"evidence_state\": \"resolved\",  # mutated\n",
           "why": "٢١٢ من ٣٩١ حافّةً مُعلَنةً بلا موضعٍ مقيس. ترقيتُها بحكم الإعلان تُنتِج «٣٩١ حافّةَ ملكيّةٍ محقَّقة» وهي في أكثرها غيرُ مسنَدة. **ومرسى هذه الطفرة مُوسَّعٌ بسطرِ `relation` عمداً:** السطرُ وحدَه يقع ثلاثَ مرّات في الملفّ، وأوّلُها في `integration_edges` — فزرعٌ بمرسًى قصيرٍ أصاب موضعاً آخر ونجا (قِيس أثناء البناء)."
+        },
+        {
+          "expect": "test_the_routes_surface_stays_unmeasured_without_the_extraction_map",
+          "test": "tests_v9/test_main_inventory_generator.py",
+          "find": "    if engine is None or not platform_root.exists() or not extraction_path.exists():\n",
+          "replace": "    if False:  # mutated: يُرقَّى سطحُ المسارات بلا خريطةِ ملكيّة\n",
+          "why": "سؤالُ السطح ثلاثيّ: «أين يُعلَن · **ومن يملكه** · ونطاقٌ أم بنية». وبلا الخريطة يبقى الثلثُ مجهولاً، فإعلانُ `measured` يقول إنّ السؤالَ حُسِم وثُلثُه لم يُطرَح — وهي «الترقيةُ بالتحرير» نفسُها التي أُغلقت على سطح الملكيّة."
+        },
+        {
+          "expect": "test_an_engine_that_exists_but_cannot_load_fails_loudly_not_as_not_measured",
+          "test": "tests_v9/test_main_inventory_generator.py",
+          "find": "        sys.modules.pop(alias, None)\n        raise SystemExit(\n",
+          "replace": "        sys.modules.pop(alias, None)\n        return None  # mutated: يُبتلَع عطبُ المحرّك فيُقرأ «لم يُقَس»\n        raise SystemExit(\n",
+          "why": "**العطلُ وقع فعلاً في بناء هذه الشريحة:** `except Exception: return None` ابتلع خطأَ تحميلٍ حقيقيّاً (`@dataclass` يقرأ `sys.modules[cls.__module__]`، فسقط التحميلُ قبل تسجيل الوحدة)، فأبلغ الجردُ `not_measured` **بهيئة امتناعٍ صادق** بينما المحرّكُ قائمٌ ويحجب في CI. وهو «الغيابُ يُقرأ قياساً» مقلوباً: عطبٌ يلبس ثوبَ الصدق، ويسري على كلّ محرّكٍ يحمل dataclass."
+        },
+        {
+          "expect": "test_a_route_absent_from_the_map_is_unmapped_not_silently_dropped",
+          "test": "tests_v9/test_main_inventory_generator.py",
+          "find": "    for route in declarations:\n        key = route.key\n",
+          "replace": "    for route in declarations:\n        key = route.key\n        if key not in owners:\n            continue  # mutated: يُسقَط ما لا تعرفه الخريطة\n",
+          "why": "إسقاطُ ما لا تعرفه الخريطةُ يجعل السطحَ يصف **الخريطةَ** لا الشجرة، فيُقرأ «كلُّ مسارٍ له مالك» وهو أثرُ حذفٍ لا قياس. والمسارُ المجهولُ مالكُه هو بالضبط ما يجب أن يُرى."
         }
       ]
     }
