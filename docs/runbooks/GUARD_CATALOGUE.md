@@ -12,7 +12,7 @@
 
 - حرّاس تحجب في CI: **276**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **53**
-- إجماليّ الطفرات المُسجَّلة: **410**
+- إجماليّ الطفرات المُسجَّلة: **411**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **339** على 122 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -467,7 +467,7 @@
 
 **يفرض:** عددٌ يُكتب بيدٍ في الدماغ عن الحاضر يجب أن يساوي المقيس — `A-HAND-WRITTEN-COUNT-IN-THE-JOURNAL-DRIFTS-FROM-ITS-OWN-MEASUREMENT-01`.
 
-**يحجب في:** `no-report-only-change.yml` → `no-report-only-change`
+**يحجب في:** `diagnostic-inventory.yml` → `diagnostic-inventory` · `no-report-only-change.yml` → `no-report-only-change`
 
 **الاختبار الشاهد:** `tests_v9/test_gap_registry_claim_guard.py`
 
@@ -478,6 +478,7 @@
 - إسقاطُ المختصرات التي يكتبها البشر فعلاً (`orphan=` مكتوبةٌ في الشجرة) ⇒ حارسٌ **أضيقُ من دعواه**: يزعم ربطَ الادّعاءات وهو يرى بعضَها، فيمرّ `orphan=999` صامتاً. — يُسقِط `test_the_short_forms_people_actually_write_are_read`
 - قراءةُ أحد حقلَي عدم التصنيف ⇒ `unclassified=0` تمرّ بينما قسمٌ غيرُ مصنَّفٍ قائم: سلبيّةٌ كاذبةٌ في الحقل الذي وُجِد الحارسُ ليمنعها. — يُسقِط `test_unclassified_sums_both_lists_not_one`
 - قراءةُ ما داخل السياج دعوى ⇒ مثالٌ في توثيق الحارس أو في شاهدٍ يُحمِّر الحارسَ نفسَه — حقلٌ يُحمِّر على عملٍ طبيعيّ يُطفَأ. — يُسقِط `test_a_claim_inside_a_fenced_block_is_an_example_not_an_assertion`
+- Skip current inventory surface claims while retaining other journal comparisons: the measured 8/10 artifact then incorrectly accepts the stale 9/10 claim from main b3109c7 and the remaining status line in a1908ec0. — يُسقِط `test_current_surface_claim_is_compared_with_inventory_artifact`
 
 ### `gate01_frozen_path_guard.py`
 
