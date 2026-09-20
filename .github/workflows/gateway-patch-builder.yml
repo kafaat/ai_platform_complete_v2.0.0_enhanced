@@ -53,8 +53,10 @@ jobs:
           p.write_text(s, encoding='utf-8')
           q = Path('work/tests_v9/test_compose_nginx_upstream_contract.py')
           t = q.read_text(encoding='utf-8')
-          assert '.read_text()' in t, 'expected patched locale-sensitive read_text()'
-          q.write_text(t.replace('.read_text()', '.read_text(encoding="utf-8")'), encoding='utf-8')
+          for number, line in enumerate(t.splitlines(), 1):
+              if 'read_text' in line or 'open(' in line or 'subprocess' in line or 'text=True' in line:
+                  print(f'LOCALE-DIAG {number}: {line}')
+          raise SystemExit('locale diagnostic only')
           PY
       - name: Install existing test dependencies and pinned linter
         working-directory: work
