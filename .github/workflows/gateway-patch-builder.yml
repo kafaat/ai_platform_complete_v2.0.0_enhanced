@@ -61,6 +61,23 @@ jobs:
               1,
           )
           q.write_text(t, encoding='utf-8')
+
+          # The repository token has contents:write but no workflows permission.
+          # The gateway regression is already enforced by nginx-compose-dns-gate in
+          # the existing CI surface, so keep ci.yml byte-for-byte at pinned main.
+          import subprocess
+          subprocess.run(
+              [
+                  "git",
+                  "-C",
+                  "work",
+                  "restore",
+                  "--source=a0bba343f5b4464f47f674848088fd8ba599220d",
+                  "--",
+                  ".github/workflows/ci.yml",
+              ],
+              check=True,
+          )
           PY
       - name: Install existing test dependencies and pinned linter
         working-directory: work
