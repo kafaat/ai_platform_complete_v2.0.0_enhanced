@@ -5,7 +5,7 @@
 // كود الإنتاج) — نُحاكي checkIrrigationNetworkFeasibility مباشرةً (الصفحة تستدعيه
 // دون react-query).
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import type { IrrigationNetworkResult } from '../services/api';
 
 // نُحاكي وحدة الـapi: checkIrrigationNetworkFeasibility قابل للتحكّم، وasApiError حقيقيّ الدلالة.

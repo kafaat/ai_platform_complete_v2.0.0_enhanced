@@ -9,8 +9,8 @@
 // ═══════════════════════════════════════════════════════════════
 import { useState, useMemo, useEffect } from 'react';
 import {
-  Plus, Search, Pencil, Trash2, X, Check, Leaf,
-  Wheat, Ruler, ChevronDown, Sprout, Calendar, Map, ClipboardList, Satellite,
+  Plus, Search, Pencil, Trash2, X, Check,
+  Sprout, Map, ClipboardList, Satellite,
 } from 'lucide-react';
 import AddFieldWithMap from '../components/AddFieldWithMap';
 import AddSeasonWithStages from '../components/AddSeasonWithStages';
@@ -69,10 +69,6 @@ function mapField(f: Record<string, unknown>): Field {
   };
 }
 
-const SOIL_AR: Record<string,string> = {
-  loam:'مزيجية', clay_loam:'طينية مزيجية',
-  sandy_loam:'رملية مزيجية', silt_loam:'طمية مزيجية',
-};
 
 
 function idempotencyConfig(source: Record<string, unknown> | null | undefined) {

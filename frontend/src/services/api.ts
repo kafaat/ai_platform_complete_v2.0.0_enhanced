@@ -3354,7 +3354,7 @@ export const checkAllServices = async () => {
     vegetationApi.get('/health').then(r => ({ name:'vegetation',  ...r.data })),
     weatherApi.get('/health').then(r    => ({ name:'weather',     ...r.data })),
     soilApi.get('/health').then(r       => ({ name:'soil',        ...r.data })),
-    kongApi.get('/').then(r             => ({ name:'kong',         status:'ok' })),
+    kongApi.get('/').then(()            => ({ name:'kong',         status:'ok' })),
   ]);
   return checks.map((r, i) =>
     r.status === 'fulfilled'
@@ -3504,21 +3504,6 @@ function mockSoilData(fieldId: string) {
   return { field_id:fieldId, ph:+(6+s%28/20).toFixed(1), ec_ds_m:+(0.3+s%40/20).toFixed(2), moisture_pct:+(20+s%55).toFixed(1), nitrogen_mg_kg:+(12+s%60).toFixed(1), phosphorus_mg_kg:+(6+s%35).toFixed(1), potassium_mg_kg:+(40+s%120).toFixed(1), organic_matter_pct:+(0.8+s%28/10).toFixed(2), texture:'مزيجية', health:{ status:'good', status_ar:'جيد', color:'#65a30d' } };
 }
 
-function mockFieldIndicators(fieldId: string) {
-  const s = Math.abs(fieldId.split('').reduce((a,c) => a+c.charCodeAt(0),0)) % 100;
-  return {
-    field_id:fieldId, total_indicators:33,
-    indicators:{
-      ndvi:{ value:+(0.35+s%55/100).toFixed(4), unit:'', status:'good', status_ar:'جيد', color:'#65a30d', category:'vegetation' },
-      evi: { value:+(0.30+s%45/100).toFixed(4), unit:'', status:'good', status_ar:'جيد', color:'#15803d', category:'vegetation' },
-      soil_moisture:{ value:+(20+s%55).toFixed(1), unit:'%', status:'fair', status_ar:'مقبول', color:'#ca8a04', category:'water' },
-      soil_ph:{ value:+(6+s%28/20).toFixed(1), unit:'', status:'good', status_ar:'جيد', color:'#92400e', category:'soil' },
-      yield_est:{ value:+(2.5+s%40/10).toFixed(2), unit:'t/ha', status:'good', status_ar:'جيد', color:'#a855f7', category:'productivity' },
-      temperature:{ value:+(20+s%20).toFixed(1), unit:'°C', status:'good', status_ar:'جيد', color:'#f97316', category:'weather' },
-    },
-    wofost:{ gdd_accumulated:s*10, progress_pct:s/2, lai:+(2+s%30/10).toFixed(2), yield_t_ha:+(2+s%40/10).toFixed(2), engine:'WOFOST-RUE-v9' },
-  };
-}
 
 function mockVegetationAnalysis(fieldId: string) {
   return {

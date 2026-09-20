@@ -25,9 +25,9 @@ const renderMarkdown = (s: string) =>
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
-  Bot, Send, User, Loader2, Sprout, Droplets, Sun, Bug,
+  Bot, Send, User, Loader2, Droplets, Bug,
   FlaskConical, ThumbsUp, ThumbsDown, Copy, Clock,
-  Trash2, RefreshCw, Sparkles, Leaf, Wind, AlertCircle,
+  Trash2, RefreshCw, Sparkles, Leaf, AlertCircle,
   ChevronDown, Wheat, BarChart3, Cpu,
 } from 'lucide-react';
 import { useFields, useWeatherForecast } from '../hooks/useApi';
@@ -623,7 +623,7 @@ export function ChatbotPage() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg, idx) => (
+        {messages.map((msg) => (
           msg.role === 'user' ? (
             <div key={msg.id} className="flex gap-3 justify-start flex-row-reverse">
               <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 mt-0.5">

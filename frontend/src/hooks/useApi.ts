@@ -19,7 +19,7 @@ import {
   type WaterSampleInput, type WaterAnalysisResult,
   type PestEscalationInput, type PestEscalationResult,
   type FieldRecommendationInput, type RecommendationResult,
-  type FieldIntelInput, type FieldIntelResult, type FieldIntelJobStatus,
+  type FieldIntelInput, type FieldIntelJobStatus,
   type CostAnalytics,
   type FarmSummary, type FieldReportSummary, type SeasonReportSummary,
   // ── الأنظمة الجديدة (شاشات الويب): مخزون/معدّات/أجهزة/ري تشغيلي/مرجعيّة/وثائق ──

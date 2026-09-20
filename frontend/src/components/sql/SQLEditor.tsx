@@ -96,7 +96,7 @@ function downloadParquet(bytes: Uint8Array): void {
 }
 
 export default function SQLEditor() {
-  const { options, fieldId: activeFieldId, setFieldId, isLoading, isError, refetch } = useSelectedField();
+  const { options, isLoading, isError, refetch } = useSelectedField();
 
   const rows = useMemo<FieldRow[] | null>(
     () =>

@@ -9,12 +9,12 @@
 import { useState } from 'react';
 import { Database, Plus, Loader2 } from 'lucide-react';
 import { useMasterData, useCreateMasterData } from '../hooks/useApi';
-import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
+import { LoadingState, ErrorState } from '../components/StateViews';
 import { canManage } from '../lib/permissions';
 import { useAuthStore } from '../hooks/useAuth';
 import type { MasterDataCategory, MasterDataEntry } from '../services/api';
 import { asApiError } from '../services/api';
-import { Card, Button } from '../components/ds/atoms';
+import { Card } from '../components/ds/atoms';
 import { Input } from '../components/ds/forms';
 import { DataTable, type Column } from '../components/ds/table';
 import { T, RADIUS } from '../components/ds/tokens';

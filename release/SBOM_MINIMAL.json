@@ -1345,7 +1345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "58c6e1e61c2bdba8d0648b72060476639588199565ed223e0716fef3c06b36b1"
+          "content": "bf65eed3b56d3a65cdb33fb525939150473cb05a39ec0d8270da7416607a2fbb"
         }
       ],
       "name": "frontend/src/components/fieldview/GisTemporalOpsCard.tsx",
@@ -1745,7 +1745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b19932bf42f79b7cafe3436a287042861235f50c63f02438e57380e3c68510c4"
+          "content": "534b171537eb9e45cca2d4a696d2545b23cceea5949ea6d55459881b5c91ab96"
         }
       ],
       "name": "frontend/src/components/maphub/FieldSplitMergeTool.tsx",
@@ -2395,7 +2395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fe4421c6c7e98699d842677da5bee8d54ae8ae5a08fda906339626dfee93464b"
+          "content": "8a5b5e239766ec687e4e1ce62a162bf9658352f32f91c815597cc804af583b17"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherHoverReadout.ts",
@@ -2415,7 +2415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bc8272736b4e4584ed568ed7d9ecfea0b716394ace967a82ac42a132c26cbb20"
+          "content": "54acb73b4bc92d9a3274870f1a06b09001a1d4b980f492ddcf77f618b66cd0a8"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherProbePopup.ts",
@@ -2445,7 +2445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "51641a6a9e51b72a2435d2f916b807b928553ce51016223c897d861f928f3510"
+          "content": "a9f53383cdb2e65af51c60349b12af24d2bacecfc43c7bbe2d8b464837dd4a76"
         }
       ],
       "name": "frontend/src/components/maphub/weather/weatherLayerDefinitions.ts",
@@ -2555,7 +2555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7cb6c92e2c3288c2dd7cd7973251359c531279ac9693d11604738f23441ea49c"
+          "content": "9de0886f33786d95e624d22018c65859fd0f7d4d74fd264977e0d7a7bbe3529e"
         }
       ],
       "name": "frontend/src/components/sql/SQLEditor.tsx",
@@ -2675,7 +2675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7ceec12599bce82c4064efae6f5da88c74c1f0646ca6b5b2efbeaefa2dccc4da"
+          "content": "0b9317471a32fa00d2e9b08692e27112fda95beec61eae928c6672613437321d"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -3115,7 +3115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a342151a09db921faa576abc05be95e8b96b2f07e3068435c9cbcb9de729b6fb"
+          "content": "07b0d1b5a96160413ff6cb11315e934e5a0c476b722d7ba2ccbb31e775bb2301"
         }
       ],
       "name": "frontend/src/lib/appSettings.test.ts",
@@ -4305,7 +4305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8cf345348e8dcc341f70de51ec24885899b5a62313d752baea3c2f2cdda5bd5c"
+          "content": "e4f9285211a2d7ae815d8cb12e7c2c91303a1d7cadaceff37e5b77a9f8239e7e"
         }
       ],
       "name": "frontend/src/lib/ledgerEntry.ts",
@@ -4555,7 +4555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c6452d7ee3e0dc5ccddaffd2f62832712e3011c30bdbe36f0b9d1c8b33462e78"
+          "content": "dadf691e9c1482f149bee7ed69c82b1f77d8f87852014dabf90888812d1ad0c1"
         }
       ],
       "name": "frontend/src/lib/runtimeEndpointGovernance.ts",
@@ -4985,7 +4985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "99c2e25cee6f97a4a3ae1219d84d1ec655ab87c08976a3574da147c6c2d681fc"
+          "content": "e2d32176649176855ee1e9ac2b55f83e418ae76c686a971cbbac68d6f2fc87df"
         }
       ],
       "name": "frontend/src/sections/ChatbotPage.tsx",
@@ -5235,7 +5235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bf30571cc5c518c53d0411ffd4d9b978a2c73e526328c1d76e5ff85746b156bc"
+          "content": "3ce065abc9d2f616183ad7df8602d4546c34d53ce8aac89a52c13e194e945de2"
         }
       ],
       "name": "frontend/src/sections/FieldManagementPage.tsx",
@@ -5295,7 +5295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1817bee193f18f1edc6935b1fe2f8efdbe45987ccb05321ae5e32ae4cd822bec"
+          "content": "39c7344e75c942b4487bd98572f0c012e802a407da31a25533f4dfaf793587c7"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceDataPanels.tsx",
@@ -5415,7 +5415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cc15b319b8441a266f0e15aeadb8e15f409bbadde2e939c5a16c78d59e989c89"
+          "content": "c12dfe0cdef25b8c7a9d4d1b535d7e7b0f24d6d86421e5afba7e8b337c42046e"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceTimelinePanel.tsx",
@@ -5545,7 +5545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b1851eea4f4e4b9bff4db0146f8266bf71bdc05181fb00b5cbafd2669e7cc5ad"
+          "content": "9b08272566678d04b543e05ac7f72290c2bd12d6e56fe867eb77cae543220b7e"
         }
       ],
       "name": "frontend/src/sections/IrrigationNetworkPage.test.tsx",
@@ -5555,7 +5555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "535c49fab5476724a8f7a317ee8d2b7d4072791ff1d2e7a0c76870ad1ae96418"
+          "content": "02c15902c3345e47ca9cace759e8a3e38c405ad9473353511e378a419f457208"
         }
       ],
       "name": "frontend/src/sections/IrrigationNetworkPage.tsx",
@@ -5745,7 +5745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4dda5d30582c19bf79cd87b1246fb07d6b9896a0ceb2962a08e614a63c7b102f"
+          "content": "d49702df5ed8682f2e48fa9c9adbf377f201aad9202655ccfb3c6ea9cbfde245"
         }
       ],
       "name": "frontend/src/sections/MasterDataPage.tsx",
@@ -5975,7 +5975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a7b835923ce3607970267bcf69330f1e306ec2c9a63d1a020d769a5fb3e2dbdc"
+          "content": "a739af3cea23d2475b1a1d0809e33904c6712e3aae6da68078f37efc9e1a0428"
         }
       ],
       "name": "frontend/src/sections/ReportsPage.tsx",
@@ -6025,7 +6025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fdfa91897f54ded9ada30b539365c0b2874c40accea77f0b0a98f687a33d3b35"
+          "content": "e3c224a41f5cfcd7be9ddeef9cfd495d40ea27df6f4cbc4accbcc59fe420f374"
         }
       ],
       "name": "frontend/src/sections/SatellitePageRuntimeFix.static.test.ts",
@@ -6175,7 +6175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4e8eb45771941584cb8847c2936711d991abf10e0ece9be41283cc3cdff6080e"
+          "content": "69ce8a7526131b4a3d172606a67393655773a34cbeb0a365cf8cf89eba0e60fc"
         }
       ],
       "name": "frontend/src/sections/WeatherAdvicePage.tsx",
@@ -6315,7 +6315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c33b5c4d74bf76669335d07c5be908051555c85d51797b1b753652c434352fd7"
+          "content": "3d3c941807dbf545186bb9b5426fb9c1fccd7fcd4225a6400399c8e21fdee37c"
         }
       ],
       "name": "frontend/src/sections/maphub/OperationalOverlayControls.tsx",
@@ -6565,7 +6565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8dc5ef53e50a1019547ee110f481ff5745207cd19b3d2a340452e0d800e10278"
+          "content": "6ff9a38920390dc74306c5bac8d34eeac6bfa2300a4892ffc85baf485d35ecf8"
         }
       ],
       "name": "frontend/src/services/api.ts",

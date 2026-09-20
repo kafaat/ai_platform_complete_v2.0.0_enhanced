@@ -71,7 +71,6 @@ export function evaluateRuntimeEndpointGovernance(input: RuntimeEndpointInput): 
   const tileUrl = clean(input.tileUrl);
   const devProxyTarget = clean(input.devProxyTarget);
   const apiMode = clean(input.apiMode || '');
-  const mockMode = clean(input.mockMode || '');
 
   const checks: RuntimeEndpointCheck[] = [];
   checks.push({
