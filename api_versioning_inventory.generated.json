@@ -137,7 +137,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 131,
+    "line": 139,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -146,7 +146,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 136,
+    "line": 144,
     "method": "GET",
     "path": "/healthz/ai-provider",
     "handler": "ai_provider_snapshot",
@@ -155,7 +155,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 144,
+    "line": 152,
     "method": "GET",
     "path": "/v1/approvals/pending",
     "handler": "list_pending_approvals",
@@ -164,7 +164,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 164,
+    "line": 172,
     "method": "POST",
     "path": "/v1/approvals/approve",
     "handler": "approve_tool_request",
@@ -173,7 +173,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 216,
+    "line": 224,
     "method": "POST",
     "path": "/v1/approvals/deny",
     "handler": "deny_tool_request",
@@ -182,7 +182,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 262,
+    "line": 270,
     "method": "POST",
     "path": "/v1/approvals/resume",
     "handler": "resume_approved_tool",
@@ -191,7 +191,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 306,
+    "line": 314,
     "method": "POST",
     "path": "/v1/prescription/export-preview",
     "handler": "prescription_export_preview",
@@ -200,7 +200,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 322,
+    "line": 330,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -209,7 +209,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 341,
+    "line": 349,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -218,7 +218,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 383,
+    "line": 393,
     "method": "POST",
     "path": "/v1/query",
     "handler": "query",
@@ -227,7 +227,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 394,
+    "line": 404,
     "method": "POST",
     "path": "/v1/chat",
     "handler": "chat",
@@ -236,7 +236,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 405,
+    "line": 415,
     "method": "POST",
     "path": "/v1/explain",
     "handler": "explain",
@@ -245,7 +245,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 416,
+    "line": 426,
     "method": "POST",
     "path": "/v1/recommend",
     "handler": "recommend",
@@ -1208,7 +1208,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 209,
+    "line": 211,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1217,7 +1217,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 214,
+    "line": 216,
     "method": "GET",
     "path": "/health",
     "handler": "legacy_health",
@@ -1226,7 +1226,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 219,
+    "line": 221,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -1235,7 +1235,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 232,
+    "line": 254,
     "method": "GET",
     "path": "/contract",
     "handler": "contract",
@@ -1244,7 +1244,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 251,
+    "line": 273,
     "method": "GET",
     "path": "/",
     "handler": "root",
@@ -1253,7 +1253,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 260,
+    "line": 282,
     "method": "GET",
     "path": "/internal/fields/{field_id}",
     "handler": "internal_get_field",
@@ -1262,7 +1262,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 292,
+    "line": 314,
     "method": "GET",
     "path": "/internal/fields",
     "handler": "internal_list_fields",
@@ -2459,7 +2459,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 31,
+    "line": 34,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -2468,7 +2468,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 36,
+    "line": 39,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -2477,7 +2477,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 145,
+    "line": 148,
     "method": "GET",
     "path": "/v1/tiles/observability",
     "handler": "tile_observability",
@@ -2486,7 +2486,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 186,
+    "line": 189,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -2495,7 +2495,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 207,
+    "line": 233,
     "method": "GET",
     "path": "/v1/tile-cache/stats",
     "handler": "tile_cache_stats",
@@ -2504,7 +2504,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 241,
+    "line": 267,
     "method": "GET",
     "path": "/v1/info/{layer_id}",
     "handler": "raster_info",
@@ -2513,7 +2513,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 251,
+    "line": 277,
     "method": "GET",
     "path": "/v1/providers/status",
     "handler": "providers_status",
@@ -2522,7 +2522,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 281,
+    "line": 307,
     "method": "GET",
     "path": "/v1/indices",
     "handler": "field_indices",

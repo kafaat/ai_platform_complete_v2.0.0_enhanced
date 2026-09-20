@@ -8358,3 +8358,15 @@ The sample environment overrode the existing SAM2 CUDA 12.8 default with CUDA 12
 - **وما لا يُدَّعى:** الباقيةُ **ليست منفيّة**، ولا يفرّق هذا القياسُ بين «يُبنى
   ديناميّاً» و«لا يُنادى». ولذلك المدخلةُ `open`. وحوافُّ خدمةٍ إلى خدمة (SAM2 ·
   سلسلةُ التدقيق) تحتاج صنفَ دليلٍ آخر لم يُبنَ بعد.
+## 2026-09-20 — Railway dependency readiness repair
+
+- Base: `98a61c5f274e7c257a191c5191f428a0af2261f4`. Source: `services/ai_agronomist/main.py`, `services/field-management-service/main.py`, `services/raster-service/routers/observability.py`, `shared/dependency_readiness.py`.
+- Reject false HTTP readiness; probe field DB/replay prerequisites and Raster schema/work directory. Tests: `tests_v9/test_ai_runtime_readiness.py`, `services/field-management-service/tests/test_field_management_service_contract.py`.
+- Deployment and acceptance sequence: `docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md`. Code validation does not certify Railway deployment, corpus or imagery processing.
+
+- Continuation on 2026-09-20: rebased the unpublished readiness repair onto `7dce8ff1122b163ae2d7e31b5897784d84dfedb4` (#1039). Generated conflicts were restored from main and regenerated; application changes were unchanged. Upload remains pending secure GitHub verification because the generated execution audit exceeds the connector request limit. See `docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md` for coordinated source/build identity promotion.
+
+- Final continuation on 2026-09-20: rebased onto `dac2cb0c5624555e3255199f9fdd0c9712c66ee8` (#1040), preserving application source and both brain histories; generated conflicts are regenerated from the combined tree. Raster identity is pinned to reviewed `7dce8ff1122b163ae2d7e31b5897784d84dfedb4`. The notification handoff remains blocked by automatic approval review because stopping its healthy previous deployment can interrupt service; the replacement attempt was cancelled. Source and recovery limits: `docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md`. This readiness patch remains unpublished.
+
+
+> **2026-09-20 — متابعة آمنة فوق #1041:** أُدخل الأساس `a00f9f11821fef158eb27db1e5added0a4adc2e1` في رقعة `RAILWAY-DEPENDENCY-READINESS-20260920-01`، مع حفظ تعديل الواجهة في main ومصادر الجاهزية في `2b49660ac46ac02d8059571fd978f7dd2bac535c`. تعارضات المصنوعات السبعة تُحسم بإعادة التوليد من الشجرة المجمعة؛ الرقعة لم تُرفع بعد. دخول GitHub ما زال عند التحقق، وانتقال الإشعارات محجوب بالمراجعة التلقائية لاحتمال الانقطاع؛ النشر العامل لم يُوقف. المرجع التشغيلي: `docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md`.
