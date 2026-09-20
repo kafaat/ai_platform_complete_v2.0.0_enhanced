@@ -2032,7 +2032,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 289,
+      "evidence_count": 291,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2118,6 +2118,7 @@
         "services/decision-service/tests/test_wx12_3_runtime_schedules.py",
         "services/edge-inference/sync_service.py",
         "services/field-management-service/main.py",
+        "services/field-management-service/tests/test_field_management_service_contract.py",
         "services/model-registry-adapter/runtime.py",
         "services/model-registry-adapter/tests/test_runtime_contract.py",
         "services/raster-service/routers/analysis.py",
@@ -2339,6 +2340,7 @@
         "shared/contracts/soil/p5.py",
         "shared/contracts/soil/p6.py",
         "shared/contracts/soil/soil_observation.v1.schema.json",
+        "shared/dependency_readiness.py",
         "shared/enterprise_gis/phase8_global_scale.py",
         "shared/security/gateway_deps.py",
         "shared/security/service_tenant_assertion.py",
@@ -2817,7 +2819,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 50,
-      "target_evidence_count": 289,
+      "target_evidence_count": 291,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -2827,5 +2829,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "298839f0bd7c4356e1af05f5871100ef90a911e0d7470362b6548d8c0ef7970b"
+  "content_sha256": "b33f57f7f70bea1aa640ae65966e5b1a7898249efef39806b1c56168a4b62839"
 }

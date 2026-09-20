@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 
@@ -21,6 +22,8 @@ from raster_runtime_state import FIELD_LAYERS, JOBS, LAYERS
 from raster_security_context import REQ_TENANT, require_service_token
 from raster_settings import AGENT_TOKEN, EARTH_SEARCH_URL, UPLOAD_DIR
 from tile_observability import TILE_OBS, TILE_OBS_BY_INDEX
+
+from shared.dependency_readiness import database_ready, writable_directory_ready
 
 logger = logging.getLogger("raster-service")
 
@@ -184,23 +187,46 @@ def _terrain_soil_readiness() -> dict:
 
 @router.get("/readyz")
 async def readyz():
-    """يتحقّق من الوصول لـEarth Search + يكشف حالة طبقات التضاريس/التربة (غير حاجبة)."""
+    """Require the catalog, a writable work directory and the durable asset schema.
+
+    This probe does not certify an image-processing run or S3 upload permissions.
+    Terrain/soil remain informational because they are optional capabilities.
+    """
     detail = _terrain_soil_readiness()
+    database, storage = await asyncio.gather(
+        database_ready(
+            os.getenv("DATABASE_URL", ""),
+            table="raster_assets",
+            columns="tenant_id, field_id, cog_uri, asset_status",
+            owner_lookup=True,
+        ),
+        asyncio.to_thread(writable_directory_ready, UPLOAD_DIR),
+    )
+    catalog = False
     try:
         async with httpx.AsyncClient(timeout=5) as client:
             r = await client.get(f"{EARTH_SEARCH_URL}/")
-            ok = r.status_code < 500
-        body = {
-            "status": "ready" if ok else "degraded",
-            "earth_search": "reachable" if ok else "unreachable",
+            body = r.json()
+            catalog = (
+                r.status_code == 200
+                and isinstance(body, dict)
+                and body.get("type") == "Catalog"
+                and bool(body.get("stac_version"))
+            )
+    except (httpx.HTTPError, ValueError):
+        pass
+    dependencies = {"database": database, "work_directory": storage, "earth_search": catalog}
+    ready = all(dependencies.values())
+    return JSONResponse(
+        status_code=200 if ready else 503,
+        content={
+            "status": "ready" if ready else "not_ready",
+            "ready": ready,
+            "earth_search": "reachable" if catalog else "unavailable",
+            "dependencies": dependencies,
             **detail,
-        }
-        return JSONResponse(status_code=200 if ok else 503, content=body)
-    except httpx.HTTPError:
-        return JSONResponse(
-            status_code=503,
-            content={"status": "degraded", "earth_search": "unreachable", **detail},
-        )
+        },
+    )
 
 
 @router.get("/v1/tile-cache/stats")

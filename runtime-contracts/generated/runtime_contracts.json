@@ -728,7 +728,8 @@
         ],
         "metrics": [],
         "routes": [
-          "services/field-management-service/main.py"
+          "services/field-management-service/main.py",
+          "services/field-management-service/tests/test_field_management_service_contract.py"
         ],
         "tracing": []
       },
