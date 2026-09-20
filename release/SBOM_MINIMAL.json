@@ -35,7 +35,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c2662e8e2a6d54ab8abb1e076424e307204b63968b64ebb3c10e3d805427d739"
+          "content": "3b0d2c81a9dcbf7f1b084db327ef3d8f2e30a71aeca9d040d94ab327f1da176b"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f919176fcd0ff74bbb25cd586d41d7ce773995f2e4f5a189817c8139a69f936c"
+          "content": "0b17c92a001de91ad0037c44a0fec84e69c7f7a9c1cd2ac2c59df2a7d7eae522"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -205,7 +205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "89c5f7c46b0fef8c8da6b4ee463d4321b4ad1c8b2415f10363e96dd14f574c56"
+          "content": "2c2138a716af62e1a571219792e2511a3afc2c36d22cbd98f7624058901f774b"
         }
       ],
       "name": "frontend/Dockerfile",
@@ -425,7 +425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "30a34c0efd878d66a2938fae58a403f4869c3d3f2c57edf215bc991ad0d73ceb"
+          "content": "48d7c5ccd6a6aaf855a82e9c4b81cc027dc0e41d3a15bcea28d79783a3f70d8e"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -6675,6 +6675,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ff0722e49b95db8259acd2828c9169885b3cf9f14f12f889a58c09e1603430f7"
+        }
+      ],
+      "name": "frontend/tests/test_nginx_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "9938fd1b512c26a326b2d42a3b049714daf0e137fbeb044f220103474aa416cb"
         }
       ],
@@ -10815,7 +10825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f6190360216680924ab2cabe364f664ace5a8b599cce51ef0b9cd5cfb74542ff"
+          "content": "6f17cb8ede41a077f464128fd7847bd27a088938054392a8efeb6318fc5b5a63"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -10825,7 +10835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3dcb3a8407635d5773dffc150fe4dd35376015a131a9c40f0dd4f19b91a16d55"
+          "content": "bab1218a7abdf7b621143127100b12d32970256577c55b3e15a041d328088124"
         }
       ],
       "name": "services/ai_agronomist/ai_generation.py",
@@ -10985,7 +10995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "92176d08b88824060366196fadbc22cd9d379fdddd0369ea33940f6788a33120"
+          "content": "e4bf11dcd20016754cceb61722fe5096dc9a83593bebe8dcf6d0fbd466f8d7df"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -12785,7 +12795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c412b54884c5e8b3019db2963476c6f24970f3b8eef45821ebd97f64e25e00d5"
+          "content": "563d673258eab6811e54fefb3ac3beb26f382222e9866809640ace9354704831"
         }
       ],
       "name": "services/field-segmentation/main.py",
@@ -12815,7 +12825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0a2f1018dc725218cd5fe25eb0d79d09aa911e29ba5620cc4f8ced732fe24377"
+          "content": "8ed11aba7aa257a00043d19a0439549e08ef52d0a74667f8148524aa8ef07234"
         }
       ],
       "name": "services/field-segmentation/test_segmentation.py",
@@ -13835,7 +13845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5799b675163a0a800bade04b8137ad605f9142df879d5c05f7dfabadcc405983"
+          "content": "61b5dd13dad48617140563d01e120bf16ac33665320bf5121c1af67d1863dae1"
         }
       ],
       "name": "services/qdrant-seed/seed.py",
@@ -13985,7 +13995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d7f4c6b4a0e30f8bce4cb830dad3fd384646bb451e80cd8437829a4cb12348ba"
+          "content": "b181bc773e862e38ab2a58b63f91b6714c53d9b9a7b18237ca52916a06bb1f34"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -14275,7 +14285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c4096fbeff10bbc187f109a8962faffd3fae576de7dc2cf7c13bea126d65ec67"
+          "content": "0f725fbab6cff4eb0b419cd024e31fadd8c0974cd6ea492e94eff9f2be2a8577"
         }
       ],
       "name": "services/raster-service/raster_indicator_product.py",
@@ -14515,7 +14525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e084195af37f585d0a2ba3ae70e28adfae43a376a2625fd154655df84c320227"
+          "content": "cb37cfcdcfade5b4c7958b003b112329f717d058497417a27fefe3d25e1c6528"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -14895,7 +14905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "494d355e1e6a207eb5d3ec5030dc67d0fdab070f835612f103346bccc2ff3d29"
+          "content": "18ad821926609035f610d564142b5bd94a81bee60c3551c394c58caf34793d55"
         }
       ],
       "name": "services/raster-service/test_clip_grid.py",
@@ -15045,7 +15055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1838700af8f667af8b7c556a877c7104b08b458001b2e9746e5103c39fea5a1b"
+          "content": "c1a589bda0c9484686277034e962ef850189e715f115175287b33d35d069684f"
         }
       ],
       "name": "services/raster-service/test_indicator_observation_bundle.py",
@@ -15805,7 +15815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bab249fe4918c19ad481dcc29d8818d16657c61486e16e2d4c2487c94abf70ac"
+          "content": "e6ed0b7ea1115269e3fa72b23b3df91b3bfad8dc057a69835b9a51deb79c19f7"
         }
       ],
       "name": "services/sahool-platform/api/api_models.py",
@@ -18615,7 +18625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "50dd0fb575c4a5b62e5a51d8b7151613774c5f09c63136ad6f116f8c736db8b5"
+          "content": "999673aa004d435e257be69fb56fe0e05bf4beef9116ccce01785643cf595330"
         }
       ],
       "name": "services/sahool-platform/api/routers/internal_service.py",
@@ -28455,7 +28465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1526e2be4bf757a98deb7900a92127810ba0e104955bbcde61c4ca38897ebb7f"
+          "content": "96f33d75ef4d66f2da612bdf353d732d82347658420d2cfc90e8437ba3381d67"
         }
       ],
       "name": "services/sam2-inference/main.py",
@@ -29475,7 +29485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5ab93c178718d4ed33689db882f51c3faa3b3a612c4b333961432478736e42df"
+          "content": "0ccee97ea48446f93eb23e6055d2e7efd9260bc2f4c87082e2a08e6415e2bf7e"
         }
       ],
       "name": "services/vegetation-analysis-service/Dockerfile",
@@ -29635,7 +29645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "69928df3d49d160652937f8550154238635bb56a383490aa639f4d44a3e97515"
+          "content": "a966bf6446d19ecbfbccc250b9f7ef324a7efa117791e5f5e953d02c28c1e9c5"
         }
       ],
       "name": "services/vegetation-analysis-service/router_registry.py",
@@ -29695,7 +29705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1da84d82db5d299931f7c4b10f43d1aa859289b8b93eb6cd05dad74b3f64e061"
+          "content": "14427efe692d3548219c4f8b51d28b7970de9ee8c48f55ee0b7f55eff4a8cb7b"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/health.py",

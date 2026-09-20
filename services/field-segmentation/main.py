@@ -28,6 +28,7 @@ import httpx
 from exg_preprocess import apply_exg_for_sam2
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
+from starlette.responses import JSONResponse
 
 logging.basicConfig(
     level=logging.INFO,
@@ -379,13 +380,48 @@ async def legacy_health():
 
 @app.get("/readyz")
 async def readyz():
-    # خدمة عديمة الحالة: جاهزة بمجرّد إقلاع العمليّة. (لا قاعدة/كاش يُفحَص.)
-    return {
-        "status": "ready",
-        "service": "field-segmentation",
-        "implemented_runtime": True,
-        "model_configured": _model_configured(),
-    }
+    configured = _model_configured()
+    model_ready = False
+    reason = "model_not_configured"
+    if configured:
+        try:
+            url = httpx.URL(SEGMENTATION_INFERENCE_URL).copy_with(
+                path="/readyz", query=None, fragment=None
+            )
+            async with httpx.AsyncClient(timeout=3.0, trust_env=False) as client:
+                response = await client.get(url)
+            state = response.json()
+            model_ready = (
+                response.status_code == 200
+                and isinstance(state, dict)
+                and (state.get("status") == "ready" or state.get("ready") is True)
+                and state.get("ready") is not False
+                and state.get("model_loaded") is not False
+                and (SEGMENTATION_BACKEND.lower() != "sam2" or state.get("model_loaded") is True)
+            )
+            reason = "ready" if model_ready else "inference_not_ready"
+        except (httpx.HTTPError, ValueError, TypeError):
+            reason = "inference_unavailable"
+    # Manual segmentation remains usable without any model. A configured but
+    # unavailable backend must fail the full readiness probe; /healthz stays live.
+    ready = not configured or model_ready
+    model_state = {"ready": model_ready, "reason": reason}
+    return JSONResponse(
+        {
+            "status": "ready" if ready else "degraded",
+            "ready": ready,
+            "service": "field-segmentation",
+            "implemented_runtime": True,
+            "model_configured": configured,
+            "model_ready": model_ready,
+            "capabilities": {
+                "manual": {"ready": True},
+                "auto": model_state,
+                "hybrid": model_state,
+            },
+        },
+        status_code=200 if ready else 503,
+    )
 
 
 @app.post("/v1/segment")

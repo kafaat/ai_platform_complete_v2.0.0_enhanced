@@ -37,7 +37,9 @@ COPY services/vegetation-analysis-service/post_execution_bridge.py /app/post_exe
 # (Path(__file__).with_name("indicator_capabilities.generated.json")). غير منسوخ ⇒
 # FileNotFoundError عند الإقلاع ⇒ تعطّل الخدمة. نسخه إلزاميّ.
 COPY services/vegetation-analysis-service/indicator_capabilities.generated.json /app/indicator_capabilities.generated.json
-RUN useradd -m sahool && chown -R sahool:sahool /app
+RUN useradd -m sahool \
+    && mkdir -p /data/vegetation \
+    && chown -R sahool:sahool /app /data/vegetation
 USER sahool
 HEALTHCHECK --interval=20s --timeout=5s CMD curl -sf http://localhost:8000/healthz || exit 1
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

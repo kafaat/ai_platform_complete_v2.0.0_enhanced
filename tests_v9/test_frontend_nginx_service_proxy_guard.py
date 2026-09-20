@@ -21,6 +21,7 @@ from __future__ import annotations
 import os
 
 import pytest
+from _nginx_contract import expand_upstream_targets
 
 pytestmark = pytest.mark.unit
 
@@ -40,7 +41,8 @@ _REQUIRED = {
 
 def _read(path: str) -> str:
     with open(path, encoding="utf-8") as f:
-        return f.read()
+        conf = f.read()
+    return expand_upstream_targets(conf) if path == _FRONTEND_NGINX else conf
 
 
 def test_frontend_nginx_exists():
@@ -99,6 +101,8 @@ def test_auth_request_only_in_authenticated_dev_gateways():
     raster_span = _block_span(src, "location ^~ /api/raster/")
     workspace_span = _block_span(src, "location ^~ /api/remote-sensing-workspace/")
     ai_span = _block_span(src, "location ^~ /api/ai-agronomist/")
+    rag_span = _block_span(src, "location ^~ /api/rag/")
+    tts_span = _block_span(src, "location ^~ /tts/")
 
     def _allowed(pos: int) -> bool:
         return (
@@ -106,6 +110,8 @@ def test_auth_request_only_in_authenticated_dev_gateways():
             or (raster_span[0] <= pos < raster_span[1])
             or (workspace_span[0] <= pos < workspace_span[1])
             or (ai_span[0] <= pos < ai_span[1])
+            or (rag_span[0] <= pos < rag_span[1])
+            or (tts_span[0] <= pos < tts_span[1])
         )
 
     offenders = []
@@ -128,6 +134,12 @@ def test_auth_request_only_in_authenticated_dev_gateways():
     assert "$http_x_tenant_id" not in ai_block, "AI gateway tenant identity must come from auth"
     assert 'proxy_set_header X-Agent-Token "";' in ai_block
     assert "auth_request_set" in ai_block
+    for span in (rag_span, tts_span):
+        block = src[span[0] : span[1]]
+        assert "auth_request /_auth_verify;" in block
+        assert "$http_x_tenant_id" not in block
+        assert 'proxy_set_header X-Agent-Token "";' in block
+        assert "auth_request_set" in block
 
 
 def test_raster_still_present_before_catchall():

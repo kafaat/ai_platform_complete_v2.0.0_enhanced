@@ -14,6 +14,24 @@ REGISTRY = ROOT / "sahool-brain/gaps/registry.md"
 ID = r"(?:[A-Z][A-Za-z0-9_.]*(?:-[A-Za-z0-9_.]+)+|[A-Z][A-Z0-9_.]*)"
 LABEL = re.compile(rf"^(?P<id>{ID})(?P<label_suffix>(?:\s+.*)?)$")
 HEADING = re.compile(rf"^##\s+(?P<id>{ID})(?=\s|$)")
+# ── `A-GAP-UNDER-A-DEEPER-HEADING-IS-INVISIBLE-TO-ITS-OWN-RATCHET-01` ───────────
+#
+# `HEADING` يقرأ `^##` وحدَه، ولا شيءَ كان يقرأ ما تحته. فمدخلةُ فجوةٍ تُكتب
+# `### <معرِّف>` **لا تدخل `heading_count` أصلاً**، فلا تصير يتيمةً، فلا يراها راتشِتُ
+# اليتامى الذي وُجِد ليمسك هذا الصنفَ بعينه. مقيسٌ على `a0bba343` (دمج #1036):
+# `V25-AI-RUNTIME-LOCAL-ACCEPTANCE-01` مفتوحةٌ في الملفّ ولا تظهر في **أيّ** عدّ —
+# لا heading ولا section_state ولا صفّ ولا شذوذ — و«Gap registry measurement» خضراء.
+# أخضرُ عن سؤالٍ لم يُطرَح: نفسُ عقدِ `GAP-HEADING-WITHOUT-A-STATE-RECORD-IS-INVISIBLE-01`
+# في مستوى العنوان بدل سطر الحالة.
+#
+# **والشكلُ المقبول هنا أضيقُ من `ID` عمداً، والفرقُ مقيس.** `ID` يقبل كلمةً كبيرةً
+# مفردة (`HIL` · `MCP`)، وفي هذا السجلّ عنوانان بهذا الشكل (`### HIL SQL follow-up`
+# و`### MCP review follow-up`) **ليسا مدخلَي فجوة** بل عنوانا قسمٍ فوق جدولٍ تُقرأ
+# صفوفُه أصلاً. فقبولُهما يجعل الحقلَ يُبلِّغ عمّا لا عطلَ فيه، وحقلٌ يُحمِّر على عملٍ
+# طبيعيّ يُطفَأ. المطلوبُ **الشكلُ الموصول بشَرطة** وحدَه، والمقيسُ بعده: **حالةٌ واحدة**.
+DEEP_HEADING = re.compile(
+    r"^(?P<hashes>#{3,6})\s+(?P<id>[A-Z][A-Za-z0-9_.]*(?:-[A-Za-z0-9_.]+)+)(?=\s|$)"
+)
 SECTION_STATE = re.compile(r"^-\s*\*\*(?:الحالة|status)\s*:\*\*\s*(?P<value>.+?)\s*$", re.I)
 CANON = ("open", "fixed", "verified")
 ANNOTATION = re.compile(r"<!--\s*gap-registry:\s*(?P<role>[\w-]+)\s*-->")
@@ -78,6 +96,7 @@ def measure(text: str) -> dict:
     rows = []
     headings = []
     section_states = []
+    noncanonical_headings: list[dict[str, object]] = []
     non_state_table_rows = []
     table_errors = []
     annotation_errors = []
@@ -107,6 +126,15 @@ def measure(text: str) -> dict:
             schema_line = None
         if re.match(r"^#{1,2}\s", line):
             current_heading = None
+        deep = DEEP_HEADING.match(line)
+        if deep:
+            noncanonical_headings.append(
+                {
+                    "id": deep.group("id"),
+                    "line": number,
+                    "level": len(deep.group("hashes")),
+                }
+            )
         heading = HEADING.match(line)
         if heading:
             current_heading = {
@@ -314,6 +342,9 @@ def measure(text: str) -> dict:
         # الفارقَ قابلاً للتشخيص بدل أن يكون رقماً يرتفع بلا اسم.
         "orphan_gap_headings": orphans,
         "orphan_gap_heading_count": len(orphans),
+        # القائمةُ مع العدد، كما في اليتامى: عددٌ بلا أسماء يرتفع بلا تشخيص.
+        "noncanonical_heading_levels": noncanonical_headings,
+        "noncanonical_heading_level_count": len(noncanonical_headings),
     }
 
 

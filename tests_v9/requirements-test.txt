@@ -31,6 +31,11 @@ PyYAML>=6.0
 numpy>=1.24.0
 hypothesis>=6.100.0
 
+# test_v25_seed_and_raster_quality loads services/qdrant-seed/seed.py itself;
+# install the seeder's declared runtime dependency so the test reaches _embed
+# instead of failing during module import.
+qdrant-client>=1.14.0,<2.0  # = services/qdrant-seed/requirements.txt
+
 # notification agent imports nats.aio during mobile push tests
 nats-py>=2.3.0
 

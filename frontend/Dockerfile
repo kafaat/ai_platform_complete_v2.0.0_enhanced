@@ -44,7 +44,9 @@ ENV VITE_API_MODE=$VITE_API_MODE \
 RUN npm run build:docker
 
 # ── Stage 2: Serve (non-root nginx) ─────────────────────────
-FROM nginx:1.27-alpine
+# Runtime DNS in nginx.conf uses the open-source upstream `resolve` parameter
+# introduced in 1.27.3; pin the patch so an older cached 1.27 image cannot be used.
+FROM nginx:1.27.5-alpine
 
 # نسخ ملفّات البناء
 COPY --from=builder /app/dist /usr/share/nginx/html

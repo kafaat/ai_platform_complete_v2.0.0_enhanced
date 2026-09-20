@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import math
 import os
 from collections.abc import Callable
@@ -11,6 +12,17 @@ from typing import Any
 import httpx
 from fastapi import HTTPException
 
+from shared.ai.structured_advisory import (
+    SCHEMA as ADVISORY_SCHEMA,
+)
+from shared.ai.structured_advisory import (
+    AdvisoryRejected,
+    model_selection_context,
+    parse_model_output,
+)
+from shared.ai.structured_advisory import (
+    digest as advisory_digest,
+)
 from shared.security.trusted_tenant import (
     TrustedTenantError,
     resolve_trusted_tenant,
@@ -235,6 +247,7 @@ async def _record_ai_advice_event(
     confidence: float,
     selected_imagery_date: str | None,
     endpoint_mode: str,
+    model_output: str | None = None,
 ) -> dict[str, Any]:
     """Best-effort audit event for the AI advice runtime.
 
@@ -257,9 +270,10 @@ async def _record_ai_advice_event(
                     "confidence": confidence,
                     "selected_imagery_date": selected_imagery_date,
                     "endpoint_mode": endpoint_mode,
+                    **({"model_output": model_output} if model_output is not None else {}),
                 },
                 headers={"X-Agent-Token": AGENT_TOKEN},
-                timeout=3.0,
+                timeout=35.0 if model_output is not None else 3.0,
             )
         if resp.status_code >= 400:
             return {"status": "failed", "http_status": resp.status_code, "detail": resp.text[:300]}
@@ -649,6 +663,15 @@ def _guardrail_result(mode: str, generation_status: str) -> dict[str, Any]:
     الفرق المعلَن: جوابُ أدلّة بلا نصّ مولَّد (لا شيء ليُحجَز) مقابل نصٍّ مولَّد أُعيد
     للمستخدم **بلا** فحص حاجز — الثانية تُسمّى باسمها بدل عبارة «لا قرار» الثابتة.
     """
+    if generation_status == "validated_structured_facts":
+        return {
+            "status": "validated_field_facts",
+            "generated_text_checked": False,
+            "claim_validation": "numeric_equality_to_current_owner_snapshot",
+            "decision_validation": "not_requested",
+            "generation_status": generation_status,
+            "executes_action": False,
+        }
     if generation_status == "suppressed_unvalidated_output":
         return {
             "status": "blocked",
@@ -872,8 +895,21 @@ async def build_evidence_response(
     provider_pending_approvals: list[dict[str, Any]] = []
     provider_tool_truncated = False
     provider_tool_rounds = 0
+    model_output = None
     if endpoint_mode == "chat" and _generation_allowed(tenant_id):
         context_text = _grounding_context_text(annotations)
+        selection = None
+        if req.field_id and isinstance(field_state, dict):
+            try:
+                selection = model_selection_context(
+                    tenant_id=tenant_id, field_id=req.field_id, state=field_state, candidates=[]
+                )
+                if selection["available_claims"]:
+                    context_text += "\n\n" + json.dumps(selection, ensure_ascii=False)
+                else:
+                    selection = None
+            except AdvisoryRejected:
+                selection = None
         _policy_for_generation = normalize_policy(TENANT_POLICY.get_policy(tenant_id))
         # Resolve the provider up-front so the envelope can gate external calls fail-closed:
         # a missing/invalid envelope or a local_only policy blocks any external provider,
@@ -922,6 +958,17 @@ async def build_evidence_response(
                 else "suppressed_ungrounded"
             )
             generation_model = gen.model
+            if selection is not None:
+                try:
+                    parsed = parse_model_output(gen.text)
+                    if (
+                        parsed["field_id"] == req.field_id
+                        and parsed["evidence_fingerprint"] == selection["evidence_fingerprint"]
+                        and not parsed["candidate_ids"]
+                    ):
+                        model_output = gen.text
+                except AdvisoryRejected:
+                    pass  # Unstructured or malformed output stays suppressed.
             generation_provider = gen.provider
             provider_tool_calls = list(gen.tool_calls or [])
             provider_pending_approvals = list(gen.pending_approvals or [])
@@ -936,7 +983,32 @@ async def build_evidence_response(
         confidence=confidence,
         selected_imagery_date=req.selected_imagery_date,
         endpoint_mode=endpoint_mode,
+        **({"model_output": model_output} if model_output is not None else {}),
     )
+    validation = audit_event.get("advisory_validation")
+    if model_output is not None and isinstance(validation, dict):
+        if (
+            audit_event.get("persisted") is True
+            and validation.get("status") == "verified"
+            and validation.get("schema_version") == ADVISORY_SCHEMA
+            and validation.get("model_output_digest") == advisory_digest(model_output)
+            and validation.get("tenant_id") == tenant_id
+            and validation.get("field_id") == req.field_id
+            and validation.get("executes_action") is False
+            and validation.get("creates_decision") is False
+            and validation.get("candidate_previews") == []
+            and isinstance(validation.get("claims"), list)
+            and validation["claims"]
+            and isinstance(validation.get("answer_ar"), str)
+            and validation["answer_ar"].strip()
+        ):
+            answer_ar = validation["answer_ar"]
+            mode = "validated_field_facts"
+            generation_status = "validated_structured_facts"
+    if validation is not None and generation_status != "validated_structured_facts":
+        # The receipt is public too: withheld claims must not leak through metadata.
+        validation = {"status": "blocked", "reason": "advisory_receipt_not_accepted"}
+        audit_event = {**audit_event, "advisory_validation": validation}
 
     # شفافيّة الـHarness (V55 المرحلة ٥): لقطة رصد صادقة يراها المستخدم — ماذا يرى
     # الوكيل، قدراته، ومستوى مشاركة البيانات. استدعاءات الأدوات فارغة هنا (حلقة
@@ -1021,6 +1093,7 @@ async def build_evidence_response(
         "confidence_calibrated": False,
         # The publication boundary is separate from typed decision validation.
         "guardrail_result": _guardrail_result(mode, generation_status),
+        "advisory_validation": validation,
         "audit_event": audit_event,
         "decision_authority": "field_intelligence_coordinator",
     }

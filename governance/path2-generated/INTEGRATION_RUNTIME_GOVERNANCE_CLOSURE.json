@@ -80,7 +80,7 @@
     {
       "name": "runtime_plan:nonempty",
       "passed": true,
-      "detail": "planned_probes=114"
+      "detail": "planned_probes=100"
     },
     {
       "name": "runtime_plan:fail_closed_static_state",
@@ -121,5 +121,5 @@
   ],
   "handoff_to_path3": "Execute the stack and ingest plan-bound evidence; only valid evidence may change runtime_verified state.",
   "boundary": "PATH-2 closes repository-side integration and runtime-evidence governance. It does not certify a running stack or production environment.",
-  "content_sha256": "7e981be10a9a584facbec19b020f59f699a87289a5cf8f2645d3de0ad63b38d7"
+  "content_sha256": "97efb85c8247b905250e006330c1a5dcc2a45703389ca578ea86bf76ad00ab0b"
 }

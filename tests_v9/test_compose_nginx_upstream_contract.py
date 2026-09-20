@@ -43,15 +43,16 @@ def _compose_services() -> tuple[set[str], dict[str, int]]:
     return names, ports
 
 
-_UPSTREAM_RE = re.compile(r"upstream\s+\w+\s*\{\s*server\s+(sahool-[a-z0-9-]+):(\d+)")
+_UPSTREAM_RE = re.compile(r"upstream\s+\w+\s*\{[^{}]*?\bserver\s+(sahool-[a-z0-9-]+):(\d+)")
 
 
-def test_every_nginx_upstream_maps_to_a_real_compose_service_and_port() -> None:
-    raw = (ROOT / "nginx/nginx.v9.conf").read_text(encoding="utf-8")
+@pytest.mark.parametrize("config", ["nginx/nginx.v9.conf", "frontend/nginx.conf"])
+def test_every_nginx_upstream_maps_to_a_real_compose_service_and_port(config: str) -> None:
+    raw = (ROOT / config).read_text(encoding="utf-8")
     # جرّد تعليقات nginx (# حتى نهاية السطر) كي لا تُفحَص upstreams مُعطَّلة بالتعليق.
     conf = "\n".join(re.sub(r"#.*$", "", line) for line in raw.splitlines())
     upstreams = _UPSTREAM_RE.findall(conf)
-    assert upstreams, "no nginx upstreams parsed — check nginx.v9.conf format"
+    assert upstreams, f"no nginx upstreams parsed — check {config} format"
 
     names, ports = _compose_services()
     unknown: list[str] = []

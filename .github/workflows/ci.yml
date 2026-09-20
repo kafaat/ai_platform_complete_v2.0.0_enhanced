@@ -729,6 +729,9 @@ jobs:
       # نوعٍ لا استبدالُ كلمة. فراتشِت: السقف ينزل ولا يصعد، ولكلّ قاعدة سقفُها.
       - name: Frontend lint debt must not grow (any / unused-vars ratchet)
         run: python3 scripts/ci/frontend_lint_debt_guard.py
+      - name: Frontend nginx cold start, authenticated RAG and TTS routing
+        timeout-minutes: 5
+        run: python3 frontend/tests/test_nginx_runtime.py --docker
 
   frontend-e2e:
     name: Frontend E2E (Playwright · MapLibre/WebGL QA)

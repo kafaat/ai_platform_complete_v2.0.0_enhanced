@@ -6,7 +6,7 @@
 
 - Services: **32**
 - Services with probeable endpoints: **28**
-- Planned probes: **114**
+- Planned probes: **100**
 - Valid live evidence files: **0**
 - Runtime verified services: **0**
 - Production certified services: **0**
@@ -21,7 +21,7 @@ Each evidence file must bind the tested Git SHA, immutable live runtime identity
 |---|---:|---|
 | actuator-service | 4 | not verified |
 | agriai-engine | 4 | not verified |
-| ai_agronomist | 6 | not verified |
+| ai_agronomist | 4 | not verified |
 | auth | 4 | not verified |
 | decision-service | 4 | not verified |
 | edge-inference | 3 | not verified |
@@ -40,13 +40,13 @@ Each evidence file must bind the tested Git SHA, immutable live runtime identity
 | raster-service | 3 | not verified |
 | raster-tiler-service | 1 | not verified |
 | remote-sensing-workspace-bff | 2 | not verified |
-| sahool-platform | 17 | not verified |
+| sahool-platform | 11 | not verified |
 | sam2-inference | 3 | not verified |
 | scout-ingest-service | 2 | not verified |
-| soil-service | 5 | not verified |
-| supervisor-agent | 7 | not verified |
+| soil-service | 4 | not verified |
+| supervisor-agent | 5 | not verified |
 | tts-service | 4 | not verified |
-| vegetation-analysis-service | 7 | not verified |
+| vegetation-analysis-service | 4 | not verified |
 | video-processor | 3 | not verified |
 | weather-polygon-worker | 0 | not verified |
 | weather-service | 4 | not verified |

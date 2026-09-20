@@ -22,6 +22,7 @@ Honesty invariants (enforced by validators, never bypassed):
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 from pydantic import BaseModel, Field, model_validator
@@ -79,7 +80,23 @@ class ValidatedIndicatorProduct(BaseModel):
             raise ValueError(
                 f"real_data=True requires source={RASTER_SOURCE!r}, got {self.source!r}"
             )
+        if self.quality_gate_passed and not (
+            self.valid_pixel_ratio is not None
+            and math.isfinite(self.valid_pixel_ratio)
+            and 0 < self.valid_pixel_ratio <= 1
+        ):
+            raise ValueError("a passed quality gate requires a measured positive valid_pixel_ratio")
         return self
+
+
+def eligible_observation_product(payload: Any) -> dict[str, Any] | None:
+    """Return the validated envelope only when a real grid passed pixel quality."""
+    if not isinstance(payload, dict) or payload.get("real_data") is not True:
+        return None
+    product = payload.get("indicator_product")
+    if not isinstance(product, dict) or product.get("quality_gate_passed") is not True:
+        return None
+    return product
 
 
 def _coerce_stats(raw: Any) -> IndicatorStats:
@@ -98,7 +115,7 @@ def _maybe_float(value: Any) -> float | None:
     if isinstance(value, bool):  # bool is a subclass of int — never a quality score
         return None
     if isinstance(value, (int, float)):
-        return float(value)
+        return float(value) if math.isfinite(value) else None
     return None
 
 
@@ -134,6 +151,7 @@ def from_grid_response(
     if qscore is None:
         qscore = _maybe_float(payload.get("confidence"))
     prov = provenance if provenance is not None else payload.get("provenance")
+    valid_ratio = _maybe_float(payload.get("valid_pixel_ratio")) if real else None
     product = ValidatedIndicatorProduct(
         field_id=str(payload.get("field_id") or ""),
         index=str(payload.get("index") or ""),
@@ -143,8 +161,13 @@ def from_grid_response(
         estimated=not real,
         real_data=real,
         quality_score=qscore if real else None,
-        valid_pixel_ratio=_maybe_float(payload.get("valid_pixel_ratio")) if real else None,
-        quality_gate_passed=real,
+        valid_pixel_ratio=valid_ratio,
+        quality_gate_passed=(
+            real
+            and valid_ratio is not None
+            and 0 < valid_ratio <= 1
+            and payload.get("quality_gate_passed") is not False
+        ),
         provenance=_coerce_provenance(prov) if real else None,
     )
     return product.model_dump(mode="json")
@@ -168,6 +191,7 @@ def from_validated_raster_product(
         vrp = vrp.model_dump(mode="json")
     if not isinstance(vrp, dict):
         vrp = {}
+    valid_ratio = _maybe_float(vrp.get("valid_pixel_ratio"))
     product = ValidatedIndicatorProduct(
         field_id=field_id,
         index=index,
@@ -177,8 +201,8 @@ def from_validated_raster_product(
         estimated=False,
         real_data=True,
         quality_score=_maybe_float(vrp.get("quality_score")),
-        valid_pixel_ratio=_maybe_float(vrp.get("valid_pixel_ratio")),
-        quality_gate_passed=True,
+        valid_pixel_ratio=valid_ratio,
+        quality_gate_passed=(valid_ratio is not None and 0 < valid_ratio <= 1),
         provenance=_coerce_provenance(vrp.get("provenance")),
     )
     return product.model_dump(mode="json")

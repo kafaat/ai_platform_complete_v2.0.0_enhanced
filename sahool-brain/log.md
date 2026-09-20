@@ -7971,6 +7971,13 @@ json كي تبقى التسلسلةُ حرفاً بحرف. والحزمةُ ال
 المقيسُ بعد الدمج: ١٨ شاهداً · **٦/٦ طفرات** · `blocking_surface_ok` (303 · 4 إقراراً) · إعادةُ التوليد و`verify_all_generated --check` rc=0 (**5920** بصمة، والحزمةُ آخِراً) · `preflight --fast` إخفاقات=0 متخطّاة=0.
 
 
+## 2026-09-19 — v25 AI runtime repair and bounded publication
+
+Base `0af0603ad5ce2a5be89f2039d4b094b975f517a0`. Adopted a reviewed snapshot of existing readiness repairs and frontend runtime-DNS work (`d5602f1c`); isolated branch preserves other worktrees. Added current-owner revalidation of model-selected numeric facts and startup preload. Source/tests: `tests_v9/test_v25_advisory_publication.py`, `tests_v9/test_v25_seed_and_raster_quality.py`, `tests_v9/test_ai_runtime_readiness.py`, `frontend/tests/test_nginx_runtime.py`. Live requirements: `docs/runbooks/V25_AI_LOCAL_ACCEPTANCE.md`. Candidate-action wiring, source/model provisioning and live acceptance remain open. No live certification.
+
+### Follow-up source findings — 2026-09-19
+
+The sample environment overrode the existing SAM2 CUDA 12.8 default with CUDA 12.4 and supplied port 8000 without the prediction path. Aligned the template with the Dockerfile and Compose defaults; existing local environment files still require inspection. A generated readiness probe also came from `state.get("ready")`: the runtime-contract extractor now requires a local absolute path, excluding response keys and upstream URLs. Regression witnesses: `test_sample_environment_preserves_sam2_build_and_predict_defaults` and `test_service_scan_does_not_turn_response_keys_into_probe_routes`; both fail on the preceding source. The local acceptance runbook includes rollout and rollback requirements. No operational gap is closed by these source changes.
 ## 2026-09-19 — نموذجُ استئناف المصالحة: سجلُّ تأجيلٍ دائم، وارتباطٌ مقيسٌ بـRailway
 
 الأساس `0af0603a`. أُغلقت `RECONCILIATION-CURSOR-SKIPS-ROWS-THAT-BECOME-ELIGIBLE-01` بتغيير **نموذج الاستئناف** لا بترتيب سطر (النقلُ الساذج كان مُكذَّباً في #1025). الهجرة `v231_soil_reconciliation_deferrals.sql`: مفتاحٌ مركّب، ومفرداتُ سببٍ مغلقةٌ بـ`CHECK` (`device_field_unbound` · `device_not_registered` · `sensor_type_unmapped`)، وفهرسٌ جزئيّ على المفتوح، وRLS ENABLE+FORCE. و`resolved_at` بدل الحذف: جدولٌ يُحذَف منه عند النجاح يجعل الفراغَ يعني «لم يُؤجَّل شيء» و«أُسقط كلُّ شيء» معاً.
@@ -8011,6 +8018,20 @@ json كي تبقى التسلسلةُ حرفاً بحرف. والحزمةُ ال
   (٢٥/٢٥، منها الطفراتُ ١٧ و١٨ و١٩ بعد إعادة كتابتها/تقوية شواهدها).
 - **الحالة:** `GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01` ⇒ `open` (كانت `mitigated · open`).
 
+
+## 2026-09-19 — v25: فحص ما بعد الجمع وتصحيح حدّ الراوتر
+
+الفرع ضمّ `main@ebcf4527` في `16752438`، وبعده نجح 319 اختبارًا موجّهًا. الفحص الشامل على `b61d0218` سجّل 7257 ناجحًا وإخفاقين في الوحدة، و811 ناجحًا وإخفاقًا في `tests/`، و4351 ناجحًا في اختبارات المنصة. عولج إخفاقا الوحدة في `d63e47ce`: فحص دالة الراستر كاملة عبر AST، وإرجاع قاموس جاهزية Vegetation مع رمز HTTP الصحيح. إخفاق الراوتر كشف نمو `fields.py` بثلاثة أسطر؛ نُقل التحقق من أهلية المنتج إلى `raster_indicator_product.py` وأصبح الراوتر عند أساسه القائم 1712، دون رفعه. حدّثت عينات اختبارات الراستر لتُمرّر نسبة بكسلات مقيسة؛ الاختبار الصناعي يحسبها من COG نفسه. نجح 38 اختبارًا لعقود المنتج والحزمة وحارس الحجم بعد ذلك، بما فيها قبول قيمة مؤشر صفر عند وجود بكسلات صالحة ورفض غياب الجودة. المصادر: `tests_v9/test_v25_seed_and_raster_quality.py` و`services/raster-service/test_clip_grid.py` و`services/raster-service/test_indicator_observation_bundle.py` و`tests/architecture/test_router_size_ratchet.py`. لا تغيير لحالة القبول المحلي ولا ادعاء تحقق GPU حي.
+
+
+## 2026-09-19 — v25: إيصال الجواب جزء من حدّ النشر
+
+في مراجعة `fa11b7a9` ظهر أن حجب `answer_ar` عند غياب الحفظ أو اختلاف البصمة لا يكفي: `advisory_validation` ونسخته داخل `audit_event` كانتا تعيدان الحقائق المختارة. أُضيفت assertions لحالتي `not_persisted` و`receipt_mismatch` في `tests_v9/test_v25_advisory_publication.py`؛ فشلتا قبل التصحيح. صار الإيصال العام غير المقبول حالة حجب مقتضبة بلا claims أو جواب، ثم نجح 85 اختبارًا لمسار النشر والعقد البنيوي وحفظ التدقيق. حالة القبول الحي تبقى مفتوحة؛ هذا إثبات لعقد الاستجابة في `services/ai_agronomist/ai_evidence_runtime.py`.
+
+
+## 2026-09-19 — #1036: استهلاك تفويض #1033 بعد الدمج
+
+على `3432eec2` أُعيد إنتاج فشل `gate01_frozen_path_guard` الذي أرسله المالك. أثبت [#1033](https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1033) الدمج في `ebcf45270ee48c2929638dbb4aa44b0ac0f2b2ed`، وتطابقت بصمتا `docs/architecture/db_ownership.yml` و`migrations/MANIFEST.txt` مع التفويض. صار السجل `CONSUMED` ويحمل وقت الدمج ورابطه وبصمته؛ لم تُعدّل السياسة أو المسارات المجمّدة أو الحارس. إعادة أمر CI مرّت، و`tests_v9/test_gate01_frozen_path_guard.py` أعطى 50 ناجحًا. هذا إصلاح سجل استهلاك؛ لا تفويض جديد ولا دليل تشغيل محلي.
 ## 2026-09-19 — بعد دمج #1033: ختمُ التفويض، والمراجعةُ العميقة لـGATE-01
 
 - **`main` حمّرت فور الدمج، والحارسُ مُحقّ:** `gate01_frozen_path_guard` على `ebcf4527` أعطى
@@ -8085,3 +8106,65 @@ json كي تبقى التسلسلةُ حرفاً بحرف. والحزمةُ ال
   في هذه الشريحة. ولولا أنّ الحارس يطبع **القائمةَ مع العدد** لبقي الرقمُ `+3` بلا تشخيص.
 - **المقيس:** ٦٣ شاهداً في `test_gate01_frozen_path_guard` · `guard_mutation_guard_ok`
   ٢٦/٢٦ · `gate01_frozen_path_guard_ok` · `gap_heading_state_guard_ok` (٢١١ لم ينمُ).
+
+## 2026-09-20 — مرساةُ حارسٍ اختِيرت بالقياس بعد تكذيبِ الاتّجاه المُسجَّل
+
+- **الشريحة:** إغلاقُ `BRAIN-TRANSITION-GUARD-MATCHES-A-DISCUSSED-POLICY-STATE-01`
+  (كانت `open` منذ #1035) وتسجيلُ وإغلاقُ
+  `A-HISTORICAL-DIP-IS-NOT-REPAIRABLE-BY-A-LATER-COMMIT-01` المقيسة على #1036.
+- **وأهمُّ ما في الشريحة أنّ الاتّجاهَ المُسجَّل كُذِّب قبل تنفيذه.** كان مكتوباً في
+  الفجوة: «الإرساءُ على العنوان… الادّعاءُ في هذا المستودع لا يقع في المتن». فقستُ
+  السكّانَ قبل أن أكتب سطراً: **٤٢٨ سطراً** في الدماغ تحمل الرمز، منها **٢٩ في عنوان
+  و٤ في سطر حالة** — أي أنّ إرساءَ الموضع كان سيُطلِق كلَّ ما عداها، ومنه
+  `**SAM2** closed (gated, env-unverified)` في `strategy.md:52`: **ادّعاءُ إغلاقٍ في
+  نثرٍ جارٍ**. تنفيذُ ما كُتِب كما كُتِب كان سيفتح الثقبَ الذي حذّر منه كاتبُه.
+- **والمُرساةُ المُنفَّذة — الخطُّ الطباعيّ:** رمزٌ داخل `` ` ` `` أو «» أو “” اسمٌ
+  يُذكَر لا حالةٌ تُدَّعى. **٢٩٨ ⇒ ١٦٠** سطراً محجوباً (أُعفي ١٣٨).
+- **وحدّان يمنعانه من أن يصير ثقباً:** موضعُ الادّعاء القانونيّ (عنوان · سطرُ الحالة)
+  يُقرأ **مهما كان خطُّه**؛ واقتباسٌ يُسنِد قيمةً موجبة يبقى ادّعاءً.
+- **وما يبقى محجوباً بصدق:** `**البوّابة CLOSED عالميّاً**` — نثرٌ عارٍ لا يفصله عن
+  ادّعاءٍ حقيقيٍّ شيءٌ يُقاس. الشاهدُ الثالثُ يحمله بحرفه، والفشلُ في الجهة الآمنة.
+- **والعطلُ الثاني في الرسالة لا في القاعدة:** `brain_append_only_guard` حجب #1036
+  بينما رأسُ الفرع **أكبرُ** من الأساس في السجلّات الأربعة. الرسالةُ الثابتة كانت تصف
+  علاجَ الرأس («أعِد البناء من كلا الوالدَين») وهو عديمُ الأثر على انخفاضٍ هبط أمس:
+  الحارسُ يفحص كلّ زوج (التزام، والد). صارت الرسالةُ **مشتقّةً من موضع الانخفاض**،
+  وتُسمّي الالتزاماتِ المعنيّة. فرعٌ ثانٍ لصنف «رسالةٌ بلا علاج»: علاجٌ لغير الحالة.
+- **المقيس:** ٨٨ شاهداً في ملفَّي الحارسَين · `--run` على الحارسَين: **٧/٧** و**١٤/١٤**
+  طفرةً تقتل اختبارَها المُسمّى · `gap_heading_state_guard_ok` (٢١١ لم ينمُ).
+- **وما لا يُدَّعى:** `brain_append_only_guard` لم يتغيّر حرفاً في **ما يحجب**.
+
+## 2026-09-20 — أخضرُ كاذبٌ في القياس نفسِه: فجوةٌ مفتوحةٌ لا يراها أحد
+
+- **كشفه المالك** بمقارنة مصنوعَتَي قياسٍ حقيقيَّتين: `87239f18 ⇒ a0bba343` رفعت
+  `heading_count` ٢٦٧ ⇒ ٢٧٠ و`section_state_count` ٤٦ ⇒ ٤٩ — **والزيادةُ +٣/+٣
+  تفسّرها مداخلُ #1037 الثلاثة وحدَها**. أمّا `V25-AI-RUNTIME-LOCAL-ACCEPTANCE-01`
+  المفتوحةُ فلا تظهر في أيّ عدّ، والوظيفةُ خضراء.
+- **العلّة:** `HEADING` كان `^##` وحدَه. مدخلةٌ تحت `###` لا تدخل `heading_count`،
+  فلا تصير يتيمةً، فلا يراها راتشِتُ اليتامى الذي وُجِد لهذا الصنف بعينه —
+  **حارسٌ أعمى عن مدخل حارسه**. والمدخلةُ خالفت شرطَي القراءة معاً: المستوى وسطرَ
+  الحالة (`- الحالة: **open**.` لا `- **الحالة:**`).
+- **المُنفَّذ:** تصحيحُ المدخلة · حقلا `noncanonical_heading_levels` والعدد ·
+  و`level_errors` **بأرضيّة صفرٍ حاجبة** لا براتشِت — لأنّ المقيسَ صفرٌ بعد التصحيح.
+- **والشكلُ أضيقُ من `ID` عمداً:** `### HIL SQL follow-up` و`### MCP review follow-up`
+  عنوانا قسمٍ فوق جداولَ تُقرأ صفوفُها، لا مدخلَي فجوة — فالمطلوبُ الشكلُ الموصولُ
+  بشَرطة وحدَه، وله شاهدُه. حقلٌ يُحمِّر على عملٍ طبيعيّ يُطفَأ.
+- **المقيس:** ١٣ شاهداً + ٢٧ في اختبار القياس · ٥/٥ و٢/٢ طفرةً مقتولة · وزرعٌ حيٌّ
+  على السجلّ الحقيقيّ: `###` ⇒ `rc=1`، و`##` ⇒ `rc=0`.
+- **وما لا يُدَّعى:** `V25-AI-RUNTIME-LOCAL-ACCEPTANCE-01` تبقى **`open`** — صُحِّح
+  موضعُها لا حالتُها. والحقلُ يقيس الرؤية لا الصحّة.
+
+- **وأمسكني حارسٌ ثالثٌ على مثالٍ كتبتُه في الفقرة نفسِها:**
+  `test_brain_numeric_state_claims_match_registry` حجب السطرَ ٢٣٨٨ لأنّ المثالَ
+  الذي يشرح «اقتباسٌ يُسنِد قيمةً موجبة يبقى ادّعاءً» كان **يُسنِد تلك القيمة
+  حرفيّاً** في متن الدماغ. ثمّ أمسكني مرّةً ثانيةً حين اقتبستُ رسالةَ الحجب نفسَها
+  لأوثّق الحادثة — فأعادت الصيغةَ المحظورة. **والحارسُ يُصدِّق الفقرةَ لا يناقضها:**
+  الإسنادُ الموجب ادّعاءٌ ولو كان مثالاً، وموضعُ الصيغة الحرفيّة الشاهدُ لا السجلّ.
+  أمسكه `preflight` محلّيّاً قبل الدفع — جولةُ CI كاملة وُفِّرت.
+
+- **وحدُّ الانجراف قدح كما وُجِد لأجله، فأُعيد القياس لا الرقم:** أضافت هذه الشريحةُ
+  ثماني طفراتٍ فبلغ المُعلَنُ ٧٣٤ وحدُّ الانجراف ٧٣١. قُرئ الزوجُ من جولةٍ حقيقيّة على
+  رأس `main` (`a0bba343` · run 35475507861): أبطأُ حزمةِ مكنسةٍ **٧٫٥٢** دقيقة والمُعلَنُ
+  عند ذلك الرأس **٧٢٦**. فصارت العلامةُ ٧٢٦ + ⌊٢٢٫٤٨ ÷ ٠٫٧٧٥⌋ = **٧٥٥** وحدُّ الانجراف
+  **٧٤٠**. الصيغةُ لم تُمَسّ والكلفةُ ٠٫٧٧٥ والسقفُ ٣٠ ثابتان؛ تحرّك المُدخَلان
+  المرصودان وحدَهما. **وهذا هو العلاجُ الذي يُمليه الحدُّ نفسُه** — لا رفعَ رقمٍ حتّى
+  يخضرّ، ولا إرساءَ على *Unit Tests* (١٧٫٣٣ دقيقة) التي لا تُشغّل المكنسة.

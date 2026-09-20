@@ -65,3 +65,85 @@ def test_a_missing_baseline_fails_closed(tmp_path):
     """أساسٌ مفقود ليس «صفرَ ديْن» — و«لم يُقرأ» ليست «لا شيء»."""
     with pytest.raises((OSError, ValueError, KeyError)):
         guard.main(["--baseline", str(tmp_path / "absent.json")])
+
+
+# ── A-GAP-UNDER-A-DEEPER-HEADING-IS-INVISIBLE-TO-ITS-OWN-RATCHET-01 ─────────────
+#
+# الراتشِتُ أعلاه يُمسِك «عنوانٌ بلا سجلِّ حالة». وما لا يُقرأ **عنواناً أصلاً** يفلت
+# منه: `gap_registry_measure.HEADING` كان `^##` وحدَه، فمدخلةٌ تحت `###` لا تدخل
+# `heading_count`، فلا تصير يتيمةً، فلا يراها الحارسُ الذي وُجِد لهذا الصنف.
+#
+# مقيسٌ على `a0bba343` (دمج #1036): `V25-AI-RUNTIME-LOCAL-ACCEPTANCE-01` مفتوحةٌ في
+# الملفّ وغائبةٌ عن كلّ عدّ — heading وsection_state وrow وكلّ حقول الشذوذ —
+# و«Gap registry measurement» خضراء. حارسٌ أعمى عن مدخل حارسه.
+
+_DEEP = [{"id": "V25-AI-RUNTIME-LOCAL-ACCEPTANCE-01", "line": 6332, "level": 3}]
+
+
+def test_a_gap_id_under_a_deeper_heading_blocks():
+    """**الأرضيّةُ صفر هنا لا راتشِت** — المقيسُ صفرٌ بعد إصلاح الحالة الوحيدة."""
+    errors = guard.level_errors(_DEEP)
+    assert errors, "مدخلةُ فجوةٍ تحت `###` مرّت صامتة"
+    assert "V25-AI-RUNTIME-LOCAL-ACCEPTANCE-01" in errors[0]
+    assert "مستوى 3" in errors[0] and "سطر 6332" in errors[0]
+
+
+def test_the_level_message_names_the_remedy():
+    """رسالةٌ بلا علاجٍ تُدرِّب قارئَها على تجاوزها — فالعلاجُ منصوصٌ بحرفه."""
+    message = guard.level_errors(_DEEP)[0]
+    assert "## <معرِّف>" in message
+    assert "- **الحالة:** open" in message
+
+
+def test_a_canonical_registry_has_no_level_findings():
+    """ولا يُحمِّر على عملٍ طبيعيّ: صفرٌ حين لا مدخلَ تحت مستوى غير قانونيّ."""
+    assert guard.level_errors([]) == []
+
+
+def test_the_live_registry_has_no_noncanonical_gap_heading():
+    """**الزرعُ الحيّ على السجلّ الحقيقيّ، لا على نصٍّ اصطناعيّ.**
+
+    الشجرةُ اليوم صفرٌ في هذا الحقل — وهذا ما يجعل أرضيّةَ الصفر قابلةً للفرض.
+    """
+    module = guard._measure_module()
+    report = module.measure(_REGISTRY.read_text(encoding="utf-8"))
+    assert report["noncanonical_heading_level_count"] == 0, report["noncanonical_heading_levels"]
+
+
+def test_a_section_title_that_is_not_a_gap_entry_is_not_reported():
+    """**الحقلُ أضيقُ من `ID` عمداً، وهذا شاهدُ الضيق.**
+
+    `### HIL SQL follow-up` و`### MCP review follow-up` عنوانا قسمٍ فوق جدولٍ تُقرأ
+    صفوفُه أصلاً، لا مدخلَي فجوة. وقبولُ الكلمة الكبيرة المفردة كان يجعل الحقلَ
+    يُبلِّغ عمّا لا عطلَ فيه — وحقلٌ يُحمِّر على عملٍ طبيعيّ يُطفَأ.
+    """
+    module = guard._measure_module()
+    report = module.measure(
+        "### HIL SQL follow-up 2026-09-08\n\n| Gap | Status |\n|---|---|\n"
+        "### MCP review follow-up 2026-09-08\n"
+    )
+    assert report["noncanonical_heading_levels"] == []
+
+
+def test_a_deeper_gap_entry_is_caught_end_to_end():
+    """من النصّ إلى رمز الخروج: `###` ⇒ حجب، و`##` بسطر حالةٍ قانونيّ ⇒ مرور."""
+    module = guard._measure_module()
+    broken = "### NEW-DEEP-GAP-01\n\n- **الحالة:** open — نصّ\n"
+    assert guard.level_errors(module.measure(broken)["noncanonical_heading_levels"])
+    fixed = "## NEW-DEEP-GAP-01\n\n- **الحالة:** open — نصّ\n"
+    assert guard.level_errors(module.measure(fixed)["noncanonical_heading_levels"]) == []
+
+
+def test_the_level_finding_is_blocking_not_advisory(tmp_path, capsys):
+    """**من النصّ إلى رمز الخروج.** اكتشافٌ يُطبَع ولا يحجب خضرةٌ بثوبِ تقرير.
+
+    هذا ما وقع فعلاً على `a0bba343`: «Gap registry measurement» تقريرٌ لا يحجب،
+    فلو بقي الاكتشافُ فيه وحدَه لمرّ الصنفُ نفسُه مرّةً أخرى.
+    """
+    registry = tmp_path / "registry.md"
+    registry.write_text("### DEEP-GAP-ENTRY-01\n\n- **الحالة:** open — نصّ\n", encoding="utf-8")
+    code = guard.main(["--registry", str(registry), "--baseline", str(_BASELINE)])
+    out = capsys.readouterr().out
+    assert code == 1, out
+    assert "gap_heading_state_guard_failed" in out
+    assert "DEEP-GAP-ENTRY-01" in out
