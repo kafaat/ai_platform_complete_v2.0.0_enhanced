@@ -62,6 +62,14 @@ jobs:
       # ثابت). راتشِتٌ لا صفرٌ مفروض: المقيسُ 211 من 264، وأكثرُها سردٌ تاريخيّ.
       - name: A gap heading may not carry its state where nothing reads it
         run: python scripts/ci/gap_heading_state_guard.py
+      # A-HAND-WRITTEN-COUNT-IN-THE-JOURNAL-DRIFTS-FROM-ITS-OWN-MEASUREMENT-01:
+      # «Gap registry measurement» تقيس السجلَّ وتحفظ الخرجَ مصنوعاً، **ولا تقارن ما
+      # كُتِب بما قِيس** — فخضرتُها تُثبِت أنّ القياسَ جرى لا أنّ النصَّ صادق. ومرّ بها
+      # إلى `main` في #1038 سطرٌ يقول `heading_count=272`/`section_state_count=51`
+      # والمقيسُ 273/52. رقمٌ عن الحاضر يجب أن يصدق الآن؛ ورقمٌ عن شجرةٍ ماضيةٍ يجب
+      # أن يذكر بصمتَها — وذاك وحدَه ما يُعفيه، كي لا يُحمِّر الحارسُ على السرد.
+      - name: A hand-written count must equal what the registry measures
+        run: python scripts/ci/gap_registry_claim_guard.py
 
   # ── وظيفةٌ مستقلّة عمداً ────────────────────────────────────────────────────
   # GATE01-DIAGNOSIS-HIDDEN-BY-THE-JOB-NAME-01: كان هذا الفحص خطوةً داخل وظيفة

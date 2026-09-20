@@ -922,6 +922,7 @@ FM-007,mobile,mobile/sahool_app/lib/screens/inventory_screen.dart,2,applied
 FM-007,test,services/sahool-platform/tests/test_data_inventory.py,3,applied
 FM-007,test,tests/architecture/test_generate_service_inventory.py,3,applied
 FM-007,test,tests_v9/test_inventory_equipment.py,3,applied
+FM-007,test,tests_v9/test_main_inventory_generator.py,3,applied
 FM-008,api,GET /api/v1/erp/reconciliations @ services/sahool-platform/api/routers/operational_truth.py:305,2,applied
 FM-008,api,GET /api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:762,2,applied
 FM-008,api,GET /health @ services/odoo-bridge/routers/health.py:31,3,applied
