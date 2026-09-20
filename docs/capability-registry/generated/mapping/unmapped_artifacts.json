@@ -8220,6 +8220,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_recommendation_runtime_wiring.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_recommendation_wiring_preconditions.py",
     "kind": "tests"
   },

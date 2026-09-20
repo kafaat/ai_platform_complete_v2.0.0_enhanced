@@ -1,0 +1,30 @@
+{
+  "flag_ENABLE_RUNTIME_PIPELINE_CONSUMER": true,
+  "live_db": {
+    "server_version": "16.13 (Ubuntu 16.13-0ubuntu0.24.04.1)",
+    "postgis": "3.4 USE_GEOS=1 USE_PROJ=1 USE_STATS=1",
+    "public_tables": 349
+  },
+  "execute_reached": 1,
+  "execute_calls": [
+    {
+      "tenant_id": "11111111-1111-1111-1111-111111111111",
+      "field_id": "cert-field",
+      "has_canonical_field_state": true
+    }
+  ],
+  "returned_response": true,
+  "http_status": 200,
+  "body_keys": [
+    "cross_reference_count",
+    "cross_reference_note_ar",
+    "delivered",
+    "model_versions_count",
+    "rec_id",
+    "recommendation",
+    "runtime_pipeline",
+    "timestamp"
+  ],
+  "exit_code": 0,
+  "database_url_host": "127.0.0.1:5433/sahool_cert"
+}
