@@ -6,6 +6,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+from tests_v9._nginx_contract import assert_dynamic_gateway_binding
+
 pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -42,11 +44,8 @@ def test_remote_sensing_workspace_has_real_ui_and_gateway_consumer() -> None:
     assert route in frontend_nginx
 
     compose = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))
-    assert (
-        compose["services"]["sahool-nginx"]["depends_on"]["sahool-remote-sensing-workspace-bff"][
-            "condition"
-        ]
-        == "service_healthy"
+    assert_dynamic_gateway_binding(
+        nginx, compose["services"], "sahool-remote-sensing-workspace-bff"
     )
     assert _manifest_row("remote-sensing-workspace-bff")["classification"] == "ui-bff"
 

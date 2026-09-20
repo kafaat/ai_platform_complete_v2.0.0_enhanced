@@ -8,6 +8,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+from tests_v9._nginx_contract import assert_dynamic_gateway_binding
+
 pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -45,9 +47,9 @@ def test_v9_feature_services_use_v9_dns_and_correct_edge_port():
 def test_v9_nginx_routes_promoted_services_and_tts_no_longer_returns_503():
     text = _nginx()
     for expected in [
-        "upstream tts_backend         { server sahool-tts-service:8000;",
-        "upstream video_backend       { server sahool-video-processor:8000;",
-        "upstream agriai_backend      { server sahool-agriai-engine:8000;",
+        "upstream tts_backend { server sahool-tts-service:8000 resolve;",
+        "upstream video_backend { server sahool-video-processor:8000 resolve;",
+        "upstream agriai_backend { server sahool-agriai-engine:8000 resolve;",
         "location /tts/",
         "location /api/video/",
         "location /api/agriai/",
@@ -58,11 +60,10 @@ def test_v9_nginx_routes_promoted_services_and_tts_no_longer_returns_503():
     assert "return 503" not in tts_block
 
 
-def test_v9_nginx_waits_for_promoted_services():
+def test_v9_nginx_resolves_promoted_services_without_a_startup_barrier():
     services = _compose()["services"]
-    deps = services["sahool-nginx"]["depends_on"]
     for name in ["sahool-video-processor", "sahool-agriai-engine", "sahool-tts-service"]:
-        assert deps[name]["condition"] == "service_healthy"
+        assert_dynamic_gateway_binding(_nginx(), services, name)
 
 
 def test_v9_csp_allows_configured_map_basemap_domains():

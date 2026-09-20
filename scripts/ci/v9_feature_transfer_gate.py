@@ -34,8 +34,17 @@ def require_service(name: str) -> None:
 # Services promoted into v9 runtime.
 for svc in ["sahool-video-processor", "sahool-agriai-engine", "sahool-tts-service"]:
     require_service(svc)
-    # nginx must wait for these services, otherwise v9 can start with routes pointing at unavailable upstreams.
-    require_text("nginx depends_on", compose, f"      {svc}:\n        condition: service_healthy")
+    # Discovery, not fleet health, is the startup boundary. Routes still exist.
+    match = re.search(
+        rf"upstream\s+\w+\s*\{{([^{{}}]*server\s+{re.escape(svc)}:8000[^{{}}]*)\}}", nginx
+    )
+    if not match or " resolve;" not in match[1] or "zone " not in match[1]:
+        errors.append(f"missing dynamic shared-zone binding: {svc}")
+
+gateway = compose.split("  sahool-nginx:\n", 1)[1].split("\n  sahool-video-processor:", 1)[0]
+if "    depends_on:" in gateway:
+    errors.append("gateway must not wait for the whole fleet to become healthy")
+require_text("gateway DNS resolver", nginx, "resolver 127.0.0.11 valid=10s ipv6=off;")
 
 # Correct, non-drifting internal dependencies.
 require_text("video edge URL", compose, "EDGE_INFERENCE_URL: http://sahool-edge:8100")
@@ -48,9 +57,9 @@ require_text("tts Redis URL", compose, "REDIS_URL: redis://:${REDIS_PASSWORD}@sa
 
 # Nginx exposure/forwarding.
 for upstream in [
-    "upstream tts_backend         { server sahool-tts-service:8000;",
-    "upstream video_backend       { server sahool-video-processor:8000;",
-    "upstream agriai_backend      { server sahool-agriai-engine:8000;",
+    "upstream tts_backend { server sahool-tts-service:8000 resolve;",
+    "upstream video_backend { server sahool-video-processor:8000 resolve;",
+    "upstream agriai_backend { server sahool-agriai-engine:8000 resolve;",
 ]:
     require_text("v9 nginx upstream", nginx, upstream)
 

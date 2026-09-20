@@ -38,7 +38,7 @@ services:
       timeout: 5s
       retries: 3
   sahool-nginx:
-    image: nginx:1.27-alpine
+    image: nginx:1.27.5-alpine
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
@@ -64,49 +64,8 @@ services:
       SEASON_ENTRY_SERVICE_TOKEN: ${SEASON_ENTRY_SERVICE_TOKEN:-}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
-    depends_on:
-      sahool-platform:
-        condition: service_healthy
-      sahool-raster-service:
-        condition: service_healthy
-      sahool-scout-ingest:
-        condition: service_healthy
-      sahool-notification-agent:
-        condition: service_healthy
-      sahool-frontend:
-        condition: service_healthy
-      sahool-auth:
-        condition: service_healthy
-      sahool-supervisor-agent:
-        condition: service_healthy
-      sahool-guardrails-engine:
-        condition: service_healthy
-      sahool-vegetation-analysis:
-        condition: service_healthy
-      sahool-indicators-service:
-        condition: service_healthy
-      sahool-weather-service:
-        condition: service_healthy
-      sahool-market-mcp:
-        condition: service_healthy
-      sahool-erp-bridge:
-        condition: service_healthy
-      sahool-local-ai-rag:
-        condition: service_healthy
-      sahool-rag-retrieval:
-        condition: service_healthy
-      sahool-knowledge-graph:
-        condition: service_healthy
-      sahool-ai-agronomist:
-        condition: service_healthy
-      sahool-tts-service:
-        condition: service_healthy
-      sahool-video-processor:
-        condition: service_healthy
-      sahool-agriai-engine:
-        condition: service_healthy
-      sahool-remote-sensing-workspace-bff:
-        condition: service_healthy
+    # No fleet-wide startup barrier: dynamic upstream DNS handles late services.
+    # /healthz is gateway liveness; private /readyz still reports platform readiness.
     networks:
     - sahool-public
     - sahool-internal
@@ -2183,7 +2142,7 @@ services:
       - --quiet
       - --tries=1
       - --spider
-      - http://localhost:8080/healthz
+      - http://127.0.0.1:8080/healthz
       interval: 30s
       timeout: 10s
       retries: 6

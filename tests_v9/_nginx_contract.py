@@ -25,3 +25,22 @@ def expand_upstream_targets(conf: str) -> str:
         return prefix + targets.get(host, host)
 
     return re.sub(r"(\bproxy_pass\s+http://)([\w.:-]+)(?=[/;])", expand, conf)
+
+
+def assert_dynamic_gateway_binding(conf: str, services: dict, host: str) -> None:
+    """Bind the no-wait claim to DNS, a shared zone, and an actual shared network."""
+    uncommented = re.sub(r"#[^\n]*", "", conf)
+    groups = re.findall(r"upstream\s+(\w+)\s*\{([^{}]*)\}", uncommented)
+    matches = [
+        (name, body)
+        for name, body in groups
+        if re.search(rf"\bserver\s+{re.escape(host)}:\d+\s+resolve\s*;", body)
+    ]
+    assert len(matches) == 1, f"{host}: missing/ambiguous runtime DNS binding"
+    name, body = matches[0]
+    assert re.search(rf"\bzone\s+{re.escape(name)}\s+\d+k;", body)
+    assert "resolver 127.0.0.11 valid=10s ipv6=off;" in uncommented
+    gateway = services["sahool-nginx"]
+    assert not gateway.get("depends_on"), "a backend must not block gateway creation"
+    assert host in services
+    assert set(gateway["networks"]) & set(services[host]["networks"])

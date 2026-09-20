@@ -16,7 +16,7 @@ from typing import Any
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
-UPSTREAM_RE = re.compile(r"server\s+([A-Za-z0-9_.-]+):(\d+)\s*;")
+UPSTREAM_RE = re.compile(r"\bserver\s+([A-Za-z0-9_.-]+):(\d+)(?:\s+[^;{}]+)?\s*;")
 
 
 def load_yaml(path: Path) -> dict[str, Any]:
@@ -40,7 +40,8 @@ def resolvable_names(compose: dict[str, Any]) -> set[str]:
 
 
 def upstream_hosts(nginx_conf: str) -> list[tuple[str, int]]:
-    return [(host, int(port)) for host, port in UPSTREAM_RE.findall(nginx_conf)]
+    uncommented = re.sub(r"#[^\n]*", "", nginx_conf)
+    return [(host, int(port)) for host, port in UPSTREAM_RE.findall(uncommented)]
 
 
 def main() -> int:
@@ -56,6 +57,8 @@ def main() -> int:
     names = resolvable_names(compose)
     upstreams = upstream_hosts(nginx_path.read_text(encoding="utf-8"))
     missing = [f"{host}:{port}" for host, port in upstreams if host not in names]
+    if not upstreams:
+        missing.append("no upstream bindings parsed; this is not evidence of a valid topology")
     result = {
         "gate": "nginx-compose-dns-gate",
         "compose": args.compose,

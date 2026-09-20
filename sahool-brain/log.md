@@ -8106,3 +8106,13 @@ The sample environment overrode the existing SAM2 CUDA 12.8 default with CUDA 12
   في هذه الشريحة. ولولا أنّ الحارس يطبع **القائمةَ مع العدد** لبقي الرقمُ `+3` بلا تشخيص.
 - **المقيس:** ٦٣ شاهداً في `test_gate01_frozen_path_guard` · `guard_mutation_guard_ok`
   ٢٦/٢٦ · `gate01_frozen_path_guard_ok` · `gap_heading_state_guard_ok` (٢١١ لم ينمُ).
+
+
+## 2026-09-20 — متانة إقلاع بوّابة v9 بعد إصلاح الواجهة
+
+على أساس `a0bba343f5b4464f47f674848088fd8ba599220d`: أزيل حاجز انتظار صحة الأسطول
+من `sahool-nginx`، وأصبحت أسماء upstream القائمة محلولة أثناء التشغيل مع `zone`.
+المرجع: `docs/runbooks/GATEWAY_STARTUP_ACCEPTANCE.md` والاختبار
+`nginx/tests/test_gateway_runtime.py`. وُحّد فحص صحة الواجهة وأزيل hook تعديل IPv6
+غير اللازم، دون تغيير هوية المستأجر أو ACL أو مسارات الأثر الفيزيائي.
+هذا تغيير مصدر واختبارات؛ ليس إثبات نشر على حزمة v25 المحلية، ولا إغلاقاً لحاويات TiTiler القديمة.

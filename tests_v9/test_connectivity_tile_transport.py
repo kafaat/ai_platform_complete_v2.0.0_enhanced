@@ -21,6 +21,7 @@ from fastapi.testclient import TestClient
 from pydantic import BaseModel
 
 from shared.gis import cog_tile_proxy
+from tests_v9._nginx_contract import assert_dynamic_gateway_binding
 
 pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[1]
@@ -145,7 +146,7 @@ async def test_backend_timeout_has_named_failure(transport):
     assert exc.value.detail == "cog_tile_backend_unavailable"
 
 
-def test_canonical_tiler_is_reachable_and_gateway_waits_for_its_upstreams():
+def test_canonical_tiler_is_reachable_and_gateway_resolves_its_upstreams():
     services = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))[
         "services"
     ]
@@ -166,7 +167,7 @@ def test_canonical_tiler_is_reachable_and_gateway_waits_for_its_upstreams():
     hosts = re.findall(r"upstream\s+\w+\s*\{\s*server\s+([\w-]+):\d+", conf)
     assert hosts
     for host in hosts:
-        assert services["sahool-nginx"]["depends_on"][host]["condition"] == "service_healthy"
+        assert_dynamic_gateway_binding(conf, services, host)
     assert services["sahool-titiler"]["profiles"] == ["legacy-tiler"]
 
 

@@ -57,7 +57,9 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # ── تشغيل non-root ──
 # nginx:alpine فيه مستخدم 'nginx' (uid 101). نهيّئ المجلّدات لتعمل بلا root،
 # ونستخدم منفذ 8080 (>1024 لا يحتاج صلاحيّات root).
-RUN sed -i 's/listen 80;/listen 8080;/' /etc/nginx/conf.d/default.conf \
+# IPv6 is explicit in nginx.conf; do not run the stock root-only mutation hook.
+RUN rm -f /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh \
+ && sed -i 's/listen 80;/listen 8080;/' /etc/nginx/conf.d/default.conf \
  && sed -i '/user  nginx;/d' /etc/nginx/nginx.conf \
  && sed -i 's#pid        /run/nginx.pid;#pid /tmp/nginx.pid;#' /etc/nginx/nginx.conf \
  && touch /tmp/nginx.pid \
@@ -67,8 +69,9 @@ RUN sed -i 's/listen 80;/listen 8080;/' /etc/nginx/conf.d/default.conf \
 USER nginx
 
 # صحّة الحاوية — endpoint مخصّص (موثوق أكثر من grep على المحتوى)
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:8080/healthz || exit 1
+# Keep this command/timing aligned with sahool-frontend in docker-compose.v9.yml.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=6 \
+  CMD wget --quiet --tries=1 --spider http://127.0.0.1:8080/healthz || exit 1
 
 EXPOSE 8080
 
