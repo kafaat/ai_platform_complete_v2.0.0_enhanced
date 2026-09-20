@@ -11,8 +11,10 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import importlib.util
 import json
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -228,6 +230,18 @@ def placeholders() -> dict[str, dict[str, Any]]:
     }
 
 
+def _resolver():
+    """يُحمَّل بالمسار لا بالحزمة — `scripts/` ليست حزمةً مثبَّتة."""
+    path = Path(__file__).resolve().with_name("resolve_inventory_edges.py")
+    spec = importlib.util.spec_from_file_location("resolve_inventory_edges", path)
+    if not spec or not spec.loader:  # pragma: no cover - يفشل مغلقاً
+        raise SystemExit(f"✗ لا يمكن تحميل حاسمِ الحوافّ من {path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
 def build(out: Path) -> None:
     out.mkdir(parents=True, exist_ok=True)
     components = load_components()
@@ -238,9 +252,40 @@ def build(out: Path) -> None:
     _write(out / "components.json", components)
     _write(out / "deployment_units.json", units)
     _write(out / "capabilities.json", capabilities)
+    surfaces = placeholders()
+
+    # حسمُ ما يُحسَم بدليلٍ مصدريّ، وإبقاءُ الباقي كما هو. الترقيةُ تحتاج سلسلةَ
+    # أدلّةٍ كاملة؛ وما انقطعت سلسلتُه يبقى `declared` ولا يُقال عنه إنّه غيرُ موجود.
+    promoted, unresolved, resolution = _resolver().resolve(unresolved, components, ROOT)
+    resolved = promoted
     _write(out / "integration_edges.json", resolved)
     _write(out / "unresolved_edges.json", unresolved)
-    surfaces = placeholders()
+
+    # **سطحٌ واحدٌ خرج من «لم يُقَس» لأنّه قِيس** — لا لأنّ أحداً قرّر ذلك. صفوفُه
+    # هي الحوافُّ المحسومةُ بسلسلة أدلّة، وحدُّ الماسح مُعلَنٌ معها في الصفّ نفسِه:
+    # «قِيس» هنا تعني «هذا ما رآه ماسحٌ ساكن»، لا «هذا كلُّ ما يقع».
+    surfaces["frontend_consumers.json"] = {
+        "schema": "sahool.diagnostic-inventory.surface.v1",
+        "surface": "frontend_consumers.json",
+        "measurement_state": "measured",
+        "rows": [
+            {
+                "capability_id": edge["capability_id"],
+                "producer": edge["from"],
+                "entrypoint": edge["resolved_entrypoint"],
+                "evidence": edge["evidence"],
+            }
+            for edge in resolved
+        ],
+        "row_count": len(resolved),
+        "what_measured_means_ar": (
+            "كلُّ صفٍّ هنا حافّةٌ أثبتتها سلسلةُ أدلّةٍ من أربع خطوات في الشجرة "
+            "(بادئةُ العميل · ربطُ النسخة · موضعُ النداء · قاعدةُ البوّابة). "
+            "والصفوفُ ليست كلَّ ما يقع: ما لا يراه ماسحٌ ساكن يبقى في "
+            "`unresolved_edges.json`، وحجمُ عماه في `edge_resolution.scanner_blind_spots`."
+        ),
+        "measured_by": "scripts/diagnostics/resolve_inventory_edges.py",
+    }
     for name, value in surfaces.items():
         _write(out / name, value)
 
@@ -259,6 +304,7 @@ def build(out: Path) -> None:
             "deployment_units": len(units),
             "capabilities": len(capabilities),
             "declared_consumer_edges_pending_resolution": len(unresolved),
+            "resolved_consumer_edges": len(resolved),
             # يُعلَن في الترويسة كي لا يحتاج القارئ أن يفتح عشرة ملفّات ليكتشف
             # أنّ عشرة أسطحٍ لم تُقَس. عددٌ في الترويسة أصعبُ على الإغفال من صمت.
             "surfaces_not_measured": sum(
@@ -269,6 +315,9 @@ def build(out: Path) -> None:
         "sources": [
             {"path": str(path.relative_to(ROOT)), "sha256": _sha256(path)} for path in sources
         ],
+        # قياسُ الحسم نفسُه يُصدَّر — بما فيه **عمى الماسح**. أخضرُ بلا إعلانِ حدوده
+        # يُقرأ «كلُّ ما لم يُحسَم غيرُ موجود»، وهو ما وُجِد هذا الجردُ ليمنعه.
+        "edge_resolution": resolution,
         "evidence_semantics": {
             "resolved": "supported by an independently located concrete source/runtime edge",
             "declared": "present in a repository registry/catalogue but not independently resolved",
