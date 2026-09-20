@@ -162,6 +162,6 @@ jobs:
           test "$(git rev-parse origin/main)" = a0bba343f5b4464f47f674848088fd8ba599220d
           test -z "$(git ls-files .gateway-patch-kit .github/workflows/gateway-patch-builder.yml)"
           auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
-          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/codex/gateway-startup-resilience-20260920
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/codex/gateway-startup-resilience-v2-20260920
           git log -2 --format='%H %s'
           git diff --stat origin/main...HEAD
