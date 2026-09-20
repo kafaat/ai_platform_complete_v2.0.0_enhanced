@@ -7512,6 +7512,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_gap_registry_claim_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_gate01_frozen_path_guard.py",
     "kind": "tests"
   },
