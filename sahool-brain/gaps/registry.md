@@ -2541,6 +2541,16 @@ nats.js.errors.Error: nats: JetStream.Error consumer is already bound to a subsc
 
 **المصدر:** [`tests_v9/test_canonical_execution_learning_worker_subscriptions.py`](../../tests_v9/test_canonical_execution_learning_worker_subscriptions.py) · القياس الحيّ على nats-server v2.10.22 · PR #785 (`6b6ffe82`).
 
+## OUTBOX-RELAY-MARKS-SENT-WITHOUT-JETSTREAM-ACK-01 — ناقلُ الصندوق الصادر يَسِم `sent` بلا إقرارٍ من الناقل
+
+- **الحالة:** open — مقيسةٌ على stack معزول (2026-09-20)؛ الإصلاحُ قرارُ تصميمٍ يمسّ عقدَ التسليم لا سطراً.
+- **المقيس (القبول المعزول، رنبوك V25 §٨):** [`docs/evidence/outbox_nats_isolated_acceptance.json`](../../docs/evidence/outbox_nats_isolated_acceptance.json) على `14c674bf` بمكوّناتٍ حقيقيّة: `nats-server v2.10.22` بـJetStream · `nats-py 2.10.0` (إصدارُ صورة المنصّة) · PostgreSQL 16.13 مُرحَّلة. المسارُ الكامل **مرّ**: `emit` ⇒ `event_outbox` ⇒ `OutboxWorker` ⇒ NATS ⇒ دفقٌ ⇒ مستهلكٌ دائمٌ ⇒ ACK (`ack_pending = 0`)، **وإعادةُ التسليم لم تُكرّر الأثر** (مطالبةٌ متعارضة ⇒ `skipped` · صفرُ نشرٍ إضافيّ).
+- **العطل، مقيسٌ في الخطوة ⑤ لا مُستنتَج:** الناشرُ في [`api/main.py::_start_outbox_worker`](../../services/sahool-platform/api/main.py) يمرّر `nc.publish` **الأساسيَّ** لا `js.publish`، فلا يتسلّم `PubAck`. حدثٌ على موضعٍ **لا يغطّيه أيُّ دفق** (`sahool.events.calibration.audit.recorded`) وُسِم `sent` بـ`last_error = NULL` وصفِّ محاولةٍ `published` — **ولم تُخزَّن رسالتُه في أيّ مكان** (`jetstream_total_messages` لم يتحرّك). فالصندوقُ الصادر — الذي وُجِد ليضمن «الأحداث تُكتب ولا تُفقَد» — يُعلن التسليمَ حين يكون الفقدُ صامتاً.
+- **لماذا يهمّ الآن تحديداً:** الدفقُ الوحيدُ في المستودع الذي يغطّي `sahool.>` ينشئه **وكيلُ الإشعارات** عند إقلاعه ([`agents/notification/agent.py:509-513`](../../agents/notification/agent.py) — `add_stream(StreamConfig(name="sahool", subjects=["sahool.>"]))` في الوضع القديم، **وبعد #1045** في وضع `NOTIFICATION_CONSUMER_MODE=queue_v1` **لا يُنشئه بل يرفع** («التهيئةُ خطوةُ مشغّلٍ صريحة، لا إعادةُ ضبطٍ عند الإقلاع») — أي أنّ الدفقَ صار يعتمد على خطوةِ تزويدٍ يدويّة)، وهو ما تصفه `JETSTREAM-STREAM-TOPOLOGY-OWNED-BY-A-CONSUMER-01`. وترقيةُ ذلك الوكيل على Railway **فاشلةٌ حاليّاً** (تعارضُ اشتراكات `notif_*`). فلو قُلبت `FEATURE_NATS_PUBLISHERS` في بيئةٍ لا يعمل فيها الوكيل — **أو في وضع `queue_v1` قبل خطوة التزويد اليدويّة** — تُوسَم كلُّ أحداث المنصّة `sent` وتُفقَد بلا أثرٍ في `event_outbox` ولا في `outbox_delivery_attempts`. #1045 جعل غيابَ الدفق **مرئيّاً عند المستهلك** (يرفع) وأبقاه **أعمى عند الناشر**.
+- **الخاصّيّة المنتهَكة:** «`sent` يعني أنّ الناقلَ حفظ الرسالة». والصنفُ «النجاحُ الصامت» — وجهُه هنا في **طبقة النقل** بعد أن أُغلق في الابتلاع (`SENSOR-TELEMETRY-…`) وفي المحمّل وفي الرايات.
+- **شرط الإغلاق (قرارٌ ثمّ تنفيذ):** إمّا `js.publish` مع انتظار `PubAck` ووسمُ `sent` **بعده** (يربط الوسمَ بحفظٍ مُقَرّ، ويُظهر غيابَ الدفق فشلاً يُعاد بالتراجع الأسّيّ بدل أن يُبتلَع)، وإمّا توثيقٌ صريحٌ بأنّ `sent` يعني «سُلِّم إلى الناقل» فقط مع فحصِ تغطية الدفق عند الإقلاع يُطفئ الناشرَ إن غابت. يُقاس أيُّهما بإعادة تشغيل الخطوة ⑤ وتوقّع `failed`/`pending` لا `sent`. **وقلبُ الراية في الإنتاج قبل هذا الحسم خطأٌ مقيسٌ لا محتمَل.**
+- **ما لا يُدَّعى:** القبولُ أعلاه معزولٌ ومحلّيّ — الدفقُ أنشأه الاختبارُ صراحةً؛ لا يُستقرأ منه شيءٌ عن أحداث المنصّة المنشورة. `production_certified=false`.
+
 ## JETSTREAM-STREAM-TOPOLOGY-OWNED-BY-A-CONSUMER-01 — مفتوحة (P2 معماريّة، رُصِدت 2026-08-04؛ الحافّة وحدها هبطت في `6b6ffe82` / PR #785)
 
 **الصنف:** طوبولوجيا ناقل الأحداث يملكها **مستهلِك** لا الناقل ولا الهجرات.
@@ -2554,6 +2564,8 @@ nats.js.errors.Error: nats: JetStream.Error consumer is already bound to a subsc
 **الجرد أُنجِز (2026-08-04):** [`docs/architecture/jetstream_topology_inventory.md`](../../docs/architecture/jetstream_topology_inventory.md) — دفق واحد · **١٣ مستهلكاً دائماً** من **ثلاثة مالكين** (`agents/` · `services/weather-polygon-worker/` · `scripts/workers/`) بلا سجلّ جامع قبل هذا. وكشف أربعة بنود لم تكن معروفة: ① التهيئة **مفتوحة عند الفشل** — `add_stream` يبتلع كلّ استثناء عدا «already exists» ثمّ يُعلن الوكيل `✅ ready` بلا ناقل · ② الدفق **بلا سياسة احتفاظ** (`max_age=0`, `max_msgs=-1`, `max_bytes=-1`)، والحدّ الوحيد `max_file_store: 2GB` على الخادم كلّه ⇒ نموّ حتّى الرفض، **والرفض صامت** (`shared/helpers.py:318-325` يلتقط ويُرجِع `False`) · ③ `num_replicas=1` ⇒ فقد المجلّد يفقد مواضع كلّ المستهلكين · ④ **لا حدّ إعادة تسليم ولا DLQ** على أيّ من الثلاثة عشر (`max_deliver=-1`)، ورسالةٌ تفشل عبوريّاً دائماً تُعاد إلى الأبد.
 
 **الحسم المطلوب قبل النقل (قرارات منتَج لا تنفيذ):** سياسة الاحتفاظ · حدّ إعادة التسليم وDLQ · ملكيّة الأسماء الدائمة (مركزيّة تمنع التصادم الذي وقع فعلاً في `WORKER-REGISTERED-BUT-CANNOT-START-01`، أم لامركزيّة تحفظ استقلال الخدمات) · `num_replicas`.
+
+**إحالةٌ مقيسة (2026-09-20):** جانبُ **الناشر** في المنصّة فيه وجهُ العطل نفسِه من الاتّجاه الآخر — `OUTBOX-RELAY-MARKS-SENT-WITHOUT-JETSTREAM-ACK-01`: لا PubAck، فغيابُ هذا الدفق لا يُرى عند المنصّة بل يُوسَم `sent`. الاعتمادُ متبادل: الدفقُ يملكه مستهلك، والناشرُ لا يتحقّق من وجوده.
 
 **المصدر:** [`agents/notification/agent.py:449`](../../agents/notification/agent.py) · [`docker-compose.v9.yml`](../../docker-compose.v9.yml) `sahool-canonical-execution-learning-worker.depends_on` · قياس محلّيّ 2026-08-04.
 
@@ -6345,6 +6357,9 @@ C01..C14؛ لا تُرفع قدرة إلى runtime_verified أو production_cert
 - المصدر: `docs/runbooks/V25_AI_LOCAL_ACCEPTANCE.md`; `tests_v9/test_v25_advisory_publication.py`; `tests_v9/test_v25_seed_and_raster_quality.py`; `tests_v9/test_ai_runtime_readiness.py`.
 - النطاق: cold startup, truthful readiness, zero-pixel rejection, browser RAG/TTS routing, owner-verified numeric chat. Existing `AI-RUNTIME-WIRING-01` remains open: production action-candidate loading is not added by this change.
 - شرط الإغلاق: source/image identities plus authenticated v25 evidence, approved model and corpus provisioning, actual GPU inference and isolated event delivery. `runtime_verified=0`; `production_certified=false`.
+- **قياسٌ جزئيٌّ محلّيّ (2026-09-20)، والحالةُ تبقى `open` بحكم بند الإغلاق نفسِه:** من شروط الإغلاق الأربعة، **«isolated event delivery» قِيس** على stack معزول بمكوّناتٍ حقيقيّة (رنبوك §٨ حرفيّاً): [`docs/evidence/outbox_nats_isolated_acceptance.json`](../../docs/evidence/outbox_nats_isolated_acceptance.json) — المسارُ من `emit` إلى ACK مرّ، وإعادةُ التسليم لم تُكرّر الأثر، وكشف القياسُ `OUTBOX-RELAY-MARKS-SENT-WITHOUT-JETSTREAM-ACK-01`. **والباقي محجوبٌ بقياسٍ لا بتقدير**: `nvidia-smi` غيرُ موجود · لا `/dev/nvidia*` · لا `torch` · خادمُ docker متوقّف — فلا استدلالَ SAM2 ولا Ollama ولا الحاويات. مُدرَجٌ في قائمة BLOCKED بمدخله المفقود في [`docs/evidence/operational_evidence_log.md`](../../docs/evidence/operational_evidence_log.md). `runtime_verified` يبقى صفراً على مستوى العتاد؛ `production_certified=false`.
+
+
 ## JSONB-PARAMETER-TYPE-UNDETERMINABLE-ON-LIVE-PG-01 — سكربتٌ لم يُشغَّل قطّ على قاعدةٍ حيّة
 
 - **الحالة:** fixed — `::bigint` على الوسيط داخل `jsonb_build_object` في **الذراعَين** (`soil_readings` و`device_telemetry`). الشاهد `tests_v9/test_reconciliation_resumption_live_pg.py` على PostgreSQL حيّ؛ **مُكذَّبٌ بالزرع**: نزعُ التحويل يُسقط شاهدَين من ثلاثة.

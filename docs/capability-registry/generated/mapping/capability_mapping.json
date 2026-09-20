@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5394,
+    "files_scanned": 5397,
     "files_by_kind": {
       "backend": 1209,
       "database": 278,
       "governance": 64,
       "mobile": 55,
-      "other": 1508,
-      "tests": 1822,
+      "other": 1510,
+      "tests": 1823,
       "web": 458
     },
     "unmapped_artifacts": 2188,
@@ -11396,6 +11396,18 @@
           "score": 20
         },
         {
+          "value": "sahool.events.calibration.audit.recorded @ docs/evidence/outbox_nats_isolated_acceptance.json:68",
+          "score": 18
+        },
+        {
+          "value": "sahool.events.lineage.> @ docs/evidence/outbox_nats_isolated_acceptance.json:17",
+          "score": 18
+        },
+        {
+          "value": "sahool.events.lineage.linked @ docs/evidence/outbox_nats_isolated_acceptance.json:24",
+          "score": 18
+        },
+        {
           "value": "crop_rotation.added @ services/sahool-platform/api/event_bus.py:227",
           "score": 17
         },
@@ -11746,6 +11758,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_operational_evidence_artefacts.py",
+          "score": 9,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
           "path": "tests_v9/test_outbox_idempotent_consumption.py",
           "score": 9,
           "signals": [
@@ -11788,6 +11808,15 @@
           "score": 20,
           "signals": [
             "explicit_id"
+          ]
+        },
+        {
+          "path": "docs/evidence/outbox_nats_isolated_acceptance.json",
+          "score": 18,
+          "signals": [
+            "content:jetstream",
+            "path:nats",
+            "content:nats"
           ]
         },
         {
@@ -11837,6 +11866,14 @@
           "score": 12,
           "signals": [
             "content:event bus",
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
+          "path": "docs/evidence/operational_evidence_log.md",
+          "score": 11,
+          "signals": [
             "content:jetstream",
             "content:nats"
           ]
@@ -11956,12 +11993,12 @@
         "backend": 6,
         "routes": 15,
         "database": 2,
-        "events": 69,
+        "events": 72,
         "web": 0,
         "mobile": 0,
-        "tests": 11,
+        "tests": 12,
         "governance": 0,
-        "other_evidence": 22
+        "other_evidence": 24
       },
       "coverage_dimensions": 5,
       "mapped": true

@@ -1,0 +1,81 @@
+{
+  "production_certified": false,
+  "scope": "local isolated stack — not a production certification",
+  "identities": {
+    "git_sha": "14c674bf9ca9d7d31aabbb5bc1bcbee23ca752a2",
+    "nats_py": "2.10.0",
+    "flag_value_used": "true",
+    "postgres": "16.13 (Ubuntu 16.13-0ubuntu0.24.04.1)",
+    "nats_server": "<nats server v2.10.22>"
+  },
+  "baseline": {
+    "outbox_rows_for_tenant": 2
+  },
+  "provisioning": {
+    "stream": "sahool_acceptance",
+    "subjects": [
+      "sahool.events.lineage.>"
+    ],
+    "owned_by": "the acceptance test, explicitly"
+  },
+  "step1_emit": {
+    "event_id": "376405d5-a3df-4df5-8289-899c668b5ac0",
+    "outbox_id": 3,
+    "subject": "sahool.events.lineage.linked",
+    "status_before_relay": "pending"
+  },
+  "step2_relay": {
+    "rows_processed": 1,
+    "publish_calls": 1,
+    "outbox": {
+      "status": "sent",
+      "retry_count": 0,
+      "has_sent_at": true,
+      "last_error": null
+    },
+    "processed_events_claim": "outbox_relay",
+    "delivery_attempts": [
+      {
+        "attempt_no": 1,
+        "outcome": "published",
+        "error": null
+      }
+    ],
+    "jetstream_messages_in_stream": 1,
+    "pubacks_received_by_publisher": 0
+  },
+  "step3_consume_ack": {
+    "received": 1,
+    "envelope_event_id": "376405d5-a3df-4df5-8289-899c668b5ac0",
+    "matches_emitted": true,
+    "envelope_event_type": "lineage.linked",
+    "probe_echo": true,
+    "consumer_ack_pending_after_ack": 0,
+    "consumer_delivered": 1
+  },
+  "step4_redelivery": {
+    "rows_reprocessed": 1,
+    "publish_calls_added": 0,
+    "status_after": "sent",
+    "attempt_outcomes": [
+      "published",
+      "skipped"
+    ],
+    "jetstream_messages_after": 1,
+    "business_effect_duplicated": false
+  },
+  "step5_uncovered_subject_finding": {
+    "subject": "sahool.events.calibration.audit.recorded",
+    "covered_by_any_stream": false,
+    "worker_marked": "sent",
+    "last_error": null,
+    "jetstream_total_messages": 1,
+    "verdict": "publisher marks 'sent' although no stream persisted the message — core publish gives no PubAck; loss is silent"
+  },
+  "acceptance": {
+    "isolated_path_end_to_end": true,
+    "runtime_verified_scope": "local",
+    "production_certified": false
+  },
+  "exit_code": 0
+}
