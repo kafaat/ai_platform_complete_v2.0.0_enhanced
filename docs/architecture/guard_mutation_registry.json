@@ -2929,6 +2929,47 @@
       ],
       "test": "tests_v9/test_bidi_control_char_guard.py"
     },
+    "brain_annotated_supersession_guard.py": {
+      "test": "tests_v9/test_brain_annotated_supersession_guard.py",
+      "mutations": [
+        {
+          "expect": "test_an_annotated_closure_without_a_cited_witness_is_reported",
+          "find": "        if not superseded or current is None or current.get(\"state\") not in CLOSING:",
+          "replace": "        if True:",
+          "why": "نزعُ البند ② كلِّه ⇒ يعود المسارُ الذي فتح الفجوة أخضرَ: تُنسَخ فجوةٌ `open`، تُوسَم النسخةُ `fixed` بـ`current` والأصلُ `historical`، فتختفي من كلّ عدٍّ يُقرأ بلا حارسٍ يحمرّ"
+        },
+        {
+          "expect": "test_a_reopening_is_never_asked_for_a_closure_witness",
+          "find": "        if not superseded or current is None or current.get(\"state\") not in CLOSING:",
+          "replace": "        if current is None:",
+          "why": "إسقاطُ شرطِ الاتّجاه ⇒ يُطالَب مدخلٌ `current` حالتُه `open` بشاهدِ إغلاق، فتصير إعادةُ فتحِ فجوةٍ وُسِمت مرّةً **مستحيلة**. هذا صنفُ «حارسٍ لا يقبل حالةً صادقة» المُغلَق في #1026 — لا إيجابيٌّ كاذب ولا سلبيّ، بل استحالة"
+        },
+        {
+          "expect": "test_a_wired_guard_that_is_gone_from_the_tree_is_not_a_witness",
+          "find": "    if not target.is_file():",
+          "replace": "    if False:",
+          "why": "نزعُ فحص الوجود ⇒ اسمٌ ما زال مذكوراً في workflow لحارسٍ حُذِف ملفُّه يُقبَل ثمناً لإغلاق. وهذه الطفرةُ **نجت أوّلَ قياس**: ذراعُ الاختبارات كانت مُغطّاةً صدفةً عبر `except OSError`، وذراعُ الحرّاس غيرَ مُغطّاةٍ بتاتاً — فأُضيف الشاهدُ ولم تُستبدَل الطفرةُ بألطفَ منها"
+        },
+        {
+          "expect": "test_an_empty_test_file_is_not_a_witness",
+          "find": "            return \"def test_\" in target.read_text(encoding=\"utf-8\", errors=\"replace\")",
+          "replace": "            return True",
+          "why": "قبولُ ملفٍّ باسمٍ صحيحٍ بلا دالّةِ اختبار ⇒ ثمنُ الإغلاق يصير `touch`، أي صفراً بخطوةٍ إضافيّة"
+        },
+        {
+          "expect": "test_an_unannotated_contradiction_is_reported",
+          "find": "    for gap_id in sorted(report[\"contradictory_sections\"]):",
+          "replace": "    for gap_id in sorted({}):",
+          "why": "نزعُ البند ① ⇒ معرِّفٌ واحدٌ بحالتين بلا وسمِ تاريخ يمرّ. و`gap-registry-report` تحمل `continue-on-error` فلا تحجب، أي أنّ نزعَه يترك التناقضَ بلا حاجبٍ واحد في الشجرة"
+        },
+        {
+          "expect": "test_the_guard_runs_where_its_job_runs_without_any_dependency",
+          "find": "    workflows = ROOT / \".github/workflows\"",
+          "replace": "    import yaml  # noqa: F401\n\n    workflows = ROOT / \".github/workflows\"",
+          "why": "إعادةُ تبعيّةٍ لا تُثبِّتها وظيفةُ `no-report-only-change` — حرّاسُ الدماغ الخمسةُ فيها بايثون قياسيّةٌ صرفة. هذا هو العطلُ الذي وقع فعلاً على أوّل تشغيلٍ لهذا الحارس في CI (`ModuleNotFoundError: No module named 'yaml'` عبر `guard_catalogue`)، بينما مرّ `preflight --fast` أخضرَ لأنّ `PyYAML` مُثبَّتةٌ محلّيّاً: أخضرُ قِيس في كونٍ غيرِ المنشور"
+        }
+      ]
+    },
     "brain_append_only_guard.py": {
       "mutations": [
         {
@@ -3441,6 +3482,35 @@
       ],
       "test": "tests/architecture/test_capability_writer_authority_guard.py"
     },
+    "certification_evidence_producer_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_declaring_no_honest_producer_while_emitting_is_rejected",
+          "find": "            if blocker in emitted:",
+          "replace": "            if False:",
+          "why": "هذا هو الحاجزُ الفعليّ في العقد: بدونه يبقى «مُعلَنٌ بلا مُنتِجٍ صادق» نصّاً يُخالِفه العمل — تُضاف خطوةُ انبعاثٍ لـP-CERT-3 (وهو مُعلَنٌ بلا مُنتِج لأنّ سكربتَه يتجاهل السرّ ويُثبِّت رابطَ حاوٍ محلّيّ) فيمرّ ختمُ verified على «Redis الحيّ» بينما المقيسُ حاوٍ زائل"
+        },
+        {
+          "expect": "test_declaring_produced_without_any_emission_is_rejected",
+          "find": "            if declared and blocker not in emitted:",
+          "replace": "            if False:",
+          "why": "الوجهُ المقابل: إعلانُ produced بلا انبعاثٍ على المسار المُعلَن ادّعاءُ إنتاجٍ لا إنتاج. نجا هذا وحدَه من أوّل مسحِ طفراتٍ بينما ماتت الثلاث الأخرى — أي أنّ نصفَ القاعدة كان بلا شاهد، ولم تلتقطه المراجعة"
+        },
+        {
+          "expect": "test_a_declared_producer_that_no_longer_exists_is_rejected",
+          "find": "                if rel and not (ROOT / rel).is_file():",
+          "replace": "                if False:",
+          "why": "سكربتٌ مُعلَنٌ محذوف **تقلّصُ تغطية** لا خطأُ مسار: يبقى العقدُ يقول «لهذا الحاجب مُنتِج» بعد زوال المُنتِج، فيُقرأ الحاجبُ مُغطّى وهو مكشوف — نفس تمييز require_file في preflight"
+        },
+        {
+          "expect": "test_an_empty_reason_is_rejected",
+          "find": "            if not _reason_text(entry.get(\"reason\")):",
+          "replace": "            if False:",
+          "why": "إعلانُ غيابٍ بلا سببٍ صمتٌ بصيغةٍ أخرى — والعقدُ كلُّه وُجِد لأنّ الصمتَ عن «لا مُنتِج لهذا الحاجب» جعل خمسةَ حواجزَ pending تُقرأ عجزاً في القياس لا غياباً في الإنتاج"
+        }
+      ],
+      "test": "tests_v9/test_certification_evidence_is_produced_not_assumed.py"
+    },
     "ci_unbounded_wait_guard.py": {
       "$why_ar": "CI-UNBOUNDED-PROVISIONING-WAIT-01: المواضع أُصلحت في #868؛ هذا يمنع عودة الصنف — وحارسٌ يتّهم الصحيح يُنزَع، فالذِّكر مُميَّز عن الاستدعاء. وثقبٌ ثالث كشفه تعليقٌ حيّ: الحدّ على اسم الأمر يفوته من يستدعي APT من جوفه، والسقف كان مقصوراً على حاويات القواعد.",
       "test": "tests_v9/test_ci_unbounded_wait_guard.py",
@@ -3826,6 +3896,76 @@
         }
       ],
       "test": "tests_v9/test_frontend_lint_debt_guard.py"
+    },
+    "gap_heading_state_guard.py": {
+      "test": "tests_v9/test_gap_heading_state_guard.py",
+      "mutations": [
+        {
+          "expect": "test_growth_beyond_the_baseline_blocks",
+          "find": "    if measured <= baseline:\n        return []",
+          "replace": "    if True:\n        return []  # mutated: الراتشِت لا يحجب",
+          "why": "راتشِتٌ لا يحجب يُعيد العطلَ كما وقع: عنوانٌ جديد يحمل حالتَه في العنوان يختفي من كلّ عدٍّ يُقرأ ووظيفةُ القياس خضراء — وهو بعينه ما كشفه فارقُ مصنوعَتَي #1033 و#1035."
+        },
+        {
+          "expect": "test_equality_is_not_growth",
+          "find": "    if measured <= baseline:",
+          "replace": "    if measured < baseline:  # mutated: التساوي يُقرأ نموّاً",
+          "why": "الخطأُ في الجهة الأخرى: أساسٌ لم يتغيّر يُقرأ نموّاً فيُحمِرّ كلَّ PR لا تمسّ السجلّ أصلاً — وحمايةٌ تُوقِف العملَ كلَّه تُطفَأ، فتُنتِج حمايةً صفراً."
+        },
+        {
+          "expect": "test_the_message_names_the_remedy_and_the_rejected_spelling",
+          "find": "        \"`- **الحالة:** open — …` (`open`/`fixed`/`verified` حصراً؛ «مفتوحة» في \"\n        f\"العنوان لا تُقرأ). من اليتامى: {names}.\"",
+          "replace": "        f\"من اليتامى: {names}.\"  # mutated: رسالةٌ بلا علاج",
+          "why": "رسالةٌ تقول «ارتفع العدد» بلا الصيغة المقبولة تُرسِل قارئَها ليخمّن — والعطلُ نفسُه نشأ من أنّ الصيغة المرفوضة تبدو صحيحةً للقارئ البشريّ. فالعلاجُ في الرسالة جزءٌ من الحارس لا زينة."
+        },
+        {
+          "expect": "test_a_missing_baseline_fails_closed",
+          "find": "    baseline = json.loads(Path(args.baseline).read_text(encoding=\"utf-8\"))[\"baseline\"]",
+          "replace": "    try:\n        baseline = json.loads(Path(args.baseline).read_text(encoding=\"utf-8\"))[\"baseline\"]\n    except Exception:\n        baseline = 10**9  # mutated: أساسٌ مفقود يُقرأ سقفاً لا نهائيّاً",
+          "why": "أساسٌ مفقودٌ يُقرأ «لا حدّ» يُفرِّغ الراتشِت بلا أن يُحمِّره — «لم يُقرأ» تصير «لا شيء»، وهو الصنفُ الذي يطارده هذا المستودع في كلّ حارس."
+        },
+        {
+          "expect": "test_the_level_finding_is_blocking_not_advisory",
+          "find": "    errors += level_errors(report[\"noncanonical_heading_levels\"])",
+          "replace": "    errors += []",
+          "why": "فصلُ اكتشاف المستوى غير القانونيّ عن أسباب الحجب ⇒ يُقاس ويُطبَع ولا يحجب. وهذا بعينه ما وقع على `a0bba343`: «Gap registry measurement» تقريرٌ لا يحجب، فمرّت `V25-AI-RUNTIME-LOCAL-ACCEPTANCE-01` غائبةً عن كلّ عدّ والقياسُ أخضر."
+        }
+      ]
+    },
+    "gap_registry_claim_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_a_present_tense_claim_that_disagrees_blocks",
+          "find": "        elif claim[\"value\"] != measured:",
+          "replace": "        elif False:",
+          "why": "إسقاطُ المقارنة نفسِها ⇒ يعود العطلُ كما وقع على `98a61c5f`: السجلُّ يقول 272/51 والمقيسُ 273/52، ووظيفةُ القياس خضراء لأنّها تقيس ولا تقارن."
+        },
+        {
+          "expect": "test_a_claim_that_names_its_tree_is_not_blocked",
+          "find": "        if claim[\"historical\"]:\n            continue",
+          "replace": "        if False:\n            continue",
+          "why": "حجبُ الادّعاءات التاريخيّة أيضاً ⇒ يُحمِّر الحارسُ على سردٍ سليم (اثنا عشر ادّعاءً صحيحاً عن أشجارٍ ماضية)، وحمايةٌ تُوقِف العملَ تُطفَأ فتصير حمايةً صفراً."
+        },
+        {
+          "expect": "test_the_short_forms_people_actually_write_are_read",
+          "find": "    \"orphan\": \"orphan_gap_heading_count\",\n    \"orphans\": \"orphan_gap_heading_count\",",
+          "replace": "",
+          "why": "إسقاطُ المختصرات التي يكتبها البشر فعلاً (`orphan=` مكتوبةٌ في الشجرة) ⇒ حارسٌ **أضيقُ من دعواه**: يزعم ربطَ الادّعاءات وهو يرى بعضَها، فيمرّ `orphan=999` صامتاً."
+        },
+        {
+          "expect": "test_unclassified_sums_both_lists_not_one",
+          "find": "    values[\"_unclassified_total\"] = len(report.get(\"unclassified_rows\", [])) + len(\n        report.get(\"unclassified_section_states\", [])\n    )",
+          "replace": "    values[\"_unclassified_total\"] = len(report.get(\"unclassified_rows\", []))",
+          "why": "قراءةُ أحد حقلَي عدم التصنيف ⇒ `unclassified=0` تمرّ بينما قسمٌ غيرُ مصنَّفٍ قائم: سلبيّةٌ كاذبةٌ في الحقل الذي وُجِد الحارسُ ليمنعها."
+        },
+        {
+          "expect": "test_a_claim_inside_a_fenced_block_is_an_example_not_an_assertion",
+          "find": "        if fence:\n            continue",
+          "replace": "        if False:\n            continue",
+          "why": "قراءةُ ما داخل السياج دعوى ⇒ مثالٌ في توثيق الحارس أو في شاهدٍ يُحمِّر الحارسَ نفسَه — حقلٌ يُحمِّر على عملٍ طبيعيّ يُطفَأ."
+        }
+      ],
+      "test": "tests_v9/test_gap_registry_claim_guard.py"
     },
     "gate01_frozen_path_guard.py": {
       "mutations": [
@@ -5472,111 +5612,6 @@
         }
       ],
       "test": "tests_v9/test_visual_fixme_baseline_guard.py"
-    },
-    "certification_evidence_producer_guard.py": {
-      "mutations": [
-        {
-          "expect": "test_declaring_no_honest_producer_while_emitting_is_rejected",
-          "find": "            if blocker in emitted:",
-          "replace": "            if False:",
-          "why": "هذا هو الحاجزُ الفعليّ في العقد: بدونه يبقى «مُعلَنٌ بلا مُنتِجٍ صادق» نصّاً يُخالِفه العمل — تُضاف خطوةُ انبعاثٍ لـP-CERT-3 (وهو مُعلَنٌ بلا مُنتِج لأنّ سكربتَه يتجاهل السرّ ويُثبِّت رابطَ حاوٍ محلّيّ) فيمرّ ختمُ verified على «Redis الحيّ» بينما المقيسُ حاوٍ زائل"
-        },
-        {
-          "expect": "test_declaring_produced_without_any_emission_is_rejected",
-          "find": "            if declared and blocker not in emitted:",
-          "replace": "            if False:",
-          "why": "الوجهُ المقابل: إعلانُ produced بلا انبعاثٍ على المسار المُعلَن ادّعاءُ إنتاجٍ لا إنتاج. نجا هذا وحدَه من أوّل مسحِ طفراتٍ بينما ماتت الثلاث الأخرى — أي أنّ نصفَ القاعدة كان بلا شاهد، ولم تلتقطه المراجعة"
-        },
-        {
-          "expect": "test_a_declared_producer_that_no_longer_exists_is_rejected",
-          "find": "                if rel and not (ROOT / rel).is_file():",
-          "replace": "                if False:",
-          "why": "سكربتٌ مُعلَنٌ محذوف **تقلّصُ تغطية** لا خطأُ مسار: يبقى العقدُ يقول «لهذا الحاجب مُنتِج» بعد زوال المُنتِج، فيُقرأ الحاجبُ مُغطّى وهو مكشوف — نفس تمييز require_file في preflight"
-        },
-        {
-          "expect": "test_an_empty_reason_is_rejected",
-          "find": "            if not _reason_text(entry.get(\"reason\")):",
-          "replace": "            if False:",
-          "why": "إعلانُ غيابٍ بلا سببٍ صمتٌ بصيغةٍ أخرى — والعقدُ كلُّه وُجِد لأنّ الصمتَ عن «لا مُنتِج لهذا الحاجب» جعل خمسةَ حواجزَ pending تُقرأ عجزاً في القياس لا غياباً في الإنتاج"
-        }
-      ],
-      "test": "tests_v9/test_certification_evidence_is_produced_not_assumed.py"
-    },
-    "brain_annotated_supersession_guard.py": {
-      "test": "tests_v9/test_brain_annotated_supersession_guard.py",
-      "mutations": [
-        {
-          "expect": "test_an_annotated_closure_without_a_cited_witness_is_reported",
-          "find": "        if not superseded or current is None or current.get(\"state\") not in CLOSING:",
-          "replace": "        if True:",
-          "why": "نزعُ البند ② كلِّه ⇒ يعود المسارُ الذي فتح الفجوة أخضرَ: تُنسَخ فجوةٌ `open`، تُوسَم النسخةُ `fixed` بـ`current` والأصلُ `historical`، فتختفي من كلّ عدٍّ يُقرأ بلا حارسٍ يحمرّ"
-        },
-        {
-          "expect": "test_a_reopening_is_never_asked_for_a_closure_witness",
-          "find": "        if not superseded or current is None or current.get(\"state\") not in CLOSING:",
-          "replace": "        if current is None:",
-          "why": "إسقاطُ شرطِ الاتّجاه ⇒ يُطالَب مدخلٌ `current` حالتُه `open` بشاهدِ إغلاق، فتصير إعادةُ فتحِ فجوةٍ وُسِمت مرّةً **مستحيلة**. هذا صنفُ «حارسٍ لا يقبل حالةً صادقة» المُغلَق في #1026 — لا إيجابيٌّ كاذب ولا سلبيّ، بل استحالة"
-        },
-        {
-          "expect": "test_a_wired_guard_that_is_gone_from_the_tree_is_not_a_witness",
-          "find": "    if not target.is_file():",
-          "replace": "    if False:",
-          "why": "نزعُ فحص الوجود ⇒ اسمٌ ما زال مذكوراً في workflow لحارسٍ حُذِف ملفُّه يُقبَل ثمناً لإغلاق. وهذه الطفرةُ **نجت أوّلَ قياس**: ذراعُ الاختبارات كانت مُغطّاةً صدفةً عبر `except OSError`، وذراعُ الحرّاس غيرَ مُغطّاةٍ بتاتاً — فأُضيف الشاهدُ ولم تُستبدَل الطفرةُ بألطفَ منها"
-        },
-        {
-          "expect": "test_an_empty_test_file_is_not_a_witness",
-          "find": "            return \"def test_\" in target.read_text(encoding=\"utf-8\", errors=\"replace\")",
-          "replace": "            return True",
-          "why": "قبولُ ملفٍّ باسمٍ صحيحٍ بلا دالّةِ اختبار ⇒ ثمنُ الإغلاق يصير `touch`، أي صفراً بخطوةٍ إضافيّة"
-        },
-        {
-          "expect": "test_an_unannotated_contradiction_is_reported",
-          "find": "    for gap_id in sorted(report[\"contradictory_sections\"]):",
-          "replace": "    for gap_id in sorted({}):",
-          "why": "نزعُ البند ① ⇒ معرِّفٌ واحدٌ بحالتين بلا وسمِ تاريخ يمرّ. و`gap-registry-report` تحمل `continue-on-error` فلا تحجب، أي أنّ نزعَه يترك التناقضَ بلا حاجبٍ واحد في الشجرة"
-        },
-        {
-          "expect": "test_the_guard_runs_where_its_job_runs_without_any_dependency",
-          "find": "    workflows = ROOT / \".github/workflows\"",
-          "replace": "    import yaml  # noqa: F401\n\n    workflows = ROOT / \".github/workflows\"",
-          "why": "إعادةُ تبعيّةٍ لا تُثبِّتها وظيفةُ `no-report-only-change` — حرّاسُ الدماغ الخمسةُ فيها بايثون قياسيّةٌ صرفة. هذا هو العطلُ الذي وقع فعلاً على أوّل تشغيلٍ لهذا الحارس في CI (`ModuleNotFoundError: No module named 'yaml'` عبر `guard_catalogue`)، بينما مرّ `preflight --fast` أخضرَ لأنّ `PyYAML` مُثبَّتةٌ محلّيّاً: أخضرُ قِيس في كونٍ غيرِ المنشور"
-        }
-      ]
-    },
-    "gap_heading_state_guard.py": {
-      "test": "tests_v9/test_gap_heading_state_guard.py",
-      "mutations": [
-        {
-          "expect": "test_growth_beyond_the_baseline_blocks",
-          "find": "    if measured <= baseline:\n        return []",
-          "replace": "    if True:\n        return []  # mutated: الراتشِت لا يحجب",
-          "why": "راتشِتٌ لا يحجب يُعيد العطلَ كما وقع: عنوانٌ جديد يحمل حالتَه في العنوان يختفي من كلّ عدٍّ يُقرأ ووظيفةُ القياس خضراء — وهو بعينه ما كشفه فارقُ مصنوعَتَي #1033 و#1035."
-        },
-        {
-          "expect": "test_equality_is_not_growth",
-          "find": "    if measured <= baseline:",
-          "replace": "    if measured < baseline:  # mutated: التساوي يُقرأ نموّاً",
-          "why": "الخطأُ في الجهة الأخرى: أساسٌ لم يتغيّر يُقرأ نموّاً فيُحمِرّ كلَّ PR لا تمسّ السجلّ أصلاً — وحمايةٌ تُوقِف العملَ كلَّه تُطفَأ، فتُنتِج حمايةً صفراً."
-        },
-        {
-          "expect": "test_the_message_names_the_remedy_and_the_rejected_spelling",
-          "find": "        \"`- **الحالة:** open — …` (`open`/`fixed`/`verified` حصراً؛ «مفتوحة» في \"\n        f\"العنوان لا تُقرأ). من اليتامى: {names}.\"",
-          "replace": "        f\"من اليتامى: {names}.\"  # mutated: رسالةٌ بلا علاج",
-          "why": "رسالةٌ تقول «ارتفع العدد» بلا الصيغة المقبولة تُرسِل قارئَها ليخمّن — والعطلُ نفسُه نشأ من أنّ الصيغة المرفوضة تبدو صحيحةً للقارئ البشريّ. فالعلاجُ في الرسالة جزءٌ من الحارس لا زينة."
-        },
-        {
-          "expect": "test_a_missing_baseline_fails_closed",
-          "find": "    baseline = json.loads(Path(args.baseline).read_text(encoding=\"utf-8\"))[\"baseline\"]",
-          "replace": "    try:\n        baseline = json.loads(Path(args.baseline).read_text(encoding=\"utf-8\"))[\"baseline\"]\n    except Exception:\n        baseline = 10**9  # mutated: أساسٌ مفقود يُقرأ سقفاً لا نهائيّاً",
-          "why": "أساسٌ مفقودٌ يُقرأ «لا حدّ» يُفرِّغ الراتشِت بلا أن يُحمِّره — «لم يُقرأ» تصير «لا شيء»، وهو الصنفُ الذي يطارده هذا المستودع في كلّ حارس."
-        },
-        {
-          "expect": "test_the_level_finding_is_blocking_not_advisory",
-          "find": "    errors += level_errors(report[\"noncanonical_heading_levels\"])",
-          "replace": "    errors += []",
-          "why": "فصلُ اكتشاف المستوى غير القانونيّ عن أسباب الحجب ⇒ يُقاس ويُطبَع ولا يحجب. وهذا بعينه ما وقع على `a0bba343`: «Gap registry measurement» تقريرٌ لا يحجب، فمرّت `V25-AI-RUNTIME-LOCAL-ACCEPTANCE-01` غائبةً عن كلّ عدّ والقياسُ أخضر."
-        }
-      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",
