@@ -2858,6 +2858,32 @@
           "why": "عدّادٌ لا يتقدّم يجعل «أُعيد الفحص» غيرَ قابلٍ للتمييز عن «لم يُفحَص». والشاهدُ يقيس تقدّمَه على سببٍ لا يزول أبداً — وهو الموضعُ الذي يصير فيه السجلُّ كتابةً بلا قراءة."
         }
       ]
+    },
+    "scripts/diagnostics/build_main_inventory.py": {
+      "$why_ar": "سطحُ ملكيّة الكتابة يُرقَّى من `not_measured` بالقياس. والعطلُ المُحتمَل ليس في المسح بل في **دلالة** ما يُكتَب: ترقيةٌ بلا صفوف · إسقاطُ ما يخالف العقد · وإعلانٌ يُقرأ دليلاً محقَّقاً.",
+      "mutations": [
+        {
+          "expect": "test_the_ownership_surface_stays_unmeasured_without_a_contract",
+          "test": "tests_v9/test_main_inventory_generator.py",
+          "find": "    if guard is None or not contract_path.exists():\n",
+          "replace": "    if False:  # mutated: يُرقَّى السطحُ بلا عقدٍ ولا محرّك\n",
+          "why": "«الترقيةُ بالقياس لا بالتحرير» هي عقدُ هذا السطح. إسقاطُ الشرط يُنتِج `measured` بصفوفٍ فارغة على شجرةٍ بلا عقد — أي `[]` العارية نفسَها وقد لبست هيئةَ القياس، وهي أسوأُ من سابقتها لأنّها تُقرأ جواباً."
+        },
+        {
+          "expect": "test_a_measured_write_the_contract_forbids_is_kept_not_dropped",
+          "test": "tests_v9/test_main_inventory_generator.py",
+          "find": "            state = \"not_authorised\"\n",
+          "replace": "            continue  # mutated: تُسقَط الكتاباتُ التي يخالفها العقد\n",
+          "why": "كتابةٌ مقيسةٌ لم يأذن بها العقدُ حافّةٌ حقيقيّةٌ في الشجرة (٧٤ منها، مطابقةٌ لأساس `db_writer_ownership_guard`). إسقاطُها يجعل السطحَ يصف **ما يجب أن يكون** لا ما هو كائن — وهو الصنفُ الذي وُجِد هذا الجردُ لأجله."
+        },
+        {
+          "expect": "test_a_declared_writer_with_no_located_site_stays_declared",
+          "test": "tests_v9/test_main_inventory_generator.py",
+          "find": "                    \"relation\": \"writer\",\n                    \"evidence_state\": \"declared\",\n",
+          "replace": "                    \"relation\": \"writer\",\n                    \"evidence_state\": \"resolved\",  # mutated\n",
+          "why": "٢١٢ من ٣٩١ حافّةً مُعلَنةً بلا موضعٍ مقيس. ترقيتُها بحكم الإعلان تُنتِج «٣٩١ حافّةَ ملكيّةٍ محقَّقة» وهي في أكثرها غيرُ مسنَدة. **ومرسى هذه الطفرة مُوسَّعٌ بسطرِ `relation` عمداً:** السطرُ وحدَه يقع ثلاثَ مرّات في الملفّ، وأوّلُها في `integration_edges` — فزرعٌ بمرسًى قصيرٍ أصاب موضعاً آخر ونجا (قِيس أثناء البناء)."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

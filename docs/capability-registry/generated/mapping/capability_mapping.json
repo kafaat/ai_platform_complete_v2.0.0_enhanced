@@ -8616,11 +8616,15 @@
       ],
       "events": [
         {
-          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:215",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:260",
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.v1 @ scripts/diagnostics/build_main_inventory.py:252",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:349",
+          "score": 14
+        },
+        {
+          "value": "sahool.diagnostic-inventory.v1 @ scripts/diagnostics/build_main_inventory.py:392",
           "score": 14
         },
         {
@@ -8849,7 +8853,7 @@
         "backend": 8,
         "routes": 26,
         "database": 8,
-        "events": 3,
+        "events": 4,
         "web": 1,
         "mobile": 1,
         "tests": 5,
