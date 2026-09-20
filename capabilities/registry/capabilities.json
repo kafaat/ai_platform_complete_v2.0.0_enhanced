@@ -3623,8 +3623,8 @@
       ],
       "services": [],
       "apis": [
-        "GET /api/v1/devices/{device_id}/telemetry @ services/sahool-platform/api/routers/devices.py:167",
-        "POST /api/v1/devices/{device_id}/telemetry @ services/sahool-platform/api/routers/devices.py:123",
+        "GET /api/v1/devices/{device_id}/telemetry @ services/sahool-platform/api/routers/devices.py:210",
+        "POST /api/v1/devices/{device_id}/telemetry @ services/sahool-platform/api/routers/devices.py:124",
         "POST /v1/phase9/autonomy/iot/telemetry/verify @ services/sahool-platform/api/phase9_autonomous_farm_os.py:251"
       ],
       "ui_consumers": [],

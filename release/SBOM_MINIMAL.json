@@ -18215,7 +18215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d492dfc6257d58f3f838965a75b33725957e4d26329d2cdd2c0c4ea06bf7613f"
+          "content": "a160699cf467e01fbf54a8aa3fca033b386dedaaebbd7d3d321a6be0d0dd3a93"
         }
       ],
       "name": "services/sahool-platform/api/routers/devices.py",
@@ -19625,7 +19625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "adebb0a33442d3693e481ac6cd11fb28fa0d78a7a9e345c7c3e6cf6cb6722891"
+          "content": "d60a9f423c5d93c5c2f264561ee9c78680d02eb6d407aaf781e7501e10465b2d"
         }
       ],
       "name": "services/sahool-platform/api/soil_evidence_bridge.py",

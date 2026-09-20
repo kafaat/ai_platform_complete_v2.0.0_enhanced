@@ -36,6 +36,7 @@ from api.main import (
 )
 
 router = APIRouter()
+logger = logging.getLogger("sahool.devices")
 
 
 @router.post("/api/v1/devices", status_code=201)
@@ -141,8 +142,10 @@ async def ingest_telemetry(
         if recorded.tzinfo is None:
             recorded = recorded.replace(tzinfo=UTC)
     async with tenant_connection(user) as conn:
-        exists = await conn.fetchval("SELECT 1 FROM iot_devices WHERE device_id = $1", device_id)
-        if not exists:
+        device = await conn.fetchrow(
+            "SELECT field_id FROM iot_devices WHERE device_id = $1", device_id
+        )
+        if device is None:
             raise HTTPException(status_code=404, detail="الجهاز غير مسجّل")
         await conn.execute(
             """INSERT INTO device_telemetry
@@ -160,7 +163,47 @@ async def ingest_telemetry(
             "UPDATE iot_devices SET last_seen_at = NOW(), status = 'online' WHERE device_id = $1",
             device_id,
         )
-    return {"device_id": device_id, "message_ar": "سُجّلت القراءة"}
+
+    # SENSOR-TELEMETRY-INGEST-REACHES-NO-AGRONOMIC-CONSUMER-01: `device_telemetry` لا يقرؤه
+    # حكمٌ زراعيّ — كلُّ مستهلكي رطوبة التربة يقرؤون `soil_observations`. تُحوَّل القراءةُ
+    # إلى **مالكِ** ذلك الجدول (`soil-service`) لا تُكتَب من هنا، فالمنصّةُ قارئةٌ بالعقد.
+    agronomic = await _forward_agronomic_reading(user, device_id, device["field_id"], req, recorded)
+
+    # الردُّ يقول ما بلغ وما لم يبلغ. «سُجّلت القراءة» وحدَها كانت **صادقةً حرفيّاً وكاذبةً
+    # دلاليّاً**: القراءةُ سُجِّلت في جدولٍ لا يقرؤه قرار، فيبقى الدافعُ واثقاً بأنّها
+    # تُستعمَل. الرفضُ كان سيُعلِمه فوراً؛ فالقبولُ يجب أن يُعلِمه بحدوده.
+    body = {"device_id": device_id, "message_ar": "سُجّلت القراءة"}
+    if agronomic is not None:
+        body["agronomic_path"] = agronomic
+    return body
+
+
+async def _forward_agronomic_reading(user, device_id: str, field_id, req, recorded):
+    """يُحوّل القراءةَ الزراعيّة إلى مالكِ `soil_observations`، ويُعيد نتيجةً مُسمّاة.
+
+    يُعيد ``None`` حين لا تكون القراءةُ زراعيّةً أصلاً — فلا يُقحَم مفتاحٌ يوحي بمسارٍ
+    لا وجودَ له لقراءةِ بطّاريّةٍ أو حرارةِ جهاز.
+    """
+    from api.soil_evidence_bridge import AGRONOMIC_PROPERTIES, forward_observation
+
+    if req.sensor_type not in AGRONOMIC_PROPERTIES:
+        return None
+    if not field_id:
+        # جهازٌ بلا حقل: لا مستهلكَ زراعيَّ يمكن أن تبلغه القراءة. يُقال، لا يُفترَض.
+        return {"reached": False, "reason": "device_not_linked_to_field"}
+    try:
+        return await forward_observation(
+            tenant_id=str(user.tenant_id),
+            field_id=str(field_id),
+            device_id=device_id,
+            property_name=req.sensor_type,
+            value=req.value,
+            unit=req.unit,
+            observed_at=recorded or datetime.now(UTC),
+        )
+    except Exception as exc:  # noqa: BLE001 — الابتلاعُ الصامتُ هو صنفُ الفجوة نفسِه
+        logger.warning("soil observation forward failed", exc_info=True)
+        return {"reached": False, "reason": f"forward_error:{type(exc).__name__}"}
 
 
 @router.get("/api/v1/devices/{device_id}/telemetry")
