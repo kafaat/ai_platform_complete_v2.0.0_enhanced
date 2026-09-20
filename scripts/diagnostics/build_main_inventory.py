@@ -144,20 +144,87 @@ def integration_edges(
     return resolved, sorted(unresolved, key=lambda item: (item["capability_id"] or "", item["to"]))
 
 
-def placeholders() -> dict[str, list[dict[str, Any]]]:
-    # Explicit empty surfaces are intentional: they state what the next inventory pass
-    # must resolve without pretending that an unmeasured relationship does not exist.
+# ── `AN-UNMEASURED-SURFACE-SERIALISED-AS-AN-EMPTY-LIST-READS-AS-NO-RELATIONS-01` ──
+#
+# هذه الأسطحُ كانت تُكتب `[]` عارية. والنيّةُ كانت صادقة — «لم نقس بعد» — لكنّ الشكل
+# لا يحملها: ملفٌّ محتواه `[]` يقرؤه كلُّ مستهلكٍ لاحق **«لا علاقات»**، وهو صنفُ
+# «الغيابُ يُقرأ قياساً» المُسجَّلُ في هذا المستودع مراراً. والفرقُ ليس بلاغيّاً:
+# `measured` + صفرُ صفوف دعوى، و`not_measured` + صفرُ صفوف امتناعٌ عن الدعوى.
+#
+# فصار لكلّ سطحٍ **حالةُ قياسٍ صريحة** و**سؤالٌ يجب أن يُحسَم** ومرشّحاتُ مصدرٍ
+# تُوجّه القياسَ التالي. ولا يُرقّى سطحٌ إلى `measured` إلّا بمقياسٍ يُنتِج صفوفَه.
+_NOT_MEASURED: dict[str, dict[str, Any]] = {
+    "database_ownership.json": {
+        "question": "أيُّ مكوّنٍ يملك الكتابة إلى كلّ جدول، وبأيّ عقدٍ معلَن؟",
+        "candidate_sources": [
+            "docs/architecture/db_ownership.yml",
+            "migrations/",
+            "services/*/models",
+        ],
+    },
+    "event_topology.json": {
+        "question": "أيُّ موضوعٍ يُنشَر، ومن ناشرُه، ومن مستهلكُه المُثبَت بموضع استدعاء؟",
+        "candidate_sources": ["services/*/outbox", "docker-compose*.yml", "services/*/nats"],
+    },
+    "workers_schedulers.json": {
+        "question": "أيُّ عمليّةٍ تعمل دوريّاً، وبأيّ جدولة، وما الحالةُ التي تمسّها؟",
+        "candidate_sources": ["docker-compose*.yml", "services/*/worker", "k8s/cronjob"],
+    },
+    "external_integrations.json": {
+        "question": "أيُّ خدمةٍ خارجيّة تُستدعى، من أيّ مكوّن، وبأيّ اعتمادٍ وحدود؟",
+        "candidate_sources": ["services/*/clients", "config/", ".env.example"],
+    },
+    "frontend_consumers.json": {
+        "question": "أيُّ نقطةِ واجهةٍ تستهلك أيّ مسارِ خلفيّة، مُثبَتاً من موضع النداء؟",
+        "candidate_sources": ["frontend/src", "frontend/nginx.conf"],
+    },
+    "mobile_consumers.json": {
+        "question": "أيُّ شاشةٍ في تطبيق الجوّال تستهلك أيّ مسار، وبأيّ إصدارِ عقد؟",
+        "candidate_sources": ["mobile/lib", "mobile/pubspec.yaml"],
+    },
+    "ai_runtime_graph.json": {
+        "question": "أيُّ نموذجٍ يُحمَّل أين، ومن يستدعيه، وبأيّ بصمةِ مصنوعٍ معتمدة؟",
+        "candidate_sources": [
+            "services/sam2-inference",
+            "services/agriai-engine",
+            "services/*/onnx",
+        ],
+    },
+    "observability_surface.json": {
+        "question": "أيُّ مقياسٍ/أثرٍ يُصدَّر من أيّ مكوّن، ومن يقرؤه في لوحةٍ أو إنذار؟",
+        "candidate_sources": ["monitoring/", "services/*/metrics", "docs/observability"],
+    },
+    "test_evidence_map.json": {
+        "question": "أيُّ اختبارٍ يُثبِت أيَّ علاقةٍ مُعلَنة، وبأيّ صنفِ دليل (ساكن/حيّ)؟",
+        "candidate_sources": ["tests_v9/", "tests/", "services/*/tests"],
+    },
+    "routes.json": {
+        "question": "أيُّ مسارٍ يُعلَن أين، ومن يملكه، وهل هو نطاقٌ أم بنية؟",
+        "candidate_sources": [
+            "services/sahool-platform/api/routers",
+            "docs/architecture/platform_route_placement_contract.json",
+        ],
+    },
+}
+
+
+def placeholders() -> dict[str, dict[str, Any]]:
+    """أسطحٌ **لم تُقَس**، مُصرَّحٌ بذلك في البنية لا في تعليقٍ بجانبها."""
     return {
-        "database_ownership.json": [],
-        "event_topology.json": [],
-        "workers_schedulers.json": [],
-        "external_integrations.json": [],
-        "frontend_consumers.json": [],
-        "mobile_consumers.json": [],
-        "ai_runtime_graph.json": [],
-        "observability_surface.json": [],
-        "test_evidence_map.json": [],
-        "routes.json": [],
+        name: {
+            "schema": "sahool.diagnostic-inventory.surface.v1",
+            "surface": name,
+            "measurement_state": "not_measured",
+            "rows": [],
+            "row_count": 0,
+            "why_empty_is_not_a_finding_ar": (
+                "صفرُ صفوفٍ هنا يعني «لم يُقَس»، لا «لا توجد علاقات». ولا يصير "
+                "`measured` إلّا بمقياسٍ يُنتِج صفوفَه — فالترقيةُ بالقياس لا بالتحرير."
+            ),
+            "question_to_resolve": spec["question"],
+            "candidate_sources": spec["candidate_sources"],
+        }
+        for name, spec in _NOT_MEASURED.items()
     }
 
 
@@ -173,7 +240,8 @@ def build(out: Path) -> None:
     _write(out / "capabilities.json", capabilities)
     _write(out / "integration_edges.json", resolved)
     _write(out / "unresolved_edges.json", unresolved)
-    for name, value in placeholders().items():
+    surfaces = placeholders()
+    for name, value in surfaces.items():
         _write(out / name, value)
 
     sources = [
@@ -191,6 +259,12 @@ def build(out: Path) -> None:
             "deployment_units": len(units),
             "capabilities": len(capabilities),
             "declared_consumer_edges_pending_resolution": len(unresolved),
+            # يُعلَن في الترويسة كي لا يحتاج القارئ أن يفتح عشرة ملفّات ليكتشف
+            # أنّ عشرة أسطحٍ لم تُقَس. عددٌ في الترويسة أصعبُ على الإغفال من صمت.
+            "surfaces_not_measured": sum(
+                1 for s in surfaces.values() if s["measurement_state"] == "not_measured"
+            ),
+            "surfaces_declared": len(surfaces),
         },
         "sources": [
             {"path": str(path.relative_to(ROOT)), "sha256": _sha256(path)} for path in sources

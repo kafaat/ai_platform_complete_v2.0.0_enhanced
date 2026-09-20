@@ -1,0 +1,57 @@
+name: Diagnostic Inventory
+# `AN-UNMEASURED-SURFACE-SERIALISED-AS-AN-EMPTY-LIST-READS-AS-NO-RELATIONS-01`.
+# كان `build_main_inventory.py` بلا اختبارٍ ولا workflow، ومخرجاتُه تحت `artifacts/`
+# المُتجاهَلة — فلا أحدَ يعلم أنّه يعمل، ولا أنّ تشغيلَين يتّفقان، ولا يُحفَظ ما أنتجه.
+# هذه الوظيفةُ تقيس الثلاثة: الشواهدُ تُشغَّل، والتشغيلان يُقارَنان **بايتاً**،
+# والمخرجُ يُرفَع مصنوعاً كي يُقارَن بما قبله بدل أن يُعاد اكتشافُه في كلّ مرّة.
+on:
+  pull_request:
+    paths:
+      - 'scripts/diagnostics/build_main_inventory.py'
+      - 'tests_v9/test_main_inventory_generator.py'
+      - 'component_inventory.generated.csv'
+      - 'platform_catalog.generated.json'
+      - '.github/workflows/diagnostic-inventory.yml'
+jobs:
+  diagnostic-inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Install pytest
+        run: pip install --quiet pytest
+      - name: Generator contract (unknown stays unknown · a changed relation shows up)
+        run: python -m pytest -q tests_v9/test_main_inventory_generator.py
+      - name: Build the inventory twice from the same tree
+        run: |
+          python scripts/diagnostics/build_main_inventory.py --out artifacts/diagnostics/inventory
+          python scripts/diagnostics/build_main_inventory.py --out artifacts/diagnostics/inventory-rerun
+      - name: Two runs on the same tree must produce the same bytes
+        # نتيجةٌ لا تُعاد هي رأيٌ لا قياس. والمقارنةُ بايتيّة لا دلاليّة عمداً:
+        # مصنوعٌ يتبدّل بايتُه بلا تبدّل معناه يُغرِق كلَّ مقارنةٍ لاحقةٍ في ضوضاء.
+        run: diff -r artifacts/diagnostics/inventory artifacts/diagnostics/inventory-rerun
+      - name: State what was measured and what was not
+        # الخضرةُ تُصرّح بما قِيس: عددُ الأسطح غيرِ المقيسة يُطبَع في السجلّ كي لا
+        # يُقرأ «مرّ» على أنّه «كلُّ شيءٍ مقيس».
+        run: |
+          python - <<'PY'
+          import json
+          m = json.load(open("artifacts/diagnostics/inventory/inventory_manifest.json"))
+          c = m["counts"]
+          print(f"source_sha={m['source_sha']}")
+          print(f"components={c['components']} capabilities={c['capabilities']} "
+                f"deployment_units={c['deployment_units']}")
+          print(f"declared_consumer_edges_pending_resolution="
+                f"{c['declared_consumer_edges_pending_resolution']}")
+          print(f"surfaces_not_measured={c['surfaces_not_measured']}"
+                f"/{c['surfaces_declared']} — «لم يُقَس» لا «لا توجد علاقات»")
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: diagnostic-inventory
+          path: artifacts/diagnostics/inventory
+          retention-days: 30
