@@ -81,7 +81,7 @@ def test_plugin_subject_transform_is_declared_as_an_open_divergence() -> None:
         encoding="utf-8"
     )
     hooks = (ROOT / "shared/marketplace_ecosystem_phase12.py").read_text(encoding="utf-8")
-    notifications = (ROOT / "agents/notification/agent.py").read_text(encoding="utf-8")
+    notifications = (ROOT / "shared/notification_consumers.py").read_text(encoding="utf-8")
     assert 'f"sahool.{str(row[' in worker
     assert '"field.updated"' in hooks
     assert '("sahool.events.>", "notif_domain_events")' in notifications

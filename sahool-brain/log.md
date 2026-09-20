@@ -8416,6 +8416,15 @@ The sample environment overrode the existing SAM2 CUDA 12.8 default with CUDA 12
 
 > **2026-09-20 — متابعة آمنة فوق #1041:** أُدخل الأساس `a00f9f11821fef158eb27db1e5added0a4adc2e1` في رقعة `RAILWAY-DEPENDENCY-READINESS-20260920-01`، مع حفظ تعديل الواجهة في main ومصادر الجاهزية في `2b49660ac46ac02d8059571fd978f7dd2bac535c`. تعارضات المصنوعات السبعة تُحسم بإعادة التوليد من الشجرة المجمعة؛ الرقعة لم تُرفع بعد. دخول GitHub ما زال عند التحقق، وانتقال الإشعارات محجوب بالمراجعة التلقائية لاحتمال الانقطاع؛ النشر العامل لم يُوقف. المرجع التشغيلي: `docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md`.
 
+
+## 2026-09-20 — Notification rolling deployment recovery
+
+- Base: `69e9d447f86a8d8fa44ead709b6c0896faf8d954` (#1044). The old healthy Railway deployment binds nine non-queue push consumers; later generations cannot bind them concurrently. The original consumers remain untouched.
+- Implemented opt-in `NOTIFICATION_CONSUMER_MODE=queue_v1`, a saved checkpoint plan using contiguous ACK floor + 1, create-only provisioning, and strictly validated bind-only startup. No readiness downgrade, consumer reset, or removal of the working deployment. Source: `shared/notification_consumers.py`, `agents/notification/agent.py`.
+- Local NATS 2.15.0 evidence: ten cases passed in `tests_v9/test_notification_queue_rollout.py` excluding its PostgreSQL case. They reproduce the exclusive binding failure and exercise replay, overlapping queue workers, lost-worker redelivery, create races, retention refusals and readiness drift. The PostgreSQL concurrency case is required in `.github/workflows/notification-rollout.yml`; it has not yet run at this log entry.
+- Production read-only prerequisites: notification DB role `sahool_app` is neither superuser nor BYPASSRLS; `notification_delivery` has FORCE RLS, SELECT/INSERT/UPDATE access and the tenant/key/channel unique constraint. This inspection does not replace the concurrent-delivery test.
+- The runbook now uses `runuser` for Raster's initializer: UID-only dropping retained HOME=/root and broke asyncpg's SSL key lookup. The corrected command was measured on Railway deployment `7e0ff366-9e08-4fda-adf7-78190680eb18`.
+- Deployment of the notification change remains pending. Provider crash-before-commit duplicates and process-local best-effort WebSockets remain explicit limitations; full agricultural workflow acceptance is not claimed.
 ## 2026-09-20 — البند ٤: قياسُ الـ٧٤ قلب معناها، فتغيّر العلاج
 
 - **بدأتُ بالقياس لا بالتصميم** — كما أثبت ذلك جدواه في الشريحة السابقة. والتصنيفُ

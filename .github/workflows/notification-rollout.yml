@@ -1,0 +1,45 @@
+name: Notification Queue Rollout
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  notification-rollout:
+    name: Notification queue and receipt certification
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: notification_rollout_test
+          POSTGRES_USER: notification_test
+          POSTGRES_PASSWORD: disposable_test_password
+        ports: ["5438:5432"]
+        options: >-
+          --health-cmd "pg_isready -U notification_test -d notification_rollout_test"
+          --health-interval 2s --health-timeout 3s --health-retries 20
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Install notification dependencies and pinned test broker
+        run: |
+          pip install -r agents/notification/requirements.txt pytest pytest-asyncio
+          curl --fail --location --retry 3 --max-time 90 \
+            https://github.com/nats-io/nats-server/releases/download/v2.15.0/nats-server-v2.15.0-linux-amd64.tar.gz \
+            -o "$RUNNER_TEMP/nats-server.tar.gz"
+          echo "5d2c51caca950333aba84911df7d377f826f3a59ec36061c6539105084f65c92  $RUNNER_TEMP/nats-server.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/nats-server.tar.gz" -C "$RUNNER_TEMP"
+      - name: Require real broker overlap, message replay and restricted Postgres receipts
+        env:
+          NOTIFICATION_ROLLOUT_CERTIFICATION_REQUIRED: "1"
+          NOTIFICATION_TEST_NATS_SERVER: ${{ runner.temp }}/nats-server-v2.15.0-linux-amd64/nats-server
+          NOTIFICATION_TEST_DATABASE_URL: postgresql://notification_test:disposable_test_password@localhost:5438/notification_rollout_test
+        run: pytest -v -rs tests_v9/test_notification_queue_rollout.py tests_v9/test_notification_delivery_reliability.py tests_v9/test_notification_subjects_prefix.py

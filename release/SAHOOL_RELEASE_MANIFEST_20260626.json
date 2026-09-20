@@ -9,7 +9,7 @@
       "prometheus": 2,
       "scripts": 453,
       "services": 2014,
-      "shared": 163,
+      "shared": 164,
       "tests": 141
     }
   },
@@ -133,5 +133,5 @@
     "bash scripts/chaos/run_chaos_tests.sh",
     "bash scripts/recovery/recovery_smoke.sh"
   ],
-  "total_size_bytes": 64533862
+  "total_size_bytes": 64558184
 }

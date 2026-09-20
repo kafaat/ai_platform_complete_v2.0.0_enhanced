@@ -31915,6 +31915,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "83fa6ee4abcab3bc9d7d6e92476c4f9f74193ddbc7a3ebaa464cfcc8a4f9d028"
+        }
+      ],
+      "name": "shared/notification_consumers.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "c8829b8a75cd5d86248859e551d26a4e8f87fa59745cb80b0f0a21aca8acce53"
         }
       ],
