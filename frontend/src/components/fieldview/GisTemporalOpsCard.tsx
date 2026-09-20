@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   Beaker, ChevronDown, ChevronLeft, Clock, FlaskConical,
-  Hexagon, History, Link2, MapPin, Scissors, ShieldAlert,
+  Hexagon, History, Link2, ShieldAlert,
 } from 'lucide-react';
 import {
   useGisBuffer, useGisSplit, useGisUnion, useGisValidate,

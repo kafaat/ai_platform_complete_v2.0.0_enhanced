@@ -17,7 +17,7 @@
 //   • أمانة الهندسة: لا اختراع. قصّ لا يتقاطع → خطأ صريح. دمج ينتج MultiPolygon
 //     (حقول غير متجاورة) والخادم يخزّن Polygon فقط → نحجب بطلب اختيار متجاور.
 // ═══════════════════════════════════════════════════════════════
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { MapContainer, TileLayer, Polygon, FeatureGroup } from 'react-leaflet';
 import L from 'leaflet';
 import '../../lib/leafletSetup';

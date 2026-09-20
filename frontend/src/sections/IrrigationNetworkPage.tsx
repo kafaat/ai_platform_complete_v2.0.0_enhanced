@@ -37,7 +37,6 @@ const NODE_KINDS: { key: IrrigationNetworkNodeKind; label: string }[] = [
   { key: 'valve',      label: 'صمّام' },
   { key: 'zone',       label: 'منطقة' },
 ];
-const kindLabel = (k: string): string => NODE_KINDS.find(o => o.key === k)?.label ?? k;
 
 // شبكة مبدئيّة قابلة للعرض: بئر→مضخّة→صمّام→منطقة (منطقة واحدة بطلب).
 const DEFAULT_NODES: NodeRow[] = [

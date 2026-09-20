@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { CheckCircle2, CircleAlert, CircleDotDashed, Database, Gauge, RefreshCw } from 'lucide-react';
+import { CheckCircle2, CircleAlert, CircleDotDashed, Database, Gauge } from 'lucide-react';
 import { getFieldDataCompleteness, getFieldReadiness, type CompletenessStatus, type FieldReadinessItem } from '../services/api/fieldOperating';
 import { EmptyState, ErrorState, LoadingState } from '../components/StateViews';
 import { DegradedState } from '../components/product/DegradedState';
