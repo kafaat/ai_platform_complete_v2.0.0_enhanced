@@ -35,6 +35,7 @@ from nats.js import JetStreamContext
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from shared.fcm import fcm_push_active, send_push
+from shared.notification_consumers import SUBSCRIPTIONS, queue_name, validate_queue
 from shared.security.access_tokens import access_token_verification_key, verify_access_token
 from shared.tracing import configure_tracing
 
@@ -446,21 +447,7 @@ async def dispatch(data: dict):
 _nc: NATS | None = None
 _js: JetStreamContext | None = None
 
-SUBSCRIPTIONS = [
-    ("sahool.tenant.*.satellite.*.computed", "notif_satellite"),
-    ("sahool.alerts.weather", "notif_weather"),
-    ("sahool.pest.alert", "notif_pest"),
-    ("sahool.irrigation.recommendation", "notif_irrigation"),
-    ("sahool.fertilizer.recommendation", "notif_fertilizer"),
-    ("sahool.inventory.low_stock", "notif_stock"),
-    ("sahool.task.assigned", "notif_task"),
-    ("sahool.economic.analysis", "notif_economic"),
-    # أحداث domain من المنصّة (OutboxWorker ينشر sahool.events.<event_type> مثل
-    # field.created / season.created / activity.recorded). كانت بلا أيّ مستهلك ⇒
-    # تُخزَّن في تيّار JetStream «sahool» ولا تصل أيّ مستخدم. نشترك بها كتغذية حيّة
-    # معزولة بالمستأجِر (المظروف يحمل tenant_id لا user_id ⇒ broadcast_tenant).
-    ("sahool.events.>", "notif_domain_events"),
-]
+CONSUMER_MODE = os.getenv("NOTIFICATION_CONSUMER_MODE", "legacy")
 
 
 _subscriptions: dict = {}
@@ -516,14 +503,29 @@ async def _ensure_subscriptions():
     from nats.js.api import ConsumerConfig, StreamConfig
     from nats.js.errors import NotFoundError
 
+    if CONSUMER_MODE not in {"legacy", "queue_v1"}:
+        raise ValueError("invalid_notification_consumer_mode")
     try:
         await _js.stream_info("sahool")
     except NotFoundError:
+        if CONSUMER_MODE == "queue_v1":
+            raise  # Provisioning is an explicit operator step, never a startup reset.
         await _js.add_stream(StreamConfig(name="sahool", subjects=["sahool.>"]))
     for subject, durable in SUBSCRIPTIONS:
         if durable in _subscriptions:
             continue
         try:
+            if CONSUMER_MODE == "queue_v1":
+                info = await _js.consumer_info("sahool", queue_name(durable))
+                validate_queue(info.config, subject, durable)
+                _subscriptions[durable] = await _js.subscribe_bind(
+                    stream="sahool",
+                    consumer=queue_name(durable),
+                    config=info.config,
+                    cb=handle_msg,
+                    manual_ack=True,
+                )
+                continue
             _subscriptions[durable] = await _js.subscribe(
                 subject,
                 cb=handle_msg,
@@ -736,6 +738,8 @@ async def health():
 
 @app.get("/readyz")
 async def readyz():
+    if CONSUMER_MODE not in {"legacy", "queue_v1"}:
+        raise HTTPException(503, {"status": "not_ready", "reason": "consumer_mode"})
     if _nc is None or not _nc.is_connected or _js is None:
         raise HTTPException(503, {"status": "not_ready", "reason": "nats"})
     missing = []
@@ -743,11 +747,19 @@ async def readyz():
         try:
             if durable not in _subscriptions:
                 raise RuntimeError("subscription_missing")
-            info = await _js.consumer_info("sahool", durable)
-            if info.config.filter_subject != subject:
+            name = queue_name(durable) if CONSUMER_MODE == "queue_v1" else durable
+            info = await _js.consumer_info("sahool", name)
+            if CONSUMER_MODE == "queue_v1":
+                validate_queue(info.config, subject, durable)
+                if not info.push_bound:
+                    raise RuntimeError("queue_subscription_unbound")
+            elif info.config.filter_subject != subject:
                 raise RuntimeError("subscription_filter_mismatch")
         except Exception:
-            _subscriptions.pop(durable, None)
+            sub = _subscriptions.pop(durable, None)
+            if sub is not None:
+                with suppress(Exception):
+                    await sub.unsubscribe()
             missing.append(durable)
     if missing:
         raise HTTPException(

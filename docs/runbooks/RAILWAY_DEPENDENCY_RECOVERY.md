@@ -92,11 +92,15 @@ then drop to `appuser` before starting Uvicorn. Pair `RAILWAY_RUN_UID=0` with th
 complete start command; do not use that variable alone to run the application as root:
 
 ```sh
-python -c 'import os,pwd; p="/data/rasters"; u=pwd.getpwnam("appuser"); os.chown(p,u.pw_uid,u.pw_gid); os.chmod(p,0o750); os.setgroups([]); os.setgid(u.pw_gid); os.setuid(u.pw_uid); os.execvp("uvicorn",["uvicorn","main:app","--host","0.0.0.0","--port","8001"])'
+python -c 'import os,pwd; p="/data/rasters"; u=pwd.getpwnam("appuser"); os.chown(p,u.pw_uid,u.pw_gid); os.chmod(p,0o750); os.execvp("runuser",["runuser","-u","appuser","--","uvicorn","main:app","--host","0.0.0.0","--port","8001"])'
 ```
 
 The command changes only the mount directory, not existing asset files. Verify the
 running Uvicorn process is UID 10001 and that a probe file can be written and removed.
+`runuser` also establishes the application user's HOME. Dropping only the UID left
+HOME=/root in the measured Railway image; asyncpg then failed accessing
+`/root/.postgresql/postgresql.key`. Verify the process environment and DB readiness
+as the application user, not only from the root initializer console.
 
 Vegetation:
 
@@ -196,7 +200,7 @@ close connections. Redis is pinged; its SET permissions/persistence are acceptan
 checks. Raster writes/removes only a private temporary probe and verifies the STAC
 catalog response; pixel processing, CDSE and S3 uploads remain acceptance checks.
 
-## Existing notification rollout constraint
+## Notification rolling deployment
 
 At `dac2cb0c5624555e3255199f9fdd0c9712c66ee8`,
 `agents/notification/agent.py::_ensure_subscriptions` binds named durable push
@@ -208,14 +212,58 @@ DNS or missing credentials.
 Before a planned handoff, record the active/replacement deployment IDs and each
 consumer's creation time, acknowledgement floor, delivered sequence and pending
 counts. Prepare the replacement image and inspect its actual startup failure.
-A single-owner handoff needs an explicitly planned interruption of the old process;
-retain the known-good image/configuration for rollback. Confirm all nine existing
-consumers rebind, their state is preserved, and the replacement passes `/readyz`.
-This handoff was not completed in the 2026-09-20 recovery: automatic approval review
-blocked removal of the active deployment because of outage risk; the replacement
-attempt was cancelled and the previous healthy deployment retained.
+A single-owner handoff was not completed in the earlier 2026-09-20 recovery:
+automatic approval review blocked removal of the active deployment because of
+outage risk. The queue migration below keeps that working deployment available.
 
 Do not delete/recreate the durable consumers, reset their positions, or substitute
 `/healthz` for deployment readiness. Adding a queue name to the client alone does
 not migrate the existing non-queue consumers. A queue-consumer migration requires
-its own tested state-preservation and rollback plan.
+its own tested state-preservation and rollback plan:
+
+1. Build and review the notification image containing `shared.notification_consumers`
+   and nats-py 2.16.0. The default remains `NOTIFICATION_CONSUMER_MODE=legacy`.
+2. In a trusted console with the reviewed module and existing NATS credentials,
+   produce a non-secret checkpoint plan:
+
+   ```sh
+   python -m shared.notification_consumers --plan /tmp/notification-queue-plan.json
+   ```
+
+   Retain this exact plan. It records the stream/legacy creation identities and
+   each contiguous ACK floor + 1. Delivery sequence is not an ACK checkpoint.
+   Applying the plan requires NATS server 2.15.0 or newer (no prerelease).
+   The tool requires file storage, limits retention, no automatic expiry/size
+   limits, and complete retained history. If it refuses, investigate the missing
+   prerequisite; do not reset consumers or substitute a newer cursor.
+3. Review the nine checkpoints, then provision only new queue consumers:
+
+   ```sh
+   python -m shared.notification_consumers --apply /tmp/notification-queue-plan.json
+   ```
+
+   This neither changes nor deletes legacy consumers. Reapply the same plan after
+   a partial failure; existing matching queue consumers retain their progress.
+   A recreated stream/legacy or mismatched existing queue fails closed. No command
+   publishes a notification. Concurrent traffic after planning is retained.
+4. Set `NOTIFICATION_CONSUMER_MODE=queue_v1` on the replacement. Startup binds only
+   the nine pre-provisioned consumers. Missing consumers or drifted settings keep
+   `/readyz` at 503; startup never recreates or resets their checkpoints.
+5. Confirm `/readyz` 200, all nine queue consumers `push_bound=true`, current
+   deployment commit, and database receipt schema/permissions. Let Railway's
+   normal successful rollout replace the old instance. Keep the legacy consumers
+   and saved plan for rollback; do not remove the working deployment prematurely.
+
+Both generations can observe a message during the first migration. Their stable
+`stream:sequence` delivery identity shares the existing per-tenant/channel receipt
+lock, so committed provider successes are skipped. A crash after provider acceptance
+and before commit can still duplicate a send (at-least-once). WebSocket delivery
+remains best effort and process-local; this does not certify multi-replica WebSocket
+fan-out. Future queue generations share each consumer without duplicating its work.
+Rollback to the old image/mode can replay the legacy backlog; it must keep the same
+database receipt ledger. Do not delete receipts or advance either cursor to hide it.
+
+`Notification Queue Rollout` CI runs a checksum-pinned NATS 2.15.0 broker and real
+Postgres with a restricted role. It checks simultaneous workers, unacknowledged
+replay, worker loss, non-mutating migration races, honest readiness, and concurrent
+old/new receipt serialization using a stub provider. No test contacts recipients.
