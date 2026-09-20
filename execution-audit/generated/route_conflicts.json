@@ -9,7 +9,7 @@
       "registrations": [
         {
           "function": "root",
-          "line": 251,
+          "line": 273,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/",
@@ -63,7 +63,7 @@
         },
         {
           "function": "contract",
-          "line": 232,
+          "line": 254,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/contract",
@@ -110,7 +110,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 214,
+          "line": 216,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/health",
@@ -261,7 +261,7 @@
         },
         {
           "function": "healthz",
-          "line": 131,
+          "line": 139,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/healthz",
@@ -293,7 +293,7 @@
         },
         {
           "function": "healthz",
-          "line": 209,
+          "line": 211,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/healthz",
@@ -397,7 +397,7 @@
         },
         {
           "function": "healthz",
-          "line": 31,
+          "line": 34,
           "method": "GET",
           "module": "services/raster-service/routers/observability.py",
           "path": "/healthz",
@@ -492,7 +492,7 @@
         },
         {
           "function": "metrics",
-          "line": 322,
+          "line": 330,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/metrics",
@@ -548,7 +548,7 @@
         },
         {
           "function": "metrics",
-          "line": 36,
+          "line": 39,
           "method": "GET",
           "module": "services/raster-service/routers/observability.py",
           "path": "/metrics",
@@ -627,7 +627,7 @@
         },
         {
           "function": "readyz",
-          "line": 341,
+          "line": 349,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/readyz",
@@ -659,7 +659,7 @@
         },
         {
           "function": "readyz",
-          "line": 219,
+          "line": 221,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/readyz",
@@ -763,7 +763,7 @@
         },
         {
           "function": "readyz",
-          "line": 186,
+          "line": 189,
           "method": "GET",
           "module": "services/raster-service/routers/observability.py",
           "path": "/readyz",
@@ -1139,7 +1139,7 @@
       "registrations": [
         {
           "function": "query",
-          "line": 383,
+          "line": 393,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/query",
@@ -1170,7 +1170,7 @@
         },
         {
           "function": "recommend",
-          "line": 416,
+          "line": 426,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/recommend",
@@ -1183,7 +1183,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1102,
-  "route_inventory_sha256": "2df3334aadfc0ed4451d530657f6e2b82bf8aab32c74e4305279d923d98cb3b8",
+  "route_inventory_sha256": "153f412a321761aa1c97fa122aa5e2d9d1dacfdb5041aba629d05d7e6ad012b5",
   "runtime_verified": false,
   "schema_version": 1
 }

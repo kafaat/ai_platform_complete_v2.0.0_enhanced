@@ -80,7 +80,12 @@ def _load(out: Path, name: str):
 # ── المجهول يبقى مجهولاً ────────────────────────────────────────────────────────
 
 
-@pytest.mark.parametrize("surface", sorted(inventory.placeholders()))
+#: السطحُ الوحيد الذي خرج من «لم يُقَس» لأنّه قِيس — ويُستثنى بالاسم لا بالصمت،
+#: كي يُحمِّر هذا الملفُّ إن رُقِّي سطحٌ آخر بلا مقياسٍ يُنتِج صفوفَه.
+_MEASURED_SURFACES = {"frontend_consumers.json"}
+
+
+@pytest.mark.parametrize("surface", sorted(set(inventory.placeholders()) - _MEASURED_SURFACES))
 def test_an_unmeasured_surface_is_never_a_bare_empty_list(tmp_path, monkeypatch, surface):
     """**الفرقُ بين «قِسنا فلا شيء» و«لم نقس» يجب أن يكون في البنية لا في النيّة.**
 
@@ -100,7 +105,9 @@ def test_the_manifest_states_how_many_surfaces_were_not_measured(tmp_path, monke
     out = _build(tmp_path, monkeypatch, consumers=["svc-b"])
     counts = _load(out, "inventory_manifest.json")["counts"]
     assert counts["surfaces_declared"] == len(inventory.placeholders())
-    assert counts["surfaces_not_measured"] == counts["surfaces_declared"]
+    assert counts["surfaces_not_measured"] == counts["surfaces_declared"] - len(
+        _MEASURED_SURFACES
+    ), "عددُ غيرِ المقيس لا يطابق ما أُعلِن مقيساً — رُقِّي سطحٌ بلا إعلان"
 
 
 def test_a_declared_edge_is_never_promoted_to_resolved_without_evidence(tmp_path, monkeypatch):
@@ -237,7 +244,13 @@ def test_the_ownership_surface_stays_unmeasured_without_a_contract(tmp_path, mon
     surface, manifest = _ownership(tmp_path, monkeypatch, contract=None, source=None)
     assert surface["measurement_state"] == "not_measured"
     assert surface["rows"] == [] and surface["question_to_resolve"].strip()
-    assert manifest["counts"]["surfaces_not_measured"] == manifest["counts"]["surfaces_declared"]
+    # **والمقيسُ سطحي وحدَه، لا «كلُّ الأسطح».** كانت هذه الحالةُ تشترط
+    # `not_measured == declared` — وهو ثابتٌ صحيحٌ **بالمصادفة** يوم كانت العشرةُ كلُّها
+    # غيرَ مقيسة، ويصير خاطئاً يومَ يُرقّي أحدٌ سطحاً آخر. وقد وقع ذلك فعلاً: ترقيةُ
+    # `frontend_consumers` في #1044 تقع على هذه المِرقاة، فاحمرّت الحالةُ عند الدمج
+    # وهي تصف عملاً صحيحاً — أي «بوّابةٌ لا تُغلَق بعملٍ صحيح».
+    assert manifest["counts"]["surfaces_not_measured"] >= 1
+    assert manifest["counts"]["surfaces_declared"] >= manifest["counts"]["surfaces_not_measured"]
 
 
 def test_a_write_site_the_contract_authorises_is_resolved_not_merely_declared(
@@ -311,3 +324,56 @@ def test_the_surface_names_the_blocking_engine_and_adds_no_second_scanner():
     assert "db_writer_ownership_guard.py" in source
     for token in ("INSERT\\s+INTO", "DELETE\\s+FROM", "INSERT INTO"):
         assert token not in source, f"ماسحٌ ثانٍ للكتابة داخل الجرد: {token!r}"
+
+
+# ── حسمُ الحوافّ إلى أدلّةِ مصدر — البند ١د ───────────────────────────────────────
+
+
+def test_a_resolved_edge_carries_its_whole_evidence_chain(tmp_path, monkeypatch):
+    """**الترقيةُ تحتاج سلسلةً كاملة، ودليلُها يسمّي سطرَ كلِّ خطوة.**
+
+    حافّةٌ تُرقّى بلا موضع نداءٍ ولا قاعدةِ بوّابة دعوى لا قياس — وهذا الشاهدُ
+    يمنع أن يصير `resolved` وسماً يُكتب بدل أن يُشتقّ.
+    """
+    out = _build(tmp_path, monkeypatch, consumers=["svc-b"])
+    for edge in _load(out, "integration_edges.json"):
+        evidence = edge["evidence"]
+        assert edge["evidence_state"] == "resolved"
+        assert edge["resolved_entrypoint"]
+        for anchor in ("call_site", "client_binding", "endpoint_binding", "gateway_rule"):
+            assert ":" in evidence[anchor], f"{anchor} بلا سطر"
+
+
+def test_the_manifest_declares_the_scanner_blind_spot(tmp_path, monkeypatch):
+    """**حدُّ الأداة يُصدَّر مع نتيجتها.**
+
+    ماسحٌ ساكنٌ لا يرى مساراً يُبنى في وقت التشغيل. فعددُ ما لا يراه يُعلَن، وإلّا
+    قرأ القارئُ «ما لم يُحسَم غيرُ موجود» — وهو بعينه العطل الذي وُجِد هذا الجرد
+    ليمنعه.
+    """
+    out = _build(tmp_path, monkeypatch, consumers=["svc-b"])
+    resolution = _load(out, "inventory_manifest.json")["edge_resolution"]
+    for field in ("resolved", "still_unresolved", "scanner_blind_spots", "gateway_rules"):
+        assert field in resolution
+    assert resolution["gateway_upstreams_unmapped"] == 0, (
+        "مُجرىً أعلى بلا مكوّنٍ مطابق — الخريطةُ تنحرف عن جرد المكوّنات"
+    )
+
+
+def test_the_live_tree_resolves_edges_with_evidence():
+    """**الزرعُ الحيّ على الشجرة الحقيقيّة، لا على تركيبةٍ صغيرة.**
+
+    شجرةُ الاختبار لا تحمل `nginx.conf` ولا واجهةً، فتُنتِج صفرَ حوافّ محسومة —
+    وهو سلوكٌ صحيح لكنّه لا يُثبِت أنّ السلسلة تعمل. هذا يقيسها على الشجرة نفسِها.
+    """
+    components = json.loads(
+        (ROOT / "component_inventory.generated.csv").read_text(encoding="utf-8")[:0] or "[]"
+    )
+    del components
+    module = inventory._resolver()
+    real = inventory.load_components()
+    _, declared = inventory.integration_edges(inventory.load_capabilities())
+    resolved, remaining, report = module.resolve(declared, real, ROOT)
+    assert resolved, "لم تُحسَم حافّةٌ واحدة على الشجرة الحيّة — السلسلةُ منقطعة"
+    assert report["gateway_upstreams_unmapped"] == 0
+    assert len(resolved) + len(remaining) == len(declared), "حافّةٌ ضاعت بين القائمتين"

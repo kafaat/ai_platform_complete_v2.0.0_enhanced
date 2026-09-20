@@ -8339,7 +8339,9 @@ The sample environment overrode the existing SAM2 CUDA 12.8 default with CUDA 12
   الذي وقع مع `diagnostic-inventory`: **بوّابةٌ خارج مدى القياس المحلّيّ تُقاس أوّلَ
   مرّةٍ على العدّاء**.
 
-## 2026-09-20 — البند ٢: `database_ownership` يُرقَّى من `not_measured` إلى مقيس
+## 2026-09-20 — `database_ownership` يُرقَّى من `not_measured` إلى مقيس
+
+> **تصحيحُ تسمية:** عنونتُ هذه المدخلةَ أوّلاً «البند ٢ من خريطة المالك». وذلك **استنتاجٌ منّي لا نقلٌ عن مصدر**: لا وثيقةَ في الشجرة تُعدِّد بنودَ الخريطة، وقد رقّمتُ من السياق. والمقيسُ لاحقاً أنّ البند ٢ هو توصيلُ `RecommendationRuntimePipeline`، والبند ٤ هو الـ٧٤ مخالفة — **وهذا العملُ يُغذّي الرابع لا يكون الثاني**. أُزيل الرقمُ وبقي العمل؛ والدرسُ أنّ رقماً يُستنتَج يُقرأ إسناداً.
 
 - **الاختيارُ عُرِض على المالك بقياسٍ لا بذوق:** من بين عشرة أسطحٍ غيرِ مقيسة، هذا
   وحدَه له **مقياسٌ قائمٌ في الشجرة** (العقد + الحارس الحاجب)، وهو داخلُ الشجرة
@@ -8382,3 +8384,34 @@ The sample environment overrode the existing SAM2 CUDA 12.8 default with CUDA 12
 - **وما لا يُدَّعى:** رُقِّي **سطحٌ واحد** من عشرة. تسعةٌ تبقى `not_measured`،
   والترويسةُ تُعلنها **٩/١٠**. ولم يُدَّعَ أنّ العقدَ صحيح ولا أنّ `not_authorised`
   خطأ — مَعدودةٌ لا محكومٌ عليها. `runtime_verified=0`؛ `production_certified=false`.
+## 2026-09-20 — البند ١د: حافّةٌ تُحسَم بسلسلةِ أدلّةٍ أو تبقى معلَنةً لا منفيّة
+
+- **البنيةُ قِيست قبل أيّ تصميم:** ٧٢٠ من ٧٢٢ حافّةً مستهلكُها `frontend`. فالصنفُ
+  الغالبُ واحد، وقابلٌ للحسم من الشجرة.
+- **والحسمُ أربعُ خطوات:** بادئةُ العميل (`endpoints.ts`) ⇒ ربطُ نسخة axios
+  (`client.ts`) ⇒ موضعُ النداء ⇒ قاعدةُ البوّابة (`nginx.conf`). ودليلُ كلّ حافّةٍ
+  يحمل **سطرَ كلِّ خطوة**؛ وما انقطعت سلسلتُه يبقى `declared`.
+- **وخريطةُ المُجرَيات مُشتقّةٌ من الجرد** لا من جدولٍ يدويّ: اسمُ المضيف يُترجَم عبر
+  الأسماء المستعارة وخدمات compose — أحدَ عشرَ مُجرىً، **صفرٌ بلا مكوّنٍ مطابق**.
+- **وأوّلُ سطحٍ يخرج من «لم يُقَس»:** `frontend_consumers.json` صار `measured`
+  بصفوفٍ حقيقيّة. التسعةُ الباقية على حالها.
+- **وحدُّ الماسح مُصدَّرٌ بعدده** (`scanner_blind_spots`): نداءٌ يُبنى مسارُه في وقت
+  التشغيل لا يراه ماسحٌ ساكن — فغيابُ الدليل غيابُ رؤيةٍ لا غيابُ علاقة.
+- **وأمسكتُ نفسي في التوثيق:** كتبتُ عدداً في نصّ الوحدة ثمّ بات حين تغيّر المقياس،
+  فأزلتُ **كلَّ** عددٍ من التوثيق — الأعدادُ في المصنوعة تُشتقُّ عند كلّ تشغيل. وهو
+  الصنفُ الذي بنيتُ له حارساً قبل ساعة، ووقعتُ فيه بعدها.
+- **وما لا يُدَّعى:** الباقيةُ **ليست منفيّة**، ولا يفرّق هذا القياسُ بين «يُبنى
+  ديناميّاً» و«لا يُنادى». ولذلك المدخلةُ `open`. وحوافُّ خدمةٍ إلى خدمة (SAM2 ·
+  سلسلةُ التدقيق) تحتاج صنفَ دليلٍ آخر لم يُبنَ بعد.
+## 2026-09-20 — Railway dependency readiness repair
+
+- Base: `98a61c5f274e7c257a191c5191f428a0af2261f4`. Source: `services/ai_agronomist/main.py`, `services/field-management-service/main.py`, `services/raster-service/routers/observability.py`, `shared/dependency_readiness.py`.
+- Reject false HTTP readiness; probe field DB/replay prerequisites and Raster schema/work directory. Tests: `tests_v9/test_ai_runtime_readiness.py`, `services/field-management-service/tests/test_field_management_service_contract.py`.
+- Deployment and acceptance sequence: `docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md`. Code validation does not certify Railway deployment, corpus or imagery processing.
+
+- Continuation on 2026-09-20: rebased the unpublished readiness repair onto `7dce8ff1122b163ae2d7e31b5897784d84dfedb4` (#1039). Generated conflicts were restored from main and regenerated; application changes were unchanged. Upload remains pending secure GitHub verification because the generated execution audit exceeds the connector request limit. See `docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md` for coordinated source/build identity promotion.
+
+- Final continuation on 2026-09-20: rebased onto `dac2cb0c5624555e3255199f9fdd0c9712c66ee8` (#1040), preserving application source and both brain histories; generated conflicts are regenerated from the combined tree. Raster identity is pinned to reviewed `7dce8ff1122b163ae2d7e31b5897784d84dfedb4`. The notification handoff remains blocked by automatic approval review because stopping its healthy previous deployment can interrupt service; the replacement attempt was cancelled. Source and recovery limits: `docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md`. This readiness patch remains unpublished.
+
+
+> **2026-09-20 — متابعة آمنة فوق #1041:** أُدخل الأساس `a00f9f11821fef158eb27db1e5added0a4adc2e1` في رقعة `RAILWAY-DEPENDENCY-READINESS-20260920-01`، مع حفظ تعديل الواجهة في main ومصادر الجاهزية في `2b49660ac46ac02d8059571fd978f7dd2bac535c`. تعارضات المصنوعات السبعة تُحسم بإعادة التوليد من الشجرة المجمعة؛ الرقعة لم تُرفع بعد. دخول GitHub ما زال عند التحقق، وانتقال الإشعارات محجوب بالمراجعة التلقائية لاحتمال الانقطاع؛ النشر العامل لم يُوقف. المرجع التشغيلي: `docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md`.

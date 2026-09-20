@@ -6425,3 +6425,28 @@ C01..C14؛ لا تُرفع قدرة إلى runtime_verified أو production_cert
 - **وحدُّ صدقٍ في عملي أنا:** أوّلُ زرعٍ للطفرة الثالثة **نجا**، لا لثغرةٍ في الشاهد بل لأنّ مرساي `"evidence_state": "declared",` يقع **ثلاث مرّات** في الملفّ وأوّلُها في `integration_edges` — فأصاب الزرعُ موضعاً آخر. وُسِّع المرسى بسطرِ `relation` فصار فريداً وقُتِلت. مرسًى غيرُ فريدٍ يُنتِج «طفرةً نجت» كاذبة.
 - **وما لا يُدَّعى:** رُقِّي **سطحٌ واحد**؛ تسعةٌ تبقى `not_measured` والترويسةُ تقول ذلك (٩/١٠). ولم يُدَّعَ أنّ العقدَ صحيح، ولا أنّ `not_authorised` خطأ — هي مَعدودةٌ لا محكومٌ عليها، كما ينصّ أساسُ الحارس.
 - **المصدر:** [`build_main_inventory.py`](../../scripts/diagnostics/build_main_inventory.py) · [`db_writer_ownership_guard.py`](../../scripts/ci/db_writer_ownership_guard.py) · [`test_main_inventory_generator.py`](../../tests_v9/test_main_inventory_generator.py) · #1039 · `51a99065`
+## A-DECLARED-EDGE-WITHOUT-A-CALL-SITE-IS-NEITHER-PROVEN-NOR-ABSENT-01
+
+- **الحالة:** **open** — حُسِم صنفٌ واحدٌ بدليل، والباقي يبقى معلَناً لا منفيّاً.
+- **البند ١د من خريطة المالك.** الجردُ كان يُخرِج كلَّ الحوافّ `declared` وصفراً `resolved`. والمالكُ نصّ: «تتبّعِ العلاقات إلى أدلّة المصدر، **مع إبقاء المجهول مجهولاً**؛ ليست هذه ٧٢٢ عطلاً مثبتاً».
+- **والبنيةُ المقيسة قبل أيّ تصميم:** **٧٢٠ من ٧٢٢** حافّةً مستهلكُها `frontend`. فالصنفُ الغالبُ واحد: «الواجهةُ تستهلك قدرةَ خدمة» — وهو قابلٌ للحسم من الشجرة.
+- **والحسمُ سلسلةٌ من أربع خطوات، كلُّها مُشتقّةٌ لا مكتوبةٌ بيد:** ① `config/endpoints.ts` الاسمُ المنطقيُّ ⇒ بادئةُ العميل · ② `services/api/client.ts` نسخةُ axios ⇒ تلك البادئة · ③ موضعُ النداء الحرفيّ · ④ `frontend/nginx.conf` البادئةُ ⇒ مُجرىً أعلى ⇒ مكوّنٌ ومسارٌ داخليّ. ودليلُ كلّ حافّةٍ محسومةٍ يحمل **سطرَ كلِّ خطوة**.
+- **وخريطةُ المُجرَيات مُشتقّةٌ من الجرد نفسِه:** اسمُ المضيف في `nginx.conf` يُترجَم إلى معرّف مكوّنٍ عبر الأسماء المستعارة وخدمات compose. المقيس: **أحدَ عشرَ مُجرىً، صفرٌ بلا مكوّنٍ مطابق** — ولو انحرفت الخريطةُ لظهر العددُ في `gateway_upstreams_unmapped` ويُحمِّره شاهدٌ باسمه.
+- **وأوّلُ سطحٍ يخرج من «لم يُقَس»:** `frontend_consumers.json` صار `measured` بصفوفٍ حقيقيّة — لا لأنّ أحداً قرّر، بل لأنّه قِيس. والتسعةُ الباقيةُ على حالها.
+- **وحدُّ الأداة مُصدَّرٌ في المصنوعة لا في تعليق:** `scanner_blind_spots` يعدّ نداءات العملاء التي **لا مسارَ حرفيَّ لها** (يُبنى في وقت التشغيل). فغيابُ الدليل هنا **غيابُ رؤيةٍ لا غيابُ علاقة**، وقارئٌ يرى عددَ المحسوم بلا حدِّ الماسح يقرأ الباقيَ عطلاً وهو قد يكون رؤية.
+- **التكذيب:** ١٨ شاهداً، منها `test_a_resolved_edge_carries_its_whole_evidence_chain` (لا ترقيةَ بلا سلسلةٍ كاملة بأسطرها) و`test_the_live_tree_resolves_edges_with_evidence` (**زرعٌ حيٌّ على الشجرة الحقيقيّة** لا على تركيبةٍ صغيرة). وإبطالُ قارئ البوّابة يُسقِط الثاني — مقيسٌ لا مفترَض.
+- **وما لا يُدَّعى، وهو أهمُّ ما في المدخلة:** الحوافُّ الباقيةُ **ليست منفيّة**. منها ما يبنيه العميلُ ديناميّاً، ومنها ما يمرّ بمسارٍ لا يقرؤه هذا الماسح، ومنها ما قد لا يُنادى فعلاً — **ولا يفرّق بينها هذا القياس**. ولذلك تبقى المدخلةُ `open`.
+- **والخطوةُ التالية:** حوافُّ **خدمةٍ إلى خدمة** (field-segmentation→SAM2 · مخرجات النموذج→تحقّق المنصّة→إيصال التدقيق) تحتاج صنفَ دليلٍ آخر — موضعَ نداءٍ في مصدر Python لا في الواجهة — ولم يُبنَ بعد.
+- **المصدر:** [`scripts/diagnostics/resolve_inventory_edges.py`](../../scripts/diagnostics/resolve_inventory_edges.py) · [`tests_v9/test_main_inventory_generator.py`](../../tests_v9/test_main_inventory_generator.py) · `a00f9f11`
+## RAILWAY-DEPENDENCY-READINESS-20260920-01
+
+- **الحالة:** open — readiness checks repaired in code; live dependency rollout and domain acceptance remain unverified.
+- Source: `services/ai_agronomist/main.py`, `services/field-management-service/main.py`, `services/raster-service/routers/observability.py`, `shared/dependency_readiness.py`.
+- Evidence: `tests_v9/test_ai_runtime_readiness.py`, `services/field-management-service/tests/test_field_management_service_contract.py`; deployment gates in `docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md`.
+- Scope: reject 4xx/malformed readiness; check field database and replay store, Raster schema and writable work directory. Does not certify live corpus, image processing, S3 or a complete workspace rollout.
+
+- Continuation base: `7dce8ff1122b163ae2d7e31b5897784d84dfedb4` (#1039). This readiness patch is still unpublished. The 2026-09-20 live checks of the previously deployed field, vegetation and frontend readiness routes do not establish deployment of this source repair.
+
+- Final continuation base: `dac2cb0c5624555e3255199f9fdd0c9712c66ee8` (#1040). The readiness repair is still unpublished. Automatic approval review blocked the notification deployment handoff; the working instance was retained. Operational evidence does not establish deployment of this source repair; see `docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md`.
+
+- Follow-up base: `a00f9f11821fef158eb27db1e5added0a4adc2e1` (#1041). The gap remains open; source publication, notification handoff and domain acceptance are not established. Preserve current main changes and regenerate artifacts before required pre-push checks.

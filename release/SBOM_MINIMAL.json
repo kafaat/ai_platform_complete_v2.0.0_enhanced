@@ -10995,7 +10995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e4bf11dcd20016754cceb61722fe5096dc9a83593bebe8dcf6d0fbd466f8d7df"
+          "content": "cf5993391876ebe28bb4f439f9b3eb3eb17ea093f3733d1a10da6e94acb63d3d"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -12725,7 +12725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8a9530ee4d9cb100821ad620a2e80380c2e444281e890b3af1e376a7ab8c9f2c"
+          "content": "9251028fe3092d5a6451b66e6e4762b2e894a82cbcfa11c0130226b588d88e23"
         }
       ],
       "name": "services/field-management-service/main.py",
@@ -12755,7 +12755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0cfa9cda9797c7c63b8e4aaba4a1ba64c86ecc947aab804973d71c0e2b80a881"
+          "content": "2abfc20fde7147dc0a095150742b44b5ff0e7afeead08cae718f660d9363d698"
         }
       ],
       "name": "services/field-management-service/tests/test_field_management_service_contract.py",
@@ -14565,7 +14565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f4c538219a21a65140e570de48b3d9c03352d35b20c94cda8fe0c19360255b62"
+          "content": "c7b8828718c1748b7198eee4e0d20ceac03ab08f9f74c8222bf81c401bc853c7"
         }
       ],
       "name": "services/raster-service/routers/observability.py",
@@ -31389,6 +31389,16 @@
         }
       ],
       "name": "shared/db_role_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "59581e9c8a6405e3d04cda9006d3082de9e6eab62f56b6a9d0bf979fd83c3149"
+        }
+      ],
+      "name": "shared/dependency_readiness.py",
       "type": "file"
     },
     {
