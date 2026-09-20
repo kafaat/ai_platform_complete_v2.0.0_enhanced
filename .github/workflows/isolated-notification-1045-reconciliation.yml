@@ -1,0 +1,175 @@
+name: Isolated notification PR 1045 reconciliation
+on:
+  push:
+    branches: [codex/repair-runner-1045-6dad236]
+permissions:
+  contents: write
+concurrency:
+  group: isolated-notification-1045-reconciliation
+  cancel-in-progress: false
+jobs:
+  reconcile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      EXPECTED_HEAD: 6dad23610e4fa9c97a2a4350b6cc1f9ec91f8e03
+      EXPECTED_BASE: 29e528c2751127e7c78baf7071e1a1ca578a93c1
+      COMMON_BASE: 69e9d447f86a8d8fa44ead709b6c0896faf8d954
+      TARGET_BRANCH: codex/notification-rollout-recovery-20260920
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: notification_rollout_test
+          POSTGRES_USER: notification_test
+          POSTGRES_PASSWORD: disposable_test_password
+        ports: ["5438:5432"]
+        options: >-
+          --health-cmd "pg_isready -U notification_test -d notification_rollout_test"
+          --health-interval 2s --health-timeout 3s --health-retries 20
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: 6dad23610e4fa9c97a2a4350b6cc1f9ec91f8e03
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Reconcile only measured generated conflicts and append-only journal
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/evidence"
+          git fetch --no-tags origin "+refs/heads/main:refs/remotes/origin/main" "+refs/heads/$TARGET_BRANCH:refs/remotes/origin/$TARGET_BRANCH"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test "$(git rev-parse origin/main)" = "$EXPECTED_BASE"
+          test "$(git rev-parse "origin/$TARGET_BRANCH")" = "$EXPECTED_HEAD"
+          test "$(git merge-base "$EXPECTED_HEAD" "$EXPECTED_BASE")" = "$COMMON_BASE"
+          git config user.name 'ChatGPT'
+          git config user.email 'noreply@openai.com'
+          rc=0
+          git merge --no-commit --no-ff "$EXPECTED_BASE" > "$RUNNER_TEMP/evidence/merge.log" 2>&1 || rc=$?
+          cat "$RUNNER_TEMP/evidence/merge.log"
+          test "$rc" -le 1
+          python - <<'PY'
+          import os, pathlib, subprocess
+          def git(*args):
+              return subprocess.check_output(['git', *args])
+          allowed = set('''decision-lineage/generated/DECISION_LINEAGE_REPORT.md
+          decision-lineage/generated/decision_lineage_graph.json
+          decision-lineage/generated/decision_lineage_nodes.csv
+          docs/architecture/db_writer_ownership_baseline.json
+          docs/architecture/fake_connection_debt.json
+          docs/architecture/generated_write_targets.json
+          docs/architecture/source_text_assertion_inventory.json
+          docs/architecture/tenant_guc_scope_baseline.json
+          docs/capability-registry/generated/impact/impact_index_summary.json
+          docs/capability-registry/generated/management/management_manifest.json
+          docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md
+          docs/capability-registry/generated/mapping/capability_mapping.json
+          docs/capability-registry/generated/mapping/mapping_manifest.json
+          execution-audit/generated/.audit.sha256
+          execution-audit/generated/EXECUTION_DEPENDENCY_AUDIT_REPORT.md
+          execution-audit/generated/execution_audit_summary.json
+          execution-audit/generated/execution_dependency_audit.json
+          governance/generated/STATIC_GOVERNANCE_ARTIFACTS.sha256
+          release/FILE_CHECKSUMS.sha256
+          release/SAHOOL_RELEASE_MANIFEST_20260626.json
+          release/SBOM_MINIMAL.json'''.splitlines())
+          conflicts = [p.decode('utf-8') for p in git('diff', '--name-only', '--diff-filter=U', '-z').split(b'\0') if p]
+          pathlib.Path(os.environ['RUNNER_TEMP'], 'evidence', 'conflicts.txt').write_text('\n'.join(conflicts)+'\n', encoding='utf-8')
+          unknown = set(conflicts) - allowed - {'sahool-brain/log.md'}
+          if unknown:
+              raise SystemExit(f'Unreviewed source conflicts: {sorted(unknown)}')
+          for path in conflicts:
+              if path != 'sahool-brain/log.md':
+                  subprocess.run(['git', 'checkout', os.environ['EXPECTED_BASE'], '--', path], check=True)
+                  continue
+              base = git('show', os.environ['COMMON_BASE']+':'+path)
+              head = git('show', os.environ['EXPECTED_HEAD']+':'+path)
+              main = git('show', os.environ['EXPECTED_BASE']+':'+path)
+              if not (head.startswith(base) and main.startswith(base)):
+                  raise SystemExit('Journal is not pure append on both parents; manual adjudication required')
+              pathlib.Path(path).write_bytes(main + head[len(base):])
+              subprocess.run(['git', 'add', '--', path], check=True)
+          if git('diff', '--name-only', '--diff-filter=U').strip():
+              raise SystemExit('Unresolved index entries remain')
+          print(f'Reconciled {len(conflicts)} measured conflicts; journal additions retained without deduplication')
+          PY
+          git diff --check
+          git diff --cached --check
+          git commit -m 'Merge main 29e528c into notification rollout, preserving both journal histories'
+      - name: Install existing notification and governance dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          pip install -r agents/notification/requirements.txt -c constraints-ci-tools.txt pytest==9.1.1 pytest-asyncio PyYAML==6.0.2 jsonschema==4.26.0 ruff
+          curl --fail --location --retry 3 --max-time 90 https://github.com/nats-io/nats-server/releases/download/v2.15.0/nats-server-v2.15.0-linux-amd64.tar.gz -o "$RUNNER_TEMP/nats-server.tar.gz"
+          echo "5d2c51caca950333aba84911df7d377f826f3a59ec36061c6539105084f65c92  $RUNNER_TEMP/nats-server.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/nats-server.tar.gz" -C "$RUNNER_TEMP"
+      - name: Require real broker, restricted Postgres and both source regressions
+        shell: bash
+        env:
+          NOTIFICATION_ROLLOUT_CERTIFICATION_REQUIRED: '1'
+          NOTIFICATION_TEST_NATS_SERVER: ${{ runner.temp }}/nats-server-v2.15.0-linux-amd64/nats-server
+          NOTIFICATION_TEST_DATABASE_URL: postgresql://notification_test:disposable_test_password@localhost:5438/notification_rollout_test
+        run: |
+          set -euo pipefail
+          pytest -q -rs --junitxml="$RUNNER_TEMP/evidence/targeted.xml" tests_v9/test_notification_queue_rollout.py tests_v9/test_notification_delivery_reliability.py tests_v9/test_notification_subjects_prefix.py tests_v9/test_nats_subject_ownership_contract.py tests_v9/test_recommendation_runtime_wiring.py tests_v9/test_text_encoding_locale.py | tee "$RUNNER_TEMP/evidence/tests.log"
+          python - <<'PY'
+          import os, pathlib, xml.etree.ElementTree as ET
+          root = ET.parse(pathlib.Path(os.environ['RUNNER_TEMP'], 'evidence', 'targeted.xml')).getroot()
+          if list(root.iter('skipped')):
+              raise SystemExit('Targeted certification contains skipped tests')
+          PY
+      - name: Canonical fixed-point regeneration and release validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          export GITHUB_SHA="$(git rev-parse HEAD)"
+          git add -A
+          bash scripts/ci/regenerate_all_generated.sh 2>&1 | tee "$RUNNER_TEMP/evidence/regeneration.log"
+          git add -A
+          git diff --cached --check
+          if ! git diff --cached --quiet; then
+            git commit -m 'chore(generated): reconcile notification rollout artifacts with main 29e528c'
+          fi
+      - name: Verify preserved source, all generated artifacts and fast preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          export GITHUB_SHA="$(git rev-parse HEAD)"
+          git diff --exit-code "$EXPECTED_HEAD" -- .github/workflows/notification-rollout.yml agents/notification/agent.py agents/notification/requirements.txt shared/notification_consumers.py tests_v9/test_notification_queue_rollout.py tests_v9/test_nats_subject_ownership_contract.py tests_v9/test_notification_subjects_prefix.py docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md
+          git diff --exit-code "$EXPECTED_BASE" -- services/sahool-platform/api/routers/recommendations.py shared/ai/recommendation_runtime/flags.py tests_v9/test_recommendation_runtime_wiring.py docs/evidence/ai_runtime_wiring_live_certification.json docs/architecture/platform_extraction_map.json sahool-brain/gaps/registry.md
+          python scripts/ci/brain_append_only_guard.py --base "$EXPECTED_BASE" --head HEAD | tee "$RUNNER_TEMP/evidence/brain.log"
+          BASE="$EXPECTED_BASE" bash scripts/ci/preflight.sh --fast --no-fetch | tee "$RUNNER_TEMP/evidence/preflight.log"
+          if grep -q '⊘' "$RUNNER_TEMP/evidence/preflight.log"; then
+            echo 'Fast preflight skipped at least one gate; refusing publication' >&2
+            exit 1
+          fi
+          python scripts/ci/verify_all_generated.py --check | tee "$RUNNER_TEMP/evidence/generated-check.log"
+          python scripts/release/validate_release_package.py | tee "$RUNNER_TEMP/evidence/release-check.log"
+          git diff --exit-code
+          git diff --cached --exit-code
+          test -z "$(git ls-files --others --exclude-standard)"
+          git merge-base --is-ancestor "$EXPECTED_HEAD" HEAD
+          git merge-base --is-ancestor "$EXPECTED_BASE" HEAD
+          git show -s --format='%H%n%T%n%P' HEAD > "$RUNNER_TEMP/evidence/candidate.txt"
+          git diff --stat "$EXPECTED_HEAD" HEAD > "$RUNNER_TEMP/evidence/change-stat.txt"
+      - name: Publish isolated candidate only; never main or the PR branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$EXPECTED_BASE"
+          test "$(git ls-remote origin "refs/heads/$TARGET_BRANCH" | cut -f1)" = "$EXPECTED_HEAD"
+          candidate="codex/notification-1045-candidate-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          git push origin "HEAD:refs/heads/$candidate"
+          printf 'candidate_branch=%s\ncandidate_sha=%s\n' "$candidate" "$(git rev-parse HEAD)" | tee "$RUNNER_TEMP/evidence/published.txt" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload measured evidence, including failure diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: notification-1045-reconciliation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/evidence/
+          if-no-files-found: error
+          retention-days: 7
