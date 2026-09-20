@@ -182,6 +182,150 @@ def test_the_generator_emits_no_verdict(tmp_path, monkeypatch):
     assert set(manifest["evidence_semantics"]) == {"resolved", "declared", "unresolved"}
 
 
+# ── سطحُ ملكيّة الكتابة: الترقيةُ بالقياس لا بالتحرير ──────────────────────────
+
+
+def _ownership_tree(
+    tmp_path: Path, *, contract: str | None, source: tuple[str, str] | None
+) -> Path:
+    """مِرقاةٌ تحمل **مُدخَلَي القياس الحقيقيَّين**: عقدٌ وملفُّ مصدرٍ يكتب.
+
+    والمحرّكُ يُستورَد من `scripts/ci/` بمسارٍ نسبيٍّ إلى `ROOT`، فيُنسَخ إليها —
+    وإلّا قاس الشاهدُ شجرةَ المستودع الحقيقيّة وهو يظنّ أنّه يقيس مِرقاته.
+    """
+    tree = _fixture_tree(tmp_path, consumers=["svc-b"])
+    guard_src = ROOT / "scripts" / "ci" / "db_writer_ownership_guard.py"
+    dest = tree / "scripts" / "ci"
+    dest.mkdir(parents=True, exist_ok=True)
+    (dest / "db_writer_ownership_guard.py").write_text(
+        guard_src.read_text(encoding="utf-8"), encoding="utf-8"
+    )
+    if contract is not None:
+        arch = tree / "docs" / "architecture"
+        arch.mkdir(parents=True, exist_ok=True)
+        (arch / "db_ownership.yml").write_text(contract, encoding="utf-8")
+    if source is not None:
+        rel, body = source
+        target = tree / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(body, encoding="utf-8")
+    return tree
+
+
+def _ownership(tmp_path: Path, monkeypatch, **kwargs):
+    tree = _ownership_tree(tmp_path, **kwargs)
+    monkeypatch.setattr(inventory, "ROOT", tree)
+    monkeypatch.setattr(inventory, "_git_sha", lambda: "0" * 40)
+    out = tree / "inventory"
+    inventory.build(out)
+    return _load(out, "database_ownership.json"), _load(out, "inventory_manifest.json")
+
+
+def _contract_with(**tables: list[str]) -> str:
+    """عقدٌ صغيرٌ بالشكل الذي يقرؤه المحرّك — ``tables:`` ثمّ جدولٌ لكلّ مفتاح.
+
+    ``load_contract`` ترفض عقداً دون مئة جدول (حمايةٌ من صفرٍ كاذب)، فتُحشى البقيّةُ
+    بجداولَ خاملة: الحشوُ يُرضي شرطَ القراءة ولا يُدخِل حافّةً في المقيس.
+    """
+    lines = ["tables:"]
+    for name, writers in tables.items():
+        lines += [f"  {name}:", f"    owner: {writers[0]}", f"    writers: [{', '.join(writers)}]"]
+    for index in range(200):
+        lines += [f"  filler_{index}:", "    owner: nobody", "    writers: [nobody]"]
+    return "\n".join(lines) + "\n"
+
+
+def test_the_ownership_surface_stays_unmeasured_without_a_contract(tmp_path, monkeypatch):
+    """**«الترقيةُ بالقياس لا بالتحرير» خاصّيّةٌ تُختبَر، لا جملةٌ تُقال.**
+
+    شجرةٌ بلا عقدٍ لا تُنتِج صفوفاً، فيبقى السطحُ `not_measured` بسؤاله ومرشّحاته —
+    ولو أُرجِعت صفوفٌ فارغةٌ بحالة `measured` لكان ذلك ادّعاءً بهيئة قياس.
+    """
+    surface, manifest = _ownership(tmp_path, monkeypatch, contract=None, source=None)
+    assert surface["measurement_state"] == "not_measured"
+    assert surface["rows"] == [] and surface["question_to_resolve"].strip()
+    # **والمقيسُ سطحي وحدَه، لا «كلُّ الأسطح».** كانت هذه الحالةُ تشترط
+    # `not_measured == declared` — وهو ثابتٌ صحيحٌ **بالمصادفة** يوم كانت العشرةُ كلُّها
+    # غيرَ مقيسة، ويصير خاطئاً يومَ يُرقّي أحدٌ سطحاً آخر. وقد وقع ذلك فعلاً: ترقيةُ
+    # `frontend_consumers` في #1044 تقع على هذه المِرقاة، فاحمرّت الحالةُ عند الدمج
+    # وهي تصف عملاً صحيحاً — أي «بوّابةٌ لا تُغلَق بعملٍ صحيح».
+    assert manifest["counts"]["surfaces_not_measured"] >= 1
+    assert manifest["counts"]["surfaces_declared"] >= manifest["counts"]["surfaces_not_measured"]
+
+
+def test_a_write_site_the_contract_authorises_is_resolved_not_merely_declared(
+    tmp_path, monkeypatch
+):
+    """موضعُ المصدر هو ما يرفع حافّةً من `declared` إلى `resolved` — وهو الدليلُ الذي
+    كان المسحُ يلتقطه ثمّ يُسقِطه قبل هذه الشريحة."""
+    surface, manifest = _ownership(
+        tmp_path,
+        monkeypatch,
+        contract=_contract_with(widgets=["svc-a"]),
+        source=("services/svc-a/store.py", 'SQL = "INSERT INTO widgets (id) VALUES (1)"\n'),
+    )
+    assert surface["measurement_state"] == "measured"
+    row = next(r for r in surface["rows"] if r["table"] == "widgets" and r["component"] == "svc-a")
+    assert row["evidence_state"] == "resolved"
+    assert row["contract_state"] == "authorised"
+    assert "services/svc-a/store.py" in row["sites"]
+    assert manifest["counts"]["surfaces_not_measured"] < manifest["counts"]["surfaces_declared"]
+
+
+def test_a_declared_writer_with_no_located_site_stays_declared(tmp_path, monkeypatch):
+    """**ولا يُرقّى بالعقد وحده.** ٢١٢ من ٣٩١ حافّةً مُعلَنةً في الشجرة الحقيقيّة بلا
+    موضعٍ مقيس؛ ترقيتُها بحكم الإعلان كانت ستجعل السطحَ يصف عقداً لا شجرة."""
+    surface, _ = _ownership(
+        tmp_path, monkeypatch, contract=_contract_with(widgets=["svc-a"]), source=None
+    )
+    row = next(r for r in surface["rows"] if r["table"] == "widgets")
+    assert row["evidence_state"] == "declared"
+    assert row["sites"] == []
+
+
+def test_a_measured_write_the_contract_forbids_is_kept_not_dropped(tmp_path, monkeypatch):
+    """كتابةٌ مقيسةٌ لم يأذن بها العقدُ **حافّةٌ حقيقيّة**. إسقاطُها يجعل السطحَ يصف
+    ما يجب أن يكون لا ما هو كائن — وهو الصنفُ الذي وُجِد هذا الجردُ لأجله."""
+    surface, _ = _ownership(
+        tmp_path,
+        monkeypatch,
+        contract=_contract_with(widgets=["svc-a"]),
+        source=("services/svc-b/rogue.py", 'SQL = "UPDATE widgets SET id = 2"\n'),
+    )
+    row = next(r for r in surface["rows"] if r["component"] == "svc-b")
+    assert row["contract_state"] == "not_authorised"
+    assert row["evidence_state"] == "resolved" and row["sites"]
+    assert surface["counts"]["by_contract_state"]["not_authorised"] >= 1
+
+
+def test_the_surface_carries_its_blind_spots_inside_the_artifact(tmp_path, monkeypatch):
+    """حدُّ الأداة حقلٌ يُقرأ لا تعليقٌ بجانبها — وهذا هو درسُ هذا السطح بعينه.
+
+    بلا ذلك يُقرأ `declared` نفياً لوجود كاتب، وهو أخطرُ من `[]` العارية لأنّه يحمل
+    هيئةَ القياس.
+    """
+    surface, _ = _ownership(
+        tmp_path,
+        monkeypatch,
+        contract=_contract_with(widgets=["svc-a"]),
+        source=("services/svc-a/store.py", 'SQL = "INSERT INTO widgets (id) VALUES (1)"\n'),
+    )
+    assert surface["blind_spots_ar"], "سطحٌ مقيسٌ بلا حدودٍ مُعلَنة يُقرأ أوسعَ ممّا قاس"
+    assert any(".sql" in line for line in surface["blind_spots_ar"])
+    assert surface["what_this_does_not_claim_ar"].strip()
+
+
+def test_the_surface_names_the_blocking_engine_and_adds_no_second_scanner():
+    """محرّكان يُجيبان سؤالاً واحداً ينحرفان بصمت — الصنفُ المُسجَّل في هذا المستودع.
+
+    فالسطحُ يُسمّي المحرّكَ الحاجب، **ولا يُعيد تعريف نمطِ الكتابة** هنا.
+    """
+    source = (ROOT / "scripts/diagnostics/build_main_inventory.py").read_text(encoding="utf-8")
+    assert "db_writer_ownership_guard.py" in source
+    for token in ("INSERT\\s+INTO", "DELETE\\s+FROM", "INSERT INTO"):
+        assert token not in source, f"ماسحٌ ثانٍ للكتابة داخل الجرد: {token!r}"
+
+
 # ── حسمُ الحوافّ إلى أدلّةِ مصدر — البند ١د ───────────────────────────────────────
 
 
