@@ -22,8 +22,14 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
-      - name: Install pytest
-        run: pip install --quiet pytest
+      # `GUARD-IMPORTS-A-DEPENDENCY-ITS-JOB-NEVER-INSTALLS-01` وقع عليّ هنا: كتبتُ
+      # `pip install pytest` وحدَها فسقطت الوظيفةُ على `import httpx` في
+      # `tests_v9/conftest.py` — **أخضرُ قِيس في عالمٍ غير الذي يُشغَّل فيه**، لأنّ آلتي
+      # تحمل الحزمةَ والعدّاءُ لا يحملها. والعلاجُ ليس إضافةَ `httpx` بيدٍ (قائمةٌ تنحرف
+      # عن الشجرة عند أوّل استيرادٍ جديد) بل **ملفُّ التبعيّات القانونيّ نفسُه** الذي
+      # تُثبِّته وظيفةُ *Unit Tests*: مصدرٌ واحدٌ للحقيقة لا نسخةٌ ثانية.
+      - name: Install the declared test dependencies
+        run: pip install -r tests_v9/requirements-test.txt
       - name: Generator contract (unknown stays unknown · a changed relation shows up)
         run: python -m pytest -q tests_v9/test_main_inventory_generator.py
       - name: Build the inventory twice from the same tree
