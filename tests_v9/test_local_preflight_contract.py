@@ -20,6 +20,7 @@ invariants exist to prevent.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -67,7 +68,11 @@ def test_authority_is_delegated_to_the_repository_sweep_and_gate():
 def test_no_hand_maintained_sensitivity_table():
     """The engine answers this question; a curated list only goes stale."""
     text = _text()
-    assert "SENSITIVE=" not in text
+    assert "SENSITIVE=" not in text, (
+        "جدولُ حساسيّةٍ يُصان باليد يُجيب «أيَّ قدرةٍ يمسّ هذا؟» من قائمةٍ نسّقها أحدٌ مرّة، "
+        "بينما تُجيبه البوّابةُ الحاجبة من خريطةٍ مُشتقّةٍ من الشجرة — فيَبيت الجدولُ "
+        "ويُقرأ قياساً. أعِد السؤالَ إلى المحرّك لا إلى قائمة."
+    )
     assert "db_ownership.yml" not in text, (
         "naming a sensitive file here reinstates the table this replaced"
     )
@@ -148,7 +153,11 @@ def test_skips_are_counted_and_the_summary_refuses_to_overclaim():
         "المصدرُ المُلزِم هو GUARD_CATALOGUE المولَّد، واللقطاتُ المؤرَّخة موضعُها "
         "sahool-brain/reports/guard_surface_ledger.md مقيَّدةً بـSHA وبصمة الكتالوج"
     )
-    assert "ادفع بثقة" not in text
+    assert "ادفع بثقة" not in text, (
+        "أخضرُ هذه الأداة يعني «ما قِيس مرّ» لا «CI ستخضرّ» — وهي تغطّي أقلّيّةَ البوّابات "
+        "(§٣.١٧). فعبارةٌ تدعو إلى الثقة تُحوّل قياساً جزئيّاً إلى إذنِ دفع، وهو الادّعاءُ "
+        "الذي وُجِدت ثوابتُ CI في هذا المستودع لتمنعه."
+    )
 
 
 def test_it_reports_index_state_not_only_untracked_files():
@@ -573,6 +582,229 @@ def test_the_platform_suite_skip_reason_names_non_version_pin_failures(tmp_path)
     assert missing_requirements.returncode != 0
     assert "تعذّرت قراءة" in missing_requirements.stderr
     assert "إصدارُ FastAPI المثبَّت" not in missing_requirements.stderr
+
+
+CONSTRAINTS = ROOT / "constraints-ci-tools.txt"
+
+
+def _run_ruff_pin_block(
+    tmp_path: Path,
+    *,
+    constraint_pins: list[str] | None,
+    installed: str | None,
+    workflow_install: str | None = "pip install -c constraints-ci-tools.txt ruff mypy PyYAML",
+) -> subprocess.CompletedProcess[str]:
+    """يُشغّل كتلةَ شرط ruff المشحونة على شجرةٍ مُختلَقة و`ruff` مُختلَق في `PATH`.
+
+    `constraint_pins=None` ⇒ لا ملفّ قيودٍ أصلاً · `installed=None` ⇒ لا `ruff` في المسار ·
+    `workflow_install=None` ⇒ `ci.yml` بلا سطر تثبيتٍ لـruff.
+    """
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    if constraint_pins is not None:
+        body = "# ملفُّ قيودٍ مُختلَق للقياس\n"
+        body += "".join(f"ruff=={pin}\n" for pin in constraint_pins)
+        (tmp_path / "constraints-ci-tools.txt").write_text(body, encoding="utf-8")
+
+    (tmp_path / ".github/workflows").mkdir(parents=True)
+    workflow = "jobs:\n  lint:\n    steps:\n"
+    # تعليقٌ يذكر الأمرَ حرفيّاً — يجب ألّا يُعَدّ أمراً. وقع هذا فعلاً أثناء البناء.
+    workflow += "      # ثبّت إصدار ruff: `pip install ruff` (طليق) يجلب أحدث إصدار\n"
+    if workflow_install is not None:
+        workflow += f"      - run: {workflow_install}\n"
+    (tmp_path / ".github/workflows/ci.yml").write_text(workflow, encoding="utf-8")
+
+    env = dict(os.environ)
+    if installed is not None:
+        binder = tmp_path / "bin"
+        binder.mkdir(parents=True, exist_ok=True)
+        shim = binder / "ruff"
+        shim.write_text(f'#!/bin/sh\necho "ruff {installed}"\n', encoding="utf-8")
+        shim.chmod(0o755)
+        env["PATH"] = f"{binder}:{env['PATH']}"
+    else:
+        # مسارٌ خالٍ عمداً: الكتلةُ يجب أن تقول «تعذّر تشغيل ruff» لا أن تنهار.
+        empty = tmp_path / "empty-bin"
+        empty.mkdir(parents=True, exist_ok=True)
+        env["PATH"] = str(empty)
+
+    return subprocess.run(
+        [sys.executable, "-"],
+        input=_extract_block("RUFFPINPY"),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        cwd=tmp_path,
+        env=env,
+        timeout=120,
+    )
+
+
+def test_the_lint_gate_is_skipped_loudly_when_ruff_differs_from_the_ci_pin(tmp_path):
+    """**الشرطُ مقيسٌ لا احتياط، ومرّتين في هذه الشجرة.**
+
+    كتلةُ §٢ الورقيّة كانت تحمل `pip install -q ruff==0.15.8`؛ ولمّا صارت §٢ سكربتاً
+    سقط التثبيت، و`requirements-dev.txt` يُطلِقه (`ruff>=0.4.0`). و0.16 تُنسّق كتلَ
+    الكود داخل Markdown فيقفز المفحوص ٣٣٣٣ ⇒ ٤٢٠٠: `log.md:4874` يسجّلها بـ0.16.0،
+    وتكرّرت بـ0.16.7 على `98a61c5f` بينما CI خضراء على الشجرة نفسها. فالتطابقُ ⇒ 0،
+    والاختلافُ ⇒ غيرُ صفر — تخطٍّ مُعلَن بدل حمرةٍ بيئيّة تُقرأ شيفريّة.
+    """
+    assert (
+        _run_ruff_pin_block(
+            tmp_path / "match", constraint_pins=["0.15.8"], installed="0.15.8"
+        ).returncode
+        == 0
+    )
+
+    mismatch = _run_ruff_pin_block(
+        tmp_path / "mismatch", constraint_pins=["0.15.8"], installed="0.16.7"
+    )
+    assert mismatch.returncode != 0, "إصدارٌ مختلفٌ يجب أن يُخرِج اللِّنتَ إلى التخطّي المُعلَن"
+    assert "إصدارُ ruff المثبَّت" in mismatch.stderr
+    assert "0.16.7" in mismatch.stderr and "0.15.8" in mismatch.stderr, (
+        "الرسالةُ تُسمّي الإصدارين — «غيرُ متطابق» وحدها لا تقول ما يُفعَل"
+    )
+    assert "pip install -c constraints-ci-tools.txt ruff" in mismatch.stderr, (
+        "العلاجُ سطرٌ يُنسَخ لا استنتاج — ومن المصدر المشترَك لا بتثبيتٍ رابع"
+    )
+
+
+def test_the_ruff_pin_is_derived_from_the_shared_constraints_not_typed_into_the_tool():
+    """الصنفُ الأوّل الذي يرفضه عقدُ هذا الملفّ: رقمٌ يُكتَب في السكربت يبيت.
+
+    والمصدرُ **واحدٌ** تشترك فيه CI وملفّا المتطلّبات وسكربتُ الجناح الكامل — فأربعةُ
+    أرقامٍ متطابقةٍ اليوم أربعةُ انحرافاتٍ غداً. ويُقاس بأنّ الكتلةَ تتبع ملفَّ القيود
+    إلى قيمةٍ **مختلقة** لا تساوي المثبَّتَ في الشجرة.
+    """
+    block = _extract_block("RUFFPINPY")
+    assert "constraints-ci-tools.txt" in block, "التثبيتُ يُشتقّ من المصدر المشترَك"
+
+    real_pin = re.findall(
+        r"^ruff==([0-9][0-9A-Za-z.]*)$", CONSTRAINTS.read_text(encoding="utf-8"), re.M
+    )
+    assert real_pin, "ملفُّ القيود فقد تثبيتَ ruff — العقدُ هنا يفترض وجودَه"
+    assert real_pin[0] not in block, (
+        f"إصدارُ ruff ({real_pin[0]}) مكتوبٌ في السكربت — نسخةٌ ثانية تنحرف عن المصدر"
+    )
+
+
+def test_every_place_that_installs_ruff_goes_through_the_shared_constraints():
+    """الوحدةُ تُقاس على المستهلكين كلِّهم، لا على الملفّ الذي أُصلِح وحدَه.
+
+    كان الإصدارُ مثبَّتاً في `ci.yml` وحدَها وثلاثةُ مستهلكين يُطلِقونه. فإن بقي واحدٌ
+    طليقاً عاد العطلُ من بابه — ومن يُثبّت من ذلك الملفّ يقيس بغير ما يقيس به الحاجب.
+    """
+    consumers = {
+        ".github/workflows/ci.yml": "- run: pip install -c constraints-ci-tools.txt ruff",
+        "requirements-dev.txt": "-c constraints-ci-tools.txt",
+        "tests_v9/requirements-test.txt": "-c ../constraints-ci-tools.txt",
+        "run_full_test_suite.sh": "-c constraints-ci-tools.txt",
+    }
+    for relative, expected in consumers.items():
+        text = (ROOT / relative).read_text(encoding="utf-8")
+        assert expected in text, f"{relative} لا يُثبّت من المصدر المشترَك: ينقصه {expected!r}"
+
+    # ولا مستهلكَ يستعيد تثبيتاً خاصّاً به إلى جانب القيد — نسخةٌ ثانية بثوبٍ آخر.
+    for relative in consumers:
+        text = (ROOT / relative).read_text(encoding="utf-8")
+        commands = [ln.split("#", 1)[0] for ln in text.splitlines()]
+        assert not [ln for ln in commands if re.search(r"\bruff==", ln)], (
+            f"{relative} يحمل تثبيتَ ruff خاصّاً به — المصدرُ يجب أن يبقى واحداً"
+        )
+
+    # **وكتلةُ §٢ في الرنبوك مستهلكٌ خامس بحكم الأمر الواقع** — تُنسَخ وتُلصَق، وكانت
+    # تحمل الرقمَ حرفيّاً. والمقيسُ **أوامرُها** لا نثرُها: §٣.٣ يروي العطلَ التاريخيّ
+    # بذكر `pip install -q ruff==0.15.8` داخل نصٍّ، وذاك سردٌ لا وصفة.
+    runbook = (ROOT / "docs/runbooks/CI_GATES_AND_PRE_PUSH_PROTOCOL.md").read_text(encoding="utf-8")
+    pasteable = [ln.strip() for ln in runbook.splitlines() if ln.strip().startswith("pip install")]
+    assert pasteable, "كتلةُ §٢ فقدت سطرَ تثبيت أدوات اللِّنت"
+    assert not [ln for ln in pasteable if "ruff==" in ln], (
+        f"كتلةُ §٢ تُملي رقماً يُنسَخ بدل المصدر المشترَك: {pasteable}"
+    )
+
+
+def test_the_constraints_file_must_still_govern_ci_or_the_comparison_is_void(tmp_path):
+    """ملفُّ قيودٍ لا تُحيل إليه CI **إعلانٌ لا يحكم شيئاً**.
+
+    بلا هذا البند تُعدَّل الوظيفةُ إلى `pip install ruff` طليقاً، ويبقى هذا السكربتُ
+    يقارن المثبَّتَ بملفٍّ لا تقرؤه البوّابة — أخضرُ عن سؤالٍ لم يعد مطروحاً. وهو الصنفُ
+    الذي يطارده هذا المستودع: إعلانٌ يصف حكماً لا يقع.
+    """
+    unconstrained = _run_ruff_pin_block(
+        tmp_path / "unconstrained",
+        constraint_pins=["0.15.8"],
+        installed="0.15.8",
+        workflow_install="pip install ruff mypy PyYAML",
+    )
+    assert unconstrained.returncode == 6
+    assert "لم تعد تُثبّت ruff عبر" in unconstrained.stderr
+
+    absent_install = _run_ruff_pin_block(
+        tmp_path / "no-install",
+        constraint_pins=["0.15.8"],
+        installed="0.15.8",
+        workflow_install=None,
+    )
+    assert absent_install.returncode == 6
+
+    # **والتعليقُ ليس أمراً.** شجرةُ القياس تحمل سطرَ شرحٍ يذكر `pip install ruff`
+    # حرفيّاً؛ مسحٌ نصّيٌّ خام يعدّه تثبيتاً طليقاً ويحجب على شرح. وقع هذا أثناء البناء.
+    assert (
+        _run_ruff_pin_block(
+            tmp_path / "comment-only", constraint_pins=["0.15.8"], installed="0.15.8"
+        ).returncode
+        == 0
+    )
+
+
+def test_a_fabricated_pin_is_followed_so_the_upgrade_travels_on_its_own(tmp_path):
+    """لو كان الرقمُ منسوخاً لمرّ هذا أخضرَ: القيدُ يقول `9.9.9` والمثبَّت `0.15.8`."""
+    followed = _run_ruff_pin_block(
+        tmp_path / "fabricated", constraint_pins=["9.9.9"], installed="0.15.8"
+    )
+    assert followed.returncode != 0
+    assert "9.9.9" in followed.stderr
+
+
+def test_the_ruff_pin_skip_reason_names_non_version_failures(tmp_path):
+    """كلُّ سببٍ رمزُ خروجٍ خاصّ به — «غيرُ صفر» وحدها تُخفي أيَّ عطلٍ وقع."""
+    missing_constraints = _run_ruff_pin_block(
+        tmp_path / "no-constraints", constraint_pins=None, installed="0.15.8"
+    )
+    assert missing_constraints.returncode == 2
+    assert "تعذّرت قراءة" in missing_constraints.stderr
+
+    no_pin = _run_ruff_pin_block(tmp_path / "no-pin", constraint_pins=[], installed="0.15.8")
+    assert no_pin.returncode == 3
+    assert "لم يُعثر على تثبيت" in no_pin.stderr
+
+    # تثبيتان مختلفان: الاختيارُ بينهما تخمين، والتخمينُ هو ما يُرفَض هنا.
+    ambiguous = _run_ruff_pin_block(
+        tmp_path / "ambiguous", constraint_pins=["0.15.8", "0.16.7"], installed="0.15.8"
+    )
+    assert ambiguous.returncode == 5
+    assert "متعدّدة" in ambiguous.stderr
+
+    absent = _run_ruff_pin_block(tmp_path / "absent", constraint_pins=["0.15.8"], installed=None)
+    assert absent.returncode == 4
+    assert "إصدارُ ruff المثبَّت" not in absent.stderr
+
+
+def test_the_ruff_skip_is_counted_and_gates_the_fix_branch_too():
+    """`--fix` أخطرُ من الفحص: `ruff format .` بإصدارٍ أحدث **يكتب** في تلك الملفّات.
+
+    فالشرطُ يجب أن يسبق الفرعين معاً، لا أن يحرس `--check` ويترك الكتابةَ طليقة.
+    """
+    text = _text()
+    gate_at = text.index('if [ "$ruff_pin_rc" -eq 0 ]')
+    skip_at = text.index('echo "   ⊘ متخطّاة: ${ruff_pin_reason')
+    assert text.index('run "١ب) ruff format ."') > gate_at, (
+        "فرعُ الكتابة يجب أن يقع داخل الشرط — وإلّا نسّق إصدارٌ غيرُ مثبَّت شجرتَك"
+    )
+    assert text.index('run "١أ) ruff check ."') > gate_at
+    assert text.index('run "١ب) ruff format ."') < skip_at
+    assert "skipped=$((skipped + 2))" in text[skip_at : skip_at + 400], (
+        "بوّابتان لم تُقاسا ⇒ يُعَدّان اثنتين؛ التخطّي المُبتلَع يُقرأ نجاحاً"
+    )
 
 
 def test_the_commit_claim_step_says_it_reads_committed_messages_only():
