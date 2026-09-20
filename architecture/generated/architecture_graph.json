@@ -317,7 +317,7 @@
         "services/sahool-platform"
       ],
       "kind": "service",
-      "incoming": 5,
+      "incoming": 4,
       "outgoing": 31,
       "orphan": false
     },
@@ -423,7 +423,7 @@
       "id": "sahool-agriai-engine",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 1,
+      "incoming": 0,
       "outgoing": 6,
       "orphan": false
     },
@@ -431,7 +431,7 @@
       "id": "sahool-ai-agronomist",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 1,
+      "incoming": 0,
       "outgoing": 4,
       "orphan": false
     },
@@ -439,7 +439,7 @@
       "id": "sahool-auth",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 4,
+      "incoming": 3,
       "outgoing": 6,
       "orphan": false
     },
@@ -471,7 +471,7 @@
       "id": "sahool-erp-bridge",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 2,
+      "incoming": 1,
       "outgoing": 3,
       "orphan": false
     },
@@ -503,7 +503,7 @@
       "id": "sahool-frontend",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 2,
+      "incoming": 1,
       "outgoing": 0,
       "orphan": false
     },
@@ -511,7 +511,7 @@
       "id": "sahool-guardrails-engine",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 3,
+      "incoming": 2,
       "outgoing": 5,
       "orphan": false
     },
@@ -519,7 +519,7 @@
       "id": "sahool-indicators-service",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 3,
+      "incoming": 2,
       "outgoing": 4,
       "orphan": false
     },
@@ -535,7 +535,7 @@
       "id": "sahool-knowledge-graph",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 2,
+      "incoming": 1,
       "outgoing": 0,
       "orphan": false
     },
@@ -543,7 +543,7 @@
       "id": "sahool-local-ai-rag",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 2,
+      "incoming": 1,
       "outgoing": 4,
       "orphan": false
     },
@@ -551,7 +551,7 @@
       "id": "sahool-market-mcp",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 2,
+      "incoming": 1,
       "outgoing": 2,
       "orphan": false
     },
@@ -616,14 +616,14 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 32,
+      "outgoing": 11,
       "orphan": false
     },
     {
       "id": "sahool-notification-agent",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 3,
+      "incoming": 2,
       "outgoing": 8,
       "orphan": false
     },
@@ -695,7 +695,7 @@
       "id": "sahool-rag-retrieval",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 2,
+      "incoming": 1,
       "outgoing": 3,
       "orphan": false
     },
@@ -727,7 +727,7 @@
       "id": "sahool-raster-service",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 1,
+      "incoming": 0,
       "outgoing": 4,
       "orphan": false
     },
@@ -743,7 +743,7 @@
       "id": "sahool-remote-sensing-workspace-bff",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 1,
+      "incoming": 0,
       "outgoing": 2,
       "orphan": false
     },
@@ -767,7 +767,7 @@
       "id": "sahool-scout-ingest",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 1,
+      "incoming": 0,
       "outgoing": 2,
       "orphan": false
     },
@@ -799,7 +799,7 @@
       "id": "sahool-supervisor-agent",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 2,
+      "incoming": 1,
       "outgoing": 2,
       "orphan": false
     },
@@ -815,7 +815,7 @@
       "id": "sahool-tts-service",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 2,
+      "incoming": 1,
       "outgoing": 1,
       "orphan": false
     },
@@ -831,7 +831,7 @@
       "id": "sahool-vegetation-analysis",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 3,
+      "incoming": 2,
       "outgoing": 1,
       "orphan": false
     },
@@ -839,7 +839,7 @@
       "id": "sahool-video-processor",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 1,
+      "incoming": 0,
       "outgoing": 6,
       "orphan": false
     },
@@ -871,7 +871,7 @@
       "id": "sahool-weather-service",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 2,
+      "incoming": 1,
       "outgoing": 3,
       "orphan": false
     },
@@ -2081,33 +2081,9 @@
     },
     {
       "source": "sahool-nginx",
-      "target": "platform",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-agriai-engine",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-ai-agronomist",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
       "target": "sahool-auth",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-auth",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "sahool-nginx",
@@ -2117,21 +2093,9 @@
     },
     {
       "source": "sahool-nginx",
-      "target": "sahool-erp-bridge",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
       "target": "sahool-frontend",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-frontend",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "sahool-nginx",
@@ -2141,27 +2105,9 @@
     },
     {
       "source": "sahool-nginx",
-      "target": "sahool-guardrails-engine",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
       "target": "sahool-indicators-service",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-indicators-service",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-knowledge-graph",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "sahool-nginx",
@@ -2171,21 +2117,9 @@
     },
     {
       "source": "sahool-nginx",
-      "target": "sahool-local-ai-rag",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
       "target": "sahool-market-mcp",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-market-mcp",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "sahool-nginx",
@@ -2195,51 +2129,9 @@
     },
     {
       "source": "sahool-nginx",
-      "target": "sahool-notification-agent",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-rag-retrieval",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-raster-service",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-remote-sensing-workspace-bff",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-scout-ingest",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
       "target": "sahool-supervisor-agent",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-supervisor-agent",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-tts-service",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "sahool-nginx",
@@ -2249,27 +2141,9 @@
     },
     {
       "source": "sahool-nginx",
-      "target": "sahool-vegetation-analysis",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-video-processor",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
-    },
-    {
-      "source": "sahool-nginx",
       "target": "sahool-weather-service",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.fixed.yml"
-    },
-    {
-      "source": "sahool-nginx",
-      "target": "sahool-weather-service",
-      "kind": "compose-depends-on",
-      "evidence": "docker-compose.v9.yml"
     },
     {
       "source": "sahool-notification-agent",
@@ -2935,11 +2809,11 @@
   "cycles": [],
   "summary": {
     "nodes": 122,
-    "edges": 315,
+    "edges": 294,
     "orphans": 5,
     "cycles": 0,
     "code_edges": 78,
-    "compose_edges": 237
+    "compose_edges": 216
   },
-  "content_sha256": "1abdae701f4c17fce1a6e296d8b8146225c8797dce072b55f0423f3c3363125c"
+  "content_sha256": "83eb7b9622a75238707b78684ba3aa3647d23d1e0c1bf674e5a803dedb35d561"
 }
