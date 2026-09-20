@@ -68,7 +68,11 @@ def test_authority_is_delegated_to_the_repository_sweep_and_gate():
 def test_no_hand_maintained_sensitivity_table():
     """The engine answers this question; a curated list only goes stale."""
     text = _text()
-    assert "SENSITIVE=" not in text
+    assert "SENSITIVE=" not in text, (
+        "جدولُ حساسيّةٍ يُصان باليد يُجيب «أيَّ قدرةٍ يمسّ هذا؟» من قائمةٍ نسّقها أحدٌ مرّة، "
+        "بينما تُجيبه البوّابةُ الحاجبة من خريطةٍ مُشتقّةٍ من الشجرة — فيَبيت الجدولُ "
+        "ويُقرأ قياساً. أعِد السؤالَ إلى المحرّك لا إلى قائمة."
+    )
     assert "db_ownership.yml" not in text, (
         "naming a sensitive file here reinstates the table this replaced"
     )
@@ -149,7 +153,11 @@ def test_skips_are_counted_and_the_summary_refuses_to_overclaim():
         "المصدرُ المُلزِم هو GUARD_CATALOGUE المولَّد، واللقطاتُ المؤرَّخة موضعُها "
         "sahool-brain/reports/guard_surface_ledger.md مقيَّدةً بـSHA وبصمة الكتالوج"
     )
-    assert "ادفع بثقة" not in text
+    assert "ادفع بثقة" not in text, (
+        "أخضرُ هذه الأداة يعني «ما قِيس مرّ» لا «CI ستخضرّ» — وهي تغطّي أقلّيّةَ البوّابات "
+        "(§٣.١٧). فعبارةٌ تدعو إلى الثقة تُحوّل قياساً جزئيّاً إلى إذنِ دفع، وهو الادّعاءُ "
+        "الذي وُجِدت ثوابتُ CI في هذا المستودع لتمنعه."
+    )
 
 
 def test_it_reports_index_state_not_only_untracked_files():
