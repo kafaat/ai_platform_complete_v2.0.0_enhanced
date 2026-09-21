@@ -5864,5 +5864,31 @@
   },
   "unmutated_debt_ceiling": 113,
   "why_a_named_expect_and_not_just_red": "«سقط شيء ما» يمرّ على طفرة كسرت الاستيراد لا القاعدة — فالطفرة تُثبِت نفسها بسقوط الاختبار **المُسمّى**.",
-  "why_having_a_test_is_not_evidence": "أكثر من ثلثي حرّاس هذا المستودع لهم ملفّ اختبار، وكان أخضر طوال الوقت الذي كان فيه ثلاثة منهم عُمياً عمّا وُجِدوا له. اختبار الحارس المعتاد يقيس أنّه **يمرّ على شجرة سليمة** — وهي خاصّيّة يُحقّقها حارسٌ لا يفعل شيئاً على الإطلاق. فالوجود ليس قياساً، والقياس هو زرع العطل."
+  "why_having_a_test_is_not_evidence": "أكثر من ثلثي حرّاس هذا المستودع لهم ملفّ اختبار، وكان أخضر طوال الوقت الذي كان فيه ثلاثة منهم عُمياً عمّا وُجِدوا له. اختبار الحارس المعتاد يقيس أنّه **يمرّ على شجرة سليمة** — وهي خاصّيّة يُحقّقها حارسٌ لا يفعل شيئاً على الإطلاق. فالوجود ليس قياساً، والقياس هو زرع العطل.",
+  "merge_tree_preservation_guard.py": {
+    "mutations": [
+      {
+        "expect": "test_evidence_id_cannot_disappear_even_if_candidate_is_larger",
+        "find": "    missing_e = sorted(set(EVIDENCE_ID.findall(base_evidence)) - set(EVIDENCE_ID.findall(candidate_evidence)))",
+        "replace": "    missing_e = []  # mutated: existing evidence identities may disappear",
+        "why": "Removing identity preservation reproduces the #1061/#1062 regression even when padding makes the candidate evidence log larger.",
+        "test": "tests_v9/test_merge_tree_preservation_guard.py"
+      },
+      {
+        "expect": "test_operational_evidence_log_may_not_shrink",
+        "find": "    if len(candidate_evidence.encode(\"utf-8\")) < len(base_evidence.encode(\"utf-8\")):",
+        "replace": "    if False:  # mutated: byte shrink no longer blocks",
+        "why": "A final merge tree may truncate operational evidence while retaining the surviving IDs.",
+        "test": "tests_v9/test_merge_tree_preservation_guard.py"
+      },
+      {
+        "expect": "test_existing_gap_identity_cannot_disappear",
+        "find": "    missing_g = sorted(gap_identities(base_registry) - gap_identities(candidate_registry))",
+        "replace": "    missing_g = []  # mutated: a pre-existing gap identity may disappear",
+        "why": "A conflict resolution may silently erase a registered gap even though the rest of the registry remains syntactically valid.",
+        "test": "tests_v9/test_merge_tree_preservation_guard.py"
+      }
+    ],
+    "test": "tests_v9/test_merge_tree_preservation_guard.py"
+  }
 }
