@@ -56,13 +56,13 @@
       "subject": null
     },
     {
-      "client_expr": "_NATS_CONN",
+      "client_expr": "_JS",
       "component": "sahool-platform",
       "durable": null,
       "dynamic_expr": "subject",
       "file": "services/sahool-platform/api/main.py",
       "kind": "producer",
-      "line": 573,
+      "line": 590,
       "queue": null,
       "subject": null
     },

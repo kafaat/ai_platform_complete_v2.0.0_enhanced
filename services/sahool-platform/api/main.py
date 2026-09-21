@@ -569,8 +569,32 @@ async def _start_outbox_worker():
         nats_url = os.getenv("NATS_URL", "nats://sahool-nats:4222")
         _NATS_CONN = await nats.connect(nats_url, max_reconnect_attempts=-1)
 
+        # `OUTBOX-RELAY-MARKS-SENT-WITHOUT-JETSTREAM-ACK-01` — **مقيسٌ على stack معزول:**
+        # حدثٌ نُشِر إلى subject لا يغطّيه أيُّ stream صار صفُّه `sent` بـ`last_error=NULL`
+        # ومحاولةً `published`، **ولم تُخزَّن الرسالة**. والسببُ هنا: `_NATS_CONN.publish`
+        # هو **Core NATS** — إطلاقٌ بلا إقرار، ينجح ما دام الاتّصالُ قائماً سواءٌ وُجِد
+        # مشتركٌ أو دفقٌ أم لا. فـ`sent` كانت تعني «سُلِّمت إلى المقبس» لا «صارت دائمة».
+        #
+        # **والعطلُ مركّبٌ مع `JETSTREAM-STREAM-TOPOLOGY-OWNED-BY-A-CONSUMER-01`:** الدفقُ
+        # يملكه مستهلكٌ ولا يُنشأ تلقائيّاً بعد `queue_v1`، والناشرُ لا يتحقّق من وجوده —
+        # فطرفا العقد كلاهما يفترض أنّ الآخر يضمن الدوام.
+        #
+        # **والعلاجُ هنا لا في العامل:** `OutboxWorker` سليمُ البنية — ينشر ثمّ يَسِم داخل
+        # معاملة، وأيُّ استثناءٍ يُعيد الصفَّ `pending/failed` بـ`last_error` ومحاولةً
+        # فاشلة. فيكفي أن يصير الناشرُ **مُقِرّاً**: `js.publish` ينتظر `PubAck` ويرفع
+        # `NoStreamResponseError` حين لا يغطّي المسارَ دفقٌ — فيسلك المسارَ الفاشل القائم.
+        # أي أنّ الإصلاح يُفعِّل حارساً موجوداً بدل أن يضيف ثانياً.
+        _JS = _NATS_CONN.jetstream()
+
         async def _publish(subject: str, payload: bytes) -> None:
-            await _NATS_CONN.publish(subject, payload)
+            ack = await _JS.publish(subject, payload)
+            # حزامٌ ثانٍ: عميلٌ يُرجِع `None` أو إقراراً بلا تسلسلٍ لا يُثبِت دواماً.
+            # وبلا هذا الشرط يعود `sent` يعني «لم يُرفَع استثناء» لا «خُزِّنت».
+            if ack is None or getattr(ack, "seq", None) in (None, 0):
+                raise RuntimeError(
+                    f"JETSTREAM_PUBACK_MISSING: {subject} — نُشِر بلا إقرارِ تخزين، "
+                    "فلا يُوسَم الحدثُ `sent`."
+                )
 
         # المرسِل يقرأ event_outbox عابراً للمستأجرين ⇒ يستعمل مسبح الوظائف
         # (sahool_jobs/BYPASSRLS). تحت RLS الجديدة (v72) لا يصلح مسبح التطبيق هنا.

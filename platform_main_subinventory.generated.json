@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "file": "services/sahool-platform/api/main.py",
-  "total_lines": 2553,
+  "total_lines": 2577,
   "import_lines": 136,
   "top_level_symbols": 45,
   "direct_route_decorators": 0,
@@ -20,7 +20,7 @@
     },
     "idempotency_outbox_events": {
       "symbols": 9,
-      "loc": 419
+      "loc": 443
     },
     "middleware_and_rate_limit": {
       "symbols": 1,
@@ -49,8 +49,8 @@
     "field_task_alert_helpers": "embedded_business_logic",
     "workflow_compatibility": "compatibility_runtime"
   },
-  "embedded_business_logic_loc": 688,
-  "categorized_symbol_loc": 1290,
+  "embedded_business_logic_loc": 712,
+  "categorized_symbol_loc": 1314,
   "uncategorized_residual_loc_estimate": 1127,
   "items": [
     {
@@ -122,16 +122,16 @@
       "name": "_start_outbox_worker",
       "kind": "AsyncFunctionDef",
       "line_start": 546,
-      "line_end": 583,
-      "loc": 38,
+      "line_end": 607,
+      "loc": 62,
       "category": "idempotency_outbox_events",
       "decorators": []
     },
     {
       "name": "_stop_outbox_worker",
       "kind": "AsyncFunctionDef",
-      "line_start": 586,
-      "line_end": 601,
+      "line_start": 610,
+      "line_end": 625,
       "loc": 16,
       "category": "idempotency_outbox_events",
       "decorators": []
@@ -139,8 +139,8 @@
     {
       "name": "_stop_scheduler",
       "kind": "AsyncFunctionDef",
-      "line_start": 604,
-      "line_end": 607,
+      "line_start": 628,
+      "line_end": 631,
       "loc": 4,
       "category": "idempotency_outbox_events",
       "decorators": []
@@ -148,8 +148,8 @@
     {
       "name": "_close_db_pool",
       "kind": "AsyncFunctionDef",
-      "line_start": 610,
-      "line_end": 615,
+      "line_start": 634,
+      "line_end": 639,
       "loc": 6,
       "category": "db_tenant_rls_bootstrap",
       "decorators": []
@@ -157,8 +157,8 @@
     {
       "name": "get_pool",
       "kind": "FunctionDef",
-      "line_start": 618,
-      "line_end": 625,
+      "line_start": 642,
+      "line_end": 649,
       "loc": 8,
       "category": "db_tenant_rls_bootstrap",
       "decorators": []
@@ -166,8 +166,8 @@
     {
       "name": "tenant_connection",
       "kind": "AsyncFunctionDef",
-      "line_start": 629,
-      "line_end": 652,
+      "line_start": 653,
+      "line_end": 676,
       "loc": 24,
       "category": "db_tenant_rls_bootstrap",
       "decorators": [
@@ -177,8 +177,8 @@
     {
       "name": "_emit_domain_event",
       "kind": "AsyncFunctionDef",
-      "line_start": 686,
-      "line_end": 730,
+      "line_start": 710,
+      "line_end": 754,
       "loc": 45,
       "category": "idempotency_outbox_events",
       "decorators": []
@@ -186,8 +186,8 @@
     {
       "name": "_idem_key",
       "kind": "FunctionDef",
-      "line_start": 739,
-      "line_end": 756,
+      "line_start": 763,
+      "line_end": 780,
       "loc": 18,
       "category": "idempotency_outbox_events",
       "decorators": []
@@ -195,8 +195,8 @@
     {
       "name": "_idempotent",
       "kind": "AsyncFunctionDef",
-      "line_start": 759,
-      "line_end": 794,
+      "line_start": 783,
+      "line_end": 818,
       "loc": 36,
       "category": "idempotency_outbox_events",
       "decorators": []
@@ -204,8 +204,8 @@
     {
       "name": "_rate_client_key",
       "kind": "FunctionDef",
-      "line_start": 837,
-      "line_end": 846,
+      "line_start": 861,
+      "line_end": 870,
       "loc": 10,
       "category": "misc_bootstrap_compatibility",
       "decorators": []
@@ -213,8 +213,8 @@
     {
       "name": "_prune_rate_buckets",
       "kind": "FunctionDef",
-      "line_start": 849,
-      "line_end": 852,
+      "line_start": 873,
+      "line_end": 876,
       "loc": 4,
       "category": "misc_bootstrap_compatibility",
       "decorators": []
@@ -222,8 +222,8 @@
     {
       "name": "_build_rate_redis",
       "kind": "FunctionDef",
-      "line_start": 855,
-      "line_end": 875,
+      "line_start": 879,
+      "line_end": 899,
       "loc": 21,
       "category": "misc_bootstrap_compatibility",
       "decorators": []
@@ -231,8 +231,8 @@
     {
       "name": "_rate_check_redis",
       "kind": "FunctionDef",
-      "line_start": 881,
-      "line_end": 898,
+      "line_start": 905,
+      "line_end": 922,
       "loc": 18,
       "category": "misc_bootstrap_compatibility",
       "decorators": []
@@ -240,8 +240,8 @@
     {
       "name": "rate_limit_middleware",
       "kind": "AsyncFunctionDef",
-      "line_start": 902,
-      "line_end": 942,
+      "line_start": 926,
+      "line_end": 966,
       "loc": 41,
       "category": "middleware_and_rate_limit",
       "decorators": [
@@ -251,8 +251,8 @@
     {
       "name": "_clamp_list_window",
       "kind": "FunctionDef",
-      "line_start": 1042,
-      "line_end": 1058,
+      "line_start": 1066,
+      "line_end": 1082,
       "loc": 17,
       "category": "misc_bootstrap_compatibility",
       "decorators": []
@@ -260,8 +260,8 @@
     {
       "name": "_build_versioned_update",
       "kind": "FunctionDef",
-      "line_start": 1065,
-      "line_end": 1087,
+      "line_start": 1089,
+      "line_end": 1111,
       "loc": 23,
       "category": "misc_bootstrap_compatibility",
       "decorators": []
@@ -269,8 +269,8 @@
     {
       "name": "_normalize_role",
       "kind": "FunctionDef",
-      "line_start": 1115,
-      "line_end": 1119,
+      "line_start": 1139,
+      "line_end": 1143,
       "loc": 5,
       "category": "auth_jwt_permissions",
       "decorators": []
@@ -278,8 +278,8 @@
     {
       "name": "create_token",
       "kind": "FunctionDef",
-      "line_start": 1122,
-      "line_end": 1134,
+      "line_start": 1146,
+      "line_end": 1158,
       "loc": 13,
       "category": "auth_jwt_permissions",
       "decorators": []
@@ -287,8 +287,8 @@
     {
       "name": "_build_denylist",
       "kind": "FunctionDef",
-      "line_start": 1147,
-      "line_end": 1173,
+      "line_start": 1171,
+      "line_end": 1197,
       "loc": 27,
       "category": "auth_jwt_permissions",
       "decorators": []
@@ -296,8 +296,8 @@
     {
       "name": "get_current_user",
       "kind": "FunctionDef",
-      "line_start": 1179,
-      "line_end": 1215,
+      "line_start": 1203,
+      "line_end": 1239,
       "loc": 37,
       "category": "auth_jwt_permissions",
       "decorators": []
@@ -305,8 +305,8 @@
     {
       "name": "require_permission",
       "kind": "FunctionDef",
-      "line_start": 1218,
-      "line_end": 1248,
+      "line_start": 1242,
+      "line_end": 1272,
       "loc": 31,
       "category": "auth_jwt_permissions",
       "decorators": []
@@ -314,8 +314,8 @@
     {
       "name": "_centroid_from_bbox",
       "kind": "FunctionDef",
-      "line_start": 1281,
-      "line_end": 1293,
+      "line_start": 1305,
+      "line_end": 1317,
       "loc": 13,
       "category": "parsers_mappers_serializers",
       "decorators": []
@@ -323,8 +323,8 @@
     {
       "name": "_reverse_geocode",
       "kind": "FunctionDef",
-      "line_start": 1296,
-      "line_end": 1324,
+      "line_start": 1320,
+      "line_end": 1348,
       "loc": 29,
       "category": "parsers_mappers_serializers",
       "decorators": []
@@ -332,8 +332,8 @@
     {
       "name": "_db_unavailable",
       "kind": "FunctionDef",
-      "line_start": 1330,
-      "line_end": 1340,
+      "line_start": 1354,
+      "line_end": 1364,
       "loc": 11,
       "category": "db_tenant_rls_bootstrap",
       "decorators": []
@@ -341,8 +341,8 @@
     {
       "name": "_assert_field_in_tenant",
       "kind": "AsyncFunctionDef",
-      "line_start": 1367,
-      "line_end": 1371,
+      "line_start": 1391,
+      "line_end": 1395,
       "loc": 5,
       "category": "db_tenant_rls_bootstrap",
       "decorators": []
@@ -350,8 +350,8 @@
     {
       "name": "_activity_event_type",
       "kind": "FunctionDef",
-      "line_start": 1427,
-      "line_end": 1435,
+      "line_start": 1451,
+      "line_end": 1459,
       "loc": 9,
       "category": "idempotency_outbox_events",
       "decorators": []
@@ -359,8 +359,8 @@
     {
       "name": "_row_to_activity",
       "kind": "FunctionDef",
-      "line_start": 1438,
-      "line_end": 1461,
+      "line_start": 1462,
+      "line_end": 1485,
       "loc": 24,
       "category": "parsers_mappers_serializers",
       "decorators": []
@@ -368,8 +368,8 @@
     {
       "name": "_row_to_task",
       "kind": "FunctionDef",
-      "line_start": 1476,
-      "line_end": 1495,
+      "line_start": 1500,
+      "line_end": 1519,
       "loc": 20,
       "category": "parsers_mappers_serializers",
       "decorators": []
@@ -377,8 +377,8 @@
     {
       "name": "_row_to_soil_test",
       "kind": "FunctionDef",
-      "line_start": 1511,
-      "line_end": 1534,
+      "line_start": 1535,
+      "line_end": 1558,
       "loc": 24,
       "category": "parsers_mappers_serializers",
       "decorators": []
@@ -386,8 +386,8 @@
     {
       "name": "_row_to_prefs",
       "kind": "FunctionDef",
-      "line_start": 1574,
-      "line_end": 1593,
+      "line_start": 1598,
+      "line_end": 1617,
       "loc": 20,
       "category": "parsers_mappers_serializers",
       "decorators": []
@@ -395,8 +395,8 @@
     {
       "name": "_log_alert_deliveries",
       "kind": "AsyncFunctionDef",
-      "line_start": 1603,
-      "line_end": 1662,
+      "line_start": 1627,
+      "line_end": 1686,
       "loc": 60,
       "category": "field_task_alert_helpers",
       "decorators": []
@@ -404,8 +404,8 @@
     {
       "name": "_evaluate_field_alerts_persist",
       "kind": "AsyncFunctionDef",
-      "line_start": 1675,
-      "line_end": 1857,
+      "line_start": 1699,
+      "line_end": 1881,
       "loc": 183,
       "category": "field_task_alert_helpers",
       "decorators": []
@@ -413,8 +413,8 @@
     {
       "name": "_parse_date",
       "kind": "FunctionDef",
-      "line_start": 1868,
-      "line_end": 1878,
+      "line_start": 1892,
+      "line_end": 1902,
       "loc": 11,
       "category": "parsers_mappers_serializers",
       "decorators": []
@@ -422,8 +422,8 @@
     {
       "name": "_parse_iso_utc",
       "kind": "FunctionDef",
-      "line_start": 1996,
-      "line_end": 2009,
+      "line_start": 2020,
+      "line_end": 2033,
       "loc": 14,
       "category": "parsers_mappers_serializers",
       "decorators": []
@@ -431,8 +431,8 @@
     {
       "name": "_issue_tags_from_event",
       "kind": "FunctionDef",
-      "line_start": 2057,
-      "line_end": 2077,
+      "line_start": 2081,
+      "line_end": 2101,
       "loc": 21,
       "category": "idempotency_outbox_events",
       "decorators": []
@@ -440,8 +440,8 @@
     {
       "name": "_build_walk_plan",
       "kind": "FunctionDef",
-      "line_start": 2108,
-      "line_end": 2133,
+      "line_start": 2132,
+      "line_end": 2157,
       "loc": 26,
       "category": "field_task_alert_helpers",
       "decorators": []
@@ -449,8 +449,8 @@
     {
       "name": "_get_workflow_store",
       "kind": "FunctionDef",
-      "line_start": 2485,
-      "line_end": 2507,
+      "line_start": 2509,
+      "line_end": 2531,
       "loc": 23,
       "category": "workflow_compatibility",
       "decorators": []
@@ -458,8 +458,8 @@
     {
       "name": "_rebuild_pydantic_models",
       "kind": "FunctionDef",
-      "line_start": 2515,
-      "line_end": 2525,
+      "line_start": 2539,
+      "line_end": 2549,
       "loc": 11,
       "category": "workflow_compatibility",
       "decorators": []

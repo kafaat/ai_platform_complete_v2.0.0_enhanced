@@ -20,7 +20,7 @@ rag-retrieval,Knowledge Retrieval,2,234,1,5,services/rag-retrieval/main.py,servi
 raster-service,Imagery & Raster,164,23918,72,82,services/raster-service/main.py,services/raster-service/Dockerfile,services/raster-service/requirements.txt,normal
 raster-tiler-service,Imagery & Raster,1,16,0,2,services/raster-tiler-service/main.py,services/raster-tiler-service/Dockerfile,services/raster-tiler-service/requirements.txt,high-zero-test-routes
 remote-sensing-workspace-bff,Unclassified / Support,2,372,1,3,services/remote-sensing-workspace-bff/main.py,services/remote-sensing-workspace-bff/Dockerfile,services/remote-sensing-workspace-bff/requirements.txt,normal
-sahool-platform,Core Field Platform,1138,166671,458,638,services/sahool-platform/api/main.py,services/sahool-platform/Dockerfile,-,critical-core-concentration
+sahool-platform,Core Field Platform,1138,166677,458,638,services/sahool-platform/api/main.py,services/sahool-platform/Dockerfile,-,critical-core-concentration
 sam2-inference,Field Boundary AI,3,569,0,4,services/sam2-inference/main.py,services/sam2-inference/Dockerfile,services/sam2-inference/requirements.txt,high-zero-test-routes
 scout-ingest-service,Unclassified / Support,7,2441,3,22,services/scout-ingest-service/main.py,services/scout-ingest-service/Dockerfile,services/scout-ingest-service/requirements.txt,normal
 soil-service,Soil Intelligence,51,5759,17,60,services/soil-service/main.py,services/soil-service/Dockerfile,services/soil-service/requirements.txt,normal
