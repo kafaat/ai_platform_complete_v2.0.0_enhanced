@@ -79,11 +79,15 @@ Since 2026-09-21 every identity-baking Dockerfile declares `ARG RAILWAY_GIT_COMM
 and **refuses** a GitHub-triggered build whose commit contradicts a pinned `SAHOOL_GIT_SHA`
 (the auth-main/guardrails case: built from `cfb47067`, stamped `a0bba343`). When
 `SAHOOL_GIT_SHA` is **unset**, the stamp derives from `RAILWAY_GIT_COMMIT_SHA` (and an unset
-`SAHOOL_BUILD_ID` derives `railway-<RAILWAY_DEPLOYMENT_ID>`); when both are empty the build
-fails loudly on the 40-hex check. **For services that autodeploy from `main`, do not pin
-`SAHOOL_GIT_SHA` at all** — a pinned value has to be re-set by hand after every merge, and
-measured on 2026-09-21 (deployments `0990989f`, `5d9cfdb1`) it broke both builds on the
-very next merge. Pin only for a release branch frozen on a reviewed commit. The post-deploy
+`SAHOOL_BUILD_ID` derives `railway-<RAILWAY_DEPLOYMENT_ID>`, or `railway-<built commit[:12]>`
+when the deployment id is empty — measured empty at build time on `fdb7fee6`, 2026-09-21);
+when both are empty the build fails loudly on the 40-hex check. **For services that
+autodeploy from `main`, do not pin `SAHOOL_GIT_SHA` or `SAHOOL_BUILD_ID` at all** — a pinned
+value has to be re-set by hand after every merge, and measured on 2026-09-21 (deployments
+`0990989f`/`5d9cfdb1` on `b5e63fd9`, `be52fa57`/`98f1e56e` on `d99c71c`, `0ce6309d`/`923615e4`
+on `fdb7fee6`) it broke both builds on every merge. Unset both variables only **after** the
+fallback above is deployed; on the refuse-only Dockerfile an empty value fails the build too.
+Pin only for a release branch frozen on a reviewed commit. The post-deploy
 comparison below (`/runtime-identity` vs the *deployment's* commit, not `main`'s head) is
 still required, not replaced.
 With the current Dockerfile, pair these explicit build values with a release branch
