@@ -4,7 +4,11 @@ ARG SAHOOL_GIT_SHA
 ARG SAHOOL_BUILD_ID
 ARG SAHOOL_SOURCE_REPOSITORY=
 ARG SAHOOL_SOURCE_REF=
-RUN python -c "import json,re; sha='${SAHOOL_GIT_SHA}'; bid='${SAHOOL_BUILD_ID}'; assert re.fullmatch(r'[0-9a-f]{40}',sha), 'SAHOOL_GIT_SHA must be full 40-char SHA'; assert re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._:-]{0,127}',bid), 'invalid SAHOOL_BUILD_ID'; open('/app/.sahool-build-metadata.json','w').write(json.dumps({'service':'guardrails-engine','git_sha':sha,'build_id':bid,'source_repository':'${SAHOOL_SOURCE_REPOSITORY}','source_ref':'${SAHOOL_SOURCE_REF}'},sort_keys=True))"
+# Railway sets RAILWAY_GIT_COMMIT_SHA on GitHub-triggered builds (empty on config-triggered
+# ones): a hand-set SAHOOL_GIT_SHA that contradicts it fails the build instead of stamping
+# a stale identity (auth-main/guardrails served a0bba343 while built from cfb47067, 2026-09-20).
+ARG RAILWAY_GIT_COMMIT_SHA=
+RUN python -c "import json,re; sha='${SAHOOL_GIT_SHA}'; bid='${SAHOOL_BUILD_ID}'; assert re.fullmatch(r'[0-9a-f]{40}',sha), 'SAHOOL_GIT_SHA must be full 40-char SHA'; assert re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._:-]{0,127}',bid), 'invalid SAHOOL_BUILD_ID'; trig='${RAILWAY_GIT_COMMIT_SHA}'; assert not trig or trig==sha, 'SAHOOL_GIT_SHA '+sha+' contradicts the commit the platform built '+trig+' - set the build variable to the built commit'; open('/app/.sahool-build-metadata.json','w').write(json.dumps({'service':'guardrails-engine','git_sha':sha,'build_id':bid,'source_repository':'${SAHOOL_SOURCE_REPOSITORY}','source_ref':'${SAHOOL_SOURCE_REF}'},sort_keys=True))"
 RUN chmod 0444 /app/.sahool-build-metadata.json
 LABEL org.opencontainers.image.revision="${SAHOOL_GIT_SHA}" \
       org.opencontainers.image.source="${SAHOOL_SOURCE_REPOSITORY}" \

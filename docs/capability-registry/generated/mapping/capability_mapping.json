@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5397,
+    "files_scanned": 5399,
     "files_by_kind": {
       "backend": 1209,
       "database": 278,
       "governance": 64,
       "mobile": 55,
-      "other": 1510,
-      "tests": 1823,
+      "other": 1511,
+      "tests": 1824,
       "web": 458
     },
-    "unmapped_artifacts": 2188,
+    "unmapped_artifacts": 2189,
     "ambiguous_artifacts": 420
   },
   "capabilities": [
@@ -11866,18 +11866,18 @@
           ]
         },
         {
-          "path": "event_publish_contracts.yaml",
+          "path": "docs/evidence/operational_evidence_log.md",
           "score": 12,
           "signals": [
-            "content:event bus",
             "content:jetstream",
             "content:nats"
           ]
         },
         {
-          "path": "docs/evidence/operational_evidence_log.md",
-          "score": 11,
+          "path": "event_publish_contracts.yaml",
+          "score": 12,
           "signals": [
+            "content:event bus",
             "content:jetstream",
             "content:nats"
           ]
@@ -37066,6 +37066,10 @@
     {
       "path": "frontend/src/pages/AcceptInvitationPage.tsx",
       "kind": "web"
+    },
+    {
+      "path": "frontend/src/pages/LoginPage.noStaticClaims.static.test.ts",
+      "kind": "tests"
     },
     {
       "path": "frontend/src/pages/SignupPage.tsx",

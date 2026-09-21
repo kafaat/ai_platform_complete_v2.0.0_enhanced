@@ -82,3 +82,23 @@ def test_the_log_binds_each_entry_to_its_artefact_and_declares_the_window_unmeas
     assert OUTBOX.name in text and RUNTIME.name in text
     assert "not_yet_measurable" in text, "نافذةُ الـ١٤ يوماً لا تُقاس قبل مرورها — يجب أن يقولها السجلّ"
     assert "OUTBOX-RELAY-MARKS-SENT-WITHOUT-JETSTREAM-ACK-01" in text
+
+
+def test_the_external_railway_review_is_stored_verbatim_and_hash_bound() -> None:
+    """مراجعةٌ خارجيّة تُحفَظ حرفيّاً وتُربَط ببصمتها: تحريرُها بعد الحفظ يُحمِّر هنا.
+
+    السجلُّ يذكر `sha256 = <hex>` بجانب اسم الملفّ؛ البصمةُ المذكورة يجب أن تساوي بصمةَ
+    الملفّ المحفوظ — فلا «تُلطَّف» مراجعةٌ بعد أن استُشهد بها.
+    """
+    import hashlib
+    import re
+
+    review = EVIDENCE / "railway_audit_review_20260920.md"
+    assert review.is_file()
+    text = LOG.read_text(encoding="utf-8")
+    m = re.search(re.escape(review.name) + r".{0,40}?sha256 = ([0-9a-f]{64})", text, re.S)
+    assert m, "السجلُّ لا يذكر بصمةَ المراجعة بجانب اسمها"
+    assert hashlib.sha256(review.read_bytes()).hexdigest() == m.group(1), (
+        "المراجعةُ المحفوظة لا تطابق البصمةَ المذكورة"
+    )
+    assert "RW-03" in review.read_text(encoding="utf-8")

@@ -4,6 +4,10 @@ ARG SAHOOL_GIT_SHA
 ARG SAHOOL_BUILD_ID
 ARG SAHOOL_SOURCE_REPOSITORY=""
 ARG SAHOOL_SOURCE_REF=""
+# Railway sets RAILWAY_GIT_COMMIT_SHA on GitHub-triggered builds (empty on config-triggered
+# ones): a hand-set SAHOOL_GIT_SHA that contradicts it fails the build instead of stamping
+# a stale identity.
+ARG RAILWAY_GIT_COMMIT_SHA=""
 LABEL org.opencontainers.image.revision=$SAHOOL_GIT_SHA \
       org.opencontainers.image.version=$SAHOOL_BUILD_ID
 RUN python - <<'PY'
@@ -17,6 +21,9 @@ if not re.fullmatch(r"[0-9a-f]{40}", sha):
     raise SystemExit("SAHOOL_GIT_SHA must be full 40-char SHA")
 if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}", bid):
     raise SystemExit("invalid SAHOOL_BUILD_ID")
+trig = os.environ.get("RAILWAY_GIT_COMMIT_SHA", "")
+if trig and trig != sha:
+    raise SystemExit(f"SAHOOL_GIT_SHA {sha} contradicts the commit the platform built {trig} - set the build variable to the built commit")
 
 payload = {
     "service": "agriai-engine",
