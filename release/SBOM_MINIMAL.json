@@ -19715,7 +19715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "387aa82e174e0118e3b1057cafcd81fb657997d66fdb849f6dfdfbfa4eddff77"
+          "content": "0ea84d1ae4eeb35cfec7ca749cec11a9402c31fbc13bd3c173cdb918a7781892"
         }
       ],
       "name": "services/sahool-platform/api/spatial_sync.py",
@@ -24785,7 +24785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "64f42f80bc52d2f33590f268c2435a1f0c552ba816a8128e67605317172ef2c7"
+          "content": "7fe33a6bcae8a33c0092704ff8c36467e10925bc1f54dac148cf36beb29d0d46"
         }
       ],
       "name": "services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",

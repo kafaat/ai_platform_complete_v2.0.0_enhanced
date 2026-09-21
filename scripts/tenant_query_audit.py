@@ -108,6 +108,13 @@ _ALLOWLIST_JUSTIFIED: dict[str, str] = {
     "services/sahool-platform/api/phase_runtime_workers.py::iot_command_dispatch": (
         "phase runtime worker: tenant GUC set tx-locally before write (RLS-scoped dispatch)"
     ),
+    # D1: مُوصِّل نيّات إبطال كاش الراستر — يطالب processing_jobs (مملوكٌ للمنصّة) عابراً
+    # للمستأجرين بالتصميم (FOR UPDATE SKIP LOCKED) على مسبح الوظائف (JOBS_DATABASE_URL،
+    # كعامل outbox)، ويُنهي كلَّ صفٍّ بـid + رمز الإجارة + tenant_id الصفِّ نفسِه. لا تسرّب
+    # فيزيائيّ: التسليمُ يحمل tenant_id الصفّ إلى المالك الذي يُطابق الحقلَ بمستأجِره.
+    "services/sahool-platform/api/spatial_sync.py::processing_jobs": (
+        "raster-invalidation intent dispatcher (jobs pool): claims cross-tenant via FOR UPDATE SKIP LOCKED; finishes by id + lease CAS + row tenant_id"
+    ),
     # عامل إبطال كاش الراستر (FINDING-005): طابور raster_cache_invalidations عابر
     # بالتصميم — يطالب الصفوف ذرّيّاً (FOR UPDATE SKIP LOCKED) بدور JOBS (BYPASSRLS)
     # وينهيها بـid (لا سياق مستأجِر لتحديث الحالة). لا تسرّب فيزيائيّ: العمل الوحيد

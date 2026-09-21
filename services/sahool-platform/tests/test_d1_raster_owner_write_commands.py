@@ -136,8 +136,14 @@ def test_cog_registry_refuses_an_acknowledgement_without_a_row(monkeypatch):
 def test_platform_source_has_no_direct_sql_against_the_raster_owned_tables():
     gis = (PLATFORM / "api" / "routers" / "gis_cloud_native.py").read_text(encoding="utf-8")
     spatial = (PLATFORM / "api" / "spatial_sync.py").read_text(encoding="utf-8")
-    assert "INSERT INTO raster_registry" not in gis
-    assert "INSERT INTO raster_cache_invalidations" not in spatial
+    assert "INSERT INTO raster_registry" not in gis, (
+        "raster_registry مملوكٌ لـraster-service (db_ownership.yml): إدراجُ المنصّة فيه مباشرةً "
+        "يُعيد الكاتبَ المزدوج الذي أزاله D1 ويتجاوز مطابقةَ الحقل بمستأجِره عند المالك"
+    )
+    assert "INSERT INTO raster_cache_invalidations" not in spatial, (
+        "raster_cache_invalidations مملوكٌ لـraster-service: النيّةُ تُكتب في processing_jobs "
+        "(مملوكٌ للمنصّة) داخل معاملة الحقل، والصفُّ عند المالك يُدرجه المالكُ وحده"
+    )
     assert "register_cog_asset(" in gis
     assert "INSERT INTO processing_jobs" in spatial  # the platform-owned intent
     assert "enqueue_raster_cache_invalidation" in spatial  # المُوصِّل بعد الالتزام، استيرادٌ كسول

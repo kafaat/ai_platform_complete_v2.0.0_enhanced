@@ -305197,322 +305197,322 @@
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"claim_due",
    "target":"fetch",
-   "line":201
+   "line":206
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"claim_due",
    "target":"int",
-   "line":228
+   "line":233
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"claim_due",
    "target":"float",
-   "line":229
+   "line":234
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"claim_due",
    "target":"dict",
-   "line":231
+   "line":236
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"deliver",
    "target":"_jsonish",
-   "line":241
+   "line":246
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"deliver",
    "target":"get",
-   "line":241
+   "line":246
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"deliver",
    "target":"_jsonish",
-   "line":242
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/spatial_sync.py",
-   "source":"deliver",
-   "target":"get",
-   "line":242
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/spatial_sync.py",
-   "source":"deliver",
-   "target":"get",
-   "line":243
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/spatial_sync.py",
-   "source":"deliver",
-   "target":"get",
-   "line":243
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/spatial_sync.py",
-   "source":"deliver",
-   "target":"isinstance",
-   "line":243
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/spatial_sync.py",
-   "source":"deliver",
-   "target":"get",
-   "line":244
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/spatial_sync.py",
-   "source":"deliver",
-   "target":"int",
-   "line":244
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/spatial_sync.py",
-   "source":"deliver",
-   "target":"isinstance",
-   "line":244
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/spatial_sync.py",
-   "source":"deliver",
-   "target":"get",
-   "line":245
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/spatial_sync.py",
-   "source":"deliver",
-   "target":"_finish",
    "line":247
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"deliver",
+   "target":"get",
+   "line":247
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"get",
+   "line":248
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"get",
+   "line":248
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"isinstance",
+   "line":248
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"get",
+   "line":249
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"int",
+   "line":249
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"isinstance",
+   "line":249
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"get",
+   "line":250
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"_finish",
+   "line":252
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
    "target":"send",
-   "line":256
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/spatial_sync.py",
-   "source":"deliver",
-   "target":"get",
-   "line":259
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/spatial_sync.py",
-   "source":"deliver",
-   "target":"get",
    "line":261
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"deliver",
-   "target":"getattr",
+   "target":"get",
    "line":264
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"deliver",
+   "target":"get",
+   "line":266
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
    "target":"getattr",
-   "line":267
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/spatial_sync.py",
-   "source":"deliver",
-   "target":"type",
-   "line":267
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/spatial_sync.py",
-   "source":"deliver",
-   "target":"_finish",
    "line":269
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"deliver",
-   "target":"_finish",
+   "target":"getattr",
    "line":272
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"deliver",
-   "target":"backoff_seconds",
-   "line":279
+   "target":"type",
+   "line":272
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"deliver",
    "target":"_finish",
-   "line":281
+   "line":274
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"_finish",
+   "line":277
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"backoff_seconds",
+   "line":284
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"_finish",
+   "line":286
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"_finish",
    "target":"execute",
-   "line":301
+   "line":306
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"_finish",
    "target":"dumps",
-   "line":320
+   "line":326
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"_finish",
    "target":"float",
-   "line":322
+   "line":328
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"_finish",
    "target":"_rows_touched",
-   "line":324
+   "line":331
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"run_once",
    "target":"acquire",
-   "line":338
+   "line":345
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"run_once",
    "target":"transaction",
-   "line":339
+   "line":346
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"run_once",
    "target":"claim_due",
-   "line":340
+   "line":347
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"run_once",
    "target":"deliver",
-   "line":343
+   "line":350
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"run_once",
    "target":"get",
-   "line":344
+   "line":351
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"dispatch_interval_seconds",
    "target":"float",
-   "line":349
+   "line":356
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"dispatch_interval_seconds",
    "target":"getenv",
-   "line":349
+   "line":356
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"_sweep",
    "target":"getter",
-   "line":364
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/spatial_sync.py",
-   "source":"register_dispatch_task",
-   "target":"getter",
-   "line":364
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/spatial_sync.py",
-   "source":"_sweep",
-   "target":"run_once",
-   "line":367
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/spatial_sync.py",
-   "source":"register_dispatch_task",
-   "target":"run_once",
-   "line":367
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/spatial_sync.py",
-   "source":"_sweep",
-   "target":"info",
-   "line":369
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/spatial_sync.py",
-   "source":"register_dispatch_task",
-   "target":"info",
-   "line":369
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/spatial_sync.py",
-   "source":"register_dispatch_task",
-   "target":"register",
    "line":371
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"register_dispatch_task",
+   "target":"getter",
+   "line":371
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"_sweep",
+   "target":"run_once",
+   "line":374
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"register_dispatch_task",
+   "target":"run_once",
+   "line":374
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"_sweep",
+   "target":"info",
+   "line":376
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"register_dispatch_task",
+   "target":"info",
+   "line":376
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"register_dispatch_task",
+   "target":"register",
+   "line":378
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"register_dispatch_task",
    "target":"dispatch_interval_seconds",
-   "line":373
+   "line":380
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"register_dispatch_task",
    "target":"cluster_singleton",
-   "line":374
+   "line":381
   },
   {
    "owner":"sahool-platform",
@@ -394587,104 +394587,76 @@
    "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
    "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
    "target":"read_text",
-   "line":152
+   "line":158
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
    "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
    "target":"findall",
-   "line":153
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
-   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
-   "target":"len",
-   "line":154
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
-   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
-   "target":"all",
-   "line":155
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
-   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
-   "target":"strip",
-   "line":155
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
-   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
-   "target":"parse",
-   "line":158
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
-   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
-   "target":"read_text",
-   "line":158
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
-   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
-   "target":"next",
    "line":159
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
    "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
-   "target":"isinstance",
-   "line":162
+   "target":"len",
+   "line":160
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
    "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
-   "target":"isinstance",
+   "target":"all",
+   "line":161
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"strip",
+   "line":161
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"parse",
    "line":164
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
    "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
-   "target":"walk",
+   "target":"read_text",
    "line":164
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
    "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
-   "target":"isinstance",
+   "target":"next",
    "line":165
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"isinstance",
+   "line":168
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"isinstance",
+   "line":170
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
    "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
    "target":"walk",
-   "line":165
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
-   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
-   "target":"any",
-   "line":169
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
-   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
-   "target":"getattr",
    "line":170
   },
   {
@@ -394692,7 +394664,35 @@
    "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
    "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
    "target":"isinstance",
-   "line":172
+   "line":171
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"walk",
+   "line":171
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"any",
+   "line":175
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"getattr",
+   "line":176
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"isinstance",
+   "line":178
   },
   {
    "owner":"sahool-platform",

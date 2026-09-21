@@ -198,7 +198,10 @@ def test_no_http_client_is_reachable_from_the_transactional_helper():
         "httpx",
         "run_once",
     }
-    assert "INSERT INTO raster_cache_invalidations" not in src
+    assert "INSERT INTO raster_cache_invalidations" not in src, (
+        "raster_cache_invalidations مملوكٌ لـraster-service: المنصّةُ تكتب نيّتَها في "
+        "processing_jobs (مملوكٌ لها) وتُسلّمها بعد الالتزام، ولا تُدرج في طابور المالك مباشرةً"
+    )
 
 
 # ── المُوصِّل بعد الالتزام ──────────────────────────────────────────────────────

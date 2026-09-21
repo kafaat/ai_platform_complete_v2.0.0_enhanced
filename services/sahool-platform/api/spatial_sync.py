@@ -197,6 +197,11 @@ async def claim_due(conn: Any, *, limit: int = 25) -> list[dict[str, Any]]:
     مستحقّة = ``pending`` بلا إجارةٍ حيّة وبلا ``next_attempt_at`` في المستقبل. تُوسَم
     ``running`` بإجارةٍ ذات رمزٍ ومهلة؛ الإنهاءُ لاحقاً CAS على الرمز، فلا يكتب عاملٌ
     انتهت إجارتُه فوق عمل من أعاد المطالبة.
+
+    المطالبةُ عابرةٌ للمستأجرين بالتصميم (كعامل outbox): تعمل على مسبح الوظائف
+    (``JOBS_DATABASE_URL``، دورٌ يتجاوز عزلَ الصفوف). على مسبح التطبيق بلا سياق مستأجِر
+    تُعيد صفراً صامتاً تحت عزل ``processing_jobs`` — حدٌّ مُعلَن لا يُعالَج هنا. كلُّ صفٍّ
+    يُعاد يحمل ``tenant_id`` ويُنهى به (``_finish`` تُقيّد بالمستأجِر إلى جانب الإجارة).
     """
     rows = await conn.fetch(
         """
@@ -301,10 +306,10 @@ async def _finish(
     touched = await conn.execute(
         """
         UPDATE processing_jobs
-        SET status = $4,
+        SET status = $4::text,
             updated_at = clock_timestamp(),
-            progress = CASE WHEN $4 = 'completed' THEN 100 ELSE progress END,
-            finished_at = CASE WHEN $4 IN ('completed', 'failed') THEN clock_timestamp() ELSE NULL END,
+            progress = CASE WHEN $4::text = 'completed' THEN 100 ELSE progress END,
+            finished_at = CASE WHEN $4::text IN ('completed', 'failed') THEN clock_timestamp() ELSE NULL END,
             error_msg = $6,
             result = (COALESCE(result, '{}'::jsonb) - 'lease' - 'next_attempt_at') || $5::jsonb
                      || CASE WHEN $7::float8 IS NULL THEN '{}'::jsonb
@@ -312,6 +317,7 @@ async def _finish(
                             'next_attempt_at',
                             (clock_timestamp() + make_interval(secs => $7))::text) END
         WHERE id = $1 AND job_type = $2 AND result->'lease'->>'token' = $3
+          AND tenant_id = $8::uuid
         """,
         job["id"],
         RASTER_INVALIDATION_JOB_TYPE,
@@ -320,6 +326,7 @@ async def _finish(
         json.dumps(patch, default=str),
         error,
         float(retry_in) if retry_in is not None else None,
+        job["tenant_id"],
     )
     if _rows_touched(touched) == 0:
         return "lease_lost"

@@ -9740,23 +9740,23 @@
           "score": 26
         },
         {
-          "value": "/imagery/search/recent @ tests_v9/test_raster_endpoint_auth_coverage.py:434",
+          "value": "/imagery/search/recent @ tests_v9/test_raster_endpoint_auth_coverage.py:439",
           "score": 20
         },
         {
-          "value": "/process @ tests_v9/test_raster_endpoint_auth_coverage.py:428",
+          "value": "/process @ tests_v9/test_raster_endpoint_auth_coverage.py:433",
           "score": 20
         },
         {
-          "value": "/tiles/{layer_id}/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:422",
+          "value": "/tiles/{layer_id}/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:427",
           "score": 20
         },
         {
-          "value": "/v1/fields/{field_id}/leaky @ tests_v9/test_raster_endpoint_auth_coverage.py:417",
+          "value": "/v1/fields/{field_id}/leaky @ tests_v9/test_raster_endpoint_auth_coverage.py:422",
           "score": 20
         },
         {
-          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:411",
+          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:416",
           "score": 20
         },
         {
@@ -16946,11 +16946,11 @@
           "score": 17
         },
         {
-          "value": "/imagery/search/recent @ tests_v9/test_raster_endpoint_auth_coverage.py:434",
+          "value": "/imagery/search/recent @ tests_v9/test_raster_endpoint_auth_coverage.py:439",
           "score": 17
         },
         {
-          "value": "/process @ tests_v9/test_raster_endpoint_auth_coverage.py:428",
+          "value": "/process @ tests_v9/test_raster_endpoint_auth_coverage.py:433",
           "score": 17
         },
         {
@@ -16958,7 +16958,7 @@
           "score": 17
         },
         {
-          "value": "/tiles/{layer_id}/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:422",
+          "value": "/tiles/{layer_id}/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:427",
           "score": 17
         },
         {
@@ -16974,11 +16974,11 @@
           "score": 17
         },
         {
-          "value": "/v1/fields/{field_id}/leaky @ tests_v9/test_raster_endpoint_auth_coverage.py:417",
+          "value": "/v1/fields/{field_id}/leaky @ tests_v9/test_raster_endpoint_auth_coverage.py:422",
           "score": 17
         },
         {
-          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:411",
+          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:416",
           "score": 17
         },
         {
