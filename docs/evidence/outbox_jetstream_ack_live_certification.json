@@ -1,0 +1,39 @@
+{
+  "$comment": "OUTBOX-RELAY-MARKS-SENT-WITHOUT-JETSTREAM-ACK-01 — شهادةٌ حيّةٌ على JetStream حقيقيّ. الذراعان من تشغيلٍ واحد وباتّصالٍ واحد، فالفرقُ بينهما مقيسٌ لا مقارَنٌ عبر جولتين.",
+  "arms": {
+    "covered_subject": {
+      "core_nats_publish": "SUCCEEDED",
+      "jetstream_publish": "ACKED seq=4 stream=sahool",
+      "reads_as": "الشاهدُ الإيجابيّ — اشتراطُ الإقرار لا يمنع التسليمَ المشروع",
+      "subject_shape": "sahool.probe.ack.<ts> (داخل sahool.>)"
+    },
+    "uncovered_subject": {
+      "core_nats_publish": "SUCCEEDED",
+      "jetstream_publish": "REFUSED NatsError 503",
+      "reads_as": "الناشرُ القديم ينجح والرسالةُ تُفقَد — وهو سببُ بلوغ الصفوف `sent`",
+      "subject_shape": "probe-nostream.<ts> (خارج كلّ دفق)"
+    }
+  },
+  "environment": {
+    "network_exposure": "لا شيء — شبكةٌ خاصّة، ولم يُفتَح منفذٌ عامّ (لا TCP proxy)",
+    "reached_via": "nats://sahool-nats.railway.internal:4222",
+    "server": "nats:2-alpine · nats-server -js -sd /data/jetstream",
+    "streams_observed": [
+      "sahool[sahool.>]"
+    ]
+  },
+  "first_run_was_inconclusive_and_said_so": "التشغيلُ الأوّل اختار subject تحت `sahool.` افتراضاً أنّ الخادمَ بلا دفق، فأقرّه JetStream (seq=2). أبلغ المسبارُ `SUBJECT_WAS_COVERED … counterexample not exercised` بدل أن يُعلن نجاحاً — ولولا ذلك لقُرِئت شهادةٌ عن سؤالٍ لم يُطرَح.",
+  "gap": "OUTBOX-RELAY-MARKS-SENT-WITHOUT-JETSTREAM-ACK-01",
+  "measured_at": "2026-09-21T08:35:01Z",
+  "side_effects_declared": [
+    "أُلحِقت رسالتا مسبار بدفق `sahool` (seq=2 و seq=4) على subjects لا يرشّحها مستهلك.",
+    "لم يُنشَأ دفقٌ ولم يُعدَّل ولم يُحذَف، ولم تُغيَّر إعدادُ خدمةٍ قائمة.",
+    "خدمةُ المسبار `outbox-ack-counterexample` **ما تزال قائمة** في المشروع: ثلاثُ محاولاتِ حذفٍ انتهت بانتهاء المهلة (60s) عبر أداة Railway، والخدمةُ ظاهرةٌ في الجرد بعدها. وهي **خاملة** — سجلُّها يحمل تشغيلاً واحداً ولا تُعيد الكرّة (لا حلقةَ إعادةِ تشغيل). حذفُها متروكٌ للمالك من اللوحة، ولم يُدَّعَ أنّها أُزيلت."
+  ],
+  "verdict": "CERTIFIED",
+  "what_this_does_not_certify": [
+    "لا يُثبِت أنّ `FEATURE_NATS_PUBLISHERS` آمنٌ للتفعيل — ذاك قرارُ تشغيلٍ يتطلّب تثبيتَ إنشاء الدفق.",
+    "لا يُغلِق `JETSTREAM-STREAM-TOPOLOGY-OWNED-BY-A-CONSUMER-01` — الدفقُ ما يزال يملكه مستهلك.",
+    "لا يقيس مسارَ `OutboxWorker` كاملاً على قاعدةٍ حيّة؛ يقيس عقدَ الناشر الذي كان مكسوراً."
+  ]
+}

@@ -564,13 +564,13 @@ async def _start_outbox_worker():
     try:
         import nats
         from api.event_bus import OutboxWorker
-        from shared.broker_url import redact_broker_url
+        from shared.broker_url import make_jetstream_publisher, redact_broker_url
 
         nats_url = os.getenv("NATS_URL", "nats://sahool-nats:4222")
         _NATS_CONN = await nats.connect(nats_url, max_reconnect_attempts=-1)
 
-        async def _publish(subject: str, payload: bytes) -> None:
-            await _NATS_CONN.publish(subject, payload)
+        # عقدُ النشر يسكن مع عاملِه لا هنا — حجّتُه في `event_bus` بفجوتها.
+        _publish = make_jetstream_publisher(_NATS_CONN)
 
         # المرسِل يقرأ event_outbox عابراً للمستأجرين ⇒ يستعمل مسبح الوظائف
         # (sahool_jobs/BYPASSRLS). تحت RLS الجديدة (v72) لا يصلح مسبح التطبيق هنا.
