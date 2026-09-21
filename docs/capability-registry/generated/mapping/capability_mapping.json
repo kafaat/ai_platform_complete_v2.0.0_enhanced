@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5399,
+    "files_scanned": 5403,
     "files_by_kind": {
       "backend": 1209,
       "database": 278,
       "governance": 64,
       "mobile": 55,
-      "other": 1511,
-      "tests": 1824,
+      "other": 1513,
+      "tests": 1826,
       "web": 458
     },
-    "unmapped_artifacts": 2188,
+    "unmapped_artifacts": 2189,
     "ambiguous_artifacts": 420
   },
   "capabilities": [
@@ -9145,6 +9145,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_db_writer_ownership_guard.py",
+          "score": 12,
+          "signals": [
+            "content:erp bridge",
+            "content:odoo bridge"
+          ]
+        },
+        {
           "path": "tests_v9/test_remaining_closure_20260702.py",
           "score": 12,
           "signals": [
@@ -9211,6 +9219,14 @@
           ]
         },
         {
+          "path": "scripts/ci/db_writer_ownership_guard.py",
+          "score": 10,
+          "signals": [
+            "content:erp bridge",
+            "content:odoo bridge"
+          ]
+        },
+        {
           "path": "FEATURE_UI_SERVICE_AUDIT_AND_FIX_REPORT_20260625.md",
           "score": 9,
           "signals": [
@@ -9247,9 +9263,9 @@
         "events": 1,
         "web": 0,
         "mobile": 0,
-        "tests": 7,
+        "tests": 8,
         "governance": 0,
-        "other_evidence": 9
+        "other_evidence": 10
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -11893,18 +11909,18 @@
           ]
         },
         {
-          "path": "event_publish_contracts.yaml",
+          "path": "docs/evidence/operational_evidence_log.md",
           "score": 12,
           "signals": [
-            "content:event bus",
             "content:jetstream",
             "content:nats"
           ]
         },
         {
-          "path": "docs/evidence/operational_evidence_log.md",
-          "score": 11,
+          "path": "event_publish_contracts.yaml",
+          "score": 12,
           "signals": [
+            "content:event bus",
             "content:jetstream",
             "content:nats"
           ]
@@ -26798,6 +26814,15 @@
           ]
         },
         {
+          "path": "docs/architecture/db_writer_ownership_triage.json",
+          "score": 16,
+          "signals": [
+            "content:MFA",
+            "content:mfa",
+            "content:recovery code"
+          ]
+        },
+        {
           "path": "RUNBOOK.md",
           "score": 15,
           "signals": [
@@ -26952,7 +26977,7 @@
         "mobile": 4,
         "tests": 18,
         "governance": 0,
-        "other_evidence": 21
+        "other_evidence": 22
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -37095,6 +37120,10 @@
       "kind": "web"
     },
     {
+      "path": "frontend/src/pages/LoginPage.noStaticClaims.static.test.ts",
+      "kind": "tests"
+    },
+    {
       "path": "frontend/src/pages/SignupPage.tsx",
       "kind": "web"
     },
@@ -43023,7 +43052,7 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_db_writer_ownership_guard.py",
+      "path": "tests_v9/test_db_writer_ownership_triage.py",
       "kind": "tests"
     },
     {

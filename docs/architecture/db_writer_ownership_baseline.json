@@ -1,8 +1,8 @@
 {
   "$comment": "كتاباتٌ لم يأذن بها docs/architecture/db_ownership.yml — مَعدودةٌ لا محكومٌ عليها. لم يُثبَت أنّ كلّاً منها خطأ؛ بعضُها قد يكون العقدُ هو المخطئ فيه. الأساسُ راتشِتٌ ينزل ولا يصعد: يُخفَّض بنقل الكتابة إلى مالكها أو بتصحيح العقد بأساسٍ مُعلَن.",
   "contract": "docs/architecture/db_ownership.yml",
-  "measured_on": "04d32982ca6339f8f974464176aae8dd7408b4f2",
-  "violation_count": 74,
+  "measured_on": "ad287f29cc384831942ad2f4dd143b6026c9a0f0",
+  "violation_count": 72,
   "violations": {
     "actuator_command_outbox::sahool-platform": [
       "services/sahool-platform/api/phase_runtime_store.py"
@@ -166,12 +166,6 @@
     ],
     "notification_delivery::agents": [
       "agents/notification/agent.py"
-    ],
-    "odoo_sync_log::odoo-bridge": [
-      "services/odoo-bridge/erp_runtime.py"
-    ],
-    "odoo_sync_state::odoo-bridge": [
-      "services/odoo-bridge/erp_runtime.py"
     ],
     "point_in_time_snapshots_runtime::sahool-platform": [
       "services/sahool-platform/api/phase_runtime_store.py"

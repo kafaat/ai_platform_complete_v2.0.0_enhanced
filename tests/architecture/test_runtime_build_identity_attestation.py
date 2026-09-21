@@ -101,6 +101,89 @@ def _identity_baking_dockerfiles() -> set[str]:
     return found
 
 
+def _stamping_program(dockerfile_text: str) -> str:
+    """يستخرج برنامجَ الختم كما يُنفَّذ وقت البناء — بصيغتَيه.
+
+    الصيغة الأولى `RUN python -c "…"` (القِيَم تُحقَن بتوسيع الصدفة قبل بايثون)، والثانية
+    heredoc `python - <<'PYID'` (القِيَم تُقرأ من البيئة). الاختبار يُشغّل البرنامجَ
+    نفسَه لا نصّاً يشبهه: شاهدٌ نصّيٌّ على وجود `RAILWAY_GIT_COMMIT_SHA` كان سيخضرّ
+    على Dockerfile يُعلن الوسيط ولا يقارنه.
+    """
+    inline = re.search(r'RUN python -c "(.*?)"\n', dockerfile_text, re.S)
+    if inline:
+        return inline.group(1)
+    heredoc = re.search(r"python - <<'(PY[A-Z]*)'\n(.*?)\n\1\n", dockerfile_text, re.S)
+    assert heredoc, "لا برنامجَ ختمٍ بصيغةٍ معروفة"
+    return heredoc.group(2)
+
+
+def _run_stamp(
+    dockerfile: Path, tmp_path: Path, *, sha: str, trigger: str
+) -> tuple[int, str, Path]:
+    import subprocess
+    import sys
+
+    values = {
+        "SAHOOL_GIT_SHA": sha,
+        "SAHOOL_BUILD_ID": "build-1",
+        "SAHOOL_SOURCE_REPOSITORY": "org/repo",
+        "SAHOOL_SOURCE_REF": "refs/heads/main",
+        "RAILWAY_GIT_COMMIT_SHA": trigger,
+    }
+    out = tmp_path / f"{dockerfile.parent.name}.json"
+    code = _stamping_program(dockerfile.read_text(encoding="utf-8"))
+    # توسيعُ الصدفة للصيغة المضمَّنة (`${X}` ثمّ `$X`)؛ صيغةُ heredoc لا تحمل مراجعَ صدفة.
+    for name, value in values.items():
+        code = code.replace("${" + name + "}", value).replace("$" + name, value)
+    code = code.replace("/app/.sahool-build-metadata.json", str(out))
+    env = {**os.environ, **values}
+    proc = subprocess.run(
+        [sys.executable, "-"],
+        input=code,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env=env,
+    )
+    return proc.returncode, proc.stderr + proc.stdout, out
+
+
+def test_identity_dockerfiles_refuse_a_stamp_that_contradicts_the_built_commit(tmp_path):
+    """**الختمُ كان متغيّرَ خدمةٍ يُكتب بيدٍ ويعيش بعد التزامه.**
+
+    مراجعةُ Railway 2026-09-20 (RW-03): `auth-main` و`guardrails-engine` مبنيّان من
+    `cfb47067` وبصماتُ ملفّاتٍ من داخل الحاويتين تطابقه، لكنّ `/runtime-identity` يعلن
+    `a0bba343` — لأنّ `SAHOOL_GIT_SHA` على Railway متغيّرٌ ثابتٌ ضُبط مرّةً ولم يتبعه
+    أحدٌ حين تحرّك المصدر. الملفُّ غيرُ القابل للتغيير حمى الهويّةَ من التزوير وقتَ
+    التشغيل، ولم يحمِها من **كذبةٍ وقتَ البناء**.
+
+    Railway يضبط `RAILWAY_GIT_COMMIT_SHA` في البناء المُشغَّل من GitHub (وتركه فارغاً
+    في بناءٍ مُشغَّلٍ بتغيير إعداد — مقيسٌ في `RAILWAY_DEPENDENCY_RECOVERY.md`). فالقاعدة:
+    غيرُ فارغٍ ومخالفٌ ⇒ البناءُ يفشل ويسمّي القيمتين؛ فارغٌ ⇒ يمرّ بحدٍّ معلَن. ولا
+    يُشتقّ الختمُ منه، لأنّ الاشتقاقَ من قيمةٍ تفرغ أحياناً يُنتج ختماً فارغاً بصمت.
+    """
+    dockerfiles = sorted(_identity_baking_dockerfiles())
+    assert dockerfiles, "لا Dockerfile يخبز الهويّة؟ الاشتقاق عمي"
+    sha = "c" * 40
+    for rel in dockerfiles:
+        path = ROOT / rel
+        rc, log, out = _run_stamp(path, tmp_path, sha=sha, trigger=sha)
+        assert rc == 0, f"{rel}: بناءٌ مطابق فشل:\n{log}"
+        assert json.loads(out.read_text(encoding="utf-8"))["git_sha"] == sha, rel
+        out.unlink()
+
+        rc, log, out = _run_stamp(path, tmp_path, sha=sha, trigger="")
+        assert rc == 0, f"{rel}: بناءٌ بلا التزامِ تشغيلٍ (تغييرُ إعداد) يجب أن يمرّ:\n{log}"
+        out.unlink()
+
+        rc, log, out = _run_stamp(path, tmp_path, sha=sha, trigger="d" * 40)
+        assert rc != 0, f"{rel}: ختمٌ يخالف الالتزامَ المبنيَّ مرّ بصمت — هذا عطلُ a0bba343 بعينه"
+        assert "contradicts the commit the platform built" in log, (
+            f"{rel}: الرفضُ بلا رسالةٍ تسمّي القيمتين:\n{log}"
+        )
+        assert not out.exists(), f"{rel}: كُتب ملفُّ الهويّة رغم الرفض"
+
+
 def test_compose_requires_build_identity_args():
     compose = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text())
     dockerfiles = _identity_baking_dockerfiles()

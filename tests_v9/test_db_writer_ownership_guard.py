@@ -216,3 +216,47 @@ def test_an_unreadable_contract_fails_loudly_instead_of_passing_zero(tmp_path, m
     with pytest.raises(SystemExit) as exc:
         MOD.load_contract()
     assert "OWNERSHIP_CONTRACT_UNREADABLE" in str(exc.value)
+
+
+# ── هويّةُ الخدمة هي اسمُها في compose لا اسمُ مجلّدها ─────────────────────────
+
+
+def test_a_directory_deployed_under_another_service_name_is_measured_under_that_name(
+    tmp_path, monkeypatch
+):
+    """**المالكُ نفسُه كان يُدان بالكتابة إلى جداوله.**
+
+    `services/odoo-bridge/` يُبنى خدمةً باسم `sahool-erp-bridge`، والعقدُ وخريطةُ الاستخراج
+    يسمّيانها `erp-bridge`. فالماسحُ الذي يشتقّ الهويّةَ من المجلّد كان يقيس كاتباً اسمُه
+    `odoo-bridge` لا يعرفه العقدُ، فسجّل مالكَ `odoo_sync_log` مخالفاً فيه (مدخلان في
+    الأساس حتّى 2026-09-21). الربطُ يُعيد الكتابةَ إلى صاحبها لا يُعفيها.
+    """
+    _sandbox(
+        tmp_path,
+        monkeypatch,
+        contract=_contract(odoo_sync_log="owner: erp-bridge\nwriters: [erp-bridge]\nreaders: []"),
+        source="x = 1\n",
+    )
+    target = tmp_path / "services" / "odoo-bridge" / "erp_runtime.py"
+    target.parent.mkdir(parents=True)
+    target.write_text('SQL = "INSERT INTO odoo_sync_log (a) VALUES ($1)"\n', encoding="utf-8")
+    assert "odoo_sync_log::erp-bridge" in MOD.write_sites()
+    assert "odoo_sync_log::odoo-bridge" not in MOD.write_sites()
+    assert MOD.survey() == {}
+
+
+def test_the_directory_identity_map_is_backed_by_compose():
+    """لا اسمٌ في الربط بلا كتلة compose تبنيه من ذلك المجلّد — وإلّا صار الربطُ إعفاءً بيد."""
+    import yaml
+
+    compose = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))
+    assert MOD._DIRECTORY_IDENTITY, "الربطُ فارغ — الاختبارُ لا يقيس شيئاً"
+    for directory, identity in MOD._DIRECTORY_IDENTITY.items():
+        service = compose["services"].get(f"sahool-{identity}")
+        assert service, (
+            f"لا خدمةَ `sahool-{identity}` في compose تُسند الربط {directory} ⇒ {identity}"
+        )
+        dockerfile = (service.get("build") or {}).get("dockerfile")
+        assert dockerfile == f"services/{directory}/Dockerfile", (
+            f"`sahool-{identity}` لا يُبنى من `services/{directory}/` بل من {dockerfile!r}"
+        )
