@@ -203,7 +203,10 @@ def test_identity_dockerfiles_derive_the_stamp_from_the_built_commit_when_nothin
     الفراغَ فشلاً صريحاً لا صمتاً.
 
     القاعدةُ الآن: غيرُ مثبَّت ⇒ يُشتقّ من `RAILWAY_GIT_COMMIT_SHA` · مثبَّتٌ ومخالف ⇒ فشل ·
-    لا هذا ولا ذاك ⇒ فشلٌ صريح. و`SAHOOL_BUILD_ID` غيرُ المثبَّت يُشتقّ من `RAILWAY_DEPLOYMENT_ID`.
+    لا هذا ولا ذاك ⇒ فشلٌ صريح. و`SAHOOL_BUILD_ID` غيرُ المثبَّت يُشتقّ من `RAILWAY_DEPLOYMENT_ID`،
+    **وإن جاء فارغاً** (مقيسٌ على بناء `fdb7fee6` 2026-09-21: `RAILWAY_DEPLOYMENT_ID=''` وقتَ
+    البناء بينما `RAILWAY_GIT_COMMIT_SHA` مملوء) فمن الالتزام المبنيّ `railway-<sha[:12]>` —
+    وإلّا لكان حذفُ المتغيّرين معاً يُفشِل البناءَ على فحص معرّف البناء بدل أن يُنهي التثبيتَ اليدويّ.
     """
     dockerfiles = sorted(_identity_baking_dockerfiles())
     assert dockerfiles
@@ -228,7 +231,17 @@ def test_identity_dockerfiles_derive_the_stamp_from_the_built_commit_when_nothin
         out.unlink()
 
         rc, log, out = _run_stamp(path, tmp_path, sha="", trigger=built, build_id="")
-        assert rc != 0, f"{rel}: لا معرّفَ بناءٍ ولا معرّفَ نشر — يجب أن يفشل"
+        assert rc == 0, (
+            f"{rel}: معرّفُ نشرٍ فارغ (المقيس على Railway) مع التزامِ تشغيل يجب أن يشتقّ معرّفَ البناء منه:\n{log}"
+        )
+        assert json.loads(out.read_text(encoding="utf-8"))["build_id"] == f"railway-{built[:12]}", (
+            rel
+        )
+        out.unlink()
+
+        rc, log, out = _run_stamp(path, tmp_path, sha=built, trigger="", build_id="")
+        assert rc != 0, f"{rel}: لا معرّفَ بناءٍ ولا معرّفَ نشرٍ ولا التزامَ تشغيل — يجب أن يفشل"
+        assert "SAHOOL_BUILD_ID" in log, f"{rel}: الفشلُ بلا رسالةٍ تسمّي المتغيّر:\n{log}"
         assert not out.exists(), rel
 
 
