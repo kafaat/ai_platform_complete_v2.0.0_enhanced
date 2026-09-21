@@ -94,7 +94,12 @@ def test_the_measured_dimensions_match_the_blocking_engine_now() -> None:
         assert row["declared_owner"] == owner, key
         assert row["owner_dir_in_tree"] is _owner_dir_in_tree(mod, owner), key
         assert row["measured_writers_of_table"] == sorted(writers_of.get(table, set())), key
-        assert row["owner_writes_table"] is (owner in writers_of.get(table, set())), key\n        assert row["measured_writer_count"] == len(row["measured_writers_of_table"]), key\n        assert row["multiple_non_owner_writers"] is (not row["owner_writes_table"] and len(row["measured_writers_of_table"]) > 1), key\n
+        assert row["owner_writes_table"] is (owner in writers_of.get(table, set())), key
+        assert row["measured_writer_count"] == len(row["measured_writers_of_table"]), key
+        assert row["multiple_non_owner_writers"] is (
+            not row["owner_writes_table"] and len(row["measured_writers_of_table"]) > 1
+        ), key
+
 
 def test_the_category_is_derived_not_chosen() -> None:
     rows = _triage()["rows"]

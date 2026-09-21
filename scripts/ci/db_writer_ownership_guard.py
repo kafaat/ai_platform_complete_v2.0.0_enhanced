@@ -163,7 +163,12 @@ def write_sites(root: Path | None = None) -> dict[str, list[str]]:
             tree = ast.parse(path.read_text(encoding="utf-8"))
         except (SyntaxError, UnicodeDecodeError, OSError):
             continue
-        # PostgreSQL ownership contract: only positive SQLite-only evidence excludes a file.\n        # Unknown is deliberately in-scope; absence of a driver import is not an exemption.\n        if _db_backend(tree) == "sqlite":\n            continue\n        service = _service_of(rel)\n        for sql in _sql_literals(tree):
+        # PostgreSQL ownership contract: only positive SQLite-only evidence excludes a file.
+        # Unknown is deliberately in-scope; absence of a driver import is not an exemption.
+        if _db_backend(tree) == "sqlite":
+            continue
+        service = _service_of(rel)
+        for sql in _sql_literals(tree):
             for match in _WRITE.finditer(sql):
                 table = match.group(1).lower()
                 found.setdefault(f"{table}::{service}", set()).add(rel.as_posix())
