@@ -1,0 +1,75 @@
+name: D1 Recovery Evidence
+on:
+  push:
+    branches: [codex/d1-recovery-evidence-20260921]
+    paths: [.github/workflows/d1-recovery-evidence.yml]
+permissions:
+  contents: read
+concurrency:
+  group: d1-recovery-evidence-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  snapshot:
+    if: github.repository == 'kafaat/ai_platform_complete_v2.0.0_enhanced'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Collect immutable Git objects and measure tree preservation
+        shell: bash
+        env:
+          EVIDENCE_DIR: ${{ runner.temp }}/d1-recovery-evidence
+        run: |
+          set -euo pipefail
+          mkdir -p "$EVIDENCE_DIR"
+          python3 - <<'PY'
+          import hashlib, json, os, subprocess
+          from pathlib import Path
+          out = Path(os.environ['EVIDENCE_DIR'])
+          refs = {
+              'main': 'b067f92c02371ba2b0fee4ea3f2100ee5c0f6b3f',
+              'previous-main': 'd2742aba092601fe8ab648621cab3f0c9fd689ae',
+              'scanner-original': '7a5cf0b3324963d589bb53fc4b60e80db0f2d94d',
+              'scanner-merge': '32433552c14b252dddfb36f691cf894b659131c6',
+              'd1-original': '9f601a90ce5c18b8f4bd31cfb6a798d6547d3e5b',
+              'd1-merge': '28965c49cffd488eb890b705aaf90e0409a0f1cb',
+          }
+          def git(*args):
+              return subprocess.check_output(['git', *args])
+          report = {'schema': 'sahool.recovery_evidence/v1', 'refs': {}, 'writes_to_remote': False, 'production_certified': False}
+          for name, sha in refs.items():
+              if subprocess.run(['git', 'cat-file', '-e', sha + '^{commit}'], capture_output=True).returncode:
+                  subprocess.run(['git', 'fetch', '--no-tags', 'origin', sha], check=True)
+              git('update-ref', 'refs/heads/recovery-' + name, sha)
+              report['refs'][name] = {'commit': sha, 'tree': git('rev-parse', sha + '^{tree}').decode().strip()}
+          paths = ['docs/evidence/operational_evidence_log.md', 'sahool-brain/log.md', 'sahool-brain/hot.md', 'sahool-brain/gaps/registry.md', 'sahool-brain/decisions/ledger.md', 'scripts/ci/db_writer_ownership_guard.py', 'tests_v9/test_db_writer_ownership_guard.py', 'docs/architecture/guard_mutation_registry.json']
+          report['files'] = {}
+          for path in paths:
+              item = {}
+              for name, sha in refs.items():
+                  data = git('show', sha + ':' + path)
+                  item[name] = {'blob': git('rev-parse', sha + ':' + path).decode().strip(), 'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}
+              report['files'][path] = item
+          report['scanner_merge_reused_original_tree'] = report['refs']['scanner-merge']['tree'] == report['refs']['scanner-original']['tree']
+          report['main_reused_scanner_original_tree'] = report['refs']['main']['tree'] == report['refs']['scanner-original']['tree']
+          report['d1_merge_reused_original_tree'] = report['refs']['d1-merge']['tree'] == report['refs']['d1-original']['tree']
+          doc = 'docs/evidence/operational_evidence_log.md'
+          report['operational_evidence_ids'] = {name: {eid: eid.encode() in git('show', sha + ':' + doc) for eid in ['E-2026-09-21-06', 'E-2026-09-21-07']} for name, sha in refs.items()}
+          (out / 'tree-preservation.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          (out / 'main-to-d1.diff').write_bytes(git('diff', '--binary', refs['main'], refs['d1-merge'], '--', *paths))
+          (out / 'original-d1.patch').write_bytes(git('diff', '--binary', refs['previous-main'], refs['d1-original']))
+          subprocess.run(['git', 'bundle', 'create', str(out / 'recovery.bundle'), *['refs/heads/recovery-' + name for name in refs]], check=True)
+          subprocess.run(['git', 'bundle', 'verify', str(out / 'recovery.bundle')], check=True)
+          print(json.dumps(report, ensure_ascii=False, indent=2))
+          PY
+          (cd "$EVIDENCE_DIR" && sha256sum recovery.bundle tree-preservation.json original-d1.patch main-to-d1.diff > SHA256SUMS)
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: d1-recovery-evidence-${{ github.sha }}
+          path: ${{ runner.temp }}/d1-recovery-evidence/
+          retention-days: 7
+          if-no-files-found: error
+          compression-level: 0
