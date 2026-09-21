@@ -18,7 +18,7 @@ jobs:
     env:
       SOURCE_BASE: b067f92c02371ba2b0fee4ea3f2100ee5c0f6b3f
       TARGET_BRANCH: codex/restore-1059-evidence-20260921
-      LOG_DIR: ${{ runner.temp }}/restore-evidence-logs
+      LOG_DIR: /tmp/sahool-restore-evidence-logs
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
         with:
@@ -127,6 +127,6 @@ jobs:
         if: always()
         with:
           name: restore-evidence-logs-${{ github.run_id }}
-          path: ${{ runner.temp }}/restore-evidence-logs/
+          path: /tmp/sahool-restore-evidence-logs/
           retention-days: 7
           if-no-files-found: warn
