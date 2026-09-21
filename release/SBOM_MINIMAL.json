@@ -16505,7 +16505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "41c885cc54ed1127c6ae3d9253b2a1296265648fa552bb1e98830759d2e3e92e"
+          "content": "ef9a2ae6099003b6c3c415f7ae1c3b4227078a373d0595f29a1465e9d136bdc0"
         }
       ],
       "name": "services/sahool-platform/api/event_bus.py",
@@ -17435,7 +17435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "56f92294562d710ab6c3403d7f044671ebf0f7c14d28fba8604efab65d984aca"
+          "content": "694bc573a4ffd190f04ebe9d4a003b69a046140188a1f14dedb4033fe4d43885"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -30815,7 +30815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f57f3207ce351bb82ddb421e1063515b23040d1b998f9c4f2910150bd4d8f09b"
+          "content": "b1b1991cffa7a0653b0b990b5bbce1269650b9dbf8ce1a625aba98016485c935"
         }
       ],
       "name": "shared/broker_url.py",

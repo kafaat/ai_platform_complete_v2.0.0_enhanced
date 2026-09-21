@@ -1943,25 +1943,6 @@
         }
       ]
     },
-    "services/sahool-platform/api/event_bus.py": {
-      "$why_ar": "`OUTBOX-RELAY-MARKS-SENT-WITHOUT-JETSTREAM-ACK-01` — العطلُ كان في **عقد الناشر** لا في العامل: ناشرٌ بلا إقرارٍ يجعل `sent` تعني «سُلِّم إلى المقبس» لا «صار دائماً». والعقدُ يسكن مع عاملِه في `event_bus` لا في مُهيّئ التطبيق (ميزانيّةُ أسطر `main.py` حاجبة، والعلاجُ نقلُ المنطق لا رفعُ السقف). وهذه الطفراتُ تُعيد العطلَ بصيغتيه.",
-      "mutations": [
-        {
-          "expect": "test_the_injected_publisher_is_not_core_nats_fire_and_forget",
-          "find": "        ack = await jetstream.publish(subject, payload)\n",
-          "replace": "        ack = await nats_conn.publish(subject, payload)  # mutated: Core NATS بلا إقرار\n",
-          "test": "tests_v9/test_outbox_requires_jetstream_ack.py",
-          "why": "**هذا هو الـcounterexample المسجَّل بعينه، مُعاداً:** حدثٌ إلى subject لا يغطّيه دفقٌ يمرّ بلا استثناء فيُوسَم `sent` بـ`last_error=NULL` ومحاولةً `published` — والرسالةُ لم تُخزَّن. قِيس على stack معزول قبل الإصلاح."
-        },
-        {
-          "expect": "test_the_publisher_refuses_an_acknowledgement_that_proves_nothing",
-          "find": "        if ack is None or getattr(ack, \"seq\", None) in (None, 0):\n",
-          "replace": "        if False:  # mutated: يُقبَل إقرارٌ لا يُثبِت تخزيناً\n",
-          "test": "tests_v9/test_outbox_requires_jetstream_ack.py",
-          "why": "عميلٌ يُرجِع `None` أو إقراراً بلا تسلسل يجعل `await` ينجح صامتاً، فيعود `sent` يعني «لم يُرفَع استثناء». والفرقُ بين النجاح وعدم الفشل هو كلُّ ما يحرسه هذا الشرط."
-        }
-      ]
-    },
     "services/sahool-platform/api/field_models.py": {
       "mutations": [
         {
@@ -2821,14 +2802,21 @@
       "test": "tests_v9/test_weather_worker_health_probe.py"
     },
     "shared/broker_url.py": {
-      "$why_ar": "العلاجُ فتح عطلاً ثانياً بيده: وضعُ الاعتماد في `NATS_URL` وضعه في عنوانٍ **كان يُطبَع في موضعين**، فيُسرَّب إلى سجلّاتٍ تُجمَع وتُشحَن. والتنقيةُ جزءٌ من الإصلاح لا زينة.",
+      "$why_ar": "`OUTBOX-RELAY-MARKS-SENT-WITHOUT-JETSTREAM-ACK-01` — العطلُ في **عقد الناشر** لا في العامل: ناشرٌ بلا إقرارٍ يجعل `sent` تعني «سُلِّم إلى المقبس» لا «صار دائماً». وموضعُ العقد `shared/broker_url.py` اختارته بوّابتان: ميزانيّةُ أسطر `main.py`، وتجميدُ `api/event_bus.py` خلف GATE-01. وهذه الطفراتُ تُعيد العطلَ بصيغتيه.",
       "mutations": [
         {
-          "expect": "test_the_redaction_actually_removes_the_secret",
-          "find": "    if not parts.netloc or \"@\" not in parts.netloc:",
-          "replace": "    if True:",
-          "test": "tests_v9/test_nats_broker_authentication.py",
-          "why": "التنقيةُ تُعيد العنوانَ كما هو ⇒ تبدو مطبَّقةً وتُسرّب كلمةَ المرور — احتياطٌ لا يمنع شيئاً أسوأُ من غيابه لأنّه يُقرأ ضماناً"
+          "expect": "test_the_injected_publisher_is_not_core_nats_fire_and_forget",
+          "find": "        ack = await jetstream.publish(subject, payload)\n",
+          "replace": "        ack = await nats_conn.publish(subject, payload)  # mutated: Core NATS بلا إقرار\n",
+          "test": "tests_v9/test_outbox_requires_jetstream_ack.py",
+          "why": "**هذا هو الـcounterexample المسجَّل بعينه، مُعاداً:** حدثٌ إلى subject لا يغطّيه دفقٌ يمرّ بلا استثناء فيُوسَم `sent` بـ`last_error=NULL` ومحاولةً `published` — والرسالةُ لم تُخزَّن. قِيس على stack معزول قبل الإصلاح."
+        },
+        {
+          "expect": "test_the_publisher_refuses_an_acknowledgement_that_proves_nothing",
+          "find": "        if ack is None or getattr(ack, \"seq\", None) in (None, 0):\n",
+          "replace": "        if False:  # mutated: يُقبَل إقرارٌ لا يُثبِت تخزيناً\n",
+          "test": "tests_v9/test_outbox_requires_jetstream_ack.py",
+          "why": "عميلٌ يُرجِع `None` أو إقراراً بلا تسلسل يجعل `await` ينجح صامتاً، فيعود `sent` يعني «لم يُرفَع استثناء». والفرقُ بين النجاح وعدم الفشل هو كلُّ ما يحرسه هذا الشرط."
         }
       ]
     },

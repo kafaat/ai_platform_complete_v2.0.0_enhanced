@@ -563,8 +563,8 @@ async def _start_outbox_worker():
         return
     try:
         import nats
-        from api.event_bus import OutboxWorker, make_jetstream_publisher
-        from shared.broker_url import redact_broker_url
+        from api.event_bus import OutboxWorker
+        from shared.broker_url import make_jetstream_publisher, redact_broker_url
 
         nats_url = os.getenv("NATS_URL", "nats://sahool-nats:4222")
         _NATS_CONN = await nats.connect(nats_url, max_reconnect_attempts=-1)

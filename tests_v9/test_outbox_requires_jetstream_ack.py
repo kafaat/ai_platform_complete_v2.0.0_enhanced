@@ -27,6 +27,7 @@ pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[1]
 MAIN = ROOT / "services" / "sahool-platform" / "api" / "main.py"
 EVENT_BUS = ROOT / "services" / "sahool-platform" / "api" / "event_bus.py"
+BROKER = ROOT / "shared" / "broker_url.py"
 
 
 def _event_bus():
@@ -62,10 +63,14 @@ def _bootstrap() -> str:
 
 
 def _publisher_factory() -> str:
-    """جسمُ `make_jetstream_publisher` في `event_bus` — موضعُ العقد بعد النقل."""
-    source = EVENT_BUS.read_text(encoding="utf-8")
-    start = source.index("def make_jetstream_publisher")
-    return source[start : source.index("class OutboxWorker", start)]
+    """جسمُ `make_jetstream_publisher` في `shared/broker_url.py` — موضعُه القانونيّ.
+
+    **اختارته بوّابتان لا الراحة:** `main.py` بلا هامشِ أسطر، و`api/event_bus.py`
+    **مسارٌ مجمَّد خلف GATE-01** يحتاج تفويضَ مالكٍ لمرّةٍ واحدة. وهذا الملفُّ ينصّ
+    على أنّ شؤون الوسيط «تُكتَب مرّةً واحدة هنا».
+    """
+    source = BROKER.read_text(encoding="utf-8")
+    return source[source.index("def make_jetstream_publisher") :]
 
 
 def test_the_injected_publisher_is_not_core_nats_fire_and_forget():
@@ -82,6 +87,11 @@ def test_the_injected_publisher_is_not_core_nats_fire_and_forget():
         "فيصير `sent` يعني «سُلِّم إلى المقبس» لا «صار دائماً»."
     )
     assert "make_jetstream_publisher(" in bootstrap, "المُهيّئ لا يحقن الناشرَ المُقِرّ"
+    # والعقدُ لا يعود إلى المسار المجمَّد: تعديلُه يحتاج تفويضَ GATE-01، فسكناه هناك
+    # يجعل كلَّ لمسةٍ لاحقةٍ له تحتاج قرارَ مالك.
+    assert "make_jetstream_publisher" not in EVENT_BUS.read_text(encoding="utf-8"), (
+        "عقدُ النشر عاد إلى `event_bus.py` المجمَّد خلف GATE-01"
+    )
     assert "nats_conn.publish(" not in factory, "المصنعُ نفسُه يُطلِق بلا إقرار"
     assert ".jetstream()" in factory, "لا سياقَ JetStream في مصنع الناشر"
     assert "await jetstream.publish(" in factory, "النشرُ لا يمرّ بـJetStream"

@@ -11290,11 +11290,10 @@
       "backend": [
         {
           "path": "services/sahool-platform/api/event_bus.py",
-          "score": 23,
+          "score": 17,
           "signals": [
             "path:event bus",
             "content:event bus",
-            "content:jetstream",
             "content:nats"
           ]
         },
@@ -11413,112 +11412,12 @@
       ],
       "events": [
         {
-          "value": "sahool.soil.observation.recorded @ tests_v9/test_outbox_requires_jetstream_ack.py:192",
+          "value": "sahool.soil.observation.recorded @ tests_v9/test_outbox_requires_jetstream_ack.py:202",
           "score": 26
         },
         {
-          "value": "soil.observation.recorded @ tests_v9/test_outbox_requires_jetstream_ack.py:185",
+          "value": "soil.observation.recorded @ tests_v9/test_outbox_requires_jetstream_ack.py:195",
           "score": 26
-        },
-        {
-          "value": "crop_rotation.added @ services/sahool-platform/api/event_bus.py:227",
-          "score": 23
-        },
-        {
-          "value": "decision.recorded @ services/sahool-platform/api/event_bus.py:197",
-          "score": 23
-        },
-        {
-          "value": "dispatch.decision.recorded @ services/sahool-platform/api/event_bus.py:186",
-          "score": 23
-        },
-        {
-          "value": "dispatch.execution.recorded @ services/sahool-platform/api/event_bus.py:187",
-          "score": 23
-        },
-        {
-          "value": "field.created @ services/sahool-platform/api/event_bus.py:133",
-          "score": 23
-        },
-        {
-          "value": "field.deleted @ services/sahool-platform/api/event_bus.py:148",
-          "score": 23
-        },
-        {
-          "value": "field.geometry_changed @ services/sahool-platform/api/event_bus.py:135",
-          "score": 23
-        },
-        {
-          "value": "field.geometry_reverted @ services/sahool-platform/api/event_bus.py:138",
-          "score": 23
-        },
-        {
-          "value": "field.imagery.backfill_requested @ services/sahool-platform/api/event_bus.py:145",
-          "score": 23
-        },
-        {
-          "value": "field.imagery.refresh_requested @ services/sahool-platform/api/event_bus.py:142",
-          "score": 23
-        },
-        {
-          "value": "field.state_changed @ services/sahool-platform/api/event_bus.py:151",
-          "score": 23
-        },
-        {
-          "value": "field.updated @ services/sahool-platform/api/event_bus.py:134",
-          "score": 23
-        },
-        {
-          "value": "irrigation.reservation.dispatch_failed @ services/sahool-platform/api/event_bus.py:220",
-          "score": 23
-        },
-        {
-          "value": "irrigation.reservation.dispatch_requested @ services/sahool-platform/api/event_bus.py:219",
-          "score": 23
-        },
-        {
-          "value": "irrigation.schedule.created @ services/sahool-platform/api/event_bus.py:213",
-          "score": 23
-        },
-        {
-          "value": "irrigation.valve.registered @ services/sahool-platform/api/event_bus.py:215",
-          "score": 23
-        },
-        {
-          "value": "irrigation.valve.state_changed @ services/sahool-platform/api/event_bus.py:216",
-          "score": 23
-        },
-        {
-          "value": "operation.irrigation.completed @ services/sahool-platform/api/event_bus.py:233",
-          "score": 23
-        },
-        {
-          "value": "operation.irrigation.started @ services/sahool-platform/api/event_bus.py:232",
-          "score": 23
-        },
-        {
-          "value": "soil.lab.result.published @ services/sahool-platform/api/event_bus.py:245",
-          "score": 23
-        },
-        {
-          "value": "soil.sample.recorded @ services/sahool-platform/api/event_bus.py:244",
-          "score": 23
-        },
-        {
-          "value": "task.created @ services/sahool-platform/api/event_bus.py:211",
-          "score": 23
-        },
-        {
-          "value": "task.updated @ services/sahool-platform/api/event_bus.py:209",
-          "score": 23
-        },
-        {
-          "value": "weather.moisture.low @ services/sahool-platform/api/event_bus.py:247",
-          "score": 23
-        },
-        {
-          "value": "weather.rain @ services/sahool-platform/api/event_bus.py:246",
-          "score": 23
         },
         {
           "value": "sahool.> @ docs/architecture/jetstream_topology_inventory.md:16",
@@ -11537,7 +11436,107 @@
           "score": 18
         },
         {
+          "value": "crop_rotation.added @ services/sahool-platform/api/event_bus.py:227",
+          "score": 17
+        },
+        {
+          "value": "decision.recorded @ services/sahool-platform/api/event_bus.py:197",
+          "score": 17
+        },
+        {
+          "value": "dispatch.decision.recorded @ services/sahool-platform/api/event_bus.py:186",
+          "score": 17
+        },
+        {
+          "value": "dispatch.execution.recorded @ services/sahool-platform/api/event_bus.py:187",
+          "score": 17
+        },
+        {
+          "value": "field.created @ services/sahool-platform/api/event_bus.py:133",
+          "score": 17
+        },
+        {
+          "value": "field.deleted @ services/sahool-platform/api/event_bus.py:148",
+          "score": 17
+        },
+        {
+          "value": "field.geometry_changed @ services/sahool-platform/api/event_bus.py:135",
+          "score": 17
+        },
+        {
+          "value": "field.geometry_reverted @ services/sahool-platform/api/event_bus.py:138",
+          "score": 17
+        },
+        {
+          "value": "field.imagery.backfill_requested @ services/sahool-platform/api/event_bus.py:145",
+          "score": 17
+        },
+        {
+          "value": "field.imagery.refresh_requested @ services/sahool-platform/api/event_bus.py:142",
+          "score": 17
+        },
+        {
+          "value": "field.state_changed @ services/sahool-platform/api/event_bus.py:151",
+          "score": 17
+        },
+        {
+          "value": "field.updated @ services/sahool-platform/api/event_bus.py:134",
+          "score": 17
+        },
+        {
+          "value": "irrigation.reservation.dispatch_failed @ services/sahool-platform/api/event_bus.py:220",
+          "score": 17
+        },
+        {
+          "value": "irrigation.reservation.dispatch_requested @ services/sahool-platform/api/event_bus.py:219",
+          "score": 17
+        },
+        {
+          "value": "irrigation.schedule.created @ services/sahool-platform/api/event_bus.py:213",
+          "score": 17
+        },
+        {
+          "value": "irrigation.valve.registered @ services/sahool-platform/api/event_bus.py:215",
+          "score": 17
+        },
+        {
+          "value": "irrigation.valve.state_changed @ services/sahool-platform/api/event_bus.py:216",
+          "score": 17
+        },
+        {
+          "value": "operation.irrigation.completed @ services/sahool-platform/api/event_bus.py:233",
+          "score": 17
+        },
+        {
+          "value": "operation.irrigation.started @ services/sahool-platform/api/event_bus.py:232",
+          "score": 17
+        },
+        {
           "value": "sahool.events.agronomy.projection.requested @ scripts/e2e/canonical_projection_jetstream_roundtrip.py:20",
+          "score": 17
+        },
+        {
+          "value": "soil.lab.result.published @ services/sahool-platform/api/event_bus.py:245",
+          "score": 17
+        },
+        {
+          "value": "soil.sample.recorded @ services/sahool-platform/api/event_bus.py:244",
+          "score": 17
+        },
+        {
+          "value": "task.created @ services/sahool-platform/api/event_bus.py:211",
+          "score": 17
+        },
+        {
+          "value": "task.updated @ services/sahool-platform/api/event_bus.py:209",
+          "score": 17
+        },
+        {
+          "value": "weather.moisture.low @ services/sahool-platform/api/event_bus.py:247",
+          "score": 17
+        },
+        {
+          "value": "weather.rain @ services/sahool-platform/api/event_bus.py:246",
           "score": 17
         },
         {
@@ -11877,6 +11876,15 @@
           ]
         },
         {
+          "path": "shared/broker_url.py",
+          "score": 15,
+          "signals": [
+            "content:event bus",
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
           "path": "docs/ARCHITECTURE_DEPENDENCY_AND_GAPS_2026-06.md",
           "score": 14,
           "signals": [
@@ -12046,7 +12054,7 @@
         "mobile": 0,
         "tests": 13,
         "governance": 0,
-        "other_evidence": 25
+        "other_evidence": 26
       },
       "coverage_dimensions": 5,
       "mapped": true

@@ -45,24 +45,13 @@
       "subject": null
     },
     {
-      "client_expr": "jetstream",
-      "component": "sahool-platform",
-      "durable": null,
-      "dynamic_expr": "subject",
-      "file": "services/sahool-platform/api/event_bus.py",
-      "kind": "producer",
-      "line": 507,
-      "queue": null,
-      "subject": null
-    },
-    {
       "client_expr": "self",
       "component": "sahool-platform",
       "durable": null,
       "dynamic_expr": "row['nats_subject']",
       "file": "services/sahool-platform/api/event_bus.py",
       "kind": "producer",
-      "line": 680,
+      "line": 643,
       "queue": null,
       "subject": null
     },
@@ -162,6 +151,17 @@
       "file": "shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
       "kind": "producer",
       "line": 107,
+      "queue": null,
+      "subject": null
+    },
+    {
+      "client_expr": "jetstream",
+      "component": "shared",
+      "durable": null,
+      "dynamic_expr": "subject",
+      "file": "shared/broker_url.py",
+      "kind": "producer",
+      "line": 72,
       "queue": null,
       "subject": null
     },

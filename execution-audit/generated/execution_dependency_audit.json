@@ -190449,387 +190449,345 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
-   "source":"make_jetstream_publisher",
-   "target":"jetstream",
-   "line":504
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"make_jetstream_publisher",
-   "target":"publish",
-   "line":507
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"make_jetstream_publisher",
-   "target":"getattr",
-   "line":510
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"publish",
-   "target":"getattr",
-   "line":510
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"make_jetstream_publisher",
-   "target":"RuntimeError",
-   "line":511
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"publish",
-   "target":"RuntimeError",
-   "line":511
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
    "source":"run",
    "target":"info",
-   "line":547
+   "line":510
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"run",
    "target":"_process_batch",
-   "line":550
+   "line":513
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"run",
    "target":"sleep",
-   "line":552
+   "line":515
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"run",
    "target":"exception",
-   "line":556
+   "line":519
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"run",
    "target":"sleep",
-   "line":557
+   "line":520
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"run",
    "target":"info",
-   "line":558
+   "line":521
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_process_batch",
    "target":"acquire",
-   "line":576
+   "line":539
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_process_batch",
    "target":"transaction",
-   "line":577
+   "line":540
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_process_batch",
    "target":"fetch",
-   "line":584
+   "line":547
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_process_batch",
    "target":"_send_one",
-   "line":616
+   "line":579
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_process_batch",
    "target":"len",
-   "line":618
+   "line":581
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"str",
-   "line":640
+   "line":603
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"str",
-   "line":643
+   "line":606
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"str",
-   "line":644
+   "line":607
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"isinstance",
-   "line":646
+   "line":609
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"loads",
-   "line":647
+   "line":610
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"get",
-   "line":649
+   "line":612
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"isinstance",
-   "line":649
+   "line":612
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"get",
-   "line":652
+   "line":615
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"isinstance",
-   "line":652
+   "line":615
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"isoformat",
-   "line":654
+   "line":617
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"transaction",
-   "line":658
+   "line":621
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"claim_event",
-   "line":660
+   "line":623
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"debug",
-   "line":662
+   "line":625
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"execute",
-   "line":667
+   "line":630
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"_record_delivery_attempt",
-   "line":675
+   "line":638
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"dumps",
-   "line":680
+   "line":643
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"encode",
-   "line":680
+   "line":643
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"publish",
-   "line":680
+   "line":643
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"execute",
-   "line":681
+   "line":644
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"_record_delivery_attempt",
-   "line":689
+   "line":652
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"str",
-   "line":693
+   "line":656
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"type",
-   "line":693
+   "line":656
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"execute",
-   "line":696
+   "line":659
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"_record_delivery_attempt",
-   "line":710
+   "line":673
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"error",
-   "line":719
+   "line":682
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"warning",
-   "line":728
+   "line":691
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_record_delivery_attempt",
    "target":"transaction",
-   "line":746
+   "line":709
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_record_delivery_attempt",
    "target":"execute",
-   "line":747
+   "line":710
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_record_delivery_attempt",
    "target":"str",
-   "line":754
+   "line":717
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_record_delivery_attempt",
    "target":"warning",
-   "line":761
+   "line":724
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"list_dead_letter",
    "target":"fetch",
-   "line":775
+   "line":738
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"list_dead_letter",
    "target":"dead_letter_summary",
-   "line":787
+   "line":750
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"list_dead_letter",
    "target":"dict",
-   "line":787
+   "line":750
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"requeue_dead_letter",
    "target":"execute",
-   "line":796
+   "line":759
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"requeue_dead_letter",
    "target":"execute",
-   "line":807
+   "line":770
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"requeue_dead_letter",
    "target":"int",
-   "line":818
+   "line":781
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"requeue_dead_letter",
    "target":"rsplit",
-   "line":818
+   "line":781
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"requeue_dead_letter",
    "target":"str",
-   "line":818
+   "line":781
   },
   {
    "owner":"sahool-platform",
@@ -525710,6 +525668,48 @@
    "source":"redact_broker_url",
    "target":"urlunsplit",
    "line":42
+  },
+  {
+   "owner":"shared",
+   "file":"shared/broker_url.py",
+   "source":"make_jetstream_publisher",
+   "target":"jetstream",
+   "line":69
+  },
+  {
+   "owner":"shared",
+   "file":"shared/broker_url.py",
+   "source":"make_jetstream_publisher",
+   "target":"publish",
+   "line":72
+  },
+  {
+   "owner":"shared",
+   "file":"shared/broker_url.py",
+   "source":"make_jetstream_publisher",
+   "target":"getattr",
+   "line":75
+  },
+  {
+   "owner":"shared",
+   "file":"shared/broker_url.py",
+   "source":"publish",
+   "target":"getattr",
+   "line":75
+  },
+  {
+   "owner":"shared",
+   "file":"shared/broker_url.py",
+   "source":"make_jetstream_publisher",
+   "target":"RuntimeError",
+   "line":76
+  },
+  {
+   "owner":"shared",
+   "file":"shared/broker_url.py",
+   "source":"publish",
+   "target":"RuntimeError",
+   "line":76
   },
   {
    "owner":"shared",
