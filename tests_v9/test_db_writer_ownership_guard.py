@@ -174,7 +174,6 @@ def test_update_and_delete_are_writes_too(tmp_path, monkeypatch):
         assert "ledger::probe-service" in MOD.survey(), statement
 
 
-
 def test_sqlite_only_file_is_outside_postgres_ownership_contract(tmp_path, monkeypatch):
     _sandbox(
         tmp_path,
