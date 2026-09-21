@@ -377,3 +377,220 @@ def test_the_live_tree_resolves_edges_with_evidence():
     assert resolved, "لم تُحسَم حافّةٌ واحدة على الشجرة الحيّة — السلسلةُ منقطعة"
     assert report["gateway_upstreams_unmapped"] == 0
     assert len(resolved) + len(remaining) == len(declared), "حافّةٌ ضاعت بين القائمتين"
+
+
+# ── سطحُ المسارات: مقيسٌ بالمحرّك الحاجب نفسِه ──────────────────────────────────
+
+
+_ROUTER_BODY = """from fastapi import APIRouter
+
+router = APIRouter()
+
+
+@router.get("/healthz")
+def healthz():
+    return {"ok": True}
+
+
+@router.post("/api/v1/fields")
+def create_field():
+    return {}
+"""
+
+_SECOND_ROUTER_BODY = """from fastapi import APIRouter
+
+other = APIRouter()
+
+
+@other.post("/api/v1/fields")
+def create_field_again():
+    return {}
+"""
+
+
+def _routes_tree(
+    tmp_path: Path,
+    *,
+    extraction: dict | None,
+    placement: dict | None = None,
+    second_module: bool = False,
+    break_engine: bool = False,
+) -> Path:
+    """مِرقاةٌ تحمل مُدخَلَي القياس الحقيقيَّين: راوترٌ يُعلِن، وخريطةٌ تُسمّي المالك.
+
+    والمحرّكُ يُنسَخ إلى `scripts/ci/` لأنّه يُحمَّل بمسارٍ نسبيٍّ إلى `ROOT` — وإلّا
+    قاس الشاهدُ شجرةَ المستودع وهو يظنّ أنّه يقيس مِرقاته.
+    """
+    tree = _fixture_tree(tmp_path, consumers=["svc-b"])
+    dest = tree / "scripts" / "ci"
+    dest.mkdir(parents=True, exist_ok=True)
+    engine_src = ROOT / "scripts" / "ci" / "platform_route_classification.py"
+    body = engine_src.read_text(encoding="utf-8")
+    if break_engine:
+        body = "raise RuntimeError('محرّكٌ قائمٌ لا يُحمَّل')\n" + body
+    (dest / "platform_route_classification.py").write_text(body, encoding="utf-8")
+
+    api = tree / "services" / "sahool-platform" / "api" / "routers"
+    api.mkdir(parents=True, exist_ok=True)
+    (api / "platform_health.py").write_text(_ROUTER_BODY, encoding="utf-8")
+    if second_module:
+        (api / "legacy_fields.py").write_text(_SECOND_ROUTER_BODY, encoding="utf-8")
+
+    arch = tree / "docs" / "architecture"
+    arch.mkdir(parents=True, exist_ok=True)
+    if extraction is not None:
+        (arch / "platform_extraction_map.json").write_text(
+            json.dumps(extraction, ensure_ascii=False), encoding="utf-8"
+        )
+    if placement is not None:
+        (arch / "platform_route_placement_contract.json").write_text(
+            json.dumps(placement, ensure_ascii=False), encoding="utf-8"
+        )
+    return tree
+
+
+def _routes(tmp_path: Path, monkeypatch, **kwargs):
+    tree = _routes_tree(tmp_path, **kwargs)
+    monkeypatch.setattr(inventory, "ROOT", tree)
+    monkeypatch.setattr(inventory, "_git_sha", lambda: "0" * 40)
+    out = tree / "inventory"
+    inventory.build(out)
+    return _load(out, "routes.json"), _load(out, "inventory_manifest.json")
+
+
+_OWNED = {"routes": [{"method": "POST", "path": "/api/v1/fields", "target_owner": "field-svc"}]}
+
+
+def test_the_routes_surface_stays_unmeasured_without_the_extraction_map(tmp_path, monkeypatch):
+    """**الترقيةُ بالقياس لا بالتحرير** — والسؤالُ ثلاثيٌّ فلا يُجاب بثُلثيه.
+
+    السطحُ يسأل «أين يُعلَن · **ومن يملكه** · ونطاقٌ أم بنية». وبلا الخريطة يبقى
+    المالكُ مجهولاً، فإعلانُ `measured` كان سيقول إنّ السؤالَ حُسِم وثُلثُه لم يُطرَح.
+    """
+    surface, _ = _routes(tmp_path, monkeypatch, extraction=None)
+    assert surface["measurement_state"] == "not_measured"
+    assert surface["rows"] == [] and surface["question_to_resolve"].strip()
+    assert surface["candidate_sources"]
+
+
+def test_an_engine_that_exists_but_cannot_load_fails_loudly_not_as_not_measured(
+    tmp_path, monkeypatch
+):
+    """`AN-ENGINE-THAT-FAILS-TO-LOAD-IS-REPORTED-AS-AN-ABSENT-MEASURE-01`.
+
+    **العطلُ وقع في بناء هذه الشريحة نفسِها:** `except Exception: return None` ابتلع
+    خطأَ تحميلٍ حقيقيّاً (`@dataclass` يقرأ `sys.modules[cls.__module__]`، فسقط
+    التحميلُ قبل تسجيل الوحدة)، فأبلغ الجردُ `not_measured` **بهيئة امتناعٍ صادق**
+    بينما المحرّكُ قائمٌ في الشجرة ويحجب في CI.
+
+    فالغيابُ يُرجِع `None`، وأمّا العطبُ فيفشل صراحةً — وإلّا صار «لم يُقَس» مخبأً
+    لكلّ عطلٍ في المحرّك.
+    """
+    with pytest.raises(SystemExit) as excinfo:
+        _routes(tmp_path, monkeypatch, extraction=_OWNED, break_engine=True)
+    assert "ENGINE_UNLOADABLE" in str(excinfo.value)
+
+
+def test_a_route_is_classified_by_the_blocking_engine_not_by_a_local_list(tmp_path, monkeypatch):
+    """قائمةُ بنيةٍ ثانيةٌ هنا كانت ستنحرف عن التي تُقاس عليها الميزانيّة.
+
+    و`/healthz` بنيةٌ بحكم المحرّك وحدَه؛ وسطرٌ عاديٌّ يبقى نطاقاً.
+    """
+    surface, _ = _routes(tmp_path, monkeypatch, extraction=_OWNED)
+    assert surface["measurement_state"] == "measured"
+    kinds = {(r["method"], r["path"]): r["kind"] for r in surface["rows"]}
+    assert kinds[("GET", "/healthz")] == "infrastructure"
+    assert kinds[("POST", "/api/v1/fields")] == "domain"
+    assert surface["counts"]["infrastructure"] == 1
+    assert surface["counts"]["domain"] == 1
+
+
+def test_a_declared_owner_is_never_recorded_as_a_measured_site(tmp_path, monkeypatch):
+    """**طبقتا الدليل لا تُدمَجان.**
+
+    موضعُ الإعلان مقيس (`resolved`)، وأمّا المالكُ فسجلٌّ يصف البنيةَ المقصودة
+    (`declared`). ودمجُهما كان سيُنتِج «مساراتٍ مملوكةً» تُقرأ محقَّقةً.
+    """
+    surface, _ = _routes(tmp_path, monkeypatch, extraction=_OWNED)
+    row = next(r for r in surface["rows"] if r["path"] == "/api/v1/fields")
+    # الموضعُ يُفحَص **خاصّيّةً**: ملفٌّ يحمل الإعلان وسطرٌ يقع داخله. وتثبيتُ رقمٍ
+    # بعينه كان يُثبّت صياغةَ المِرقاة لا السلوك (`GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01`)
+    # — وقد أخطأتُ الرقمَ فعلاً في أوّل صياغة.
+    assert row["evidence_state"] == "resolved"
+    file_part, _, line_part = row["site"].rpartition(":")
+    assert file_part.endswith("api/routers/platform_health.py")
+    assert line_part.isdigit() and int(line_part) > 0
+    assert row["owner"] == "field-svc"
+    assert row["owner_evidence_state"] == "declared"
+
+
+def test_a_route_absent_from_the_map_is_unmapped_not_silently_dropped(tmp_path, monkeypatch):
+    """إسقاطُ ما لا تعرفه الخريطةُ يجعل السطحَ يصف الخريطةَ لا الشجرة."""
+    surface, _ = _routes(tmp_path, monkeypatch, extraction=_OWNED)
+    health = next(r for r in surface["rows"] if r["path"] == "/healthz")
+    assert health["owner"] is None and health["owner_evidence_state"] == "unmapped"
+    assert surface["counts"]["unmapped_owner"] == 1
+    assert surface["counts"]["declarations"] == 2
+
+
+def test_declarations_and_unique_keys_are_counted_apart(tmp_path, monkeypatch):
+    """مفتاحٌ يتكرّر عبر وحدتين ليس تصادماً بالضرورة — والعددان يختلفان فعلاً.
+
+    البادئاتُ غيرُ محلولة، فدمجُ العددين كان سيُخفي أنّ «عددَ المسارات» عددُ
+    **إعلانات**. وهو الفرقُ الذي يقع على الشجرة الحيّة لا في المِرقاة وحدَها.
+    """
+    surface, _ = _routes(tmp_path, monkeypatch, extraction=_OWNED, second_module=True)
+    assert surface["counts"]["declarations"] == 3
+    assert surface["counts"]["unique_method_path_keys"] == 2
+
+
+def test_the_placement_contract_says_where_an_infrastructure_route_belongs(tmp_path, monkeypatch):
+    """التصنيفُ يقول ما هو المسار؛ وخريطةُ الموضع تقول أين ينتمي — ولا تُخلَطان."""
+    contract = {
+        "routes": [
+            {
+                "method": "GET",
+                "path": "/healthz",
+                "required_source": "services/sahool-platform/api/routers/platform_health.py",
+            }
+        ]
+    }
+    surface, _ = _routes(tmp_path, monkeypatch, extraction=_OWNED, placement=contract)
+    health = next(r for r in surface["rows"] if r["path"] == "/healthz")
+    assert health["placement_state"] == "at_required_source"
+
+    contract["routes"][0]["required_source"] = "services/sahool-platform/api/main.py"
+    surface, _ = _routes(tmp_path / "moved", monkeypatch, extraction=_OWNED, placement=contract)
+    health = next(r for r in surface["rows"] if r["path"] == "/healthz")
+    assert health["placement_state"] == "elsewhere"
+
+
+def test_the_routes_surface_carries_its_blind_spots_inside_the_artifact(tmp_path, monkeypatch):
+    """حدُّ الأداة حقلٌ يُقرأ — القارئُ الآليُّ لا يقرأ التعليقات."""
+    surface, _ = _routes(tmp_path, monkeypatch, extraction=_OWNED)
+    blind = " ".join(surface["blind_spots_ar"])
+    assert "include_router" in blind, "الحدُّ الأخطر (البادئاتُ غيرُ محلولة) غيرُ محمول"
+    assert "sahool-platform" in blind, "لم يُعلَن أنّ المسحَ على خدمةٍ واحدة"
+    assert surface["what_this_does_not_claim_ar"].strip()
+    assert surface["engine"] == "scripts/ci/platform_route_classification.py"
+
+
+def test_the_generator_defines_no_second_route_scanner():
+    """ماسحٌ ثانٍ يُنتِج جواباً ثانياً عن سؤالٍ واحد — ويُقاس عليه الأوّل في بوّابة."""
+    source = GENERATOR.read_text(encoding="utf-8")
+    assert "platform_route_classification" in source
+    for pattern in ('"/healthz"', "HTTP_METHODS", "ast.Call"):
+        assert pattern not in source, f"الجردُ يُعرّف تصنيفَ مسارٍ بنفسه: {pattern}"
+
+
+def test_the_live_tree_measures_routes_with_the_same_engine_the_budget_uses():
+    """**الزرعُ الحيّ:** جردٌ وبوّابةٌ يعدّان الشيءَ نفسَه، فيجب أن يتطابقا."""
+    surface = inventory.routes_surface()
+    assert surface is not None, "الشجرةُ الحيّة تحمل المحرّكَ والخريطة ولم تُقَس"
+    engine = inventory._route_engine()
+    infrastructure, domain = engine.partition_routes(
+        engine.collect_platform_routes(ROOT / "services" / "sahool-platform")
+    )
+    assert surface["counts"]["domain"] == len(domain)
+    assert surface["counts"]["infrastructure"] == len(infrastructure)
+    assert surface["counts"]["declarations"] == len(domain) + len(infrastructure)

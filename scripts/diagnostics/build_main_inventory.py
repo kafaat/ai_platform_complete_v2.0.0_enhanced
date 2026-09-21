@@ -146,27 +146,54 @@ def integration_edges(
     return resolved, sorted(unresolved, key=lambda item: (item["capability_id"] or "", item["to"]))
 
 
+def _load_engine(path: Path, alias: str):
+    """يُحمَّل محرّكٌ حاجبٌ بالمسار — **وغيابُه غيرُ عطبِه، والفرقُ يُرى**.
+
+    `AN-ENGINE-THAT-FAILS-TO-LOAD-IS-REPORTED-AS-AN-ABSENT-MEASURE-01` — مقيسٌ أثناء
+    بناء سطح المسارات: أوّلُ صياغةٍ لي ابتلعت خطأَ التحميل بـ`except Exception: return
+    None`، فأبلغ الجردُ `not_measured` **وكأنّه امتناعٌ صادقٌ عن القياس** بينما المحرّكُ
+    قائمٌ في الشجرة ويحجب في CI. وذاك صنفُ «الغيابُ يُقرأ قياساً» بعينه، مقلوباً: عطبٌ
+    يلبس ثوبَ الصدق.
+
+    والعطلُ الذي كشفه ليس فرضيّاً: `@dataclass` يقرأ `sys.modules[cls.__module__]`، فإن
+    لم تُسجَّل الوحدةُ **قبل** التنفيذ سقط التحميلُ بـ`AttributeError` — أي أنّ كلَّ
+    محرّكٍ يحمل dataclass كان سيُبلَّغ «غيرَ موجود».
+
+    فالقاعدةُ هنا: ملفٌّ غيرُ موجود ⇒ `None` (السطحُ لم يُقَس بصدق)؛ وملفٌّ موجودٌ لا
+    يُحمَّل ⇒ **فشلٌ صريح**، لأنّ شجرةً تحمل المحرّكَ ولا تستطيع تشغيله عطلٌ يُصلَح لا
+    قياسٌ يُمتنَع عنه.
+    """
+    if not path.exists():
+        return None
+    spec = importlib.util.spec_from_file_location(alias, path)
+    if spec is None or spec.loader is None:
+        raise SystemExit(f"ENGINE_UNLOADABLE: تعذّر بناء مواصفة تحميلٍ لـ{path}")
+    module = importlib.util.module_from_spec(spec)
+    # التسجيلُ **قبل** التنفيذ: `dataclasses._is_type` يبحث عن الوحدة في `sys.modules`.
+    sys.modules[alias] = module
+    try:
+        spec.loader.exec_module(module)
+    except Exception as exc:  # pragma: no cover - يفشل صراحةً بدل أن يُبلِغ غياباً
+        sys.modules.pop(alias, None)
+        raise SystemExit(
+            f"ENGINE_UNLOADABLE: {path} موجودٌ ولم يُحمَّل ({exc.__class__.__name__}: {exc}). "
+            "شجرةٌ تحمل المحرّكَ ولا تُشغّله عطلٌ يُصلَح — ولا يُبلَّغ عنه «لم يُقَس»."
+        ) from exc
+    return module
+
+
 def _ownership_engine():
     """محرّكُ ملكيّة الكتابة **نفسُه** الذي يحجب في CI — لا نسخةٌ ثانية منه.
 
     السؤالُ («أيُّ مكوّنٍ يملك الكتابة، وبأيّ عقدٍ معلَن؟») له مُجيبٌ قائمٌ في الشجرة:
     `db_writer_ownership_guard`. وكتابةُ ماسحٍ ثانٍ هنا كانت ستُنتِج نمطَ كتابةٍ ثانياً
     وقواعدَ استثناءٍ ثانية، فيختلف الجوابان عن سؤالٍ واحد **بلا ما يُظهِر الاختلاف**.
-    """
-    import importlib.util
 
+    ويمرّ بـ`_load_engine` لأنّ ابتلاعَ خطأ التحميل هنا كان سيُبلِّغ «لم يُقَس» عن
+    محرّكٍ **قائمٍ يحجب في CI** — والعطلُ قِيس على محرّكٍ آخر، لا يُفترَض.
+    """
     path = ROOT / "scripts" / "ci" / "db_writer_ownership_guard.py"
-    if not path.exists():
-        return None
-    spec = importlib.util.spec_from_file_location("_dbw_guard_for_inventory", path)
-    if spec is None or spec.loader is None:
-        return None
-    module = importlib.util.module_from_spec(spec)
-    try:
-        spec.loader.exec_module(module)
-    except Exception:
-        return None
-    return module
+    return _load_engine(path, "_dbw_guard_for_inventory")
 
 
 #: ما لا يراه الماسح — يُحمَل **في المصنوعة** لا في تعليقٍ بجانبها.
@@ -276,6 +303,143 @@ def database_ownership() -> dict[str, Any]:
             "لا يُدَّعى أنّ العقدَ صحيح، ولا أنّ حافّةً `declared` بلا كاتب. المقيسُ "
             "موضعُ كتابةٍ وُجِد أو لم يُوجَد بماسحٍ حدودُه مُعلَنةٌ أعلاه؛ و"
             "`not_authorised` تعني كتابةً مقيسةً لم يأذن بها العقد — لا حكماً بأنّها خطأ."
+        ),
+    }
+
+
+def _route_engine():
+    """محرّكُ تصنيف المسارات **نفسُه** الذي يحجب في `platform-route-budget`.
+
+    نفسُ حجّة `_ownership_engine`: السؤالُ («أيُّ مسارٍ يُعلَن أين، وهل هو نطاقٌ أم
+    بنية؟») له مُجيبٌ حاجبٌ في الشجرة. وماسحٌ ثانٍ هنا كان سيحمل قائمةَ بنيةٍ ثانية
+    وتطبيعَ مسارٍ ثانياً — فينحرف جوابان عن سؤالٍ واحد بلا ما يُظهِر الانحراف، وأحدُهما
+    هو الذي تُقاس عليه الميزانيّة.
+    """
+    path = ROOT / "scripts" / "ci" / "platform_route_classification.py"
+    return _load_engine(path, "_route_classification_for_inventory")
+
+
+#: حدودُ قياس المسارات — حقلٌ يُقرأ في المصنوعة لا تعليقٌ بجانبها.
+_ROUTE_BLIND_SPOTS = [
+    "شجرةُ `services/sahool-platform` وحدَها تُمسَح: مسارُ خدمةٍ أخرى لا يظهر هنا.",
+    "المسارُ هو **حرفيّةُ المُزخرِف** لا المسارَ المُركَّب: بادئاتُ `include_router` "
+    "غيرُ محلولة، فمفتاحٌ يتكرّر عبر وحدتين ليس بالضرورة تصادماً "
+    "(`route_conflict_guard` يحكم ذلك).",
+    "إعلانٌ غيرُ حرفيٍّ يفشل مُغلَقاً في المحرّك، فلا يُعَدّ ولا يُبتلَع صامتاً.",
+    "دليلُ `tests/` مستثنًى.",
+    "و`target_owner` **دليلٌ مُعلَن** من خريطة الاستخراج — نيّةُ بنيةٍ لا موضعَ تشغيل.",
+]
+
+
+def routes_surface() -> dict[str, Any] | None:
+    """سطحُ المسارات — الإعلانُ مقيس، والملكيّةُ مُعلَنة، والتصنيفُ من المحرّك الحاجب.
+
+    **وطبقتا الدليل هنا مختلفتان عن بعضهما عمداً:** موضعُ الإعلان `resolved` (ملفٌّ
+    وسطرٌ قاسهما المحرّك)، وأمّا المالكُ فـ`declared` — سجلٌّ في `platform_extraction_map.json`
+    يصف **البنيةَ المقصودة** لا موضعَ تشغيلٍ قائماً. ودمجُهما كان سيُنتِج «٦٣٢ مساراً
+    مملوكاً» تُقرأ محقَّقةً، والمقيسُ منها موضعُ الإعلان وحدَه.
+    """
+    engine = _route_engine()
+    platform_root = ROOT / "services" / "sahool-platform"
+    extraction_path = ROOT / "docs" / "architecture" / "platform_extraction_map.json"
+    placement_path = ROOT / "docs" / "architecture" / "platform_route_placement_contract.json"
+    if engine is None or not platform_root.exists() or not extraction_path.exists():
+        # الترقيةُ بالقياس لا بالتحرير: بلا محرّكٍ أو بلا خريطةٍ يبقى السطحُ غيرَ مقيس.
+        return None
+
+    try:
+        declarations = engine.collect_platform_routes(platform_root)
+    except Exception:
+        return None
+    if not declarations:
+        # صفرُ مسارٍ على شجرةٍ تحمل راوترات = ماسحٌ فشل، لا شجرةٌ خالية. ولا يُبلَّغ
+        # `measured` بصفوفٍ فارغة — تلك دعوى.
+        return None
+
+    infrastructure, domain = engine.partition_routes(declarations)
+
+    # نفسُ قاعدة `_load_engine`: الغيابُ حُسِم أعلاه بـ`return None`؛ وأمّا خريطةٌ
+    # **موجودةٌ لا تُقرأ** فعطبٌ يفشل صراحةً. وابتلاعُها هنا بـ`return None` كان
+    # يُنتِج `not_measured` بهيئة امتناعٍ صادق — وهو ما أبقى الطفرةَ [٣] حيّةً في
+    # أوّل زرع: الشرطُ فوق كان يبدو حارساً، والحارسُ الفعليُّ هذا الابتلاع.
+    owners: dict[tuple[str, str], str] = {}
+    try:
+        mapped = json.loads(extraction_path.read_text(encoding="utf-8")).get("routes") or []
+    except Exception as exc:
+        raise SystemExit(
+            f"EXTRACTION_MAP_UNREADABLE: {extraction_path} موجودةٌ ولم تُقرأ "
+            f"({exc.__class__.__name__}: {exc}) — ولا يُبلَّغ عنها «لم يُقَس»."
+        ) from exc
+    for row in mapped:
+        if not isinstance(row, dict):
+            continue
+        method, path, owner = row.get("method"), row.get("path"), row.get("target_owner")
+        if method and path and owner:
+            owners[(str(method).strip().upper(), str(path))] = owner
+
+    placement: dict[tuple[str, str], dict[str, Any]] = {}
+    if placement_path.exists():
+        try:
+            for row in json.loads(placement_path.read_text(encoding="utf-8")).get("routes") or []:
+                if isinstance(row, dict) and row.get("method") and row.get("path"):
+                    placement[(str(row["method"]).upper(), str(row["path"]))] = row
+        except Exception:
+            placement = {}
+
+    rows: list[dict[str, Any]] = []
+    for route in declarations:
+        key = route.key
+        contract = placement.get(key)
+        declared_source = contract.get("required_source") if contract else None
+        actual_source = f"services/sahool-platform/{route.source}"
+        rows.append(
+            {
+                "method": route.method,
+                "path": route.path,
+                "kind": "infrastructure" if route.infrastructure else "domain",
+                "evidence_state": "resolved",
+                "site": f"{actual_source}:{route.line}",
+                "function": route.function,
+                "owner": owners.get(key),
+                "owner_evidence_state": "declared" if key in owners else "unmapped",
+                "placement_state": (
+                    None
+                    if contract is None
+                    else ("at_required_source" if actual_source == declared_source else "elsewhere")
+                ),
+            }
+        )
+
+    rows.sort(key=lambda r: (r["path"], r["method"], r["site"]))
+    unique_keys = {(r["method"], r["path"]) for r in rows}
+    unmapped = [r for r in rows if r["owner_evidence_state"] == "unmapped"]
+    by_owner: dict[str, int] = {}
+    for row in rows:
+        if row["owner"]:
+            by_owner[row["owner"]] = by_owner.get(row["owner"], 0) + 1
+
+    return {
+        "schema": "sahool.diagnostic-inventory.surface.v1",
+        "surface": "routes.json",
+        "measurement_state": "measured",
+        "rows": rows,
+        "row_count": len(rows),
+        "counts": {
+            "declarations": len(rows),
+            "unique_method_path_keys": len(unique_keys),
+            "domain": len(domain),
+            "infrastructure": len(infrastructure),
+            "unmapped_owner": len(unmapped),
+            "by_declared_owner": dict(sorted(by_owner.items())),
+        },
+        "engine": "scripts/ci/platform_route_classification.py",
+        "contract": "docs/architecture/platform_extraction_map.json",
+        "blind_spots_ar": _ROUTE_BLIND_SPOTS,
+        "what_this_does_not_claim_ar": (
+            "الصفُّ إعلانٌ مقيس، لا مسارٌ يُثبَت وصولُه حيّاً: لا يُدَّعى أنّه مُركَّبٌ "
+            "في تطبيقٍ يعمل ولا أنّ بادئتَه هي المكتوبة هنا. و`owner` نيّةُ بنيةٍ "
+            "مُعلَنة لا موضعَ تشغيل؛ و«عددُ النطاق» هنا عددُ **إعلانات** لا مفاتيحَ "
+            "فريدة — والفرقُ مقيسٌ في `counts` لا مطويٌّ فيه."
         ),
     }
 
@@ -400,6 +564,12 @@ def build(out: Path) -> None:
     ownership = database_ownership()
     if ownership is not None:
         surfaces["database_ownership.json"] = ownership
+
+    # وسطحُ المسارات بالشرط نفسِه — ومن المحرّك الحاجب نفسِه الذي تُقاس عليه الميزانيّة،
+    # فلا يختلف جردٌ عن بوّابةٍ في عدّ الشيء الواحد.
+    route_rows = routes_surface()
+    if route_rows is not None:
+        surfaces["routes.json"] = route_rows
 
     # **سطحٌ واحدٌ خرج من «لم يُقَس» لأنّه قِيس** — لا لأنّ أحداً قرّر ذلك. صفوفُه
     # هي الحوافُّ المحسومةُ بسلسلة أدلّة، وحدُّ الماسح مُعلَنٌ معها في الصفّ نفسِه:
