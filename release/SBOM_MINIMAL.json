@@ -16505,7 +16505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ef9a2ae6099003b6c3c415f7ae1c3b4227078a373d0595f29a1465e9d136bdc0"
+          "content": "41c885cc54ed1127c6ae3d9253b2a1296265648fa552bb1e98830759d2e3e92e"
         }
       ],
       "name": "services/sahool-platform/api/event_bus.py",
@@ -17435,7 +17435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "758005db9138e468bb92a2c2c4e42aa04e2faec8f8442a5f5d8321a3a4974ebf"
+          "content": "56f92294562d710ab6c3403d7f044671ebf0f7c14d28fba8604efab65d984aca"
         }
       ],
       "name": "services/sahool-platform/api/main.py",

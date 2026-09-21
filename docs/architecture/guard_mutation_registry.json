@@ -1943,6 +1943,25 @@
         }
       ]
     },
+    "services/sahool-platform/api/event_bus.py": {
+      "$why_ar": "`OUTBOX-RELAY-MARKS-SENT-WITHOUT-JETSTREAM-ACK-01` — العطلُ كان في **عقد الناشر** لا في العامل: ناشرٌ بلا إقرارٍ يجعل `sent` تعني «سُلِّم إلى المقبس» لا «صار دائماً». والعقدُ يسكن مع عاملِه في `event_bus` لا في مُهيّئ التطبيق (ميزانيّةُ أسطر `main.py` حاجبة، والعلاجُ نقلُ المنطق لا رفعُ السقف). وهذه الطفراتُ تُعيد العطلَ بصيغتيه.",
+      "mutations": [
+        {
+          "expect": "test_the_injected_publisher_is_not_core_nats_fire_and_forget",
+          "find": "        ack = await jetstream.publish(subject, payload)\n",
+          "replace": "        ack = await nats_conn.publish(subject, payload)  # mutated: Core NATS بلا إقرار\n",
+          "test": "tests_v9/test_outbox_requires_jetstream_ack.py",
+          "why": "**هذا هو الـcounterexample المسجَّل بعينه، مُعاداً:** حدثٌ إلى subject لا يغطّيه دفقٌ يمرّ بلا استثناء فيُوسَم `sent` بـ`last_error=NULL` ومحاولةً `published` — والرسالةُ لم تُخزَّن. قِيس على stack معزول قبل الإصلاح."
+        },
+        {
+          "expect": "test_the_publisher_refuses_an_acknowledgement_that_proves_nothing",
+          "find": "        if ack is None or getattr(ack, \"seq\", None) in (None, 0):\n",
+          "replace": "        if False:  # mutated: يُقبَل إقرارٌ لا يُثبِت تخزيناً\n",
+          "test": "tests_v9/test_outbox_requires_jetstream_ack.py",
+          "why": "عميلٌ يُرجِع `None` أو إقراراً بلا تسلسل يجعل `await` ينجح صامتاً، فيعود `sent` يعني «لم يُرفَع استثناء». والفرقُ بين النجاح وعدم الفشل هو كلُّ ما يحرسه هذا الشرط."
+        }
+      ]
+    },
     "services/sahool-platform/api/field_models.py": {
       "mutations": [
         {
@@ -2133,25 +2152,6 @@
         }
       ],
       "test": "services/sahool-platform/tests/test_precision_execution_loop_c3.py"
-    },
-    "services/sahool-platform/api/main.py": {
-      "$why_ar": "`OUTBOX-RELAY-MARKS-SENT-WITHOUT-JETSTREAM-ACK-01` — العطلُ كان في **موضع الحقن** لا في العامل: ناشرٌ بلا إقرارٍ يجعل `sent` تعني «سُلِّم إلى المقبس» لا «صار دائماً». وهذه الطفراتُ تُعيد العطلَ بصيغتيه.",
-      "mutations": [
-        {
-          "expect": "test_the_injected_publisher_is_not_core_nats_fire_and_forget",
-          "find": "            ack = await _JS.publish(subject, payload)\n",
-          "replace": "            ack = await _NATS_CONN.publish(subject, payload)  # mutated: Core NATS بلا إقرار\n",
-          "test": "tests_v9/test_outbox_requires_jetstream_ack.py",
-          "why": "**هذا هو الـcounterexample المسجَّل بعينه، مُعاداً:** حدثٌ إلى subject لا يغطّيه دفقٌ يمرّ بلا استثناء فيُوسَم `sent` بـ`last_error=NULL` ومحاولةً `published` — والرسالةُ لم تُخزَّن. قِيس على stack معزول قبل الإصلاح."
-        },
-        {
-          "expect": "test_the_publisher_refuses_an_acknowledgement_that_proves_nothing",
-          "find": "            if ack is None or getattr(ack, \"seq\", None) in (None, 0):\n",
-          "replace": "            if False:  # mutated: يُقبَل إقرارٌ لا يُثبِت تخزيناً\n",
-          "test": "tests_v9/test_outbox_requires_jetstream_ack.py",
-          "why": "عميلٌ يُرجِع `None` أو إقراراً بلا تسلسل يجعل `await` ينجح صامتاً، فيعود `sent` يعني «لم يُرفَع استثناء». والفرقُ بين النجاح وعدم الفشل هو كلُّ ما يحرسه هذا الشرط."
-        }
-      ]
     },
     "services/sahool-platform/api/phase_runtime_workers.py": {
       "$gap_ar": "WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01 — ستّةُ مواضع `FOR UPDATE SKIP LOCKED` في اتّصالٍ بوضع autocommit وصفرُ معاملاتٍ صريحة. القفلُ يُحرَّر فور انتهاء SELECT فالمطالبةُ غيرُ مثبَتة. وأخطرُها run_actuator_once: يطالِب ثمّ ينشر طلبَ إرسالٍ فيزيائيّ — فعاملان متزامنان قد يطلبان حركةَ صمّامٍ مرّتين.",

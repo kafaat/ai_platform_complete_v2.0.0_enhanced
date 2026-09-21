@@ -47,23 +47,44 @@ def _event_bus():
 # ── الخاصّيّة الأولى: الناشرُ المحقون يمرّ بـJetStream ويشترط الإقرار ──────────────
 
 
+def _bootstrap() -> str:
+    """جسمُ `_start_outbox_worker` وحدَه — لا نصُّ الملفّ كلُّه.
+
+    مسحُ الملفّ كاملاً كان يلتقط أيَّ ذكرٍ عابرٍ في تعليق، وهو
+    `SCANNER-COUNTS-A-PATH-LITERAL-AS-A-USAGE-01` المُسجَّل في هذا المستودع.
+    """
+    source = MAIN.read_text(encoding="utf-8")
+    return source[
+        source.index("async def _start_outbox_worker") : source.index(
+            "async def _stop_outbox_worker"
+        )
+    ]
+
+
+def _publisher_factory() -> str:
+    """جسمُ `make_jetstream_publisher` في `event_bus` — موضعُ العقد بعد النقل."""
+    source = EVENT_BUS.read_text(encoding="utf-8")
+    start = source.index("def make_jetstream_publisher")
+    return source[start : source.index("class OutboxWorker", start)]
+
+
 def test_the_injected_publisher_is_not_core_nats_fire_and_forget():
     """**counterexample الخطوة ⑤ بعينه، مقروءاً من المصدر.**
 
-    `_NATS_CONN.publish` ينجح بلا دفق. فوجودُه ناشراً للصندوق الصادر **هو** العطل،
-    لا عَرَضٌ له — والشاهدُ يقرأ الموضعَ الذي يُحقَن منه لا نصَّ الملفّ كلَّه.
+    `nats_conn.publish` ينجح بلا دفق. فوجودُه ناشراً للصندوق الصادر **هو** العطل،
+    لا عَرَضٌ له. ويُفحَص **الموضعان**: مُهيّئ التطبيق الذي يحقن، ومصنعُ الناشر الذي
+    يملك العقد — فلا يعود أحدُهما إلى Core NATS بينما الآخرُ يبدو سليماً.
     """
-    source = MAIN.read_text(encoding="utf-8")
-    start = source.index("async def _start_outbox_worker")
-    end = source.index("async def _stop_outbox_worker")
-    body = source[start:end]
+    bootstrap, factory = _bootstrap(), _publisher_factory()
 
-    assert "_NATS_CONN.publish(" not in body, (
+    assert "_NATS_CONN.publish(" not in bootstrap, (
         "ناشرُ الصندوق الصادر عاد إلى Core NATS — إطلاقٌ بلا إقرار، "
         "فيصير `sent` يعني «سُلِّم إلى المقبس» لا «صار دائماً»."
     )
-    assert ".jetstream()" in body, "لا سياقَ JetStream في مُهيّئ العامل"
-    assert "await _JS.publish(" in body, "النشرُ لا يمرّ بـJetStream"
+    assert "make_jetstream_publisher(" in bootstrap, "المُهيّئ لا يحقن الناشرَ المُقِرّ"
+    assert "nats_conn.publish(" not in factory, "المصنعُ نفسُه يُطلِق بلا إقرار"
+    assert ".jetstream()" in factory, "لا سياقَ JetStream في مصنع الناشر"
+    assert "await jetstream.publish(" in factory, "النشرُ لا يمرّ بـJetStream"
 
 
 def test_the_publisher_refuses_an_acknowledgement_that_proves_nothing():
@@ -71,12 +92,9 @@ def test_the_publisher_refuses_an_acknowledgement_that_proves_nothing():
 
     وعميلٌ يُرجِع `None` (أو إقراراً فارغاً) يجعل `await` ينجح صامتاً، فيمرّ الوسم.
     """
-    source = MAIN.read_text(encoding="utf-8")
-    start = source.index("async def _start_outbox_worker")
-    end = source.index("async def _stop_outbox_worker")
-    body = source[start:end]
-    assert "JETSTREAM_PUBACK_MISSING" in body, "لا يُفحَص الإقرارُ بعد النشر"
-    assert "ack is None" in body
+    factory = _publisher_factory()
+    assert "JETSTREAM_PUBACK_MISSING" in factory, "لا يُفحَص الإقرارُ بعد النشر"
+    assert "ack is None" in factory
 
 
 # ── الخاصّيّة الثانية: غيابُ الإقرار يُبقي الحدثَ معلَّقاً بخطأ مكتوب ──────────────

@@ -478,6 +478,43 @@ async def claim_event(conn, event_id, consumer: str = OUTBOX_CONSUMER_NAME) -> b
 # ─── OutboxWorker (background task) ─────────────────────────────
 
 
+def make_jetstream_publisher(nats_conn):
+    """ناشرٌ **مُقِرّ** للصندوق الصادر — `OUTBOX-RELAY-MARKS-SENT-WITHOUT-JETSTREAM-ACK-01`.
+
+    **العطلُ مقيسٌ على stack معزول:** حدثٌ نُشِر إلى موضعٍ لا يغطّيه أيُّ دفق صار صفُّه
+    `sent` بـ`last_error=NULL` ومحاولةً `published` — **ولم تُخزَّن الرسالة**. والسببُ
+    أنّ الناشرَ المحقون كان `nats_conn.publish`: **Core NATS**، إطلاقٌ بلا إقرار ينجح
+    ما دام الاتّصالُ قائماً، وُجِد دفقٌ أم لا. فـ`sent` كانت تعني «سُلِّمت إلى المقبس»
+    لا «صارت دائمة».
+
+    **والعطلُ مركّبٌ مع `JETSTREAM-STREAM-TOPOLOGY-OWNED-BY-A-CONSUMER-01`:** الدفقُ
+    يملكه مستهلكٌ ولا يُنشأ تلقائيّاً بعد `queue_v1`، والناشرُ لا يتحقّق من وجوده —
+    فطرفا العقد كلاهما يفترض أنّ الآخر يضمن الدوام.
+
+    **والعلاجُ ليس في `OutboxWorker`:** بنيتُه سليمة — ينشر ثمّ يَسِم داخل معاملة، وأيُّ
+    استثناءٍ يُعيد الصفَّ `pending/failed` بـ`last_error` ومحاولةً فاشلة. فالمسارُ الصحيح
+    كان **موجوداً ومعطَّلاً** لأنّ الناشرَ لا يفشل أبداً. و`js.publish` ينتظر `PubAck`
+    ويرفع `NoStreamResponseError` حين لا يغطّي الموضعَ دفقٌ، فيسلك المسارَ القائم —
+    **الإصلاح يُفعِّل حارساً موجوداً بدل أن يضيف ثانياً.**
+
+    **وموضعُ هذه الدالّة هنا لا في مُهيّئ التطبيق:** عقدُ النشر يخصّ العاملَ الذي يعتمد
+    عليه؛ وسكناه في `main.py` كان يُنمّي ملفّاً تحدّه ميزانيّةُ أسطرٍ حاجبة (قِيس:
+    ٢٥٧٧ مقابل سقف ٢٥٥٣) — والعلاجُ نقلُ المنطق لا رفعُ السقف.
+    """
+    jetstream = nats_conn.jetstream()
+
+    async def publish(subject: str, payload: bytes) -> None:
+        ack = await jetstream.publish(subject, payload)
+        # حزامٌ ثانٍ: عميلٌ يُرجِع `None` أو إقراراً بلا تسلسلٍ لا يُثبِت دواماً — وبلا
+        # هذا الشرط يعود `sent` يعني «لم يُرفَع استثناء» لا «خُزِّنت».
+        if ack is None or getattr(ack, "seq", None) in (None, 0):
+            raise RuntimeError(
+                f"JETSTREAM_PUBACK_MISSING: {subject} — نُشِر بلا إقرارِ تخزين، فلا يُوسَم الحدثُ `sent`."
+            )
+
+    return publish
+
+
 class OutboxWorker:
     """
     يقرأ event_outbox باستمرار ويُرسل إلى NATS.

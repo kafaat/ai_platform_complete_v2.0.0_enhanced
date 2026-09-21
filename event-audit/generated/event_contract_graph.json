@@ -45,24 +45,24 @@
       "subject": null
     },
     {
+      "client_expr": "jetstream",
+      "component": "sahool-platform",
+      "durable": null,
+      "dynamic_expr": "subject",
+      "file": "services/sahool-platform/api/event_bus.py",
+      "kind": "producer",
+      "line": 507,
+      "queue": null,
+      "subject": null
+    },
+    {
       "client_expr": "self",
       "component": "sahool-platform",
       "durable": null,
       "dynamic_expr": "row['nats_subject']",
       "file": "services/sahool-platform/api/event_bus.py",
       "kind": "producer",
-      "line": 643,
-      "queue": null,
-      "subject": null
-    },
-    {
-      "client_expr": "_JS",
-      "component": "sahool-platform",
-      "durable": null,
-      "dynamic_expr": "subject",
-      "file": "services/sahool-platform/api/main.py",
-      "kind": "producer",
-      "line": 590,
+      "line": 680,
       "queue": null,
       "subject": null
     },
