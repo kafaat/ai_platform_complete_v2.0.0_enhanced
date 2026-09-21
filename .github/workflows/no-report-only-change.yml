@@ -46,6 +46,12 @@ jobs:
       # `32efdc90..cb6598fe` (يسقط) وعلى دمج اصطناعيّ يأخذ الجانب الفارغ.
       - name: An append-only journal may not shrink, on any parent
         run: python scripts/ci/brain_append_only_guard.py --base "origin/${BASE_REF}" --head HEAD
+      # MERGE-TREE-CAN-DROP-EVIDENCE-THAT-BRANCH-HISTORY-PRESERVED-01:
+      # #1061 passed branch-history checks yet its final tree dropped #1059 operational
+      # evidence. HEAD on pull_request is GitHub's synthetic merge candidate, so compare
+      # that tree with the current base and preserve existing evidence/gap identities.
+      - name: Final merge tree must preserve recorded evidence identities
+        run: python scripts/ci/merge_tree_preservation_guard.py --base "origin/${BASE_REF}" --head HEAD
       # ANNOTATED-SUPERSESSION-CLOSES-A-GAP-WITHOUT-A-WITNESS-01: أدخل #1031 وسمَ
       # `current`/`historical` ليحسم العناوين المكرّرة — علاجٌ صحيح حفظ نصَّ الاكتشاف
       # بدل محوه. لكنّه دخل **بلا كلفة**: قارئٌ واحد يقرؤه، واختبارٌ واحد يفحص
