@@ -42,3 +42,39 @@ def redact_broker_url(url: str | None) -> str:
     return urlunsplit(
         (parts.scheme, f"{PLACEHOLDER}@{host}", parts.path, parts.query, parts.fragment)
     )
+
+
+def make_jetstream_publisher(nats_conn):
+    """ناشرٌ **مُقِرّ** للصندوق الصادر — `OUTBOX-RELAY-MARKS-SENT-WITHOUT-JETSTREAM-ACK-01`.
+
+    **العطلُ مقيسٌ على stack معزول:** حدثٌ نُشِر إلى موضعٍ لا يغطّيه أيُّ دفق صار صفُّه
+    `sent` بـ`last_error=NULL` ومحاولةً `published` — **ولم تُخزَّن الرسالة**. والسببُ
+    أنّ الناشرَ المحقون كان `nats_conn.publish`: **Core NATS**، إطلاقٌ بلا إقرار ينجح
+    ما دام الاتّصالُ قائماً، وُجِد دفقٌ أم لا. فـ`sent` كانت تعني «سُلِّمت إلى المقبس»
+    لا «صارت دائمة». وأُعيد الـcounterexample حيّاً على JetStream:
+    `docs/evidence/outbox_jetstream_ack_live_certification.json`.
+
+    **والعلاجُ ليس في `OutboxWorker`:** بنيتُه سليمة — ينشر ثمّ يَسِم داخل معاملة، وأيُّ
+    استثناءٍ يُعيد الصفَّ `pending/failed` بـ`last_error` ومحاولةً فاشلة. فالمسارُ الصحيح
+    كان **موجوداً ومعطَّلاً** لأنّ الناشرَ لا يفشل أبداً. و`js.publish` ينتظر `PubAck`
+    ويرفع `NoStreamResponseError` حين لا يغطّي الموضعَ دفقٌ، فيسلك المسارَ القائم —
+    **الإصلاح يُفعِّل حارساً موجوداً بدل أن يضيف ثانياً.**
+
+    **وموضعُها هنا اختارته بوّابتان لا الراحة:** `main.py` محدودٌ بميزانيّة أسطرٍ حاجبة
+    (٢٥٥٣، بلا هامش)، و`api/event_bus.py` **مسارٌ مجمَّد خلف GATE-01** — وتفويضُه
+    قرارُ مالكٍ لمرّةٍ واحدة، لا يُنتزَع لأجل نقلِ دالّة. وهذا الملفُّ هو الموضعُ
+    القانونيُّ لشؤون الوسيط بنصّه أعلاه: «تُكتَب مرّةً واحدة هنا». فالبوّابتان دلّتا
+    على الموضع الصحيح بدل أن تُعطَّلا.
+    """
+    jetstream = nats_conn.jetstream()
+
+    async def publish(subject: str, payload: bytes) -> None:
+        ack = await jetstream.publish(subject, payload)
+        # حزامٌ ثانٍ: عميلٌ يُرجِع `None` أو إقراراً بلا تسلسلٍ لا يُثبِت دواماً — وبلا
+        # هذا الشرط يعود `sent` يعني «لم يُرفَع استثناء» لا «خُزِّنت».
+        if ack is None or getattr(ack, "seq", None) in (None, 0):
+            raise RuntimeError(
+                f"JETSTREAM_PUBACK_MISSING: {subject} — نُشِر بلا إقرارِ تخزين، فلا يُوسَم الحدثُ `sent`."
+            )
+
+    return publish

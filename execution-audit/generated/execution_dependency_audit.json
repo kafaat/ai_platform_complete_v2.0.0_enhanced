@@ -5,7 +5,7 @@
   "runtime_verified":false,
   "python_files_parsed":1906,
   "route_handlers":1054,
-  "call_edges":79103,
+  "call_edges":79108,
   "dead_code_candidates":634,
   "duplicate_function_groups":59,
   "route_owners":27,
@@ -219548,15 +219548,8 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/main.py",
-   "source":"_publish",
-   "target":"publish",
-   "line":573
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/main.py",
    "source":"_start_outbox_worker",
-   "target":"publish",
+   "target":"make_jetstream_publisher",
    "line":573
   },
   {
@@ -525675,6 +525668,48 @@
    "source":"redact_broker_url",
    "target":"urlunsplit",
    "line":42
+  },
+  {
+   "owner":"shared",
+   "file":"shared/broker_url.py",
+   "source":"make_jetstream_publisher",
+   "target":"jetstream",
+   "line":69
+  },
+  {
+   "owner":"shared",
+   "file":"shared/broker_url.py",
+   "source":"make_jetstream_publisher",
+   "target":"publish",
+   "line":72
+  },
+  {
+   "owner":"shared",
+   "file":"shared/broker_url.py",
+   "source":"make_jetstream_publisher",
+   "target":"getattr",
+   "line":75
+  },
+  {
+   "owner":"shared",
+   "file":"shared/broker_url.py",
+   "source":"publish",
+   "target":"getattr",
+   "line":75
+  },
+  {
+   "owner":"shared",
+   "file":"shared/broker_url.py",
+   "source":"make_jetstream_publisher",
+   "target":"RuntimeError",
+   "line":76
+  },
+  {
+   "owner":"shared",
+   "file":"shared/broker_url.py",
+   "source":"publish",
+   "target":"RuntimeError",
+   "line":76
   },
   {
    "owner":"shared",

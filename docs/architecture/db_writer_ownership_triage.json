@@ -1,7 +1,7 @@
 {
  "$comment": "فرزُ مخالفات ملكيّة الكتابة: كلُّ صفٍّ مقيسٌ بمحرّك db_writer_ownership_guard نفسِه (write_sites + العقد + الأساس)، والصنفُ مشتقٌّ بقاعدةٍ صريحة (derive_category في الحارس) لا مختار، وعددُ الكُتّاب بُعدٌ مستقلٌّ عن الصنف. المصنوعةُ تصنّف ولا تحكم ولا تحلّ: status=triaged لكلّ صفّ. تُولَّد مع الأساس بـ--generate ويُقاس بياتُها صفّاً صفّاً في --check. 'owner_writes_table: false' تعني «لم يُرصد موضع» بحدّ الماسح (حرفيّاتُ SQL في بايثون؛ ملفّاتُ SQLite-only خارج النطاق وتُرى في excluded_write_sites) لا «لا يكتب». 'deployment_evidence' لقطةٌ مؤرَّخة من مراجعةٍ خارجيّة لا حالةٌ حيّة، وcutover_ready فيها false دائماً.",
  "baseline": "docs/architecture/db_writer_ownership_baseline.json",
- "measured_on": "fdb7fee6fa702f963e3980b271ad72c971e108b0",
+ "measured_on": "ad0e4b4ff23a7cdc4a4fb792450f10205a8d443b",
  "category_vocabulary": [
   "owner-name-not-in-tree",
   "tooling-writer",

@@ -56,17 +56,6 @@
       "subject": null
     },
     {
-      "client_expr": "_NATS_CONN",
-      "component": "sahool-platform",
-      "durable": null,
-      "dynamic_expr": "subject",
-      "file": "services/sahool-platform/api/main.py",
-      "kind": "producer",
-      "line": 573,
-      "queue": null,
-      "subject": null
-    },
-    {
       "client_expr": "nc",
       "component": "sahool-platform",
       "durable": null,
@@ -162,6 +151,17 @@
       "file": "shared/ai/recommendation_runtime/recommendation_runtime_pipeline.py",
       "kind": "producer",
       "line": 107,
+      "queue": null,
+      "subject": null
+    },
+    {
+      "client_expr": "jetstream",
+      "component": "shared",
+      "durable": null,
+      "dynamic_expr": "subject",
+      "file": "shared/broker_url.py",
+      "kind": "producer",
+      "line": 72,
       "queue": null,
       "subject": null
     },

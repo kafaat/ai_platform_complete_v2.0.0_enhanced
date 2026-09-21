@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5401,
+    "files_scanned": 5403,
     "files_by_kind": {
       "backend": 1209,
       "database": 278,
       "governance": 64,
       "mobile": 55,
-      "other": 1512,
-      "tests": 1825,
+      "other": 1513,
+      "tests": 1826,
       "web": 458
     },
     "unmapped_artifacts": 2189,
@@ -11412,6 +11412,14 @@
       ],
       "events": [
         {
+          "value": "sahool.soil.observation.recorded @ tests_v9/test_outbox_requires_jetstream_ack.py:202",
+          "score": 26
+        },
+        {
+          "value": "soil.observation.recorded @ tests_v9/test_outbox_requires_jetstream_ack.py:195",
+          "score": 26
+        },
+        {
           "value": "sahool.> @ docs/architecture/jetstream_topology_inventory.md:16",
           "score": 20
         },
@@ -11704,6 +11712,16 @@
       "mobile": [],
       "tests": [
         {
+          "path": "tests_v9/test_outbox_requires_jetstream_ack.py",
+          "score": 26,
+          "signals": [
+            "content:event bus",
+            "path:jetstream",
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
           "path": "tests_v9/test_h2_nats_publishers_flag.py",
           "score": 17,
           "signals": [
@@ -11824,6 +11842,15 @@
           ]
         },
         {
+          "path": "docs/evidence/outbox_jetstream_ack_live_certification.json",
+          "score": 20,
+          "signals": [
+            "path:jetstream",
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
           "path": "scripts/ci/capability_impact.py",
           "score": 20,
           "signals": [
@@ -11844,6 +11871,15 @@
           "score": 17,
           "signals": [
             "path:jetstream",
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
+          "path": "shared/broker_url.py",
+          "score": 15,
+          "signals": [
+            "content:event bus",
             "content:jetstream",
             "content:nats"
           ]
@@ -12013,12 +12049,12 @@
         "backend": 6,
         "routes": 15,
         "database": 2,
-        "events": 72,
+        "events": 74,
         "web": 0,
         "mobile": 0,
-        "tests": 12,
+        "tests": 13,
         "governance": 0,
-        "other_evidence": 24
+        "other_evidence": 26
       },
       "coverage_dimensions": 5,
       "mapped": true
