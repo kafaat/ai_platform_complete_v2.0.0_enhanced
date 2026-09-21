@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5398,
+    "files_scanned": 5399,
     "files_by_kind": {
       "backend": 1209,
       "database": 278,
       "governance": 64,
       "mobile": 55,
-      "other": 1510,
+      "other": 1511,
       "tests": 1824,
       "web": 458
     },
@@ -11826,6 +11826,15 @@
           ]
         },
         {
+          "path": "docs/evidence/outbox_jetstream_ack_live_certification.json",
+          "score": 20,
+          "signals": [
+            "path:jetstream",
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
           "path": "scripts/ci/capability_impact.py",
           "score": 20,
           "signals": [
@@ -12020,7 +12029,7 @@
         "mobile": 0,
         "tests": 13,
         "governance": 0,
-        "other_evidence": 24
+        "other_evidence": 25
       },
       "coverage_dimensions": 5,
       "mapped": true
