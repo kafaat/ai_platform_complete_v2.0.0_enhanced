@@ -1,8 +1,8 @@
 {
   "$comment": "كتاباتٌ لم يأذن بها docs/architecture/db_ownership.yml — مَعدودةٌ لا محكومٌ عليها. لم يُثبَت أنّ كلّاً منها خطأ؛ بعضُها قد يكون العقدُ هو المخطئ فيه. الأساسُ راتشِتٌ ينزل ولا يصعد: يُخفَّض بنقل الكتابة إلى مالكها أو بتصحيح العقد بأساسٍ مُعلَن.",
   "contract": "docs/architecture/db_ownership.yml",
-  "measured_on": "e6e4b646d14571e40cea0361d8897914b69ada03",
-  "violation_count": 72,
+  "measured_on": "55493b389551df70d8d11309fd5d6a9dcef03dbf",
+  "violation_count": 71,
   "violations": {
     "actuator_command_outbox::sahool-platform": [
       "services/sahool-platform/api/phase_runtime_store.py"
@@ -91,8 +91,7 @@
       "services/sahool-platform/api/field_lifecycle.py"
     ],
     "field_state::sahool-platform": [
-      "services/sahool-platform/api/field_state_projection.py",
-      "services/sahool-platform/storage/lite_store.py"
+      "services/sahool-platform/api/field_state_projection.py"
     ],
     "field_state_snapshots::sahool-platform": [
       "services/sahool-platform/api/event_replay.py"
@@ -125,9 +124,6 @@
     ],
     "iot_devices::sahool-platform": [
       "services/sahool-platform/api/routers/devices.py"
-    ],
-    "knowledge_snippets::sahool-platform": [
-      "services/sahool-platform/storage/lite_store.py"
     ],
     "market_sales_listings::mcp_servers": [
       "services/mcp_servers/market_server.py"

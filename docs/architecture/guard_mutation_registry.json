@@ -3857,8 +3857,8 @@
         },
         {
           "expect": "test_the_detection_is_structural_so_a_comment_is_never_accused",
-          "find": "        for sql in _sql_literals(tree):",
-          "replace": "        for sql in [path.read_text(encoding=\"utf-8\")]:  # mutated: يعود الكشفُ نصّيّاً على كامل الملفّ",
+          "find": "    for sql in _sql_literals(tree):",
+          "replace": "    for sql in [(ROOT / rel).read_text(encoding=\"utf-8\")]:  # mutated: يعود الكشفُ نصّيّاً على كامل الملفّ",
           "test": "tests_v9/test_db_writer_ownership_guard.py",
           "why": "بحثٌ نصّيّ على كامل الملفّ يتّهم التعليقَ الذي يشرح لماذا هُجِر مسار — فيصير توثيقُ الإصلاح مُبطِلاً له. وهو A-GUARD-THAT-SEARCHES-TEXT-ACCUSES-ITS-OWN-DOCUMENTATION-01 بعينه، وقد أسقط إصلاحاً حقيقيّاً في #951."
         },

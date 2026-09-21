@@ -174,6 +174,49 @@ def test_update_and_delete_are_writes_too(tmp_path, monkeypatch):
         assert "ledger::probe-service" in MOD.survey(), statement
 
 
+def test_sqlite_only_file_is_outside_postgres_ownership_contract(tmp_path, monkeypatch):
+    _sandbox(
+        tmp_path,
+        monkeypatch,
+        contract=_OWNED_ELSEWHERE,
+        source='import sqlite3\nSQL = "INSERT INTO ledger (a) VALUES (?)"\n',
+    )
+    assert MOD.write_sites() == {}
+    assert MOD.survey() == {}
+
+
+def test_postgres_import_remains_in_scope(tmp_path, monkeypatch):
+    _sandbox(
+        tmp_path,
+        monkeypatch,
+        contract=_OWNED_ELSEWHERE,
+        source='import asyncpg\nSQL = "INSERT INTO ledger (a) VALUES ($1)"\n',
+    )
+    assert "ledger::probe-service" in MOD.survey()
+
+
+def test_unknown_backend_remains_in_scope_fail_closed(tmp_path, monkeypatch):
+    """Connection injection / helper imports are unknown, never an exemption."""
+    _sandbox(
+        tmp_path,
+        monkeypatch,
+        contract=_OWNED_ELSEWHERE,
+        source='SQL = "INSERT INTO ledger (a) VALUES ($1)"\n',
+    )
+    assert "ledger::probe-service" in MOD.survey()
+
+
+def test_sqlite_and_postgres_import_is_not_exempt(tmp_path, monkeypatch):
+    """Positive SQLite evidence excludes only SQLite-only files."""
+    _sandbox(
+        tmp_path,
+        monkeypatch,
+        contract=_OWNED_ELSEWHERE,
+        source='import sqlite3\nimport asyncpg\nSQL = "INSERT INTO ledger (a) VALUES ($1)"\n',
+    )
+    assert "ledger::probe-service" in MOD.survey()
+
+
 # ── الراتشِت ────────────────────────────────────────────────────────────────
 
 

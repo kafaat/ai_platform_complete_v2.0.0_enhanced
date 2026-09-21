@@ -118,17 +118,24 @@ def _stamping_program(dockerfile_text: str) -> str:
 
 
 def _run_stamp(
-    dockerfile: Path, tmp_path: Path, *, sha: str, trigger: str
+    dockerfile: Path,
+    tmp_path: Path,
+    *,
+    sha: str,
+    trigger: str,
+    build_id: str = "build-1",
+    deployment_id: str = "",
 ) -> tuple[int, str, Path]:
     import subprocess
     import sys
 
     values = {
         "SAHOOL_GIT_SHA": sha,
-        "SAHOOL_BUILD_ID": "build-1",
+        "SAHOOL_BUILD_ID": build_id,
         "SAHOOL_SOURCE_REPOSITORY": "org/repo",
         "SAHOOL_SOURCE_REF": "refs/heads/main",
         "RAILWAY_GIT_COMMIT_SHA": trigger,
+        "RAILWAY_DEPLOYMENT_ID": deployment_id,
     }
     out = tmp_path / f"{dockerfile.parent.name}.json"
     code = _stamping_program(dockerfile.read_text(encoding="utf-8"))
@@ -182,6 +189,47 @@ def test_identity_dockerfiles_refuse_a_stamp_that_contradicts_the_built_commit(t
             f"{rel}: الرفضُ بلا رسالةٍ تسمّي القيمتين:\n{log}"
         )
         assert not out.exists(), f"{rel}: كُتب ملفُّ الهويّة رغم الرفض"
+
+
+def test_identity_dockerfiles_derive_the_stamp_from_the_built_commit_when_nothing_is_pinned(
+    tmp_path,
+):
+    """**الرفضُ وحدَه كسر كلَّ نشرٍ تلقائيّ — فالاشتقاقُ مع الرفض، لا الرفضُ بدلَه.**
+
+    بعد #1053 كان الختمُ يرفض المخالفةَ ولا يشتقّ؛ فصار كلُّ دمجٍ إلى `main` يُفشِل بناءَ
+    `auth-main` و`guardrails` حتّى يُحدَّث المتغيّرُ اليدويّ بيدٍ (قِيس 2026-09-21: النشران
+    `0990989f`/`5d9cfdb1` فشلا على `b5e63fd9` بختمٍ مثبَّتٍ على `c5643866`). اعتراضي الأوّل
+    على الاشتقاق («قيمةٌ تفرغ ⇒ ختمٌ فارغٌ بصمت») كان خاطئاً: فحصُ الأربعين خانةً يجعل
+    الفراغَ فشلاً صريحاً لا صمتاً.
+
+    القاعدةُ الآن: غيرُ مثبَّت ⇒ يُشتقّ من `RAILWAY_GIT_COMMIT_SHA` · مثبَّتٌ ومخالف ⇒ فشل ·
+    لا هذا ولا ذاك ⇒ فشلٌ صريح. و`SAHOOL_BUILD_ID` غيرُ المثبَّت يُشتقّ من `RAILWAY_DEPLOYMENT_ID`.
+    """
+    dockerfiles = sorted(_identity_baking_dockerfiles())
+    assert dockerfiles
+    built = "e" * 40
+    for rel in dockerfiles:
+        path = ROOT / rel
+        rc, log, out = _run_stamp(path, tmp_path, sha="", trigger=built)
+        assert rc == 0, f"{rel}: غيرُ مثبَّت مع التزامِ تشغيل يجب أن يُشتقّ:\n{log}"
+        assert json.loads(out.read_text(encoding="utf-8"))["git_sha"] == built, rel
+        out.unlink()
+
+        rc, log, out = _run_stamp(path, tmp_path, sha="", trigger="")
+        assert rc != 0, f"{rel}: لا مثبَّت ولا التزامَ تشغيل — يجب أن يفشل صريحاً لا أن يختم فراغاً"
+        assert "40" in log, f"{rel}: الفشلُ بلا رسالةٍ تسمّي الشرط:\n{log}"
+        assert not out.exists(), rel
+
+        rc, log, out = _run_stamp(
+            path, tmp_path, sha="", trigger=built, build_id="", deployment_id="dep-123"
+        )
+        assert rc == 0, f"{rel}: معرّفُ البناء غيرُ المثبَّت يجب أن يُشتقّ من معرّف النشر:\n{log}"
+        assert json.loads(out.read_text(encoding="utf-8"))["build_id"] == "railway-dep-123", rel
+        out.unlink()
+
+        rc, log, out = _run_stamp(path, tmp_path, sha="", trigger=built, build_id="")
+        assert rc != 0, f"{rel}: لا معرّفَ بناءٍ ولا معرّفَ نشر — يجب أن يفشل"
+        assert not out.exists(), rel
 
 
 def test_compose_requires_build_identity_args():
