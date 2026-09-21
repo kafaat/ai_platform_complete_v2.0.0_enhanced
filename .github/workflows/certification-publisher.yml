@@ -1,0 +1,86 @@
+name: Certification Publisher (isolated branch only)
+on:
+  push:
+    branches: [codex/certification-delta-builder-20260921]
+    paths: [.github/workflows/certification-publisher.yml]
+permissions:
+  actions: read
+  contents: write
+jobs:
+  publish:
+    if: github.repository == 'kafaat/ai_platform_complete_v2.0.0_enhanced'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      TARGET: codex/certification-attempt-binding-20260921
+      BASE: fdb7fee6fa702f963e3980b271ad72c971e108b0
+      SOURCE_RUN: '35628346470'
+      ARTIFACT: certification-delta-build-35628346470-1
+      VERIFIED_HEAD: 09e069517825c950a04d852f920fdd13e566b930
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with: {ref: fdb7fee6fa702f963e3980b271ad72c971e108b0, fetch-depth: 1}
+      - name: Recover the already verified candidate
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/a" "$RUNNER_TEMP/c"
+          gh run download "$SOURCE_RUN" -R "$REPO" -n "$ARTIFACT" -D "$RUNNER_TEMP/a"
+          test "$(cat "$RUNNER_TEMP/a/tested_head_sha.txt")" = "$VERIFIED_HEAD"
+          unzip -q "$RUNNER_TEMP/a/source-snapshot.zip" -d "$RUNNER_TEMP/c"
+          grep -q '223 passed' "$RUNNER_TEMP/a/targeted.log"
+          grep -q 'release package validation passed: 5961 checksums verified' "$RUNNER_TEMP/a/postcommit-generated-check.log"
+          test -z "$(cat "$RUNNER_TEMP/a/worktree-status.txt")"
+          test "$(gh api "repos/$REPO/commits/$TARGET" --jq .sha)" = "$BASE"
+      - name: Publish exact changed files through the contents API
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/c"
+          git init -q
+          git remote add origin "https://github.com/$REPO.git"
+          git fetch -q --depth=1 origin "$BASE"
+          git reset -q "$(git rev-parse FETCH_HEAD)"
+          git add -A
+          files=(
+            .github/workflows/certify-run.yml
+            .github/workflows/ci.yml
+            docs/architecture/db_writer_ownership_baseline.json
+            docs/architecture/db_writer_ownership_triage.json
+            docs/architecture/fake_connection_debt.json
+            docs/architecture/generated_write_targets.json
+            docs/architecture/guard_mutation_registry.json
+            docs/architecture/source_text_assertion_inventory.json
+            docs/architecture/tenant_guc_scope_baseline.json
+            docs/capability-registry/generated/impact/impact_index_summary.json
+            docs/capability-registry/generated/management/management_manifest.json
+            docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md
+            docs/capability-registry/generated/mapping/capability_mapping.json
+            docs/capability-registry/generated/mapping/mapping_manifest.json
+            docs/capability-registry/generated/mapping/unmapped_artifacts.json
+            docs/runbooks/GUARD_CATALOGUE.md
+            release/FILE_CHECKSUMS.sha256
+            release/SAHOOL_RELEASE_MANIFEST_20260626.json
+            scripts/ci/certify_artifact_contract.py
+            scripts/ci/run_outcome_guard.py
+            scripts/ci/sot_provenance_guard.py
+            tests_v9/test_certify_artifact_contract.py
+            tests_v9/test_run_outcome_guard.py
+            tests_v9/test_sot_provenance_guard.py
+          )
+          git diff --name-only "$BASE" -- > "$RUNNER_TEMP/actual"
+          printf '%s\n' "${files[@]}" | sort > "$RUNNER_TEMP/expected"
+          sort "$RUNNER_TEMP/actual" > "$RUNNER_TEMP/actual.sorted"
+          diff -u "$RUNNER_TEMP/expected" "$RUNNER_TEMP/actual.sorted"
+          for path in "${files[@]}"; do
+            sha="$(gh api "repos/$REPO/contents/$path?ref=$TARGET" --jq .sha)"
+            jq -n --arg msg "fix(ci): bind certification artifacts to producer run attempts [$path]"               --arg content "$(base64 -w0 "$path")" --arg branch "$TARGET" --arg sha "$sha"               '{message:$msg,content:$content,branch:$branch,sha:$sha}' > "$RUNNER_TEMP/body.json"
+            gh api --method PUT "repos/$REPO/contents/$path" --input "$RUNNER_TEMP/body.json" >/dev/null
+          done
+          echo "published_head=$(gh api "repos/$REPO/commits/$TARGET" --jq .sha)"
+      - name: Verify published bytes
+        run: |
+          set -euo pipefail
+          git fetch -q origin "$TARGET"
+          git diff --exit-code "$VERIFIED_HEAD^{tree}" "FETCH_HEAD^{tree}"
+          git diff --exit-code "$BASE" FETCH_HEAD -- docs/architecture/db_ownership.yml docs/architecture/sot_provenance_policy.json docs/architecture/execution_required_jobs_contract.json services/ migrations/
