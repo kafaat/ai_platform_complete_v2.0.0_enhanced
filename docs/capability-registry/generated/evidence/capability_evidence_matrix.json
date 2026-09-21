@@ -2397,6 +2397,7 @@
       "unit_test_paths": [
         "services/odoo-bridge/test_erp_readiness_granular.py",
         "services/odoo-bridge/test_odoo_bridge_router_decomposition_guard.py",
+        "tests_v9/test_db_writer_ownership_guard.py",
         "tests_v9/test_erp_bridge_fail_closed.py",
         "tests_v9/test_erp_bridge_healthcheck_guard.py",
         "tests_v9/test_odoo_bridge_tenant_honesty.py",
