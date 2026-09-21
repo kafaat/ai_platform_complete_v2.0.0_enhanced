@@ -1304,6 +1304,10 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/pages/LoginPage.noStaticClaims.static.test.ts",
+    "kind": "tests"
+  },
+  {
     "path": "frontend/src/pages/SignupPage.tsx",
     "kind": "web"
   },

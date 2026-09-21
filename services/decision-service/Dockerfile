@@ -21,7 +21,11 @@ ARG SAHOOL_GIT_SHA
 ARG SAHOOL_BUILD_ID
 ARG SAHOOL_SOURCE_REPOSITORY=
 ARG SAHOOL_SOURCE_REF=
-RUN SAHOOL_GIT_SHA="${SAHOOL_GIT_SHA}" SAHOOL_BUILD_ID="${SAHOOL_BUILD_ID}" SAHOOL_SOURCE_REPOSITORY="${SAHOOL_SOURCE_REPOSITORY}" SAHOOL_SOURCE_REF="${SAHOOL_SOURCE_REF}" python - <<'PYID'
+# Railway sets RAILWAY_GIT_COMMIT_SHA on GitHub-triggered builds (empty on config-triggered
+# ones): a hand-set SAHOOL_GIT_SHA that contradicts it fails the build instead of stamping
+# a stale identity.
+ARG RAILWAY_GIT_COMMIT_SHA=
+RUN SAHOOL_GIT_SHA="${SAHOOL_GIT_SHA}" SAHOOL_BUILD_ID="${SAHOOL_BUILD_ID}" SAHOOL_SOURCE_REPOSITORY="${SAHOOL_SOURCE_REPOSITORY}" SAHOOL_SOURCE_REF="${SAHOOL_SOURCE_REF}" RAILWAY_GIT_COMMIT_SHA="${RAILWAY_GIT_COMMIT_SHA}" python - <<'PYID'
 import json, os, re
 from pathlib import Path
 sha = os.environ['SAHOOL_GIT_SHA']
@@ -30,6 +34,9 @@ if not re.fullmatch(r"[0-9a-f]{40}", sha):
     raise SystemExit("SAHOOL_GIT_SHA must be 40 lowercase hex characters")
 if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}", build_id):
     raise SystemExit("SAHOOL_BUILD_ID has invalid format")
+trig = os.environ.get("RAILWAY_GIT_COMMIT_SHA", "")
+if trig and trig != sha:
+    raise SystemExit(f"SAHOOL_GIT_SHA {sha} contradicts the commit the platform built {trig} - set the build variable to the built commit")
 Path("/app/.sahool-build-metadata.json").write_text(json.dumps({
     "service": 'decision-service',
     "git_sha": sha,
