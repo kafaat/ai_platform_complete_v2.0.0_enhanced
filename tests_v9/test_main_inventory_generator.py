@@ -262,7 +262,7 @@ def test_a_write_site_the_contract_authorises_is_resolved_not_merely_declared(
         tmp_path,
         monkeypatch,
         contract=_contract_with(widgets=["svc-a"]),
-        source=("services/svc-a/store.py", 'SQL = "INSERT INTO widgets (id) VALUES (1)"\n'),
+        source=("services/svc-a/store.py", 'import asyncpg\nSQL = "INSERT INTO widgets (id) VALUES (1)"\n'),
     )
     assert surface["measurement_state"] == "measured"
     row = next(r for r in surface["rows"] if r["table"] == "widgets" and r["component"] == "svc-a")
@@ -290,7 +290,7 @@ def test_a_measured_write_the_contract_forbids_is_kept_not_dropped(tmp_path, mon
         tmp_path,
         monkeypatch,
         contract=_contract_with(widgets=["svc-a"]),
-        source=("services/svc-b/rogue.py", 'SQL = "UPDATE widgets SET id = 2"\n'),
+        source=("services/svc-b/rogue.py", 'import asyncpg\nSQL = "UPDATE widgets SET id = 2"\n'),
     )
     row = next(r for r in surface["rows"] if r["component"] == "svc-b")
     assert row["contract_state"] == "not_authorised"
@@ -308,7 +308,7 @@ def test_the_surface_carries_its_blind_spots_inside_the_artifact(tmp_path, monke
         tmp_path,
         monkeypatch,
         contract=_contract_with(widgets=["svc-a"]),
-        source=("services/svc-a/store.py", 'SQL = "INSERT INTO widgets (id) VALUES (1)"\n'),
+        source=("services/svc-a/store.py", 'import asyncpg\nSQL = "INSERT INTO widgets (id) VALUES (1)"\n'),
     )
     assert surface["blind_spots_ar"], "سطحٌ مقيسٌ بلا حدودٍ مُعلَنة يُقرأ أوسعَ ممّا قاس"
     assert any(".sql" in line for line in surface["blind_spots_ar"])
