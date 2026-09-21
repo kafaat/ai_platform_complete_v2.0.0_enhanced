@@ -1,5 +1,5 @@
 {
-  "edge_count": 821,
+  "edge_count": 828,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -953,6 +953,16 @@
     },
     {
       "evidence": "services/raster-service/cache_invalidation_worker.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://raster_cache_invalidations",
+      "to": "db://raster_cache_invalidations",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/raster-service/db_persist.py",
       "from": "raster-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -3393,6 +3403,16 @@
     },
     {
       "evidence": "services/sahool-platform/api/onboarding.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://processing_jobs",
+      "to": "db://processing_jobs",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/api/spatial_sync.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -5897,6 +5917,36 @@
       "from_kind": "component",
       "protocol": "postgres",
       "relation": "WRITES",
+      "resource": "db://raster_cache_invalidations",
+      "to": "db://raster_cache_invalidations",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/raster-service/test_registry_writes_owner_api.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://raster_cache_invalidations",
+      "to": "db://raster_cache_invalidations",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/raster-service/db_persist.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://raster_registry",
+      "to": "db://raster_registry",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/raster-service/test_registry_writes_owner_api.py",
+      "from": "raster-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
       "resource": "db://raster_registry",
       "to": "db://raster_registry",
       "to_kind": "resource"
@@ -7457,12 +7507,32 @@
       "from_kind": "component",
       "protocol": "postgres",
       "relation": "WRITES",
+      "resource": "db://processing_jobs",
+      "to": "db://processing_jobs",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://processing_jobs",
+      "to": "db://processing_jobs",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
       "resource": "db://raster_cache_invalidations",
       "to": "db://raster_cache_invalidations",
       "to_kind": "resource"
     },
     {
-      "evidence": "services/sahool-platform/api/routers/gis_cloud_native.py",
+      "evidence": "services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -8230,9 +8300,9 @@
     "CALLS": 43,
     "CONSUMES": 1,
     "EMITS": 1,
-    "READS": 422,
+    "READS": 424,
     "ROUTES_TO": 71,
-    "WRITES": 283
+    "WRITES": 288
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -8247,8 +8317,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 706,
-      "resolved": 705,
+      "observed": 713,
+      "resolved": 712,
       "unresolved_component_paths": 0
     }
   }

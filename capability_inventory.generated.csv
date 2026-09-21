@@ -149,6 +149,7 @@ raster-service.cog.validate,query,raster-service,GET /v1/cog/validate,frontend,r
 raster-service.elevation.hillshade.z,query,raster-service,GET /v1/elevation/hillshade/{z}/{x}/{y}.png,frontend,route,False
 raster-service.fields.analytics.geoparquet,command,raster-service,POST /v1/fields/analytics/geoparquet/export,frontend,route,False
 raster-service.fields.field_id.available-dates,query,raster-service,GET /v1/fields/{field_id}/available-dates,frontend,route,False
+raster-service.fields.field_id.cache-invalidations,command,raster-service,POST /v1/fields/{field_id}/cache-invalidations,frontend,route,False
 raster-service.fields.field_id.cdse-thumbnail.png,query,raster-service,GET /v1/fields/{field_id}/cdse-thumbnail.png,frontend,route,False
 raster-service.fields.field_id.cdse-tilejson,query,raster-service,GET /v1/fields/{field_id}/cdse-tilejson,frontend,route,False
 raster-service.fields.field_id.cdse-tiles,query,raster-service,GET /v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png,frontend,route,False
@@ -195,6 +196,7 @@ raster-service.process,command,raster-service,POST /v1/process,frontend,route,Fa
 raster-service.process.batch,command,raster-service,POST /v1/process/batch,frontend,route,False
 raster-service.providers.status,query,raster-service,GET /v1/providers/status,frontend,route,False
 raster-service.raw.process,command,raster-service,POST /v1/raw/process,frontend,route,False
+raster-service.registry.cogs,command,raster-service,POST /v1/registry/cogs,frontend,route,False
 raster-service.runtime-identity,query,raster-service,GET /runtime-identity,frontend,route,False
 raster-service.salinity.calibrate,command,raster-service,POST /v1/salinity/calibrate,frontend,route,False
 raster-service.salinity.classify,command,raster-service,POST /v1/salinity/classify,frontend,route,False

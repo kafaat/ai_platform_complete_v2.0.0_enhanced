@@ -2384,6 +2384,25 @@
     },
     {
       "approval_required": false,
+      "capability_id": "raster-service.fields.field_id.cache-invalidations",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/fields/{field_id}/cache-invalidations"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "raster-service",
+      "producer": "raster-service",
+      "required_context": [
+        "field"
+      ]
+    },
+    {
+      "approval_required": false,
       "capability_id": "raster-service.fields.field_id.cdse-thumbnail.png",
       "consumers": [
         "frontend"
@@ -3197,6 +3216,23 @@
       "derived_from": "route",
       "entrypoints": [
         "POST /v1/raw/process"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "raster-service",
+      "producer": "raster-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "raster-service.registry.cogs",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/registry/cogs"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -17510,9 +17546,9 @@
   ],
   "counts": {
     "backend_components": 32,
-    "capabilities": 828,
+    "capabilities": 830,
     "capabilities_approval_gated": 8,
-    "capabilities_field_scoped": 93,
+    "capabilities_field_scoped": 94,
     "capabilities_idempotent": 48,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 477,
@@ -17521,9 +17557,9 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1119,
+    "route_rows": 1121,
     "ui_waivers": 52,
-    "unique_method_path": 1000
+    "unique_method_path": 1002
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -17783,7 +17819,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "9008c350108886a4146b56ab151ed703800ffb55bc75828ba850d2bbb95d1558",
+  "fingerprint": "9d05e58ff6a1bb7cbac954ffa1aa204f8299d9ebcb5ee9cf8a3ade00a2a7630a",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17833,16 +17869,16 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 821,
+      "edge_count": 828,
       "failures": [],
       "passed": true,
       "relation_counts": {
         "CALLS": 43,
         "CONSUMES": 1,
         "EMITS": 1,
-        "READS": 422,
+        "READS": 424,
         "ROUTES_TO": 71,
-        "WRITES": 283
+        "WRITES": 288
       }
     },
     "u3_wiring_ownership": {

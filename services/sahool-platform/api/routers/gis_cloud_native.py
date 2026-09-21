@@ -17,6 +17,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from api.main import Permission, UserSchema, _db_unavailable, require_permission, tenant_connection
+from api.raster_service_client import register_cog_asset
 from shared.gis.cloud_native_gis import score_scene_quality
 from shared.gis.cloud_native_runtime import (
     export_records_to_geoparquet,
@@ -423,6 +424,12 @@ async def register_cog(
     req: CogRegistryRequest,
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
+    """Register a COG through raster-service, the owner of ``raster_registry`` (D1).
+
+    The platform scores the scene (orchestrator/producer) and sends a write command; it
+    no longer INSERTs into the raster-owned catalogue. The response shape is unchanged:
+    the STAC item is built from the row raster-service actually persisted.
+    """
     quality = score_scene_quality(
         cloud_pct=req.cloud_pct,
         shadow_pct=req.shadow_pct,
@@ -430,48 +437,41 @@ async def register_cog(
         haze_pct=req.haze_pct,
         resolution_m=req.resolution_m,
     )
+    if not req.field_id:
+        raise HTTPException(
+            status_code=422,
+            detail="field_id مطلوب: كتالوج الراستر يملكه raster-service ويُفهرس بالحقل",
+        )
+    payload = {
+        "field_id": req.field_id,
+        "scene_id": req.scene_id,
+        "product_date": req.product_date,
+        "index_type": req.index_type,
+        "cog_url": req.cog_url,
+        "cloud_pct": req.cloud_pct,
+        "quality_score": quality.score,
+        "resolution_m": req.resolution_m,
+        "bbox": req.bbox,
+        "bands": req.bands,
+        "metadata": {**req.metadata, "quality": quality.__dict__},
+    }
     try:
-        async with tenant_connection(user) as conn:
-            row = await conn.fetchrow(
-                """
-                INSERT INTO raster_registry
-                    (tenant_id, field_id, scene_id, product_date, index_type, cog_url,
-                     cloud_pct, quality_score, resolution_m, bbox, bands, metadata)
-                VALUES ($1::uuid, $2, $3, $4::date, $5, $6, $7, $8, $9, $10::jsonb, $11::jsonb, $12::jsonb)
-                ON CONFLICT (tenant_id, field_id, product_date, index_type, cog_url)
-                DO UPDATE SET scene_id = EXCLUDED.scene_id,
-                              cloud_pct = EXCLUDED.cloud_pct,
-                              quality_score = EXCLUDED.quality_score,
-                              resolution_m = EXCLUDED.resolution_m,
-                              bbox = EXCLUDED.bbox,
-                              bands = EXCLUDED.bands,
-                              metadata = raster_registry.metadata || EXCLUDED.metadata
-                RETURNING id, tenant_id, field_id, scene_id, product_date, index_type, cog_url,
-                          cloud_pct, quality_score, resolution_m, bbox, bands, metadata
-                """,
-                str(user.tenant_id),
-                req.field_id,
-                req.scene_id,
-                req.product_date,
-                req.index_type,
-                req.cog_url,
-                req.cloud_pct,
-                quality.score,
-                req.resolution_m,
-                json.dumps(req.bbox),
-                json.dumps(req.bands),
-                json.dumps({**req.metadata, "quality": quality.__dict__}),
-            )
-            rec = record_from_db_row(row)
-            return {
-                "registered": True,
-                "quality": quality.__dict__,
-                "stac_item": stac_item_from_record(rec),
-            }
+        data = await register_cog_asset(tenant_id=str(user.tenant_id), payload=payload)
     except HTTPException:
         raise
-    except Exception as exc:  # noqa: BLE001
-        raise _db_unavailable("تسجيل الراستر", exc) from exc
+    except Exception as exc:  # noqa: BLE001 — لا تسريب لعنوان الخدمة/الاستثناء الخامّ
+        raise HTTPException(
+            status_code=502, detail="تعذّر تسجيل الراستر عبر raster-service"
+        ) from exc
+    entry = data.get("entry") if isinstance(data, dict) else None
+    if not isinstance(entry, dict):
+        raise HTTPException(status_code=502, detail="raster-service لم يُعِد صفَّ الكتالوج")
+    rec = record_from_db_row(entry)
+    return {
+        "registered": True,
+        "quality": quality.__dict__,
+        "stac_item": stac_item_from_record(rec),
+    }
 
 
 @router.get("/stac/search")

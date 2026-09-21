@@ -3036,6 +3036,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/raster-service/routers/registry_writes.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/raster-service/routers/storage.py",
     "kind": "backend"
   },
@@ -5500,6 +5504,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_governance_modules.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_guardrails.py",
     "kind": "tests"
   },
@@ -7213,6 +7221,14 @@
   },
   {
     "path": "tests_v9/test_d09_live_evidence_receipt.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_d1_raster_invalidation_owner_api_integration.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_d1_raster_owner_write_commands.py",
     "kind": "tests"
   },
   {

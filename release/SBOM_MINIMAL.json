@@ -4415,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a8263901641454ec40086e468a86e84c2ad21b2cfb7d4f933c2cc5b2ec9b25cc"
+          "content": "52ce4dd55e712cd6d7d327c7b7a51ca9ad9099ce590398251ed2235e4e1a3d2a"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -14005,7 +14005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b181bc773e862e38ab2a58b63f91b6714c53d9b9a7b18237ca52916a06bb1f34"
+          "content": "81a9ca9c5e72168f7191cebd2b44db909f4c32fec92467d6111722ecb109137a"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -14589,6 +14589,16 @@
         }
       ],
       "name": "services/raster-service/routers/processing.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "95249862764c2097096c61de07ee2cb101d0cc9e54be1f164cdfe289e047f7a3"
+        }
+      ],
+      "name": "services/raster-service/routers/registry_writes.py",
       "type": "file"
     },
     {
@@ -15339,6 +15349,16 @@
         }
       ],
       "name": "services/raster-service/test_raw_data_processing.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ff11785ed9df0c1d2c31740462df5a791e2effe18989f05779fa628fdc7e0e99"
+        }
+      ],
+      "name": "services/raster-service/test_registry_writes_owner_api.py",
       "type": "file"
     },
     {
@@ -17725,7 +17745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8623002fb65482f019bb835588a6308c8c3f276f5ea54b9dae674161967616af"
+          "content": "524ebfd7b1ce89893c9d3be40df53698a436768a04bb7eee63af8d834d85d0c3"
         }
       ],
       "name": "services/sahool-platform/api/raster_service_client.py",
@@ -18575,7 +18595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c47c34e4b4ff2e4d4a9c27ccc933eead2eb790fbeb16d7272f4c33d3dee20660"
+          "content": "e78a89472969baff1038dae8c1040234dce4e304b71888d75b2d48223e3e0f24"
         }
       ],
       "name": "services/sahool-platform/api/routers/gis_cloud_native.py",
@@ -19495,7 +19515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "abfafeb64d369faa36624b8dcd25484da55ae85f8999446dbe42861162ce31b1"
+          "content": "8f3c3f4c4c220c346929b02cd958ae6a6c193f7e781ea5e845a5e5cbab42adf3"
         }
       ],
       "name": "services/sahool-platform/api/scheduler.py",
@@ -19695,7 +19715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d6fee31ed41dc2f9c8d329e7d04c3789b4a7390f237cf5c83d54c9fd34faa2ab"
+          "content": "387aa82e174e0118e3b1057cafcd81fb657997d66fdb849f6dfdfbfa4eddff77"
         }
       ],
       "name": "services/sahool-platform/api/spatial_sync.py",
@@ -24765,6 +24785,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "64f42f80bc52d2f33590f268c2435a1f0c552ba816a8128e67605317172ef2c7"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "976ff5fc034da909b41efc98347765d91970851d8824e0c3b795dc5887b4ffb0"
         }
       ],
@@ -25855,7 +25885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2df8b7bcfc753d5b784687bd95043eb3e779dbeac87840739628d6928c4554c3"
+          "content": "a06225a11c0ec6c1c2754f06f66b8ee04b077f950fb876cb35ea17250e520f1a"
         }
       ],
       "name": "services/sahool-platform/tests/test_governance_modules.py",

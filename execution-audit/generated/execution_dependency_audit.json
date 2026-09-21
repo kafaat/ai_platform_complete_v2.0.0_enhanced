@@ -3,10 +3,10 @@
   "schema_version":1,
   "evidence_scope":"static_repository_only",
   "runtime_verified":false,
-  "python_files_parsed":1906,
-  "route_handlers":1054,
-  "call_edges":79108,
-  "dead_code_candidates":634,
+  "python_files_parsed":1909,
+  "route_handlers":1056,
+  "call_edges":79445,
+  "dead_code_candidates":635,
   "duplicate_function_groups":59,
   "route_owners":27,
   "automatic_deletions":0
@@ -2203,6 +2203,22 @@
    "handler":"process_batch",
    "method":"POST",
    "path":"/v1/process/batch"
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "line":108,
+   "handler":"enqueue_field_cache_invalidation",
+   "method":"POST",
+   "path":"/v1/fields/{field_id}/cache-invalidations"
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "line":148,
+   "handler":"register_cog_entry",
+   "method":"POST",
+   "path":"/v1/registry/cogs"
   },
   {
    "owner":"raster-service",
@@ -4999,7 +5015,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "line":181,
+   "line":182,
    "handler":"stac_root",
    "method":"GET",
    "path":"/stac"
@@ -5007,7 +5023,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "line":188,
+   "line":189,
    "handler":"stac_conformance",
    "method":"GET",
    "path":"/stac/conformance"
@@ -5015,7 +5031,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "line":195,
+   "line":196,
    "handler":"get_stac_queryables",
    "method":"GET",
    "path":"/stac/queryables"
@@ -5023,7 +5039,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "line":202,
+   "line":203,
    "handler":"list_stac_collections",
    "method":"GET",
    "path":"/stac/collections"
@@ -5031,7 +5047,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "line":217,
+   "line":218,
    "handler":"stac_search_post",
    "method":"POST",
    "path":"/stac/search"
@@ -5039,7 +5055,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "line":247,
+   "line":248,
    "handler":"scene_ranking",
    "method":"GET",
    "path":"/scene-ranking"
@@ -5047,7 +5063,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "line":264,
+   "line":265,
    "handler":"scene_processing_plan",
    "method":"GET",
    "path":"/scene-processing-plan"
@@ -5055,7 +5071,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "line":281,
+   "line":282,
    "handler":"get_tile_cache_plan",
    "method":"GET",
    "path":"/tile-cache-plan"
@@ -5063,7 +5079,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "line":297,
+   "line":298,
    "handler":"ogc_root",
    "method":"GET",
    "path":"/ogc"
@@ -5071,7 +5087,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "line":304,
+   "line":305,
    "handler":"ogc_conformance",
    "method":"GET",
    "path":"/ogc/conformance"
@@ -5079,7 +5095,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "line":311,
+   "line":312,
    "handler":"get_ogc_collections",
    "method":"GET",
    "path":"/ogc/collections"
@@ -5087,7 +5103,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "line":318,
+   "line":319,
    "handler":"ogc_field_items",
    "method":"GET",
    "path":"/ogc/collections/fields/items"
@@ -5095,7 +5111,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "line":344,
+   "line":345,
    "handler":"plan_ai_boundary_extraction",
    "method":"POST",
    "path":"/ai-boundary/plan"
@@ -5103,7 +5119,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "line":354,
+   "line":355,
    "handler":"summarize_management_zones",
    "method":"POST",
    "path":"/management-zones/summary"
@@ -5111,7 +5127,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "line":362,
+   "line":363,
    "handler":"editing_session_undo_redo",
    "method":"POST",
    "path":"/editing-sessions/undo-redo"
@@ -5119,7 +5135,7 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "line":422,
+   "line":423,
    "handler":"register_cog",
    "method":"POST",
    "path":"/cog-registry"
@@ -114542,1317 +114558,1590 @@
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"insert_raster_registry_entry",
-   "target":"_valid_field_id_text",
-   "line":308
+   "target":"upsert_raster_registry_entry",
+   "line":311
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"insert_raster_registry_entry",
-   "target":"_valid_uuid_text",
-   "line":308
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_raster_registry_entry",
-   "target":"_connect",
-   "line":312
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_raster_registry_entry",
-   "target":"dumps",
-   "line":315
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_raster_registry_entry",
-   "target":"dumps",
-   "line":316
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_raster_registry_entry",
-   "target":"dumps",
-   "line":317
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_raster_registry_entry",
-   "target":"execute",
-   "line":337
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_raster_registry_entry",
-   "target":"str",
-   "line":337
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_raster_registry_entry",
-   "target":"execute",
-   "line":338
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_raster_registry_entry",
-   "target":"str",
-   "line":340
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_raster_registry_entry",
+   "source":"_jsonish_text",
    "target":"isinstance",
-   "line":343
+   "line":330
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"insert_raster_registry_entry",
+   "source":"_jsonish_text",
+   "target":"decode",
+   "line":331
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"_jsonish_text",
+   "target":"isinstance",
+   "line":332
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"_jsonish_text",
+   "target":"loads",
+   "line":334
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"upsert_raster_registry_entry",
+   "target":"_valid_field_id_text",
+   "line":363
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"upsert_raster_registry_entry",
+   "target":"_valid_uuid_text",
+   "line":363
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"upsert_raster_registry_entry",
+   "target":"_connect",
+   "line":367
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"upsert_raster_registry_entry",
+   "target":"dumps",
+   "line":370
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"upsert_raster_registry_entry",
+   "target":"dumps",
+   "line":371
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"upsert_raster_registry_entry",
+   "target":"dumps",
+   "line":372
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"upsert_raster_registry_entry",
+   "target":"execute",
+   "line":398
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"upsert_raster_registry_entry",
+   "target":"str",
+   "line":398
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"upsert_raster_registry_entry",
+   "target":"fetchrow",
+   "line":399
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"upsert_raster_registry_entry",
+   "target":"str",
+   "line":401
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"upsert_raster_registry_entry",
+   "target":"isinstance",
+   "line":404
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"upsert_raster_registry_entry",
    "target":"_clamp_score_0_100",
-   "line":347
+   "line":408
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"insert_raster_registry_entry",
+   "source":"upsert_raster_registry_entry",
    "target":"float",
-   "line":348
+   "line":409
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"insert_raster_registry_entry",
+   "source":"upsert_raster_registry_entry",
+   "target":"dict",
+   "line":416
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"upsert_raster_registry_entry",
+   "target":"_jsonish_text",
+   "line":418
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"upsert_raster_registry_entry",
+   "target":"get",
+   "line":418
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"upsert_raster_registry_entry",
    "target":"warning",
-   "line":355
+   "line":421
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"insert_raster_registry_entry",
+   "source":"upsert_raster_registry_entry",
    "target":"close",
-   "line":358
+   "line":424
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"insert_stac_item",
-   "target":"_valid_uuid_text",
-   "line":377
+   "source":"_valid_request_id_text",
+   "target":"bool",
+   "line":432
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"insert_stac_item",
-   "target":"_connect",
-   "line":379
+   "source":"_valid_request_id_text",
+   "target":"bool",
+   "line":432
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"insert_stac_item",
-   "target":"dumps",
-   "line":382
+   "source":"_valid_request_id_text",
+   "target":"fullmatch",
+   "line":432
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"insert_stac_item",
-   "target":"dumps",
-   "line":383
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_stac_item",
-   "target":"dumps",
-   "line":384
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_stac_item",
-   "target":"execute",
-   "line":404
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_stac_item",
+   "source":"_valid_request_id_text",
    "target":"str",
-   "line":404
+   "line":432
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"insert_stac_item",
-   "target":"execute",
-   "line":405
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_stac_item",
-   "target":"str",
-   "line":407
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_stac_item",
-   "target":"_clamp_score_0_100",
-   "line":413
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_stac_item",
-   "target":"warning",
-   "line":419
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_stac_item",
-   "target":"close",
-   "line":422
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_backfill_run",
+   "source":"enqueue_cache_invalidation",
    "target":"_valid_field_id_text",
-   "line":447
+   "line":461
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"insert_backfill_run",
+   "source":"enqueue_cache_invalidation",
    "target":"_valid_uuid_text",
-   "line":447
+   "line":461
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"insert_backfill_run",
+   "source":"enqueue_cache_invalidation",
+   "target":"_valid_request_id_text",
+   "line":463
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_cache_invalidation",
+   "target":"str",
+   "line":463
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_cache_invalidation",
+   "target":"strip",
+   "line":463
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_cache_invalidation",
+   "target":"dict",
+   "line":465
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_cache_invalidation",
+   "target":"str",
+   "line":466
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_cache_invalidation",
    "target":"_connect",
-   "line":451
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_backfill_run",
-   "target":"execute",
-   "line":466
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_backfill_run",
-   "target":"str",
-   "line":466
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_backfill_run",
-   "target":"fetchval",
-   "line":467
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_backfill_run",
-   "target":"str",
-   "line":469
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_backfill_run",
-   "target":"isinstance",
-   "line":472
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_backfill_run",
-   "target":"isinstance",
-   "line":473
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_backfill_run",
-   "target":"dumps",
-   "line":475
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_backfill_run",
-   "target":"dumps",
-   "line":478
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"insert_backfill_run",
-   "target":"int",
    "line":480
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"insert_backfill_run",
-   "target":"int",
+   "source":"enqueue_cache_invalidation",
+   "target":"execute",
    "line":484
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"insert_backfill_run",
-   "target":"warning",
-   "line":486
+   "source":"enqueue_cache_invalidation",
+   "target":"str",
+   "line":484
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"insert_backfill_run",
-   "target":"close",
+   "source":"enqueue_cache_invalidation",
+   "target":"fetchrow",
+   "line":485
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_cache_invalidation",
+   "target":"str",
+   "line":485
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_cache_invalidation",
+   "target":"str",
+   "line":485
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_cache_invalidation",
+   "target":"dict",
+   "line":487
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_cache_invalidation",
+   "target":"fetchrow",
    "line":489
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"get_backfill_run_status",
-   "target":"_connect",
+   "source":"enqueue_cache_invalidation",
+   "target":"dumps",
+   "line":490
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_cache_invalidation",
+   "target":"str",
+   "line":490
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_cache_invalidation",
+   "target":"str",
+   "line":490
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_cache_invalidation",
+   "target":"strip",
+   "line":490
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_cache_invalidation",
+   "target":"type",
+   "line":493
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_cache_invalidation",
+   "target":"dict",
+   "line":497
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_cache_invalidation",
+   "target":"fetchrow",
+   "line":498
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_cache_invalidation",
+   "target":"str",
+   "line":498
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_cache_invalidation",
+   "target":"str",
+   "line":498
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_cache_invalidation",
+   "target":"dict",
    "line":499
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"get_backfill_run_status",
-   "target":"execute",
-   "line":503
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"get_backfill_run_status",
-   "target":"str",
-   "line":505
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"get_backfill_run_status",
-   "target":"fetchrow",
-   "line":507
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"get_backfill_run_status",
-   "target":"int",
-   "line":515
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"get_backfill_run_status",
-   "target":"str",
-   "line":516
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"get_backfill_run_status",
-   "target":"fetch",
-   "line":521
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"get_backfill_run_status",
-   "target":"int",
-   "line":524
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"get_backfill_run_status",
-   "target":"int",
-   "line":526
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"get_backfill_run_status",
-   "target":"str",
-   "line":526
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"get_backfill_run_status",
-   "target":"fetch",
-   "line":537
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"get_backfill_run_status",
-   "target":"int",
-   "line":542
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"get_backfill_run_status",
-   "target":"dict",
-   "line":544
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"get_backfill_run_status",
-   "target":"dict",
-   "line":546
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"get_backfill_run_status",
-   "target":"len",
-   "line":547
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"get_backfill_run_status",
+   "source":"enqueue_cache_invalidation",
    "target":"warning",
+   "line":501
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_cache_invalidation",
+   "target":"close",
+   "line":504
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"insert_stac_item",
+   "target":"_valid_uuid_text",
+   "line":523
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"insert_stac_item",
+   "target":"_connect",
+   "line":525
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"insert_stac_item",
+   "target":"dumps",
+   "line":528
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"insert_stac_item",
+   "target":"dumps",
+   "line":529
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"insert_stac_item",
+   "target":"dumps",
+   "line":530
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"insert_stac_item",
+   "target":"execute",
    "line":550
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"get_backfill_run_status",
-   "target":"close",
+   "source":"insert_stac_item",
+   "target":"str",
+   "line":550
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"insert_stac_item",
+   "target":"execute",
+   "line":551
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"insert_stac_item",
+   "target":"str",
    "line":553
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
+   "source":"insert_stac_item",
+   "target":"_clamp_score_0_100",
+   "line":559
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"insert_stac_item",
+   "target":"warning",
+   "line":565
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"insert_stac_item",
+   "target":"close",
+   "line":568
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"insert_backfill_run",
    "target":"_valid_field_id_text",
-   "line":583
+   "line":593
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
+   "source":"insert_backfill_run",
    "target":"_valid_uuid_text",
-   "line":583
+   "line":593
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"str",
-   "line":585
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"strip",
-   "line":585
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"str",
-   "line":586
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"strip",
-   "line":586
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"str",
-   "line":587
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"len",
-   "line":588
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
+   "source":"insert_backfill_run",
    "target":"_connect",
-   "line":590
+   "line":597
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"_Path",
-   "line":598
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"resolve",
-   "line":598
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"str",
-   "line":598
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"insert",
-   "line":600
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"create",
-   "line":603
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"canonical_processing_version",
-   "line":610
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"to_canonical_key",
+   "source":"insert_backfill_run",
+   "target":"execute",
    "line":612
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"execute",
-   "line":614
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
+   "source":"insert_backfill_run",
    "target":"str",
-   "line":614
+   "line":612
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"transaction",
+   "source":"insert_backfill_run",
+   "target":"fetchval",
+   "line":613
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"insert_backfill_run",
+   "target":"str",
    "line":615
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"legacy_matches_baseline",
+   "source":"insert_backfill_run",
+   "target":"isinstance",
    "line":618
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"execute",
+   "source":"insert_backfill_run",
+   "target":"isinstance",
    "line":619
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"str",
+   "source":"insert_backfill_run",
+   "target":"dumps",
+   "line":621
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"insert_backfill_run",
+   "target":"dumps",
    "line":624
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"legacy_backfill_key",
-   "line":625
+   "source":"insert_backfill_run",
+   "target":"int",
+   "line":626
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"fetchval",
-   "line":633
+   "source":"insert_backfill_run",
+   "target":"int",
+   "line":630
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
+   "source":"insert_backfill_run",
+   "target":"warning",
+   "line":632
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"insert_backfill_run",
+   "target":"close",
+   "line":635
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"get_backfill_run_status",
+   "target":"_connect",
+   "line":645
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"get_backfill_run_status",
+   "target":"execute",
+   "line":649
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"get_backfill_run_status",
    "target":"str",
-   "line":638
+   "line":651
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
+   "source":"get_backfill_run_status",
    "target":"fetchrow",
    "line":653
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"str",
-   "line":656
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"str",
-   "line":659
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"str",
-   "line":664
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
+   "source":"get_backfill_run_status",
    "target":"int",
+   "line":661
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"get_backfill_run_status",
+   "target":"str",
+   "line":662
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"get_backfill_run_status",
+   "target":"fetch",
    "line":667
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
+   "source":"get_backfill_run_status",
    "target":"int",
-   "line":668
+   "line":670
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"fetchval",
+   "source":"get_backfill_run_status",
+   "target":"int",
    "line":672
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
+   "source":"get_backfill_run_status",
    "target":"str",
-   "line":685
+   "line":672
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"dumps",
+   "source":"get_backfill_run_status",
+   "target":"fetch",
+   "line":683
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"get_backfill_run_status",
+   "target":"int",
    "line":688
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"dumps",
-   "line":691
+   "source":"get_backfill_run_status",
+   "target":"dict",
+   "line":690
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"get_backfill_run_status",
+   "target":"dict",
+   "line":692
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"get_backfill_run_status",
+   "target":"len",
+   "line":693
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"get_backfill_run_status",
+   "target":"warning",
+   "line":696
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"get_backfill_run_status",
+   "target":"close",
+   "line":699
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"enqueue_single_scene_process",
-   "target":"fetchval",
-   "line":698
+   "target":"_valid_field_id_text",
+   "line":729
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"enqueue_single_scene_process",
-   "target":"int",
-   "line":702
+   "target":"_valid_uuid_text",
+   "line":729
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"enqueue_single_scene_process",
    "target":"str",
-   "line":703
+   "line":731
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"enqueue_single_scene_process",
-   "target":"fetchval",
-   "line":707
-  },
-  {
-   "owner":"raster-service",
-   "file":"services/raster-service/db_persist.py",
-   "source":"enqueue_single_scene_process",
-   "target":"int",
-   "line":716
+   "target":"strip",
+   "line":731
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"enqueue_single_scene_process",
    "target":"str",
-   "line":717
+   "line":732
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"enqueue_single_scene_process",
-   "target":"execute",
-   "line":730
+   "target":"strip",
+   "line":732
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"enqueue_single_scene_process",
-   "target":"int",
+   "target":"str",
    "line":733
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"enqueue_single_scene_process",
-   "target":"fetchrow",
-   "line":735
+   "target":"len",
+   "line":734
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"enqueue_single_scene_process",
-   "target":"str",
-   "line":738
+   "target":"_connect",
+   "line":736
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"enqueue_single_scene_process",
-   "target":"int",
+   "target":"_Path",
    "line":744
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"enqueue_single_scene_process",
-   "target":"int",
-   "line":745
+   "target":"resolve",
+   "line":744
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"enqueue_single_scene_process",
-   "target":"int",
-   "line":751
+   "target":"str",
+   "line":744
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"enqueue_single_scene_process",
-   "target":"int",
-   "line":752
+   "target":"insert",
+   "line":746
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"enqueue_single_scene_process",
-   "target":"warning",
+   "target":"create",
+   "line":749
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"canonical_processing_version",
    "line":756
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"enqueue_single_scene_process",
+   "target":"to_canonical_key",
+   "line":758
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"execute",
+   "line":760
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"str",
+   "line":760
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"transaction",
+   "line":761
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"legacy_matches_baseline",
+   "line":764
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"execute",
+   "line":765
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"str",
+   "line":770
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"legacy_backfill_key",
+   "line":771
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"fetchval",
+   "line":779
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"str",
+   "line":784
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"fetchrow",
+   "line":799
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"str",
+   "line":802
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"str",
+   "line":805
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"str",
+   "line":810
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"int",
+   "line":813
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"int",
+   "line":814
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"fetchval",
+   "line":818
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"str",
+   "line":831
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"dumps",
+   "line":834
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"dumps",
+   "line":837
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"fetchval",
+   "line":844
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"int",
+   "line":848
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"str",
+   "line":849
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"fetchval",
+   "line":853
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"int",
+   "line":862
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"str",
+   "line":863
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"execute",
+   "line":876
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"int",
+   "line":879
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"fetchrow",
+   "line":881
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"str",
+   "line":884
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"int",
+   "line":890
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"int",
+   "line":891
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"int",
+   "line":897
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"int",
+   "line":898
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
+   "target":"warning",
+   "line":902
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/db_persist.py",
+   "source":"enqueue_single_scene_process",
    "target":"close",
-   "line":759
+   "line":905
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_latest_asset",
    "target":"_connect",
-   "line":776
+   "line":922
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_latest_asset",
    "target":"_iso_date_or_none",
-   "line":814
+   "line":960
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_latest_asset",
    "target":"execute",
-   "line":815
+   "line":961
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_latest_asset",
    "target":"str",
-   "line":817
+   "line":963
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_latest_asset",
    "target":"fetchrow",
-   "line":819
+   "line":965
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_latest_asset",
    "target":"str",
-   "line":820
+   "line":966
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_latest_asset",
    "target":"float",
-   "line":828
+   "line":974
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_latest_asset",
    "target":"float",
-   "line":831
+   "line":977
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_latest_asset",
    "target":"float",
-   "line":833
+   "line":979
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_latest_asset",
    "target":"float",
-   "line":834
+   "line":980
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_latest_asset",
    "target":"_parse_quality_flags",
-   "line":835
+   "line":981
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_latest_asset",
    "target":"lower",
-   "line":850
+   "line":996
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_latest_asset",
    "target":"str",
-   "line":850
+   "line":996
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_latest_asset",
    "target":"warning",
-   "line":862
+   "line":1008
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_latest_asset",
    "target":"close",
-   "line":865
+   "line":1011
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"list_asset_dates",
    "target":"_connect",
-   "line":885
+   "line":1031
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"list_asset_dates",
    "target":"execute",
-   "line":904
+   "line":1050
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"list_asset_dates",
    "target":"str",
-   "line":906
+   "line":1052
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"list_asset_dates",
    "target":"fetch",
-   "line":908
+   "line":1054
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"list_asset_dates",
    "target":"int",
-   "line":909
+   "line":1055
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"list_asset_dates",
    "target":"str",
-   "line":909
+   "line":1055
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"list_asset_dates",
    "target":"str",
-   "line":911
+   "line":1057
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"list_asset_dates",
    "target":"warning",
-   "line":913
+   "line":1059
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"list_asset_dates",
    "target":"close",
-   "line":916
+   "line":1062
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"list_available_asset_dates",
    "target":"_connect",
-   "line":930
+   "line":1076
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"list_available_asset_dates",
    "target":"execute",
-   "line":978
+   "line":1124
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"list_available_asset_dates",
    "target":"str",
-   "line":980
+   "line":1126
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"list_available_asset_dates",
    "target":"fetch",
-   "line":982
+   "line":1128
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"list_available_asset_dates",
    "target":"str",
-   "line":985
+   "line":1131
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"list_available_asset_dates",
    "target":"list",
-   "line":986
+   "line":1132
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"list_available_asset_dates",
    "target":"int",
-   "line":987
+   "line":1133
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"list_available_asset_dates",
    "target":"dict",
-   "line":989
+   "line":1135
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"list_available_asset_dates",
    "target":"warning",
-   "line":991
+   "line":1137
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"list_available_asset_dates",
    "target":"close",
-   "line":994
+   "line":1140
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"field_owner_tenant",
    "target":"_connect",
-   "line":1021
+   "line":1167
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"field_owner_tenant",
    "target":"OwnerLookupUnavailable",
-   "line":1024
+   "line":1170
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"field_owner_tenant",
    "target":"fetchval",
-   "line":1026
+   "line":1172
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"field_owner_tenant",
    "target":"str",
-   "line":1027
+   "line":1173
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"field_owner_tenant",
    "target":"type",
-   "line":1029
+   "line":1175
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"field_owner_tenant",
    "target":"warning",
-   "line":1029
+   "line":1175
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"field_owner_tenant",
    "target":"OwnerLookupUnavailable",
-   "line":1030
+   "line":1176
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"field_owner_tenant",
    "target":"str",
-   "line":1030
+   "line":1176
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"field_owner_tenant",
    "target":"close",
-   "line":1032
+   "line":1178
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"layer_owner_tenant",
    "target":"_connect",
-   "line":1043
+   "line":1189
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"layer_owner_tenant",
    "target":"OwnerLookupUnavailable",
-   "line":1045
+   "line":1191
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"layer_owner_tenant",
    "target":"fetchval",
-   "line":1055
+   "line":1201
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"layer_owner_tenant",
    "target":"str",
-   "line":1056
+   "line":1202
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"layer_owner_tenant",
    "target":"type",
-   "line":1058
+   "line":1204
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"layer_owner_tenant",
    "target":"warning",
-   "line":1058
+   "line":1204
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"layer_owner_tenant",
    "target":"OwnerLookupUnavailable",
-   "line":1059
+   "line":1205
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"layer_owner_tenant",
    "target":"str",
-   "line":1059
+   "line":1205
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"layer_owner_tenant",
    "target":"close",
-   "line":1061
+   "line":1207
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"insert_field_geometry_version",
    "target":"_connect",
-   "line":1078
+   "line":1224
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"insert_field_geometry_version",
    "target":"dumps",
-   "line":1081
+   "line":1227
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"insert_field_geometry_version",
    "target":"execute",
-   "line":1093
+   "line":1239
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"insert_field_geometry_version",
    "target":"str",
-   "line":1095
+   "line":1241
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"insert_field_geometry_version",
    "target":"fetchval",
-   "line":1097
+   "line":1243
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"insert_field_geometry_version",
    "target":"str",
-   "line":1098
+   "line":1244
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"insert_field_geometry_version",
    "target":"warning",
-   "line":1101
+   "line":1247
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"insert_field_geometry_version",
    "target":"close",
-   "line":1104
+   "line":1250
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_field_analytics_for_export",
    "target":"_connect",
-   "line":1111
+   "line":1257
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_field_analytics_for_export",
    "target":"execute",
-   "line":1131
+   "line":1277
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_field_analytics_for_export",
    "target":"str",
-   "line":1133
+   "line":1279
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_field_analytics_for_export",
    "target":"fetch",
-   "line":1135
+   "line":1281
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_field_analytics_for_export",
    "target":"int",
-   "line":1135
+   "line":1281
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_field_analytics_for_export",
    "target":"str",
-   "line":1135
+   "line":1281
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_field_analytics_for_export",
    "target":"dict",
-   "line":1136
+   "line":1282
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_field_analytics_for_export",
    "target":"warning",
-   "line":1138
+   "line":1284
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_field_analytics_for_export",
    "target":"close",
-   "line":1141
+   "line":1287
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_field_geometry",
    "target":"_connect",
-   "line":1155
+   "line":1301
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_field_geometry",
    "target":"fetchval",
-   "line":1161
+   "line":1307
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_field_geometry",
    "target":"execute",
-   "line":1167
+   "line":1313
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_field_geometry",
    "target":"str",
-   "line":1169
+   "line":1315
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_field_geometry",
    "target":"fetchrow",
-   "line":1171
+   "line":1317
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_field_geometry",
    "target":"isinstance",
-   "line":1175
+   "line":1321
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_field_geometry",
    "target":"loads",
-   "line":1178
+   "line":1324
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_field_geometry",
    "target":"warning",
-   "line":1181
+   "line":1327
   },
   {
    "owner":"raster-service",
    "file":"services/raster-service/db_persist.py",
    "source":"fetch_field_geometry",
    "target":"close",
-   "line":1184
+   "line":1330
   },
   {
    "owner":"raster-service",
@@ -139950,6 +140239,279 @@
   },
   {
    "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"_authenticated_tenant",
+   "target":"get",
+   "line":68
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"_authenticated_tenant",
+   "target":"HTTPException",
+   "line":70
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"_authenticated_tenant",
+   "target":"str",
+   "line":71
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"_authenticated_tenant",
+   "target":"str",
+   "line":71
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"_authenticated_tenant",
+   "target":"HTTPException",
+   "line":72
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"_authenticated_tenant",
+   "target":"str",
+   "line":73
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"_require_field_owned_by",
+   "target":"field_owner",
+   "line":86
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"_require_field_owned_by",
+   "target":"HTTPException",
+   "line":88
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"_require_field_owned_by",
+   "target":"HTTPException",
+   "line":90
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"_require_field_owned_by",
+   "target":"str",
+   "line":91
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"_require_field_owned_by",
+   "target":"HTTPException",
+   "line":92
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"_require_database",
+   "target":"HTTPException",
+   "line":97
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"_validate_identity",
+   "target":"_valid_field_id_text",
+   "line":101
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"_validate_identity",
+   "target":"HTTPException",
+   "line":102
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"_validate_identity",
+   "target":"_valid_uuid_text",
+   "line":103
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"_validate_identity",
+   "target":"HTTPException",
+   "line":104
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"enqueue_field_cache_invalidation",
+   "target":"post",
+   "line":107
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"enqueue_field_cache_invalidation",
+   "target":"Header",
+   "line":111
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"enqueue_field_cache_invalidation",
+   "target":"require_service_token",
+   "line":119
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"enqueue_field_cache_invalidation",
+   "target":"_authenticated_tenant",
+   "line":120
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"enqueue_field_cache_invalidation",
+   "target":"_validate_identity",
+   "line":121
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"enqueue_field_cache_invalidation",
+   "target":"_require_database",
+   "line":122
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"enqueue_field_cache_invalidation",
+   "target":"_require_field_owned_by",
+   "line":123
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"enqueue_field_cache_invalidation",
+   "target":"enqueue_cache_invalidation",
+   "line":124
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"enqueue_field_cache_invalidation",
+   "target":"HTTPException",
+   "line":132
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"enqueue_field_cache_invalidation",
+   "target":"bool",
+   "line":138
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"enqueue_field_cache_invalidation",
+   "target":"get",
+   "line":138
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"enqueue_field_cache_invalidation",
+   "target":"get",
+   "line":140
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"enqueue_field_cache_invalidation",
+   "target":"get",
+   "line":141
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"enqueue_field_cache_invalidation",
+   "target":"get",
+   "line":142
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"register_cog_entry",
+   "target":"post",
+   "line":147
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"register_cog_entry",
+   "target":"Header",
+   "line":150
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"register_cog_entry",
+   "target":"require_service_token",
+   "line":157
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"register_cog_entry",
+   "target":"_authenticated_tenant",
+   "line":158
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"register_cog_entry",
+   "target":"_validate_identity",
+   "line":159
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"register_cog_entry",
+   "target":"_require_database",
+   "line":160
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"register_cog_entry",
+   "target":"_require_field_owned_by",
+   "line":161
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"register_cog_entry",
+   "target":"upsert_raster_registry_entry",
+   "line":162
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/routers/registry_writes.py",
+   "source":"register_cog_entry",
+   "target":"HTTPException",
+   "line":177
+  },
+  {
+   "owner":"raster-service",
    "file":"services/raster-service/routers/soil_tiles.py",
    "source":"_tenant_ctx_ok",
    "target":"get",
@@ -157006,6 +157568,993 @@
    "source":"test_build_quality_flags_has_canonical_advanced_schema",
    "target":"build_quality_flags",
    "line":115
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"_run",
+   "target":"run",
+   "line":39
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"owner_api",
+   "target":"setattr",
+   "line":45
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"owner_api",
+   "target":"setattr",
+   "line":46
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"owner_api",
+   "target":"setattr",
+   "line":51
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"owner_api",
+   "target":"set",
+   "line":52
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"owner_api",
+   "target":"reset",
+   "line":56
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_both_owner_write_paths_are_declared_on_the_auto_registered_router",
+   "target":"iter",
+   "line":63
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_both_owner_write_paths_are_declared_on_the_auto_registered_router",
+   "target":"next",
+   "line":63
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_both_owner_write_paths_are_declared_on_the_auto_registered_router",
+   "target":"Path",
+   "line":66
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_tenant_comes_from_the_trusted_context_and_the_body_cannot_override_it",
+   "target":"_authenticated_tenant",
+   "line":71
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_tenant_comes_from_the_trusted_context_and_the_body_cannot_override_it",
+   "target":"_authenticated_tenant",
+   "line":72
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_tenant_comes_from_the_trusted_context_and_the_body_cannot_override_it",
+   "target":"raises",
+   "line":73
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_tenant_comes_from_the_trusted_context_and_the_body_cannot_override_it",
+   "target":"_authenticated_tenant",
+   "line":74
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_a_write_command_without_a_tenant_context_is_refused",
+   "target":"set",
+   "line":79
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_a_write_command_without_a_tenant_context_is_refused",
+   "target":"raises",
+   "line":81
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_a_write_command_without_a_tenant_context_is_refused",
+   "target":"_authenticated_tenant",
+   "line":82
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_a_write_command_without_a_tenant_context_is_refused",
+   "target":"reset",
+   "line":85
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"_invalidation",
+   "target":"update",
+   "line":95
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"_invalidation",
+   "target":"CacheInvalidationCommand",
+   "line":96
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"_enqueue",
+   "target":"update",
+   "line":103
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_command_is_persisted_under_the_context_tenant",
+   "target":"update",
+   "line":103
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_command_is_persisted_under_the_context_tenant",
+   "target":"setattr",
+   "line":106
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_command_is_persisted_under_the_context_tenant",
+   "target":"_invalidation",
+   "line":107
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_command_is_persisted_under_the_context_tenant",
+   "target":"_run",
+   "line":107
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_command_is_persisted_under_the_context_tenant",
+   "target":"enqueue_field_cache_invalidation",
+   "line":107
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_a_retried_command_reports_deduplicated_instead_of_a_second_row",
+   "target":"setattr",
+   "line":119
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_a_retried_command_reports_deduplicated_instead_of_a_second_row",
+   "target":"_invalidation",
+   "line":120
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_a_retried_command_reports_deduplicated_instead_of_a_second_row",
+   "target":"_run",
+   "line":120
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_a_retried_command_reports_deduplicated_instead_of_a_second_row",
+   "target":"enqueue_field_cache_invalidation",
+   "line":120
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_refuses_a_bad_service_token",
+   "target":"setattr",
+   "line":131
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_refuses_a_bad_service_token",
+   "target":"raises",
+   "line":132
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_refuses_a_bad_service_token",
+   "target":"_invalidation",
+   "line":133
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_refuses_a_bad_service_token",
+   "target":"_run",
+   "line":133
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_refuses_a_bad_service_token",
+   "target":"enqueue_field_cache_invalidation",
+   "line":133
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_refuses_a_field_proven_to_belong_to_another_tenant",
+   "target":"setattr",
+   "line":141
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_refuses_a_field_proven_to_belong_to_another_tenant",
+   "target":"raises",
+   "line":142
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_refuses_a_field_proven_to_belong_to_another_tenant",
+   "target":"_invalidation",
+   "line":143
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_refuses_a_field_proven_to_belong_to_another_tenant",
+   "target":"_run",
+   "line":143
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_refuses_a_field_proven_to_belong_to_another_tenant",
+   "target":"enqueue_field_cache_invalidation",
+   "line":143
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_refuses_a_field_that_is_not_visible_yet",
+   "target":"setattr",
+   "line":153
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_refuses_a_field_that_is_not_visible_yet",
+   "target":"raises",
+   "line":154
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_refuses_a_field_that_is_not_visible_yet",
+   "target":"_invalidation",
+   "line":155
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_refuses_a_field_that_is_not_visible_yet",
+   "target":"_run",
+   "line":155
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_refuses_a_field_that_is_not_visible_yet",
+   "target":"enqueue_field_cache_invalidation",
+   "line":155
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"_unavailable",
+   "target":"OwnerLookupUnavailable",
+   "line":161
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_fails_closed_when_ownership_cannot_be_proven",
+   "target":"OwnerLookupUnavailable",
+   "line":161
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_fails_closed_when_ownership_cannot_be_proven",
+   "target":"setattr",
+   "line":163
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_fails_closed_when_ownership_cannot_be_proven",
+   "target":"raises",
+   "line":164
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_fails_closed_when_ownership_cannot_be_proven",
+   "target":"_invalidation",
+   "line":165
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_fails_closed_when_ownership_cannot_be_proven",
+   "target":"_run",
+   "line":165
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_fails_closed_when_ownership_cannot_be_proven",
+   "target":"enqueue_field_cache_invalidation",
+   "line":165
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_is_503_without_a_database_or_when_the_queue_write_fails",
+   "target":"setattr",
+   "line":172
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_is_503_without_a_database_or_when_the_queue_write_fails",
+   "target":"raises",
+   "line":173
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_is_503_without_a_database_or_when_the_queue_write_fails",
+   "target":"_invalidation",
+   "line":174
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_is_503_without_a_database_or_when_the_queue_write_fails",
+   "target":"_run",
+   "line":174
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_is_503_without_a_database_or_when_the_queue_write_fails",
+   "target":"enqueue_field_cache_invalidation",
+   "line":174
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_is_503_without_a_database_or_when_the_queue_write_fails",
+   "target":"setattr",
+   "line":177
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_is_503_without_a_database_or_when_the_queue_write_fails",
+   "target":"setattr",
+   "line":182
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_is_503_without_a_database_or_when_the_queue_write_fails",
+   "target":"raises",
+   "line":183
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_is_503_without_a_database_or_when_the_queue_write_fails",
+   "target":"_invalidation",
+   "line":184
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_is_503_without_a_database_or_when_the_queue_write_fails",
+   "target":"_run",
+   "line":184
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_is_503_without_a_database_or_when_the_queue_write_fails",
+   "target":"enqueue_field_cache_invalidation",
+   "line":184
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_rejects_an_unsafe_field_id_or_request_id",
+   "target":"raises",
+   "line":189
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_rejects_an_unsafe_field_id_or_request_id",
+   "target":"_invalidation",
+   "line":190
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_rejects_an_unsafe_field_id_or_request_id",
+   "target":"_run",
+   "line":190
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_rejects_an_unsafe_field_id_or_request_id",
+   "target":"enqueue_field_cache_invalidation",
+   "line":190
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_rejects_an_unsafe_field_id_or_request_id",
+   "target":"raises",
+   "line":192
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_rejects_an_unsafe_field_id_or_request_id",
+   "target":"_invalidation",
+   "line":193
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_rejects_an_unsafe_field_id_or_request_id",
+   "target":"raises",
+   "line":194
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_invalidation_rejects_an_unsafe_field_id_or_request_id",
+   "target":"_invalidation",
+   "line":195
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"_cog",
+   "target":"update",
+   "line":213
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"_cog",
+   "target":"CogRegistryCommand",
+   "line":214
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"_upsert",
+   "target":"update",
+   "line":223
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_is_upserted_under_the_context_tenant_and_the_row_is_returned",
+   "target":"update",
+   "line":223
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_is_upserted_under_the_context_tenant_and_the_row_is_returned",
+   "target":"setattr",
+   "line":226
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_is_upserted_under_the_context_tenant_and_the_row_is_returned",
+   "target":"_cog",
+   "line":227
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_is_upserted_under_the_context_tenant_and_the_row_is_returned",
+   "target":"_run",
+   "line":227
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_is_upserted_under_the_context_tenant_and_the_row_is_returned",
+   "target":"register_cog_entry",
+   "line":227
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_refuses_another_tenants_field_and_a_bad_token",
+   "target":"raises",
+   "line":237
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_refuses_another_tenants_field_and_a_bad_token",
+   "target":"_cog",
+   "line":238
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_refuses_another_tenants_field_and_a_bad_token",
+   "target":"_run",
+   "line":238
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_refuses_another_tenants_field_and_a_bad_token",
+   "target":"register_cog_entry",
+   "line":238
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_refuses_another_tenants_field_and_a_bad_token",
+   "target":"setattr",
+   "line":244
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_refuses_another_tenants_field_and_a_bad_token",
+   "target":"raises",
+   "line":245
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_refuses_another_tenants_field_and_a_bad_token",
+   "target":"_cog",
+   "line":246
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_refuses_another_tenants_field_and_a_bad_token",
+   "target":"_run",
+   "line":246
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_refuses_another_tenants_field_and_a_bad_token",
+   "target":"register_cog_entry",
+   "line":246
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_validates_its_shape_at_the_boundary",
+   "target":"raises",
+   "line":251
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_validates_its_shape_at_the_boundary",
+   "target":"_cog",
+   "line":252
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_validates_its_shape_at_the_boundary",
+   "target":"raises",
+   "line":253
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_validates_its_shape_at_the_boundary",
+   "target":"_cog",
+   "line":254
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_validates_its_shape_at_the_boundary",
+   "target":"raises",
+   "line":255
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_validates_its_shape_at_the_boundary",
+   "target":"_cog",
+   "line":256
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_is_503_when_the_catalogue_write_does_not_return_a_row",
+   "target":"setattr",
+   "line":263
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_is_503_when_the_catalogue_write_does_not_return_a_row",
+   "target":"raises",
+   "line":264
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_is_503_when_the_catalogue_write_does_not_return_a_row",
+   "target":"_cog",
+   "line":265
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_is_503_when_the_catalogue_write_does_not_return_a_row",
+   "target":"_run",
+   "line":265
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_cog_command_is_503_when_the_catalogue_write_does_not_return_a_row",
+   "target":"register_cog_entry",
+   "line":265
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"__init__",
+   "target":"list",
+   "line":278
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"execute",
+   "target":"append",
+   "line":282
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"fetchrow",
+   "target":"append",
+   "line":286
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"fetchrow",
+   "target":"pop",
+   "line":287
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"fetchrow",
+   "target":"isinstance",
+   "line":288
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"_install",
+   "target":"setattr",
+   "line":300
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_sets_the_tenant_guc_and_predicates_the_tenant_explicitly",
+   "target":"_RecordingConn",
+   "line":304
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_sets_the_tenant_guc_and_predicates_the_tenant_explicitly",
+   "target":"_install",
+   "line":305
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_sets_the_tenant_guc_and_predicates_the_tenant_explicitly",
+   "target":"_run",
+   "line":306
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_sets_the_tenant_guc_and_predicates_the_tenant_explicitly",
+   "target":"enqueue_cache_invalidation",
+   "line":307
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_sets_the_tenant_guc_and_predicates_the_tenant_explicitly",
+   "target":"loads",
+   "line":324
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_returns_the_existing_row_and_does_not_insert_twice",
+   "target":"_RecordingConn",
+   "line":330
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_returns_the_existing_row_and_does_not_insert_twice",
+   "target":"_install",
+   "line":331
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_returns_the_existing_row_and_does_not_insert_twice",
+   "target":"_run",
+   "line":332
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_returns_the_existing_row_and_does_not_insert_twice",
+   "target":"enqueue_cache_invalidation",
+   "line":333
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_returns_the_existing_row_and_does_not_insert_twice",
+   "target":"len",
+   "line":338
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_resolves_a_concurrent_insert_race_through_the_unique_index",
+   "target":"_RecordingConn",
+   "line":342
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_resolves_a_concurrent_insert_race_through_the_unique_index",
+   "target":"UniqueViolationError",
+   "line":343
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_resolves_a_concurrent_insert_race_through_the_unique_index",
+   "target":"_install",
+   "line":345
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_resolves_a_concurrent_insert_race_through_the_unique_index",
+   "target":"_run",
+   "line":346
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_resolves_a_concurrent_insert_race_through_the_unique_index",
+   "target":"enqueue_cache_invalidation",
+   "line":347
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"_never",
+   "target":"AssertionError",
+   "line":356
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_refuses_invalid_identities_before_touching_the_database",
+   "target":"AssertionError",
+   "line":356
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_refuses_invalid_identities_before_touching_the_database",
+   "target":"setattr",
+   "line":358
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_refuses_invalid_identities_before_touching_the_database",
+   "target":"dict",
+   "line":360
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_refuses_invalid_identities_before_touching_the_database",
+   "target":"dict",
+   "line":361
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_refuses_invalid_identities_before_touching_the_database",
+   "target":"dict",
+   "line":362
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_refuses_invalid_identities_before_touching_the_database",
+   "target":"dict",
+   "line":363
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_refuses_invalid_identities_before_touching_the_database",
+   "target":"_run",
+   "line":366
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_refuses_invalid_identities_before_touching_the_database",
+   "target":"enqueue_cache_invalidation",
+   "line":366
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_swallows_database_failures_into_none",
+   "target":"RuntimeError",
+   "line":370
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_swallows_database_failures_into_none",
+   "target":"_RecordingConn",
+   "line":370
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_swallows_database_failures_into_none",
+   "target":"_install",
+   "line":371
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_swallows_database_failures_into_none",
+   "target":"_run",
+   "line":372
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_enqueue_swallows_database_failures_into_none",
+   "target":"enqueue_cache_invalidation",
+   "line":373
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_registry_upsert_returns_the_persisted_row_with_json_columns_decoded",
+   "target":"_RecordingConn",
+   "line":381
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_registry_upsert_returns_the_persisted_row_with_json_columns_decoded",
+   "target":"_install",
+   "line":401
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_registry_upsert_returns_the_persisted_row_with_json_columns_decoded",
+   "target":"_run",
+   "line":402
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_registry_upsert_returns_the_persisted_row_with_json_columns_decoded",
+   "target":"upsert_raster_registry_entry",
+   "line":403
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_the_pipeline_bridge_still_reports_success_through_the_shared_upsert",
+   "target":"_RecordingConn",
+   "line":426
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_the_pipeline_bridge_still_reports_success_through_the_shared_upsert",
+   "target":"_install",
+   "line":427
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_the_pipeline_bridge_still_reports_success_through_the_shared_upsert",
+   "target":"_run",
+   "line":428
+  },
+  {
+   "owner":"raster-service",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "source":"test_the_pipeline_bridge_still_reports_success_through_the_shared_upsert",
+   "target":"insert_raster_registry_entry",
+   "line":429
   },
   {
    "owner":"raster-service",
@@ -234486,16 +236035,51 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/raster_service_client.py",
+   "source":"enqueue_raster_cache_invalidation",
+   "target":"raster_post_json",
+   "line":475
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/raster_service_client.py",
+   "source":"enqueue_raster_cache_invalidation",
+   "target":"str",
+   "line":479
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/raster_service_client.py",
+   "source":"enqueue_raster_cache_invalidation",
+   "target":"dict",
+   "line":482
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/raster_service_client.py",
+   "source":"register_cog_asset",
+   "target":"raster_post_json",
+   "line":500
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/raster_service_client.py",
+   "source":"register_cog_asset",
+   "target":"str",
+   "line":503
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/raster_service_client.py",
    "source":"get_job_result",
    "target":"raster_get_json",
-   "line":465
+   "line":518
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/raster_service_client.py",
    "source":"get_job_status",
    "target":"raster_get_json",
-   "line":495
+   "line":548
   },
   {
    "owner":"sahool-platform",
@@ -268137,202 +269721,195 @@
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"_records",
    "target":"fetch",
-   "line":163
+   "line":164
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"_records",
    "target":"record_from_db_row",
-   "line":177
+   "line":178
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"stac_root",
    "target":"get",
-   "line":180
+   "line":181
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"stac_root",
    "target":"Depends",
-   "line":182
+   "line":183
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"stac_root",
    "target":"require_permission",
-   "line":182
+   "line":183
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"stac_root",
    "target":"stac_landing_page",
-   "line":184
+   "line":185
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"stac_conformance",
    "target":"get",
-   "line":187
+   "line":188
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"stac_conformance",
    "target":"Depends",
-   "line":189
+   "line":190
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"stac_conformance",
    "target":"require_permission",
-   "line":189
+   "line":190
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"get_stac_queryables",
    "target":"get",
-   "line":194
+   "line":195
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"get_stac_queryables",
    "target":"Depends",
-   "line":196
+   "line":197
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"get_stac_queryables",
    "target":"require_permission",
-   "line":196
+   "line":197
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"get_stac_queryables",
    "target":"stac_queryables",
-   "line":198
+   "line":199
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"list_stac_collections",
    "target":"get",
-   "line":201
+   "line":202
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"list_stac_collections",
    "target":"Query",
-   "line":203
+   "line":204
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"list_stac_collections",
    "target":"Depends",
-   "line":204
+   "line":205
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"list_stac_collections",
    "target":"require_permission",
-   "line":204
+   "line":205
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"list_stac_collections",
    "target":"tenant_connection",
-   "line":207
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "source":"list_stac_collections",
-   "target":"_records",
    "line":208
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"list_stac_collections",
-   "target":"stac_collections_response",
+   "target":"_records",
    "line":209
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"list_stac_collections",
+   "target":"stac_collections_response",
+   "line":210
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
+   "source":"list_stac_collections",
    "target":"_db_unavailable",
-   "line":213
+   "line":214
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"stac_search_post",
    "target":"post",
-   "line":216
+   "line":217
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"stac_search_post",
    "target":"Depends",
-   "line":219
+   "line":220
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"stac_search_post",
    "target":"require_permission",
-   "line":219
+   "line":220
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"stac_search_post",
    "target":"tenant_connection",
-   "line":222
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "source":"stac_search_post",
-   "target":"_records",
    "line":223
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"stac_search_post",
+   "target":"_records",
+   "line":224
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
+   "source":"stac_search_post",
    "target":"filter_records_for_stac",
-   "line":226
+   "line":227
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"stac_search_post",
    "target":"stac_item_from_record",
-   "line":236
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "source":"stac_search_post",
-   "target":"len",
    "line":237
   },
   {
@@ -268346,469 +269923,462 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"stac_search_post",
+   "target":"len",
+   "line":239
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
+   "source":"stac_search_post",
    "target":"_db_unavailable",
-   "line":243
+   "line":244
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"scene_ranking",
    "target":"get",
-   "line":246
+   "line":247
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"scene_ranking",
    "target":"Query",
-   "line":250
+   "line":251
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"scene_ranking",
    "target":"Depends",
-   "line":251
+   "line":252
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"scene_ranking",
    "target":"require_permission",
-   "line":251
+   "line":252
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"scene_ranking",
    "target":"tenant_connection",
-   "line":254
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "source":"scene_ranking",
-   "target":"_records",
    "line":255
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"scene_ranking",
-   "target":"len",
+   "target":"_records",
    "line":256
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
+   "source":"scene_ranking",
+   "target":"len",
+   "line":257
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"scene_ranking",
    "target":"rank_scenes",
-   "line":256
+   "line":257
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"scene_ranking",
    "target":"_db_unavailable",
-   "line":260
+   "line":261
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"scene_processing_plan",
    "target":"get",
-   "line":263
+   "line":264
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"scene_processing_plan",
    "target":"Query",
-   "line":267
+   "line":268
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"scene_processing_plan",
    "target":"Depends",
-   "line":268
+   "line":269
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"scene_processing_plan",
    "target":"require_permission",
-   "line":268
+   "line":269
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"scene_processing_plan",
    "target":"tenant_connection",
-   "line":271
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "source":"scene_processing_plan",
-   "target":"_records",
    "line":272
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"scene_processing_plan",
-   "target":"build_scene_processing_plan",
+   "target":"_records",
    "line":273
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"scene_processing_plan",
+   "target":"build_scene_processing_plan",
+   "line":274
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
+   "source":"scene_processing_plan",
    "target":"_db_unavailable",
-   "line":277
+   "line":278
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"get_tile_cache_plan",
    "target":"get",
-   "line":280
+   "line":281
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"get_tile_cache_plan",
    "target":"Depends",
-   "line":284
+   "line":285
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"get_tile_cache_plan",
    "target":"require_permission",
-   "line":284
+   "line":285
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"get_tile_cache_plan",
    "target":"tenant_connection",
-   "line":287
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "source":"get_tile_cache_plan",
-   "target":"_records",
    "line":288
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"get_tile_cache_plan",
-   "target":"tile_cache_plan",
+   "target":"_records",
    "line":289
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"get_tile_cache_plan",
+   "target":"tile_cache_plan",
+   "line":290
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
+   "source":"get_tile_cache_plan",
    "target":"_db_unavailable",
-   "line":293
+   "line":294
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"ogc_root",
    "target":"get",
-   "line":296
+   "line":297
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"ogc_root",
    "target":"Depends",
-   "line":298
+   "line":299
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"ogc_root",
    "target":"require_permission",
-   "line":298
+   "line":299
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"ogc_root",
    "target":"ogc_landing_page",
-   "line":300
+   "line":301
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"ogc_conformance",
    "target":"get",
-   "line":303
+   "line":304
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"ogc_conformance",
    "target":"Depends",
-   "line":305
+   "line":306
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"ogc_conformance",
    "target":"require_permission",
-   "line":305
+   "line":306
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"get_ogc_collections",
    "target":"get",
-   "line":310
+   "line":311
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"get_ogc_collections",
    "target":"Depends",
-   "line":312
+   "line":313
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"get_ogc_collections",
    "target":"require_permission",
-   "line":312
+   "line":313
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"get_ogc_collections",
    "target":"ogc_collections",
-   "line":314
+   "line":315
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"ogc_field_items",
    "target":"get",
-   "line":317
+   "line":318
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"ogc_field_items",
    "target":"Query",
-   "line":319
+   "line":320
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"ogc_field_items",
    "target":"Depends",
-   "line":321
+   "line":322
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"ogc_field_items",
    "target":"require_permission",
-   "line":321
+   "line":322
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"ogc_field_items",
    "target":"tenant_connection",
-   "line":324
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "source":"ogc_field_items",
-   "target":"fetch",
    "line":325
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"ogc_field_items",
+   "target":"fetch",
+   "line":326
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
+   "source":"ogc_field_items",
    "target":"dict",
-   "line":336
+   "line":337
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"ogc_field_items",
    "target":"ogc_feature_collection",
-   "line":336
+   "line":337
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"ogc_field_items",
    "target":"_db_unavailable",
-   "line":340
+   "line":341
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"plan_ai_boundary_extraction",
    "target":"post",
-   "line":343
+   "line":344
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"plan_ai_boundary_extraction",
    "target":"Depends",
-   "line":346
+   "line":347
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"plan_ai_boundary_extraction",
    "target":"require_permission",
-   "line":346
+   "line":347
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"plan_ai_boundary_extraction",
    "target":"ai_boundary_extraction_plan",
-   "line":348
+   "line":349
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"summarize_management_zones",
    "target":"post",
-   "line":353
+   "line":354
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"summarize_management_zones",
    "target":"Depends",
-   "line":356
+   "line":357
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"summarize_management_zones",
    "target":"require_permission",
-   "line":356
+   "line":357
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"summarize_management_zones",
    "target":"management_zone_summary",
-   "line":358
+   "line":359
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"editing_session_undo_redo",
    "target":"post",
-   "line":361
+   "line":362
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"editing_session_undo_redo",
    "target":"Depends",
-   "line":364
+   "line":365
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"editing_session_undo_redo",
    "target":"require_permission",
-   "line":364
+   "line":365
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"editing_session_undo_redo",
    "target":"tenant_connection",
-   "line":367
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "source":"editing_session_undo_redo",
-   "target":"fetchrow",
    "line":368
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"editing_session_undo_redo",
-   "target":"str",
-   "line":374
+   "target":"fetchrow",
+   "line":369
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"editing_session_undo_redo",
    "target":"str",
-   "line":376
+   "line":375
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
+   "source":"editing_session_undo_redo",
+   "target":"str",
+   "line":377
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"editing_session_undo_redo",
    "target":"dict",
-   "line":379
+   "line":380
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"editing_session_undo_redo",
    "target":"apply_undo_redo",
-   "line":389
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "source":"editing_session_undo_redo",
-   "target":"fetchrow",
    "line":390
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"editing_session_undo_redo",
-   "target":"str",
-   "line":401
+   "target":"fetchrow",
+   "line":391
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"editing_session_undo_redo",
    "target":"str",
-   "line":403
+   "line":402
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"editing_session_undo_redo",
-   "target":"dumps",
-   "line":404
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "source":"editing_session_undo_redo",
-   "target":"get",
+   "target":"str",
    "line":404
   },
   {
@@ -268824,6 +270394,13 @@
    "source":"editing_session_undo_redo",
    "target":"get",
    "line":405
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
+   "source":"editing_session_undo_redo",
+   "target":"dumps",
+   "line":406
   },
   {
    "owner":"sahool-platform",
@@ -268836,7 +270413,7 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"editing_session_undo_redo",
-   "target":"dumps",
+   "target":"get",
    "line":407
   },
   {
@@ -268850,14 +270427,14 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"editing_session_undo_redo",
-   "target":"dict",
-   "line":411
+   "target":"dumps",
+   "line":409
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"editing_session_undo_redo",
-   "target":"bool",
+   "target":"dict",
    "line":412
   },
   {
@@ -268871,99 +270448,113 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"editing_session_undo_redo",
+   "target":"bool",
+   "line":414
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
+   "source":"editing_session_undo_redo",
    "target":"_db_unavailable",
-   "line":418
+   "line":419
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"register_cog",
    "target":"post",
-   "line":421
+   "line":422
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"register_cog",
    "target":"Depends",
-   "line":424
+   "line":425
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"register_cog",
    "target":"require_permission",
-   "line":424
+   "line":425
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"register_cog",
    "target":"score_scene_quality",
-   "line":426
+   "line":433
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"register_cog",
-   "target":"tenant_connection",
-   "line":434
+   "target":"HTTPException",
+   "line":441
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"register_cog",
-   "target":"fetchrow",
-   "line":435
+   "target":"register_cog_asset",
+   "line":459
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"register_cog",
    "target":"str",
-   "line":452
+   "line":459
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"register_cog",
-   "target":"dumps",
-   "line":461
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "source":"register_cog",
-   "target":"dumps",
-   "line":462
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
-   "source":"register_cog",
-   "target":"dumps",
+   "target":"HTTPException",
    "line":463
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"register_cog",
-   "target":"record_from_db_row",
-   "line":465
+   "target":"get",
+   "line":466
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"register_cog",
-   "target":"stac_item_from_record",
+   "target":"isinstance",
+   "line":466
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
+   "source":"register_cog",
+   "target":"isinstance",
+   "line":467
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
+   "source":"register_cog",
+   "target":"HTTPException",
+   "line":468
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
+   "source":"register_cog",
+   "target":"record_from_db_row",
    "line":469
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/routers/gis_cloud_native.py",
    "source":"register_cog",
-   "target":"_db_unavailable",
-   "line":474
+   "target":"stac_item_from_record",
+   "line":473
   },
   {
    "owner":"sahool-platform",
@@ -300019,6 +301610,13 @@
   },
   {
    "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/scheduler.py",
+   "source":"register_default_tasks",
+   "target":"register_dispatch_task",
+   "line":230
+  },
+  {
+   "owner":"sahool-platform",
    "file":"services/sahool-platform/api/scouting_pins.py",
    "source":"validate_pin",
    "target":"append",
@@ -303396,42 +304994,525 @@
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"save_field_geometry_revision",
    "target":"fetchval",
-   "line":22
+   "line":36
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"save_field_geometry_revision",
    "target":"dumps",
-   "line":31
+   "line":45
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"save_field_geometry_revision",
    "target":"dumps",
-   "line":35
+   "line":49
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"save_field_geometry_revision",
    "target":"int",
-   "line":37
+   "line":51
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"invalidation_request_id",
+   "target":"get",
+   "line":67
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"invalidation_request_id",
+   "target":"isinstance",
+   "line":68
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"invalidation_request_id",
+   "target":"isinstance",
+   "line":68
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"invalidation_request_id",
+   "target":"uuid4",
+   "line":71
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"invalidation_request_id",
+   "target":"strip",
+   "line":72
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"invalidation_request_id",
+   "target":"sub",
+   "line":72
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"mark_raster_cache_stale",
-   "target":"execute",
-   "line":51
+   "target":"invalidation_request_id",
+   "line":96
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"mark_raster_cache_stale",
+   "target":"dict",
+   "line":97
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"mark_raster_cache_stale",
+   "target":"transaction",
+   "line":99
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"mark_raster_cache_stale",
+   "target":"fetchval",
+   "line":100
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"mark_raster_cache_stale",
+   "target":"int",
+   "line":114
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"mark_raster_cache_stale",
+   "target":"fetchval",
+   "line":115
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/spatial_sync.py",
    "source":"mark_raster_cache_stale",
    "target":"dumps",
-   "line":59
+   "line":125
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"mark_raster_cache_stale",
+   "target":"int",
+   "line":127
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"mark_raster_cache_stale",
+   "target":"warning",
+   "line":129
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"backoff_seconds",
+   "target":"len",
+   "line":173
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"backoff_seconds",
+   "target":"max",
+   "line":173
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"backoff_seconds",
+   "target":"min",
+   "line":173
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"_jsonish",
+   "target":"isinstance",
+   "line":177
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"_jsonish",
+   "target":"decode",
+   "line":178
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"_jsonish",
+   "target":"isinstance",
+   "line":179
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"_jsonish",
+   "target":"loads",
+   "line":181
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"_rows_touched",
+   "target":"int",
+   "line":189
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"_rows_touched",
+   "target":"rsplit",
+   "line":189
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"_rows_touched",
+   "target":"str",
+   "line":189
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"claim_due",
+   "target":"fetch",
+   "line":201
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"claim_due",
+   "target":"int",
+   "line":228
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"claim_due",
+   "target":"float",
+   "line":229
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"claim_due",
+   "target":"dict",
+   "line":231
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"_jsonish",
+   "line":241
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"get",
+   "line":241
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"_jsonish",
+   "line":242
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"get",
+   "line":242
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"get",
+   "line":243
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"get",
+   "line":243
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"isinstance",
+   "line":243
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"get",
+   "line":244
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"int",
+   "line":244
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"isinstance",
+   "line":244
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"get",
+   "line":245
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"_finish",
+   "line":247
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"send",
+   "line":256
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"get",
+   "line":259
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"get",
+   "line":261
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"getattr",
+   "line":264
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"getattr",
+   "line":267
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"type",
+   "line":267
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"_finish",
+   "line":269
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"_finish",
+   "line":272
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"backoff_seconds",
+   "line":279
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"deliver",
+   "target":"_finish",
+   "line":281
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"_finish",
+   "target":"execute",
+   "line":301
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"_finish",
+   "target":"dumps",
+   "line":320
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"_finish",
+   "target":"float",
+   "line":322
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"_finish",
+   "target":"_rows_touched",
+   "line":324
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"run_once",
+   "target":"acquire",
+   "line":338
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"run_once",
+   "target":"transaction",
+   "line":339
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"run_once",
+   "target":"claim_due",
+   "line":340
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"run_once",
+   "target":"deliver",
+   "line":343
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"run_once",
+   "target":"get",
+   "line":344
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"dispatch_interval_seconds",
+   "target":"float",
+   "line":349
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"dispatch_interval_seconds",
+   "target":"getenv",
+   "line":349
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"_sweep",
+   "target":"getter",
+   "line":364
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"register_dispatch_task",
+   "target":"getter",
+   "line":364
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"_sweep",
+   "target":"run_once",
+   "line":367
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"register_dispatch_task",
+   "target":"run_once",
+   "line":367
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"_sweep",
+   "target":"info",
+   "line":369
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"register_dispatch_task",
+   "target":"info",
+   "line":369
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"register_dispatch_task",
+   "target":"register",
+   "line":371
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"register_dispatch_task",
+   "target":"dispatch_interval_seconds",
+   "line":373
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/spatial_sync.py",
+   "source":"register_dispatch_task",
+   "target":"cluster_singleton",
+   "line":374
   },
   {
    "owner":"sahool-platform",
@@ -392321,6 +394402,300 @@
   },
   {
    "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"_client",
+   "target":"setattr",
+   "line":32
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"_client",
+   "target":"FastAPI",
+   "line":33
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"_client",
+   "target":"include_router",
+   "line":34
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"_client",
+   "target":"UserSchema",
+   "line":35
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"_client",
+   "target":"TestClient",
+   "line":38
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_cog_registry_sends_a_write_command_and_builds_stac_from_the_persisted_row",
+   "target":"_client",
+   "line":78
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_cog_registry_sends_a_write_command_and_builds_stac_from_the_persisted_row",
+   "target":"post",
+   "line":79
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_cog_registry_sends_a_write_command_and_builds_stac_from_the_persisted_row",
+   "target":"json",
+   "line":81
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"_never",
+   "target":"AssertionError",
+   "line":93
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_cog_registry_requires_a_field_id_because_the_owner_key_includes_it",
+   "target":"AssertionError",
+   "line":93
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_cog_registry_requires_a_field_id_because_the_owner_key_includes_it",
+   "target":"_client",
+   "line":95
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_cog_registry_requires_a_field_id_because_the_owner_key_includes_it",
+   "target":"post",
+   "line":96
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"_refuse",
+   "target":"HTTPException",
+   "line":105
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_cog_registry_surfaces_raster_service_refusals_verbatim",
+   "target":"HTTPException",
+   "line":105
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_cog_registry_surfaces_raster_service_refusals_verbatim",
+   "target":"_client",
+   "line":107
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_cog_registry_surfaces_raster_service_refusals_verbatim",
+   "target":"post",
+   "line":108
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_cog_registry_surfaces_raster_service_refusals_verbatim",
+   "target":"json",
+   "line":110
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"_blow_up",
+   "target":"ConnectionError",
+   "line":116
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_cog_registry_hides_transport_internals_behind_a_502",
+   "target":"ConnectionError",
+   "line":116
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_cog_registry_hides_transport_internals_behind_a_502",
+   "target":"_client",
+   "line":118
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_cog_registry_hides_transport_internals_behind_a_502",
+   "target":"post",
+   "line":119
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_cog_registry_hides_transport_internals_behind_a_502",
+   "target":"json",
+   "line":122
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_cog_registry_refuses_an_acknowledgement_without_a_row",
+   "target":"_client",
+   "line":130
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_cog_registry_refuses_an_acknowledgement_without_a_row",
+   "target":"post",
+   "line":131
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_platform_source_has_no_direct_sql_against_the_raster_owned_tables",
+   "target":"read_text",
+   "line":137
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_platform_source_has_no_direct_sql_against_the_raster_owned_tables",
+   "target":"read_text",
+   "line":138
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"read_text",
+   "line":152
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"findall",
+   "line":153
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"len",
+   "line":154
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"all",
+   "line":155
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"strip",
+   "line":155
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"parse",
+   "line":158
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"read_text",
+   "line":158
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"next",
+   "line":159
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"isinstance",
+   "line":162
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"isinstance",
+   "line":164
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"walk",
+   "line":164
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"isinstance",
+   "line":165
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"walk",
+   "line":165
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"any",
+   "line":169
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"getattr",
+   "line":170
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_d1_raster_owner_write_commands.py",
+   "source":"test_invalidation_call_sites_still_write_the_intent_on_the_transaction_connection",
+   "target":"isinstance",
+   "line":172
+  },
+  {
+   "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_data_inventory.py",
    "source":"setup_method",
    "target":"_reset_cache",
@@ -416012,175 +418387,189 @@
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"test_gis_database_failures_remain_503",
    "target":"ConnectionError",
-   "line":477
+   "line":474
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"unavailable",
    "target":"ConnectionError",
+   "line":474
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_governance_modules.py",
+   "source":"test_gis_database_failures_remain_503",
+   "target":"setattr",
    "line":477
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"test_gis_database_failures_remain_503",
-   "target":"setattr",
-   "line":480
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_governance_modules.py",
-   "source":"test_gis_database_failures_remain_503",
    "target":"FastAPI",
-   "line":481
+   "line":478
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"test_gis_database_failures_remain_503",
    "target":"include_router",
-   "line":482
+   "line":479
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"test_gis_database_failures_remain_503",
    "target":"UserSchema",
-   "line":483
+   "line":480
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"test_gis_database_failures_remain_503",
    "target":"TestClient",
-   "line":489
+   "line":486
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"test_gis_database_failures_remain_503",
    "target":"request",
-   "line":490
+   "line":487
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"test_gis_database_failures_remain_503",
    "target":"json",
-   "line":493
+   "line":490
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"test_fleet_health_reads_standing_crop_stages_and_preserves_db_errors",
    "target":"parametrize",
-   "line":497
+   "line":494
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"test_fleet_health_reads_standing_crop_stages_and_preserves_db_errors",
    "target":"uuid4",
-   "line":510
+   "line":507
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"test_fleet_health_reads_standing_crop_stages_and_preserves_db_errors",
    "target":"transaction",
-   "line":514
+   "line":511
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"fetch",
    "target":"str",
-   "line":523
+   "line":520
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"test_fleet_health_reads_standing_crop_stages_and_preserves_db_errors",
    "target":"str",
-   "line":523
+   "line":520
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"fetch",
    "target":"UndefinedTableError",
-   "line":530
+   "line":527
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"test_fleet_health_reads_standing_crop_stages_and_preserves_db_errors",
    "target":"UndefinedTableError",
-   "line":530
+   "line":527
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"fetch",
    "target":"UndefinedColumnError",
-   "line":532
+   "line":529
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"test_fleet_health_reads_standing_crop_stages_and_preserves_db_errors",
    "target":"UndefinedColumnError",
-   "line":532
+   "line":529
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"connection",
    "target":"Connection",
-   "line":541
+   "line":538
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"test_fleet_health_reads_standing_crop_stages_and_preserves_db_errors",
    "target":"Connection",
-   "line":541
+   "line":538
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"test_fleet_health_reads_standing_crop_stages_and_preserves_db_errors",
    "target":"setattr",
-   "line":543
+   "line":540
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"test_fleet_health_reads_standing_crop_stages_and_preserves_db_errors",
    "target":"UserSchema",
-   "line":544
+   "line":541
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"test_fleet_health_reads_standing_crop_stages_and_preserves_db_errors",
    "target":"str",
-   "line":544
+   "line":541
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"test_fleet_health_reads_standing_crop_stages_and_preserves_db_errors",
    "target":"uuid4",
-   "line":544
+   "line":541
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_governance_modules.py",
    "source":"test_fleet_health_reads_standing_crop_stages_and_preserves_db_errors",
    "target":"raises",
-   "line":546
+   "line":543
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_governance_modules.py",
+   "source":"test_fleet_health_reads_standing_crop_stages_and_preserves_db_errors",
+   "target":"devices_fleet_health",
+   "line":544
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_governance_modules.py",
+   "source":"test_fleet_health_reads_standing_crop_stages_and_preserves_db_errors",
+   "target":"run",
+   "line":544
   },
   {
    "owner":"sahool-platform",
@@ -416195,20 +418584,6 @@
    "source":"test_fleet_health_reads_standing_crop_stages_and_preserves_db_errors",
    "target":"run",
    "line":547
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_governance_modules.py",
-   "source":"test_fleet_health_reads_standing_crop_stages_and_preserves_db_errors",
-   "target":"devices_fleet_health",
-   "line":550
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_governance_modules.py",
-   "source":"test_fleet_health_reads_standing_crop_stages_and_preserves_db_errors",
-   "target":"run",
-   "line":550
   },
   {
    "owner":"sahool-platform",
@@ -563166,6 +565541,17 @@
    "kind":"function",
    "file":"services/raster-service/terrain_source_registry.py",
    "line":202,
+   "owner":"raster-service",
+   "decorated_route":false,
+   "reference_count":0,
+   "confidence":"medium",
+   "action":"review_before_delete"
+  },
+  {
+   "symbol":"owner_api",
+   "kind":"function",
+   "file":"services/raster-service/test_registry_writes_owner_api.py",
+   "line":43,
    "owner":"raster-service",
    "decorated_route":false,
    "reference_count":0,

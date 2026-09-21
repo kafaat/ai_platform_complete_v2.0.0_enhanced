@@ -1140,7 +1140,7 @@
       },
       {
         "capability_id": "SAT-009",
-        "score": 9,
+        "score": 11,
         "signals": [
           "content:cog",
           "content:raster tile",
@@ -6121,10 +6121,26 @@
       },
       {
         "capability_id": "SAT-001",
-        "score": 10,
+        "score": 11,
         "signals": [
           "content:cdse",
           "content:stac"
+        ]
+      },
+      {
+        "capability_id": "SAT-009",
+        "score": 9,
+        "signals": [
+          "content:cog",
+          "content:tilejson"
+        ]
+      },
+      {
+        "capability_id": "GIS-003",
+        "score": 9,
+        "signals": [
+          "content:dem",
+          "content:terrain"
         ]
       }
     ]
