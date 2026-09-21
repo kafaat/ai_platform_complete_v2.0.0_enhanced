@@ -1232,6 +1232,13 @@
           "replace": "    return any(MANIFEST_REL in p for p in paths)  # mutated: مرساة نصّيّة",
           "test": "tests_v9/test_resolve_merge_conflicts.py",
           "why": "مطابقةُ `substring` تُطابِق أيَّ مسارٍ يشترك في الذيل (`vendor/docs/architecture/...`)، فتُنتِج رسالةً تقول «حُلَّ بياني أوّلاً» عن ملفٍّ ليس بياننا — رسالةٌ تكذب على قارئها أسوأ من صمت."
+        },
+        {
+          "expect": "test_an_append_only_journal_that_declares_itself_one_is_actually_guarded",
+          "find": "    \"docs/evidence/operational_evidence_log.md\",\n",
+          "replace": "",
+          "test": "tests_v9/test_brain_append_only_guard.py",
+          "why": "AN-APPEND-ONLY-JOURNAL-OUTSIDE-THE-APPEND-ONLY-LIST-01: إسقاطُ المسار يُعيد الحالةَ التي سمحت لـ`b067f92c` (رأسُ #1061 المدموج) بحذف المدخلتين E-2026-09-21-06 وE-2026-09-21-07 (٣٦٣٧ بايت) من سجلّ الإثبات بكلّ بوّابةٍ خضراء، فلزمت شريحةُ استرجاع (#1062). و`brain_append_only_guard` يستورد هذه القائمةَ بعينها، فغيابُ الملفّ عنها كان غيابَ الحراسة عنه — حارسٌ قائمٌ يُقرَأ حمايةً ولا يحمي."
         }
       ],
       "test": "tests_v9/test_generated_write_targets.py"

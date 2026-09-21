@@ -70,7 +70,12 @@ def _have(sha: str) -> bool:
     not _have(TRUNCATION), reason="shallow clone: the incident commits are not present"
 )
 def test_the_guard_fails_on_the_truncation_that_created_it(guard):
-    blocking, _, pairs = guard.check_range(BEFORE_TRUNCATION, TRUNCATION)
+    # النطاقُ محصورٌ في الدفتر الذي وقعت عليه الحادثة: مدًى تاريخيٌّ من 2026-08 يسبق
+    # إنشاءَ دفاترَ أُضيفت لاحقاً إلى القائمة، فيُبلِغ عنها `JOURNAL_ABSENT_AT_HEAD`
+    # بحقّ — وهي مفارقةٌ زمنيّة لا انحدار. الحصرُ يُبقي الشاهدَ على سؤاله بعينه.
+    blocking, _, pairs = guard.check_range(
+        BEFORE_TRUNCATION, TRUNCATION, files=("sahool-brain/log.md",)
+    )
     assert pairs, "no commit-parent pair examined — the check would be vacuous"
     codes = {f.code for f in blocking}
     assert "JOURNAL_SHRANK" in codes, f"the incident must block; got {codes}"
@@ -82,7 +87,7 @@ def test_the_guard_fails_on_the_truncation_that_created_it(guard):
 @pytest.mark.skipif(not _have(REPAIR), reason="shallow clone: the repair commit is absent")
 def test_the_guard_passes_on_the_commit_that_repaired_it(guard):
     """Without this, every assertion above also holds for a guard that always fails."""
-    blocking, _, pairs = guard.check_range(TRUNCATION, REPAIR)
+    blocking, _, pairs = guard.check_range(TRUNCATION, REPAIR, files=("sahool-brain/log.md",))
     assert pairs
     assert not blocking, "\n".join(str(f) for f in blocking)
 
@@ -638,3 +643,102 @@ def test_a_dip_at_the_head_keeps_the_tip_remedy_only(guard, tmp_path):
     assert "كلا** الوالدَين" in remedy
     assert "محفورٌ في التاريخ" not in remedy
     assert "force-with-lease" not in remedy
+
+
+# ── `AN-APPEND-ONLY-JOURNAL-OUTSIDE-THE-APPEND-ONLY-LIST-01` ────────────────
+#
+# قِيس 2026-09-21: رأسُ #1061 المدموج (`b067f92c`) حذف من
+# `docs/evidence/operational_evidence_log.md` المدخلتين `E-2026-09-21-06` و
+# `E-2026-09-21-07` (٣٦٣٧ بايت)، وكلُّ بوّابةٍ خضراء، فلزمت شريحةُ استرجاع (#1062).
+# الحارسُ الذي وُجِد لهذا الصنف بعينه كان قائماً وأخضر — لأنّ الملفّ **خارج قائمته**.
+
+_EVIDENCE_LOG = "docs/evidence/operational_evidence_log.md"
+
+
+def test_an_append_only_journal_that_declares_itself_one_is_actually_guarded(guard):
+    """**العطلُ مقيسٌ لا مفترَض** — والملفُّ يصف نفسه دفتراً إلحاقيّاً في سطره الثالث.
+
+    حارسٌ قائمٌ وقائمتُه ناقصة يُقرَأ حمايةً ولا يحمي. ولأنّ القائمة مستورَدة (لا
+    منسوخة)، إضافةُ المسار هنا تُفعّل الحارسَ و`resolve_merge_conflicts` معاً.
+    """
+    assert _EVIDENCE_LOG in guard.append_only_files(), (
+        "سجلُّ الإثبات التشغيليّ خارج قائمة الدفاتر الإلحاقيّة — "
+        "وهو ما سمح لـ`b067f92c` بحذف مدخلتين بكلّ بوّابةٍ خضراء (استُرجِعتا في #1062)"
+    )
+    header = (ROOT / _EVIDENCE_LOG).read_text(encoding="utf-8")[:600]
+    # بلا تشكيل: النصّ يكتبها «إلحاقيٌّ» بتنوينٍ وشدّة، ومطابقةُ الصيغة المشكولة حرفيّاً
+    # كانت تحمرّ على ملفٍّ يقول ما يجب أن يقوله بالضبط.
+    assert "إلحاقي" in header, "الملفّ لم يعد يصف نفسه دفتراً إلحاقيّاً — راجع التصنيف"
+
+
+def test_every_guarded_journal_exists_in_the_tree(guard):
+    """مسارٌ في القائمة لا وجود له يُعدّ حراسةً وهو صفر — والقائمةُ تُقرأ ضماناً."""
+    missing = [p for p in guard.append_only_files() if not (ROOT / p).is_file()]
+    assert missing == [], f"مساراتٌ محروسةٌ لا وجودَ لها: {missing}"
+
+
+def _rewind_repo(tmp_path: Path, journal_path: str) -> Path:
+    """شكلُ **إعادة التأسيس** لا شكلُ التفريغ: فرعٌ أُسِّس قبل مدخلةٍ ثمّ أُخِذ جانبُه.
+
+    هذا ما وقع فعلاً: `7a5cf0b3` بُني على `0606bb67` (قبل #1059)، فإعادةُ تأسيسٍ تأخذ
+    نسخةَ الفرع تُعيد الماضي وتمحو ما لحقه — **بلا تعارضٍ يُظهِرها**. والفقدُ جزئيّ لا
+    تفريغٌ إلى الصفر، فالشاهدُ القديم (الجانبُ الفارغ) لا يغطّيه.
+    """
+    root = tmp_path / "rewind"
+    (root / journal_path).parent.mkdir(parents=True)
+
+    def git(*args):
+        subprocess.run(["git", *args], cwd=root, check=True, capture_output=True)
+
+    journal = root / journal_path
+    git("init", "-q", "-b", "main", ".")
+    git("config", "user.email", "t@t")
+    git("config", "user.name", "t")
+    journal.write_text("### E-01\n\n- أثرٌ أوّل\n", encoding="utf-8")
+    git("add", "-A")
+    git("commit", "-qm", "base")
+
+    git("checkout", "-qb", "slice")
+    old = journal.read_text(encoding="utf-8")
+    git("checkout", "-q", "main")
+    journal.write_text(old + "\n### E-02\n\n- أثرٌ ثانٍ كتبته شريحةٌ أخرى\n", encoding="utf-8")
+    git("add", "-A")
+    git("commit", "-qm", "another slice appends E-02")
+
+    # إعادةُ التأسيس: الرأسُ الجديد يحمل نسخةَ الفرع القديمة فوق `main` الأحدث.
+    git("checkout", "-q", "slice")
+    git("merge", "main", "--no-edit", "-q")
+    journal.write_text(old, encoding="utf-8")
+    git("add", "-A")
+    git("commit", "-qm", "re-founded: the slice's copy of the journal won", "--no-verify")
+    return root
+
+
+def test_a_refounding_that_rewinds_the_evidence_log_blocks(guard, tmp_path):
+    """**تكذيبُ الحادثة بشكلها الحقيقيّ** — فقدٌ جزئيّ، لا تفريغٌ إلى الصفر."""
+    root = _rewind_repo(tmp_path, _EVIDENCE_LOG)
+    blocking, _, pairs = guard.check_range(None, "HEAD", files=(_EVIDENCE_LOG,), root=root)
+    assert pairs >= 1, "لم يُفحَص أيُّ زوج — الفحصُ خاوٍ"
+    assert "JOURNAL_SHRANK" in {f.code for f in blocking}, (
+        "إعادةُ تأسيسٍ تُرجِع نسخةً أقدمَ من دفترٍ إلحاقيّ يجب أن تحجب"
+    )
+
+
+def test_a_refounding_that_keeps_both_entries_passes(guard, tmp_path):
+    """الشاهدُ الإيجابيّ: العلاجُ المشروع يمرّ، وإلّا صارت بوّابةً لا تُغلَق بعملٍ صحيح."""
+    root = _rewind_repo(tmp_path, _EVIDENCE_LOG)
+    journal = root / _EVIDENCE_LOG
+    journal.write_text(
+        "### E-01\n\n- أثرٌ أوّل\n\n### E-02\n\n- أثرٌ ثانٍ كتبته شريحةٌ أخرى\n"
+        "\n### E-03\n\n- أثرُ هذه الشريحة\n",
+        encoding="utf-8",
+    )
+    subprocess.run(["git", "add", "-A"], cwd=root, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-qm", "keep both sides then append", "--no-verify"],
+        cwd=root,
+        check=True,
+        capture_output=True,
+    )
+    blocking, _, _ = guard.check_range(None, "HEAD", files=(_EVIDENCE_LOG,), root=root)
+    assert not blocking, "\n".join(str(f) for f in blocking)
