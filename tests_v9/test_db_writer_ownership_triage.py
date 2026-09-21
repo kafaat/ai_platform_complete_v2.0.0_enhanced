@@ -95,6 +95,10 @@ def test_the_measured_dimensions_match_the_blocking_engine_now() -> None:
         assert row["owner_dir_in_tree"] is _owner_dir_in_tree(mod, owner), key
         assert row["measured_writers_of_table"] == sorted(writers_of.get(table, set())), key
         assert row["owner_writes_table"] is (owner in writers_of.get(table, set())), key
+        assert row["measured_writer_count"] == len(row["measured_writers_of_table"]), key
+        assert row["multiple_non_owner_writers"] is (
+            not row["owner_writes_table"] and len(row["measured_writers_of_table"]) > 1
+        ), key
 
 
 def test_the_category_is_derived_not_chosen() -> None:
@@ -119,3 +123,38 @@ def test_the_triage_claims_no_resolution() -> None:
         assert row["status"] == "triaged", key
         assert row["decision_owner"] in {"owner", "engineering"}, key
         assert row["remedy"].strip(), key
+
+
+def test_weather_signals_exposes_multiple_non_owner_writers() -> None:
+    rows = _triage()["rows"]
+    keys = [
+        "weather_signals::weather-polygon-worker",
+        "weather_signals::weather-signal-engine",
+    ]
+    for key in keys:
+        row = rows[key]
+        assert row["declared_owner"] == "weather-service"
+        assert row["owner_writes_table"] is False
+        assert row["measured_writer_count"] == 2
+        assert row["multiple_non_owner_writers"] is True
+        assert "الكاتبُ الوحيد" not in row["remedy"]
+
+
+def test_sqlite_only_exclusions_are_visible_not_silent() -> None:
+    excluded = _triage()["excluded_write_sites"]
+    for key in (
+        "knowledge_snippets::sahool-platform",
+        "users::sahool-platform",
+        "field_state::sahool-platform",
+    ):
+        assert excluded[key]["reason"] == "sqlite_only_backend"
+        assert excluded[key]["evidence"]["driver_imports"] == ["sqlite3"]
+
+
+def test_deployment_evidence_is_historical_and_never_cutover_ready() -> None:
+    for key, row in _triage()["rows"].items():
+        evidence = row["deployment_evidence"]
+        assert evidence["observed_on"] == "2026-09-20", key
+        assert evidence["source"] == "docs/evidence/railway_audit_review_20260920.md", key
+        assert evidence["cutover_ready"] is False, key
+        assert evidence["freshness"] == "historical_snapshot", key

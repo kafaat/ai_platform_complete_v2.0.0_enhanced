@@ -103,6 +103,33 @@ def _write_allowed(table: str, service: str, contract: dict[str, Any]) -> bool:
     return meta.get("mirror") == service
 
 
+_SQLITE_IMPORT_ROOTS = {"sqlite3", "aiosqlite"}
+_POSTGRES_IMPORT_ROOTS = {"asyncpg", "psycopg", "psycopg2", "pg8000"}
+
+
+def _import_roots(tree: ast.AST) -> set[str]:
+    """Top-level imported module names; aliases do not change backend identity."""
+    roots: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            roots.update(alias.name.split(".", 1)[0] for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            roots.add(node.module.split(".", 1)[0])
+    return roots
+
+
+def _db_backend(tree: ast.AST) -> str:
+    """Conservative backend evidence: unknown remains PostgreSQL-scan in-scope."""
+    roots = _import_roots(tree)
+    sqlite = bool(roots & _SQLITE_IMPORT_ROOTS)
+    postgres = bool(roots & _POSTGRES_IMPORT_ROOTS)
+    if sqlite and not postgres:
+        return "sqlite"
+    if postgres:
+        return "postgres"
+    return "unknown"
+
+
 def _sql_literals(tree: ast.AST):
     for node in ast.walk(tree):
         if isinstance(node, ast.Constant) and isinstance(node.value, str):
@@ -135,6 +162,10 @@ def write_sites(root: Path | None = None) -> dict[str, list[str]]:
         try:
             tree = ast.parse(path.read_text(encoding="utf-8"))
         except (SyntaxError, UnicodeDecodeError, OSError):
+            continue
+        # PostgreSQL ownership contract: only positive SQLite-only evidence excludes a file.
+        # Unknown is deliberately in-scope; absence of a driver import is not an exemption.
+        if _db_backend(tree) == "sqlite":
             continue
         service = _service_of(rel)
         for sql in _sql_literals(tree):

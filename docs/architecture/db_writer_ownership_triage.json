@@ -1,1703 +1,2285 @@
 {
- "$comment": "فرزُ مخالفات ملكيّة الكتابة: كلُّ صفٍّ مقيسٌ بمحرّك db_writer_ownership_guard نفسِه (write_sites + العقد)، والصنفُ مشتقٌّ بقاعدةٍ صريحة في tests_v9/test_db_writer_ownership_triage.py::derive_category لا مختار. المصنوعةُ تصنّف ولا تحكم ولا تحلّ: status=triaged لكلّ صفّ. 'owner_deployed_railway_20260920' من مراجعة Railway الخارجيّة 2026-09-20 (docs/evidence/railway_audit_review_20260920.md) — لقطةٌ مؤرَّخة لا حالةٌ حيّة. حدُّ القياس حدُّ المحرّك: حرفيّاتُ SQL في بايثون وحدَها؛ فـ'owner_writes_table: false' تعني «لم يُعثَر على موضع» لا «لا يكتب».",
- "measured_on": "27dc7a9ab256badb4ac8e13a957184c215eb68eb",
- "baseline": "docs/architecture/db_writer_ownership_baseline.json",
- "category_vocabulary": [
-  "dual-writer",
-  "owner-name-not-in-tree",
-  "owner-never-writes",
-  "tooling-writer"
- ],
- "counts": {
-  "total": 72,
-  "by_category": {
-   "owner-never-writes": 62,
-   "dual-writer": 5,
-   "tooling-writer": 5
+  "$comment": "فرزُ مخالفات ملكيّة الكتابة: كلُّ صفٍّ مقيسٌ بمحرّك db_writer_ownership_guard نفسِه (write_sites + العقد)، والصنفُ مشتقٌّ بقاعدةٍ صريحة في tests_v9/test_db_writer_ownership_triage.py::derive_category لا مختار. المصنوعةُ تصنّف ولا تحكم ولا تحلّ: status=triaged لكلّ صفّ. 'owner_deployed_railway_20260920' من مراجعة Railway الخارجيّة 2026-09-20 (docs/evidence/railway_audit_review_20260920.md) — لقطةٌ مؤرَّخة لا حالةٌ حيّة. حدُّ القياس حدُّ المحرّك: حرفيّاتُ SQL في بايثون وحدَها؛ فـ'owner_writes_table: false' تعني «لم يُعثَر على موضع» لا «لا يكتب».",
+  "measured_on": "baff6a6ddd9789181749cee46b4ad683bec2deee",
+  "baseline": "docs/architecture/db_writer_ownership_baseline.json",
+  "category_vocabulary": [
+    "dual-writer",
+    "owner-name-not-in-tree",
+    "owner-never-writes",
+    "tooling-writer"
+  ],
+  "counts": {
+    "total": 71,
+    "by_category": {
+      "owner-never-writes": 62,
+      "dual-writer": 4,
+      "tooling-writer": 5
+    }
+  },
+  "rows": {
+    "actuator_command_outbox::sahool-platform": {
+      "table": "actuator_command_outbox",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/phase_runtime_store.py"
+      ],
+      "declared_owner": "actuator-service",
+      "declared_writers": [
+        "actuator-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "audit_log::auth": {
+      "table": "audit_log",
+      "writer": "auth",
+      "files": [
+        "services/auth/main.py"
+      ],
+      "declared_owner": "sahool-platform",
+      "declared_writers": [
+        "sahool-platform"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "auth",
+        "sahool-platform"
+      ],
+      "owner_writes_table": true,
+      "writer_kind": "service-module",
+      "category": "dual-writer",
+      "remedy": "المالكُ يكتب الجدولَ فعلاً ويكتبه معه كاتبٌ آخر — تعارضُ كتابةٍ حقيقيّ. العلاج: توجيهُ كتابة المخالف عبر واجهةٍ يملكها المالك (نمطُ البند ٣) أو إعلانُ جسرٍ انتقاليّ موثَّق (`mirror` + `status: interim-bridge`) بسقفٍ نازل.",
+      "decision_owner": "engineering",
+      "status": "triaged",
+      "measured_writer_count": 2,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "automation_rules::actuator-service": {
+      "table": "automation_rules",
+      "writer": "actuator-service",
+      "files": [
+        "services/actuator-service/actuator_runtime.py"
+      ],
+      "declared_owner": "sahool-platform",
+      "declared_writers": [
+        "sahool-platform"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "actuator-service"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": false,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "backfill_run_items::raster-service": {
+      "table": "backfill_run_items",
+      "writer": "raster-service",
+      "files": [
+        "services/raster-service/backfill_scan_worker.py",
+        "services/raster-service/db_persist.py"
+      ],
+      "declared_owner": "sahool-platform",
+      "declared_writers": [
+        "sahool-platform"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "raster-service"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "worker",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "backfill_runs::raster-service": {
+      "table": "backfill_runs",
+      "writer": "raster-service",
+      "files": [
+        "services/raster-service/backfill_scan_worker.py",
+        "services/raster-service/db_persist.py"
+      ],
+      "declared_owner": "sahool-platform",
+      "declared_writers": [
+        "sahool-platform"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "raster-service"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "worker",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "canonical_projection_requests::scripts": {
+      "table": "canonical_projection_requests",
+      "writer": "scripts",
+      "files": [
+        "scripts/e2e/canonical_projection_jetstream_roundtrip.py"
+      ],
+      "declared_owner": "sahool-platform",
+      "declared_writers": [
+        "sahool-platform"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform",
+        "scripts"
+      ],
+      "owner_writes_table": true,
+      "writer_kind": "e2e-script",
+      "category": "tooling-writer",
+      "remedy": "الكاتبُ سكربتُ تشغيلٍ/e2e لا خدمة. العلاج: نقلُه تحت أدوات المالك أو تشغيلُه بدور المالك، أو إعلانُه جسراً موثَّقاً بسقف.",
+      "decision_owner": "engineering",
+      "status": "triaged",
+      "measured_writer_count": 2,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": false,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "decision_policies::sahool-platform": {
+      "table": "decision_policies",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/routers/decision_policies.py"
+      ],
+      "declared_owner": "agriai-engine",
+      "declared_writers": [
+        "agriai-engine"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-router",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "device_telemetry::sahool-platform": {
+      "table": "device_telemetry",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/routers/devices.py"
+      ],
+      "declared_owner": "actuator-service",
+      "declared_writers": [
+        "actuator-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-router",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "documents::sahool-platform": {
+      "table": "documents",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/routers/documents.py"
+      ],
+      "declared_owner": "rag-retrieval",
+      "declared_writers": [
+        "rag-retrieval"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-router",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "farm_energy_records::sahool-platform": {
+      "table": "farm_energy_records",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/core/farm_operations_ledger.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "farm_equipment_records::sahool-platform": {
+      "table": "farm_equipment_records",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/core/farm_operations_ledger.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "farm_input_records::sahool-platform": {
+      "table": "farm_input_records",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/core/farm_operations_ledger.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "farm_labor_records::sahool-platform": {
+      "table": "farm_labor_records",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/core/farm_operations_ledger.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "farm_operation_ledger::sahool-platform": {
+      "table": "farm_operation_ledger",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-router",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "farm_revenue_records::sahool-platform": {
+      "table": "farm_revenue_records",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-router",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "farm_season_budget_lines::sahool-platform": {
+      "table": "farm_season_budget_lines",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/routers/farm_operations_ledger.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-router",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "farm_water_records::sahool-platform": {
+      "table": "farm_water_records",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/core/farm_operations_ledger.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "farms::sahool-platform": {
+      "table": "farms",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/routers/farms.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-router",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "feature_set_specs::sahool-platform": {
+      "table": "feature_set_specs",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/phase_runtime_store.py"
+      ],
+      "declared_owner": "agriai-engine",
+      "declared_writers": [
+        "agriai-engine"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "feature_set_versions_runtime::sahool-platform": {
+      "table": "feature_set_versions_runtime",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/phase_runtime_store.py"
+      ],
+      "declared_owner": "agriai-engine",
+      "declared_writers": [
+        "agriai-engine"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "field_boundaries::sahool-platform": {
+      "table": "field_boundaries",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/routers/boundaries.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-router",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "field_boundary_graph::sahool-platform": {
+      "table": "field_boundary_graph",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/field_boundary_graph.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "field_evidence_snapshots::sahool-platform": {
+      "table": "field_evidence_snapshots",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/routers/field_intelligence.py"
+      ],
+      "declared_owner": "raster-service",
+      "declared_writers": [
+        "raster-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-router",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "field_feature_store_candidate::sahool-platform": {
+      "table": "field_feature_store_candidate",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/phase_runtime_store.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "field_geometry_history::sahool-platform": {
+      "table": "field_geometry_history",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/spatial_sync.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "field_geometry_versions::raster-service": {
+      "table": "field_geometry_versions",
+      "writer": "raster-service",
+      "files": [
+        "services/raster-service/db_persist.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "raster-service"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "field_lifecycle::sahool-platform": {
+      "table": "field_lifecycle",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/field_lifecycle.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "field_lifecycle_transitions::sahool-platform": {
+      "table": "field_lifecycle_transitions",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/field_lifecycle.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "field_state::sahool-platform": {
+      "table": "field_state",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/field_state_projection.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "field_state_snapshots::sahool-platform": {
+      "table": "field_state_snapshots",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/event_replay.py"
+      ],
+      "declared_owner": "raster-service",
+      "declared_writers": [
+        "raster-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "field_tasks::sahool-platform": {
+      "table": "field_tasks",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/routers/tasks.py",
+        "services/sahool-platform/api/routers/weather.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-router",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "field_weather_overlay::weather-polygon-worker": {
+      "table": "field_weather_overlay",
+      "writer": "weather-polygon-worker",
+      "files": [
+        "services/weather-polygon-worker/src/main.py"
+      ],
+      "declared_owner": "weather-service",
+      "declared_writers": [
+        "weather-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "weather-polygon-worker"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "worker",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": false,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "fields::sahool-platform": {
+      "table": "fields",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/main.py",
+        "services/sahool-platform/api/routers/fields.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "geometry_editing_sessions::sahool-platform": {
+      "table": "geometry_editing_sessions",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/routers/gis_cloud_native.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-router",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "geometry_locks::sahool-platform": {
+      "table": "geometry_locks",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/routers/gis_cloud_native.py"
+      ],
+      "declared_owner": "field-management-service",
+      "declared_writers": [
+        "field-management-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-router",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "imagery_automation_fields::sahool-platform": {
+      "table": "imagery_automation_fields",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/imagery_automation.py"
+      ],
+      "declared_owner": "raster-service",
+      "declared_writers": [
+        "raster-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "invitations::auth": {
+      "table": "invitations",
+      "writer": "auth",
+      "files": [
+        "services/auth/routers/invitations.py"
+      ],
+      "declared_owner": "sahool-platform",
+      "declared_writers": [
+        "sahool-platform"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "auth"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-router",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "iot_command_dispatch::sahool-platform": {
+      "table": "iot_command_dispatch",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/phase_runtime_store.py"
+      ],
+      "declared_owner": "actuator-service",
+      "declared_writers": [
+        "actuator-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "iot_devices::sahool-platform": {
+      "table": "iot_devices",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/routers/devices.py"
+      ],
+      "declared_owner": "actuator-service",
+      "declared_writers": [
+        "actuator-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-router",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "market_sales_listings::mcp_servers": {
+      "table": "market_sales_listings",
+      "writer": "mcp_servers",
+      "files": [
+        "services/mcp_servers/market_server.py"
+      ],
+      "declared_owner": "sahool-platform",
+      "declared_writers": [
+        "sahool-platform"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "mcp_servers"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": false,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "marketplace_apps::sahool-platform": {
+      "table": "marketplace_apps",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/phase_runtime_store.py"
+      ],
+      "declared_owner": "erp-bridge",
+      "declared_writers": [
+        "erp-bridge"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "marketplace_installations::sahool-platform": {
+      "table": "marketplace_installations",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/phase_runtime_store.py"
+      ],
+      "declared_owner": "erp-bridge",
+      "declared_writers": [
+        "erp-bridge"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "mfa_audit_events::auth": {
+      "table": "mfa_audit_events",
+      "writer": "auth",
+      "files": [
+        "services/auth/mfa_runtime.py"
+      ],
+      "declared_owner": "sahool-platform",
+      "declared_writers": [
+        "sahool-platform"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "auth"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "mfa_recovery_codes::auth": {
+      "table": "mfa_recovery_codes",
+      "writer": "auth",
+      "files": [
+        "services/auth/mfa_runtime.py",
+        "services/auth/routers/mfa.py"
+      ],
+      "declared_owner": "sahool-platform",
+      "declared_writers": [
+        "sahool-platform"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "auth"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "model_lifecycle_decisions::sahool-platform": {
+      "table": "model_lifecycle_decisions",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/phase_runtime_store.py"
+      ],
+      "declared_owner": "agriai-engine",
+      "declared_writers": [
+        "agriai-engine"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "model_promotion_history_runtime::sahool-platform": {
+      "table": "model_promotion_history_runtime",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/phase_runtime_store.py"
+      ],
+      "declared_owner": "agriai-engine",
+      "declared_writers": [
+        "agriai-engine"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "model_registry_version::sahool-platform": {
+      "table": "model_registry_version",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/phase_runtime_store.py"
+      ],
+      "declared_owner": "agriai-engine",
+      "declared_writers": [
+        "agriai-engine"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "model_rollback_history_runtime::sahool-platform": {
+      "table": "model_rollback_history_runtime",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/phase_runtime_store.py"
+      ],
+      "declared_owner": "agriai-engine",
+      "declared_writers": [
+        "agriai-engine"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "model_serving_aliases_runtime::sahool-platform": {
+      "table": "model_serving_aliases_runtime",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/phase_runtime_store.py",
+        "services/sahool-platform/api/phase_runtime_workers.py"
+      ],
+      "declared_owner": "agriai-engine",
+      "declared_writers": [
+        "agriai-engine"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "model_versions_runtime::sahool-platform": {
+      "table": "model_versions_runtime",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/phase_runtime_store.py"
+      ],
+      "declared_owner": "agriai-engine",
+      "declared_writers": [
+        "agriai-engine"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "notification_delivery::agents": {
+      "table": "notification_delivery",
+      "writer": "agents",
+      "files": [
+        "agents/notification/agent.py"
+      ],
+      "declared_owner": "sahool-platform",
+      "declared_writers": [
+        "sahool-platform"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "agents",
+        "sahool-platform"
+      ],
+      "owner_writes_table": true,
+      "writer_kind": "agent",
+      "category": "dual-writer",
+      "remedy": "المالكُ يكتب الجدولَ فعلاً ويكتبه معه كاتبٌ آخر — تعارضُ كتابةٍ حقيقيّ. العلاج: توجيهُ كتابة المخالف عبر واجهةٍ يملكها المالك (نمطُ البند ٣) أو إعلانُ جسرٍ انتقاليّ موثَّق (`mirror` + `status: interim-bridge`) بسقفٍ نازل.",
+      "decision_owner": "engineering",
+      "status": "triaged",
+      "measured_writer_count": 2,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": false,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "point_in_time_snapshots_runtime::sahool-platform": {
+      "table": "point_in_time_snapshots_runtime",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/phase_runtime_store.py"
+      ],
+      "declared_owner": "raster-service",
+      "declared_writers": [
+        "raster-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "raster_cache_invalidations::sahool-platform": {
+      "table": "raster_cache_invalidations",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/spatial_sync.py"
+      ],
+      "declared_owner": "raster-service",
+      "declared_writers": [
+        "raster-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "raster-service",
+        "sahool-platform"
+      ],
+      "owner_writes_table": true,
+      "writer_kind": "service-module",
+      "category": "dual-writer",
+      "remedy": "المالكُ يكتب الجدولَ فعلاً ويكتبه معه كاتبٌ آخر — تعارضُ كتابةٍ حقيقيّ. العلاج: توجيهُ كتابة المخالف عبر واجهةٍ يملكها المالك (نمطُ البند ٣) أو إعلانُ جسرٍ انتقاليّ موثَّق (`mirror` + `status: interim-bridge`) بسقفٍ نازل.",
+      "decision_owner": "engineering",
+      "status": "triaged",
+      "measured_writer_count": 2,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "raster_registry::sahool-platform": {
+      "table": "raster_registry",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/routers/gis_cloud_native.py"
+      ],
+      "declared_owner": "raster-service",
+      "declared_writers": [
+        "raster-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "raster-service",
+        "sahool-platform"
+      ],
+      "owner_writes_table": true,
+      "writer_kind": "service-router",
+      "category": "dual-writer",
+      "remedy": "المالكُ يكتب الجدولَ فعلاً ويكتبه معه كاتبٌ آخر — تعارضُ كتابةٍ حقيقيّ. العلاج: توجيهُ كتابة المخالف عبر واجهةٍ يملكها المالك (نمطُ البند ٣) أو إعلانُ جسرٍ انتقاليّ موثَّق (`mirror` + `status: interim-bridge`) بسقفٍ نازل.",
+      "decision_owner": "engineering",
+      "status": "triaged",
+      "measured_writer_count": 2,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "recommendations::sahool-platform": {
+      "table": "recommendations",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/routers/recommendations.py",
+        "services/sahool-platform/api/routers/weather.py"
+      ],
+      "declared_owner": "agriai-engine",
+      "declared_writers": [
+        "agriai-engine"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-router",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "scenario_runs::sahool-platform": {
+      "table": "scenario_runs",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/phase_runtime_store.py"
+      ],
+      "declared_owner": "agriai-engine",
+      "declared_writers": [
+        "agriai-engine"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "soil_lab_tests::sahool-platform": {
+      "table": "soil_lab_tests",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/routers/fields.py"
+      ],
+      "declared_owner": "soil-service",
+      "declared_writers": [
+        "soil-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-router",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "soil_observations::scripts": {
+      "table": "soil_observations",
+      "writer": "scripts",
+      "files": [
+        "scripts/soil/reconcile_historical.py"
+      ],
+      "declared_owner": "soil-service",
+      "declared_writers": [
+        "soil-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "scripts",
+        "soil-service"
+      ],
+      "owner_writes_table": true,
+      "writer_kind": "ops-script",
+      "category": "tooling-writer",
+      "remedy": "الكاتبُ سكربتُ تشغيلٍ/e2e لا خدمة. العلاج: نقلُه تحت أدوات المالك أو تشغيلُه بدور المالك، أو إعلانُه جسراً موثَّقاً بسقف.",
+      "decision_owner": "engineering",
+      "status": "triaged",
+      "measured_writer_count": 2,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": false,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "soil_profile_projection_jobs::scripts": {
+      "table": "soil_profile_projection_jobs",
+      "writer": "scripts",
+      "files": [
+        "scripts/soil/reconcile_historical.py"
+      ],
+      "declared_owner": "soil-service",
+      "declared_writers": [
+        "soil-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "scripts",
+        "soil-service"
+      ],
+      "owner_writes_table": true,
+      "writer_kind": "ops-script",
+      "category": "tooling-writer",
+      "remedy": "الكاتبُ سكربتُ تشغيلٍ/e2e لا خدمة. العلاج: نقلُه تحت أدوات المالك أو تشغيلُه بدور المالك، أو إعلانُه جسراً موثَّقاً بسقف.",
+      "decision_owner": "engineering",
+      "status": "triaged",
+      "measured_writer_count": 2,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": false,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "soil_reconciliation_checkpoints::scripts": {
+      "table": "soil_reconciliation_checkpoints",
+      "writer": "scripts",
+      "files": [
+        "scripts/soil/reconcile_historical.py"
+      ],
+      "declared_owner": "soil-service",
+      "declared_writers": [
+        "soil-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "scripts"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "ops-script",
+      "category": "tooling-writer",
+      "remedy": "الكاتبُ سكربتُ تشغيلٍ/e2e لا خدمة. العلاج: نقلُه تحت أدوات المالك أو تشغيلُه بدور المالك، أو إعلانُه جسراً موثَّقاً بسقف.",
+      "decision_owner": "engineering",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": false,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "soil_reconciliation_deferrals::scripts": {
+      "table": "soil_reconciliation_deferrals",
+      "writer": "scripts",
+      "files": [
+        "scripts/soil/reconcile_historical.py"
+      ],
+      "declared_owner": "soil-service",
+      "declared_writers": [
+        "soil-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "scripts"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "ops-script",
+      "category": "tooling-writer",
+      "remedy": "الكاتبُ سكربتُ تشغيلٍ/e2e لا خدمة. العلاج: نقلُه تحت أدوات المالك أو تشغيلُه بدور المالك، أو إعلانُه جسراً موثَّقاً بسقف.",
+      "decision_owner": "engineering",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": false,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "stac_item_registry::raster-service": {
+      "table": "stac_item_registry",
+      "writer": "raster-service",
+      "files": [
+        "services/raster-service/db_persist.py"
+      ],
+      "declared_owner": "sahool-platform",
+      "declared_writers": [
+        "sahool-platform"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "raster-service"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "training_datasets::sahool-platform": {
+      "table": "training_datasets",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/phase_runtime_store.py"
+      ],
+      "declared_owner": "agriai-engine",
+      "declared_writers": [
+        "agriai-engine"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "usage_metering_records::sahool-platform": {
+      "table": "usage_metering_records",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/phase_runtime_store.py"
+      ],
+      "declared_owner": "erp-bridge",
+      "declared_writers": [
+        "erp-bridge"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "users::auth": {
+      "table": "users",
+      "writer": "auth",
+      "files": [
+        "services/auth/main.py",
+        "services/auth/mfa_runtime.py",
+        "services/auth/routers/email_verify.py",
+        "services/auth/routers/invitations.py",
+        "services/auth/routers/mfa.py",
+        "services/auth/routers/password_reset.py",
+        "services/auth/routers/registration.py",
+        "services/auth/routers/tenants.py",
+        "services/auth/routers/users.py"
+      ],
+      "declared_owner": "sahool-platform",
+      "declared_writers": [
+        "sahool-platform"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "auth"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لم يُرصَد كاتباً ضمن نطاق PostgreSQL للماسح v2؛ `auth` هو الكاتب المرصود. هذا قياسٌ لا حكمُ ملكية: يلزم قرارُ ملكيةٍ مستقلّ قبل تغيير العقد.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": true,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "weather_automation_cache::sahool-platform": {
+      "table": "weather_automation_cache",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/weather_automation.py"
+      ],
+      "declared_owner": "weather-service",
+      "declared_writers": [
+        "weather-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "weather_automation_locations::sahool-platform": {
+      "table": "weather_automation_locations",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/weather_automation.py"
+      ],
+      "declared_owner": "weather-service",
+      "declared_writers": [
+        "weather-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "weather_signals::weather-polygon-worker": {
+      "table": "weather_signals",
+      "writer": "weather-polygon-worker",
+      "files": [
+        "services/weather-polygon-worker/src/main.py"
+      ],
+      "declared_owner": "weather-service",
+      "declared_writers": [
+        "weather-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "weather-polygon-worker",
+        "weather-signal-engine"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "worker",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لم يُرصَد كاتباً ضمن نطاق PostgreSQL، وهناك عدة كُتّاب غير مالكين مرصودين؛ لا يجوز وصف أيٍّ منهم بالكاتب الوحيد. يلزم حسم سلطة الكتابة قبل cutover.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 2,
+      "multiple_non_owner_writers": true,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": false,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "weather_signals::weather-signal-engine": {
+      "table": "weather_signals",
+      "writer": "weather-signal-engine",
+      "files": [
+        "services/weather-signal-engine/src/main.py"
+      ],
+      "declared_owner": "weather-service",
+      "declared_writers": [
+        "weather-service"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "weather-polygon-worker",
+        "weather-signal-engine"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لم يُرصَد كاتباً ضمن نطاق PostgreSQL، وهناك عدة كُتّاب غير مالكين مرصودين؛ لا يجوز وصف أيٍّ منهم بالكاتب الوحيد. يلزم حسم سلطة الكتابة قبل cutover.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 2,
+      "multiple_non_owner_writers": true,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": false,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "webhook_subscriptions::sahool-platform": {
+      "table": "webhook_subscriptions",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/api/phase_runtime_store.py"
+      ],
+      "declared_owner": "erp-bridge",
+      "declared_writers": [
+        "erp-bridge"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    },
+    "workflow_state::sahool-platform": {
+      "table": "workflow_state",
+      "writer": "sahool-platform",
+      "files": [
+        "services/sahool-platform/core/workflow_engine.py"
+      ],
+      "declared_owner": "erp-bridge",
+      "declared_writers": [
+        "erp-bridge"
+      ],
+      "owner_dir_in_tree": true,
+      "measured_writers_of_table": [
+        "sahool-platform"
+      ],
+      "owner_writes_table": false,
+      "writer_kind": "service-module",
+      "category": "owner-never-writes",
+      "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
+      "decision_owner": "owner",
+      "status": "triaged",
+      "measured_writer_count": 1,
+      "multiple_non_owner_writers": false,
+      "deployment_evidence": {
+        "observed_on": "2026-09-20",
+        "source": "docs/evidence/railway_audit_review_20260920.md",
+        "owner_deployed": false,
+        "writer_deployed": true,
+        "cutover_ready": false,
+        "freshness": "historical_snapshot"
+      }
+    }
+  },
+  "excluded_write_sites": {
+    "knowledge_snippets::sahool-platform": {
+      "files": [
+        "services/sahool-platform/storage/lite_store.py"
+      ],
+      "reason": "sqlite_only_backend",
+      "evidence": {
+        "driver_imports": [
+          "sqlite3"
+        ],
+        "postgres_driver_imports": []
+      }
+    },
+    "users::sahool-platform": {
+      "files": [
+        "services/sahool-platform/storage/lite_store.py"
+      ],
+      "reason": "sqlite_only_backend",
+      "evidence": {
+        "driver_imports": [
+          "sqlite3"
+        ],
+        "postgres_driver_imports": []
+      }
+    },
+    "field_state::sahool-platform": {
+      "files": [
+        "services/sahool-platform/storage/lite_store.py"
+      ],
+      "reason": "sqlite_only_backend",
+      "evidence": {
+        "driver_imports": [
+          "sqlite3"
+        ],
+        "postgres_driver_imports": []
+      },
+      "note": "PostgreSQL write remains in services/sahool-platform/api/field_state_projection.py"
+    }
   }
- },
- "rows": {
-  "actuator_command_outbox::sahool-platform": {
-   "table": "actuator_command_outbox",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/phase_runtime_store.py"
-   ],
-   "declared_owner": "actuator-service",
-   "declared_writers": [
-    "actuator-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "audit_log::auth": {
-   "table": "audit_log",
-   "writer": "auth",
-   "files": [
-    "services/auth/main.py"
-   ],
-   "declared_owner": "sahool-platform",
-   "declared_writers": [
-    "sahool-platform"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "auth",
-    "sahool-platform"
-   ],
-   "owner_writes_table": true,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "dual-writer",
-   "remedy": "المالكُ يكتب الجدولَ فعلاً ويكتبه معه كاتبٌ آخر — تعارضُ كتابةٍ حقيقيّ. العلاج: توجيهُ كتابة المخالف عبر واجهةٍ يملكها المالك (نمطُ البند ٣) أو إعلانُ جسرٍ انتقاليّ موثَّق (`mirror` + `status: interim-bridge`) بسقفٍ نازل.",
-   "decision_owner": "engineering",
-   "status": "triaged"
-  },
-  "automation_rules::actuator-service": {
-   "table": "automation_rules",
-   "writer": "actuator-service",
-   "files": [
-    "services/actuator-service/actuator_runtime.py"
-   ],
-   "declared_owner": "sahool-platform",
-   "declared_writers": [
-    "sahool-platform"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "actuator-service"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": false,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "backfill_run_items::raster-service": {
-   "table": "backfill_run_items",
-   "writer": "raster-service",
-   "files": [
-    "services/raster-service/backfill_scan_worker.py",
-    "services/raster-service/db_persist.py"
-   ],
-   "declared_owner": "sahool-platform",
-   "declared_writers": [
-    "sahool-platform"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "raster-service"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "worker",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "backfill_runs::raster-service": {
-   "table": "backfill_runs",
-   "writer": "raster-service",
-   "files": [
-    "services/raster-service/backfill_scan_worker.py",
-    "services/raster-service/db_persist.py"
-   ],
-   "declared_owner": "sahool-platform",
-   "declared_writers": [
-    "sahool-platform"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "raster-service"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "worker",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "canonical_projection_requests::scripts": {
-   "table": "canonical_projection_requests",
-   "writer": "scripts",
-   "files": [
-    "scripts/e2e/canonical_projection_jetstream_roundtrip.py"
-   ],
-   "declared_owner": "sahool-platform",
-   "declared_writers": [
-    "sahool-platform"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform",
-    "scripts"
-   ],
-   "owner_writes_table": true,
-   "writer_kind": "e2e-script",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": false,
-   "category": "tooling-writer",
-   "remedy": "الكاتبُ سكربتُ تشغيلٍ/e2e لا خدمة. العلاج: نقلُه تحت أدوات المالك أو تشغيلُه بدور المالك، أو إعلانُه جسراً موثَّقاً بسقف.",
-   "decision_owner": "engineering",
-   "status": "triaged"
-  },
-  "decision_policies::sahool-platform": {
-   "table": "decision_policies",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/routers/decision_policies.py"
-   ],
-   "declared_owner": "agriai-engine",
-   "declared_writers": [
-    "agriai-engine"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-router",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "device_telemetry::sahool-platform": {
-   "table": "device_telemetry",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/routers/devices.py"
-   ],
-   "declared_owner": "actuator-service",
-   "declared_writers": [
-    "actuator-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-router",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "documents::sahool-platform": {
-   "table": "documents",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/routers/documents.py"
-   ],
-   "declared_owner": "rag-retrieval",
-   "declared_writers": [
-    "rag-retrieval"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-router",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "farm_energy_records::sahool-platform": {
-   "table": "farm_energy_records",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/core/farm_operations_ledger.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "farm_equipment_records::sahool-platform": {
-   "table": "farm_equipment_records",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/core/farm_operations_ledger.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "farm_input_records::sahool-platform": {
-   "table": "farm_input_records",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/core/farm_operations_ledger.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "farm_labor_records::sahool-platform": {
-   "table": "farm_labor_records",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/core/farm_operations_ledger.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "farm_operation_ledger::sahool-platform": {
-   "table": "farm_operation_ledger",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/routers/farm_operations_ledger.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-router",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "farm_revenue_records::sahool-platform": {
-   "table": "farm_revenue_records",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/routers/farm_operations_ledger.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-router",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "farm_season_budget_lines::sahool-platform": {
-   "table": "farm_season_budget_lines",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/routers/farm_operations_ledger.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-router",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "farm_water_records::sahool-platform": {
-   "table": "farm_water_records",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/core/farm_operations_ledger.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "farms::sahool-platform": {
-   "table": "farms",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/routers/farms.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-router",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "feature_set_specs::sahool-platform": {
-   "table": "feature_set_specs",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/phase_runtime_store.py"
-   ],
-   "declared_owner": "agriai-engine",
-   "declared_writers": [
-    "agriai-engine"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "feature_set_versions_runtime::sahool-platform": {
-   "table": "feature_set_versions_runtime",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/phase_runtime_store.py"
-   ],
-   "declared_owner": "agriai-engine",
-   "declared_writers": [
-    "agriai-engine"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "field_boundaries::sahool-platform": {
-   "table": "field_boundaries",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/routers/boundaries.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-router",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "field_boundary_graph::sahool-platform": {
-   "table": "field_boundary_graph",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/field_boundary_graph.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "field_evidence_snapshots::sahool-platform": {
-   "table": "field_evidence_snapshots",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/routers/field_intelligence.py"
-   ],
-   "declared_owner": "raster-service",
-   "declared_writers": [
-    "raster-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-router",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "field_feature_store_candidate::sahool-platform": {
-   "table": "field_feature_store_candidate",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/phase_runtime_store.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "field_geometry_history::sahool-platform": {
-   "table": "field_geometry_history",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/spatial_sync.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "field_geometry_versions::raster-service": {
-   "table": "field_geometry_versions",
-   "writer": "raster-service",
-   "files": [
-    "services/raster-service/db_persist.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "raster-service"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "field_lifecycle::sahool-platform": {
-   "table": "field_lifecycle",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/field_lifecycle.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "field_lifecycle_transitions::sahool-platform": {
-   "table": "field_lifecycle_transitions",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/field_lifecycle.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "field_state::sahool-platform": {
-   "table": "field_state",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/field_state_projection.py",
-    "services/sahool-platform/storage/lite_store.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "field_state_snapshots::sahool-platform": {
-   "table": "field_state_snapshots",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/event_replay.py"
-   ],
-   "declared_owner": "raster-service",
-   "declared_writers": [
-    "raster-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "field_tasks::sahool-platform": {
-   "table": "field_tasks",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/routers/tasks.py",
-    "services/sahool-platform/api/routers/weather.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-router",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "field_weather_overlay::weather-polygon-worker": {
-   "table": "field_weather_overlay",
-   "writer": "weather-polygon-worker",
-   "files": [
-    "services/weather-polygon-worker/src/main.py"
-   ],
-   "declared_owner": "weather-service",
-   "declared_writers": [
-    "weather-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "weather-polygon-worker"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "worker",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": false,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "fields::sahool-platform": {
-   "table": "fields",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/main.py",
-    "services/sahool-platform/api/routers/fields.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "geometry_editing_sessions::sahool-platform": {
-   "table": "geometry_editing_sessions",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/routers/gis_cloud_native.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-router",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "geometry_locks::sahool-platform": {
-   "table": "geometry_locks",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/routers/gis_cloud_native.py"
-   ],
-   "declared_owner": "field-management-service",
-   "declared_writers": [
-    "field-management-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-router",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "imagery_automation_fields::sahool-platform": {
-   "table": "imagery_automation_fields",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/imagery_automation.py"
-   ],
-   "declared_owner": "raster-service",
-   "declared_writers": [
-    "raster-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "invitations::auth": {
-   "table": "invitations",
-   "writer": "auth",
-   "files": [
-    "services/auth/routers/invitations.py"
-   ],
-   "declared_owner": "sahool-platform",
-   "declared_writers": [
-    "sahool-platform"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "auth"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-router",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "iot_command_dispatch::sahool-platform": {
-   "table": "iot_command_dispatch",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/phase_runtime_store.py"
-   ],
-   "declared_owner": "actuator-service",
-   "declared_writers": [
-    "actuator-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "iot_devices::sahool-platform": {
-   "table": "iot_devices",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/routers/devices.py"
-   ],
-   "declared_owner": "actuator-service",
-   "declared_writers": [
-    "actuator-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-router",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "knowledge_snippets::sahool-platform": {
-   "table": "knowledge_snippets",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/storage/lite_store.py"
-   ],
-   "declared_owner": "rag-retrieval",
-   "declared_writers": [
-    "rag-retrieval"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "market_sales_listings::mcp_servers": {
-   "table": "market_sales_listings",
-   "writer": "mcp_servers",
-   "files": [
-    "services/mcp_servers/market_server.py"
-   ],
-   "declared_owner": "sahool-platform",
-   "declared_writers": [
-    "sahool-platform"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "mcp_servers"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": false,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "marketplace_apps::sahool-platform": {
-   "table": "marketplace_apps",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/phase_runtime_store.py"
-   ],
-   "declared_owner": "erp-bridge",
-   "declared_writers": [
-    "erp-bridge"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "marketplace_installations::sahool-platform": {
-   "table": "marketplace_installations",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/phase_runtime_store.py"
-   ],
-   "declared_owner": "erp-bridge",
-   "declared_writers": [
-    "erp-bridge"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "mfa_audit_events::auth": {
-   "table": "mfa_audit_events",
-   "writer": "auth",
-   "files": [
-    "services/auth/mfa_runtime.py"
-   ],
-   "declared_owner": "sahool-platform",
-   "declared_writers": [
-    "sahool-platform"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "auth"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "mfa_recovery_codes::auth": {
-   "table": "mfa_recovery_codes",
-   "writer": "auth",
-   "files": [
-    "services/auth/mfa_runtime.py",
-    "services/auth/routers/mfa.py"
-   ],
-   "declared_owner": "sahool-platform",
-   "declared_writers": [
-    "sahool-platform"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "auth"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "model_lifecycle_decisions::sahool-platform": {
-   "table": "model_lifecycle_decisions",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/phase_runtime_store.py"
-   ],
-   "declared_owner": "agriai-engine",
-   "declared_writers": [
-    "agriai-engine"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "model_promotion_history_runtime::sahool-platform": {
-   "table": "model_promotion_history_runtime",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/phase_runtime_store.py"
-   ],
-   "declared_owner": "agriai-engine",
-   "declared_writers": [
-    "agriai-engine"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "model_registry_version::sahool-platform": {
-   "table": "model_registry_version",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/phase_runtime_store.py"
-   ],
-   "declared_owner": "agriai-engine",
-   "declared_writers": [
-    "agriai-engine"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "model_rollback_history_runtime::sahool-platform": {
-   "table": "model_rollback_history_runtime",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/phase_runtime_store.py"
-   ],
-   "declared_owner": "agriai-engine",
-   "declared_writers": [
-    "agriai-engine"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "model_serving_aliases_runtime::sahool-platform": {
-   "table": "model_serving_aliases_runtime",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/phase_runtime_store.py",
-    "services/sahool-platform/api/phase_runtime_workers.py"
-   ],
-   "declared_owner": "agriai-engine",
-   "declared_writers": [
-    "agriai-engine"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "model_versions_runtime::sahool-platform": {
-   "table": "model_versions_runtime",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/phase_runtime_store.py"
-   ],
-   "declared_owner": "agriai-engine",
-   "declared_writers": [
-    "agriai-engine"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "notification_delivery::agents": {
-   "table": "notification_delivery",
-   "writer": "agents",
-   "files": [
-    "agents/notification/agent.py"
-   ],
-   "declared_owner": "sahool-platform",
-   "declared_writers": [
-    "sahool-platform"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "agents",
-    "sahool-platform"
-   ],
-   "owner_writes_table": true,
-   "writer_kind": "agent",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": false,
-   "category": "dual-writer",
-   "remedy": "المالكُ يكتب الجدولَ فعلاً ويكتبه معه كاتبٌ آخر — تعارضُ كتابةٍ حقيقيّ. العلاج: توجيهُ كتابة المخالف عبر واجهةٍ يملكها المالك (نمطُ البند ٣) أو إعلانُ جسرٍ انتقاليّ موثَّق (`mirror` + `status: interim-bridge`) بسقفٍ نازل.",
-   "decision_owner": "engineering",
-   "status": "triaged"
-  },
-  "point_in_time_snapshots_runtime::sahool-platform": {
-   "table": "point_in_time_snapshots_runtime",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/phase_runtime_store.py"
-   ],
-   "declared_owner": "raster-service",
-   "declared_writers": [
-    "raster-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "raster_cache_invalidations::sahool-platform": {
-   "table": "raster_cache_invalidations",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/spatial_sync.py"
-   ],
-   "declared_owner": "raster-service",
-   "declared_writers": [
-    "raster-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "raster-service",
-    "sahool-platform"
-   ],
-   "owner_writes_table": true,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "dual-writer",
-   "remedy": "المالكُ يكتب الجدولَ فعلاً ويكتبه معه كاتبٌ آخر — تعارضُ كتابةٍ حقيقيّ. العلاج: توجيهُ كتابة المخالف عبر واجهةٍ يملكها المالك (نمطُ البند ٣) أو إعلانُ جسرٍ انتقاليّ موثَّق (`mirror` + `status: interim-bridge`) بسقفٍ نازل.",
-   "decision_owner": "engineering",
-   "status": "triaged"
-  },
-  "raster_registry::sahool-platform": {
-   "table": "raster_registry",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/routers/gis_cloud_native.py"
-   ],
-   "declared_owner": "raster-service",
-   "declared_writers": [
-    "raster-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "raster-service",
-    "sahool-platform"
-   ],
-   "owner_writes_table": true,
-   "writer_kind": "service-router",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "dual-writer",
-   "remedy": "المالكُ يكتب الجدولَ فعلاً ويكتبه معه كاتبٌ آخر — تعارضُ كتابةٍ حقيقيّ. العلاج: توجيهُ كتابة المخالف عبر واجهةٍ يملكها المالك (نمطُ البند ٣) أو إعلانُ جسرٍ انتقاليّ موثَّق (`mirror` + `status: interim-bridge`) بسقفٍ نازل.",
-   "decision_owner": "engineering",
-   "status": "triaged"
-  },
-  "recommendations::sahool-platform": {
-   "table": "recommendations",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/routers/recommendations.py",
-    "services/sahool-platform/api/routers/weather.py"
-   ],
-   "declared_owner": "agriai-engine",
-   "declared_writers": [
-    "agriai-engine"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-router",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "scenario_runs::sahool-platform": {
-   "table": "scenario_runs",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/phase_runtime_store.py"
-   ],
-   "declared_owner": "agriai-engine",
-   "declared_writers": [
-    "agriai-engine"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "soil_lab_tests::sahool-platform": {
-   "table": "soil_lab_tests",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/routers/fields.py"
-   ],
-   "declared_owner": "soil-service",
-   "declared_writers": [
-    "soil-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-router",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "soil_observations::scripts": {
-   "table": "soil_observations",
-   "writer": "scripts",
-   "files": [
-    "scripts/soil/reconcile_historical.py"
-   ],
-   "declared_owner": "soil-service",
-   "declared_writers": [
-    "soil-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "scripts",
-    "soil-service"
-   ],
-   "owner_writes_table": true,
-   "writer_kind": "ops-script",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": false,
-   "category": "tooling-writer",
-   "remedy": "الكاتبُ سكربتُ تشغيلٍ/e2e لا خدمة. العلاج: نقلُه تحت أدوات المالك أو تشغيلُه بدور المالك، أو إعلانُه جسراً موثَّقاً بسقف.",
-   "decision_owner": "engineering",
-   "status": "triaged"
-  },
-  "soil_profile_projection_jobs::scripts": {
-   "table": "soil_profile_projection_jobs",
-   "writer": "scripts",
-   "files": [
-    "scripts/soil/reconcile_historical.py"
-   ],
-   "declared_owner": "soil-service",
-   "declared_writers": [
-    "soil-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "scripts",
-    "soil-service"
-   ],
-   "owner_writes_table": true,
-   "writer_kind": "ops-script",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": false,
-   "category": "tooling-writer",
-   "remedy": "الكاتبُ سكربتُ تشغيلٍ/e2e لا خدمة. العلاج: نقلُه تحت أدوات المالك أو تشغيلُه بدور المالك، أو إعلانُه جسراً موثَّقاً بسقف.",
-   "decision_owner": "engineering",
-   "status": "triaged"
-  },
-  "soil_reconciliation_checkpoints::scripts": {
-   "table": "soil_reconciliation_checkpoints",
-   "writer": "scripts",
-   "files": [
-    "scripts/soil/reconcile_historical.py"
-   ],
-   "declared_owner": "soil-service",
-   "declared_writers": [
-    "soil-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "scripts"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "ops-script",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": false,
-   "category": "tooling-writer",
-   "remedy": "الكاتبُ سكربتُ تشغيلٍ/e2e لا خدمة. العلاج: نقلُه تحت أدوات المالك أو تشغيلُه بدور المالك، أو إعلانُه جسراً موثَّقاً بسقف.",
-   "decision_owner": "engineering",
-   "status": "triaged"
-  },
-  "soil_reconciliation_deferrals::scripts": {
-   "table": "soil_reconciliation_deferrals",
-   "writer": "scripts",
-   "files": [
-    "scripts/soil/reconcile_historical.py"
-   ],
-   "declared_owner": "soil-service",
-   "declared_writers": [
-    "soil-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "scripts"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "ops-script",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": false,
-   "category": "tooling-writer",
-   "remedy": "الكاتبُ سكربتُ تشغيلٍ/e2e لا خدمة. العلاج: نقلُه تحت أدوات المالك أو تشغيلُه بدور المالك، أو إعلانُه جسراً موثَّقاً بسقف.",
-   "decision_owner": "engineering",
-   "status": "triaged"
-  },
-  "stac_item_registry::raster-service": {
-   "table": "stac_item_registry",
-   "writer": "raster-service",
-   "files": [
-    "services/raster-service/db_persist.py"
-   ],
-   "declared_owner": "sahool-platform",
-   "declared_writers": [
-    "sahool-platform"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "raster-service"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "training_datasets::sahool-platform": {
-   "table": "training_datasets",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/phase_runtime_store.py"
-   ],
-   "declared_owner": "agriai-engine",
-   "declared_writers": [
-    "agriai-engine"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "usage_metering_records::sahool-platform": {
-   "table": "usage_metering_records",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/phase_runtime_store.py"
-   ],
-   "declared_owner": "erp-bridge",
-   "declared_writers": [
-    "erp-bridge"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "users::auth": {
-   "table": "users",
-   "writer": "auth",
-   "files": [
-    "services/auth/main.py",
-    "services/auth/mfa_runtime.py",
-    "services/auth/routers/email_verify.py",
-    "services/auth/routers/invitations.py",
-    "services/auth/routers/mfa.py",
-    "services/auth/routers/password_reset.py",
-    "services/auth/routers/registration.py",
-    "services/auth/routers/tenants.py",
-    "services/auth/routers/users.py"
-   ],
-   "declared_owner": "sahool-platform",
-   "declared_writers": [
-    "sahool-platform"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "auth",
-    "sahool-platform"
-   ],
-   "owner_writes_table": true,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": true,
-   "writer_deployed_railway_20260920": true,
-   "category": "dual-writer",
-   "remedy": "المالكُ يكتب الجدولَ فعلاً ويكتبه معه كاتبٌ آخر — تعارضُ كتابةٍ حقيقيّ. العلاج: توجيهُ كتابة المخالف عبر واجهةٍ يملكها المالك (نمطُ البند ٣) أو إعلانُ جسرٍ انتقاليّ موثَّق (`mirror` + `status: interim-bridge`) بسقفٍ نازل.",
-   "decision_owner": "engineering",
-   "status": "triaged"
-  },
-  "weather_automation_cache::sahool-platform": {
-   "table": "weather_automation_cache",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/weather_automation.py"
-   ],
-   "declared_owner": "weather-service",
-   "declared_writers": [
-    "weather-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "weather_automation_locations::sahool-platform": {
-   "table": "weather_automation_locations",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/weather_automation.py"
-   ],
-   "declared_owner": "weather-service",
-   "declared_writers": [
-    "weather-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "weather_signals::weather-polygon-worker": {
-   "table": "weather_signals",
-   "writer": "weather-polygon-worker",
-   "files": [
-    "services/weather-polygon-worker/src/main.py"
-   ],
-   "declared_owner": "weather-service",
-   "declared_writers": [
-    "weather-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "weather-polygon-worker",
-    "weather-signal-engine"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "worker",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": false,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "weather_signals::weather-signal-engine": {
-   "table": "weather_signals",
-   "writer": "weather-signal-engine",
-   "files": [
-    "services/weather-signal-engine/src/main.py"
-   ],
-   "declared_owner": "weather-service",
-   "declared_writers": [
-    "weather-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "weather-polygon-worker",
-    "weather-signal-engine"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": false,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "webhook_subscriptions::sahool-platform": {
-   "table": "webhook_subscriptions",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/phase_runtime_store.py"
-   ],
-   "declared_owner": "erp-bridge",
-   "declared_writers": [
-    "erp-bridge"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  },
-  "workflow_state::sahool-platform": {
-   "table": "workflow_state",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/core/workflow_engine.py"
-   ],
-   "declared_owner": "erp-bridge",
-   "declared_writers": [
-    "erp-bridge"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "sahool-platform"
-   ],
-   "owner_writes_table": false,
-   "writer_kind": "service-module",
-   "owner_deployed_railway_20260920": false,
-   "writer_deployed_railway_20260920": true,
-   "category": "owner-never-writes",
-   "remedy": "المالكُ المُعلَن لا يكتب هذا الجدولَ في أيّ موضعٍ مقيس؛ الكاتبُ المخالف هو الكاتبُ الوحيد. العقدُ هنا خطّةُ استخراجٍ لا وصفُ واقع. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
-   "decision_owner": "owner",
-   "status": "triaged"
-  }
- }
 }
