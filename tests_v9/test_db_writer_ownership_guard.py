@@ -152,12 +152,18 @@ def test_the_detection_is_structural_so_a_comment_is_never_accused(tmp_path, mon
 
     تعليقٌ يشرح **لماذا** هُجِر مسارٌ يحوي نصَّ العبارة نفسِه. فبحثٌ نصّيٌّ يجعل
     **توثيقَ الإصلاح مُبطِلاً له**. الكشفُ من شجرة البناء لا يرى التعليقات.
+
+    **والعبارةُ المقتبَسة كاملةُ النحو عمداً** (صُحِّحت 2026-09-21): كانت مقطوعةً
+    (`INSERT INTO ledger — نُقِل`)، فلمّا صار الالتقاطُ يشترط استمراراً نحويّاً
+    توقّف عن اتّهامها **حتّى تحت مسحٍ نصّيّ** — فمرّ الشاهدُ أخضرَ على طفرةٍ يُفترَض
+    أن تقتله، وكشفه `guard_mutation_guard`. شاهدٌ يُثبِت خاصّيّةً يجب أن يكون
+    نصُّه أضعفَ نقطةٍ ممكنة لها: هنا عبارةٌ يقبلها أيُّ ماسحٍ نصّيّ بلا تردّد.
     """
     _sandbox(
         tmp_path,
         monkeypatch,
         contract=_OWNED_ELSEWHERE,
-        source="# تاريخيّاً كان هنا INSERT INTO ledger — نُقِل إلى مالكه\nX = 1\n",
+        source="# تاريخيّاً كان هنا INSERT INTO ledger (a) VALUES ($1) — نُقِل إلى مالكه\nX = 1\n",
     )
     assert MOD.survey() == {}
 
@@ -172,6 +178,143 @@ def test_update_and_delete_are_writes_too(tmp_path, monkeypatch):
             source=f'SQL = "{statement} AND b=2"\n',
         )
         assert "ledger::probe-service" in MOD.survey(), statement
+
+
+# ── الكتابةُ يُعرِّفها النحوُ لا الكلمة ──────────────────────────────────────────
+#
+# `A-WRITE-REGEX-CAPTURES-SQL-KEYWORDS-AS-TABLES-01` (قِيس 2026-09-21): كان يكفي أن تلي
+# كلمةَ `UPDATE` أيُّ لفظةٍ لتُسجَّل جدولاً، فأنتج الماسحُ ٢٤ مفتاحاً جدولُه لفظةٌ لا
+# جدول — ومصنوعةٌ تقول «هذه الخدمةُ تكتب الجدول `set`» تدّعي كتابةً لا وجود لها.
+
+
+def _keys(tmp_path, monkeypatch, source: str) -> dict:
+    _sandbox(tmp_path, monkeypatch, contract=_OWNED_ELSEWHERE, source=source)
+    return MOD.write_sites()
+
+
+def test_an_upsert_clause_does_not_name_a_table_called_set(tmp_path, monkeypatch):
+    """`DO UPDATE SET` ذيلُ عبارةِ `INSERT` لا رأسُ عبارةٍ — وجدولُها `ledger` وحدَه.
+
+    هذا أكثرُ الصفوف ضجيجاً في القياس: تسعةُ مفاتيحَ جدولُها `set` من تسع خدمات.
+    """
+    keys = _keys(
+        tmp_path,
+        monkeypatch,
+        'SQL = "INSERT INTO ledger (a) VALUES ($1) ON CONFLICT (a) DO UPDATE SET b = 2"\n',
+    )
+    assert "set::probe-service" not in keys, "لفظةُ `SET` سُجِّلت جدولاً"
+    assert "ledger::probe-service" in keys, "ضاع الجدولُ الحقيقيّ مع الضجيج"
+
+
+def test_a_locking_read_is_never_counted_as_a_write(tmp_path, monkeypatch):
+    """`FOR UPDATE …` قراءةٌ بقفل — ادّعاؤها كتابةً يقلب معنى الصفّ رأساً على عقب.
+
+    ومنها جاء `skip` (من `FOR UPDATE SKIP LOCKED`) و`of` (من `FOR UPDATE OF o`).
+    """
+    keys = _keys(
+        tmp_path,
+        monkeypatch,
+        'SQL = "SELECT id FROM ledger ORDER BY id LIMIT 1 FOR UPDATE OF o SKIP LOCKED"\n',
+    )
+    assert keys == {}, f"قراءةٌ بقفلٍ سُجِّلت كتابةً: {sorted(keys)}"
+
+
+def test_english_prose_naming_a_statement_is_not_a_write_site(tmp_path, monkeypatch):
+    """نثرُ التوثيق ليس SQL — ومنه جاء `the` و`to` و`a` و`one` و`must`.
+
+    الماسحُ يلتقط **كلّ** سلسلةٍ طولُها ≥ `_MIN_SQL_LEN`، وفيها الـdocstrings. فبلا
+    شرطِ استمرارٍ نحويّ يصير كلُّ سطرِ شرحٍ يذكر عبارةً موضعَ كتابةٍ مُدَّعى.
+    """
+    keys = _keys(
+        tmp_path,
+        monkeypatch,
+        '"""Derive measured truth and update the water ledger idempotently.\n\n'
+        "Under FORCE RLS, revoking INSERT/UPDATE/DELETE from the platform role is\n"
+        "the complementary enforcement; INSERT INTO ledger was moved to its owner.\n"
+        '"""\n',
+    )
+    assert keys == {}, f"نثرٌ سُجِّل مواضعَ كتابة: {sorted(keys)}"
+
+
+#: صياغاتُ الكتابة التي يقبلها PostgreSQL — كلُّها يجب أن تبقى مرصودة.
+_WRITE_FORMS = {
+    "insert_columns": "INSERT INTO ledger (a) VALUES ($1)",
+    "insert_values_only": "INSERT INTO ledger VALUES ($1)",
+    "insert_only_keyword": "INSERT INTO ONLY ledger (a) VALUES ($1)",
+    "insert_default_values": "INSERT INTO ledger DEFAULT VALUES",
+    "insert_upsert_alias": (
+        "INSERT INTO ledger AS l (a) VALUES ($1) ON CONFLICT (a) DO UPDATE SET b = 1"
+    ),
+    "insert_from_select": "INSERT INTO ledger (a, b)\n  SELECT x, y FROM src",
+    "update_plain": "UPDATE ledger SET a = 1",
+    "update_only_keyword": "UPDATE ONLY ledger SET a = 1",
+    "update_alias_as": "UPDATE ledger AS l SET a = 1",
+    "update_alias_bare": "UPDATE ledger l SET a = 1",
+    "update_multiline": "UPDATE ledger\n   SET a = 1\n WHERE b = 2",
+    "delete_bare": "DELETE FROM ledger\n",
+    "delete_semicolon": "DELETE FROM ledger;",
+    "delete_where": "DELETE FROM ledger WHERE a = 1",
+    "delete_only_keyword": "DELETE FROM ONLY ledger WHERE a = 1",
+    "delete_alias_as": "DELETE FROM ledger AS l WHERE a = 1",
+    "delete_alias_bare": "DELETE FROM ledger l WHERE a = 1",
+    "delete_using": "DELETE FROM ledger USING other WHERE a = 1",
+    "delete_returning": "DELETE FROM ledger RETURNING id",
+    "delete_in_cte": "WITH d AS (DELETE FROM ledger RETURNING id) SELECT * FROM d",
+}
+
+
+@pytest.mark.parametrize("statement", _WRITE_FORMS.values(), ids=_WRITE_FORMS.keys())
+def test_every_real_write_form_is_still_captured(tmp_path, monkeypatch, statement):
+    """**الشاهدُ الإيجابيّ — وبدونه يصير الشدُّ عمًى بثوبِ دقّة.**
+
+    ماسحٌ لا يرى إلّا أبسطَ صياغةٍ يُلتَفّ عليه بكنيةٍ أو بـ`ONLY` أو بـCTE، ويُقرأ
+    مع ذلك تغطيةً. فكلُّ صياغةٍ يقبلها PostgreSQL يجب أن تبقى موضعَ كتابةٍ مرصوداً.
+    """
+    keys = _keys(tmp_path, monkeypatch, f'SQL = """{statement}"""\n')
+    assert "ledger::probe-service" in keys, f"صياغةُ كتابةٍ مشروعةٌ سقطت: {statement!r}"
+
+
+def test_no_measured_table_in_the_live_tree_is_a_bare_sql_keyword():
+    """**على الشجرة الحيّة لا في صندوقٍ** — الانحدارُ يُقاس حيث وقع العطل.
+
+    قبل الشدّ (`0606bb67`): ٢٧٩ مفتاحاً منها ٢٤ لفظةً لا جدول. بعده: ٢٥٥، والفاقدُ
+    كلُّه لفظات، والمكتسَبُ صفر، و`survey()` ثابتٌ عند ٧١ — الشدُّ لم يُسقِط كتابةً.
+    """
+    keywords = {
+        "set",
+        "on",
+        "of",
+        "or",
+        "skip",
+        "the",
+        "to",
+        "a",
+        "an",
+        "one",
+        "must",
+        "from",
+        "where",
+        "values",
+        "select",
+        "conflict",
+        "returning",
+        "using",
+        "only",
+        "locked",
+        "nothing",
+    }
+    offenders = sorted(k for k in MOD.write_sites() if k.split("::", 1)[0] in keywords)
+    assert offenders == [], f"لفظاتٌ سُجِّلت جداولَ يكتبها خدمات: {offenders}"
+
+
+def test_the_scanner_declares_the_prose_it_still_cannot_tell_apart():
+    """حدُّ صدقٍ مُعلَن: النثرُ الذي يُحاكي النحوَ حرفاً بحرف ما يزال يمرّ.
+
+    شدٌّ يُقدَّم «حلّاً» وهو تضييقٌ يُنتِج الثقةَ التي أنتجها الضجيجُ من قبل.
+    """
+    source = _SCRIPT.read_text(encoding="utf-8")
+    assert "يُضيّق البابَ ولا يُغلِقه" in source
+    assert "A-WRITE-REGEX-CAPTURES-SQL-KEYWORDS-AS-TABLES-01" in source
 
 
 def test_sqlite_only_file_is_outside_postgres_ownership_contract(tmp_path, monkeypatch):

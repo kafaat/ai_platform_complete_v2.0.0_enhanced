@@ -3863,6 +3863,27 @@
           "replace": "    if False:  # mutated: عقدٌ فارغ يمرّ صفراً كاذباً",
           "test": "tests_v9/test_db_writer_ownership_guard.py",
           "why": "هذه الطفرةُ تُعيد عطلاً وقع فعلاً أثناء كتابة الحارس: قراءةُ جذر YAML بدل tables جعلت كلَّ جدولٍ «غيرَ مُصرَّحٍ عنه» فأبلغ صفرَ مخالفات على شجرةٍ تحمل 75. صفرٌ كاذبٌ أسوأُ من غياب الحارس."
+        },
+        {
+          "expect": "test_an_upsert_clause_does_not_name_a_table_called_set",
+          "find": "      | UPDATE\\s+(?:ONLY\\s+)?(?P<update>[a-z_][a-z0-9_]*)\\s+\n            (?:(?:AS\\s+)?[a-z_][a-z0-9_]*\\s+)?(?=SET\\b)",
+          "replace": "      | UPDATE\\s+(?:ONLY\\s+)?(?P<update>[a-z_][a-z0-9_]*)  # mutated: كلُّ لفظةٍ تلي UPDATE جدول",
+          "test": "tests_v9/test_db_writer_ownership_guard.py",
+          "why": "بلا شرطِ `SET` يعود `ON CONFLICT … DO UPDATE SET` يُسجَّل جدولاً اسمُه `set`، و`FOR UPDATE SKIP LOCKED` (قراءةٌ بقفل) كتابةً في جدولٍ اسمُه `skip`. وهو العطلُ المقيس 2026-09-21: أربعةٌ وعشرون مفتاحاً جدولُه لفظةٌ لا جدول، تقرؤه المصنوعةُ دعوى كتابةٍ لا وجود لها."
+        },
+        {
+          "expect": "test_english_prose_naming_a_statement_is_not_a_write_site",
+          "find": "      | DELETE\\s+FROM\\s+(?:ONLY\\s+)?(?P<delete>[a-z_][a-z0-9_]*)\\s*\n            (?:(?:AS\\s+)?[a-z_][a-z0-9_]*\\s*)?(?=$|[;)]|WHERE\\b|USING\\b|RETURNING\\b)",
+          "replace": "      | DELETE\\s+FROM\\s+(?:ONLY\\s+)?(?P<delete>[a-z_][a-z0-9_]*)  # mutated: بلا فاصلٍ نحويّ",
+          "test": "tests_v9/test_db_writer_ownership_guard.py",
+          "why": "«revoking INSERT/UPDATE/DELETE from the platform role» جملةُ توثيقٍ إنجليزيّة — بلا شرطِ الفاصل النحويّ تصير موضعَ كتابةٍ في جدولٍ اسمُه `the`. والماسحُ يقرأ كلَّ سلسلةٍ طولُها اثنا عشر حرفاً فأكثر، فالـdocstrings داخل نطاقه حتماً."
+        },
+        {
+          "expect": "test_every_real_write_form_is_still_captured",
+          "find": "        INSERT\\s+INTO\\s+(?:ONLY\\s+)?(?P<insert>[a-z_][a-z0-9_]*)\\s*\n            (?=\\(|VALUES\\b|SELECT\\b|DEFAULT\\s+VALUES\\b|OVERRIDING\\b|AS\\b|WITH\\b|TABLE\\b)",
+          "replace": "        INSERT\\s+INTO\\s+(?:ONLY\\s+)?(?P<insert>[a-z_][a-z0-9_]*)\\s*(?=\\()  # mutated: قائمةُ الأعمدة وحدَها",
+          "test": "tests_v9/test_db_writer_ownership_guard.py",
+          "why": "شدٌّ أضيقُ من النحو يُسقِط كتابةً حقيقيّة: `INSERT INTO t VALUES (…)` و`INSERT INTO t DEFAULT VALUES` و`INSERT INTO t SELECT …` صياغاتٌ يقبلها PostgreSQL. وبلا شاهدٍ إيجابيّ يصير الشدُّ عمًى بثوبِ دقّة — وحارسٌ أعمى يُقرَأ تغطيةً."
         }
       ],
       "test": "tests_v9/test_db_writer_ownership_guard.py"

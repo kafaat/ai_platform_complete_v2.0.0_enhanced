@@ -1,7 +1,7 @@
 {
  "$comment": "فرزُ مخالفات ملكيّة الكتابة: كلُّ صفٍّ مقيسٌ بمحرّك db_writer_ownership_guard نفسِه (write_sites + العقد + الأساس)، والصنفُ مشتقٌّ بقاعدةٍ صريحة (derive_category في الحارس) لا مختار، وعددُ الكُتّاب بُعدٌ مستقلٌّ عن الصنف. المصنوعةُ تصنّف ولا تحكم ولا تحلّ: status=triaged لكلّ صفّ. تُولَّد مع الأساس بـ--generate ويُقاس بياتُها صفّاً صفّاً في --check. 'owner_writes_table: false' تعني «لم يُرصد موضع» بحدّ الماسح (حرفيّاتُ SQL في بايثون؛ ملفّاتُ SQLite-only خارج النطاق وتُرى في excluded_write_sites) لا «لا يكتب». 'deployment_evidence' لقطةٌ مؤرَّخة من مراجعةٍ خارجيّة لا حالةٌ حيّة، وcutover_ready فيها false دائماً.",
  "baseline": "docs/architecture/db_writer_ownership_baseline.json",
- "measured_on": "ad0e4b4ff23a7cdc4a4fb792450f10205a8d443b",
+ "measured_on": "0606bb676281d3e96089be7cc1272df3332dab3e",
  "category_vocabulary": [
   "owner-name-not-in-tree",
   "tooling-writer",
@@ -16,11 +16,11 @@
    "tooling-writer": 5
   },
   "multiple_non_owner_writers": 2,
-  "excluded_write_sites": 16,
+  "excluded_write_sites": 13,
   "excluded_by_contract_state": {
    "not_authorised": 2,
    "authorised": 9,
-   "outside_contract": 5
+   "outside_contract": 2
   }
  },
  "rows": {
@@ -2569,45 +2569,6 @@
     "postgres_driver_imports": []
    },
    "contract_state": "authorised"
-  },
-  "on::sahool-platform": {
-   "files": [
-    "services/sahool-platform/storage/lite_store.py"
-   ],
-   "reason": "sqlite_only_backend",
-   "evidence": {
-    "driver_imports": [
-     "sqlite3"
-    ],
-    "postgres_driver_imports": []
-   },
-   "contract_state": "outside_contract"
-  },
-  "set::knowledge-graph": {
-   "files": [
-    "services/knowledge-graph/kg_store.py"
-   ],
-   "reason": "sqlite_only_backend",
-   "evidence": {
-    "driver_imports": [
-     "sqlite3"
-    ],
-    "postgres_driver_imports": []
-   },
-   "contract_state": "outside_contract"
-  },
-  "set::sahool-platform": {
-   "files": [
-    "services/sahool-platform/storage/lite_store.py"
-   ],
-   "reason": "sqlite_only_backend",
-   "evidence": {
-    "driver_imports": [
-     "sqlite3"
-    ],
-    "postgres_driver_imports": []
-   },
-   "contract_state": "outside_contract"
   },
   "signal_anomalies::vegetation-analysis-service": {
    "files": [
