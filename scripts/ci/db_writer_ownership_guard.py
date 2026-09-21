@@ -22,6 +22,11 @@
 كامل الملفّ يتّهم التعليقَ الذي يشرح *لماذا* هُجِر مسارٌ، فيصير توثيقُ الإصلاح
 مُبطِلاً له. هنا تُفحَص **سلاسلُ SQL الحرفيّة وحدَها**.
 
+**والكتابةُ يُعرِّفها النحوُ لا الكلمة** (``A-WRITE-REGEX-CAPTURES-SQL-KEYWORDS-AS-TABLES-01``،
+قِيس 2026-09-21): كلُّ لفظةٍ تلي ``UPDATE`` كانت تُسجَّل جدولاً، فادّعت المصنوعةُ كتابةَ
+جداولَ اسمُها ``set`` و``skip`` و``the`` — من ``DO UPDATE SET`` و``FOR UPDATE SKIP LOCKED``
+(قراءةٌ بقفل) ومن نثرِ التوثيق. الشرحُ المقيس عند ``_WRITE``.
+
 **وأساسٌ ينزل ولا يصعد** (درس ``AN-EXEMPTION-LIST-WITH-NO-DESCENDING-CEILING-01``):
 الراتشِت يفشل في الاتّجاهين — مخالفةٌ جديدة **ومدخلٌ بائتٌ لم يعد منحرفاً**. إعفاءٌ
 بلا سقفٍ نازل ليس ديناً مؤجَّلاً بل شطبٌ صامت.
@@ -46,12 +51,57 @@ BASELINE = ROOT / "docs" / "architecture" / "db_writer_ownership_baseline.json"
 TRIAGE = ROOT / "docs" / "architecture" / "db_writer_ownership_triage.json"
 
 # `INSERT INTO` · `UPDATE` · `DELETE FROM` — و`ONLY` اختياريّة (PostgreSQL).
+#
+# **الكلمةُ وحدَها لا تُعرِّف الكتابة — النحوُ يُعرِّفها** (`A-WRITE-REGEX-CAPTURES-SQL-
+# KEYWORDS-AS-TABLES-01`, قِيس 2026-09-21). كان يكفي أن تلي كلمةَ `UPDATE` أيُّ لفظةٍ
+# لتُسجَّل جدولاً، وحرفيّاتُ SQL تُلتقَط من **كلّ** سلسلةٍ طولُها ≥ `_MIN_SQL_LEN` —
+# وفيها نصُّ التوثيق. فأنتج الماسحُ ٢٤ مفتاحاً جدولُه لفظةٌ لا جدول: `set` من
+# `ON CONFLICT … DO UPDATE SET`، و`skip`/`of` من `FOR UPDATE SKIP LOCKED` و`FOR UPDATE OF o`
+# (وكلاهما **قراءةٌ بقفل** لا كتابة)، و`or` من `BEFORE UPDATE OR DELETE` في DDL مُقتبَس،
+# و`the`/`to`/`a`/`one`/`must`/`of` من جملٍ إنجليزيّةٍ في docstrings («update **the** water
+# ledger idempotently» · «revoking INSERT/UPDATE/DELETE from **the** platform role»).
+#
+# وليس هذا ضجيجاً تجميليّاً: المصنوعةُ تقول «هذه الخدمةُ تكتب هذا الجدول»، فادّعت كتابةَ
+# جداولَ اسمُها `set` و`the`. ومن قرأها يقرأ دعوى كتابةٍ لا وجود لها — وهو الصنفُ نفسُه
+# الذي سُجِّل هنا باسم `SCANNER-COUNTS-A-PATH-LITERAL-AS-A-USAGE-01`.
+#
+# فصار لكلّ عبارةٍ **شرطُ استمرارٍ نحويّ** يفرضه معيار SQL أصلاً: بعد جدولِ `UPDATE`
+# تلزم `SET` (مع كنيةٍ اختياريّة)، وبعد `INSERT INTO` تلزم قائمةُ أعمدةٍ أو مصدرُ صفوف،
+# وبعد `DELETE FROM` يلزم فاصلٌ نحويٌّ أو نهايةُ الجملة. فلا يُلتقَط `DO UPDATE SET` (ليس
+# رأسَ عبارة) ولا `FOR UPDATE …` (قراءة) ولا نثرٌ.
+#
+# **والقياسُ قبل/بعد على الشجرة نفسِها (`0606bb67`):** ٢٧٩ → ٢٥٥ مفتاحاً، الفاقدُ ٢٤
+# **كلُّها** لفظاتٌ لا جداول، و**صفرٌ** مكتسَب، و`survey()` ثابتٌ عند ٧١ — أي أنّ الشدَّ
+# لم يُسقِط موضعَ كتابةٍ حقيقيّاً ولا حرّك الراتشِت الحاجب.
+#
+# **وحدُّ صدقٍ يبقى مُعلَناً:** نثرٌ يُحاكي النحوَ حرفاً بحرف ما يزال يمرّ — سطرُ
+# توثيقٍ مثل «- INSERT into event_outbox  (same transaction)» يُقرأ عبارةً صحيحة. الشدُّ
+# يُضيّق البابَ ولا يُغلِقه، والتمييزُ الكاملُ يحتاج مُحلِّلَ SQL لا نمطاً.
 _WRITE = re.compile(
-    r"\b(?:INSERT\s+INTO|UPDATE|DELETE\s+FROM)\s+(?:ONLY\s+)?([a-z_][a-z0-9_]*)",
-    re.IGNORECASE,
+    r"""\b(?:
+        INSERT\s+INTO\s+(?:ONLY\s+)?(?P<insert>[a-z_][a-z0-9_]*)\s*
+            (?=\(|VALUES\b|SELECT\b|DEFAULT\s+VALUES\b|OVERRIDING\b|AS\b|WITH\b|TABLE\b)
+      | UPDATE\s+(?:ONLY\s+)?(?P<update>[a-z_][a-z0-9_]*)\s+
+            (?:(?:AS\s+)?[a-z_][a-z0-9_]*\s+)?(?=SET\b)
+      | DELETE\s+FROM\s+(?:ONLY\s+)?(?P<delete>[a-z_][a-z0-9_]*)\s*
+            (?:(?:AS\s+)?[a-z_][a-z0-9_]*\s*)?(?=$|[;)]|WHERE\b|USING\b|RETURNING\b)
+    )""",
+    re.IGNORECASE | re.VERBOSE,
 )
 # أقصرُ من هذا لا يحمل عبارةَ SQL كاملة — يقلّل الضجيج بلا إسقاطِ حالةٍ حقيقيّة.
 _MIN_SQL_LEN = 12
+
+
+def _matched_table(match: re.Match[str]) -> str:
+    """الجدولُ من الفرع الذي طابق — فرعٌ واحدٌ يلتقط في كلّ مطابقة.
+
+    بدونها كان `group(1)` يقرأ فرعَ `INSERT` وحدَه فيُعيد `None` لكلّ `UPDATE`/`DELETE`.
+    """
+    table = match.group("insert") or match.group("update") or match.group("delete")
+    if table is None:  # pragma: no cover — لا فرعَ بلا التقاط في هذا النمط
+        raise AssertionError(f"مطابقةٌ بلا جدول: {match.group(0)!r}")
+    return table
+
 
 _SKIP_PARTS = ("/.git/", "/node_modules/", "/tests/", "/test_", "/.venv/", "/site-packages/")
 
@@ -158,7 +208,7 @@ def _write_keys(rel: Path, tree: ast.AST):
     service = _service_of(rel)
     for sql in _sql_literals(tree):
         for match in _WRITE.finditer(sql):
-            yield f"{match.group(1).lower()}::{service}"
+            yield f"{_matched_table(match).lower()}::{service}"
 
 
 def write_sites(root: Path | None = None) -> dict[str, list[str]]:

@@ -12,7 +12,7 @@
 
 - حرّاس تحجب في CI: **276**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **53**
-- إجماليّ الطفرات المُسجَّلة: **411**
+- إجماليّ الطفرات المُسجَّلة: **414**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **343** على 122 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -398,6 +398,9 @@
 - بحثٌ نصّيّ على كامل الملفّ يتّهم التعليقَ الذي يشرح لماذا هُجِر مسار — فيصير توثيقُ الإصلاح مُبطِلاً له. وهو A-GUARD-THAT-SEARCHES-TEXT-ACCUSES-ITS-OWN-DOCUMENTATION-01 بعينه، وقد أسقط إصلاحاً حقيقيّاً في #951. — يُسقِط `test_the_detection_is_structural_so_a_comment_is_never_accused`
 - راتشِتٌ يفشل في اتّجاهٍ واحد يُبقي مداخلَ سُدِّدت تُقرأ ديناً قائماً — إعفاءٌ بلا سقفٍ نازل ليس ديناً مؤجَّلاً بل شطبٌ صامت (AN-EXEMPTION-LIST-WITH-NO-DESCENDING-CEILING-01). — يُسقِط `test_the_ratchet_fails_in_both_directions`
 - هذه الطفرةُ تُعيد عطلاً وقع فعلاً أثناء كتابة الحارس: قراءةُ جذر YAML بدل tables جعلت كلَّ جدولٍ «غيرَ مُصرَّحٍ عنه» فأبلغ صفرَ مخالفات على شجرةٍ تحمل 75. صفرٌ كاذبٌ أسوأُ من غياب الحارس. — يُسقِط `test_an_unreadable_contract_fails_loudly_instead_of_passing_zero`
+- بلا شرطِ `SET` يعود `ON CONFLICT … DO UPDATE SET` يُسجَّل جدولاً اسمُه `set`، و`FOR UPDATE SKIP LOCKED` (قراءةٌ بقفل) كتابةً في جدولٍ اسمُه `skip`. وهو العطلُ المقيس 2026-09-21: أربعةٌ وعشرون مفتاحاً جدولُه لفظةٌ لا جدول، تقرؤه المصنوعةُ دعوى كتابةٍ لا وجود لها. — يُسقِط `test_an_upsert_clause_does_not_name_a_table_called_set`
+- «revoking INSERT/UPDATE/DELETE from the platform role» جملةُ توثيقٍ إنجليزيّة — بلا شرطِ الفاصل النحويّ تصير موضعَ كتابةٍ في جدولٍ اسمُه `the`. والماسحُ يقرأ كلَّ سلسلةٍ طولُها اثنا عشر حرفاً فأكثر، فالـdocstrings داخل نطاقه حتماً. — يُسقِط `test_english_prose_naming_a_statement_is_not_a_write_site`
+- شدٌّ أضيقُ من النحو يُسقِط كتابةً حقيقيّة: `INSERT INTO t VALUES (…)` و`INSERT INTO t DEFAULT VALUES` و`INSERT INTO t SELECT …` صياغاتٌ يقبلها PostgreSQL. وبلا شاهدٍ إيجابيّ يصير الشدُّ عمًى بثوبِ دقّة — وحارسٌ أعمى يُقرَأ تغطيةً. — يُسقِط `test_every_real_write_form_is_still_captured`
 
 ### `env_compose_default_override_guard.py`
 
