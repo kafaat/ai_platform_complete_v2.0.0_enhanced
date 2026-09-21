@@ -206,7 +206,11 @@ _OWNERSHIP_BLIND_SPOTS = [
     "حرفيّاتُ SQL في ملفّات بايثون وحدَها تُمسَح: لا `.sql` ولا ترحيلات.",
     "لا ORM ولا استعلامٌ يُركَّب في وقت التشغيل من أجزاء.",
     "دليلا الاختبارات مستثنيان، فكاتبٌ لا يظهر إلّا فيهما لا يُرى.",
-    "ولذلك: `evidence_state=declared` تعني «لم يُعثَر على موضع» لا «لا كاتب».",
+    "ملفٌّ خلفيّتُه SQLite وحدَها (مستورِدُ SQLite بلا مستورِد PostgreSQL) خارجُ نطاق عقد "
+    "PostgreSQL فيُسقَط قبل الالتقاط؛ ما أُسقِط يُعدّ في `counts.excluded_sqlite_only_write_sites` "
+    "ويُسرَد بالمواضع في `docs/architecture/db_writer_ownership_triage.json` تحت `excluded_write_sites`.",
+    "ولذلك: `evidence_state=declared` تعني «لم يُعثَر على موضع» أو «وُجد موضعٌ في ملفّ SQLite-only "
+    "فاستُبعد» — لا «لا كاتب».",
 ]
 
 
@@ -231,6 +235,8 @@ def database_ownership() -> dict[str, Any]:
     try:
         contract = guard.load_contract()
         measured = guard.write_sites(ROOT)
+        # ما أسقطه الماسحُ لخلفيّةٍ SQLite-only — عددٌ في السطح لا تعليقٌ بجانبه.
+        excluded_sqlite_only = len(guard.excluded_write_sites(ROOT, contract))
     except SystemExit:
         # `load_contract` تفشل صراحةً على عقدٍ غيرِ مقروء بدل أن تُبلِغ صفراً كاذباً.
         return None
@@ -295,6 +301,7 @@ def database_ownership() -> dict[str, Any]:
             "tables_in_contract": len(contract),
             "by_evidence_state": by_evidence,
             "by_contract_state": by_contract,
+            "excluded_sqlite_only_write_sites": excluded_sqlite_only,
         },
         "engine": "scripts/ci/db_writer_ownership_guard.py",
         "contract": "docs/architecture/db_ownership.yml",

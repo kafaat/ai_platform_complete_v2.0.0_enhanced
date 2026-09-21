@@ -76,14 +76,16 @@ Mount `/data/rasters`. Supply **build-time** `SAHOOL_GIT_SHA` (the full commit a
 built), `SAHOOL_BUILD_ID`, `SAHOOL_SOURCE_REPOSITORY`, `SAHOOL_SOURCE_REF`; never leave
 an old explicit SHA when moving the source branch. Validate `/runtime-identity`.
 Since 2026-09-21 every identity-baking Dockerfile declares `ARG RAILWAY_GIT_COMMIT_SHA`
-and **refuses** a GitHub-triggered build whose commit contradicts `SAHOOL_GIT_SHA`
-(the auth-main/guardrails case: built from `cfb47067`, stamped `a0bba343`). A
-configuration-triggered build carries no commit and passes, so the post-deploy
-comparison below is still required, not replaced. Measured on 2026-09-21: the first
-GitHub-triggered build of auth-main/guardrails after that change failed exactly as
-intended (stale `a0bba343` vs built `c5643866`), and a Railway **redeploy** of the same
-commit *did* carry `RAILWAY_GIT_COMMIT_SHA` — the empty value seen on 2026-09-20 belongs
-to a configuration-triggered build, not to every redeploy.
+and **refuses** a GitHub-triggered build whose commit contradicts a pinned `SAHOOL_GIT_SHA`
+(the auth-main/guardrails case: built from `cfb47067`, stamped `a0bba343`). When
+`SAHOOL_GIT_SHA` is **unset**, the stamp derives from `RAILWAY_GIT_COMMIT_SHA` (and an unset
+`SAHOOL_BUILD_ID` derives `railway-<RAILWAY_DEPLOYMENT_ID>`); when both are empty the build
+fails loudly on the 40-hex check. **For services that autodeploy from `main`, do not pin
+`SAHOOL_GIT_SHA` at all** — a pinned value has to be re-set by hand after every merge, and
+measured on 2026-09-21 (deployments `0990989f`, `5d9cfdb1`) it broke both builds on the
+very next merge. Pin only for a release branch frozen on a reviewed commit. The post-deploy
+comparison below (`/runtime-identity` vs the *deployment's* commit, not `main`'s head) is
+still required, not replaced.
 With the current Dockerfile, pair these explicit build values with a release branch
 pinned to the same reviewed commit, rather than a moving `main` autodeploy. Promote
 the source ref and its build values together, then compare the deployment commit
