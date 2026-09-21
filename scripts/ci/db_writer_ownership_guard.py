@@ -54,14 +54,21 @@ _SKIP_PARTS = ("/.git/", "/node_modules/", "/tests/", "/test_", "/.venv/", "/sit
 
 _SERVICE_ROOTS = ("scripts", "migrations", "shared", "agents", "bots")
 
+# هويّةُ الخدمة في العقد هي اسمُها في compose لا اسمُ مجلّدها: `services/odoo-bridge/` يُبنى
+# خدمةً باسم `sahool-erp-bridge` (`docker-compose.v9.yml`، و`ODOO_BRIDGE_URL` «legacy env alias»)،
+# والعقدُ وخريطةُ الاستخراج يسمّيانها `erp-bridge`. بلا هذا الربط كان **المالكُ نفسُه** يُدان
+# بالكتابة إلى جداوله (قِيس 2026-09-21: مدخلان في الأساس، `odoo_sync_log`/`odoo_sync_state`).
+# يُثبِته `test_the_directory_identity_map_is_backed_by_compose` — لا اسمٌ هنا بلا كتلة compose.
+_DIRECTORY_IDENTITY = {"odoo-bridge": "erp-bridge"}
+
 
 def _service_of(rel: Path) -> str:
-    """الخدمةُ من المسار: ``services/<اسم>/…`` أو الجذرُ العلويّ."""
+    """الخدمةُ من المسار: ``services/<اسم>/…`` أو الجذرُ العلويّ — والاسمُ هويّةُ compose."""
     parts = rel.parts
     if not parts:
         return "?"
     if parts[0] == "services" and len(parts) > 1:
-        return parts[1]
+        return _DIRECTORY_IDENTITY.get(parts[1], parts[1])
     if parts[0] in _SERVICE_ROOTS:
         return parts[0]
     return parts[0]

@@ -7236,7 +7236,7 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/test_db_writer_ownership_guard.py",
+    "path": "tests_v9/test_db_writer_ownership_triage.py",
     "kind": "tests"
   },
   {
