@@ -41,6 +41,9 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 CONTRACT = ROOT / "docs" / "architecture" / "db_ownership.yml"
 BASELINE = ROOT / "docs" / "architecture" / "db_writer_ownership_baseline.json"
+# الفرزُ: لكلّ مخالفةٍ في الأساس أبعادٌ مقيسةٌ بالمحرّك نفسِه وصنفٌ مشتقٌّ بقاعدةٍ معلَنة —
+# يُولَّد مع الأساس بـ`--generate` ويُقاس بياتُه في `findings()`. تصنيفٌ لا حكمٌ ولا حلّ.
+TRIAGE = ROOT / "docs" / "architecture" / "db_writer_ownership_triage.json"
 
 # `INSERT INTO` · `UPDATE` · `DELETE FROM` — و`ONLY` اختياريّة (PostgreSQL).
 _WRITE = re.compile(
@@ -226,7 +229,232 @@ def findings() -> list[str]:
     # الراتشِت ينزل: مدخلٌ بائتٌ يُقرَأ ديناً قائماً وقد سُدِّد.
     for key in sorted(set(base) - set(current)):
         out.append(f"مدخلٌ بائتٌ في الأساس لم يعد منحرفاً — احذفه: {key}")
+    out.extend(triage_drift())
     return out
+
+
+# ── الفرز: أبعادٌ مقيسة وصنفٌ مشتقّ — لكلّ مخالفةٍ في الأساس ─────────────────────
+
+TRIAGE_CATEGORIES = (
+    "owner-name-not-in-tree",  # العقدُ يسمّي مالكاً لا مجلّدَ له ولا هويّةَ compose تربطه
+    "tooling-writer",  # الكاتبُ سكربتٌ لا خدمة
+    "dual-writer",  # رُصد المالكُ بين الكُتّاب ومعه كاتبٌ آخر
+    "owner-never-writes",  # لم يُرصد للمالك موضعُ كتابةٍ في نطاق الماسح
+)
+
+# لقطةُ نشر Railway من المراجعة الخارجيّة 2026-09-20
+# (docs/evidence/railway_audit_review_20260920.md) — **مؤرَّخةٌ لا حيّة**: وجودُ الخدمة
+# فيها ليس إذناً بتحويل الكتابة إليها وقتَ الانتقال.
+_DEPLOYED_RAILWAY_20260920 = frozenset(
+    {
+        "sahool-platform",
+        "auth",
+        "tts-service",
+        "guardrails-engine",
+        "notification",
+        "field-management-service",
+        "raster-service",
+        "vegetation-analysis-service",
+    }
+)
+
+
+def owner_dir_in_tree(owner: str | None, root: Path | None = None) -> bool:
+    """مجلّدُ المالك تحت ``services/`` — بهويّة compose (`_DIRECTORY_IDENTITY`) لا بالاسم الحرفيّ وحده."""
+    base = ROOT if root is None else root
+    directories = [d for d, identity in _DIRECTORY_IDENTITY.items() if identity == owner] or [
+        str(owner)
+    ]
+    return any((base / "services" / d).is_dir() for d in directories)
+
+
+def writer_kind(files: list[str]) -> str:
+    first = files[0] if files else ""
+    if first.startswith("scripts/e2e/"):
+        return "e2e-script"
+    if first.startswith("scripts/"):
+        return "ops-script"
+    if first.startswith("agents/"):
+        return "agent"
+    if "/routers/" in first:
+        return "service-router"
+    if "worker" in first:
+        return "worker"
+    return "service-module"
+
+
+def derive_category(*, owner_dir_in_tree: bool, writer: str, owner_writes_table: bool) -> str:
+    """القاعدةُ الوحيدة التي تُنتِج الصنف — دالّةٌ على أبعادٍ مقيسة، لا اختيار.
+
+    **والصنفُ لا يحمل عددَ الكُتّاب**: `owner-never-writes` يقول إنّ المالكَ لم يُرصد،
+    لا إنّ الكاتبَ المخالف وحيد. عددُ الكُتّاب بُعدٌ مستقلّ (`measured_writer_count` ·
+    `multiple_non_owner_writers`) — كان الوصفُ يخلطهما فقال «الكاتبُ الوحيد» عن
+    `weather_signals` وله كاتبان مرصودان (كشفه المالك بالقراءة، 2026-09-21).
+    """
+    if not owner_dir_in_tree:
+        return "owner-name-not-in-tree"
+    if writer == "scripts":
+        return "tooling-writer"
+    if owner_writes_table:
+        return "dual-writer"
+    return "owner-never-writes"
+
+
+def remedy(category: str, non_owner_writer_count: int) -> tuple[str, str]:
+    """(العلاجُ المقترَح، صاحبُ القرار) — نصٌّ مشتقٌّ من الصنف وعدد الكُتّاب، لا من صفٍّ بعينه.
+
+    «لم يُرصد» لا «لا يكتب»: نطاقُ الماسح حرفيّاتُ SQL في بايثون وحدَها، فغيابُ الموضع
+    ليس نفياً. ولا يُوصَف كاتبٌ بأنّه الوحيد إلّا حين يكون عددُ الكُتّاب غيرِ المالك واحداً.
+    """
+    scope = "لم يُرصد للمالك المُعلَن موضعُ كتابةٍ في نطاق الماسح (حرفيّاتُ SQL في بايثون؛ غيابُ الموضع ليس نفياً)"
+    if category == "owner-never-writes":
+        if non_owner_writer_count > 1:
+            return (
+                f"{scope}، ورُصد {non_owner_writer_count} كُتّابٍ غيرِ المالك لهذا الجدول — "
+                "تعدّدُ كتابةٍ يحتاج مراجعةً هندسيّةً (من يكتب ماذا ومتى، وهل يتنافسان) قبل أيّ قرارِ "
+                "ملكيّة. الخياران بعدها: استخراجٌ إلى المالك بواجهةٍ يملكها (نمطُ البند ٣، إن كان "
+                "منشوراً)، أو إعادةُ إعلانٍ يرفضها `ownership_extraction_alignment_guard` ما دام المالكُ "
+                "هدفَ استخراجٍ حيّ.",
+                "owner+engineering",
+            )
+        return (
+            f"{scope}، والكاتبُ المرصودُ الوحيدُ هو المخالف. الخياران: (أ) استخراجُ الكتابة إلى "
+            "المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً "
+            "وقتَ الانتقال لا في لقطةٍ قديمة؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ "
+            "مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، "
+            "فهو قرارُ مالكٍ لا سطر.",
+            "owner",
+        )
+    if category == "dual-writer":
+        return (
+            f"رُصد المالكُ بين الكُتّاب ومعه {non_owner_writer_count} كاتبٌ غيرُه — تعارضُ كتابةٍ "
+            "حقيقيّ. العلاج: توجيهُ كتابة غيرِ المالك عبر واجهةٍ يملكها المالك (نمطُ البند ٣) أو "
+            "جسرٌ انتقاليٌّ موثَّق (`mirror` + `status: interim-bridge`) بسقفٍ نازل. وتشغيلُ الكاتب بدور "
+            "مالك الجدول في PostgreSQL ليس حلّاً: ملكيّةُ الخدمة في العقد غيرُ ملكيّة الجدول وصلاحيّاتِ "
+            "الدور وسياساتِ RLS.",
+            "engineering",
+        )
+    if category == "tooling-writer":
+        return (
+            "الكاتبُ سكربتُ تشغيلٍ/e2e لا خدمة. العلاج: نقلُه تحت أدوات المالك أو إعلانُه جسراً "
+            "موثَّقاً بسقف. ونقلُ الملفّ وحدَه لا يُثبِت انتقالَ سلطة الكتابة ولا صحّةَ المعاملة — "
+            "تُختبَر الصلاحيّاتُ الفعليّة وعزلُ المستأجرين.",
+            "engineering",
+        )
+    return (
+        "العقدُ يسمّي مالكاً لا مجلّدَ له ولا هويّةَ compose تربطه. العلاج: تصحيحُ الاسم في العقد "
+        "أو إضافةُ الربط في `_DIRECTORY_IDENTITY` بدليلٍ من compose.",
+        "owner",
+    )
+
+
+def triage_rows(
+    contract: dict[str, Any] | None = None,
+    sites: dict[str, list[str]] | None = None,
+    violations: dict[str, list[str]] | None = None,
+    root: Path | None = None,
+) -> dict[str, dict[str, Any]]:
+    """صفوفُ الفرز من المحرّك نفسِه: العقد + `write_sites()` + الأساس. حتميّةٌ من الشجرة."""
+    contract = load_contract() if contract is None else contract
+    sites = write_sites(root) if sites is None else sites
+    violations = _baseline() if violations is None else violations
+    writers_of: dict[str, set[str]] = {}
+    for key in sites:
+        table, service = key.split("::", 1)
+        writers_of.setdefault(table, set()).add(service)
+    rows: dict[str, dict[str, Any]] = {}
+    for key, files in sorted(violations.items()):
+        table, writer = key.split("::", 1)
+        meta = contract.get(table) if isinstance(contract.get(table), dict) else {}
+        owner = meta.get("owner")
+        writers = sorted(writers_of.get(table, set()))
+        non_owner = [w for w in writers if w != owner]
+        in_tree = owner_dir_in_tree(owner, root)
+        owner_writes = owner in writers
+        category = derive_category(
+            owner_dir_in_tree=in_tree, writer=writer, owner_writes_table=owner_writes
+        )
+        text, decision = remedy(category, len(non_owner))
+        rows[key] = {
+            "table": table,
+            "writer": writer,
+            "files": files,
+            "declared_owner": owner,
+            "declared_writers": meta.get("writers"),
+            "owner_dir_in_tree": in_tree,
+            "measured_writers_of_table": writers,
+            "measured_writer_count": len(writers),
+            "non_owner_writers": non_owner,
+            "multiple_non_owner_writers": len(non_owner) > 1,
+            "owner_writes_table": owner_writes,
+            "writer_kind": writer_kind(files),
+            "owner_deployed_railway_20260920": owner in _DEPLOYED_RAILWAY_20260920,
+            "writer_deployed_railway_20260920": writer in _DEPLOYED_RAILWAY_20260920,
+            "category": category,
+            "remedy": text,
+            "decision_owner": decision,
+            "status": "triaged",
+        }
+    return rows
+
+
+def triage_document(rows: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    by_category: dict[str, int] = {}
+    for row in rows.values():
+        by_category[row["category"]] = by_category.get(row["category"], 0) + 1
+    return {
+        "$comment": (
+            "فرزُ مخالفات ملكيّة الكتابة: كلُّ صفٍّ مقيسٌ بمحرّك db_writer_ownership_guard نفسِه "
+            "(write_sites + العقد + الأساس)، والصنفُ مشتقٌّ بقاعدةٍ صريحة (derive_category) لا مختار، "
+            "وعددُ الكُتّاب بُعدٌ مستقلٌّ عن الصنف. المصنوعةُ تصنّف ولا تحكم ولا تحلّ: status=triaged "
+            "لكلّ صفّ. يُولَّد مع الأساس بـ--generate ويُقاس بياتُه في --check. "
+            "'owner_writes_table: false' تعني «لم يُرصد موضع» بحدّ الماسح (حرفيّاتُ SQL في بايثون) لا «لا يكتب». "
+            "'*_deployed_railway_20260920' لقطةٌ مؤرَّخة من مراجعةٍ خارجيّة لا حالةٌ حيّة."
+        ),
+        "baseline": BASELINE.relative_to(ROOT).as_posix(),
+        "measured_on": _head_sha(),
+        "category_vocabulary": list(TRIAGE_CATEGORIES),
+        "counts": {
+            "total": len(rows),
+            "by_category": by_category,
+            "multiple_non_owner_writers": sum(
+                1 for r in rows.values() if r["multiple_non_owner_writers"]
+            ),
+        },
+        "rows": rows,
+    }
+
+
+def _stored_triage_rows() -> dict[str, dict[str, Any]] | None:
+    if not TRIAGE.is_file():
+        return None
+    return json.loads(TRIAGE.read_text(encoding="utf-8")).get("rows")
+
+
+def triage_drift() -> list[str]:
+    """الفرزُ المخزَّن يجب أن يساوي ما يُشتقّ من الشجرة الآن — صفّاً صفّاً، لا عدداً."""
+    stored = _stored_triage_rows()
+    if stored is None:
+        return [f"مصنوعةُ الفرز غائبة: {TRIAGE.relative_to(ROOT)} — أعِد --generate"]
+    current = triage_rows()
+    out: list[str] = []
+    for key in sorted(set(current) - set(stored)):
+        out.append(f"مخالفةٌ بلا فرز: {key} — أعِد --generate")
+    for key in sorted(set(stored) - set(current)):
+        out.append(f"فرزٌ بائت لمخالفةٍ زالت: {key} — أعِد --generate")
+    for key in sorted(set(current) & set(stored)):
+        if current[key] != stored[key]:
+            changed = sorted(f for f in current[key] if current[key][f] != stored[key].get(f))
+            out.append(f"فرزٌ بائت: {key} — تغيّر {', '.join(changed)} — أعِد --generate")
+    return out
+
+
+def generate_triage() -> None:
+    rows = triage_rows()
+    TRIAGE.write_text(
+        json.dumps(triage_document(rows), ensure_ascii=False, indent=1) + "\n", encoding="utf-8"
+    )
+    print(f"كُتِب {TRIAGE.relative_to(ROOT)} — {len(rows)} صفّاً مفروزاً")
 
 
 def generate() -> None:
@@ -253,6 +481,7 @@ def generate() -> None:
         encoding="utf-8",
     )
     print(f"كُتِب {BASELINE.relative_to(ROOT)} — {len(current)} مخالفة")
+    generate_triage()
 
 
 def main(argv: list[str] | None = None) -> int:
