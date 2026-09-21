@@ -140,6 +140,27 @@ def _sql_literals(tree: ast.AST):
                 yield node.value
 
 
+def _python_sources(base: Path):
+    """(المسارُ النسبيّ، الشجرةُ النحويّة) لكلّ ملفّ بايثون داخل نطاق المسح — مصدرٌ واحد للماسحَين."""
+    for path in sorted(base.rglob("*.py")):
+        rel = path.relative_to(base)
+        posix = "/" + rel.as_posix()
+        if any(part in posix for part in _SKIP_PARTS) or rel.parts[0] == "tests":
+            continue
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except (SyntaxError, UnicodeDecodeError, OSError):
+            continue
+        yield rel, tree
+
+
+def _write_keys(rel: Path, tree: ast.AST):
+    service = _service_of(rel)
+    for sql in _sql_literals(tree):
+        for match in _WRITE.finditer(sql):
+            yield f"{match.group(1).lower()}::{service}"
+
+
 def write_sites(root: Path | None = None) -> dict[str, list[str]]:
     """{"<جدول>::<خدمة>": [ملفّات]} لكلّ كتابةٍ **مقيسة** — مأذونةً كانت أو لا.
 
@@ -154,28 +175,62 @@ def write_sites(root: Path | None = None) -> dict[str, list[str]]:
 
     **وحدُّه مُعلَن:** حرفيّاتُ SQL في بايثون وحدَها. لا `.sql` ولا ORM ولا استعلامٌ
     مُركَّبٌ في وقت التشغيل — فغيابُ موضعٍ هنا **ليس** نفياً لوجود كاتب.
+
+    **وما يُستبعَد يُرى لا يُبتلَع:** ملفٌّ خلفيّتُه SQLite وحدَها (دليلٌ موجب: مستورِدُ
+    SQLite بلا مستورِد PostgreSQL) خارجُ عقد PostgreSQL، فيُسقَط هنا — ويُعاد ما أُسقِط
+    منه بالمواضع والدليل في `excluded_write_sites()`. و«مجهول» يبقى داخل النطاق.
     """
     base = ROOT if root is None else root
     found: dict[str, set[str]] = {}
-    for path in sorted(base.rglob("*.py")):
-        rel = path.relative_to(base)
-        posix = "/" + rel.as_posix()
-        if any(part in posix for part in _SKIP_PARTS) or rel.parts[0] == "tests":
-            continue
-        try:
-            tree = ast.parse(path.read_text(encoding="utf-8"))
-        except (SyntaxError, UnicodeDecodeError, OSError):
-            continue
+    for rel, tree in _python_sources(base):
         # PostgreSQL ownership contract: only positive SQLite-only evidence excludes a file.
         # Unknown is deliberately in-scope; absence of a driver import is not an exemption.
         if _db_backend(tree) == "sqlite":
             continue
-        service = _service_of(rel)
-        for sql in _sql_literals(tree):
-            for match in _WRITE.finditer(sql):
-                table = match.group(1).lower()
-                found.setdefault(f"{table}::{service}", set()).add(rel.as_posix())
+        for key in _write_keys(rel, tree):
+            found.setdefault(key, set()).add(rel.as_posix())
     return {key: sorted(files) for key, files in sorted(found.items())}
+
+
+def excluded_write_sites(
+    root: Path | None = None, contract: dict[str, Any] | None = None
+) -> dict[str, dict[str, Any]]:
+    """ما أسقطه `write_sites()` لأنّ خلفيّتَه SQLite وحدَها — بالمواضع والدليل، لا بالعدد.
+
+    استبعادٌ صامت يجعل انخفاضَ الأساس يُقرأ إصلاحاً وهو تغييرُ نطاق (72 → 71 عند
+    #1055). فكلُّ مفتاحٍ أُسقِط يُعاد هنا مع الملفّات ومستورِدات SQLite التي كانت
+    الدليلَ، وحالةِ العقد (أَكان الإسقاطُ سيغيّر الراتشِت أم لا). القاعدةُ قاعدةُ
+    `_db_backend` نفسُها؛ لا مرشّحَ ثانٍ.
+    """
+    base = ROOT if root is None else root
+    contract = load_contract() if contract is None else contract
+    out: dict[str, dict[str, Any]] = {}
+    for rel, tree in _python_sources(base):
+        if _db_backend(tree) != "sqlite":
+            continue
+        roots = _import_roots(tree)
+        for key in _write_keys(rel, tree):
+            table, service = key.split("::", 1)
+            entry = out.setdefault(
+                key,
+                {
+                    "files": set(),
+                    "reason": "sqlite_only_backend",
+                    "evidence": {
+                        "driver_imports": sorted(roots & _SQLITE_IMPORT_ROOTS),
+                        "postgres_driver_imports": sorted(roots & _POSTGRES_IMPORT_ROOTS),
+                    },
+                    "contract_state": (
+                        "outside_contract"
+                        if not isinstance(contract.get(table), dict)
+                        else "authorised"
+                        if _write_allowed(table, service, contract)
+                        else "not_authorised"
+                    ),
+                },
+            )
+            entry["files"].add(rel.as_posix())
+    return {key: {**entry, "files": sorted(entry["files"])} for key, entry in sorted(out.items())}
 
 
 def survey() -> dict[str, list[str]]:
@@ -244,7 +299,11 @@ TRIAGE_CATEGORIES = (
 
 # لقطةُ نشر Railway من المراجعة الخارجيّة 2026-09-20
 # (docs/evidence/railway_audit_review_20260920.md) — **مؤرَّخةٌ لا حيّة**: وجودُ الخدمة
-# فيها ليس إذناً بتحويل الكتابة إليها وقتَ الانتقال.
+# فيها ليس إذناً بتحويل الكتابة إليها وقتَ الانتقال. تُحمَل في كلّ صفٍّ كائنَ
+# `deployment_evidence` مؤرَّخاً، و`cutover_ready` فيه `false` دائماً: الجاهزيّةُ تُقاس
+# حيّةً وقتَ الانتقال (D9) لا تُشتقّ من لقطة.
+_DEPLOYMENT_EVIDENCE_OBSERVED_ON = "2026-09-20"
+_DEPLOYMENT_EVIDENCE_SOURCE = "docs/evidence/railway_audit_review_20260920.md"
 _DEPLOYED_RAILWAY_20260920 = frozenset(
     {
         "sahool-platform",
@@ -309,13 +368,15 @@ def remedy(category: str, non_owner_writer_count: int) -> tuple[str, str]:
     scope = "لم يُرصد للمالك المُعلَن موضعُ كتابةٍ في نطاق الماسح (حرفيّاتُ SQL في بايثون؛ غيابُ الموضع ليس نفياً)"
     if category == "owner-never-writes":
         if non_owner_writer_count > 1:
+            # صاحبُ القرار المالكُ — لكنّ قرارَه مشروطٌ بمراجعةٍ هندسيّة تسبقه، وهذا في النصّ
+            # لا في قيمةٍ ثالثة: مفرداتُ `decision_owner` اثنتان كي لا يتشعّب الحقلُ بلا سقف.
             return (
-                f"{scope}، ورُصد {non_owner_writer_count} كُتّابٍ غيرِ المالك لهذا الجدول — "
-                "تعدّدُ كتابةٍ يحتاج مراجعةً هندسيّةً (من يكتب ماذا ومتى، وهل يتنافسان) قبل أيّ قرارِ "
-                "ملكيّة. الخياران بعدها: استخراجٌ إلى المالك بواجهةٍ يملكها (نمطُ البند ٣، إن كان "
-                "منشوراً)، أو إعادةُ إعلانٍ يرفضها `ownership_extraction_alignment_guard` ما دام المالكُ "
-                "هدفَ استخراجٍ حيّ.",
-                "owner+engineering",
+                f"{scope}، ورُصد {non_owner_writer_count} كُتّابٍ غيرِ المالك لهذا الجدول — لا يجوز "
+                "وصفُ أيٍّ منهم بالكاتب الوحيد. تعدّدُ كتابةٍ يحتاج مراجعةً هندسيّةً (من يكتب ماذا "
+                "ومتى، وهل يتنافسان) قبل أيّ قرارِ ملكيّة. الخياران بعدها: استخراجٌ إلى المالك بواجهةٍ "
+                "يملكها (نمطُ البند ٣، إن كان منشوراً)، أو إعادةُ إعلانٍ يرفضها "
+                "`ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ.",
+                "owner",
             )
         return (
             f"{scope}، والكاتبُ المرصودُ الوحيدُ هو المخالف. الخياران: (أ) استخراجُ الكتابة إلى "
@@ -388,28 +449,38 @@ def triage_rows(
             "multiple_non_owner_writers": len(non_owner) > 1,
             "owner_writes_table": owner_writes,
             "writer_kind": writer_kind(files),
-            "owner_deployed_railway_20260920": owner in _DEPLOYED_RAILWAY_20260920,
-            "writer_deployed_railway_20260920": writer in _DEPLOYED_RAILWAY_20260920,
             "category": category,
             "remedy": text,
             "decision_owner": decision,
             "status": "triaged",
+            "deployment_evidence": {
+                "observed_on": _DEPLOYMENT_EVIDENCE_OBSERVED_ON,
+                "source": _DEPLOYMENT_EVIDENCE_SOURCE,
+                "owner_deployed": owner in _DEPLOYED_RAILWAY_20260920,
+                "writer_deployed": writer in _DEPLOYED_RAILWAY_20260920,
+                "cutover_ready": False,
+                "freshness": "historical_snapshot",
+            },
         }
     return rows
 
 
-def triage_document(rows: dict[str, dict[str, Any]]) -> dict[str, Any]:
+def triage_document(
+    rows: dict[str, dict[str, Any]], excluded: dict[str, dict[str, Any]] | None = None
+) -> dict[str, Any]:
     by_category: dict[str, int] = {}
     for row in rows.values():
         by_category[row["category"]] = by_category.get(row["category"], 0) + 1
+    excluded = excluded_write_sites() if excluded is None else excluded
     return {
         "$comment": (
             "فرزُ مخالفات ملكيّة الكتابة: كلُّ صفٍّ مقيسٌ بمحرّك db_writer_ownership_guard نفسِه "
-            "(write_sites + العقد + الأساس)، والصنفُ مشتقٌّ بقاعدةٍ صريحة (derive_category) لا مختار، "
-            "وعددُ الكُتّاب بُعدٌ مستقلٌّ عن الصنف. المصنوعةُ تصنّف ولا تحكم ولا تحلّ: status=triaged "
-            "لكلّ صفّ. يُولَّد مع الأساس بـ--generate ويُقاس بياتُه في --check. "
-            "'owner_writes_table: false' تعني «لم يُرصد موضع» بحدّ الماسح (حرفيّاتُ SQL في بايثون) لا «لا يكتب». "
-            "'*_deployed_railway_20260920' لقطةٌ مؤرَّخة من مراجعةٍ خارجيّة لا حالةٌ حيّة."
+            "(write_sites + العقد + الأساس)، والصنفُ مشتقٌّ بقاعدةٍ صريحة (derive_category في الحارس) "
+            "لا مختار، وعددُ الكُتّاب بُعدٌ مستقلٌّ عن الصنف. المصنوعةُ تصنّف ولا تحكم ولا تحلّ: "
+            "status=triaged لكلّ صفّ. تُولَّد مع الأساس بـ--generate ويُقاس بياتُها صفّاً صفّاً في --check. "
+            "'owner_writes_table: false' تعني «لم يُرصد موضع» بحدّ الماسح (حرفيّاتُ SQL في بايثون؛ "
+            "ملفّاتُ SQLite-only خارج النطاق وتُرى في excluded_write_sites) لا «لا يكتب». "
+            "'deployment_evidence' لقطةٌ مؤرَّخة من مراجعةٍ خارجيّة لا حالةٌ حيّة، وcutover_ready فيها false دائماً."
         ),
         "baseline": BASELINE.relative_to(ROOT).as_posix(),
         "measured_on": _head_sha(),
@@ -420,41 +491,63 @@ def triage_document(rows: dict[str, dict[str, Any]]) -> dict[str, Any]:
             "multiple_non_owner_writers": sum(
                 1 for r in rows.values() if r["multiple_non_owner_writers"]
             ),
+            "excluded_write_sites": len(excluded),
+            "excluded_by_contract_state": {
+                state: sum(1 for e in excluded.values() if e["contract_state"] == state)
+                for state in ("not_authorised", "authorised", "outside_contract")
+            },
         },
         "rows": rows,
+        "excluded_write_sites": excluded,
     }
 
 
-def _stored_triage_rows() -> dict[str, dict[str, Any]] | None:
+def _stored_triage() -> dict[str, Any] | None:
     if not TRIAGE.is_file():
         return None
-    return json.loads(TRIAGE.read_text(encoding="utf-8")).get("rows")
+    return json.loads(TRIAGE.read_text(encoding="utf-8"))
 
 
 def triage_drift() -> list[str]:
-    """الفرزُ المخزَّن يجب أن يساوي ما يُشتقّ من الشجرة الآن — صفّاً صفّاً، لا عدداً."""
-    stored = _stored_triage_rows()
+    """الفرزُ المخزَّن يجب أن يساوي ما يُشتقّ من الشجرة الآن — صفّاً صفّاً، لا عدداً.
+
+    والمستبعَدُ جزءٌ من القياس: استبعادٌ يظهر أو يزول أو يغيّر دليلَه بلا إعادة توليد
+    انحرافٌ مثلُ صفٍّ بائت.
+    """
+    stored = _stored_triage()
     if stored is None:
         return [f"مصنوعةُ الفرز غائبة: {TRIAGE.relative_to(ROOT)} — أعِد --generate"]
+    stored_rows = stored.get("rows") or {}
     current = triage_rows()
     out: list[str] = []
-    for key in sorted(set(current) - set(stored)):
+    for key in sorted(set(current) - set(stored_rows)):
         out.append(f"مخالفةٌ بلا فرز: {key} — أعِد --generate")
-    for key in sorted(set(stored) - set(current)):
+    for key in sorted(set(stored_rows) - set(current)):
         out.append(f"فرزٌ بائت لمخالفةٍ زالت: {key} — أعِد --generate")
-    for key in sorted(set(current) & set(stored)):
-        if current[key] != stored[key]:
-            changed = sorted(f for f in current[key] if current[key][f] != stored[key].get(f))
+    for key in sorted(set(current) & set(stored_rows)):
+        if current[key] != stored_rows[key]:
+            changed = sorted(f for f in current[key] if current[key][f] != stored_rows[key].get(f))
             out.append(f"فرزٌ بائت: {key} — تغيّر {', '.join(changed)} — أعِد --generate")
+    stored_excluded = stored.get("excluded_write_sites") or {}
+    current_excluded = excluded_write_sites()
+    for key in sorted(set(current_excluded) ^ set(stored_excluded)):
+        out.append(f"استبعادٌ لا يطابق الشجرة: {key} — أعِد --generate")
+    for key in sorted(set(current_excluded) & set(stored_excluded)):
+        if current_excluded[key] != stored_excluded[key]:
+            out.append(f"استبعادٌ بائت (تغيّر الدليل أو المواضع): {key} — أعِد --generate")
     return out
 
 
 def generate_triage() -> None:
     rows = triage_rows()
+    excluded = excluded_write_sites()
     TRIAGE.write_text(
-        json.dumps(triage_document(rows), ensure_ascii=False, indent=1) + "\n", encoding="utf-8"
+        json.dumps(triage_document(rows, excluded), ensure_ascii=False, indent=1) + "\n",
+        encoding="utf-8",
     )
-    print(f"كُتِب {TRIAGE.relative_to(ROOT)} — {len(rows)} صفّاً مفروزاً")
+    print(
+        f"كُتِب {TRIAGE.relative_to(ROOT)} — {len(rows)} صفّاً مفروزاً · {len(excluded)} موضعاً مستبعَداً"
+    )
 
 
 def generate() -> None:

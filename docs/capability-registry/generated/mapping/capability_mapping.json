@@ -8616,23 +8616,23 @@
       ],
       "events": [
         {
-          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:289",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:295",
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:422",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:429",
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:515",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:522",
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:578",
+          "value": "sahool.diagnostic-inventory.surface.v1 @ scripts/diagnostics/build_main_inventory.py:585",
           "score": 14
         },
         {
-          "value": "sahool.diagnostic-inventory.v1 @ scripts/diagnostics/build_main_inventory.py:607",
+          "value": "sahool.diagnostic-inventory.v1 @ scripts/diagnostics/build_main_inventory.py:614",
           "score": 14
         },
         {
