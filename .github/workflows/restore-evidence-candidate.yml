@@ -1,0 +1,132 @@
+name: Restore Evidence Candidate
+on:
+  push:
+    branches: [codex/d1-recovery-evidence-20260921]
+    paths: [.github/workflows/restore-evidence-candidate.yml]
+permissions:
+  contents: read
+concurrency:
+  group: restore-1059-evidence-candidate
+  cancel-in-progress: false
+jobs:
+  build:
+    if: github.repository == 'kafaat/ai_platform_complete_v2.0.0_enhanced'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    permissions:
+      contents: write
+    env:
+      SOURCE_BASE: b067f92c02371ba2b0fee4ea3f2100ee5c0f6b3f
+      TARGET_BRANCH: codex/restore-1059-evidence-20260921
+      LOG_DIR: ${{ runner.temp }}/restore-evidence-logs
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: b067f92c02371ba2b0fee4ea3f2100ee5c0f6b3f
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Install the repository's existing test dependencies
+        run: python -m pip install -r tests_v9/requirements-test.txt
+      - name: Restore only the lost evidence, preserving both source histories
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_BASE"
+          mkdir -p "$LOG_DIR"
+          python3 - <<'PY'
+          import os, subprocess
+          from pathlib import Path
+          base = os.environ['SOURCE_BASE']
+          before = '0606bb676281d3e96089be7cc1272df3332dab3e'
+          original = 'd2742aba092601fe8ab648621cab3f0c9fd689ae'
+          paths = ['docs/evidence/operational_evidence_log.md', 'sahool-brain/log.md', 'sahool-brain/decisions/ledger.md', 'sahool-brain/hot.md', 'sahool-brain/gaps/registry.md']
+          def git(*args):
+              return subprocess.check_output(['git', *args])
+          patch = git('diff', '--binary', before, original, '--', *paths)
+          subprocess.run(['git', 'apply', '--3way'], input=patch, check=True)
+          for path in ['sahool-brain/log.md', 'sahool-brain/decisions/ledger.md']:
+              old = git('show', before + ':' + path)
+              restored = git('show', original + ':' + path)
+              if not restored.startswith(old):
+                  raise SystemExit('original evidence delta is not append-only: ' + path)
+              suffix = restored[len(old):]
+              current = git('show', base + ':' + path)
+              if not suffix.strip() or suffix.strip() in current:
+                  raise SystemExit('unexpected or already restored evidence: ' + path)
+              Path(path).write_bytes(current + suffix)
+              if not Path(path).read_bytes().startswith(current):
+                  raise SystemExit('main prefix lost: ' + path)
+          document = Path(paths[0]).read_bytes()
+          if document != git('show', original + ':' + paths[0]):
+              raise SystemExit('operational evidence must exactly match the recorded #1059 document')
+          for identity in [b'E-2026-09-21-06', b'E-2026-09-21-07']:
+              if document.count(b'### ' + identity) != 1:
+                  raise SystemExit('missing or repeated identity: ' + identity.decode())
+          for path in ['scripts/ci/db_writer_ownership_guard.py', 'tests_v9/test_db_writer_ownership_guard.py', 'docs/architecture/guard_mutation_registry.json']:
+              if Path(path).read_bytes() != git('show', base + ':' + path):
+                  raise SystemExit('scanner correction was modified: ' + path)
+          print('PRESERVED: main SQL scanner, both evidence entries, main log/ledger prefixes')
+          PY
+          git add docs/evidence/operational_evidence_log.md sahool-brain/
+      - name: Generate and check the candidate artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/release/build_release_bundle.py | tee "$LOG_DIR/bundle.log"
+          git add release/
+          python scripts/ci/verify_all_generated.py --check | tee "$LOG_DIR/generated-check.log"
+          python scripts/release/build_release_bundle.py | tee -a "$LOG_DIR/bundle.log"
+          python scripts/release/validate_release_package.py | tee "$LOG_DIR/release-validation.log"
+          git add release/
+      - name: Commit locally and enforce scope and historical preservation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os, subprocess
+          allowed = {'docs/evidence/operational_evidence_log.md', 'sahool-brain/log.md', 'sahool-brain/decisions/ledger.md', 'sahool-brain/hot.md', 'sahool-brain/gaps/registry.md', 'release/FILE_CHECKSUMS.sha256', 'release/SAHOOL_RELEASE_MANIFEST_20260626.json'}
+          actual = set(subprocess.check_output(['git', 'diff', '--name-only', os.environ['SOURCE_BASE']]).decode().splitlines())
+          if actual != allowed:
+              raise SystemExit('unexpected scope: ' + repr(sorted(actual ^ allowed)))
+          PY
+          git diff --exit-code "$SOURCE_BASE" -- services/ migrations/ .github/ scripts/ tests_v9/ capabilities/ docs/architecture/
+          git config user.name 'SAHOOL recovery workflow'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix(evidence): restore identity derivation records lost during scanner merge'
+          test "$(git rev-parse HEAD^)" = "$SOURCE_BASE"
+          python scripts/ci/brain_append_only_guard.py --base "$SOURCE_BASE" --head HEAD | tee "$LOG_DIR/brain-append-only.log"
+          git diff --name-only "$SOURCE_BASE...HEAD" | python scripts/ci/gate01_frozen_path_guard.py --stdin | tee "$LOG_DIR/gate01.log"
+      - name: Run focused witnesses and fast preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pytest -q tests_v9/test_operational_evidence_artefacts.py tests_v9/test_db_writer_ownership_guard.py tests_v9/test_brain_append_only_guard.py | tee "$LOG_DIR/focused-tests.log"
+          BASE="$SOURCE_BASE" bash scripts/ci/preflight.sh --fast --no-fetch | tee "$LOG_DIR/preflight-fast.log"
+          python scripts/release/validate_release_package.py | tee -a "$LOG_DIR/release-validation.log"
+          git diff --exit-code
+          git diff --cached --exit-code
+      - name: Publish only a new review branch, never main or D1
+        shell: bash
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$TARGET_BRANCH" = 'codex/restore-1059-evidence-20260921'
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$SOURCE_BASE"
+          test -z "$(git ls-remote origin "refs/heads/$TARGET_BRANCH")"
+          auth="$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)"
+          echo "::add-mask::$auth"
+          GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.https://github.com/.extraheader GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $auth" \
+            git push --force-with-lease="refs/heads/$TARGET_BRANCH:" origin "HEAD:refs/heads/$TARGET_BRANCH"
+          git rev-parse HEAD | tee "$LOG_DIR/candidate-sha.txt"
+          git show --stat --oneline HEAD | tee "$LOG_DIR/candidate-stat.txt"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: restore-evidence-logs-${{ github.run_id }}
+          path: ${{ runner.temp }}/restore-evidence-logs/
+          retention-days: 7
+          if-no-files-found: warn
