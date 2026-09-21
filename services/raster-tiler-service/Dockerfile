@@ -46,6 +46,8 @@ ARG SAHOOL_SOURCE_REF=
 # ones): a hand-set SAHOOL_GIT_SHA that contradicts it fails the build instead of stamping
 # a stale identity. When SAHOOL_GIT_SHA is unset the stamp derives from RAILWAY_GIT_COMMIT_SHA:
 # pinning the variable broke every autodeploy after each merge (measured 2026-09-21).
+# RAILWAY_DEPLOYMENT_ID arrived empty at build time (measured 2026-09-21, fdb7fee6), so an
+# unpinned SAHOOL_BUILD_ID falls back to railway-<built commit[:12]>; all-empty still fails.
 ARG RAILWAY_GIT_COMMIT_SHA=
 ARG RAILWAY_DEPLOYMENT_ID=
 RUN SAHOOL_GIT_SHA="${SAHOOL_GIT_SHA}" SAHOOL_BUILD_ID="${SAHOOL_BUILD_ID}" SAHOOL_SOURCE_REPOSITORY="${SAHOOL_SOURCE_REPOSITORY}" SAHOOL_SOURCE_REF="${SAHOOL_SOURCE_REF}" RAILWAY_GIT_COMMIT_SHA="${RAILWAY_GIT_COMMIT_SHA}" RAILWAY_DEPLOYMENT_ID="${RAILWAY_DEPLOYMENT_ID}" python - <<'PYID'
@@ -54,7 +56,9 @@ from pathlib import Path
 trig = os.environ.get("RAILWAY_GIT_COMMIT_SHA", "")
 sha = os.environ.get("SAHOOL_GIT_SHA") or trig
 deployment = os.environ.get("RAILWAY_DEPLOYMENT_ID", "")
-build_id = os.environ.get("SAHOOL_BUILD_ID") or (f"railway-{deployment}" if deployment else "")
+build_id = os.environ.get("SAHOOL_BUILD_ID") or (
+    f"railway-{deployment}" if deployment else (f"railway-{trig[:12]}" if trig else "")
+)
 if not re.fullmatch(r"[0-9a-f]{40}", sha):
     raise SystemExit("SAHOOL_GIT_SHA must be 40 lowercase hex characters (set it, or build from a GitHub trigger so RAILWAY_GIT_COMMIT_SHA supplies it)")
 if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}", build_id):
