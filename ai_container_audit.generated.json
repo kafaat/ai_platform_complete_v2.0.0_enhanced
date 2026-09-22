@@ -91,7 +91,7 @@
     "docker_health_uses_readyz": false,
     "compose_health_uses_healthz": true,
     "compose_health_uses_readyz": false,
-    "copies_shared": false,
+    "copies_shared": true,
     "copies_service_dir": true,
     "pip_timeout_retries": true
   },
@@ -103,7 +103,7 @@
     "docker_health_uses_readyz": false,
     "compose_health_uses_healthz": true,
     "compose_health_uses_readyz": false,
-    "copies_shared": false,
+    "copies_shared": true,
     "copies_service_dir": true,
     "pip_timeout_retries": true
   }

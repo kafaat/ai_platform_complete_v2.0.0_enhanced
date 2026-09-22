@@ -37,6 +37,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from shared.fcm import fcm_push_active, send_push
 from shared.notification_consumers import SUBSCRIPTIONS, queue_name, validate_queue
 from shared.security.access_tokens import access_token_verification_key, verify_access_token
+from shared.security.trusted_tenant import service_token_ok
 from shared.tracing import configure_tracing
 
 logger = logging.getLogger("notification-agent")
@@ -712,7 +713,10 @@ def _require_agent_token(x_agent_token: str = Header(None, alias="X-Agent-Token"
     كانت بلا مصادقة ⇒ انتحال إشعارات + حقن أحداث NATS عشوائيّة في الناقل الداخليّ.
     """
     expected = os.getenv("SAHOOL_AGENT_TOKEN", "")
-    if not expected or x_agent_token != expected:
+    # ``service_token_ok`` يقارن ثابتَ الزمن ويردّ False على سرٍّ فارغ — فيُغني عن
+    # ``not expected`` وعن ``!=`` معاً، ولا يُغيّر الرمز (403 هنا بخلاف 401/503 في
+    # الخدمات: هذه نقطةُ اختبارٍ لا قناةُ استيعاب).
+    if not service_token_ok(x_agent_token, expected):
         raise HTTPException(403, "نقطة اختبار محميّة بـSAHOOL_AGENT_TOKEN")
 
 

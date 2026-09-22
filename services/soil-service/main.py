@@ -18,6 +18,10 @@ import asyncpg
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
+# بلا try/except قصداً: الوحدة stdlib-only وتُنسخ إلى الصورة، فغيابُها عطلُ توصيلٍ
+# يجب أن يُرى لا أن يُبتلَع إلى بديلٍ أضعف (درسُ GUARDRAIL-FLAGS-FILE-NOT-IN-ANY-IMAGE-01).
+from shared.security.trusted_tenant import service_token_ok
+
 try:
     from shared.logging_config import setup_logging
 
@@ -36,10 +40,14 @@ AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 
 
 def _require_service_token(x_agent_token: str = Header(None)) -> None:
-    """يمنع حقن بيانات مستشعرات مزوّرة. فشل آمن لو التوكن غير مضبوط."""
+    """يمنع حقن بيانات مستشعرات مزوّرة. فشل آمن لو التوكن غير مضبوط.
+
+    المقارنةُ ثابتةُ الزمن عبر ``service_token_ok`` — لا ``!=``. وتمييزُ 503 عن 401
+    مقصود: الأوّل عطلُ مشغّلٍ (سرٌّ غيرُ مضبوط) والثاني رفضُ مُستدعٍ.
+    """
     if not AGENT_TOKEN:
         raise HTTPException(503, "SAHOOL_AGENT_TOKEN غير مضبوط — الاستيعاب معطّل بأمان")
-    if x_agent_token != AGENT_TOKEN:
+    if not service_token_ok(x_agent_token, AGENT_TOKEN):
         raise HTTPException(401, "توكن خدمة غير صالح")
 
 

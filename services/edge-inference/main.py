@@ -19,6 +19,9 @@ from models.yield_estimator import EdgeYieldEstimator
 from pydantic import BaseModel, Field
 from sync_service import CloudSyncService
 
+# بلا try/except قصداً: غيابُ الوحدة عطلُ توصيلٍ يُرى لا يُبتلَع.
+from shared.security.trusted_tenant import service_token_ok
+
 logger = logging.getLogger(__name__)
 
 
@@ -212,7 +215,7 @@ AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 def _require_service_token(x_agent_token: str = Header(None)) -> None:
     if not AGENT_TOKEN:
         raise HTTPException(503, "SAHOOL_AGENT_TOKEN غير مضبوط — معطّل بأمان")
-    if x_agent_token != AGENT_TOKEN:
+    if not service_token_ok(x_agent_token, AGENT_TOKEN):
         raise HTTPException(401, "توكن خدمة غير صالح")
 
 

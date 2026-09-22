@@ -17,7 +17,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 55,
+      "line": 58,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -26,7 +26,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 60,
+      "line": 63,
       "method": "GET",
       "path": "/health",
       "function": "legacy_health",
@@ -35,7 +35,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 65,
+      "line": 68,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -44,7 +44,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 90,
+      "line": 93,
       "method": "GET",
       "path": "/metrics",
       "function": "metrics",
@@ -53,7 +53,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 97,
+      "line": 100,
       "method": "GET",
       "path": "/runtime-identity",
       "function": "runtime_evidence_identity",
@@ -62,7 +62,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 243,
+      "line": 246,
       "method": "POST",
       "path": "/v1/recommend",
       "function": "recommend",
@@ -71,7 +71,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 307,
+      "line": 310,
       "method": "POST",
       "path": "/v1/simulate",
       "function": "simulate",
@@ -80,7 +80,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 320,
+      "line": 323,
       "method": "POST",
       "path": "/v1/plan",
       "function": "plan",
@@ -89,7 +89,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 336,
+      "line": 339,
       "method": "POST",
       "path": "/v1/replay/verify",
       "function": "replay_verify",
@@ -854,7 +854,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 188,
+      "line": 191,
       "method": "GET",
       "path": "/healthz",
       "function": "health_check",
@@ -863,7 +863,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 220,
+      "line": 223,
       "method": "POST",
       "path": "/v1/inference/pest-detect",
       "function": "detect_pest",
@@ -872,7 +872,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 283,
+      "line": 286,
       "method": "POST",
       "path": "/v1/inference/yield-estimate",
       "function": "estimate_yield",
@@ -881,7 +881,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 352,
+      "line": 355,
       "method": "POST",
       "path": "/v1/sync/trigger",
       "function": "trigger_sync",
@@ -890,7 +890,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 384,
+      "line": 387,
       "method": "GET",
       "path": "/capabilities",
       "function": "capabilities",
@@ -899,7 +899,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 389,
+      "line": 392,
       "method": "GET",
       "path": "/metrics",
       "function": "metrics",
@@ -908,7 +908,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 399,
+      "line": 402,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -980,7 +980,7 @@
     {
       "service": "field-segmentation",
       "file": "services/field-segmentation/main.py",
-      "line": 372,
+      "line": 375,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -989,7 +989,7 @@
     {
       "service": "field-segmentation",
       "file": "services/field-segmentation/main.py",
-      "line": 377,
+      "line": 380,
       "method": "GET",
       "path": "/health",
       "function": "legacy_health",
@@ -998,7 +998,7 @@
     {
       "service": "field-segmentation",
       "file": "services/field-segmentation/main.py",
-      "line": 382,
+      "line": 385,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -1007,7 +1007,7 @@
     {
       "service": "field-segmentation",
       "file": "services/field-segmentation/main.py",
-      "line": 428,
+      "line": 431,
       "method": "POST",
       "path": "/v1/segment",
       "function": "segment",
@@ -1187,7 +1187,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 591,
+      "line": 594,
       "method": "POST",
       "path": "/v1/query",
       "function": "query_endpoint",
@@ -1196,7 +1196,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 601,
+      "line": 604,
       "method": "POST",
       "path": "/v1/ingest",
       "function": "ingest_endpoint",
@@ -1205,7 +1205,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 656,
+      "line": 659,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -1214,7 +1214,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 674,
+      "line": 677,
       "method": "GET",
       "path": "/health",
       "function": "legacy_health",
@@ -1223,7 +1223,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 679,
+      "line": 682,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -1367,7 +1367,7 @@
     {
       "service": "scout-ingest-service",
       "file": "services/scout-ingest-service/main.py",
-      "line": 178,
+      "line": 179,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -1376,7 +1376,7 @@
     {
       "service": "scout-ingest-service",
       "file": "services/scout-ingest-service/main.py",
-      "line": 183,
+      "line": 184,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -1385,7 +1385,7 @@
     {
       "service": "scout-ingest-service",
       "file": "services/scout-ingest-service/main.py",
-      "line": 216,
+      "line": 221,
       "method": "GET",
       "path": "/internal/scouting/external-observations",
       "function": "read_external_observations",
@@ -1394,7 +1394,7 @@
     {
       "service": "scout-ingest-service",
       "file": "services/scout-ingest-service/main.py",
-      "line": 335,
+      "line": 340,
       "method": "POST",
       "path": "/internal/ingest/submissions/odk",
       "function": "ingest_odk_submission",
@@ -1403,7 +1403,7 @@
     {
       "service": "scout-ingest-service",
       "file": "services/scout-ingest-service/main.py",
-      "line": 344,
+      "line": 349,
       "method": "POST",
       "path": "/internal/ingest/submissions/kobo",
       "function": "ingest_kobo_submission",
@@ -1412,7 +1412,7 @@
     {
       "service": "soil-service",
       "file": "services/soil-service/main.py",
-      "line": 208,
+      "line": 216,
       "method": "GET",
       "path": "/runtime-identity",
       "function": "runtime_evidence_identity",

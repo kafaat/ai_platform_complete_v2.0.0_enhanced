@@ -11348,27 +11348,27 @@
       ],
       "routes": [
         {
-          "value": "/health @ agents/notification/agent.py:733",
+          "value": "/health @ agents/notification/agent.py:737",
           "score": 12
         },
         {
-          "value": "/healthz @ agents/notification/agent.py:734",
+          "value": "/healthz @ agents/notification/agent.py:738",
           "score": 12
         },
         {
-          "value": "/metrics @ agents/notification/agent.py:784",
+          "value": "/metrics @ agents/notification/agent.py:788",
           "score": 12
         },
         {
-          "value": "/notification/test @ agents/notification/agent.py:797",
+          "value": "/notification/test @ agents/notification/agent.py:801",
           "score": 12
         },
         {
-          "value": "/notifications/test @ agents/notification/agent.py:719",
+          "value": "/notifications/test @ agents/notification/agent.py:723",
           "score": 12
         },
         {
-          "value": "/readyz @ agents/notification/agent.py:739",
+          "value": "/readyz @ agents/notification/agent.py:743",
           "score": 12
         },
         {
@@ -11564,7 +11564,7 @@
           "score": 12
         },
         {
-          "value": "sahool.> @ agents/notification/agent.py:513",
+          "value": "sahool.> @ agents/notification/agent.py:514",
           "score": 12
         },
         {
@@ -11624,7 +11624,7 @@
           "score": 12
         },
         {
-          "value": "sahool.notification.dead_letter @ agents/notification/agent.py:462",
+          "value": "sahool.notification.dead_letter @ agents/notification/agent.py:463",
           "score": 12
         },
         {
@@ -14819,23 +14819,23 @@
           "score": 28
         },
         {
-          "value": "/healthz @ services/scout-ingest-service/main.py:177",
+          "value": "/healthz @ services/scout-ingest-service/main.py:178",
           "score": 12
         },
         {
-          "value": "/internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:343",
+          "value": "/internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:348",
           "score": 12
         },
         {
-          "value": "/internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:334",
+          "value": "/internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:339",
           "score": 12
         },
         {
-          "value": "/internal/scouting/external-observations @ services/scout-ingest-service/main.py:215",
+          "value": "/internal/scouting/external-observations @ services/scout-ingest-service/main.py:220",
           "score": 12
         },
         {
-          "value": "/readyz @ services/scout-ingest-service/main.py:182",
+          "value": "/readyz @ services/scout-ingest-service/main.py:183",
           "score": 12
         }
       ],
@@ -18946,7 +18946,7 @@
           "score": 12
         },
         {
-          "value": "/health @ services/agriai-engine/main.py:59",
+          "value": "/health @ services/agriai-engine/main.py:62",
           "score": 12
         },
         {
@@ -18954,7 +18954,7 @@
           "score": 12
         },
         {
-          "value": "/healthz @ services/agriai-engine/main.py:54",
+          "value": "/healthz @ services/agriai-engine/main.py:57",
           "score": 12
         },
         {
@@ -18962,11 +18962,11 @@
           "score": 12
         },
         {
-          "value": "/metrics @ services/agriai-engine/main.py:89",
+          "value": "/metrics @ services/agriai-engine/main.py:92",
           "score": 12
         },
         {
-          "value": "/readyz @ services/agriai-engine/main.py:64",
+          "value": "/readyz @ services/agriai-engine/main.py:67",
           "score": 12
         },
         {
@@ -18974,7 +18974,7 @@
           "score": 12
         },
         {
-          "value": "/runtime-identity @ services/agriai-engine/main.py:96",
+          "value": "/runtime-identity @ services/agriai-engine/main.py:99",
           "score": 12
         },
         {
@@ -19030,19 +19030,19 @@
           "score": 12
         },
         {
-          "value": "/v1/plan @ services/agriai-engine/main.py:319",
+          "value": "/v1/plan @ services/agriai-engine/main.py:322",
           "score": 12
         },
         {
-          "value": "/v1/recommend @ services/agriai-engine/main.py:242",
+          "value": "/v1/recommend @ services/agriai-engine/main.py:245",
           "score": 12
         },
         {
-          "value": "/v1/replay/verify @ services/agriai-engine/main.py:335",
+          "value": "/v1/replay/verify @ services/agriai-engine/main.py:338",
           "score": 12
         },
         {
-          "value": "/v1/simulate @ services/agriai-engine/main.py:306",
+          "value": "/v1/simulate @ services/agriai-engine/main.py:309",
           "score": 12
         },
         {

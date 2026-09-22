@@ -37,6 +37,11 @@ ENV PATH=/opt/pylocal/bin:$PATH
 # نُضمّن مسار حزم --user في PYTHONPATH كي تُكتشَف الحزم المثبَّتة بـ--user مع /app.
 ENV PYTHONPATH=/opt/pylocal/lib/python3.12/site-packages:/app
 
+# الأوّليّات الأمنيّة المشتركة (stdlib-only) — تعريفٌ واحدٌ لمقارِن توكن الخدمة ثابتِ
+# الزمن بدل نسخةٍ محلّيّة تنحرف. بلا هذا السطر يفشل استيرادُ main.py عند الإقلاع،
+# وذاك المقصود: عطلُ توصيلٍ يُرى لا يُبتلَع (GUARDRAIL-FLAGS-FILE-NOT-IN-ANY-IMAGE-01).
+COPY shared/ /app/shared/
+
 # Copy application (الخدمة فقط، لا كامل المشروع — context هو الجذر)
 COPY services/edge-inference/ /app/
 
