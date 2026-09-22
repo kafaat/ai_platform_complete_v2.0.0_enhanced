@@ -1,0 +1,50 @@
+{
+  "schema": "sahool.gate01_adjudication/v1",
+  "version": 1,
+  "adjudication_id": "GATE01-ADJ-2026-09-22-002",
+  "gate_id": "GATE-01",
+  "status": "ISSUED",
+  "approved_by": "owner",
+  "adjudicated_on": "2026-09-22",
+  "expires_on": "2026-10-22",
+  "pr": 1074,
+  "one_time": true,
+  "phase0_baseline_ref": {
+    "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
+    "must_match_policy": true
+  },
+  "allowed_paths": [
+    "migrations/MANIFEST.txt",
+    "services/sahool-platform/api/event_bus.py"
+  ],
+  "allowed_gap_closures": [
+    "WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01"
+  ],
+  "authorized_patch_sha256": "e70450642a62e4b642874bd1ba3cee867cb9b1800346c8e250f857e85f6c77bd",
+  "authorized_blobs": {
+    "migrations/MANIFEST.txt": "4838026b2ed6a8dbd6337fcda29e86d64ca9402a",
+    "services/sahool-platform/api/event_bus.py": "894bda7de2bf5a6622e9db6649239b6563b11f34"
+  },
+  "bindings": {
+    "require_patch_digest": true,
+    "require_paths_subset": true,
+    "require_baseline_match": true,
+    "require_exact_head_sha": false,
+    "observed_head_sha_at_issue": "0d78e41567fc0291c3659fc7e81571c70b53de82"
+  },
+  "authorization_source": {
+    "kind": "current_user_instruction",
+    "text_ar": "ابداء بالشريحتين · تفويض مطلق قوم بتنفيذ · قوم بتنفيذ · اكمل الكل",
+    "context_ar": "اختيارٌ صريحٌ للشريحتين معاً بعد عرضِهما باسمَيهما وبأثرِ كلٍّ منهما على المسارات المجمّدة، ثمّ توجيهٌ متكرّرٌ بالتنفيذ. وسُئل المالكُ صراحةً «هل نبدأ أم ننتظر» في هذه الشريحة بعينها فأجاب «قوم بتنفيذ». ونُصّ قبل ذلك على أنّ GATE-01 يحجب وأنّ التفويضات الستّة السابقة كلُّها CONSUMED فلا يُعاد استعمالُ أيٍّ منها. لا إذنَ دمجٍ مستنتج.",
+    "prior_adjudication_ar": "GATE01-ADJ-2026-09-22-001 (الشريحة الأولى، خُتِم CONSUMED في #1072) — هذا سجلٌّ مستقلٌّ بمساراتٍ وبصمةٍ مختلفتين، لا تمديدٌ له."
+  },
+  "scope_limit_ar": "مساران مأذونان لا غير. في `MANIFEST.txt`: تسجيلُ `v233_event_outbox_claim_lease.sql` بعد `v231` و**قبل** `v206_rls_final_hardening.sql` كي يبقى v206 آخرَ مدخلٍ `.sql` (شرطٌ يفرضه `apply_in_compose.sh` وتسعةُ اختباراتٍ ساكنة) — ثلاثةُ أسطر. وفي `event_bus.py`: فصلُ النشر عن المعاملة (TX-1 إجارة · شبكة · TX-2 إنهاءٌ بـCAS)، وفحصُ `event_already_claimed` القرائيّ قبل النشر، وتوحيدُ وسمِ `'sent'` في `_mark_sent_if_lease_held`. **ولا يشمل هذا:** `v228_worker_claim_lease.sql` (هجرةٌ هبطت، لا تُعدَّل بأثرٍ رجعيّ) · `phase_runtime_workers.py` · `phase_runtime_store.py` · `db_ownership.yml` · أيَّ تغييرٍ لحالة GATE-01 العالميّة.",
+  "why_frozen_paths_ar": "الملفّان هما موضعُ العطل نفسُه. `event_bus.py` يحمل الحلقةَ التي تفتح معاملةً وتُبقيها مفتوحةً أثناء I/O شبكيّ — ولا طبقةَ أعلى تستطيع نقلَ النشر خارجها. و`MANIFEST.txt` هو السجلُّ القانونيُّ الوحيد للهجرات: هجرةٌ غيرُ مُسجَّلةٍ فيه لا تُطبَّق، ويحجب `test_every_manifest_migration_is_in_run_migrations_sql` على تسجيلٍ ناقص. فالمسّ بهما شرطٌ لا اختيار، وقد أُبقي عند أصغرِ شكلٍ يُنتِج الخاصّيّة.",
+  "honesty_limit_ar": "الرقعةُ تُغيّر ضمانةً معلنة: كانت المطالبةُ والنشر ذرّيَّين (SAVEPOINT) وصارت at-least-once. وهذا **مقصودٌ ومُعلَن** — الترتيبُ المعاكس (وسمٌ ثمّ نشر) يعطي at-most-once، أي فقدانَ حدثٍ عند تعطّلٍ بين الخطوتين، وهو أسوأُ من تكرارٍ يحسمه المستهلك بـ`event_id`. ومعه أُعيدت صياغةُ اختبارٍ قائم (`test_consumer_claims_before_side_effect_atomically`) كان يشترط الشكلَ القديم حرفيّاً؛ لم يُحذَف، وخاصّيّتاه محفوظتان بوسيلتين مقيستين سلوكيّاً.",
+  "provenance_honesty": {
+    "record_authored_by": "agent-for-current-user-instruction",
+    "independently_signed": false,
+    "guard_binds": "bytes_only",
+    "note_ar": "سجلٌّ لطلبٍ صريح في الجلسة، لا توقيعٌ مستقلّ. الوكيلُ كاتبُ الرقعة وكاتبُ السجلّ معاً، والحارسُ يربط البايتات لا الهويّة. و`branch_protection_contract_guard` يقول هذا نفسَه ويحجب عليه: «التفويضُ يُصدره من يحتاجه» ما لم يُفرَض `require_code_owner_review` في Ruleset — و.github/CODEOWNERS:19 يُسمّي المالكَ لكنّ الملفّ خاملٌ بلا ذلك الإعداد. فالمنشأُ المستقلّ يقع في إعدادات GitHub لا في هذا الملفّ، وهذا حدُّ صدقٍ مُعلَنٌ لا خفاء فيه."
+  }
+}

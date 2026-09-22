@@ -603,5 +603,7 @@
 \i migrations/v230_drawing_features.sql
 \echo '═══ 229. v231_soil_reconciliation_deferrals.sql ═══'
 \i migrations/v231_soil_reconciliation_deferrals.sql
-\echo '═══ 230. v206_rls_final_hardening.sql ═══'
+\echo '═══ 230. v233_event_outbox_claim_lease.sql ═══'
+\i migrations/v233_event_outbox_claim_lease.sql
+\echo '═══ 231. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

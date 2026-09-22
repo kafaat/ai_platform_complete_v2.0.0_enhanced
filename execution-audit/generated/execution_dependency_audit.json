@@ -5,7 +5,7 @@
   "runtime_verified":false,
   "python_files_parsed":1910,
   "route_handlers":1056,
-  "call_edges":79571,
+  "call_edges":79582,
   "dead_code_candidates":635,
   "duplicate_function_groups":58,
   "route_owners":27,
@@ -192236,345 +192236,422 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
+   "source":"event_already_claimed",
+   "target":"bool",
+   "line":496
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"event_already_claimed",
+   "target":"fetchval",
+   "line":497
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"event_already_claimed",
+   "target":"str",
+   "line":499
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"__init__",
+   "target":"uuid4",
+   "line":533
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
    "source":"run",
    "target":"info",
-   "line":510
+   "line":544
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"run",
    "target":"_process_batch",
-   "line":513
+   "line":547
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"run",
    "target":"sleep",
-   "line":515
+   "line":549
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"run",
    "target":"exception",
-   "line":519
+   "line":553
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"run",
    "target":"sleep",
-   "line":520
+   "line":554
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"run",
    "target":"info",
-   "line":521
+   "line":555
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_process_batch",
    "target":"acquire",
-   "line":539
+   "line":573
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_process_batch",
+   "target":"uuid4",
+   "line":574
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_process_batch",
    "target":"transaction",
-   "line":540
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_process_batch",
-   "target":"fetch",
-   "line":547
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_process_batch",
-   "target":"_send_one",
    "line":579
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_process_batch",
-   "target":"len",
-   "line":581
+   "target":"fetch",
+   "line":586
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"str",
-   "line":603
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"str",
-   "line":606
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"str",
-   "line":607
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"isinstance",
-   "line":609
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"loads",
-   "line":610
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"get",
-   "line":612
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"isinstance",
-   "line":612
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"get",
-   "line":615
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"isinstance",
-   "line":615
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"isoformat",
-   "line":617
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"transaction",
-   "line":621
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"claim_event",
+   "source":"_process_batch",
+   "target":"execute",
    "line":623
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"debug",
-   "line":625
+   "source":"_process_batch",
+   "target":"float",
+   "line":632
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"execute",
-   "line":630
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"_record_delivery_attempt",
+   "source":"_process_batch",
+   "target":"_send_one",
    "line":638
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"dumps",
-   "line":643
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"encode",
-   "line":643
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"publish",
-   "line":643
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"execute",
-   "line":644
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"_record_delivery_attempt",
-   "line":652
+   "source":"_process_batch",
+   "target":"len",
+   "line":640
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
    "target":"str",
-   "line":656
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"type",
-   "line":656
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"execute",
-   "line":659
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/event_bus.py",
-   "source":"_send_one",
-   "target":"_record_delivery_attempt",
    "line":673
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
-   "target":"error",
+   "target":"str",
+   "line":676
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"str",
+   "line":677
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"isinstance",
+   "line":679
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"loads",
+   "line":680
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"get",
    "line":682
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_send_one",
+   "target":"isinstance",
+   "line":682
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"get",
+   "line":685
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"isinstance",
+   "line":685
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"isoformat",
+   "line":687
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"event_already_claimed",
+   "line":695
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"transaction",
+   "line":696
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"_mark_sent_if_lease_held",
+   "line":697
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"_record_delivery_attempt",
+   "line":699
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"dumps",
+   "line":712
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"encode",
+   "line":712
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"publish",
+   "line":712
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"transaction",
+   "line":718
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"claim_event",
+   "line":719
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"_mark_sent_if_lease_held",
+   "line":720
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"_record_delivery_attempt",
+   "line":725
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"str",
+   "line":733
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"type",
+   "line":733
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"execute",
+   "line":736
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"_record_delivery_attempt",
+   "line":752
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
+   "target":"error",
+   "line":761
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_send_one",
    "target":"warning",
-   "line":691
+   "line":770
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_mark_sent_if_lease_held",
+   "target":"execute",
+   "line":790
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_mark_sent_if_lease_held",
+   "target":"endswith",
+   "line":800
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/event_bus.py",
+   "source":"_mark_sent_if_lease_held",
+   "target":"warning",
+   "line":802
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_record_delivery_attempt",
    "target":"transaction",
-   "line":709
+   "line":826
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_record_delivery_attempt",
    "target":"execute",
-   "line":710
+   "line":827
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_record_delivery_attempt",
    "target":"str",
-   "line":717
+   "line":834
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"_record_delivery_attempt",
    "target":"warning",
-   "line":724
+   "line":841
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"list_dead_letter",
    "target":"fetch",
-   "line":738
+   "line":855
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"list_dead_letter",
    "target":"dead_letter_summary",
-   "line":750
+   "line":867
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"list_dead_letter",
    "target":"dict",
-   "line":750
+   "line":867
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"requeue_dead_letter",
    "target":"execute",
-   "line":759
+   "line":876
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"requeue_dead_letter",
    "target":"execute",
-   "line":770
+   "line":887
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"requeue_dead_letter",
    "target":"int",
-   "line":781
+   "line":898
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"requeue_dead_letter",
    "target":"rsplit",
-   "line":781
+   "line":898
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/event_bus.py",
    "source":"requeue_dead_letter",
    "target":"str",
-   "line":781
+   "line":898
   },
   {
    "owner":"sahool-platform",

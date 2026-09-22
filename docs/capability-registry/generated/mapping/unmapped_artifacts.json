@@ -1924,6 +1924,10 @@
     "kind": "database"
   },
   {
+    "path": "migrations/v233_event_outbox_claim_lease.sql",
+    "kind": "database"
+  },
+  {
     "path": "migrations/v28_settings.sql",
     "kind": "database"
   },
@@ -7965,6 +7969,10 @@
   },
   {
     "path": "tests_v9/test_otp.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_outbox_claim_lease.py",
     "kind": "tests"
   },
   {

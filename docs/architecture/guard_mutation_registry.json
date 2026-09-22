@@ -1950,6 +1950,33 @@
         }
       ]
     },
+    "services/sahool-platform/api/event_bus.py": {
+      "$why_ar": "عاملُ الصندوق الصادر يحمل أحداثَ المنصّة إلى الوسيط؛ ومعاملةٌ مفتوحةٌ أثناء I/O أو إنهاءٌ بلا رمزٍ يُنتِجان تعطّلاً أو وسماً كاذباً. تُزرَع الطفرةُ في المنطق نفسِه لا في حارسٍ يصفه.",
+      "mutations": [
+        {
+          "expect": "test_an_expired_lease_is_recapturable_but_a_stale_finisher_cannot_write",
+          "find": "WHERE outbox_id = $1 AND claim_token IS NOT DISTINCT FROM $2",
+          "replace": "WHERE outbox_id = $1 AND $2::uuid IS NOT NULL  -- mutated: بلا CAS على الرمز",
+          "test": "tests_v9/test_outbox_claim_lease.py",
+          "why": "WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01: إنهاءٌ بالحالة وحدَها يسم صفّاً صار لعاملٍ آخر. إجارةٌ تنقضي أثناء نشرٍ بطيء يلتقطها ثانٍ، فيعود الأوّلُ المتأخّر ليسم 'sent' صفّاً لم ينشره هو — وهو بعينه ما يقوله سجلّ الفجوة: «ولمَ رمزٌ ولا تكفي الحالة»."
+        },
+        {
+          "expect": "test_the_batch_closes_its_transaction_before_sending",
+          "find": "            # ── الشبكةُ خارج كلّ معاملة: لا قفلَ صفٍّ ولا معاملةٌ مفتوحةٌ أثناء I/O ──\n            for row in rows:\n                await self._send_one(conn, row, token)\n\n            return len(rows)",
+          "replace": "                # mutated: الإرسالُ يعود داخل معاملة الدُّفعة\n                for row in rows:\n                    await self._send_one(conn, row, token)\n\n                return len(rows)",
+          "test": "tests_v9/test_outbox_claim_lease.py",
+          "why": "إعادةُ حلقة الإرسال داخل معاملة الدُّفعة تُعيد العطلَ الأصليّ حرفيّاً: أقفالُ FOR UPDATE SKIP LOCKED واتّصالُ المسبح محتجَزان أثناء النشر على الشبكة، فتباطؤُ الوسيط يصير تعطّلَ العامل ومسبحِه. وكان هذا مكتوباً في docstring الملفّ بوصفه مقصوداً."
+        },
+        {
+          "expect": "test_send_one_duplicate_event_skips_publish_no_double_side_effect",
+          "find": "if await event_already_claimed(conn, row[\"event_id\"]):",
+          "replace": "if False:  # mutated: بلا فحصٍ قرائيّ قبل النشر",
+          "test": "tests_v9/test_outbox_idempotent_consumption.py",
+          "why": "نقلُ كتابة المطالبة إلى ما بعد النشر (لمنع الابتلاع) أسقط ثابتاً قائماً: صفٌّ ثانٍ يحمل event_id سبق نشرُه كان يُنشَر مرّةً ثانية — مقيس `2 == 1`. الفحصُ القرائيُّ قبل النشر يُعيد الثابت بلا أن يُعيد المعاملةَ المفتوحةَ أثناء I/O. وهذه الطفرةُ تحرسه: إسقاطُ الفحص يُظهِر الأثرَ المزدوج فوراً."
+        }
+      ],
+      "test": "tests_v9/test_outbox_claim_lease.py"
+    },
     "services/sahool-platform/api/field_models.py": {
       "mutations": [
         {
