@@ -17,6 +17,8 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from canonical_weather_state import (  # noqa: E402
+    _CURRENT_ZERO_COERCED_FIELDS,
+    _DAILY_ZERO_COERCED_FIELDS,
     OWNER,
     SCHEMA_VERSION,
     STATE_SLOTS,
@@ -198,10 +200,21 @@ def test_current_slot_without_core_temperature_is_insufficient():
     assert s["products"]["current"]["quality_status"] == "insufficient"
 
 
-def test_current_slot_declares_the_upstream_zero_coercion_honestly():
-    """صدق صريح: التطبيع الأعلى يُسقِط الغياب إلى صفر ⇒ القيد يُعلَن ولا يُدَّعى الرصد."""
+def test_current_slot_declares_the_upstream_zero_coercion_only_while_it_happens():
+    """القيدُ يُنشَر **إن وقع التصفيرُ فعلاً، ولا يُنشَر إن لم يقع** — والطرفان عطلان.
+
+    كان هذا يُثبِّت وجودَ النصّ لأنّ `normalize_current` كان يُصفّر. ثمّ أصلحته
+    `ABSENT-READING-COERCED-TO-ZERO-READS-AS-A-MEASUREMENT-01` فصار يُبقي `None`،
+    **وبقي الإعلانُ منشوراً** — قيدٌ يصف واقعاً انتهى. فأُفرِغت القائمةُ (2026-09-22)
+    وصار العقدُ مشروطاً بها لا مثبَّتاً على حالةٍ بعينها.
+    """
     cur = build_canonical_weather_state(current_observation=_OBS)["products"]["current"]
-    assert any("indistinguishable from an absent reading" in lim for lim in cur["limitations"])
+    published = any("indistinguishable from an absent reading" in lim for lim in cur["limitations"])
+    coerced_and_observed = [f for f in _CURRENT_ZERO_COERCED_FIELDS if f in cur["observed_fields"]]
+    assert published == bool(coerced_and_observed), (
+        "القيدُ المنشورُ لا يطابق التصفيرَ الواقع — "
+        f"published={published} · coerced={coerced_and_observed}"
+    )
 
 
 def test_current_view_carries_state_lineage_and_is_a_superset():
@@ -630,14 +643,24 @@ def test_historical_absence_of_forecast_only_fields_does_not_degrade():
     assert "sunrise" in prod["optional_missing_fields"]
 
 
-def test_daily_slots_declare_the_upstream_zero_coercion_honestly():
+def test_daily_slots_declare_the_upstream_zero_coercion_only_while_it_happens():
+    """النظيرُ اليوميُّ للعقد المشروط — والمُصدِرُ هنا كان **غيرَ محروسٍ** أصلاً.
+
+    نظيرُه الآنيُّ يحرس نفسَه بـ`if coerced:`، أمّا هذا فكان يُلحِق النصَّ دائماً. فلمّا
+    خرجت الرياحُ من التصفير (2026-09-22) صار المستهلكُ يقرأ حرفيّاً «يُصفّر … `[]`» —
+    قائمةٌ فارغةٌ تفضح أنّ النصَّ إنشاءٌ لا قياس.
+    """
     s = build_canonical_weather_state(
         forecast_series=_series([_day()]), historical_series=_series([_day()])
     )
     for slot in ("forecast", "historical"):
-        assert any(
+        published = any(
             "indistinguishable from an absent reading" in lim
             for lim in s["products"][slot]["limitations"]
+        )
+        assert published == bool(_DAILY_ZERO_COERCED_FIELDS), (
+            f"{slot}: القيدُ المنشورُ لا يطابق التصفيرَ الواقع — "
+            f"published={published} · declared={list(_DAILY_ZERO_COERCED_FIELDS)}"
         )
 
 

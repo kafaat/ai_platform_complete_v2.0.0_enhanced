@@ -152,9 +152,26 @@ def _as_list(payload: dict[str, Any], section: str, key: str) -> list[Any]:
 # اتّجاه **الإذن بالريّ**، وهو الاتّجاه الذي يُغرِق حقلاً. والإعلانُ كان يجعله مرئيّاً
 # لا مقبولاً؛ ومستهلكُ الريّ الآن يفشل مغلقاً عند الغياب، فالتصفيرُ هنا كان يمنعه من
 # أن يرى الغيابَ أصلاً — حاجزٌ عند الحافّة يُبطِل فشلاً مُغلَقاً في النواة.
-_DAILY_ZERO_COERCED_FIELD_MAP = {
-    "wind_max_kmh": "wind_max_ms",
-}
+# **وخرجت منه الرياحُ (2026-09-22)، والحجّةُ التي أبقتها سقطت بالقياس لا بالرأي.**
+# كان المكتوبُ هنا وفي حارسِه: «والرياحُ تبقى: لا مستهلكَ يطرحها من كمّيّةٍ يُصدِرها
+# لمزارع». والمستهلكُ موجود:
+# `services/sahool-platform/api/phase_runtime_workers.py:608` يمرّر `wind_max_ms`
+# إلى `wind_2m_ms` في `get_et0_product`، و`et0_mm` يقود `compute_daily_ledger_entry`
+# — دفترَ الماء الذي يُصدِر كمّيّةَ الريّ.
+#
+# والاتّجاهُ معكوسُ اتّجاه المطر وكلاهما ضرر: في Penman-Monteith يدخل `u2` بسطاً
+# ومقاماً، فريحٌ صفرٌ **تُنقِص** ET0 ⇒ احتياجاً أقلّ ⇒ ريّاً دون الحاجة وإجهادَ عطش.
+# وانحيازُ المطر كان إلى الإغراق؛ فالغيابُ المُقنَّع يكذب في الاتّجاهين.
+#
+# **والعطبُ الأدقّ أنّ التصفيرَ كان يُعمي مستهلكاً صادقاً:** في الدالّة نفسِها يُعلِن
+# العاملُ غيابَ المطر صراحةً (`rain_assumed_zero = _precip is None`) — ولا يستطيع مثلَها
+# للرياح لأنّ الحافّةَ صفّرتها قبل أن يراها. حاجزٌ عند الحافّة يُبطِل صدقاً في النواة،
+# وهو الصنفُ نفسُه الذي أُغلق للمطر. و`penman_monteith_et0_mm` يقبل `None` سلفاً
+# فيهبط إلى `hargreaves` أو يُعلن `insufficient` — الصدقُ يبلغ آليّةً قائمة.
+#
+# فصارت القائمةُ فارغة: لا حقلَ يُصفَّر عند هذه الحافّة، ولا قيدَ يُنشَر عنه. وقيدٌ
+# يُعلَن ولا وجودَ له أسوأُ من غيابه — يُدرِّب قارئَه على تجاهل القيود.
+_DAILY_ZERO_COERCED_FIELD_MAP: dict[str, str] = {}
 _DAILY_ZERO_COERCED_SOURCE_FIELDS = tuple(_DAILY_ZERO_COERCED_FIELD_MAP)
 #: أسماءُ الطبقة القانونيّة المقابلة — ما **يجب** أن يسمّيه قيدُ المستهلك.
 _DAILY_ZERO_COERCED_PUBLISHED_FIELDS = tuple(_DAILY_ZERO_COERCED_FIELD_MAP.values())
@@ -428,7 +445,7 @@ def normalize_daily(
     for idx, day in enumerate(times):
         sunshine_s = _at(_as_list(data, "daily", "sunshine_duration"), idx)
         daylight_s = _at(_as_list(data, "daily", "daylight_duration"), idx)
-        wind_max_kmh = _at(_as_list(data, "daily", "wind_speed_10m_max"), idx, 0)
+        wind_max_kmh = _at(_as_list(data, "daily", "wind_speed_10m_max"), idx)
         days.append(
             {
                 "date": day,
@@ -436,10 +453,9 @@ def normalize_daily(
                 # ``_finite`` في نواة GDD فيُحتسَب يوماً صالحاً بمساهمة صفر: يبخس
                 # التراكم **ويُضخّم** عدد الأيّام المرصودة ونسبة التغطية معاً. و``0.0°C``
                 # قراءةٌ فيزيائيّة مشروعة، فلا سبيل لتمييزها من الغياب بعد التصفير.
-                # (والرياحُ وحدَها تبقى مُصفَّرةً هنا، وقيدُها مُعلَنٌ في
-                # ``_DAILY_ZERO_COERCED_SOURCE_FIELDS``. أمّا المطرُ فخرج من الإعلان:
-                # «لا مطر» قراءةٌ معقولةٌ **للعرض** وكاذبةٌ **للريّ** — تُطرَح من الاحتياج
-                # فترفع الكمّيّة الموصى بها.)
+                # (ولم يبقَ حقلٌ مُصفَّرٌ هنا: خرج المطرُ 2026-09-04، وخرجت الرياحُ
+                # 2026-09-22 حين سقطت حجّةُ بقائها بالقياس — انظر
+                # ``_DAILY_ZERO_COERCED_FIELD_MAP`` أعلاه.)
                 "temp_max_c": _at(_as_list(data, "daily", "temperature_2m_max"), idx),
                 "temp_min_c": _at(_as_list(data, "daily", "temperature_2m_min"), idx),
                 "precipitation_mm": _at(_as_list(data, "daily", "precipitation_sum"), idx),
@@ -447,7 +463,9 @@ def normalize_daily(
                 "sunshine_hours": round(float(sunshine_s) / 3600, 2)
                 if sunshine_s is not None
                 else None,
-                "wind_max_ms": round(float(wind_max_kmh or 0) / 3.6, 3),
+                "wind_max_ms": round(float(wind_max_kmh) / 3.6, 3)
+                if wind_max_kmh is not None
+                else None,
                 "wind_max_kmh": wind_max_kmh,
                 "weather_code": _at(_as_list(data, "daily", "weather_code"), idx),
                 "sunrise": _at(_as_list(data, "daily", "sunrise"), idx),

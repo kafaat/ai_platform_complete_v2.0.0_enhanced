@@ -10004,6 +10004,7 @@
         "services/sahool-platform/tests/test_weather_et0_client.py",
         "services/sahool-platform/tests/test_weather_sources.py",
         "services/sahool-platform/tests/test_weather_tile_engine_v10.py",
+        "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
         "services/weather-service/tests/test_canonical_weather_state.py",
         "services/weather-service/tests/test_et0.py",
         "services/weather-service/tests/test_et0_agro_product.py",
