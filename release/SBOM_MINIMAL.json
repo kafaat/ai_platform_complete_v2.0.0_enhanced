@@ -25335,7 +25335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1602f1e50eeffa93725ec2ac8929ffc347095851cc5bf5d3b57526896e8bc014"
+          "content": "3f6fb950fcee249f6e646ee9a93e923422d9ad4a4996ee8a6a6ce6c6bf742c06"
         }
       ],
       "name": "services/sahool-platform/tests/test_fao56_agronomic_validation.py",
@@ -28045,7 +28045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3195d604af1a1923d682c770df34eb48d6b2a85aaab4abdd4babda8611bc1922"
+          "content": "b5501fd545d9ad5ce8940a06051713ee52061521adcdb3d0e43e2211be82fc5f"
         }
       ],
       "name": "services/sahool-platform/tests/test_water_balance.py",

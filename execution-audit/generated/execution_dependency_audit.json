@@ -5,7 +5,7 @@
   "runtime_verified":false,
   "python_files_parsed":1910,
   "route_handlers":1056,
-  "call_edges":79560,
+  "call_edges":79571,
   "dead_code_candidates":635,
   "duplicate_function_groups":58,
   "route_owners":27,
@@ -406242,63 +406242,91 @@
    "file":"services/sahool-platform/tests/test_fao56_agronomic_validation.py",
    "source":"test_effective_rain_usda_scs_anchors",
    "target":"_effective_rain",
-   "line":70
+   "line":78
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_fao56_agronomic_validation.py",
    "source":"test_effective_rain_usda_scs_anchors",
    "target":"_effective_rain",
-   "line":71
+   "line":79
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_fao56_agronomic_validation.py",
    "source":"test_effective_rain_usda_scs_anchors",
    "target":"_effective_rain",
-   "line":72
+   "line":80
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_fao56_agronomic_validation.py",
    "source":"test_effective_rain_usda_scs_anchors",
    "target":"abs",
-   "line":72
+   "line":80
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_fao56_agronomic_validation.py",
    "source":"test_effective_rain_usda_scs_anchors",
    "target":"_effective_rain",
-   "line":73
+   "line":81
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_fao56_agronomic_validation.py",
    "source":"test_effective_rain_usda_scs_anchors",
    "target":"abs",
-   "line":73
+   "line":81
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_fao56_agronomic_validation.py",
+   "source":"test_effective_rain_usda_scs_anchors",
+   "target":"_effective_rain",
+   "line":82
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_fao56_agronomic_validation.py",
+   "source":"test_effective_rain_usda_scs_anchors",
+   "target":"abs",
+   "line":82
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_fao56_agronomic_validation.py",
+   "source":"test_effective_rain_usda_scs_anchors",
+   "target":"_effective_rain",
+   "line":83
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_fao56_agronomic_validation.py",
+   "source":"test_effective_rain_usda_scs_anchors",
+   "target":"abs",
+   "line":83
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_fao56_agronomic_validation.py",
    "source":"test_effective_rain_is_monotonic_nondecreasing",
    "target":"range",
-   "line":78
+   "line":88
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_fao56_agronomic_validation.py",
    "source":"test_effective_rain_is_monotonic_nondecreasing",
    "target":"_effective_rain",
-   "line":79
+   "line":89
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_fao56_agronomic_validation.py",
    "source":"test_effective_rain_is_monotonic_nondecreasing",
    "target":"float",
-   "line":79
+   "line":89
   },
   {
    "owner":"sahool-platform",
@@ -459783,247 +459811,296 @@
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_effective_rain_below_75_uses_quadratic_branch",
+   "source":"test_effective_rain_below_the_breakpoint_uses_quadratic_branch",
    "target":"_effective_rain",
-   "line":49
+   "line":62
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_effective_rain_below_75_uses_quadratic_branch",
+   "source":"test_effective_rain_below_the_breakpoint_uses_quadratic_branch",
    "target":"isclose",
-   "line":49
+   "line":62
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_effective_rain_below_75_uses_quadratic_branch",
+   "source":"test_effective_rain_below_the_breakpoint_uses_quadratic_branch",
    "target":"_effective_rain",
-   "line":50
+   "line":63
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_effective_rain_at_threshold_75",
+   "source":"test_effective_rain_below_the_breakpoint_uses_quadratic_branch",
    "target":"_effective_rain",
-   "line":54
+   "line":65
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_effective_rain_above_75_uses_linear_branch",
-   "target":"_effective_rain",
-   "line":59
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_effective_rain_above_75_uses_linear_branch",
+   "source":"test_effective_rain_below_the_breakpoint_uses_quadratic_branch",
    "target":"approx",
-   "line":59
+   "line":65
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_effective_rain_above_75_uses_linear_branch",
+   "source":"test_effective_rain_is_continuous_at_the_breakpoint",
    "target":"_effective_rain",
-   "line":60
+   "line":73
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_injected_et0_and_method_flow_through",
-   "target":"WeatherInput",
-   "line":67
+   "source":"test_effective_rain_is_continuous_at_the_breakpoint",
+   "target":"approx",
+   "line":73
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_injected_et0_and_method_flow_through",
-   "target":"water_balance",
-   "line":68
+   "source":"test_effective_rain_is_continuous_at_the_breakpoint",
+   "target":"_effective_rain",
+   "line":74
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_known_crop_stage_kc",
-   "target":"WeatherInput",
-   "line":75
+   "source":"test_effective_rain_is_continuous_at_the_breakpoint",
+   "target":"_effective_rain",
+   "line":74
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_known_crop_stage_kc",
-   "target":"water_balance",
-   "line":76
+   "source":"test_effective_rain_is_continuous_at_the_breakpoint",
+   "target":"abs",
+   "line":74
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_known_crop_stage_kc",
-   "target":"isclose",
+   "source":"test_effective_rain_above_the_breakpoint_uses_linear_branch",
+   "target":"_effective_rain",
    "line":79
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_unknown_crop_uses_default_curve",
+   "source":"test_effective_rain_above_the_breakpoint_uses_linear_branch",
+   "target":"approx",
+   "line":79
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_balance.py",
+   "source":"test_effective_rain_above_the_breakpoint_uses_linear_branch",
+   "target":"_effective_rain",
+   "line":80
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_balance.py",
+   "source":"test_effective_rain_never_exceeds_the_rain_that_fell",
+   "target":"_effective_rain",
+   "line":86
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_balance.py",
+   "source":"test_water_balance_injected_et0_and_method_flow_through",
    "target":"WeatherInput",
-   "line":83
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_unknown_crop_uses_default_curve",
-   "target":"water_balance",
-   "line":84
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_unknown_crop_uses_default_curve",
-   "target":"startswith",
-   "line":88
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_unknown_stage_defaults_kc_to_one",
-   "target":"WeatherInput",
-   "line":92
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_unknown_stage_defaults_kc_to_one",
-   "target":"water_balance",
    "line":93
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_no_irrigation_branch_when_rain_covers_need",
-   "target":"WeatherInput",
-   "line":98
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_no_irrigation_branch_when_rain_covers_need",
+   "source":"test_water_balance_injected_et0_and_method_flow_through",
    "target":"water_balance",
-   "line":99
+   "line":94
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_no_irrigation_branch_when_rain_covers_need",
-   "target":"startswith",
+   "source":"test_water_balance_known_crop_stage_kc",
+   "target":"WeatherInput",
    "line":101
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_low_need_branch",
-   "target":"WeatherInput",
-   "line":106
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_low_need_branch",
+   "source":"test_water_balance_known_crop_stage_kc",
    "target":"water_balance",
-   "line":107
+   "line":102
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_low_need_branch",
-   "target":"startswith",
+   "source":"test_water_balance_known_crop_stage_kc",
+   "target":"isclose",
+   "line":105
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_balance.py",
+   "source":"test_water_balance_unknown_crop_uses_default_curve",
+   "target":"WeatherInput",
    "line":109
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_full_irrigation_branch",
-   "target":"WeatherInput",
-   "line":113
+   "source":"test_water_balance_unknown_crop_uses_default_curve",
+   "target":"water_balance",
+   "line":110
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_full_irrigation_branch",
-   "target":"water_balance",
+   "source":"test_water_balance_unknown_crop_uses_default_curve",
+   "target":"startswith",
    "line":114
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_full_irrigation_branch",
-   "target":"startswith",
-   "line":116
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_net_equals_etc_minus_eff_rain_clamped",
+   "source":"test_water_balance_unknown_stage_defaults_kc_to_one",
    "target":"WeatherInput",
-   "line":122
+   "line":118
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_net_equals_etc_minus_eff_rain_clamped",
+   "source":"test_water_balance_unknown_stage_defaults_kc_to_one",
    "target":"water_balance",
-   "line":123
+   "line":119
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_net_equals_etc_minus_eff_rain_clamped",
-   "target":"max",
+   "source":"test_water_balance_no_irrigation_branch_when_rain_covers_need",
+   "target":"WeatherInput",
    "line":124
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_water_balance_net_equals_etc_minus_eff_rain_clamped",
-   "target":"isclose",
+   "source":"test_water_balance_no_irrigation_branch_when_rain_covers_need",
+   "target":"water_balance",
    "line":125
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_result_to_dict_shape_and_rounding",
+   "source":"test_water_balance_no_irrigation_branch_when_rain_covers_need",
+   "target":"startswith",
+   "line":127
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_balance.py",
+   "source":"test_water_balance_low_need_branch",
    "target":"WeatherInput",
    "line":132
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_result_to_dict_shape_and_rounding",
-   "target":"to_dict",
-   "line":133
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_water_balance.py",
-   "source":"test_result_to_dict_shape_and_rounding",
+   "source":"test_water_balance_low_need_branch",
    "target":"water_balance",
    "line":133
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
+   "source":"test_water_balance_low_need_branch",
+   "target":"startswith",
+   "line":135
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_balance.py",
+   "source":"test_water_balance_full_irrigation_branch",
+   "target":"WeatherInput",
+   "line":139
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_balance.py",
+   "source":"test_water_balance_full_irrigation_branch",
+   "target":"water_balance",
+   "line":140
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_balance.py",
+   "source":"test_water_balance_full_irrigation_branch",
+   "target":"startswith",
+   "line":142
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_balance.py",
+   "source":"test_water_balance_net_equals_etc_minus_eff_rain_clamped",
+   "target":"WeatherInput",
+   "line":148
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_balance.py",
+   "source":"test_water_balance_net_equals_etc_minus_eff_rain_clamped",
+   "target":"water_balance",
+   "line":149
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_balance.py",
+   "source":"test_water_balance_net_equals_etc_minus_eff_rain_clamped",
+   "target":"max",
+   "line":150
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_balance.py",
+   "source":"test_water_balance_net_equals_etc_minus_eff_rain_clamped",
+   "target":"isclose",
+   "line":151
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_balance.py",
+   "source":"test_result_to_dict_shape_and_rounding",
+   "target":"WeatherInput",
+   "line":158
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_balance.py",
+   "source":"test_result_to_dict_shape_and_rounding",
+   "target":"to_dict",
+   "line":159
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_balance.py",
+   "source":"test_result_to_dict_shape_and_rounding",
+   "target":"water_balance",
+   "line":159
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_balance.py",
    "source":"test_result_to_dict_shape_and_rounding",
    "target":"set",
-   "line":136
+   "line":162
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_balance.py",
    "source":"test_result_dataclass_default_kc_source",
    "target":"WaterBalanceResult",
-   "line":153
+   "line":179
   },
   {
    "owner":"sahool-platform",
