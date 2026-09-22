@@ -223,3 +223,8 @@ def register_default_tasks(
             alerts_evaluation_interval_seconds,
             run_alerts_evaluation,
         )
+    # D1: تسليمُ نيّات إبطال كاش الراستر إلى مالكها بعد الالتزام. يُسجَّل هنا لا في
+    # main.py (سقفُ أسطره ممتلئ)، ومسبحُه يُقرأ عند كلّ تكّة من main (العقد في الوحدة).
+    from api.spatial_sync import register_dispatch_task
+
+    register_dispatch_task(scheduler, cluster_singleton)

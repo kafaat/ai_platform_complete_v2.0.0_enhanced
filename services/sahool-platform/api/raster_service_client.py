@@ -452,6 +452,59 @@ async def process_indicator_batch(
     )
 
 
+async def enqueue_raster_cache_invalidation(
+    field_id: str,
+    *,
+    tenant_id: str,
+    reason: str,
+    request_id: str,
+    metadata: dict[str, Any] | None = None,
+    timeout_s: float = 5.0,
+) -> dict[str, Any]:
+    """D1: send a field cache-invalidation **command** to raster-service, the table owner.
+
+    ``raster_cache_invalidations`` is owned by raster-service (db_ownership.yml); the
+    platform used to INSERT into it directly from ``spatial_sync``. The command carries a
+    deterministic ``request_id`` (idempotency key; raster-service reads it before inserting)
+    so a retried command never enqueues twice. The tenant travels in the trusted ``X-Tenant-Id`` header **and**
+    in the body: raster-service asserts they agree (403 otherwise).
+
+    Short timeout on purpose: callers invoke this inside a field-write transaction and a
+    hanging raster-service must not hold that transaction open for long.
+    """
+    return await raster_post_json(
+        f"/v1/fields/{field_id}/cache-invalidations",
+        tenant_id=tenant_id,
+        payload={
+            "tenant_id": str(tenant_id),
+            "reason": reason,
+            "request_id": request_id,
+            "metadata": dict(metadata or {}),
+        },
+        timeout_s=timeout_s,
+    )
+
+
+async def register_cog_asset(
+    *,
+    tenant_id: str,
+    payload: dict[str, Any],
+    timeout_s: float = 15.0,
+) -> dict[str, Any]:
+    """D1: register a COG in ``raster_registry`` through its owner (raster-service).
+
+    Returns raster-service's ``{"registered": true, "entry": {...}}`` — the catalogue row
+    as persisted, which the platform turns into a STAC item. ``field_id`` is mandatory on
+    the owner side (v114's unique key includes it; a NULL field never deduplicates).
+    """
+    return await raster_post_json(
+        "/v1/registry/cogs",
+        tenant_id=tenant_id,
+        payload={**payload, "tenant_id": str(tenant_id)},
+        timeout_s=timeout_s,
+    )
+
+
 async def get_job_result(
     job_id: str,
     *,

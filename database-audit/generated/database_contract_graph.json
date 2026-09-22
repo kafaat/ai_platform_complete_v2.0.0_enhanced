@@ -5727,10 +5727,13 @@
     },
     {
       "code_readers": [
-        "services/sahool-platform/api/onboarding.py"
+        "services/sahool-platform/api/onboarding.py",
+        "services/sahool-platform/api/spatial_sync.py"
       ],
       "code_writers": [
-        "services/sahool-platform/api/onboarding.py"
+        "services/sahool-platform/api/onboarding.py",
+        "services/sahool-platform/api/spatial_sync.py",
+        "services/sahool-platform/tests/test_d1_raster_owner_write_commands.py"
       ],
       "created_in": "init_v8.sql",
       "has_tenant_id": true,
@@ -5782,11 +5785,14 @@
     },
     {
       "code_readers": [
-        "services/raster-service/cache_invalidation_worker.py"
+        "services/raster-service/cache_invalidation_worker.py",
+        "services/raster-service/db_persist.py"
       ],
       "code_writers": [
         "services/raster-service/cache_invalidation_worker.py",
-        "services/sahool-platform/api/spatial_sync.py"
+        "services/raster-service/db_persist.py",
+        "services/raster-service/test_registry_writes_owner_api.py",
+        "services/sahool-platform/tests/test_d1_raster_owner_write_commands.py"
       ],
       "created_in": "v96_spatial_geometry_integrity.sql",
       "has_tenant_id": true,
@@ -5804,7 +5810,8 @@
       ],
       "code_writers": [
         "services/raster-service/db_persist.py",
-        "services/sahool-platform/api/routers/gis_cloud_native.py"
+        "services/raster-service/test_registry_writes_owner_api.py",
+        "services/sahool-platform/tests/test_d1_raster_owner_write_commands.py"
       ],
       "created_in": "v114_cloud_native_gis_best_practices.sql",
       "has_tenant_id": true,

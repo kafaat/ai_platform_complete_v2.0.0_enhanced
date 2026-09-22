@@ -304,14 +304,69 @@ async def insert_raster_registry_entry(
 
     raster_registry كان يكتبه فقط مسار REST يدويّ (/cog-registry)؛ الأنبوب لم يملأه ⇒
     كتالوج GIS فارغ. نكتب صفّاً مُقابِلاً عند كلّ أصل ناجح. best-effort (لا يُفشل المعالجة).
-    RLS أصرم هنا (FORCE + WITH CHECK): نضبط app.current_tenant قبل الإدراج فيطابق tenant_id."""
+    RLS أصرم هنا (FORCE + WITH CHECK): نضبط app.current_tenant قبل الإدراج فيطابق tenant_id.
+
+    D1: الكتابةُ نفسُها صارت في ``upsert_raster_registry_entry`` (تُعيد الصفّ) كي يخدم
+    المسارَ الداخليّ وأمرَ الكتابة المملوك (``POST /v1/registry/cogs``) استعلامٌ واحد."""
+    row = await upsert_raster_registry_entry(
+        tenant_id=tenant_id,
+        field_id=field_id,
+        scene_id=scene_id,
+        product_date=product_date,
+        index_type=index_type,
+        cog_url=cog_url,
+        cloud_pct=cloud_pct,
+        quality_score=quality_score,
+        resolution_m=resolution_m,
+        bbox=bbox,
+        bands=bands,
+        metadata=metadata,
+    )
+    return row is not None
+
+
+def _jsonish_text(value: object) -> object:
+    """asyncpg يُعيد jsonb نصّاً (بلا codec مُسجَّل) — نُعيده كائناً؛ نصٌّ غيرُ صالح يبقى كما هو."""
+    if isinstance(value, (bytes, bytearray)):
+        value = value.decode("utf-8", errors="replace")
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except ValueError:
+            return value
+    return value
+
+
+async def upsert_raster_registry_entry(
+    *,
+    tenant_id: str | None,
+    field_id: str | None,
+    scene_id: str | None,
+    product_date: str | None,
+    index_type: str,
+    cog_url: str,
+    cloud_pct: float | None,
+    quality_score: int | None,
+    resolution_m: float | None = 10.0,
+    bbox: list | dict | None = None,
+    bands: dict | list | None = None,
+    metadata: dict | None = None,
+) -> dict | None:
+    """يُدرج/يحدّث صفّاً في ``raster_registry`` ويُعيده — الكتابةُ الوحيدة للكتالوج (D1).
+
+    ``raster_registry`` مملوكٌ لـ``raster-service`` (`docs/architecture/db_ownership.yml`)؛
+    كانت المنصّة تكتبه مباشرةً من ``/cog-registry`` فصارت تُرسل أمرَ كتابةٍ مُصادَقاً إلى
+    ``POST /v1/registry/cogs`` وهذه الدالّةُ تنفّذه. idempotent على مفتاح v114 الفريد
+    ``(tenant_id, field_id, product_date, index_type, cog_url)``. RLS: ``app.current_tenant``
+    يُضبط قبل الكتابة (FORCE + WITH CHECK) **و**``tenant_id`` يُمرَّر صراحةً في القيم.
+    يُعيد ``None`` عند مُدخَلٍ غير صالح أو قاعدةٍ متعذّرة — لا يرمي."""
     if not _valid_field_id_text(field_id) or not (tenant_id and _valid_uuid_text(tenant_id)):
-        return False
+        return None
     if not product_date or not cog_url:
-        return False
+        return None
     conn = await _connect()
     if conn is None:
-        return False
+        return None
     bbox_json = json.dumps(bbox) if bbox is not None else None
     bands_json = json.dumps(bands) if bands is not None else None
     meta_json = json.dumps(metadata or {})
@@ -332,10 +387,16 @@ async def insert_raster_registry_entry(
             bbox = EXCLUDED.bbox,
             bands = EXCLUDED.bands,
             metadata = raster_registry.metadata || EXCLUDED.metadata
+        RETURNING id::text AS id, tenant_id::text AS tenant_id, field_id, scene_id,
+                  product_date::text AS product_date, index_type, cog_url,
+                  cloud_pct::float8 AS cloud_pct, quality_score,
+                  resolution_m::float8 AS resolution_m,
+                  bbox::text AS bbox, bands::text AS bands, metadata::text AS metadata,
+                  created_at::text AS created_at
     """
     try:
         await conn.execute("SELECT set_config('app.current_tenant', $1, false)", str(tenant_id))
-        await conn.execute(
+        row = await conn.fetchrow(
             sql,
             str(tenant_id),
             field_id,
@@ -350,10 +411,95 @@ async def insert_raster_registry_entry(
             bands_json,
             meta_json,
         )
-        return True
+        if row is None:
+            return None
+        out = dict(row)
+        for key in ("bbox", "bands", "metadata"):
+            out[key] = _jsonish_text(out.get(key))
+        return out
     except Exception as e:  # noqa: BLE001 — الكتالوج best-effort لا يُفشل المعالجة
         logger.warning("raster_registry bridge skipped: %s", e)
-        return False
+        return None
+    finally:
+        await conn.close()
+
+
+# مفتاحُ طلب الإبطال: محارفُ آمنة بطول محدود (يُخزَّن في metadata->>'request_id').
+_REQUEST_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
+
+
+def _valid_request_id_text(value: str | None) -> bool:
+    return bool(value) and bool(_REQUEST_ID_RE.fullmatch(str(value)))
+
+
+async def enqueue_cache_invalidation(
+    *,
+    tenant_id: str | None,
+    field_id: str | None,
+    reason: str,
+    request_id: str,
+    metadata: dict | None = None,
+) -> dict | None:
+    """يُدرج طلبَ إبطالٍ في ``raster_cache_invalidations`` — الكتابةُ المملوكة الوحيدة (D1).
+
+    الجدولُ طابورٌ يملكه ``raster-service`` (v96؛ يستهلكه ``cache_invalidation_worker``).
+    كانت المنصّة تُدرج فيه مباشرةً عند تغيّر هندسة الحقل (``mark_raster_cache_stale``)؛
+    صارت تُرسل أمراً مُصادَقاً إلى ``POST /v1/fields/{field_id}/cache-invalidations`` وهذه
+    الدالّةُ تنفّذه.
+
+    **idempotent بمفتاح الطلب:** ``request_id`` يُخزَّن في ``metadata`` ويُقرأ به قبل
+    الإدراج. طلبٌ مكرَّر (إعادةُ محاولة بعد مهلة، نشرٌ مزدوج) يُعيد الصفَّ القائم
+    بـ``deduplicated=True`` ولا يُدرج ثانياً. **حدٌّ مُعلَن:** الفحصُ ثمّ الإدراجُ ليسا
+    ذرّيَّين، فطلبان متزامنان بالمفتاح نفسِه قد يُدرجان صفَّين؛ فهرسٌ فريد جزئيّ على
+    ``(tenant_id, field_id, (metadata->>'request_id'))`` يُغلق ذلك — وهو هجرةٌ على مسارٍ
+    مجمَّد (GATE-01: ``migrations/MANIFEST.txt``) تحتاج تفويضَ المالك، فلم تُدرَج هنا.
+    الكودُ جاهزٌ لها: ``UniqueViolation`` عند وجودها ⇒ إعادةُ قراءةٍ لا فشل.
+
+    **العزل:** ``app.current_tenant`` يُضبط قبل أيّ عبارة (RLS FORCE + WITH CHECK)
+    **و**المستأجِر مُسنَدٌ صراحةً في ``WHERE``/``VALUES`` — دفاعٌ عميق لا اعتمادٌ على
+    السياسة وحدَها. يُعيد ``None`` عند مُدخَلٍ غير صالح أو قاعدةٍ متعذّرة — لا يرمي."""
+    if not _valid_field_id_text(field_id) or not (tenant_id and _valid_uuid_text(tenant_id)):
+        return None
+    if not _valid_request_id_text(request_id) or not str(reason or "").strip():
+        return None
+    meta = dict(metadata or {})
+    meta["request_id"] = str(request_id)
+    lookup = """
+        SELECT id, status, created_at::text AS created_at
+        FROM raster_cache_invalidations
+        WHERE tenant_id = $1::uuid AND field_id = $2
+          AND metadata->>'request_id' = $3
+        ORDER BY id
+        LIMIT 1
+    """
+    insert = """
+        INSERT INTO raster_cache_invalidations (tenant_id, field_id, reason, metadata)
+        VALUES ($1::uuid, $2, $3, $4::jsonb)
+        RETURNING id, status, created_at::text AS created_at
+    """
+    conn = await _connect()
+    if conn is None:
+        return None
+    try:
+        await conn.execute("SELECT set_config('app.current_tenant', $1, false)", str(tenant_id))
+        existing = await conn.fetchrow(lookup, str(tenant_id), field_id, str(request_id))
+        if existing is not None:
+            return {**dict(existing), "deduplicated": True}
+        try:
+            row = await conn.fetchrow(
+                insert, str(tenant_id), field_id, str(reason).strip(), json.dumps(meta)
+            )
+        except Exception as e:  # noqa: BLE001 — إن وُجد فهرسٌ فريد لمفتاح الطلب فالسباقُ يحسمه
+            if type(e).__name__ != "UniqueViolationError":
+                raise
+            row = None
+        if row is not None:
+            return {**dict(row), "deduplicated": False}
+        raced = await conn.fetchrow(lookup, str(tenant_id), field_id, str(request_id))
+        return {**dict(raced), "deduplicated": True} if raced is not None else None
+    except Exception as e:  # noqa: BLE001 — غياب الجدول/القاعدة ⇒ None (النقطة تُرجِع 503)
+        logger.warning("cache invalidation enqueue skipped (field=%s): %s", field_id, e)
+        return None
     finally:
         await conn.close()
 
