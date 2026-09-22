@@ -1,0 +1,46 @@
+{
+  "schema": "sahool.gate01_adjudication/v1",
+  "version": 1,
+  "adjudication_id": "GATE01-ADJ-2026-09-22-001",
+  "gate_id": "GATE-01",
+  "status": "ISSUED",
+  "approved_by": "owner",
+  "adjudicated_on": "2026-09-22",
+  "expires_on": "2026-10-22",
+  "pr": 1070,
+  "one_time": true,
+  "phase0_baseline_ref": {
+    "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
+    "must_match_policy": true
+  },
+  "allowed_paths": [
+    "services/sahool-platform/api/phase_runtime_workers.py"
+  ],
+  "allowed_gap_closures": [
+    "UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01"
+  ],
+  "authorized_patch_sha256": "08189fa6a9b616a5bbdb19498b144de4bebfc42b604042055cbc94b93606d5d3",
+  "authorized_blobs": {
+    "services/sahool-platform/api/phase_runtime_workers.py": "5592f1ebce3a0cb9388d10b2f8aacf3ad998c3de"
+  },
+  "bindings": {
+    "require_patch_digest": true,
+    "require_paths_subset": true,
+    "require_baseline_match": true,
+    "require_exact_head_sha": false,
+    "observed_head_sha_at_issue": "c9390f5ef9df0c3b41b4c178361bfafe063e112a"
+  },
+  "authorization_source": {
+    "kind": "current_user_instruction",
+    "text_ar": "تفويض مطلق قوم بتنفيذ · قوم بعمل اللازم · اكمل الكل",
+    "context_ar": "سلسلةُ توجيهاتٍ صريحةٍ في الجلسة بعد عرضِ الشريحتين (أ) و(ب) باسمَيهما وبأثرِ كلٍّ منهما على المسارات المجمّدة، وبعد أن نُصّ على أنّ GATE-01 يحجب وأنّ التفويضات الخمسة السابقة كلُّها CONSUMED فلا يُعاد استعمالُ أيٍّ منها. واختار المالكُ الشريحة (أ) بعينها حين عُرِضت الخيارات. ولم يُستنتج من ذلك إذنُ دمجٍ ولا فتحُ GATE-01 لغير هذا المسار."
+  },
+  "scope_limit_ar": "مسارٌ مجمَّدٌ واحدٌ لا غير، وثلاثةُ أسطرٍ فيه: إضافةُ `COUNT(*) AS runs` إلى استعلام `irrigation_runs`، والفاصلةُ التي يقتضيها السطرُ السابق، وتمريرُ `irrigation_unobserved=not runs` إلى الدالّة النقيّة. لا هجرة، ولا MANIFEST.txt، ولا db_ownership.yml، ولا event_bus.py، ولا تغييرَ لحالة GATE-01 العالميّة. وتحديداً: **لا يشمل هذا الشريحة (ب)** (عقدُ إيجار صندوق الأحداث) — تلك تحتاج تفويضاً ثانياً بمساراتها وبصمتها.",
+  "why_frozen_path_ar": "الإصلاحُ لا يمكن أن يقع خارج الملفّ المجمَّد: الكذبةُ تُولَد في الاستعلام نفسِه. `SUM(volume_mm)` على صفرِ صفوفٍ يعود NULL، و`or 0.0` بعده يُحوّل الغيابَ إلى قياس. وعددُ الصفوف — الحقيقةُ الوحيدةُ التي تفرّق بين «لا سجلّ» و«سجلٌّ حجمُه صفر» — لا يوجد في أيّ طبقةٍ أعلى لأنّ الاستعلامَ لا يُرجعه. فإضافتُه هناك شرطٌ لا اختيار، وقد أُبقي التغييرُ عند أصغرِ شكلٍ يُنتج المعلومةَ المفقودة.",
+  "provenance_honesty": {
+    "record_authored_by": "agent-for-current-user-instruction",
+    "independently_signed": false,
+    "guard_binds": "bytes_only",
+    "note_ar": "سجلٌّ لطلبٍ صريح في الجلسة، لا توقيعٌ مستقلّ. الوكيلُ كاتبُ الرقعة وكاتبُ السجلّ معاً، والحارسُ يربط البايتات لا الهويّة. و`branch_protection_contract_guard` يقول هذا نفسَه ويحجب عليه: «التفويضُ يُصدره من يحتاجه» ما لم يُفرَض `require_code_owner_review` في Ruleset — و.github/CODEOWNERS:19 يُسمّي المالكَ لكنّ الملفّ خاملٌ بلا ذلك الإعداد. فالمنشأُ المستقلّ يقع في إعدادات GitHub لا في هذا الملفّ، وهذا حدُّ صدقٍ مُعلَنٌ لا خفاء فيه."
+  }
+}
