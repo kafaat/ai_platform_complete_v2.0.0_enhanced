@@ -53,6 +53,14 @@ import subprocess
 import sys
 from pathlib import Path
 
+# GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: مخرَجُ هذا السكربت عربيّ،
+# و`print` يُرمّز بلغة الآلة. فتحت `LC_ALL=C` كان يحسب **صحيحاً** ثمّ يموت وهو يطبع
+# نتيجته (UnicodeEncodeError) ⇒ خروجٌ بغير صفر يُقرَأ حجباً وهو قد مرّ.
+# **عند التحميل لا داخل `main()`** — بعضُ المخرَج يُطبَع من جسد الوحدة قبل أيّ نداء.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOWS = ROOT / ".github" / "workflows"
 KNOWN_DRIFT = ROOT / "docs" / "architecture" / "generated_chain_known_drift.json"
@@ -261,7 +269,12 @@ def _accepted_flags(script: str) -> set[str]:
         [sys.executable, script, "--help"],
         cwd=ROOT,
         capture_output=True,
-        text=True,
+        # TEXT-DECODED-WITH-THE-MACHINES-LOCALE-01 · المتّجه ②: `text=True` وحدَه يفكّ
+        # بترميز **اللغة** — ASCII تحت `LC_ALL=C` — فمخرَجُ ابنٍ عربيّ يقتل الأب
+        # بـUnicodeDecodeError قبل أن يقرأ نتيجته. و`errors="replace"` لأنّ انهيارَ
+        # الأب على ابنٍ كتب بايتاتٍ مكسورة يُخفي نتيجة الابن — وهو الصنف نفسُه معكوساً.
+        encoding="utf-8",
+        errors="replace",
         timeout=STEP_TIMEOUT_SECONDS,
     )
     if proc.returncode != 0:
@@ -455,7 +468,10 @@ def _run(argv: list[str]) -> tuple[int, str]:
         cwd=ROOT,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        # المتّجه ② — وهذا أخطرُ مواضعه: هنا يُقرأ مخرَجُ **كلّ** حارسٍ مولِّد، وهو عربيّ.
         text=True,
+        encoding="utf-8",
+        errors="replace",
         start_new_session=True,
     )
     try:
@@ -498,7 +514,10 @@ def unindexed_files() -> list[str]:
         ["git", "status", "--porcelain", "--untracked-files=normal"],
         cwd=ROOT,
         capture_output=True,
+        # المتّجه ② — ومسارٌ عربيٌّ واحدٌ في الشجرة يكفي لقتل القارئ تحت لغة C.
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     if proc.returncode != 0:
         return []  # لا git ⇒ `tree_state()` يرفع الاستثناء المفصَّل بعد قليل
@@ -518,7 +537,10 @@ def tree_state() -> str:
         ["git", "status", "--porcelain", "--untracked-files=no"],
         cwd=ROOT,
         capture_output=True,
+        # المتّجه ② — وهذا كاشفُ «حارسٌ كتب أثناء الفحص»: موتُه هنا يُعمي الكاشفَ نفسَه.
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     if proc.returncode != 0:
         raise SystemExit(

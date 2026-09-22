@@ -5881,15 +5881,15 @@
           "score": 18
         },
         {
-          "value": "FieldWorkspaceIrrigationPanel.tsx @ scripts/ci/field_workspace_production_closure_gate.py:66",
+          "value": "FieldWorkspaceIrrigationPanel.tsx @ scripts/ci/field_workspace_production_closure_gate.py:74",
           "score": 14
         },
         {
-          "value": "FieldWorkspaceRecommendationsPanel.tsx @ scripts/ci/field_workspace_production_closure_gate.py:64",
+          "value": "FieldWorkspaceRecommendationsPanel.tsx @ scripts/ci/field_workspace_production_closure_gate.py:72",
           "score": 14
         },
         {
-          "value": "FieldWorkspaceReportsPanel.tsx @ scripts/ci/field_workspace_production_closure_gate.py:65",
+          "value": "FieldWorkspaceReportsPanel.tsx @ scripts/ci/field_workspace_production_closure_gate.py:73",
           "score": 14
         },
         {
@@ -5909,7 +5909,7 @@
           "score": 14
         },
         {
-          "value": "FieldWorkspaceTimelinePanel.tsx @ scripts/ci/field_workspace_production_closure_gate.py:63",
+          "value": "FieldWorkspaceTimelinePanel.tsx @ scripts/ci/field_workspace_production_closure_gate.py:71",
           "score": 14
         },
         {
@@ -12729,11 +12729,11 @@
       ],
       "events": [
         {
-          "value": "decision_lineage_graph.py @ scripts/ci/verify_all_generated.py:86",
+          "value": "decision_lineage_graph.py @ scripts/ci/verify_all_generated.py:94",
           "score": 20
         },
         {
-          "value": "execution_dependency_audit.py @ scripts/ci/verify_all_generated.py:85",
+          "value": "execution_dependency_audit.py @ scripts/ci/verify_all_generated.py:93",
           "score": 20
         },
         {
@@ -30443,7 +30443,7 @@
       ],
       "events": [
         {
-          "value": "field_intelligence_adapters.py @ scripts/ci/weather_service_real_contract_gate.py:92",
+          "value": "field_intelligence_adapters.py @ scripts/ci/weather_service_real_contract_gate.py:100",
           "score": 18
         },
         {
@@ -30483,7 +30483,7 @@
           "score": 18
         },
         {
-          "value": "weather.py @ scripts/ci/weather_service_real_contract_gate.py:67",
+          "value": "weather.py @ scripts/ci/weather_service_real_contract_gate.py:75",
           "score": 18
         },
         {
@@ -30499,11 +30499,11 @@
           "score": 18
         },
         {
-          "value": "weather_runtime.py @ scripts/ci/weather_service_real_contract_gate.py:46",
+          "value": "weather_runtime.py @ scripts/ci/weather_service_real_contract_gate.py:54",
           "score": 18
         },
         {
-          "value": "weather_service_client.py @ scripts/ci/weather_service_real_contract_gate.py:78",
+          "value": "weather_service_client.py @ scripts/ci/weather_service_real_contract_gate.py:86",
           "score": 18
         },
         {
@@ -32055,11 +32055,11 @@
           "score": 12
         },
         {
-          "value": "canonical_daily_weather_series.py @ scripts/ci/consumer_contract_gate.py:46",
+          "value": "canonical_daily_weather_series.py @ scripts/ci/consumer_contract_gate.py:54",
           "score": 12
         },
         {
-          "value": "canonical_weather_state.py @ scripts/ci/consumer_contract_gate.py:45",
+          "value": "canonical_weather_state.py @ scripts/ci/consumer_contract_gate.py:53",
           "score": 12
         },
         {
@@ -32247,7 +32247,7 @@
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ scripts/ci/consumer_contract_gate.py:47",
+          "value": "weather_runtime.py @ scripts/ci/consumer_contract_gate.py:55",
           "score": 12
         },
         {
@@ -33475,15 +33475,15 @@
           "score": 13
         },
         {
-          "value": "canonical_daily_weather_series.py @ scripts/ci/consumer_contract_gate.py:46",
+          "value": "canonical_daily_weather_series.py @ scripts/ci/consumer_contract_gate.py:54",
           "score": 12
         },
         {
-          "value": "canonical_weather_state.py @ scripts/ci/consumer_contract_gate.py:45",
+          "value": "canonical_weather_state.py @ scripts/ci/consumer_contract_gate.py:53",
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ scripts/ci/consumer_contract_gate.py:47",
+          "value": "weather_runtime.py @ scripts/ci/consumer_contract_gate.py:55",
           "score": 12
         },
         {
@@ -34604,11 +34604,11 @@
           "score": 12
         },
         {
-          "value": "canonical_daily_weather_series.py @ scripts/ci/consumer_contract_gate.py:46",
+          "value": "canonical_daily_weather_series.py @ scripts/ci/consumer_contract_gate.py:54",
           "score": 12
         },
         {
-          "value": "canonical_weather_state.py @ scripts/ci/consumer_contract_gate.py:45",
+          "value": "canonical_weather_state.py @ scripts/ci/consumer_contract_gate.py:53",
           "score": 12
         },
         {
@@ -34672,7 +34672,7 @@
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ scripts/ci/consumer_contract_gate.py:47",
+          "value": "weather_runtime.py @ scripts/ci/consumer_contract_gate.py:55",
           "score": 12
         },
         {

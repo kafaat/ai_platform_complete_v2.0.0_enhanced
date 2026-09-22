@@ -15,6 +15,14 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
+# GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: مخرَجُ هذا السكربت عربيّ،
+# و`print` يُرمّز بلغة الآلة. فتحت `LC_ALL=C` كان يحسب **صحيحاً** ثمّ يموت وهو يطبع
+# نتيجته (UnicodeEncodeError) ⇒ خروجٌ بغير صفر يُقرَأ حجباً وهو قد مرّ.
+# **عند التحميل لا داخل `main()`** — بعضُ المخرَج يُطبَع من جسد الوحدة قبل أيّ نداء.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_REPORT = ROOT / "certification" / "evidence" / "unified_readiness_summary.json"
 CHECKS = (
@@ -56,7 +64,12 @@ EXTERNAL_OR_TOOLCHAIN_GATES = (
 
 
 def _run(name: str, command: list[str]) -> dict[str, object]:
-    result = subprocess.run(command, cwd=ROOT, text=True, capture_output=True)
+    # TEXT-DECODED-WITH-THE-MACHINES-LOCALE-01 · المتّجه ②: `text=True` وحدَه يفكّ بترميز
+    # **اللغة**، فمخرَجُ بوّابةٍ عربيّةٍ يقتل هذا القارئ تحت `LC_ALL=C` قبل أن يُسجّل
+    # نتيجتَها. وهنا الأثرُ مضاعَف: `output_sha256` و`output_tail` دليلُ شهادةٍ يُحفَظ.
+    result = subprocess.run(
+        command, cwd=ROOT, text=True, encoding="utf-8", errors="replace", capture_output=True
+    )
     output = (result.stdout + result.stderr).strip()
     return {
         "name": name,
@@ -71,7 +84,10 @@ def _certification_status() -> dict[str, object]:
     result = subprocess.run(
         [sys.executable, "scripts/ci/production_certification_blockers_status.py"],
         cwd=ROOT,
+        # المتّجه ② — و`result.stderr` يُعاد في حقل `error`، فموتُ الفكّ يُخفي سببَ الفشل.
         text=True,
+        encoding="utf-8",
+        errors="replace",
         capture_output=True,
     )
     if result.returncode:
