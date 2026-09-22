@@ -21,6 +21,14 @@ import re
 import sys
 from pathlib import Path
 
+# GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: مخرَجُ هذا السكربت عربيّ،
+# و`print` يُرمّز بلغة الآلة. فتحت `LC_ALL=C` كان يحسب **صحيحاً** ثمّ يموت وهو يطبع
+# نتيجته (UnicodeEncodeError) ⇒ خروجٌ بغير صفر يُقرَأ حجباً وهو قد مرّ.
+# **عند التحميل لا داخل `main()`** — بعضُ المخرَج يُطبَع من جسد الوحدة قبل أيّ نداء.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 REPO = Path(__file__).resolve().parents[2]
 CONFIG = REPO / "config" / "endpoint_ui_coverage.json"
 REPORT = REPO / "docs" / "api" / "BACKEND_FRONTEND_COVERAGE.md"
