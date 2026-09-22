@@ -67,10 +67,20 @@ def test_net_irrigation_is_etc_minus_effective_rain():
 
 # ── المطر الفعّال (USDA-SCS) ──────────────────────────────────────────────────
 def test_effective_rain_usda_scs_anchors():
+    """D07: المرساةُ الثانيةُ كانت **تناقض اسمَ الاختبار نفسِه**.
+
+    كان هذا الملفُّ يقول في رأسه إنّه يتحقّق «مقابل المرجع العلميّ لا مجرّد ثباتٍ
+    داخليّ»، ثمّ تؤكّد هذه الدالّةُ `_effective_rain(100) ≈ 102.5` بتعليلِ
+    `0.1·100+92.5 (>75mm)` — وتلك ليست صيغةَ USDA-SCS، وتُرجِع مطراً فعّالاً
+    **أكبرَ من الساقط**. المرساةُ الأولى (50 ⇒ 46.0) كانت من الصيغة الصحيحة فعلاً،
+    فبقيت. والثانيةُ صُحِّحت إلى مرجعها: 100·(125−20)/125 = 84.0.
+    """
     assert _effective_rain(0.0) == 0.0
     assert _effective_rain(-5.0) == 0.0
     assert abs(_effective_rain(50.0) - 46.0) < 0.01  # 50·(125−10)/125
-    assert abs(_effective_rain(100.0) - 102.5) < 0.01  # 0.1·100+92.5 (>75mm)
+    assert abs(_effective_rain(100.0) - 84.0) < 0.01  # 100·(125−20)/125 (≤250mm)
+    assert abs(_effective_rain(250.0) - 150.0) < 0.01  # نقطةُ التقاء الفرعين
+    assert abs(_effective_rain(300.0) - 155.0) < 0.01  # 125+0.1·300 (>250mm)
 
 
 def test_effective_rain_is_monotonic_nondecreasing():

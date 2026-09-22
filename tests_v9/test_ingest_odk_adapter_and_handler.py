@@ -119,3 +119,96 @@ async def test_missing_field_id_quarantines_on_provenance() -> None:
     res = await process_submission(env, {"pest": 3}, ports.as_ports())
     assert res.outcome == "quarantined"
     assert "provenance_complete" in res.quarantine_reasons
+
+
+# ─── D05/D06 من التدقيق الموحَّد (2026-09-22) ─────────────────────────────────
+
+
+class _PortsWithTrust(_Ports):
+    """منافذُ تعرف حالةَ السجلّ المحفوظ، وتُبلِّغ نتيجةَ الإدراج."""
+
+    def __init__(self, *, existing=None, prior=None, insert_result=True, **kw):
+        super().__init__(existing=existing, **kw)
+        self._prior = prior
+        self._insert_result = insert_result
+
+    def as_ports(self) -> IngestPorts:
+        return IngestPorts(
+            fetch_existing_content_hash=self._fetch,
+            field_resolves_in_tenant=self._field,
+            values_within_bounds=self._bounds,
+            store_row=self._store_reporting,
+            fetch_existing_trust=self._trust,
+        )
+
+    async def _trust(self, _t, _k):
+        return self._prior
+
+    async def _store_reporting(self, row):
+        self.stored.append(row)
+        return self._insert_result
+
+
+async def test_replaying_a_quarantined_row_does_not_receipt_it_as_accepted() -> None:
+    """D05 — أخطرُها: إيصالٌ يكذب عن حالة السجلّ.
+
+    سجلٌّ حُجِر لنقصِ `provenance`، أُعيد بالبصمة نفسِها ⇒ كان `process_submission`
+    يختصر المسارَ إلى `idempotent_replay` ويُرجِع **`trust_status="accepted"`**
+    وأسباباً فارغة، بينما الصفُّ في القاعدة ما زال محجوراً وأسبابُه محفوظة.
+
+    والمُثبَتُ كذبُ الإيصال عن الحالة — **لا رفعُ الحجر** من القاعدة.
+    """
+    env = _envelope()
+    ports = _PortsWithTrust(
+        existing=env.content_hash,  # البصمةُ نفسُها ⇒ replay
+        prior=("quarantined", ("missing_provenance",)),
+    )
+
+    result = await process_submission(env, {"any": "payload"}, ports.as_ports())
+
+    assert result.outcome == "idempotent_replay"
+    assert result.trust_status == "quarantined", "إيصالُ الإعادة أعلن قبولاً لسجلٍّ محجور"
+    assert "missing_provenance" in result.quarantine_reasons, "أسبابُ الحجر ضاعت من الإيصال"
+    assert not ports.stored, "الإعادةُ أنشأت نسخةً ثانية"
+
+
+async def test_a_replay_without_a_trust_port_declares_the_state_unknown() -> None:
+    """وبلا منفذِ الحالة: «غيرُ معروف» **مُعلَنٌ** لا «مقبول» مفترَض.
+
+    التوافقُ الرجعيُّ لا يعني افتراضاً في اتّجاه السماح.
+    """
+    env = _envelope()
+    ports = _Ports(existing=env.content_hash)  # لا fetch_existing_trust
+
+    result = await process_submission(env, {"any": "payload"}, ports.as_ports())
+
+    assert result.outcome == "idempotent_replay"
+    assert result.trust_status == "unknown_prior_state"
+    assert "prior_trust_not_readable" in result.quarantine_reasons
+
+
+async def test_a_row_swallowed_by_a_conflict_is_not_receipted_as_accepted() -> None:
+    """D06 — قبولٌ ظاهريٌّ لصفٍّ لم يُحفَظ.
+
+    تحت تزامنٍ يقرأ طرفان قبل أيّ إدراج، يختار كلاهما `insert_new`. ونموذجُ
+    `ON CONFLICT DO NOTHING` يحفظ صفّاً واحداً ويتجاهل الآخر — **بينما كان
+    الاثنان يعودان بـ`accepted`**، لأنّ `store_row` لم يكن يُبلِّغ أيَّهما وقع.
+    """
+    env = _envelope()
+    ports = _PortsWithTrust(existing=None, insert_result=False)  # ابتلعه تعارض
+
+    result = await process_submission(env, {"any": "payload"}, ports.as_ports())
+
+    assert result.trust_status != "accepted", "أُصدِر قبولٌ لصفٍّ لم يُدرَج"
+    assert "row_not_inserted_conflict_winner_elsewhere" in result.quarantine_reasons
+
+
+async def test_a_row_that_really_was_inserted_is_still_accepted() -> None:
+    """والاتّجاه الآخر: إدراجٌ وقع فعلاً يبقى مقبولاً — وإلّا كان العلاجُ قلبَ العطل."""
+    env = _envelope()
+    ports = _PortsWithTrust(existing=None, insert_result=True)
+
+    result = await process_submission(env, {"any": "payload"}, ports.as_ports())
+
+    assert result.trust_status == "accepted"
+    assert ports.stored, "لم يُحفَظ الصفّ"

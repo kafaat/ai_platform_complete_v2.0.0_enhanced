@@ -405,3 +405,76 @@ def test_the_worker_derives_unobserved_from_a_row_count_not_from_the_sum():
     assert 'irrigation_unobserved=not int(irr["runs"] or 0)' in source, (
         "العلَمُ لا يُشتقّ من عدد الصفوف"
     )
+
+
+# ─── D07/D08 من التدقيق الموحَّد (2026-09-22) ─────────────────────────────────
+
+
+def _ok(**kw):
+    base = dict(
+        prev_depletion_mm=10.0,
+        taw_mm=100.0,
+        raw_mm=50.0,
+        et0_mm=5.0,
+        kc=1.0,
+        rain_mm=2.0,
+        irrigation_mm=0.0,
+    )
+    base.update(kw)
+    return base
+
+
+@pytest.mark.parametrize("rain", [0, 1, 10, 50, 74.99, 75, 100, 150, 249.99, 250, 250.01, 500])
+def test_effective_rain_never_exceeds_the_rain_that_fell(rain):
+    """D07 — **ماءٌ من العدم.** الفعّالُ لا يتجاوز المدخلَ في أيّ نقطة.
+
+    كان الحدُّ `75` والثابتُ `92.5`، وكلاهما محرَّفٌ عن USDA-SCS. فـ`75` مم تُرجِع
+    **`100`** مم «فعّالة»، و`100` تُرجِع `102.5`. والمطرُ الفعّال يُطرَح من الاحتياج،
+    فمُبالَغُه يُنقِص الاستنزافَ ⇒ **ريٌّ دون الحاجة**.
+    """
+    assert _effective_rain(rain) <= rain + 1e-9, f"مطرٌ فعّالٌ يتجاوز المدخل عند {rain}"
+
+
+def test_effective_rain_is_continuous_at_the_scs_breakpoint():
+    """والقفزةُ زالت لأنّ الحدَّ صار حيث تتّصل الصيغةُ بالبناء لا حيث اتُّفِق.
+
+    كانت القفزةُ عند `75` تساوي **٣٤.٠١ مم**. وعند `250` يُعطي الفرعان `150.0`
+    كلاهما — فالاتّصالُ خاصّيّةُ الصيغة. ولم يُقَصَّ الناتجُ عند المدخل: القصُّ
+    كان سيُخفي الفرعَ المحرَّفَ ويُبقي القفزةَ تحت غطاء.
+    """
+    left = _effective_rain(249.999999)
+    right = _effective_rain(250.000001)
+    assert abs(right - left) < 1e-4, f"قفزةٌ عند الحدّ: {abs(right - left)}"
+    assert _effective_rain(250) == pytest.approx(150.0)
+
+
+@pytest.mark.parametrize("bad", [float("nan"), float("inf"), float("-inf")])
+@pytest.mark.parametrize("field", ["taw_mm", "et0_mm", "kc", "rain_mm", "irrigation_mm", "raw_mm"])
+def test_a_non_finite_input_is_rejected_not_turned_into_a_plausible_number(field, bad):
+    """D08 — كلُّ مقارنةٍ مع `NaN` تُرجِع `False`، فكان يمرّ من كلّ الحُرّاس.
+
+    المقيس: `et0_mm=NaN` أنتج نواتجَ `NaN` **بثقة 0.7**، و`Infinity` أنتج `ETc`
+    غيرَ منتهٍ ثمّ قُصَّ الاستنزافُ عند `TAW` — برقم الثقة نفسِه. فالحالةُ غيرُ
+    المعرَّفةِ كانت تُحوَّل إلى قيمةٍ **تبدو صحيحة**.
+    """
+    with pytest.raises(ValueError):
+        compute_daily_ledger_entry(**_ok(**{field: bad}))
+
+
+def test_a_boolean_is_not_accepted_where_a_measurement_is_required():
+    """و`True` عددٌ في بايثون، فـ`kc=True` كان يُحسَب `ETc = et0 × 1` صامتاً."""
+    with pytest.raises(ValueError):
+        compute_daily_ledger_entry(**_ok(kc=True))
+
+
+def test_raw_above_taw_is_rejected_as_an_inverted_capacity_relation():
+    """RAW جزءٌ من TAW بالتعريف؛ انقلابُهما يجعل عتبةَ الريّ فوق السعة كلّها."""
+    with pytest.raises(ValueError):
+        compute_daily_ledger_entry(**_ok(raw_mm=120.0, taw_mm=100.0))
+
+
+def test_a_sound_day_still_computes_after_the_new_guards():
+    """والاتّجاه الآخر: يومٌ سليمٌ يمرّ — وإلّا كان العلاجُ تعطيلَ الدفتر."""
+    out = compute_daily_ledger_entry(**_ok())
+    assert out["confidence"] == CONFIDENCE_AUTO
+    assert out["etc_mm"] == pytest.approx(5.0)

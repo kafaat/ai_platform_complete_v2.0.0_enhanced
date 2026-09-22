@@ -3,7 +3,15 @@
   "version": 1,
   "adjudication_id": "GATE01-ADJ-2026-09-22-002",
   "gate_id": "GATE-01",
-  "status": "ISSUED",
+  "status": "CONSUMED",
+  "consumption": {
+    "merge_sha": "6ffbdaf69b31ad3f8b874c0d83a148524a29b482",
+    "consumed_on": "2026-09-22",
+    "merge_evidence_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1074",
+    "note_ar": "خُتِم بعد التحقّق من دمج #1074 ومن تطابق بصمتَي الملفّين المأذونَين مع شجرة الدمج: `git rev-parse 6ffbdaf:migrations/MANIFEST.txt` ⇒ `4838026b2ed6a8dbd6337fcda29e86d64ca9402a` و`git rev-parse 6ffbdaf:services/sahool-platform/api/event_bus.py` ⇒ `894bda7de2bf5a6622e9db6649239b6563b11f34` — وهما نصّاً ما يُعلنه `authorized_blobs`. الختمُ يستهلك التفويضَ القائم ولا يضيف إذناً جديداً ولا يفتح GATE-01.",
+    "stamped_because_ar": "`stale_authorization_errors` يحمّر كلَّ فرعٍ أساسُه main بعد الدمج مباشرةً — وهو الفرعُ الذي أُضيف لأجل `GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01`: تفويضٌ `ISSUED` هبطت بايتاتُه يبقى إذناً حيّاً يُعيد رقعةً سبق الإذنُ بها. فالحمرةُ هنا عملُ الحارس لا عطلُه.",
+    "stamped_by_ar": "خُتِم من جلسة #1073 لا من جلسة #1074 التي كتبت التفويض. والختمُ **لا يمنح إذناً**: هو إبطالُ إذنٍ قائمٍ بتسجيل أنّ بايتاته هبطت، ومعياره مُشتقٌّ من الشجرة وحدها (تطابقُ البصمتين مع `authorized_blobs` في `6ffbdaf`) لا من نيّةٍ ولا من ادّعاء. ولم يُمَسّ شيءٌ آخر في السجلّ — لا `allowed_paths` ولا `authorized_blobs` ولا `bindings` ولا `authorization_source`."
+  },
   "approved_by": "owner",
   "adjudicated_on": "2026-09-22",
   "expires_on": "2026-10-22",

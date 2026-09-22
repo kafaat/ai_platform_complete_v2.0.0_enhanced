@@ -122,7 +122,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 139,
+    "line": 190,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -130,7 +130,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 144,
+    "line": 195,
     "method": "GET",
     "path": "/healthz/ai-provider",
     "function": "ai_provider_snapshot"
@@ -138,7 +138,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 152,
+    "line": 203,
     "method": "GET",
     "path": "/v1/approvals/pending",
     "function": "list_pending_approvals"
@@ -146,7 +146,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 172,
+    "line": 223,
     "method": "POST",
     "path": "/v1/approvals/approve",
     "function": "approve_tool_request"
@@ -154,7 +154,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 224,
+    "line": 275,
     "method": "POST",
     "path": "/v1/approvals/deny",
     "function": "deny_tool_request"
@@ -162,7 +162,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 270,
+    "line": 321,
     "method": "POST",
     "path": "/v1/approvals/resume",
     "function": "resume_approved_tool"
@@ -170,7 +170,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 314,
+    "line": 367,
     "method": "POST",
     "path": "/v1/prescription/export-preview",
     "function": "prescription_export_preview"
@@ -178,7 +178,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 330,
+    "line": 383,
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
@@ -186,7 +186,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 349,
+    "line": 402,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -194,7 +194,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 393,
+    "line": 446,
     "method": "POST",
     "path": "/v1/query",
     "function": "query"
@@ -202,7 +202,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 404,
+    "line": 457,
     "method": "POST",
     "path": "/v1/chat",
     "function": "chat"
@@ -210,7 +210,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 415,
+    "line": 468,
     "method": "POST",
     "path": "/v1/explain",
     "function": "explain"
@@ -218,7 +218,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 426,
+    "line": 479,
     "method": "POST",
     "path": "/v1/recommend",
     "function": "recommend"
@@ -394,7 +394,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 24,
+    "line": 25,
     "method": "POST",
     "path": "/v1/auth/login",
     "function": "login"
@@ -402,7 +402,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 125,
+    "line": 126,
     "method": "POST",
     "path": "/v1/auth/refresh",
     "function": "refresh_token"
@@ -410,7 +410,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 167,
+    "line": 182,
     "method": "POST",
     "path": "/v1/auth/logout",
     "function": "logout"
@@ -418,7 +418,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 211,
+    "line": 226,
     "method": "GET",
     "path": "/v1/auth/me",
     "function": "me"
@@ -1786,7 +1786,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 114,
+    "line": 145,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -1794,7 +1794,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 119,
+    "line": 150,
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
@@ -1802,7 +1802,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 132,
+    "line": 163,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -1810,7 +1810,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 169,
+    "line": 200,
     "method": "POST",
     "path": "/v1/ingest",
     "function": "ingest"
@@ -1818,7 +1818,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 244,
+    "line": 275,
     "method": "POST",
     "path": "/v1/search",
     "function": "search"
@@ -7730,7 +7730,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 179,
+    "line": 200,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -7738,7 +7738,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 184,
+    "line": 205,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -7746,7 +7746,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 221,
+    "line": 242,
     "method": "GET",
     "path": "/internal/scouting/external-observations",
     "function": "read_external_observations"
@@ -7754,7 +7754,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 340,
+    "line": 361,
     "method": "POST",
     "path": "/internal/ingest/submissions/odk",
     "function": "ingest_odk_submission"
@@ -7762,7 +7762,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 349,
+    "line": 370,
     "method": "POST",
     "path": "/internal/ingest/submissions/kobo",
     "function": "ingest_kobo_submission"

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import time
 from typing import Any
 
 from core.rag.production_qdrant import (
@@ -37,6 +38,10 @@ _qdrant = QdrantHttpClient(
 _retriever = HybridQdrantRetriever(_qdrant, _embedding_provider)
 _sparse_ready = False
 _sparse_report: dict[str, Any] = {"total_points": 0, "loaded_chunks": 0, "skipped_points": 0}
+# D10 — لحظةُ آخرِ إعادةِ تحقّقٍ من صلاحيّة الفهرس الدافئ، وعمرُها.
+# العمرُ مقايضةٌ مُعلَنة: كلُّ نداءٍ عدٌّ إضافيّ، وكلُّ ثانيةٍ نافذةُ تقادمٍ ممكنة.
+_sparse_checked_at: float = 0.0
+_SPARSE_REVALIDATE_SECONDS = float(os.getenv("RAG_SPARSE_REVALIDATE_SECONDS", "30"))
 
 
 def _ensure_sparse_index(*, force: bool = False) -> dict[str, Any]:
@@ -45,9 +50,34 @@ def _ensure_sparse_index(*, force: bool = False) -> dict[str, Any]:
     Readiness fails closed if any stored point cannot be reconstructed; otherwise a
     restart would silently advertise hybrid retrieval while serving dense-only.
     """
-    global _sparse_ready, _sparse_report
+    global _sparse_ready, _sparse_report, _sparse_checked_at
     if _sparse_ready and not force:
-        return _sparse_report
+        # D10 — **صلاحيّةُ الفهرس الدافئ تُراجَع، ولا تُفترَض دائمة.**
+        #
+        # العطل: شرطُ المطابقة (`scroll == count`) يُفحَص **عند البناء** فقط، ثمّ
+        # يعود المسارُ الدافئ بلا إعادة قياس. المقيس: بدأت المجموعةُ بعددٍ 1، وبعد
+        # البناء صار المصدرُ 2 — فعاد النداءُ التالي بالعدد **1** ولم يستدعِ
+        # `count` ولا `rebuild`. فيُخدَم استرجاعٌ متقادمٌ بثقةِ فهرسٍ مُتحقَّقٍ منه.
+        #
+        # **والحدُّ مُعلَن:** الاستيعابُ داخل العمليّة نفسِها يُبطِل `_sparse_ready`،
+        # فالخطرُ يخصّ **كاتباً خارجيّاً** أو نسخةً أخرى أو تغيُّرَ المجموعة خارج
+        # هذا المسار. ولم يُثبَت تقادمُ استرجاعٍ حيّ ولا وجودُ Qdrant منشورة.
+        #
+        # وإعادةُ التحقّق **عدٌّ واحدٌ رخيص** لا إعادةَ بناء: إن طابق العددُ ما بُني
+        # عليه فالفهرسُ صالح، وإن اختلف أُعيد البناءُ مرّةً بدل خدمةِ متقادم.
+        now = time.monotonic()
+        if now - _sparse_checked_at < _SPARSE_REVALIDATE_SECONDS:
+            return _sparse_report
+        try:
+            current = _qdrant.collection_point_count()
+        except Exception:  # noqa: BLE001 — تعذُّرُ العدّ لا يُسقِط فهرساً صالحاً
+            _sparse_checked_at = now  # لا نُعيد المحاولةَ في كلّ نداء
+            return _sparse_report
+        if current == _sparse_report.get("total_points"):
+            _sparse_checked_at = now
+            return _sparse_report
+        # تغيَّرت المجموعةُ تحت فهرسٍ دافئ ⇒ يُعاد البناءُ بدل خدمةِ متقادم.
+        _sparse_ready = False
     report = _retriever.rebuild_sparse_index()
     # العدّ الدقيق شرطُ إثباتٍ لا رفاهية: بلا عددٍ يمكن الوثوق به لا يُثبَت اكتمالُ
     # المجموعة أصلاً. وتعذُّرُه يفشل **مغلقاً** بسببٍ مسمًّى — ولا يرتدّ إلى العدّ
@@ -82,6 +112,7 @@ def _ensure_sparse_index(*, force: bool = False) -> dict[str, Any]:
         raise ValueError(" · ".join(problems))
     _sparse_report = report
     _sparse_ready = True
+    _sparse_checked_at = time.monotonic()
     return report
 
 

@@ -660,10 +660,13 @@ async def revoke_refresh_token(token: str) -> None:
 #     يُرفَض ⇒ إبطال فوريّ لكلّ التوكنات القائمة دفعةً واحدة (لا حاجة لمعرفة كلّ jti).
 #   • حذف كلّ refresh tokens للمستخدم (من مجموعته) ⇒ لا تجديد بعد الإبطال.
 async def set_user_token_floor(user_id: int) -> None:
-    """يضبط أرضيّة التوكن للمستخدم = الآن — يُبطل كلّ access token أُصدِر قبلها."""
+    """يضبط أرضيّة التوكن للمستخدم — تُبطل كلَّ access token أُصدِر قبلها **أو معها**.
+
+    D03: ``+1`` كسرُ تعادلٍ عند حدّ الثانية — في جانب الأرضيّة لا المقارنة.
+    """
     if not _redis:
         return
-    now_ts = int(datetime.now(UTC).timestamp())
+    now_ts = int(datetime.now(UTC).timestamp()) + 1
     # TTL = عمر التوكن الأقصى (+هامش): بعده تكون كلّ التوكنات القديمة منتهية أصلاً.
     await _redis.setex(
         f"sahool:user:token_floor:{user_id}", JWT_EXPIRE_MINUTES * 60 + 60, str(now_ts)

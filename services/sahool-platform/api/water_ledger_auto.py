@@ -19,6 +19,8 @@
 
 from __future__ import annotations
 
+import math
+
 from api.water_balance import _effective_rain
 
 # هويّة الكاتب الآليّ في created_by — بها يُميَّز قيد العامل من القيد اليدويّ.
@@ -76,10 +78,46 @@ def compute_daily_ledger_entry(
     Returns dict بمفاتيح أعمدة ``water_ledger`` الحسابيّة + ``notes`` (قائمة أعلام
     الافتراضات) و``bootstrap`` و``confidence``.
     """
+    # D08 — **التناهي قبل أيّ مقارنة.**
+    #
+    # العطل: كلُّ مقارنةٍ مع ``NaN`` تُرجِع ``False``، فيمرّ من ``taw_mm <= 0`` ومن
+    # ``et0_mm < 0`` معاً. المقيس: ``et0_mm=NaN`` أنتج نواتجَ ``NaN`` **بثقة 0.7**،
+    # و``Infinity`` أنتج ``ETc`` غيرَ منتهٍ ثمّ قُصَّ الاستنزافُ عند ``TAW`` — برقم
+    # الثقة نفسِه. و``taw_mm=NaN`` لم يُرفَض أصلاً.
+    #
+    # والأثرُ ليس رقماً قبيحاً بل **حالةً غيرَ معرَّفةٍ تُحوَّل إلى قيمةٍ تبدو صحيحة**:
+    # القصُّ عند ``TAW`` يُخفي اللانهاية خلف رقمٍ معقول، والثقةُ تُصدَّر كما لو قِيس.
+    #
+    # و``bool`` يُرفَض مع العدديّ: ``True`` عددٌ في بايثون (``True + 1 == 2``)، فـ
+    # ``kc=True`` كان يمرّ ويُحسَب ``ETc = et0 * 1`` بلا أن يُعلن أحدٌ أنّ المعامل راية.
+    for _name, _value in (
+        ("taw_mm", taw_mm),
+        ("raw_mm", raw_mm),
+        ("et0_mm", et0_mm),
+        ("kc", kc),
+        ("rain_mm", rain_mm),
+        ("irrigation_mm", irrigation_mm),
+    ):
+        if isinstance(_value, bool) or not isinstance(_value, (int, float)):
+            raise ValueError(f"{_name} يجب أن يكون عدداً (لا رايةً ولا نصّاً) — وصل {_value!r}")
+        if not math.isfinite(_value):
+            raise ValueError(
+                f"{_name} غيرُ منتهٍ ({_value!r}) — حالةٌ غيرُ معرَّفةٍ تُرفَض ولا تُحوَّل "
+                "إلى رقمٍ يبدو صحيحاً في دفتر الماء"
+            )
+    if prev_depletion_mm is not None:
+        if isinstance(prev_depletion_mm, bool) or not isinstance(prev_depletion_mm, (int, float)):
+            raise ValueError(f"prev_depletion_mm يجب أن يكون عدداً — وصل {prev_depletion_mm!r}")
+        if not math.isfinite(prev_depletion_mm):
+            raise ValueError(f"prev_depletion_mm غيرُ منتهٍ ({prev_depletion_mm!r})")
+
     if taw_mm <= 0:
         raise ValueError("TAW يجب أن يكون موجباً — لا يُحسب ميزان بلا سعة ماء متاح")
     if et0_mm < 0 or rain_mm < 0 or irrigation_mm < 0 or kc <= 0:
         raise ValueError("مدخلات سالبة/معدومة غير صالحة لميزان اليوم")
+    if raw_mm > taw_mm:
+        # RAW جزءٌ من TAW بالتعريف؛ انقلابُهما يجعل عتبةَ الريّ فوق السعة كلّها.
+        raise ValueError(f"RAW ({raw_mm}) يتجاوز TAW ({taw_mm}) — علاقةُ سعاتٍ مقلوبة")
 
     notes: list[str] = []
     if rain_assumed_zero:

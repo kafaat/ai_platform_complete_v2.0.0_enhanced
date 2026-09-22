@@ -44,20 +44,46 @@ def test_effective_rain_zero_and_negative_return_zero():
     assert wb._effective_rain(-5) == 0.0
 
 
-def test_effective_rain_below_75_uses_quadratic_branch():
-    # rain * (125 - 0.2*rain) / 125
+# ── D07: هذه الثلاثةُ كانت تُثبِّت الثابتَين المحرَّفَين ──────────────────────────
+#
+# كانت تؤكّد `_effective_rain(75) == 100.0` و`_effective_rain(100) == 102.5` — أي
+# **مطراً فعّالاً أكبرَ من المطر الذي سقط**. وذاك ليس اصطلاحاً مقبولاً بل ماءٌ من
+# العدم: الفعّالُ جزءٌ من الساقط بالتعريف. فالمُصحَّحُ هنا **التأكيداتُ نفسُها**، لا
+# تهيئتُها — لأنّها كانت تُوثّق العطلَ لا العقد. والمرجعُ (USDA-SCS، مجموعٌ شهريّ):
+#
+#     Pe = P·(125 − 0.2·P)/125   لـ P ≤ 250
+#     Pe = 125 + 0.1·P           لـ P > 250
+#
+# والحدُّ 250 ليس اختياراً: عنده يُعطي الفرعان 150.0 كلاهما.
+
+
+def test_effective_rain_below_the_breakpoint_uses_quadratic_branch():
+    # rain * (125 - 0.2*rain) / 125 — هذا الفرعُ كان صحيحاً أصلاً، فبقي كما هو.
     assert math.isclose(wb._effective_rain(50), 50 * (125 - 0.2 * 50) / 125)
     assert wb._effective_rain(50) == 46.0
+    # وما كان يُرجِع 100.0 يُرجِع الآن قيمةً دون المطر الساقط.
+    assert wb._effective_rain(75) == pytest.approx(75 * (125 - 0.2 * 75) / 125)
 
 
-def test_effective_rain_at_threshold_75():
-    assert wb._effective_rain(75) == 100.0
+def test_effective_rain_is_continuous_at_the_breakpoint():
+    """الفرعان يلتقيان عند 250 — خاصّيّةُ الصيغة، وهي ما فقدَه الثابتُ المحرَّف."""
+    quadratic = 250 * (125 - 0.2 * 250) / 125
+    linear = 125 + 0.1 * 250
+    assert quadratic == linear == 150.0
+    assert wb._effective_rain(250) == pytest.approx(150.0)
+    assert abs(wb._effective_rain(250.0001) - wb._effective_rain(249.9999)) < 1e-3
 
 
-def test_effective_rain_above_75_uses_linear_branch():
-    # 0.1*rain + 92.5
-    assert wb._effective_rain(100) == pytest.approx(102.5)
-    assert wb._effective_rain(100) == 0.1 * 100 + 92.5
+def test_effective_rain_above_the_breakpoint_uses_linear_branch():
+    # 125 + 0.1*rain
+    assert wb._effective_rain(300) == pytest.approx(125 + 0.1 * 300)
+    assert wb._effective_rain(300) == 155.0
+
+
+def test_effective_rain_never_exceeds_the_rain_that_fell():
+    """الخاصّيّةُ التي كسرَها العطل — وهي أعمُّ من أيّ مرساةٍ نقطيّة."""
+    for rain in (1, 10, 50, 74.99, 75, 100, 200, 249.99, 250, 400, 1000):
+        assert wb._effective_rain(rain) <= rain, rain
 
 
 # ─── Kc + water_balance (ET0 محقون من المحرّك) ─────────────────────────────

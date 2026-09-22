@@ -10185,7 +10185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "10251a1301bc348b9566f65ed8346d8157e821f95ff2522a1f2cff5627365a82"
+          "content": "4f48849e5b5f349501b03f835060f43ce3c6d116692ce1e08ae0ab0f32c9eaed"
         }
       ],
       "name": "mobile/sahool_app/lib/services/api_service.dart",
@@ -10865,7 +10865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c60768566fb1f2c6d623841fbdf3c1a2a95a4df5d2d6f457d4cb615bc86bb99b"
+          "content": "151812da8f462ee303ef302f56e5f9d07b3237ec0885e0c8bdfe7d72078caf7e"
         }
       ],
       "name": "services/ai_agronomist/approval.py",
@@ -11015,7 +11015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cf5993391876ebe28bb4f439f9b3eb3eb17ea093f3733d1a10da6e94acb63d3d"
+          "content": "ffd7c3e7e91573283d3bfe31de93d0624627436ac8a7dd7ec794f665acf271f9"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -11305,7 +11305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6764e26455c0bce1f708833f203ebe087a29a9b3d6ed114efd679b3306b4cc04"
+          "content": "12afde7a8f991f27d9fd49a35a3747f0256b0482faa1ade84dbc09ebdb285f15"
         }
       ],
       "name": "services/auth/main.py",
@@ -11455,7 +11455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5acd63b1c70767f755fa8376f013da2ebaa7f303c5146115896b42519b0244ae"
+          "content": "b906a1cedd23140bcd50f60c1e61b0cf3e524d6344b6783ac75596a03213a682"
         }
       ],
       "name": "services/auth/routers/session.py",
@@ -11479,6 +11479,16 @@
         }
       ],
       "name": "services/auth/routers/users.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "befd01a389c842a3aab437d1697217bd868f0877261d3121b1a03dcbdf01474e"
+        }
+      ],
+      "name": "services/auth/session_tokens.py",
       "type": "file"
     },
     {
@@ -13375,7 +13385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "07c2f7cdc35ab71749844b31eada7d60b13f000bfd502998036ab6de3469f458"
+          "content": "df2a732234ebddf3c35ace34da6f3c23776b62c9b02624872b578b87a82f96f8"
         }
       ],
       "name": "services/knowledge-graph/kg_store.py",
@@ -13895,7 +13905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9aa46fb73acb2eba42b08a5759dc25b24576530f093df25aae8fc57686368fa8"
+          "content": "8c182ad391e6305c8e00d0846bf0ebafd00c1bb845554acf11972178d6b96535"
         }
       ],
       "name": "services/rag-retrieval/main.py",
@@ -19845,7 +19855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2379522e4e38b800f9f18c107e3f2f743841e7bf7220b753524cee9bb70ba1ff"
+          "content": "1c2c200fd759139bc211b834db5e7c6cd231041880ea06bef927b23ca23b7d92"
         }
       ],
       "name": "services/sahool-platform/api/water_balance.py",
@@ -19895,7 +19905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7ae74aa6e7d1e161b8200e6bc4a13735a5ee0b28597bfd74cb4fc9da8fca8311"
+          "content": "9f0241d6a8a686c65bfab839f3f658d5e58e0f4d31f806a87618cdd422d3cead"
         }
       ],
       "name": "services/sahool-platform/api/water_ledger_auto.py",
@@ -25335,7 +25345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1602f1e50eeffa93725ec2ac8929ffc347095851cc5bf5d3b57526896e8bc014"
+          "content": "3f6fb950fcee249f6e646ee9a93e923422d9ad4a4996ee8a6a6ce6c6bf742c06"
         }
       ],
       "name": "services/sahool-platform/tests/test_fao56_agronomic_validation.py",
@@ -28045,7 +28055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3195d604af1a1923d682c770df34eb48d6b2a85aaab4abdd4babda8611bc1922"
+          "content": "b5501fd545d9ad5ce8940a06051713ee52061521adcdb3d0e43e2211be82fc5f"
         }
       ],
       "name": "services/sahool-platform/tests/test_water_balance.py",
@@ -28065,7 +28075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e9b4376dd0bc16eea0845eb58d10ccc66e0263140f5d4423905e9687aa06fbe3"
+          "content": "5785e3c401abd717d59a0a6824699ac77c5e30c46a31dd4b4dd401994487b4a0"
         }
       ],
       "name": "services/sahool-platform/tests/test_water_ledger_auto.py",
@@ -28565,7 +28575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dc526d8e77220f2837a6b431b5146e7bec42e3cba32b9e5275bce301edac8d4a"
+          "content": "dd2dd0139ead06256bee50cdffb1ce22aaa7e654d367d83240afb424c648f101"
         }
       ],
       "name": "services/scout-ingest-service/main.py",
@@ -30985,7 +30995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2299b49e0ed6929bffc5f8d32ed254bf07612a3d6ebe3afada008e1e869ebc42"
+          "content": "7716b47de2a70a56d00f8f6874471627547fe48f9cdbb320d4bcb9d9367e1e3f"
         }
       ],
       "name": "shared/contracts/ingest/ingest_handler.py",

@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "0d78e41567fc0291c3659fc7e81571c70b53de82",
+  "measured_on": "5f99f53b74b890e999f2c26b9d4acfebe70140c9",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "235e51bd872d3376f1281736ca22548a533a4798bd81a4a241031e2287b1319e",
+  "measurement_input_digest": "8c81bd71579fa4243dbc3ce5b7430a24fd23b51a5a3ddfe52be95a9b893c85d5",
   "measurement_algorithm_digest": "5e1674674f2856600b7a8a67f9e383a7f122d1f39acd605826ec75bd98fc4641",
-  "measurement_basis_digest": "d3cf2645d9533aea67c3fdf6364f2abc89f1f46c693458dd3857beaf57e94bcf",
+  "measurement_basis_digest": "bc6297fdff8808d34a92b87e137c97f84a5a7f3f5cd6e525a2648b37911c27ba",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -48,7 +48,7 @@
     },
     {
       "path": "services/auth/main.py",
-      "sha256": "6764e26455c0bce1f708833f203ebe087a29a9b3d6ed114efd679b3306b4cc04"
+      "sha256": "12afde7a8f991f27d9fd49a35a3747f0256b0482faa1ade84dbc09ebdb285f15"
     },
     {
       "path": "services/decision-service/persistence.py",
@@ -132,7 +132,7 @@
     },
     {
       "path": "services/scout-ingest-service/main.py",
-      "sha256": "dc526d8e77220f2837a6b431b5146e7bec42e3cba32b9e5275bce301edac8d4a"
+      "sha256": "dd2dd0139ead06256bee50cdffb1ce22aaa7e654d367d83240afb424c648f101"
     },
     {
       "path": "services/scout-ingest-service/projection_worker.py",
@@ -182,7 +182,7 @@
   "baseline": "GUC-SCOPE-GUARD-SEES-ONE-FILE-01",
   "offenders": [
     "agents/base_agent.py:50",
-    "services/auth/main.py:990",
+    "services/auth/main.py:993",
     "services/mcp_servers/shared/oauth_middleware.py:36",
     "services/mcp_servers/shared/oauth_middleware.py:40",
     "services/raster-service/backfill_scan_worker.py:101",

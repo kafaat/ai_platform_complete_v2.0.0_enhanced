@@ -163,7 +163,7 @@
     },
     {
       "kind": "router",
-      "line": 20,
+      "line": 21,
       "module": "services.auth.routers.session",
       "node_id": "services.auth.routers.session:router",
       "route_count": 4,
@@ -370,7 +370,7 @@
     },
     {
       "kind": "app",
-      "line": 25,
+      "line": 26,
       "module": "services.rag-retrieval.main",
       "node_id": "services.rag-retrieval.main:app",
       "route_count": 5,
@@ -2578,7 +2578,7 @@
     },
     {
       "expression": "field_forms_router",
-      "line": 360,
+      "line": 381,
       "module": "services/scout-ingest-service/main.py",
       "prefix": null,
       "resolved": true,
@@ -2631,7 +2631,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "7de29abd06ee698c83740d0ca90aad502b59924e8147ae821f8de37309141ecb",
+  "inventory_sha256": "77bafc9feb106004dce7125bd246ebbcb6d604822654434c110602213b50ceca",
   "orphan_candidate_count": 227,
   "orphan_candidates": [
     {
@@ -2737,7 +2737,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 20,
+      "line": 21,
       "module": "services.auth.routers.session",
       "node_id": "services.auth.routers.session:router",
       "route_count": 4,
