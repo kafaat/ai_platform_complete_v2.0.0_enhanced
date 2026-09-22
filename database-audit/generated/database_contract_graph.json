@@ -230,6 +230,7 @@
       "v229_market_mcp_schema.sql",
       "v230_drawing_features.sql",
       "v231_soil_reconciliation_deferrals.sql",
+      "v233_event_outbox_claim_lease.sql",
       "v206_rls_final_hardening.sql"
     ],
     "missing": [],
@@ -1646,14 +1647,14 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 230,
+    "manifest_entries": 231,
     "manifest_missing_count": 0,
     "policies": 201,
     "production_certified": false,
     "rls_enabled": 214,
     "rls_forced": 195,
     "runtime_verified": false,
-    "sql_files": 232,
+    "sql_files": 233,
     "tables": 341,
     "tenant_rls_gaps": 135,
     "tenant_tables": 321,
@@ -5711,7 +5712,9 @@
       "write_policy_with_check": true
     },
     {
-      "code_readers": [],
+      "code_readers": [
+        "services/sahool-platform/api/event_bus.py"
+      ],
       "code_writers": [
         "services/sahool-platform/api/event_bus.py"
       ],

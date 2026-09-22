@@ -120,6 +120,19 @@ class _Conn:
     async def execute(self, sql: str, *args):
         self.statements.append(" ".join(sql.split()))
         self.args.append(args)
+        # وسمُ asyncpg يُقرَأ الآن: الإنهاءُ بـCAS على `claim_token` يفحص عددَ الصفوف
+        # المتأثّرة ليعرف أفقد الإجارةَ أم لا. الرجوعُ بـNone كان يُسقِط الشيفرةَ في
+        # مسار الاستثناء فتُقرَأ «لم تُوسَم» — عطلٌ في الرصّاد يُقرَأ عطلاً في المرصود.
+        return "UPDATE 1"
+
+    async def fetchval(self, sql: str, *args):
+        """فحصُ سبق المطالبة (`event_already_claimed`) — قراءةٌ أُضيفت مع فصل النشر.
+
+        هنا **لم يُطالَب** الحدثُ بعد، فالمسارُ المقيس هو النشرُ ثمّ الوسم — وهو
+        بالضبط ما يقصده هذا الشاهد. لو أعاد True لانقلب الاختبار إلى قياس مسار
+        التخطّي وهو أخضرُ بسببٍ آخر.
+        """
+        return False
 
     def transaction(self):
         conn = self

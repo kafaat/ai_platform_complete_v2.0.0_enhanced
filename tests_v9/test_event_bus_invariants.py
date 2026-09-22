@@ -106,18 +106,48 @@ def test_processed_events_in_manifest_order():
     assert "v93_processed_events.sql" in manifest, "v93 غير مُدرَج في MANIFEST (لن يُطبَّق)"
 
 
-def test_consumer_claims_before_side_effect_atomically():
+def test_consumer_asks_before_the_side_effect_and_claims_after_it():
+    """التعاضُد محفوظٌ بوسيلتين، والنشرُ خارج كلّ معاملة.
+
+    **كان هذا الاختبار يُثبِّت العطلَ نفسَه.** نصُّه السابق اشترط
+    ``claim_event`` **قبل** ``publish`` و**كليهما داخل** ``conn.transaction()`` —
+    أي معاملةٌ مفتوحةٌ أثناء I/O شبكيّ، وهو بعينه ما يصفه
+    `WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01` عطلاً: قفلُ الصفّ واتّصالُ المسبح
+    محتجزان حتّى يردّ الوسيط، فتباطؤُه يصير تعطّلَ العامل. فالشرطُ القديم كان
+    **بوّابةً لا تُغلَق بعملٍ صحيح**، وأُعيدت صياغتُه على العقد الجديد لا حُذِف.
+
+    **والخاصّيّتان اللتان حماهما الشرطُ القديم محفوظتان، كلٌّ بوسيلتها:**
+
+      • لا أثرَ مزدوج ⇒ فحصٌ **قرائيّ** (`event_already_claimed`) قبل النشر.
+      • لا «مُعالَجٌ بلا نشر» ⇒ كتابةُ المطالبة (`claim_event`) **بعد** النشر.
+
+    وهما مقيستان سلوكيّاً لا نصّيّاً في ``test_outbox_idempotent_consumption.py``؛
+    وما يُقاس هنا هو الترتيبُ الذي لا يراه اختبارٌ سلوكيّ بـconn زائف: **ألّا يقع
+    النشرُ داخل معاملة**.
+    """
     src = _read("services/sahool-platform/api/event_bus.py")
-    # المطالبة عبر ON CONFLICT DO NOTHING (idempotency key).
+    # المطالبة عبر ON CONFLICT DO NOTHING (idempotency key) — لم تتغيّر.
     assert "INSERT INTO processed_events" in src, "لا مطالبة عبر processed_events"
     assert "ON CONFLICT (event_id) DO NOTHING" in src, "المطالبة ليست idempotent"
-    # المطالبة (claim) تسبق النشر (الأثر الجانبيّ) ⇒ لا أثر مزدوج.
-    claim = src.index("claim_event(conn, row[")
-    pub = src.index("await self.publish(", claim)
-    assert claim < pub, "المطالبة يجب أن تسبق النشر (تعاضُد قبل الأثر الجانبيّ)"
-    # الذرّيّة: claim+publish داخل conn.transaction() (SAVEPOINT) ⇒ فشل يُرجِع كليهما.
-    tx = src.rindex("async with conn.transaction():", 0, claim)
-    assert tx < claim < pub, "المطالبة والنشر ليسا داخل معاملة متداخلة (لا ذرّيّة)"
+
+    # السؤالُ قبل الأثر، والادّعاءُ بعده.
+    ask = src.index("await event_already_claimed(conn, row[")
+    pub = src.index("await self.publish(row[", ask)
+    claim = src.index("await claim_event(conn, row[", pub)
+    assert ask < pub < claim, (
+        "الترتيب المطلوب: فحصٌ قرائيّ ⇒ نشر ⇒ كتابةُ مطالبة. "
+        "المطالبةُ قبل النشر تبتلع حدثاً يفشل نشرُه؛ وبلا فحصٍ قبله يُنشَر المُعاد مرّتين."
+    )
+
+    # **النشرُ خارج كلّ معاملة**: آخِرُ فتحِ معاملةٍ قبل سطر النشر يجب أن يكون مُغلَقاً
+    # — نقيسه بأنّ سطر النشر أقلُّ إزاحةً من جسم تلك المعاملة (خرج من كتلتها).
+    tx = src.rindex("async with conn.transaction():", 0, pub)
+    tx_indent = len(src[:tx].rsplit("\n", 1)[-1])
+    pub_indent = len(src[:pub].rsplit("\n", 1)[-1])
+    assert pub_indent <= tx_indent, (
+        "النشرُ داخل كتلة معاملة — قفلُ الصفّ واتّصالُ المسبح محتجزان أثناء I/O "
+        "(WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01)"
+    )
 
 
 # ── 4. ترتيب حتميّ ──

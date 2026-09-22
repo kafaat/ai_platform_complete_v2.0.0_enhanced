@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5410,
+    "files_scanned": 5413,
     "files_by_kind": {
       "backend": 1210,
-      "database": 278,
+      "database": 279,
       "governance": 64,
       "mobile": 55,
-      "other": 1514,
-      "tests": 1831,
+      "other": 1515,
+      "tests": 1832,
       "web": 458
     },
-    "unmapped_artifacts": 2192,
+    "unmapped_artifacts": 2194,
     "ambiguous_artifacts": 420
   },
   "capabilities": [
@@ -10340,11 +10340,11 @@
           "score": 10
         },
         {
-          "value": "field.created @ tests_v9/test_outbox_idempotent_consumption.py:94",
+          "value": "field.created @ tests_v9/test_outbox_idempotent_consumption.py:123",
           "score": 8
         },
         {
-          "value": "sahool.events.test @ tests_v9/test_outbox_idempotent_consumption.py:92",
+          "value": "sahool.events.test @ tests_v9/test_outbox_idempotent_consumption.py:121",
           "score": 8
         }
       ],
@@ -11420,11 +11420,11 @@
       ],
       "events": [
         {
-          "value": "sahool.soil.observation.recorded @ tests_v9/test_outbox_requires_jetstream_ack.py:202",
+          "value": "sahool.soil.observation.recorded @ tests_v9/test_outbox_requires_jetstream_ack.py:215",
           "score": 26
         },
         {
-          "value": "soil.observation.recorded @ tests_v9/test_outbox_requires_jetstream_ack.py:195",
+          "value": "soil.observation.recorded @ tests_v9/test_outbox_requires_jetstream_ack.py:208",
           "score": 26
         },
         {
@@ -11688,7 +11688,7 @@
           "score": 10
         },
         {
-          "value": "field.created @ tests_v9/test_outbox_idempotent_consumption.py:94",
+          "value": "field.created @ tests_v9/test_outbox_idempotent_consumption.py:123",
           "score": 9
         },
         {
@@ -11700,7 +11700,7 @@
           "score": 9
         },
         {
-          "value": "sahool.events.test @ tests_v9/test_outbox_idempotent_consumption.py:92",
+          "value": "sahool.events.test @ tests_v9/test_outbox_idempotent_consumption.py:121",
           "score": 9
         },
         {
@@ -37786,6 +37786,10 @@
       "kind": "database"
     },
     {
+      "path": "migrations/v233_event_outbox_claim_lease.sql",
+      "kind": "database"
+    },
+    {
       "path": "migrations/v28_settings.sql",
       "kind": "database"
     },
@@ -43823,6 +43827,10 @@
     },
     {
       "path": "tests_v9/test_otp.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_outbox_claim_lease.py",
       "kind": "tests"
     },
     {
