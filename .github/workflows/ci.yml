@@ -1215,6 +1215,18 @@ jobs:
           IMAGERY_RLS_CERTIFICATION_REQUIRED: "1"
         run: pytest -v -m integration -rs tests_v9/test_imagery_automation_rls_live_pg.py
 
+      # طابورُ إبطال الراستر بعد D1: الجدولُ صار يحمل نيّاتِ مستأجرين مختلفين على
+      # **الحقل نفسِه** (المُوصِّلُ يُسلّم بعد الالتزام بمفتاحٍ حتميّ متطابقِ النصّ عبر
+      # المستأجرين). والشاهدُ في الجولة العامّة يؤكّد العزلَ بشرطِ أنّ الدورَ خاضعٌ له،
+      # ودورُ تلك الجولة `sahool_test` خارقٌ فيُتخطّى الشرطُ دائماً: أخضرُ لا يقيس شيئاً.
+      # هنا يُقاس بالدور المقيَّد نفسِه الذي تستعمله شهاداتُ IRR-F01 وH5.1 وimagery.
+      - name: D1 raster invalidation queue RLS certification (migrated v96 policy, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          RASTER_QUEUE_RLS_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_d1_raster_queue_rls_live_pg.py
+
   decision-service-tests:
     name: Decision Service Tests
     runs-on: ubuntu-24.04
