@@ -69,23 +69,21 @@ pytestmark.append(
 
 
 async def _seed(admin, field_id: str) -> tuple[int, int]:
-    """صفّا إبطالٍ لمستأجِرَين على **الحقل نفسِه** — الشكلُ الذي يُنتجه مُوصِّل D1."""
-    row_a = await admin.fetchval(
+    """صفّا إبطالٍ لمستأجِرَين على **الحقل نفسِه** — الشكلُ الذي يُنتجه مُوصِّل D1.
+
+    `$3::text` تحويلٌ لازمٌ لا زينة: `jsonb_build_object` مُعامِلاتُها من الصنف
+    ``"any"``، فلا يستنتج المُخطِّط نوعَ مُعامِلٍ حرٍّ داخلها ويرفع
+    ``IndeterminateDatatypeError``. الصنفُ نفسُه أصاب `UPDATE` إنهاءِ المُوصِّل في D1
+    (`$4::text`) — مقيسٌ مرّتين في هذه الشريحة، فيُكتَب هنا كي لا يُعاد ثالثةً.
+    """
+    request_id = f"field.geometry.updated:{field_id}:rev1"
+    sql = (
         f"INSERT INTO {_TABLE} (tenant_id, field_id, reason, metadata) "
         "VALUES ($1::uuid, $2, 'field.geometry.updated', "
-        "jsonb_build_object('request_id', $3)) RETURNING id",
-        _TENANT_A,
-        field_id,
-        f"field.geometry.updated:{field_id}:rev1",
+        "jsonb_build_object('request_id', $3::text)) RETURNING id"
     )
-    row_b = await admin.fetchval(
-        f"INSERT INTO {_TABLE} (tenant_id, field_id, reason, metadata) "
-        "VALUES ($1::uuid, $2, 'field.geometry.updated', "
-        "jsonb_build_object('request_id', $3)) RETURNING id",
-        _TENANT_B,
-        field_id,
-        f"field.geometry.updated:{field_id}:rev1",
-    )
+    row_a = await admin.fetchval(sql, _TENANT_A, field_id, request_id)
+    row_b = await admin.fetchval(sql, _TENANT_B, field_id, request_id)
     return int(row_a), int(row_b)
 
 

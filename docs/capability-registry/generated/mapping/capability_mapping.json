@@ -24674,11 +24674,7 @@
           "score": 23
         },
         {
-          "value": "field.geometry.updated @ tests_v9/test_d1_raster_queue_rls_live_pg.py:75",
-          "score": 20
-        },
-        {
-          "value": "field.geometry.updated @ tests_v9/test_d1_raster_queue_rls_live_pg.py:83",
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_queue_rls_live_pg.py:82",
           "score": 20
         },
         {
@@ -26089,7 +26085,7 @@
         "backend": 13,
         "routes": 30,
         "database": 100,
-        "events": 49,
+        "events": 48,
         "web": 0,
         "mobile": 0,
         "tests": 67,
