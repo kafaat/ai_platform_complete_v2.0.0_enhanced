@@ -129,6 +129,49 @@ def cert_blocker_ids(path: Path = _PACK_GUARD) -> set[str]:
     return {b["id"] for b in module.BLOCKERS}
 
 
+# معرّف **مدخلةِ إثبات** — صنفٌ خامس، وأخو التفويض والحاجب لا أخو الاستشارة:
+# **مصنوعٌ في هذه الشجرة** في `docs/evidence/operational_evidence_log.md` بعناوين
+# `### E-YYYY-MM-DD-NN`. يُطابِق شكلَ معرّف الفجوة (مقاطعُ مفصولةٌ بشرطات) فكان
+# يُطالَب بقسمٍ في سجلّ الفجوات — وتسجيلُه هناك **كذب**: المدخلةُ إثباتُ شيءٍ قِيس
+# فعلاً، لا عطلٌ مرصود، ولا حالةَ `open`/`fixed` لها.
+#
+# **ولا يُستثنى، بل يُتحقَّق منه في سجلّه:** مبدأُ الحارس أنّ الذكرَ ادّعاء،
+# والاستشارةُ تُستثنى اضطراراً لأنّ مصدرها خارج الشجرة. أمّا الدفترُ فهنا فيُقرأ —
+# وهذا **أقوى** من الاستثناء: `E-2026-09-21-99` الملفَّق يبقى ساقطاً.
+#
+# الدليل: التزامُ هذه الشريحة يسمّي `E-2026-09-21-06` و`E-2026-09-21-07` — المدخلتين
+# اللتين حذفهما `b067f92c` فاسترجعهما #1062 — فأسقطه الحارسُ مطالباً بتسجيلهما فجوتين.
+# والبديلُ (حذفُ المعرّفين من الرسالة) يُخفي **أيَّ مدخلةِ إثباتٍ تُذكَر**، أي يدفع
+# نحو الكتمان كما كان سيفعل مع أرقام الاستشارات وأسماء التفويضات.
+_EVIDENCE_RECORD = re.compile(r"^E-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}$")
+_EVIDENCE_LOG = ROOT / "docs" / "evidence" / "operational_evidence_log.md"
+
+
+def is_evidence_record(gid: str) -> bool:
+    """معرّف مدخلةِ إثبات — يُتحقَّق منه في سجلّ الإثبات لا في سجلّ الفجوات."""
+    return bool(_EVIDENCE_RECORD.match(gid))
+
+
+def evidence_record_ids(path: Path | None = None) -> set[str]:
+    """المعرّفاتُ المُعلَنة عناوينَ في الدفتر — تُقرأ من الملفّ لا تُنسَخ إلى قائمة.
+
+    **الرمزُ الأوّل وحدَه، لا السطر:** عناوينُ الدفتر ``### E-… — <وصف>``، فمطابقةُ
+    السطر كاملاً تُعيد مجموعةً فارغةً فيُقرأ **كلُّ** معرّفٍ صادقٍ «غيرَ مسجَّل» —
+    صفرٌ كاذبٌ يقلب الحارسَ ضدّ العمل الصحيح. قِيس عند كتابة هذا الصنف.
+    """
+    log = _EVIDENCE_LOG if path is None else path
+    if not log.is_file():
+        return set()
+    ids: set[str] = set()
+    for line in log.read_text(encoding="utf-8").splitlines():
+        if not line.startswith("### "):
+            continue
+        head = line.removeprefix("### ").strip().split(maxsplit=1)
+        if head and _EVIDENCE_RECORD.match(head[0]):
+            ids.add(head[0])
+    return ids
+
+
 # **مرجعُ تفويضٍ مبتور**: صنفٌ رابع كان يُصنَّف خطأً «فجوةً غيرَ مسجَّلة».
 # `GATE01-ADJ-2026-09-02` (بلا المقاطع الثلاثة الأخيرة) لا يطابق `_ADJUDICATION`،
 # فيسقط إلى فرع الفجوات ويُعرَض عليه علاجٌ **يستحيل اتّباعُه بصدق**: «سجّلها في
@@ -193,10 +236,12 @@ def commit_messages(base: str, head: str) -> list[tuple[str, str]]:
 def check(base: str, head: str) -> int:
     known = registry_ids()
     blockers = cert_blocker_ids()
+    records = evidence_record_ids()
     violations: list[str] = []
     adjudication_violations: list[str] = []
     blocker_violations: list[str] = []
     truncated_violations: list[str] = []
+    record_violations: list[str] = []
     claimed = 0
     for sha, body in commit_messages(base, head):
         for gid in sorted(set(_GAP_ID.findall(body))):
@@ -207,6 +252,13 @@ def check(base: str, head: str) -> int:
                 if gid not in blockers:
                     blocker_violations.append(
                         f"{sha}: يذكر {gid} — ليس في production_evidence_pack_guard.BLOCKERS"
+                    )
+                continue
+            if is_evidence_record(gid):
+                if gid not in records:
+                    record_violations.append(
+                        f"{sha}: يذكر {gid} — لا عنوان '### {gid}' في "
+                        "docs/evidence/operational_evidence_log.md"
                     )
                 continue
             if is_truncated_adjudication(gid):
@@ -223,10 +275,22 @@ def check(base: str, head: str) -> int:
                 continue
             if gid not in known:
                 violations.append(f"{sha}: يذكر {gid} — لا قسم '## {gid}' ولا صفّ جدول يبدأ به")
-    if violations or adjudication_violations or blocker_violations or truncated_violations:
+    if (
+        violations
+        or adjudication_violations
+        or blocker_violations
+        or truncated_violations
+        or record_violations
+    ):
         print("brain commit claim guard: FAIL")
         for v in sorted(
-            set(violations + adjudication_violations + blocker_violations + truncated_violations)
+            set(
+                violations
+                + adjudication_violations
+                + blocker_violations
+                + truncated_violations
+                + record_violations
+            )
         ):
             print(f"  ✗ {v}")
         if violations:

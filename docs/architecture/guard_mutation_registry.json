@@ -3196,6 +3196,20 @@
           "find": "                if gid not in blockers:",
           "replace": "                if False:",
           "why": "الصنفُ يصير استثناءً بدل تحقّق ⇒ P-CERT-9 الملفَّق يمرّ. والقائمةُ في هذه الشجرة فتُقرأ، وهذا أقوى من الاستثناء لا أضعف"
+        },
+        {
+          "expect": "test_a_fabricated_evidence_record_id_is_still_rejected",
+          "find": "            if is_evidence_record(gid):\n                if gid not in records:",
+          "replace": "            if is_evidence_record(gid):\n                if False:  # mutated: الصنفُ صار استثناءً لا تحقّقاً",
+          "test": "tests/architecture/test_brain_commit_claim_guard.py",
+          "why": "تحويلُ الصنف الخامس من **تحقّقٍ في دفتره** إلى استثناءٍ يجعل `E-2026-09-21-99` الملفَّق يمرّ — وهو بعينه ما يرفضه هذا الحارسُ في صنفَي التفويض وحاجبِ الاعتماد: الاستشارةُ وحدَها تُستثنى اضطراراً لأنّ مصدرها خارج الشجرة، وما كان ملفّاً هنا يُقاس وجودُه."
+        },
+        {
+          "expect": "test_the_record_ids_are_read_from_headings_that_carry_a_title",
+          "find": "        head = line.removeprefix(\"### \").strip().split(maxsplit=1)\n        if head and _EVIDENCE_RECORD.match(head[0]):\n            ids.add(head[0])",
+          "replace": "        whole = line.removeprefix(\"### \").strip()  # mutated: السطرُ كاملاً لا الرمزُ الأوّل\n        if _EVIDENCE_RECORD.match(whole):\n            ids.add(whole)",
+          "test": "tests/architecture/test_brain_commit_claim_guard.py",
+          "why": "عناوينُ الدفتر تحمل وصفاً بعد المعرّف (`### E-… — <وصف>`)، فمطابقةُ السطر كاملاً تُعيد مجموعةً فارغةً ويُبلَّغ **كلُّ** معرّفٍ صادقٍ «غيرَ مسجَّل» — صفرٌ كاذبٌ يقلب الحارسَ ضدّ العمل الصحيح. وقع فعلاً أثناء كتابة هذا الصنف وكشفه تشغيلُ الحارس على التزام الشريحة."
         }
       ],
       "test": "tests/architecture/test_brain_commit_claim_guard.py"
