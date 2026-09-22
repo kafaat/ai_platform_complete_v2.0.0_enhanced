@@ -4415,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "52ce4dd55e712cd6d7d327c7b7a51ca9ad9099ce590398251ed2235e4e1a3d2a"
+          "content": "552825cc1885eae68706debdb4ce202d30bb2eece648481e26f0b47202502764"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6745,7 +6745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aadf3fe32cddde66b372452b7d8c59024f7547f1aa6c79cb09e706a0de6aa1b7"
+          "content": "533070e5b37ebe12a55133ab13cde43cfdc7ec14ce21f38416dc30bae2e0d0c5"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -8159,6 +8159,16 @@
         }
       ],
       "name": "migrations/v231_soil_reconciliation_deferrals.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0d5220ed05521b2b74fba4a1ef5e10fd028c6c3aa9a31166edf36e94794c880a"
+        }
+      ],
+      "name": "migrations/v233_event_outbox_claim_lease.sql",
       "type": "file"
     },
     {
@@ -16525,7 +16535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ef9a2ae6099003b6c3c415f7ae1c3b4227078a373d0595f29a1465e9d136bdc0"
+          "content": "303afce66b83e5c44b60c89bab7127be9697fe25472e5093e086cd94a8106d20"
         }
       ],
       "name": "services/sahool-platform/api/event_bus.py",

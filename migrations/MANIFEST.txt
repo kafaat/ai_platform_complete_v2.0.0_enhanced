@@ -753,4 +753,7 @@ v229_market_mcp_schema.sql
 # v230: drawing persistence under the migration owner; DML-only runtime and FORCE-RLS.
 v230_drawing_features.sql
 v231_soil_reconciliation_deferrals.sql
+# v233: claim lease for event_outbox — WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01.
+#       أعمدةٌ إضافيّةٌ قابلةٌ للإفراغ؛ الشيفرةُ القديمة تعمل بلا علمٍ بها.
+v233_event_outbox_claim_lease.sql
 v206_rls_final_hardening.sql

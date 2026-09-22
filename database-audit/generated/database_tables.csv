@@ -251,7 +251,7 @@ plugin_permission_audit,v121_marketplace_ecosystem.sql,127,True,True,True,0,Fals
 point_in_time_snapshots_runtime,v108_phase10_feature_store_model_registry_runtime.sql,114,True,True,True,1,True,False,0,1
 prescription_maps,v115_precision_agriculture_phase6.sql,121,True,True,True,1,True,False,0,0
 prescriptions,v95_prescriptions.sql,100,True,True,True,2,True,False,1,2
-processed_events,v93_processed_events.sql,98,False,False,False,0,False,False,0,1
+processed_events,v93_processed_events.sql,98,False,False,False,0,False,False,1,1
 processing_jobs,init_v8.sql,0,True,True,False,0,False,True,2,3
 raster_assets,v14_imagery_storage.sql,17,True,True,False,1,False,True,3,2
 raster_batch_jobs,v154_raster_product_identity_batch_leases.sql,159,True,True,True,1,True,False,1,2

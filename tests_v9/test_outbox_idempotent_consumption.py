@@ -1,15 +1,23 @@
 """استهلاك outbox مُتعاضد (Stage A P1): processed_events dedup — منع الأثر المزدوج.
 
-تسليم الـoutbox at-least-once (FOR UPDATE SKIP LOCKED + نشر ثمّ وسم 'sent' في معاملة):
-صفّ مُرسَل قبيل تعطّل قبل وسمه 'sent' يُعاد نشره. هذه الاختبارات تُثبّت أنّ المُستهلِك
-(OutboxWorker._send_one) يُطالِب الحدث عبر processed_events داخل نفس المعاملة، فيُطبَّق
-الأثر الجانبيّ (النشر) **مرّةً واحدة** رغم إعادة التسليم — حتى مع تعطّل في المنتصف.
+تسليم الـoutbox at-least-once: صفٌّ نُشِر قبيل تعطّلٍ سبق وسمَه 'sent' يُعاد نشره.
+هذه الاختبارات تُثبّت أنّ المُستهلِك (OutboxWorker._send_one) يُطبّق الأثر الجانبيّ
+(النشر) **مرّةً واحدة** رغم إعادة التسليم، وأنّ فشل النشر لا يُخلِّف حدثاً «مُعالَجاً»
+بلا نشر.
+
+**وتحديثٌ بعد `WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01`:** كانت المطالبةُ والنشرُ
+داخل معاملةٍ واحدة (ذرّيّة بـSAVEPOINT) — وهو ما يُبقي قفلَ الصفّ واتّصالَ المسبح
+محتجزَين أثناء I/O شبكيّ. صار الفصلُ ثلاثيّاً، والخاصّيّتان أعلاه محفوظتان بوسيلتين
+مختلفتين: فحصٌ **قرائيّ** قبل النشر (`event_already_claimed`) يمنع الأثرَ المزدوج،
+وكتابةُ المطالبة **بعده** تمنع الابتلاع. لا ذرّيّةَ بين النشر والمطالبة — وهذا مُعلَن
+لا مُخفى، ويحسمه المستهلك بـ`event_id`.
 
 نواة بلا خدمات (conn زائف يحاكي asyncpg): قابلة للتشغيل offline في وظيفة الوحدات.
 """
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -29,6 +37,20 @@ from api.event_bus import (  # noqa: E402
 )
 
 # ─── conn زائف: يحاكي processed_events + event_outbox بلا قاعدة ───
+
+
+def _arg_for(sql: str, column: str, args: tuple):
+    """قيمةُ الوسيط المربوط بـ``WHERE <column> = $N`` — **باسمه لا بموضعه**.
+
+    كان القارئ يأخذ ``args[-1]`` افتراضاً أنّ `outbox_id` آخرُ الوسائط. وحين أُضيف
+    `claim_token` إلى شرط الـCAS صار الأخيرُ هو الرمز، فسجّل الزائفُ ``('retry', None)``
+    وسقط توكيدٌ صحيحٌ على شيفرةٍ صحيحة — عطلٌ في أداة القياس لا في المقيس.
+    الاشتقاقُ من نصّ الـSQL يجعل الزائفَ صامداً أمام أيّ إعادة ترتيب لاحقة.
+    """
+    match = re.search(rf"\b{re.escape(column)}\s*=\s*\$(\d+)", sql)
+    if match is None:  # pragma: no cover - يظهر فقط إن تغيّر شكل الشرط جذريّاً
+        raise AssertionError(f"لا ربطَ لـ{column} في: {sql}")
+    return args[int(match.group(1)) - 1]
 
 
 class _FakeTx:
@@ -80,9 +102,16 @@ class FakeConn:
             self.updates.append(("sent", args[0]))
             return "UPDATE 1"
         if "retry_count = $1" in s:
-            self.updates.append(("retry", args[-1]))
+            self.updates.append(("retry", _arg_for(s, "outbox_id", args)))
             return "UPDATE 1"
         return "OK"
+
+    async def fetchval(self, sql: str, *args):
+        """قراءةٌ زائفة — الاستعلامُ الوحيد المقروء هنا هو فحصُ سبق المطالبة."""
+        s = " ".join(sql.split())
+        if "FROM processed_events" in s:
+            return str(args[0]) in self._processed
+        return None
 
 
 def _row(event_id: str, *, outbox_id: int = 1, retry_count: int = 0) -> dict:
