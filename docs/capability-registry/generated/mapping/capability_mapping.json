@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5409,
+    "files_scanned": 5410,
     "files_by_kind": {
       "backend": 1210,
       "database": 278,
       "governance": 64,
       "mobile": 55,
-      "other": 1513,
+      "other": 1514,
       "tests": 1831,
       "web": 458
     },
@@ -3160,7 +3160,7 @@
       ],
       "events": [
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:687",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:689",
           "score": 12
         },
         {
@@ -30527,7 +30527,7 @@
           "score": 15
         },
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:687",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:689",
           "score": 14
         },
         {
@@ -32075,7 +32075,7 @@
           "score": 12
         },
         {
-          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:687",
+          "value": "decision.water_deficit @ services/sahool-platform/api/phase_runtime_workers.py:689",
           "score": 12
         },
         {

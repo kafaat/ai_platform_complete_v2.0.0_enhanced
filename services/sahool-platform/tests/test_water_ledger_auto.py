@@ -7,6 +7,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from api.water_balance import _effective_rain
 from api.water_ledger_auto import (
@@ -16,6 +18,9 @@ from api.water_ledger_auto import (
     compute_daily_ledger_entry,
     manual_entry_takes_precedence,
 )
+
+#: جذرُ المستودع — تُقرأ منه شيفرةُ المُستدعي (مسارٌ مجمَّد لا يُستورَد هنا).
+ROOT = Path(__file__).resolve().parents[3]
 
 
 def test_daily_accumulation_matches_fao56_identity():
@@ -288,4 +293,115 @@ def test_confidence_is_derived_from_the_notes_not_from_a_second_list():
     assert mod._BIASING_ASSUMPTIONS <= {
         "irrigation_volume_untracked",
         "precipitation_assumed_zero",
+        "irrigation_unobserved",
     }, "علَمٌ في المجموعة لا تُصدِره الدالّة — حراسةٌ على لا شيء"
+
+
+# ── `irrigation_unobserved`: «لم يُرصَد سجلٌّ» ≠ «لم يُروَ» ──────────────────────
+
+
+def test_no_irrigation_row_is_unobserved_not_a_measured_zero():
+    """**العطلُ الأصليّ:** صفرُ صفوفٍ كان يدخل الميزانَ ريّاً مقداره صفرٌ مقيس.
+
+    والصادقُ «لم يُرصَد له سجلُّ ريّ» — صحيحةٌ للحقل المطريّ وللمرويّ من بئرٍ بلا
+    تسجيل معاً. فلا يُخترَع تمييزٌ لا تسنده البيانات، ولا يُدَّعى قياسٌ لم يقع.
+    """
+    entry = compute_daily_ledger_entry(
+        prev_depletion_mm=30.0,
+        taw_mm=120.0,
+        raw_mm=60.0,
+        et0_mm=5.0,
+        kc=1.0,
+        rain_mm=0.0,
+        irrigation_mm=0.0,
+        irrigation_unobserved=True,
+    )
+    assert "irrigation_unobserved" in entry["notes"]
+    assert entry["confidence"] == CONFIDENCE_BOOTSTRAP
+
+
+def test_the_ledger_is_still_written_for_an_unobserved_day():
+    """**لا يُحرَم الحقلُ المطريُّ الصادقُ من ميزانه** — إلغاءُ اليوم عطلٌ معاكسُ الاتّجاه.
+
+    القيدُ يبقى **أدنى تقديرٍ للماء المضاف**: يُحسَب ويُكتَب، وتُخفَّض ثقتُه فقط.
+    """
+    entry = compute_daily_ledger_entry(
+        prev_depletion_mm=30.0,
+        taw_mm=120.0,
+        raw_mm=60.0,
+        et0_mm=5.0,
+        kc=1.0,
+        rain_mm=0.0,
+        irrigation_mm=0.0,
+        irrigation_unobserved=True,
+    )
+    assert entry["depletion_mm"] == 35.0, "حسابُ اليوم أُلغي بدل أن تُخفَّض ثقتُه"
+    assert entry["etc_mm"] == 5.0
+
+
+def test_unobserved_and_untracked_are_distinct_claims():
+    """**العلَمان يقولان شيئين مختلفين، ودمجُهما يُفقِد التشخيص.**
+
+    `untracked` = صفٌّ **موجود** بحجمٍ غائب (رُصد ريٌّ، جُهِل مقدارُه).
+    `unobserved` = **لا صفَّ أصلاً** (لم يُرصَد شيء). شرطُ الأوّل
+    `COUNT(*) FILTER (WHERE volume_mm IS NULL)` لا يتحقّق أبداً بلا صفّ — ولهذا
+    بالذات لم يكن العطلُ مغطّى.
+    """
+    untracked = compute_daily_ledger_entry(
+        prev_depletion_mm=30.0,
+        taw_mm=120.0,
+        raw_mm=60.0,
+        et0_mm=5.0,
+        kc=1.0,
+        rain_mm=0.0,
+        irrigation_mm=0.0,
+        irrigation_volume_untracked=True,
+    )
+    unobserved = compute_daily_ledger_entry(
+        prev_depletion_mm=30.0,
+        taw_mm=120.0,
+        raw_mm=60.0,
+        et0_mm=5.0,
+        kc=1.0,
+        rain_mm=0.0,
+        irrigation_mm=0.0,
+        irrigation_unobserved=True,
+    )
+    assert untracked["notes"] == ["irrigation_volume_untracked"]
+    assert unobserved["notes"] == ["irrigation_unobserved"]
+    assert untracked["decision"] != unobserved["decision"], (
+        "القراران متطابقان — فُقِد التمييزُ بين «سجلٌّ بلا حجم» و«لا سجلَّ أصلاً»"
+    )
+
+
+def test_a_measured_irrigation_run_keeps_full_confidence():
+    """**الشاهدُ الإيجابيّ:** يومٌ له صفُّ ريٍّ بحجمٍ مقيس يبقى `CONFIDENCE_AUTO`.
+
+    بدونه يصير كلُّ يومٍ منخفضَ الثقة، فيفقد الرقمُ معناه — وهي «بوّابةٌ لا تُغلَق
+    بعملٍ صحيح».
+    """
+    entry = compute_daily_ledger_entry(
+        prev_depletion_mm=30.0,
+        taw_mm=120.0,
+        raw_mm=60.0,
+        et0_mm=5.0,
+        kc=1.0,
+        rain_mm=0.0,
+        irrigation_mm=12.0,
+    )
+    assert entry["notes"] == []
+    assert entry["confidence"] == CONFIDENCE_AUTO
+
+
+def test_the_worker_derives_unobserved_from_a_row_count_not_from_the_sum():
+    """`SUM(volume_mm)=0` يقع أيضاً على صفوفٍ حجمُها صفرٌ مقيس — فلا يصلح شرطاً.
+
+    الشرطُ الصحيح `COUNT(*)`؛ ويُقرأ من المصدر لأنّ المُستدعي في مسارٍ مجمَّد.
+    """
+    source = (ROOT / "services/sahool-platform/api/phase_runtime_workers.py").read_text(
+        encoding="utf-8"
+    )
+    assert "COUNT(*) AS runs" in source, "العدّادُ غائبٌ عن الاستعلام"
+    assert 'irrigation_unobserved=not int(irr["runs"] or 0)' in source, (
+        "العلَمُ لا يُشتقّ من عدد الصفوف"
+    )

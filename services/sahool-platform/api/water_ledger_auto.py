@@ -46,7 +46,16 @@ CONFIDENCE_BOOTSTRAP = 0.4
 #:
 #: **ولا يشمل هذا «مقيسٌ = صفر»:** المُستدعي يفرّق (`_precip is None`)، فالعلَمُ لا
 #: يُطلَق على يومٍ جافٍّ مقيس — وإلّا صارت أكثرُ الأيّام منخفضةَ الثقة بلا سبب.
-_BIASING_ASSUMPTIONS = frozenset({"irrigation_volume_untracked", "precipitation_assumed_zero"})
+#: **و`irrigation_unobserved` ثالثُها، وهو أوسعُها أثراً:** صفرُ صفوفٍ في
+#: ``irrigation_runs`` كان يُقرأ «رُصد أنّه لم يُروَ» فيدخل الميزانَ ريّاً مقداره صفر.
+#: والصادقُ «**لم يُرصَد له سجلُّ ريّ**» — عبارةٌ صحيحةٌ للحقل المطريّ وللمرويّ من بئرٍ
+#: بلا تسجيل معاً. فلا يُخترَع تمييزٌ لا تسنده البيانات، ولا يُدَّعى قياسٌ لم يقع.
+#:
+#: ولا يُلغى حسابُ اليوم: الدفترُ يبقى **أدنى تقديرٍ للماء المضاف**، وتُخفَّض ثقتُه.
+#: إلغاؤه كان سيحرم الحقلَ المطريَّ الصادقَ من ميزانه — عطلٌ معاكسُ الاتّجاه.
+_BIASING_ASSUMPTIONS = frozenset(
+    {"irrigation_volume_untracked", "precipitation_assumed_zero", "irrigation_unobserved"}
+)
 
 
 def compute_daily_ledger_entry(
@@ -59,6 +68,7 @@ def compute_daily_ledger_entry(
     rain_mm: float,
     irrigation_mm: float,
     irrigation_volume_untracked: bool = False,
+    irrigation_unobserved: bool = False,
     rain_assumed_zero: bool = False,
 ) -> dict:
     """قيد اليوم من قيد الأمس + مدخلات اليوم — نقيّ، مع افتراضات مُعلَنة لا صامتة.
@@ -92,6 +102,10 @@ def compute_daily_ledger_entry(
     p_eff = _effective_rain(rain_mm)
     if irrigation_volume_untracked:
         notes.append("irrigation_volume_untracked")
+    if irrigation_unobserved:
+        # لا صفَّ ريٍّ لهذا اليوم: «لم يُرصَد سجلٌّ» لا «لم يُروَ». يبقى `irrigation_mm`
+        # صفراً (لا بيانات تُضاف) والقيدُ أدنى تقدير — والثقةُ تهبط بإعلان.
+        notes.append("irrigation_unobserved")
 
     raw_depletion = prev + etc_mm - p_eff - irrigation_mm
     depletion_mm = round(min(max(raw_depletion, 0.0), taw_mm), 2)
