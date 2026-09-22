@@ -194,3 +194,98 @@ def test_worker_distinguishes_missing_precip_from_measured_zero():
     src = (Path(__file__).parents[1] / "api" / "phase_runtime_workers.py").read_text()
     assert "rain_assumed_zero = _precip is None" in src
     assert "rain_assumed_zero=rain_assumed_zero" in src
+
+
+# ── `UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01` — الثقةُ تتبع ما افتُرِض ──
+
+
+def test_untracked_irrigation_volume_does_not_carry_full_confidence():
+    """**العطلُ بعينه:** قيدٌ يُقرّ أنّ حجمَ الريّ مجهول ثمّ يُعلِن ثقةَ يومٍ مقيس.
+
+    الملاحظةُ كانت تُكتب في `notes` ولا يسمعها شيء — ومَن يقرأ الصفَّ يرى `0.7`،
+    أي الرقمَ نفسَه ليومٍ قِيست مدخلاتُه كلُّها.
+    """
+    entry = compute_daily_ledger_entry(
+        prev_depletion_mm=30.0,
+        taw_mm=120.0,
+        raw_mm=60.0,
+        et0_mm=5.0,
+        kc=1.0,
+        rain_mm=0.0,
+        irrigation_mm=0.0,
+        irrigation_volume_untracked=True,
+    )
+    assert "irrigation_volume_untracked" in entry["notes"]
+    assert entry["bootstrap"] is False, "المقدّمة: ليست حالةَ bootstrap"
+    assert entry["confidence"] == CONFIDENCE_BOOTSTRAP, (
+        "يومٌ حدُّ الريّ فيه مفترَضٌ لا مقيس خرج بثقةِ يومٍ مقيسٍ بالكامل"
+    )
+
+
+def test_missing_precipitation_does_not_carry_full_confidence():
+    """الهطولُ **المفقود** (لا المقيسُ صفراً) افتراضٌ يُحيّز النتيجة في الاتّجاه نفسِه."""
+    entry = compute_daily_ledger_entry(
+        prev_depletion_mm=30.0,
+        taw_mm=120.0,
+        raw_mm=60.0,
+        et0_mm=5.0,
+        kc=1.0,
+        rain_mm=0.0,
+        irrigation_mm=0.0,
+        rain_assumed_zero=True,
+    )
+    assert "precipitation_assumed_zero" in entry["notes"]
+    assert entry["confidence"] == CONFIDENCE_BOOTSTRAP
+
+
+def test_a_measured_dry_day_keeps_full_confidence():
+    """**الشاهدُ الإيجابيّ — وبدونه يصير الخفضُ بوّابةً لا تُغلَق بعملٍ صحيح.**
+
+    المُستدعي يفرّق «هطولٌ مقيسٌ = صفر» عن «هطولٌ مفقود» (`_precip is None`). فيومٌ
+    جافٌّ **مقيس** بلا ريّ مدخلاتُه كلُّها معلومة، ويجب أن يبقى `CONFIDENCE_AUTO` —
+    وإلّا انخفضت ثقةُ أكثر الأيّام بلا سبب وصار الرقمُ بلا معنى.
+    """
+    entry = compute_daily_ledger_entry(
+        prev_depletion_mm=30.0,
+        taw_mm=120.0,
+        raw_mm=60.0,
+        et0_mm=5.0,
+        kc=1.0,
+        rain_mm=0.0,
+        irrigation_mm=0.0,
+    )
+    assert entry["notes"] == []
+    assert entry["confidence"] == CONFIDENCE_AUTO
+
+
+def test_the_two_assumptions_bias_depletion_upward_not_symmetrically():
+    """**لماذا الخفضُ مستحقّ:** الافتراضان يرفعان الاستنزاف، فيدفعان نحو ريٍّ زائد.
+
+    حيازةٌ في اتّجاهٍ معروف لا ضجيجٌ متماثل — ولذلك لا يكفي أن تُكتَب ملاحظةٌ نصّيّة.
+    """
+    base = dict(prev_depletion_mm=30.0, taw_mm=200.0, raw_mm=100.0, et0_mm=5.0, kc=1.0, rain_mm=8.0)
+    truthful = compute_daily_ledger_entry(**base, irrigation_mm=12.0)
+    untracked = compute_daily_ledger_entry(
+        **base, irrigation_mm=0.0, irrigation_volume_untracked=True
+    )
+    assert untracked["depletion_mm"] > truthful["depletion_mm"], (
+        "ريٌّ غيرُ مُقاسٍ يجب أن يُنتِج استنزافاً أعلى — وهو اتّجاه الضرر"
+    )
+    dry = compute_daily_ledger_entry(**{**base, "rain_mm": 0.0}, irrigation_mm=12.0)
+    assert dry["depletion_mm"] > truthful["depletion_mm"]
+
+
+def test_confidence_is_derived_from_the_notes_not_from_a_second_list():
+    """قائمتان تنحرفان: علَمٌ يُضاف إلى `notes` ولا يُحدَّث معه شرطُ الثقة يبيت صامتاً."""
+    import inspect
+
+    from api import water_ledger_auto as mod
+
+    source = inspect.getsource(mod.compute_daily_ledger_entry)
+    assert "_BIASING_ASSUMPTIONS.intersection(notes)" in source, (
+        "الثقةُ لا تُشتقّ من `notes` — فأيُّ علَمٍ جديدٍ لن يُخفّضها"
+    )
+    assert mod._BIASING_ASSUMPTIONS <= {
+        "irrigation_volume_untracked",
+        "precipitation_assumed_zero",
+    }, "علَمٌ في المجموعة لا تُصدِره الدالّة — حراسةٌ على لا شيء"
