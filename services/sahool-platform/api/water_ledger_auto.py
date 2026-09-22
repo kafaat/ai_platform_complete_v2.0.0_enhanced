@@ -29,6 +29,25 @@ CONFIDENCE_AUTO = 0.7
 # أوّل قيد (bootstrap من Dr=0) أدنى ثقة حتى تتراكم أيّام حقيقيّة فوقه.
 CONFIDENCE_BOOTSTRAP = 0.4
 
+#: افتراضاتٌ مُعلَنةٌ **تُحيّز** النتيجة — `UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01`.
+#:
+#: **العطلُ مقيسٌ في هذا الملفّ نفسِه:** كانت الثقةُ دالّةً على `bootstrap` وحدَه، فيوماً
+#: أقرّ فيه القيدُ صراحةً أنّ حدّاً من معادلة الميزان **مفترَضٌ لا مقيس** كان يخرج بـ
+#: `CONFIDENCE_AUTO` — الثقةِ نفسِها ليومٍ قِيست مدخلاتُه كلُّها. الملاحظةُ تُكتب في
+#: `notes` ولا يسمعها شيء: مَن يقرأ الصفَّ يرى رقمَ ثقةٍ كاملاً.
+#:
+#: **والاتّجاه واحدٌ وهو الأسوأ:** كلا الافتراضين يرفع `raw_depletion`
+#: (`prev + etc − p_eff − irrigation_mm`) — ريٌّ غيرُ مُقاسٍ يُحتسَب أقلَّ ممّا وقع،
+#: وهطولٌ مفقودٌ يُفترَض صفراً. فالنتيجةُ استنزافٌ مُبالَغٌ فيه ⇒ **توصيةُ ريٍّ فوق ريٍّ
+#: حصل**، على خزّاناتٍ جوفيّةٍ متراجعة. حيازةٌ في اتّجاهٍ معروف، لا ضجيجٌ متماثل.
+#:
+#: **والسقفُ مُشتقٌّ لا مُختلَق:** يومٌ يقوم على حدٍّ مفترَضٍ لا يجوز أن يكون **أوثقَ**
+#: من يومٍ افتُرِضت نقطةُ بدايته (`bootstrap`). فلا ثابتَ ثالثاً يُخترَع رقمُه.
+#:
+#: **ولا يشمل هذا «مقيسٌ = صفر»:** المُستدعي يفرّق (`_precip is None`)، فالعلَمُ لا
+#: يُطلَق على يومٍ جافٍّ مقيس — وإلّا صارت أكثرُ الأيّام منخفضةَ الثقة بلا سبب.
+_BIASING_ASSUMPTIONS = frozenset({"irrigation_volume_untracked", "precipitation_assumed_zero"})
+
 
 def compute_daily_ledger_entry(
     *,
@@ -89,7 +108,14 @@ def compute_daily_ledger_entry(
         "depletion_mm": depletion_mm,
         "deficit_mm": deficit_mm,
         "bootstrap": bootstrap,
-        "confidence": CONFIDENCE_BOOTSTRAP if bootstrap else CONFIDENCE_AUTO,
+        # الثقةُ دالّةٌ على **ما افتُرِض**، لا على `bootstrap` وحدَه — شرحُه عند
+        # `_BIASING_ASSUMPTIONS`. وتُشتقّ من `notes` لا من الوسائط: علَمٌ يُضاف لاحقاً
+        # إلى المجموعة يُخفَّض أثرُه تلقائيّاً، ولا يُنسى سطرٌ ثانٍ يُحدَّث معه.
+        "confidence": (
+            CONFIDENCE_BOOTSTRAP
+            if (bootstrap or _BIASING_ASSUMPTIONS.intersection(notes))
+            else CONFIDENCE_AUTO
+        ),
         "notes": notes,
         "decision": ("auto:" + (";".join(notes) if notes else "daily_balance")),
     }

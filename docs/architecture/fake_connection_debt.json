@@ -1,6 +1,6 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب.",
-  "measured_on": "ea24696409a0fa09371d1a4aea6865bafdb7e9f5",
+  "measured_on": "0e20f6d7456c01c045d895ca53a791d678c2f9d4",
   "fake_connection_tests": [
     "services/sahool-platform/tests/test_break_glass.py",
     "services/sahool-platform/tests/test_crop_stress_ingestion.py",
