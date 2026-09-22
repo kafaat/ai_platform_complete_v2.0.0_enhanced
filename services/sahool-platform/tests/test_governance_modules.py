@@ -449,11 +449,8 @@ def test_assess_fleet_healthy_when_all_active():
         ("GET", "/tile-cache-plan", None),
         ("GET", "/ogc/collections/fields/items", None),
         ("POST", "/editing-sessions/undo-redo", {"field_id": "f1", "action": "undo"}),
-        (
-            "POST",
-            "/cog-registry",
-            {"product_date": "2026-09-08", "index_type": "ndvi", "cog_url": "file:///ndvi.tif"},
-        ),
+        # POST /cog-registry left this list in D1: it no longer opens a DB connection —
+        # it sends a write command to raster-service (test_d1_raster_owner_write_commands).
         ("GET", "/stac/search", None),
         ("GET", "/stac/collections/sahool-ndvi", None),
         ("GET", "/mosaicjson", None),

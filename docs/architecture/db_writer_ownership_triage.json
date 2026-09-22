@@ -1,7 +1,7 @@
 {
  "$comment": "فرزُ مخالفات ملكيّة الكتابة: كلُّ صفٍّ مقيسٌ بمحرّك db_writer_ownership_guard نفسِه (write_sites + العقد + الأساس)، والصنفُ مشتقٌّ بقاعدةٍ صريحة (derive_category في الحارس) لا مختار، وعددُ الكُتّاب بُعدٌ مستقلٌّ عن الصنف. المصنوعةُ تصنّف ولا تحكم ولا تحلّ: status=triaged لكلّ صفّ. تُولَّد مع الأساس بـ--generate ويُقاس بياتُها صفّاً صفّاً في --check. 'owner_writes_table: false' تعني «لم يُرصد موضع» بحدّ الماسح (حرفيّاتُ SQL في بايثون؛ ملفّاتُ SQLite-only خارج النطاق وتُرى في excluded_write_sites) لا «لا يكتب». 'deployment_evidence' لقطةٌ مؤرَّخة من مراجعةٍ خارجيّة لا حالةٌ حيّة، وcutover_ready فيها false دائماً.",
  "baseline": "docs/architecture/db_writer_ownership_baseline.json",
- "measured_on": "0606bb676281d3e96089be7cc1272df3332dab3e",
+ "measured_on": "23ac0425be400756b9018e71421e84043d61b781",
  "category_vocabulary": [
   "owner-name-not-in-tree",
   "tooling-writer",
@@ -9,10 +9,10 @@
   "owner-never-writes"
  ],
  "counts": {
-  "total": 71,
+  "total": 69,
   "by_category": {
    "owner-never-writes": 62,
-   "dual-writer": 4,
+   "dual-writer": 2,
    "tooling-writer": 5
   },
   "multiple_non_owner_writers": 2,
@@ -1791,76 +1791,6 @@
    "category": "owner-never-writes",
    "remedy": "لم يُرصد للمالك المُعلَن موضعُ كتابةٍ في نطاق الماسح (حرفيّاتُ SQL في بايثون؛ غيابُ الموضع ليس نفياً)، والكاتبُ المرصودُ الوحيدُ هو المخالف. الخياران: (أ) استخراجُ الكتابة إلى المالك بواجهةٍ يملكها ثمّ استدعاؤها (نمطُ البند ٣) — ممكنٌ فقط إن كان المالكُ منشوراً وقتَ الانتقال لا في لقطةٍ قديمة؛ (ب) إعادةُ إعلان الكاتب مالكاً/كاتباً إن لم يعد الاستخراجُ مقصوداً — يرفضه `ownership_extraction_alignment_guard` ما دام المالكُ هدفَ استخراجٍ حيّ، فهو قرارُ مالكٍ لا سطر.",
    "decision_owner": "owner",
-   "status": "triaged",
-   "deployment_evidence": {
-    "observed_on": "2026-09-20",
-    "source": "docs/evidence/railway_audit_review_20260920.md",
-    "owner_deployed": true,
-    "writer_deployed": true,
-    "cutover_ready": false,
-    "freshness": "historical_snapshot"
-   }
-  },
-  "raster_cache_invalidations::sahool-platform": {
-   "table": "raster_cache_invalidations",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/spatial_sync.py"
-   ],
-   "declared_owner": "raster-service",
-   "declared_writers": [
-    "raster-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "raster-service",
-    "sahool-platform"
-   ],
-   "measured_writer_count": 2,
-   "non_owner_writers": [
-    "sahool-platform"
-   ],
-   "multiple_non_owner_writers": false,
-   "owner_writes_table": true,
-   "writer_kind": "service-module",
-   "category": "dual-writer",
-   "remedy": "رُصد المالكُ بين الكُتّاب ومعه 1 كاتبٌ غيرُه — تعارضُ كتابةٍ حقيقيّ. العلاج: توجيهُ كتابة غيرِ المالك عبر واجهةٍ يملكها المالك (نمطُ البند ٣) أو جسرٌ انتقاليٌّ موثَّق (`mirror` + `status: interim-bridge`) بسقفٍ نازل. وتشغيلُ الكاتب بدور مالك الجدول في PostgreSQL ليس حلّاً: ملكيّةُ الخدمة في العقد غيرُ ملكيّة الجدول وصلاحيّاتِ الدور وسياساتِ RLS.",
-   "decision_owner": "engineering",
-   "status": "triaged",
-   "deployment_evidence": {
-    "observed_on": "2026-09-20",
-    "source": "docs/evidence/railway_audit_review_20260920.md",
-    "owner_deployed": true,
-    "writer_deployed": true,
-    "cutover_ready": false,
-    "freshness": "historical_snapshot"
-   }
-  },
-  "raster_registry::sahool-platform": {
-   "table": "raster_registry",
-   "writer": "sahool-platform",
-   "files": [
-    "services/sahool-platform/api/routers/gis_cloud_native.py"
-   ],
-   "declared_owner": "raster-service",
-   "declared_writers": [
-    "raster-service"
-   ],
-   "owner_dir_in_tree": true,
-   "measured_writers_of_table": [
-    "raster-service",
-    "sahool-platform"
-   ],
-   "measured_writer_count": 2,
-   "non_owner_writers": [
-    "sahool-platform"
-   ],
-   "multiple_non_owner_writers": false,
-   "owner_writes_table": true,
-   "writer_kind": "service-router",
-   "category": "dual-writer",
-   "remedy": "رُصد المالكُ بين الكُتّاب ومعه 1 كاتبٌ غيرُه — تعارضُ كتابةٍ حقيقيّ. العلاج: توجيهُ كتابة غيرِ المالك عبر واجهةٍ يملكها المالك (نمطُ البند ٣) أو جسرٌ انتقاليٌّ موثَّق (`mirror` + `status: interim-bridge`) بسقفٍ نازل. وتشغيلُ الكاتب بدور مالك الجدول في PostgreSQL ليس حلّاً: ملكيّةُ الخدمة في العقد غيرُ ملكيّة الجدول وصلاحيّاتِ الدور وسياساتِ RLS.",
-   "decision_owner": "engineering",
    "status": "triaged",
    "deployment_evidence": {
     "observed_on": "2026-09-20",

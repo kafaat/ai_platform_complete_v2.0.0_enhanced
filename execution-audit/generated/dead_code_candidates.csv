@@ -87,6 +87,7 @@ medium,raster-service,function,classify_soil_texture,services/raster-service/soi
 medium,raster-service,function,encode_terrain_rgb,services/raster-service/terrain_source_registry.py,187,0,review_before_delete,False
 medium,raster-service,function,decode_terrain_rgb,services/raster-service/terrain_source_registry.py,197,0,review_before_delete,False
 medium,raster-service,function,terrain_rgb_metadata,services/raster-service/terrain_source_registry.py,202,0,review_before_delete,False
+medium,raster-service,function,owner_api,services/raster-service/test_registry_writes_owner_api.py,43,0,review_before_delete,False
 medium,raster-service,function,fetch_wapor_mapsets,services/raster-service/wapor_worldcereal.py,46,0,review_before_delete,False
 medium,sahool-platform,class,AgroZone,services/sahool-platform/api/agro_climate_zones.py,26,0,review_before_delete,False
 medium,sahool-platform,function,consume_phenology_state,services/sahool-platform/api/agronomic_state_consumers.py,47,0,review_before_delete,False

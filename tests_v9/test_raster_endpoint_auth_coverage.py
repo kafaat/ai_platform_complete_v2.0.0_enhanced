@@ -83,6 +83,10 @@ FIELD_SCOPED_SERVICE_ONLY: set[str] = {
     "/v1/fields/{field_id}/prescription",
     # كشف التغيّر المكاني للحقل بين تاريخين — خدمة-لخدمة (مطابقة الشقيقات).
     "/v1/fields/{field_id}/change",
+    # D1: أمرُ كتابةٍ من المنصّة إلى مالك raster_cache_invalidations — يستدعيه مُوصِّل
+    # المنصّة بعد الالتزام بترويسة التوكن + X-Tenant-Id، ثمّ يُطابق الحقلَ بمستأجِره
+    # صراحةً (routers/registry_writes._require_field_owned_by: 404/403/503) قبل الإدراج.
+    "/v1/fields/{field_id}/cache-invalidations",
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -119,6 +123,7 @@ SERVICE_ONLY: set[str] = {
     # ── كتالوج GIS سحابيّ + تحليلات حقول: تكشف بنية/تصدير ⇒ توكن خدمة + ترويسة ──
     "/v1/fields/analytics/geoparquet/export",  # تصدير GeoParquet لحقول — توكن خدمة.
     "/v1/tile-cache/stats",  # إحصاء ذاكرة بلاطات يكشف بنية داخلية — توكن خدمة.
+    "/v1/registry/cogs",  # D1: أمرُ تسجيل COG في raster_registry من المنصّة — توكن خدمة + X-Tenant-Id + مطابقة الحقل بمستأجِره.
 }
 
 # ─────────────────────────────────────────────────────────────────────────────

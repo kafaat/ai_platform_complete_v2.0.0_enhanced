@@ -19,7 +19,7 @@ FM-007,farm_management,Inventory and procurement,True,7,8,26,8,6,1,1,5,4
 FM-008,farm_management,ERP integration,True,5,10,25,5,1,0,0,8,0
 GIS-001,gis,Field geometry validation,True,2,0,0,1,0,1,0,0,0
 GIS-002,gis,Map layers,True,4,2,3,0,0,2,0,2,0
-GIS-003,gis,Terrain and DEM,True,6,27,100,10,51,12,0,38,0
+GIS-003,gis,Terrain and DEM,True,6,28,100,10,51,12,0,38,0
 GIS-004,gis,Spatial analytics,True,3,1,0,1,0,0,0,1,0
 INT-001,farm_management,Public API and SDK,False,0,0,0,0,0,0,0,0,0
 INT-002,farm_management,Event bus integration,True,5,6,15,2,74,0,0,13,0
@@ -56,7 +56,7 @@ SAT-005,satellite,Cloud screening,True,4,8,24,0,1,0,0,9,0
 SAT-006,satellite,Historical imagery timeline,True,3,1,0,0,1,0,0,3,0
 SAT-007,satellite,Change detection,True,3,2,1,0,0,0,0,3,0
 SAT-008,satellite,Stress zones,True,5,3,1,7,4,0,0,6,0
-SAT-009,satellite,COG persistence and tiling,True,5,13,70,0,14,1,0,23,0
+SAT-009,satellite,COG persistence and tiling,True,5,14,70,0,14,1,0,23,0
 SEC-001,security,Tenant RLS,True,5,13,30,100,47,0,0,66,0
 SEC-002,security,Signed tenant assertion,True,1,0,0,0,0,0,0,1,0
 SEC-003,security,Worker identity binding,True,2,1,0,0,0,0,0,1,0
