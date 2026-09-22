@@ -5,7 +5,7 @@
   "runtime_verified":false,
   "python_files_parsed":1909,
   "route_handlers":1056,
-  "call_edges":79454,
+  "call_edges":79461,
   "dead_code_candidates":635,
   "duplicate_function_groups":59,
   "route_owners":27,
@@ -55,7 +55,7 @@
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
-   "line":55,
+   "line":58,
    "handler":"healthz",
    "method":"GET",
    "path":"/healthz"
@@ -63,7 +63,7 @@
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
-   "line":60,
+   "line":63,
    "handler":"legacy_health",
    "method":"GET",
    "path":"/health"
@@ -71,7 +71,7 @@
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
-   "line":65,
+   "line":68,
    "handler":"readyz",
    "method":"GET",
    "path":"/readyz"
@@ -79,7 +79,7 @@
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
-   "line":90,
+   "line":93,
    "handler":"metrics",
    "method":"GET",
    "path":"/metrics"
@@ -87,7 +87,7 @@
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
-   "line":97,
+   "line":100,
    "handler":"runtime_evidence_identity",
    "method":"GET",
    "path":"/runtime-identity"
@@ -95,7 +95,7 @@
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
-   "line":243,
+   "line":246,
    "handler":"recommend",
    "method":"POST",
    "path":"/v1/recommend"
@@ -103,7 +103,7 @@
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
-   "line":307,
+   "line":310,
    "handler":"simulate",
    "method":"POST",
    "path":"/v1/simulate"
@@ -111,7 +111,7 @@
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
-   "line":320,
+   "line":323,
    "handler":"plan",
    "method":"POST",
    "path":"/v1/plan"
@@ -119,7 +119,7 @@
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
-   "line":336,
+   "line":339,
    "handler":"replay_verify",
    "method":"POST",
    "path":"/v1/replay/verify"
@@ -1015,7 +1015,7 @@
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
-   "line":188,
+   "line":191,
    "handler":"health_check",
    "method":"GET",
    "path":"/healthz"
@@ -1023,7 +1023,7 @@
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
-   "line":220,
+   "line":223,
    "handler":"detect_pest",
    "method":"POST",
    "path":"/v1/inference/pest-detect"
@@ -1031,7 +1031,7 @@
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
-   "line":283,
+   "line":286,
    "handler":"estimate_yield",
    "method":"POST",
    "path":"/v1/inference/yield-estimate"
@@ -1039,7 +1039,7 @@
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
-   "line":352,
+   "line":355,
    "handler":"trigger_sync",
    "method":"POST",
    "path":"/v1/sync/trigger"
@@ -1047,7 +1047,7 @@
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
-   "line":384,
+   "line":387,
    "handler":"capabilities",
    "method":"GET",
    "path":"/capabilities"
@@ -1055,7 +1055,7 @@
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
-   "line":389,
+   "line":392,
    "handler":"metrics",
    "method":"GET",
    "path":"/metrics"
@@ -1063,7 +1063,7 @@
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
-   "line":399,
+   "line":402,
    "handler":"readyz",
    "method":"GET",
    "path":"/readyz"
@@ -1127,7 +1127,7 @@
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
-   "line":372,
+   "line":375,
    "handler":"healthz",
    "method":"GET",
    "path":"/healthz"
@@ -1135,7 +1135,7 @@
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
-   "line":377,
+   "line":380,
    "handler":"legacy_health",
    "method":"GET",
    "path":"/health"
@@ -1143,7 +1143,7 @@
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
-   "line":382,
+   "line":385,
    "handler":"readyz",
    "method":"GET",
    "path":"/readyz"
@@ -1151,7 +1151,7 @@
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
-   "line":428,
+   "line":431,
    "handler":"segment",
    "method":"POST",
    "path":"/v1/segment"
@@ -1375,7 +1375,7 @@
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
-   "line":591,
+   "line":594,
    "handler":"query_endpoint",
    "method":"POST",
    "path":"/v1/query"
@@ -1383,7 +1383,7 @@
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
-   "line":601,
+   "line":604,
    "handler":"ingest_endpoint",
    "method":"POST",
    "path":"/v1/ingest"
@@ -1391,7 +1391,7 @@
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
-   "line":656,
+   "line":659,
    "handler":"healthz",
    "method":"GET",
    "path":"/healthz"
@@ -1399,7 +1399,7 @@
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
-   "line":674,
+   "line":677,
    "handler":"legacy_health",
    "method":"GET",
    "path":"/health"
@@ -1407,7 +1407,7 @@
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
-   "line":679,
+   "line":682,
    "handler":"readyz",
    "method":"GET",
    "path":"/readyz"
@@ -7487,7 +7487,7 @@
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
-   "line":178,
+   "line":179,
    "handler":"healthz",
    "method":"GET",
    "path":"/healthz"
@@ -7495,7 +7495,7 @@
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
-   "line":183,
+   "line":184,
    "handler":"readyz",
    "method":"GET",
    "path":"/readyz"
@@ -7503,7 +7503,7 @@
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
-   "line":216,
+   "line":221,
    "handler":"read_external_observations",
    "method":"GET",
    "path":"/internal/scouting/external-observations"
@@ -7511,7 +7511,7 @@
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
-   "line":335,
+   "line":340,
    "handler":"ingest_odk_submission",
    "method":"POST",
    "path":"/internal/ingest/submissions/odk"
@@ -7519,7 +7519,7 @@
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
-   "line":344,
+   "line":349,
    "handler":"ingest_kobo_submission",
    "method":"POST",
    "path":"/internal/ingest/submissions/kobo"
@@ -7607,7 +7607,7 @@
   {
    "owner":"soil-service",
    "file":"services/soil-service/main.py",
-   "line":208,
+   "line":216,
    "handler":"runtime_evidence_identity",
    "method":"GET",
    "path":"/runtime-identity"
@@ -13423,216 +13423,216 @@
    "file":"services/agriai-engine/main.py",
    "source":"lifespan",
    "target":"info",
-   "line":46
+   "line":49
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"lifespan",
    "target":"info",
-   "line":48
+   "line":51
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"healthz",
    "target":"get",
-   "line":54
+   "line":57
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"legacy_health",
    "target":"get",
-   "line":59
+   "line":62
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"legacy_health",
    "target":"healthz",
-   "line":61
-  },
-  {
-   "owner":"agriai-engine",
-   "file":"services/agriai-engine/main.py",
-   "source":"readyz",
-   "target":"get",
    "line":64
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"readyz",
+   "target":"get",
+   "line":67
+  },
+  {
+   "owner":"agriai-engine",
+   "file":"services/agriai-engine/main.py",
+   "source":"readyz",
    "target":"getenv",
-   "line":69
+   "line":72
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"readyz",
    "target":"lower",
-   "line":69
+   "line":72
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"readyz",
    "target":"scientific_path_status",
-   "line":70
+   "line":73
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"metrics",
    "target":"get",
-   "line":89
+   "line":92
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"metrics",
    "target":"Response",
-   "line":91
+   "line":94
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"metrics",
    "target":"generate_latest",
-   "line":91
+   "line":94
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"runtime_evidence_identity",
    "target":"get",
-   "line":96
+   "line":99
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"runtime_evidence_identity",
    "target":"load_build_identity",
-   "line":100
+   "line":103
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"_require_service_token",
    "target":"Header",
-   "line":168
+   "line":171
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"_require_service_token",
    "target":"HTTPException",
-   "line":170
+   "line":173
+  },
+  {
+   "owner":"agriai-engine",
+   "file":"services/agriai-engine/main.py",
+   "source":"_require_service_token",
+   "target":"service_token_ok",
+   "line":174
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"_require_service_token",
    "target":"HTTPException",
-   "line":172
+   "line":175
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"_validated_context",
    "target":"validate_context",
-   "line":179
+   "line":182
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"_validated_context",
    "target":"HTTPException",
-   "line":181
+   "line":184
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"_context_inputs",
    "target":"normalized_engine_inputs",
-   "line":190
+   "line":193
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"_build_bundle",
    "target":"append",
-   "line":204
+   "line":207
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"_build_bundle",
    "target":"make_evidence_item",
-   "line":205
+   "line":208
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"_build_bundle",
    "target":"assemble_bundle",
-   "line":215
+   "line":218
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"_candidates_to_plan",
    "target":"simulate",
-   "line":229
+   "line":232
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"_candidates_to_plan",
    "target":"append",
-   "line":230
+   "line":233
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"recommend",
    "target":"post",
-   "line":242
-  },
-  {
-   "owner":"agriai-engine",
-   "file":"services/agriai-engine/main.py",
-   "source":"recommend",
-   "target":"Header",
-   "line":243
-  },
-  {
-   "owner":"agriai-engine",
-   "file":"services/agriai-engine/main.py",
-   "source":"recommend",
-   "target":"_require_service_token",
    "line":245
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"recommend",
-   "target":"_validated_context",
-   "line":247
+   "target":"Header",
+   "line":246
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"recommend",
-   "target":"_context_inputs",
+   "target":"_require_service_token",
    "line":248
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"recommend",
-   "target":"get",
+   "target":"_validated_context",
+   "line":250
+  },
+  {
+   "owner":"agriai-engine",
+   "file":"services/agriai-engine/main.py",
+   "source":"recommend",
+   "target":"_context_inputs",
    "line":251
   },
   {
@@ -13640,21 +13640,7 @@
    "file":"services/agriai-engine/main.py",
    "source":"recommend",
    "target":"get",
-   "line":252
-  },
-  {
-   "owner":"agriai-engine",
-   "file":"services/agriai-engine/main.py",
-   "source":"recommend",
-   "target":"get",
-   "line":252
-  },
-  {
-   "owner":"agriai-engine",
-   "file":"services/agriai-engine/main.py",
-   "source":"recommend",
-   "target":"get",
-   "line":253
+   "line":254
   },
   {
    "owner":"agriai-engine",
@@ -13667,218 +13653,239 @@
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"recommend",
-   "target":"isinstance",
+   "target":"get",
    "line":255
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"recommend",
-   "target":"_build_bundle",
-   "line":257
+   "target":"get",
+   "line":256
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"recommend",
-   "target":"bundle_hash",
+   "target":"get",
    "line":258
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"recommend",
-   "target":"compose_confidence",
-   "line":259
+   "target":"isinstance",
+   "line":258
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"recommend",
-   "target":"CandidateIn",
+   "target":"_build_bundle",
+   "line":260
+  },
+  {
+   "owner":"agriai-engine",
+   "file":"services/agriai-engine/main.py",
+   "source":"recommend",
+   "target":"bundle_hash",
+   "line":261
+  },
+  {
+   "owner":"agriai-engine",
+   "file":"services/agriai-engine/main.py",
+   "source":"recommend",
+   "target":"compose_confidence",
    "line":262
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"recommend",
+   "target":"CandidateIn",
+   "line":265
+  },
+  {
+   "owner":"agriai-engine",
+   "file":"services/agriai-engine/main.py",
+   "source":"recommend",
    "target":"_candidates_to_plan",
-   "line":263
+   "line":266
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"recommend",
    "target":"plan_profit",
-   "line":264
+   "line":267
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"recommend",
    "target":"build_envelope",
-   "line":277
-  },
-  {
-   "owner":"agriai-engine",
-   "file":"services/agriai-engine/main.py",
-   "source":"recommend",
-   "target":"any",
-   "line":279
-  },
-  {
-   "owner":"agriai-engine",
-   "file":"services/agriai-engine/main.py",
-   "source":"recommend",
-   "target":"evidence_is_usable",
    "line":280
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"recommend",
+   "target":"any",
+   "line":282
+  },
+  {
+   "owner":"agriai-engine",
+   "file":"services/agriai-engine/main.py",
+   "source":"recommend",
+   "target":"evidence_is_usable",
+   "line":283
+  },
+  {
+   "owner":"agriai-engine",
+   "file":"services/agriai-engine/main.py",
+   "source":"recommend",
    "target":"append",
-   "line":284
+   "line":287
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"recommend",
    "target":"get",
-   "line":294
+   "line":297
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"simulate",
    "target":"post",
-   "line":306
-  },
-  {
-   "owner":"agriai-engine",
-   "file":"services/agriai-engine/main.py",
-   "source":"simulate",
-   "target":"Header",
-   "line":307
-  },
-  {
-   "owner":"agriai-engine",
-   "file":"services/agriai-engine/main.py",
-   "source":"simulate",
-   "target":"_require_service_token",
    "line":309
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"simulate",
-   "target":"_validated_context",
+   "target":"Header",
    "line":310
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"simulate",
+   "target":"_require_service_token",
+   "line":312
+  },
+  {
+   "owner":"agriai-engine",
+   "file":"services/agriai-engine/main.py",
+   "source":"simulate",
+   "target":"_validated_context",
+   "line":313
+  },
+  {
+   "owner":"agriai-engine",
+   "file":"services/agriai-engine/main.py",
+   "source":"simulate",
    "target":"_context_inputs",
-   "line":311
+   "line":314
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"plan",
    "target":"post",
-   "line":319
-  },
-  {
-   "owner":"agriai-engine",
-   "file":"services/agriai-engine/main.py",
-   "source":"plan",
-   "target":"Header",
-   "line":320
-  },
-  {
-   "owner":"agriai-engine",
-   "file":"services/agriai-engine/main.py",
-   "source":"plan",
-   "target":"_require_service_token",
    "line":322
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"plan",
-   "target":"_validated_context",
+   "target":"Header",
    "line":323
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"plan",
-   "target":"_context_inputs",
-   "line":324
+   "target":"_require_service_token",
+   "line":325
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"plan",
-   "target":"_build_bundle",
+   "target":"_validated_context",
+   "line":326
+  },
+  {
+   "owner":"agriai-engine",
+   "file":"services/agriai-engine/main.py",
+   "source":"plan",
+   "target":"_context_inputs",
    "line":327
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"plan",
+   "target":"_build_bundle",
+   "line":330
+  },
+  {
+   "owner":"agriai-engine",
+   "file":"services/agriai-engine/main.py",
+   "source":"plan",
    "target":"bundle_hash",
-   "line":328
+   "line":331
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"plan",
    "target":"_candidates_to_plan",
-   "line":329
+   "line":332
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"plan",
    "target":"plan_profit",
-   "line":330
+   "line":333
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"replay_verify",
    "target":"post",
-   "line":335
-  },
-  {
-   "owner":"agriai-engine",
-   "file":"services/agriai-engine/main.py",
-   "source":"replay_verify",
-   "target":"Header",
-   "line":336
-  },
-  {
-   "owner":"agriai-engine",
-   "file":"services/agriai-engine/main.py",
-   "source":"replay_verify",
-   "target":"_require_service_token",
    "line":338
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"replay_verify",
+   "target":"Header",
+   "line":339
+  },
+  {
+   "owner":"agriai-engine",
+   "file":"services/agriai-engine/main.py",
+   "source":"replay_verify",
+   "target":"_require_service_token",
+   "line":341
+  },
+  {
+   "owner":"agriai-engine",
+   "file":"services/agriai-engine/main.py",
+   "source":"replay_verify",
    "target":"verify_replay",
-   "line":340
+   "line":343
   },
   {
    "owner":"agriai-engine",
    "file":"services/agriai-engine/main.py",
    "source":"replay_verify",
    "target":"compute_replay_hash",
-   "line":343
+   "line":346
   },
   {
    "owner":"agriai-engine",
@@ -76717,63 +76724,56 @@
    "file":"services/edge-inference/main.py",
    "source":"lifespan",
    "target":"_periodic_sync",
-   "line":31
+   "line":34
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"lifespan",
    "target":"create_task",
-   "line":31
+   "line":34
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"get_pest_detector",
    "target":"EdgePestDetector",
-   "line":59
+   "line":62
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"get_pest_detector",
    "target":"_model_path",
-   "line":60
+   "line":63
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"get_yield_estimator",
    "target":"EdgeYieldEstimator",
-   "line":68
+   "line":71
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"get_yield_estimator",
    "target":"_model_path",
-   "line":69
+   "line":72
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"get_sync_service",
    "target":"CloudSyncService",
-   "line":77
+   "line":80
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"get_sync_service",
    "target":"getenv",
-   "line":78
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"get_sync_service",
-   "target":"getenv",
-   "line":79
+   "line":81
   },
   {
    "owner":"edge-inference",
@@ -76785,106 +76785,106 @@
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
+   "source":"get_sync_service",
+   "target":"getenv",
+   "line":85
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
    "source":"_model_path",
    "target":"getenv",
-   "line":88
+   "line":91
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"_model_capability",
    "target":"model_capability",
-   "line":101
+   "line":104
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"_model_capability",
    "target":"_model_path",
-   "line":102
+   "line":105
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"_model_capability",
    "target":"find_spec",
-   "line":104
+   "line":107
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"_require_approved_model",
    "target":"_model_capability",
-   "line":115
+   "line":118
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"_require_approved_model",
    "target":"HTTPException",
-   "line":118
+   "line":121
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"capabilities_payload",
    "target":"_model_capability",
-   "line":130
+   "line":133
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"capabilities_payload",
    "target":"_model_capability",
-   "line":131
+   "line":134
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"capabilities_payload",
    "target":"get_sync_service",
-   "line":132
+   "line":135
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"capabilities_payload",
    "target":"sum",
-   "line":137
+   "line":140
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"capabilities_payload",
    "target":"values",
-   "line":137
+   "line":140
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"capabilities_payload",
    "target":"bool",
-   "line":145
+   "line":148
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"capabilities_payload",
    "target":"bool",
-   "line":146
+   "line":149
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"capabilities_payload",
    "target":"getenv",
-   "line":146
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"capabilities_payload",
-   "target":"len",
    "line":149
   },
   {
@@ -76892,139 +76892,132 @@
    "file":"services/edge-inference/main.py",
    "source":"capabilities_payload",
    "target":"len",
-   "line":150
+   "line":152
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"capabilities_payload",
+   "target":"len",
+   "line":153
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"capabilities_payload",
    "target":"queue_size",
-   "line":151
+   "line":154
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"health_check",
    "target":"get",
-   "line":187
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"health_check",
-   "target":"get_sync_service",
-   "line":189
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"health_check",
-   "target":"EdgeHealthCheck",
    "line":190
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"health_check",
+   "target":"get_sync_service",
+   "line":192
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"health_check",
+   "target":"EdgeHealthCheck",
+   "line":193
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"health_check",
    "target":"bool",
-   "line":196
+   "line":199
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"health_check",
    "target":"capabilities_payload",
-   "line":196
+   "line":199
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"health_check",
    "target":"bool",
-   "line":197
+   "line":200
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"health_check",
    "target":"capabilities_payload",
-   "line":198
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"health_check",
-   "target":"isoformat",
    "line":201
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"health_check",
+   "target":"isoformat",
+   "line":204
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"health_check",
    "target":"queue_size",
-   "line":202
+   "line":205
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"health_check",
    "target":"time",
-   "line":203
+   "line":206
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"_require_service_token",
    "target":"Header",
-   "line":212
+   "line":215
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"_require_service_token",
    "target":"HTTPException",
-   "line":214
+   "line":217
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"_require_service_token",
+   "target":"service_token_ok",
+   "line":218
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"_require_service_token",
    "target":"HTTPException",
-   "line":216
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"detect_pest",
-   "target":"post",
    "line":219
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"detect_pest",
-   "target":"File",
-   "line":221
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"detect_pest",
-   "target":"Form",
+   "target":"post",
    "line":222
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"detect_pest",
-   "target":"Form",
-   "line":223
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"detect_pest",
-   "target":"Form",
+   "target":"File",
    "line":224
   },
   {
@@ -77038,196 +77031,196 @@
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"detect_pest",
-   "target":"Header",
+   "target":"Form",
    "line":226
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"detect_pest",
-   "target":"_require_service_token",
+   "target":"Form",
+   "line":227
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"detect_pest",
+   "target":"Form",
    "line":228
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"detect_pest",
-   "target":"PestDetectionRequest",
+   "target":"Header",
    "line":229
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"detect_pest",
+   "target":"_require_service_token",
+   "line":231
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"detect_pest",
+   "target":"PestDetectionRequest",
+   "line":232
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"detect_pest",
    "target":"_require_approved_model",
-   "line":235
+   "line":238
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"detect_pest",
    "target":"get_pest_detector",
-   "line":236
+   "line":239
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"detect_pest",
    "target":"read",
-   "line":237
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"detect_pest",
-   "target":"len",
    "line":240
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"detect_pest",
-   "target":"HTTPException",
-   "line":241
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"detect_pest",
-   "target":"startswith",
-   "line":242
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"detect_pest",
-   "target":"HTTPException",
+   "target":"len",
    "line":243
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"detect_pest",
-   "target":"time",
+   "target":"HTTPException",
    "line":244
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"detect_pest",
-   "target":"predict",
+   "target":"startswith",
+   "line":245
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"detect_pest",
+   "target":"HTTPException",
    "line":246
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"detect_pest",
-   "target":"HTTPException",
-   "line":251
+   "target":"time",
+   "line":247
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"detect_pest",
+   "target":"predict",
+   "line":249
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"detect_pest",
    "target":"HTTPException",
-   "line":258
+   "line":254
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"detect_pest",
+   "target":"HTTPException",
+   "line":261
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"detect_pest",
    "target":"time",
-   "line":259
+   "line":262
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"detect_pest",
    "target":"round",
-   "line":264
+   "line":267
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"detect_pest",
    "target":"isoformat",
-   "line":266
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"detect_pest",
-   "target":"now",
-   "line":266
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"detect_pest",
-   "target":"get_sync_service",
    "line":269
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"detect_pest",
+   "target":"now",
+   "line":269
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"detect_pest",
+   "target":"get_sync_service",
+   "line":272
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"detect_pest",
    "target":"sync_result",
-   "line":273
+   "line":276
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"detect_pest",
    "target":"queue_result",
-   "line":275
+   "line":278
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"detect_pest",
    "target":"HTTPException",
-   "line":277
+   "line":280
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"detect_pest",
    "target":"high_confidence_alert",
-   "line":278
+   "line":281
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
    "target":"post",
-   "line":282
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"estimate_yield",
-   "target":"File",
-   "line":284
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"estimate_yield",
-   "target":"Form",
    "line":285
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
-   "target":"Form",
-   "line":286
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"estimate_yield",
-   "target":"Form",
+   "target":"File",
    "line":287
   },
   {
@@ -77241,84 +77234,91 @@
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
-   "target":"Header",
+   "target":"Form",
    "line":289
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
-   "target":"_require_service_token",
+   "target":"Form",
+   "line":290
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"estimate_yield",
+   "target":"Form",
    "line":291
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
-   "target":"YieldEstimationRequest",
+   "target":"Header",
    "line":292
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
-   "target":"_require_approved_model",
+   "target":"_require_service_token",
+   "line":294
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"estimate_yield",
+   "target":"YieldEstimationRequest",
    "line":295
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
-   "target":"get_yield_estimator",
-   "line":296
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"estimate_yield",
-   "target":"len",
-   "line":297
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"estimate_yield",
-   "target":"HTTPException",
+   "target":"_require_approved_model",
    "line":298
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
-   "target":"len",
+   "target":"get_yield_estimator",
    "line":299
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
-   "target":"read",
-   "line":304
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"estimate_yield",
    "target":"len",
-   "line":305
+   "line":300
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
    "target":"HTTPException",
-   "line":306
+   "line":301
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
-   "target":"extract_features",
+   "target":"len",
+   "line":302
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"estimate_yield",
+   "target":"read",
+   "line":307
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"estimate_yield",
+   "target":"len",
    "line":308
   },
   {
@@ -77326,35 +77326,42 @@
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
    "target":"HTTPException",
-   "line":310
+   "line":309
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
-   "target":"append",
+   "target":"extract_features",
    "line":311
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
-   "target":"time",
-   "line":312
+   "target":"HTTPException",
+   "line":313
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
-   "target":"predict_yield",
+   "target":"append",
    "line":314
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
-   "target":"HTTPException",
-   "line":319
+   "target":"time",
+   "line":315
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"estimate_yield",
+   "target":"predict_yield",
+   "line":317
   },
   {
    "owner":"edge-inference",
@@ -77367,211 +77374,218 @@
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
+   "target":"HTTPException",
+   "line":325
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"estimate_yield",
    "target":"time",
-   "line":327
+   "line":330
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
    "target":"len",
-   "line":332
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"estimate_yield",
-   "target":"shape_yield_result",
-   "line":334
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"estimate_yield",
-   "target":"round",
    "line":335
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
-   "target":"isoformat",
+   "target":"shape_yield_result",
    "line":337
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"estimate_yield",
+   "target":"round",
+   "line":338
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"estimate_yield",
+   "target":"isoformat",
+   "line":340
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
    "target":"now",
-   "line":337
+   "line":340
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
    "target":"get_sync_service",
-   "line":339
+   "line":342
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
    "target":"sync_result",
-   "line":343
+   "line":346
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
    "target":"queue_result",
-   "line":345
+   "line":348
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"estimate_yield",
    "target":"HTTPException",
-   "line":347
+   "line":350
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"trigger_sync",
    "target":"post",
-   "line":351
+   "line":354
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"trigger_sync",
    "target":"Header",
-   "line":352
+   "line":355
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"trigger_sync",
    "target":"_require_service_token",
-   "line":353
+   "line":356
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"trigger_sync",
    "target":"get_sync_service",
-   "line":359
+   "line":362
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"trigger_sync",
    "target":"process_queue",
-   "line":360
+   "line":363
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"trigger_sync",
    "target":"queue_size",
-   "line":364
+   "line":367
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"trigger_sync",
    "target":"isoformat",
-   "line":365
+   "line":368
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"trigger_sync",
    "target":"now",
-   "line":365
+   "line":368
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"_periodic_sync",
    "target":"sleep",
-   "line":374
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"_periodic_sync",
-   "target":"get_sync_service",
-   "line":376
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"_periodic_sync",
-   "target":"queue_size",
    "line":377
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"_periodic_sync",
+   "target":"get_sync_service",
+   "line":379
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"_periodic_sync",
+   "target":"queue_size",
+   "line":380
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"_periodic_sync",
    "target":"process_queue",
-   "line":378
+   "line":381
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"_periodic_sync",
    "target":"info",
-   "line":380
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"capabilities",
-   "target":"get",
    "line":383
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"capabilities",
-   "target":"capabilities_payload",
-   "line":385
+   "target":"get",
+   "line":386
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
-   "source":"metrics",
-   "target":"get",
+   "source":"capabilities",
+   "target":"capabilities_payload",
    "line":388
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"metrics",
+   "target":"get",
+   "line":391
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"metrics",
    "target":"Response",
-   "line":395
+   "line":398
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"metrics",
    "target":"generate_latest",
-   "line":395
-  },
-  {
-   "owner":"edge-inference",
-   "file":"services/edge-inference/main.py",
-   "source":"readyz",
-   "target":"get",
    "line":398
   },
   {
    "owner":"edge-inference",
    "file":"services/edge-inference/main.py",
    "source":"readyz",
+   "target":"get",
+   "line":401
+  },
+  {
+   "owner":"edge-inference",
+   "file":"services/edge-inference/main.py",
+   "source":"readyz",
    "target":"capabilities_payload",
-   "line":400
+   "line":403
   },
   {
    "owner":"edge-inference",
@@ -82765,54 +82779,33 @@
    "file":"services/field-segmentation/main.py",
    "source":"_payload_trace_hash",
    "target":"dict",
-   "line":64
+   "line":67
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"_payload_trace_hash",
    "target":"get",
-   "line":65
+   "line":68
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"_payload_trace_hash",
    "target":"isinstance",
-   "line":66
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"_payload_trace_hash",
-   "target":"encode",
-   "line":68
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"_payload_trace_hash",
-   "target":"hexdigest",
-   "line":68
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"_payload_trace_hash",
-   "target":"sha256",
-   "line":68
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"_payload_trace_hash",
-   "target":"len",
    "line":69
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"_payload_trace_hash",
+   "target":"encode",
+   "line":71
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"_payload_trace_hash",
    "target":"hexdigest",
    "line":71
   },
@@ -82827,64 +82820,57 @@
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"_payload_trace_hash",
-   "target":"dumps",
+   "target":"len",
    "line":72
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"_payload_trace_hash",
+   "target":"hexdigest",
+   "line":74
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"_payload_trace_hash",
+   "target":"sha256",
+   "line":74
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"_payload_trace_hash",
+   "target":"dumps",
+   "line":75
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"_payload_trace_hash",
    "target":"encode",
-   "line":72
+   "line":75
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"_require_service_token",
    "target":"HTTPException",
-   "line":79
+   "line":82
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"_require_service_token",
+   "target":"service_token_ok",
+   "line":83
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"_require_service_token",
    "target":"HTTPException",
-   "line":81
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"_coerce_ring",
-   "target":"isinstance",
-   "line":122
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"_coerce_ring",
-   "target":"get",
-   "line":123
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"_coerce_ring",
-   "target":"lower",
-   "line":123
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"_coerce_ring",
-   "target":"str",
-   "line":123
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"_coerce_ring",
-   "target":"get",
-   "line":124
+   "line":84
   },
   {
    "owner":"field-segmentation",
@@ -82897,106 +82883,106 @@
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"_coerce_ring",
-   "target":"HTTPException",
+   "target":"get",
    "line":126
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"_coerce_ring",
+   "target":"lower",
+   "line":126
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"_coerce_ring",
+   "target":"str",
+   "line":126
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"_coerce_ring",
+   "target":"get",
+   "line":127
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"_coerce_ring",
    "target":"isinstance",
-   "line":130
+   "line":128
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"_coerce_ring",
    "target":"HTTPException",
-   "line":131
+   "line":129
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"_coerce_ring",
+   "target":"isinstance",
+   "line":133
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"_coerce_ring",
+   "target":"HTTPException",
+   "line":134
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"normalize_polygon",
    "target":"HTTPException",
-   "line":142
+   "line":145
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"normalize_polygon",
    "target":"_coerce_ring",
-   "line":144
+   "line":147
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"normalize_polygon",
    "target":"isinstance",
-   "line":147
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"normalize_polygon",
-   "target":"len",
-   "line":147
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"normalize_polygon",
-   "target":"HTTPException",
-   "line":148
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"normalize_polygon",
-   "target":"float",
    "line":150
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"normalize_polygon",
-   "target":"float",
-   "line":151
+   "target":"len",
+   "line":150
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"normalize_polygon",
    "target":"HTTPException",
+   "line":151
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"normalize_polygon",
+   "target":"float",
    "line":153
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"normalize_polygon",
-   "target":"abs",
-   "line":155
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"normalize_polygon",
-   "target":"abs",
-   "line":155
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"normalize_polygon",
    "target":"float",
-   "line":155
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"normalize_polygon",
-   "target":"float",
-   "line":155
+   "line":154
   },
   {
    "owner":"field-segmentation",
@@ -83009,36 +82995,50 @@
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"normalize_polygon",
-   "target":"HTTPException",
+   "target":"abs",
    "line":158
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"normalize_polygon",
-   "target":"append",
+   "target":"abs",
+   "line":158
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"normalize_polygon",
+   "target":"float",
+   "line":158
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"normalize_polygon",
+   "target":"float",
+   "line":158
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"normalize_polygon",
+   "target":"HTTPException",
    "line":159
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"normalize_polygon",
-   "target":"len",
-   "line":162
+   "target":"HTTPException",
+   "line":161
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"normalize_polygon",
    "target":"append",
-   "line":163
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"normalize_polygon",
-   "target":"list",
-   "line":163
+   "line":162
   },
   {
    "owner":"field-segmentation",
@@ -83051,105 +83051,119 @@
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"normalize_polygon",
-   "target":"HTTPException",
+   "target":"append",
    "line":166
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
-   "source":"_model_configured",
-   "target":"bool",
-   "line":178
+   "source":"normalize_polygon",
+   "target":"list",
+   "line":166
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"normalize_polygon",
+   "target":"len",
+   "line":168
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"normalize_polygon",
+   "target":"HTTPException",
+   "line":169
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"_model_configured",
    "target":"bool",
-   "line":178
+   "line":181
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"_model_configured",
+   "target":"bool",
+   "line":181
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"_post_inference",
    "target":"Client",
-   "line":191
+   "line":194
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"_post_inference",
    "target":"post",
-   "line":192
+   "line":195
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"apply_exg_for_sam2",
-   "line":245
+   "line":248
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"HTTPException",
-   "line":247
+   "line":250
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"metadata",
-   "line":255
+   "line":258
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"bool",
-   "line":256
+   "line":259
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"list",
-   "line":266
+   "line":269
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"list",
-   "line":267
+   "line":270
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"get",
-   "line":278
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"run_segmentation_model",
-   "target":"_payload_trace_hash",
    "line":281
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
-   "target":"_post_inference",
-   "line":286
+   "target":"_payload_trace_hash",
+   "line":284
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
-   "target":"HTTPException",
+   "target":"_post_inference",
    "line":289
   },
   {
@@ -83157,244 +83171,223 @@
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"HTTPException",
-   "line":299
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"run_segmentation_model",
-   "target":"json",
-   "line":306
+   "line":292
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"HTTPException",
-   "line":308
+   "line":302
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"run_segmentation_model",
+   "target":"json",
+   "line":309
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"run_segmentation_model",
+   "target":"HTTPException",
+   "line":311
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"get",
-   "line":313
+   "line":316
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"isinstance",
-   "line":313
+   "line":316
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"isinstance",
-   "line":313
+   "line":316
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"get",
-   "line":315
+   "line":318
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"isinstance",
-   "line":315
+   "line":318
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"lower",
-   "line":315
+   "line":318
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"str",
-   "line":315
+   "line":318
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"HTTPException",
-   "line":322
+   "line":325
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"get",
-   "line":329
+   "line":332
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"isinstance",
-   "line":329
+   "line":332
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"isinstance",
-   "line":329
+   "line":332
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"float",
-   "line":330
+   "line":333
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"isinstance",
-   "line":338
+   "line":341
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"get",
-   "line":339
+   "line":342
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"isinstance",
-   "line":340
+   "line":343
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"normalize_polygon",
-   "line":361
+   "line":364
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"run_segmentation_model",
    "target":"HTTPException",
-   "line":364
+   "line":367
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"healthz",
    "target":"get",
-   "line":371
+   "line":374
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"legacy_health",
    "target":"get",
-   "line":376
+   "line":379
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"legacy_health",
    "target":"healthz",
-   "line":378
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"readyz",
-   "target":"get",
    "line":381
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"readyz",
+   "target":"get",
+   "line":384
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"readyz",
    "target":"_model_configured",
-   "line":383
+   "line":386
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"readyz",
    "target":"URL",
-   "line":388
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"readyz",
-   "target":"copy_with",
-   "line":388
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"readyz",
-   "target":"AsyncClient",
    "line":391
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"readyz",
+   "target":"copy_with",
+   "line":391
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"readyz",
+   "target":"AsyncClient",
+   "line":394
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"readyz",
    "target":"get",
-   "line":392
+   "line":395
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"readyz",
    "target":"json",
-   "line":393
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"readyz",
-   "target":"isinstance",
    "line":396
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"readyz",
-   "target":"get",
-   "line":397
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"readyz",
-   "target":"get",
-   "line":397
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"readyz",
-   "target":"get",
-   "line":398
-  },
-  {
-   "owner":"field-segmentation",
-   "file":"services/field-segmentation/main.py",
-   "source":"readyz",
-   "target":"get",
+   "target":"isinstance",
    "line":399
   },
   {
@@ -83408,64 +83401,92 @@
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"readyz",
-   "target":"lower",
+   "target":"get",
    "line":400
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"readyz",
+   "target":"get",
+   "line":401
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"readyz",
+   "target":"get",
+   "line":402
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"readyz",
+   "target":"get",
+   "line":403
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"readyz",
+   "target":"lower",
+   "line":403
+  },
+  {
+   "owner":"field-segmentation",
+   "file":"services/field-segmentation/main.py",
+   "source":"readyz",
    "target":"JSONResponse",
-   "line":409
+   "line":412
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"segment",
    "target":"post",
-   "line":427
+   "line":430
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"segment",
    "target":"Header",
-   "line":428
+   "line":431
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"segment",
    "target":"_require_service_token",
-   "line":435
+   "line":438
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"segment",
    "target":"normalize_polygon",
-   "line":442
+   "line":445
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"segment",
    "target":"_model_configured",
-   "line":453
+   "line":456
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"segment",
    "target":"HTTPException",
-   "line":455
+   "line":458
   },
   {
    "owner":"field-segmentation",
    "file":"services/field-segmentation/main.py",
    "source":"segment",
    "target":"run_segmentation_model",
-   "line":467
+   "line":470
   },
   {
    "owner":"field-segmentation",
@@ -95568,41 +95589,13 @@
    "file":"services/local-ai-rag/main.py",
    "source":"decode",
    "target":"_JE",
-   "line":38
+   "line":41
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_validate_tenant_id",
    "target":"match",
-   "line":94
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_validate_tenant_id",
-   "target":"str",
-   "line":94
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_validate_tenant_id",
-   "target":"HTTPException",
-   "line":95
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_validate_tenant_id",
-   "target":"str",
-   "line":96
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_validate_tenant_id",
-   "target":"HTTPException",
    "line":97
   },
   {
@@ -95610,105 +95603,112 @@
    "file":"services/local-ai-rag/main.py",
    "source":"_validate_tenant_id",
    "target":"str",
+   "line":97
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_validate_tenant_id",
+   "target":"HTTPException",
    "line":98
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
-   "source":"_require_service_token",
-   "target":"Header",
+   "source":"_validate_tenant_id",
+   "target":"str",
+   "line":99
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_validate_tenant_id",
+   "target":"HTTPException",
+   "line":100
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_validate_tenant_id",
+   "target":"str",
    "line":101
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_require_service_token",
-   "target":"HTTPException",
-   "line":103
+   "target":"Header",
+   "line":104
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_require_service_token",
    "target":"HTTPException",
-   "line":105
+   "line":106
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_require_service_token",
+   "target":"service_token_ok",
+   "line":107
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_require_service_token",
+   "target":"HTTPException",
+   "line":108
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_model_name",
    "target":"strip",
-   "line":117
+   "line":120
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_model_name",
    "target":"rsplit",
-   "line":118
+   "line":121
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"get_event_loop",
-   "line":122
+   "line":125
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"time",
-   "line":122
+   "line":125
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"AsyncClient",
-   "line":123
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"wait_for_ollama",
-   "target":"get_event_loop",
-   "line":124
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"wait_for_ollama",
-   "target":"time",
-   "line":124
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"wait_for_ollama",
-   "target":"get",
    "line":126
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
-   "target":"get",
-   "line":128
+   "target":"get_event_loop",
+   "line":127
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
-   "target":"json",
-   "line":128
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"wait_for_ollama",
-   "target":"_model_name",
-   "line":129
+   "target":"time",
+   "line":127
   },
   {
    "owner":"local-ai-rag",
@@ -95721,14 +95721,35 @@
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
-   "target":"_model_name",
+   "target":"get",
    "line":131
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
-   "target":"info",
+   "target":"json",
+   "line":131
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"wait_for_ollama",
+   "target":"_model_name",
+   "line":132
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"wait_for_ollama",
+   "target":"get",
+   "line":132
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"wait_for_ollama",
+   "target":"_model_name",
    "line":134
   },
   {
@@ -95736,334 +95757,313 @@
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"info",
-   "line":139
+   "line":137
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"wait_for_ollama",
+   "target":"info",
+   "line":142
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"fromkeys",
-   "line":140
+   "line":143
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"post",
-   "line":141
+   "line":144
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
    "target":"raise_for_status",
-   "line":146
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"wait_for_ollama",
-   "target":"type",
-   "line":148
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"wait_for_ollama",
-   "target":"warning",
-   "line":148
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"wait_for_ollama",
-   "target":"sleep",
    "line":149
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"wait_for_ollama",
+   "target":"type",
+   "line":151
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"wait_for_ollama",
+   "target":"warning",
+   "line":151
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"wait_for_ollama",
+   "target":"sleep",
+   "line":152
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"wait_for_ollama",
    "target":"RuntimeError",
-   "line":150
+   "line":153
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"init_vectorstore",
    "target":"OllamaEmbeddings",
-   "line":161
+   "line":164
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"init_vectorstore",
    "target":"QdrantClient",
-   "line":167
+   "line":170
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"init_vectorstore",
    "target":"collection_exists",
-   "line":168
+   "line":171
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"init_vectorstore",
    "target":"RuntimeError",
-   "line":172
+   "line":175
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"init_vectorstore",
    "target":"from_existing_collection",
-   "line":173
+   "line":176
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"init_vectorstore",
    "target":"info",
-   "line":180
+   "line":183
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"init_llm",
    "target":"ChatOllama",
-   "line":191
+   "line":194
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"init_llm",
    "target":"info",
-   "line":197
+   "line":200
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"load_document",
    "target":"lower",
-   "line":205
+   "line":208
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"load_document",
    "target":"PyPDFLoader",
-   "line":207
+   "line":210
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"load_document",
    "target":"str",
-   "line":207
+   "line":210
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"load_document",
    "target":"TextLoader",
-   "line":209
+   "line":212
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"load_document",
    "target":"str",
-   "line":209
+   "line":212
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"load_document",
    "target":"ValueError",
-   "line":211
+   "line":214
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"load_document",
    "target":"load",
-   "line":212
+   "line":215
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"split_docs",
    "target":"RecursiveCharacterTextSplitter",
-   "line":216
+   "line":219
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"split_docs",
    "target":"split_documents",
-   "line":221
+   "line":224
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"get",
-   "line":239
+   "line":242
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"str",
-   "line":239
+   "line":242
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"hexdigest",
-   "line":240
+   "line":243
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"read_bytes",
-   "line":240
+   "line":243
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"sha256",
-   "line":240
+   "line":243
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"load_document",
-   "line":241
+   "line":244
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"isoformat",
-   "line":248
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"now",
-   "line":248
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"extend",
-   "line":249
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"warning",
    "line":251
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
+   "target":"now",
+   "line":251
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"extend",
+   "line":252
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"warning",
+   "line":254
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
    "target":"split_docs",
-   "line":256
+   "line":259
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"append",
-   "line":259
+   "line":262
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"get",
-   "line":259
+   "line":262
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"setdefault",
-   "line":259
+   "line":262
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"str",
-   "line":259
+   "line":262
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"items",
-   "line":262
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"sorted",
-   "line":262
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"encode",
-   "line":263
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"hexdigest",
-   "line":263
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"sha256",
-   "line":263
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"len",
-   "line":264
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"enumerate",
    "line":265
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
+   "target":"sorted",
+   "line":265
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"encode",
+   "line":266
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
    "target":"hexdigest",
    "line":266
   },
@@ -96078,274 +96078,281 @@
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
-   "target":"encode",
+   "target":"len",
    "line":267
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
-   "target":"encode",
-   "line":267
+   "target":"enumerate",
+   "line":268
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
-   "target":"dict",
+   "target":"hexdigest",
    "line":269
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
-   "target":"update",
+   "target":"sha256",
+   "line":269
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"encode",
    "line":270
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
+   "target":"encode",
+   "line":270
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"dict",
+   "line":272
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"update",
+   "line":273
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
    "target":"append",
-   "line":275
+   "line":278
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"HTTPException",
-   "line":289
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"AsyncClient",
-   "line":291
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"post",
    "line":292
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
+   "target":"AsyncClient",
+   "line":294
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"post",
+   "line":295
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
    "target":"raise_for_status",
-   "line":297
+   "line":300
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
    "target":"get",
-   "line":298
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"int",
-   "line":298
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"json",
-   "line":298
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"type",
-   "line":300
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"warning",
-   "line":300
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_documents",
-   "target":"HTTPException",
    "line":301
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
-   "target":"len",
-   "line":302
+   "target":"int",
+   "line":301
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
-   "target":"HTTPException",
+   "target":"json",
+   "line":301
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"type",
    "line":303
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_documents",
-   "target":"len",
+   "target":"warning",
+   "line":303
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"HTTPException",
    "line":304
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"len",
+   "line":305
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"HTTPException",
+   "line":306
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_documents",
+   "target":"len",
+   "line":307
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_retrieval_fingerprint",
    "target":"encode",
-   "line":321
+   "line":324
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_retrieval_fingerprint",
    "target":"join",
-   "line":321
+   "line":324
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_retrieval_fingerprint",
    "target":"split",
-   "line":321
+   "line":324
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_retrieval_fingerprint",
    "target":"hexdigest",
-   "line":322
+   "line":325
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_retrieval_fingerprint",
    "target":"sha256",
-   "line":322
+   "line":325
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"min",
-   "line":336
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_shadow_canonical_retrieval",
-   "target":"AsyncClient",
-   "line":338
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_shadow_canonical_retrieval",
-   "target":"post",
    "line":339
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
+   "target":"AsyncClient",
+   "line":341
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_shadow_canonical_retrieval",
+   "target":"post",
+   "line":342
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_shadow_canonical_retrieval",
    "target":"raise_for_status",
-   "line":344
+   "line":347
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"get",
-   "line":345
+   "line":348
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"json",
-   "line":345
+   "line":348
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"type",
-   "line":347
+   "line":350
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"warning",
-   "line":347
+   "line":350
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"_retrieval_fingerprint",
-   "line":349
+   "line":352
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"_retrieval_fingerprint",
-   "line":351
+   "line":354
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"get",
-   "line":351
+   "line":354
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"get",
-   "line":351
+   "line":354
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"str",
-   "line":351
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_shadow_canonical_retrieval",
-   "target":"len",
    "line":354
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_shadow_canonical_retrieval",
-   "target":"len",
-   "line":354
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_shadow_canonical_retrieval",
-   "target":"info",
-   "line":355
   },
   {
    "owner":"local-ai-rag",
@@ -96359,160 +96366,174 @@
    "file":"services/local-ai-rag/main.py",
    "source":"_shadow_canonical_retrieval",
    "target":"len",
+   "line":357
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_shadow_canonical_retrieval",
+   "target":"info",
    "line":358
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_shadow_canonical_retrieval",
+   "target":"len",
+   "line":360
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_shadow_canonical_retrieval",
+   "target":"len",
+   "line":361
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"init_vectorstore",
-   "line":372
+   "line":375
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"init_llm",
-   "line":373
+   "line":376
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"Filter",
-   "line":379
+   "line":382
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"FieldCondition",
-   "line":381
+   "line":384
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"MatchAny",
-   "line":383
+   "line":386
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"as_retriever",
-   "line":387
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_rag",
-   "target":"to_thread",
    "line":390
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
-   "target":"type",
-   "line":392
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_rag",
-   "target":"warning",
-   "line":392
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_rag",
-   "target":"HTTPException",
+   "target":"to_thread",
    "line":393
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
-   "target":"_shadow_canonical_retrieval",
-   "line":398
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_rag",
-   "target":"isoformat",
-   "line":407
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_rag",
-   "target":"now",
-   "line":407
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_rag",
-   "target":"join",
-   "line":410
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_rag",
-   "target":"format",
-   "line":411
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_rag",
-   "target":"to_thread",
-   "line":413
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_rag",
    "target":"type",
-   "line":415
+   "line":395
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"warning",
-   "line":415
+   "line":395
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"HTTPException",
+   "line":396
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_rag",
+   "target":"_shadow_canonical_retrieval",
+   "line":401
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_rag",
+   "target":"isoformat",
+   "line":410
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_rag",
+   "target":"now",
+   "line":410
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_rag",
+   "target":"join",
+   "line":413
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_rag",
+   "target":"format",
+   "line":414
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_rag",
+   "target":"to_thread",
    "line":416
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
-   "target":"getattr",
+   "target":"type",
    "line":418
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_rag",
+   "target":"warning",
+   "line":418
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_rag",
+   "target":"HTTPException",
+   "line":419
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_rag",
+   "target":"getattr",
+   "line":421
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"str",
-   "line":418
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_rag",
-   "target":"get",
    "line":421
   },
   {
@@ -96520,195 +96541,188 @@
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"get",
-   "line":422
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_rag",
-   "target":"len",
    "line":424
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
+   "target":"get",
+   "line":425
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_rag",
+   "target":"len",
+   "line":427
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_rag",
    "target":"isoformat",
-   "line":434
+   "line":437
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_rag",
    "target":"now",
-   "line":434
+   "line":437
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_init_models_once",
    "target":"info",
-   "line":467
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_init_models_once",
-   "target":"wait_for_ollama",
-   "line":468
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_init_models_once",
-   "target":"init_llm",
-   "line":469
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_init_models_once",
-   "target":"init_vectorstore",
    "line":470
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_init_models_once",
-   "target":"info",
+   "target":"wait_for_ollama",
    "line":471
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_init_models_once",
+   "target":"init_llm",
+   "line":472
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_init_models_once",
+   "target":"init_vectorstore",
+   "line":473
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_init_models_once",
+   "target":"info",
+   "line":474
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_init_models_background",
    "target":"run_init_with_retry",
-   "line":478
+   "line":481
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"info",
-   "line":490
+   "line":493
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"_init_models_background",
-   "line":494
+   "line":497
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"create_task",
-   "line":494
+   "line":497
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"info",
-   "line":495
+   "line":498
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"done",
-   "line":499
+   "line":502
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"cancel",
-   "line":500
+   "line":503
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"suppress",
-   "line":501
+   "line":504
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"lifespan",
    "target":"info",
-   "line":503
+   "line":506
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
    "target":"Depends",
-   "line":529
+   "line":532
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
    "target":"HTTPException",
-   "line":533
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_get_rag_user",
-   "target":"len",
    "line":536
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
-   "target":"HTTPException",
-   "line":537
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_get_rag_user",
-   "target":"HTTPException",
+   "target":"len",
    "line":539
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
-   "target":"decode",
-   "line":541
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_get_rag_user",
-   "target":"type",
-   "line":545
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"_get_rag_user",
-   "target":"warning",
-   "line":545
+   "target":"HTTPException",
+   "line":540
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
    "target":"HTTPException",
-   "line":546
+   "line":542
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"_get_rag_user",
-   "target":"get",
+   "target":"decode",
+   "line":544
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_get_rag_user",
+   "target":"type",
+   "line":548
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_get_rag_user",
+   "target":"warning",
    "line":548
   },
   {
@@ -96721,295 +96735,302 @@
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
-   "source":"_require_ready",
-   "target":"HTTPException",
-   "line":587
+   "source":"_get_rag_user",
+   "target":"get",
+   "line":551
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
-   "source":"query_endpoint",
-   "target":"post",
+   "source":"_get_rag_user",
+   "target":"HTTPException",
+   "line":552
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"_require_ready",
+   "target":"HTTPException",
    "line":590
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_endpoint",
+   "target":"post",
+   "line":593
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_endpoint",
    "target":"Depends",
-   "line":591
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_endpoint",
-   "target":"_require_ready",
-   "line":592
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"query_endpoint",
-   "target":"get",
    "line":594
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_endpoint",
+   "target":"_require_ready",
+   "line":595
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_endpoint",
+   "target":"get",
+   "line":597
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"query_endpoint",
    "target":"HTTPException",
-   "line":596
+   "line":599
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_endpoint",
    "target":"_validate_tenant_id",
-   "line":597
+   "line":600
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_endpoint",
    "target":"query_rag",
-   "line":597
+   "line":600
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"query_endpoint",
    "target":"str",
-   "line":597
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"post",
    "line":600
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
-   "target":"File",
-   "line":602
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"Form",
+   "target":"post",
    "line":603
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
+   "target":"File",
+   "line":605
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"Form",
+   "line":606
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
    "target":"Header",
-   "line":604
+   "line":607
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"_require_service_token",
-   "line":610
+   "line":613
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"_require_ready",
-   "line":611
+   "line":614
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"_validate_tenant_id",
-   "line":612
+   "line":615
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"Path",
-   "line":616
+   "line":619
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"lower",
-   "line":616
+   "line":619
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"HTTPException",
-   "line":618
+   "line":621
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"NamedTemporaryFile",
-   "line":623
+   "line":626
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"read",
-   "line":627
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"len",
    "line":630
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
+   "target":"len",
+   "line":633
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
    "target":"close",
-   "line":632
+   "line":635
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"Path",
-   "line":633
+   "line":636
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"unlink",
-   "line":633
+   "line":636
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"HTTPException",
-   "line":634
+   "line":637
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"write",
-   "line":638
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"close",
    "line":641
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
+   "target":"close",
+   "line":644
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
    "target":"Path",
-   "line":642
+   "line":645
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
    "target":"append",
-   "line":643
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"Path",
-   "line":644
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"str",
-   "line":644
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"ingest_endpoint",
-   "target":"ingest_documents",
    "line":646
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"ingest_endpoint",
+   "target":"Path",
+   "line":647
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"str",
+   "line":647
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
+   "target":"ingest_documents",
+   "line":649
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"ingest_endpoint",
    "target":"unlink",
-   "line":650
+   "line":653
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"healthz",
    "target":"get",
-   "line":655
+   "line":658
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"healthz",
    "target":"AsyncClient",
-   "line":659
+   "line":662
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"healthz",
    "target":"get",
-   "line":660
+   "line":663
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"healthz",
    "target":"debug",
-   "line":663
+   "line":666
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"healthz",
    "target":"type",
-   "line":663
+   "line":666
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"legacy_health",
    "target":"get",
-   "line":673
+   "line":676
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"legacy_health",
    "target":"healthz",
-   "line":675
-  },
-  {
-   "owner":"local-ai-rag",
-   "file":"services/local-ai-rag/main.py",
-   "source":"readyz",
-   "target":"get",
    "line":678
   },
   {
@@ -97017,28 +97038,35 @@
    "file":"services/local-ai-rag/main.py",
    "source":"readyz",
    "target":"get",
-   "line":683
+   "line":681
+  },
+  {
+   "owner":"local-ai-rag",
+   "file":"services/local-ai-rag/main.py",
+   "source":"readyz",
+   "target":"get",
+   "line":686
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"readyz",
    "target":"HTTPException",
-   "line":684
+   "line":687
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"readyz",
    "target":"get",
-   "line":690
+   "line":693
   },
   {
    "owner":"local-ai-rag",
    "file":"services/local-ai-rag/main.py",
    "source":"readyz",
    "target":"get",
-   "line":692
+   "line":695
   },
   {
    "owner":"local-ai-rag",
@@ -470278,217 +470306,210 @@
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_checkpoint_sha256",
    "target":"sha256",
-   "line":98
+   "line":102
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_checkpoint_sha256",
    "target":"open",
-   "line":99
+   "line":103
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_checkpoint_sha256",
    "target":"iter",
-   "line":100
+   "line":104
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_checkpoint_sha256",
    "target":"read",
-   "line":100
+   "line":104
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_checkpoint_sha256",
    "target":"update",
-   "line":101
+   "line":105
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_checkpoint_sha256",
    "target":"hexdigest",
-   "line":102
+   "line":106
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_verify_checkpoint_artifact",
    "target":"lower",
-   "line":107
+   "line":111
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_verify_checkpoint_artifact",
    "target":"strip",
-   "line":107
+   "line":111
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_verify_checkpoint_artifact",
    "target":"fullmatch",
-   "line":108
+   "line":112
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_verify_checkpoint_artifact",
    "target":"isfile",
-   "line":110
+   "line":114
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_verify_checkpoint_artifact",
    "target":"_checkpoint_sha256",
-   "line":112
+   "line":116
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_require_service_token",
    "target":"HTTPException",
-   "line":122
+   "line":126
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_require_service_token",
+   "target":"service_token_ok",
+   "line":127
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_require_service_token",
    "target":"HTTPException",
-   "line":124
+   "line":128
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_load_model",
    "target":"_verify_checkpoint_artifact",
-   "line":148
+   "line":152
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_load_model",
    "target":"warning",
-   "line":154
+   "line":158
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_load_model",
    "target":"is_available",
-   "line":160
+   "line":164
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_load_model",
    "target":"warning",
-   "line":163
+   "line":167
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_load_model",
    "target":"warning",
-   "line":175
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_load_model",
-   "target":"device",
-   "line":178
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_load_model",
-   "target":"build_sam2",
    "line":179
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_load_model",
-   "target":"SAM2ImagePredictor",
-   "line":180
+   "target":"device",
+   "line":182
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_load_model",
-   "target":"info",
+   "target":"build_sam2",
    "line":183
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_load_model",
+   "target":"SAM2ImagePredictor",
+   "line":184
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_load_model",
+   "target":"info",
+   "line":187
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_load_model",
    "target":"type",
-   "line":186
+   "line":190
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_load_model",
    "target":"warning",
-   "line":188
+   "line":192
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_coerce_user_ring",
    "target":"isinstance",
-   "line":196
+   "line":200
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_coerce_user_ring",
    "target":"get",
-   "line":197
+   "line":201
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_coerce_user_ring",
    "target":"get",
-   "line":198
+   "line":202
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_coerce_user_ring",
    "target":"lower",
-   "line":198
+   "line":202
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_coerce_user_ring",
    "target":"str",
-   "line":198
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_coerce_user_ring",
-   "target":"isinstance",
-   "line":203
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_coerce_user_ring",
-   "target":"len",
-   "line":203
+   "line":202
   },
   {
    "owner":"sam2-inference",
@@ -470503,89 +470524,96 @@
    "source":"_coerce_user_ring",
    "target":"len",
    "line":207
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_coerce_user_ring",
+   "target":"isinstance",
+   "line":211
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_coerce_user_ring",
+   "target":"len",
+   "line":211
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_coerce_user_ring",
    "target":"append",
-   "line":210
+   "line":214
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_coerce_user_ring",
    "target":"float",
-   "line":210
+   "line":214
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_coerce_user_ring",
    "target":"float",
-   "line":210
+   "line":214
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_resolve_image_url",
    "target":"strip",
-   "line":228
+   "line":232
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_resolve_image_url",
    "target":"startswith",
-   "line":229
+   "line":233
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_resolve_image_url",
    "target":"len",
-   "line":234
+   "line":238
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_resolve_image_url",
    "target":"HTTPException",
-   "line":235
+   "line":239
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_resolve_image_url",
    "target":"_stac_latest_visual",
-   "line":243
+   "line":247
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_resolve_image_url",
    "target":"HTTPException",
-   "line":245
+   "line":249
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"now",
-   "line":263
+   "line":267
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"timedelta",
-   "line":264
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_stac_latest_visual",
-   "target":"strftime",
    "line":268
   },
   {
@@ -470593,483 +470621,469 @@
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"strftime",
-   "line":268
+   "line":272
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_stac_latest_visual",
+   "target":"strftime",
+   "line":272
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"Client",
-   "line":274
+   "line":278
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"post",
-   "line":275
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_stac_latest_visual",
-   "target":"raise_for_status",
-   "line":276
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_stac_latest_visual",
-   "target":"json",
-   "line":277
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_stac_latest_visual",
-   "target":"warning",
    "line":279
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
-   "target":"get",
-   "line":282
+   "target":"raise_for_status",
+   "line":280
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_stac_latest_visual",
+   "target":"json",
+   "line":281
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_stac_latest_visual",
+   "target":"warning",
+   "line":283
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"get",
-   "line":285
+   "line":286
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"get",
-   "line":287
+   "line":289
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"get",
-   "line":288
+   "line":291
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_stac_latest_visual",
+   "target":"get",
+   "line":292
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_stac_latest_visual",
    "target":"isinstance",
-   "line":289
+   "line":293
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"startswith",
-   "line":306
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_read_rgb",
-   "target":"open",
    "line":310
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
+   "target":"open",
+   "line":314
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_read_rgb",
    "target":"len",
-   "line":313
+   "line":317
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"to_epsg",
-   "line":315
+   "line":319
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"transform_bounds",
-   "line":316
+   "line":320
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"from_bounds",
-   "line":321
+   "line":325
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"warning",
-   "line":323
+   "line":327
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"int",
-   "line":328
+   "line":332
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"max",
-   "line":328
+   "line":332
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"round",
-   "line":328
+   "line":332
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"int",
-   "line":329
+   "line":333
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"max",
-   "line":329
+   "line":333
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"round",
-   "line":329
+   "line":333
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"float",
-   "line":332
+   "line":336
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"max",
-   "line":332
+   "line":336
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"int",
-   "line":333
+   "line":337
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"max",
-   "line":333
+   "line":337
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"int",
-   "line":334
+   "line":338
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"max",
-   "line":334
+   "line":338
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"read",
-   "line":339
+   "line":343
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"window_transform",
-   "line":348
+   "line":352
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"scale",
-   "line":354
+   "line":358
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"HTTPException",
-   "line":359
+   "line":363
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"type",
-   "line":364
+   "line":368
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"transpose",
-   "line":369
+   "line":373
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"isfinite",
-   "line":372
+   "line":376
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"issubdtype",
-   "line":372
+   "line":376
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"float",
-   "line":374
+   "line":378
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"percentile",
-   "line":374
+   "line":378
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"float",
-   "line":375
+   "line":379
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"percentile",
-   "line":375
+   "line":379
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"astype",
-   "line":380
+   "line":384
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"clip",
-   "line":380
+   "line":384
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"astype",
-   "line":381
+   "line":385
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_read_rgb",
    "target":"ascontiguousarray",
-   "line":383
+   "line":387
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"list",
-   "line":407
+   "line":411
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"abs",
-   "line":410
+   "line":414
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"abs",
-   "line":410
+   "line":414
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"append",
-   "line":411
+   "line":415
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"list",
-   "line":411
+   "line":415
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"abs",
-   "line":413
+   "line":417
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"abs",
-   "line":413
+   "line":417
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"len",
-   "line":413
+   "line":417
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"append",
-   "line":414
+   "line":418
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"list",
-   "line":414
+   "line":418
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_dedupe_ring",
    "target":"list",
-   "line":416
+   "line":420
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
    "target":"asarray",
-   "line":432
+   "line":436
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
    "target":"astype",
-   "line":432
+   "line":436
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
    "target":"int",
-   "line":433
+   "line":437
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
    "target":"sum",
-   "line":433
+   "line":437
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
    "target":"HTTPException",
-   "line":434
+   "line":438
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
    "target":"rio_shapes",
-   "line":441
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"shape",
    "line":445
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"append",
+   "target":"shape",
    "line":449
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
+   "target":"append",
+   "line":453
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
    "target":"HTTPException",
-   "line":452
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"max",
-   "line":458
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"abs",
-   "line":462
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"abs",
-   "line":462
+   "line":456
   },
   {
    "owner":"sam2-inference",
@@ -471077,103 +471091,117 @@
    "source":"_mask_to_polygon",
    "target":"max",
    "line":462
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"abs",
+   "line":466
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"abs",
+   "line":466
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"max",
+   "line":466
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
    "target":"_tol_in_crs_units",
-   "line":463
+   "line":467
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
    "target":"max",
-   "line":463
+   "line":467
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
    "target":"simplify",
-   "line":464
+   "line":468
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
    "target":"make_valid",
-   "line":473
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"buffer",
-   "line":475
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"getattr",
    "line":477
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"HTTPException",
-   "line":480
+   "target":"buffer",
+   "line":479
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"max",
+   "target":"getattr",
+   "line":481
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"HTTPException",
    "line":484
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"mapping",
-   "line":486
+   "target":"max",
+   "line":488
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"to_epsg",
+   "target":"mapping",
    "line":490
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
+   "target":"to_epsg",
+   "line":494
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
    "target":"transform_geom",
-   "line":491
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"HTTPException",
-   "line":493
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"str",
    "line":495
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"get",
+   "target":"HTTPException",
+   "line":497
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"str",
    "line":499
   },
   {
@@ -471181,35 +471209,28 @@
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
    "target":"get",
-   "line":500
+   "line":503
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"lower",
-   "line":500
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"str",
-   "line":500
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"HTTPException",
+   "target":"get",
    "line":504
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"max",
-   "line":505
+   "target":"lower",
+   "line":504
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"str",
+   "line":504
   },
   {
    "owner":"sam2-inference",
@@ -471222,126 +471243,119 @@
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
+   "target":"max",
+   "line":509
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
    "target":"HTTPException",
-   "line":511
+   "line":512
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"HTTPException",
+   "line":515
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
    "target":"float",
-   "line":513
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"float",
-   "line":513
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"_dedupe_ring",
    "line":517
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"len",
-   "line":519
+   "target":"float",
+   "line":517
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
-   "target":"append",
-   "line":520
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"list",
-   "line":520
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_mask_to_polygon",
-   "target":"len",
+   "target":"_dedupe_ring",
    "line":521
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_mask_to_polygon",
+   "target":"len",
+   "line":523
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"append",
+   "line":524
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"list",
+   "line":524
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
+   "target":"len",
+   "line":525
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_mask_to_polygon",
    "target":"HTTPException",
-   "line":522
+   "line":526
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_lonlat_to_pixel",
    "target":"to_epsg",
-   "line":538
+   "line":542
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_lonlat_to_pixel",
    "target":"warp_transform",
-   "line":539
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_lonlat_to_pixel",
-   "target":"rowcol",
    "line":543
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_lonlat_to_pixel",
-   "target":"int",
-   "line":544
+   "target":"rowcol",
+   "line":547
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_lonlat_to_pixel",
    "target":"int",
-   "line":544
+   "line":548
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_lonlat_to_pixel",
+   "target":"int",
+   "line":548
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_build_prompt",
    "target":"_coerce_user_ring",
-   "line":556
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"len",
-   "line":557
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"len",
-   "line":560
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"sum",
    "line":560
   },
   {
@@ -471355,155 +471369,176 @@
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_build_prompt",
+   "target":"len",
+   "line":564
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
    "target":"sum",
-   "line":561
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"_lonlat_to_pixel",
-   "line":562
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"max",
-   "line":563
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"min",
-   "line":563
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"max",
    "line":564
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_build_prompt",
-   "target":"min",
-   "line":564
+   "target":"len",
+   "line":565
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"sum",
+   "line":565
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_build_prompt",
    "target":"_lonlat_to_pixel",
-   "line":569
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"append",
-   "line":570
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"append",
-   "line":571
+   "line":566
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_build_prompt",
    "target":"max",
-   "line":572
+   "line":567
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_build_prompt",
    "target":"min",
-   "line":572
+   "line":567
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_build_prompt",
    "target":"max",
+   "line":568
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"min",
+   "line":568
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"_lonlat_to_pixel",
    "line":573
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_build_prompt",
-   "target":"min",
-   "line":573
-  },
-  {
-   "owner":"sam2-inference",
-   "file":"services/sam2-inference/sam2_runtime.py",
-   "source":"_build_prompt",
-   "target":"max",
+   "target":"append",
    "line":574
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_build_prompt",
-   "target":"min",
-   "line":574
+   "target":"append",
+   "line":575
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_build_prompt",
    "target":"max",
-   "line":575
+   "line":576
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_build_prompt",
    "target":"min",
-   "line":575
+   "line":576
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_build_prompt",
-   "target":"array",
+   "target":"max",
+   "line":577
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"min",
+   "line":577
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"max",
    "line":578
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_build_prompt",
-   "target":"array",
-   "line":580
+   "target":"min",
+   "line":578
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"max",
+   "line":579
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"min",
+   "line":579
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_build_prompt",
    "target":"array",
-   "line":581
+   "line":582
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_build_prompt",
    "target":"array",
-   "line":590
+   "line":584
   },
   {
    "owner":"sam2-inference",
    "file":"services/sam2-inference/sam2_runtime.py",
    "source":"_build_prompt",
    "target":"array",
-   "line":591
+   "line":585
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"array",
+   "line":594
+  },
+  {
+   "owner":"sam2-inference",
+   "file":"services/sam2-inference/sam2_runtime.py",
+   "source":"_build_prompt",
+   "target":"array",
+   "line":595
   },
   {
    "owner":"scout-ingest-service",
@@ -473057,63 +473092,56 @@
    "file":"services/scout-ingest-service/main.py",
    "source":"_enabled",
    "target":"getenv",
-   "line":55
+   "line":56
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_enabled",
    "target":"lower",
-   "line":55
+   "line":56
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_enabled",
    "target":"strip",
-   "line":55
+   "line":56
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_connect",
    "target":"HTTPException",
-   "line":64
+   "line":65
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_connect",
    "target":"connect",
-   "line":69
+   "line":70
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_normalize_odk",
    "target":"get",
-   "line":75
+   "line":76
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_normalize_odk",
    "target":"get",
-   "line":75
+   "line":76
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_normalize_odk",
    "target":"isinstance",
-   "line":76
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_normalize_odk",
-   "target":"strip",
-   "line":76
+   "line":77
   },
   {
    "owner":"scout-ingest-service",
@@ -473125,72 +473153,72 @@
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
-   "source":"_normalize_kobo",
-   "target":"get",
-   "line":87
+   "source":"_normalize_odk",
+   "target":"strip",
+   "line":78
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_normalize_kobo",
    "target":"get",
-   "line":87
+   "line":88
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_normalize_kobo",
+   "target":"get",
+   "line":88
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_normalize_kobo",
    "target":"isinstance",
-   "line":88
+   "line":89
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_normalize_kobo",
    "target":"strip",
-   "line":88
+   "line":89
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_normalize_kobo",
    "target":"items",
-   "line":90
+   "line":91
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_normalize_kobo",
    "target":"endswith",
-   "line":91
+   "line":92
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_normalize_kobo",
    "target":"isinstance",
-   "line":91
+   "line":92
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_normalize_kobo",
    "target":"strip",
-   "line":91
+   "line":92
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_normalize_kobo",
    "target":"isinstance",
-   "line":94
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_normalize_kobo",
-   "target":"strip",
-   "line":94
+   "line":95
   },
   {
    "owner":"scout-ingest-service",
@@ -473202,478 +473230,443 @@
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
+   "source":"_normalize_kobo",
+   "target":"strip",
+   "line":96
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
    "source":"_resolve_source",
    "target":"_connect",
-   "line":103
+   "line":104
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_resolve_source",
    "target":"fetchrow",
-   "line":105
+   "line":106
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_resolve_source",
    "target":"close",
-   "line":107
+   "line":108
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_resolve_source",
    "target":"dict",
-   "line":108
+   "line":109
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
    "target":"_connect",
-   "line":113
+   "line":114
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_tenant_conn",
    "target":"_connect",
-   "line":113
+   "line":114
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
    "target":"execute",
-   "line":114
+   "line":115
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
    "target":"str",
-   "line":114
+   "line":115
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_tenant_conn",
    "target":"execute",
-   "line":114
+   "line":115
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_tenant_conn",
    "target":"str",
-   "line":114
+   "line":115
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
    "target":"_tenant_conn",
-   "line":118
+   "line":119
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"fetch_existing",
    "target":"_tenant_conn",
-   "line":118
+   "line":119
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
    "target":"fetchval",
-   "line":120
+   "line":121
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"fetch_existing",
    "target":"fetchval",
-   "line":120
+   "line":121
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
    "target":"close",
-   "line":127
+   "line":128
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"fetch_existing",
    "target":"close",
-   "line":127
+   "line":128
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
    "target":"_tenant_conn",
-   "line":130
+   "line":131
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"field_in_tenant",
    "target":"_tenant_conn",
-   "line":130
+   "line":131
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
    "target":"bool",
-   "line":132
+   "line":133
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
    "target":"fetchval",
-   "line":132
+   "line":133
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"field_in_tenant",
    "target":"bool",
-   "line":132
+   "line":133
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"field_in_tenant",
    "target":"fetchval",
-   "line":132
+   "line":133
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
    "target":"close",
-   "line":134
+   "line":135
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"field_in_tenant",
    "target":"close",
-   "line":134
+   "line":135
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
    "target":"_tenant_conn",
-   "line":140
+   "line":141
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"store",
    "target":"_tenant_conn",
-   "line":140
+   "line":141
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
    "target":"execute",
-   "line":142
+   "line":143
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"store",
    "target":"execute",
-   "line":142
+   "line":143
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
    "target":"dumps",
-   "line":160
+   "line":161
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"store",
    "target":"dumps",
-   "line":160
+   "line":161
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
    "target":"dumps",
-   "line":162
+   "line":163
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"store",
    "target":"dumps",
-   "line":162
+   "line":163
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
    "target":"close",
-   "line":167
+   "line":168
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"store",
    "target":"close",
-   "line":167
+   "line":168
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
    "target":"IngestPorts",
-   "line":169
+   "line":170
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"healthz",
    "target":"get",
-   "line":177
+   "line":178
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"readyz",
    "target":"get",
-   "line":182
+   "line":183
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"readyz",
    "target":"HTTPException",
-   "line":187
+   "line":188
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"readyz",
    "target":"_connect",
-   "line":189
+   "line":190
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"readyz",
    "target":"fetchval",
-   "line":191
+   "line":192
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"readyz",
    "target":"close",
-   "line":193
+   "line":194
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"readyz",
    "target":"HTTPException",
-   "line":197
+   "line":198
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"readyz",
    "target":"_enabled",
-   "line":201
+   "line":202
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_require_read_token",
    "target":"HTTPException",
-   "line":208
+   "line":213
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_require_read_token",
+   "target":"service_token_ok",
+   "line":216
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_require_read_token",
    "target":"HTTPException",
-   "line":212
+   "line":217
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"read_external_observations",
    "target":"get",
-   "line":215
+   "line":220
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"read_external_observations",
    "target":"Header",
-   "line":218
+   "line":223
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"read_external_observations",
    "target":"Header",
-   "line":219
+   "line":224
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"read_external_observations",
    "target":"_require_read_token",
-   "line":225
+   "line":230
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"read_external_observations",
    "target":"HTTPException",
-   "line":227
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"read_external_observations",
-   "target":"UUID",
-   "line":229
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"read_external_observations",
-   "target":"str",
-   "line":229
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"read_external_observations",
-   "target":"HTTPException",
-   "line":231
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"read_external_observations",
-   "target":"_connect",
    "line":232
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"read_external_observations",
-   "target":"execute",
+   "target":"UUID",
    "line":234
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"read_external_observations",
-   "target":"fetch",
-   "line":236
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"read_external_observations",
-   "target":"fetch",
-   "line":243
+   "target":"str",
+   "line":234
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"read_external_observations",
    "target":"HTTPException",
-   "line":251
+   "line":236
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"read_external_observations",
+   "target":"_connect",
+   "line":237
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"read_external_observations",
+   "target":"execute",
+   "line":239
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"read_external_observations",
+   "target":"fetch",
+   "line":241
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"read_external_observations",
+   "target":"fetch",
+   "line":248
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"read_external_observations",
+   "target":"HTTPException",
+   "line":256
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"read_external_observations",
    "target":"close",
-   "line":253
+   "line":258
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"read_external_observations",
    "target":"dict",
-   "line":254
+   "line":259
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"read_external_observations",
    "target":"len",
-   "line":254
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_instance_for_raw_ref",
-   "target":"get",
-   "line":260
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_instance_for_raw_ref",
-   "target":"get",
-   "line":260
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_instance_for_raw_ref",
-   "target":"isinstance",
-   "line":260
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_instance_for_raw_ref",
-   "target":"str",
-   "line":261
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_instance_for_raw_ref",
-   "target":"get",
-   "line":262
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_instance_for_raw_ref",
-   "target":"get",
-   "line":263
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_instance_for_raw_ref",
-   "target":"get",
-   "line":264
+   "line":259
   },
   {
    "owner":"scout-ingest-service",
@@ -473687,104 +473680,118 @@
    "file":"services/scout-ingest-service/main.py",
    "source":"_instance_for_raw_ref",
    "target":"get",
-   "line":268
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_instance_for_raw_ref",
-   "target":"get",
-   "line":268
+   "line":265
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_instance_for_raw_ref",
    "target":"isinstance",
-   "line":268
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_instance_for_raw_ref",
-   "target":"get",
-   "line":269
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_instance_for_raw_ref",
-   "target":"get",
-   "line":269
+   "line":265
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_instance_for_raw_ref",
    "target":"str",
+   "line":266
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_instance_for_raw_ref",
+   "target":"get",
+   "line":267
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_instance_for_raw_ref",
+   "target":"get",
+   "line":268
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_instance_for_raw_ref",
+   "target":"get",
    "line":269
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
-   "source":"_handle_submission",
-   "target":"_enabled",
+   "source":"_instance_for_raw_ref",
+   "target":"get",
+   "line":270
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_instance_for_raw_ref",
+   "target":"get",
+   "line":273
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_instance_for_raw_ref",
+   "target":"get",
+   "line":273
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_instance_for_raw_ref",
+   "target":"isinstance",
+   "line":273
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_instance_for_raw_ref",
+   "target":"get",
+   "line":274
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_instance_for_raw_ref",
+   "target":"get",
+   "line":274
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_instance_for_raw_ref",
+   "target":"str",
    "line":274
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
-   "target":"HTTPException",
-   "line":275
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_handle_submission",
-   "target":"HTTPException",
-   "line":277
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_handle_submission",
-   "target":"isinstance",
-   "line":278
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_handle_submission",
-   "target":"HTTPException",
+   "target":"_enabled",
    "line":279
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
-   "target":"encode",
-   "line":281
+   "target":"HTTPException",
+   "line":280
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
-   "target":"hexdigest",
-   "line":281
+   "target":"HTTPException",
+   "line":282
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
-   "target":"sha256",
-   "line":281
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_handle_submission",
-   "target":"_resolve_source",
+   "target":"isinstance",
    "line":283
   },
   {
@@ -473792,168 +473799,203 @@
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"HTTPException",
-   "line":287
+   "line":284
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_handle_submission",
+   "target":"encode",
+   "line":286
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_handle_submission",
+   "target":"hexdigest",
+   "line":286
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_handle_submission",
+   "target":"sha256",
+   "line":286
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_handle_submission",
+   "target":"_resolve_source",
+   "line":288
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"HTTPException",
-   "line":289
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_handle_submission",
-   "target":"_instance_for_raw_ref",
    "line":292
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
-   "target":"dict",
+   "target":"HTTPException",
    "line":294
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
+   "target":"_instance_for_raw_ref",
+   "line":297
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_handle_submission",
+   "target":"dict",
+   "line":299
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_handle_submission",
    "target":"now",
-   "line":301
+   "line":306
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"_normalize_kobo",
-   "line":305
+   "line":310
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"build_envelope_from_kobo",
-   "line":305
+   "line":310
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"_normalize_odk",
-   "line":307
+   "line":312
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"build_envelope_from_odk",
-   "line":307
+   "line":312
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"_ports",
-   "line":309
+   "line":314
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"process_submission",
-   "line":309
+   "line":314
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"HTTPException",
-   "line":313
+   "line":318
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"JSONResponse",
-   "line":316
+   "line":321
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"list",
-   "line":322
+   "line":327
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_parse_body",
    "target":"json",
-   "line":329
+   "line":334
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_parse_body",
    "target":"HTTPException",
-   "line":331
+   "line":336
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"ingest_odk_submission",
    "target":"post",
-   "line":334
+   "line":339
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"ingest_odk_submission",
    "target":"Header",
-   "line":337
+   "line":342
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"ingest_odk_submission",
    "target":"_handle_submission",
-   "line":340
+   "line":345
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"ingest_odk_submission",
    "target":"_parse_body",
-   "line":340
+   "line":345
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"ingest_kobo_submission",
    "target":"post",
-   "line":343
+   "line":348
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"ingest_kobo_submission",
    "target":"Header",
-   "line":346
+   "line":351
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"ingest_kobo_submission",
    "target":"_handle_submission",
-   "line":349
+   "line":354
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"ingest_kobo_submission",
    "target":"_parse_body",
-   "line":349
+   "line":354
   },
   {
    "owner":"scout-ingest-service",
@@ -477257,224 +477299,231 @@
    "file":"services/soil-service/main.py",
    "source":"_require_service_token",
    "target":"Header",
-   "line":38
+   "line":42
   },
   {
    "owner":"soil-service",
    "file":"services/soil-service/main.py",
    "source":"_require_service_token",
    "target":"HTTPException",
-   "line":41
+   "line":49
+  },
+  {
+   "owner":"soil-service",
+   "file":"services/soil-service/main.py",
+   "source":"_require_service_token",
+   "target":"service_token_ok",
+   "line":50
   },
   {
    "owner":"soil-service",
    "file":"services/soil-service/main.py",
    "source":"_require_service_token",
    "target":"HTTPException",
-   "line":43
+   "line":51
   },
   {
    "owner":"soil-service",
    "file":"services/soil-service/main.py",
    "source":"lifespan",
    "target":"create_pool",
-   "line":59
+   "line":67
   },
   {
    "owner":"soil-service",
    "file":"services/soil-service/main.py",
    "source":"lifespan",
    "target":"assert_db_role_rls_safe",
-   "line":65
-  },
-  {
-   "owner":"soil-service",
-   "file":"services/soil-service/main.py",
-   "source":"lifespan",
-   "target":"getenv",
-   "line":66
-  },
-  {
-   "owner":"soil-service",
-   "file":"services/soil-service/main.py",
-   "source":"lifespan",
-   "target":"lower",
-   "line":66
-  },
-  {
-   "owner":"soil-service",
-   "file":"services/soil-service/main.py",
-   "source":"lifespan",
-   "target":"Event",
-   "line":70
-  },
-  {
-   "owner":"soil-service",
-   "file":"services/soil-service/main.py",
-   "source":"lifespan",
-   "target":"getenv",
-   "line":71
-  },
-  {
-   "owner":"soil-service",
-   "file":"services/soil-service/main.py",
-   "source":"lifespan",
-   "target":"gethostname",
-   "line":71
-  },
-  {
-   "owner":"soil-service",
-   "file":"services/soil-service/main.py",
-   "source":"lifespan",
-   "target":"create_task",
-   "line":72
-  },
-  {
-   "owner":"soil-service",
-   "file":"services/soil-service/main.py",
-   "source":"lifespan",
-   "target":"worker_loop",
    "line":73
   },
   {
    "owner":"soil-service",
    "file":"services/soil-service/main.py",
    "source":"lifespan",
-   "target":"info",
-   "line":77
+   "target":"getenv",
+   "line":74
   },
   {
    "owner":"soil-service",
    "file":"services/soil-service/main.py",
    "source":"lifespan",
-   "target":"set",
+   "target":"lower",
+   "line":74
+  },
+  {
+   "owner":"soil-service",
+   "file":"services/soil-service/main.py",
+   "source":"lifespan",
+   "target":"Event",
+   "line":78
+  },
+  {
+   "owner":"soil-service",
+   "file":"services/soil-service/main.py",
+   "source":"lifespan",
+   "target":"getenv",
+   "line":79
+  },
+  {
+   "owner":"soil-service",
+   "file":"services/soil-service/main.py",
+   "source":"lifespan",
+   "target":"gethostname",
+   "line":79
+  },
+  {
+   "owner":"soil-service",
+   "file":"services/soil-service/main.py",
+   "source":"lifespan",
+   "target":"create_task",
    "line":80
   },
   {
    "owner":"soil-service",
    "file":"services/soil-service/main.py",
    "source":"lifespan",
+   "target":"worker_loop",
+   "line":81
+  },
+  {
+   "owner":"soil-service",
+   "file":"services/soil-service/main.py",
+   "source":"lifespan",
+   "target":"info",
+   "line":85
+  },
+  {
+   "owner":"soil-service",
+   "file":"services/soil-service/main.py",
+   "source":"lifespan",
+   "target":"set",
+   "line":88
+  },
+  {
+   "owner":"soil-service",
+   "file":"services/soil-service/main.py",
+   "source":"lifespan",
    "target":"close",
-   "line":84
+   "line":92
   },
   {
    "owner":"soil-service",
    "file":"services/soil-service/main.py",
    "source":"_tenant_from_header",
    "target":"strip",
-   "line":103
-  },
-  {
-   "owner":"soil-service",
-   "file":"services/soil-service/main.py",
-   "source":"_tenant_context_mw",
-   "target":"middleware",
-   "line":106
-  },
-  {
-   "owner":"soil-service",
-   "file":"services/soil-service/main.py",
-   "source":"_tenant_context_mw",
-   "target":"_tenant_from_header",
-   "line":109
-  },
-  {
-   "owner":"soil-service",
-   "file":"services/soil-service/main.py",
-   "source":"_tenant_context_mw",
-   "target":"get",
-   "line":109
-  },
-  {
-   "owner":"soil-service",
-   "file":"services/soil-service/main.py",
-   "source":"_tenant_context_mw",
-   "target":"set",
-   "line":109
-  },
-  {
-   "owner":"soil-service",
-   "file":"services/soil-service/main.py",
-   "source":"_tenant_context_mw",
-   "target":"call_next",
    "line":111
   },
   {
    "owner":"soil-service",
    "file":"services/soil-service/main.py",
    "source":"_tenant_context_mw",
+   "target":"middleware",
+   "line":114
+  },
+  {
+   "owner":"soil-service",
+   "file":"services/soil-service/main.py",
+   "source":"_tenant_context_mw",
+   "target":"_tenant_from_header",
+   "line":117
+  },
+  {
+   "owner":"soil-service",
+   "file":"services/soil-service/main.py",
+   "source":"_tenant_context_mw",
+   "target":"get",
+   "line":117
+  },
+  {
+   "owner":"soil-service",
+   "file":"services/soil-service/main.py",
+   "source":"_tenant_context_mw",
+   "target":"set",
+   "line":117
+  },
+  {
+   "owner":"soil-service",
+   "file":"services/soil-service/main.py",
+   "source":"_tenant_context_mw",
+   "target":"call_next",
+   "line":119
+  },
+  {
+   "owner":"soil-service",
+   "file":"services/soil-service/main.py",
+   "source":"_tenant_context_mw",
    "target":"reset",
-   "line":113
+   "line":121
   },
   {
    "owner":"soil-service",
    "file":"services/soil-service/main.py",
    "source":"_field_owner",
    "target":"field_owner_tenant",
-   "line":126
+   "line":134
   },
   {
    "owner":"soil-service",
    "file":"services/soil-service/main.py",
    "source":"_require_field_tenant",
    "target":"get",
-   "line":145
+   "line":153
   },
   {
    "owner":"soil-service",
    "file":"services/soil-service/main.py",
    "source":"_require_field_tenant",
    "target":"_field_owner",
-   "line":147
+   "line":155
   },
   {
    "owner":"soil-service",
    "file":"services/soil-service/main.py",
    "source":"_require_field_tenant",
    "target":"HTTPException",
-   "line":149
+   "line":157
   },
   {
    "owner":"soil-service",
    "file":"services/soil-service/main.py",
    "source":"_require_field_tenant",
    "target":"HTTPException",
-   "line":152
+   "line":160
   },
   {
    "owner":"soil-service",
    "file":"services/soil-service/main.py",
    "source":"_moisture_is_a_measurement",
    "target":"field_validator",
-   "line":165
+   "line":173
   },
   {
    "owner":"soil-service",
    "file":"services/soil-service/main.py",
    "source":"_moisture_is_a_measurement",
    "target":"isinstance",
-   "line":170
+   "line":178
   },
   {
    "owner":"soil-service",
    "file":"services/soil-service/main.py",
    "source":"_moisture_is_a_measurement",
    "target":"ValueError",
-   "line":171
+   "line":179
   },
   {
    "owner":"soil-service",
    "file":"services/soil-service/main.py",
    "source":"runtime_evidence_identity",
    "target":"get",
-   "line":207
+   "line":215
   },
   {
    "owner":"soil-service",
    "file":"services/soil-service/main.py",
    "source":"runtime_evidence_identity",
    "target":"load_build_identity",
-   "line":211
+   "line":219
   },
   {
    "owner":"soil-service",
@@ -565053,7 +565102,7 @@
    "symbol":"_tenant_context_mw",
    "kind":"function",
    "file":"services/soil-service/main.py",
-   "line":107,
+   "line":115,
    "owner":"soil-service",
    "decorated_route":false,
    "reference_count":0,
@@ -571647,6 +571696,23 @@
    ]
   },
   {
+   "fingerprint":"0670f96a6ce12326",
+   "occurrences":[
+    {
+     "file":"services/field-segmentation/main.py",
+     "symbol":"_require_service_token",
+     "line":79,
+     "owner":"field-segmentation"
+    },
+    {
+     "file":"services/sam2-inference/sam2_runtime.py",
+     "symbol":"_require_service_token",
+     "line":123,
+     "owner":"sam2-inference"
+    }
+   ]
+  },
+  {
    "fingerprint":"0791c0d18167f804",
    "occurrences":[
     {
@@ -572731,23 +572797,6 @@
      "symbol":"_finite_non_negative",
      "line":11,
      "owner":"sahool-platform"
-    }
-   ]
-  },
-  {
-   "fingerprint":"c866b724521642d7",
-   "occurrences":[
-    {
-     "file":"services/field-segmentation/main.py",
-     "symbol":"_require_service_token",
-     "line":76,
-     "owner":"field-segmentation"
-    },
-    {
-     "file":"services/sam2-inference/sam2_runtime.py",
-     "symbol":"_require_service_token",
-     "line":119,
-     "owner":"sam2-inference"
     }
    ]
   },

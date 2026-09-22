@@ -46,6 +46,9 @@ RUN pip install --timeout 300 --retries 10 --no-cache-dir --upgrade "setuptools>
     && pip install --timeout 300 --retries 10 --no-cache-dir --no-build-isolation \
         "git+https://github.com/facebookresearch/sam2.git@${SAM2_REF}"
 
+# الأوّليّات الأمنيّة المشتركة (stdlib-only) — مقارِنُ توكن الخدمة ثابتُ الزمن بتعريفٍ
+# واحد. غيابُه يُفشِل الاستيراد عند الإقلاع، وذاك المقصود (لا بديلَ صامت).
+COPY shared/ /app/shared/
 COPY services/sam2-inference/ /app/
 
 # مستخدم غير جذر (تصلّب) — يكتب فقط لـ/app؛ /models تُركَّب للقراءة فقط.

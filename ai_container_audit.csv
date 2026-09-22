@@ -6,5 +6,5 @@ sahool-rag-retrieval,services/rag-retrieval/Dockerfile,True,True,False,True,Fals
 sahool-knowledge-graph,services/knowledge-graph/Dockerfile,True,True,False,True,False,True,True,True
 sahool-supervisor-agent,services/supervisor-agent/Dockerfile,True,True,False,True,False,True,True,True
 sahool-guardrails-engine,services/guardrails-engine/Dockerfile,True,True,False,True,False,True,True,True
-sahool-edge,services/edge-inference/Dockerfile.arm64,True,True,False,True,False,False,True,True
-sahool-sam2-inference,services/sam2-inference/Dockerfile,True,True,False,True,False,False,True,True
+sahool-edge,services/edge-inference/Dockerfile.arm64,True,True,False,True,False,True,True,True
+sahool-sam2-inference,services/sam2-inference/Dockerfile,True,True,False,True,False,True,True,True

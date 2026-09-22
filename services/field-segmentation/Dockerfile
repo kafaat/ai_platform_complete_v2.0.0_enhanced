@@ -9,6 +9,9 @@ ARG PIP_TRUSTED_HOST=
 ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
 RUN pip install --no-cache-dir --timeout 300 --retries 10 -r /tmp/requirements.txt
+# الأوّليّات الأمنيّة المشتركة (stdlib-only) — مقارِنُ توكن الخدمة ثابتُ الزمن بتعريفٍ
+# واحد. غيابُه يُفشِل الاستيراد عند الإقلاع، وذاك المقصود (لا بديلَ صامت).
+COPY shared/ /app/shared/
 COPY services/field-segmentation/ /app/
 RUN useradd -m sahool && chown -R sahool:sahool /app
 USER sahool

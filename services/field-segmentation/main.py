@@ -30,6 +30,9 @@ from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 from starlette.responses import JSONResponse
 
+# بلا try/except قصداً: غيابُ الوحدة عطلُ توصيلٍ يُرى لا يُبتلَع.
+from shared.security.trusted_tenant import service_token_ok
+
 logging.basicConfig(
     level=logging.INFO,
     format='{"time":"%(asctime)s","svc":"field-segmentation","level":"%(levelname)s","msg":"%(message)s"}',
@@ -77,7 +80,7 @@ def _require_service_token(x_agent_token: str | None) -> None:
     """يمنع الاستدعاء المجهول. فشل آمن لو التوكن غير مضبوط."""
     if not AGENT_TOKEN:
         raise HTTPException(503, "SAHOOL_AGENT_TOKEN غير مضبوط — الخدمة معطّلة بأمان")
-    if x_agent_token != AGENT_TOKEN:
+    if not service_token_ok(x_agent_token, AGENT_TOKEN):
         raise HTTPException(401, "توكن خدمة غير صالح")
 
 

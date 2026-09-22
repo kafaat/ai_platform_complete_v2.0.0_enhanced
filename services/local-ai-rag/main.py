@@ -24,6 +24,9 @@ from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadF
 from fastapi.security import HTTPAuthorizationCredentials as _C
 from fastapi.security import HTTPBearer as _B
 
+# بلا try/except قصداً: غيابُ الوحدة عطلُ توصيلٍ يُرى لا يُبتلَع.
+from shared.security.trusted_tenant import service_token_ok
+
 try:
     from jose import JWTError as _JE
     from jose import jwt as _jjwt
@@ -101,7 +104,7 @@ def _validate_tenant_id(tenant_id: str) -> str:
 def _require_service_token(x_agent_token: str = Header(None)) -> None:
     if not AGENT_TOKEN:
         raise HTTPException(503, "SAHOOL_AGENT_TOKEN غير مضبوط — الاستيعاب معطّل بأمان")
-    if x_agent_token != AGENT_TOKEN:
+    if not service_token_ok(x_agent_token, AGENT_TOKEN):
         raise HTTPException(401, "توكن خدمة غير صالح")
 
 

@@ -10655,7 +10655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cc022a1d523dad4289104921fcc480d929902b8fca337f3cbf3ec25d0b506405"
+          "content": "8262ecc444f9e249d98c79dbdbb0a7c695c8b92fd48a7e67a8174b2bcffb8b20"
         }
       ],
       "name": "services/agriai-engine/main.py",
@@ -12575,7 +12575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c99de951cabd346873859a5b196f6aebb89f3977896d7e8287522ff387e2ec03"
+          "content": "91b8ffba0e14212e041b07aaacddf1498b787f28c3d7b00f899e136d4ad91596"
         }
       ],
       "name": "services/edge-inference/Dockerfile.arm64",
@@ -12615,7 +12615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7b66a3c2ffaa8866720d9d5f2ba3de98d34d3fcc297c030690752d932e6cacbf"
+          "content": "7a522cedc44faf81e7866fcfc8488fdc76d4f78027727f392bf764ddfdd8c545"
         }
       ],
       "name": "services/edge-inference/main.py",
@@ -12775,7 +12775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ea2b94f0643e06001b9ec5ecc0c8b8f8975a971caecbacb51a9855fa6cbd2f59"
+          "content": "d1e2898bde2cbf2a80fb76360bfdb40939be9c978fd9314dcd6ed18e8b0ec6b2"
         }
       ],
       "name": "services/field-segmentation/Dockerfile",
@@ -12805,7 +12805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "563d673258eab6811e54fefb3ac3beb26f382222e9866809640ace9354704831"
+          "content": "d81624bd699a10f179a116521fd6309506ad5edc08950bf24cb65204512c5418"
         }
       ],
       "name": "services/field-segmentation/main.py",
@@ -13425,7 +13425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e4c1d50f6119b947be22281a77b58b4014df2673bfb33b843e2d0d916b230c64"
+          "content": "f29703440a29fdb0e0913de7af0046bb0e5aa722f4d6d414df704d899cb4ee12"
         }
       ],
       "name": "services/local-ai-rag/main.py",
@@ -28485,7 +28485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7233145ecd06c5104a6350034bf411817769698b7fd53a4692e22f078c5c6982"
+          "content": "c31623191c2d399daad6d775e8e76fe89e90850d19785fc395beab2e24ee6b96"
         }
       ],
       "name": "services/sam2-inference/Dockerfile",
@@ -28525,7 +28525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "60bc226f96d8a5c0406476416a3e55a7fde714059a2cc23040f12df3107f292f"
+          "content": "6d5da317e9bcf0c9cc1705a35e6541c930788691d7dd558108659a79299463ee"
         }
       ],
       "name": "services/sam2-inference/sam2_runtime.py",
@@ -28555,7 +28555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "472560ba8704cb53372c60fe27ea0a6aa0f778a9d28ea8007da9ce187b39cf96"
+          "content": "dc526d8e77220f2837a6b431b5146e7bec42e3cba32b9e5275bce301edac8d4a"
         }
       ],
       "name": "services/scout-ingest-service/main.py",
@@ -28665,7 +28665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9b7d9a5c3f3ec260bff813280c3554f2d5cd39823ede2e048274a07ec6024883"
+          "content": "773f404b928d03af7956cb67def64d1f0e79014a54c97b29e55637a1d144e40b"
         }
       ],
       "name": "services/soil-service/main.py",

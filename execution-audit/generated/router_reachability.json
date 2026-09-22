@@ -73,7 +73,7 @@
     },
     {
       "kind": "app",
-      "line": 51,
+      "line": 54,
       "module": "services.agriai-engine.main",
       "node_id": "services.agriai-engine.main:app",
       "route_count": 9,
@@ -199,7 +199,7 @@
     },
     {
       "kind": "app",
-      "line": 35,
+      "line": 38,
       "module": "services.edge-inference.main",
       "node_id": "services.edge-inference.main:app",
       "route_count": 7,
@@ -217,7 +217,7 @@
     },
     {
       "kind": "app",
-      "line": 54,
+      "line": 57,
       "module": "services.field-segmentation.main",
       "node_id": "services.field-segmentation.main:app",
       "route_count": 4,
@@ -271,7 +271,7 @@
     },
     {
       "kind": "app",
-      "line": 553,
+      "line": 556,
       "module": "services.local-ai-rag.main",
       "node_id": "services.local-ai-rag.main:app",
       "route_count": 5,
@@ -2089,7 +2089,7 @@
     },
     {
       "kind": "app",
-      "line": 46,
+      "line": 47,
       "module": "services.scout-ingest-service.main",
       "node_id": "services.scout-ingest-service.main:app",
       "route_count": 5,
@@ -2107,7 +2107,7 @@
     },
     {
       "kind": "app",
-      "line": 87,
+      "line": 95,
       "module": "services.soil-service.main",
       "node_id": "services.soil-service.main:app",
       "route_count": 1,
@@ -2569,7 +2569,7 @@
     },
     {
       "expression": "season_router",
-      "line": 51,
+      "line": 52,
       "module": "services/scout-ingest-service/main.py",
       "prefix": null,
       "resolved": true,
@@ -2578,7 +2578,7 @@
     },
     {
       "expression": "field_forms_router",
-      "line": 355,
+      "line": 360,
       "module": "services/scout-ingest-service/main.py",
       "prefix": null,
       "resolved": true,
@@ -2631,7 +2631,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "f7a4af3c83f462657a2edc3e2bb1094f9a9873f1e39de5ffb341b1bb03bb5603",
+  "inventory_sha256": "7de29abd06ee698c83740d0ca90aad502b59924e8147ae821f8de37309141ecb",
   "orphan_candidate_count": 227,
   "orphan_candidates": [
     {
