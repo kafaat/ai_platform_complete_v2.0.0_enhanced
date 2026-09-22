@@ -57,7 +57,7 @@ SAT-006,satellite,Historical imagery timeline,True,3,1,0,0,1,0,0,3,0
 SAT-007,satellite,Change detection,True,3,2,1,0,0,0,0,3,0
 SAT-008,satellite,Stress zones,True,5,3,1,7,4,0,0,6,0
 SAT-009,satellite,COG persistence and tiling,True,5,14,70,0,14,1,0,23,0
-SEC-001,security,Tenant RLS,True,5,13,30,100,47,0,0,66,0
+SEC-001,security,Tenant RLS,True,5,13,30,100,49,0,0,67,0
 SEC-002,security,Signed tenant assertion,True,1,0,0,0,0,0,0,1,0
 SEC-003,security,Worker identity binding,True,2,1,0,0,0,0,0,1,0
 SEC-004,security,MFA,True,7,7,23,23,5,5,4,18,0
