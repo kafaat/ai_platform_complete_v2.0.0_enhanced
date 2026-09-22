@@ -1,10 +1,10 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. **`measured_on` إسنادٌ لا سلطةُ طزاجة** — السلطةُ `measurement_basis_digest` (نسخةُ العقد · بصمةُ المدخلات الأصيلة · بصمةُ دلالة المولّد) مع إعادة الاشتقاق، شرطين اقترانيّين. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "1627349e6675ad768eff2bb4e385f3b933a6513f",
+  "measured_on": "0e20f6d7456c01c045d895ca53a791d678c2f9d4",
   "measurement_contract_version": 2,
-  "measurement_input_digest": "64d2bd5449b197e04beb1d746dec95e9a76fac6766bd55c0e25814cfe240ed06",
+  "measurement_input_digest": "bc4f7bf2d619f3c7b4863d3edede5d8f09685101a8252d056142ca0b4ca057f5",
   "measurement_algorithm_digest": "5e1674674f2856600b7a8a67f9e383a7f122d1f39acd605826ec75bd98fc4641",
-  "measurement_basis_digest": "fef808ca8830be46878149c23269a700d5664bfb342c5f0b0837e4c1e87ed419",
+  "measurement_basis_digest": "8b4fa0c73dbaa999b0c7b6efa47097c7ce9e3a9b6d30e80c858ef0c7c7ef2b43",
   "measurement_inputs": [
     {
       "path": "agents/base_agent.py",
@@ -12,7 +12,7 @@
     },
     {
       "path": "agents/notification/agent.py",
-      "sha256": "cab8bb36fa62136367af3db0495e54dcdcbc39b2f784ed3e7f7227e63bbb42a5"
+      "sha256": "96c0f7424245d701aa6dfe44184cd274bb4b4dd83604be5690a8bfa20cfd5f0a"
     },
     {
       "path": "scripts/ci/agronomic_lineage_integrity_gate.py",
@@ -40,7 +40,7 @@
     },
     {
       "path": "scripts/tenant_query_audit.py",
-      "sha256": "8d69eb3ef7afe31b8b3c4019b7c6db888cf20f7854765bb228d0febab296a66c"
+      "sha256": "f7530a03b108e65586061a35a504339ec9485871113071c856cdabc2911fa948"
     },
     {
       "path": "services/actuator-service/actuator_runtime.py",
@@ -112,7 +112,7 @@
     },
     {
       "path": "services/sahool-platform/api/phase_runtime_workers.py",
-      "sha256": "4036387ff45180d6314d6b8440e512eaed72f66cc3260ef7060dd5abff181791"
+      "sha256": "2d626a6e3c843ea1746a3ff6934528912311fa458e6e476fbabbb838cf42048d"
     },
     {
       "path": "services/sahool-platform/api/routers/break_glass.py",
@@ -132,7 +132,7 @@
     },
     {
       "path": "services/scout-ingest-service/main.py",
-      "sha256": "472560ba8704cb53372c60fe27ea0a6aa0f778a9d28ea8007da9ce187b39cf96"
+      "sha256": "dc526d8e77220f2837a6b431b5146e7bec42e3cba32b9e5275bce301edac8d4a"
     },
     {
       "path": "services/scout-ingest-service/projection_worker.py",

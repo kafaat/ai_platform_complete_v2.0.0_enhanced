@@ -6,7 +6,7 @@
 
 - Python files parsed: **1909**
 - FastAPI-style route handlers: **1056**
-- Static function-call edges: **79471**
+- Static function-call edges: **79470**
 - Dead-code candidates: **635**
 - Duplicate function groups: **59**
 - Automatic deletions: **0**
@@ -52,7 +52,7 @@
 | `sahool-platform` | `_reset_breaker` | function | `services/sahool-platform/tests/test_openmeteo_circuit.py` | 21 |
 | `sahool-platform` | `_patch_engine_gdd` | function | `services/sahool-platform/tests/test_profit_aware_decision_endpoint.py` | 25 |
 | `sam2-inference` | `_startup` | function | `services/sam2-inference/main.py` | 19 |
-| `soil-service` | `_tenant_context_mw` | function | `services/soil-service/main.py` | 107 |
+| `soil-service` | `_tenant_context_mw` | function | `services/soil-service/main.py` | 115 |
 | `weather-service` | `_reset_breaker` | function | `services/weather-service/tests/test_readiness_does_not_probe_on_every_call.py` | 41 |
 | `shared` | `_normalize_feature_vector` | function | `shared/precision_agriculture/phase6_intelligence.py` | 221 |
 
@@ -61,6 +61,7 @@
 | Fingerprint | Occurrences |
 |---|---:|
 | `01e55555d0073910` | 2 |
+| `0670f96a6ce12326` | 2 |
 | `0791c0d18167f804` | 5 |
 | `10b234ebb823fb73` | 2 |
 | `1652c685e5ed27fa` | 4 |
@@ -107,7 +108,6 @@
 | `9fcb13bf88a96d6a` | 2 |
 | `aa517cd1f9c74cf4` | 3 |
 | `abea79905276671b` | 2 |
-| `c866b724521642d7` | 2 |
 | `c92554a020167fed` | 2 |
 | `daa44aded5a16e85` | 2 |
 

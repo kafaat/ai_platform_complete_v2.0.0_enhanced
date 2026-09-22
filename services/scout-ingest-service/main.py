@@ -35,6 +35,7 @@ from fastapi.responses import JSONResponse
 from shared.contracts.ingest.ingest_handler import IngestPorts, process_submission
 from shared.contracts.ingest.kobo_adapter import build_envelope_from_kobo
 from shared.contracts.ingest.odk_adapter import build_envelope_from_odk
+from shared.security.trusted_tenant import service_token_ok
 
 VERSION = os.getenv("SERVICE_VERSION", "9.1.0-scout-ingest")
 DATABASE_URL = os.getenv("DATABASE_URL", "")
@@ -203,12 +204,16 @@ async def readyz():
 
 
 def _require_read_token(token: str | None) -> None:
-    """قناة قراءة B1.3: توكن خدمة مخصّص fail-closed. غير مضبوط ⇒ 503 · غير مطابق/غائب ⇒ 401."""
+    """قناة قراءة B1.3: توكن خدمة مخصّص fail-closed. غير مضبوط ⇒ 503 · غير مطابق/غائب ⇒ 401.
+
+    المقارنةُ ثابتةُ الزمن عبر ``service_token_ok`` — وهي تبتلع الغائبَ والفارغَ
+    (``str(provided or "")``) فلا يحتاج الشرطُ فحصَ ``not token`` قبلها.
+    """
     if not READ_TOKEN:
         raise HTTPException(
             status_code=503, detail="read channel not configured (SCOUT_INGEST_READ_TOKEN)"
         )
-    if not token or token != READ_TOKEN:
+    if not service_token_ok(token, READ_TOKEN):
         raise HTTPException(status_code=401, detail="X-Scout-Ingest-Read-Token required")
 
 
