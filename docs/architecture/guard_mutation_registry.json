@@ -2171,6 +2171,13 @@
           "replace": "            pass  # mutated: لا استرداد — المطالبةُ تصير قبراً",
           "test": "tests_v9/test_worker_claim_lease.py",
           "why": "بلا استرداد يبقى صفٌّ مُطالَبٌ من عاملٍ انهار مُطالَباً إلى الأبد. عطلٌ أهدأُ من التكرار وأطولُ عمراً: الطابورُ يتوقّف بلا خطأٍ ظاهر."
+        },
+        {
+          "expect": "test_the_worker_derives_unobserved_from_a_row_count_not_from_the_sum",
+          "find": "                    irrigation_unobserved=not int(irr[\"runs\"] or 0),\n",
+          "replace": "",
+          "test": "services/sahool-platform/tests/test_water_ledger_auto.py",
+          "why": "UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01: إسقاطُ العلَم يُعيد قراءةَ «صفرِ صفوفٍ» ريّاً مقداره صفرٌ مقيس. فمزرعةٌ تروي من بئرٍ ولا تسجّل يتراكم استنزافُها بـETc وحدَه، يُقصّ عند TAW، ويُعلَن بثقةٍ كاملة — إجهادٌ مائيٌّ أقصى دائماً على حقلٍ يُروى فعلاً، واتّجاهُ الضرر إفراطٌ في التوصية بالريّ على خزّاناتٍ متراجعة."
         }
       ],
       "test": "tests_v9/test_worker_claim_lease.py"
