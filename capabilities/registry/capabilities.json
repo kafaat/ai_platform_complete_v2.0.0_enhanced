@@ -1951,7 +1951,7 @@
       },
       "evidence_truncated": {
         "apis": 61,
-        "tests": 102
+        "tests": 103
       }
     },
     {
@@ -5027,6 +5027,7 @@
         "tests_v9/test_auth_rls_and_routing.py",
         "tests_v9/test_compose_rls_bypass_guard.py",
         "tests_v9/test_crop_root_policy_rls_integration.py",
+        "tests_v9/test_d1_raster_queue_rls_live_pg.py",
         "tests_v9/test_fii_rls_write_fail_closed_postgres.py",
         "tests_v9/test_imagery_automation_rls_live_pg.py",
         "tests_v9/test_notification_tenant_isolation.py",
@@ -5070,7 +5071,7 @@
           "path": "migrations/v206_rls_final_hardening.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=24, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=25, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

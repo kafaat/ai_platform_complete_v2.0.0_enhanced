@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5408,
+    "files_scanned": 5409,
     "files_by_kind": {
       "backend": 1210,
       "database": 278,
       "governance": 64,
       "mobile": 55,
       "other": 1513,
-      "tests": 1830,
+      "tests": 1831,
       "web": 458
     },
     "unmapped_artifacts": 2193,
@@ -24674,6 +24674,10 @@
           "score": 23
         },
         {
+          "value": "field.geometry.updated @ tests_v9/test_d1_raster_queue_rls_live_pg.py:82",
+          "score": 20
+        },
+        {
           "value": "soil-observation.v1 @ migrations/v155_soil_observations_profiles.sql:4",
           "score": 20
         },
@@ -24940,6 +24944,15 @@
             "path:rls",
             "content:rls",
             "content:row level security",
+            "content:tenant isolation"
+          ]
+        },
+        {
+          "path": "tests_v9/test_d1_raster_queue_rls_live_pg.py",
+          "score": 20,
+          "signals": [
+            "path:rls",
+            "content:rls",
             "content:tenant isolation"
           ]
         },
@@ -26072,10 +26085,10 @@
         "backend": 13,
         "routes": 30,
         "database": 100,
-        "events": 47,
+        "events": 48,
         "web": 0,
         "mobile": 0,
-        "tests": 66,
+        "tests": 67,
         "governance": 0,
         "other_evidence": 73
       },

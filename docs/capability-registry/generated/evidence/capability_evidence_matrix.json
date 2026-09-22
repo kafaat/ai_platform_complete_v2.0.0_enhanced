@@ -7843,6 +7843,7 @@
         "tests_v9/test_calibration_override.py",
         "tests_v9/test_chaos_resilience.py",
         "tests_v9/test_compose_rls_bypass_guard.py",
+        "tests_v9/test_d1_raster_queue_rls_live_pg.py",
         "tests_v9/test_database_migrations.py",
         "tests_v9/test_decision_record_migrations.py",
         "tests_v9/test_evidence_graph_nodes_migration_v149.py",
