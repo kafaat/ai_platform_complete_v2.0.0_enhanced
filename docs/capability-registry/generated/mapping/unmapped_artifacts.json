@@ -6464,10 +6464,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
-    "kind": "tests"
-  },
-  {
     "path": "services/weather-service/tests/test_cache_age_is_server_counted.py",
     "kind": "tests"
   },

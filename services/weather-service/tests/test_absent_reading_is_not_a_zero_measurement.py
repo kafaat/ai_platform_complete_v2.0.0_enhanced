@@ -95,7 +95,15 @@ def test_the_only_zero_coerced_daily_fields_are_the_declared_ones():
     # **للعرض** وكاذبةٌ **للريّ**: المطرُ الأخير يُطرَح من الاحتياج، فالصفرُ المُقنَّع
     # يرفع الكمّيّةَ الموصى بها — انحيازٌ في اتّجاه الإذن بالريّ. والرياحُ تبقى: لا
     # مستهلكَ يطرحها من كمّيّةٍ يُصدِرها لمزارع.
-    assert om._DAILY_ZERO_COERCED_SOURCE_FIELDS == ("wind_max_kmh",)
+    # **وخرجت الرياحُ (2026-09-22) فصارت القائمةُ فارغة** — والحارسُ أمسك خروجَها بشقّه
+    # الثاني كما أمسك خروجَ المطر. والحجّةُ المكتوبة أعلاه («لا مستهلكَ يطرحها من كمّيّةٍ
+    # يُصدِرها لمزارع») سقطت بالقياس لا بالرأي: `phase_runtime_workers.py:608` يمرّر
+    # `wind_max_ms` إلى `wind_2m_ms` في ET0، وET0 يقود دفترَ الماء الذي يُصدِر كمّيّةَ الريّ.
+    # وريحٌ صفرٌ **تُنقِص** ET0 فتُنقِص الكمّيّة — عطشٌ حيث كان المطرُ يُغرِق.
+    #
+    # والحارسُ يبقى حيّاً بفراغه: أيُّ تصفيرٍ جديدٍ عند هذه الحافّة يجعل العدَّ واحداً
+    # مقابل صفرٍ مُعلَن فيحمرّ حتّى يُعلَن باسمه.
+    assert om._DAILY_ZERO_COERCED_SOURCE_FIELDS == ()
     zero_sites = src.count("idx, 0)")
     assert zero_sites == len(om._DAILY_ZERO_COERCED_SOURCE_FIELDS), (
         f"مواضعُ التصفير {zero_sites} لا تساوي الحقولَ المُعلَنة "
@@ -135,3 +143,42 @@ def test_a_real_daily_zero_precipitation_stays_zero():
         model="best_match",
     )
     assert out["days"][0]["precipitation_mm"] == 0.0
+
+
+def test_a_missing_daily_wind_is_none_not_calm():
+    """المسارُ **اليوميّ**: ريحٌ مفقودةٌ تبقى ``None`` — آخِرُ حقلٍ خرج من التصفير.
+
+    كانت الحجّةُ أنّ «لا رياح» قراءةٌ معقولةٌ لصفرِ مجموعٍ يوميّ، وأنّ لا مستهلكَ يطرحها
+    من كمّيّةٍ تُصدَر لمزارع. **والثانيةُ سقطت بالقياس:** `phase_runtime_workers.py:608`
+    يمرّر `wind_max_ms` إلى `wind_2m_ms` في `get_et0_product`، و`et0_mm` يقود
+    `compute_daily_ledger_entry`.
+
+    والاتّجاهُ معكوسُ اتّجاه المطر: في Penman-Monteith يدخل `u2` بسطاً ومقاماً، فريحٌ
+    صفرٌ **تُنقِص** ET0 ⇒ احتياجاً أقلّ ⇒ ريّاً دون الحاجة. والمطرُ كان يُغرِق؛ فالغيابُ
+    المُقنَّع يكذب في الاتّجاهين.
+    """
+    out = om.normalize_daily(
+        {"daily": {"time": ["2026-07-10"], "temperature_2m_max": [33.0]}},
+        lat=24.7,
+        lon=46.7,
+        source="test",
+        model="best_match",
+    )
+    assert out["days"][0]["wind_max_ms"] is None, "ريحٌ يوميّةٌ مفقودةٌ تُقرأ هدوءاً"
+    assert out["days"][0]["wind_max_kmh"] is None
+
+
+def test_a_real_daily_zero_wind_stays_zero():
+    """والاتّجاه الآخر: يومٌ **قِيس** بلا ريحٍ يبقى صفراً لا ``None``.
+
+    بدونه يكون العلاجُ قلبَ العطل: هدوءٌ حقيقيٌّ يُقرأ غياباً فيُسقِط الجودةَ بلا سبب.
+    """
+    out = om.normalize_daily(
+        {"daily": {"time": ["2026-07-10"], "wind_speed_10m_max": [0.0]}},
+        lat=24.7,
+        lon=46.7,
+        source="test",
+        model="best_match",
+    )
+    assert out["days"][0]["wind_max_ms"] == 0.0
+    assert out["days"][0]["wind_max_kmh"] == 0.0
