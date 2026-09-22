@@ -30155,7 +30155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "184325e2b741e948f455a544514262fc3457801cbec3aeb326f38ac5bfb47ccf"
+          "content": "c8f467ef81a738d37e7f49b99156ea4b63f46068253597e47936e3df3ed4cb36"
         }
       ],
       "name": "services/weather-service/canonical_weather_state.py",
@@ -30225,7 +30225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "81e91f27734dc5a3a3ebf0a9cc0bd59231cba63b6e30ae7e7a2a31f48a998bbf"
+          "content": "42fbbed3ed2bdec538019e9050465b64f6b5bda7679befd780adbf4bf995641e"
         }
       ],
       "name": "services/weather-service/open_meteo.py",
@@ -30275,7 +30275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "78082020d71039edfb290b84b01aa291c6084fee7a2552fe4115aa0cc9f8a7fe"
+          "content": "42eb0a086722e5c0f64c11bcc0f8705a7ae6ae950fd5eeea31bc3f0445303577"
         }
       ],
       "name": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
@@ -30305,7 +30305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "531fe18160fea1670aeae7f26f30e6c5307d21aa6b1736e577088f6c20700af7"
+          "content": "f60b2e42880815c25eeec012cf10ffe9dceeec13d0ae5384e15f01cbdecba71d"
         }
       ],
       "name": "services/weather-service/tests/test_canonical_weather_state.py",
@@ -30415,7 +30415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9fa110f91bf3ff4c4548ccd1dfd1e51b8949dc6d449620f1decb44f5b3df1823"
+          "content": "eaafb78f8d46f91188d5044ebe5e459b435fc6f74bb3bd3a1fa98b11d6834b9d"
         }
       ],
       "name": "services/weather-service/tests/test_missing_temperature_is_not_zero.py",

@@ -152,9 +152,17 @@ _CURRENT_EXPECTED_FIELDS = (
 )
 # حقول قد يُغفِلها المزوّد مشروعاً — تُذكَر عند الغياب ولا تُنزِل الجودة (لا ضجيج كاذب).
 _CURRENT_OPTIONAL_FIELDS = ("wind_direction_deg", "wind_gusts_ms", "weather_code", "is_day")
-# حقول لا يستطيع هذا المنتَج تمييز «غائب» فيها عن «صفر» لأنّ التطبيع الأعلى يُسقِط الغياب
-# إلى 0 (`open_meteo.normalize_current`: `or 0` / `or 0.0`). يُصرَّح القيد ولا يُدَّعى الرصد.
-_CURRENT_ZERO_COERCED_FIELDS = ("precipitation_mm", "wind_speed_ms")
+# كانت هنا حقولٌ لا يُميَّز فيها «غائب» من «صفر» لأنّ `normalize_current` كان يُسقِط الغياب
+# إلى 0. **وأُفرِغت القائمةُ لأنّ القيدَ صار كاذباً، لا لأنّ التصفير صار مقبولاً:**
+# `ABSENT-READING-COERCED-TO-ZERO-READS-AS-A-MEASUREMENT-01` أصلحت المُطبِّعَ فصار يُبقي
+# `None` (`open_meteo.normalize_current`: `… if … is not None else None`)، ولها شاهدُها
+# `tests/test_absent_reading_is_not_a_zero_measurement.py`. لكنّ هذا الإعلانَ بقي يُنشَر
+# للمستهلك بعد الإصلاح — أي قيدٌ يصف تصفيراً **لم يعد يقع**.
+#
+# وذلك عطلٌ قائمٌ بذاته لا نقصُ تنظيف: المستهلكُ يقرأ في `limitations` أنّ صفرَ المطر
+# والرياح قد يكون غياباً مُقنَّعاً، فيخصم ثقةً من قراءةٍ صادقة — والأسوأ أنّه يتعلّم أنّ
+# القيودَ المنشورةَ لا تُطابق الواقع فيتجاهلها حين تصدق.
+_CURRENT_ZERO_COERCED_FIELDS: tuple[str, ...] = ()
 
 # مفاتيح الغلاف التي يضيفها المنتَج — لا يجوز أن تحجب حقلاً مرصوداً بالاسم نفسه.
 _CURRENT_ENVELOPE_KEYS = (
@@ -273,7 +281,14 @@ _DAILY_OPTIONAL_DAY_FIELDS = (
 # خرج `precipitation_mm` (2026-09-04) لأنّ الحافّةَ لم تَعُد تُصفّره. وبقاؤه هنا كان
 # سيُنتِج **قيداً يُعلَن ولا وجودَ له** — وقيدٌ كاذبٌ يُعلَّم به منتَجٌ صادق يُدرِّب
 # قارئَه على تجاهل القيود.
-_DAILY_ZERO_COERCED_FIELDS = ("wind_max_ms",)
+# **وخرجت الرياحُ (2026-09-22) فأُفرِغت القائمة.** الحجّةُ التي أبقتها — «لا مستهلكَ
+# يطرحها من كمّيّةٍ يُصدِرها لمزارع» — سقطت بالقياس: `phase_runtime_workers.py:608`
+# يمرّر `wind_max_ms` إلى `wind_2m_ms` في ET0، وET0 يقود دفترَ الماء الذي يُصدِر كمّيّةَ
+# الريّ. وريحٌ صفرٌ تُنقِص ET0 (يدخل `u2` بسطاً ومقاماً في Penman-Monteith) ⇒ ريٌّ دون
+# الحاجة — انحيازٌ معكوسُ انحياز المطر وكلاهما ضرر.
+#
+# والقائمةُ تبقى آليّةً قائمة: مزوّدٌ ثانٍ يُصفّر حقلاً يُعلَن هنا باسمه فيبلغ المستهلكَ.
+_DAILY_ZERO_COERCED_FIELDS: tuple[str, ...] = ()
 
 _DAILY_ENVELOPE_KEYS = (
     "product",
@@ -345,11 +360,16 @@ def _daily_series_product(series: dict | None, *, slot: str) -> dict:
         limitations.append(
             f"{slot}: optional daily fields absent for one or more days {sorted(missing_optional)}"
         )
-    limitations.append(
-        f"{slot}: upstream normalization coerces a missing value to zero for "
-        f"{list(_DAILY_ZERO_COERCED_FIELDS)} — an observed zero is indistinguishable "
-        "from an absent reading"
-    )
+    # **مشروطٌ بوجود حقلٍ مُصفَّرٍ فعلاً — وكان غيرَ مشروط.** المُصدِرُ الآنيُّ أعلاه
+    # يحرس نفسَه بـ`if coerced:`، وهذا كان يُلحِق النصَّ دائماً. فلمّا أُفرِغت القائمة
+    # (خروجُ الرياح، 2026-09-22) صار المستهلكُ يقرأ حرفيّاً «يُصفّر … `[]`» — قيدٌ
+    # يصف تصفيراً لم يقع، بقائمةٍ فارغةٍ تفضح أنّه نصٌّ لا قياس.
+    if _DAILY_ZERO_COERCED_FIELDS:
+        limitations.append(
+            f"{slot}: upstream normalization coerces a missing value to zero for "
+            f"{list(_DAILY_ZERO_COERCED_FIELDS)} — an observed zero is indistinguishable "
+            "from an absent reading"
+        )
 
     product.update(
         {

@@ -25,7 +25,7 @@
       "tests": 1831,
       "web": 458
     },
-    "unmapped_artifacts": 2193,
+    "unmapped_artifacts": 2192,
     "ambiguous_artifacts": 420
   },
   "capabilities": [
@@ -32251,11 +32251,11 @@
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:386",
+          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:399",
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:533",
+          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:546",
           "score": 12
         },
         {
@@ -32734,6 +32734,14 @@
         },
         {
           "path": "services/sahool-platform/tests/test_weather_advice.py",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
+          "path": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
           "score": 12,
           "signals": [
             "content:ET0",
@@ -33252,7 +33260,7 @@
         "events": 89,
         "web": 18,
         "mobile": 0,
-        "tests": 59,
+        "tests": 60,
         "governance": 0,
         "other_evidence": 25
       },
@@ -33479,11 +33487,11 @@
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:386",
+          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:399",
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:533",
+          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:546",
           "score": 12
         }
       ],
@@ -34668,11 +34676,11 @@
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:386",
+          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:399",
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:533",
+          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:546",
           "score": 12
         },
         {
@@ -35811,11 +35819,11 @@
       "database": [],
       "events": [
         {
-          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:386",
+          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:399",
           "score": 14
         },
         {
-          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:533",
+          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:546",
           "score": 14
         }
       ],
@@ -42316,10 +42324,6 @@
     {
       "path": "services/weather-service/raw_weather_processing.py",
       "kind": "backend"
-    },
-    {
-      "path": "services/weather-service/tests/test_absent_reading_is_not_a_zero_measurement.py",
-      "kind": "tests"
     },
     {
       "path": "services/weather-service/tests/test_cache_age_is_server_counted.py",

@@ -110,17 +110,34 @@ def test_a_complete_series_stays_validated():
     assert slot["days_missing_fields"] == []
 
 
-def test_the_envelope_no_longer_publishes_a_zero_coercion_caveat_for_temperature():
-    """قيدٌ يصف تصفيراً لم يعد يقع يُقرأ **عذراً** — فالكذبة تنتقل من البيانات إلى النثر."""
+def test_the_envelope_publishes_a_zero_coercion_caveat_only_while_one_is_true():
+    """قيدٌ يصف تصفيراً لم يعد يقع يُقرأ **عذراً** — فالكذبة تنتقل من البيانات إلى النثر.
+
+    **والعقدُ صار مشروطاً بالواقع لا مثبَّتاً على حقلٍ بعينه.** كان هنا `== {"wind_max_ms"}`،
+    فلمّا خرجت الرياحُ من التصفير (2026-09-22) حمرّ الشاهدُ — وهو صوابُه: أمسك تغييرَ
+    الواقع. لكنّ تثبيتَ اسمٍ يجعل كلَّ إغلاقٍ لاحقٍ يبدو انحداراً، فصار المقيسُ هو
+    **التطابق** بين ما تُصفّره الحافّة وما يُنشَر للمستهلك، في الاتّجاهين:
+
+      • الحافّةُ تُصفّر شيئاً ولا يُنشَر ⇒ قيدٌ أضيقُ من الواقع (خداع).
+      • يُنشَر قيدٌ ولا تُصفّر الحافّةُ شيئاً ⇒ قيدٌ كاذب (يُدرِّب على تجاهل القيود).
+
+    فاليومَ القائمتان فارغتان والقيدُ غائبٌ — والشاهدُ يبقى حيّاً: مزوّدٌ ثانٍ يُصفّر
+    حقلاً يُعيد القيدَ إلى الظهور بلا تعديلِ حرفٍ هنا.
+    """
     assert "temp_max_c" not in _DAILY_ZERO_COERCED_FIELDS
     assert "temp_min_c" not in _DAILY_ZERO_COERCED_FIELDS
-    # والمطر والرياح ما زالا مُصفَّرَين فعلاً ⇒ قيدُهما يبقى صادقاً.
-    assert set(_DAILY_ZERO_COERCED_FIELDS) == {"wind_max_ms"}
+    assert set(_DAILY_ZERO_COERCED_FIELDS) == set(_DAILY_ZERO_COERCED_PUBLISHED_FIELDS), (
+        "ما تُصفّره الحافّةُ وما تُعلنه الطبقةُ القانونيّة افترقا — "
+        "قيدٌ أضيقُ من الواقع يخدع، وأوسعُ منه يكذب"
+    )
 
     slot = _daily_slot(_normalized([30.0, 31.0, 32.0], [18.0, 17.0, 19.0]))
     caveat = [lim for lim in slot["limitations"] if "indistinguishable" in lim]
-    assert caveat, "قيد التصفير اختفى كلّيّاً — والمطر والرياح ما زالا مُصفَّرَين"
-    assert "temp_max_c" not in caveat[0] and "temp_min_c" not in caveat[0]
+    if _DAILY_ZERO_COERCED_FIELDS:
+        assert caveat, "الحافّةُ تُصفّر حقلاً ولا يبلغ المستهلكَ قيدُه"
+        assert "temp_max_c" not in caveat[0] and "temp_min_c" not in caveat[0]
+    else:
+        assert not caveat, "قيدُ تصفيرٍ يُنشَر ولا حقلَ يُصفَّر — نصٌّ يصف واقعاً انتهى"
 
 
 def test_the_published_caveat_names_every_field_the_edge_actually_coerces():
@@ -151,7 +168,13 @@ def test_the_published_caveat_names_every_field_the_edge_actually_coerces():
     )
 
     slot = _daily_slot(_normalized([30.0, 31.0, 32.0], [18.0, 17.0, 19.0]))
-    caveat = next(lim for lim in slot["limitations"] if "indistinguishable" in lim)
+    caveat = next((lim for lim in slot["limitations"] if "indistinguishable" in lim), None)
+    if not _DAILY_ZERO_COERCED_PUBLISHED_FIELDS:
+        # لا حقلَ يُصفَّر اليوم ⇒ لا نصَّ يُنشَر. والطرفُ الآخر (نصٌّ بلا تصفير) يحرسه
+        # `test_the_envelope_publishes_a_zero_coercion_caveat_only_while_one_is_true`.
+        assert caveat is None, "قيدٌ منشورٌ ولا تصفيرَ عند الحافّة"
+        return
+    assert caveat is not None, "الحافّةُ تُصفّر ولا نصَّ يبلغ المستهلك"
     for field in _DAILY_ZERO_COERCED_PUBLISHED_FIELDS:
         assert field in caveat, f"`{field}` مُصفَّرٌ عند الحافّة ولا يبلغ المستهلكَ في `limitations`"
 
@@ -185,3 +208,23 @@ def test_zero_coercion_would_have_inflated_the_count_and_deflated_the_sum():
 
     assert counted_zeroed == 3  # ثلاثة أيّام «مرصودة» واثنان فقط حقيقيّان
     assert total_zeroed == pytest.approx(30.0)  # نفس المجموع، موزَّعاً على أيّامٍ أكثر
+
+
+def test_a_missing_daily_wind_now_degrades_the_slot_instead_of_passing_as_calm():
+    """**المكسبُ من إخراج الرياح: الغيابُ صار يُرى.**
+
+    قبلها كانت الحافّةُ تُصفّر الريحَ الغائبة، فتصل الخانةُ القانونيّةُ قيمةً صالحة
+    (`0.0`) ⇒ `validated` وقائمةُ نقصٍ فارغة. أي أنّ آليّةَ `missing_expected` القائمة —
+    وهي التي تُسمّي الحقلَ وتُنزِل الجودة — **لم تكن تُشعَل أصلاً** لأنّ الغيابَ أُزيل
+    قبل أن تراه. حاجزٌ عند الحافّة يُبطِل صدقاً في النواة.
+
+    والآن يبلغها `None` فتعمل بلا آليّةٍ جديدة: `degraded` + `wind_max_ms` مسمّى.
+    """
+    payload = _payload([30.0, 31.0, 32.0], [18.0, 17.0, 19.0])
+    del payload["daily"]["wind_speed_10m_max"]
+    slot = _daily_slot(
+        normalize_daily(payload, lat=24.7, lon=46.7, source="test", model="best_match")
+    )
+
+    assert slot["quality_status"] == "degraded", "ريحٌ غائبةٌ ما زالت تمرّ هدوءاً مقيساً"
+    assert "wind_max_ms" in slot["days_missing_fields"]
