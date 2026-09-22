@@ -299,3 +299,66 @@ def test_the_blocker_list_is_read_from_its_source_not_copied():
     ids = mod.cert_blocker_ids()
     assert {"P-CERT-1", "P-CERT-2", "P-CERT-3", "P-CERT-4"} <= ids
     assert "P-CERT-9" not in ids
+
+
+# ── الصنف الخامس: معرّف مدخلةِ إثبات ───────────────────────────────────────────
+
+
+def test_an_evidence_record_id_is_not_demanded_as_a_gap_section(capsys):
+    """`E-2026-09-21-06` مدخلةُ إثباتٍ لا عطلٌ مرصود — وتسجيلُها فجوةً كذبٌ كالتفويض.
+
+    أسقط الحارسُ التزامَ شريحةِ `AN-APPEND-ONLY-JOURNAL-OUTSIDE-THE-APPEND-ONLY-LIST-01`
+    لأنّه يسمّي المدخلتين اللتين حذفهما `b067f92c` واسترجعهما #1062. والمدخلةُ إثباتُ
+    شيءٍ قِيس فعلاً، لا حالةَ `open`/`fixed` لها — فالمطلوبُ كان إدخالاً كاذباً، أو
+    حذفَ المعرّفين، وهو كتمانُ **أيّ مدخلةِ إثباتٍ تُذكَر**.
+    """
+    mod = _module()
+    body = "استُرجِعت E-2026-09-21-06 و E-2026-09-21-07 في #1062."
+    mod.commit_messages = lambda base, head: [("abc1234", body)]
+    assert mod.check("x", "y") == 0, capsys.readouterr().out
+
+
+def test_a_fabricated_evidence_record_id_is_still_rejected(capsys):
+    """ولا يُستثنى الصنف بل **يُتحقَّق منه في دفتره** — وهو ملفٌّ في هذه الشجرة."""
+    mod = _module()
+    mod.commit_messages = lambda base, head: [("abc1234", "أُثبِت E-2026-09-21-99 اليوم")]
+    assert mod.check("x", "y") == 1
+    out = capsys.readouterr().out
+    assert "E-2026-09-21-99" in out
+    assert "operational_evidence_log.md" in out, "الرسالة لا تدلّ على الدفتر الصحيح"
+
+
+def test_the_evidence_class_did_not_swallow_real_gap_ids():
+    """الشكلُ كاملٌ لا بادئة: معرّفُ فجوةٍ يبدأ بـ`E-` ما زال يُطالَب بالتسجيل."""
+    mod = _module()
+    for gid in ("E-2026-09-21-06-EXTRA", "E-VIDENCE-IS-FORGEABLE-01", "E-2026-09-21"):
+        assert not mod.is_evidence_record(gid), f"{gid} عُومِل مدخلةَ إثباتٍ خطأً"
+    assert mod.is_evidence_record("E-2026-09-21-06")
+
+
+def test_the_record_ids_are_read_from_headings_that_carry_a_title(tmp_path):
+    """**عطلٌ وقع أثناء كتابة هذا الصنف، لا احتياط.**
+
+    عناوينُ الدفتر `### E-… — <وصف>`؛ وأوّلُ صياغةٍ طابقت **السطرَ كاملاً** فأعادت
+    مجموعةً فارغة — فصار كلُّ معرّفٍ صادقٍ يُبلَّغ «غيرَ مسجَّل». صفرٌ كاذبٌ يقلب
+    الحارسَ ضدّ العمل الصحيح، وهو الصنفُ الذي تقيسه هذه الشجرة مراراً.
+    """
+    mod = _module()
+    log = tmp_path / "log.md"
+    log.write_text(
+        "# دفتر\n\n### E-2026-01-02-03 — عنوانٌ عربيٌّ بعد المعرّف\n\n- أثر\n"
+        "\n### E-2026-01-02-04\n\n- أثرٌ بلا عنوان\n"
+        "\n#### E-2026-01-02-05 — عمقٌ آخر لا يُقرأ\n"
+        "\n| E-2026-01-02-06 | صفُّ جدولٍ لا عنوان |\n",
+        encoding="utf-8",
+    )
+    ids = mod.evidence_record_ids(log)
+    assert ids == {"E-2026-01-02-03", "E-2026-01-02-04"}, ids
+
+
+def test_the_live_evidence_log_actually_declares_the_records(tmp_path):
+    """الدفترُ الحيّ يُقرأ — وإلّا صار الصنفُ استثناءً بثوبِ تحقّق."""
+    mod = _module()
+    ids = mod.evidence_record_ids()
+    assert {"E-2026-09-21-06", "E-2026-09-21-07"} <= ids, sorted(ids)
+    assert "E-2026-09-21-99" not in ids
