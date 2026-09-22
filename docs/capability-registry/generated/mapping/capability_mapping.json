@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5415,
+    "files_scanned": 5416,
     "files_by_kind": {
       "backend": 1211,
       "database": 279,
       "governance": 64,
       "mobile": 55,
       "other": 1515,
-      "tests": 1833,
+      "tests": 1834,
       "web": 458
     },
-    "unmapped_artifacts": 2196,
+    "unmapped_artifacts": 2197,
     "ambiguous_artifacts": 420
   },
   "capabilities": [
@@ -8720,15 +8720,15 @@
           ]
         },
         {
-          "path": ".github/workflows/dependency-conflict-inventory.yml",
-          "score": 12,
+          "path": ".github/workflows/platform-main-subinventory.yml",
+          "score": 13,
           "signals": [
             "path:inventory",
             "content:inventory"
           ]
         },
         {
-          "path": ".github/workflows/platform-main-subinventory.yml",
+          "path": ".github/workflows/dependency-conflict-inventory.yml",
           "score": 12,
           "signals": [
             "path:inventory",
@@ -42951,6 +42951,10 @@
     },
     {
       "path": "tests_v9/test_certify_artifact_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_ci_check_name_identity.py",
       "kind": "tests"
     },
     {

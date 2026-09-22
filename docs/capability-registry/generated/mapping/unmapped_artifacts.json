@@ -7092,6 +7092,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ci_check_name_identity.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ci_pipeline_settings.py",
     "kind": "tests"
   },
