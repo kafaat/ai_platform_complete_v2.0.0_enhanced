@@ -2388,6 +2388,19 @@
       ],
       "test": "services/sahool-platform/tests/test_agri_next_decision_support.py"
     },
+    "services/sahool-platform/api/water_ledger_auto.py": {
+      "$why_ar": "منطقُ ميزان الماء اليوميّ يُقرّر ريّاً فيزيائيّاً؛ فافتراضٌ مُعلَنٌ لا يُخفّض الثقة يُنتِج رقماً يُقرأ قياساً. تُزرَع الطفرةُ في المنطق نفسِه لا في حارسٍ يصفه.",
+      "mutations": [
+        {
+          "expect": "test_untracked_irrigation_volume_does_not_carry_full_confidence",
+          "find": "            if (bootstrap or _BIASING_ASSUMPTIONS.intersection(notes))",
+          "replace": "            if bootstrap  # mutated: الثقةُ تعود دالّةً على bootstrap وحدَه",
+          "test": "services/sahool-platform/tests/test_water_ledger_auto.py",
+          "why": "UNRECORDED-IRRIGATION-READ-AS-ZERO-APPLIED-WATER-01: إعادةُ الثقة دالّةً على bootstrap وحدَه تُعيد العطل — قيدٌ يُقرّ صراحةً أنّ حدّاً من معادلة الميزان مفترَضٌ لا مقيس يخرج بـCONFIDENCE_AUTO، الثقةِ نفسِها ليومٍ قِيست مدخلاتُه كلُّها. والملاحظةُ تُكتب في notes ولا يسمعها شيء. والاتّجاه واحد: الافتراضان يرفعان الاستنزاف ⇒ توصيةُ ريٍّ فوق ريٍّ حصل على خزّاناتٍ جوفيّةٍ متراجعة."
+        }
+      ],
+      "test": "services/sahool-platform/tests/test_water_ledger_auto.py"
+    },
     "services/sahool-platform/api/water_twin_seed.py": {
       "$gap_ar": "SOIL-MOISTURE-UNIT-IDENTITY-01 — النضوبُ بالوحدة المُعلَنة، والوصلةُ غيرُ سلطويّة.",
       "mutations": [
