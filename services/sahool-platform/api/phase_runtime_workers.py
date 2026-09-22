@@ -582,7 +582,8 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                 sw = soil_water_params(texture=texture, root_depth_m=None)
                 irr = await conn.fetchrow(
                     "SELECT COALESCE(SUM(volume_mm), 0) AS mm,"
-                    " COUNT(*) FILTER (WHERE volume_mm IS NULL) AS untracked"
+                    " COUNT(*) FILTER (WHERE volume_mm IS NULL) AS untracked,"
+                    " COUNT(*) AS runs"
                     " FROM irrigation_runs"
                     " WHERE field_id=$1 AND status='completed'"
                     " AND started_at::date = $2",
@@ -630,6 +631,7 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                     rain_mm=rain_mm,
                     irrigation_mm=float(irr["mm"] or 0.0),
                     irrigation_volume_untracked=bool(irr["untracked"]),
+                    irrigation_unobserved=not int(irr["runs"] or 0),
                     rain_assumed_zero=rain_assumed_zero,
                 )
                 await conn.execute(

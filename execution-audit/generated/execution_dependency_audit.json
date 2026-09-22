@@ -5,7 +5,7 @@
   "runtime_verified":false,
   "python_files_parsed":1909,
   "route_handlers":1056,
-  "call_edges":79463,
+  "call_edges":79471,
   "dead_code_candidates":635,
   "duplicate_function_groups":59,
   "route_owners":27,
@@ -233125,27 +233125,20 @@
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"float",
-   "line":595
+   "line":596
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"float",
-   "line":595
+   "line":596
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"get_weather_forecast",
-   "line":595
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/phase_runtime_workers.py",
-   "source":"run_water_ledger_once",
-   "target":"get",
    "line":596
   },
   {
@@ -233160,34 +233153,34 @@
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"get",
-   "line":597
+   "line":598
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"get",
-   "line":599
+   "line":598
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/phase_runtime_workers.py",
+   "source":"run_water_ledger_once",
+   "target":"get",
+   "line":600
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"float",
-   "line":601
+   "line":602
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"get_et0_product",
-   "line":604
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/phase_runtime_workers.py",
-   "source":"run_water_ledger_once",
-   "target":"float",
    "line":605
   },
   {
@@ -233201,7 +233194,7 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
-   "target":"get",
+   "target":"float",
    "line":607
   },
   {
@@ -233215,49 +233208,49 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
-   "target":"float",
+   "target":"get",
    "line":609
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
-   "target":"timetuple",
+   "target":"float",
    "line":610
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
-   "target":"str",
+   "target":"timetuple",
    "line":611
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
+   "target":"str",
+   "line":612
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/phase_runtime_workers.py",
+   "source":"run_water_ledger_once",
    "target":"get",
-   "line":613
+   "line":614
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"lower",
-   "line":617
+   "line":618
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"strip",
-   "line":617
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/phase_runtime_workers.py",
-   "source":"run_water_ledger_once",
-   "target":"get",
    "line":618
   },
   {
@@ -233265,42 +233258,35 @@
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"get",
-   "line":618
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/phase_runtime_workers.py",
-   "source":"run_water_ledger_once",
-   "target":"kc_from_ndvi",
    "line":619
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
-   "target":"compute_daily_ledger_entry",
+   "target":"get",
+   "line":619
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/phase_runtime_workers.py",
+   "source":"run_water_ledger_once",
+   "target":"kc_from_ndvi",
    "line":620
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
-   "target":"float",
-   "line":622
+   "target":"compute_daily_ledger_entry",
+   "line":621
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"float",
-   "line":626
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/phase_runtime_workers.py",
-   "source":"run_water_ledger_once",
-   "target":"float",
-   "line":627
+   "line":623
   },
   {
    "owner":"sahool-platform",
@@ -233321,56 +233307,70 @@
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"float",
-   "line":631
+   "line":628
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
-   "target":"bool",
+   "target":"float",
+   "line":629
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/phase_runtime_workers.py",
+   "source":"run_water_ledger_once",
+   "target":"float",
    "line":632
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
+   "target":"bool",
+   "line":633
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/phase_runtime_workers.py",
+   "source":"run_water_ledger_once",
+   "target":"int",
+   "line":634
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/phase_runtime_workers.py",
+   "source":"run_water_ledger_once",
    "target":"execute",
-   "line":635
+   "line":637
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"str",
-   "line":650
+   "line":652
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"float",
-   "line":653
+   "line":655
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"float",
-   "line":657
+   "line":659
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"process_water_deficit",
-   "line":669
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/phase_runtime_workers.py",
-   "source":"run_water_ledger_once",
-   "target":"str",
-   "line":670
+   "line":671
   },
   {
    "owner":"sahool-platform",
@@ -233383,253 +233383,260 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
-   "target":"float",
-   "line":676
+   "target":"str",
+   "line":674
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"float",
-   "line":677
+   "line":678
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"float",
-   "line":677
+   "line":679
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/phase_runtime_workers.py",
+   "source":"run_water_ledger_once",
+   "target":"float",
+   "line":679
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"get",
-   "line":680
+   "line":682
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"execute",
-   "line":681
+   "line":683
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"str",
-   "line":689
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/phase_runtime_workers.py",
-   "source":"run_water_ledger_once",
-   "target":"dumps",
    "line":691
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
+   "target":"dumps",
+   "line":693
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/phase_runtime_workers.py",
+   "source":"run_water_ledger_once",
    "target":"str",
-   "line":695
+   "line":697
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"isoformat",
-   "line":696
+   "line":698
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"print",
-   "line":704
+   "line":706
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"dumps",
-   "line":705
+   "line":707
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"run_water_ledger_once",
    "target":"str",
-   "line":706
+   "line":708
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"loop_worker",
    "target":"water_ledger_identity_startup_error",
-   "line":721
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/phase_runtime_workers.py",
-   "source":"loop_worker",
-   "target":"RuntimeError",
    "line":723
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"loop_worker",
+   "target":"RuntimeError",
+   "line":725
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/phase_runtime_workers.py",
+   "source":"loop_worker",
    "target":"_connect",
-   "line":724
+   "line":726
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"loop_worker",
    "target":"float",
-   "line":725
+   "line":727
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"loop_worker",
    "target":"getenv",
-   "line":725
+   "line":727
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"loop_worker",
    "target":"SystemExit",
-   "line":734
+   "line":736
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"loop_worker",
    "target":"join",
-   "line":734
+   "line":736
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"loop_worker",
    "target":"HeartbeatState",
-   "line":740
+   "line":742
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"loop_worker",
    "target":"write",
-   "line":741
+   "line":743
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"loop_worker",
    "target":"mark_error",
-   "line":747
+   "line":749
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"loop_worker",
    "target":"str",
-   "line":747
+   "line":749
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"loop_worker",
    "target":"write",
-   "line":748
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/phase_runtime_workers.py",
-   "source":"loop_worker",
-   "target":"mark_poll",
    "line":750
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"loop_worker",
+   "target":"mark_poll",
+   "line":752
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/phase_runtime_workers.py",
+   "source":"loop_worker",
    "target":"write",
-   "line":751
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/phase_runtime_workers.py",
-   "source":"loop_worker",
-   "target":"dumps",
-   "line":752
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/phase_runtime_workers.py",
-   "source":"loop_worker",
-   "target":"print",
-   "line":752
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/phase_runtime_workers.py",
-   "source":"loop_worker",
-   "target":"sleep",
    "line":753
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"loop_worker",
-   "target":"close",
+   "target":"dumps",
+   "line":754
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/phase_runtime_workers.py",
+   "source":"loop_worker",
+   "target":"print",
+   "line":754
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/phase_runtime_workers.py",
+   "source":"loop_worker",
+   "target":"sleep",
    "line":755
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/phase_runtime_workers.py",
+   "source":"loop_worker",
+   "target":"close",
+   "line":757
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"main",
    "target":"ArgumentParser",
-   "line":759
+   "line":761
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"main",
    "target":"add_argument",
-   "line":760
+   "line":762
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"main",
    "target":"list",
-   "line":761
+   "line":763
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"main",
    "target":"parse_args",
-   "line":761
+   "line":763
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"main",
    "target":"loop_worker",
-   "line":762
+   "line":764
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/phase_runtime_workers.py",
    "source":"main",
    "target":"run",
-   "line":762
+   "line":764
   },
   {
    "owner":"sahool-platform",
@@ -310027,35 +310034,14 @@
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"ValueError",
-   "line":70
+   "line":80
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"ValueError",
-   "line":72
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/water_ledger_auto.py",
-   "source":"compute_daily_ledger_entry",
-   "target":"append",
-   "line":78
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/water_ledger_auto.py",
-   "source":"compute_daily_ledger_entry",
-   "target":"append",
-   "line":83
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/water_ledger_auto.py",
-   "source":"compute_daily_ledger_entry",
-   "target":"float",
-   "line":86
+   "line":82
   },
   {
    "owner":"sahool-platform",
@@ -310068,99 +310054,127 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
+   "target":"append",
+   "line":93
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"float",
+   "line":96
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"append",
+   "line":98
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
    "target":"max",
-   "line":89
+   "line":99
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"min",
-   "line":89
+   "line":99
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"round",
-   "line":91
+   "line":101
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"_effective_rain",
-   "line":92
+   "line":102
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"append",
-   "line":94
+   "line":104
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"append",
+   "line":108
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"max",
-   "line":97
+   "line":111
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"min",
-   "line":97
+   "line":111
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"round",
-   "line":97
+   "line":111
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"append",
-   "line":100
+   "line":114
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"max",
-   "line":103
+   "line":117
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"round",
-   "line":103
+   "line":117
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"round",
-   "line":107
+   "line":121
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"intersection",
-   "line":116
+   "line":130
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"join",
-   "line":120
+   "line":134
   },
   {
    "owner":"sahool-platform",
@@ -459946,126 +459960,112 @@
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_daily_accumulation_matches_fao56_identity",
    "target":"compute_daily_ledger_entry",
-   "line":22
+   "line":27
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_daily_accumulation_matches_fao56_identity",
    "target":"round",
-   "line":31
+   "line":36
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_daily_accumulation_matches_fao56_identity",
    "target":"_effective_rain",
-   "line":32
+   "line":37
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_daily_accumulation_matches_fao56_identity",
    "target":"round",
-   "line":34
+   "line":39
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_bootstrap_is_declared_with_lower_confidence",
    "target":"compute_daily_ledger_entry",
-   "line":42
+   "line":47
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_depletion_clamps_at_zero_and_taw_with_declared_flags",
    "target":"compute_daily_ledger_entry",
-   "line":60
+   "line":65
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_depletion_clamps_at_zero_and_taw_with_declared_flags",
    "target":"compute_daily_ledger_entry",
-   "line":73
+   "line":78
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_out_of_range_previous_entry_is_clamped_and_declared",
    "target":"compute_daily_ledger_entry",
-   "line":88
+   "line":93
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_untracked_irrigation_volume_is_flagged_not_fabricated",
    "target":"compute_daily_ledger_entry",
-   "line":102
+   "line":107
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_invalid_inputs_are_rejected_not_guessed",
    "target":"raises",
-   "line":117
+   "line":122
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_invalid_inputs_are_rejected_not_guessed",
    "target":"compute_daily_ledger_entry",
-   "line":118
+   "line":123
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_invalid_inputs_are_rejected_not_guessed",
    "target":"raises",
-   "line":127
+   "line":132
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_invalid_inputs_are_rejected_not_guessed",
    "target":"compute_daily_ledger_entry",
-   "line":128
+   "line":133
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_manual_entry_precedence",
    "target":"manual_entry_takes_precedence",
-   "line":140
+   "line":145
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_manual_entry_precedence",
    "target":"manual_entry_takes_precedence",
-   "line":141
+   "line":146
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_manual_entry_precedence",
    "target":"manual_entry_takes_precedence",
-   "line":142
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
-   "source":"test_worker_kind_is_wired",
-   "target":"Path",
-   "line":149
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
-   "source":"test_worker_kind_is_wired",
-   "target":"read_text",
-   "line":149
+   "line":147
   },
   {
    "owner":"sahool-platform",
@@ -460080,90 +460080,146 @@
    "source":"test_worker_kind_is_wired",
    "target":"read_text",
    "line":154
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_worker_kind_is_wired",
+   "target":"Path",
+   "line":159
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_worker_kind_is_wired",
+   "target":"read_text",
+   "line":159
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_missing_precipitation_is_a_declared_assumption_not_a_silent_zero",
    "target":"compute_daily_ledger_entry",
-   "line":161
+   "line":166
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_measured_rain_does_not_flag_assumption",
    "target":"compute_daily_ledger_entry",
-   "line":178
+   "line":183
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_worker_distinguishes_missing_precip_from_measured_zero",
    "target":"Path",
-   "line":194
+   "line":199
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_worker_distinguishes_missing_precip_from_measured_zero",
    "target":"read_text",
-   "line":194
+   "line":199
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_untracked_irrigation_volume_does_not_carry_full_confidence",
    "target":"compute_daily_ledger_entry",
-   "line":208
+   "line":213
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_missing_precipitation_does_not_carry_full_confidence",
    "target":"compute_daily_ledger_entry",
-   "line":227
+   "line":232
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_a_measured_dry_day_keeps_full_confidence",
    "target":"compute_daily_ledger_entry",
-   "line":248
+   "line":253
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_the_two_assumptions_bias_depletion_upward_not_symmetrically",
    "target":"dict",
-   "line":266
+   "line":271
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_the_two_assumptions_bias_depletion_upward_not_symmetrically",
    "target":"compute_daily_ledger_entry",
-   "line":267
+   "line":272
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_the_two_assumptions_bias_depletion_upward_not_symmetrically",
    "target":"compute_daily_ledger_entry",
-   "line":268
+   "line":273
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_the_two_assumptions_bias_depletion_upward_not_symmetrically",
    "target":"compute_daily_ledger_entry",
-   "line":274
+   "line":279
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
    "source":"test_confidence_is_derived_from_the_notes_not_from_a_second_list",
    "target":"getsource",
-   "line":284
+   "line":289
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_no_irrigation_row_is_unobserved_not_a_measured_zero",
+   "target":"compute_daily_ledger_entry",
+   "line":309
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_the_ledger_is_still_written_for_an_unobserved_day",
+   "target":"compute_daily_ledger_entry",
+   "line":328
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_unobserved_and_untracked_are_distinct_claims",
+   "target":"compute_daily_ledger_entry",
+   "line":350
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_unobserved_and_untracked_are_distinct_claims",
+   "target":"compute_daily_ledger_entry",
+   "line":360
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_a_measured_irrigation_run_keeps_full_confidence",
+   "target":"compute_daily_ledger_entry",
+   "line":383
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_the_worker_derives_unobserved_from_a_row_count_not_from_the_sum",
+   "target":"read_text",
+   "line":401
   },
   {
    "owner":"sahool-platform",

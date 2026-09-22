@@ -99,7 +99,13 @@ _ALLOWLIST_JUSTIFIED: dict[str, str] = {
     "services/sahool-platform/api/phase_runtime_workers.py::soil_lab_tests,water_ledger": (
         "water-ledger auto worker: tenant GUC set tx-locally per field before reads (RLS-scoped)"
     ),
-    "services/sahool-platform/api/phase_runtime_workers.py::irrigation_runs,soil_lab_tests": (
+    # كان المفتاح `irrigation_runs,soil_lab_tests` حتّى v233-era: `_tables_in_call`
+    # يقرأ **نافذة اثني عشر سطراً** من موضع النداء، فكان استعلامُ `soil_lab_tests`
+    # يلتقط `irrigation_runs` من الاستعلام التالي له. وإضافةُ عمودٍ واحدٍ إلى ذلك
+    # الاستعلام أزاحته خارج النافذة، فانفصل المفتاحان — **تغيُّرُ تجميعٍ لا تغيُّرُ
+    # استعلامٍ ولا عزل**: الاستعلامان والتبريرُ كما كانا. قِيس الفرقُ مفتاحاً بمفتاح
+    # قبل التعديل وبعده، فلم يظهر مفتاحٌ ثالثٌ يُخفي استعلاماً غيرَ مُصنَّف.
+    "services/sahool-platform/api/phase_runtime_workers.py::soil_lab_tests": (
         "water-ledger auto worker: tenant GUC set tx-locally per field before reads (RLS-scoped)"
     ),
     "services/sahool-platform/api/phase_runtime_workers.py::irrigation_runs": (
