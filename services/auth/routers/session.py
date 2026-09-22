@@ -16,6 +16,7 @@ import main
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import HTTPAuthorizationCredentials
 from jose import JWTError, jwt
+from session_tokens import consume_refresh_token
 
 router = APIRouter()
 
@@ -126,8 +127,22 @@ async def refresh_token(req: main.RefreshRequest, request: Request, response: Re
     """✅ NEW: Refresh access token using refresh token."""
     if not main._redis:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Refresh tokens require Redis")
-    key = f"sahool:refresh:{req.refresh_token}"
-    value = await main._redis.get(key)
+    # ── D02: استهلاكٌ **ذرّيّ** قبل أيّ عمل ───────────────────────────────────
+    #
+    # **العطل:** كان التدويرُ `get` ثمّ `delete` منفصلَين. فطلبان متزامنان يقرآن
+    # القيمةَ القديمةَ نفسَها ثمّ يمضيان معاً إلى استجابتين ناجحتين بتوكنين جديدين
+    # مختلفين **للجلسة نفسِها**. والحذفُ يُرجِع `1` للأوّل و`0` للثاني — لكنّ أحداً
+    # لم يكن يقرأ ذلك الرقم، فالفائزُ لم يكن محسوماً.
+    #
+    # `consume_refresh_token` تحسمه: `GETDEL` عمليّةٌ واحدة؛ وبلا دعمها يُستعاض
+    # بأنبوبٍ مُعامَلاتيٍّ يقرأ **عدَدَ المحذوف** لا وجودَ القيمة. وبذلك سقطت الحاجةُ
+    # إلى `revoke_refresh_token` أدناه — الاستهلاكُ تمّ هنا.
+    #
+    # **حدُّ صدقٍ مُعلَن:** يُثبِت ذرّيّةَ **الاستهلاك** وحدَه. لا ذرّيّةَ السلسلة كلّها
+    # (إنشاءُ الجديد وفهرستُه وإبطالُ العائلة)، ولا كشفَ إعادةِ الاستعمال بعد
+    # التدوير، ولا معالجةَ انقطاعِ الشبكة بعد نجاحٍ خادميّ — وتلك بقيّةُ شرط الإغلاق
+    # في D02، **لم تُنفَّذ في هذه الشريحة**.
+    value = await consume_refresh_token(main._redis, req.refresh_token)
     if not value:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Refresh token غير صالح أو منتهي")
 
@@ -139,11 +154,11 @@ async def refresh_token(req: main.RefreshRequest, request: Request, response: Re
             "SELECT id, email, role, full_name, tenant_id, active FROM users WHERE id=$1", user_id
         )
     if not row or not row["active"]:
-        await main.revoke_refresh_token(req.refresh_token)
+        # التوكنُ استُهلِك سلفاً بالقراءة الذرّيّة؛ لا حذفَ ثانٍ (وحذفُ مفتاحٍ غائبٍ
+        # كان يُخفي أنّ الاستهلاكَ وقع في موضعٍ آخر).
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "المستخدم غير نشط")
 
-    # Rotate refresh token
-    await main.revoke_refresh_token(req.refresh_token)
+    # التدوير: القديمُ استُهلِك ذرّيّاً أعلاه، فلا يبقى إلّا إصدارُ الجديد.
     new_refresh = await main.create_refresh_token(user_id, tenant_id)
     token, jti = main.create_access_token(
         row["id"], row["email"], row["role"], row["full_name"], tenant_id

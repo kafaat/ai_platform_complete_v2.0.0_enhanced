@@ -11,8 +11,10 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import logging
+import os
 import re
 from collections.abc import Callable
 from typing import Any
@@ -25,6 +27,8 @@ STATUS_DENIED = "denied"
 STATUSES = (STATUS_PENDING, STATUS_APPROVED, STATUS_DENIED)
 
 _SECRET_HINTS = ("token", "secret", "api_key", "apikey", "password", "authorization")
+# حاجزُ عمقٍ للتنقيح المتداخل: بنيةٌ عميقةٌ أو دوّارةٌ لا يجوز أن تُسقِطه صامتاً.
+_MAX_REDACT_DEPTH = 6
 _EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 _UUID_RE = re.compile(
     r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b"
@@ -34,15 +38,32 @@ _UUID_RE = re.compile(
 AuditSaver = Callable[["dict[str, Any]"], None]
 
 
-def _redact(params: dict[str, Any] | None) -> dict[str, Any]:
+def _redact_value(value: Any, *, depth: int = 0) -> Any:
+    """تنقيحٌ **متداخل** — القواميسُ والقوائمُ تُنقَّح إلى العمق لا السطحَ وحدَه."""
+    if depth > _MAX_REDACT_DEPTH:  # حاجزُ عمقٍ: بنيةٌ دوّارةٌ أو عميقةٌ لا تُسقِط التنقيح
+        return "[redacted-depth]"
+    if isinstance(value, dict):
+        return _redact(value, depth=depth + 1)
+    if isinstance(value, (list, tuple)):
+        return [_redact_value(v, depth=depth + 1) for v in value]
+    if isinstance(value, str):
+        return _UUID_RE.sub("[redacted-id]", _EMAIL_RE.sub("[redacted-email]", value))
+    return value
+
+
+def _redact(params: dict[str, Any] | None, *, depth: int = 0) -> dict[str, Any]:
+    """نسخةُ **العرض** المُنقَّحة.
+
+    **العطلُ الذي وُجِد هذا لأجله (D04-أ):** كان التنقيحُ يمرّ على المستوى الأوّل
+    فقط. فـ``params.nested.api_key`` يبقى في سجلّ التدقيق بنصّه، وكذلك ما يقع تحت
+    قائمةٍ أو قاموسٍ متداخل. وسرٌّ في الطبقة الثانية مكشوفٌ كسرٍّ في الأولى سواءً.
+    """
     out: dict[str, Any] = {}
     for key, value in (params or {}).items():
         if any(h in str(key).strip().lower() for h in _SECRET_HINTS):
             out[key] = "[redacted]"
-        elif isinstance(value, str):
-            out[key] = _UUID_RE.sub("[redacted-id]", _EMAIL_RE.sub("[redacted-email]", value))
         else:
-            out[key] = value
+            out[key] = _redact_value(value, depth=depth)
     return out
 
 
@@ -54,8 +75,26 @@ def _stable_json(value: Any) -> str:
 
 
 def input_hash(params: dict[str, Any] | None) -> str:
-    """Hash ثابت لمدخلات الأداة بعد التنقيح؛ يحفظ قابلية الربط بلا تسريب أسرار."""
-    payload = _stable_json(_redact(params))
+    """بصمةٌ قانونيّةٌ على المدخل **الأصليّ** المعياريّ — لا على تمثيله المُنقَّح.
+
+    **العطلُ الذي وُجِد هذا لأجله (D04-ب):** كانت البصمةُ تُؤخَذ بعد التنقيح، فـUUIDان
+    **مختلفان** يصيران ``[redacted-id]`` كلاهما ⇒ **بصمةٌ واحدة لمدخلين مختلفين**.
+    وهذا ليس تصادماً في SHA-256 بل **فقدانَ دلالةٍ قبل التجزئة**: البصمةُ تصلح
+    لتجميع نصوصٍ مُنقَّحة، ولا تُثبِت أنّ الموافقةَ مربوطةٌ بالكيان الأصليّ نفسِه —
+    وهي تُستعمَل هنا لذلك بالضبط.
+
+    **والسرُّ لا يُسرَّب رغم البصم على الأصل:** يُستعمَل HMAC-SHA256 بمفتاحٍ خادميّ
+    (``SAHOOL_AGENT_TOKEN``) حين يتوفّر، فلا يُخمَّن معرّفٌ حسّاسٌ من البصمة
+    بقاموسٍ — والبصمةُ لا تُعيد المدخلَ في الحالتين.
+
+    **حدُّ صدقٍ مُعلَن:** بلا مفتاحٍ مضبوطٍ تعود إلى SHA-256 عارية. فالمعرّفُ منخفضُ
+    الإنتروبيا قد يُخمَّن حينئذٍ — والأثرُ مقايضةٌ واعية: بصمةٌ **صادقةٌ** قابلةٌ
+    للتخمين أفضلُ من بصمةٍ **كاذبةٍ** تساوي بين مدخلين.
+    """
+    payload = _stable_json(params or {})
+    key = os.getenv("SAHOOL_AGENT_TOKEN", "")
+    if key:
+        return hmac.new(key.encode("utf-8"), payload.encode("utf-8"), hashlib.sha256).hexdigest()
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
@@ -143,6 +182,12 @@ def emit_audit(record: dict[str, Any], saver: AuditSaver | None) -> bool:
     safe["params"] = _redact(raw_params)
     safe.setdefault("input_hash", input_hash(raw_params))
     safe.setdefault("result_summary", summarize_result(record.get("result")))
+    # D04-ج — **النتيجةُ تُنقَّح أيضاً.** كانت `result` تُحفَظ خاماً، فبقي
+    # `result.authorization` في السجلّ رغم أنّ `params` نُقِّحت. والسرُّ في النتيجة
+    # مكشوفٌ كالسرّ في المدخل سواءً — والتنقيحُ يقع **قبل كلّ مخزن** لا في مُعِينٍ
+    # قد يتجاوزه مُستدعٍ آخر.
+    if "result" in safe:
+        safe["result"] = _redact_value(safe["result"])
     if saver is None:
         return False
     try:

@@ -127,6 +127,22 @@ def _ports(tenant_id: UUID) -> IngestPorts:
         finally:
             await conn.close()
 
+    async def fetch_existing_trust(t: UUID, key: str) -> tuple[str, tuple[str, ...]] | None:
+        """D05 — حالةُ السجلّ المحفوظ، كي يعيد الإيصالُ حقيقتَه لا تطابقَ بصمته."""
+        conn = await _tenant_conn()
+        try:
+            row = await conn.fetchrow(
+                "SELECT trust_status, quarantine_reasons FROM external_submissions "
+                "WHERE tenant_id = $1 AND idempotency_key = $2",
+                t,
+                key,
+            )
+        finally:
+            await conn.close()
+        if row is None:
+            return None
+        return str(row["trust_status"]), tuple(row["quarantine_reasons"] or ())
+
     async def field_in_tenant(_t: UUID, field_id: str) -> bool:
         conn = await _tenant_conn()
         try:
@@ -137,16 +153,19 @@ def _ports(tenant_id: UUID) -> IngestPorts:
     async def bounds_ok(_payload: dict[str, Any]) -> bool:
         return True  # v1: حدود المجال الأدنى (تُشدَّد في تعيين مُصدَّر لاحق)
 
-    async def store(row: dict[str, Any]) -> None:
+    async def store(row: dict[str, Any]) -> bool:
         conn = await _tenant_conn()
         try:
-            await conn.execute(
+            inserted = await conn.fetchval(
                 "INSERT INTO external_submissions "
                 "(tenant_id, submission_id, provider, server, form_id, instance_id, content_hash, "
                 " idempotency_key, submitted_at, received_at, raw_ref, raw_payload, mapping_version, "
                 " normalized_payload, trust_status, quarantine_reasons) "
                 "VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb,$13,$14::jsonb,$15,$16) "
-                "ON CONFLICT (tenant_id, idempotency_key) DO NOTHING",
+                "ON CONFLICT (tenant_id, idempotency_key) DO NOTHING "
+                # D06 — `RETURNING` يفصل «أُدرِج» عن «ابتلعه تعارض»: بلا هذا
+                # يعود المتزامنان بقبولٍ وأحدُهما لم يُحفَظ صفُّه.
+                "RETURNING submission_id",
                 row["tenant_id"],
                 row["submission_id"],
                 row["provider"],
@@ -164,6 +183,7 @@ def _ports(tenant_id: UUID) -> IngestPorts:
                 row["trust_status"],
                 row["quarantine_reasons"],
             )
+            return inserted is not None
         finally:
             await conn.close()
 
@@ -172,6 +192,7 @@ def _ports(tenant_id: UUID) -> IngestPorts:
         field_resolves_in_tenant=field_in_tenant,
         values_within_bounds=bounds_ok,
         store_row=store,
+        fetch_existing_trust=fetch_existing_trust,
     )
 
 

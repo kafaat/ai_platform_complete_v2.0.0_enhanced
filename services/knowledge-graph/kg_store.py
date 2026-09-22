@@ -54,8 +54,34 @@ class SQLiteAgGraphStore:
         self._init_schema()
 
     def _connect(self) -> sqlite3.Connection:
+        """اتّصالٌ **يفرض** المفاتيح الأجنبيّة — لأنّ الإعداد لكلّ اتّصالٍ على حدة.
+
+        **العطلُ الذي وُجِد هذا لأجله (D12):** كان ``PRAGMA foreign_keys=ON`` يُنفَّذ في
+        ``_init_schema`` وحدَه، و``_connect`` يُرجِع اتّصالاً بالافتراض ``OFF``. فكلُّ
+        كتابةٍ بعد الإنشاء تقع **بلا فرضٍ للمفاتيح**، ووجودُ ``REFERENCES`` في الـDDL
+        لا يكفي — وهذا منصوصٌ في توثيق SQLite: الإعدادُ لكلّ اتّصال.
+
+        **والأثرُ رقمٌ يكذب:** علاقةٌ بين عقدتين غير موجودتين تُقبَل، فيُرجِع
+        ``count_edges`` اثنتين بينما ``query_edges`` الموصولةُ بالعقد تُرجِع واحدة.
+        مُقاسٌ بالتشغيل على SQLite حقيقيّة (3.45.1): ``foreign_keys=0`` · العلاقةُ
+        اليتيمةُ قُبِلت · ``2`` مقابل ``1``.
+
+        **والفرضُ يُتحقَّق منه لا يُفترَض:** ``PRAGMA foreign_keys`` قراءةٌ صامتة إن
+        نُفِّذت داخل معاملةٍ مفتوحة، فالتأكيدُ هنا يجعل الفشلَ مرئيّاً عند الاتّصال
+        بدل أن يظهر بياناتٍ يتيمةً بعد حين.
+        """
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys=ON")
+        if (
+            conn.execute("PRAGMA foreign_keys").fetchone()[0] != 1
+        ):  # pragma: no cover - بناءٌ بلا دعم
+            conn.close()
+            raise RuntimeError(
+                "تعذّر فرضُ foreign_keys على اتّصال SQLite — نسخةٌ مبنيّةٌ بلا دعمٍ للمفاتيح "
+                "الأجنبيّة. الكتابةُ بلا فرضٍ تقبل علاقاتٍ يتيمة، فيُرفَض الاتّصالُ بدل أن "
+                "يُصمَت عنها."
+            )
         return conn
 
     def _init_schema(self) -> None:

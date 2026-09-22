@@ -1,8 +1,8 @@
 file,function,path,line,has_status,has_service,has_ready_or_implemented,verdict
 services/agriai-engine/main.py,healthz,/healthz,58,True,True,True,ok
 services/agriai-engine/main.py,readyz,/readyz,68,True,True,True,ok
-services/ai_agronomist/main.py,healthz,/healthz,139,True,True,True,ok
-services/ai_agronomist/main.py,readyz,/readyz,349,True,True,True,ok
+services/ai_agronomist/main.py,healthz,/healthz,190,True,True,True,ok
+services/ai_agronomist/main.py,readyz,/readyz,402,True,True,True,ok
 services/decision-service/main.py,healthz,/healthz,516,True,True,True,ok
 services/decision-service/main.py,readyz,/readyz,521,True,True,True,ok
 services/edge-inference/main.py,health_check,/healthz,191,True,True,True,ok
@@ -17,11 +17,11 @@ services/knowledge-graph/main.py,healthz,/healthz,116,True,True,True,ok
 services/knowledge-graph/main.py,readyz,/readyz,138,True,True,True,ok
 services/local-ai-rag/main.py,healthz,/healthz,659,True,True,True,ok
 services/local-ai-rag/main.py,readyz,/readyz,682,True,True,True,ok
-services/rag-retrieval/main.py,healthz,/healthz,114,True,True,True,ok
-services/rag-retrieval/main.py,readyz,/readyz,132,True,True,True,ok
+services/rag-retrieval/main.py,healthz,/healthz,145,True,True,True,ok
+services/rag-retrieval/main.py,readyz,/readyz,163,True,True,True,ok
 services/remote-sensing-workspace-bff/main.py,healthz,/healthz,39,True,True,True,ok
 services/remote-sensing-workspace-bff/main.py,readyz,/readyz,44,True,True,True,ok
 services/sam2-inference/main.py,healthz,/healthz,106,True,True,True,ok
 services/sam2-inference/main.py,readyz,/readyz,116,True,True,True,ok
-services/scout-ingest-service/main.py,healthz,/healthz,179,True,True,True,ok
-services/scout-ingest-service/main.py,readyz,/readyz,184,True,True,True,ok
+services/scout-ingest-service/main.py,healthz,/healthz,200,True,True,True,ok
+services/scout-ingest-service/main.py,readyz,/readyz,205,True,True,True,ok

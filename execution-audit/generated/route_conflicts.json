@@ -261,7 +261,7 @@
         },
         {
           "function": "healthz",
-          "line": 139,
+          "line": 190,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/healthz",
@@ -389,7 +389,7 @@
         },
         {
           "function": "healthz",
-          "line": 114,
+          "line": 145,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/healthz",
@@ -429,7 +429,7 @@
         },
         {
           "function": "healthz",
-          "line": 179,
+          "line": 200,
           "method": "GET",
           "module": "services/scout-ingest-service/main.py",
           "path": "/healthz",
@@ -492,7 +492,7 @@
         },
         {
           "function": "metrics",
-          "line": 330,
+          "line": 383,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/metrics",
@@ -540,7 +540,7 @@
         },
         {
           "function": "metrics",
-          "line": 119,
+          "line": 150,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/metrics",
@@ -627,7 +627,7 @@
         },
         {
           "function": "readyz",
-          "line": 349,
+          "line": 402,
           "method": "GET",
           "module": "services/ai_agronomist/main.py",
           "path": "/readyz",
@@ -755,7 +755,7 @@
         },
         {
           "function": "readyz",
-          "line": 132,
+          "line": 163,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/readyz",
@@ -795,7 +795,7 @@
         },
         {
           "function": "readyz",
-          "line": 184,
+          "line": 205,
           "method": "GET",
           "module": "services/scout-ingest-service/main.py",
           "path": "/readyz",
@@ -1077,7 +1077,7 @@
         },
         {
           "function": "ingest",
-          "line": 169,
+          "line": 200,
           "method": "POST",
           "module": "services/rag-retrieval/main.py",
           "path": "/v1/ingest",
@@ -1139,7 +1139,7 @@
       "registrations": [
         {
           "function": "query",
-          "line": 393,
+          "line": 446,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/query",
@@ -1170,7 +1170,7 @@
         },
         {
           "function": "recommend",
-          "line": 426,
+          "line": 479,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
           "path": "/v1/recommend",
@@ -1183,7 +1183,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1104,
-  "route_inventory_sha256": "3ae435c953e91db2173680837b5c468fd979502f5b7078da99af9fecdcb15b25",
+  "route_inventory_sha256": "56b9aa283ec3d4cc0bc40ffc6a743b65d1fcd94ce748604eb98a3f8cbafa486e",
   "runtime_verified": false,
   "schema_version": 1
 }

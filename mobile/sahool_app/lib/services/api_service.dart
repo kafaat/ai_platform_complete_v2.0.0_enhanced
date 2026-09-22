@@ -159,10 +159,33 @@ class ApiService {
   // معرّفات متطابقة تحت التزامن). مصدر واحد للحقيقة يُختبَر مباشرةً.
   String _generateRequestId() => generateRequestId();
 
-  bool _shouldRetry(DioException error) =>
-      error.response?.statusCode != null &&
-      [502, 503, 504].contains(error.response!.statusCode) &&
-      _refreshCompleter == null;
+  /// طرقٌ **آمنة** (idempotent بالتعريف في HTTP): إعادتُها لا تُنشئ أثراً ثانياً.
+  static const _safeMethods = {'GET', 'HEAD', 'OPTIONS'};
+
+  /// D11 — إعادةُ المحاولة مقيَّدةٌ بالطريقة الآمنة أو بمفتاحِ منعِ تكرار.
+  ///
+  /// **العطل:** كان الشرطُ `502/503/504` + «لا تحديثَ جارٍ» **بلا أيّ قيدٍ على
+  /// الطريقة**. و`502/504` تعني وسيطاً لم يتلقَّ رَدّاً — **لا أنّ الخادم لم يعمل**.
+  /// فـ`POST` ناجحٌ خادميّاً ضاع ردُّه يُعاد ثلاثَ مرّات: سجلُّ ريٍّ مُكرَّر، أو
+  /// قيدٌ ماليٌّ مزدوج، أو موافقةٌ تُرسَل مرّتين.
+  ///
+  /// **والقيدُ هنا لا يُلغي الإعادة بل يُشرِّطها:** القراءاتُ تُعاد كما كانت،
+  /// والكتابةُ تُعاد **فقط** إن حملت `Idempotency-Key` ثابتاً من المحاولة الأولى —
+  /// فالخادمُ عندئذٍ يميّز الإعادةَ من طلبٍ جديد.
+  ///
+  /// **حدُّ صدقٍ مُعلَن:** لم يُشغَّل Dart ولا جهازٌ في هذه الشريحة (نتيجةُ التدقيق
+  /// نفسُها `SOURCE_ONLY_RISK`). وهذا يُزيل الإعادةَ العمياء للكتابة، **ولا يُثبِت**
+  /// أنّ نقاطَ النطاق تحترم `Idempotency-Key` — ذاك عقدٌ خادميٌّ لم يُقَس هنا.
+  bool _shouldRetry(DioException error) {
+    if (error.response?.statusCode == null) return false;
+    if (![502, 503, 504].contains(error.response!.statusCode)) return false;
+    if (_refreshCompleter != null) return false;
+    final method = error.requestOptions.method.toUpperCase();
+    if (_safeMethods.contains(method)) return true;
+    // كتابةٌ: لا تُعاد إلّا بمفتاحٍ ثابتٍ يجعل الإعادةَ مميَّزةً عند الخادم.
+    final key = error.requestOptions.headers['Idempotency-Key'];
+    return key is String && key.isNotEmpty;
+  }
 
   // P0: تحديث موحّد — طلبات 401 المتزامنة تتشارك Completer واحداً.
   // يضمن: (أ) تحديث واحد فقط، (ب) الكلّ ينتظر نتيجته، (ج) القفل يُحرَّر دائماً.

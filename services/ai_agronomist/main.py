@@ -70,13 +70,64 @@ def _save_pending_approval(request: dict[str, Any]) -> None:
     _APPROVAL_STORE.save(request)
 
 
-def _approval_for_decision(incoming: dict[str, Any]) -> dict[str, Any]:
+# D01 — الحقولُ التي يملكها **الخادم** وحدَه: لا تُدمَج من جسم الطلب أبداً.
+# الطلبُ يُسمّي أيَّ سجلٍّ يُقرَّر فيه (``id``) ولا يُسمّي شيئاً غيرَه.
+_SERVER_OWNED_APPROVAL_FIELDS = frozenset(
+    {
+        "id",
+        "tenant_id",
+        "tool",
+        "params",
+        "input_hash",
+        "capability",
+        "risk",
+        "actor",
+        "status",
+        "approver",
+        "decided_at",
+        "created_at",
+    }
+)
+
+
+def _approval_for_decision(incoming: dict[str, Any], *, tenant: str) -> dict[str, Any]:
+    """السجلُّ الخادميُّ المملوكُ لهذا المستأجِر — أو 404 إن لم يكن له.
+
+    **العطلُ الذي وُجِد هذا لأجله (D01):** كانت الدالّةُ بلا ``tenant`` أصلاً، فـ:
+
+    ① **قرارٌ عابرُ المستأجِر** — مستأجِرٌ B يوافق على سجلّ A أو يرفضه، لأنّ القراءة
+      كانت بـ``id`` وحدَه ولا تُقارَن بمستأجِر السجلّ.
+    ② **سجلٌّ من العدم** — ``return dict(incoming)`` عند غياب المحفوظ يجعل جسمَ الطلب
+      نفسَه سجلَّ موافقة، فيُقرَّر في طلبٍ لم يُنشئه الخادمُ قطّ.
+    ③ **دمجٌ غيرُ مقيَّد** — ``saved.update(كلُّ قيمةٍ غير None)`` يسمح بإعادة ``denied``
+      إلى ``pending`` ثمّ الموافقة، وبتبديل ``params.field_id`` **مع بقاء ``input_hash``
+      القديم** — أي موافقةٌ على مدخلٍ غيرِ الذي وُوفِق عليه.
+
+    **والضابطان اللذان نجحا يبقيان:** هويّةُ المُوافِق من ``X-User-Id`` لا من الجسم،
+    والمظروفُ يُعلن ``executes_in_chat_runtime=false``. فالمُثبَتُ حاجبٌ **قبل** تفعيل
+    القدرة لا حادثٌ حيّ — ولذلك أُغلِق قبل أن تُنشَر الخدمة.
+
+    **والقراءةُ بـ(tenant, id) معاً:** لا «اقرأ ثمّ قارن» — فالمقارنةُ بعد القراءة تُسرّب
+    وجودَ السجلّ برسالةٍ مختلفة. والغائبُ وغيرُ المملوك يُعطيان **الجوابَ نفسَه**.
+    """
     approval_id = str(incoming.get("id") or "")
-    saved = _APPROVAL_STORE.get(approval_id) if approval_id else None
-    if saved:
-        saved.update({k: v for k, v in incoming.items() if v is not None})
-        return saved
-    return dict(incoming)
+    if not approval_id:
+        raise HTTPException(422, "approval.id مطلوب — لا يُقرَّر في سجلٍّ بلا هويّة")
+    saved = _APPROVAL_STORE.get(approval_id)
+    if not saved or str(saved.get("tenant_id") or "") != str(tenant):
+        # الجوابُ واحدٌ للغائب ولغير المملوك: التمييزُ بينهما يُسرّب وجودَ سجلّ غيرك.
+        raise HTTPException(404, "لا سجلَّ موافقةٍ بهذه الهويّة لهذا المستأجِر")
+    decided = dict(saved)
+    # الحقولُ الخادميّةُ تُقرأ من المحفوظ لا من الجسم. وما عداها (تعليقُ المُقرِّر مثلاً)
+    # يُدمَج — فالجسمُ يحمل رأيَ الإنسان لا حقيقةَ الطلب.
+    decided.update(
+        {
+            k: v
+            for k, v in incoming.items()
+            if v is not None and k not in _SERVER_OWNED_APPROVAL_FIELDS
+        }
+    )
+    return decided
 
 
 def _approved_resume_envelope(decided: dict[str, Any]) -> dict[str, Any]:
@@ -171,7 +222,7 @@ async def list_pending_approvals(
 @app.post("/v1/approvals/approve")
 async def approve_tool_request(
     req: ApprovalDecisionRequest,
-    _tenant: str = Depends(require_trusted_tenant),
+    tenant: str = Depends(require_trusted_tenant),
     user_id: str = Depends(require_authenticated_user),
 ) -> dict[str, Any]:
     """Normalize a human approval decision for a pending agent tool request.
@@ -184,7 +235,7 @@ async def approve_tool_request(
     SEC-3.1: the approver of record is the gateway-authenticated user id (``X-User-Id``),
     NOT the JSON body — a caller cannot spoof who approved by editing the payload.
     """
-    base = _approval_for_decision(req.approval)
+    base = _approval_for_decision(req.approval, tenant=tenant)
     try:
         decided = approval.approve(
             base,
@@ -223,14 +274,14 @@ async def approve_tool_request(
 @app.post("/v1/approvals/deny")
 async def deny_tool_request(
     req: ApprovalDecisionRequest,
-    _tenant: str = Depends(require_trusted_tenant),
+    tenant: str = Depends(require_trusted_tenant),
     user_id: str = Depends(require_authenticated_user),
 ) -> dict[str, Any]:
     """Normalize a human denial decision for a pending agent tool request.
 
     SEC-3.1: the denier of record is the gateway-authenticated user id, not the body.
     """
-    base = _approval_for_decision(req.approval)
+    base = _approval_for_decision(req.approval, tenant=tenant)
     try:
         decided = approval.deny(
             base,
@@ -269,7 +320,7 @@ class ApprovalResumeRequest(BaseModel):
 @app.post("/v1/approvals/resume")
 async def resume_approved_tool(
     req: ApprovalResumeRequest,
-    _tenant: str = Depends(require_trusted_tenant),
+    tenant: str = Depends(require_trusted_tenant),
     _user: str = Depends(require_authenticated_user),
 ) -> dict[str, Any]:
     """V58.2 — resume a human-APPROVED agent tool as a governed execution handoff.
@@ -280,7 +331,9 @@ async def resume_approved_tool(
     (``executes_in_chat_runtime=False``). Unknown/not-approved ids fail closed.
     """
     stored = _APPROVAL_STORE.get(req.approval_id)
-    if stored is None:
+    # D01 — الاستئنافُ يخضع لملكيّة المستأجِر كالقرار سواءً بسواء: كان يقرأ بـ`id` وحدَه،
+    # فيستأنف مستأجِرٌ مظروفَ موافقةٍ لغيره. والغائبُ وغيرُ المملوك جوابُهما واحد.
+    if stored is None or str(stored.get("tenant_id") or "") != str(tenant):
         raise HTTPException(404, "approval_not_found")
     if str(stored.get("status") or "") != approval.STATUS_APPROVED:
         raise HTTPException(409, f"approval_not_in_approved_state:{stored.get('status')}")

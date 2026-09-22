@@ -109,10 +109,15 @@ def test_resume_endpoint_reads_stored_approved_and_hands_off(monkeypatch):
         "id": "req-xyz",
         "status": "pending",
         "tool": "create_prescription_map",
-        "tenant_id": "t1",
+        # المستأجِرُ هنا هو المُصادَقُ عليه في `_AUTH_HEADERS`: بعد D01 يُقرَأ السجلُّ
+        # بـ(المستأجِر، الهويّة)، فسجلٌّ بمستأجِرٍ آخرَ لا يُرى من هذه الترويسة.
+        "tenant_id": _AUTH_HEADERS["X-Tenant-Id"],
         "params": {"field_id": "f1"},
         "input_hash": "h1",
     }
+    # D01 (2026-09-22): القرارُ صار يقرأ سجلّاً خادميّاً قائماً بـ(المستأجِر، الهويّة)؛
+    # فالجسمُ وحدَه لا يُنشئ سجلّاً. التهيئةُ هي ما تغيّر — لا التأكيدات أدناه.
+    M._APPROVAL_STORE.save(dict(approval_obj))
     # approve first (stores the approved record) ...
     ok = client.post(
         "/v1/approvals/approve",

@@ -2428,6 +2428,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/auth/session_tokens.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/auth/tests/__init__.py",
     "kind": "tests"
   },
@@ -8157,6 +8161,10 @@
   },
   {
     "path": "tests_v9/test_rag_storage_id_declaration.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_warm_index_revalidation.py",
     "kind": "tests"
   },
   {

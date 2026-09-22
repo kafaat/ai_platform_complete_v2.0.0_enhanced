@@ -228,6 +228,7 @@
           "services/ai_agronomist/agent_stores.py",
           "services/ai_agronomist/ai_evidence_runtime.py",
           "services/ai_agronomist/ai_generation.py",
+          "services/ai_agronomist/approval.py",
           "services/ai_agronomist/field_boundary_backends.py",
           "services/ai_agronomist/main.py",
           "services/ai_agronomist/tenant_policies.py"
@@ -1380,7 +1381,8 @@
         "EMBEDDING_MODEL",
         "OLLAMA_BASE_URL",
         "QDRANT_COLLECTION",
-        "QDRANT_URL"
+        "QDRANT_URL",
+        "RAG_SPARSE_REVALIDATE_SECONDS"
       ],
       "container": {
         "dockerfile": "services/rag-retrieval/Dockerfile",

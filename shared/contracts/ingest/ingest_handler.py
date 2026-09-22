@@ -29,7 +29,15 @@ class IngestPorts:
     ]  # (tenant, key)→hash|None
     field_resolves_in_tenant: Callable[[UUID, str], Awaitable[bool]]
     values_within_bounds: Callable[[dict[str, Any]], Awaitable[bool]]
-    store_row: Callable[[dict[str, Any]], Awaitable[None]]  # يُثبّت صفّاً (idempotent على storage_key)
+    # D06 — يُثبّت صفّاً (idempotent على storage_key). يُرجِع `True` إن أُدرِج،
+    # `False` إن ابتلعه تعارضٌ (فائزٌ آخر)، و`None` لمنفذٍ قديمٍ لا يُبلِّغ.
+    # و`None` تعني «لم يُبلِّغ» لا «لم يُدرِج» — الفرقُ هو كلُّ ما يفصل إيصالاً صادقاً.
+    store_row: Callable[[dict[str, Any]], Awaitable[bool | None]]
+    # D05 — حالةُ السجلّ المحفوظ عند إعادةٍ بالبصمة نفسِها: (trust_status, reasons).
+    # اختياريٌّ للتوافق الرجعيّ؛ وغيابُه **يُعلَن في الإيصال** ولا يُفترَض قبولاً.
+    fetch_existing_trust: (
+        Callable[[UUID, str], Awaitable[tuple[str, tuple[str, ...]] | None]] | None
+    ) = None
 
 
 @dataclass(frozen=True)
@@ -82,7 +90,29 @@ async def process_submission(
     )
 
     if dec.action == "idempotent_replay":
-        return IngestResult("idempotent_replay", envelope.submission_id, "accepted", ())
+        # D05 — **الإيصالُ يعيد حقيقةَ السجلّ، لا يبنيها من تطابق البصمة.**
+        #
+        # كان يُرجِع `trust_status="accepted"` وأسباباً فارغةً **ثابتةً**. فسجلٌّ
+        # حُجِر لنقص `provenance`، إن أُعيد بالبصمة نفسِها، يعود إيصالُه «مقبول»
+        # بينما الصفُّ في القاعدة ما زال محجوراً وأسبابُه محفوظة. والمُثبَتُ كذبُ
+        # الإيصال عن الحالة — لا رفعُ الحجر.
+        #
+        # ومَن يقرأ «لم تُنشَأ نسخةٌ ثانية» يجب ألّا يفهم «اجتاز الإدخالُ التحقّق».
+        if ports.fetch_existing_trust is not None:
+            stored = await ports.fetch_existing_trust(envelope.tenant_id, envelope.idempotency_key)
+            if stored is not None:
+                trust, reasons = stored
+                return IngestResult(
+                    "idempotent_replay", envelope.submission_id, trust, tuple(reasons)
+                )
+        # المنفذُ غيرُ محقون ⇒ الحالةُ **غيرُ معروفة**، ولا تُقرأ قبولاً. وهذا حدُّ
+        # صدقٍ ظاهرٌ في الإيصال بدل افتراضٍ صامتٍ في اتّجاه السماح.
+        return IngestResult(
+            "idempotent_replay",
+            envelope.submission_id,
+            "unknown_prior_state",
+            ("prior_trust_not_readable",),
+        )
 
     if dec.action == "quarantine_divergent":
         await ports.store_row(
@@ -114,7 +144,7 @@ async def process_submission(
     )
     verdict = validate_external_submission(envelope, ctx)
     trust = "accepted" if verdict.accepted else "quarantined"
-    await ports.store_row(
+    stored = await ports.store_row(
         _row(
             envelope,
             raw_payload,
@@ -123,6 +153,27 @@ async def process_submission(
             reasons=verdict.quarantine_reasons,
         )
     )
+    # D06 — **نتيجةُ التخزين جزءٌ من العقد.**
+    #
+    # كان `store_row` يُرجِع `None` دائماً، فلا يعرف المستدعي أوقع إدراجٌ أم
+    # ابتلع التعارضُ صفَّه. وتحت تزامنٍ يقرأ طرفان قبل أيّ إدراج، يختار كلاهما
+    # `insert_new`؛ ونموذجُ `ON CONFLICT DO NOTHING` يحفظ **صفّاً واحداً** ويتجاهل
+    # الآخر — **بينما يعود الاثنان بـ`accepted`**. فإيصالُ نجاحٍ لصفٍّ لم يُحفَظ.
+    #
+    # فإن قال المنفذُ صراحةً «لم أُدرِج» (`False`)، فالجسمُ الوارد **لم يُحفَظ**
+    # ولا يجوز إصدارُ قبولٍ له: يُعاد تصنيفُه إعادةً على فائزٍ آخر، بحالةٍ غيرِ
+    # معروفةٍ مُعلَنةٍ لا مفترَضة.
+    #
+    # **والتوافقُ الرجعيُّ مقصود:** منفذٌ قديمٌ يُرجِع `None` يبقى مقبولاً — و`None`
+    # تعني «لم يُبلِّغ» لا «لم يُدرِج». وذاك حدُّ صدقٍ قائم: العقدُ الكامل يوجب
+    # `INSERT ... RETURNING` على PostgreSQL حقيقيّة، **ولم يُقَس هنا**.
+    if stored is False:
+        return IngestResult(
+            "idempotent_replay",
+            envelope.submission_id,
+            "unknown_prior_state",
+            ("row_not_inserted_conflict_winner_elsewhere",),
+        )
     return IngestResult(
         "accepted" if verdict.accepted else "quarantined",
         envelope.submission_id,

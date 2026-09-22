@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5410,
+    "files_scanned": 5412,
     "files_by_kind": {
-      "backend": 1210,
+      "backend": 1211,
       "database": 278,
       "governance": 64,
       "mobile": 55,
       "other": 1514,
-      "tests": 1831,
+      "tests": 1832,
       "web": 458
     },
-    "unmapped_artifacts": 2192,
+    "unmapped_artifacts": 2194,
     "ambiguous_artifacts": 420
   },
   "capabilities": [
@@ -14819,23 +14819,23 @@
           "score": 28
         },
         {
-          "value": "/healthz @ services/scout-ingest-service/main.py:178",
+          "value": "/healthz @ services/scout-ingest-service/main.py:199",
           "score": 12
         },
         {
-          "value": "/internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:348",
+          "value": "/internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:369",
           "score": 12
         },
         {
-          "value": "/internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:339",
+          "value": "/internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:360",
           "score": 12
         },
         {
-          "value": "/internal/scouting/external-observations @ services/scout-ingest-service/main.py:220",
+          "value": "/internal/scouting/external-observations @ services/scout-ingest-service/main.py:241",
           "score": 12
         },
         {
-          "value": "/readyz @ services/scout-ingest-service/main.py:183",
+          "value": "/readyz @ services/scout-ingest-service/main.py:204",
           "score": 12
         }
       ],
@@ -26381,19 +26381,19 @@
           "score": 12
         },
         {
-          "value": "/v1/auth/login @ services/auth/routers/session.py:23",
+          "value": "/v1/auth/login @ services/auth/routers/session.py:24",
           "score": 12
         },
         {
-          "value": "/v1/auth/logout @ services/auth/routers/session.py:166",
+          "value": "/v1/auth/logout @ services/auth/routers/session.py:181",
           "score": 12
         },
         {
-          "value": "/v1/auth/me @ services/auth/routers/session.py:210",
+          "value": "/v1/auth/me @ services/auth/routers/session.py:225",
           "score": 12
         },
         {
-          "value": "/v1/auth/refresh @ services/auth/routers/session.py:124",
+          "value": "/v1/auth/refresh @ services/auth/routers/session.py:125",
           "score": 12
         },
         {
@@ -38290,6 +38290,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/auth/session_tokens.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/auth/tests/__init__.py",
       "kind": "tests"
     },
@@ -44019,6 +44023,10 @@
     },
     {
       "path": "tests_v9/test_rag_storage_id_declaration.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_rag_warm_index_revalidation.py",
       "kind": "tests"
     },
     {

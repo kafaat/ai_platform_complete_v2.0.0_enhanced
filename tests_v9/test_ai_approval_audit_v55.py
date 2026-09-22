@@ -106,3 +106,80 @@ def test_migration_v126_append_only_rls_and_registered():
     assert "current_setting('app.current_tenant', true)" in sql
     manifest = (ROOT / "migrations/MANIFEST.txt").read_text(encoding="utf-8")
     assert "v126_agent_tool_audit.sql" in manifest
+
+
+# ─── D04 من التدقيق الموحَّد (2026-09-22) ─────────────────────────────────────
+
+
+def test_a_secret_nested_below_the_first_level_is_redacted():
+    """D04-أ — كان التنقيحُ سطحيّاً، فـ`params.nested.api_key` يبقى في السجلّ.
+
+    ولم تُستعمَل أسرارٌ حقيقيّةٌ في هذا القياس — وسمٌ صناعيٌّ يكفي لإثبات المسار.
+    """
+    approval = _load("services/ai_agronomist/approval.py", "approval_d04_nested")
+
+    out = approval._redact(
+        {
+            "api_key": "TOP",
+            "nested": {"api_key": "NESTED-SECRET", "ok": 1},
+            "items": [{"password": "DEEP-SECRET"}],
+        }
+    )
+
+    assert out["api_key"] == "[redacted]"
+    assert out["nested"]["api_key"] == "[redacted]", "سرٌّ في الطبقة الثانية بقي مكشوفاً"
+    assert out["nested"]["ok"] == 1, "التنقيحُ ابتلع قيمةً بريئة"
+    assert out["items"][0]["password"] == "[redacted]", "سرٌّ داخل قائمةٍ بقي مكشوفاً"
+
+
+def test_two_different_ids_do_not_collapse_to_one_input_hash():
+    """D04-ب — أخطرُها: بصمةٌ واحدةٌ لمدخلين **مختلفين**.
+
+    UUIDان مختلفان كانا يصيران `[redacted-id]` كلاهما **قبل** التجزئة، فتتساوى
+    البصمتان. وليس ذاك تصادماً في SHA-256 بل فقدانَ دلالةٍ قبلها — والبصمةُ
+    تُستعمَل لإثبات أنّ الموافقةَ مربوطةٌ بالكيان نفسِه.
+    """
+    approval = _load("services/ai_agronomist/approval.py", "approval_d04_hash")
+
+    a = {"field_id": "11111111-1111-1111-1111-111111111111"}
+    b = {"field_id": "22222222-2222-2222-2222-222222222222"}
+
+    assert approval.input_hash(a) != approval.input_hash(b), (
+        "مدخلان مختلفان لهما البصمةُ نفسُها — الموافقةُ غيرُ مربوطةٍ بكيانها"
+    )
+    # وثباتُ البصمة على المدخل نفسِه شرطٌ مقابل: وإلّا لم تصلح للربط أصلاً.
+    assert approval.input_hash(a) == approval.input_hash(dict(a))
+
+
+def test_the_hash_does_not_leak_the_input_and_keys_change_it(monkeypatch):
+    """والبصمةُ لا تُعيد المدخل، ومفتاحٌ خادميٌّ يمنع تخمينَ معرّفٍ حسّاسٍ بقاموس."""
+    approval = _load("services/ai_agronomist/approval.py", "approval_d04_hmac")
+    params = {"field_id": "11111111-1111-1111-1111-111111111111"}
+
+    monkeypatch.delenv("SAHOOL_AGENT_TOKEN", raising=False)
+    bare = approval.input_hash(params)
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "server-side-key")
+    keyed = approval.input_hash(params)
+
+    assert "1111" not in bare and "1111" not in keyed, "البصمةُ تُعيد المدخل"
+    assert bare != keyed, "المفتاحُ الخادميُّ لا يُغيّر البصمة — فلا يمنع التخمين"
+
+
+def test_a_secret_in_the_result_is_redacted_before_the_store():
+    """D04-ج — كانت `result` تُحفَظ خاماً، فبقي `authorization` رغم تنقيح `params`."""
+    approval = _load("services/ai_agronomist/approval.py", "approval_d04_result")
+    saved: list = []
+
+    ok = approval.emit_audit(
+        {
+            "tool": "t",
+            "params": {"field_id": "f-1"},
+            "result": {"authorization": "Bearer LEAK", "nested": {"token": "ALSO-LEAK"}},
+        },
+        saved.append,
+    )
+
+    assert ok and saved
+    stored = saved[0]["result"]
+    assert stored["authorization"] == "[redacted]", "سرُّ النتيجة حُفِظ خاماً"
+    assert stored["nested"]["token"] == "[redacted]"

@@ -3,11 +3,11 @@
   "schema_version":1,
   "evidence_scope":"static_repository_only",
   "runtime_verified":false,
-  "python_files_parsed":1909,
+  "python_files_parsed":1910,
   "route_handlers":1056,
-  "call_edges":79478,
+  "call_edges":79560,
   "dead_code_candidates":635,
-  "duplicate_function_groups":59,
+  "duplicate_function_groups":58,
   "route_owners":27,
   "automatic_deletions":0
  },
@@ -127,7 +127,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":139,
+   "line":190,
    "handler":"healthz",
    "method":"GET",
    "path":"/healthz"
@@ -135,7 +135,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":144,
+   "line":195,
    "handler":"ai_provider_snapshot",
    "method":"GET",
    "path":"/healthz/ai-provider"
@@ -143,7 +143,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":152,
+   "line":203,
    "handler":"list_pending_approvals",
    "method":"GET",
    "path":"/v1/approvals/pending"
@@ -151,7 +151,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":172,
+   "line":223,
    "handler":"approve_tool_request",
    "method":"POST",
    "path":"/v1/approvals/approve"
@@ -159,7 +159,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":224,
+   "line":275,
    "handler":"deny_tool_request",
    "method":"POST",
    "path":"/v1/approvals/deny"
@@ -167,7 +167,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":270,
+   "line":321,
    "handler":"resume_approved_tool",
    "method":"POST",
    "path":"/v1/approvals/resume"
@@ -175,7 +175,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":314,
+   "line":367,
    "handler":"prescription_export_preview",
    "method":"POST",
    "path":"/v1/prescription/export-preview"
@@ -183,7 +183,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":330,
+   "line":383,
    "handler":"metrics",
    "method":"GET",
    "path":"/metrics"
@@ -191,7 +191,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":349,
+   "line":402,
    "handler":"readyz",
    "method":"GET",
    "path":"/readyz"
@@ -199,7 +199,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":393,
+   "line":446,
    "handler":"query",
    "method":"POST",
    "path":"/v1/query"
@@ -207,7 +207,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":404,
+   "line":457,
    "handler":"chat",
    "method":"POST",
    "path":"/v1/chat"
@@ -215,7 +215,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":415,
+   "line":468,
    "handler":"explain",
    "method":"POST",
    "path":"/v1/explain"
@@ -223,7 +223,7 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "line":426,
+   "line":479,
    "handler":"recommend",
    "method":"POST",
    "path":"/v1/recommend"
@@ -391,7 +391,7 @@
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
-   "line":24,
+   "line":25,
    "handler":"login",
    "method":"POST",
    "path":"/v1/auth/login"
@@ -399,7 +399,7 @@
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
-   "line":125,
+   "line":126,
    "handler":"refresh_token",
    "method":"POST",
    "path":"/v1/auth/refresh"
@@ -407,7 +407,7 @@
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
-   "line":167,
+   "line":182,
    "handler":"logout",
    "method":"POST",
    "path":"/v1/auth/logout"
@@ -415,7 +415,7 @@
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
-   "line":211,
+   "line":226,
    "handler":"me",
    "method":"GET",
    "path":"/v1/auth/me"
@@ -1719,7 +1719,7 @@
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
-   "line":114,
+   "line":145,
    "handler":"healthz",
    "method":"GET",
    "path":"/healthz"
@@ -1727,7 +1727,7 @@
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
-   "line":119,
+   "line":150,
    "handler":"metrics",
    "method":"GET",
    "path":"/metrics"
@@ -1735,7 +1735,7 @@
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
-   "line":132,
+   "line":163,
    "handler":"readyz",
    "method":"GET",
    "path":"/readyz"
@@ -1743,7 +1743,7 @@
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
-   "line":169,
+   "line":200,
    "handler":"ingest",
    "method":"POST",
    "path":"/v1/ingest"
@@ -1751,7 +1751,7 @@
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
-   "line":244,
+   "line":275,
    "handler":"search",
    "method":"POST",
    "path":"/v1/search"
@@ -7487,7 +7487,7 @@
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
-   "line":179,
+   "line":200,
    "handler":"healthz",
    "method":"GET",
    "path":"/healthz"
@@ -7495,7 +7495,7 @@
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
-   "line":184,
+   "line":205,
    "handler":"readyz",
    "method":"GET",
    "path":"/readyz"
@@ -7503,7 +7503,7 @@
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
-   "line":221,
+   "line":242,
    "handler":"read_external_observations",
    "method":"GET",
    "path":"/internal/scouting/external-observations"
@@ -7511,7 +7511,7 @@
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
-   "line":340,
+   "line":361,
    "handler":"ingest_odk_submission",
    "method":"POST",
    "path":"/internal/ingest/submissions/odk"
@@ -7519,7 +7519,7 @@
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
-   "line":349,
+   "line":370,
    "handler":"ingest_kobo_submission",
    "method":"POST",
    "path":"/internal/ingest/submissions/kobo"
@@ -21611,394 +21611,457 @@
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
+   "source":"_redact_value",
+   "target":"isinstance",
+   "line":45
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/approval.py",
+   "source":"_redact_value",
+   "target":"_redact",
+   "line":46
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/approval.py",
+   "source":"_redact_value",
+   "target":"isinstance",
+   "line":47
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/approval.py",
+   "source":"_redact_value",
+   "target":"isinstance",
+   "line":49
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/approval.py",
+   "source":"_redact_value",
+   "target":"sub",
+   "line":50
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/approval.py",
+   "source":"_redact_value",
+   "target":"sub",
+   "line":50
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/approval.py",
    "source":"_redact",
    "target":"items",
-   "line":39
+   "line":62
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"_redact",
    "target":"any",
-   "line":40
+   "line":63
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"_redact",
    "target":"lower",
-   "line":40
+   "line":63
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"_redact",
    "target":"str",
-   "line":40
+   "line":63
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"_redact",
    "target":"strip",
-   "line":40
+   "line":63
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"_redact",
-   "target":"isinstance",
-   "line":42
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/approval.py",
-   "source":"_redact",
-   "target":"sub",
-   "line":43
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/approval.py",
-   "source":"_redact",
-   "target":"sub",
-   "line":43
+   "target":"_redact_value",
+   "line":66
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"_stable_json",
    "target":"dumps",
-   "line":51
+   "line":72
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"_stable_json",
    "target":"dumps",
-   "line":53
+   "line":74
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"_stable_json",
    "target":"str",
-   "line":53
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/approval.py",
-   "source":"input_hash",
-   "target":"_redact",
-   "line":58
+   "line":74
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"input_hash",
    "target":"_stable_json",
-   "line":58
+   "line":94
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/approval.py",
+   "source":"input_hash",
+   "target":"getenv",
+   "line":95
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"input_hash",
    "target":"encode",
-   "line":59
+   "line":97
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/approval.py",
+   "source":"input_hash",
+   "target":"encode",
+   "line":97
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"input_hash",
    "target":"hexdigest",
-   "line":59
+   "line":97
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/approval.py",
+   "source":"input_hash",
+   "target":"new",
+   "line":97
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/approval.py",
+   "source":"input_hash",
+   "target":"encode",
+   "line":98
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/approval.py",
+   "source":"input_hash",
+   "target":"hexdigest",
+   "line":98
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"input_hash",
    "target":"sha256",
-   "line":59
+   "line":98
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"summarize_result",
    "target":"isinstance",
-   "line":66
+   "line":105
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"summarize_result",
    "target":"keys",
-   "line":67
+   "line":106
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"summarize_result",
    "target":"sorted",
-   "line":67
+   "line":106
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"summarize_result",
    "target":"str",
-   "line":67
+   "line":106
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"summarize_result",
    "target":"get",
-   "line":71
+   "line":110
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"summarize_result",
    "target":"_stable_json",
-   "line":72
+   "line":111
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"summarize_result",
    "target":"isinstance",
-   "line":73
+   "line":112
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"summarize_result",
    "target":"_stable_json",
-   "line":74
+   "line":113
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"summarize_result",
    "target":"len",
-   "line":74
+   "line":113
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"summarize_result",
    "target":"str",
-   "line":76
+   "line":115
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"build_approval_request",
    "target":"str",
-   "line":93
+   "line":132
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"build_approval_request",
    "target":"_redact",
-   "line":95
+   "line":134
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"build_approval_request",
    "target":"input_hash",
-   "line":96
+   "line":135
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"build_approval_request",
    "target":"str",
-   "line":98
+   "line":137
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"build_approval_request",
    "target":"str",
-   "line":99
+   "line":138
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"approve",
    "target":"get",
-   "line":112
+   "line":151
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"approve",
    "target":"ValueError",
-   "line":113
+   "line":152
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"approve",
    "target":"get",
-   "line":113
+   "line":152
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"approve",
    "target":"dict",
-   "line":114
+   "line":153
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"approve",
    "target":"update",
-   "line":115
+   "line":154
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"approve",
    "target":"str",
-   "line":116
+   "line":155
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"deny",
    "target":"get",
-   "line":124
+   "line":163
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"deny",
    "target":"ValueError",
-   "line":125
+   "line":164
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"deny",
    "target":"get",
-   "line":125
+   "line":164
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"deny",
    "target":"dict",
-   "line":126
+   "line":165
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"deny",
    "target":"update",
-   "line":127
+   "line":166
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"deny",
    "target":"str",
-   "line":130
+   "line":169
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"emit_audit",
    "target":"dict",
-   "line":141
+   "line":180
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"emit_audit",
    "target":"get",
-   "line":142
+   "line":181
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"emit_audit",
    "target":"get",
-   "line":142
+   "line":181
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"emit_audit",
    "target":"isinstance",
-   "line":142
+   "line":181
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"emit_audit",
    "target":"_redact",
-   "line":143
+   "line":182
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"emit_audit",
    "target":"input_hash",
-   "line":144
+   "line":183
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"emit_audit",
    "target":"setdefault",
-   "line":144
+   "line":183
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"emit_audit",
    "target":"get",
-   "line":145
+   "line":184
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"emit_audit",
    "target":"setdefault",
-   "line":145
+   "line":184
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"emit_audit",
    "target":"summarize_result",
-   "line":145
+   "line":184
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/approval.py",
+   "source":"emit_audit",
+   "target":"_redact_value",
+   "line":190
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"emit_audit",
    "target":"saver",
-   "line":149
+   "line":194
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"emit_audit",
    "target":"get",
-   "line":152
+   "line":197
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/approval.py",
    "source":"emit_audit",
    "target":"warning",
-   "line":152
+   "line":197
   },
   {
    "owner":"ai-agronomist",
@@ -23979,959 +24042,1015 @@
    "file":"services/ai_agronomist/main.py",
    "source":"_approval_for_decision",
    "target":"get",
-   "line":74
+   "line":113
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"_approval_for_decision",
    "target":"str",
-   "line":74
+   "line":113
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"_approval_for_decision",
+   "target":"HTTPException",
+   "line":115
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"_approval_for_decision",
    "target":"get",
-   "line":75
+   "line":116
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"_approval_for_decision",
-   "target":"items",
-   "line":77
+   "target":"get",
+   "line":117
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"_approval_for_decision",
-   "target":"update",
-   "line":77
+   "target":"str",
+   "line":117
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"_approval_for_decision",
+   "target":"str",
+   "line":117
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"_approval_for_decision",
+   "target":"HTTPException",
+   "line":119
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"_approval_for_decision",
    "target":"dict",
-   "line":79
+   "line":120
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"_approval_for_decision",
+   "target":"update",
+   "line":123
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"_approval_for_decision",
+   "target":"items",
+   "line":126
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"_approved_resume_envelope",
    "target":"get",
-   "line":85
+   "line":136
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"_approved_resume_envelope",
    "target":"get",
-   "line":86
+   "line":137
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"_approved_resume_envelope",
-   "target":"get",
-   "line":87
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"_approved_resume_envelope",
-   "target":"get",
-   "line":88
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"_approved_resume_envelope",
-   "target":"get",
-   "line":88
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"_approved_resume_envelope",
-   "target":"get",
-   "line":89
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"_approved_resume_envelope",
-   "target":"isinstance",
-   "line":89
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"_approved_resume_envelope",
-   "target":"get",
-   "line":91
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"_get_json",
-   "target":"get",
-   "line":124
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"_get_json",
-   "target":"json",
-   "line":125
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"_get_json",
-   "target":"isinstance",
-   "line":128
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"_get_json",
-   "target":"get",
-   "line":129
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"_get_json",
-   "target":"get",
-   "line":130
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"healthz",
    "target":"get",
    "line":138
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
+   "source":"_approved_resume_envelope",
+   "target":"get",
+   "line":139
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"_approved_resume_envelope",
+   "target":"get",
+   "line":139
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"_approved_resume_envelope",
+   "target":"get",
+   "line":140
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"_approved_resume_envelope",
+   "target":"isinstance",
+   "line":140
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"_approved_resume_envelope",
+   "target":"get",
+   "line":142
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"_get_json",
+   "target":"get",
+   "line":175
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"_get_json",
+   "target":"json",
+   "line":176
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"_get_json",
+   "target":"isinstance",
+   "line":179
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"_get_json",
+   "target":"get",
+   "line":180
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"_get_json",
+   "target":"get",
+   "line":181
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"healthz",
+   "target":"get",
+   "line":189
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
    "source":"ai_provider_snapshot",
    "target":"get",
-   "line":143
+   "line":194
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"ai_provider_snapshot",
    "target":"public_provider_snapshot",
-   "line":148
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"list_pending_approvals",
-   "target":"get",
-   "line":151
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"list_pending_approvals",
-   "target":"Depends",
-   "line":153
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"list_pending_approvals",
-   "target":"Depends",
-   "line":154
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"list_pending_approvals",
-   "target":"list_pending",
-   "line":165
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"list_pending_approvals",
-   "target":"get",
-   "line":166
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"list_pending_approvals",
-   "target":"str",
-   "line":166
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"list_pending_approvals",
-   "target":"str",
-   "line":166
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"list_pending_approvals",
-   "target":"len",
-   "line":168
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"post",
-   "line":171
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"Depends",
-   "line":174
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"Depends",
-   "line":175
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"_approval_for_decision",
-   "line":187
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"approve",
-   "line":189
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"_utc_timestamp",
-   "line":192
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"HTTPException",
-   "line":195
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"str",
-   "line":195
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"_save_pending_approval",
-   "line":196
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"_save_agent_tool_audit",
-   "line":197
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"get",
    "line":199
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"get",
-   "line":200
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"get",
-   "line":200
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"isinstance",
-   "line":200
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"get",
-   "line":201
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
+   "source":"list_pending_approvals",
    "target":"get",
    "line":202
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"get",
+   "source":"list_pending_approvals",
+   "target":"Depends",
    "line":204
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"get",
+   "source":"list_pending_approvals",
+   "target":"Depends",
    "line":205
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
+   "source":"list_pending_approvals",
+   "target":"list_pending",
+   "line":216
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"list_pending_approvals",
    "target":"get",
-   "line":206
+   "line":217
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"get",
-   "line":207
+   "source":"list_pending_approvals",
+   "target":"str",
+   "line":217
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"get",
-   "line":207
+   "source":"list_pending_approvals",
+   "target":"str",
+   "line":217
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"get",
-   "line":208
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"isinstance",
-   "line":208
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"get",
-   "line":210
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"_approved_resume_envelope",
-   "line":212
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"approve_tool_request",
-   "target":"_approved_resume_envelope",
+   "source":"list_pending_approvals",
+   "target":"len",
    "line":219
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
+   "source":"approve_tool_request",
    "target":"post",
-   "line":223
+   "line":222
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
+   "source":"approve_tool_request",
+   "target":"Depends",
+   "line":225
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"approve_tool_request",
    "target":"Depends",
    "line":226
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"Depends",
-   "line":227
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
+   "source":"approve_tool_request",
    "target":"_approval_for_decision",
-   "line":233
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"deny",
-   "line":235
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"_utc_timestamp",
    "line":238
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"HTTPException",
-   "line":242
+   "source":"approve_tool_request",
+   "target":"approve",
+   "line":240
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"str",
-   "line":242
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"_save_pending_approval",
+   "source":"approve_tool_request",
+   "target":"_utc_timestamp",
    "line":243
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"_save_agent_tool_audit",
-   "line":244
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"get",
+   "source":"approve_tool_request",
+   "target":"HTTPException",
    "line":246
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"get",
+   "source":"approve_tool_request",
+   "target":"str",
+   "line":246
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"approve_tool_request",
+   "target":"_save_pending_approval",
    "line":247
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"get",
-   "line":247
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"isinstance",
-   "line":247
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"get",
+   "source":"approve_tool_request",
+   "target":"_save_agent_tool_audit",
    "line":248
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
+   "source":"approve_tool_request",
    "target":"get",
-   "line":249
+   "line":250
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
+   "source":"approve_tool_request",
    "target":"get",
    "line":251
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
+   "source":"approve_tool_request",
+   "target":"get",
+   "line":251
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"approve_tool_request",
+   "target":"isinstance",
+   "line":251
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"approve_tool_request",
    "target":"get",
    "line":252
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
+   "source":"approve_tool_request",
    "target":"get",
    "line":253
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"get",
-   "line":254
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"get",
-   "line":254
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
+   "source":"approve_tool_request",
    "target":"get",
    "line":255
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
-   "target":"isinstance",
-   "line":255
+   "source":"approve_tool_request",
+   "target":"get",
+   "line":256
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"deny_tool_request",
+   "source":"approve_tool_request",
    "target":"get",
    "line":257
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"post",
-   "line":269
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"Depends",
-   "line":272
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"Depends",
-   "line":273
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
+   "source":"approve_tool_request",
    "target":"get",
-   "line":282
+   "line":258
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"HTTPException",
+   "source":"approve_tool_request",
+   "target":"get",
+   "line":258
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"approve_tool_request",
+   "target":"get",
+   "line":259
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"approve_tool_request",
+   "target":"isinstance",
+   "line":259
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"approve_tool_request",
+   "target":"get",
+   "line":261
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"approve_tool_request",
+   "target":"_approved_resume_envelope",
+   "line":263
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"approve_tool_request",
+   "target":"_approved_resume_envelope",
+   "line":270
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"post",
+   "line":274
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"Depends",
+   "line":277
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"Depends",
+   "line":278
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"_approval_for_decision",
    "line":284
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"get",
-   "line":285
+   "source":"deny_tool_request",
+   "target":"deny",
+   "line":286
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"str",
-   "line":285
+   "source":"deny_tool_request",
+   "target":"_utc_timestamp",
+   "line":289
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
+   "source":"deny_tool_request",
    "target":"HTTPException",
-   "line":286
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"get",
-   "line":286
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"_approved_resume_envelope",
-   "line":287
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"_save_agent_tool_audit",
-   "line":288
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"get",
-   "line":290
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"get",
-   "line":291
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"get",
-   "line":291
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"isinstance",
-   "line":291
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"get",
-   "line":292
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"get",
    "line":293
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"get",
+   "source":"deny_tool_request",
+   "target":"str",
+   "line":293
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"_save_pending_approval",
    "line":294
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"get",
+   "source":"deny_tool_request",
+   "target":"_save_agent_tool_audit",
    "line":295
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
+   "source":"deny_tool_request",
    "target":"get",
    "line":297
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
+   "source":"deny_tool_request",
    "target":"get",
    "line":298
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
+   "source":"deny_tool_request",
+   "target":"get",
+   "line":298
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"isinstance",
+   "line":298
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
    "target":"get",
    "line":299
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"resume_approved_tool",
-   "target":"_utc_timestamp",
+   "source":"deny_tool_request",
+   "target":"get",
    "line":300
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"prescription_export_preview",
-   "target":"post",
-   "line":313
+   "source":"deny_tool_request",
+   "target":"get",
+   "line":302
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"prescription_export_preview",
-   "target":"build_prescription_export",
+   "source":"deny_tool_request",
+   "target":"get",
+   "line":303
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"get",
+   "line":304
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"get",
+   "line":305
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"get",
+   "line":305
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"get",
+   "line":306
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"isinstance",
+   "line":306
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"deny_tool_request",
+   "target":"get",
+   "line":308
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"post",
+   "line":320
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"Depends",
+   "line":323
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"Depends",
    "line":324
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"prescription_export_preview",
-   "target":"setdefault",
-   "line":325
-  },
-  {
-   "owner":"ai-agronomist",
-   "file":"services/ai_agronomist/main.py",
-   "source":"metrics",
+   "source":"resume_approved_tool",
    "target":"get",
-   "line":329
+   "line":333
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"metrics",
-   "target":"join",
-   "line":334
+   "source":"resume_approved_tool",
+   "target":"get",
+   "line":336
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"metrics",
-   "target":"Response",
+   "source":"resume_approved_tool",
+   "target":"str",
+   "line":336
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"str",
+   "line":336
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"HTTPException",
+   "line":337
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"get",
+   "line":338
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"str",
+   "line":338
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"HTTPException",
+   "line":339
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"get",
+   "line":339
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"_approved_resume_envelope",
+   "line":340
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"_save_agent_tool_audit",
+   "line":341
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"get",
+   "line":343
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"get",
+   "line":344
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"get",
+   "line":344
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"isinstance",
+   "line":344
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"get",
    "line":345
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
-   "source":"readyz",
+   "source":"resume_approved_tool",
+   "target":"get",
+   "line":346
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"get",
+   "line":347
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
    "target":"get",
    "line":348
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"get",
+   "line":350
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"get",
+   "line":351
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"get",
+   "line":352
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"resume_approved_tool",
+   "target":"_utc_timestamp",
+   "line":353
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"prescription_export_preview",
+   "target":"post",
+   "line":366
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"prescription_export_preview",
+   "target":"build_prescription_export",
+   "line":377
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"prescription_export_preview",
+   "target":"setdefault",
+   "line":378
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"metrics",
+   "target":"get",
+   "line":382
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"metrics",
+   "target":"join",
+   "line":387
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"metrics",
+   "target":"Response",
+   "line":398
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
+   "source":"readyz",
+   "target":"get",
+   "line":401
+  },
+  {
+   "owner":"ai-agronomist",
+   "file":"services/ai_agronomist/main.py",
    "source":"readyz",
    "target":"AsyncClient",
-   "line":350
+   "line":403
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"readyz",
    "target":"gather",
-   "line":351
+   "line":404
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"readyz",
    "target":"_get_json",
-   "line":352
+   "line":405
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"readyz",
    "target":"rstrip",
-   "line":352
+   "line":405
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"readyz",
    "target":"_get_json",
-   "line":353
+   "line":406
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"readyz",
    "target":"rstrip",
-   "line":353
+   "line":406
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"readyz",
    "target":"_get_json",
-   "line":354
+   "line":407
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"readyz",
    "target":"rstrip",
-   "line":354
+   "line":407
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"readyz",
    "target":"HTTPException",
-   "line":358
+   "line":411
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"readyz",
    "target":"getattr",
-   "line":371
+   "line":424
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"_build_evidence_response",
    "target":"_build_evidence_response_runtime",
-   "line":382
+   "line":435
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"query",
    "target":"post",
-   "line":392
+   "line":445
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"query",
    "target":"Header",
-   "line":395
+   "line":448
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"query",
    "target":"Header",
-   "line":396
+   "line":449
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"query",
    "target":"_build_evidence_response",
-   "line":398
+   "line":451
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"chat",
    "target":"post",
-   "line":403
+   "line":456
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"chat",
    "target":"Header",
-   "line":406
+   "line":459
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"chat",
    "target":"Header",
-   "line":407
+   "line":460
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"chat",
    "target":"_build_evidence_response",
-   "line":409
+   "line":462
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"explain",
    "target":"post",
-   "line":414
+   "line":467
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"explain",
    "target":"Header",
-   "line":417
+   "line":470
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"explain",
    "target":"Header",
-   "line":418
+   "line":471
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"explain",
    "target":"_build_evidence_response",
-   "line":420
+   "line":473
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"recommend",
    "target":"post",
-   "line":425
+   "line":478
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"recommend",
    "target":"Header",
-   "line":428
+   "line":481
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"recommend",
    "target":"Header",
-   "line":429
+   "line":482
   },
   {
    "owner":"ai-agronomist",
    "file":"services/ai_agronomist/main.py",
    "source":"recommend",
    "target":"_build_evidence_response",
-   "line":432
+   "line":485
   },
   {
    "owner":"ai-agronomist",
@@ -32400,49 +32519,42 @@
    "file":"services/auth/main.py",
    "source":"set_user_token_floor",
    "target":"int",
-   "line":666
+   "line":669
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"set_user_token_floor",
    "target":"now",
-   "line":666
+   "line":669
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"set_user_token_floor",
    "target":"timestamp",
-   "line":666
+   "line":669
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"set_user_token_floor",
    "target":"setex",
-   "line":668
+   "line":671
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"set_user_token_floor",
    "target":"str",
-   "line":669
+   "line":672
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"is_token_below_floor",
    "target":"get",
-   "line":677
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"is_token_below_floor",
-   "target":"get",
-   "line":678
+   "line":680
   },
   {
    "owner":"auth",
@@ -32455,99 +32567,92 @@
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"is_token_below_floor",
-   "target":"int",
-   "line":685
+   "target":"get",
+   "line":684
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"is_token_below_floor",
    "target":"int",
-   "line":685
+   "line":688
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"is_token_below_floor",
+   "target":"int",
+   "line":688
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"revoke_all_user_sessions",
    "target":"set_user_token_floor",
-   "line":694
+   "line":697
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"revoke_all_user_sessions",
    "target":"smembers",
-   "line":696
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"revoke_all_user_sessions",
-   "target":"decode",
-   "line":698
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"revoke_all_user_sessions",
-   "target":"isinstance",
-   "line":698
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"revoke_all_user_sessions",
-   "target":"delete",
    "line":699
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"revoke_all_user_sessions",
+   "target":"decode",
+   "line":701
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"revoke_all_user_sessions",
+   "target":"isinstance",
+   "line":701
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"revoke_all_user_sessions",
    "target":"delete",
-   "line":700
+   "line":702
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"revoke_all_user_sessions",
+   "target":"delete",
+   "line":703
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"get_current_user",
    "target":"Depends",
-   "line":708
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"get_current_user",
-   "target":"HTTPException",
    "line":711
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"get_current_user",
+   "target":"HTTPException",
+   "line":714
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"get_current_user",
    "target":"decode",
-   "line":713
+   "line":716
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"get_current_user",
    "target":"HTTPException",
-   "line":720
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"get_current_user",
-   "target":"get",
    "line":723
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"get_current_user",
-   "target":"HTTPException",
-   "line":724
   },
   {
    "owner":"auth",
@@ -32560,21 +32665,21 @@
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"get_current_user",
-   "target":"is_jti_revoked",
+   "target":"HTTPException",
    "line":727
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"get_current_user",
-   "target":"HTTPException",
-   "line":728
+   "target":"get",
+   "line":729
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"get_current_user",
-   "target":"is_token_below_floor",
+   "target":"is_jti_revoked",
    "line":730
   },
   {
@@ -32587,457 +32692,471 @@
   {
    "owner":"auth",
    "file":"services/auth/main.py",
+   "source":"get_current_user",
+   "target":"is_token_below_floor",
+   "line":733
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"get_current_user",
+   "target":"HTTPException",
+   "line":734
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
    "source":"_check",
    "target":"Depends",
-   "line":736
+   "line":739
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"require_role",
    "target":"Depends",
-   "line":736
+   "line":739
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_check",
    "target":"get",
-   "line":737
+   "line":740
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"require_role",
    "target":"get",
-   "line":737
+   "line":740
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_check",
    "target":"HTTPException",
-   "line":738
+   "line":741
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_check",
    "target":"join",
-   "line":738
+   "line":741
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"require_role",
    "target":"HTTPException",
-   "line":738
+   "line":741
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"require_role",
    "target":"join",
-   "line":738
+   "line":741
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"check_lockout",
    "target":"exists",
-   "line":750
+   "line":753
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"check_lockout",
    "target":"ttl",
-   "line":751
+   "line":754
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"check_lockout",
    "target":"HTTPException",
-   "line":752
+   "line":755
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"record_failed_login",
    "target":"incr",
-   "line":762
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"record_failed_login",
-   "target":"expire",
-   "line":763
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"record_failed_login",
-   "target":"setex",
    "line":765
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"record_failed_login",
-   "target":"delete",
+   "target":"expire",
    "line":766
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"record_failed_login",
+   "target":"setex",
+   "line":768
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"record_failed_login",
+   "target":"delete",
+   "line":769
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"record_failed_login",
    "target":"warning",
-   "line":767
+   "line":770
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"clear_failed_logins",
    "target":"delete",
-   "line":773
+   "line":776
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"clear_failed_logins",
    "target":"delete",
-   "line":774
+   "line":777
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"check_ip_rate",
    "target":"incr",
-   "line":782
+   "line":785
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"check_ip_rate",
    "target":"expire",
-   "line":784
+   "line":787
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"check_ip_rate",
    "target":"HTTPException",
-   "line":786
+   "line":789
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"audit_log",
    "target":"_acquire",
-   "line":800
+   "line":803
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"audit_log",
    "target":"execute",
-   "line":801
+   "line":804
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"audit_log",
    "target":"error",
-   "line":816
+   "line":819
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"audit_log",
    "target":"type",
-   "line":816
+   "line":819
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"send_reset_email",
    "target":"warning",
-   "line":823
+   "line":826
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"send_reset_email",
    "target":"getenv",
-   "line":831
+   "line":834
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"send_reset_email",
    "target":"MIMEText",
-   "line":845
+   "line":848
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"send_reset_email",
    "target":"send",
-   "line":850
+   "line":853
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"send_reset_email",
    "target":"info",
-   "line":858
+   "line":861
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"send_reset_email",
    "target":"error",
-   "line":861
+   "line":864
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_send_otp_email",
    "target":"warning",
-   "line":872
+   "line":875
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_send_otp_email",
    "target":"MIMEText",
-   "line":884
+   "line":887
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_send_otp_email",
    "target":"send",
-   "line":888
+   "line":891
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_send_otp_email",
    "target":"info",
-   "line":896
+   "line":899
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_send_otp_email",
    "target":"error",
-   "line":899
+   "line":902
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_post_sms_blocking",
    "target":"dumps",
-   "line":910
+   "line":913
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_post_sms_blocking",
    "target":"encode",
-   "line":910
+   "line":913
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_post_sms_blocking",
    "target":"Request",
-   "line":911
+   "line":914
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_post_sms_blocking",
    "target":"urlopen",
-   "line":921
+   "line":924
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_post_sms_blocking",
    "target":"error",
-   "line":924
+   "line":927
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_is_valid_phone",
    "target":"lstrip",
-   "line":931
+   "line":934
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_is_valid_phone",
    "target":"strip",
-   "line":931
+   "line":934
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_is_valid_phone",
    "target":"isdigit",
-   "line":932
+   "line":935
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_is_valid_phone",
    "target":"len",
-   "line":932
+   "line":935
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_send_otp_sms",
    "target":"warning",
-   "line":938
+   "line":941
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_send_otp_sms",
    "target":"_is_valid_phone",
-   "line":940
+   "line":943
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_send_otp_sms",
    "target":"warning",
-   "line":942
+   "line":945
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_send_otp_sms",
    "target":"to_thread",
-   "line":945
+   "line":948
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"send_otp",
    "target":"_send_otp_email",
-   "line":957
+   "line":960
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"send_otp",
    "target":"_send_otp_sms",
-   "line":959
+   "line":962
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"send_otp",
    "target":"warning",
-   "line":960
+   "line":963
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"check_otp_request_rate",
    "target":"incr",
-   "line":969
+   "line":972
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"check_otp_request_rate",
    "target":"expire",
-   "line":971
+   "line":974
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"check_otp_request_rate",
    "target":"HTTPException",
-   "line":973
+   "line":976
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_ensure_admin_user",
    "target":"getenv",
-   "line":981
+   "line":984
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_ensure_admin_user",
    "target":"warning",
-   "line":983
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"_ensure_admin_user",
-   "target":"decode",
-   "line":985
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"_ensure_admin_user",
-   "target":"encode",
-   "line":985
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"_ensure_admin_user",
-   "target":"gensalt",
-   "line":985
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"_ensure_admin_user",
-   "target":"hashpw",
-   "line":985
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/main.py",
-   "source":"_ensure_admin_user",
-   "target":"_acquire",
    "line":986
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_ensure_admin_user",
-   "target":"execute",
-   "line":990
+   "target":"decode",
+   "line":988
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"_ensure_admin_user",
+   "target":"encode",
+   "line":988
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"_ensure_admin_user",
+   "target":"gensalt",
+   "line":988
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"_ensure_admin_user",
+   "target":"hashpw",
+   "line":988
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"_ensure_admin_user",
+   "target":"_acquire",
+   "line":989
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_ensure_admin_user",
    "target":"execute",
-   "line":991
+   "line":993
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/main.py",
+   "source":"_ensure_admin_user",
+   "target":"execute",
+   "line":994
   },
   {
    "owner":"auth",
    "file":"services/auth/main.py",
    "source":"_ensure_admin_user",
    "target":"info",
-   "line":999
+   "line":1002
   },
   {
    "owner":"auth",
@@ -36138,489 +36257,426 @@
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"post",
-   "line":23
+   "line":24
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"check_ip_rate",
-   "line":26
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"check_lockout",
    "line":27
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
-   "target":"_acquire",
-   "line":29
+   "target":"check_lockout",
+   "line":28
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
-   "target":"fetchrow",
+   "target":"_acquire",
    "line":30
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
-   "target":"checkpw",
-   "line":40
+   "target":"fetchrow",
+   "line":31
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
-   "target":"encode",
+   "target":"checkpw",
    "line":41
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
-   "target":"isinstance",
-   "line":43
+   "target":"encode",
+   "line":42
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
-   "target":"encode",
+   "target":"isinstance",
    "line":44
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
+   "target":"encode",
+   "line":45
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
    "target":"record_failed_login",
-   "line":47
+   "line":48
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"inc",
-   "line":50
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"labels",
-   "line":50
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"HTTPException",
    "line":51
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
-   "target":"record_failed_login",
-   "line":57
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"inc",
-   "line":58
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
    "target":"labels",
-   "line":58
+   "line":51
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"HTTPException",
-   "line":60
+   "line":52
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"record_failed_login",
+   "line":58
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"inc",
+   "line":59
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"labels",
+   "line":59
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"HTTPException",
+   "line":61
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"mfa_login_verify",
-   "line":67
+   "line":68
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"record_failed_login",
-   "line":70
+   "line":71
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"inc",
-   "line":71
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"labels",
-   "line":71
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"HTTPException",
    "line":72
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
-   "target":"inc",
-   "line":80
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
    "target":"labels",
-   "line":80
+   "line":72
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"HTTPException",
+   "line":73
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"inc",
    "line":81
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
-   "target":"record_failed_login",
-   "line":85
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"inc",
-   "line":86
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
    "target":"labels",
-   "line":86
+   "line":81
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"HTTPException",
+   "line":82
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"record_failed_login",
+   "line":86
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"inc",
    "line":87
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
-   "target":"_mfa_required_but_missing",
-   "line":91
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"inc",
-   "line":92
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
    "target":"labels",
-   "line":92
+   "line":87
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"HTTPException",
+   "line":88
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"_mfa_required_but_missing",
+   "line":92
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"inc",
    "line":93
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
-   "target":"clear_failed_logins",
-   "line":99
+   "target":"labels",
+   "line":93
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
-   "target":"str",
+   "target":"HTTPException",
+   "line":94
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"clear_failed_logins",
    "line":100
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
-   "target":"create_access_token",
+   "target":"str",
    "line":101
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
+   "target":"create_access_token",
+   "line":102
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
    "target":"create_refresh_token",
-   "line":104
+   "line":105
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"info",
-   "line":106
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"login",
-   "target":"audit_log",
    "line":107
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
-   "target":"inc",
+   "target":"audit_log",
    "line":108
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"login",
+   "target":"inc",
+   "line":109
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"labels",
-   "line":108
+   "line":109
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"set_tile_auth_cookie",
-   "line":111
+   "line":112
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"login",
    "target":"TokenResponse",
-   "line":113
+   "line":114
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"refresh_token",
    "target":"post",
-   "line":124
+   "line":125
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"refresh_token",
    "target":"HTTPException",
-   "line":128
+   "line":129
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"refresh_token",
-   "target":"get",
-   "line":130
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"refresh_token",
-   "target":"HTTPException",
-   "line":132
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"refresh_token",
-   "target":"split",
-   "line":134
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"refresh_token",
-   "target":"int",
-   "line":135
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"refresh_token",
-   "target":"_acquire",
-   "line":137
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"refresh_token",
-   "target":"fetchrow",
-   "line":138
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"refresh_token",
-   "target":"revoke_refresh_token",
-   "line":142
+   "target":"consume_refresh_token",
+   "line":145
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"refresh_token",
    "target":"HTTPException",
-   "line":143
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"refresh_token",
-   "target":"revoke_refresh_token",
-   "line":146
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"refresh_token",
-   "target":"create_refresh_token",
    "line":147
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"refresh_token",
-   "target":"create_access_token",
-   "line":148
+   "target":"split",
+   "line":149
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"refresh_token",
-   "target":"set_tile_auth_cookie",
+   "target":"int",
+   "line":150
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"refresh_token",
+   "target":"_acquire",
+   "line":152
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"refresh_token",
+   "target":"fetchrow",
    "line":153
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"refresh_token",
+   "target":"HTTPException",
+   "line":159
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"refresh_token",
+   "target":"create_refresh_token",
+   "line":162
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"refresh_token",
+   "target":"create_access_token",
+   "line":163
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"refresh_token",
+   "target":"set_tile_auth_cookie",
+   "line":168
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"refresh_token",
    "target":"TokenResponse",
-   "line":155
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"logout",
-   "target":"post",
-   "line":166
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"logout",
-   "target":"Depends",
    "line":170
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"logout",
-   "target":"decode",
-   "line":176
+   "target":"post",
+   "line":181
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"logout",
-   "target":"get",
-   "line":183
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"logout",
-   "target":"JWTError",
-   "line":184
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"logout",
-   "target":"get",
+   "target":"Depends",
    "line":185
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"logout",
-   "target":"get",
-   "line":186
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"logout",
-   "target":"revoke_jti",
-   "line":188
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"logout",
-   "target":"debug",
+   "target":"decode",
    "line":191
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"logout",
-   "target":"json",
-   "line":196
+   "target":"get",
+   "line":198
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"logout",
-   "target":"debug",
-   "line":199
-  },
-  {
-   "owner":"auth",
-   "file":"services/auth/routers/session.py",
-   "source":"logout",
-   "target":"type",
+   "target":"JWTError",
    "line":199
   },
   {
@@ -36634,36 +36690,85 @@
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"logout",
-   "target":"revoke_refresh_token",
+   "target":"get",
    "line":201
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"logout",
+   "target":"revoke_jti",
+   "line":203
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"logout",
+   "target":"debug",
+   "line":206
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"logout",
+   "target":"json",
+   "line":211
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"logout",
+   "target":"debug",
+   "line":214
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"logout",
+   "target":"type",
+   "line":214
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"logout",
+   "target":"get",
+   "line":215
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"logout",
+   "target":"revoke_refresh_token",
+   "line":216
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/routers/session.py",
+   "source":"logout",
    "target":"clear_tile_auth_cookie",
-   "line":204
+   "line":219
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"logout",
    "target":"audit_log",
-   "line":206
+   "line":221
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"me",
    "target":"get",
-   "line":210
+   "line":225
   },
   {
    "owner":"auth",
    "file":"services/auth/routers/session.py",
    "source":"me",
    "target":"Depends",
-   "line":211
+   "line":226
   },
   {
    "owner":"auth",
@@ -37098,6 +37203,48 @@
    "source":"deactivate_user",
    "target":"get",
    "line":102
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/session_tokens.py",
+   "source":"consume_refresh_token",
+   "target":"getattr",
+   "line":38
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/session_tokens.py",
+   "source":"consume_refresh_token",
+   "target":"getdel",
+   "line":40
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/session_tokens.py",
+   "source":"consume_refresh_token",
+   "target":"pipeline",
+   "line":43
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/session_tokens.py",
+   "source":"consume_refresh_token",
+   "target":"get",
+   "line":44
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/session_tokens.py",
+   "source":"consume_refresh_token",
+   "target":"delete",
+   "line":45
+  },
+  {
+   "owner":"auth",
+   "file":"services/auth/session_tokens.py",
+   "source":"consume_refresh_token",
+   "target":"execute",
+   "line":46
   },
   {
    "owner":"auth",
@@ -94539,322 +94686,357 @@
    "file":"services/knowledge-graph/kg_store.py",
    "source":"_connect",
    "target":"connect",
-   "line":57
+   "line":73
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"_connect",
+   "target":"execute",
+   "line":75
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"_connect",
+   "target":"execute",
+   "line":77
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"_connect",
+   "target":"fetchone",
+   "line":77
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"_connect",
+   "target":"close",
+   "line":79
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"_connect",
+   "target":"RuntimeError",
+   "line":80
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
    "source":"_init_schema",
    "target":"_connect",
-   "line":62
+   "line":88
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
    "source":"_init_schema",
    "target":"execute",
-   "line":63
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"_init_schema",
-   "target":"execute",
-   "line":64
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"_init_schema",
-   "target":"execute",
-   "line":72
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"_init_schema",
-   "target":"execute",
-   "line":83
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"_init_schema",
-   "target":"execute",
-   "line":84
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"upsert_node",
-   "target":"_connect",
    "line":89
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
-   "source":"upsert_node",
+   "source":"_init_schema",
    "target":"execute",
    "line":90
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
-   "source":"upsert_node",
-   "target":"dumps",
-   "line":97
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"upsert_edge",
-   "target":"_connect",
-   "line":104
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"upsert_edge",
+   "source":"_init_schema",
    "target":"execute",
-   "line":105
+   "line":98
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
-   "source":"upsert_edge",
-   "target":"dumps",
+   "source":"_init_schema",
+   "target":"execute",
+   "line":109
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"_init_schema",
+   "target":"execute",
+   "line":110
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"upsert_node",
+   "target":"_connect",
    "line":115
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
+   "source":"upsert_node",
+   "target":"execute",
+   "line":116
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"upsert_node",
+   "target":"dumps",
+   "line":123
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"upsert_edge",
+   "target":"_connect",
+   "line":130
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"upsert_edge",
+   "target":"execute",
+   "line":131
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"upsert_edge",
+   "target":"dumps",
+   "line":141
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
    "source":"count_edges",
    "target":"_connect",
-   "line":120
+   "line":146
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
    "source":"count_edges",
    "target":"execute",
-   "line":121
+   "line":147
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
    "source":"count_edges",
    "target":"fetchone",
-   "line":121
+   "line":147
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
    "source":"count_edges",
    "target":"int",
-   "line":121
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"query_edges",
-   "target":"append",
-   "line":141
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"query_edges",
-   "target":"append",
-   "line":144
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"query_edges",
-   "target":"append",
    "line":147
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
    "source":"query_edges",
+   "target":"append",
+   "line":167
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"query_edges",
+   "target":"append",
+   "line":170
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"query_edges",
+   "target":"append",
+   "line":173
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"query_edges",
    "target":"_connect",
-   "line":148
+   "line":174
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
    "source":"query_edges",
    "target":"dict",
-   "line":149
+   "line":175
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
    "source":"query_edges",
    "target":"execute",
-   "line":149
+   "line":175
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
    "source":"query_edges",
    "target":"fetchall",
-   "line":149
+   "line":175
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
    "source":"graph_context_for_crop",
    "target":"query_edges",
-   "line":156
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"seed_reference_ontology",
-   "target":"count_edges",
-   "line":161
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"seed_reference_ontology",
-   "target":"GraphNode",
-   "line":164
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"seed_reference_ontology",
-   "target":"GraphNode",
-   "line":165
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"seed_reference_ontology",
-   "target":"GraphNode",
-   "line":166
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"seed_reference_ontology",
-   "target":"GraphNode",
-   "line":167
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"seed_reference_ontology",
-   "target":"GraphNode",
-   "line":168
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"seed_reference_ontology",
-   "target":"GraphNode",
-   "line":169
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"seed_reference_ontology",
-   "target":"upsert_node",
-   "line":177
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"seed_reference_ontology",
-   "target":"GraphEdge",
-   "line":179
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"seed_reference_ontology",
-   "target":"GraphEdge",
-   "line":180
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"seed_reference_ontology",
-   "target":"GraphEdge",
-   "line":181
-  },
-  {
-   "owner":"knowledge-graph",
-   "file":"services/knowledge-graph/kg_store.py",
-   "source":"seed_reference_ontology",
-   "target":"GraphEdge",
    "line":182
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
    "source":"seed_reference_ontology",
-   "target":"upsert_edge",
+   "target":"count_edges",
+   "line":187
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"seed_reference_ontology",
+   "target":"GraphNode",
+   "line":190
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"seed_reference_ontology",
+   "target":"GraphNode",
    "line":191
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
    "source":"seed_reference_ontology",
-   "target":"len",
+   "target":"GraphNode",
    "line":192
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"seed_reference_ontology",
+   "target":"GraphNode",
+   "line":193
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"seed_reference_ontology",
+   "target":"GraphNode",
+   "line":194
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"seed_reference_ontology",
+   "target":"GraphNode",
+   "line":195
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"seed_reference_ontology",
+   "target":"upsert_node",
+   "line":203
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"seed_reference_ontology",
+   "target":"GraphEdge",
+   "line":205
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"seed_reference_ontology",
+   "target":"GraphEdge",
+   "line":206
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"seed_reference_ontology",
+   "target":"GraphEdge",
+   "line":207
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"seed_reference_ontology",
+   "target":"GraphEdge",
+   "line":208
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"seed_reference_ontology",
+   "target":"upsert_edge",
+   "line":217
+  },
+  {
+   "owner":"knowledge-graph",
+   "file":"services/knowledge-graph/kg_store.py",
+   "source":"seed_reference_ontology",
+   "target":"len",
+   "line":218
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
    "source":"graphql_readonly",
    "target":"lower",
-   "line":201
+   "line":227
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
    "source":"graphql_readonly",
    "target":"ValueError",
-   "line":203
+   "line":229
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
    "source":"graphql_readonly",
    "target":"split",
-   "line":207
+   "line":233
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
    "source":"graphql_readonly",
    "target":"split",
-   "line":207
+   "line":233
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
    "source":"graphql_readonly",
    "target":"split",
-   "line":209
+   "line":235
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
    "source":"graphql_readonly",
    "target":"split",
-   "line":209
+   "line":235
   },
   {
    "owner":"knowledge-graph",
    "file":"services/knowledge-graph/kg_store.py",
    "source":"graphql_readonly",
    "target":"query_edges",
-   "line":210
+   "line":236
   },
   {
    "owner":"knowledge-graph",
@@ -109196,470 +109378,498 @@
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_ensure_sparse_index",
-   "target":"rebuild_sparse_index",
-   "line":51
+   "target":"monotonic",
+   "line":68
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_ensure_sparse_index",
    "target":"collection_point_count",
-   "line":56
-  },
-  {
-   "owner":"rag-retrieval",
-   "file":"services/rag-retrieval/main.py",
-   "source":"_ensure_sparse_index",
-   "target":"ValueError",
-   "line":58
-  },
-  {
-   "owner":"rag-retrieval",
-   "file":"services/rag-retrieval/main.py",
-   "source":"_ensure_sparse_index",
-   "target":"ValueError",
-   "line":60
+   "line":72
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_ensure_sparse_index",
    "target":"get",
-   "line":65
+   "line":76
+  },
+  {
+   "owner":"rag-retrieval",
+   "file":"services/rag-retrieval/main.py",
+   "source":"_ensure_sparse_index",
+   "target":"rebuild_sparse_index",
+   "line":81
+  },
+  {
+   "owner":"rag-retrieval",
+   "file":"services/rag-retrieval/main.py",
+   "source":"_ensure_sparse_index",
+   "target":"collection_point_count",
+   "line":86
+  },
+  {
+   "owner":"rag-retrieval",
+   "file":"services/rag-retrieval/main.py",
+   "source":"_ensure_sparse_index",
+   "target":"ValueError",
+   "line":88
+  },
+  {
+   "owner":"rag-retrieval",
+   "file":"services/rag-retrieval/main.py",
+   "source":"_ensure_sparse_index",
+   "target":"ValueError",
+   "line":90
+  },
+  {
+   "owner":"rag-retrieval",
+   "file":"services/rag-retrieval/main.py",
+   "source":"_ensure_sparse_index",
+   "target":"get",
+   "line":95
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_ensure_sparse_index",
    "target":"items",
-   "line":66
+   "line":96
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_ensure_sparse_index",
    "target":"join",
-   "line":66
+   "line":96
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_ensure_sparse_index",
    "target":"sorted",
-   "line":66
+   "line":96
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_ensure_sparse_index",
    "target":"ValueError",
-   "line":67
+   "line":97
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_ensure_sparse_index",
    "target":"readiness_problems",
-   "line":80
+   "line":110
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_ensure_sparse_index",
    "target":"ValueError",
-   "line":82
+   "line":112
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_ensure_sparse_index",
    "target":"join",
-   "line":82
+   "line":112
+  },
+  {
+   "owner":"rag-retrieval",
+   "file":"services/rag-retrieval/main.py",
+   "source":"_ensure_sparse_index",
+   "target":"monotonic",
+   "line":115
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"healthz",
    "target":"get",
-   "line":113
+   "line":144
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"metrics",
    "target":"get",
-   "line":118
+   "line":149
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"metrics",
    "target":"join",
-   "line":120
+   "line":151
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"metrics",
    "target":"Response",
-   "line":128
+   "line":159
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"readyz",
    "target":"get",
-   "line":131
+   "line":162
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"readyz",
    "target":"embed",
-   "line":137
+   "line":168
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"readyz",
    "target":"collection_vector_size",
-   "line":138
+   "line":169
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"readyz",
    "target":"len",
-   "line":139
+   "line":170
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"readyz",
    "target":"ValueError",
-   "line":140
+   "line":171
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"readyz",
    "target":"len",
-   "line":141
+   "line":172
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"readyz",
    "target":"_ensure_sparse_index",
-   "line":143
+   "line":174
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"readyz",
    "target":"HTTPException",
-   "line":145
+   "line":176
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"ingest",
    "target":"post",
-   "line":168
+   "line":199
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"ingest",
    "target":"Header",
-   "line":171
+   "line":202
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"ingest",
    "target":"Depends",
-   "line":172
+   "line":203
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"ingest",
    "target":"resolve_trusted_tenant",
-   "line":181
+   "line":212
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"ingest",
    "target":"HTTPException",
-   "line":183
-  },
-  {
-   "owner":"rag-retrieval",
-   "file":"services/rag-retrieval/main.py",
-   "source":"ingest",
-   "target":"HTTPException",
-   "line":185
-  },
-  {
-   "owner":"rag-retrieval",
-   "file":"services/rag-retrieval/main.py",
-   "source":"ingest",
-   "target":"model_dump",
-   "line":186
-  },
-  {
-   "owner":"rag-retrieval",
-   "file":"services/rag-retrieval/main.py",
-   "source":"ingest",
-   "target":"setdefault",
-   "line":192
-  },
-  {
-   "owner":"rag-retrieval",
-   "file":"services/rag-retrieval/main.py",
-   "source":"ingest",
-   "target":"KnowledgeChunk",
-   "line":194
-  },
-  {
-   "owner":"rag-retrieval",
-   "file":"services/rag-retrieval/main.py",
-   "source":"ingest",
-   "target":"append",
-   "line":194
-  },
-  {
-   "owner":"rag-retrieval",
-   "file":"services/rag-retrieval/main.py",
-   "source":"ingest",
-   "target":"HTTPException",
-   "line":196
-  },
-  {
-   "owner":"rag-retrieval",
-   "file":"services/rag-retrieval/main.py",
-   "source":"ingest",
-   "target":"str",
-   "line":198
-  },
-  {
-   "owner":"rag-retrieval",
-   "file":"services/rag-retrieval/main.py",
-   "source":"ingest",
-   "target":"HTTPException",
-   "line":208
-  },
-  {
-   "owner":"rag-retrieval",
-   "file":"services/rag-retrieval/main.py",
-   "source":"ingest",
-   "target":"str",
-   "line":208
-  },
-  {
-   "owner":"rag-retrieval",
-   "file":"services/rag-retrieval/main.py",
-   "source":"_verify_search_user",
-   "target":"access_token_verification_key",
    "line":214
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
-   "source":"_verify_search_user",
+   "source":"ingest",
    "target":"HTTPException",
    "line":216
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
+   "source":"ingest",
+   "target":"model_dump",
+   "line":217
+  },
+  {
+   "owner":"rag-retrieval",
+   "file":"services/rag-retrieval/main.py",
+   "source":"ingest",
+   "target":"setdefault",
+   "line":223
+  },
+  {
+   "owner":"rag-retrieval",
+   "file":"services/rag-retrieval/main.py",
+   "source":"ingest",
+   "target":"KnowledgeChunk",
+   "line":225
+  },
+  {
+   "owner":"rag-retrieval",
+   "file":"services/rag-retrieval/main.py",
+   "source":"ingest",
+   "target":"append",
+   "line":225
+  },
+  {
+   "owner":"rag-retrieval",
+   "file":"services/rag-retrieval/main.py",
+   "source":"ingest",
+   "target":"HTTPException",
+   "line":227
+  },
+  {
+   "owner":"rag-retrieval",
+   "file":"services/rag-retrieval/main.py",
+   "source":"ingest",
+   "target":"str",
+   "line":229
+  },
+  {
+   "owner":"rag-retrieval",
+   "file":"services/rag-retrieval/main.py",
+   "source":"ingest",
+   "target":"HTTPException",
+   "line":239
+  },
+  {
+   "owner":"rag-retrieval",
+   "file":"services/rag-retrieval/main.py",
+   "source":"ingest",
+   "target":"str",
+   "line":239
+  },
+  {
+   "owner":"rag-retrieval",
+   "file":"services/rag-retrieval/main.py",
+   "source":"_verify_search_user",
+   "target":"access_token_verification_key",
+   "line":245
+  },
+  {
+   "owner":"rag-retrieval",
+   "file":"services/rag-retrieval/main.py",
+   "source":"_verify_search_user",
+   "target":"HTTPException",
+   "line":247
+  },
+  {
+   "owner":"rag-retrieval",
+   "file":"services/rag-retrieval/main.py",
    "source":"_verify_search_user",
    "target":"split",
-   "line":218
+   "line":249
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_verify_search_user",
    "target":"strip",
-   "line":218
+   "line":249
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_verify_search_user",
    "target":"verify_access_token",
-   "line":218
+   "line":249
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_verify_search_user",
    "target":"HTTPException",
-   "line":220
+   "line":251
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_search_identity",
    "target":"Header",
-   "line":225
+   "line":256
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_search_identity",
    "target":"Header",
-   "line":226
+   "line":257
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_search_identity",
    "target":"Header",
-   "line":227
+   "line":258
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_search_identity",
    "target":"getenv",
-   "line":229
+   "line":260
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_search_identity",
    "target":"service_token_ok",
-   "line":229
+   "line":260
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_search_identity",
    "target":"lower",
-   "line":231
+   "line":262
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_search_identity",
    "target":"startswith",
-   "line":231
+   "line":262
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_search_identity",
    "target":"_verify_search_user",
-   "line":232
+   "line":263
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_search_identity",
    "target":"strip",
-   "line":233
+   "line":264
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_search_identity",
    "target":"HTTPException",
-   "line":234
+   "line":265
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_search_identity",
    "target":"HTTPException",
-   "line":236
+   "line":267
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_search_identity",
    "target":"resolve_trusted_tenant",
-   "line":238
+   "line":269
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"_search_identity",
    "target":"HTTPException",
-   "line":240
+   "line":271
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"search",
    "target":"post",
-   "line":243
+   "line":274
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"search",
    "target":"Depends",
-   "line":244
+   "line":275
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"search",
    "target":"resolve_trusted_tenant",
-   "line":247
+   "line":278
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"search",
    "target":"HTTPException",
-   "line":249
+   "line":280
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"search",
    "target":"HTTPException",
-   "line":251
+   "line":282
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"search",
    "target":"HTTPException",
-   "line":253
+   "line":284
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"search",
    "target":"_ensure_sparse_index",
-   "line":255
+   "line":286
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"search",
    "target":"HTTPException",
-   "line":257
+   "line":288
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"search",
    "target":"retrieve",
-   "line":264
+   "line":295
   },
   {
    "owner":"rag-retrieval",
    "file":"services/rag-retrieval/main.py",
    "source":"search",
    "target":"as_annotation",
-   "line":265
+   "line":296
   },
   {
    "owner":"rag-retrieval",
@@ -309138,203 +309348,203 @@
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"kc_from_ndvi",
    "target":"get",
-   "line":128
+   "line":158
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"kc_from_ndvi",
    "target":"max",
-   "line":131
+   "line":161
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"kc_from_ndvi",
    "target":"min",
-   "line":131
+   "line":161
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"kc_from_ndvi",
    "target":"get",
-   "line":132
+   "line":162
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"kc_from_ndvi",
    "target":"get",
-   "line":133
+   "line":163
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"kc_from_ndvi",
    "target":"max",
-   "line":135
+   "line":165
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"kc_from_ndvi",
    "target":"min",
-   "line":135
+   "line":165
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"_forecast_defer",
    "target":"max",
-   "line":162
+   "line":192
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"_forecast_defer",
    "target":"max",
-   "line":162
+   "line":192
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"_forecast_defer",
    "target":"min",
-   "line":162
+   "line":192
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"_forecast_defer",
    "target":"min",
-   "line":162
+   "line":192
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"_salinity_hook",
    "target":"crop_kc_profile",
-   "line":190
+   "line":220
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"_salinity_hook",
    "target":"resolve_crop_id",
-   "line":190
+   "line":220
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"_salinity_hook",
    "target":"_fao56_salinity_stress_ks",
-   "line":197
+   "line":227
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"_salinity_hook",
    "target":"append",
-   "line":200
+   "line":230
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"_salinity_hook",
    "target":"max",
-   "line":205
+   "line":235
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"_salinity_hook",
    "target":"_fao56_leaching_requirement",
-   "line":207
+   "line":237
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"_salinity_hook",
    "target":"append",
-   "line":210
+   "line":240
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"_salinity_hook",
    "target":"join",
-   "line":211
+   "line":241
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"water_balance",
    "target":"float",
-   "line":246
+   "line":276
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"water_balance",
    "target":"get",
-   "line":249
+   "line":279
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"water_balance",
    "target":"kc_from_ndvi",
-   "line":257
+   "line":287
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"water_balance",
    "target":"_effective_rain",
-   "line":261
+   "line":291
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"water_balance",
    "target":"max",
-   "line":262
+   "line":292
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"water_balance",
    "target":"_salinity_hook",
-   "line":268
+   "line":298
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"water_balance",
    "target":"_forecast_defer",
-   "line":283
+   "line":313
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"water_balance",
    "target":"WaterBalanceResult",
-   "line":293
+   "line":323
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"water_balance_auto",
    "target":"salinity_decision",
-   "line":336
+   "line":366
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_balance.py",
    "source":"water_balance_auto",
    "target":"water_balance",
-   "line":344
+   "line":374
   },
   {
    "owner":"sahool-platform",
@@ -310061,148 +310271,225 @@
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
-   "target":"ValueError",
-   "line":80
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/water_ledger_auto.py",
-   "source":"compute_daily_ledger_entry",
-   "target":"ValueError",
-   "line":82
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/water_ledger_auto.py",
-   "source":"compute_daily_ledger_entry",
-   "target":"append",
-   "line":88
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/water_ledger_auto.py",
-   "source":"compute_daily_ledger_entry",
-   "target":"append",
-   "line":93
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/water_ledger_auto.py",
-   "source":"compute_daily_ledger_entry",
-   "target":"float",
-   "line":96
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/water_ledger_auto.py",
-   "source":"compute_daily_ledger_entry",
-   "target":"append",
-   "line":98
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/water_ledger_auto.py",
-   "source":"compute_daily_ledger_entry",
-   "target":"max",
-   "line":99
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/water_ledger_auto.py",
-   "source":"compute_daily_ledger_entry",
-   "target":"min",
-   "line":99
-  },
-  {
-   "owner":"sahool-platform",
-   "file":"services/sahool-platform/api/water_ledger_auto.py",
-   "source":"compute_daily_ledger_entry",
-   "target":"round",
+   "target":"isinstance",
    "line":101
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
-   "target":"_effective_rain",
+   "target":"isinstance",
+   "line":101
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"ValueError",
    "line":102
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
-   "target":"append",
+   "target":"isfinite",
+   "line":103
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"ValueError",
    "line":104
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
+   "target":"isinstance",
+   "line":109
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"isinstance",
+   "line":109
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"ValueError",
+   "line":110
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"isfinite",
+   "line":111
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"ValueError",
+   "line":112
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"ValueError",
+   "line":115
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"ValueError",
+   "line":117
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"ValueError",
+   "line":120
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
    "target":"append",
-   "line":108
+   "line":126
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"append",
+   "line":131
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"float",
+   "line":134
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"append",
+   "line":136
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"max",
-   "line":111
+   "line":137
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"min",
-   "line":111
+   "line":137
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"round",
-   "line":111
+   "line":139
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"_effective_rain",
+   "line":140
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"append",
-   "line":114
+   "line":142
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"append",
+   "line":146
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"max",
-   "line":117
+   "line":149
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"min",
+   "line":149
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"round",
-   "line":117
+   "line":149
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"append",
+   "line":152
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"max",
+   "line":155
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"round",
-   "line":121
+   "line":155
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/api/water_ledger_auto.py",
+   "source":"compute_daily_ledger_entry",
+   "target":"round",
+   "line":159
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"intersection",
-   "line":130
+   "line":168
   },
   {
    "owner":"sahool-platform",
    "file":"services/sahool-platform/api/water_ledger_auto.py",
    "source":"compute_daily_ledger_entry",
    "target":"join",
-   "line":134
+   "line":172
   },
   {
    "owner":"sahool-platform",
@@ -460251,6 +460538,195 @@
   },
   {
    "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"_ok",
+   "target":"dict",
+   "line":414
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"_ok",
+   "target":"update",
+   "line":423
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_effective_rain_never_exceeds_the_rain_that_fell",
+   "target":"parametrize",
+   "line":427
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_effective_rain_never_exceeds_the_rain_that_fell",
+   "target":"_effective_rain",
+   "line":435
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_effective_rain_is_continuous_at_the_scs_breakpoint",
+   "target":"_effective_rain",
+   "line":445
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_effective_rain_is_continuous_at_the_scs_breakpoint",
+   "target":"_effective_rain",
+   "line":446
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_effective_rain_is_continuous_at_the_scs_breakpoint",
+   "target":"abs",
+   "line":447
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_effective_rain_is_continuous_at_the_scs_breakpoint",
+   "target":"abs",
+   "line":447
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_effective_rain_is_continuous_at_the_scs_breakpoint",
+   "target":"_effective_rain",
+   "line":448
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_effective_rain_is_continuous_at_the_scs_breakpoint",
+   "target":"approx",
+   "line":448
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_a_non_finite_input_is_rejected_not_turned_into_a_plausible_number",
+   "target":"float",
+   "line":451
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_a_non_finite_input_is_rejected_not_turned_into_a_plausible_number",
+   "target":"float",
+   "line":451
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_a_non_finite_input_is_rejected_not_turned_into_a_plausible_number",
+   "target":"float",
+   "line":451
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_a_non_finite_input_is_rejected_not_turned_into_a_plausible_number",
+   "target":"parametrize",
+   "line":451
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_a_non_finite_input_is_rejected_not_turned_into_a_plausible_number",
+   "target":"parametrize",
+   "line":452
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_a_non_finite_input_is_rejected_not_turned_into_a_plausible_number",
+   "target":"raises",
+   "line":460
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_a_non_finite_input_is_rejected_not_turned_into_a_plausible_number",
+   "target":"_ok",
+   "line":461
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_a_non_finite_input_is_rejected_not_turned_into_a_plausible_number",
+   "target":"compute_daily_ledger_entry",
+   "line":461
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_a_boolean_is_not_accepted_where_a_measurement_is_required",
+   "target":"raises",
+   "line":466
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_a_boolean_is_not_accepted_where_a_measurement_is_required",
+   "target":"_ok",
+   "line":467
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_a_boolean_is_not_accepted_where_a_measurement_is_required",
+   "target":"compute_daily_ledger_entry",
+   "line":467
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_raw_above_taw_is_rejected_as_an_inverted_capacity_relation",
+   "target":"raises",
+   "line":472
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_raw_above_taw_is_rejected_as_an_inverted_capacity_relation",
+   "target":"_ok",
+   "line":473
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_raw_above_taw_is_rejected_as_an_inverted_capacity_relation",
+   "target":"compute_daily_ledger_entry",
+   "line":473
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_a_sound_day_still_computes_after_the_new_guards",
+   "target":"_ok",
+   "line":478
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_a_sound_day_still_computes_after_the_new_guards",
+   "target":"compute_daily_ledger_entry",
+   "line":478
+  },
+  {
+   "owner":"sahool-platform",
+   "file":"services/sahool-platform/tests/test_water_ledger_auto.py",
+   "source":"test_a_sound_day_still_computes_after_the_new_guards",
+   "target":"approx",
+   "line":480
+  },
+  {
+   "owner":"sahool-platform",
    "file":"services/sahool-platform/tests/test_water_twin_sensor_join.py",
    "source":"_reading",
    "target":"timedelta",
@@ -473470,651 +473946,721 @@
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
    "target":"_tenant_conn",
-   "line":131
+   "line":132
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
-   "source":"field_in_tenant",
+   "source":"fetch_existing_trust",
    "target":"_tenant_conn",
-   "line":131
+   "line":132
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
-   "target":"bool",
-   "line":133
+   "target":"fetchrow",
+   "line":134
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
-   "source":"_ports",
-   "target":"fetchval",
-   "line":133
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"field_in_tenant",
-   "target":"bool",
-   "line":133
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"field_in_tenant",
-   "target":"fetchval",
-   "line":133
+   "source":"fetch_existing_trust",
+   "target":"fetchrow",
+   "line":134
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
    "target":"close",
-   "line":135
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"field_in_tenant",
-   "target":"close",
-   "line":135
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_ports",
-   "target":"_tenant_conn",
    "line":141
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
-   "source":"store",
-   "target":"_tenant_conn",
+   "source":"fetch_existing_trust",
+   "target":"close",
    "line":141
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
-   "target":"execute",
-   "line":143
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"store",
-   "target":"execute",
-   "line":143
+   "target":"str",
+   "line":144
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
-   "target":"dumps",
-   "line":161
+   "target":"tuple",
+   "line":144
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
-   "source":"store",
-   "target":"dumps",
-   "line":161
+   "source":"fetch_existing_trust",
+   "target":"str",
+   "line":144
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"fetch_existing_trust",
+   "target":"tuple",
+   "line":144
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
-   "target":"dumps",
-   "line":163
+   "target":"_tenant_conn",
+   "line":147
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
-   "source":"store",
-   "target":"dumps",
-   "line":163
+   "source":"field_in_tenant",
+   "target":"_tenant_conn",
+   "line":147
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_ports",
+   "target":"bool",
+   "line":149
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_ports",
+   "target":"fetchval",
+   "line":149
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"field_in_tenant",
+   "target":"bool",
+   "line":149
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"field_in_tenant",
+   "target":"fetchval",
+   "line":149
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
    "target":"close",
-   "line":168
+   "line":151
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"field_in_tenant",
+   "target":"close",
+   "line":151
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_ports",
+   "target":"_tenant_conn",
+   "line":157
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"store",
+   "target":"_tenant_conn",
+   "line":157
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_ports",
+   "target":"fetchval",
+   "line":159
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"store",
+   "target":"fetchval",
+   "line":159
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_ports",
+   "target":"dumps",
+   "line":180
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"store",
+   "target":"dumps",
+   "line":180
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_ports",
+   "target":"dumps",
+   "line":182
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"store",
+   "target":"dumps",
+   "line":182
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_ports",
+   "target":"close",
+   "line":188
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"store",
    "target":"close",
-   "line":168
+   "line":188
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_ports",
    "target":"IngestPorts",
-   "line":170
+   "line":190
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"healthz",
    "target":"get",
-   "line":178
+   "line":199
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"readyz",
    "target":"get",
-   "line":183
+   "line":204
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"readyz",
    "target":"HTTPException",
-   "line":188
+   "line":209
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"readyz",
    "target":"_connect",
-   "line":190
+   "line":211
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"readyz",
    "target":"fetchval",
-   "line":192
+   "line":213
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"readyz",
    "target":"close",
-   "line":194
+   "line":215
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"readyz",
    "target":"HTTPException",
-   "line":198
+   "line":219
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"readyz",
    "target":"_enabled",
-   "line":202
+   "line":223
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_require_read_token",
    "target":"HTTPException",
-   "line":213
+   "line":234
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_require_read_token",
    "target":"service_token_ok",
-   "line":216
+   "line":237
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_require_read_token",
    "target":"HTTPException",
-   "line":217
+   "line":238
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"read_external_observations",
    "target":"get",
-   "line":220
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"read_external_observations",
-   "target":"Header",
-   "line":223
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"read_external_observations",
-   "target":"Header",
-   "line":224
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"read_external_observations",
-   "target":"_require_read_token",
-   "line":230
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"read_external_observations",
-   "target":"HTTPException",
-   "line":232
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"read_external_observations",
-   "target":"UUID",
-   "line":234
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"read_external_observations",
-   "target":"str",
-   "line":234
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"read_external_observations",
-   "target":"HTTPException",
-   "line":236
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"read_external_observations",
-   "target":"_connect",
-   "line":237
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"read_external_observations",
-   "target":"execute",
-   "line":239
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"read_external_observations",
-   "target":"fetch",
    "line":241
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"read_external_observations",
-   "target":"fetch",
-   "line":248
+   "target":"Header",
+   "line":244
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"read_external_observations",
+   "target":"Header",
+   "line":245
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"read_external_observations",
+   "target":"_require_read_token",
+   "line":251
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"read_external_observations",
    "target":"HTTPException",
-   "line":256
+   "line":253
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"read_external_observations",
-   "target":"close",
+   "target":"UUID",
+   "line":255
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"read_external_observations",
+   "target":"str",
+   "line":255
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"read_external_observations",
+   "target":"HTTPException",
+   "line":257
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"read_external_observations",
+   "target":"_connect",
    "line":258
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"read_external_observations",
+   "target":"execute",
+   "line":260
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"read_external_observations",
+   "target":"fetch",
+   "line":262
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"read_external_observations",
+   "target":"fetch",
+   "line":269
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"read_external_observations",
+   "target":"HTTPException",
+   "line":277
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"read_external_observations",
+   "target":"close",
+   "line":279
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"read_external_observations",
    "target":"dict",
-   "line":259
+   "line":280
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"read_external_observations",
    "target":"len",
-   "line":259
+   "line":280
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_instance_for_raw_ref",
    "target":"get",
-   "line":265
+   "line":286
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_instance_for_raw_ref",
    "target":"get",
-   "line":265
+   "line":286
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_instance_for_raw_ref",
    "target":"isinstance",
-   "line":265
+   "line":286
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_instance_for_raw_ref",
    "target":"str",
-   "line":266
+   "line":287
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_instance_for_raw_ref",
    "target":"get",
-   "line":267
+   "line":288
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_instance_for_raw_ref",
    "target":"get",
-   "line":268
+   "line":289
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_instance_for_raw_ref",
    "target":"get",
-   "line":269
+   "line":290
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_instance_for_raw_ref",
    "target":"get",
-   "line":270
+   "line":291
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_instance_for_raw_ref",
    "target":"get",
-   "line":273
+   "line":294
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_instance_for_raw_ref",
    "target":"get",
-   "line":273
+   "line":294
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_instance_for_raw_ref",
    "target":"isinstance",
-   "line":273
+   "line":294
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_instance_for_raw_ref",
    "target":"get",
-   "line":274
+   "line":295
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_instance_for_raw_ref",
    "target":"get",
-   "line":274
+   "line":295
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_instance_for_raw_ref",
    "target":"str",
-   "line":274
+   "line":295
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"_enabled",
-   "line":279
+   "line":300
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"HTTPException",
-   "line":280
+   "line":301
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"HTTPException",
-   "line":282
+   "line":303
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"isinstance",
-   "line":283
+   "line":304
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"HTTPException",
-   "line":284
+   "line":305
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"encode",
-   "line":286
+   "line":307
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"hexdigest",
-   "line":286
+   "line":307
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"sha256",
-   "line":286
+   "line":307
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"_resolve_source",
-   "line":288
+   "line":309
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"HTTPException",
-   "line":292
+   "line":313
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"HTTPException",
-   "line":294
+   "line":315
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"_instance_for_raw_ref",
-   "line":297
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_handle_submission",
-   "target":"dict",
-   "line":299
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_handle_submission",
-   "target":"now",
-   "line":306
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_handle_submission",
-   "target":"_normalize_kobo",
-   "line":310
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_handle_submission",
-   "target":"build_envelope_from_kobo",
-   "line":310
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_handle_submission",
-   "target":"_normalize_odk",
-   "line":312
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_handle_submission",
-   "target":"build_envelope_from_odk",
-   "line":312
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_handle_submission",
-   "target":"_ports",
-   "line":314
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_handle_submission",
-   "target":"process_submission",
-   "line":314
-  },
-  {
-   "owner":"scout-ingest-service",
-   "file":"services/scout-ingest-service/main.py",
-   "source":"_handle_submission",
-   "target":"HTTPException",
    "line":318
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
+   "target":"dict",
+   "line":320
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_handle_submission",
+   "target":"now",
+   "line":327
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_handle_submission",
+   "target":"_normalize_kobo",
+   "line":331
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_handle_submission",
+   "target":"build_envelope_from_kobo",
+   "line":331
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_handle_submission",
+   "target":"_normalize_odk",
+   "line":333
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_handle_submission",
+   "target":"build_envelope_from_odk",
+   "line":333
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_handle_submission",
+   "target":"_ports",
+   "line":335
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_handle_submission",
+   "target":"process_submission",
+   "line":335
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_handle_submission",
+   "target":"HTTPException",
+   "line":339
+  },
+  {
+   "owner":"scout-ingest-service",
+   "file":"services/scout-ingest-service/main.py",
+   "source":"_handle_submission",
    "target":"JSONResponse",
-   "line":321
+   "line":342
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_handle_submission",
    "target":"list",
-   "line":327
+   "line":348
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_parse_body",
    "target":"json",
-   "line":334
+   "line":355
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"_parse_body",
    "target":"HTTPException",
-   "line":336
+   "line":357
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"ingest_odk_submission",
    "target":"post",
-   "line":339
+   "line":360
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"ingest_odk_submission",
    "target":"Header",
-   "line":342
+   "line":363
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"ingest_odk_submission",
    "target":"_handle_submission",
-   "line":345
+   "line":366
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"ingest_odk_submission",
    "target":"_parse_body",
-   "line":345
+   "line":366
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"ingest_kobo_submission",
    "target":"post",
-   "line":348
+   "line":369
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"ingest_kobo_submission",
    "target":"Header",
-   "line":351
+   "line":372
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"ingest_kobo_submission",
    "target":"_handle_submission",
-   "line":354
+   "line":375
   },
   {
    "owner":"scout-ingest-service",
    "file":"services/scout-ingest-service/main.py",
    "source":"ingest_kobo_submission",
    "target":"_parse_body",
-   "line":354
+   "line":375
   },
   {
    "owner":"scout-ingest-service",
@@ -532858,126 +533404,154 @@
    "file":"shared/contracts/ingest/ingest_handler.py",
    "source":"_row",
    "target":"list",
-   "line":67
+   "line":75
   },
   {
    "owner":"shared",
    "file":"shared/contracts/ingest/ingest_handler.py",
    "source":"process_submission",
    "target":"fetch_existing_content_hash",
-   "line":77
-  },
-  {
-   "owner":"shared",
-   "file":"shared/contracts/ingest/ingest_handler.py",
-   "source":"process_submission",
-   "target":"resolve_dedup",
-   "line":78
-  },
-  {
-   "owner":"shared",
-   "file":"shared/contracts/ingest/ingest_handler.py",
-   "source":"process_submission",
-   "target":"IngestResult",
    "line":85
   },
   {
    "owner":"shared",
    "file":"shared/contracts/ingest/ingest_handler.py",
    "source":"process_submission",
-   "target":"store_row",
-   "line":88
+   "target":"resolve_dedup",
+   "line":86
   },
   {
    "owner":"shared",
    "file":"shared/contracts/ingest/ingest_handler.py",
    "source":"process_submission",
-   "target":"_row",
-   "line":89
+   "target":"fetch_existing_trust",
+   "line":102
   },
   {
    "owner":"shared",
    "file":"shared/contracts/ingest/ingest_handler.py",
    "source":"process_submission",
    "target":"IngestResult",
-   "line":97
+   "line":105
   },
   {
    "owner":"shared",
    "file":"shared/contracts/ingest/ingest_handler.py",
    "source":"process_submission",
-   "target":"get",
-   "line":102
-  },
-  {
-   "owner":"shared",
-   "file":"shared/contracts/ingest/ingest_handler.py",
-   "source":"process_submission",
-   "target":"isinstance",
-   "line":102
-  },
-  {
-   "owner":"shared",
-   "file":"shared/contracts/ingest/ingest_handler.py",
-   "source":"process_submission",
-   "target":"bool",
-   "line":103
-  },
-  {
-   "owner":"shared",
-   "file":"shared/contracts/ingest/ingest_handler.py",
-   "source":"process_submission",
-   "target":"field_resolves_in_tenant",
-   "line":103
-  },
-  {
-   "owner":"shared",
-   "file":"shared/contracts/ingest/ingest_handler.py",
-   "source":"process_submission",
-   "target":"str",
-   "line":104
-  },
-  {
-   "owner":"shared",
-   "file":"shared/contracts/ingest/ingest_handler.py",
-   "source":"process_submission",
-   "target":"values_within_bounds",
+   "target":"tuple",
    "line":106
   },
   {
    "owner":"shared",
    "file":"shared/contracts/ingest/ingest_handler.py",
    "source":"process_submission",
-   "target":"ValidationContext",
-   "line":107
-  },
-  {
-   "owner":"shared",
-   "file":"shared/contracts/ingest/ingest_handler.py",
-   "source":"process_submission",
-   "target":"validate_external_submission",
-   "line":115
+   "target":"IngestResult",
+   "line":110
   },
   {
    "owner":"shared",
    "file":"shared/contracts/ingest/ingest_handler.py",
    "source":"process_submission",
    "target":"store_row",
-   "line":117
-  },
-  {
-   "owner":"shared",
-   "file":"shared/contracts/ingest/ingest_handler.py",
-   "source":"process_submission",
-   "target":"_row",
    "line":118
   },
   {
    "owner":"shared",
    "file":"shared/contracts/ingest/ingest_handler.py",
    "source":"process_submission",
+   "target":"_row",
+   "line":119
+  },
+  {
+   "owner":"shared",
+   "file":"shared/contracts/ingest/ingest_handler.py",
+   "source":"process_submission",
    "target":"IngestResult",
-   "line":126
+   "line":127
+  },
+  {
+   "owner":"shared",
+   "file":"shared/contracts/ingest/ingest_handler.py",
+   "source":"process_submission",
+   "target":"get",
+   "line":132
+  },
+  {
+   "owner":"shared",
+   "file":"shared/contracts/ingest/ingest_handler.py",
+   "source":"process_submission",
+   "target":"isinstance",
+   "line":132
+  },
+  {
+   "owner":"shared",
+   "file":"shared/contracts/ingest/ingest_handler.py",
+   "source":"process_submission",
+   "target":"bool",
+   "line":133
+  },
+  {
+   "owner":"shared",
+   "file":"shared/contracts/ingest/ingest_handler.py",
+   "source":"process_submission",
+   "target":"field_resolves_in_tenant",
+   "line":133
+  },
+  {
+   "owner":"shared",
+   "file":"shared/contracts/ingest/ingest_handler.py",
+   "source":"process_submission",
+   "target":"str",
+   "line":134
+  },
+  {
+   "owner":"shared",
+   "file":"shared/contracts/ingest/ingest_handler.py",
+   "source":"process_submission",
+   "target":"values_within_bounds",
+   "line":136
+  },
+  {
+   "owner":"shared",
+   "file":"shared/contracts/ingest/ingest_handler.py",
+   "source":"process_submission",
+   "target":"ValidationContext",
+   "line":137
+  },
+  {
+   "owner":"shared",
+   "file":"shared/contracts/ingest/ingest_handler.py",
+   "source":"process_submission",
+   "target":"validate_external_submission",
+   "line":145
+  },
+  {
+   "owner":"shared",
+   "file":"shared/contracts/ingest/ingest_handler.py",
+   "source":"process_submission",
+   "target":"store_row",
+   "line":147
+  },
+  {
+   "owner":"shared",
+   "file":"shared/contracts/ingest/ingest_handler.py",
+   "source":"process_submission",
+   "target":"_row",
+   "line":148
+  },
+  {
+   "owner":"shared",
+   "file":"shared/contracts/ingest/ingest_handler.py",
+   "source":"process_submission",
+   "target":"IngestResult",
+   "line":171
+  },
+  {
+   "owner":"shared",
+   "file":"shared/contracts/ingest/ingest_handler.py",
+   "source":"process_submission",
+   "target":"IngestResult",
+   "line":177
   },
   {
    "owner":"shared",
@@ -572240,23 +572814,6 @@
      "symbol":"test_main_imports_and_builds_app",
      "line":39,
      "owner":"video-processor"
-    }
-   ]
-  },
-  {
-   "fingerprint":"406980d4b6534c4a",
-   "occurrences":[
-    {
-     "file":"services/ai_agronomist/approval.py",
-     "symbol":"_redact",
-     "line":37,
-     "owner":"ai-agronomist"
-    },
-    {
-     "file":"services/ai_agronomist/tool_executor.py",
-     "symbol":"_redact",
-     "line":91,
-     "owner":"ai-agronomist"
     }
    ]
   },

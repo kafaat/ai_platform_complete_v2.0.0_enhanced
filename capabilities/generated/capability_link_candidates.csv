@@ -84,7 +84,7 @@ DEC-003,api,POST /api/v1/learning/activation-requests/{activation_request_id}/re
 DEC-003,api,POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:633,2,applied
 DEC-003,api,POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:684,2,applied
 DEC-003,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:523,2,applied
-DEC-003,api,POST /v1/approvals/approve @ services/ai_agronomist/main.py:172,2,applied
+DEC-003,api,POST /v1/approvals/approve @ services/ai_agronomist/main.py:223,2,applied
 DEC-003,api,POST /v1/approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:42,2,applied
 DEC-003,api,POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:721,3,applied
 DEC-003,api,POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2143,3,applied
@@ -253,7 +253,7 @@ FM-001,api,GET /runtime-identity @ services/auth/main.py:400,3,applied
 FM-001,api,GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:702,2,applied
 FM-001,api,GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41,3,applied
 FM-001,api,GET /v1/auth/invitations @ services/auth/routers/invitations.py:84,3,applied
-FM-001,api,GET /v1/auth/me @ services/auth/routers/session.py:211,3,applied
+FM-001,api,GET /v1/auth/me @ services/auth/routers/session.py:226,3,applied
 FM-001,api,GET /v1/auth/users @ services/auth/routers/users.py:22,3,applied
 FM-001,api,GET /v1/auth/verify @ services/auth/routers/email_verify.py:97,3,applied
 FM-001,api,GET /v1/auth/verify/status @ services/auth/routers/email_verify.py:107,3,applied
@@ -265,14 +265,14 @@ FM-001,api,POST /api/v1/auth/signup @ services/sahool-platform/api/routers/auth.
 FM-001,api,POST /v1/auth/change-password @ services/auth/routers/registration.py:74,3,applied
 FM-001,api,POST /v1/auth/invitations @ services/auth/routers/invitations.py:25,3,applied
 FM-001,api,POST /v1/auth/invitations/accept @ services/auth/routers/invitations.py:115,3,applied
-FM-001,api,POST /v1/auth/login @ services/auth/routers/session.py:24,3,applied
-FM-001,api,POST /v1/auth/logout @ services/auth/routers/session.py:167,3,applied
+FM-001,api,POST /v1/auth/login @ services/auth/routers/session.py:25,3,applied
+FM-001,api,POST /v1/auth/logout @ services/auth/routers/session.py:182,3,applied
 FM-001,api,POST /v1/auth/mfa/activate @ services/auth/routers/mfa.py:74,3,applied
 FM-001,api,POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:144,3,applied
 FM-001,api,POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:21,3,applied
 FM-001,api,POST /v1/auth/password-reset/confirm @ services/auth/routers/password_reset.py:41,3,applied
 FM-001,api,POST /v1/auth/password-reset/request @ services/auth/routers/password_reset.py:21,3,applied
-FM-001,api,POST /v1/auth/refresh @ services/auth/routers/session.py:125,3,applied
+FM-001,api,POST /v1/auth/refresh @ services/auth/routers/session.py:126,3,applied
 FM-001,api,POST /v1/auth/register @ services/auth/routers/registration.py:19,3,applied
 FM-001,api,POST /v1/auth/tenants @ services/auth/routers/tenants.py:40,5,applied
 FM-001,api,POST /v1/auth/verify/confirm @ services/auth/routers/email_verify.py:55,3,applied
@@ -1229,13 +1229,13 @@ OPS-002,test,tests_v9/test_work_order_persist_emit.py,5,applied
 OPS-002,test,tests_v9/test_work_orders_migration.py,5,applied
 OPS-003,api,GET /api/v1/scouting/pins @ services/sahool-platform/api/routers/scouting.py:78,2,applied
 OPS-003,api,GET /api/v1/scouting/taxonomy @ services/sahool-platform/api/routers/scouting.py:114,2,applied
-OPS-003,api,GET /healthz @ services/scout-ingest-service/main.py:179,2,applied
+OPS-003,api,GET /healthz @ services/scout-ingest-service/main.py:200,2,applied
 OPS-003,api,GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:393,2,applied
-OPS-003,api,GET /internal/scouting/external-observations @ services/scout-ingest-service/main.py:221,4,applied
+OPS-003,api,GET /internal/scouting/external-observations @ services/scout-ingest-service/main.py:242,4,applied
 OPS-003,api,GET /internal/seasons @ services/scout-ingest-service/season_api.py:478,2,applied
 OPS-003,api,GET /internal/seasons/{season_id}/detail @ services/scout-ingest-service/season_api.py:668,2,applied
 OPS-003,api,GET /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:368,2,applied
-OPS-003,api,GET /readyz @ services/scout-ingest-service/main.py:184,2,applied
+OPS-003,api,GET /readyz @ services/scout-ingest-service/main.py:205,2,applied
 OPS-003,api,PATCH /internal/seasons/{season_id} @ services/scout-ingest-service/season_api.py:264,2,applied
 OPS-003,api,POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:361,2,applied
 OPS-003,api,POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195,2,applied
@@ -1243,8 +1243,8 @@ OPS-003,api,POST /internal/field-forms/definitions/{code}/versions @ services/sc
 OPS-003,api,POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:465,2,applied
 OPS-003,api,POST /internal/field-forms/versions/{version_id}/publish @ services/scout-ingest-service/field_forms_api.py:278,2,applied
 OPS-003,api,POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:327,2,applied
-OPS-003,api,POST /internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:349,2,applied
-OPS-003,api,POST /internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:340,2,applied
+OPS-003,api,POST /internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:370,2,applied
+OPS-003,api,POST /internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:361,2,applied
 OPS-003,api,POST /internal/seasons @ services/scout-ingest-service/season_api.py:205,2,applied
 OPS-003,api,POST /internal/seasons/{season_id}/accept @ services/scout-ingest-service/season_api.py:406,2,applied
 OPS-003,api,POST /internal/seasons/{season_id}/costs @ services/scout-ingest-service/season_api.py:624,2,applied
@@ -1339,7 +1339,7 @@ PA-002,api,GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export 
 PA-002,api,POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:216,2,applied
 PA-002,api,POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:735,2,applied
 PA-002,api,POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1050,2,applied
-PA-002,api,POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:314,2,applied
+PA-002,api,POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:367,2,applied
 PA-002,service,services/vegetation-analysis-service/main.py,10,applied
 PA-002,test,tests_v9/test_canonical_vri_prescription.py,3,applied
 PA-002,test,tests_v9/test_fii_prescription_season_context_guard.py,3,applied
