@@ -264,3 +264,46 @@ async def test_send_one_retry_after_failure_can_reclaim_and_publish():
     assert eid in conn._processed  # طُولِب نهائيّاً
     assert ("sent", 3) in conn.updates  # وُسِم 'sent' بعد النجاح
     assert fail_first["n"] == 2  # حُوول مرّتين (فشل ثمّ نجح) — لا ابتلاع
+
+
+@pytest.mark.asyncio
+async def test_send_one_failure_losing_lease_does_not_attribute_failure_or_dead_letter(
+    caplog,
+):
+    """CAS=0 means this worker no longer owns the row and must not attribute failure."""
+
+    class LostLeaseConn(FakeConn):
+        def __init__(self):
+            super().__init__()
+            self.delivery_attempt_inserts = 0
+
+        async def execute(self, sql: str, *args) -> str:
+            s = " ".join(sql.split())
+            if "retry_count = $1" in s:
+                self.updates.append(("retry", _arg_for(s, "outbox_id", args)))
+                return "UPDATE 0"
+            if "INSERT INTO outbox_delivery_attempts" in s:
+                self.delivery_attempt_inserts += 1
+                return "INSERT 0 1"
+            return await super().execute(sql, *args)
+
+    async def _failing_publish(subject: str, payload: bytes) -> None:
+        raise RuntimeError("NATS down after lease loss")
+
+    worker = OutboxWorker(pool=None, nats_publish_fn=_failing_publish, max_retries=1)
+    conn = LostLeaseConn()
+    row = _row(
+        "77777777-7777-7777-7777-777777777777",
+        outbox_id=17,
+        retry_count=0,
+    )
+
+    await worker._send_one(conn, row, claim_token="stale-token")
+
+    assert conn.delivery_attempt_inserts == 0, (
+        "stale worker attributed a failed attempt it did not win"
+    )
+    assert "DEAD_LETTER" not in caplog.text, (
+        "stale worker emitted a false dead-letter attribution"
+    )
+    assert "lease lost before failure attribution" in caplog.text
