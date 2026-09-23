@@ -29,6 +29,9 @@ COPY services/auth/mfa_crypto.py /app/mfa_crypto.py
 # يستوردها main.py: `from mfa_runtime import …`. غير منسوخة ⇒ ModuleNotFoundError
 # عند الإقلاع ⇒ auth unhealthy. نسخها إلزاميّ (نفس درس otp/mfa_crypto).
 COPY services/auth/mfa_runtime.py /app/mfa_runtime.py
+# session_tokens.py is imported by routers/session.py. Keep it in the image or the
+# session router (login/refresh/logout/me) is silently skipped by router_registry.
+COPY services/auth/session_tokens.py /app/session_tokens.py
 
 # Immutable source identity: generated at image build, never overridden at runtime.
 ARG SAHOOL_GIT_SHA
