@@ -3,7 +3,7 @@
   "version": 1,
   "adjudication_id": "GATE01-ADJ-2026-09-23-001",
   "gate_id": "GATE-01",
-  "status": "ISSUED",
+  "status": "CONSUMED",
   "approved_by": "owner",
   "adjudicated_on": "2026-09-23",
   "expires_on": "2026-10-23",
@@ -43,5 +43,10 @@
     "independently_signed": false,
     "guard_binds": "bytes_only",
     "note_ar": "هذا سجل لطلب المالك في الجلسة، لا توقيع مستقل. الحارس يربط البايتات المحددة فقط."
+  },
+  "consumed_by": {
+    "pr": 1076,
+    "merge_sha": "bd88aa0402947e054a7d9bb76580d3b79ba15378",
+    "merged_at": "2026-09-23T13:48:17Z"
   }
 }
