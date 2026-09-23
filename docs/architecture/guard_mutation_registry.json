@@ -1973,6 +1973,13 @@
           "replace": "if False:  # mutated: بلا فحصٍ قرائيّ قبل النشر",
           "test": "tests_v9/test_outbox_idempotent_consumption.py",
           "why": "نقلُ كتابة المطالبة إلى ما بعد النشر (لمنع الابتلاع) أسقط ثابتاً قائماً: صفٌّ ثانٍ يحمل event_id سبق نشرُه كان يُنشَر مرّةً ثانية — مقيس `2 == 1`. الفحصُ القرائيُّ قبل النشر يُعيد الثابت بلا أن يُعيد المعاملةَ المفتوحةَ أثناء I/O. وهذه الطفرةُ تحرسه: إسقاطُ الفحص يُظهِر الأثرَ المزدوج فوراً."
+        },
+        {
+          "expect": "test_send_one_failure_losing_lease_does_not_attribute_failure_or_dead_letter",
+          "find": "            if str(failed_mark).endswith(\" 0\"):\n                logger.warning(\n                    \"outbox lease lost before failure attribution: outbox_id=%s event_id=%s\",\n                    row[\"outbox_id\"],\n                    row[\"event_id\"],\n                )\n                return\n",
+          "replace": "            if False:  # mutated: stale failure CAS result is ignored\n                return\n",
+          "test": "tests_v9/test_outbox_idempotent_consumption.py",
+          "why": "WC-005 failure-CAS: a stale worker whose conditional failure UPDATE affects zero rows must not record a failed delivery attempt or emit DEAD_LETTER attribution for a row it no longer owns."
         }
       ],
       "test": "tests_v9/test_outbox_claim_lease.py"
