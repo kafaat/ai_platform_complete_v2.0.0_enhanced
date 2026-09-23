@@ -35,6 +35,7 @@ async def main() -> None:
     app_url = os.environ["DATABASE_URL"]
     jobs_url = os.environ["JOBS_DATABASE_URL"]
     nats_url = os.environ["NATS_URL"]
+    proof_url = os.environ.get("WC005_PROOF_DATABASE_URL", jobs_url)
 
     app_role = await role_info(app_url)
     jobs_role = await role_info(jobs_url)
