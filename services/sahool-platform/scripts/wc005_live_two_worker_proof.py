@@ -97,15 +97,19 @@ async def main() -> None:
                 created_at timestamptz NOT NULL DEFAULT now()
             );
         ''')
+        await setup.execute(f'SET search_path TO "{schema}"')
         await setup.execute(
-            f'''SET search_path TO "{schema}";
-                INSERT INTO events
-                  (event_id,event_type,entity_type,entity_id,tenant_id,payload)
-                VALUES ($1,'wc005.live.two_worker','field',$2,$3,$4::jsonb);
-                INSERT INTO event_outbox (event_id,nats_subject)
-                VALUES ($1,$5);''',
-            event_id, entity_id, tenant_id,
+            """INSERT INTO events
+               (event_id,event_type,entity_type,entity_id,tenant_id,payload)
+               VALUES ($1,'wc005.live.two_worker','field',$2,$3,$4::jsonb)""",
+            event_id,
+            entity_id,
+            tenant_id,
             json.dumps({"probe": "WC-005", "expected": "exactly_once_claim"}),
+        )
+        await setup.execute(
+            "INSERT INTO event_outbox (event_id,nats_subject) VALUES ($1,$2)",
+            event_id,
             subject,
         )
 
