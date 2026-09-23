@@ -303,7 +303,5 @@ async def test_send_one_failure_losing_lease_does_not_attribute_failure_or_dead_
     assert conn.delivery_attempt_inserts == 0, (
         "stale worker attributed a failed attempt it did not win"
     )
-    assert "DEAD_LETTER" not in caplog.text, (
-        "stale worker emitted a false dead-letter attribution"
-    )
+    assert "DEAD_LETTER" not in caplog.text, "stale worker emitted a false dead-letter attribution"
     assert "lease lost before failure attribution" in caplog.text
