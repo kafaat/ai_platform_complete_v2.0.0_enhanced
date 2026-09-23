@@ -47,4 +47,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -m "chore(ci): regenerate PR1076 derived artifacts"
+          git fetch origin wc005-failure-cas-20260923
+          git rebase origin/wc005-failure-cas-20260923
           git push origin HEAD:wc005-failure-cas-20260923
