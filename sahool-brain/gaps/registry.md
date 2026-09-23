@@ -6590,3 +6590,13 @@ C01..C14؛ لا تُرفع قدرة إلى runtime_verified أو production_cert
 ### 2026-09-23 — #1076 corrective evidence for `WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01`
 
 The 2026-09-22 `closed` wording above was broader than its witness for the `event_bus.py` half. WC-005 reproduced a failure-path counterexample on the same pinned `event_bus.py` bytes: after lease loss, the conditional failure `UPDATE` can return `UPDATE 0`, while the stale worker previously continued to append `outbox_delivery_attempts` and could emit `DEAD_LETTER` attribution for a row it no longer owned. #1076 reads the failure CAS result and returns before those writes when zero rows were updated. Behavioral witness: `test_send_one_failure_losing_lease_does_not_attribute_failure_or_dead_letter`; registered mutation: disabling the CAS-result handling kills that witness. Governance correction: treat the original gap as **fixed in code / mutation-proven**, not live-verified for the `event_bus.py` half. `OUTBOX-LEASE-HAS-NO-LIVE-TWO-WORKER-PROOF-01` remains **open**; #1076 does not provide the required live PostgreSQL+NATS two-worker proof.
+
+
+## AUTH-SESSION-TOKEN-HELPER-NOT-IN-RUNTIME-IMAGE-01
+
+- **الحالة:** **fixed** (2026-09-23) — أُصلح شرط التغليف في #1078؛ التحقق الحي لمسار الجلسة بعد النشر يبقى شرط الترقية إلى `verified`.
+- **العطل المقاس:** deployment Railway production `687fdef4-b0a9-4606-b80a-684d3f9cc1ae` أقلع و`/healthz` بقي أخضر، لكن `router_registry` تخطّى `routers.session` لأن `/app/session_tokens.py` غير موجود (`ModuleNotFoundError: No module named 'session_tokens'`). بذلك غابت مسارات `/v1/auth/login` و`/v1/auth/refresh` و`/v1/auth/logout` و`/v1/auth/me` رغم خضرة health.
+- **الإصلاح:** #1078 يضيف `COPY services/auth/session_tokens.py /app/session_tokens.py` إلى `services/auth/Dockerfile`، بنفس عقد الوحدات الشقيقة `otp.py` و`mfa_crypto.py` و`mfa_runtime.py`.
+- **دليل الشجرة:** رأس الإصلاح `d4893421d4e5935ae5cc430f8fd867aed42584c8` اجتاز `SAHOOL v9.1.0 CI` و`Sahool Production Gates` و`Capability Governance` و`No Report-only Change` بعد إعادة توليد بصمات الإصدار؛ هذا يثبت سلامة الشجرة/الحزمة ولا يدّعي قبول runtime حي.
+- **حد الادعاء:** `fixed` هنا تعني أن سبب غياب helper من صورة auth أُصلح في المصدر والحزمة. لا تُرقّى إلى `verified` حتى يثبت deployment مصحح تسجيل session router ومسار `registration → logout → login/session` حيّاً.
+- **المصدر:** `services/auth/Dockerfile` · #1078 · deployment `687fdef4-b0a9-4606-b80a-684d3f9cc1ae`.
