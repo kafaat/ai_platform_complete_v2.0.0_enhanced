@@ -49,5 +49,10 @@
     "pr": 1076,
     "merge_sha": "bd88aa0402947e054a7d9bb76580d3b79ba15378",
     "merged_at": "2026-09-23T13:48:17Z"
+  },
+  "consumption": {
+    "merge_sha": "bd88aa0402947e054a7d9bb76580d3b79ba15378",
+    "consumed_on": "2026-09-23",
+    "merge_evidence_url": "https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1076"
   }
 }
