@@ -136,6 +136,10 @@ async def main() -> None:
         await asyncio.sleep(0.5)
 
         async with pool.acquire() as conn:
+            # asyncpg resets session state when a pooled connection is released.
+            # Re-establish the proof schema for the verification read only; this
+            # does not alter worker behavior or the competition itself.
+            await conn.execute(f'SET search_path TO "{schema}"')
             row = await conn.fetchrow(
                 "SELECT status,retry_count,claim_token,claimed_by,lease_until "
                 "FROM event_outbox WHERE event_id=$1", event_id
