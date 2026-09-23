@@ -733,7 +733,7 @@ class OutboxWorker:
             err_msg = f"{type(e).__name__}: {str(e)[:200]}"
             new_retry = row["retry_count"] + 1
             new_status = "failed" if new_retry >= self.max_retries else "pending"
-            await conn.execute(
+            failed_mark = await conn.execute(
                 """
                 UPDATE event_outbox
                 SET retry_count = $1, last_attempt_at = NOW(),
@@ -747,6 +747,13 @@ class OutboxWorker:
                 row["outbox_id"],
                 claim_token,
             )
+            if str(failed_mark).endswith(" 0"):
+                logger.warning(
+                    "outbox lease lost before failure attribution: outbox_id=%s event_id=%s",
+                    row["outbox_id"],
+                    row["event_id"],
+                )
+                return
             # السجلّ الجنائيّ: صفّ محاولة فاشلة (attempt_no = new_retry المُتزايد) مع نصّ
             # الخطأ — يُثبَّت مع تحديث retry أعلاه (خارج SAVEPOINT، لا يُتراجَع عنه).
             await self._record_delivery_attempt(

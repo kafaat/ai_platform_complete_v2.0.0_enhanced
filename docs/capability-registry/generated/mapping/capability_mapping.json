@@ -15,13 +15,13 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5416,
+    "files_scanned": 5417,
     "files_by_kind": {
       "backend": 1211,
       "database": 279,
       "governance": 64,
       "mobile": 55,
-      "other": 1515,
+      "other": 1516,
       "tests": 1834,
       "web": 458
     },
@@ -11968,6 +11968,14 @@
           ]
         },
         {
+          "path": "docs/architecture/gates/adjudications/GATE01-ADJ-2026-09-23-001.json",
+          "score": 10,
+          "signals": [
+            "content:event bus",
+            "content:nats"
+          ]
+        },
+        {
           "path": "agents/base_agent.py",
           "score": 9,
           "signals": [
@@ -12062,7 +12070,7 @@
         "mobile": 0,
         "tests": 13,
         "governance": 0,
-        "other_evidence": 26
+        "other_evidence": 27
       },
       "coverage_dimensions": 5,
       "mapped": true

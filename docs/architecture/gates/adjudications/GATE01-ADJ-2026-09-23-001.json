@@ -1,0 +1,47 @@
+{
+  "schema": "sahool.gate01_adjudication/v1",
+  "version": 1,
+  "adjudication_id": "GATE01-ADJ-2026-09-23-001",
+  "gate_id": "GATE-01",
+  "status": "ISSUED",
+  "approved_by": "owner",
+  "adjudicated_on": "2026-09-23",
+  "expires_on": "2026-10-23",
+  "pr": 1076,
+  "one_time": true,
+  "phase0_baseline_ref": {
+    "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
+    "must_match_policy": true
+  },
+  "allowed_paths": [
+    "services/sahool-platform/api/event_bus.py"
+  ],
+  "allowed_gap_closures": [
+    "WORKER-CLAIM-NOT-PINNED-BY-A-TRANSACTION-01"
+  ],
+  "authorized_patch_sha256": "85eb8768c882d948d9126dc7f6b6c537eef2ac5db2faa62fe27bab25dbfa2644",
+  "authorized_blobs": {
+    "services/sahool-platform/api/event_bus.py": "2ea015319d8204f936ae441b15877a20a25ca2b6"
+  },
+  "bindings": {
+    "require_patch_digest": true,
+    "require_paths_subset": true,
+    "require_baseline_match": true,
+    "require_exact_head_sha": false,
+    "observed_head_sha_at_issue": "036d5fa789016f5523eaed147e431bf9c131ad8f"
+  },
+  "authorization_source": {
+    "kind": "current_user_instruction",
+    "text_ar": "قوم بتنفيذ",
+    "context_ar": "بعد قياس WC-005 وإثبات counterexample لمسار failure-CAS، فوّض المالك التنفيذ. التفويض محصور في أصغر إصلاح لمسار event_bus.py المثبت، ولا يشمل batch lease أو pool scope ولا إعادة استعمال أي تفويض CONSUMED."
+  },
+  "scope_limit_ar": "مسار مجمّد واحد فقط: services/sahool-platform/api/event_bus.py. الإذن محصور في قراءة نتيجة UPDATE المشروط بالـclaim_token في مسار الفشل، والخروج قبل failure-attempt/DLQ attribution عند UPDATE 0. لا يشمل batch leasing أو pool acquisition scope أو NATS semantics أو migrations.",
+  "why_frozen_paths_ar": "العطل المقيس داخل مسار except في OutboxWorker._send_one نفسه؛ لا طبقة خارج event_bus.py تستطيع منع العامل البائت من تسجيل attribution بعد CAS=0 دون تعديل هذا المسار.",
+  "honesty_limit_ar": "الشاهد controlled/fake-connection يثبت misattribution عند CAS=0 ولا يثبت live PostgreSQL+NATS two-worker behavior. لذلك OUTBOX-LEASE-HAS-NO-LIVE-TWO-WORKER-PROOF-01 يبقى open.",
+  "provenance_honesty": {
+    "record_authored_by": "agent-for-current-user-instruction",
+    "independently_signed": false,
+    "guard_binds": "bytes_only",
+    "note_ar": "هذا سجل لطلب المالك في الجلسة، لا توقيع مستقل. الحارس يربط البايتات المحددة فقط."
+  }
+}
