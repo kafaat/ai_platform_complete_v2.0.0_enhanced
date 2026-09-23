@@ -80,15 +80,15 @@ jobs:
           python scripts/ci/capability_mapping_engine.py --check
           python scripts/ci/pr_capability_impact_gate.py --check-index
           python scripts/ci/capability_management_engine.py --check
-      - name: Check every canonical generated artifact before sealing
-        run: |
-          set -euo pipefail
-          python scripts/ci/verify_all_generated.py 2>&1 | tee "$RUNNER_TEMP/pr1077-generated-check.log"
-      - name: Build and verify release package last
+      - name: Build release package as the final generation step
         run: |
           set -euo pipefail
           python scripts/release/build_release_bundle.py --root .
           python scripts/release/validate_release_package.py --root .
+      - name: Check every canonical generated artifact and the final release seal
+        run: |
+          set -euo pipefail
+          python scripts/ci/verify_all_generated.py 2>&1 | tee "$RUNNER_TEMP/pr1077-generated-check.log"
       - name: Run mapping, release, deploy, observability and security contracts
         run: |
           set -euo pipefail
