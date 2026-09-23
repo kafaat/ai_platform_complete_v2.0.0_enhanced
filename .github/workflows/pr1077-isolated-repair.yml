@@ -10,7 +10,7 @@ permissions:
 
 concurrency:
   group: pr1077-isolated-repair-20260923
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   repair:
@@ -21,7 +21,7 @@ jobs:
       contents: write
       pull-requests: read
     env:
-      SOURCE_SHA: 143489dd370f27abec1cd5f6da835638dddab28c
+      SOURCE_SHA: fedead5ad85855e5e29c87f78d9f87e408aadcc5
       SOURCE_BASE: bd88aa0402947e054a7d9bb76580d3b79ba15378
       TARGET_BRANCH: wc005-live-proof-closure-20260923
       RESULT_BRANCH: codex/pr1077-repair-result-20260923
@@ -30,16 +30,16 @@ jobs:
       run:
         shell: bash
     steps:
-      - name: Checkout original PR head, excluding this temporary workflow
+      - name: Checkout concurrent source fix, excluding this temporary workflow
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
         with:
-          ref: 143489dd370f27abec1cd5f6da835638dddab28c
+          ref: fedead5ad85855e5e29c87f78d9f87e408aadcc5
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: '3.11'
-      - name: Assert immutable source and actual PR1076 merge provenance
+      - name: Assert pinned head and canonical consumption provenance
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -53,76 +53,19 @@ jobs:
           import json, os, subprocess
           from pathlib import Path
           pr = json.loads((Path(os.environ['RUNNER_TEMP']) / 'pr1076.json').read_text())
-          assert pr['merged'] is True
-          assert pr['merge_commit_sha'] == os.environ['SOURCE_BASE']
-          assert pr['merged_at'] == '2026-09-23T13:48:17Z'
-          p = Path('docs/architecture/gates/adjudications/GATE01-ADJ-2026-09-23-001.json')
-          adj = json.loads(p.read_text())
-          assert adj['status'] == 'CONSUMED' and 'consumption' not in adj
-          assert adj['merge_sha'] == pr['merge_commit_sha']
-          assert adj['consumed_by'] == {'pr': 1076, 'merge_sha': pr['merge_commit_sha'], 'merged_at': pr['merged_at']}
+          assert pr['merged'] is True and pr['merge_commit_sha'] == os.environ['SOURCE_BASE']
+          adj = json.loads(Path('docs/architecture/gates/adjudications/GATE01-ADJ-2026-09-23-001.json').read_text())
+          assert adj['status'] == 'CONSUMED'
+          assert adj['consumption']['merge_sha'] == pr['merge_commit_sha']
+          assert adj['consumption']['merge_evidence_url'] == pr['html_url']
           for path, blob in adj['authorized_blobs'].items():
               actual = subprocess.check_output(['git', 'rev-parse', f"{pr['merge_commit_sha']}:{path}"], text=True).strip()
               assert actual == blob, (path, actual, blob)
-          print('Pinned source, PR1076 merge, and all authorized blobs verified')
+          print('Concurrent source fix preserved; actual PR1076 merge and authorized blobs match')
           PY
       - name: Install repository CI dependencies
         run: python -m pip install -r tests_v9/requirements-test.txt
-      - name: Reproduce exactly the three Gate01 failures before repair
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import os, subprocess, sys, xml.etree.ElementTree as ET
-          from pathlib import Path
-          names = [
-              'test_every_live_record_is_consistent_across_state_bytes_scope_and_lifecycle',
-              'test_every_consumed_authorization_names_the_merge_that_consumed_it',
-              'test_a_consumed_record_still_describes_what_actually_landed',
-          ]
-          report = Path(os.environ['RUNNER_TEMP']) / 'pr1077-before.xml'
-          args = [sys.executable, '-m', 'pytest', '-q', '--tb=short', f'--junitxml={report}']
-          args += ['tests_v9/test_gate01_frozen_path_guard.py::' + name for name in names]
-          result = subprocess.run(args, check=False)
-          assert result.returncode == 1, f'Expected test failures, got {result.returncode}'
-          cases = ET.parse(report).getroot().findall('.//testcase')
-          assert len(cases) == 3
-          assert {c.attrib['name'] for c in cases} == set(names)
-          for case in cases:
-              failure = case.find('failure')
-              assert failure is not None and case.find('error') is None
-              text = ''.join(failure.itertext())
-              assert 'GATE01-ADJ-2026-09-23-001' in text and 'merge_sha' in text
-          print('RED WITNESS: all three failures reproduced on the pinned original head')
-          PY
-      - name: Correct only the consumed-record field structure
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import json, os
-          from pathlib import Path
-          p = Path('docs/architecture/gates/adjudications/GATE01-ADJ-2026-09-23-001.json')
-          before = json.loads(p.read_text(encoding='utf-8'))
-          receipt = before['consumed_by']
-          assert before['merge_sha'] == receipt['merge_sha'] == os.environ['SOURCE_BASE']
-          after = {}
-          for key, value in before.items():
-              if key in {'merge_sha', 'consumed_by'}:
-                  continue
-              after[key] = value
-              if key == 'status':
-                  after['consumption'] = {
-                      'merge_sha': receipt['merge_sha'],
-                      'consumed_on': '2026-09-23',
-                      'merge_evidence_url': 'https://github.com/kafaat/ai_platform_complete_v2.0.0_enhanced/pull/1076',
-                      'pr': receipt['pr'],
-                      'merged_at': receipt['merged_at'],
-                  }
-          assert {k:v for k,v in before.items() if k not in {'merge_sha', 'consumed_by'}} == {k:v for k,v in after.items() if k != 'consumption'}
-          p.write_text(json.dumps(after, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-          print('Recorded consumption.merge_sha; authorization scope and authorized bytes unchanged')
-          PY
-          git add -- docs/architecture/gates/adjudications/GATE01-ADJ-2026-09-23-001.json
-      - name: Verify complete Gate01 regression suite after source repair
+      - name: Test complete Gate01 suite on unchanged concurrent fix
         run: python -m pytest -q --tb=short tests_v9/test_gate01_frozen_path_guard.py --junitxml="$RUNNER_TEMP/pr1077-gate01-after.xml"
       - name: Regenerate capability mapping first
         run: |
@@ -132,8 +75,8 @@ jobs:
       - name: Reconcile canonical generated chain to fixed point
         run: |
           set -euo pipefail
-          python scripts/ci/verify_all_generated.py --fix
-          python scripts/ci/verify_all_generated.py
+          python scripts/ci/verify_all_generated.py --fix 2>&1 | tee "$RUNNER_TEMP/pr1077-generation.log"
+          python scripts/ci/verify_all_generated.py 2>&1 | tee "$RUNNER_TEMP/pr1077-generated-check.log"
       - name: Build and verify release package last
         run: |
           set -euo pipefail
@@ -150,46 +93,30 @@ jobs:
             tests/observability/test_phase13_observability_assets.py \
             tests/security/test_phase12_final_production_gates.py \
             --junitxml="$RUNNER_TEMP/pr1077-contracts.xml"
-          bash scripts/ci/preflight.sh --fast
-      - name: Reject any source, policy, baseline or test changes outside the repair
+          bash scripts/ci/preflight.sh --fast 2>&1 | tee "$RUNNER_TEMP/pr1077-preflight.log"
+      - name: Reject all changes outside generated capability and release artifacts
         run: |
           set -euo pipefail
           python - <<'PY'
-          import json, os, subprocess
-          from pathlib import Path
+          import os, subprocess
           source = os.environ['SOURCE_SHA']
-          path = 'docs/architecture/gates/adjudications/GATE01-ADJ-2026-09-23-001.json'
-          allowed = {
-              path,
-              'docs/capability-registry/generated/mapping/capability_mapping.json',
-              'docs/capability-registry/generated/mapping/capability_mapping.csv',
-              'docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md',
-              'docs/capability-registry/generated/mapping/mapping_manifest.json',
-              'docs/capability-registry/generated/mapping/unmapped_artifacts.json',
-              'docs/capability-registry/generated/mapping/ambiguous_artifacts.json',
-              'release/FILE_CHECKSUMS.sha256',
-              'release/SAHOOL_RELEASE_MANIFEST_20260626.json',
-              'release/SBOM_MINIMAL.json',
-          }
+          release = {'release/FILE_CHECKSUMS.sha256', 'release/SAHOOL_RELEASE_MANIFEST_20260626.json', 'release/SBOM_MINIMAL.json'}
           changed = set(subprocess.check_output(['git', 'diff', '--name-only', source], text=True).splitlines())
           print('CHANGED FILES:', *sorted(changed), sep='\n')
-          assert path in changed and changed <= allowed, f'Unexpected edits: {sorted(changed - allowed)}'
+          unexpected = {p for p in changed if p not in release and not p.startswith('docs/capability-registry/generated/')}
+          assert changed and not unexpected, f'Unexpected edits: {sorted(unexpected)}'
           untracked = subprocess.check_output(['git', 'ls-files', '--others', '--exclude-standard'], text=True).splitlines()
           assert not untracked, f'Unexpected untracked source files: {untracked}'
-          old = json.loads(subprocess.check_output(['git', 'show', f'{source}:{path}'], text=True))
-          new = json.loads(Path(path).read_text())
-          assert {k:v for k,v in old.items() if k not in {'merge_sha', 'consumed_by'}} == {k:v for k,v in new.items() if k != 'consumption'}
-          assert new['consumption']['merge_sha'] == os.environ['SOURCE_BASE']
           PY
           git diff --check
-          git diff --exit-code "$SOURCE_SHA" -- services/ migrations/ tests/ tests_v9/ scripts/ .github/ sahool-brain/ docs/architecture/gate01_policy.json
-      - name: Commit only the tested repair and prove generated stability on its own SHA
+          git diff --exit-code "$SOURCE_SHA" -- services/ migrations/ tests/ tests_v9/ scripts/ .github/ sahool-brain/ docs/architecture/ certification/
+      - name: Commit tested artifacts and prove the seal stable on its own SHA
         run: |
           set -euo pipefail
           git config user.name 'kafaat'
           git config user.email '80758750+kafaat@users.noreply.github.com'
           git add -u
-          git commit -m 'fix(governance): canonicalize PR1076 consumption and regenerate PR1077 artifacts'
+          git commit -m 'fix(governance): regenerate PR1077 capability artifacts and final release seal'
           test "$(git rev-parse HEAD^)" = "$SOURCE_SHA"
           python scripts/ci/capability_mapping_engine.py --check
           python scripts/release/build_release_bundle.py --root .
@@ -197,7 +124,7 @@ jobs:
           git diff --exit-code
           test -z "$(git status --porcelain)"
           git rev-parse HEAD | tee "$RUNNER_TEMP/pr1077-result-sha.txt"
-      - name: Publish to an isolated result branch only, never to main or the PR
+      - name: Publish to isolated result only with unchanged remote head
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -209,13 +136,14 @@ jobs:
           gh auth setup-git
           git push origin "HEAD:refs/heads/$RESULT_BRANCH"
           printf 'Tested repair commit: `%s`\nSource head: `%s`\nBase: `%s`\n' "$(git rev-parse HEAD)" "$SOURCE_SHA" "$SOURCE_BASE" >> "$GITHUB_STEP_SUMMARY"
-      - name: Preserve actual test witnesses outside the repository
+      - name: Preserve actual witnesses and generation logs outside the repository
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: pr1077-repair-witnesses
           path: |
             ${{ runner.temp }}/pr1077-*.xml
+            ${{ runner.temp }}/pr1077-*.log
             ${{ runner.temp }}/pr1077-result-sha.txt
           if-no-files-found: warn
           retention-days: 14
