@@ -50,7 +50,7 @@ async def main() -> None:
     entity_id = uuid.uuid4()
     tenant_id = uuid.uuid4()
     subject = "wc005.outbox." + uuid.uuid4().hex
-    setup = await asyncpg.connect(jobs_url)
+    setup = await asyncpg.connect(proof_url)
     nc = None
     pool = None
     sub = None
@@ -111,7 +111,7 @@ async def main() -> None:
         async def init_conn(conn):
             await conn.execute(f'SET search_path TO "{schema}"')
 
-        pool = await asyncpg.create_pool(jobs_url, min_size=2, max_size=4, init=init_conn)
+        pool = await asyncpg.create_pool(proof_url, min_size=2, max_size=4, init=init_conn)
         nc = await nats.connect(nats_url, connect_timeout=5, max_reconnect_attempts=2)
         received: list[bytes] = []
 
