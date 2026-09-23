@@ -21,19 +21,20 @@ jobs:
       contents: write
       pull-requests: read
     env:
-      SOURCE_SHA: fedead5ad85855e5e29c87f78d9f87e408aadcc5
+      SOURCE_SHA: af037b5b09d1dcd5874a927c4a260aec7b7b8357
       SOURCE_BASE: bd88aa0402947e054a7d9bb76580d3b79ba15378
       TARGET_BRANCH: wc005-live-proof-closure-20260923
       RESULT_BRANCH: codex/pr1077-repair-result-20260923
       PYTHONUTF8: '1'
+      PYTHONUNBUFFERED: '1'
     defaults:
       run:
         shell: bash
     steps:
-      - name: Checkout concurrent source fix, excluding this temporary workflow
+      - name: Checkout latest inspected source, excluding this temporary workflow
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
         with:
-          ref: fedead5ad85855e5e29c87f78d9f87e408aadcc5
+          ref: af037b5b09d1dcd5874a927c4a260aec7b7b8357
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
@@ -46,8 +47,11 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
           test ! -e .github/workflows/pr1077-isolated-repair.yml
-          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$SOURCE_BASE"
-          test "$(git ls-remote origin "refs/heads/$TARGET_BRANCH" | cut -f1)" = "$SOURCE_SHA"
+          remote_base="$(git ls-remote origin refs/heads/main | cut -f1)"
+          remote_head="$(git ls-remote origin "refs/heads/$TARGET_BRANCH" | cut -f1)"
+          printf 'Observed main=%s PR1077=%s\n' "$remote_base" "$remote_head"
+          test "$remote_base" = "$SOURCE_BASE"
+          test "$remote_head" = "$SOURCE_SHA"
           gh api repos/kafaat/ai_platform_complete_v2.0.0_enhanced/pulls/1076 > "$RUNNER_TEMP/pr1076.json"
           python - <<'PY'
           import json, os, subprocess
@@ -61,7 +65,7 @@ jobs:
           for path, blob in adj['authorized_blobs'].items():
               actual = subprocess.check_output(['git', 'rev-parse', f"{pr['merge_commit_sha']}:{path}"], text=True).strip()
               assert actual == blob, (path, actual, blob)
-          print('Concurrent source fix preserved; actual PR1076 merge and authorized blobs match')
+          print('Concurrent source fixes preserved; actual PR1076 merge and authorized blobs match')
           PY
       - name: Install repository CI dependencies
         run: python -m pip install -r tests_v9/requirements-test.txt
@@ -72,10 +76,9 @@ jobs:
           set -euo pipefail
           python scripts/ci/capability_mapping_engine.py --generate
           python scripts/ci/capability_mapping_engine.py --check
-      - name: Reconcile canonical generated chain to fixed point
+      - name: Check every canonical generated artifact before sealing
         run: |
           set -euo pipefail
-          python scripts/ci/verify_all_generated.py --fix 2>&1 | tee "$RUNNER_TEMP/pr1077-generation.log"
           python scripts/ci/verify_all_generated.py 2>&1 | tee "$RUNNER_TEMP/pr1077-generated-check.log"
       - name: Build and verify release package last
         run: |
@@ -110,7 +113,7 @@ jobs:
           PY
           git diff --check
           git diff --exit-code "$SOURCE_SHA" -- services/ migrations/ tests/ tests_v9/ scripts/ .github/ sahool-brain/ docs/architecture/ certification/
-      - name: Commit tested artifacts and prove the seal stable on its own SHA
+      - name: Commit tested artifacts and validate without rewriting the source-derived timestamp
         run: |
           set -euo pipefail
           git config user.name 'kafaat'
@@ -119,7 +122,6 @@ jobs:
           git commit -m 'fix(governance): regenerate PR1077 capability artifacts and final release seal'
           test "$(git rev-parse HEAD^)" = "$SOURCE_SHA"
           python scripts/ci/capability_mapping_engine.py --check
-          python scripts/release/build_release_bundle.py --root .
           python scripts/release/validate_release_package.py --root .
           git diff --exit-code
           test -z "$(git status --porcelain)"
@@ -130,8 +132,11 @@ jobs:
         run: |
           set -euo pipefail
           test "$RESULT_BRANCH" = 'codex/pr1077-repair-result-20260923'
-          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$SOURCE_BASE"
-          test "$(git ls-remote origin "refs/heads/$TARGET_BRANCH" | cut -f1)" = "$SOURCE_SHA"
+          remote_base="$(git ls-remote origin refs/heads/main | cut -f1)"
+          remote_head="$(git ls-remote origin "refs/heads/$TARGET_BRANCH" | cut -f1)"
+          printf 'Observed main=%s PR1077=%s\n' "$remote_base" "$remote_head"
+          test "$remote_base" = "$SOURCE_BASE"
+          test "$remote_head" = "$SOURCE_SHA"
           test -z "$(git ls-remote origin "refs/heads/$RESULT_BRANCH")"
           gh auth setup-git
           git push origin "HEAD:refs/heads/$RESULT_BRANCH"
