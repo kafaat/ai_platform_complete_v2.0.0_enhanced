@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import importlib.util
+import sys
 from pathlib import Path
 
 SERVICE_DIR = Path(__file__).resolve().parents[1]
@@ -12,6 +13,7 @@ SPEC = importlib.util.spec_from_file_location(
 )
 mr = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader is not None
+sys.modules[SPEC.name] = mr
 SPEC.loader.exec_module(mr)
 
 
