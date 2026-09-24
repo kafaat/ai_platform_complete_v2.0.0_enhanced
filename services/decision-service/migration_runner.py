@@ -86,8 +86,24 @@ async def ensure_migration_table(conn: Any) -> None:
     )
 
 
+async def migration_table_exists(conn: Any) -> bool:
+    """Read-only probe for the migration journal.
+
+    Readiness/check paths run under the restricted application role and must never
+    require DDL.  A missing journal means every known migration is pending; only
+    the explicit --apply path may create the journal.
+    """
+    return bool(
+        await conn.fetchval(
+            "SELECT to_regclass($1) IS NOT NULL",
+            f"public.{MIGRATION_TABLE}",
+        )
+    )
+
+
 async def applied_versions(conn: Any) -> dict[str, str]:
-    await ensure_migration_table(conn)
+    if not await migration_table_exists(conn):
+        return {}
     rows = await conn.fetch(f"SELECT version, checksum FROM {MIGRATION_TABLE}")
     return {row["version"]: row["checksum"] for row in rows}
 
