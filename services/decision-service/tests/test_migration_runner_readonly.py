@@ -17,11 +17,11 @@ sys.modules[SPEC.name] = mr
 SPEC.loader.exec_module(mr)
 
 
-class FakeConn:
+class ReadOnlyConnectionProbe:
     def __init__(self, *, journal_exists: bool, rows=None):
         self.journal_exists = journal_exists
         self.rows = rows or []
-        self.execute_calls = []
+        self.mutation_attempts = []
         self.fetch_calls = []
 
     async def fetchval(self, sql, *args):
@@ -34,27 +34,27 @@ class FakeConn:
         return self.rows
 
     async def execute(self, sql, *args):
-        self.execute_calls.append((sql, args))
+        self.mutation_attempts.append((sql, args))
         raise AssertionError("read-only migration check attempted DDL/DML")
 
 
 def test_applied_versions_missing_journal_is_read_only():
-    conn = FakeConn(journal_exists=False)
+    conn = ReadOnlyConnectionProbe(journal_exists=False)
     result = asyncio.run(mr.applied_versions(conn))
     assert result == {}
     assert conn.fetch_calls == []
-    assert conn.execute_calls == []
+    assert conn.mutation_attempts == []
 
 
 def test_applied_versions_existing_journal_reads_rows_only():
-    conn = FakeConn(
+    conn = ReadOnlyConnectionProbe(
         journal_exists=True,
         rows=[{"version": "001_decision_sor.sql", "checksum": "abc"}],
     )
     result = asyncio.run(mr.applied_versions(conn))
     assert result == {"001_decision_sor.sql": "abc"}
     assert len(conn.fetch_calls) == 1
-    assert conn.execute_calls == []
+    assert conn.mutation_attempts == []
 
 
 def test_missing_journal_reports_all_known_migrations_pending(monkeypatch):
@@ -62,7 +62,7 @@ def test_missing_journal_reports_all_known_migrations_pending(monkeypatch):
         mr.Migration("001.sql", Path("001.sql"), "a", "SELECT 1"),
         mr.Migration("002.sql", Path("002.sql"), "b", "SELECT 2"),
     ]
-    conn = FakeConn(journal_exists=False)
+    conn = ReadOnlyConnectionProbe(journal_exists=False)
 
     async def connect():
         return conn
@@ -81,4 +81,4 @@ def test_missing_journal_reports_all_known_migrations_pending(monkeypatch):
         "checksum_mismatches": [],
         "known_migrations": ["001.sql", "002.sql"],
     }
-    assert conn.execute_calls == []
+    assert conn.mutation_attempts == []
