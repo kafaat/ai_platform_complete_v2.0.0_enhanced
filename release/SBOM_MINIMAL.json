@@ -11635,7 +11635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fe3fa9758bf74599550438ac4800a4b5ce6a98633141cf04dd2a10ae45cccc52"
+          "content": "7c17e68cb8ed57fa8909a5b0276ff4786c921a27e598007c454349e0d75e838b"
         }
       ],
       "name": "services/decision-service/migration_runner.py",
@@ -11965,6 +11965,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "bdbc863a02e40505b68d2e7ae020aa31b0551b87f01847e6d8da772b7afecf04"
+        }
+      ],
+      "name": "services/decision-service/migrations/033_tenant_boundary_hardening.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "392f968f875f2591a4f8f561751dde311265b4ea7df71dd16898c160a7df881e"
         }
       ],
@@ -12275,6 +12285,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "05dc20f9963e6745411b8e9bba7313133c65619903df678d69af8b11bb296daa"
+        }
+      ],
+      "name": "services/decision-service/tests/test_migration_runner_readonly.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1d8df15b5d4f6567bdbf555e67aa51a56eda85cc2502d130edd20f11c9b75d8e"
         }
       ],
@@ -12399,6 +12419,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_soil_profile_context_gate.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0d818ee639fccac2181537512b750c51b0556b813b714a6f47703a5a75b99dc8"
+        }
+      ],
+      "name": "services/decision-service/tests/test_tenant_boundary_migration_static.py",
       "type": "file"
     },
     {

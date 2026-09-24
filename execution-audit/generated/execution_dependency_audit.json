@@ -3,9 +3,9 @@
   "schema_version":1,
   "evidence_scope":"static_repository_only",
   "runtime_verified":false,
-  "python_files_parsed":1910,
+  "python_files_parsed":1912,
   "route_handlers":1056,
-  "call_edges":79585,
+  "call_edges":79606,
   "dead_code_candidates":635,
   "duplicate_function_groups":58,
   "route_owners":27,
@@ -47896,247 +47896,261 @@
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
+   "source":"migration_table_exists",
+   "target":"bool",
+   "line":96
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/migration_runner.py",
+   "source":"migration_table_exists",
+   "target":"fetchval",
+   "line":97
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/migration_runner.py",
    "source":"applied_versions",
-   "target":"ensure_migration_table",
-   "line":90
+   "target":"migration_table_exists",
+   "line":105
   },
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
    "source":"applied_versions",
    "target":"fetch",
-   "line":91
-  },
-  {
-   "owner":"decision-service",
-   "file":"services/decision-service/migration_runner.py",
-   "source":"check_migrations",
-   "target":"load_migrations",
-   "line":96
-  },
-  {
-   "owner":"decision-service",
-   "file":"services/decision-service/migration_runner.py",
-   "source":"check_migrations",
-   "target":"_connect",
-   "line":97
-  },
-  {
-   "owner":"decision-service",
-   "file":"services/decision-service/migration_runner.py",
-   "source":"check_migrations",
-   "target":"applied_versions",
-   "line":99
-  },
-  {
-   "owner":"decision-service",
-   "file":"services/decision-service/migration_runner.py",
-   "source":"check_migrations",
-   "target":"get",
-   "line":103
-  },
-  {
-   "owner":"decision-service",
-   "file":"services/decision-service/migration_runner.py",
-   "source":"check_migrations",
-   "target":"append",
-   "line":105
-  },
-  {
-   "owner":"decision-service",
-   "file":"services/decision-service/migration_runner.py",
-   "source":"check_migrations",
-   "target":"append",
    "line":107
   },
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
    "source":"check_migrations",
-   "target":"close",
+   "target":"load_migrations",
+   "line":112
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/migration_runner.py",
+   "source":"check_migrations",
+   "target":"_connect",
+   "line":113
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/migration_runner.py",
+   "source":"check_migrations",
+   "target":"applied_versions",
    "line":115
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/migration_runner.py",
+   "source":"check_migrations",
+   "target":"get",
+   "line":119
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/migration_runner.py",
+   "source":"check_migrations",
+   "target":"append",
+   "line":121
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/migration_runner.py",
+   "source":"check_migrations",
+   "target":"append",
+   "line":123
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/migration_runner.py",
+   "source":"check_migrations",
+   "target":"close",
+   "line":131
   },
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
    "source":"apply_migrations",
    "target":"allow_schema_change",
-   "line":119
+   "line":135
   },
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
    "source":"apply_migrations",
    "target":"SystemExit",
-   "line":120
-  },
-  {
-   "owner":"decision-service",
-   "file":"services/decision-service/migration_runner.py",
-   "source":"apply_migrations",
-   "target":"load_migrations",
-   "line":123
-  },
-  {
-   "owner":"decision-service",
-   "file":"services/decision-service/migration_runner.py",
-   "source":"apply_migrations",
-   "target":"_connect",
-   "line":124
-  },
-  {
-   "owner":"decision-service",
-   "file":"services/decision-service/migration_runner.py",
-   "source":"apply_migrations",
-   "target":"transaction",
-   "line":127
-  },
-  {
-   "owner":"decision-service",
-   "file":"services/decision-service/migration_runner.py",
-   "source":"apply_migrations",
-   "target":"execute",
-   "line":128
-  },
-  {
-   "owner":"decision-service",
-   "file":"services/decision-service/migration_runner.py",
-   "source":"apply_migrations",
-   "target":"ensure_migration_table",
-   "line":129
-  },
-  {
-   "owner":"decision-service",
-   "file":"services/decision-service/migration_runner.py",
-   "source":"apply_migrations",
-   "target":"applied_versions",
-   "line":130
-  },
-  {
-   "owner":"decision-service",
-   "file":"services/decision-service/migration_runner.py",
-   "source":"apply_migrations",
-   "target":"get",
-   "line":132
-  },
-  {
-   "owner":"decision-service",
-   "file":"services/decision-service/migration_runner.py",
-   "source":"apply_migrations",
-   "target":"RuntimeError",
    "line":136
   },
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
    "source":"apply_migrations",
-   "target":"execute",
-   "line":137
+   "target":"load_migrations",
+   "line":139
   },
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
    "source":"apply_migrations",
-   "target":"execute",
-   "line":138
+   "target":"_connect",
+   "line":140
   },
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
    "source":"apply_migrations",
-   "target":"append",
+   "target":"transaction",
    "line":143
   },
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
    "source":"apply_migrations",
-   "target":"check_migrations",
+   "target":"execute",
    "line":144
   },
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
    "source":"apply_migrations",
-   "target":"close",
+   "target":"ensure_migration_table",
+   "line":145
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/migration_runner.py",
+   "source":"apply_migrations",
+   "target":"applied_versions",
+   "line":146
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/migration_runner.py",
+   "source":"apply_migrations",
+   "target":"get",
    "line":148
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/migration_runner.py",
+   "source":"apply_migrations",
+   "target":"RuntimeError",
+   "line":152
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/migration_runner.py",
+   "source":"apply_migrations",
+   "target":"execute",
+   "line":153
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/migration_runner.py",
+   "source":"apply_migrations",
+   "target":"execute",
+   "line":154
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/migration_runner.py",
+   "source":"apply_migrations",
+   "target":"append",
+   "line":159
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/migration_runner.py",
+   "source":"apply_migrations",
+   "target":"check_migrations",
+   "line":160
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/migration_runner.py",
+   "source":"apply_migrations",
+   "target":"close",
+   "line":164
   },
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
    "source":"main",
    "target":"ArgumentParser",
-   "line":152
+   "line":168
   },
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
    "source":"main",
    "target":"add_mutually_exclusive_group",
-   "line":153
+   "line":169
   },
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
    "source":"main",
    "target":"add_argument",
-   "line":154
+   "line":170
   },
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
    "source":"main",
    "target":"add_argument",
-   "line":155
+   "line":171
   },
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
    "source":"main",
    "target":"parse_args",
-   "line":156
+   "line":172
   },
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
    "source":"main",
    "target":"apply_migrations",
-   "line":158
+   "line":174
   },
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
    "source":"main",
    "target":"check_migrations",
-   "line":158
+   "line":174
   },
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
    "source":"main",
    "target":"run",
-   "line":158
+   "line":174
   },
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
    "source":"main",
    "target":"print",
-   "line":159
+   "line":175
   },
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
    "source":"main",
    "target":"get",
-   "line":160
+   "line":176
   },
   {
    "owner":"decision-service",
    "file":"services/decision-service/migration_runner.py",
    "source":"main",
    "target":"SystemExit",
-   "line":161
+   "line":177
   },
   {
    "owner":"decision-service",
@@ -66932,6 +66946,139 @@
    "source":"test_raw_asyncpg_connect_is_confined_to_the_reviewed_allowlist",
    "target":"sorted",
    "line":164
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/tests/test_migration_runner_readonly.py",
+   "source":"fetch",
+   "target":"append",
+   "line":33
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/tests/test_migration_runner_readonly.py",
+   "source":"execute",
+   "target":"append",
+   "line":37
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/tests/test_migration_runner_readonly.py",
+   "source":"execute",
+   "target":"AssertionError",
+   "line":38
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/tests/test_migration_runner_readonly.py",
+   "source":"test_applied_versions_missing_journal_is_read_only",
+   "target":"ReadOnlyConnectionProbe",
+   "line":42
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/tests/test_migration_runner_readonly.py",
+   "source":"test_applied_versions_missing_journal_is_read_only",
+   "target":"applied_versions",
+   "line":43
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/tests/test_migration_runner_readonly.py",
+   "source":"test_applied_versions_missing_journal_is_read_only",
+   "target":"run",
+   "line":43
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/tests/test_migration_runner_readonly.py",
+   "source":"test_applied_versions_existing_journal_reads_rows_only",
+   "target":"ReadOnlyConnectionProbe",
+   "line":50
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/tests/test_migration_runner_readonly.py",
+   "source":"test_applied_versions_existing_journal_reads_rows_only",
+   "target":"applied_versions",
+   "line":54
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/tests/test_migration_runner_readonly.py",
+   "source":"test_applied_versions_existing_journal_reads_rows_only",
+   "target":"run",
+   "line":54
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/tests/test_migration_runner_readonly.py",
+   "source":"test_applied_versions_existing_journal_reads_rows_only",
+   "target":"len",
+   "line":56
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/tests/test_migration_runner_readonly.py",
+   "source":"test_missing_journal_reports_all_known_migrations_pending",
+   "target":"Migration",
+   "line":62
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/tests/test_migration_runner_readonly.py",
+   "source":"test_missing_journal_reports_all_known_migrations_pending",
+   "target":"Path",
+   "line":62
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/tests/test_migration_runner_readonly.py",
+   "source":"test_missing_journal_reports_all_known_migrations_pending",
+   "target":"Migration",
+   "line":63
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/tests/test_migration_runner_readonly.py",
+   "source":"test_missing_journal_reports_all_known_migrations_pending",
+   "target":"Path",
+   "line":63
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/tests/test_migration_runner_readonly.py",
+   "source":"test_missing_journal_reports_all_known_migrations_pending",
+   "target":"ReadOnlyConnectionProbe",
+   "line":65
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/tests/test_migration_runner_readonly.py",
+   "source":"test_missing_journal_reports_all_known_migrations_pending",
+   "target":"setattr",
+   "line":74
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/tests/test_migration_runner_readonly.py",
+   "source":"test_missing_journal_reports_all_known_migrations_pending",
+   "target":"setattr",
+   "line":75
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/tests/test_migration_runner_readonly.py",
+   "source":"test_missing_journal_reports_all_known_migrations_pending",
+   "target":"check_migrations",
+   "line":77
+  },
+  {
+   "owner":"decision-service",
+   "file":"services/decision-service/tests/test_migration_runner_readonly.py",
+   "source":"test_missing_journal_reports_all_known_migrations_pending",
+   "target":"run",
+   "line":77
   },
   {
    "owner":"decision-service",
