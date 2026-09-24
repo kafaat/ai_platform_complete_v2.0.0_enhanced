@@ -101,21 +101,23 @@ CDSE routes additionally require the configured CDSE/SH credentials. The initial
 Element84 route does not prove CDSE readiness. S3 is an alternative asset backend,
 not a replacement for a writable local processing directory; prove uploads separately.
 
-Railway mounts volumes as root ([permissions reference](https://docs.railway.com/volumes#permissions)).
-For this image, an initialization command can set ownership of the new mount and
-then drop to `appuser` before starting Uvicorn. Pair `RAILWAY_RUN_UID=0` with this
-complete start command; do not use that variable alone to run the application as root:
+The Raster image already declares `USER appuser` (UID 10001). Do not wrap its Railway
+start command in `runuser`, `su`, or a runtime `chown`: a measured Railway rollout
+on 2026-09-24 repeatedly terminated before Uvicorn with
+`runuser: may not be used by non-root users`, leaving `/readyz` unavailable for the
+entire five-minute healthcheck window. Use the image CMD, or an equivalent direct
+application command:
 
 ```sh
-python -c 'import os,pwd; p="/data/rasters"; u=pwd.getpwnam("appuser"); os.chown(p,u.pw_uid,u.pw_gid); os.chmod(p,0o750); os.execvp("runuser",["runuser","-u","appuser","--","uvicorn","main:app","--host","0.0.0.0","--port","8001"])'
+uvicorn main:app --host 0.0.0.0 --port 8001
 ```
 
-The command changes only the mount directory, not existing asset files. Verify the
-running Uvicorn process is UID 10001 and that a probe file can be written and removed.
-`runuser` also establishes the application user's HOME. Dropping only the UID left
-HOME=/root in the measured Railway image; asyncpg then failed accessing
-`/root/.postgresql/postgresql.key`. Verify the process environment and DB readiness
-as the application user, not only from the root initializer console.
+Treat writable mount ownership as a deployment prerequisite rather than escalating the
+application container at startup. Verify `/data/rasters` is writable by UID 10001
+before accepting persistence; if it is not, stop the rollout and fix the volume
+provisioning/ownership outside the application start command. Verify the running
+Uvicorn process is UID 10001, HOME is appropriate for that user, a private probe file
+can be written and removed, and DB readiness succeeds as the application user.
 
 Vegetation:
 
