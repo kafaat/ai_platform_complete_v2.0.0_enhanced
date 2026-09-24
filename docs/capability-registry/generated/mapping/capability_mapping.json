@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5418,
+    "files_scanned": 5421,
     "files_by_kind": {
       "backend": 1211,
-      "database": 279,
+      "database": 280,
       "governance": 64,
       "mobile": 55,
       "other": 1517,
-      "tests": 1834,
+      "tests": 1836,
       "web": 458
     },
-    "unmapped_artifacts": 2197,
-    "ambiguous_artifacts": 420
+    "unmapped_artifacts": 2198,
+    "ambiguous_artifacts": 421
   },
   "capabilities": [
     {
@@ -3479,6 +3479,22 @@
           "score": 14
         },
         {
+          "value": "decision_outbox_events @ services/decision-service/migrations/033_tenant_boundary_hardening.sql:10",
+          "score": 14
+        },
+        {
+          "value": "decision_outbox_events @ services/decision-service/migrations/033_tenant_boundary_hardening.sql:11",
+          "score": 14
+        },
+        {
+          "value": "decision_reviews @ services/decision-service/migrations/033_tenant_boundary_hardening.sql:24",
+          "score": 14
+        },
+        {
+          "value": "decision_reviews @ services/decision-service/migrations/033_tenant_boundary_hardening.sql:25",
+          "score": 14
+        },
+        {
           "value": "decision_runtime_worker_tenant_commands @ services/decision-service/migrations/025_worker_tenant_command_ledger.sql:9",
           "score": 14
         },
@@ -3524,6 +3540,14 @@
         },
         {
           "path": "services/decision-service/migrations/025_worker_tenant_command_ledger.sql",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
+          "path": "services/decision-service/migrations/033_tenant_boundary_hardening.sql",
           "score": 14,
           "signals": [
             "path:tenant",
@@ -3623,6 +3647,14 @@
         },
         {
           "path": "services/decision-service/tests/test_runtime_worker_tenants.py",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
+          "path": "services/decision-service/tests/test_tenant_boundary_migration_static.py",
           "score": 14,
           "signals": [
             "path:tenant",
@@ -3928,11 +3960,11 @@
       "evidence_counts": {
         "backend": 15,
         "routes": 2,
-        "database": 20,
+        "database": 25,
         "events": 6,
         "web": 1,
         "mobile": 0,
-        "tests": 27,
+        "tests": 28,
         "governance": 0,
         "other_evidence": 13
       },
@@ -26087,7 +26119,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_truncated": {
-        "database": 771
+        "database": 776
       },
       "evidence_counts": {
         "backend": 13,
@@ -38474,6 +38506,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/decision-service/tests/test_migration_runner_readonly.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/decision-service/tests/test_outcome_reconcile.py",
       "kind": "tests"
     },
@@ -49195,6 +49231,28 @@
           "score": 10,
           "signals": [
             "content:rls",
+            "content:row level security",
+            "content:tenant isolation"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/decision-service/migrations/033_tenant_boundary_hardening.sql",
+      "kind": "database",
+      "candidates": [
+        {
+          "capability_id": "FM-001",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 12,
+          "signals": [
             "content:row level security",
             "content:tenant isolation"
           ]

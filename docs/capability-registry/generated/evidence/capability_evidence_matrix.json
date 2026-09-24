@@ -1418,6 +1418,7 @@
       "title": "Tenant and organization management",
       "unit_test_paths": [
         "services/decision-service/tests/test_runtime_worker_tenants.py",
+        "services/decision-service/tests/test_tenant_boundary_migration_static.py",
         "services/raster-service/test_process_date_tenant_isolation.py",
         "services/raster-service/test_tenant_guc_session_scope_guard.py",
         "services/raster-service/test_tenant_propagation.py",

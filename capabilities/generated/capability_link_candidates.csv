@@ -286,6 +286,7 @@ FM-001,test,mobile/sahool_app/test/auth_service_test.dart,3,applied
 FM-001,test,scripts_v9/test_tenant_isolation.sql,3,applied
 FM-001,test,services/auth/tests/__init__.py,3,applied
 FM-001,test,services/auth/tests/test_router_decomposition_guard.py,3,applied
+FM-001,test,services/decision-service/tests/test_tenant_boundary_migration_static.py,3,applied
 FM-001,test,services/raster-service/test_process_date_tenant_isolation.py,3,applied
 FM-001,test,services/raster-service/test_tenant_guc_session_scope_guard.py,3,applied
 FM-001,test,services/raster-service/test_tenant_propagation.py,3,applied
@@ -650,6 +651,7 @@ FM-003,test,mobile/sahool_app/test/field_forms/no_service_token_guard_test.dart,
 FM-003,test,mobile/sahool_app/test/field_forms/schema_renderer_widget_test.dart,3,applied
 FM-003,test,mobile/sahool_app/test/field_forms/submission_queue_test.dart,3,applied
 FM-003,test,services/ai_agronomist/test_ai_field_memory_v49.py,3,applied
+FM-003,test,services/decision-service/tests/test_tenant_boundary_migration_static.py,3,applied
 FM-003,test,services/decision-service/tests/test_wx11_6_registry_activation_boundary.py,3,applied
 FM-003,test,services/field-management-service/tests/test_field_management_pg_isolation_integration.py,3,applied
 FM-003,test,services/field-management-service/tests/test_field_management_service_contract.py,3,applied
@@ -989,6 +991,7 @@ GIS-001,api,POST /v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services
 GIS-001,api,POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2744,2,applied
 GIS-001,mobile,mobile/sahool_app/lib/models/canonical_field_geometry.dart,2,applied
 GIS-001,service,services/field-management-service/main.py,10,applied
+GIS-001,test,services/decision-service/tests/test_tenant_boundary_migration_static.py,3,applied
 GIS-001,test,services/decision-service/tests/test_wx11_6_registry_activation_boundary.py,3,applied
 GIS-001,test,services/indicators-service/tests/test_indicators_service_honest_boundary.py,3,applied
 GIS-001,test,services/sahool-platform/tests/test_agri_polygon_area.py,3,applied

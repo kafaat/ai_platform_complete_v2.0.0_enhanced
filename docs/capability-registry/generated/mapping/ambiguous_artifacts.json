@@ -4542,6 +4542,28 @@
     ]
   },
   {
+    "path": "services/decision-service/migrations/033_tenant_boundary_hardening.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "FM-001",
+        "score": 14,
+        "signals": [
+          "path:tenant",
+          "content:tenant"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 12,
+        "signals": [
+          "content:row level security",
+          "content:tenant isolation"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/decision-service/persistence.py",
     "kind": "backend",
     "candidates": [

@@ -6600,3 +6600,23 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **دليل الشجرة:** رأس الإصلاح `d4893421d4e5935ae5cc430f8fd867aed42584c8` اجتاز `SAHOOL v9.1.0 CI` و`Sahool Production Gates` و`Capability Governance` و`No Report-only Change` بعد إعادة توليد بصمات الإصدار؛ هذا يثبت سلامة الشجرة/الحزمة ولا يدّعي قبول runtime حي.
 - **حد الادعاء:** `fixed` هنا تعني أن سبب غياب helper من صورة auth أُصلح في المصدر والحزمة. لا تُرقّى إلى `verified` حتى يثبت deployment مصحح تسجيل session router ومسار `registration → logout → login/session` حيّاً.
 - **المصدر:** `services/auth/Dockerfile` · #1078 · deployment `687fdef4-b0a9-4606-b80a-684d3f9cc1ae`.
+
+
+## DECISION-MIGRATION-READINESS-CHECK-WRITES-DDL-01
+
+- **الحالة:** **fixed** (2026-09-24) — أُصلح مسار الفحص في #1079؛ يبقى شاهد runtime بعد نشر الصورة المصححة شرط الترقية إلى `verified`.
+- **العطل المقاس:** في Railway staging، deployment `a2c95741-bb3f-4e1d-8639-5a8b6e5b758c`، شغّل `migration_runner.applied_versions()` مسار `CREATE TABLE IF NOT EXISTS decision_service_schema_migrations` أثناء check/readiness. تحت `transaction_read_only=on` فشل المصدر الحالي بـ PostgreSQL SQLSTATE `25006`. بذلك كان فحص readiness ملاحظةً تحمل side effect بنيوياً، ويمكن أن يفشل دور التطبيق المقيّد رغم أن journal موجود والترحيلات حالية.
+- **الإصلاح:** commit `43e16a0bf693ccecd1507e749d6ecc85109dba1a` في #1079 يجعل check يفحص journal عبر `to_regclass` قراءةً فقط؛ غياب journal يعني أن كل الترحيلات المعروفة pending، وإنشاؤه يبقى محصوراً في مسار `--apply` الصريح.
+- **الدليل قبل/بعد:** المصدر الأصلي فشل في شاهد PostgreSQL read-only بـ `25006`؛ candidate المصحح قرأ journal الحي وأعاد migrations 001..032 حالية، وفي حالة journal غائب أعادها pending من دون إنشاء الجدول. اختبارات regression أضيفت في `services/decision-service/tests/test_migration_runner_readonly.py`.
+- **حد الادعاء:** `fixed` يصف المصدر واختبار الرقعة، لا deployment مصححاً. لا `verified` حتى تُبنى الصورة من SHA الحاوي للإصلاح ويُعاد شاهد check/readiness على PostgreSQL الحية بدور التطبيق المقيّد.
+- **المصدر:** `services/decision-service/migration_runner.py` · #1079 · `43e16a0bf693ccecd1507e749d6ecc85109dba1a` · staging `a2c95741-bb3f-4e1d-8639-5a8b6e5b758c`.
+
+## DECISION-OUTBOX-REVIEWS-RLS-TENANT-ISOLATION-01
+
+- **الحالة:** **fixed** (2026-09-24) — migration 033 أُضيفت في #1079؛ يبقى تطبيقها في staging وإعادة الـcounterexample الحي شرط الترقية إلى `verified`.
+- **العطل المقاس:** بعد تطبيق Decision migrations 001..032 في staging، سمح `decision_outbox_events` بدور `sahool_app` المقيّد (ليس superuser ولا `BYPASSRLS` ولا مالك الجدول) بقراءة صف probe من سياق tenant آخر، وقراءته بلا tenant context، وبـcross-tenant insert. القياس: `own_tenant_read_count=1` · `other_tenant_read_count=1` · `missing_tenant_read_count=1` · `cross_tenant_insert_allowed=true` · `isolation_passed=false`.
+- **سلامة الشاهد:** الاختبار استعمل tenant IDs مصطنعة داخل transaction أُجري لها rollback كامل؛ `rows_remaining_after_rollback=0`. لم يستدعِ NATS ولم ينشر events، ولذلك لا يُستخدم هذا الشاهد لإغلاق WC-P0-01.
+- **الإصلاح:** commit `b20493dbecc0d72a724dda6c25b94dc75622d312` يضيف `033_tenant_boundary_hardening.sql` مع `ENABLE ROW LEVEL SECURITY` و`FORCE ROW LEVEL SECURITY` وسياسات `USING`/`WITH CHECK` fail-closed على `app.current_tenant` لكل من `decision_outbox_events` و`decision_reviews`.
+- **النطاق المقصود:** لا يدّعي هذا إصلاح بقية الجداول tenant-bearing؛ لا تُفعّل RLS ميكانيكياً على worker/claim/model-runtime tables قبل تحليل owner/writer/consumer ومصدر tenant context لكل فئة.
+- **حد الادعاء:** `fixed` يعني وجود الإصلاح في المصدر فقط. لا `verified` حتى تُطبق 033 على staging ويعاد نفس الشاهد بحيث يكون own=1 وother=0 وmissing=0 ويُرفض cross-tenant insert مع صفر probe rows باقية.
+- **المصدر:** `services/decision-service/migrations/033_tenant_boundary_hardening.sql` · #1079 · `b20493dbecc0d72a724dda6c25b94dc75622d312` · Railway staging evidence 2026-09-24.

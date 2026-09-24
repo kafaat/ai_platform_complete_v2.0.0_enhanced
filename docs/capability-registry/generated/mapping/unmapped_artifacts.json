@@ -2604,6 +2604,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/decision-service/tests/test_migration_runner_readonly.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/decision-service/tests/test_outcome_reconcile.py",
     "kind": "tests"
   },
