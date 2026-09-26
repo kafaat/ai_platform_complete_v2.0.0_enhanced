@@ -31,6 +31,8 @@ dict. النواة تُختبر بـdicts عاديّة، الإطار الخار
 
 from __future__ import annotations
 
+import asyncio
+import os
 import time
 from collections import defaultdict, deque
 from dataclasses import asdict, dataclass, field
@@ -271,20 +273,27 @@ def handle_readyz() -> ApiResponse:
     )
 
 
-async def db_probe_ok(pool) -> bool:
-    """فحص اعتماديّة القاعدة الفعليّ للجاهزيّة (MED-001، شهادة P12).
+async def db_probe_ok(pool, *, timeout_seconds: float = 2.0) -> bool:
+    """Fail closed when an expected database pool was never initialized.
 
-    handle_readyz يفحص النواة (in-memory) فقط، فكان readyz يُرجِع ready رغم سقوط
-    Postgres (إيجابيّة كاذبة توجّه المنظّم حركةً لنسخة لا تخدم القاعدة). هذه الدالّة
-    تُجري SELECT 1 فعليّاً. pool=None ⇒ True (تشغيل بلا قاعدة مقصود — endpoints
-    القاعدة تُرجِع 503 صراحةً)؛ pool قائم لكن الفحص يفشل ⇒ False (سقوط أثناء التشغيل)."""
+    Database-free operation requires an explicit local/development/test environment,
+    no DATABASE_URL and no Railway environment. A configured DSN is required even
+    locally: failed authentication must not look like intentional database-free mode.
+    Bound both pool acquisition and SELECT 1, without logging secret-bearing errors.
+    """
     if pool is None:
-        return True
+        return (
+            os.getenv("SAHOOL_ENV", "").strip().lower() in {"development", "local", "test"}
+            and not os.getenv("DATABASE_URL", "").strip()
+            and not os.getenv("RAILWAY_ENVIRONMENT_ID", "").strip()
+        )
     try:
-        async with pool.acquire() as conn:
-            await conn.fetchval("SELECT 1")
-        return True
-    except Exception:  # noqa: BLE001 — أيّ تعذّر اتّصال = ليست جاهزة
+        async with asyncio.timeout(timeout_seconds):
+            # asyncpg also uses the acquisition timeout for release/reset, which
+            # is shielded from cancellation and needs its own finite budget.
+            async with pool.acquire(timeout=timeout_seconds) as conn:
+                return await conn.fetchval("SELECT 1") == 1
+    except Exception:  # noqa: BLE001 — dependency failures are not ready; never disclose DSNs
         return False
 
 

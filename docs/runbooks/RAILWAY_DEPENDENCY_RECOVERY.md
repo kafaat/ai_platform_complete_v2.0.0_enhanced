@@ -21,6 +21,83 @@ Use one tested commit for each rollout and record its deployment ID. A successfu
 5. Keep Qdrant and Ollama private. The current RAG embedding client does not send
    authentication headers. Do not expose Ollama publicly to make it reachable.
 
+## Platform database authentication and readiness
+
+Keep the intended application-role reference unchanged:
+
+```dotenv
+DATABASE_URL=postgresql://sahool_app:${{shared.APP_DB_PASSWORD}}@sahool-postgres.railway.internal:5432/sahool
+```
+
+Project names, Git branch names and Railway environment names are independent.
+Record the project, environment, service, deployment and deployed commit before
+diagnosis. Compare the deployment commit to `/runtime-identity`; a service's
+successful redeployment does not establish database authentication. The platform
+previously accepted a missing database pool in `core/api_adapter.py:db_probe_ok`,
+so even HTTP 200 from the old `/readyz` cannot close this incident.
+
+The repaired `/readyz` returns 503 when the configured pool is absent, acquisition
+times out, or `SELECT 1` fails. Success includes `db=up`. Database-free operation
+requires an explicit `SAHOOL_ENV=development|local|test`, an absent `DATABASE_URL`,
+and no `RAILWAY_ENVIRONMENT_ID`; its response says `db=disabled`. `/healthz`
+remains process liveness. The separate fresh-connection probe below is needed to
+prove the current credential, because existing pooled sessions can survive a
+password change.
+
+Use an authenticated Railway CLI with SSH access to the existing container. This
+does not require Railway Agent credits. `railway run` and `railway shell` run
+locally and do not establish access to Railway private DNS. From this repository,
+the read-only staging probe is:
+
+```sh
+railway ssh \
+  -p 33c50993-1110-43eb-8e92-04c15edae51e \
+  -e 70cc51f8-b11f-4506-87b2-4b6615e472be \
+  -s fa8afb01-d0c4-468f-852d-8a75ea97a6c3 \
+  -- python - < deploy/railway/probe_platform_db.py
+```
+
+Verify the returned environment and service IDs match those arguments. The
+probe opens a fresh connection using the running container's resolved DSN and
+performs only a read-only role query. Exit 0 requires `session_user=current_user=
+sahool_app`, database `sahool`, `rolcanlogin=true`, `rolsuper=false` and
+`rolbypassrls=false`. Output contains no URL, password, password hash or exception
+message. `28P01` identifies password authentication failure; timeouts and DNS
+failures require separate network diagnosis. `pg_isready` alone is insufficient.
+Role safety here does not prove table-level RLS or tenant isolation.
+
+If authentication fails, verify that the **staging** shared variable is present
+and that the platform references that environment's key. Compare staged changes
+with the active deployment: apply the intended changes through Railway's Deploy
+flow before repeating the fresh probe. A redeploy of an existing deployment may
+reuse its prior configuration. Inspect reserved-character URL encoding only if
+the resolved credential requires it; do not rewrite the intended URL speculatively.
+
+If the resolved application credential and the persisted PostgreSQL role differ,
+synchronize only `sahool_app` through an authorized administrative connection and
+secure provisioning channel. Changing an environment variable does not change a
+role password stored on an existing database volume; changing the role password
+does not update Railway variables. Never put the password in SQL command-line
+arguments, logs or a PR; PostgreSQL `psql`'s interactive `\password sahool_app`
+avoids cleartext SQL/history exposure. Do not replace the application's credential
+with the administrative password, grant superuser/BYPASSRLS, disable RLS, or
+reinitialize the volume. Inventory consumers before any coordinated credential
+rotation; preserving the shared secret and aligning the role avoids unrelated
+secret changes where that is the intended source of truth.
+
+After synchronization, repeat the fresh proof, deploy the scoped readiness repair
+from a tested compatible commit, and record deployment ID, immutable identity,
+HTTP 200 with `db=up` and fresh connection success. Then verify Decision, Raster,
+Notification and the authorized golden path separately. Do not mark staging
+ready on this database check alone. Railway's deployment healthcheck is not
+continuous dependency monitoring.
+
+References: [Railway SSH](https://docs.railway.com/cli/ssh),
+[variables](https://docs.railway.com/variables),
+[healthchecks](https://docs.railway.com/deployments/healthchecks),
+[PostgreSQL ALTER ROLE](https://www.postgresql.org/docs/current/sql-alterrole.html),
+[pg_isready](https://www.postgresql.org/docs/current/app-pg-isready.html).
+
 ## Field and imagery slice
 
 Shared references below reuse existing secrets; if a named shared key is absent,

@@ -8581,3 +8581,9 @@ PR #1073 · وظيفة CI `Platform Unit Tests` على `fe4f344`.
 
 المرجع: `sahool-brain/gaps/registry.md` صفّ `CI-CHECK-DISPLAY-NAME-COLLISION-01` ·
 `tests_v9/test_ci_check_name_identity.py`.
+
+## 2026-09-26 — readiness لا تقبل مسبحاً غائباً بعد فشل المصادقة
+
+على أساس `eff473aaf232997112fd9f6739d0a216b603d94f`، أُعيد إنتاج قبول `db_probe_ok(None)` في staging ثم أُصلح في `services/sahool-platform/core/api_adapter.py`. الفحص محدود بمهلة ويمنع readiness عند غياب مسبح مطلوب؛ وضع بلا قاعدة يحتاج بيئة تطوير صريحة بلا DSN وبلا Railway environment. اختبارات `services/sahool-platform/tests/test_readyz_db_probe.py` تشمل HTTP 503 بعد `InvalidPasswordError` وHTTP 200 للـliveness، وفشل الاستعلام/المهلة. أُضيف فحص SSH للاتصال الجديد في `deploy/railway/probe_platform_db.py` واختبار redaction وصلاحيات الدور في `tests/deploy/test_railway_platform_db_probe.py`، والخطوات في `docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md`. لم تُعدَّل أسرار أو RLS أو deployment. إصلاح المصدر منفصل عن إثبات القاعدة الحية؛ سجّلت الفجوة `PLATFORM-STAGING-DB-CREDENTIAL-PROOF-01` بدلاً من ادّعاء إغلاق staging. نتائج البوابات وSHA الرقعة تُرفق في طلب الدمج.
+
+**متابعة نشر الشريحة نفسها:** فشل `git push` لغياب اعتماد كتابة في الطرفية، فاستُخدم موصل GitHub. رفض نقل `execution_dependency_audit.json` لأن غلاف JSON بلغ 16,926,868 بايت متجاوزاً حد 16 MiB. تغيّر تنسيق المولّد القانوني `scripts/ci/execution_dependency_audit.py` من indent=1 إلى indent=0 مع إبقاء فواصل الأسطر؛ قورنت بيانات JSON قبل/بعد وتطابقت. لا حذف لمصنوعات ولا تغيير لقواعد الفحص، وأُعيد توليد البصمات التابعة.

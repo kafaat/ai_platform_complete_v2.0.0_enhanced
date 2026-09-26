@@ -336,8 +336,8 @@ def generate(out_dir: Path = OUT):
     }
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "execution_dependency_audit.json").write_text(
-        # Keep the audit readable while bounding its JSON-encoded Git API payload.
-        json.dumps(payload, indent=1, ensure_ascii=False, separators=(",", ":")) + "\n",
+        # Keep line breaks without indentation so the JSON-encoded Git API request fits.
+        json.dumps(payload, indent=0, ensure_ascii=False, separators=(",", ":")) + "\n",
         encoding="utf-8",
     )
     (out_dir / "execution_audit_summary.json").write_text(

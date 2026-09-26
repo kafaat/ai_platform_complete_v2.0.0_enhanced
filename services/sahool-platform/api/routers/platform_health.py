@@ -74,5 +74,6 @@ async def readyz():
     from api.decision_sor_mode import get_platform_decision_sor_mode
 
     body = dict(resp.body)
+    body["db"] = "up" if main._DB_POOL is not None else "disabled"
     body["decision_sor"] = get_platform_decision_sor_mode().as_dict()
     return JSONResponse(status_code=resp.status_code, content=body)

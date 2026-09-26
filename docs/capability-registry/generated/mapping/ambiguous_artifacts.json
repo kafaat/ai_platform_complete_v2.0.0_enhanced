@@ -1894,6 +1894,29 @@
     ]
   },
   {
+    "path": "docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-001",
+        "score": 12,
+        "signals": [
+          "content:cdse",
+          "content:sentinel",
+          "content:stac"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 11,
+        "signals": [
+          "content:rls",
+          "content:tenant isolation"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/specs/SCOUT-INGEST-01_B1.3_projection_spec.md",
     "kind": "other",
     "candidates": [
