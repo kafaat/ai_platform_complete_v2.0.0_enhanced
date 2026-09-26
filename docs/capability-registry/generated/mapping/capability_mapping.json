@@ -15,18 +15,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5421,
+    "files_scanned": 5423,
     "files_by_kind": {
       "backend": 1211,
       "database": 280,
       "governance": 64,
       "mobile": 55,
-      "other": 1517,
-      "tests": 1836,
+      "other": 1518,
+      "tests": 1837,
       "web": 458
     },
-    "unmapped_artifacts": 2198,
-    "ambiguous_artifacts": 421
+    "unmapped_artifacts": 2199,
+    "ambiguous_artifacts": 422
   },
   "capabilities": [
     {
@@ -25771,6 +25771,14 @@
           ]
         },
         {
+          "path": "docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md",
+          "score": 11,
+          "signals": [
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "scripts/ci/agronomic_lineage_integrity_gate.py",
           "score": 11,
           "signals": [
@@ -26130,7 +26138,7 @@
         "mobile": 0,
         "tests": 67,
         "governance": 0,
-        "other_evidence": 73
+        "other_evidence": 74
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -42482,6 +42490,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests/deploy/test_railway_platform_db_probe.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests/e2e_runtime/test_phase3_runtime_integration_contracts.py",
       "kind": "tests"
     },
@@ -46583,6 +46595,29 @@
           "score": 11,
           "signals": [
             "content:Tenant RLS",
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-001",
+          "score": 12,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 11,
+          "signals": [
             "content:rls",
             "content:tenant isolation"
           ]

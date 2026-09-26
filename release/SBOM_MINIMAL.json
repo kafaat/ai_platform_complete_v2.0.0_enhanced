@@ -19045,7 +19045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8551da1b2e84ea0d81513952385ca8354de9e56c93977230a0e5a131e8e8e334"
+          "content": "2e2e058bf48393a798de3d84141801d988f446229ce4885790ff0d9a1108e966"
         }
       ],
       "name": "services/sahool-platform/api/routers/platform_health.py",
@@ -20295,7 +20295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f97363337243479d1a5a1d2d80c3cca2f2a566c399e014be02b69275f8879a5e"
+          "content": "e38cc7203541cf94202a9d59fbe96c21685ddbca615bc453345f81065b0d8d2b"
         }
       ],
       "name": "services/sahool-platform/core/api_adapter.py",
@@ -27235,7 +27235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ce7343061c2a3b12a5d4ea0248a445fb7a01dc7578b807ddadd8fad7ece5e555"
+          "content": "90f28163e1ea785e4780d52e3296866ed0b603dfa6ee0c8bf96c8f72b58a08c6"
         }
       ],
       "name": "services/sahool-platform/tests/test_readyz_db_probe.py",

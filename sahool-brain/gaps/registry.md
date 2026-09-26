@@ -6620,3 +6620,16 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **النطاق المقصود:** لا يدّعي هذا إصلاح بقية الجداول tenant-bearing؛ لا تُفعّل RLS ميكانيكياً على worker/claim/model-runtime tables قبل تحليل owner/writer/consumer ومصدر tenant context لكل فئة.
 - **حد الادعاء:** `fixed` يعني وجود الإصلاح في المصدر فقط. لا `verified` حتى تُطبق 033 على staging ويعاد نفس الشاهد بحيث يكون own=1 وother=0 وmissing=0 ويُرفض cross-tenant insert مع صفر probe rows باقية.
 - **المصدر:** `services/decision-service/migrations/033_tenant_boundary_hardening.sql` · #1079 · `b20493dbecc0d72a724dda6c25b94dc75622d312` · Railway staging evidence 2026-09-24.
+
+## PLATFORM-READINESS-ACCEPTS-MISSING-DB-POOL-01
+
+- **الحالة:** **fixed** في شريحة `codex/platform-db-readiness-20260927` على أساس `eff473aaf232997112fd9f6739d0a216b603d94f`؛ لا ادّعاء نشر حي.
+- **العطل:** `_init_db_pool` يلتقط فشل المصادقة ويترك `_DB_POOL=None`، بينما `db_probe_ok(None)` كان True؛ `/readyz` قد يعلن الجاهزية بلا قاعدة.
+- **الإصلاح والدليل:** `services/sahool-platform/core/api_adapter.py:db_probe_ok` و`services/sahool-platform/tests/test_readyz_db_probe.py:test_startup_authentication_failure_cannot_report_ready`؛ قاعدة مطلوبة غائبة أو معطلة تعني 503، والـliveness مستقل.
+
+## PLATFORM-STAGING-DB-CREDENTIAL-PROOF-01
+
+- **الحالة:** **open** (2026-09-26).
+- **المصدر:** `docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md`، `deploy/railway/probe_platform_db.py`؛ بيئة staging `70cc51f8-b11f-4506-87b2-4b6615e472be` وخدمة المنصّة `fa8afb01-d0c4-468f-852d-8a75ea97a6c3`.
+- **الفجوة:** لا شاهد اتصال جديد مُصادَق بالاعتماد الجاري، ولا إثبات نشر إصلاح readiness. السجلات التاريخية لفشل `sahool_app` ونجاح redeploy لا تثبت الحالة الحالية، وRailway Agent بلغ حد الاستخدام؛ صلاحية SSH لم تكن متاحة في الجلسة.
+- **شرط الإغلاق:** فحص SSH ينجح بهوية `sahool_app` وقاعدة `sahool` بلا superuser/BYPASSRLS، ثم deployment مطابق لهوية الصورة المصححة و`/readyz` ناجح مع `db=up`. إثبات RLS والجداول والمسار الذهبي يبقى مستقلاً. لا تعديل DATABASE_URL أو نسخ اعتماد إداري لتجاوز الفشل.
