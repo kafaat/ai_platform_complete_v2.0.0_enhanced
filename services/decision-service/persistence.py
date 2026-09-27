@@ -367,8 +367,8 @@ async def persist_recommendation_outcome(*, tenant_id: str, payload: Any) -> dic
                    farm_id, crop, predicted_yield_t_ha, actual_yield_t_ha, accepted,
                    matured_within_lag, outcome_recorded_at)
                 VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10, $11,
-                        $12, $13, $14, $15, $16, $17,
-                        CASE WHEN $15 IS NOT NULL THEN now() ELSE NULL END)
+                        $12, $13, $14, $15::numeric, $16, $17,
+                        CASE WHEN $15::numeric IS NOT NULL THEN now() ELSE NULL END)
                 ON CONFLICT (tenant_id, idempotency_key) WHERE idempotency_key IS NOT NULL
                 DO NOTHING
                 RETURNING outcome_id, request_hash

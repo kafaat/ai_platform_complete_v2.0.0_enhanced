@@ -5849,6 +5849,7 @@
       "code_readers": [
         "services/decision-service/persistence.py",
         "services/decision-service/recommendation_outcomes_cutover_preflight.py",
+        "services/decision-service/tests/test_migration_033_pg16.py",
         "services/sahool-platform/api/learning_feedback.py",
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/learning.py",

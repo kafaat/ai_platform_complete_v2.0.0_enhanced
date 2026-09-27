@@ -745,6 +745,43 @@ async def test_baseline_outbox_writers_after_033(database, observed_writers):
         ),
     )
     assert recommendation["outcome_id"]
+    assert (
+        await database.admin.fetchval(
+            "SELECT outcome_recorded_at FROM recommendation_outcomes WHERE outcome_id=$1",
+            recommendation["outcome_id"],
+        )
+        is None
+    )
+    measured_payload = api.RecommendationOutcomeIn(
+        recommendation_id="ci-rec",
+        decision_id="ci-dispatch",
+        idempotency_key="ci-rec-measured",
+        metadata={"actual_yield_t_ha": 2.5},
+    )
+    measured = await persistence.persist_recommendation_outcome(
+        tenant_id=TENANT,
+        payload=measured_payload,
+    )
+    saved = await database.admin.fetchrow(
+        "SELECT actual_yield_t_ha, outcome_recorded_at FROM recommendation_outcomes "
+        "WHERE outcome_id=$1",
+        measured["outcome_id"],
+    )
+    assert float(saved["actual_yield_t_ha"]) == 2.5
+    assert saved["outcome_recorded_at"] is not None
+    replay = await persistence.persist_recommendation_outcome(
+        tenant_id=TENANT,
+        payload=measured_payload,
+    )
+    assert replay["outcome_id"] == measured["outcome_id"]
+    assert (
+        await database.admin.fetchval(
+            "SELECT count(*) FROM decision_outbox_events WHERE tenant_id=$1::uuid "
+            "AND event_type='RECOMMENDATION_OUTCOME_RECORDED'",
+            TENANT,
+        )
+        == 2
+    )
     assert BASELINE_WRITERS <= observed_writers
 
 
