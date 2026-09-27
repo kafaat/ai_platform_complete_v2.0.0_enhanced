@@ -274,7 +274,8 @@ def test_second_operation_has_its_own_evidence(tmp_path):
 def test_all_call_sites_are_retained(tmp_path):
     root = tree(tmp_path, 'kongApi.post("/query");')
     (root / "frontend/src/zpage.tsx").write_text(
-        'import { kongApi } from "./services/api/client";\nkongApi.post("/query");'
+        'import { kongApi } from "./services/api/client";\nkongApi.post("/query");',
+        encoding="utf-8",
     )
     r, _, _ = resolve(root)
     assert "zpage.tsx:2" in str(r)
@@ -319,17 +320,19 @@ def test_shadow_or_ambiguous_identifier_use_is_not_proof(tmp_path, body):
 )
 def test_missing_or_wrong_import_never_resolves(tmp_path, declaration):
     root = tree(tmp_path, "")
-    (root / "frontend/src/page.tsx").write_text(declaration + '\nkongApi.post("/query");')
+    (root / "frontend/src/page.tsx").write_text(
+        declaration + '\nkongApi.post("/query");', encoding="utf-8"
+    )
     assert not resolve(root)[0]
 
 
 def test_named_alias_and_reexport_chain(tmp_path):
     root = tree(tmp_path, "")
     (root / "frontend/src/facade.ts").write_text(
-        'export { kongApi as platform } from "./services/api/client";'
+        'export { kongApi as platform } from "./services/api/client";', encoding="utf-8"
     )
     (root / "frontend/src/page.tsx").write_text(
-        'import { platform as http } from "./facade";\nhttp.post("/query");'
+        'import { platform as http } from "./facade";\nhttp.post("/query");', encoding="utf-8"
     )
     r, u, _ = resolve(root)
     assert r and not u
@@ -341,9 +344,11 @@ def test_named_alias_and_reexport_chain(tmp_path):
 
 def test_reexport_cycle_stays_unproven(tmp_path):
     root = tree(tmp_path, "")
-    (root / "frontend/src/facade.ts").write_text('export { kongApi } from "./facade";')
+    (root / "frontend/src/facade.ts").write_text(
+        'export { kongApi } from "./facade";', encoding="utf-8"
+    )
     (root / "frontend/src/page.tsx").write_text(
-        'import { kongApi } from "./facade";\nkongApi.post("/query");'
+        'import { kongApi } from "./facade";\nkongApi.post("/query");', encoding="utf-8"
     )
     assert not resolve(root)[0]
 
@@ -360,10 +365,14 @@ def test_same_line_evidence_has_distinct_columns(tmp_path):
 
 def test_dotted_module_name_cannot_bind_a_different_module(tmp_path):
     root = tree(tmp_path, "")
-    (root / "frontend/src/facade.ts").write_text('export { kongApi } from "./services/api/client";')
-    (root / "frontend/src/facade.shadow.ts").write_text("export const kongApi = unrelatedClient;")
+    (root / "frontend/src/facade.ts").write_text(
+        'export { kongApi } from "./services/api/client";', encoding="utf-8"
+    )
+    (root / "frontend/src/facade.shadow.ts").write_text(
+        "export const kongApi = unrelatedClient;", encoding="utf-8"
+    )
     (root / "frontend/src/page.tsx").write_text(
-        'import { kongApi } from "./facade.shadow";\nkongApi.post("/query");'
+        'import { kongApi } from "./facade.shadow";\nkongApi.post("/query");', encoding="utf-8"
     )
     assert not resolve(root)[0]
 
@@ -371,17 +380,17 @@ def test_dotted_module_name_cannot_bind_a_different_module(tmp_path):
 def test_dotted_module_name_retains_its_complete_filename(tmp_path):
     root = tree(tmp_path, "")
     (root / "frontend/src/facade.client.ts").write_text(
-        'export { kongApi } from "./services/api/client";'
+        'export { kongApi } from "./services/api/client";', encoding="utf-8"
     )
     (root / "frontend/src/page.tsx").write_text(
-        'import { kongApi } from "./facade.client";\nkongApi.post("/query");'
+        'import { kongApi } from "./facade.client";\nkongApi.post("/query");', encoding="utf-8"
     )
     assert resolve(root)[0]
 
 
 def test_dynamic_test_calls_do_not_enter_application_blind_spots(tmp_path):
     root = tree(tmp_path, "kongApi.post(applicationUrl);")
-    (root / "frontend/src/page.test.tsx").write_text("kongApi.post(testUrl);")
+    (root / "frontend/src/page.test.tsx").write_text("kongApi.post(testUrl);", encoding="utf-8")
     _, _, report = resolve(root)
     assert report["scanner_blind_spots"] == len(report["unsupported_call_sites"]) == 1
     assert all(x["source_kind"] == "application" for x in report["unsupported_call_sites"])
