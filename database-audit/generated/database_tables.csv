@@ -54,7 +54,7 @@ crop_stress_memory_snapshots,v153_crop_stress_memory_store.sql,158,True,True,Tru
 custody_chain_events,v65_harvest_traceability.sql,70,True,True,True,1,False,False,1,1
 decision_learning_runs,v227_decision_learning_runtime.sql,224,True,False,False,0,False,True,1,1
 decision_policies,v69_decision_policies.sql,74,True,False,False,0,False,True,1,1
-decision_record,v78_decision_record.sql,83,True,True,True,1,True,False,17,17
+decision_record,v78_decision_record.sql,83,True,True,True,1,True,False,17,18
 device_commands_log,v20_automation_tables.sql,24,True,False,False,0,False,True,1,1
 device_telemetry,v24_iot_devices.sql,28,True,False,False,0,False,True,2,1
 digital_twin_scenarios,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True,False,0,0
@@ -243,7 +243,7 @@ offline_synced_operations,v15_offline_synced_operations.sql,19,True,False,False,
 ogc_conformance_runs,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True,False,0,0
 onboarding_responses,v9_onboarding.sql,4,True,True,True,1,False,False,1,1
 online_feature_values,v106_phase9_10_runtime_strengthening.sql,112,True,True,True,1,True,False,0,1
-online_learning_updates,v119_phase10_continuous_learning.sql,125,True,True,True,1,False,False,0,4
+online_learning_updates,v119_phase10_continuous_learning.sql,125,True,True,True,1,False,False,1,4
 outbox_delivery_attempts,v140_outbox_delivery_attempts.sql,145,True,True,True,1,True,False,0,1
 outcome_record,v79_outcome_record.sql,84,True,True,True,1,True,False,11,8
 phenology_observations,v224_canonical_phenology_state.sql,221,True,True,True,1,True,False,0,2

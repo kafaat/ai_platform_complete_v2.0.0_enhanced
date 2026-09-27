@@ -6633,3 +6633,11 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **المصدر:** `docs/runbooks/RAILWAY_DEPENDENCY_RECOVERY.md`، `deploy/railway/probe_platform_db.py`؛ بيئة staging `70cc51f8-b11f-4506-87b2-4b6615e472be` وخدمة المنصّة `fa8afb01-d0c4-468f-852d-8a75ea97a6c3`.
 - **الفجوة:** لا شاهد اتصال جديد مُصادَق بالاعتماد الجاري، ولا إثبات نشر إصلاح readiness. السجلات التاريخية لفشل `sahool_app` ونجاح redeploy لا تثبت الحالة الحالية، وRailway Agent بلغ حد الاستخدام؛ صلاحية SSH لم تكن متاحة في الجلسة.
 - **شرط الإغلاق:** فحص SSH ينجح بهوية `sahool_app` وقاعدة `sahool` بلا superuser/BYPASSRLS، ثم deployment مطابق لهوية الصورة المصححة و`/readyz` ناجح مع `db=up`. إثبات RLS والجداول والمسار الذهبي يبقى مستقلاً. لا تعديل DATABASE_URL أو نسخ اعتماد إداري لتجاوز الفشل.
+
+## DECISION-033-RESTRICTED-ROLE-COMPATIBILITY-01
+
+- **الحالة:** **open** (2026-09-27)، على أساس `eb6da9df07653c3e28c84328d581f9bf7e73531f`.
+- **المصدر:** `services/decision-service/persistence.py:persist_learning_update` و`review_decision`؛ `services/decision-service/migrations/033_tenant_boundary_hardening.sql`؛ الاختبار `services/decision-service/tests/test_migration_033_pg16.py` ووظيفة `decision-033-pg16-proof` في `.github/workflows/ci.yml`.
+- **الفجوة:** مسارا كتابة التعلم وإعادة مراجعة القرار لا يربطان `app.current_tenant` داخل معاملتهما، بينما 033 تفرضه على outbox وreviews. وظيفة Decision السابقة تستعمل PostgreSQL 15 بحساب إداري؛ نجاحها لا يثبت توافق دور التطبيق المقيّد.
+- **الشاهد المطلوب:** حساب LOGIN جديد بلا superuser أو BYPASSRLS أو عضوية أدوار؛ مقارنة المسارين قبل 033 وبعدها على PostgreSQL 16 مع نفس الحساب، إضافة إلى own/other/missing/cross-tenant وFORCE للمالك وrollback وmigration reapply. اختبارات التوافق ليست xfail؛ فشلها يمنع اعتبار الرقعة صالحة للدمج.
+- **حد الادعاء:** هذه إضافة اختبار وتشخيص ساكن، وليست نتيجة تنفيذ PostgreSQL بعد. لا تعديل للمصدر التشغيلي أو SQL أو أسرار أو staging. تبقى `DECISION-OUTBOX-REVIEWS-RLS-TENANT-ISOLATION-01` عند fixed؛ لا ترقية إلى verified قبل شاهد staging مستقل.

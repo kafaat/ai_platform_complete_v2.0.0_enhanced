@@ -4415,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "552825cc1885eae68706debdb4ce202d30bb2eece648481e26f0b47202502764"
+          "content": "de21d5d445299541f84dc047b364c3adbf6116c1dfc9646cc5be416f60cd6575"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -12279,6 +12279,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_loop_tables_and_ws_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b3d3a2cc5d7a44c15fe806a37e2261ac758456ff682adeab599b3292732aadf6"
+        }
+      ],
+      "name": "services/decision-service/tests/test_migration_033_pg16.py",
       "type": "file"
     },
     {

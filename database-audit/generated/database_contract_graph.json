@@ -2554,6 +2554,7 @@
         "services/decision-service/persistence.py",
         "services/decision-service/tests/test_agronomic_lineage_integrity.py",
         "services/decision-service/tests/test_execution_request_feed.py",
+        "services/decision-service/tests/test_migration_033_pg16.py",
         "services/decision-service/tests/test_wx10_10_dispatch_authorization.py",
         "services/decision-service/tests/test_wx10_11_execution_request.py",
         "services/decision-service/tests/test_wx10_7_decision_review.py",
@@ -5570,7 +5571,9 @@
       "write_policy_with_check": true
     },
     {
-      "code_readers": [],
+      "code_readers": [
+        "services/decision-service/tests/test_migration_033_pg16.py"
+      ],
       "code_writers": [
         "services/decision-service/persistence.py",
         "services/sahool-platform/api/phase_runtime_store.py",
