@@ -44,7 +44,7 @@ _ENDPOINT_DEF = re.compile(
 )
 # Match only on a lexical code mask; strings/comments are never executable evidence.
 _ANY_CALL = re.compile(
-    r"\b([A-Za-z0-9_]+Api)\s*\.\s*(get|post|put|patch|delete|head|options)\s*(?=[(<])"
+    r"(?<![\w$.])([A-Za-z_$][\w$]*)\s*\.\s*(get|post|put|patch|delete|head|options)\s*(?=[(<])"
 )
 _PATH = re.compile(r"/[A-Za-z0-9/_{}.-]*")
 _PARAMETER = re.compile(r"\$\{[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*\}")
@@ -189,57 +189,360 @@ def _literal_end(text: str, start: int) -> int:
     return len(text)
 
 
-def _code_mask(text: str) -> str:
-    """Keep offsets/newlines, hide comments, strings, templates and regex literals.
+class _UnparsedSource(ValueError):
+    """A lexical boundary is ambiguous: do not infer executable evidence."""
 
-    This is a bounded lexical scanner, not a TypeScript semantic/reachability
-    analysis. Calls inside template expressions are conservatively unmeasured.
+
+class _CodeMask:
+    """Bounded lexical mask with separate code, JSX-text and template modes.
+
+    This does not prove import binding or execution/reachability. Unsupported or
+    unterminated constructs fail closed for the file and are reported separately.
     """
-    masked = list(text)
-    i = 0
-    while i < len(text):
+
+    _JSX_OPEN = re.compile(r"<([A-Za-z_$][\w$.:\-]*(?=[\s/><])|(?=>))")
+
+    def __init__(self, text: str, *, jsx: bool):
+        self.text = text
+        self.mask = list(text)
+        self.jsx_enabled = jsx
+        self.depth = 0
+
+    def hide(self, start: int, end: int) -> None:
+        for i in range(start, end):
+            if self.text[i] != "\n":
+                self.mask[i] = " "
+
+    def comment(self, i: int) -> int:
+        if self.text.startswith("//", i):
+            end = self.text.find("\n", i + 2)
+            end = len(self.text) if end < 0 else end
+        else:
+            end = self.text.find("*/", i + 2)
+            if end < 0:
+                raise _UnparsedSource("unterminated_comment")
+            end += 2
+        self.hide(i, end)
+        return end
+
+    def quoted(self, i: int) -> int:
+        quote = self.text[i]
         start = i
-        if text.startswith("//", i):
-            end = text.find("\n", i + 2)
-            i = len(text) if end < 0 else end
-        elif text.startswith("/*", i):
-            end = text.find("*/", i + 2)
-            i = len(text) if end < 0 else end + 2
-        elif text[i] in "\"'`":
-            i = _literal_end(text, i)
-        elif text[i] == "/" and (
-            not text[:i].rstrip()
-            or text[:i].rstrip()[-1] in "=(:,[!&|?;{}"
-            or re.search(r"\b(?:return|throw|case)\s*$", text[:i])
-        ):
-            # Regex body: escaped slashes and character classes are opaque.
+        i += 1
+        while i < len(self.text):
+            if self.text[i] == "\\":
+                i += 2
+            elif self.text[i] == quote:
+                self.hide(start, i + 1)
+                self.mask[start] = self.text[start]
+                self.mask[i] = self.text[i]
+                return i + 1
+            elif self.text[i] in "\r\n":
+                raise _UnparsedSource("unterminated_quoted_literal")
+            else:
+                i += 1
+        raise _UnparsedSource("unterminated_quoted_literal")
+
+    def template(self, i: int) -> int:
+        self.mask[i] = "`"
+        i += 1
+        while i < len(self.text):
+            if self.text[i] == "\\":
+                end = min(i + 2, len(self.text))
+                self.hide(i, end)
+                i = end
+            elif self.text[i] == "`":
+                self.mask[i] = "`"
+                return i + 1
+            elif self.text.startswith("${", i):
+                self.hide(i, i + 1)
+                i = self.code(i + 2, stop_at_brace=True)
+            else:
+                self.hide(i, i + 1)
+                i += 1
+        raise _UnparsedSource("unterminated_template_literal")
+
+    def regex(self, i: int) -> int:
+        start = i
+        in_class = False
+        i += 1
+        while i < len(self.text) and self.text[i] not in "\r\n":
+            if self.text[i] == "\\":
+                i += 2
+                continue
+            if self.text[i] == "[":
+                in_class = True
+            elif self.text[i] == "]":
+                in_class = False
+            elif self.text[i] == "/" and not in_class:
+                self.hide(start, i + 1)
+                self.mask[start] = self.text[start]
+                self.mask[i] = self.text[i]
+                return i + 1
             i += 1
-            in_class = False
-            while i < len(text) and text[i] != "\n":
-                if text[i] == "\\":
-                    i += 2
+        raise _UnparsedSource("unterminated_or_ambiguous_regex")
+
+    def expression_position(self, i: int) -> bool:
+        before = "".join(self.mask[:i]).rstrip()
+        if (
+            not before
+            or before[-1] in "=(:,[!&|?;{}><+-*%/^~"
+            or re.search(
+                r"\b(?:return|throw|case|yield|await|else|do|void|typeof|delete|in|of)\s*$",
+                before,
+            )
+        ):
+            return True
+        # A control-flow condition may be followed by an expression statement:
+        # `if (ready) <Panel>text</Panel>`. An ordinary call/group followed by
+        # '<' is not sufficient evidence of a JSX opening (it may be comparison).
+        if before[-1] == ")":
+            nesting = 1
+            j = len(before) - 2
+            while j >= 0 and nesting:
+                nesting += (before[j] == ")") - (before[j] == "(")
+                j -= 1
+            return nesting == 0 and bool(re.search(r"\b(?:if|while|for|with)\s*$", before[: j + 1]))
+        return False
+
+    def jsx(self, i: int) -> int:
+        opening = self._JSX_OPEN.match(self.text, i)
+        if opening is None:
+            raise _UnparsedSource("unsupported_jsx_opening")
+        name = opening.group(1)
+        self.hide(i, opening.end())
+        i = opening.end()
+        if name and i < len(self.text) and self.text[i] == "<":
+            # Typed JSX components, e.g. <DataTable<Row> ... />. Type arguments
+            # are not executable expressions; retain only attribute expressions.
+            start = i
+            nesting = 1
+            i += 1
+            while i < len(self.text) and nesting:
+                if self.text[i] in "\"'`":
+                    i = _literal_end(self.text, i)
                     continue
-                if text[i] == "[":
-                    in_class = True
-                elif text[i] == "]":
-                    in_class = False
-                elif text[i] == "/" and not in_class:
-                    i += 1
-                    break
+                if self.text.startswith(("//", "/*"), i):
+                    i = self.comment(i)
+                    continue
+                if self.text[i] == "<":
+                    nesting += 1
+                elif self.text[i] == ">" and self.text[i - 1] != "=":
+                    nesting -= 1
+                i += 1
+            if nesting:
+                raise _UnparsedSource("unterminated_jsx_type_arguments")
+            self.hide(start, i)
+        while i < len(self.text):
+            if self.text.startswith("/>", i):
+                self.hide(i, i + 2)
+                return i + 2
+            if self.text[i] == ">":
+                self.hide(i, i + 1)
+                i += 1
+                break
+            if self.text[i] in "\"'":
+                # JSX attribute strings may span lines and do not use JS escapes.
+                end = self.text.find(self.text[i], i + 1)
+                if end < 0:
+                    raise _UnparsedSource("unterminated_jsx_attribute")
+                self.hide(i, end + 1)
+                i = end + 1
+            elif self.text[i] == "{":
+                i = self.code(i + 1, stop_at_brace=True)
+            else:
+                self.hide(i, i + 1)
                 i += 1
         else:
-            i += 1
-            continue
-        for j in range(start, min(i, len(text))):
-            if text[j] != "\n":
-                masked[j] = " "
-    return "".join(masked)
+            raise _UnparsedSource("unterminated_jsx_opening")
+
+        while i < len(self.text):
+            if self.text.startswith("</", i):
+                closing = re.match(r"</([A-Za-z_$][\w$.:\-]*|)\s*>", self.text[i:])
+                if closing is None or closing.group(1) != name:
+                    raise _UnparsedSource("mismatched_jsx_closing")
+                end = i + closing.end()
+                self.hide(i, end)
+                return end
+            if self.text[i] == "<":
+                self.depth += 1
+                if self.depth > 96:
+                    raise _UnparsedSource("lexical_nesting_limit")
+                i = self.jsx(i)
+                self.depth -= 1
+            elif self.text[i] == "{":
+                i = self.code(i + 1, stop_at_brace=True)
+            else:
+                # Apostrophes, quotes and apparent calls here are JSX text.
+                self.hide(i, i + 1)
+                i += 1
+        raise _UnparsedSource("unterminated_jsx_element")
+
+    def code(self, i: int = 0, *, stop_at_brace: bool = False) -> int:
+        self.depth += 1
+        if self.depth > 96:
+            raise _UnparsedSource("lexical_nesting_limit")
+        braces = 0
+        while i < len(self.text):
+            ch = self.text[i]
+            if self.text.startswith(("//", "/*"), i):
+                i = self.comment(i)
+            elif ch in "\"'":
+                i = self.quoted(i)
+            elif ch == "`":
+                i = self.template(i)
+            elif ch == "<" and self.jsx_enabled and self.expression_position(i):
+                # Generic calls follow a callee, not an expression-opening token.
+                generic_arrow = re.match(
+                    r"<[A-Za-z_$][\w$]*(?:\s+extends\b[^<>]*|,)\s*>\s*\(",
+                    self.text[i:],
+                )
+                if generic_arrow:
+                    # TSX permits constrained/comma-marked generic arrow parameters.
+                    # The parameter/body code is still scanned normally.
+                    i += generic_arrow.end() - 1
+                elif self._JSX_OPEN.match(self.text, i):
+                    i = self.jsx(i)
+                else:
+                    i += 1
+            elif ch == "/" and self.expression_position(i):
+                i = self.regex(i)
+            elif ch == "{":
+                braces += 1
+                i += 1
+            elif ch == "}" and stop_at_brace and braces == 0:
+                self.depth -= 1
+                return i + 1
+            else:
+                if ch == "}":
+                    braces -= 1
+                i += 1
+        self.depth -= 1
+        if stop_at_brace:
+            raise _UnparsedSource("unterminated_expression")
+        return i
+
+
+def _scan_code(text: str, *, jsx: bool = True) -> tuple[str, str | None]:
+    scanner = _CodeMask(text, jsx=jsx)
+    try:
+        scanner.code()
+    except (_UnparsedSource, RecursionError) as exc:
+        # Do not count this as zero calls or a complete scan. There is no sound
+        # call count for a source region whose lexical boundaries are unknown.
+        return "".join("\n" if c == "\n" else " " for c in text), str(exc)
+    return "".join(scanner.mask), None
+
+
+def _code_mask(text: str) -> str:
+    """Compatibility helper; the scanner also consumes _scan_code diagnostics."""
+    return _scan_code(text)[0]
 
 
 def _is_test_source(path: Path) -> bool:
     return bool(re.search(r"\.(?:test|spec)\.tsx?$", path.name)) or bool(
         {"tests", "__tests__", "__mocks__"}.intersection(path.parts)
     )
+
+
+class _ClientBindings:
+    """Prove named relative imports/re-exports; reject ambiguous identifier uses.
+
+    Without a semantic TS parser, an identifier used anywhere other than an
+    import/re-export or a direct HTTP receiver invalidates that file's binding.
+    This deliberately rejects some valid programs instead of accepting shadows.
+    """
+
+    _LINK = re.compile(r"\b(import|export)\s+(type\s+)?\{([^{}]*)\}\s+from\s*([\"\'])")
+
+    def __init__(self, root, prefixes):
+        self.root = root.resolve()
+        self.canonical = (root / "frontend/src/services/api/client.ts").resolve()
+        self.prefixes = prefixes
+        self.modules = {}
+
+    def module(self, path):
+        path = path.resolve()
+        if path in self.modules:
+            return self.modules[path]
+        text = path.read_text(encoding="utf-8")
+        code, error = _scan_code(text, jsx=path.suffix == ".tsx")
+        links = []
+        if not error:
+            for match in self._LINK.finditer(code):
+                start = match.end() - 1
+                end = _literal_end(text, start)
+                target = text[start + 1 : end - 1]
+                if match.group(2) or not target.startswith("."):
+                    continue
+                base = path.parent / target
+                options = (
+                    [base]
+                    if base.suffix in {".ts", ".tsx"}
+                    else [
+                        base.with_suffix(".ts"),
+                        base.with_suffix(".tsx"),
+                        base / "index.ts",
+                        base / "index.tsx",
+                    ]
+                )
+                options = [
+                    p.resolve()
+                    for p in options
+                    if p.is_file() and p.resolve().is_relative_to(self.root)
+                ]
+                if len(options) != 1:
+                    continue
+                for item in match.group(3).split(","):
+                    names = re.fullmatch(
+                        r"\s*([A-Za-z_$][\w$]*)(?:\s+as\s+([A-Za-z_$][\w$]*))?\s*", item
+                    )
+                    if names:
+                        links.append(
+                            {
+                                "kind": match.group(1),
+                                "original": names[1],
+                                "local": names[2] or names[1],
+                                "target": options[0],
+                                "span": (match.start(), end),
+                                "site": f"{path.relative_to(self.root)}:{text[: match.start()].count(chr(10)) + 1}",
+                            }
+                        )
+        self.modules[path] = (code, error, links)
+        return self.modules[path]
+
+    def exported(self, path, name, seen):
+        key = (path, name)
+        if key in seen or len(seen) >= 24:
+            return None
+        if path == self.canonical:
+            return (name, []) if name in self.prefixes else None
+        _, error, links = self.module(path)
+        matches = [x for x in links if x["kind"] == "export" and x["local"] == name]
+        if error or len(matches) != 1:
+            return None
+        link = matches[0]
+        result = self.exported(link["target"], link["original"], seen | {key})
+        return (result[0], [link["site"], *result[1]]) if result else None
+
+    def resolve(self, path, name):
+        path = path.resolve()
+        code, error, links = self.module(path)
+        matches = [x for x in links if x["kind"] == "import" and x["local"] == name]
+        if error or len(matches) != 1:
+            return None
+        # Every other occurrence must be a direct receiver, never a parameter,
+        # declaration, assignment, property alias, destructuring or indirect use.
+        spans = [x["span"] for x in links]
+        for occurrence in re.finditer(r"(?<![\w$])" + re.escape(name) + r"(?![\w$])", code):
+            pos = occurrence.start()
+            if any(a <= pos < b for a, b in spans):
+                continue
+            if not _ANY_CALL.match(code, pos):
+                return None
+        link = matches[0]
+        result = self.exported(link["target"], link["original"], set())
+        return (result[0], [link["site"], *result[1]]) if result else None
 
 
 def _scan_calls(
@@ -249,16 +552,34 @@ def _scan_calls(
     tests: list[dict[str, Any]] = []
     blind: list[dict[str, Any]] = []
     source = root / "frontend/src"
+    binding_reader = _ClientBindings(root, client_prefixes(root))
     for path in sorted(source.rglob("*.ts*")):
         if path.suffix not in {".ts", ".tsx"}:
             continue
         text = path.read_text(encoding="utf-8", errors="strict")
-        code = _code_mask(text)
+        code, lexical_error = _scan_code(text, jsx=path.suffix == ".tsx")
         relative = path.relative_to(root)
         test_source = _is_test_source(relative)
+        if lexical_error:
+            blind.append(
+                {
+                    "site": f"{relative}:1",
+                    "source_kind": "test" if test_source else "application",
+                    "reason": "unparsed_source_file",
+                    "detail": lexical_error,
+                    "count_unit": "file_not_calls",
+                }
+            )
+            continue
+        imported_names = {
+            x["local"] for x in binding_reader.module(path)[2] if x["kind"] == "import"
+        }
         for match in _ANY_CALL.finditer(code):
+            if not match.group(1).endswith("Api") and match.group(1) not in imported_names:
+                continue
             call = {
                 "instance": match.group(1),
+                "column": match.start() - text.rfind("\n", 0, match.start()),
                 "method": match.group(2).upper(),
                 "site": f"{relative}:{text[: match.start()].count(chr(10)) + 1}",
                 "source_kind": "test" if test_source else "application",
@@ -313,7 +634,11 @@ def _test_references(root: Path) -> list[dict[str, Any]]:
         if path.suffix not in {".ts", ".tsx"} or not _is_test_source(relative):
             continue
         text = path.read_text(encoding="utf-8")
-        code = _code_mask(text)
+        code, lexical_error = _scan_code(text, jsx=path.suffix == ".tsx")
+        if lexical_error:
+            # Unknown lexical regions are not evidence of non-executable text.
+            # _scan_calls reports this file separately instead.
+            continue
         for match in _ANY_CALL.finditer(text):
             if _ANY_CALL.match(code, match.start()) is None:
                 references.append(
@@ -328,9 +653,17 @@ def _test_references(root: Path) -> list[dict[str, Any]]:
 
 
 def call_sites(root: Path = ROOT) -> tuple[list[dict[str, Any]], int]:
-    """Application call sites and the count of unsupported application calls."""
+    """Application call sites and *detected* unsupported application call count.
+
+    Files that cannot be lexed have no meaningful call count. Callers requiring
+    scan completeness must consume the `unparsed_source_files` field in the
+    report returned by resolve() rather than interpreting this count as total missing calls.
+    """
     calls, _, blind = _scan_calls(root)
-    return calls, sum(item["source_kind"] == "application" for item in blind)
+    return calls, sum(
+        item["source_kind"] == "application" and item["reason"] == "unsupported_or_dynamic_path"
+        for item in blind
+    )
 
 
 def resolve(
@@ -340,7 +673,10 @@ def resolve(
     prefixes = client_prefixes(root)
     gate = gateway(root, components)
     calls, test_calls, blind_calls = _scan_calls(root)
-    blind = sum(item["source_kind"] == "application" for item in blind_calls)
+    blind = sum(
+        item["source_kind"] == "application" and item["reason"] == "unsupported_or_dynamic_path"
+        for item in blind_calls
+    )
 
     proxies = sorted(
         [route for route in gate["routes"] if route["kind"] == "proxy"],
@@ -349,11 +685,17 @@ def resolve(
     rewrites = [route for route in gate["routes"] if route["kind"] == "rewrite"]
 
     # (component, HTTP method, normalised service path) => evidence chain
-    index: dict[tuple[str, str, str], dict[str, Any]] = {}
+    index: dict[tuple[str, str, str], list[dict[str, Any]]] = {}
+    bindings = _ClientBindings(root, prefixes)
+    unproven_bindings = []
     for call in calls:
-        client = prefixes.get(call["instance"])
-        if client is None:
+        binding = bindings.resolve(root / call["site"].rsplit(":", 1)[0], call["instance"])
+        if binding is None:
+            unproven_bindings.append(
+                {**call, "reason": "unproven_import_or_ambiguous_identifier_use"}
+            )
             continue
+        client = prefixes[binding[0]]
         browser_path = normalise(client["prefix"] + call["path"])
         for route in proxies:
             base = route["client"].rstrip("/")
@@ -375,10 +717,11 @@ def resolve(
                     )
                     rule_line = rewrite["line"]
                     break
-            index.setdefault(
-                (component, call["method"], service_path),
+            index.setdefault((component, call["method"], service_path), []).append(
                 {
+                    "import_chain": binding[1],
                     "call_site": call["site"],
+                    "call_column": call["column"],
                     "method": call["method"],
                     "source_kind": call["source_kind"],
                     "evidence_scope": "static_source_only",
@@ -394,30 +737,30 @@ def resolve(
     resolved: list[dict[str, Any]] = []
     remaining: list[dict[str, Any]] = []
     for edge in edges:
-        chain = None
-        for entrypoint in edge.get("entrypoints") or []:
+        pending = []
+        entrypoints = edge.get("entrypoints") or []
+        for entrypoint in dict.fromkeys(entrypoints):
             parts = entrypoint.split(None, 1)
-            if len(parts) != 2:
+            chains = (
+                index.get((edge["from"], parts[0].upper(), normalise(parts[1])), [])
+                if len(parts) == 2
+                else []
+            )
+            if not chains:
+                pending.append(entrypoint)
                 continue
-            method, declared = parts
-            chain = index.get((edge["from"], method.upper(), normalise(declared)))
-            if chain:
-                matched = entrypoint
-                break
-        if not chain:
-            remaining.append(edge)
-            continue
-        resolved.append(
-            {
-                **edge,
-                "evidence_state": "resolved",
-                "resolved_entrypoint": matched,
-                "evidence": {
-                    "kind": "frontend_call_site_through_gateway",
-                    **chain,
-                },
-            }
-        )
+            for chain in chains:
+                resolved.append(
+                    {
+                        **edge,
+                        "entrypoints": [entrypoint],
+                        "evidence_state": "resolved",
+                        "resolved_entrypoint": entrypoint,
+                        "evidence": {"kind": "frontend_call_site_through_gateway", **chain},
+                    }
+                )
+        if pending or not entrypoints:
+            remaining.append({**edge, "entrypoints": pending})
     report = {
         "frontend_clients": len(prefixes),
         "gateway_rules": len(gate["routes"]),
@@ -426,13 +769,29 @@ def resolve(
         "literal_call_sites": len(calls),
         # **حدُّ الماسح، مُعلَناً بعدده:** غيابُ الدليل هنا قد يكون غيابَ رؤية.
         "scanner_blind_spots": blind,
-        "unsupported_call_sites": blind_calls,
+        "unsupported_call_sites": [
+            item for item in blind_calls if item["reason"] == "unsupported_or_dynamic_path"
+        ],
+        "unparsed_source_files": [
+            item for item in blind_calls if item["reason"] == "unparsed_source_file"
+        ],
+        "lexical_scan_complete": not any(
+            item["reason"] == "unparsed_source_file" for item in blind_calls
+        ),
+        "scanner_blind_spots_are_exhaustive": False,
+        "scanner_blind_spots_unit": "detected_unsupported_application_calls",
+        "unproven_client_bindings": unproven_bindings,
+        "resolved_count_unit": "operation_call_site_evidence_rows",
+        "unresolved_count_unit": "declared_groups_with_pending_operations",
         "test_call_sites": test_calls,
         "non_executable_test_references": _test_references(root),
         "evidence_scope": "static_source_only",
         "scanner_limitations": [
-            "No runtime reachability, import binding or client shadowing analysis",
-            "Calls inside template expressions and JSX text are not semantically parsed",
+            "No runtime reachability; named relative imports/re-exports only",
+            "Ambiguous identifier uses reject the entire file binding conservatively",
+            "Bounded lexical JSX/template scan, not TypeScript semantic analysis",
+            "Unparsed files are reported separately; blind spots are not an exhaustive call count",
+            "One resolved row per matched operation and call site; pending operations remain declared",
             "Only literal paths and simple template member parameters are resolved",
         ],
         "resolved": len(resolved),
