@@ -8,8 +8,14 @@ policy passing in isolation does not mean existing writers/readers can use it.
 
 from __future__ import annotations
 
+import ast
+import asyncio
+import importlib
 import os
+import sys
 from dataclasses import replace
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from types import SimpleNamespace
 from urllib.parse import urlsplit, urlunsplit
 from uuid import uuid4
@@ -93,6 +99,7 @@ async def database(monkeypatch):
         await admin.execute(
             f'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO "{role}"'
         )
+        await admin.execute(f'GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO "{role}"')
         app = await app_connection()
         try:
             identity = await app.fetchrow(
@@ -113,7 +120,9 @@ async def database(monkeypatch):
             assert not await app.fetchval("SELECT current_setting('app.current_tenant', true)")
         finally:
             await app.close()
-        yield SimpleNamespace(admin=admin, app_connection=app_connection, role=role)
+        yield SimpleNamespace(
+            admin=admin, admin_connection=admin_connection, app_connection=app_connection, role=role
+        )
     finally:
         if admin is not None:
             await admin.close()
@@ -205,6 +214,107 @@ async def test_033_runner_check_apply_and_reapply(database):
     )
 
 
+@pytest.fixture
+def observed_writers(monkeypatch):
+    """Observe real INSERTs without replacing SQL, role, or transaction behavior."""
+    observed = set()
+    original = persistence.emit_outbox_event
+
+    async def emit(conn, **kwargs):
+        caller = sys._getframe(1).f_code.co_name
+        assert conn.is_in_transaction()
+        assert await conn.fetchval("SELECT current_setting('app.current_tenant', true)") == str(
+            kwargs["tenant_id"]
+        )
+        assert not await conn.fetchval(
+            "SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname=current_user"
+        )
+        await original(conn, **kwargs)
+        observed.add(caller)
+
+    monkeypatch.setattr(persistence, "emit_outbox_event", emit)
+    return observed
+
+
+WRITER_SCENARIOS = (
+    (
+        "test_wx10_9_execution_plan",
+        "test_approved_decision_creates_one_planned_record_and_outbox",
+        {"create_execution_plan"},
+    ),
+    (
+        "test_wx10_10_dispatch_authorization",
+        "test_planned_approved_source_creates_one_authorization_and_outbox",
+        {"authorize_dispatch"},
+    ),
+    (
+        "test_wx10_11_execution_request",
+        "test_create_execution_request_and_outbox",
+        {"create_execution_request"},
+    ),
+    (
+        "test_wx10_11b_execution_delivery_receipt",
+        "test_claim_then_accepted_receipt_and_outbox",
+        {"claim_execution_request", "record_execution_receipt"},
+    ),
+    (
+        "test_wx10_12_execution_outcome",
+        "test_terminal_request_creates_one_immutable_outcome_and_outbox",
+        {"verify_execution_outcome"},
+    ),
+    (
+        "test_wx12_1_runtime_receipts",
+        "test_rollout_receipt_persists_append_only_and_guards_missing_plan",
+        {"record_rollout_receipt"},
+    ),
+    (
+        "test_wx12_1_runtime_receipts",
+        "test_dispatch_receipt_replay_vs_conflict_and_guards_missing_request",
+        {"record_retraining_dispatch_receipt"},
+    ),
+    (
+        "test_wx12_3_runtime_schedules",
+        "test_monitoring_schedule_emits_due_window_and_snapshot_closes_it",
+        {"record_monitoring_snapshot"},
+    ),
+    (
+        "test_wx12_3_runtime_schedules",
+        "test_reconcile_schedule_emits_and_evidence_silences_it_for_a_period",
+        {"record_reconcile_evidence"},
+    ),
+    (
+        "test_wx12_3_runtime_schedules",
+        "test_schedule_create_replay_and_conflict",
+        {"create_runtime_schedule"},
+    ),
+    (
+        "test_runtime_worker_tenants",
+        "test_registration_replay_conflict_and_authorization_partitioning",
+        {"register_runtime_worker_tenant"},
+    ),
+)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("module_name,scenario,expected", WRITER_SCENARIOS)
+async def test_existing_writer_scenarios_after_033(
+    database, monkeypatch, observed_writers, module_name, scenario, expected
+):
+    """Reuse established domain assertions; only setup/inspection use the admin."""
+    assert (await runner.apply_migrations())["ok"]
+    module = importlib.import_module(module_name)
+    monkeypatch.setattr(module, "_connect", database.admin_connection)
+    # These existing scenarios use asyncio.run; keep them off the fixture event loop.
+    # persistence._connect remains the fresh restricted LOGIN from the database fixture.
+    try:
+        await asyncio.to_thread(getattr(module, scenario))
+    except pytest.skip.Exception as exc:
+        pytest.fail(f"required writer scenario must execute: {exc}")
+    assert expected <= observed_writers, (
+        f"writers never reached real INSERT: {expected - observed_writers}"
+    )
+
+
 @pytest.mark.asyncio
 async def test_033_runner_rolls_back_policy_and_journal_on_error(database, monkeypatch):
     migrations = runner.load_migrations()
@@ -232,7 +342,7 @@ async def test_033_runner_rolls_back_policy_and_journal_on_error(database, monke
 
 
 @pytest.mark.asyncio
-async def test_learning_writer_survives_033_under_restricted_login(database):
+async def test_learning_writer_survives_033_under_restricted_login(database, observed_writers):
     payload = SimpleNamespace(
         model_id="ci-model",
         feature_set_id=None,
@@ -269,6 +379,7 @@ async def test_learning_writer_survives_033_under_restricted_login(database):
         )
         raise
     assert after == {"update_id": "ci-after"}
+    assert "persist_learning_update" in observed_writers
     assert (
         await database.admin.fetchval(
             "SELECT count(*) FROM decision_outbox_events WHERE aggregate_id='ci-after'"
@@ -321,7 +432,7 @@ async def test_review_idempotency_replay_survives_033_under_restricted_login(dat
 
 
 @pytest.mark.asyncio
-async def test_fresh_review_is_atomic_and_tenant_scoped_after_033(database):
+async def test_fresh_review_is_atomic_and_tenant_scoped_after_033(database, observed_writers):
     assert (await runner.apply_migrations())["ok"]
     await database.admin.execute(
         "INSERT INTO decision_record (decision_id,tenant_id,stage,decision_type,"
@@ -348,6 +459,7 @@ async def test_fresh_review_is_atomic_and_tenant_scoped_after_033(database):
     result = await persistence.review_decision(**request)
     assert result["status"] == "ok" and result["replay"] is False
     assert result["authoritative"] is True and result["persisted"] is True
+    assert "review_decision" in observed_writers
     replay = await persistence.review_decision(**request)
     assert replay == {**result, "replay": True}
     assert await persistence.review_decision(**{**request, "reason": "changed"}) == {
@@ -371,3 +483,305 @@ async def test_fresh_review_is_atomic_and_tenant_scoped_after_033(database):
             )
             == 1
         )
+
+
+MODEL_WRITERS = {
+    "persist_decision_record",
+    "compose_agronomic_context",
+    "create_learning_attribution",
+    "create_model_evaluation_run",
+    "create_model_promotion_decision",
+    "create_model_activation_request",
+    "review_model_activation_request",
+    "claim_model_registry_activation_command",
+    "record_model_registry_activation_receipt",
+    "create_post_activation_verification",
+    "create_rollout_plan",
+    "record_monitoring_snapshot",
+    "create_retraining_request",
+    "create_model_registry_rollback_command",
+    "claim_model_registry_rollback_command",
+    "record_model_registry_rollback_receipt",
+}
+
+
+@pytest.mark.asyncio
+async def test_model_lifecycle_writers_after_033(database, observed_writers):
+    """Execute the persisted model lifecycle; no model training or registry network I/O."""
+    import main as api
+    import test_agronomic_lineage_integrity as lineage
+
+    assert (await runner.apply_migrations())["ok"]
+
+    async def call(name, **kwargs):
+        result = await getattr(persistence, name)(tenant_id=TENANT, **kwargs)
+        assert result.get("status", "ok") == "ok", (name, result)
+        return result
+
+    veg = await call(
+        "persist_vegetation_snapshot",
+        payload=lineage._veg_payload("ci-field", "a" * 64),
+        snapshot_id="ci-veg",
+    )
+    ctx = await call(
+        "compose_agronomic_context", created_by="ci", payload=lineage._compose_payload("ci-field")
+    )
+    manifest_hash = await database.admin.fetchval(
+        "SELECT content_hash FROM decision_feature_manifests WHERE feature_manifest_id=$1",
+        ctx["feature_manifest_id"],
+    )
+    await call(
+        "persist_decision_record",
+        decision_id="ci-model-decision",
+        payload=lineage._decision("ci-field", ctx, veg["snapshot_id"], manifest_hash),
+    )
+    await database.admin.execute(
+        "INSERT INTO outcome_record(outcome_id,tenant_id,decision_id,success,verification_state,"
+        "evidence_snapshot_id,execution_request_id) "
+        "VALUES('ci-model-outcome',$1::uuid,'ci-model-decision',true,'verified_success',"
+        "'ci-evidence','ci-model-execution')",
+        TENANT,
+    )
+    await call(
+        "create_learning_attribution",
+        outcome_id="ci-model-outcome",
+        attributed_by="ci",
+        payload=api.LearningAttributionIn(
+            model_id="ci-model",
+            feature_set_id="f1",
+            label="success",
+            evidence_snapshot_id="ci-evidence",
+            idempotency_key="ci-attribution",
+        ),
+    )
+    # Compute the supplied dataset fingerprint from independently inspected persisted rows.
+    rows = await database.admin.fetch(
+        "SELECT la.*,o.verification_state,o.success FROM decision_learning_attributions la "
+        "JOIN outcome_record o ON o.tenant_id=la.tenant_id AND o.outcome_id=la.outcome_id "
+        "WHERE la.tenant_id=$1::uuid",
+        TENANT,
+    )
+    assert len(rows) == 1
+    fingerprint = persistence._calibration_fingerprint([dict(row) for row in rows])
+    evaluation = await call(
+        "create_model_evaluation_run",
+        evaluated_by="ci",
+        payload=api.ModelEvaluationRunIn(
+            model_id="ci-model",
+            feature_set_id="f1",
+            dataset_fingerprint=fingerprint,
+            dataset_count=1,
+            evaluator_version="ci-v1",
+            baseline_metrics={"accuracy": 0.5},
+            candidate_metrics={"accuracy": 0.8},
+            candidate_artifact_uri="s3://ci/candidate",
+            candidate_artifact_digest="b" * 64,
+            artifact_format="onnx",
+            idempotency_key="ci-eval",
+        ),
+    )
+    promotion = await call(
+        "create_model_promotion_decision",
+        decided_by="ci",
+        payload=api.ModelPromotionDecisionIn(
+            evaluation_run_id=evaluation["evaluation_run_id"],
+            policy_version="ci-v1",
+            primary_metric="accuracy",
+            min_improvement=0.1,
+            idempotency_key="ci-promotion",
+        ),
+    )
+    assert promotion["decision_state"] == "promotion_eligible"
+    request = await call(
+        "create_model_activation_request",
+        requested_by="ci",
+        payload=api.ModelActivationRequestIn(
+            promotion_decision_id=promotion["promotion_decision_id"],
+            target_environment="staging",
+            idempotency_key="ci-activation",
+        ),
+    )
+    review = await call(
+        "review_model_activation_request",
+        activation_request_id=request["activation_request_id"],
+        reviewed_by="ci",
+        payload=api.ModelActivationReviewIn(
+            review_decision="approved",
+            review_reason="ci-only",
+            registry_alias="ci-alias",
+            previous_artifact_uri="s3://ci/previous",
+            previous_artifact_digest="c" * 64,
+            idempotency_key="ci-activation-review",
+        ),
+    )
+    command_id = review["activation_command"]["activation_command_id"]
+    await call(
+        "claim_model_registry_activation_command",
+        command_id=command_id,
+        adapter_id="ci-adapter",
+        delivery_token="ci-activation-token",
+    )
+    receipt = await call(
+        "record_model_registry_activation_receipt",
+        command_id=command_id,
+        recorded_by="ci",
+        payload=api.ModelRegistryActivationReceiptIn(
+            adapter_id="ci-adapter",
+            delivery_token="ci-activation-token",
+            receipt_state="activated",
+            active_artifact_uri="s3://ci/candidate",
+            active_artifact_digest="b" * 64,
+            registry_version="ci-v1",
+            idempotency_key="ci-activation-receipt",
+        ),
+    )
+    receipt_id = receipt["activation_receipt_id"]
+    await call(
+        "create_post_activation_verification",
+        receipt_id=receipt_id,
+        verified_by="ci",
+        payload=api.PostActivationVerificationIn(
+            verification_state="verified_healthy",
+            artifact_digest="b" * 64,
+            idempotency_key="ci-verification",
+        ),
+    )
+    await call(
+        "create_rollout_plan",
+        receipt_id=receipt_id,
+        requested_by="ci",
+        payload=api.RolloutPlanIn(mode="canary", traffic_percent=10, idempotency_key="ci-rollout"),
+    )
+    now = datetime.now(UTC)
+    monitor = await call(
+        "record_monitoring_snapshot",
+        captured_by="ci",
+        payload=api.MonitoringSnapshotIn(
+            model_id="ci-model",
+            feature_set_id="f1",
+            target_environment="staging",
+            window_start=now - timedelta(hours=1),
+            window_end=now,
+            sample_count=1,
+            drift_state="warning",
+            idempotency_key="ci-monitor",
+        ),
+    )
+    await call(
+        "create_retraining_request",
+        requested_by="ci",
+        payload=api.RetrainingRequestIn(
+            model_id="ci-model",
+            feature_set_id="f1",
+            target_environment="staging",
+            source_monitoring_snapshot_id=monitor["monitoring_snapshot_id"],
+            dataset_fingerprint=fingerprint,
+            training_manifest={"dataset": "ci-only"},
+            code_version="ci-v1",
+            idempotency_key="ci-retrain",
+        ),
+    )
+    rollback = await call(
+        "create_model_registry_rollback_command",
+        receipt_id=receipt_id,
+        requested_by="ci",
+        payload=api.ModelRegistryRollbackIn(reason="ci-only", idempotency_key="ci-rollback"),
+    )
+    rollback_id = rollback["rollback_command_id"]
+    await call(
+        "claim_model_registry_rollback_command",
+        command_id=rollback_id,
+        adapter_id="ci-adapter",
+        delivery_token="ci-rollback-token",
+    )
+    await call(
+        "record_model_registry_rollback_receipt",
+        command_id=rollback_id,
+        recorded_by="ci",
+        payload=api.ModelRegistryRollbackReceiptIn(
+            adapter_id="ci-adapter",
+            delivery_token="ci-rollback-token",
+            receipt_state="rolled_back",
+            active_artifact_uri="s3://ci/previous",
+            active_artifact_digest="c" * 64,
+            registry_version="ci-v2",
+            idempotency_key="ci-rollback-receipt",
+        ),
+    )
+    assert MODEL_WRITERS <= observed_writers, MODEL_WRITERS - observed_writers
+    assert await database.admin.fetchval(
+        "SELECT count(*) FROM decision_outbox_events WHERE tenant_id=$1::uuid", TENANT
+    ) >= len(MODEL_WRITERS)
+
+
+BASELINE_WRITERS = {
+    "persist_dispatch_decision",
+    "persist_outcome_record",
+    "persist_recommendation_outcome",
+}
+
+
+@pytest.mark.asyncio
+async def test_baseline_outbox_writers_after_033(database, observed_writers):
+    import main as api
+
+    assert (await runner.apply_migrations())["ok"]
+    dispatch = await persistence.persist_dispatch_decision(
+        tenant_id=TENANT,
+        decision_id="ci-dispatch",
+        payload=api.DispatchDecisionIn(recommendation_id="ci-rec", action_type="irrigation"),
+    )
+    assert dispatch["decision_id"] == "ci-dispatch"
+    outcome = await persistence.persist_outcome_record(
+        tenant_id=TENANT,
+        outcome_id="ci-basic-outcome",
+        payload=api.OutcomeRecordIn(decision_id="ci-dispatch", idempotency_key="ci-basic-outcome"),
+    )
+    assert outcome["outcome_id"] == "ci-basic-outcome"
+    recommendation = await persistence.persist_recommendation_outcome(
+        tenant_id=TENANT,
+        payload=api.RecommendationOutcomeIn(
+            recommendation_id="ci-rec", decision_id="ci-dispatch", idempotency_key="ci-rec"
+        ),
+    )
+    assert recommendation["outcome_id"]
+    assert BASELINE_WRITERS <= observed_writers
+
+
+def test_every_outbox_writer_has_a_pg16_witness_and_binds_before_sql():
+    source = Path(persistence.__file__).read_text()
+    witnessed = BASELINE_WRITERS | MODEL_WRITERS | {"persist_learning_update", "review_decision"}
+    for _, _, names in WRITER_SCENARIOS:
+        witnessed |= names
+    discovered = set()
+    for fn in ast.parse(source).body:
+        if not isinstance(fn, ast.AsyncFunctionDef):
+            continue
+        emitters = [
+            n
+            for n in ast.walk(fn)
+            if isinstance(n, ast.Call)
+            and isinstance(n.func, ast.Name)
+            and n.func.id == "emit_outbox_event"
+        ]
+        if not emitters:
+            continue
+        discovered.add(fn.name)
+        transactions = [
+            n
+            for n in ast.walk(fn)
+            if isinstance(n, ast.AsyncWith)
+            and any(ast.unparse(item.context_expr) == "conn.transaction()" for item in n.items)
+        ]
+        assert len(transactions) == 1, fn.name
+        tenant = next(k.value for k in emitters[0].keywords if k.arg == "tenant_id")
+        expected = ast.parse(
+            "await conn.execute(\"SELECT set_config('app.current_tenant', $1, true)\", "
+            + ast.unparse(tenant)
+            + ")"
+        ).body[0]
+        assert ast.dump(transactions[0].body[0]) == ast.dump(expected), fn.name
+    assert discovered == witnessed, {
+        "uncovered": discovered - witnessed,
+        "stale": witnessed - discovered,
+    }

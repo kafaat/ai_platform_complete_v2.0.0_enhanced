@@ -252,7 +252,6 @@
       "runtime_verified": false,
       "title": "Decision candidate",
       "unit_test_paths": [
-        "services/decision-service/tests/test_migration_033_pg16.py",
         "services/sahool-platform/tests/test_crop_decision_bridge.py",
         "services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py",
         "services/sahool-platform/tests/test_decision_review_endpoint.py"
@@ -517,6 +516,7 @@
         "services/actuator-service/test_dispatch_bridge.py",
         "services/decision-service/tests/test_execution_request_feed.py",
         "services/decision-service/tests/test_gate_b_reservation_dispatch_inbox.py",
+        "services/decision-service/tests/test_migration_033_pg16.py",
         "services/decision-service/tests/test_wx10_11_execution_request.py",
         "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
         "services/decision-service/tests/test_wx10_12_execution_outcome.py",
@@ -1038,6 +1038,7 @@
       "runtime_verified": false,
       "title": "Learning attribution",
       "unit_test_paths": [
+        "services/decision-service/tests/test_migration_033_pg16.py",
         "services/decision-service/tests/test_wx10_13_learning_attribution.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py",
         "tests_v9/test_closed_agronomic_loop_authority_guard.py"
@@ -1291,6 +1292,7 @@
       "runtime_verified": false,
       "title": "Model lifecycle and activation",
       "unit_test_paths": [
+        "services/decision-service/tests/test_migration_033_pg16.py",
         "services/decision-service/tests/test_wx11_3_model_promotion_decision.py",
         "services/decision-service/tests/test_wx11_4_model_activation_request.py",
         "services/decision-service/tests/test_wx11_5_model_activation_approval.py"

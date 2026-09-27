@@ -199,14 +199,6 @@
             "content:Decision candidate",
             "content:decision candidate"
           ]
-        },
-        {
-          "path": "services/decision-service/tests/test_migration_033_pg16.py",
-          "score": 8,
-          "signals": [
-            "content:Decision candidate",
-            "content:decision candidate"
-          ]
         }
       ],
       "governance": [],
@@ -249,7 +241,7 @@
         "events": 2,
         "web": 0,
         "mobile": 0,
-        "tests": 5,
+        "tests": 4,
         "governance": 0,
         "other_evidence": 3
       },
@@ -655,7 +647,7 @@
           "score": 12
         },
         {
-          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1180",
+          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1182",
           "score": 12
         },
         {
@@ -671,7 +663,7 @@
           "score": 12
         },
         {
-          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:1179",
+          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:1181",
           "score": 12
         },
         {
@@ -790,6 +782,14 @@
         },
         {
           "path": "services/decision-service/tests/test_gate_b_reservation_dispatch_inbox.py",
+          "score": 12,
+          "signals": [
+            "content:Execution request",
+            "content:execution request"
+          ]
+        },
+        {
+          "path": "services/decision-service/tests/test_migration_033_pg16.py",
           "score": 12,
           "signals": [
             "content:Execution request",
@@ -992,7 +992,7 @@
         "events": 30,
         "web": 0,
         "mobile": 0,
-        "tests": 15,
+        "tests": 16,
         "governance": 1,
         "other_evidence": 11
       },
@@ -1425,11 +1425,11 @@
           "score": 28
         },
         {
-          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1180",
+          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1182",
           "score": 12
         },
         {
-          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:1179",
+          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:1181",
           "score": 12
         }
       ],
@@ -2362,11 +2362,11 @@
           "score": 12
         },
         {
-          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1180",
+          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1182",
           "score": 12
         },
         {
-          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:1179",
+          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:1181",
           "score": 12
         },
         {
@@ -2384,6 +2384,14 @@
             "path:Learning attribution",
             "content:Learning attribution",
             "path:learning attribution",
+            "content:learning attribution"
+          ]
+        },
+        {
+          "path": "services/decision-service/tests/test_migration_033_pg16.py",
+          "score": 10,
+          "signals": [
+            "content:Learning attribution",
             "content:learning attribution"
           ]
         },
@@ -2472,7 +2480,7 @@
         "events": 5,
         "web": 0,
         "mobile": 0,
-        "tests": 3,
+        "tests": 4,
         "governance": 1,
         "other_evidence": 5
       },
@@ -3172,11 +3180,11 @@
           "score": 12
         },
         {
-          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1180",
+          "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1182",
           "score": 12
         },
         {
-          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:1179",
+          "value": "irrigation.reservation.dispatch_requested @ services/decision-service/persistence.py:1181",
           "score": 12
         },
         {
@@ -3229,6 +3237,14 @@
           "signals": [
             "content:model promotion",
             "content:model rollback"
+          ]
+        },
+        {
+          "path": "services/decision-service/tests/test_migration_033_pg16.py",
+          "score": 10,
+          "signals": [
+            "content:model activation",
+            "content:model promotion"
           ]
         },
         {
@@ -3318,7 +3334,7 @@
         "events": 7,
         "web": 0,
         "mobile": 0,
-        "tests": 5,
+        "tests": 6,
         "governance": 0,
         "other_evidence": 8
       },
@@ -49443,6 +49459,14 @@
       "kind": "tests",
       "candidates": [
         {
+          "capability_id": "DEC-004",
+          "score": 12,
+          "signals": [
+            "content:Execution request",
+            "content:execution request"
+          ]
+        },
+        {
           "capability_id": "SEC-001",
           "score": 10,
           "signals": [
@@ -49451,11 +49475,19 @@
           ]
         },
         {
-          "capability_id": "DEC-002",
-          "score": 8,
+          "capability_id": "DEC-010",
+          "score": 10,
           "signals": [
-            "content:Decision candidate",
-            "content:decision candidate"
+            "content:model activation",
+            "content:model promotion"
+          ]
+        },
+        {
+          "capability_id": "DEC-008",
+          "score": 10,
+          "signals": [
+            "content:Learning attribution",
+            "content:learning attribution"
           ]
         }
       ]

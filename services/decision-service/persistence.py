@@ -838,6 +838,7 @@ async def create_execution_plan(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             prior = await conn.fetchrow(
                 """
                 SELECT * FROM decision_execution_plans
@@ -1021,6 +1022,7 @@ async def authorize_dispatch(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             prior = await conn.fetchrow(
                 """
                 SELECT * FROM decision_dispatch_authorizations
@@ -1314,6 +1316,7 @@ async def create_execution_request(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             prior = await conn.fetchrow(
                 "SELECT * FROM decision_execution_requests WHERE tenant_id=$1::uuid AND idempotency_key=$2",
                 tenant_id,
@@ -1515,6 +1518,7 @@ async def claim_execution_request(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             prior = await conn.fetchrow(
                 "SELECT * FROM decision_execution_delivery_attempts WHERE tenant_id=$1::uuid AND execution_request_id=$2",
                 tenant_id,
@@ -1590,6 +1594,7 @@ async def record_execution_receipt(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             attempt = await conn.fetchrow(
                 "SELECT * FROM decision_execution_delivery_attempts WHERE tenant_id=$1::uuid AND execution_request_id=$2 FOR UPDATE",
                 tenant_id,
@@ -1735,6 +1740,7 @@ async def verify_execution_outcome(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             prior = await conn.fetchrow(
                 "SELECT * FROM outcome_record WHERE tenant_id=$1::uuid AND idempotency_key=$2",
                 tenant_id,
@@ -1891,6 +1897,7 @@ async def create_learning_attribution(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             prior = await conn.fetchrow(
                 "SELECT * FROM decision_learning_attributions WHERE tenant_id=$1::uuid AND idempotency_key=$2",
                 tenant_id,
@@ -2254,6 +2261,7 @@ async def create_model_evaluation_run(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             prior = await conn.fetchrow(
                 "SELECT * FROM decision_model_evaluation_runs WHERE tenant_id=$1::uuid AND idempotency_key=$2",
                 tenant_id,
@@ -2426,6 +2434,7 @@ async def create_model_promotion_decision(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             prior = await conn.fetchrow(
                 "SELECT * FROM decision_model_promotion_decisions WHERE tenant_id=$1::uuid AND idempotency_key=$2",
                 tenant_id,
@@ -2442,8 +2451,8 @@ async def create_model_promotion_decision(
             )
             if not evaluation:
                 return {"status": "not_found"}
-            baseline = dict(evaluation["baseline_metrics"] or {})
-            candidate = dict(evaluation["candidate_metrics"] or {})
+            baseline = dict(_jsonish(evaluation["baseline_metrics"]) or {})
+            candidate = dict(_jsonish(evaluation["candidate_metrics"]) or {})
             primary_base = _metric_number(baseline, payload.primary_metric)
             primary_candidate = _metric_number(candidate, payload.primary_metric)
             if primary_base is None or primary_candidate is None:
@@ -2584,6 +2593,7 @@ async def create_model_activation_request(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             prior = await conn.fetchrow(
                 "SELECT * FROM decision_model_activation_requests WHERE tenant_id=$1::uuid AND idempotency_key=$2",
                 tenant_id,
@@ -2723,6 +2733,7 @@ async def review_model_activation_request(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             prior = await conn.fetchrow(
                 "SELECT * FROM decision_model_activation_reviews WHERE tenant_id=$1::uuid AND idempotency_key=$2",
                 tenant_id,
@@ -2857,6 +2868,7 @@ async def claim_model_registry_activation_command(
     token_hash = hashlib.sha256(delivery_token.encode()).hexdigest()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             command = await conn.fetchrow(
                 "SELECT * FROM decision_model_registry_activation_commands WHERE tenant_id=$1::uuid AND activation_command_id=$2 FOR SHARE",
                 tenant_id,
@@ -2933,6 +2945,7 @@ async def record_model_registry_activation_receipt(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             prior = await conn.fetchrow(
                 "SELECT * FROM decision_model_registry_activation_receipts WHERE tenant_id=$1::uuid AND idempotency_key=$2",
                 tenant_id,
@@ -3043,6 +3056,7 @@ async def create_model_registry_rollback_command(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             prior = await conn.fetchrow(
                 "SELECT * FROM decision_model_registry_rollback_commands WHERE tenant_id=$1::uuid AND idempotency_key=$2",
                 tenant_id,
@@ -3137,6 +3151,7 @@ async def claim_model_registry_rollback_command(
     token_hash = hashlib.sha256(delivery_token.encode()).hexdigest()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             command = await conn.fetchrow(
                 "SELECT * FROM decision_model_registry_rollback_commands WHERE tenant_id=$1::uuid AND rollback_command_id=$2 FOR SHARE",
                 tenant_id,
@@ -3211,6 +3226,7 @@ async def record_model_registry_rollback_receipt(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             prior = await conn.fetchrow(
                 "SELECT * FROM decision_model_registry_rollback_receipts WHERE tenant_id=$1::uuid AND idempotency_key=$2",
                 tenant_id,
@@ -3333,6 +3349,7 @@ async def create_post_activation_verification(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             prior = await conn.fetchrow(
                 "SELECT * FROM decision_model_post_activation_verifications WHERE tenant_id=$1::uuid AND idempotency_key=$2",
                 tenant_id,
@@ -3410,6 +3427,7 @@ async def create_rollout_plan(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             verification = await conn.fetchrow(
                 "SELECT * FROM decision_model_post_activation_verifications WHERE tenant_id=$1::uuid AND activation_receipt_id=$2 AND verification_state IN ('verified_healthy','verified_degraded')",
                 tenant_id,
@@ -3472,6 +3490,7 @@ async def record_monitoring_snapshot(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             active = await conn.fetchrow(
                 """WITH activations AS (
                      SELECT c.model_id,c.feature_set_id,c.target_environment,r.recorded_at,
@@ -3575,6 +3594,7 @@ async def create_retraining_request(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             target_environment = getattr(payload, "target_environment", "production")
             source_monitoring_snapshot_id = getattr(payload, "source_monitoring_snapshot_id", None)
             if source_monitoring_snapshot_id:
@@ -3874,6 +3894,7 @@ async def record_rollout_receipt(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             plan = await conn.fetchrow(
                 "SELECT * FROM decision_model_rollout_plans WHERE tenant_id=$1::uuid AND rollout_plan_id=$2",
                 tenant_id,
@@ -3952,6 +3973,7 @@ async def record_retraining_dispatch_receipt(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             request = await conn.fetchrow(
                 "SELECT * FROM decision_model_retraining_requests WHERE tenant_id=$1::uuid AND retraining_request_id=$2",
                 tenant_id,
@@ -4030,6 +4052,7 @@ async def create_runtime_schedule(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             sid = (
                 "sched_"
                 + hashlib.sha256(
@@ -4097,6 +4120,7 @@ async def record_reconcile_evidence(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             rid = (
                 "reccheck_"
                 + hashlib.sha256(f"{tenant_id}:{payload.idempotency_key}".encode()).hexdigest()[:20]
@@ -4625,6 +4649,9 @@ async def register_runtime_worker_tenant(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute(
+                "SELECT set_config('app.current_tenant', $1, true)", payload.tenant_id
+            )
             prior = await conn.fetchrow(
                 "SELECT * FROM decision_runtime_worker_tenant_commands"
                 " WHERE worker_id=$1 AND idempotency_key=$2",

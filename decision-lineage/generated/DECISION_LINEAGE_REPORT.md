@@ -19,11 +19,11 @@
 | 2 | `candidate` | `sahool-platform` | 503 |
 | 3 | `decision` | `sahool-platform` | 174 |
 | 4 | `review` | `sahool-platform` | 264 |
-| 5 | `plan` | `decision-service` | 32 |
-| 6 | `authorization` | `sahool-platform` | 128 |
-| 7 | `request` | `decision-service` | 29 |
-| 8 | `receipt` | `decision-service` | 33 |
-| 9 | `outcome` | `sahool-platform` | 50 |
+| 5 | `plan` | `decision-service` | 33 |
+| 6 | `authorization` | `sahool-platform` | 129 |
+| 7 | `request` | `decision-service` | 30 |
+| 8 | `receipt` | `decision-service` | 34 |
+| 9 | `outcome` | `sahool-platform` | 51 |
 | 10 | `learning` | `sahool-platform` | 293 |
 
 ## Remaining static gaps
