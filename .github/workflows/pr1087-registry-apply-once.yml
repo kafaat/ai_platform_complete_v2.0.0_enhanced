@@ -1,0 +1,63 @@
+name: PR1087 registry append isolated execution
+
+on:
+  push:
+    branches:
+      - codex/pr1087-registry-apply-1111d2bc
+    paths:
+      - .github/workflows/pr1087-registry-apply-once.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr1087-registry-append-1111d2bc
+  cancel-in-progress: false
+
+jobs:
+  apply-and-certify:
+    if: github.repository == 'kafaat/ai_platform_complete_v2.0.0_enhanced' && github.ref == 'refs/heads/codex/pr1087-registry-apply-1111d2bc'
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - name: Checkout isolated delivery files
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          path: driver
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Checkout exact approved PR source, excluding delivery files
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: 1111d2bc44a6b3fb46c2b4937ae6c6684a5ea5c2
+          path: repo
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Use the CI Python version
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Install existing project test dependencies and constrained tools
+        working-directory: repo
+        run: python -m pip install -r tests_v9/requirements-test.txt -r services/sahool-platform/api/requirements.txt
+      - name: Apply exact appendix, measure, regenerate, and run preflight serially
+        working-directory: repo
+        env:
+          BASE: 637279076eff14a30fbbc75b2cb104cac805cdfd
+        run: python ../driver/.github/pr1087_registry_apply.py --prepare ../driver/.github/pr1087-registry-apply.patch
+      - name: Publish only verified Git objects, never main or PR refs
+        working-directory: repo
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python ../driver/.github/pr1087_registry_apply.py --publish-objects
+      - name: Retain outcome and raw evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: pr1087-registry-apply-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/pr1087-registry-evidence
+          if-no-files-found: warn
+          retention-days: 14
