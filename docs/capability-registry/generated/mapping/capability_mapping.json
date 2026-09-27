@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5426,
+    "files_scanned": 5427,
     "files_by_kind": {
       "backend": 1211,
       "database": 281,
       "governance": 64,
       "mobile": 55,
       "other": 1518,
-      "tests": 1839,
+      "tests": 1840,
       "web": 458
     },
     "unmapped_artifacts": 2199,
@@ -8764,6 +8764,14 @@
             "path:inventory",
             "content:inventory"
           ]
+        },
+        {
+          "path": "tests_v9/test_resolve_inventory_edges.py",
+          "score": 11,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
         }
       ],
       "governance": [
@@ -8935,7 +8943,7 @@
         "events": 6,
         "web": 1,
         "mobile": 1,
-        "tests": 5,
+        "tests": 6,
         "governance": 4,
         "other_evidence": 15
       },

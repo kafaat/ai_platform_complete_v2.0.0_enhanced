@@ -42,14 +42,12 @@ _CONST_DEF = re.compile(r"^const ([A-Z0-9_]+)\s*=\s*ENDPOINTS\.([A-Za-z0-9_]+)",
 _ENDPOINT_DEF = re.compile(
     r"^\s+([a-z][A-Za-z0-9_]*):\s*resolveHttpBase\(\s*'[^']*'\s*,\s*'([^']*)'", re.M
 )
-#: `rasterApi.get('/v1/x')` · `rasterApi.post(\n  '/v1/x'` — النقطةُ ثمّ الفعلُ ثمّ المسار.
-_CALL = re.compile(
-    r"\b([A-Za-z0-9_]+Api)\s*\.\s*(get|post|put|patch|delete)\s*[(<][^'\"`)]{0,120}?"
-    r"['\"`](/[A-Za-z0-9/_\-.${}]*)"
+# Match only on a lexical code mask; strings/comments are never executable evidence.
+_ANY_CALL = re.compile(
+    r"\b([A-Za-z0-9_]+Api)\s*\.\s*(get|post|put|patch|delete|head|options)\s*(?=[(<])"
 )
-#: **كلُّ** نداءٍ على نسخةِ عميل، بمسارٍ حرفيٍّ أو بغيره. الفرقُ بينه وبين
-#: `_CALL` هو حجمُ ما لا يراه الماسحُ الساكن — ويُعَدّ لا يُهمَل.
-_ANY_CALL = re.compile(r"\b([A-Za-z0-9_]+Api)\s*\.\s*(?:get|post|put|patch|delete)\s*[(<]")
+_PATH = re.compile(r"/[A-Za-z0-9/_{}.-]*")
+_PARAMETER = re.compile(r"\$\{[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*\}")
 _UPSTREAM = re.compile(r"^\s*upstream\s+([A-Za-z0-9_]+)\s*\{")
 _SERVER = re.compile(r"^\s*server\s+([A-Za-z0-9.-]+):\d+")
 _LOCATION = re.compile(r"^\s*location\s+(?:(=|\^~|~\*)\s+)?(\S+)\s*\{")
@@ -162,30 +160,177 @@ def gateway(root: Path = ROOT, components: list[dict[str, Any]] | None = None) -
     return {"routes": routes, "upstreams": upstreams}
 
 
-def call_sites(root: Path = ROOT) -> tuple[list[dict[str, Any]], int]:
-    """مواضعُ النداء الحرفيّة — الخطوةُ ٣ — وعددُ ما لا يراه الماسح."""
-    source = root / "frontend/src"
-    if not source.exists():
-        return [], 0
+def _literal_end(text: str, start: int) -> int:
+    """Skip a JS literal, including nested literals in template expressions."""
+    quote = text[start]
+    i = start + 1
+    while i < len(text):
+        if text[i] == "\\":
+            i += 2
+        elif text[i] == quote:
+            return i + 1
+        elif quote == "`" and text.startswith("${", i):
+            i += 2
+            depth = 1
+            while i < len(text) and depth:
+                if text[i] in "\"'`":
+                    i = _literal_end(text, i)
+                elif text.startswith("/*", i):
+                    end = text.find("*/", i + 2)
+                    i = len(text) if end < 0 else end + 2
+                elif text.startswith("//", i):
+                    end = text.find("\n", i + 2)
+                    i = len(text) if end < 0 else end
+                else:
+                    depth += (text[i] == "{") - (text[i] == "}")
+                    i += 1
+        else:
+            i += 1
+    return len(text)
+
+
+def _code_mask(text: str) -> str:
+    """Keep offsets/newlines, hide comments, strings, templates and regex literals.
+
+    This is a bounded lexical scanner, not a TypeScript semantic/reachability
+    analysis. Calls inside template expressions are conservatively unmeasured.
+    """
+    masked = list(text)
+    i = 0
+    while i < len(text):
+        start = i
+        if text.startswith("//", i):
+            end = text.find("\n", i + 2)
+            i = len(text) if end < 0 else end
+        elif text.startswith("/*", i):
+            end = text.find("*/", i + 2)
+            i = len(text) if end < 0 else end + 2
+        elif text[i] in "\"'`":
+            i = _literal_end(text, i)
+        elif text[i] == "/" and (
+            not text[:i].rstrip()
+            or text[:i].rstrip()[-1] in "=(:,[!&|?;{}"
+            or re.search(r"\b(?:return|throw|case)\s*$", text[:i])
+        ):
+            # Regex body: escaped slashes and character classes are opaque.
+            i += 1
+            in_class = False
+            while i < len(text) and text[i] != "\n":
+                if text[i] == "\\":
+                    i += 2
+                    continue
+                if text[i] == "[":
+                    in_class = True
+                elif text[i] == "]":
+                    in_class = False
+                elif text[i] == "/" and not in_class:
+                    i += 1
+                    break
+                i += 1
+        else:
+            i += 1
+            continue
+        for j in range(start, min(i, len(text))):
+            if text[j] != "\n":
+                masked[j] = " "
+    return "".join(masked)
+
+
+def _is_test_source(path: Path) -> bool:
+    return bool(re.search(r"\.(?:test|spec)\.tsx?$", path.name)) or bool(
+        {"tests", "__tests__", "__mocks__"}.intersection(path.parts)
+    )
+
+
+def _scan_calls(
+    root: Path,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
     calls: list[dict[str, Any]] = []
-    blind = 0
+    tests: list[dict[str, Any]] = []
+    blind: list[dict[str, Any]] = []
+    source = root / "frontend/src"
     for path in sorted(source.rglob("*.ts*")):
-        text = path.read_text(encoding="utf-8", errors="replace")
+        if path.suffix not in {".ts", ".tsx"}:
+            continue
+        text = path.read_text(encoding="utf-8", errors="strict")
+        code = _code_mask(text)
         relative = path.relative_to(root)
-        for number, line in enumerate(text.splitlines(), 1):
-            for match in _CALL.finditer(line):
-                calls.append(
+        test_source = _is_test_source(relative)
+        for match in _ANY_CALL.finditer(code):
+            call = {
+                "instance": match.group(1),
+                "method": match.group(2).upper(),
+                "site": f"{relative}:{text[: match.start()].count(chr(10)) + 1}",
+                "source_kind": "test" if test_source else "application",
+            }
+            i = match.end()
+            if code[i] == "<":
+                depth = 1
+                i += 1
+                while i < len(code) and depth:
+                    depth += (code[i] == "<") - (code[i] == ">")
+                    i += 1
+                while i < len(code) and code[i].isspace():
+                    i += 1
+            value = None
+            if i < len(code) and code[i] == "(":
+                i += 1
+                # Whitespace/comments may separate the first argument from '('.
+                while i < len(text):
+                    if text[i].isspace():
+                        i += 1
+                    elif text.startswith("/*", i):
+                        end = text.find("*/", i + 2)
+                        i = len(text) if end < 0 else end + 2
+                    elif text.startswith("//", i):
+                        end = text.find("\n", i + 2)
+                        i = len(text) if end < 0 else end
+                    else:
+                        break
+                if i < len(text) and text[i] in "\"'`":
+                    end = _literal_end(text, i)
+                    raw = text[i + 1 : end - 1]
+                    candidate = _PARAMETER.sub("{}", raw) if text[i] == "`" else raw
+                    tail = code[end:].lstrip()
+                    if (
+                        text[end - 1] == text[i]
+                        and _PATH.fullmatch(candidate)
+                        and tail.startswith((",", ")"))
+                    ):
+                        value = candidate
+            if value is None:
+                blind.append({**call, "reason": "unsupported_or_dynamic_path"})
+            else:
+                (tests if test_source else calls).append({**call, "path": value})
+    return calls, tests, blind
+
+
+def _test_references(root: Path) -> list[dict[str, Any]]:
+    """Retain quoted/commented test references without asserting consumption."""
+    references = []
+    for path in sorted((root / "frontend/src").rglob("*.ts*")):
+        relative = path.relative_to(root)
+        if path.suffix not in {".ts", ".tsx"} or not _is_test_source(relative):
+            continue
+        text = path.read_text(encoding="utf-8")
+        code = _code_mask(text)
+        for match in _ANY_CALL.finditer(text):
+            if _ANY_CALL.match(code, match.start()) is None:
+                references.append(
                     {
+                        "site": f"{relative}:{text[: match.start()].count(chr(10)) + 1}",
                         "instance": match.group(1),
                         "method": match.group(2).upper(),
-                        "path": match.group(3),
-                        "site": f"{relative}:{number}",
+                        "kind": "non_executable_test_reference",
                     }
                 )
-            # نداءٌ بلا مسارٍ حرفيّ: يُعَدّ ولا يُدَّعى شيءٌ عنه. الفرقُ بين العدّين
-            # هو حجمُ عمى الماسح — يُصدَّر كي لا يُقرأ الباقي عطلاً وهو رؤية.
-            blind += len(_ANY_CALL.findall(line)) - len(_CALL.findall(line))
-    return calls, max(blind, 0)
+    return references
+
+
+def call_sites(root: Path = ROOT) -> tuple[list[dict[str, Any]], int]:
+    """Application call sites and the count of unsupported application calls."""
+    calls, _, blind = _scan_calls(root)
+    return calls, sum(item["source_kind"] == "application" for item in blind)
 
 
 def resolve(
@@ -194,7 +339,8 @@ def resolve(
     """يُعيد (المحسومة، الباقية على حالها، تقريرَ القياس)."""
     prefixes = client_prefixes(root)
     gate = gateway(root, components)
-    calls, blind = call_sites(root)
+    calls, test_calls, blind_calls = _scan_calls(root)
+    blind = sum(item["source_kind"] == "application" for item in blind_calls)
 
     proxies = sorted(
         [route for route in gate["routes"] if route["kind"] == "proxy"],
@@ -202,8 +348,8 @@ def resolve(
     )
     rewrites = [route for route in gate["routes"] if route["kind"] == "rewrite"]
 
-    # (مكوّن، مسارٌ داخليّ مُطبَّع) ⇒ سلسلةُ الدليل
-    index: dict[tuple[str, str], dict[str, Any]] = {}
+    # (component, HTTP method, normalised service path) => evidence chain
+    index: dict[tuple[str, str, str], dict[str, Any]] = {}
     for call in calls:
         client = prefixes.get(call["instance"])
         if client is None:
@@ -230,9 +376,12 @@ def resolve(
                     rule_line = rewrite["line"]
                     break
             index.setdefault(
-                (component, service_path),
+                (component, call["method"], service_path),
                 {
                     "call_site": call["site"],
+                    "method": call["method"],
+                    "source_kind": call["source_kind"],
+                    "evidence_scope": "static_source_only",
                     "client_prefix": client["prefix"],
                     "client_binding": client["client_line"],
                     "endpoint_binding": client["endpoints_line"],
@@ -247,8 +396,11 @@ def resolve(
     for edge in edges:
         chain = None
         for entrypoint in edge.get("entrypoints") or []:
-            declared = entrypoint.split(" ", 1)[1] if " " in entrypoint else entrypoint
-            chain = index.get((edge["from"], normalise(declared)))
+            parts = entrypoint.split(None, 1)
+            if len(parts) != 2:
+                continue
+            method, declared = parts
+            chain = index.get((edge["from"], method.upper(), normalise(declared)))
             if chain:
                 matched = entrypoint
                 break
@@ -274,6 +426,15 @@ def resolve(
         "literal_call_sites": len(calls),
         # **حدُّ الماسح، مُعلَناً بعدده:** غيابُ الدليل هنا قد يكون غيابَ رؤية.
         "scanner_blind_spots": blind,
+        "unsupported_call_sites": blind_calls,
+        "test_call_sites": test_calls,
+        "non_executable_test_references": _test_references(root),
+        "evidence_scope": "static_source_only",
+        "scanner_limitations": [
+            "No runtime reachability, import binding or client shadowing analysis",
+            "Calls inside template expressions and JSX text are not semantically parsed",
+            "Only literal paths and simple template member parameters are resolved",
+        ],
         "resolved": len(resolved),
         "still_unresolved": len(remaining),
     }

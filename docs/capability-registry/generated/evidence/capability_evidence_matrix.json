@@ -2271,7 +2271,8 @@
         "tests_v9/test_api_versioning_policy_guard.py",
         "tests_v9/test_inventory_equipment.py",
         "tests_v9/test_odoo_bridge_tenant_honesty.py",
-        "tests_v9/test_platform_main_subinventory_guard.py"
+        "tests_v9/test_platform_main_subinventory_guard.py",
+        "tests_v9/test_resolve_inventory_edges.py"
       ]
     },
     {
