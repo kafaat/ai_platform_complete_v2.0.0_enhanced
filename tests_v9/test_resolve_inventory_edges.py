@@ -260,6 +260,27 @@ def test_import_binding_is_required(tmp_path):
     assert not resolve(root)[0]
 
 
+@pytest.mark.parametrize(
+    "body",
+    [
+        'obj . kongApi.post("/query");',
+        'obj.\nkongApi.post("/query");',
+        'obj./* property */ kongApi.post("/query");',
+    ],
+)
+def test_trivia_separated_property_receiver_is_not_import_binding(tmp_path, body):
+    resolved, remaining, report = resolve(tree(tmp_path, body))
+    assert not resolved and remaining
+    assert report["unproven_client_bindings"] == []
+
+
+def test_dynamic_test_call_is_not_an_application_blind_spot(tmp_path):
+    _, _, report = resolve(tree(tmp_path, "kongApi.post(dynamicUrl);", "page.test.ts"))
+    assert report["scanner_blind_spots"] == 0
+    assert report["unsupported_call_sites"] == []
+    assert report["test_call_sites"][0]["reason"] == "unsupported_or_dynamic_path"
+
+
 def test_second_operation_has_its_own_evidence(tmp_path):
     root = tree(tmp_path, 'kongApi.get("/query"); kongApi.post("/query");')
     r, u, _ = edges.resolve(
