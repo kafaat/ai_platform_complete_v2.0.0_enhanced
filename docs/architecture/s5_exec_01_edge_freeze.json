@@ -33,11 +33,11 @@
     "test_witness_total": 23,
     "test_witness_reads": 4,
     "test_witness_writes": 19,
-    "decision_service_total": 25
+    "decision_service_total": 31
   },
   "edge_fingerprint_sha256": "34f240e7e3ca33dcdcc3b54dd88e3ce6c9052b4bb540ee3901ad2f3801088c1a",
   "edge_fingerprint_scope": "historical full selected graph at the original S5-EXEC-01 freeze; compatibility receipt only",
-  "observed_edge_fingerprint_sha256": "93cdcbd748cfc35230a93bf24e9dfed37847a55bb45f47053b1cf5f23880314f",
+  "observed_edge_fingerprint_sha256": "7fa5c06ffe66e5dfb7a178c872d020aeded29a194231a9b074c2348f0f11748c",
   "runtime_migration_surface_frozen_sha256": "bb8565c7a42368ee57cb01a3b4ec42dec1d2b5c676425b6b62b45df38d7ef7a7",
   "runtime_migration_surface_fingerprint_sha256": "bb8565c7a42368ee57cb01a3b4ec42dec1d2b5c676425b6b62b45df38d7ef7a7",
   "runtime_writer_surface_frozen_sha256": "c6820171e88b4f785d49f88023828bc59fd32a5b260a42d52a1f0d952376786a",

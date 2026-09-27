@@ -2539,6 +2539,7 @@
         "services/decision-service/tests/test_agronomic_learning_lineage.py",
         "services/decision-service/tests/test_agronomic_lineage_integrity.py",
         "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
+        "services/decision-service/tests/test_migration_033_pg16.py",
         "services/decision-service/tests/test_wx10_7_decision_review.py",
         "services/sahool-platform/api/routers/agronomic_replay.py",
         "services/sahool-platform/api/routers/decision_explain.py",
@@ -2554,6 +2555,7 @@
         "services/decision-service/persistence.py",
         "services/decision-service/tests/test_agronomic_lineage_integrity.py",
         "services/decision-service/tests/test_execution_request_feed.py",
+        "services/decision-service/tests/test_migration_033_pg16.py",
         "services/decision-service/tests/test_wx10_10_dispatch_authorization.py",
         "services/decision-service/tests/test_wx10_11_execution_request.py",
         "services/decision-service/tests/test_wx10_7_decision_review.py",
@@ -5570,7 +5572,9 @@
       "write_policy_with_check": true
     },
     {
-      "code_readers": [],
+      "code_readers": [
+        "services/decision-service/tests/test_migration_033_pg16.py"
+      ],
       "code_writers": [
         "services/decision-service/persistence.py",
         "services/sahool-platform/api/phase_runtime_store.py",
@@ -5605,6 +5609,7 @@
     {
       "code_readers": [
         "services/decision-service/persistence.py",
+        "services/decision-service/tests/test_migration_033_pg16.py",
         "services/decision-service/tests/test_wx10_12_execution_outcome.py",
         "services/sahool-platform/api/routers/agronomic_replay.py",
         "services/sahool-platform/api/routers/calibration.py",
@@ -5618,6 +5623,7 @@
       ],
       "code_writers": [
         "services/decision-service/persistence.py",
+        "services/decision-service/tests/test_migration_033_pg16.py",
         "services/sahool-platform/api/routers/decision_record.py",
         "services/sahool-platform/tests/test_decision_interim_bridge.py",
         "services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py",
@@ -5843,6 +5849,7 @@
       "code_readers": [
         "services/decision-service/persistence.py",
         "services/decision-service/recommendation_outcomes_cutover_preflight.py",
+        "services/decision-service/tests/test_migration_033_pg16.py",
         "services/sahool-platform/api/learning_feedback.py",
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/learning.py",
