@@ -7832,6 +7832,7 @@
         "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
         "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
         "services/decision-service/tests/test_migration_033_pg16.py",
+        "services/decision-service/tests/test_migration_034_pg16.py",
         "services/sahool-platform/tests/test_prescriptions_router.py",
         "services/scout-ingest-service/tests/test_ingest_live.py",
         "tests/irrigation/test_irrigation_v195_capacity_reservation_core.py",

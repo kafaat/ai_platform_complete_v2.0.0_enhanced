@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5424,
+    "files_scanned": 5426,
     "files_by_kind": {
       "backend": 1211,
-      "database": 280,
+      "database": 281,
       "governance": 64,
       "mobile": 55,
       "other": 1518,
-      "tests": 1838,
+      "tests": 1839,
       "web": 458
     },
     "unmapped_artifacts": 2199,
@@ -3579,6 +3579,14 @@
           ]
         },
         {
+          "path": "services/decision-service/migrations/034_tenant_boundary_policy_composition.sql",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "value": "tenant_ai_policies @ migrations/v124_tenant_ai_policies.sql:27",
           "score": 14
         },
@@ -3984,7 +3992,7 @@
       "evidence_counts": {
         "backend": 15,
         "routes": 2,
-        "database": 25,
+        "database": 26,
         "events": 6,
         "web": 1,
         "mobile": 0,
@@ -25307,6 +25315,15 @@
           ]
         },
         {
+          "path": "services/decision-service/tests/test_migration_034_pg16.py",
+          "score": 11,
+          "signals": [
+            "content:rls",
+            "content:row level security",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "tests/irrigation/test_irrigation_v195_capacity_reservation_core.py",
           "score": 11,
           "signals": [
@@ -26168,7 +26185,7 @@
         "events": 48,
         "web": 0,
         "mobile": 0,
-        "tests": 68,
+        "tests": 69,
         "governance": 0,
         "other_evidence": 74
       },

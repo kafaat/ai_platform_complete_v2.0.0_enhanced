@@ -11975,6 +11975,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "36e9740e83b8f56373ac16a1b2422c6adc646d875fd77d405fcffbc81cb70d69"
+        }
+      ],
+      "name": "services/decision-service/migrations/034_tenant_boundary_policy_composition.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "392f968f875f2591a4f8f561751dde311265b4ea7df71dd16898c160a7df881e"
         }
       ],
@@ -12285,10 +12295,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bc581063f8a0a11831c0b6339c78ece511fab8434e7792d37b0e753075542599"
+          "content": "641a39db899fd9e753c9093959cdc86783eba99628e41f5cd71eb8f2cbcb71a4"
         }
       ],
       "name": "services/decision-service/tests/test_migration_033_pg16.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "40e55167e9519fd13c4227241e4259f36bff302f90e9cfc9a874871b6c98cb4b"
+        }
+      ],
+      "name": "services/decision-service/tests/test_migration_034_pg16.py",
       "type": "file"
     },
     {

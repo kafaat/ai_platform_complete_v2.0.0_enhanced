@@ -30,6 +30,8 @@ ADMIN_DSN = "postgresql://decision033_admin:disposable_test_only@127.0.0.1:5436/
 TENANT = "00000000-0000-0000-0000-000000000033"
 OTHER = "00000000-0000-0000-0000-000000000034"
 VERSION = "033_tenant_boundary_hardening.sql"
+COMPOSITION_VERSION = "034_tenant_boundary_policy_composition.sql"
+HARDENING_VERSIONS = [VERSION, COMPOSITION_VERSION]
 TABLES = ("decision_outbox_events", "decision_reviews")
 
 
@@ -160,7 +162,7 @@ async def _insert(conn, table, row_id, tenant):
 @pytest.mark.parametrize("table", TABLES)
 @pytest.mark.parametrize("owns_table", [False, True], ids=["nonowner", "forced-owner"])
 async def test_033_isolates_reads_writes_and_rolls_back(database, table, owns_table):
-    assert (await runner.apply_migrations())["applied_now"] == [VERSION]
+    assert (await runner.apply_migrations())["applied_now"] == HARDENING_VERSIONS
     if owns_table:
         await database.admin.execute(f'ALTER TABLE {table} OWNER TO "{database.role}"')
     app = await database.app_connection()
@@ -199,10 +201,10 @@ async def test_033_isolates_reads_writes_and_rolls_back(database, table, owns_ta
 @pytest.mark.asyncio
 async def test_033_runner_check_apply_and_reapply(database):
     before = await runner.check_migrations()
-    assert before["pending"] == [VERSION] and not before["ok"]
+    assert before["pending"] == HARDENING_VERSIONS and not before["ok"]
     assert before["checksum_mismatches"] == []
     first = await runner.apply_migrations()
-    assert first["ok"] and first["applied_now"] == [VERSION]
+    assert first["ok"] and first["applied_now"] == HARDENING_VERSIONS
     second = await runner.apply_migrations()
     assert second["ok"] and second["applied_now"] == []
     assert (await runner.check_migrations())["pending"] == []
@@ -326,7 +328,7 @@ async def test_033_runner_rolls_back_policy_and_journal_on_error(database, monke
         )
         with pytest.raises(asyncpg.DivisionByZeroError):
             await runner.apply_migrations()
-    assert (await runner.check_migrations())["pending"] == [VERSION]
+    assert (await runner.check_migrations())["pending"] == HARDENING_VERSIONS
     for table in TABLES:
         assert not await database.admin.fetchval(
             "SELECT relrowsecurity OR relforcerowsecurity FROM pg_class WHERE oid=$1::regclass",
