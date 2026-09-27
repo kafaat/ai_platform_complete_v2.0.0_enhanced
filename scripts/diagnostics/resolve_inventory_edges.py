@@ -46,6 +46,17 @@ _ENDPOINT_DEF = re.compile(
 _ANY_CALL = re.compile(
     r"(?<![\w$.])([A-Za-z_$][\w$]*)\s*\.\s*(get|post|put|patch|delete|head|options)\s*(?=[(<])"
 )
+
+def _is_direct_receiver(code: str, start: int) -> bool:
+    """Reject property-qualified receivers even when trivia separates the tokens.
+
+    Comments are whitespace in the lexical code mask, so checking the previous
+    non-whitespace token rejects `obj . clientApi.get(...)` and the equivalent
+    newline/comment forms without treating a bare imported identifier as a property.
+    """
+    return not code[:start].rstrip().endswith(".")
+
+
 _PATH = re.compile(r"/[A-Za-z0-9/_{}.-]*")
 _PARAMETER = re.compile(r"\$\{[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*\}")
 _UPSTREAM = re.compile(r"^\s*upstream\s+([A-Za-z0-9_]+)\s*\{")
@@ -569,7 +580,7 @@ class _ClientBindings:
             pos = occurrence.start()
             if any(a <= pos < b for a, b in spans):
                 continue
-            if not _ANY_CALL.match(code, pos):
+            if not _is_direct_receiver(code, pos) or not _ANY_CALL.match(code, pos):
                 return None
         link = matches[0]
         result = self.exported(link["target"], link["original"], set())
@@ -606,6 +617,8 @@ def _scan_calls(
             x["local"] for x in binding_reader.module(path)[2] if x["kind"] == "import"
         }
         for match in _ANY_CALL.finditer(code):
+            if not _is_direct_receiver(code, match.start()):
+                continue
             if not match.group(1).endswith("Api") and match.group(1) not in imported_names:
                 continue
             call = {
