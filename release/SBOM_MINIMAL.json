@@ -12295,10 +12295,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "57bfd94b7440226035b8eef56fc08c1196ddf02ba854e9fa998710e3fe896651"
+          "content": "641a39db899fd9e753c9093959cdc86783eba99628e41f5cd71eb8f2cbcb71a4"
         }
       ],
       "name": "services/decision-service/tests/test_migration_033_pg16.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "40e55167e9519fd13c4227241e4259f36bff302f90e9cfc9a874871b6c98cb4b"
+        }
+      ],
+      "name": "services/decision-service/tests/test_migration_034_pg16.py",
       "type": "file"
     },
     {

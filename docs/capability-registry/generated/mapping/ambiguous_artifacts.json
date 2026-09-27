@@ -4719,20 +4719,35 @@
     "kind": "tests",
     "candidates": [
       {
-        "capability_id": "SEC-001",
-        "score": 15,
-        "signals": [
-          "content:rls",
-          "content:row level security",
-          "content:tenant isolation"
-        ]
-      },
-      {
         "capability_id": "DEC-004",
         "score": 12,
         "signals": [
           "content:Execution request",
           "content:execution request"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 10,
+        "signals": [
+          "content:rls",
+          "content:row level security"
+        ]
+      },
+      {
+        "capability_id": "DEC-010",
+        "score": 10,
+        "signals": [
+          "content:model activation",
+          "content:model promotion"
+        ]
+      },
+      {
+        "capability_id": "DEC-008",
+        "score": 10,
+        "signals": [
+          "content:Learning attribution",
+          "content:learning attribution"
         ]
       }
     ]
