@@ -202,11 +202,18 @@ class _CodeMask:
 
     _JSX_OPEN = re.compile(r"<([A-Za-z_$][\w$.:\-]*(?=[\s/><])|(?=>))")
 
+    _JSX_CLOSE = re.compile(r"</([A-Za-z_$][\w$.:\-]*|)\s*>")
+    _GENERIC_ARROW = re.compile(r"<[A-Za-z_$][\w$]*(?:\s+extends\b[^<>]*|,)\s*>\s*\(")
+
     def __init__(self, text: str, *, jsx: bool):
         self.text = text
         self.mask = list(text)
         self.jsx_enabled = jsx
         self.depth = 0
+        self._context_end = 0
+        self._last_significant = -1
+        self._control_parentheses: list[bool] = []
+        self._last_control_close = False
 
     def hide(self, start: int, end: int) -> None:
         for i in range(start, end):
@@ -282,28 +289,55 @@ class _CodeMask:
             i += 1
         raise _UnparsedSource("unterminated_or_ambiguous_regex")
 
-    def expression_position(self, i: int) -> bool:
-        before = "".join(self.mask[:i]).rstrip()
-        if (
-            not before
-            or before[-1] in "=(:,[!&|?;{}><+-*%/^~"
-            or re.search(
-                r"\b(?:return|throw|case|yield|await|else|do|void|typeof|delete|in|of)\s*$",
-                before,
-            )
-        ):
-            return True
-        # A control-flow condition may be followed by an expression statement:
-        # `if (ready) <Panel>text</Panel>`. An ordinary call/group followed by
-        # '<' is not sufficient evidence of a JSX opening (it may be comparison).
-        if before[-1] == ")":
-            nesting = 1
-            j = len(before) - 2
-            while j >= 0 and nesting:
-                nesting += (before[j] == ")") - (before[j] == "(")
-                j -= 1
-            return nesting == 0 and bool(re.search(r"\b(?:if|while|for|with)\s*$", before[: j + 1]))
+    def _preceding_keyword(self, words: tuple[str, ...]) -> bool:
+        end = self._last_significant + 1
+        for word in words:
+            start = end - len(word)
+            if start < 0 or "".join(self.mask[start:end]) != word:
+                continue
+            if start == 0 or not (self.mask[start - 1].isalnum() or self.mask[start - 1] == "_"):
+                return True
         return False
+
+    def expression_position(self, i: int) -> bool:
+        # Consume each masked prefix character once, including across recursive
+        # JSX/template expressions. Never join or rescan the whole source prefix.
+        for pos in range(self._context_end, i):
+            ch = self.mask[pos]
+            if ch.isspace():
+                continue
+            control_close = False
+            if ch == "(":
+                self._control_parentheses.append(
+                    self._preceding_keyword(("if", "while", "for", "with"))
+                )
+            elif ch == ")" and self._control_parentheses:
+                control_close = self._control_parentheses.pop()
+            self._last_significant = pos
+            self._last_control_close = control_close
+        self._context_end = i
+        last = self._last_significant
+        return (
+            last < 0
+            or self.mask[last] in "=(:,[!&|?;{}><+-*%/^~"
+            or self._preceding_keyword(
+                (
+                    "return",
+                    "throw",
+                    "case",
+                    "yield",
+                    "await",
+                    "else",
+                    "do",
+                    "void",
+                    "typeof",
+                    "delete",
+                    "in",
+                    "of",
+                )
+            )
+            or (self.mask[last] == ")" and self._last_control_close)
+        )
 
     def jsx(self, i: int) -> int:
         opening = self._JSX_OPEN.match(self.text, i)
@@ -358,10 +392,10 @@ class _CodeMask:
 
         while i < len(self.text):
             if self.text.startswith("</", i):
-                closing = re.match(r"</([A-Za-z_$][\w$.:\-]*|)\s*>", self.text[i:])
+                closing = self._JSX_CLOSE.match(self.text, i)
                 if closing is None or closing.group(1) != name:
                     raise _UnparsedSource("mismatched_jsx_closing")
-                end = i + closing.end()
+                end = closing.end()
                 self.hide(i, end)
                 return end
             if self.text[i] == "<":
@@ -393,14 +427,11 @@ class _CodeMask:
                 i = self.template(i)
             elif ch == "<" and self.jsx_enabled and self.expression_position(i):
                 # Generic calls follow a callee, not an expression-opening token.
-                generic_arrow = re.match(
-                    r"<[A-Za-z_$][\w$]*(?:\s+extends\b[^<>]*|,)\s*>\s*\(",
-                    self.text[i:],
-                )
+                generic_arrow = self._GENERIC_ARROW.match(self.text, i)
                 if generic_arrow:
                     # TSX permits constrained/comma-marked generic arrow parameters.
                     # The parameter/body code is still scanned normally.
-                    i += generic_arrow.end() - 1
+                    i = generic_arrow.end() - 1
                 elif self._JSX_OPEN.match(self.text, i):
                     i = self.jsx(i)
                 else:
@@ -480,8 +511,8 @@ class _ClientBindings:
                     [base]
                     if base.suffix in {".ts", ".tsx"}
                     else [
-                        base.with_suffix(".ts"),
-                        base.with_suffix(".tsx"),
+                        Path(f"{base}.ts"),
+                        Path(f"{base}.tsx"),
                         base / "index.ts",
                         base / "index.tsx",
                     ]
@@ -620,7 +651,9 @@ def _scan_calls(
                     ):
                         value = candidate
             if value is None:
-                blind.append({**call, "reason": "unsupported_or_dynamic_path"})
+                (tests if test_source else blind).append(
+                    {**call, "reason": "unsupported_or_dynamic_path"}
+                )
             else:
                 (tests if test_source else calls).append({**call, "path": value})
     return calls, tests, blind
@@ -770,7 +803,10 @@ def resolve(
         # **حدُّ الماسح، مُعلَناً بعدده:** غيابُ الدليل هنا قد يكون غيابَ رؤية.
         "scanner_blind_spots": blind,
         "unsupported_call_sites": [
-            item for item in blind_calls if item["reason"] == "unsupported_or_dynamic_path"
+            item
+            for item in blind_calls
+            if item["source_kind"] == "application"
+            and item["reason"] == "unsupported_or_dynamic_path"
         ],
         "unparsed_source_files": [
             item for item in blind_calls if item["reason"] == "unparsed_source_file"

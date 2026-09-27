@@ -356,3 +356,68 @@ def test_two_same_line_calls_are_both_retained(tmp_path):
 def test_same_line_evidence_has_distinct_columns(tmp_path):
     r, _, _ = resolve(tree(tmp_path, 'kongApi.post("/query"); kongApi.post("/query");'))
     assert [row["evidence"]["call_column"] for row in r] == [1, 25]
+
+
+def test_dotted_module_name_cannot_bind_a_different_module(tmp_path):
+    root = tree(tmp_path, "")
+    (root / "frontend/src/facade.ts").write_text('export { kongApi } from "./services/api/client";')
+    (root / "frontend/src/facade.shadow.ts").write_text("export const kongApi = unrelatedClient;")
+    (root / "frontend/src/page.tsx").write_text(
+        'import { kongApi } from "./facade.shadow";\nkongApi.post("/query");'
+    )
+    assert not resolve(root)[0]
+
+
+def test_dotted_module_name_retains_its_complete_filename(tmp_path):
+    root = tree(tmp_path, "")
+    (root / "frontend/src/facade.client.ts").write_text(
+        'export { kongApi } from "./services/api/client";'
+    )
+    (root / "frontend/src/page.tsx").write_text(
+        'import { kongApi } from "./facade.client";\nkongApi.post("/query");'
+    )
+    assert resolve(root)[0]
+
+
+def test_dynamic_test_calls_do_not_enter_application_blind_spots(tmp_path):
+    root = tree(tmp_path, "kongApi.post(applicationUrl);")
+    (root / "frontend/src/page.test.tsx").write_text("kongApi.post(testUrl);")
+    _, _, report = resolve(root)
+    assert report["scanner_blind_spots"] == len(report["unsupported_call_sites"]) == 1
+    assert all(x["source_kind"] == "application" for x in report["unsupported_call_sites"])
+    assert len(report["test_call_sites"]) == 1
+    assert report["test_call_sites"][0]["reason"] == "unsupported_or_dynamic_path"
+
+
+def test_only_dynamic_test_calls_leave_application_blind_spots_empty(tmp_path):
+    _, _, report = resolve(tree(tmp_path, "kongApi.post(url);", "page.test.tsx"))
+    assert report["scanner_blind_spots"] == 0
+    assert report["unsupported_call_sites"] == []
+    assert len(report["test_call_sites"]) == 1
+
+
+def test_expression_context_work_scales_with_source_length():
+    class CountedText(str):
+        sliced = 0
+
+        def __getitem__(self, key):
+            if isinstance(key, slice):
+                self.sliced += len(range(*key.indices(len(self))))
+            return super().__getitem__(key)
+
+    class CountedMask(list):
+        reads = 0
+
+        def __getitem__(self, key):
+            self.reads += len(range(*key.indices(len(self)))) if isinstance(key, slice) else 1
+            return super().__getitem__(key)
+
+    def work(repeats):
+        text = CountedText("const ratio = left / right; const view = <pre>text</pre>;\n" * repeats)
+        scanner = edges._CodeMask(text, jsx=True)
+        scanner.mask = CountedMask(scanner.mask)
+        scanner.code()
+        assert "text" not in "".join(scanner.mask)
+        return scanner.mask.reads + text.sliced
+
+    assert work(200) <= 3 * work(100)
