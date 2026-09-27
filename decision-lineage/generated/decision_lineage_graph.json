@@ -1373,7 +1373,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 264,
+      "evidence_count": 265,
       "owners": [
         "ai_agronomist",
         "auth",
@@ -1438,6 +1438,7 @@
         "services/decision-service/migrations/012_model_activation_approval_command.sql",
         "services/decision-service/migrations/022_runtime_agronomic_cohort_lineage.sql",
         "services/decision-service/migrations/033_tenant_boundary_hardening.sql",
+        "services/decision-service/migrations/034_tenant_boundary_policy_composition.sql",
         "services/decision-service/persistence.py",
         "services/decision-service/rollback.py",
         "services/decision-service/tests/_model_chain.py",
@@ -2660,7 +2661,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 174,
-      "target_evidence_count": 264,
+      "target_evidence_count": 265,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2692,7 +2693,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 264,
+      "source_evidence_count": 265,
       "target_evidence_count": 33,
       "static_supported": true,
       "runtime_verified": false
@@ -2856,5 +2857,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "5169f1c4d65e73b36b0d0f3003d7e613db4ea6209a5f320d331d66580b46560c"
+  "content_sha256": "bebe23ebba8c3f4db182d7473390c5e6f9984cebcf6997e8ef573dda87ea0c42"
 }

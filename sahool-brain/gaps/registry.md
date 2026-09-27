@@ -6644,3 +6644,12 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **توسعة الإصلاح والشاهد:** ربط 25 كاتباً إضافياً في بداية المعاملة؛ الجرد الساكن يحصي 32 كاتب outbox ويطابقها مع شواهد مسماة في `test_migration_033_pg16.py`. 23 حالة جمع: حارس ساكن و22 حالة PG16، تشمل إعادة استعمال سيناريوهات التنفيذ والإيصالات وسلسلة النموذج من الإسناد إلى التراجع. المراقب يستدعي INSERT الحقيقي بعد فحص الدور والسياق ولا يحقنهما. صُحح فك JSON لمقاييس الترقية عبر `_jsonish` الموجود. نجاح الجرد المحلي ليس نتيجة PG16؛ التنفيذ الموسع على SHA التوسعة مطلوب قبل الدمج.
 - **نتيجة التوسعة الأولى:** الرأس `f2f07e3e16334ea2f60297b615a3571a4f24aab3`، وظيفة `108609443118`: 22 ناجحة وواحدة فاشلة دون تخطٍّ؛ فشل baseline بـAmbiguousParameterError للمعامل $15 في `persist_recommendation_outcome`. صُحح النوع إلى numeric في SQL التطبيق بما يطابق 032، ووُسّع الشاهد لقياس NULL والقيمة الرقمية ووقت التسجيل وreplay دون حدث زائد. إعادة PG16 مطلوبة قبل الدمج.
 - **حد الادعاء:** إصلاح المصدر لكل كتّاب outbox لا يثبت تشغيل كل مسارات القراءة أو الأنظمة الخارجية. لا تغيير لـSQL الترحيل أو أسرار أو staging. تبقى `DECISION-OUTBOX-REVIEWS-RLS-TENANT-ISOLATION-01` عند fixed؛ لا ترقية إلى verified قبل شاهد staging مستقل. يبقى PR مسودة حتى نجاح الشاهد الموسع وفحوصه.
+
+
+## DECISION-033-LEGACY-POLICY-UNION-01
+
+- **Status:** open
+- **Source:** `services/decision-service/migrations/033_tenant_boundary_hardening.sql`; `migrations/v122_rls_with_check_session_unification.sql`; base `7059d0dc9b689cf48804c5981f84ba3c4faeceaf` (#1085).
+- **Measured:** Railway staging PG15.8 rollback-only preflight showed legacy-only `app.tenant_id` writes accepted after 033 on both `decision_outbox_events` and `decision_reviews` because existing permissive policies are OR-combined.
+- **Candidate fix:** `services/decision-service/migrations/034_tenant_boundary_policy_composition.sql` adds restrictive canonical guards without rewriting 033 or deleting platform policies. `test_034_closes_legacy_policy_union` covers both tables under nonowner and forced-owner restricted LOGIN roles.
+- **Evidence boundary:** restricted SET ROLE rollback-only staging trial passes with 034 guards; PG16 CI and committed staging application are not yet measured. Keep open until source validation, and do not mark verified before live application and behavioral proof.

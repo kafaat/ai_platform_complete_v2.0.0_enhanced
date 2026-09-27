@@ -15,10 +15,10 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5424,
+    "files_scanned": 5425,
     "files_by_kind": {
       "backend": 1211,
-      "database": 280,
+      "database": 281,
       "governance": 64,
       "mobile": 55,
       "other": 1518,
@@ -2388,14 +2388,6 @@
           ]
         },
         {
-          "path": "services/decision-service/tests/test_migration_033_pg16.py",
-          "score": 10,
-          "signals": [
-            "content:Learning attribution",
-            "content:learning attribution"
-          ]
-        },
-        {
           "path": "services/vegetation-analysis-service/test_post_execution_bridge.py",
           "score": 8,
           "signals": [
@@ -2480,7 +2472,7 @@
         "events": 5,
         "web": 0,
         "mobile": 0,
-        "tests": 4,
+        "tests": 3,
         "governance": 1,
         "other_evidence": 5
       },
@@ -3240,14 +3232,6 @@
           ]
         },
         {
-          "path": "services/decision-service/tests/test_migration_033_pg16.py",
-          "score": 10,
-          "signals": [
-            "content:model activation",
-            "content:model promotion"
-          ]
-        },
-        {
           "path": "tests/phase6/test_phase6_static_contracts.py",
           "score": 8,
           "signals": [
@@ -3334,7 +3318,7 @@
         "events": 7,
         "web": 0,
         "mobile": 0,
-        "tests": 6,
+        "tests": 5,
         "governance": 0,
         "other_evidence": 8
       },
@@ -3572,6 +3556,14 @@
         },
         {
           "path": "services/decision-service/migrations/033_tenant_boundary_hardening.sql",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
+          "path": "services/decision-service/migrations/034_tenant_boundary_policy_composition.sql",
           "score": 14,
           "signals": [
             "path:tenant",
@@ -3984,7 +3976,7 @@
       "evidence_counts": {
         "backend": 15,
         "routes": 2,
-        "database": 25,
+        "database": 26,
         "events": 6,
         "web": 1,
         "mobile": 0,
@@ -25104,6 +25096,15 @@
           ]
         },
         {
+          "path": "services/decision-service/tests/test_migration_033_pg16.py",
+          "score": 15,
+          "signals": [
+            "content:rls",
+            "content:row level security",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "tests_v9/test_roadmap_phase23.py",
           "score": 15,
           "signals": [
@@ -25359,14 +25360,6 @@
         },
         {
           "path": "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
-          "score": 10,
-          "signals": [
-            "content:rls",
-            "content:row level security"
-          ]
-        },
-        {
-          "path": "services/decision-service/tests/test_migration_033_pg16.py",
           "score": 10,
           "signals": [
             "content:rls",
@@ -49459,35 +49452,20 @@
       "kind": "tests",
       "candidates": [
         {
+          "capability_id": "SEC-001",
+          "score": 15,
+          "signals": [
+            "content:rls",
+            "content:row level security",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "capability_id": "DEC-004",
           "score": 12,
           "signals": [
             "content:Execution request",
             "content:execution request"
-          ]
-        },
-        {
-          "capability_id": "SEC-001",
-          "score": 10,
-          "signals": [
-            "content:rls",
-            "content:row level security"
-          ]
-        },
-        {
-          "capability_id": "DEC-010",
-          "score": 10,
-          "signals": [
-            "content:model activation",
-            "content:model promotion"
-          ]
-        },
-        {
-          "capability_id": "DEC-008",
-          "score": 10,
-          "signals": [
-            "content:Learning attribution",
-            "content:learning attribution"
           ]
         }
       ]

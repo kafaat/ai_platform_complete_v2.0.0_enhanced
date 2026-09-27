@@ -30,6 +30,8 @@ ADMIN_DSN = "postgresql://decision033_admin:disposable_test_only@127.0.0.1:5436/
 TENANT = "00000000-0000-0000-0000-000000000033"
 OTHER = "00000000-0000-0000-0000-000000000034"
 VERSION = "033_tenant_boundary_hardening.sql"
+COMPOSITION_VERSION = "034_tenant_boundary_policy_composition.sql"
+HARDENING_VERSIONS = [VERSION, COMPOSITION_VERSION]
 TABLES = ("decision_outbox_events", "decision_reviews")
 
 
@@ -160,7 +162,7 @@ async def _insert(conn, table, row_id, tenant):
 @pytest.mark.parametrize("table", TABLES)
 @pytest.mark.parametrize("owns_table", [False, True], ids=["nonowner", "forced-owner"])
 async def test_033_isolates_reads_writes_and_rolls_back(database, table, owns_table):
-    assert (await runner.apply_migrations())["applied_now"] == [VERSION]
+    assert (await runner.apply_migrations())["applied_now"] == HARDENING_VERSIONS
     if owns_table:
         await database.admin.execute(f'ALTER TABLE {table} OWNER TO "{database.role}"')
     app = await database.app_connection()
@@ -199,10 +201,10 @@ async def test_033_isolates_reads_writes_and_rolls_back(database, table, owns_ta
 @pytest.mark.asyncio
 async def test_033_runner_check_apply_and_reapply(database):
     before = await runner.check_migrations()
-    assert before["pending"] == [VERSION] and not before["ok"]
+    assert before["pending"] == HARDENING_VERSIONS and not before["ok"]
     assert before["checksum_mismatches"] == []
     first = await runner.apply_migrations()
-    assert first["ok"] and first["applied_now"] == [VERSION]
+    assert first["ok"] and first["applied_now"] == HARDENING_VERSIONS
     second = await runner.apply_migrations()
     assert second["ok"] and second["applied_now"] == []
     assert (await runner.check_migrations())["pending"] == []
@@ -212,6 +214,73 @@ async def test_033_runner_check_apply_and_reapply(database):
         )
         == 1
     )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("table", TABLES)
+@pytest.mark.parametrize("owns_table", [False, True], ids=["nonowner", "forced-owner"])
+async def test_034_closes_legacy_policy_union(database, monkeypatch, table, owns_table):
+    """Reproduce the live v122 permissive policy before exercising the AND guard."""
+    await database.admin.execute(
+        f"CREATE POLICY tenant_isolation ON {table} FOR ALL "
+        "USING (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), '')) "
+        "WITH CHECK (tenant_id::text = COALESCE("
+        "NULLIF(current_setting('app.current_tenant', true), ''), "
+        "NULLIF(current_setting('app.tenant_id', true), '')))"
+    )
+    migrations = runner.load_migrations()
+    with monkeypatch.context() as scoped:
+        scoped.setattr(
+            runner, "load_migrations", lambda: [m for m in migrations if m.version <= VERSION]
+        )
+        assert (await runner.apply_migrations())["applied_now"] == [VERSION]
+    app = await database.app_connection()
+    try:
+        # Red witness: 033 alone accepts legacy-only context on the live topology.
+        tx = app.transaction()
+        await tx.start()
+        try:
+            await app.execute("SELECT set_config('app.tenant_id',$1,true)", TENANT)
+            await _insert(app, table, "ci-legacy-before-034", TENANT)
+        finally:
+            await tx.rollback()
+
+        assert (await runner.apply_migrations())["applied_now"] == [COMPOSITION_VERSION]
+        if owns_table:
+            await database.admin.execute(f'ALTER TABLE {table} OWNER TO "{database.role}"')
+        assert (
+            await database.admin.fetchval(
+                "SELECT permissive FROM pg_policies WHERE tablename=$1 AND policyname=$2",
+                table,
+                f"{table}_tenant_boundary_guard",
+            )
+            == "RESTRICTIVE"
+        )
+        tx = app.transaction()
+        await tx.start()
+        try:
+            await app.execute("SELECT set_config('app.tenant_id',$1,true)", TENANT)
+            await app.execute("SELECT set_config('app.current_tenant','',true)")
+            with pytest.raises(asyncpg.InsufficientPrivilegeError, match="row-level security"):
+                async with app.transaction():
+                    await _insert(app, table, "ci-legacy-after-034", TENANT)
+            # Canonical context wins even when the legacy key names another tenant.
+            await app.execute("SELECT set_config('app.current_tenant',$1,true)", TENANT)
+            await app.execute("SELECT set_config('app.tenant_id',$1,true)", OTHER)
+            await _insert(app, table, "ci-own-after-034", TENANT)
+            assert await app.fetchval(f"SELECT count(*) FROM {table}") == 1
+            with pytest.raises(asyncpg.InsufficientPrivilegeError, match="row-level security"):
+                async with app.transaction():
+                    await _insert(app, table, "ci-cross-after-034", OTHER)
+            await app.execute("SELECT set_config('app.current_tenant',$1,true)", OTHER)
+            assert await app.fetchval(f"SELECT count(*) FROM {table}") == 0
+            await app.execute("SELECT set_config('app.current_tenant','',true)")
+            assert await app.fetchval(f"SELECT count(*) FROM {table}") == 0
+        finally:
+            await tx.rollback()
+        assert await database.admin.fetchval(f"SELECT count(*) FROM {table}") == 0
+    finally:
+        await app.close()
 
 
 @pytest.fixture
@@ -326,7 +395,7 @@ async def test_033_runner_rolls_back_policy_and_journal_on_error(database, monke
         )
         with pytest.raises(asyncpg.DivisionByZeroError):
             await runner.apply_migrations()
-    assert (await runner.check_migrations())["pending"] == [VERSION]
+    assert (await runner.check_migrations())["pending"] == HARDENING_VERSIONS
     for table in TABLES:
         assert not await database.admin.fetchval(
             "SELECT relrowsecurity OR relforcerowsecurity FROM pg_class WHERE oid=$1::regclass",
