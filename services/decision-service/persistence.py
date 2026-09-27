@@ -474,6 +474,7 @@ async def persist_learning_update(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             await conn.execute(
                 """
                 INSERT INTO online_learning_updates
@@ -616,6 +617,7 @@ async def review_decision(
     conn = await _connect()
     try:
         async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             # (1) Idempotency by (tenant, key) via request_hash: same key + same request ⇒ replay
             # the original authoritative result; same key + different request ⇒ conflict.
             existing = await conn.fetchrow(

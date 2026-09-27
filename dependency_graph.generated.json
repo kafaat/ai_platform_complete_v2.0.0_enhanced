@@ -1,5 +1,5 @@
 {
-  "edge_count": 831,
+  "edge_count": 832,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -663,6 +663,16 @@
     },
     {
       "evidence": "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://decision_record",
+      "to": "db://decision_record",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_migration_033_pg16.py",
       "from": "decision-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -8330,7 +8340,7 @@
     "CALLS": 43,
     "CONSUMES": 1,
     "EMITS": 1,
-    "READS": 426,
+    "READS": 427,
     "ROUTES_TO": 71,
     "WRITES": 289
   },
@@ -8347,8 +8357,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 716,
-      "resolved": 715,
+      "observed": 717,
+      "resolved": 716,
       "unresolved_component_paths": 0
     }
   }

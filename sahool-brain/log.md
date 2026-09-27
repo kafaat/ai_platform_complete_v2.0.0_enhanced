@@ -8591,3 +8591,7 @@ PR #1073 · وظيفة CI `Platform Unit Tests` على `fe4f344`.
 ## 2026-09-27 — شاهد معزول لتوافق migration 033 مع دور التطبيق
 
 الأساس `eb6da9df07653c3e28c84328d581f9bf7e73531f`؛ الشريحة `codex/decision-033-pg16-proof-20260927`. أضيفت ثماني حالات في `services/decision-service/tests/test_migration_033_pg16.py` ووظيفة PostgreSQL 16 مؤقتة في `.github/workflows/ci.yml`. الاتصال محصور بعنوان loopback تجريبي مطابق حرفياً، وتُنشأ قاعدة ودور مستقلان لكل حالة ثم يُحذفان؛ لا اعتماد من Railway. المقارنة قبل/بعد تستدعي `persist_learning_update` و`review_decision` الحقيقيين دون حقن tenant context فيهما. الفحص الساكن كشف غياب الربط؛ نتيجة التنفيذ تُقرأ من وظيفة GitHub وJUnit المرفق، لا من التخطي المحلي. سُجلت `DECISION-033-RESTRICTED-ROLE-COMPATIBILITY-01` مفتوحة. لا إصلاح تشغيلي أو تطبيق migration أو تغيير لحالات verified في هذه الشريحة.
+
+## 2026-09-27 — إصلاح ربط المستأجر بعد شاهد PostgreSQL 16 الأحمر
+
+PR #1085، الرأس المقاس `40e5fa628bbc907c297bdb1f86bacd3527fc2106`، الوظيفة `108583840551`: 6 ناجحة و2 فاشلة دون تخطٍّ. أضيف `set_config(..., true)` في أول معاملة `persist_learning_update` و`review_decision` في `services/decision-service/persistence.py`، قبل الكتابة وقبل قراءة replay على الترتيب. توسّع `services/decision-service/tests/test_migration_033_pg16.py` بمراجعة جديدة تُديم audit وoutbox مرة واحدة، وتعيد الطلب ذاته وترفض اختلاف payload ووصول المستأجر الآخر. لا تعديل migration أو امتيازات؛ نجاح إعادة CI شرط لإثبات الإصلاح، وليس تفويضاً بتطبيق 033 حيّاً. تبقى فجوة التوافق open لأن بقية مسارات outbox لم تُقَس هنا.

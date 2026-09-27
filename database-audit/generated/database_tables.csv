@@ -54,7 +54,7 @@ crop_stress_memory_snapshots,v153_crop_stress_memory_store.sql,158,True,True,Tru
 custody_chain_events,v65_harvest_traceability.sql,70,True,True,True,1,False,False,1,1
 decision_learning_runs,v227_decision_learning_runtime.sql,224,True,False,False,0,False,True,1,1
 decision_policies,v69_decision_policies.sql,74,True,False,False,0,False,True,1,1
-decision_record,v78_decision_record.sql,83,True,True,True,1,True,False,17,18
+decision_record,v78_decision_record.sql,83,True,True,True,1,True,False,18,18
 device_commands_log,v20_automation_tables.sql,24,True,False,False,0,False,True,1,1
 device_telemetry,v24_iot_devices.sql,28,True,False,False,0,False,True,2,1
 digital_twin_scenarios,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True,False,0,0

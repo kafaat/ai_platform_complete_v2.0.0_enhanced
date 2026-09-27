@@ -13,7 +13,7 @@
 - Unmapped: **5**
 - Multi-dimensional mappings: **49**
 - Files scanned: **5424**
-- Ambiguous artifacts queued: **422**
+- Ambiguous artifacts queued: **423**
 - Unmapped artifacts queued: **2199**
 
 ## Capability coverage
@@ -21,7 +21,7 @@
 | ID | Domain | Backend | Routes | DB | Events | Web | Mobile | Tests | Dimensions |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|
 | DEC-001 | decision | 3 | 0 | 0 | 5 | 0 | 0 | 3 | 3 |
-| DEC-002 | decision | 1 | 0 | 0 | 2 | 0 | 0 | 4 | 3 |
+| DEC-002 | decision | 1 | 0 | 0 | 2 | 0 | 0 | 5 | 3 |
 | DEC-003 | decision | 2 | 0 | 0 | 2 | 0 | 0 | 3 | 3 |
 | DEC-004 | decision | 9 | 20 | 24 | 30 | 0 | 0 | 15 | 5 |
 | DEC-005 | decision | 5 | 86 | 5 | 3 | 0 | 0 | 3 | 5 |

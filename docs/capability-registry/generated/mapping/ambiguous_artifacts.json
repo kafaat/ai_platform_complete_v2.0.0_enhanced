@@ -4715,6 +4715,28 @@
     ]
   },
   {
+    "path": "services/decision-service/tests/test_migration_033_pg16.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 10,
+        "signals": [
+          "content:rls",
+          "content:row level security"
+        ]
+      },
+      {
+        "capability_id": "DEC-002",
+        "score": 8,
+        "signals": [
+          "content:Decision candidate",
+          "content:decision candidate"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/decision-service/tests/test_s5_exec_01_outcome_record_idempotency.py",
     "kind": "tests",
     "candidates": [

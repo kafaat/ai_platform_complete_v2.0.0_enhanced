@@ -315,3 +315,59 @@ async def test_review_idempotency_replay_survives_033_under_restricted_login(dat
     assert (await runner.apply_migrations())["ok"]
     after = await persistence.review_decision(**request)
     assert after == before, "033 must not hide a tenant's authoritative idempotency replay"
+    assert await persistence.review_decision(**{**request, "tenant_id": OTHER}) == {
+        "status": "not_found"
+    }
+
+
+@pytest.mark.asyncio
+async def test_fresh_review_is_atomic_and_tenant_scoped_after_033(database):
+    assert (await runner.apply_migrations())["ok"]
+    await database.admin.execute(
+        "INSERT INTO decision_record (decision_id,tenant_id,stage,decision_type,"
+        "review_state,candidate_lineage_id) "
+        "VALUES ('ci-new-review',$1::uuid,'candidate','crop_decision_candidate',"
+        "'pending_approval','ci-lineage')",
+        TENANT,
+    )
+    request = dict(
+        tenant_id=TENANT,
+        decision_id="ci-new-review",
+        action="approve",
+        new_state="approved",
+        reason="ci-only",
+        reviewed_by="ci-reviewer",
+        candidate_lineage_id="ci-lineage",
+        idempotency_key="ci-new-review",
+        policy_version="ci-policy",
+    )
+    # Another tenant must neither transition the decision nor learn its state.
+    assert await persistence.review_decision(**{**request, "tenant_id": OTHER}) == {
+        "status": "not_found"
+    }
+    result = await persistence.review_decision(**request)
+    assert result["status"] == "ok" and result["replay"] is False
+    assert result["authoritative"] is True and result["persisted"] is True
+    replay = await persistence.review_decision(**request)
+    assert replay == {**result, "replay": True}
+    assert await persistence.review_decision(**{**request, "reason": "changed"}) == {
+        "status": "conflict",
+        "reason": "idempotency_key_payload_mismatch",
+    }
+    assert (
+        await database.admin.fetchval(
+            "SELECT review_state FROM decision_record WHERE decision_id='ci-new-review'"
+        )
+        == "approved"
+    )
+    for table, column in (
+        ("decision_reviews", "decision_id"),
+        ("decision_outbox_events", "aggregate_id"),
+    ):
+        assert (
+            await database.admin.fetchval(
+                f"SELECT count(*) FROM {table} WHERE {column}='ci-new-review' AND tenant_id=$1::uuid",
+                TENANT,
+            )
+            == 1
+        )

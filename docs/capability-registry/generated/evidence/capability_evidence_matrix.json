@@ -252,6 +252,7 @@
       "runtime_verified": false,
       "title": "Decision candidate",
       "unit_test_paths": [
+        "services/decision-service/tests/test_migration_033_pg16.py",
         "services/sahool-platform/tests/test_crop_decision_bridge.py",
         "services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py",
         "services/sahool-platform/tests/test_decision_review_endpoint.py"

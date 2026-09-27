@@ -2539,6 +2539,7 @@
         "services/decision-service/tests/test_agronomic_learning_lineage.py",
         "services/decision-service/tests/test_agronomic_lineage_integrity.py",
         "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
+        "services/decision-service/tests/test_migration_033_pg16.py",
         "services/decision-service/tests/test_wx10_7_decision_review.py",
         "services/sahool-platform/api/routers/agronomic_replay.py",
         "services/sahool-platform/api/routers/decision_explain.py",
