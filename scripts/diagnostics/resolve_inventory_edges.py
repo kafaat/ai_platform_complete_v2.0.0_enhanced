@@ -47,6 +47,7 @@ _ANY_CALL = re.compile(
     r"(?<![\w$.])([A-Za-z_$][\w$]*)\s*\.\s*(get|post|put|patch|delete|head|options)\s*(?=[(<])"
 )
 
+
 def _is_direct_receiver(code: str, start: int) -> bool:
     """Reject property-qualified receivers even when trivia separates the tokens.
 
