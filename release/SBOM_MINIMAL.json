@@ -4415,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "552825cc1885eae68706debdb4ce202d30bb2eece648481e26f0b47202502764"
+          "content": "985a5d0485d2efefcbc811d2639b4302786fe1b3141c126c10887a5baddad09e"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -11985,7 +11985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fe7afc021ba7219afb341c3a818bc4803bd3a4a860a49f860ed469dc38102c19"
+          "content": "a225e540a655a2da4780d3e41ce996b7dfc5a49501b912acc4eb0d3f48948781"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -12279,6 +12279,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_loop_tables_and_ws_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bc581063f8a0a11831c0b6339c78ece511fab8434e7792d37b0e753075542599"
+        }
+      ],
+      "name": "services/decision-service/tests/test_migration_033_pg16.py",
       "type": "file"
     },
     {

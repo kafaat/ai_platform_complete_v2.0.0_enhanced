@@ -1,5 +1,5 @@
 {
-  "edge_count": 829,
+  "edge_count": 835,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -672,6 +672,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/decision-service/tests/test_migration_033_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://decision_record",
+      "to": "db://decision_record",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/decision-service/tests/test_wx10_7_decision_review.py",
       "from": "decision-service",
       "from_kind": "component",
@@ -682,7 +692,27 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/decision-service/tests/test_migration_033_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://online_learning_updates",
+      "to": "db://online_learning_updates",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/decision-service/persistence.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://outcome_record",
+      "to": "db://outcome_record",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_migration_033_pg16.py",
       "from": "decision-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -713,6 +743,16 @@
     },
     {
       "evidence": "services/decision-service/recommendation_outcomes_cutover_preflight.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://recommendation_outcomes",
+      "to": "db://recommendation_outcomes",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_migration_033_pg16.py",
       "from": "decision-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -5622,6 +5662,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/decision-service/tests/test_migration_033_pg16.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://decision_record",
+      "to": "db://decision_record",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/decision-service/tests/test_wx10_10_dispatch_authorization.py",
       "from": "decision-service",
       "from_kind": "component",
@@ -5683,6 +5733,16 @@
     },
     {
       "evidence": "services/decision-service/persistence.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://outcome_record",
+      "to": "db://outcome_record",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/tests/test_migration_033_pg16.py",
       "from": "decision-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -8310,9 +8370,9 @@
     "CALLS": 43,
     "CONSUMES": 1,
     "EMITS": 1,
-    "READS": 425,
+    "READS": 429,
     "ROUTES_TO": 71,
-    "WRITES": 288
+    "WRITES": 290
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -8327,8 +8387,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 714,
-      "resolved": 713,
+      "observed": 720,
+      "resolved": 719,
       "unresolved_component_paths": 0
     }
   }
