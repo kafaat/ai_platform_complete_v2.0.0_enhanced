@@ -46,4 +46,4 @@
 
 Static Nginx and Compose evidence only. Service-level authentication and live route behavior require runtime probes.
 
-Content SHA-256: `9da8981c0c99376b38ae660ff095c0b696dd31a656d060a60976393cbaf938fe`
+Content SHA-256: `d823322a7230a8110783eeb22bba4e4bd3f3a57340148dd0f9be89b25ba5e3b3`
