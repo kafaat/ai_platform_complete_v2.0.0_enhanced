@@ -12,12 +12,12 @@ jobs:
   certify:
     runs-on: ubuntu-24.04
     env:
-      SOURCE_SHA: ddbb97cf3d3737c5641ec16a8ca6b8ceec68a38e
+      SOURCE_SHA: db64328e199005df3462fd50f61cca5d0575b91b
       OUT: /tmp/certify-attempt-scope
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
         with:
-          ref: ddbb97cf3d3737c5641ec16a8ca6b8ceec68a38e
+          ref: db64328e199005df3462fd50f61cca5d0575b91b
           path: repo
           persist-credentials: false
           fetch-depth: 1
