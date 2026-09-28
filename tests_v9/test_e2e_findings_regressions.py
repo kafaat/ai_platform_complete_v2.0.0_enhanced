@@ -173,11 +173,14 @@ def test_v25_live_audit_wiring_regressions():
                 in supervisor
             )
 
-        # local-ai-rag authenticates /v1/query with JWT_SECRET/JWT_PUBLIC_KEY.
-        # The maintained compose variants must not wire the supervisor to an
-        # endpoint that is guaranteed to fail closed with a missing JWT key.
+        # supervisor and local-ai-rag must agree on the verifier mode. In RS256
+        # deployments a missing JWT_PUBLIC_KEY silently falls back to HS256 and
+        # causes /v1/query bearer validation to fail with 401.
+        assert "JWT_SECRET:" in supervisor
+        assert "JWT_PUBLIC_KEY:" in supervisor
         rag = _service_block(source, rag_name)
         assert "JWT_SECRET:" in rag
+        assert "JWT_PUBLIC_KEY:" in rag
 
     v9_compose = _source("docker-compose.v9.yml")
     nginx_service = _service_block(v9_compose, "sahool-nginx")
