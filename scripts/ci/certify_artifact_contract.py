@@ -38,8 +38,8 @@ SHA40 = re.compile(r"^[0-9a-f]{40}$")
 
 #: المصنوعتان المطلوبتان لاعتماد لقطة — والاسم دالّةٌ في الـSHA لا نصٌّ ثابت.
 ROLES = {
-    "evidence": "live-pg-evidence-{sha}",
-    "attestation": "live-pg-evidence-attestation-{sha}",
+    "evidence": "live-pg-evidence-{sha}-attempt-{attempt}",
+    "attestation": "live-pg-evidence-attestation-{sha}-attempt-{attempt}",
 }
 
 
@@ -53,7 +53,18 @@ def _load(path: Path) -> dict:
     return document
 
 
-def judge(inventory: dict, head_sha: str) -> dict:
+def _normalize_attempt(value: object) -> str:
+    """Return a canonical positive run-attempt string or fail closed."""
+    try:
+        attempt = int(str(value))
+    except (TypeError, ValueError):
+        raise SystemExit("✗ run_attempt ليس عدداً موجباً — هويةُ محاولةٍ ملتبسة.") from None
+    if attempt < 1:
+        raise SystemExit("✗ run_attempt ليس عدداً موجباً — هويةُ محاولةٍ ملتبسة.")
+    return str(attempt)
+
+
+def judge(inventory: dict, head_sha: str, run_attempt: object) -> dict:
     """الحكم: ``absent`` غيابٌ مشروعٌ مُعلَن، و``present`` هويّتان مُسجَّلتان — وما
     بينهما (تكرار، دليلٌ بلا إثبات منشأ، إثباتٌ بلا دليل، منتهي الصلاحية) يُرفَض."""
     if not SHA40.fullmatch(head_sha):
@@ -63,7 +74,7 @@ def judge(inventory: dict, head_sha: str) -> dict:
         if not isinstance(artifact, dict):
             continue
         for role, pattern in ROLES.items():
-            if artifact.get("name") == pattern.format(sha=head_sha):
+            if artifact.get("name") == pattern.format(sha=head_sha, attempt=attempt):
                 matches[role].append(artifact)
     problems: list[str] = []
     for role, found in matches.items():
@@ -87,7 +98,7 @@ def judge(inventory: dict, head_sha: str) -> dict:
     if problems:
         raise SystemExit("✗ عقد المصنوعة مرفوض:\n  - " + "\n  - ".join(sorted(set(problems))))
     if not matches["evidence"]:
-        return {"schema": SCHEMA, "head_sha": head_sha, "status": "absent", "artifacts": None}
+        return {"schema": SCHEMA, "head_sha": head_sha, "run_attempt": int(attempt), "status": "absent", "artifacts": None}
     recorded = {}
     for role, found in matches.items():
         artifact = found[0]
@@ -106,6 +117,7 @@ def judge(inventory: dict, head_sha: str) -> dict:
     return {
         "schema": SCHEMA,
         "head_sha": head_sha,
+        "run_attempt": int(attempt),
         "status": "present",
         "artifacts": recorded,
         "$honesty_limit_ar": (
@@ -117,12 +129,13 @@ def judge(inventory: dict, head_sha: str) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description="عقد مصنوعة الاعتماد المشتقّ من head_sha")
+    ap = argparse.ArgumentParser(description="عقد مصنوعة الاعتماد المشتقّ من head_sha + run_attempt")
     ap.add_argument("--artifacts-file", type=Path, required=True)
     ap.add_argument("--head-sha", required=True)
+    ap.add_argument("--run-attempt", required=True)
     ap.add_argument("--output", type=Path, required=True)
     args = ap.parse_args(argv)
-    verdict = judge(_load(args.artifacts_file), args.head_sha)
+    verdict = judge(_load(args.artifacts_file), args.head_sha, args.run_attempt)
     args.output.write_text(
         json.dumps(verdict, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
