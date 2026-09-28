@@ -3293,3 +3293,11 @@ Decision: preserve 033 checksum and add 034 restrictive guards, keeping the exis
 - **المصدر:** #1089؛ الرأس المراجع `f995dd66a560951b866b7f59132e48b286b6939e`؛ `scripts/ci/certify_artifact_contract.py`؛ `tests_v9/test_certify_artifact_contract.py`؛ `gaps/registry.md` تحت `CERTIFY-ARTIFACT-IDENTITY-OMITS-RUN-ATTEMPT-01`. ملاحظات المراجعة: 4125271896، 4125271963، 4125272012.
 - **إسناد القياس:** تُحفظ تعديلات المصدر والقرار في إيداع مستقل أولاً، ثم تُشغّل المولدات الرسمية على ذلك الإيداع النظيف وتُحفظ المصنوعات والبصمات في إيداع لاحق. `measured_on` يحدد إيداع المصدر المقيس، لا إيداع المخرجات الذي لم يوجد بعد القياس. تبقى سلطة الصلاحية بصمات أساس القياس وإعادة الاشتقاق؛ لا يُفرض ختم ذاتي مستحيل ولا تُعدّل البصمات يدوياً.
 - **حد القبول:** source-fixed / post-run-runtime-unverified؛ غياب أدلة المحاولة المطلوبة ينتج absent لا اعتماداً. لا ترقية runtime_verified أو production_certified قبل قبول post-run جديد موقّع ومطابق، ولا تغيير خدمات أو بيانات أو Railway أو NATS.
+
+
+## 2026-09-28 — RAILWAY-GUARDRAILS-RS256-DEPENDENCY-20260928
+
+- Decision: install PyJWT's crypto extra in Guardrails; never enable HS256 to mask a missing RSA backend.
+- Rationale: staging recovery exposed missing verifier material and the image's declared dependencies lacked the RSA backend. Environment configuration and image dependencies are separate acceptance gates.
+- Reference: `codex/railway-rs256-reviewed-20260928`, base `52deac58088406be76b04a5216c2bddffb12cdcf`; isolated image evidence will be attached to the repair PR.
+- Boundary: synthetic RSA/HS256 proofs are not live Railway acceptance; no database, NATS, private-key, or production changes. The v25 umbrella remains open.

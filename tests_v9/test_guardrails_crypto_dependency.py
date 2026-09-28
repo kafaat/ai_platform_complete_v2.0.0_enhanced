@@ -1,0 +1,48 @@
+"""Guard the dependency needed by Guardrails' production RS256 verifier."""
+
+from pathlib import Path
+
+import pytest
+from packaging.requirements import Requirement
+
+pytestmark = pytest.mark.unit
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_guardrails_declares_the_pyjwt_crypto_runtime_extra():
+    path = ROOT / "services/guardrails-engine/requirements.txt"
+    requirements = [
+        Requirement(line.split("#", 1)[0].strip())
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.split("#", 1)[0].strip()
+    ]
+    pyjwt = [item for item in requirements if item.name.lower() == "pyjwt"]
+    assert len(pyjwt) == 1
+    assert "crypto" in pyjwt[0].extras, (
+        "RS256 must be installed in the service image, not just the CI environment"
+    )
+
+
+def test_guardrails_explicitly_declares_cryptography_for_rs256():
+    path = ROOT / "services/guardrails-engine/requirements.txt"
+    declared = {
+        Requirement(line.split("#", 1)[0].strip()).name.lower()
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.split("#", 1)[0].strip()
+    }
+    assert "cryptography" in declared, "The RSA runtime backend must be explicit"
+
+
+def test_guardrails_cryptography_keeps_an_exact_version_pin():
+    path = ROOT / "services/guardrails-engine/requirements.txt"
+    requirements = [
+        Requirement(line.split("#", 1)[0].strip())
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.split("#", 1)[0].strip()
+    ]
+    crypto = [item for item in requirements if item.name.lower() == "cryptography"]
+    assert len(crypto) == 1, "Exactly one explicit RSA backend requirement is required"
+    pin = list(crypto[0].specifier)
+    assert len(pin) == 1 and pin[0].operator == "==" and "*" not in pin[0].version, (
+        "The new RSA backend must remain exactly pinned without increasing unpinned debt"
+    )
