@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "inventory-baseline-bcd8ad8-20260928",
+  "verdict": "MEASURED",
+  "scope": "static_consumer_edge_inventory_and_generated_baseline_rebind",
+  "source": {
+    "commit_sha": "bcd8ad8ad64fff83941c8f386a7a993bb489972f",
+    "tree_sha": "518a3b277ebef32129d0251cc358bca209e497ba",
+    "repository": "kafaat/ai_platform_complete_v2.0.0_enhanced"
+  },
+  "inventory": {
+    "operation_call_site_evidence_rows": 308,
+    "resolved_operations": 288,
+    "resolved_capabilities": 255,
+    "partially_unresolved_capabilities": 15,
+    "declared_pending_groups": 484,
+    "literal_calls_with_unproven_binding": 106,
+    "unsupported_application_calls": 54,
+    "lexically_unparsed_files": 0,
+    "runtime_reachability_verified": false
+  },
+  "certification": {
+    "workflow_run_id": 36368898739,
+    "workflow_artifact_id": 10949026557,
+    "artifact_name": "bcd8-inventory-certification",
+    "artifact_sha256": "6161096ce2ae700b4db957af0ad59e61eb2df22287c9929fe11fa0f8fe1d2d4e",
+    "artifact_created_at_utc": "2026-09-28T02:23:51Z",
+    "pre_evidence_generated_candidate_tree": "939d2a63f2a85a28d0312e95efe0d19d34d806f2",
+    "inventory_repeated_byte_equal": true,
+    "regenerate_all_generated": "PASS",
+    "verify_all_generated_check": "PASS",
+    "validate_release_package": "PASS",
+    "pre_push_stability_guard": "PASS",
+    "final_working_tree_clean": true
+  },
+  "boundaries": {
+    "runtime_claims": false,
+    "railway_configuration_changed": false,
+    "database_topology_changed": false,
+    "nats_changed": false,
+    "services_changed": false,
+    "migrations_changed": false,
+    "notes": "This evidence records a static inventory/provenance measurement. It is not runtime reachability or production certification."
+  }
+}
