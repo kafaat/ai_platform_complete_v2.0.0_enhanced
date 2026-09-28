@@ -440,7 +440,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": true,
-          "line": 249,
+          "line": 248,
           "security_class": "authenticated_tenant_bound"
         },
         {
