@@ -1,0 +1,86 @@
+name: Railway Crypto Pin Quality
+
+on:
+  push:
+    branches: [codex/railway-staging-repair-lab-20260928]
+    paths: [.github/workflows/railway-crypto-pin-quality.yml]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      SOURCE_SHA: f6cd3f5532a816d29192461e65d3f0f2bd41b0ae
+      BASE: 52deac58088406be76b04a5216c2bddffb12cdcf
+      REPAIR_RUN: '36480633652'
+      REPO: kafaat/ai_platform_complete_v2.0.0_enhanced
+    steps:
+      - name: Resolve the exact candidate only after the repair succeeds
+        id: candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh run watch "$REPAIR_RUN" --repo "$REPO" --exit-status --interval 15
+          candidate_sha="$(gh api "repos/$REPO/git/ref/heads/codex/railway-crypto-pinned-20260928" --jq '.object.sha')"
+          test "${#candidate_sha}" = 40
+          echo "sha=$candidate_sha" >> "$GITHUB_OUTPUT"
+          mkdir -p "$RUNNER_TEMP/crypto-pin-quality"
+          printf '%s\n' "$candidate_sha" > "$RUNNER_TEMP/crypto-pin-quality/candidate-sha.txt"
+      - name: Check out the pinned candidate with Git ancestry
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: ${{ steps.candidate.outputs.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Install repository quality tools
+        run: python -m pip install --retries 3 --timeout 60 -r tests_v9/requirements-test.txt jsonschema packaging pip-audit
+      - name: Audit Guardrails dependencies without vulnerability suppressions
+        run: |
+          python -m pip_audit --progress-spinner off -r services/guardrails-engine/requirements.txt --format json --output "$RUNNER_TEMP/crypto-pin-quality/pip-audit.json"
+      - name: Independent fast preflight and scope verification
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "$SOURCE_SHA" HEAD
+          git diff --exit-code "$SOURCE_SHA" HEAD -- tests_v9/test_requirements_pinning_guard.py .github/workflows/ci.yml
+          bash scripts/ci/preflight.sh --fast --no-fetch | tee "$RUNNER_TEMP/crypto-pin-quality/preflight.log"
+          test -z "$(git status --porcelain)"
+          git diff --stat "$SOURCE_SHA" HEAD > "$RUNNER_TEMP/crypto-pin-quality/diff-stat.txt"
+      - name: Read-only staging public endpoint probes
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request, urllib.error
+          from pathlib import Path
+          out = Path(os.environ['RUNNER_TEMP']) / 'crypto-pin-quality'
+          out.mkdir(exist_ok=True)
+          rows = []
+          for path in ('/healthz','/auth/healthz','/auth/me'):
+              row = {'url':'https://sahool-frontend-staging.up.railway.app'+path,'authorization_sent':False}
+              try:
+                  with urllib.request.urlopen(row['url'], timeout=8) as r:
+                      row['status'] = r.status
+                      r.read(4096)
+              except urllib.error.HTTPError as e:
+                  row['status'] = e.code
+              except Exception as e:
+                  row['error_type'] = type(e).__name__
+              rows.append(row)
+          (out/'public-probes.json').write_text(json.dumps(rows,indent=2)+'\n')
+          print(json.dumps(rows))
+          PY
+      - name: Retain quality evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: crypto-pin-quality-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/crypto-pin-quality
+          if-no-files-found: warn
+          retention-days: 14
