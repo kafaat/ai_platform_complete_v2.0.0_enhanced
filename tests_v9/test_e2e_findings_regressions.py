@@ -150,7 +150,11 @@ def _service_block(source: str, service_name: str) -> str:
 def test_v25_live_audit_wiring_regressions():
     # Finding #6: raster tiler must recover after Docker daemon/container restarts
     # in every maintained compose variant.
-    for compose in ("docker-compose.v9.yml", "docker-compose.fixed.yml", "docker-compose.unified.yml"):
+    for compose in (
+        "docker-compose.v9.yml",
+        "docker-compose.fixed.yml",
+        "docker-compose.unified.yml",
+    ):
         source = _source(compose)
         assert "restart: unless-stopped" in _service_block(source, "raster-tiler-service")
 
