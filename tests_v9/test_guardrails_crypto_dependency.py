@@ -31,3 +31,18 @@ def test_guardrails_explicitly_declares_cryptography_for_rs256():
         if line.split("#", 1)[0].strip()
     }
     assert "cryptography" in declared, "The RSA runtime backend must be explicit"
+
+
+def test_guardrails_cryptography_keeps_an_exact_version_pin():
+    path = ROOT / "services/guardrails-engine/requirements.txt"
+    requirements = [
+        Requirement(line.split("#", 1)[0].strip())
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.split("#", 1)[0].strip()
+    ]
+    crypto = [item for item in requirements if item.name.lower() == "cryptography"]
+    assert len(crypto) == 1, "Exactly one explicit RSA backend requirement is required"
+    pin = list(crypto[0].specifier)
+    assert len(pin) == 1 and pin[0].operator == "==" and "*" not in pin[0].version, (
+        "The new RSA backend must remain exactly pinned without increasing unpinned debt"
+    )
