@@ -21,3 +21,13 @@ def test_guardrails_declares_the_pyjwt_crypto_runtime_extra():
     assert "crypto" in pyjwt[0].extras, (
         "RS256 must be installed in the service image, not just the CI environment"
     )
+
+
+def test_guardrails_explicitly_declares_cryptography_for_rs256():
+    path = ROOT / "services/guardrails-engine/requirements.txt"
+    declared = {
+        Requirement(line.split("#", 1)[0].strip()).name.lower()
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.split("#", 1)[0].strip()
+    }
+    assert "cryptography" in declared, "The RSA runtime backend must be explicit"
