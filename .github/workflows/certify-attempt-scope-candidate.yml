@@ -1,0 +1,131 @@
+name: Certify Attempt Scope Candidate
+
+on:
+  push:
+    branches:
+      - codex/certify-attempt-scope-driver-20260928
+
+permissions:
+  contents: read
+
+jobs:
+  certify:
+    runs-on: ubuntu-24.04
+    env:
+      SOURCE_SHA: ddbb97cf3d3737c5641ec16a8ca6b8ceec68a38e
+      OUT: /tmp/certify-attempt-scope
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: ddbb97cf3d3737c5641ec16a8ca6b8ceec68a38e
+          path: repo
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Install declared test dependencies
+        working-directory: repo
+        run: python -m pip install -r tests_v9/requirements-test.txt
+      - name: Prove source identity
+        working-directory: repo
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          test -z "$(git status --porcelain)"
+          mkdir -p "$OUT"
+          git rev-parse HEAD > "$OUT/source-sha.txt"
+          git rev-parse HEAD^{tree} > "$OUT/source-tree.txt"
+      - name: Attempt-scoped certification regressions
+        working-directory: repo
+        run: |
+          python -m pytest -q             tests_v9/test_certify_artifact_contract.py             tests_v9/test_sot_provenance_guard.py
+      - name: Python formatting
+        working-directory: repo
+        run: |
+          ruff format --check             scripts/ci/certify_artifact_contract.py             tests_v9/test_certify_artifact_contract.py
+      - name: Workflow YAML parses
+        working-directory: repo
+        run: |
+          python - <<'PY'
+          import pathlib, yaml
+          for p in [pathlib.Path(".github/workflows/ci.yml"), pathlib.Path(".github/workflows/certify-run.yml")]:
+              doc=yaml.safe_load(p.read_text(encoding="utf-8"))
+              assert isinstance(doc, dict) and "jobs" in doc, p
+              print(p, "PASS")
+          PY
+      - name: Compute source capability impact
+        working-directory: repo
+        run: |
+          python scripts/ci/capability_impact.py --json             scripts/ci/certify_artifact_contract.py             tests_v9/test_certify_artifact_contract.py             .github/workflows/certify-run.yml             .github/workflows/ci.yml             | tee "$OUT/source-capability-impact.json"
+      - name: Regenerate canonical fixed point
+        working-directory: repo
+        run: |
+          set -euo pipefail
+          bash scripts/ci/regenerate_all_generated.sh
+          git diff --name-status > "$OUT/changed-name-status.txt"
+          git diff --name-only > "$OUT/changed-paths.txt"
+          git diff --stat > "$OUT/changed-stat.txt"
+          git diff --binary > "$OUT/candidate.patch"
+          mkdir -p "$OUT/changed-files"
+          while IFS= read -r p; do
+            test -z "$p" && continue
+            mkdir -p "$OUT/changed-files/$(dirname "$p")"
+            cp "$p" "$OUT/changed-files/$p"
+          done < "$OUT/changed-paths.txt"
+      - name: Commit candidate locally only
+        working-directory: repo
+        run: |
+          set -euo pipefail
+          git config user.name "Attempt Scope Certification"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "NO_GENERATED_DIFF=1" | tee "$OUT/candidate.env"
+          else
+            git commit -m "chore(generated): bind certification reruns by attempt"
+            {
+              echo "NO_GENERATED_DIFF=0"
+              echo "CANDIDATE_SHA=$(git rev-parse HEAD)"
+              echo "CANDIDATE_TREE=$(git rev-parse HEAD^{tree})"
+            } | tee "$OUT/candidate.env"
+          fi
+      - name: Verify generated fixed point
+        working-directory: repo
+        run: python scripts/ci/verify_all_generated.py --check
+      - name: Validate release package
+        working-directory: repo
+        run: python scripts/release/validate_release_package.py --root .
+      - name: Re-run certification regressions on candidate
+        working-directory: repo
+        run: |
+          python -m pytest -q             tests_v9/test_certify_artifact_contract.py             tests_v9/test_sot_provenance_guard.py
+      - name: Stability guard
+        working-directory: repo
+        run: python scripts/ops/pre_push_stability_guard.py
+      - name: Final receipt
+        working-directory: repo
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain)"
+          python - <<'PY'
+          import json, os, pathlib, subprocess
+          out=pathlib.Path(os.environ["OUT"])
+          receipt={
+            "source_sha":os.environ["SOURCE_SHA"],
+            "source_tree":(out/"source-tree.txt").read_text().strip(),
+            "generated_paths":[x for x in (out/"changed-paths.txt").read_text().splitlines() if x],
+            "candidate_env":(out/"candidate.env").read_text().splitlines(),
+            "final_head":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
+            "final_tree":subprocess.check_output(["git","rev-parse","HEAD^{tree}"],text=True).strip(),
+            "clean":True,
+          }
+          (out/"receipt.json").write_text(json.dumps(receipt,indent=2)+"\n",encoding="utf-8")
+          print(json.dumps(receipt,indent=2))
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: certify-attempt-scope-candidate
+          path: /tmp/certify-attempt-scope
+          retention-days: 30
