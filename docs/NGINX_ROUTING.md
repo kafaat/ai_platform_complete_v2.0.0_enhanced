@@ -22,8 +22,8 @@ the remainder is forwarded. This is the crux of every mapping below.
 | `/api/vegetation/*` | `/api/vegetation/` | `vegetation_backend/` | `/*` (prefix stripped) | vegetation `/v1/analyze`,`/v1/timeseries/{id}` — call as `/api/vegetation/v1/...` ✓ |
 | `/api/soil/*` | `/api/soil/` | `soil_backend/` | `/*` (prefix stripped) | soil `/v1/soil/readings/{id}` — call as `/api/soil/v1/soil/...` (alias; frontend uses direct `VITE_SOIL_URL`) |
 | `/api/agent/health` | `= /api/agent/health` (exact) **(FIXED)** | `supervisor_backend/health` | `/health` | supervisor `/health` ✓ (health probe) |
-| `/api/agent/*` | `/api/agent/` | `supervisor_backend/agent/` **(FIXED)** | `/agent/*` (prefix preserved) | supervisor `/agent/query`,`/agent/optimize` ✓ |
-| `/api/guardrails/*` | `/api/guardrails/` | `guardrails_backend/` | `/*` (prefix stripped) | guardrails `/validate` — service-to-service only; requires `X-Agent-Token`, so a direct browser call fails-closed by design (see note 2) |
+| `/api/agent/*` | `/api/agent/` | `supervisor_backend/v1/agent/` | `/v1/agent/*` | supervisor `/v1/agent/query`,`/v1/agent/optimize` ✓ |
+| `/api/guardrails/v1/*` | `/api/guardrails/` | `guardrails_backend/` | `/v1/*` (caller suffix preserved) | guardrails `/v1/validate`,`/v1/evaluate` — service-to-service only; requires `X-Agent-Token`, so a direct browser call fails-closed by design (see note 2) |
 | `/tts/*` | `/tts/` | `http://sahool-tts:8000` | `/tts/*` (no URI ⇒ preserved) | tts-service |
 | `/ws/*` | `/ws/` | `notification_ws/ws/` | `/ws/*` (preserved) | notification-agent WebSocket |
 | `/metrics` | `/metrics` | `indicators_backend/metrics` | `/metrics` | internal-only (allow 127/172.20) |
@@ -34,8 +34,8 @@ the remainder is forwarded. This is the crux of every mapping below.
 1. **`/api/agent/*` dropped the `/agent/` prefix.** The supervisor serves its
    functional routes under `/agent/` (`/agent/query`, `/agent/optimize`), but
    `proxy_pass http://supervisor_backend/;` rewrote `/api/agent/query` → `/query`
-   (404). Changed to `proxy_pass http://supervisor_backend/agent/;` so
-   `/api/agent/query` → `/agent/query` and `/api/agent/optimize` → `/agent/optimize`.
+   (404). The versioned service contract now uses `proxy_pass http://supervisor_backend/v1/agent/;`, so
+   `/api/agent/query` → `/v1/agent/query` and `/api/agent/optimize` → `/v1/agent/optimize`.
    The health probe (`/api/agent/health`) needs `/health` (not `/agent/health`),
    so it is broken out into an `exact-match` `location = /api/agent/health` that
    maps to `supervisor_backend/health` — placed before the prefix block so the
@@ -87,12 +87,13 @@ the remainder is forwarded. This is the crux of every mapping below.
    unchanged `/auth/login` call becomes `http://localhost:8120/v1/auth/login`,
    which the service recognizes.)
 
-2. **Guardrails is service-to-service.** `guardrails-engine`'s `/validate`
-   enforces a service token (`X-Agent-Token`) and is intended to be called by the
-   supervisor (which derives `tenant_id` from the verified user token), not
-   directly from the browser. The nginx mapping `/api/guardrails/` →
-   `guardrails_backend/` is structurally correct (`/api/guardrails/validate` →
-   `/validate`); a direct browser call fails-closed by design.
+2. **Guardrails is service-to-service.** `guardrails-engine`'s `/v1/validate` and
+   `/v1/evaluate` enforce a service token (`X-Agent-Token`) and are intended to be
+   called by trusted internal services, not directly from the browser. The nginx
+   mapping deliberately strips only `/api/guardrails/`; therefore the existing
+   `/api/guardrails/v1/validate` caller maps to `/v1/validate` (not `/v1/v1/validate`).
+   The public location never injects the service token, so a browser call still
+   fails closed by design.
 
 3. **`nginx -t` not runnable here** (no nginx binary, `${DOMAIN}` is an envsubst
    placeholder resolved at deploy). This document is the result of a careful
