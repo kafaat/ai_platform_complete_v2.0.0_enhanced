@@ -1,0 +1,51 @@
+name: PR1088 Candidate Final Head
+
+on:
+  push:
+    branches:
+      - codex/bcd8-inventory-cert-20260928
+    paths:
+      - '.github/workflows/pr1088-candidate-final.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      BASE_SHA: bcd8ad8ad64fff83941c8f386a7a993bb489972f
+      CANDIDATE_SHA: cae7557dfe33fcf38bb02099cc968b1a9c19a226
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: cae7557dfe33fcf38bb02099cc968b1a9c19a226
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r tests_v9/requirements-test.txt
+      - name: Prove candidate identity
+        run: test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
+      - name: Verify generated candidate at final head
+        run: python scripts/ci/verify_all_generated.py --check
+      - name: Validate release package at final head
+        run: python scripts/release/validate_release_package.py
+      - name: Measure full candidate capability impact
+        run: |
+          python scripts/ci/capability_impact.py --json \
+            certification/evidence/bcd8_consumer_edge_measurement_20260928.json \
+            docs/architecture/db_writer_ownership_baseline.json \
+            docs/architecture/db_writer_ownership_triage.json \
+            docs/architecture/fake_connection_debt.json \
+            docs/architecture/generated_write_targets.json \
+            docs/architecture/source_text_assertion_inventory.json \
+            docs/architecture/tenant_guc_scope_baseline.json \
+            docs/capability-registry/generated/impact/impact_index_summary.json \
+            docs/capability-registry/generated/management/management_manifest.json \
+            docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md \
+            docs/capability-registry/generated/mapping/capability_mapping.json \
+            docs/capability-registry/generated/mapping/mapping_manifest.json \
+            release/FILE_CHECKSUMS.sha256 \
+            release/SAHOOL_RELEASE_MANIFEST_20260626.json
