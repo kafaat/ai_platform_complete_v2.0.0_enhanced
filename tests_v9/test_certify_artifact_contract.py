@@ -25,6 +25,7 @@ assert _SPEC.loader is not None
 _SPEC.loader.exec_module(probe)
 
 HEAD = "a7215385de59c4fc27f6723226e2fe737770cd4d"
+ATTEMPT = 2
 
 
 def _artifact(name: str, **over) -> dict:
@@ -46,14 +47,14 @@ def _inventory(*artifacts) -> dict:
 
 def _pair() -> tuple[dict, dict]:
     return (
-        _artifact(f"live-pg-evidence-{HEAD}"),
-        _artifact(f"live-pg-evidence-attestation-{HEAD}", id=40374290),
+        _artifact(f"live-pg-evidence-{HEAD}-attempt-{ATTEMPT}"),
+        _artifact(f"live-pg-evidence-attestation-{HEAD}-attempt-{ATTEMPT}", id=40374290),
     )
 
 
 def test_exactly_one_of_each_role_is_present_with_recorded_identity() -> None:
     """البند الموجب: هويّتا المصنوعتين (artifact_id + digest) تُسجَّلان للمدقّق."""
-    verdict = probe.judge(_inventory(*_pair()), HEAD)
+    verdict = probe.judge(_inventory(*_pair()), HEAD, ATTEMPT)
 
     assert verdict["status"] == "present"
     assert verdict["artifacts"]["evidence"]["artifact_id"] == 40374289
@@ -63,11 +64,12 @@ def test_exactly_one_of_each_role_is_present_with_recorded_identity() -> None:
 
 def test_no_evidence_at_all_is_a_declared_absence_not_a_failure() -> None:
     """تشغيلٌ لم يبلغ وظيفة الأدلّة لا شيء فيه ليُعتمَد — ويُقال ذلك باسمه."""
-    verdict = probe.judge(_inventory(_artifact("some-other-artifact")), HEAD)
+    verdict = probe.judge(_inventory(_artifact("some-other-artifact")), HEAD, ATTEMPT)
 
     assert verdict == {
         "schema": probe.SCHEMA,
         "head_sha": HEAD,
+        "run_attempt": ATTEMPT,
         "status": "absent",
         "artifacts": None,
     }
@@ -76,7 +78,9 @@ def test_no_evidence_at_all_is_a_declared_absence_not_a_failure() -> None:
 def test_the_fixed_legacy_name_is_not_matched_by_derivation() -> None:
     """الاسم الثابت القديم `live-pg-evidence` لا يطابق الاسم المشتقّ — وهو العطل عينه."""
     verdict = probe.judge(
-        _inventory(_artifact("live-pg-evidence"), _artifact("live-pg-evidence-abc123")), HEAD
+        _inventory(_artifact("live-pg-evidence"), _artifact("live-pg-evidence-abc123")),
+        HEAD,
+        ATTEMPT,
     )
 
     assert verdict["status"] == "absent"
@@ -86,26 +90,26 @@ def test_duplicate_evidence_artifacts_are_refused_not_disambiguated() -> None:
     """التكرار التباسُ هويّة يُرفَض — لا يُفَضّ باختيار الأحدث."""
     ev, at = _pair()
     with pytest.raises(SystemExit, match="AMBIGUOUS_ARTIFACT:evidence:2"):
-        probe.judge(_inventory(ev, dict(ev), at), HEAD)
+        probe.judge(_inventory(ev, dict(ev), at), HEAD, ATTEMPT)
 
 
 def test_evidence_without_its_attestation_is_a_violation_not_an_absence() -> None:
     """خطوة التوقيع في `ci.yml` حاجزة بمحاولتين — فغياب مصنوعتها هنا تشغيلٌ مكسور."""
     ev, _ = _pair()
     with pytest.raises(SystemExit, match="EVIDENCE_WITHOUT_ATTESTATION"):
-        probe.judge(_inventory(ev), HEAD)
+        probe.judge(_inventory(ev), HEAD, ATTEMPT)
 
 
 def test_an_attestation_without_its_evidence_is_a_violation() -> None:
     _, at = _pair()
     with pytest.raises(SystemExit, match="ATTESTATION_WITHOUT_EVIDENCE"):
-        probe.judge(_inventory(at), HEAD)
+        probe.judge(_inventory(at), HEAD, ATTEMPT)
 
 
 def test_an_expired_artifact_is_named_expired_not_read_as_present_or_absent() -> None:
     ev, at = _pair()
     with pytest.raises(SystemExit, match="EXPIRED_ARTIFACT:evidence"):
-        probe.judge(_inventory(_artifact(ev["name"], expired=True), at), HEAD)
+        probe.judge(_inventory(_artifact(ev["name"], expired=True), at), HEAD, ATTEMPT)
 
 
 def test_a_matching_name_from_a_foreign_head_is_refused() -> None:
@@ -113,20 +117,20 @@ def test_a_matching_name_from_a_foreign_head_is_refused() -> None:
     ev, at = _pair()
     foreign = _artifact(ev["name"], workflow_run={"head_sha": "0" * 40})
     with pytest.raises(SystemExit, match="FOREIGN_SUBJECT_ARTIFACT:evidence"):
-        probe.judge(_inventory(foreign, at), HEAD)
+        probe.judge(_inventory(foreign, at), HEAD, ATTEMPT)
 
 
 def test_an_artifact_without_a_recordable_identity_is_refused() -> None:
     """بلا artifact_id/digest لا يستطيع مدقّقٌ لاحق تسمية البايتات المحكوم عليها."""
     ev, at = _pair()
     with pytest.raises(SystemExit, match="هويّةٌ لا تُسمّى"):
-        probe.judge(_inventory(_artifact(ev["name"], digest=None), at), HEAD)
+        probe.judge(_inventory(_artifact(ev["name"], digest=None), at), HEAD, ATTEMPT)
 
 
 def test_a_short_or_malformed_head_sha_is_refused_before_any_matching() -> None:
     """اسمٌ مشتقٌّ من التباسٍ يلتقط التباساً — فيُرفَض المدخل قبل المطابقة."""
     with pytest.raises(SystemExit, match="SHA"):
-        probe.judge(_inventory(*_pair()), "a7215385")
+        probe.judge(_inventory(*_pair()), "a7215385", ATTEMPT)
 
 
 def test_a_malformed_inventory_is_refused_not_read_as_empty(tmp_path) -> None:
@@ -143,9 +147,127 @@ def test_the_cli_writes_the_verdict_document(tmp_path) -> None:
     out = tmp_path / "artifact_contract.json"
 
     assert (
-        probe.main(["--artifacts-file", str(inventory), "--head-sha", HEAD, "--output", str(out)])
+        probe.main(
+            [
+                "--artifacts-file",
+                str(inventory),
+                "--head-sha",
+                HEAD,
+                "--run-attempt",
+                str(ATTEMPT),
+                "--output",
+                str(out),
+            ]
+        )
         == 0
     )
     doc = json.loads(out.read_text(encoding="utf-8"))
     assert doc["status"] == "present"
     assert doc["schema"] == "sahool.certify-artifact-contract/v1"
+
+
+def test_artifact_from_previous_attempt_is_not_reused() -> None:
+    """نفس SHA لا يكفي: محاولةٌ أقدم لا تشهد لمحاولةٍ أحدث."""
+    old_attempt = ATTEMPT - 1
+    inventory = _inventory(
+        _artifact(f"live-pg-evidence-{HEAD}-attempt-{old_attempt}"),
+        _artifact(f"live-pg-evidence-attestation-{HEAD}-attempt-{old_attempt}", id=40374290),
+    )
+    verdict = probe.judge(inventory, HEAD, ATTEMPT)
+    assert verdict["status"] == "absent"
+    assert verdict["run_attempt"] == ATTEMPT
+
+
+def test_matching_attempt_is_selected_when_prior_attempt_artifacts_coexist() -> None:
+    """تعايش مصنوعات المحاولات السابقة لا يصنع ambiguity للمحاولة الحالية."""
+    old = ATTEMPT - 1
+    current_ev, current_at = _pair()
+    verdict = probe.judge(
+        _inventory(
+            _artifact(f"live-pg-evidence-{HEAD}-attempt-{old}", id=40374287),
+            _artifact(f"live-pg-evidence-attestation-{HEAD}-attempt-{old}", id=40374288),
+            current_ev,
+            current_at,
+        ),
+        HEAD,
+        ATTEMPT,
+    )
+    assert verdict["status"] == "present"
+    assert verdict["run_attempt"] == ATTEMPT
+    assert verdict["artifacts"]["evidence"]["artifact_id"] == 40374289
+
+
+def test_invalid_run_attempt_is_rejected() -> None:
+    with pytest.raises(SystemExit, match="run_attempt"):
+        probe.judge(_inventory(*_pair()), HEAD, 0)
+
+
+@pytest.mark.parametrize("attempt", [True, False, 0, -1, 1.5, "2", None])
+def test_run_attempt_requires_a_positive_non_boolean_integer(attempt) -> None:
+    with pytest.raises(SystemExit, match="run_attempt"):
+        probe.judge(_inventory(*_pair()), HEAD, attempt)
+
+
+@pytest.mark.parametrize("ev_attempt,at_attempt", [(2, 1), (1, 2), (2, 3), (3, 2)])
+def test_evidence_and_attestation_from_different_attempts_are_not_paired(
+    ev_attempt, at_attempt
+) -> None:
+    inventory = _inventory(
+        _artifact(f"live-pg-evidence-{HEAD}-attempt-{ev_attempt}"),
+        _artifact(f"live-pg-evidence-attestation-{HEAD}-attempt-{at_attempt}", id=40374290),
+    )
+    reason = (
+        "EVIDENCE_WITHOUT_ATTESTATION" if ev_attempt == ATTEMPT else "ATTESTATION_WITHOUT_EVIDENCE"
+    )
+    with pytest.raises(SystemExit, match=reason):
+        probe.judge(inventory, HEAD, ATTEMPT)
+
+
+def test_a_future_attempt_pair_is_not_reused() -> None:
+    future = ATTEMPT + 1
+    verdict = probe.judge(
+        _inventory(
+            _artifact(f"live-pg-evidence-{HEAD}-attempt-{future}"),
+            _artifact(f"live-pg-evidence-attestation-{HEAD}-attempt-{future}", id=40374290),
+        ),
+        HEAD,
+        ATTEMPT,
+    )
+    assert verdict["status"] == "absent"
+    assert verdict["artifacts"] is None
+    assert verdict["run_attempt"] == ATTEMPT
+
+
+def test_duplicate_attestations_for_the_current_attempt_are_rejected() -> None:
+    evidence, attestation = _pair()
+    with pytest.raises(SystemExit, match="AMBIGUOUS_ARTIFACT:attestation:2"):
+        probe.judge(_inventory(evidence, attestation, dict(attestation)), HEAD, ATTEMPT)
+
+
+def test_producer_and_consumer_both_use_the_run_attempt() -> None:
+    import yaml
+
+    ci = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
+    names = {
+        step.get("with", {}).get("name")
+        for job in ci["jobs"].values()
+        for step in job.get("steps", [])
+        if str(step.get("uses", "")).startswith("actions/upload-artifact@")
+    }
+    for prefix in ("live-pg-evidence", "live-pg-evidence-attestation", "live-pg-verified-evidence"):
+        assert prefix + "-${{ github.sha }}-attempt-${{ github.run_attempt }}" in names
+    certify = yaml.safe_load(
+        (ROOT / ".github/workflows/certify-run.yml").read_text(encoding="utf-8")
+    )
+    steps = [step for job in certify["jobs"].values() for step in job.get("steps", [])]
+    contract = next(step for step in steps if step.get("id") == "artifact_contract")
+    assert contract["env"]["RUN_ATTEMPT"] == "${{ github.event.workflow_run.run_attempt }}"
+    assert '--run-attempt "${RUN_ATTEMPT}"' in contract["run"]
+
+
+def test_present_verdict_honesty_limit_names_both_identity_dimensions() -> None:
+    verdict = probe.judge(_inventory(*_pair()), HEAD, ATTEMPT)
+    assert verdict["run_attempt"] == ATTEMPT
+    explanation = verdict["$honesty_limit_ar"]
+    assert "head_sha" in explanation
+    assert "run_attempt" in explanation
