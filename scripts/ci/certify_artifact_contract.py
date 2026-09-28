@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""عقدُ مصنوعة الاعتماد: اسمٌ مشتقٌّ من ``head_sha``، وexactly-one، وهويّةٌ تُسجَّل.
+"""عقدُ مصنوعة الاعتماد: اسمٌ مشتقٌّ من ``head_sha`` + ``run_attempt``، وexactly-one.
 
 **العطل الذي وُجِد لأجله مقيسٌ لا مُفترَض:** ``ci.yml`` ترفع الدليل باسم
 ``live-pg-evidence-<sha>`` بينما كانت وظيفةُ الاعتماد تُنزِّل الاسم الثابت
 ``live-pg-evidence`` — فيفشل التنزيل **في كلّ تشغيل**، ويُقرأ الفشلُ «لا دليل في
 هذا التشغيل»، فلا يُنتَج سجلُّ اعتمادٍ قطّ. غيابٌ بنيويٌّ ارتدى ثوبَ غيابٍ مشروع.
 
-فالاسم هنا **يُشتقّ ولا يُبحَث**: يُبنى من ``head_sha`` المشهود له حرفاً حرفاً، بلا
+فالاسم هنا **يُشتقّ ولا يُبحَث**: يُبنى من ``head_sha`` و``run_attempt`` المشهود لهما، بلا
 wildcard ولا أحدث-ما-وُجِد — لأنّ البحث يلتقط أقربَ شبيهٍ، والاشتقاق يلتقط
 المقصودَ أو لا شيء. ويُفرَض **exactly-one**: صفرٌ للدليل غيابٌ مشروعٌ يُعلَن باسمه؛
 والتكرارُ التباسُ هويّةٍ يُرفَض لا يُفَضّ بالاختيار. وتُسجَّل هويّةُ كلّ مصنوعة
@@ -98,7 +98,13 @@ def judge(inventory: dict, head_sha: str, run_attempt: object) -> dict:
     if problems:
         raise SystemExit("✗ عقد المصنوعة مرفوض:\n  - " + "\n  - ".join(sorted(set(problems))))
     if not matches["evidence"]:
-        return {"schema": SCHEMA, "head_sha": head_sha, "run_attempt": int(attempt), "status": "absent", "artifacts": None}
+        return {
+            "schema": SCHEMA,
+            "head_sha": head_sha,
+            "run_attempt": int(attempt),
+            "status": "absent",
+            "artifacts": None,
+        }
     recorded = {}
     for role, found in matches.items():
         artifact = found[0]
@@ -129,7 +135,9 @@ def judge(inventory: dict, head_sha: str, run_attempt: object) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description="عقد مصنوعة الاعتماد المشتقّ من head_sha + run_attempt")
+    ap = argparse.ArgumentParser(
+        description="عقد مصنوعة الاعتماد المشتقّ من head_sha + run_attempt"
+    )
     ap.add_argument("--artifacts-file", type=Path, required=True)
     ap.add_argument("--head-sha", required=True)
     ap.add_argument("--run-attempt", required=True)
