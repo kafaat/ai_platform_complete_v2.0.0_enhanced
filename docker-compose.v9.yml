@@ -39,7 +39,8 @@ services:
       timeout: 5s
       retries: 3
   sahool-nginx:
-    image: nginx:1.27-alpine
+    # upstream `resolve` requires nginx >= 1.27.3; pin the patch level so cached older 1.27 images cannot break nginx -t.
+    image: nginx:1.27.5-alpine
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
