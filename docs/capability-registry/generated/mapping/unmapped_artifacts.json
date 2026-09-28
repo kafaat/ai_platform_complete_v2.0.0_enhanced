@@ -7624,6 +7624,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_guardrails_crypto_dependency.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_harvest_traceability_v65.py",
     "kind": "tests"
   },
