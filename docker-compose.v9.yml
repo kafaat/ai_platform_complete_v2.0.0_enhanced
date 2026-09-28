@@ -1808,6 +1808,7 @@ services:
       EMBEDDING_MODEL: nomic-embed-text
       LLM_MODEL: llama3.2:3b
       JWT_SECRET: ${JWT_SECRET}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
     depends_on:
       sahool-qdrant:
         condition: service_started  # qdrant is distroless — no healthcheck; gate on start
