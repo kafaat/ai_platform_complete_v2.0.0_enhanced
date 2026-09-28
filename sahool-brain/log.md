@@ -8612,3 +8612,8 @@ Source: `services/decision-service/migrations/034_tenant_boundary_policy_composi
 Railway staging PostgreSQL 15.8, deployment `17c68adb-4d22-428b-b086-1160e935e7af`: a rolled-back preflight applied 033 under a temporary NOSUPERUSER/NOBYPASSRLS owner role. Both tables retained legacy `tenant_isolation` policies whose WITH CHECK accepts `app.tenant_id`. Under `sahool_app`, own writes passed and cross/missing-both-context writes were denied, but legacy-only writes succeeded after 033. A second rolled-back preflight with restrictive canonical guards denied legacy-only writes on both tables while preserving own writes. All temporary ownership/role/policy changes were rolled back. This is a SET ROLE behavioral witness on PG15, not a fresh-login PG16 CI proof or a committed migration.
 
 Decision: preserve 033 checksum and add 034 restrictive guards, keeping the existing permissive policies. CI extends the dedicated PG16 suite with both table/nonowner/forced-owner cases. Neither 033 nor 034 is certified applied to staging; SoR and publishers remain off. No application credentials changed.
+
+
+### متابعة إصلاح #1089 — 2026-09-28
+
+مزامنة الشريحة مع main@c6d4ac3b بعد #1090 مع إعادة توليد المصنوعات. السبب وحد القبول موثقان في `gaps/registry.md` تحت `CERTIFY-ARTIFACT-IDENTITY-OMITS-RUN-ATTEMPT-01`؛ لا اعتماد حي ولا تفعيل تشغيلي بهذه الشريحة. نتائج القياس تحفظ في مصنوعات مختبر الإصلاح.

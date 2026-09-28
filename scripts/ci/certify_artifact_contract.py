@@ -58,7 +58,7 @@ def judge(inventory: dict, head_sha: str, run_attempt: int) -> dict:
     بينهما (تكرار، دليلٌ بلا إثبات منشأ، إثباتٌ بلا دليل، منتهي الصلاحية) يُرفَض."""
     if not SHA40.fullmatch(head_sha):
         raise SystemExit("✗ head_sha ليس SHA كاملاً — اسمٌ مشتقٌّ من التباسٍ يلتقط التباساً.")
-    if not isinstance(run_attempt, int) or run_attempt < 1:
+    if isinstance(run_attempt, bool) or not isinstance(run_attempt, int) or run_attempt < 1:
         raise SystemExit("✗ run_attempt يجب أن يكون عدداً صحيحاً موجباً — محاولةٌ مبهمة لا تُعتمَد.")
     matches: dict[str, list[dict]] = {role: [] for role in ROLES}
     for artifact in inventory["artifacts"]:

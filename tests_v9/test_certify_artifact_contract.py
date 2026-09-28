@@ -200,3 +200,66 @@ def test_matching_attempt_is_selected_when_prior_attempt_artifacts_coexist() -> 
 def test_invalid_run_attempt_is_rejected() -> None:
     with pytest.raises(SystemExit, match="run_attempt"):
         probe.judge(_inventory(*_pair()), HEAD, 0)
+
+
+@pytest.mark.parametrize("attempt", [True, False, 0, -1, 1.5, "2", None])
+def test_run_attempt_requires_a_positive_non_boolean_integer(attempt) -> None:
+    with pytest.raises(SystemExit, match="run_attempt"):
+        probe.judge(_inventory(*_pair()), HEAD, attempt)
+
+
+@pytest.mark.parametrize("ev_attempt,at_attempt", [(2, 1), (1, 2), (2, 3), (3, 2)])
+def test_evidence_and_attestation_from_different_attempts_are_not_paired(
+    ev_attempt, at_attempt
+) -> None:
+    inventory = _inventory(
+        _artifact(f"live-pg-evidence-{HEAD}-attempt-{ev_attempt}"),
+        _artifact(f"live-pg-evidence-attestation-{HEAD}-attempt-{at_attempt}", id=40374290),
+    )
+    reason = (
+        "EVIDENCE_WITHOUT_ATTESTATION" if ev_attempt == ATTEMPT else "ATTESTATION_WITHOUT_EVIDENCE"
+    )
+    with pytest.raises(SystemExit, match=reason):
+        probe.judge(inventory, HEAD, ATTEMPT)
+
+
+def test_a_future_attempt_pair_is_not_reused() -> None:
+    future = ATTEMPT + 1
+    verdict = probe.judge(
+        _inventory(
+            _artifact(f"live-pg-evidence-{HEAD}-attempt-{future}"),
+            _artifact(f"live-pg-evidence-attestation-{HEAD}-attempt-{future}", id=40374290),
+        ),
+        HEAD,
+        ATTEMPT,
+    )
+    assert verdict["status"] == "absent"
+    assert verdict["artifacts"] is None
+    assert verdict["run_attempt"] == ATTEMPT
+
+
+def test_duplicate_attestations_for_the_current_attempt_are_rejected() -> None:
+    evidence, attestation = _pair()
+    with pytest.raises(SystemExit, match="AMBIGUOUS_ARTIFACT:attestation:2"):
+        probe.judge(_inventory(evidence, attestation, dict(attestation)), HEAD, ATTEMPT)
+
+
+def test_producer_and_consumer_both_use_the_run_attempt() -> None:
+    import yaml
+
+    ci = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
+    names = {
+        step.get("with", {}).get("name")
+        for job in ci["jobs"].values()
+        for step in job.get("steps", [])
+        if str(step.get("uses", "")).startswith("actions/upload-artifact@")
+    }
+    for prefix in ("live-pg-evidence", "live-pg-evidence-attestation", "live-pg-verified-evidence"):
+        assert prefix + "-${{ github.sha }}-attempt-${{ github.run_attempt }}" in names
+    certify = yaml.safe_load(
+        (ROOT / ".github/workflows/certify-run.yml").read_text(encoding="utf-8")
+    )
+    steps = [step for job in certify["jobs"].values() for step in job.get("steps", [])]
+    contract = next(step for step in steps if step.get("id") == "artifact_contract")
+    assert contract["env"]["RUN_ATTEMPT"] == "${{ github.event.workflow_run.run_attempt }}"
+    assert '--run-attempt "${RUN_ATTEMPT}"' in contract["run"]

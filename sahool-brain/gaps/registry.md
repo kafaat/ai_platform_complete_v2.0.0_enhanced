@@ -6416,6 +6416,17 @@ C01..C14؛ لا تُرفع قدرة إلى runtime_verified أو production_cert
 - شرط الإغلاق: source/image identities plus authenticated v25 evidence, approved model and corpus provisioning, actual GPU inference and isolated event delivery. `runtime_verified=0`; `production_certified=false`.
 - **قياسٌ جزئيٌّ محلّيّ (2026-09-20)، والحالةُ تبقى `open` بحكم بند الإغلاق نفسِه:** من شروط الإغلاق الأربعة، **«isolated event delivery» قِيس** على stack معزول بمكوّناتٍ حقيقيّة (رنبوك §٨ حرفيّاً): [`docs/evidence/outbox_nats_isolated_acceptance.json`](../../docs/evidence/outbox_nats_isolated_acceptance.json) — المسارُ من `emit` إلى ACK مرّ، وإعادةُ التسليم لم تُكرّر الأثر، وكشف القياسُ `OUTBOX-RELAY-MARKS-SENT-WITHOUT-JETSTREAM-ACK-01`. **والباقي محجوبٌ بقياسٍ لا بتقدير**: `nvidia-smi` غيرُ موجود · لا `/dev/nvidia*` · لا `torch` · خادمُ docker متوقّف — فلا استدلالَ SAM2 ولا Ollama ولا الحاويات. مُدرَجٌ في قائمة BLOCKED بمدخله المفقود في [`docs/evidence/operational_evidence_log.md`](../../docs/evidence/operational_evidence_log.md). `runtime_verified` يبقى صفراً على مستوى العتاد؛ `production_certified=false`.
 
+- **تتمّة حوكميّة (2026-09-28) — `source-fixed / runtime-unverified`، والحالةُ تبقى `open`:** كشفت مراجعة #1090 ثلاثة عيوبٍ في إصلاحات السلك نفسها، وكلُّها أُصلح ساكناً مع شاهد انحدار، **من دون** ترقية `runtime_verified` أو `production_certified`:
+  1. **Nginx dynamic-upstream compatibility:** استعمال `resolve` في upstream يتطلّب Nginx ≥ 1.27.3؛ التثبيت المتحرّك `nginx:1.27-alpine` كان يمكن أن يعيد صورة cache أقدم فتفشل `nginx -t`. أُصلح في `b707d6bf` بتثبيت `nginx:1.27.5-alpine`، ويغطيه شاهد الانحدار في `46d55309`.
+  2. **Guardrails gateway path regression:** caller القائم يرسل `/api/guardrails/v1/validate`؛ إضافة `/v1/` في `proxy_pass` كانت ستوصل `/v1/v1/validate`. أُصلح في `52f2e4ec` بإبقاء `proxy_pass http://guardrails_backend/;` ومنع حقن `X-Agent-Token` على السطح العام، ويغطيه `46d55309`.
+  3. **Supervisor→RAG auth wiring:** بعد توصيل supervisor بـlocal-ai-rag في الحزمة الموحّدة، كانت خدمة RAG بلا `JWT_SECRET` فتفشل مصادقة `/v1/query` ويعود supervisor إلى fallback. أُصلح في `d7a78bf6`، ويثبت `46d55309` وجود السر داخل كتلة خدمة RAG نفسها.
+- **حدُّ هذه التتمّة:** لا ID canonical مستقلاً لهذه العيوب في السجلّ؛ تُسجَّل هنا كأسباب فرعيّة تحت قبول v25 المحلي حتى يثبت نشرٌ حيٌّ السلوك. نجاح static/config regression لا يساوي runtime acceptance؛ لذلك لا تُرفع هذه المدخلة من `open`.
+
+
+- **تتمّة مؤرخة (2026-09-28) — Supervisor↔RAG JWT verifier-mode parity: `source-fixed / runtime-unverified`:** هذا تنقيح سببي للبند الفرعي السابق الخاص بالمصادقة، لا Gap ID canonical جديد ولا إغلاق للـumbrella. وجود `JWT_SECRET` وحده لا يمرر نمط RS256: تختار خدمة `local-ai-rag` المفتاح العام عند وجود `JWT_PUBLIC_KEY`، وإلا تتحقق بخوارزمية HS256؛ لذلك قد يصل bearer صحيح صادر بنمط RS256 عبر supervisor إلى `/v1/query` ثم يرفض بـ401 عندما يغيب المفتاح العام عن أحد الطرفين.
+  - **إصلاح المصدر المثبت:** `f0c7e4dd` يمرر `JWT_PUBLIC_KEY` إلى local-ai-rag في `docker-compose.v9.yml`؛ `5b61d1bb` و`5aec1866` يوحدان إعداد verifier بين supervisor وlocal-ai-rag في `docker-compose.fixed.yml` و`docker-compose.unified.yml`. كلا المتغيرين `JWT_SECRET` و`JWT_PUBLIC_KEY` موجود الآن في كتلتي الخدمتين في الحزم الثلاث. مصدر اختيار الخوارزمية: `services/local-ai-rag/main.py`، إعدادات `_RAG_PUBLIC` و`_RAG_SECRET` و`_RAG_ALG` والدالة `_get_rag_user`.
+  - **حد الشاهد:** `12c6718c` وسّع `tests_v9/test_e2e_findings_regressions.py::test_v25_live_audit_wiring_regressions` ليفحص وجود المفتاحين داخل كتلتي supervisor وRAG. هذا شاهد static/config على تمرير الإعداد، وليس إثبات قبول JWT صادر من auth أو استدلال RAG حي.
+  - **القبول الحي المطلوب قبل الترقية:** توثيق source SHA وهوية صور الخدمتين والمصدر auth؛ إصدار token فعلي من auth بنمط RS256 وتمريره دون تبديل عبر supervisor إلى `/v1/query` وإثبات قبول المصادقة دون fallback يخفي 401؛ ثم إرسال token مضبوط الادعاءات لكنه موقّع بـHS256 تحت إعداد RS256 نفسه وإثبات رفضه بـ401. لا تُسجل الرموز أو المفاتيح الخاصة في الأدلة. لم يُنفّذ هذا القبول ضمن إصلاح المصدر؛ تبقى `V25-AI-RUNTIME-LOCAL-ACCEPTANCE-01` بالحالة `open`، و`runtime_verified=0` و`production_certified=false`.
 
 ## JSONB-PARAMETER-TYPE-UNDETERMINABLE-ON-LIVE-PG-01 — سكربتٌ لم يُشغَّل قطّ على قاعدةٍ حيّة
 
@@ -6669,3 +6680,13 @@ The 2026-09-22 `closed` wording above was broader than its witness for the `even
 - **حدود التحقق:** التحليل lexical/import-based محدود، وليس محلل TypeScript دلاليًا كاملًا. نجاح الشواهد لا يثبت كماله لكل صياغة ممكنة. تظل الاستيرادات غير المثبتة والمسارات غير المدعومة خارج الإسناد المثبت. لا تُسقط شواهد CI لرأس سابق على رأس التسجيل الجديد.
 - **بوابة الدمج:** الإلحاق مع الحفاظ على كامل التاريخ؛ قياس السجل والتكرار والحالة؛ إعادة حساب Capability Impact والمصنوعات المتأثرة وبناء الإصدار أخيرًا؛ نجاح فحوص الرأس النهائي والمراجعة المعتادة. هذه المدخلة لا تمنح إذن دمج أو تشغيل.
 - **خارج النطاق:** Railway وقاعدة البيانات وDB graph وترحيلات Decision وSoR وNATS؛ لم تُغيّرها هذه المتابعة.
+
+
+## CERTIFY-ARTIFACT-IDENTITY-OMITS-RUN-ATTEMPT-01
+
+- **الحالة:** fixed — source-fixed / post-run-runtime-unverified (2026-09-28). إصلاح اختيار المصنوعات لا يساوي اعتماد تشغيل إنتاجي.
+- **المصدر:** #1089؛ `scripts/ci/certify_artifact_contract.py`؛ `.github/workflows/ci.yml`؛ `.github/workflows/certify-run.yml`؛ `tests_v9/test_certify_artifact_contract.py`.
+- **السبب:** اختيار أدلة Live-PG بواسطة head_sha وحده كان يسمح بإعادة استخدام أدلة محاولة سابقة بعد failed-only rerun لم يُعد تشغيل منتج الأدلة. يرفض مدقق المنشأ الصحيح عدم تطابق run_attempt؛ لا يُخفف شرط run_identity_clean ولا release binding.
+- **إصلاح المصدر:** أسماء الأدلة والتوقيع والأرشيف الموثق تتضمن SHA ورقم المحاولة؛ المستهلك يشتق الزوج من head_sha وrun_attempt ويختار exactly-one لكل دور. لا تُخلط أدوار من محاولات مختلفة، ولا تُقبل قيمة boolean كرقم محاولة موجب.
+- **الشواهد:** الاختبارات في الملف المذكور تقيس المحاولة الحالية والسابقة واللاحقة، الزوج المختلط، التكرار، انتهاء الصلاحية، الهوية الأجنبية والمدخلات غير الصالحة، وربط المنتج بالمستهلك. زرع قبول boolean وإعادة استخدام محاولة سابقة يجب أن يُسقط الشاهد ثم يُستعاد المصدر بلا تغيير في بايتاته.
+- **حد القبول:** وجود أدلة لمحاولة أقدم فقط ينتج absent للمحاولة المطلوبة، لا شهادة نجاح ولا إسقاطاً لفحص المنشأ. يلزم تشغيل post-run جديد بدليل موقّع مطابق لمحاولته قبل ادعاء اعتماد حي. runtime_verified وproduction_certified لا يُرقّيان بهذه الشريحة؛ إعدادات الخدمات والبيانات وRailway وNATS لا تتغير.
