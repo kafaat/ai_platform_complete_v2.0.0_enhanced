@@ -35,7 +35,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3b0d2c81a9dcbf7f1b084db327ef3d8f2e30a71aeca9d040d94ab327f1da176b"
+          "content": "5be30b6ada060ffd361b0682fc96e2cac3ca9d4be7ff3376eacd0f4bd5953568"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -125,7 +125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0da0217996662940ef6ac763122ce8dad4a203fd7953a4e8cfbb6d06db45b779"
+          "content": "559c8f16abd90bda633c091d3aa367f5852ab1f027f082757152ac5919746873"
         }
       ],
       "name": "docker-compose.unified.yml",
@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0b17c92a001de91ad0037c44a0fec84e69c7f7a9c1cd2ac2c59df2a7d7eae522"
+          "content": "86dda9a31bcf81f8bacfc461792edd9927567bead5007028922d9b4d1a0f0a18"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4415,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "985a5d0485d2efefcbc811d2639b4302786fe1b3141c126c10887a5baddad09e"
+          "content": "5f4dfb355cf91d27668791f0aadcf5baaa016cbb5e0e23052f5a1682ffb8db14"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
