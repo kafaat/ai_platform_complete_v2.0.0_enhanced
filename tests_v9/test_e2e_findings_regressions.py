@@ -148,26 +148,40 @@ def _service_block(source: str, service_name: str) -> str:
 
 
 def test_v25_live_audit_wiring_regressions():
+    variants = {
+        "docker-compose.v9.yml": ("sahool-supervisor-agent", "sahool-local-ai-rag"),
+        "docker-compose.fixed.yml": ("sahool-supervisor-agent", "sahool-local-ai-rag"),
+        "docker-compose.unified.yml": ("supervisor-agent", "local-ai-rag"),
+    }
+
     # Finding #6: raster tiler must recover after Docker daemon/container restarts
     # in every maintained compose variant.
-    for compose in (
-        "docker-compose.v9.yml",
-        "docker-compose.fixed.yml",
-        "docker-compose.unified.yml",
-    ):
+    for compose in variants:
         source = _source(compose)
         assert "restart: unless-stopped" in _service_block(source, "raster-tiler-service")
 
-    # Finding #5: supervisor general advice is actually wired to local-ai-rag.
-    assert "LOCAL_AI_RAG_URL: ${LOCAL_AI_RAG_URL:-http://sahool-local-ai-rag:8000}" in _source(
-        "docker-compose.v9.yml"
-    )
-    assert "LOCAL_AI_RAG_URL: ${LOCAL_AI_RAG_URL:-http://sahool-local-ai-rag:8000}" in _source(
-        "docker-compose.fixed.yml"
-    )
-    assert 'LOCAL_AI_RAG_URL: "http://sahool-unified-local-ai-rag:8000"' in _source(
-        "docker-compose.unified.yml"
-    )
+    # Finding #5: scope the RAG wiring assertion to the supervisor service itself,
+    # so an unrelated variable elsewhere cannot make this test pass.
+    for compose, (supervisor_name, rag_name) in variants.items():
+        source = _source(compose)
+        supervisor = _service_block(source, supervisor_name)
+        if compose == "docker-compose.unified.yml":
+            assert 'LOCAL_AI_RAG_URL: "http://sahool-unified-local-ai-rag:8000"' in supervisor
+        else:
+            assert (
+                "LOCAL_AI_RAG_URL: ${LOCAL_AI_RAG_URL:-http://sahool-local-ai-rag:8000}"
+                in supervisor
+            )
+
+        # local-ai-rag authenticates /v1/query with JWT_SECRET/JWT_PUBLIC_KEY.
+        # The maintained compose variants must not wire the supervisor to an
+        # endpoint that is guaranteed to fail closed with a missing JWT key.
+        rag = _service_block(source, rag_name)
+        assert "JWT_SECRET:" in rag
+
+    v9_compose = _source("docker-compose.v9.yml")
+    nginx_service = _service_block(v9_compose, "sahool-nginx")
+    assert "image: nginx:1.27.5-alpine" in nginx_service
 
     nginx = _source("nginx/nginx.v9.conf")
 
@@ -184,6 +198,11 @@ def test_v25_live_audit_wiring_regressions():
     agriai = nginx.split("location /api/agriai/", 1)[1].split("location /api/", 1)[0]
     assert 'proxy_set_header X-Agent-Token "${SAHOOL_AGENT_TOKEN}";' in agriai
 
+    # Guardrails keeps the existing caller contract: the browser sends /v1 in
+    # the suffix and nginx only strips /api/guardrails/. The service token stays
+    # private, so direct browser validation still fails closed by design.
     guardrails = nginx.split("location /api/guardrails/", 1)[1].split("location /api/rag/", 1)[0]
-    assert "proxy_pass http://guardrails_backend/v1/;" in guardrails
+    assert "proxy_pass http://guardrails_backend/;" in guardrails
+    assert "proxy_pass http://guardrails_backend/v1/;" not in guardrails
     assert "proxy_set_header X-Agent-Token" not in guardrails
+    assert "/api/guardrails/v1/validate" in _source("frontend/src/hooks/useApi.ts")
