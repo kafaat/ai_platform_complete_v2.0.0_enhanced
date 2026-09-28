@@ -1,0 +1,216 @@
+name: PR1090 Scoped Repair
+
+on:
+  push:
+    branches: [codex/pr1090-rs256-registry-repair-20260928]
+    paths: [.github/workflows/pr1090-scoped-repair.yml]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pr1090-scoped-repair-20260928
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      SOURCE_SHA: 7361ea1752250b04db60266454f7e4598f30368e
+      TARGET_BRANCH: fix/v25-live-audit-wiring-20260928
+      RESULT_BRANCH: codex/pr1090-rs256-registry-validated-20260928
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: 7361ea1752250b04db60266454f7e4598f30368e
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Install the repository test dependencies
+        run: pip install -r tests_v9/requirements-test.txt
+      - name: Reproduce exactly the two reported assertion failures
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          set +e
+          python -m pytest -q -m unit tests_v9/test_tilejson_nginx_runtime_fix_20260626.py tests_v9/test_v9_feature_transfer_20260702.py --junitxml="$RUNNER_TEMP/pr1090-before.xml"
+          rc=$?
+          set -e
+          test "$rc" -eq 1
+          python - <<'PY'
+          import os
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          tree = ET.parse(Path(os.environ['RUNNER_TEMP']) / 'pr1090-before.xml')
+          cases = list(tree.iter('testcase'))
+          assert not [c for c in cases if c.find('error') is not None], 'test harness error'
+          failed = {c.attrib['name'] for c in cases if c.find('failure') is not None}
+          assert failed == {
+              'test_nginx_raster_proxy_points_at_correct_service',
+              'test_v9_nginx_routes_promoted_services_and_tts_no_longer_returns_503',
+          }, failed
+          print('Confirmed exactly the two legacy upstream assertions.')
+          PY
+      - name: Append RS256 governance detail and correct upstream assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import subprocess
+
+          registry = Path('sahool-brain/gaps/registry.md')
+          before = registry.read_bytes()
+          text = before.decode('utf-8')
+          marker = '## V25-AI-RUNTIME-LOCAL-ACCEPTANCE-01\n'
+          assert text.count(marker) == 1
+          start = text.index(marker)
+          end = text.index('\n## ', start + len(marker))
+          section = text[start:end]
+          assert '- **الحالة:** open' in section
+          assert 'Supervisor↔RAG JWT verifier-mode parity' not in section
+          addition = '''
+          - **تتمّة مؤرخة (2026-09-28) — Supervisor↔RAG JWT verifier-mode parity: `source-fixed / runtime-unverified`:** هذا تنقيح سببي للبند الفرعي السابق الخاص بالمصادقة، لا Gap ID canonical جديد ولا إغلاق للـumbrella. وجود `JWT_SECRET` وحده لا يمرر نمط RS256: تختار خدمة `local-ai-rag` المفتاح العام عند وجود `JWT_PUBLIC_KEY`، وإلا تتحقق بخوارزمية HS256؛ لذلك قد يصل bearer صحيح صادر بنمط RS256 عبر supervisor إلى `/v1/query` ثم يرفض بـ401 عندما يغيب المفتاح العام عن أحد الطرفين.
+            - **إصلاح المصدر المثبت:** `f0c7e4dd` يمرر `JWT_PUBLIC_KEY` إلى local-ai-rag في `docker-compose.v9.yml`؛ `5b61d1bb` و`5aec1866` يوحدان إعداد verifier بين supervisor وlocal-ai-rag في `docker-compose.fixed.yml` و`docker-compose.unified.yml`. كلا المتغيرين `JWT_SECRET` و`JWT_PUBLIC_KEY` موجود الآن في كتلتي الخدمتين في الحزم الثلاث. مصدر اختيار الخوارزمية: `services/local-ai-rag/main.py`، إعدادات `_RAG_PUBLIC` و`_RAG_SECRET` و`_RAG_ALG` والدالة `_get_rag_user`.
+            - **حد الشاهد:** `12c6718c` وسّع `tests_v9/test_e2e_findings_regressions.py::test_v25_live_audit_wiring_regressions` ليفحص وجود المفتاحين داخل كتلتي supervisor وRAG. هذا شاهد static/config على تمرير الإعداد، وليس إثبات قبول JWT صادر من auth أو استدلال RAG حي.
+            - **القبول الحي المطلوب قبل الترقية:** توثيق source SHA وهوية صور الخدمتين والمصدر auth؛ إصدار token فعلي من auth بنمط RS256 وتمريره دون تبديل عبر supervisor إلى `/v1/query` وإثبات قبول المصادقة دون fallback يخفي 401؛ ثم إرسال token مضبوط الادعاءات لكنه موقّع بـHS256 تحت إعداد RS256 نفسه وإثبات رفضه بـ401. لا تُسجل الرموز أو المفاتيح الخاصة في الأدلة. لم يُنفّذ هذا القبول ضمن إصلاح المصدر؛ تبقى `V25-AI-RUNTIME-LOCAL-ACCEPTANCE-01` بالحالة `open`، و`runtime_verified=0` و`production_certified=false`.
+          '''
+          updated = text[:end] + addition + text[end:]
+          assert updated.replace(addition, '', 1).encode('utf-8') == before
+          registry.write_bytes(updated.encode('utf-8'))
+          print(f'Registry append-only delta: {len(updated.encode("utf-8")) - len(before)} UTF-8 bytes')
+
+          path = Path('tests_v9/test_tilejson_nginx_runtime_fix_20260626.py')
+          old = path.read_text(encoding='utf-8')
+          assert old.count('from pathlib import Path\n') == 1
+          new = old.replace('from pathlib import Path\n', 'import re\nfrom pathlib import Path\n', 1)
+          needle = '    assert "server sahool-raster-service:8001;" in NGINX\n'
+          replacement = '''    text = "\\n".join(line.split("#", 1)[0] for line in NGINX.splitlines())
+              match = re.search(r"\\bupstream\\s+raster_backend\\s*\\{([^}]*)\\}", text)
+              assert match is not None, "raster_backend upstream missing"
+              body = match.group(1)
+              assert re.search(r"\\bserver\\s+sahool-raster-service:8001\\s+resolve\\s*;", body)
+              assert re.search(r"\\bzone\\s+raster_backend\\s+64k\\s*;", body)
+          '''
+          assert new.count(needle) == 1
+          path.write_text(new.replace(needle, replacement, 1), encoding='utf-8')
+
+          path = Path('tests_v9/test_v9_feature_transfer_20260702.py')
+          old = path.read_text(encoding='utf-8')
+          needle = '''    text = _nginx()
+              for expected in [
+                  "upstream tts_backend         { server sahool-tts-service:8000;",
+                  "upstream video_backend       { server sahool-video-processor:8000;",
+                  "upstream agriai_backend      { server sahool-agriai-engine:8000;",
+          '''
+          replacement = '''    text = "\\n".join(line.split("#", 1)[0] for line in _nginx().splitlines())
+              for upstream, server in [
+                  ("tts_backend", "sahool-tts-service:8000"),
+                  ("video_backend", "sahool-video-processor:8000"),
+                  ("agriai_backend", "sahool-agriai-engine:8000"),
+              ]:
+                  match = re.search(rf"\\bupstream\\s+{re.escape(upstream)}\\s*\\{{([^}}]*)\\}}", text)
+                  assert match is not None, upstream
+                  body = match.group(1)
+                  assert re.search(rf"\\bserver\\s+{re.escape(server)}\\s+resolve\\s*;", body), upstream
+                  assert re.search(rf"\\bzone\\s+{re.escape(upstream)}\\s+64k\\s*;", body), upstream
+              for expected in [
+          '''
+          assert old.count(needle) == 1
+          path.write_text(old.replace(needle, replacement, 1), encoding='utf-8')
+          subprocess.run(['git', 'diff', '--check'], check=True)
+          PY
+          ruff format tests_v9/test_tilejson_nginx_runtime_fix_20260626.py tests_v9/test_v9_feature_transfer_20260702.py
+          ruff check tests_v9/test_tilejson_nginx_runtime_fix_20260626.py tests_v9/test_v9_feature_transfer_20260702.py
+      - name: Run focused regressions and gateway evidence tests
+        run: |
+          python -m pytest -q -m unit tests_v9/test_tilejson_nginx_runtime_fix_20260626.py tests_v9/test_v9_feature_transfer_20260702.py tests_v9/test_e2e_findings_regressions.py --junitxml="$RUNNER_TEMP/pr1090-after.xml"
+          python -m pytest -q tests/architecture/test_gateway_reachability_guard.py tests/architecture/test_gap_registry_measure.py
+          python scripts/ci/v9_feature_transfer_gate.py
+      - name: Prove destination, resolver, and zone regressions still fail
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import os
+          import subprocess
+          import sys
+          import xml.etree.ElementTree as ET
+          path = Path('nginx/nginx.v9.conf')
+          original = path.read_bytes()
+          raster = 'tests_v9/test_tilejson_nginx_runtime_fix_20260626.py::test_nginx_raster_proxy_points_at_correct_service'
+          promoted = 'tests_v9/test_v9_feature_transfer_20260702.py::test_v9_nginx_routes_promoted_services_and_tts_no_longer_returns_503'
+          mutations = [
+              ('raster-port', 'server sahool-raster-service:8001 resolve;', 'server sahool-raster-service:8002 resolve;', raster),
+              ('tts-resolve', 'server sahool-tts-service:8000 resolve;', 'server sahool-tts-service:8000;', promoted),
+              ('video-zone', 'zone video_backend 64k;', '', promoted),
+              ('agriai-port', 'server sahool-agriai-engine:8000 resolve;', 'server sahool-agriai-engine:8002 resolve;', promoted),
+          ]
+          try:
+              for name, old, new, test in mutations:
+                  text = original.decode('utf-8')
+                  assert text.count(old) == 1, (name, text.count(old))
+                  path.write_text(text.replace(old, new, 1), encoding='utf-8')
+                  report = Path(os.environ['RUNNER_TEMP']) / f'pr1090-mutation-{name}.xml'
+                  result = subprocess.run([sys.executable, '-m', 'pytest', '-q', test, '--tb=short', f'--junitxml={report}'], capture_output=True, text=True, encoding='utf-8')
+                  cases = list(ET.parse(report).iter('testcase'))
+                  assert result.returncode == 1 and len(cases) == 1, (name, result.stdout)
+                  assert cases[0].find('failure') is not None and cases[0].find('error') is None, name
+                  print(f'MUTATION_KILLED {name}')
+          finally:
+              path.write_bytes(original)
+          assert path.read_bytes() == original
+          PY
+      - name: Build release last and create a narrowly scoped candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add sahool-brain/gaps/registry.md tests_v9/test_tilejson_nginx_runtime_fix_20260626.py tests_v9/test_v9_feature_transfer_20260702.py
+          python scripts/release/build_release_bundle.py --root .
+          python scripts/release/validate_release_package.py --root .
+          git add release/FILE_CHECKSUMS.sha256 release/SAHOOL_RELEASE_MANIFEST_20260626.json release/SBOM_MINIMAL.json
+          python - <<'PY'
+          import os
+          import subprocess
+          allowed = {'sahool-brain/gaps/registry.md', 'tests_v9/test_tilejson_nginx_runtime_fix_20260626.py', 'tests_v9/test_v9_feature_transfer_20260702.py', 'release/FILE_CHECKSUMS.sha256', 'release/SAHOOL_RELEASE_MANIFEST_20260626.json', 'release/SBOM_MINIMAL.json'}
+          changed = set(subprocess.check_output(['git', 'diff', '--name-only', os.environ['SOURCE_SHA']], text=True, encoding='utf-8').splitlines())
+          assert changed <= allowed, changed - allowed
+          assert {'sahool-brain/gaps/registry.md', 'tests_v9/test_tilejson_nginx_runtime_fix_20260626.py', 'tests_v9/test_v9_feature_transfer_20260702.py'} <= changed
+          print('Candidate paths:', *sorted(changed), sep='\n')
+          PY
+          git diff --cached --check
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'fix(ci): align dynamic-upstream witnesses and record RAG verifier parity'
+          test "$(git rev-parse HEAD^)" = "$SOURCE_SHA"
+      - name: Verify the candidate without changing generated outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/ci/preflight.sh --fast
+          python scripts/ci/verify_all_generated.py
+          git diff --exit-code
+          git diff --cached --exit-code
+      - name: Publish candidate branch only, never main or the PR
+        shell: bash
+        run: |
+          set -euo pipefail
+          current=$(git ls-remote origin "refs/heads/$TARGET_BRANCH" | cut -f1)
+          test "$current" = "$SOURCE_SHA"
+          test "$RESULT_BRANCH" = 'codex/pr1090-rs256-registry-validated-20260928'
+          git push origin "HEAD:refs/heads/$RESULT_BRANCH"
+          candidate=$(git rev-parse HEAD)
+          printf 'CANDIDATE_SHA=%s\nSOURCE_SHA=%s\n' "$candidate" "$SOURCE_SHA" | tee "$RUNNER_TEMP/pr1090-candidate.txt"
+          printf 'Candidate `%s` based on `%s`. Main and PR refs were not modified.\n' "$candidate" "$SOURCE_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload measured test evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: pr1090-scoped-repair-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/pr1090-*.xml
+            ${{ runner.temp }}/pr1090-candidate.txt
+          if-no-files-found: warn
+          retention-days: 7
