@@ -1,0 +1,51 @@
+name: BCD8 Follow-up Release Refresh
+
+on:
+  push:
+    branches:
+      - codex/bcd8-inventory-cert-20260928
+    paths:
+      - '.github/workflows/bcd8-release-refresh.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    env:
+      SOURCE_SHA: a0aab5694aacb10c925e0fc760f4ffabe10f1117
+      OUT: /tmp/bcd8-release-refresh
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: a0aab5694aacb10c925e0fc760f4ffabe10f1117
+          persist-credentials: false
+      - name: Prove source
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          test -z "$(git status --porcelain)"
+          mkdir -p "$OUT"
+      - name: Build release last
+        run: |
+          set -euo pipefail
+          python scripts/release/build_release_bundle.py
+          git diff --name-only > "$OUT/changed-paths.txt"
+          git diff --stat > "$OUT/stat.txt"
+          git diff --binary > "$OUT/release.patch"
+          mkdir -p "$OUT/changed-files/release"
+          for p in release/FILE_CHECKSUMS.sha256 release/SAHOOL_RELEASE_MANIFEST_20260626.json release/SBOM_MINIMAL.json; do
+            if ! git diff --quiet -- "$p"; then cp "$p" "$OUT/changed-files/$p"; fi
+          done
+      - name: Validate release
+        run: |
+          set -euo pipefail
+          python scripts/release/validate_release_package.py
+          sha256sum release/FILE_CHECKSUMS.sha256 release/SAHOOL_RELEASE_MANIFEST_20260626.json release/SBOM_MINIMAL.json > "$OUT/release-sha256.txt"
+      - name: Upload evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: bcd8-followup-release-refresh
+          path: /tmp/bcd8-release-refresh
+          retention-days: 30
