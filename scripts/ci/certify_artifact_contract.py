@@ -136,9 +136,7 @@ def judge(inventory: dict, head_sha: str, run_attempt: object) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(
-        description="عقد مصنوعة الاعتماد المشتقّ من head_sha + run_attempt"
-    )
+    ap = argparse.ArgumentParser(description="عقد مصنوعة الاعتماد المشتقّ من head_sha + run_attempt")
     ap.add_argument("--artifacts-file", type=Path, required=True)
     ap.add_argument("--head-sha", required=True)
     ap.add_argument("--run-attempt", required=True)
