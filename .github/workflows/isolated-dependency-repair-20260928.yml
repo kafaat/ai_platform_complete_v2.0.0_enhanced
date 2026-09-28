@@ -1,0 +1,195 @@
+name: Isolated dependency PR repair 20260928
+on:
+  push:
+    branches: [codex/dependency-repair-runner-52deac58]
+permissions:
+  contents: write
+concurrency:
+  group: isolated-dependency-repair-20260928
+  cancel-in-progress: false
+jobs:
+  repair:
+    name: Repair PR ${{ matrix.pr }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - pr: '1082'
+            head: 809af8a9f7c0592663562c09d2401597e5a719f2
+            branch: dependabot/github_actions/main/docker/build-push-action-7.4.0
+            upstream: docker/build-push-action
+            version: v7.4.0
+            pin: c3c9e263c25d99ce0380d002d59b67737d91b0dc
+          - pr: '1083'
+            head: 08d6ea7eddcf981c7bad13ea385e9e9e0f79ded2
+            branch: dependabot/github_actions/main/codecov/codecov-action-7.1.1
+            upstream: codecov/codecov-action
+            version: v7.1.1
+            pin: 303a32d7a59b442fa8d48b6a1cc6825c09c847a5
+          - pr: '1084'
+            head: a2f41b50abdb3fc556ac648419829cf45d6b8d38
+            branch: dependabot/github_actions/main/docker/setup-buildx-action-4.4.1
+            upstream: docker/setup-buildx-action
+            version: v4.4.1
+            pin: f87e5991a6d7451dcb8d9637bfbc97413f497069
+    env:
+      BASE_SHA: 52deac58088406be76b04a5216c2bddffb12cdcf
+      OLD_HEAD: ${{ matrix.head }}
+      TARGET_BRANCH: ${{ matrix.branch }}
+      PR_NUMBER: ${{ matrix.pr }}
+      UPSTREAM_REPO: ${{ matrix.upstream }}
+      UPSTREAM_TAG: ${{ matrix.version }}
+      ACTION_SHA: ${{ matrix.pin }}
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ matrix.head }}
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Verify immutable inputs and merge current main without rewriting history
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/repair-evidence"
+          git fetch --no-tags origin "+refs/heads/main:refs/remotes/origin/main" "+refs/heads/$TARGET_BRANCH:refs/remotes/origin/$TARGET_BRANCH"
+          test "$(git rev-parse HEAD)" = "$OLD_HEAD"
+          test "$(git rev-parse origin/main)" = "$BASE_SHA"
+          test "$(git rev-parse "origin/$TARGET_BRANCH")" = "$OLD_HEAD"
+          git ls-remote "https://github.com/$UPSTREAM_REPO.git" "refs/tags/$UPSTREAM_TAG" "refs/tags/$UPSTREAM_TAG^{}" > "$RUNNER_TEMP/repair-evidence/upstream-tag.txt"
+          python - <<'PY'
+          import os, pathlib
+          lines = pathlib.Path(os.environ['RUNNER_TEMP'], 'repair-evidence', 'upstream-tag.txt').read_text().splitlines()
+          refs = dict(line.split()[::-1] for line in lines)
+          tag = 'refs/tags/' + os.environ['UPSTREAM_TAG']
+          actual = refs.get(tag + '^{}', refs.get(tag))
+          if actual != os.environ['ACTION_SHA']:
+              raise SystemExit(f'Upstream tag mismatch: {actual}')
+          print('Upstream release commit verified:', actual)
+          PY
+          git config user.name 'ChatGPT'
+          git config user.email 'noreply@openai.com'
+          git merge --no-ff --no-commit "$BASE_SHA" 2>&1 | tee "$RUNNER_TEMP/repair-evidence/merge.log"
+          test -z "$(git diff --name-only --diff-filter=U)"
+          git diff --cached --check
+          git commit -m "Merge current main into dependency PR $PR_NUMBER without rewriting history"
+      - name: Install repository-pinned verification dependencies
+        run: python -m pip install --disable-pip-version-check -r tests_v9/requirements-test.txt -c constraints-ci-tools.txt ruff
+      - name: Repair exact build pin with negative regression witnesses
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os, pathlib
+          if os.environ['PR_NUMBER'] != '1082':
+              raise SystemExit(0)
+          path = pathlib.Path('scripts/ci/runtime_image_supply_chain_guard.py')
+          old = 'BUILD_PIN = "docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a"'
+          new = 'BUILD_PIN = "docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc"'
+          text = path.read_text(encoding='utf-8')
+          if text.count(old) != 1:
+              raise SystemExit('Reviewed BUILD_PIN anchor changed; manual review required')
+          path.write_text(text.replace(old, new), encoding='utf-8')
+          test = pathlib.Path('tests_v9/test_runtime_image_supply_chain_guard.py')
+          addition = '''
+
+          @pytest.mark.parametrize(
+              "replacement",
+              [
+                  "docker/build-push-action@v7.4.0",
+                  "docker/build-push-action@" + "0" * 40,
+                  "docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a",
+              ],
+          )
+          def test_unapproved_build_references_remain_rejected(replacement: str) -> None:
+              runtime, matrix, installer = _sources()
+              guard = _module()
+              assert runtime.count(guard.BUILD_PIN) == 1
+              mutated = runtime.replace(guard.BUILD_PIN, replacement, 1)
+              errors = guard.evaluate(mutated, matrix, installer)
+              assert "exactly one pinned Docker build step is required" in errors
+          '''
+          import textwrap
+          test.write_text(test.read_text(encoding='utf-8') + textwrap.dedent(addition), encoding='utf-8')
+          PY
+          if [ "$PR_NUMBER" = 1082 ]; then
+            ruff format tests_v9/test_runtime_image_supply_chain_guard.py
+            ruff check scripts/ci/runtime_image_supply_chain_guard.py tests_v9/test_runtime_image_supply_chain_guard.py
+            git add scripts/ci/runtime_image_supply_chain_guard.py tests_v9/test_runtime_image_supply_chain_guard.py
+            git commit -m 'fix(ci): synchronize verified Docker build action pin and retain strict rejection tests'
+          fi
+          git show -s --format='%H%n%T%n%P' HEAD > "$RUNNER_TEMP/repair-evidence/source-candidate.txt"
+          test ! -f .github/workflows/isolated-dependency-repair-20260928.yml
+          python scripts/ci/runtime_image_supply_chain_guard.py
+          python scripts/ci/github_actions_security_guard.py
+          python -m pytest -q --noconftest --junitxml="$RUNNER_TEMP/repair-evidence/security-tests.xml" tests_v9/test_github_actions_security_guard.py tests_v9/test_runtime_image_supply_chain_guard.py | tee "$RUNNER_TEMP/repair-evidence/security-tests.log"
+      - name: Regenerate canonical artifacts to a measured fixed point
+        shell: bash
+        run: |
+          set -euo pipefail
+          export GITHUB_SHA="$(git rev-parse HEAD)"
+          git add -A
+          bash scripts/ci/regenerate_all_generated.sh 2>&1 | tee "$RUNNER_TEMP/repair-evidence/regeneration.log"
+          git add -A
+          git diff --cached --check
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(generated): reconcile dependency PR $PR_NUMBER with current main"
+          fi
+      - name: Verify committed candidate, unchanged runtime and computed capability impact
+        shell: bash
+        run: |
+          set -euo pipefail
+          export GITHUB_SHA="$(git rev-parse HEAD)"
+          git diff --exit-code "$BASE_SHA" -- services/ agents/ bots/ shared/ migrations/ 'docker-compose*' '.env*' sahool-brain/ docs/architecture/db_ownership.yml docs/architecture/sot_provenance_policy.json docs/architecture/execution_required_jobs_contract.json
+          BASE="$BASE_SHA" bash scripts/ci/preflight.sh --fast --no-fetch | tee "$RUNNER_TEMP/repair-evidence/preflight.log"
+          if grep -q '⊘' "$RUNNER_TEMP/repair-evidence/preflight.log"; then
+            echo 'Preflight skipped a gate; candidate publication blocked' >&2
+            exit 1
+          fi
+          python scripts/ci/verify_all_generated.py --check | tee "$RUNNER_TEMP/repair-evidence/generated-check.log"
+          python scripts/release/validate_release_package.py --root . | tee "$RUNNER_TEMP/repair-evidence/release-check.log"
+          python -m pytest -q --junitxml="$RUNNER_TEMP/repair-evidence/contracts.xml" tests/ci/test_phase16_ci_cd_gates.py tests/deploy/test_phase15_deployment_readiness_contracts.py tests/release/test_phase14_release_packaging_contracts.py tests/observability/test_phase13_observability_assets.py tests/security/test_phase12_final_production_gates.py | tee "$RUNNER_TEMP/repair-evidence/contracts.log"
+          rc=0
+          python scripts/ci/pr_capability_impact_gate.py --base "$BASE_SHA" --head HEAD --output "$RUNNER_TEMP/repair-evidence/impact-discovery.json" > "$RUNNER_TEMP/repair-evidence/impact-discovery.log" || rc=$?
+          test "$rc" -le 1
+          declared="$(python -c 'import json,os,pathlib; p=pathlib.Path(os.environ["RUNNER_TEMP"],"repair-evidence","impact-discovery.json"); d=json.loads(p.read_text()); print(", ".join(d["direct"]) or "NONE")')"
+          python scripts/ci/pr_capability_impact_gate.py --base "$BASE_SHA" --head HEAD --declared "$declared" --output "$RUNNER_TEMP/repair-evidence/impact-verified.json" > "$RUNNER_TEMP/repair-evidence/impact-verified.log"
+          printf 'Capability-Impact: %s\n' "$declared" > "$RUNNER_TEMP/repair-evidence/capability-declaration.txt"
+          python - <<'PY'
+          import os, pathlib, xml.etree.ElementTree as ET
+          root = pathlib.Path(os.environ['RUNNER_TEMP'], 'repair-evidence')
+          for name in ['security-tests.xml', 'contracts.xml']:
+              tree = ET.parse(root / name)
+              if any(list(tree.iter(tag)) for tag in ['skipped', 'failure', 'error']):
+                  raise SystemExit(f'Nonpassing targeted evidence: {name}')
+          PY
+          git diff --exit-code
+          git diff --cached --exit-code
+          test -z "$(git ls-files --others --exclude-standard)"
+          git merge-base --is-ancestor "$BASE_SHA" HEAD
+          git merge-base --is-ancestor "$OLD_HEAD" HEAD
+          git show -s --format='%H%n%T%n%P' HEAD > "$RUNNER_TEMP/repair-evidence/candidate.txt"
+          git diff --stat "$BASE_SHA" HEAD > "$RUNNER_TEMP/repair-evidence/change-stat.txt"
+          git diff --name-only "$BASE_SHA" HEAD > "$RUNNER_TEMP/repair-evidence/changed-paths.txt"
+      - name: Publish isolated candidate only, never main or the original PR branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$BASE_SHA"
+          test "$(git ls-remote origin "refs/heads/$TARGET_BRANCH" | cut -f1)" = "$OLD_HEAD"
+          candidate="codex/deps-$PR_NUMBER-candidate-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          git push origin "HEAD:refs/heads/$candidate"
+          printf 'candidate_branch=%s\ncandidate_sha=%s\nbase_sha=%s\nold_head=%s\n' "$candidate" "$(git rev-parse HEAD)" "$BASE_SHA" "$OLD_HEAD" | tee "$RUNNER_TEMP/repair-evidence/published.txt" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload measured repair evidence including failures
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: dependency-repair-${{ matrix.pr }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/repair-evidence/
+          if-no-files-found: error
+          retention-days: 14
