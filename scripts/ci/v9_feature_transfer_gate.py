@@ -66,9 +66,7 @@ require_text(
     'proxy_set_header X-Agent-Token "${SAHOOL_AGENT_TOKEN}";',
 )
 
-guardrails_block = nginx.split("location /api/guardrails/", 1)[1].split(
-    "location /api/rag/", 1
-)[0]
+guardrails_block = nginx.split("location /api/guardrails/", 1)[1].split("location /api/rag/", 1)[0]
 require_text(
     "guardrails caller-compatible proxy",
     guardrails_block,
