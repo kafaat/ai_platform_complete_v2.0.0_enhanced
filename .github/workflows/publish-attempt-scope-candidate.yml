@@ -1,0 +1,71 @@
+name: Publish Attempt Scope Candidate
+
+on:
+  push:
+    branches:
+      - codex/certify-attempt-scope-driver-20260928
+    paths:
+      - '.github/workflows/publish-attempt-scope-candidate.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    env:
+      SOURCE_SHA: db64328e199005df3462fd50f61cca5d0575b91b
+      EXPECTED_TREE: 1cd6414695452f227beb8f81ac6a1041a16b8a3c
+      TARGET_BRANCH: codex/certify-rerun-attempt-scope-20260928
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: db64328e199005df3462fd50f61cca5d0575b91b
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Install declared test dependencies
+        run: python -m pip install -r tests_v9/requirements-test.txt
+      - name: Refuse a moved source branch
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          remote_head="$(git ls-remote origin "refs/heads/$TARGET_BRANCH" | cut -f1)"
+          test "$remote_head" = "$SOURCE_SHA"
+          test -z "$(git status --porcelain)"
+      - name: Rebuild the certified candidate
+        run: |
+          set -euo pipefail
+          ruff format scripts/ci/certify_artifact_contract.py tests_v9/test_certify_artifact_contract.py
+          python -m pytest -q tests_v9/test_certify_artifact_contract.py tests_v9/test_sot_provenance_guard.py
+          bash scripts/ci/regenerate_all_generated.sh
+          git add -A
+          git diff --cached --check
+          git config user.name "Attempt Scope Publisher"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "fix(certify): bind rerun evidence to run attempt"
+      - name: Require the certified tree
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD^{tree})"
+          echo "actual_tree=$actual"
+          echo "expected_tree=$EXPECTED_TREE"
+          test "$actual" = "$EXPECTED_TREE"
+      - name: Re-run fixed-point gates
+        run: |
+          set -euo pipefail
+          ruff format --check scripts/ci/certify_artifact_contract.py tests_v9/test_certify_artifact_contract.py
+          python scripts/ci/verify_all_generated.py --check
+          python scripts/release/validate_release_package.py --root .
+          python -m pytest -q tests_v9/test_certify_artifact_contract.py tests_v9/test_sot_provenance_guard.py
+          python scripts/ops/pre_push_stability_guard.py
+          test -z "$(git status --porcelain)"
+      - name: Recheck target immediately before push
+        run: |
+          set -euo pipefail
+          remote_head="$(git ls-remote origin "refs/heads/$TARGET_BRANCH" | cut -f1)"
+          test "$remote_head" = "$SOURCE_SHA"
+      - name: Publish fast-forward only
+        run: git push origin "HEAD:refs/heads/$TARGET_BRANCH"
