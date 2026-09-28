@@ -140,7 +140,7 @@ def test_geometry_revert_decodes_jsonb_strings_before_guarding():
 
 def _service_block(source: str, service_name: str) -> str:
     match = re.search(
-        rf"(?ms)^  {re.escape(service_name)}:\\n(?P<body>.*?)(?=^  [^ \\n][^:]*:|\\Z)",
+        rf"(?ms)^  {re.escape(service_name)}:\n(?P<body>.*?)(?=^  [^ \n][^:]*:|\Z)",
         source,
     )
     assert match is not None, service_name
@@ -170,11 +170,11 @@ def test_v25_live_audit_wiring_regressions():
     # Finding #1: every active v9 upstream must be re-resolved after a container
     # is replaced. The resolve parameter requires a shared-memory upstream zone.
     assert "resolver 127.0.0.11 valid=10s ipv6=off;" in nginx
-    upstreams = re.findall(r"(?ms)^\\s*upstream\\s+([^\\s{]+)\\s*\\{([^}]*)\\}", nginx)
+    upstreams = re.findall(r"(?ms)^\s*upstream\s+([^\s{]+)\s*\{([^}]*)\}", nginx)
     assert upstreams
     for name, body in upstreams:
-        assert re.search(r"\\bzone\\s+" + re.escape(name) + r"\\s+64k;", body), name
-        assert re.search(r"\\bserver\\s+[^;]+\\s+resolve;", body), name
+        assert re.search(r"\bzone\s+" + re.escape(name) + r"\s+64k;", body), name
+        assert re.search(r"\bserver\s+[^;]+\s+resolve;", body), name
 
     # Finding #4, narrowed to the current trust model.
     agriai = nginx.split("location /api/agriai/", 1)[1].split("location /api/", 1)[0]
