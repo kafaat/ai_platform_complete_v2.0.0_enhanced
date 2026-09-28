@@ -1,0 +1,86 @@
+name: PR1089 Publish Verified Candidate
+
+on:
+  push:
+    branches:
+      - codex/bcd8-inventory-cert-20260928
+    paths:
+      - '.github/workflows/pr1089-publish.yml'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      SOURCE_SHA: d2fc39b3c2ffd03d74b2dd7e4251d06d3746d561
+      EXPECTED_TREE: a784116d55df52f7738a186ccb7deeba7763497a
+      TARGET_BRANCH: codex/certify-attempt-aware-artifacts-20260928
+      ARTIFACT_ID: "10968840176"
+      REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: d2fc39b3c2ffd03d74b2dd7e4251d06d3746d561
+          persist-credentials: true
+          fetch-depth: 1
+
+      - name: Guard remote PR head before applying
+        run: |
+          set -euo pipefail
+          remote_head="$(git ls-remote origin "refs/heads/$TARGET_BRANCH" | cut -f1)"
+          test "$remote_head" = "$SOURCE_SHA" || {
+            echo "::error::remote PR head changed: expected=$SOURCE_SHA actual=$remote_head"
+            exit 1
+          }
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          test -z "$(git status --porcelain)"
+
+      - name: Download verified repair artifact
+        run: |
+          set -euo pipefail
+          gh api "repos/${REPO}/actions/artifacts/${ARTIFACT_ID}/zip" > /tmp/repair.zip
+          mkdir -p /tmp/repair
+          unzip -q /tmp/repair.zip -d /tmp/repair
+          test -s /tmp/repair/repair.patch
+          test "$(jq -r .final_tree /tmp/repair/receipt.json)" = "$EXPECTED_TREE"
+
+      - name: Apply verified patch
+        run: |
+          set -euo pipefail
+          git apply --check /tmp/repair/repair.patch
+          git apply /tmp/repair/repair.patch
+          git diff --check
+          mapfile -t expected < /tmp/repair/changed-paths.txt
+          mapfile -t actual < <(git diff --name-only | sort)
+          printf '%s\n' "${expected[@]}" | sort > /tmp/expected.paths
+          printf '%s\n' "${actual[@]}" > /tmp/actual.paths
+          diff -u /tmp/expected.paths /tmp/actual.paths
+
+      - name: Commit exact candidate tree
+        run: |
+          set -euo pipefail
+          git config user.name "PR1089 Verified Publisher"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore(release): refresh attempt-aware certification fixed point"
+          actual_tree="$(git rev-parse HEAD^{tree})"
+          test "$actual_tree" = "$EXPECTED_TREE" || {
+            echo "::error::candidate tree mismatch: expected=$EXPECTED_TREE actual=$actual_tree"
+            exit 1
+          }
+
+      - name: Recheck remote head immediately before push
+        run: |
+          set -euo pipefail
+          remote_head="$(git ls-remote origin "refs/heads/$TARGET_BRANCH" | cut -f1)"
+          test "$remote_head" = "$SOURCE_SHA" || {
+            echo "::error::remote PR head changed before push: expected=$SOURCE_SHA actual=$remote_head"
+            exit 1
+          }
+
+      - name: Publish candidate
+        run: git push origin "HEAD:refs/heads/$TARGET_BRANCH"
