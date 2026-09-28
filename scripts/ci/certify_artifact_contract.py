@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""عقدُ مصنوعة الاعتماد: اسمٌ مشتقٌّ من ``head_sha``، وexactly-one، وهويّةٌ تُسجَّل.
+"""عقدُ مصنوعة الاعتماد: اسمٌ مشتقٌّ من ``head_sha`` و``run_attempt``، وexactly-one، وهويّةٌ تُسجَّل.
 
 **العطل الذي وُجِد لأجله مقيسٌ لا مُفترَض:** ``ci.yml`` ترفع الدليل باسم
 ``live-pg-evidence-<sha>`` بينما كانت وظيفةُ الاعتماد تُنزِّل الاسم الثابت
 ``live-pg-evidence`` — فيفشل التنزيل **في كلّ تشغيل**، ويُقرأ الفشلُ «لا دليل في
 هذا التشغيل»، فلا يُنتَج سجلُّ اعتمادٍ قطّ. غيابٌ بنيويٌّ ارتدى ثوبَ غيابٍ مشروع.
 
-فالاسم هنا **يُشتقّ ولا يُبحَث**: يُبنى من ``head_sha`` المشهود له حرفاً حرفاً، بلا
+فالاسم هنا **يُشتقّ ولا يُبحَث**: يُبنى من الزوج ``head_sha`` و``run_attempt`` المشهود له، بلا
 wildcard ولا أحدث-ما-وُجِد — لأنّ البحث يلتقط أقربَ شبيهٍ، والاشتقاق يلتقط
 المقصودَ أو لا شيء. ويُفرَض **exactly-one**: صفرٌ للدليل غيابٌ مشروعٌ يُعلَن باسمه؛
 والتكرارُ التباسُ هويّةٍ يُرفَض لا يُفَضّ بالاختيار. وتُسجَّل هويّةُ كلّ مصنوعة
@@ -36,7 +36,7 @@ for _stream in (sys.stdout, sys.stderr):
 SCHEMA = "sahool.certify-artifact-contract/v1"
 SHA40 = re.compile(r"^[0-9a-f]{40}$")
 
-#: المصنوعتان المطلوبتان لاعتماد لقطة — والاسم دالّةٌ في الـSHA لا نصٌّ ثابت.
+#: المصنوعتان المطلوبتان لاعتماد لقطة — والاسم دالّةٌ في SHA ورقم المحاولة لا نصٌّ ثابت.
 ROLES = {
     "evidence": "live-pg-evidence-{sha}-attempt-{attempt}",
     "attestation": "live-pg-evidence-attestation-{sha}-attempt-{attempt}",
@@ -118,7 +118,7 @@ def judge(inventory: dict, head_sha: str, run_attempt: int) -> dict:
         "status": "present",
         "artifacts": recorded,
         "$honesty_limit_ar": (
-            "يحكم على جرد المصنوعات كما أعلنته الواجهة: الاسم مشتقٌّ من head_sha "
+            "يحكم على جرد المصنوعات كما أعلنته الواجهة: الاسم مشتقٌّ من head_sha وrun_attempt "
             "وexactly-one مفروض والهويّة مُسجَّلة. سلامةُ البايتات المنزَّلة تُثبَت "
             "لاحقاً بالبيان الموقَّع والتحقّق التشفيريّ، لا ببصمة النقل وحدها."
         ),
@@ -126,7 +126,7 @@ def judge(inventory: dict, head_sha: str, run_attempt: int) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description="عقد مصنوعة الاعتماد المشتقّ من head_sha")
+    ap = argparse.ArgumentParser(description="عقد مصنوعة الاعتماد المشتقّ من head_sha وrun_attempt")
     ap.add_argument("--artifacts-file", type=Path, required=True)
     ap.add_argument("--head-sha", required=True)
     ap.add_argument("--run-attempt", type=int, required=True)

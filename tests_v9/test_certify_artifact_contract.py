@@ -263,3 +263,11 @@ def test_producer_and_consumer_both_use_the_run_attempt() -> None:
     contract = next(step for step in steps if step.get("id") == "artifact_contract")
     assert contract["env"]["RUN_ATTEMPT"] == "${{ github.event.workflow_run.run_attempt }}"
     assert '--run-attempt "${RUN_ATTEMPT}"' in contract["run"]
+
+
+def test_present_verdict_honesty_limit_names_both_identity_dimensions() -> None:
+    verdict = probe.judge(_inventory(*_pair()), HEAD, ATTEMPT)
+    assert verdict["run_attempt"] == ATTEMPT
+    explanation = verdict["$honesty_limit_ar"]
+    assert "head_sha" in explanation
+    assert "run_attempt" in explanation
