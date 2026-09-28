@@ -373,6 +373,7 @@ services:
       EMBED_MODEL: "${EMBED_MODEL:-nomic-embed-text}"
       QDRANT_URL: "http://sahool-unified-qdrant:6333"
       COLLECTION_NAME: "sahool_agri_kb"
+      JWT_SECRET: "${JWT_SECRET}"
       NUM_CTX: "${NUM_CTX:-8192}"
     depends_on:
       - qdrant
