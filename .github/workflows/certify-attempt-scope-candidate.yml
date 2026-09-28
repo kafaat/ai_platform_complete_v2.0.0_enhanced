@@ -40,10 +40,11 @@ jobs:
         working-directory: repo
         run: |
           python -m pytest -q             tests_v9/test_certify_artifact_contract.py             tests_v9/test_sot_provenance_guard.py
-      - name: Python formatting
+      - name: Apply deterministic Python formatting to the candidate
         working-directory: repo
         run: |
-          ruff format --check             scripts/ci/certify_artifact_contract.py             tests_v9/test_certify_artifact_contract.py
+          ruff format scripts/ci/certify_artifact_contract.py tests_v9/test_certify_artifact_contract.py
+          ruff format --check scripts/ci/certify_artifact_contract.py tests_v9/test_certify_artifact_contract.py
       - name: Workflow YAML parses
         working-directory: repo
         run: |
