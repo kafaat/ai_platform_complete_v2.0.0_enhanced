@@ -146,7 +146,7 @@ jobs:
           PY
 
       - name: Upload certification evidence
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: bcd8-inventory-certification
           path: /tmp/bcd8-inventory-cert
