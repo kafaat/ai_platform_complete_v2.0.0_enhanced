@@ -89,7 +89,13 @@ def judge(inventory: dict, head_sha: str, run_attempt: int) -> dict:
     if problems:
         raise SystemExit("✗ عقد المصنوعة مرفوض:\n  - " + "\n  - ".join(sorted(set(problems))))
     if not matches["evidence"]:
-        return {"schema": SCHEMA, "head_sha": head_sha, "run_attempt": run_attempt, "status": "absent", "artifacts": None}
+        return {
+            "schema": SCHEMA,
+            "head_sha": head_sha,
+            "run_attempt": run_attempt,
+            "status": "absent",
+            "artifacts": None,
+        }
     recorded = {}
     for role, found in matches.items():
         artifact = found[0]

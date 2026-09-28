@@ -78,7 +78,9 @@ def test_no_evidence_at_all_is_a_declared_absence_not_a_failure() -> None:
 def test_the_fixed_legacy_name_is_not_matched_by_derivation() -> None:
     """الاسم الثابت القديم `live-pg-evidence` لا يطابق الاسم المشتقّ — وهو العطل عينه."""
     verdict = probe.judge(
-        _inventory(_artifact("live-pg-evidence"), _artifact("live-pg-evidence-abc123")), HEAD, ATTEMPT
+        _inventory(_artifact("live-pg-evidence"), _artifact("live-pg-evidence-abc123")),
+        HEAD,
+        ATTEMPT,
     )
 
     assert verdict["status"] == "absent"
@@ -145,7 +147,18 @@ def test_the_cli_writes_the_verdict_document(tmp_path) -> None:
     out = tmp_path / "artifact_contract.json"
 
     assert (
-        probe.main(["--artifacts-file", str(inventory), "--head-sha", HEAD, "--run-attempt", str(ATTEMPT), "--output", str(out)])
+        probe.main(
+            [
+                "--artifacts-file",
+                str(inventory),
+                "--head-sha",
+                HEAD,
+                "--run-attempt",
+                str(ATTEMPT),
+                "--output",
+                str(out),
+            ]
+        )
         == 0
     )
     doc = json.loads(out.read_text(encoding="utf-8"))
