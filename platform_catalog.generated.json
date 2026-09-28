@@ -17125,6 +17125,7 @@
       },
       "consumes": {
         "services": [
+          "local-ai-rag",
           "sahool-market-mcp",
           "sahool-sentinel-hub-mcp",
           "sahool-weather-mcp",
@@ -17819,7 +17820,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "3a5a4d34c267c6829943ab817b4f41008416026a397838b9290ea6926e4639f6",
+  "fingerprint": "97fc03495e934eb1e37a8c9926f60ccd07489f09e638d4c7df6d2c1bcfe79136",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17869,11 +17870,11 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 835,
+      "edge_count": 836,
       "failures": [],
       "passed": true,
       "relation_counts": {
-        "CALLS": 43,
+        "CALLS": 44,
         "CONSUMES": 1,
         "EMITS": 1,
         "READS": 429,

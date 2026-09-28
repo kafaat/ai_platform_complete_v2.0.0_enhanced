@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 import pytest
@@ -55,7 +56,12 @@ def test_auth_verify_subrequest_derives_cookie_bearer():
 
 
 def test_nginx_raster_proxy_points_at_correct_service():
-    assert "server sahool-raster-service:8001;" in NGINX
+    text = "\n".join(line.split("#", 1)[0] for line in NGINX.splitlines())
+    match = re.search(r"\bupstream\s+raster_backend\s*\{([^}]*)\}", text)
+    assert match is not None, "raster_backend upstream missing"
+    body = match.group(1)
+    assert re.search(r"\bserver\s+sahool-raster-service:8001\s+resolve\s*;", body)
+    assert re.search(r"\bzone\s+raster_backend\s+64k\s*;", body)
     assert "http://sahool-raster-service:8001/" in FRONTEND_NGINX
     assert "raster-service:8001" not in NGINX.replace("sahool-raster-service:8001", "")
 

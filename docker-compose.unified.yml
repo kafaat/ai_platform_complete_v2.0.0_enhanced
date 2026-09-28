@@ -48,6 +48,7 @@ services:
 
   raster-tiler-service:
     build: ./services/raster-tiler-service
+    restart: unless-stopped
     environment:
       - PORT=8088
     ports:
@@ -124,8 +125,10 @@ services:
       MCP_WOFOST_URL: "http://sahool-unified-wofost-mcp:8000/mcp/v1"
       MCP_MARKET_URL: "http://sahool-unified-market-mcp:8000/mcp/v1"
       GUARDRAILS_URL: "http://sahool-unified-guardrails:8000"
+      LOCAL_AI_RAG_URL: "http://sahool-unified-local-ai-rag:8000"
       REDIS_URL: "redis://sahool-unified-redis:6379/0"
       JWT_SECRET: "${JWT_SECRET}"
+      JWT_PUBLIC_KEY: "${JWT_PUBLIC_KEY:-}"
     depends_on:
       sentinel-hub-mcp: { condition: service_healthy }
       weather-mcp:       { condition: service_healthy }
@@ -371,6 +374,8 @@ services:
       EMBED_MODEL: "${EMBED_MODEL:-nomic-embed-text}"
       QDRANT_URL: "http://sahool-unified-qdrant:6333"
       COLLECTION_NAME: "sahool_agri_kb"
+      JWT_SECRET: "${JWT_SECRET}"
+      JWT_PUBLIC_KEY: "${JWT_PUBLIC_KEY:-}"
       NUM_CTX: "${NUM_CTX:-8192}"
     depends_on:
       - qdrant

@@ -43,11 +43,18 @@ def test_v9_feature_services_use_v9_dns_and_correct_edge_port():
 
 
 def test_v9_nginx_routes_promoted_services_and_tts_no_longer_returns_503():
-    text = _nginx()
+    text = "\n".join(line.split("#", 1)[0] for line in _nginx().splitlines())
+    for upstream, server in [
+        ("tts_backend", "sahool-tts-service:8000"),
+        ("video_backend", "sahool-video-processor:8000"),
+        ("agriai_backend", "sahool-agriai-engine:8000"),
+    ]:
+        match = re.search(rf"\bupstream\s+{re.escape(upstream)}\s*\{{([^}}]*)\}}", text)
+        assert match is not None, upstream
+        body = match.group(1)
+        assert re.search(rf"\bserver\s+{re.escape(server)}\s+resolve\s*;", body), upstream
+        assert re.search(rf"\bzone\s+{re.escape(upstream)}\s+64k\s*;", body), upstream
     for expected in [
-        "upstream tts_backend         { server sahool-tts-service:8000;",
-        "upstream video_backend       { server sahool-video-processor:8000;",
-        "upstream agriai_backend      { server sahool-agriai-engine:8000;",
         "location /tts/",
         "location /api/video/",
         "location /api/agriai/",
