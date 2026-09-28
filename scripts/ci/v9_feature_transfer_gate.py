@@ -47,6 +47,7 @@ require_text(
 require_text("tts Redis URL", compose, "REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/2")
 
 # Nginx exposure/forwarding.
+require_text("v9 nginx image supports upstream resolve", compose, "image: nginx:1.27.5-alpine")
 require_text("v9 nginx Docker resolver", nginx, "resolver 127.0.0.11 valid=10s ipv6=off;")
 for upstream in [
     "server sahool-tts-service:8000 resolve;",
@@ -58,16 +59,23 @@ for upstream in [
 for loc in ["location /tts/", "location /api/video/", "location /api/agriai/"]:
     require_text("v9 nginx location", nginx, loc)
 
+agriai_block = nginx.split("location /api/agriai/", 1)[1].split("location /api/", 1)[0]
 require_text(
     "agriai service-token injection",
-    nginx,
+    agriai_block,
     'proxy_set_header X-Agent-Token "${SAHOOL_AGENT_TOKEN}";',
 )
+
+guardrails_block = nginx.split("location /api/guardrails/", 1)[1].split(
+    "location /api/rag/", 1
+)[0]
 require_text(
-    "guardrails v1 gateway prefix",
-    nginx,
-    "proxy_pass http://guardrails_backend/v1/;",
+    "guardrails caller-compatible proxy",
+    guardrails_block,
+    "proxy_pass http://guardrails_backend/;",
 )
+if "proxy_set_header X-Agent-Token" in guardrails_block:
+    errors.append("public guardrails location must not inject the service token")
 
 # TTS must no longer be a fake 503 feature.
 tts_block = (
