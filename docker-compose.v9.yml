@@ -21,6 +21,7 @@ services:
         SAHOOL_SOURCE_REF: ${GITHUB_REF:-local}
     security_opt:
     - no-new-privileges:true
+    restart: unless-stopped
     environment:
     - PORT=8088
     networks:
@@ -822,6 +823,7 @@ services:
       MCP_WEATHER_URL: http://sahool-weather-mcp:8000
       MCP_WOFOST_URL: http://sahool-wofost-mcp:8000
       MCP_MARKET_URL: http://sahool-market-mcp:8000
+      LOCAL_AI_RAG_URL: ${LOCAL_AI_RAG_URL:-http://sahool-local-ai-rag:8000}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
