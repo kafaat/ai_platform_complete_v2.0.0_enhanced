@@ -49,12 +49,13 @@ require_text("tts Redis URL", compose, "REDIS_URL: redis://:${REDIS_PASSWORD}@sa
 # Nginx exposure/forwarding.
 require_text("v9 nginx image supports upstream resolve", compose, "image: nginx:1.27.5-alpine")
 require_text("v9 nginx Docker resolver", nginx, "resolver 127.0.0.11 valid=10s ipv6=off;")
-for upstream in [
-    "server sahool-tts-service:8000 resolve;",
-    "server sahool-video-processor:8000 resolve;",
-    "server sahool-agriai-engine:8000 resolve;",
+for upstream_name, server in [
+    ("tts_backend", "sahool-tts-service:8000"),
+    ("video_backend", "sahool-video-processor:8000"),
+    ("agriai_backend", "sahool-agriai-engine:8000"),
 ]:
-    require_text("v9 nginx dynamic upstream", nginx, upstream)
+    require_text("v9 nginx upstream zone", nginx, f"zone {upstream_name} 64k;")
+    require_text("v9 nginx dynamic upstream", nginx, f"server {server} resolve;")
 
 for loc in ["location /tts/", "location /api/video/", "location /api/agriai/"]:
     require_text("v9 nginx location", nginx, loc)
