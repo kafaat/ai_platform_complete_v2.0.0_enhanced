@@ -3,7 +3,7 @@ name: Railway RS256 Pinned Repair Lab
 on:
   push:
     branches: [codex/railway-staging-repair-lab-20260928]
-    paths: [.github/workflows/railway-rs256-repair-lab.yml, .github/repair-lab/railway_rs256_repair.py]
+    paths: [.github/workflows/railway-rs256-repair-lab.yml, .github/repair-lab/railway_crypto_explicit.py]
 
 permissions:
   contents: read
@@ -19,18 +19,21 @@ jobs:
     permissions:
       contents: write
     env:
-      SOURCE_SHA: 52deac58088406be76b04a5216c2bddffb12cdcf
+      SOURCE_SHA: 6f2d4eaaf029a90626dabd58e734dc6e4acbb9a9
+      MAIN_SHA: 52deac58088406be76b04a5216c2bddffb12cdcf
       RESULT_BRANCH: codex/railway-rs256-reviewed-20260928
     steps:
-      - name: Read isolated repair controller
+      - name: Read isolated repair controllers
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
         with:
           ref: ${{ github.sha }}
           path: control
           persist-credentials: false
-      - name: Copy controller outside candidate tree
-        run: cp control/.github/repair-lab/railway_rs256_repair.py "$RUNNER_TEMP/railway_rs256_repair.py"
-      - name: Check out exact certified source
+      - name: Copy controllers outside candidate tree
+        run: |
+          cp control/.github/repair-lab/railway_crypto_explicit.py "$RUNNER_TEMP/railway_crypto_explicit.py"
+          cp control/.github/repair-lab/railway_rs256_repair.py "$RUNNER_TEMP/railway_rs256_probe_source.py"
+      - name: Check out the previously verified candidate
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
         with:
           ref: ${{ env.SOURCE_SHA }}
@@ -43,28 +46,29 @@ jobs:
       - name: Install repository test tools
         working-directory: candidate
         run: python -m pip install --retries 3 --timeout 60 -r tests_v9/requirements-test.txt jsonschema packaging
-      - name: Reproduce missing backend and verify repaired real image
+      - name: Add explicit backend and verify the real image and generated chain
         working-directory: candidate
-        run: python "$RUNNER_TEMP/railway_rs256_repair.py"
-      - name: Publish only the verified candidate to an isolated result branch
+        run: python "$RUNNER_TEMP/railway_crypto_explicit.py"
+      - name: Publish only the verified candidate without force-pushing
         working-directory: candidate
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$SOURCE_SHA"
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$MAIN_SHA"
+          test "$(git ls-remote origin "refs/heads/$RESULT_BRANCH" | cut -f1)" = "$SOURCE_SHA"
           test -z "$(git status --porcelain)"
           candidate_sha="$(git rev-parse HEAD)"
-          test "$(jq -r .candidate_sha "$RUNNER_TEMP/railway-rs256-evidence/summary.json")" = "$candidate_sha"
+          test "$(jq -r .candidate_sha "$RUNNER_TEMP/railway-crypto-explicit-evidence/summary.json")" = "$candidate_sha"
           auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
           echo "::add-mask::$auth"
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin "HEAD:refs/heads/$RESULT_BRANCH"
-          printf '%s\n' "$candidate_sha" > "$RUNNER_TEMP/railway-rs256-evidence/published-sha.txt"
+          printf '%s\n' "$candidate_sha" > "$RUNNER_TEMP/railway-crypto-explicit-evidence/published-sha.txt"
       - name: Retain measured evidence even on failure
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: railway-rs256-repair-evidence-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/railway-rs256-evidence
+          name: railway-crypto-explicit-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/railway-crypto-explicit-evidence
           if-no-files-found: warn
           retention-days: 14
