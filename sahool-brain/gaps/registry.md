@@ -6416,6 +6416,12 @@ C01..C14؛ لا تُرفع قدرة إلى runtime_verified أو production_cert
 - شرط الإغلاق: source/image identities plus authenticated v25 evidence, approved model and corpus provisioning, actual GPU inference and isolated event delivery. `runtime_verified=0`; `production_certified=false`.
 - **قياسٌ جزئيٌّ محلّيّ (2026-09-20)، والحالةُ تبقى `open` بحكم بند الإغلاق نفسِه:** من شروط الإغلاق الأربعة، **«isolated event delivery» قِيس** على stack معزول بمكوّناتٍ حقيقيّة (رنبوك §٨ حرفيّاً): [`docs/evidence/outbox_nats_isolated_acceptance.json`](../../docs/evidence/outbox_nats_isolated_acceptance.json) — المسارُ من `emit` إلى ACK مرّ، وإعادةُ التسليم لم تُكرّر الأثر، وكشف القياسُ `OUTBOX-RELAY-MARKS-SENT-WITHOUT-JETSTREAM-ACK-01`. **والباقي محجوبٌ بقياسٍ لا بتقدير**: `nvidia-smi` غيرُ موجود · لا `/dev/nvidia*` · لا `torch` · خادمُ docker متوقّف — فلا استدلالَ SAM2 ولا Ollama ولا الحاويات. مُدرَجٌ في قائمة BLOCKED بمدخله المفقود في [`docs/evidence/operational_evidence_log.md`](../../docs/evidence/operational_evidence_log.md). `runtime_verified` يبقى صفراً على مستوى العتاد؛ `production_certified=false`.
 
+- **تتمّة حوكميّة (2026-09-28) — `source-fixed / runtime-unverified`، والحالةُ تبقى `open`:** كشفت مراجعة #1090 ثلاثة عيوبٍ في إصلاحات السلك نفسها، وكلُّها أُصلح ساكناً مع شاهد انحدار، **من دون** ترقية `runtime_verified` أو `production_certified`:
+  1. **Nginx dynamic-upstream compatibility:** استعمال `resolve` في upstream يتطلّب Nginx ≥ 1.27.3؛ التثبيت المتحرّك `nginx:1.27-alpine` كان يمكن أن يعيد صورة cache أقدم فتفشل `nginx -t`. أُصلح في `b707d6bf` بتثبيت `nginx:1.27.5-alpine`، ويغطيه شاهد الانحدار في `46d55309`.
+  2. **Guardrails gateway path regression:** caller القائم يرسل `/api/guardrails/v1/validate`؛ إضافة `/v1/` في `proxy_pass` كانت ستوصل `/v1/v1/validate`. أُصلح في `52f2e4ec` بإبقاء `proxy_pass http://guardrails_backend/;` ومنع حقن `X-Agent-Token` على السطح العام، ويغطيه `46d55309`.
+  3. **Supervisor→RAG auth wiring:** بعد توصيل supervisor بـlocal-ai-rag في الحزمة الموحّدة، كانت خدمة RAG بلا `JWT_SECRET` فتفشل مصادقة `/v1/query` ويعود supervisor إلى fallback. أُصلح في `d7a78bf6`، ويثبت `46d55309` وجود السر داخل كتلة خدمة RAG نفسها.
+- **حدُّ هذه التتمّة:** لا ID canonical مستقلاً لهذه العيوب في السجلّ؛ تُسجَّل هنا كأسباب فرعيّة تحت قبول v25 المحلي حتى يثبت نشرٌ حيٌّ السلوك. نجاح static/config regression لا يساوي runtime acceptance؛ لذلك لا تُرفع هذه المدخلة من `open`.
+
 
 ## JSONB-PARAMETER-TYPE-UNDETERMINABLE-ON-LIVE-PG-01 — سكربتٌ لم يُشغَّل قطّ على قاعدةٍ حيّة
 
