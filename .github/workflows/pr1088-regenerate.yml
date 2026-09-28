@@ -57,11 +57,15 @@ jobs:
           python scripts/release/validate_release_package.py
           python scripts/ops/pre_push_stability_guard.py --allow-dirty
 
-      - name: Validate report-only classification on full PR diff
+      - name: Validate report-only classification on full candidate diff
         run: |
           set -euo pipefail
-          git fetch --no-tags origin "$BASE_SHA"
-          git diff --name-only "$BASE_SHA"...HEAD | python scripts/ci/no_report_only_change_guard.py --stdin
+          git fetch --no-tags origin "$BASE_SHA" "$SOURCE_SHA"
+          {
+            git diff --name-only "$BASE_SHA" "$SOURCE_SHA"
+            git diff --name-only
+          } | sed '/^$/d' | sort -u | tee "$EVIDENCE_DIR/candidate-paths.txt" \
+            | python scripts/ci/no_report_only_change_guard.py --stdin
 
       - name: Validate capability mapping test
         run: python -m pytest -q tests/architecture/test_capability_mapping_engine.py
