@@ -1,0 +1,73 @@
+name: PR1089 Pinned Repair Lab
+
+on:
+  push:
+    branches: [codex/pr1089-repair-lab-20260928]
+    paths: [.github/workflows/pr1089-repair-lab.yml, .github/repair-lab/pr1089_repair.py]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr1089-pinned-repair-lab
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env:
+      SOURCE_SHA: 617a3e5687769d85ee8998d4d753ce0d0acc234f
+      MAIN_SHA: c6d4ac3bb02a0df5069ce774bfad8f35606f9c62
+      RESULT_BRANCH: codex/pr1089-validated-sync-20260928
+    steps:
+      - name: Read isolated repair controller
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: ${{ github.sha }}
+          path: control
+          persist-credentials: false
+      - name: Copy controller outside the candidate tree
+        run: cp control/.github/repair-lab/pr1089_repair.py "$RUNNER_TEMP/pr1089_repair.py"
+      - name: Check out the exact PR head with complete ancestry
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          fetch-depth: 0
+          path: candidate
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Install the repository-pinned test environment
+        working-directory: candidate
+        run: python -m pip install --retries 3 --timeout 60 -r tests_v9/requirements-test.txt jsonschema
+      - name: Merge, reproduce, repair, regenerate, and verify
+        working-directory: candidate
+        run: python "$RUNNER_TEMP/pr1089_repair.py"
+      - name: Publish only the verified candidate to an isolated result ref
+        working-directory: candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(git ls-remote origin refs/heads/codex/certify-attempt-aware-artifacts-20260928 | cut -f1)" = "$SOURCE_SHA"
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$MAIN_SHA"
+          test -z "$(git status --porcelain)"
+          test -f "$RUNNER_TEMP/pr1089-evidence/summary.json"
+          candidate_sha="$(git rev-parse HEAD)"
+          test "$(jq -r .candidate_sha "$RUNNER_TEMP/pr1089-evidence/summary.json")" = "$candidate_sha"
+          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          echo "::add-mask::$auth"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin "HEAD:refs/heads/$RESULT_BRANCH"
+          printf '%s\n' "$candidate_sha" > "$RUNNER_TEMP/pr1089-evidence/published-sha.txt"
+      - name: Retain all measured results even on failure
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: pr1089-repair-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/pr1089-evidence
+          if-no-files-found: warn
+          retention-days: 14
