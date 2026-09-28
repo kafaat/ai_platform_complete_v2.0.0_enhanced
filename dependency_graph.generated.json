@@ -5102,7 +5102,7 @@
       "to_kind": "runtime_upstream"
     },
     {
-      "evidence": "nginx/nginx.v9.conf:249",
+      "evidence": "nginx/nginx.v9.conf:248",
       "from": "gateway:nginx",
       "from_kind": "gateway",
       "protocol": "http",
