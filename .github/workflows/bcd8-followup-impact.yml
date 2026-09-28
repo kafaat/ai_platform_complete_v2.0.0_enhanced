@@ -1,0 +1,31 @@
+name: BCD8 Follow-up Capability Impact
+
+on:
+  push:
+    branches:
+      - codex/bcd8-inventory-cert-20260928
+    paths:
+      - '.github/workflows/bcd8-followup-impact.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  impact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: bcd8ad8ad64fff83941c8f386a7a993bb489972f
+          persist-credentials: false
+      - name: Compute exact impact
+        run: |
+          python scripts/ci/capability_impact.py --json \
+            docs/architecture/db_writer_ownership_baseline.json \
+            docs/architecture/db_writer_ownership_triage.json \
+            docs/architecture/fake_connection_debt.json \
+            docs/architecture/generated_write_targets.json \
+            docs/architecture/source_text_assertion_inventory.json \
+            docs/architecture/tenant_guc_scope_baseline.json \
+            release/FILE_CHECKSUMS.sha256 \
+            release/SAHOOL_RELEASE_MANIFEST_20260626.json
