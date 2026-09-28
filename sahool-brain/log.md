@@ -8622,3 +8622,7 @@ Decision: preserve 033 checksum and add 034 restrictive guards, keeping the exis
 ### متابعة مراجعة #1089 — 2026-09-28 — PR1089-REVIEW-FOLLOWUP-20260928
 
 الرأس المراجع `f995dd66a560951b866b7f59132e48b286b6939e`. أُلحق قرار السبب وحد القبول في `decisions/ledger.md`؛ يُوثق `run_attempt` في حكم المصنوعات ويقاس شاهد حذف ذكره. يعاد توليد القياسات بعد تثبيت المصدر ثم تبنى حزمة الإصدار أخيراً. تبقى `CERTIFY-ARTIFACT-IDENTITY-OMITS-RUN-ATTEMPT-01` source-fixed / post-run-runtime-unverified، بلا ادعاء قبول حي.
+
+
+### 2026-09-28 — Railway Guardrails RSA dependency repair
+Source-base `52deac58088406be76b04a5216c2bddffb12cdcf`; see decision `RAILWAY-GUARDRAILS-RS256-DEPENDENCY-20260928` and V25-AI-RUNTIME-LOCAL-ACCEPTANCE-01. Declare the service-image crypto dependency; keep Railway acceptance unverified.
