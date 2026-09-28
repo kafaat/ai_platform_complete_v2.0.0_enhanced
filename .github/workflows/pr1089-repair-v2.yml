@@ -1,4 +1,4 @@
-name: PR1089 Attempt-Aware Certification Repair V2
+name: PR1089 Attempt-Aware Certification Repair V3
 
 on:
   push:
@@ -29,6 +29,14 @@ jobs:
       - name: Install declared test dependencies
         working-directory: repo
         run: python -m pip install -r tests_v9/requirements-test.txt
+      - name: Install pinned formatter
+        working-directory: repo
+        run: python -m pip install -c constraints-ci-tools.txt ruff
+      - name: Apply canonical Ruff formatting
+        working-directory: repo
+        run: |
+          ruff format scripts/ci/certify_artifact_contract.py tests_v9/test_certify_artifact_contract.py
+          ruff format --check scripts/ci/certify_artifact_contract.py tests_v9/test_certify_artifact_contract.py
       - name: Prove source identity
         working-directory: repo
         run: |
@@ -119,6 +127,6 @@ jobs:
           PY
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: pr1089-repair-v2
+          name: pr1089-repair-v3
           path: /tmp/pr1089-repair
           retention-days: 30
