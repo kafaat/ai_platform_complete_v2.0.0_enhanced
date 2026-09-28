@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SOURCE_SHA: bcd8ad8ad64fff83941c8f386a7a993bb489972f
-      EVIDENCE_DIR: ${{ runner.temp }}/bcd8-inventory-cert
+      EVIDENCE_DIR: /tmp/bcd8-inventory-cert
     steps:
       - name: Checkout exact main merge tree
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
@@ -149,5 +149,5 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0
         with:
           name: bcd8-inventory-certification
-          path: ${{ runner.temp }}/bcd8-inventory-cert
+          path: /tmp/bcd8-inventory-cert
           retention-days: 30
