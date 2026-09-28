@@ -50,9 +50,9 @@
   {
     "service": "decision-service",
     "domain": "Decision SoR",
-    "python_files": 76,
-    "python_loc": 17283,
-    "tests": 55,
+    "python_files": 77,
+    "python_loc": 17425,
+    "tests": 56,
     "routes": 70,
     "main": "services/decision-service/main.py",
     "dockerfile": "services/decision-service/Dockerfile",

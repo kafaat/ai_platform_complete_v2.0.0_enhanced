@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import importlib
+import re
 import sys
 from pathlib import Path
 
@@ -135,3 +136,76 @@ def test_geometry_revert_decodes_jsonb_strings_before_guarding():
         "guard_field_geometry(raw_geometry)"
     )
     assert "stored_geometry_invalid" in rendered
+
+
+def _service_block(source: str, service_name: str) -> str:
+    match = re.search(
+        rf"(?ms)^  {re.escape(service_name)}:\n(?P<body>.*?)(?=^  [^ \n][^:]*:|\Z)",
+        source,
+    )
+    assert match is not None, service_name
+    return match.group("body")
+
+
+def test_v25_live_audit_wiring_regressions():
+    variants = {
+        "docker-compose.v9.yml": ("sahool-supervisor-agent", "sahool-local-ai-rag"),
+        "docker-compose.fixed.yml": ("sahool-supervisor-agent", "sahool-local-ai-rag"),
+        "docker-compose.unified.yml": ("supervisor-agent", "local-ai-rag"),
+    }
+
+    # Finding #6: raster tiler must recover after Docker daemon/container restarts
+    # in every maintained compose variant.
+    for compose in variants:
+        source = _source(compose)
+        assert "restart: unless-stopped" in _service_block(source, "raster-tiler-service")
+
+    # Finding #5: scope the RAG wiring assertion to the supervisor service itself,
+    # so an unrelated variable elsewhere cannot make this test pass.
+    for compose, (supervisor_name, rag_name) in variants.items():
+        source = _source(compose)
+        supervisor = _service_block(source, supervisor_name)
+        if compose == "docker-compose.unified.yml":
+            assert 'LOCAL_AI_RAG_URL: "http://sahool-unified-local-ai-rag:8000"' in supervisor
+        else:
+            assert (
+                "LOCAL_AI_RAG_URL: ${LOCAL_AI_RAG_URL:-http://sahool-local-ai-rag:8000}"
+                in supervisor
+            )
+
+        # supervisor and local-ai-rag must agree on the verifier mode. In RS256
+        # deployments a missing JWT_PUBLIC_KEY silently falls back to HS256 and
+        # causes /v1/query bearer validation to fail with 401.
+        assert "JWT_SECRET:" in supervisor
+        assert "JWT_PUBLIC_KEY:" in supervisor
+        rag = _service_block(source, rag_name)
+        assert "JWT_SECRET:" in rag
+        assert "JWT_PUBLIC_KEY:" in rag
+
+    v9_compose = _source("docker-compose.v9.yml")
+    nginx_service = _service_block(v9_compose, "sahool-nginx")
+    assert "image: nginx:1.27.5-alpine" in nginx_service
+
+    nginx = _source("nginx/nginx.v9.conf")
+
+    # Finding #1: every active v9 upstream must be re-resolved after a container
+    # is replaced. The resolve parameter requires a shared-memory upstream zone.
+    assert "resolver 127.0.0.11 valid=10s ipv6=off;" in nginx
+    upstreams = re.findall(r"(?ms)^\s*upstream\s+([^\s{]+)\s*\{([^}]*)\}", nginx)
+    assert upstreams
+    for name, body in upstreams:
+        assert re.search(r"\bzone\s+" + re.escape(name) + r"\s+64k;", body), name
+        assert re.search(r"\bserver\s+[^;]+\s+resolve;", body), name
+
+    # Finding #4, narrowed to the current trust model.
+    agriai = nginx.split("location /api/agriai/", 1)[1].split("location /api/", 1)[0]
+    assert 'proxy_set_header X-Agent-Token "${SAHOOL_AGENT_TOKEN}";' in agriai
+
+    # Guardrails keeps the existing caller contract: the browser sends /v1 in
+    # the suffix and nginx only strips /api/guardrails/. The service token stays
+    # private, so direct browser validation still fails closed by design.
+    guardrails = nginx.split("location /api/guardrails/", 1)[1].split("location /api/rag/", 1)[0]
+    assert "proxy_pass http://guardrails_backend/;" in guardrails
+    assert "proxy_pass http://guardrails_backend/v1/;" not in guardrails
+    assert "proxy_set_header X-Agent-Token" not in guardrails
+    assert "/api/guardrails/v1/validate" in _source("frontend/src/hooks/useApi.ts")

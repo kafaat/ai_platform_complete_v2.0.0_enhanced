@@ -3275,3 +3275,21 @@ Railway المرفوضُ من المراجعة الآليّة.
 ## 2026-09-27 — نوع SQL صريح لقيمة المحصول الاختيارية
 
 **المرجع:** PR #1085؛ `f2f07e3e16334ea2f60297b615a3571a4f24aab3` ووظيفة `108609443118`. **القرار والسبب:** إصلاح AmbiguousParameterError في SQL التطبيق بتحديد `$15::numeric` عند الإدراج وفحص NULL، مطابقاً لنوع العمود في 032؛ لا تعديل مخطط ولا استبدال الشاهد الحقيقي بمحاكاة. يثبت اختبار baseline الفرعين وتكرار الطلب دون حدث زائد. المصدر: `services/decision-service/persistence.py:persist_recommendation_outcome` و`services/decision-service/tests/test_migration_033_pg16.py`. نجاح 22 حالة لا يبرر الدمج مع الحالة الفاشلة؛ نعيد CI بعد الفحوص المحلية.
+
+
+## 2026-09-27 — Decision policy composition after 033
+
+Source: `services/decision-service/migrations/034_tenant_boundary_policy_composition.sql` and `services/decision-service/tests/test_migration_033_pg16.py::test_034_closes_legacy_policy_union`; base `7059d0dc9b689cf48804c5981f84ba3c4faeceaf` (#1085).
+
+Railway staging PostgreSQL 15.8, deployment `17c68adb-4d22-428b-b086-1160e935e7af`: a rolled-back preflight applied 033 under a temporary NOSUPERUSER/NOBYPASSRLS owner role. Both tables retained legacy `tenant_isolation` policies whose WITH CHECK accepts `app.tenant_id`. Under `sahool_app`, own writes passed and cross/missing-both-context writes were denied, but legacy-only writes succeeded after 033. A second rolled-back preflight with restrictive canonical guards denied legacy-only writes on both tables while preserving own writes. All temporary ownership/role/policy changes were rolled back. This is a SET ROLE behavioral witness on PG15, not a fresh-login PG16 CI proof or a committed migration.
+
+Decision: preserve 033 checksum and add 034 restrictive guards, keeping the existing permissive policies. CI extends the dedicated PG16 suite with both table/nonowner/forced-owner cases. Neither 033 nor 034 is certified applied to staging; SoR and publishers remain off. No application credentials changed.
+
+
+## 2026-09-28 — PR1089-REVIEW-FOLLOWUP-20260928
+
+- **القرار:** تثبيت هوية مصنوعتي الاعتماد بالزوج `(head_sha, run_attempt)` وعدم إعادة استخدام زوج من محاولة أقدم. توثيق الرقم في `$honesty_limit_ar` ونص المساعدة، مع شاهد انحدار على الحكم الصادر.
+- **السبب:** إعادة تشغيل الوظائف الفاشلة وحدها لا تعيد بالضرورة منتج أدلة Live-PG؛ مطابقة SHA فقط تخلط هوية التنفيذ. رقم المحاولة جزء من الهوية لا معلومة عرض.
+- **المصدر:** #1089؛ الرأس المراجع `f995dd66a560951b866b7f59132e48b286b6939e`؛ `scripts/ci/certify_artifact_contract.py`؛ `tests_v9/test_certify_artifact_contract.py`؛ `gaps/registry.md` تحت `CERTIFY-ARTIFACT-IDENTITY-OMITS-RUN-ATTEMPT-01`. ملاحظات المراجعة: 4125271896، 4125271963، 4125272012.
+- **إسناد القياس:** تُحفظ تعديلات المصدر والقرار في إيداع مستقل أولاً، ثم تُشغّل المولدات الرسمية على ذلك الإيداع النظيف وتُحفظ المصنوعات والبصمات في إيداع لاحق. `measured_on` يحدد إيداع المصدر المقيس، لا إيداع المخرجات الذي لم يوجد بعد القياس. تبقى سلطة الصلاحية بصمات أساس القياس وإعادة الاشتقاق؛ لا يُفرض ختم ذاتي مستحيل ولا تُعدّل البصمات يدوياً.
+- **حد القبول:** source-fixed / post-run-runtime-unverified؛ غياب أدلة المحاولة المطلوبة ينتج absent لا اعتماداً. لا ترقية runtime_verified أو production_certified قبل قبول post-run جديد موقّع ومطابق، ولا تغيير خدمات أو بيانات أو Railway أو NATS.
