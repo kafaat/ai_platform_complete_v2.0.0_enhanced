@@ -21,6 +21,7 @@ services:
         SAHOOL_SOURCE_REF: ${GITHUB_REF:-local}
     security_opt:
     - no-new-privileges:true
+    restart: unless-stopped
     environment:
     - PORT=8088
     networks:
@@ -38,7 +39,8 @@ services:
       timeout: 5s
       retries: 3
   sahool-nginx:
-    image: nginx:1.27-alpine
+    # upstream `resolve` requires nginx >= 1.27.3; pin the patch level so cached older 1.27 images cannot break nginx -t.
+    image: nginx:1.27.5-alpine
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
@@ -822,6 +824,7 @@ services:
       MCP_WEATHER_URL: http://sahool-weather-mcp:8000
       MCP_WOFOST_URL: http://sahool-wofost-mcp:8000
       MCP_MARKET_URL: http://sahool-market-mcp:8000
+      LOCAL_AI_RAG_URL: ${LOCAL_AI_RAG_URL:-http://sahool-local-ai-rag:8000}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
@@ -1805,6 +1808,7 @@ services:
       EMBEDDING_MODEL: nomic-embed-text
       LLM_MODEL: llama3.2:3b
       JWT_SECRET: ${JWT_SECRET}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
     depends_on:
       sahool-qdrant:
         condition: service_started  # qdrant is distroless — no healthcheck; gate on start

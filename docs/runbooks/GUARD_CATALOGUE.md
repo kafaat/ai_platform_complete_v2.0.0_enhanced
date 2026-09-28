@@ -1044,7 +1044,7 @@
 | `capability_roadmap_linker.py` | Validate and generate the curated roadmap-to-capability linkage. | `capability-registry` |
 | `capability_runtime_evidence.py` | Extract conservative runtime observability evidence for SAHOOL capabilities. | `capability-registry` |
 | `capability_shadow_reconciliation.py` | Shadow reconciliation between the canonical registry and the legacy projection. | `capability-registry` |
-| `certify_artifact_contract.py` | عقدُ مصنوعة الاعتماد: اسمٌ مشتقٌّ من ``head_sha``، وexactly-one، وهويّةٌ تُسجَّل. | `certify` |
+| `certify_artifact_contract.py` | عقدُ مصنوعة الاعتماد: اسمٌ مشتقٌّ من ``head_sha`` و``run_attempt``، وexactly-one، وهويّةٌ تُس… | `certify` |
 | `collect_full_branch_ci_evidence.py` | يجمع شاهدَ `P-CERT-1` من **عدّاء CI الحقيقيّ على هذه البصمة**، لا من مِسبارِ دخان. | `full-branch-ci-evidence` |
 | `collect_guard_surface_evidence.py` | شاهدُ `GUARDS`: أيُّ حارسٍ حاجبٍ **شُغِّل فعلاً** على هذه البصمة — والفارقُ لا العدد. | `guard-surface-evidence` |
 | `compose_env_contract_gate.py` | Fail-closed contract gate for docker-compose ↔ .env compatibility. | `structural-lint` |

@@ -28,6 +28,7 @@ services:
 
   raster-tiler-service:
     build: ./services/raster-tiler-service
+    restart: unless-stopped
     environment:
       - PORT=8088
     ports:
@@ -362,8 +363,10 @@ services:
       MCP_WEATHER_URL: http://sahool-weather-mcp:8000/mcp/v1
       MCP_WOFOST_URL: http://sahool-wofost-mcp:8000/mcp/v1
       MCP_MARKET_URL: http://sahool-market-mcp:8000/mcp/v1
+      LOCAL_AI_RAG_URL: ${LOCAL_AI_RAG_URL:-http://sahool-local-ai-rag:8000}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       JWT_SECRET: ${JWT_SECRET}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
     depends_on:
       sahool-auth:
         condition: service_healthy
@@ -873,6 +876,7 @@ services:
       EMBEDDING_MODEL: nomic-embed-text
       LLM_MODEL: llama3.2:3b
       JWT_SECRET: ${JWT_SECRET}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
     depends_on:
       sahool-qdrant:
         condition: service_started  # FIX: qdrant image is distroless, no healthcheck

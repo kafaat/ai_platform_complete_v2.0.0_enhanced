@@ -376,7 +376,21 @@ def test_the_live_tree_resolves_edges_with_evidence():
     resolved, remaining, report = module.resolve(declared, real, ROOT)
     assert resolved, "لم تُحسَم حافّةٌ واحدة على الشجرة الحيّة — السلسلةُ منقطعة"
     assert report["gateway_upstreams_unmapped"] == 0
-    assert len(resolved) + len(remaining) == len(declared), "حافّةٌ ضاعت بين القائمتين"
+
+    def operations(rows):
+        return {
+            (row["from"], row["to"], row["capability_id"], operation)
+            for row in rows
+            for operation in row.get("entrypoints") or [None]
+        }
+
+    matched, pending = operations(resolved), operations(remaining)
+    assert matched | pending == operations(declared), "عملية ضاعت أو أضيفت"
+    assert not matched & pending, "عملية محسومة بقيت معلقة"
+    for row in resolved:
+        assert row["entrypoints"] == [row["resolved_entrypoint"]]
+        assert row["evidence"]["method"] == row["resolved_entrypoint"].split()[0]
+        assert row["evidence"]["import_chain"]
 
 
 # ── سطحُ المسارات: مقيسٌ بالمحرّك الحاجب نفسِه ──────────────────────────────────

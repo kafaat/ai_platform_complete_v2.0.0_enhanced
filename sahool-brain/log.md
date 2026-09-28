@@ -8603,3 +8603,22 @@ PR #1085، الرأس المقاس `40e5fa628bbc907c297bdb1f86bacd3527fc2106`، 
 ## 2026-09-27 — معالجة فشل SQL الذي كشفه شاهد الدور المقيّد
 
 في PR #1085 على `f2f07e3e16334ea2f60297b615a3571a4f24aab3` قاست وظيفة `108609443118` 22 passed و1 failed في 15.10s دون تخطٍّ. الخطأ AmbiguousParameterError للمعامل $15 في `persist_recommendation_outcome`؛ ليست نتيجة خضراء شاملة. عُرّف المعامل numeric صراحة وفق `migrations/032_recommendation_outcomes_cutover_compat.sql`، ووُسّع شاهد baseline الموجود ليقيس NULL والقيمة الرقمية وتوقيت التسجيل وidempotency مع عدد أحداث ثابت. تبقى فجوة التوافق fixed في المصدر، لا verified؛ إعادة الشاهد شرط الدمج، دون تغيير migration أو RLS أو staging.
+
+
+## 2026-09-27 — Decision policy composition after 033
+
+Source: `services/decision-service/migrations/034_tenant_boundary_policy_composition.sql` and `services/decision-service/tests/test_migration_033_pg16.py::test_034_closes_legacy_policy_union`; base `7059d0dc9b689cf48804c5981f84ba3c4faeceaf` (#1085).
+
+Railway staging PostgreSQL 15.8, deployment `17c68adb-4d22-428b-b086-1160e935e7af`: a rolled-back preflight applied 033 under a temporary NOSUPERUSER/NOBYPASSRLS owner role. Both tables retained legacy `tenant_isolation` policies whose WITH CHECK accepts `app.tenant_id`. Under `sahool_app`, own writes passed and cross/missing-both-context writes were denied, but legacy-only writes succeeded after 033. A second rolled-back preflight with restrictive canonical guards denied legacy-only writes on both tables while preserving own writes. All temporary ownership/role/policy changes were rolled back. This is a SET ROLE behavioral witness on PG15, not a fresh-login PG16 CI proof or a committed migration.
+
+Decision: preserve 033 checksum and add 034 restrictive guards, keeping the existing permissive policies. CI extends the dedicated PG16 suite with both table/nonowner/forced-owner cases. Neither 033 nor 034 is certified applied to staging; SoR and publishers remain off. No application credentials changed.
+
+
+### متابعة إصلاح #1089 — 2026-09-28
+
+مزامنة الشريحة مع main@c6d4ac3b بعد #1090 مع إعادة توليد المصنوعات. السبب وحد القبول موثقان في `gaps/registry.md` تحت `CERTIFY-ARTIFACT-IDENTITY-OMITS-RUN-ATTEMPT-01`؛ لا اعتماد حي ولا تفعيل تشغيلي بهذه الشريحة. نتائج القياس تحفظ في مصنوعات مختبر الإصلاح.
+
+
+### متابعة مراجعة #1089 — 2026-09-28 — PR1089-REVIEW-FOLLOWUP-20260928
+
+الرأس المراجع `f995dd66a560951b866b7f59132e48b286b6939e`. أُلحق قرار السبب وحد القبول في `decisions/ledger.md`؛ يُوثق `run_attempt` في حكم المصنوعات ويقاس شاهد حذف ذكره. يعاد توليد القياسات بعد تثبيت المصدر ثم تبنى حزمة الإصدار أخيراً. تبقى `CERTIFY-ARTIFACT-IDENTITY-OMITS-RUN-ATTEMPT-01` source-fixed / post-run-runtime-unverified، بلا ادعاء قبول حي.

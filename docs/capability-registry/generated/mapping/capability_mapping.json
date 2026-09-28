@@ -15,14 +15,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5424,
+    "files_scanned": 5428,
     "files_by_kind": {
       "backend": 1211,
-      "database": 280,
+      "database": 281,
       "governance": 64,
       "mobile": 55,
-      "other": 1518,
-      "tests": 1838,
+      "other": 1519,
+      "tests": 1840,
       "web": 458
     },
     "unmapped_artifacts": 2199,
@@ -3579,6 +3579,14 @@
           ]
         },
         {
+          "path": "services/decision-service/migrations/034_tenant_boundary_policy_composition.sql",
+          "score": 14,
+          "signals": [
+            "path:tenant",
+            "content:tenant"
+          ]
+        },
+        {
           "value": "tenant_ai_policies @ migrations/v124_tenant_ai_policies.sql:27",
           "score": 14
         },
@@ -3984,7 +3992,7 @@
       "evidence_counts": {
         "backend": 15,
         "routes": 2,
-        "database": 25,
+        "database": 26,
         "events": 6,
         "web": 1,
         "mobile": 0,
@@ -8756,6 +8764,14 @@
             "path:inventory",
             "content:inventory"
           ]
+        },
+        {
+          "path": "tests_v9/test_resolve_inventory_edges.py",
+          "score": 11,
+          "signals": [
+            "path:inventory",
+            "content:inventory"
+          ]
         }
       ],
       "governance": [
@@ -8927,7 +8943,7 @@
         "events": 6,
         "web": 1,
         "mobile": 1,
-        "tests": 5,
+        "tests": 6,
         "governance": 4,
         "other_evidence": 15
       },
@@ -25307,6 +25323,15 @@
           ]
         },
         {
+          "path": "services/decision-service/tests/test_migration_034_pg16.py",
+          "score": 11,
+          "signals": [
+            "content:rls",
+            "content:row level security",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "tests/irrigation/test_irrigation_v195_capacity_reservation_core.py",
           "score": 11,
           "signals": [
@@ -26168,7 +26193,7 @@
         "events": 48,
         "web": 0,
         "mobile": 0,
-        "tests": 68,
+        "tests": 69,
         "governance": 0,
         "other_evidence": 74
       },
@@ -28001,15 +28026,15 @@
           "score": 22
         },
         {
-          "value": "/api/v1/fields @ tests_v9/test_main_inventory_generator.py:395",
+          "value": "/api/v1/fields @ tests_v9/test_main_inventory_generator.py:409",
           "score": 20
         },
         {
-          "value": "/api/v1/fields @ tests_v9/test_main_inventory_generator.py:405",
+          "value": "/api/v1/fields @ tests_v9/test_main_inventory_generator.py:419",
           "score": 20
         },
         {
-          "value": "/healthz @ tests_v9/test_main_inventory_generator.py:390",
+          "value": "/healthz @ tests_v9/test_main_inventory_generator.py:404",
           "score": 20
         },
         {
@@ -28461,7 +28486,7 @@
           "score": 22
         },
         {
-          "value": "legacy_fields.py @ tests_v9/test_main_inventory_generator.py:437",
+          "value": "legacy_fields.py @ tests_v9/test_main_inventory_generator.py:451",
           "score": 20
         },
         {
