@@ -108,6 +108,7 @@ jobs:
           RUN_ID: ${{ github.event.workflow_run.id }}
           REPO: ${{ github.repository }}
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
         run: |
           set -euo pipefail
           # `--paginate` كما في جرد الوظائف: جردٌ مقطوع يُخفي مصنوعةً مكرَّرة في
@@ -115,7 +116,7 @@ jobs:
           gh api --paginate "repos/${REPO}/actions/runs/${RUN_ID}/artifacts?per_page=100" \
             | jq -s '{artifacts: (map(.artifacts) | add)}' > artifacts.json
           python scripts/ci/certify_artifact_contract.py \
-            --artifacts-file artifacts.json --head-sha "${HEAD_SHA}" \
+            --artifacts-file artifacts.json --head-sha "${HEAD_SHA}" --run-attempt "${RUN_ATTEMPT}" \
             --output artifact_contract.json
           echo "status=$(jq -r .status artifact_contract.json)" >> "$GITHUB_OUTPUT"
 
