@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import importlib
+import re
 import sys
 from pathlib import Path
 
@@ -135,3 +136,50 @@ def test_geometry_revert_decodes_jsonb_strings_before_guarding():
         "guard_field_geometry(raw_geometry)"
     )
     assert "stored_geometry_invalid" in rendered
+
+
+def _service_block(source: str, service_name: str) -> str:
+    match = re.search(
+        rf"(?ms)^  {re.escape(service_name)}:\\n(?P<body>.*?)(?=^  [^ \\n][^:]*:|\\Z)",
+        source,
+    )
+    assert match is not None, service_name
+    return match.group("body")
+
+
+def test_v25_live_audit_wiring_regressions():
+    # Finding #6: raster tiler must recover after Docker daemon/container restarts
+    # in every maintained compose variant.
+    for compose in ("docker-compose.v9.yml", "docker-compose.fixed.yml", "docker-compose.unified.yml"):
+        source = _source(compose)
+        assert "restart: unless-stopped" in _service_block(source, "raster-tiler-service")
+
+    # Finding #5: supervisor general advice is actually wired to local-ai-rag.
+    assert "LOCAL_AI_RAG_URL: ${LOCAL_AI_RAG_URL:-http://sahool-local-ai-rag:8000}" in _source(
+        "docker-compose.v9.yml"
+    )
+    assert "LOCAL_AI_RAG_URL: ${LOCAL_AI_RAG_URL:-http://sahool-local-ai-rag:8000}" in _source(
+        "docker-compose.fixed.yml"
+    )
+    assert 'LOCAL_AI_RAG_URL: "http://sahool-unified-local-ai-rag:8000"' in _source(
+        "docker-compose.unified.yml"
+    )
+
+    nginx = _source("nginx/nginx.v9.conf")
+
+    # Finding #1: every active v9 upstream must be re-resolved after a container
+    # is replaced. The resolve parameter requires a shared-memory upstream zone.
+    assert "resolver 127.0.0.11 valid=10s ipv6=off;" in nginx
+    upstreams = re.findall(r"(?ms)^\\s*upstream\\s+([^\\s{]+)\\s*\\{([^}]*)\\}", nginx)
+    assert upstreams
+    for name, body in upstreams:
+        assert re.search(r"\\bzone\\s+" + re.escape(name) + r"\\s+64k;", body), name
+        assert re.search(r"\\bserver\\s+[^;]+\\s+resolve;", body), name
+
+    # Finding #4, narrowed to the current trust model.
+    agriai = nginx.split("location /api/agriai/", 1)[1].split("location /api/", 1)[0]
+    assert 'proxy_set_header X-Agent-Token "${SAHOOL_AGENT_TOKEN}";' in agriai
+
+    guardrails = nginx.split("location /api/guardrails/", 1)[1].split("location /api/rag/", 1)[0]
+    assert "proxy_pass http://guardrails_backend/v1/;" in guardrails
+    assert "proxy_set_header X-Agent-Token" not in guardrails
