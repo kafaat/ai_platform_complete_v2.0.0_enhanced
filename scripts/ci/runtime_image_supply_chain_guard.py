@@ -15,7 +15,7 @@ MATRIX_WORKFLOW = ROOT / ".github/workflows/docker-build-matrix-verifier.yml"
 TRIVY_INSTALLER = ROOT / "scripts/ci/install_pinned_trivy.sh"
 
 ATTEST_PIN = "actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6"
-BUILD_PIN = "docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a"
+BUILD_PIN = "docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc"
 TRIVY_VERSION = "0.74.0"
 TRIVY_ARCHIVE_SHA256 = "2ae6fe3ee734b7fdf11335663e18c75ea12dccc76062f09f164a3b0f8be4371a"
 
