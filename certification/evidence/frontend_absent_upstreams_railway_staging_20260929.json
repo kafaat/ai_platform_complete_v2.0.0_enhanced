@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "frontend-absent-upstreams-railway-staging-20260929",
+  "verdict": "MEASURED",
+  "scope": "live_railway_staging_frontend_resolver_noise",
+  "source": {
+    "repository": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+    "commit_sha": "c1044010b9f23ff231c293f25d295b31bdd63b99",
+    "pull_request": 1098
+  },
+  "environment": {
+    "platform": "railway",
+    "project_id": "33c50993-1110-43eb-8e92-04c15edae51e",
+    "environment_name": "staging",
+    "environment_id": "70cc51f8-b11f-4506-87b2-4b6615e472be",
+    "service": "sahool-frontend",
+    "service_id": "64048c16-7510-44ab-9ded-4e1c1bc74c56"
+  },
+  "change_applied": {
+    "variables_set": ["SAHOOL_RAG_RETRIEVAL_UPSTREAM", "SAHOOL_SUPERVISOR_AGENT_UPSTREAM", "SAHOOL_REMOTE_SENSING_WORKSPACE_BFF_UPSTREAM"],
+    "value": "absent",
+    "reason": "no Railway service exists for any of the three hosts in this environment (list-services)",
+    "order": "set only after deployment 0fad93f3 (renderer from c1044010) reached SUCCESS; the previous renderer rejects 'absent'"
+  },
+  "measurement": {
+    "before": {
+      "deployment_id": "0fad93f3-6a18-448a-8fc7-7c0c5a64016c",
+      "log_filter": "could not be resolved",
+      "observed": "three hosts logged every ~10 s; last observed 2026-09-29T21:19:09Z while the deployment was being replaced"
+    },
+    "after": {
+      "deployment_id": "dde365f8-3e5d-4f44-916f-ff3e5d9a655e",
+      "status": "SUCCESS",
+      "started_at_utc": "2026-09-29T21:18:14Z",
+      "log_filter": "could not be resolved",
+      "observed_count": 0
+    }
+  },
+  "boundaries": {
+    "runtime_claims": true,
+    "runtime_scope": "railway staging frontend logs only",
+    "not_measured_live": "the 503 service_not_deployed response on the absent routes; outbound requests to *.up.railway.app are refused by this session's network policy (proxy CONNECT 403). The route behaviour is measured locally against real nginx in #1098.",
+    "production_certification": "NOT_GRANTED",
+    "overall_runtime_acceptance": "NOT_ASSESSED",
+    "reversal": "delete the three variables to return to the previous behaviour"
+  }
+}
