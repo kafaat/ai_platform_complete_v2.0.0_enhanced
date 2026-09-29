@@ -149,3 +149,143 @@ def test_the_migration_is_registered_before_the_final_hardening():
     assert entries.index("v233_event_outbox_claim_lease.sql") < entries.index(
         "v206_rls_final_hardening.sql"
     ), "سُجِّلت بعد التشديد النهائيّ"
+
+
+# ── شاهدٌ لا يتأثّر بالنثر: يُقرَأ ما يُمرَّر إلى واجهة الاتّصال، لا نصُّ الملفّ ──────
+
+
+class _SqlSpy:
+    """اتّصالٌ زائف يسجّل ما **يُمرَّر إلى `execute`**: الجملةَ ووسائطَها.
+
+    **تسميةٌ دقيقةٌ عن قصد:** هذا ليس «الـSQL المُنفَّذ في القاعدة» — لا قاعدةَ هنا.
+    المقيسُ ما يُصدِره مسارُ الإنتاج إلى واجهة الاتّصال. والفرقُ ليس لفظيّاً: جملةٌ
+    صحيحةُ النصّ قد يرفضها PostgreSQL أو تُنفَّذ بدلالةٍ غير المقصودة، وهذا الشاهدُ
+    لا يقول شيئاً عن ذلك.
+
+    **ولمَ هو إلى جانب الشاهد البنيويّ:** البنيويُّ يعدّ وروداتِ شرطِ الـCAS في نصّ
+    الدالّتين، فبقاؤه صحيحاً مشروطٌ بألّا يذكر أحدٌ الشرطَ في تعليقٍ أو توثيق — وذلك
+    **قيدٌ على الكاتب لا خاصّيّةٌ في الشيفرة**، وقد أبطل التكذيبَ فعلاً مرّةً (طفرةٌ
+    أزالت الشرطَ من الـSQL فبقي العدُّ صحيحاً بنصّ الـdocstring). هذا يقرأ ما أُرسِل،
+    فتعليقٌ جديدٌ لا يُغيّر نتيجتَه بحال.
+
+    **وحدُّه مُعلَن:** يُثبِت أنّ الشرطَ **أُرسِل بالوسيط الصحيح**، لا أنّ PostgreSQL
+    رفض كتابةَ عاملٍ قديم تحت تزامن. والبرهانُ الحيُّ قائمٌ في موضعه لا هنا:
+    `OUTBOX-LEASE-HAS-NO-LIVE-TWO-WORKER-PROOF-01` صار `verified` بعاملَين متزامنَين
+    على PostgreSQL وNATS حقيقيَّين، وشاهدُ العامل القديم عند CAS=0 في #1076. فهذا
+    الشاهدُ **مُكمِّلٌ رخيص** يعمل في كلّ جولة وحدات، لا بديلٌ عن ذلك البرهان.
+    """
+
+    def __init__(self) -> None:
+        self.calls: list[tuple[str, tuple]] = []
+
+    async def execute(self, sql: str, *args) -> str:
+        self.calls.append((" ".join(sql.split()), args))
+        return "UPDATE 1"
+
+    async def fetchval(self, sql: str, *args):
+        return False  # لم يُطالَب بعد ⇒ المسارُ المقيس هو النشر ثمّ الوسم
+
+    def transaction(self):
+        conn = self
+
+        class _Txn:
+            async def __aenter__(self_inner):
+                return conn
+
+            async def __aexit__(self_inner, *exc):
+                return False
+
+        return _Txn()
+
+
+_SPY_OUTBOX_ID = 41
+_SPY_TOKEN = "tok-of-this-attempt"
+
+
+def _row_for_spy() -> dict:
+    return {
+        "outbox_id": _SPY_OUTBOX_ID,
+        "event_id": "66666666-6666-6666-6666-666666666666",
+        "nats_subject": "sahool.events.test",
+        "retry_count": 0,
+        "event_type": "field.created",
+        "entity_type": "field",
+        "entity_id": "f-1",
+        "tenant_id": "00000000-0000-0000-0000-000000000001",
+        "payload": {"k": "v"},
+        "occurred_at": None,
+    }
+
+
+def _worker(*, failing: bool):
+    import sys
+
+    platform = str(ROOT / "services" / "sahool-platform")
+    if platform not in sys.path:
+        sys.path.insert(0, platform)
+    from api.event_bus import OutboxWorker
+
+    async def _publish(subject: str, payload: bytes) -> None:
+        if failing:
+            raise RuntimeError("NATS down")
+
+    return OutboxWorker(pool=None, nats_publish_fn=_publish)
+
+
+def _assert_guarded_by_the_attempt_token(sql: str, args: tuple) -> None:
+    """الشرطُ موجودٌ **ومربوطٌ بالقيم الصحيحة** — لا مجرّد اسمٍ في النصّ.
+
+    اسمُ العمود قد يرد في `SET claim_token = NULL` وفي تعليق؛ فالمقيسُ هنا أنّ
+    `WHERE` يحمل الشرطَ، وأنّ الوسيطَين المربوطَين بـ`outbox_id` وبالرمز هما صفُّ
+    هذه المحاولة ورمزُها بعينهما.
+    """
+    where = sql.split(" WHERE ", 1)
+    assert len(where) == 2, f"كتابةٌ بلا WHERE: {sql}"
+    assert "claim_token IS NOT DISTINCT FROM" in where[1], (
+        f"شرطُ الرمز غائبٌ عن WHERE — تكتب فوق عاملٍ آخر: {sql}"
+    )
+    assert _arg_bound_to(sql, "outbox_id", args) == _SPY_OUTBOX_ID, (
+        f"الكتابةُ لا تستهدف صفَّ هذه المحاولة: {sql} :: {args}"
+    )
+    assert _arg_bound_to(sql, "claim_token IS NOT DISTINCT FROM", args) == _SPY_TOKEN, (
+        f"الشرطُ مربوطٌ برمزٍ غير رمزِ هذه المحاولة: {sql} :: {args}"
+    )
+
+
+def _arg_bound_to(sql: str, needle: str, args: tuple):
+    match = re.search(re.escape(needle) + r"\s*=?\s*\$(\d+)", sql)
+    assert match, f"لا ربطَ لـ{needle} في: {sql}"
+    return args[int(match.group(1)) - 1]
+
+
+def _outbox_writes(spy: _SqlSpy) -> list[tuple[str, tuple]]:
+    return [c for c in spy.calls if c[0].startswith("UPDATE event_outbox")]
+
+
+@pytest.mark.asyncio
+async def test_the_success_path_sends_its_finishing_write_bound_to_the_attempt_token():
+    """مسارُ النجاح: **وقعت** كتابةُ الإنهاء، وحملت الشرطَ مربوطاً بصفّها ورمزِها.
+
+    التوكيدُ على وقوعِ الكتابة المقصودة أوّلاً مقصود: «كلُّ الكتابات مُقيَّدة» جملةٌ
+    صادقةٌ على قائمةٍ فارغة — فتمرّ التجربةُ وهي لم تبلغ المسارَ أصلاً.
+    """
+    spy = _SqlSpy()
+    await _worker(failing=False)._send_one(spy, _row_for_spy(), _SPY_TOKEN)
+    writes = _outbox_writes(spy)
+    finishing = [c for c in writes if "SET status = 'sent'" in c[0]]
+    assert finishing, f"لم تقع كتابةُ الإنهاء أصلاً — الكتاباتُ: {[c[0] for c in writes]}"
+    for sql, args in writes:
+        _assert_guarded_by_the_attempt_token(sql, args)
+
+
+@pytest.mark.asyncio
+async def test_the_failure_path_sends_its_state_write_bound_to_the_attempt_token():
+    """مسارُ الفشل يُعامَل كمسار النجاح: كتابةُ الحالة وقعت، ومقيَّدةٌ بالرمز نفسِه."""
+    spy = _SqlSpy()
+    await _worker(failing=True)._send_one(spy, _row_for_spy(), _SPY_TOKEN)
+    writes = _outbox_writes(spy)
+    failing_write = [c for c in writes if "retry_count = $1" in c[0]]
+    assert failing_write, f"مسارُ الفشل لم يكتب حالةً — الكتاباتُ: {[c[0] for c in writes]}"
+    assert not [c for c in writes if "SET status = 'sent'" in c[0]], "نشرٌ فاشلٌ وُسِم 'sent'"
+    for sql, args in writes:
+        _assert_guarded_by_the_attempt_token(sql, args)
