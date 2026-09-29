@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import importlib.util
+import json
 import os
 import sys
 import time
@@ -99,6 +100,7 @@ class _FakeConn:
     def __init__(self, rows):
         self._rows = rows
         self.executed: list[str] = []
+        self.calls: list[tuple[str, tuple]] = []
 
     def transaction(self):
         conn = self
@@ -115,8 +117,9 @@ class _FakeConn:
     async def fetch(self, _sql, *_a):
         return self._rows
 
-    async def execute(self, sql, *_a):
+    async def execute(self, sql, *args):
         self.executed.append(sql)
+        self.calls.append((sql, args))
         return "UPDATE 1"
 
 
@@ -170,6 +173,77 @@ def test_worker_claims_and_marks_processed(monkeypatch) -> None:
     assert "status='processing'" in joined, "يجب المطالبة بالصفّ (processing)"
     assert "asset_status='stale'" in joined, "يجب وسم أصول الحقل stale"
     assert "status='processed'" in joined, "يجب إنهاء الصفّ processed"
+
+
+# ─── نطاقُ الوسم: ما سبق التغييرَ المُسمّى وحدَه (مقيسٌ حيّاً 2026-09-29) ─────────────────
+# كان العاملُ يَسِم كلَّ أصلٍ ``ready`` للحقل، فإبطالُ ``field.created`` وَسَم صورَ Sentinel-2
+# التي أُنتِجت **بعد** الإنشاء بثوانٍ (مصغّراتٌ 404). الشاهدُ السلوكيّ على قاعدةٍ حيّة في
+# ``test_d1_raster_invalidation_owner_api_integration.py``؛ وهنا الوصلُ بلا قاعدة: ما يقرؤه
+# العاملُ من صفّ الطابور يصل فعلاً إلى عبارة الوسم.
+
+# لحظةٌ بالصيغة التي تكتبها القاعدةُ فعلاً (``to_jsonb(now())``، مقيسةٌ على PG16).
+_CHANGED_AT = "2026-09-29T22:46:37.958391+00:00"
+
+
+def _queued_row(metadata, created_at=None):
+    from datetime import UTC, datetime
+
+    return {
+        "id": 7,
+        "tenant_id": "00000000-0000-0000-0000-000000000001",
+        "field_id": "fld_new",
+        "reason": "field.created",
+        # asyncpg يُعيد العمودَ نصّاً بلا codec — كما يصل العاملَ حيّاً.
+        "metadata": json.dumps(metadata) if isinstance(metadata, dict) else metadata,
+        "created_at": created_at or datetime(2026, 9, 29, 22, 46, 40, tzinfo=UTC),
+    }
+
+
+def test_scope_is_the_named_revision_and_the_instant_the_platform_recorded() -> None:
+    from datetime import datetime
+
+    mod = _load_worker()
+    row = _queued_row(
+        {
+            "geometry_revision": 1,
+            "geometry_changed_at": _CHANGED_AT,
+            "request_id": "field.created:fld_new:rev1",
+            "scope": ["tiles", "indices", "zones"],
+        }
+    )
+    assert mod.invalidation_scope(row) == (1, datetime.fromisoformat(_CHANGED_AT))
+
+
+def test_scope_falls_back_to_the_queue_time_and_never_guesses() -> None:
+    from datetime import UTC, datetime
+
+    mod = _load_worker()
+    queued = datetime(2026, 9, 29, 22, 46, 40, tzinfo=UTC)
+    # نيّةٌ أقدم من العقد (بلا لحظة) ⇒ وصولُ الأمر إلى المالك، لا «كلُّ جاهز».
+    assert mod.invalidation_scope(_queued_row({"geometry_revision": 3}, queued)) == (3, queued)
+    # ``True`` ليست مراجعة، ولحظةٌ بلا منطقة زمنيّة لا تُخمَّن منطقتُها.
+    naive = {"geometry_revision": True, "geometry_changed_at": "2026-09-29T22:46:37"}
+    assert mod.invalidation_scope(_queued_row(naive, queued)) == (None, queued)
+    # صفٌّ بلا بيانات (السلوك السابق) يبقى قابلاً للمعالجة.
+    assert mod.invalidation_scope({"metadata": None, "created_at": None}) == (None, None)
+
+
+def test_the_stale_statement_receives_the_scope_of_the_named_change(monkeypatch) -> None:
+    from datetime import datetime
+
+    mod = _load_worker()
+    monkeypatch.setattr(
+        mod.tile_cache_maint, "invalidate_field_tile_cache", lambda t, f: 0, raising=True
+    )
+    row = _queued_row({"geometry_revision": 1, "geometry_changed_at": _CHANGED_AT})
+    conn = _FakeConn([row])
+    assert asyncio.run(mod.run_once(_FakePool(conn))) == 1
+    stale = [(sql, args) for sql, args in conn.calls if "asset_status='stale'" in sql]
+    assert len(stale) == 1, "عبارةُ الوسم لم تُنفَّذ مرّةً واحدة"
+    sql, args = stale[0]
+    assert args == (row["tenant_id"], "fld_new", 1, datetime.fromisoformat(_CHANGED_AT))
+    # الوسمُ مقيّدٌ بالمراجعة وباللحظة — لا ``WHERE`` بالحقل وحدَه كما كان.
+    assert "geometry_revision < $3::int" in sql and "created_at < $4::timestamptz" in sql
 
 
 def test_worker_uses_skip_locked_and_flag_and_compose() -> None:

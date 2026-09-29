@@ -9,8 +9,9 @@
 (``services/sahool-platform/api/phase_runtime_workers.py``): poller مستقلّ يُطلَق
 كخدمة compose، يطالب الصفوف بـ``FOR UPDATE SKIP LOCKED`` داخل معاملة، ثمّ لكلّ صفّ:
   (١) يحذف كامل بلاطات الحقل المُخبّأة على القرص (كلّ المؤشّرات/التواريخ)،
-  (٢) يعلّم أصول الحقل الجاهزة ``asset_status='stale'`` (تبقى قابلة للخدمة حتّى
-      إعادة المعالجة بالهندسة الجديدة — لا تُخفى، فقط تُوسَم للإبطال)،
+  (٢) يعلّم أصول الحقل الجاهزة **السابقة للتغيير الذي يُسمّيه الإبطال** ``asset_status='stale'``
+      (``invalidation_scope``) — لا كلَّ أصلٍ جاهز. قرّاءُ العرض يقرؤون ``ready`` حصراً، فوسمُ
+      أصلٍ مبنيٍّ على الهندسة الجديدة يُخفيه (مصغّرةٌ 404)،
   (٣) يضبط الصفّ ``processed``/``failed`` مع ``processed_at``.
 ودوريّاً يُخلي كاش البلاطات المتجاوز (TTL/حصّة) عبر ``tile_cache_maint.prune_tile_cache`` —
 سياسة احتفاظ لم تكن موجودة (FINDING-010).
@@ -22,8 +23,10 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import logging
 import os
+from datetime import datetime
 from typing import Any
 
 import asyncpg
@@ -87,6 +90,48 @@ async def _set_tenant(conn: Any, tenant_id: Any) -> None:
         await conn.execute("SELECT set_config('app.current_tenant', $1, true)", str(tenant_id))
 
 
+def _json_object(value: Any) -> dict:
+    """asyncpg يُعيد ``metadata`` نصّاً ما لم يُسجَّل codec؛ الوهميُّ يُعيده قاموساً."""
+    if isinstance(value, (bytes, bytearray)):
+        value = value.decode("utf-8", errors="replace")
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except ValueError:
+            return {}
+    return value if isinstance(value, dict) else {}
+
+
+def _parse_instant(value: Any) -> datetime | None:
+    if isinstance(value, datetime):
+        return value if value.tzinfo is not None else None
+    if not isinstance(value, str) or not value.strip():
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    # لحظةٌ بلا منطقة زمنيّة لا تُقارَن بعمود ``timestamptz`` دون تخمين — تُرفَض لا تُخمَّن.
+    return parsed if parsed.tzinfo is not None else None
+
+
+def invalidation_scope(row: Any) -> tuple[int | None, datetime | None]:
+    """``(المراجعة المُسمّاة، لحظة التغيير)`` لصفّ إبطال — ما يحدّد «الأصول السابقة».
+
+    المراجعةُ من ``metadata.geometry_revision`` (عددٌ موجب، لا ``bool``). واللحظةُ من
+    ``metadata.geometry_changed_at`` التي تكتبها المنصّةُ بساعة القاعدة داخل معاملة الحقل؛
+    وغيابُها (نيّةٌ أقدم من هذا العقد) ⇒ ``created_at`` صفِّ الطابور: وصولُ الأمر إلى المالك،
+    وهو **بعد** الالتزام دائماً — أوسعُ من الصحيح لكنّه لا يَسِم ما يُنتَج بعد الوصول.
+    """
+    meta = _json_object(row.get("metadata"))
+    rev = meta.get("geometry_revision")
+    revision = rev if isinstance(rev, int) and not isinstance(rev, bool) and rev > 0 else None
+    changed_at = _parse_instant(meta.get("geometry_changed_at"))
+    if changed_at is None:
+        changed_at = _parse_instant(row.get("created_at"))
+    return revision, changed_at
+
+
 async def run_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> int:
     """يعالج دفعة من الإبطالات المعلّقة. يُرجِع عدد الصفوف المُعالَجة."""
     async with pool.acquire() as conn:
@@ -95,7 +140,7 @@ async def run_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> int:
         async with conn.transaction():
             rows = await conn.fetch(
                 """
-                SELECT id, tenant_id, field_id, reason
+                SELECT id, tenant_id, field_id, reason, metadata, created_at
                 FROM raster_cache_invalidations
                 WHERE status = 'pending'
                 ORDER BY created_at
@@ -116,17 +161,31 @@ async def run_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> int:
             tenant = str(row["tenant_id"]) if row["tenant_id"] else None
             field = row["field_id"]
             try:
+                revision, changed_at = invalidation_scope(row)
                 deleted = tile_cache_maint.invalidate_field_tile_cache(tenant, field)
                 # v10-F6: set_config(...,true) عابرٌ للمعاملة — نُغلّف الضبط + التحديثات
                 # المُعتمدة على المستأجِر في معاملة واحدة كي يبقى app.current_tenant سارياً
                 # (يهمّ عند السقوط إلى DATABASE_URL بدور مقيّد بلا BYPASSRLS).
                 async with conn.transaction():
                     await _set_tenant(conn, tenant)
+                    # الأصولُ **السابقة للتغيير المُسمّى** وحدَها. المقيس حيّاً على مكدّس
+                    # docker-compose.v9.yml (2026-09-29): إبطالُ ``field.created`` كان يصل بعد
+                    # أن تصير صورُ Sentinel-2 المُطلَقة بعد الالتزام ``ready``، فيَسِمها هذا
+                    # العامل ``stale`` بعد ~ثانيتين من الإنشاء، ومصغّراتُها (``ready`` حصراً)
+                    # تعود 404. حقلٌ جديد لا أصولَ سابقةً له، فلا هدفَ لإبطاله. المراجعةُ
+                    # المعروفة تُقارَن بالمُسمّاة (v143: «نَسَب الهندسة… للإبطال»)، والمجهولةُ
+                    # بلحظة التغيير؛ ولا مسمّى ولا لحظة ⇒ السلوكُ السابق (كلُّ جاهز).
                     staled = await conn.execute(
                         "UPDATE raster_assets SET asset_status='stale' "
-                        "WHERE tenant_id = $1::uuid AND field_id = $2 AND asset_status = 'ready'",
+                        "WHERE tenant_id = $1::uuid AND field_id = $2 AND asset_status = 'ready' "
+                        "AND CASE WHEN $3::int IS NOT NULL AND geometry_revision IS NOT NULL "
+                        "THEN geometry_revision < $3::int "
+                        "ELSE $4::timestamptz IS NULL OR created_at IS NULL "
+                        "OR created_at < $4::timestamptz END",
                         tenant,
                         field,
+                        revision,
+                        changed_at,
                     )
                     await conn.execute(
                         "UPDATE raster_cache_invalidations "
@@ -138,12 +197,15 @@ async def run_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> int:
                 await _publish_layer_evict(field)
                 processed += 1
                 logger.info(
-                    "invalidation processed id=%s field=%s tiles_deleted=%s assets=%s reason=%s",
+                    "invalidation processed id=%s field=%s tiles_deleted=%s assets=%s reason=%s "
+                    "prior_to_revision=%s prior_to=%s",
                     rid,
                     field,
                     deleted,
                     staled,
                     row["reason"],
+                    revision,
+                    changed_at.isoformat() if changed_at else None,
                 )
             except Exception as e:  # noqa: BLE001 — صفّ واحد فاشل لا يُسقط الدفعة
                 try:
