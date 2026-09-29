@@ -38,6 +38,33 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+  sahool-nginx-tls-init:
+    # GATEWAY-TLS-ABSENT-ON-FRESH-CHECKOUT-01 (تدقيقُ التشغيل الحيّ 2026-09-29، آلةٌ نظيفة): nginx.v9.conf
+    # يُعلن `listen 443 ssl` بـ/etc/nginx/ssl/fullchain.pem، والمستودعُ بلا nginx/ssl ولا مولِّد — فأنشأ
+    # Docker مجلّدَ التركيب فارغاً، ومات nginx على `cannot load certificate` وأُعيد تشغيلُه 31 مرّة
+    # والبوّابةُ العامّة كلُّها ساقطة. هذه المهمّةُ تسبقه (service_completed_successfully أدناه):
+    # تُولِّد شهادةَ تطويرٍ ذاتيّة **فقط** حين يغيب الزوجُ وSAHOOL_ENV صريحةٌ غيرُ إنتاجيّة، وفي غير
+    # ذلك تفحص ما وضعه المشغِّل وترفض الغائبَ والذاتيَّ التوقيع خارج التطوير بفشلٍ مُسمّى — لا حلقةَ
+    # إعادةٍ صامتة. المنطقُ واختبارُه: scripts/nginx/ensure_gateway_tls.sh · tests_v9/test_gateway_tls_init.py.
+    # الصورةُ أساسُ خدمات بايثون في هذا الملفّ (لا سلسلةَ توريدٍ جديدة)، ويفشل السكربت مُسمّىً إن غاب openssl.
+    image: python:3.11-slim-bookworm
+    mem_limit: 64m
+    security_opt:
+    - no-new-privileges:true
+    restart: 'no'
+    logging: *id001
+    # لا شبكةَ لها: تقرأ وتكتب مجلّداً مُركَّباً فقط.
+    network_mode: none
+    environment:
+      # بلا افتراضٍ تطويريّ عمداً: الغيابُ ليس «تطويراً صريحاً» ⇒ تُطلَب شهادةٌ حقيقيّة.
+      SAHOOL_ENV: ${SAHOOL_ENV:-}
+      DOMAIN: ${DOMAIN:-localhost}
+    entrypoint:
+    - /bin/sh
+    - /ensure_gateway_tls.sh
+    volumes:
+    - ./nginx/ssl:/etc/nginx/ssl
+    - ./scripts/nginx/ensure_gateway_tls.sh:/ensure_gateway_tls.sh:ro
   sahool-nginx:
     # upstream `resolve` requires nginx >= 1.27.3; pin the patch level so cached older 1.27 images cannot break nginx -t.
     image: nginx:1.27.5-alpine
@@ -67,6 +94,9 @@ services:
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
     depends_on:
+      # زوجُ TLS حاضرٌ وصالح قبل الإقلاع، أو لا إقلاع — بدل 31 إعادةَ تشغيلٍ على شهادةٍ غائبة.
+      sahool-nginx-tls-init:
+        condition: service_completed_successfully
       sahool-platform:
         condition: service_healthy
       sahool-raster-service:
