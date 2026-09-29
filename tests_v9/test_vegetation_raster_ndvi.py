@@ -202,3 +202,121 @@ async def test_fails_closed_424_when_bundle_absent(veg, monkeypatch, canonical_u
         await veg.run_analysis("field_01", "t1", "2026-06-01", "2026-06-10")
     assert exc.value.status_code == 424
     canonical_unavailable.assert_awaited_once()
+
+
+# ── القفزة indicators-service ⇒ vegetation: عقدُ Decimal يعبر الشبكة نصّاً ──────────────
+#
+# **المقيس حيّاً (2026-09-29):** ``/v1/analyze`` أجاب 424 «validated real NDVI is required from
+# raster-service» لكلّ حقل، ولـNDVI رصدٌ حقيقيّ (0.1243). ``CanonicalObservationV1`` يحمل
+# ``summary.mean`` وحقولَ الجودة ``Decimal``، وPydantic يُسلسِلها نصّاً (``"0.1243"``)، والمُحوِّلُ
+# يمرّرها كما هي، و``run_analysis`` يقبل ``int``/``float`` وحدهما ⇒ NDVI يُسقَط. الشاهدُ السابق
+# (``_bundle``) مرّ لأنّه قاموسٌ منسوخ بأرقام ``float``. هنا الردُّ ناتجُ مسار indicators-service
+# نفسِه: ``canonicalize_bundle`` ⇒ ``field_observations`` ⇒ ``model_dump(mode="json")``.
+
+_INDICATORS = os.path.join(ROOT, "services", "indicators-service", "main.py")
+_TENANT = "11111111-1111-4111-8111-111111111111"
+
+
+async def _indicators_service_response(field_id: str, season_id: str) -> dict:
+    """ما يُجيب به ``GET /v1/fields/{id}/observations`` فعلاً — بلا شبكة، بالمُنتِج الحقيقيّ."""
+    spec = importlib.util.spec_from_file_location("veg_test_indicators_main", _INDICATORS)
+    indicators = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(indicators)  # يُدرج دليلَه في sys.path ويستورد observation_runtime
+
+    import observation_runtime
+
+    # حزمةُ الراستر (مُدخَلُ المُنتِج) بشكل ``field_indicator_observation_bundle`` — رصدٌ واحد.
+    raster_bundle = {
+        "field_id": field_id,
+        "real_data": True,
+        "bundle_consistency": True,
+        "mixed_scene": False,
+        "observations": {
+            "ndvi": {
+                "real_data": True,
+                "date": "2026-09-25T07:46:00Z",
+                "stats": {"min": 0.1243, "max": 0.1243, "mean": 0.1243},
+                "valid_pixel_ratio": 1.0,
+                "coverage_ratio": 1.0,
+                "confidence": 0.9,
+                "indicator_product": {
+                    "provenance": {
+                        "scene_id": "S2B_MSIL2A_20260925T073609_N0511_R092_T38PNA",
+                        "acquisition_datetime": "2026-09-25T07:46:00Z",
+                        "algorithm_version": "sahool.band_math/1",
+                    }
+                },
+            }
+        },
+    }
+
+    async def _canonical(*, field_id, tenant_id, season_id, indicators):
+        return observation_runtime.canonicalize_bundle(
+            bundle=raster_bundle, tenant_id=tenant_id, season_id=season_id
+        )
+
+    indicators.fetch_canonical_observations = _canonical
+    body = await indicators.field_observations(
+        field_id, season_id=season_id, indicators="ndvi", x_tenant_id=_TENANT
+    )
+    assert body["observations"], "المُنتِجُ لم يُصدِر رصداً — الشاهدُ أعمى"
+    return body
+
+
+class _IndicatorsClient:
+    """يقوم مقام ``httpx.AsyncClient`` عند حدّ الشبكة وحدَه ويُعيد ردَّ المُنتِج كما هو."""
+
+    body: dict = {}
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *exc):
+        return False
+
+    async def get(self, url, params=None, headers=None):
+        assert url.endswith("/observations"), url
+        body = type(self).body
+
+        class _Response:
+            status_code = 200
+
+            @staticmethod
+            def json():
+                return body
+
+        return _Response()
+
+
+async def test_canonical_decimals_reach_the_analysis_as_numbers(veg, monkeypatch):
+    from fastapi import HTTPException
+
+    season = "unscoped-2026-09-29"
+    _IndicatorsClient.body = await _indicators_service_response("fld_new", season)
+    wire_mean = _IndicatorsClient.body["observations"][0]["summary"]["mean"]
+    assert isinstance(wire_mean, str), "العقدُ لم يعد يُسلسِل Decimal نصّاً — راجع الشاهد"
+    monkeypatch.setattr(veg.httpx, "AsyncClient", _IndicatorsClient)
+    monkeypatch.setattr(veg, "VEGETATION_PREFER_CANONICAL_OBSERVATIONS", True)
+    monkeypatch.setattr(veg, "load_field", _fixture_field)
+
+    bundle = await veg._canonical_observation_bundle_from_indicators(
+        "fld_new", _TENANT, season, ["ndvi"]
+    )
+    ndvi = bundle["observations"]["ndvi"]
+    assert ndvi["stats"]["mean"] == pytest.approx(0.1243)
+    assert ndvi["indicator_product"]["quality_score"] == pytest.approx(0.9)
+    assert ndvi["indicator_product"]["valid_pixel_ratio"] == pytest.approx(1.0)
+
+    # التطوير: التحليلُ يعود بـNDVI الحقيقيّ بدل 424 «لا NDVI».
+    monkeypatch.setattr(veg, "VEGETATION_REAL_ONLY", False)
+    res = await veg.run_analysis("fld_new", _TENANT, "2026-09-01", "2026-09-29", season_id=season)
+    assert res["indices"]["ndvi"]["value"] == pytest.approx(0.124)
+    # الإنتاج: 424 يبقى — لكنّه حكمُ بوّابة الجودة المُعلَن لا «NDVI غائب». الرقعةُ لا تُرخي البوّابة.
+    monkeypatch.setattr(veg, "VEGETATION_REAL_ONLY", True)
+    with pytest.raises(HTTPException) as exc:
+        await veg.run_analysis("fld_new", _TENANT, "2026-09-01", "2026-09-29", season_id=season)
+    assert exc.value.status_code == 424
+    assert exc.value.detail == "validated real NDVI is required in production vegetation mode"

@@ -549,6 +549,25 @@ async def _publish_analysis(field_id: str, tenant_id: str, indices: dict, source
         logger.warning(f"NATS publish failed: {e}")
 
 
+def _canonical_number(value) -> float | None:
+    """رقمٌ من عقد ``CanonicalObservationV1`` كما يعبر الشبكة — أو ``None``.
+
+    حقولُ العقد ``Decimal`` (``shared/contracts/remote_sensing/observation_v1.py``)، وPydantic
+    يُسلسِلها في JSON **نصّاً** (``"0.1243"``). المقيس حيّاً (2026-09-29): المُحوِّلُ كان يمرّر
+    النصَّ كما هو، و``run_analysis`` يقبل ``int``/``float`` وحدهما، فيُسقِط NDVI الحقيقيّ ويُجيب
+    424 «validated real NDVI is required from raster-service» — والرصدُ موجود. و``baseline_engine
+    ._value`` في هذه الخدمة نفسِها يقرأ الحقلَ نفسَه نصّاً منذ البداية. ``bool`` ليس رقماً،
+    وغيرُ المتناهي ليس قياساً.
+    """
+    if isinstance(value, bool) or value is None:
+        return None
+    try:
+        number = float(value) if isinstance(value, (int, float, str)) else None
+    except ValueError:
+        return None
+    return number if number is not None and math.isfinite(number) else None
+
+
 async def _canonical_observation_bundle_from_indicators(
     field_id: str, tenant_id: str, season_id: str, raster_indices: list[str]
 ) -> dict | None:
@@ -557,6 +576,8 @@ async def _canonical_observation_bundle_from_indicators(
     The adapter exists only during cutover so downstream vegetation logic remains
     behavior-compatible while the legal source moves from raster bundles to
     CanonicalObservationV1. It never accesses the indicators database directly.
+    Contract decimals arrive as JSON strings and are read as numbers here
+    (``_canonical_number``) — the raster bundle this replaces carries floats.
     """
     if not VEGETATION_PREFER_CANONICAL_OBSERVATIONS:
         return None
@@ -587,20 +608,20 @@ async def _canonical_observation_bundle_from_indicators(
                 "real_data": True,
                 "date": acquired_at,
                 "stats": {
-                    "mean": summary.get("mean"),
-                    "median": summary.get("median"),
-                    "p10": summary.get("p10"),
-                    "p90": summary.get("p90"),
-                    "std": summary.get("stddev"),
+                    "mean": _canonical_number(summary.get("mean")),
+                    "median": _canonical_number(summary.get("median")),
+                    "p10": _canonical_number(summary.get("p10")),
+                    "p90": _canonical_number(summary.get("p90")),
+                    "std": _canonical_number(summary.get("stddev")),
                 },
-                "valid_pixel_ratio": quality.get("valid_pixel_ratio"),
-                "coverage_ratio": quality.get("field_coverage_ratio"),
-                "cloud_cover": quality.get("field_cloud_ratio"),
-                "confidence": quality.get("score"),
+                "valid_pixel_ratio": _canonical_number(quality.get("valid_pixel_ratio")),
+                "coverage_ratio": _canonical_number(quality.get("field_coverage_ratio")),
+                "cloud_cover": _canonical_number(quality.get("field_cloud_ratio")),
+                "confidence": _canonical_number(quality.get("score")),
                 "index_quality_flags": quality.get("reason_codes") or [],
                 "indicator_product": {
-                    "quality_score": quality.get("score"),
-                    "valid_pixel_ratio": quality.get("valid_pixel_ratio"),
+                    "quality_score": _canonical_number(quality.get("score")),
+                    "valid_pixel_ratio": _canonical_number(quality.get("valid_pixel_ratio")),
                     "data_available_at": item.get("published_at"),
                     "provenance": {
                         "asset_ref": item.get("asset_ref"),
