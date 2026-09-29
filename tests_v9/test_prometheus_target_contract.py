@@ -235,3 +235,92 @@ def test_the_advertised_endpoint_actually_answers(monkeypatch, folder, host):
     assert response.headers["content-type"].startswith("text/plain"), (
         "نوعُ المحتوى ليس صيغةَ Prometheus النصّيّة"
     )
+
+
+# ── PG-EXPORTER-EMPTY-DSN-FALSE-POSTGRESDOWN-01 ─────────────────────────────
+# `DATA_SOURCE_NAME: ${POSTGRES_EXPORTER_DSN:-}` مع `.env.example` الفارغ كان يترك
+# المُصدِّر بلا مصدر ⇒ `pg_up 0` على مكدّسٍ سليم ⇒ `PostgresDown` (critical) أبداً. قيس
+# حيّاً على ثنائيّ `postgres_exporter` v0.20.1 (sha256 الإصدار مطابق) ضدّ Postgres محلّيّ:
+# الصيغةُ القديمة `pg_up 0`، والجديدة `pg_up 1`. الحدّ المُعلَن: الاختبار أدناه ساكن — يُعيد
+# استيفاء compose وأسبقيّةَ `GetDataSources()` (exporter/datasource.go) ولا يُشغّل المُصدِّر.
+
+_INTERP = re.compile(r"\$\{([A-Z_][A-Z0-9_]*)(?:(:-|:\?)([^{}]*))?\}")
+
+
+def _env_example() -> dict[str, str]:
+    out: dict[str, str] = {}
+    for line in (ROOT / ".env.example").read_text(encoding="utf-8").splitlines():
+        if line and not line.lstrip().startswith("#") and "=" in line:
+            key, _, value = line.partition("=")
+            out[key.strip()] = value.strip()
+    return out
+
+
+def _interpolate(value: object, env: dict[str, str]) -> str:
+    """استيفاءُ compose للصيغ الثلاث المستعملة هنا، من الداخل إلى الخارج."""
+    text = str(value)
+    while True:
+        match = _INTERP.search(text)
+        if match is None:
+            return text
+        name, op, arg = match.groups()
+        current = env.get(name, "")
+        if op == ":?" and not current:
+            raise LookupError(f"{name} required")
+        replacement = current or (arg if op == ":-" else "")
+        text = text[: match.start()] + replacement + text[match.end() :]
+
+
+def _exporter_dsn(raw_env: dict, env: dict[str, str]) -> str:
+    """أسبقيّةُ المُصدِّر نفسها: `DATA_SOURCE_NAME` غيرُ الفارغ يفوز، وإلّا URI+USER+PASS."""
+    resolved = {key: _interpolate(value, env) for key, value in raw_env.items()}
+    if resolved.get("DATA_SOURCE_NAME"):
+        return resolved["DATA_SOURCE_NAME"]
+    uri = resolved.get("DATA_SOURCE_URI", "")
+    if not uri:
+        return ""  # GetDataSources() ⇒ [] ⇒ pg_up 0 دائماً
+    assert resolved.get("DATA_SOURCE_PASS"), "URI بلا كلمة سرّ ⇒ رفضُ مصادقة ⇒ pg_up 0"
+    return f"postgresql://{resolved.get('DATA_SOURCE_USER', '')}:***@{uri}"
+
+
+def test_pg_exporter_source_is_never_empty_by_default():
+    services = _compose_services()
+    exporter = services["sahool-pg-exporter"]["environment"]
+    postgres = services["sahool-postgres"]["environment"]
+    # كما يوصي المستودع: `cp .env.example .env` — وفيه `POSTGRES_EXPORTER_DSN=` فارغ.
+    env = _env_example()
+    assert env.get("POSTGRES_EXPORTER_DSN", "") == "", "الافتراضُ المختبَر هو الفارغ"
+    dsn = _exporter_dsn(exporter, env)
+    assert dsn, "المُصدِّر بلا مصدرٍ افتراضيّ ⇒ pg_up 0 ⇒ PostgresDown كاذب دائماً"
+    host_port_db, _, query = dsn.rpartition("@")[2].partition("?")
+    host, _, rest = host_port_db.partition(":")
+    port, _, database = rest.partition("/")
+    assert host == "sahool-postgres" and host in services
+    assert (port, database) == ("5432", postgres["POSTGRES_DB"])
+    # `lib/pq` يعدّ sslmode الفارغ `require`، وpostgis هنا بلا TLS ⇒ رفضٌ ⇒ pg_up 0 (مقيس).
+    assert "sslmode=disable" in query
+    user = dsn.split("//", 1)[1].split(":", 1)[0]
+    assert user != postgres["POSTGRES_USER"], "المراقبة لا تتّصل بدور المالك/الخارق"
+    assert user == env.get("APP_DB_ROLE", "sahool_app")
+    # الدورُ يُنشئه الترحيل؛ قبله يُرفَض الاتّصال فيقرأ pg_up صفراً كاذباً عند الإقلاع.
+    depends = services["sahool-pg-exporter"]["depends_on"]
+    assert depends["sahool-migrate"]["condition"] == "service_completed_successfully"
+
+
+def test_pg_exporter_explicit_dsn_override_still_wins():
+    exporter = _compose_services()["sahool-pg-exporter"]["environment"]
+    override = "postgresql://sahool_monitor:x@db:5432/sahool?sslmode=verify-full"
+    env = {**_env_example(), "POSTGRES_EXPORTER_DSN": override}
+    assert _exporter_dsn(exporter, env) == override
+
+
+def test_postgres_down_alert_still_keys_on_pg_up():
+    """الإصلاح يُزيل الإنذار الكاذب لا الحقيقيّ: القاعدة باقيةٌ على `pg_up == 0`."""
+    rules = [
+        rule
+        for group in yaml.safe_load(ALERTS.read_text(encoding="utf-8"))["groups"]
+        for rule in group.get("rules", [])
+    ]
+    down = [rule for rule in rules if rule.get("alert") == "PostgresDown"]
+    assert down and down[0]["expr"].strip() == "pg_up == 0"
+    assert down[0]["labels"]["severity"] == "critical"
