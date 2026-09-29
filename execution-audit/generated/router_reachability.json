@@ -82,7 +82,7 @@
     },
     {
       "kind": "app",
-      "line": 87,
+      "line": 85,
       "module": "services.ai_agronomist.main",
       "node_id": "services.ai_agronomist.main:app",
       "route_count": 13,
@@ -2206,7 +2206,7 @@
     },
     {
       "kind": "router",
-      "line": 22,
+      "line": 24,
       "module": "services.soil-service.routers.soil_profile",
       "node_id": "services.soil-service.routers.soil_profile:router",
       "route_count": 2,
@@ -2631,7 +2631,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "ec6dfd38e8448abfa0c87813bf8a163133a504e68499e6545f422668f535f0dd",
+  "inventory_sha256": "f996f4fe04666152dfb5e90759f2f226b79ce346094692d6e0fe81d55e94fcae",
   "orphan_candidate_count": 227,
   "orphan_candidates": [
     {
@@ -4777,7 +4777,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 22,
+      "line": 24,
       "module": "services.soil-service.routers.soil_profile",
       "node_id": "services.soil-service.routers.soil_profile:router",
       "route_count": 2,

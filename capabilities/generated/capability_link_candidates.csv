@@ -84,7 +84,7 @@ DEC-003,api,POST /api/v1/learning/activation-requests/{activation_request_id}/re
 DEC-003,api,POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:633,2,applied
 DEC-003,api,POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:684,2,applied
 DEC-003,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:523,2,applied
-DEC-003,api,POST /v1/approvals/approve @ services/ai_agronomist/main.py:254,2,applied
+DEC-003,api,POST /v1/approvals/approve @ services/ai_agronomist/main.py:252,2,applied
 DEC-003,api,POST /v1/approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:42,2,applied
 DEC-003,api,POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:721,3,applied
 DEC-003,api,POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2143,3,applied
@@ -1343,7 +1343,7 @@ PA-002,api,GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export 
 PA-002,api,POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:216,2,applied
 PA-002,api,POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:735,2,applied
 PA-002,api,POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1050,2,applied
-PA-002,api,POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:398,2,applied
+PA-002,api,POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:396,2,applied
 PA-002,service,services/vegetation-analysis-service/main.py,10,applied
 PA-002,test,tests_v9/test_canonical_vri_prescription.py,3,applied
 PA-002,test,tests_v9/test_fii_prescription_season_context_guard.py,3,applied
@@ -1860,8 +1860,8 @@ SEC-008,test,tests_v9/test_secret_enforcement_guard_v21.py,3,applied
 SEC-008,test,tests_v9/test_secret_guard.py,3,applied
 SEC-008,test,tests_v9/test_services_rs256_production_guard.py,3,applied
 SEC-008,test,tests_v9/test_tile_mask_fail_closed_v29_8.py,3,applied
-SOIL-001,api,GET /v1/soil/soilgrids @ services/soil-service/routers/soil_profile.py:58,5,applied
-SOIL-001,api,POST /v1/soil/suitability @ services/soil-service/routers/soil_profile.py:47,5,applied
+SOIL-001,api,GET /v1/soil/soilgrids @ services/soil-service/routers/soil_profile.py:60,5,applied
+SOIL-001,api,POST /v1/soil/suitability @ services/soil-service/routers/soil_profile.py:49,5,applied
 SOIL-001,service,services/soil-service/main.py,10,applied
 SOIL-001,test,services/decision-service/tests/test_soil_profile_context_gate.py,5,applied
 SOIL-001,test,services/soil-service/test_canonical_soil_profile.py,5,applied

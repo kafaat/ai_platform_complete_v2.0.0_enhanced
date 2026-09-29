@@ -38,12 +38,10 @@ KNOWLEDGE_GRAPH_URL = os.getenv("KNOWLEDGE_GRAPH_URL", "http://sahool-knowledge-
 GUARDRAILS_URL = os.getenv("GUARDRAILS_URL", "http://sahool-guardrails-engine:8000")
 
 
-# كم مرّةً يُعاد فحصُ التوليد بعد فشلِ الإقلاع، وبأيّ مُهَل (ثوانٍ). قابلةٌ للضبط كي
-# تُختبَر بلا انتظارٍ حقيقيّ.
-_GENERATION_RETRY_DELAYS: tuple[float, ...] = tuple(
-    float(part)
-    for part in os.getenv("AI_GENERATION_PRELOAD_RETRY_DELAYS", "15,60,300").split(",")
-    if part.strip()
+# جدولُ إعادة فحص التوليد بعد فشل الإقلاع. يُقرَأ ويُتحقَّق منه في `ai_generation`
+# (منتهٍ · غيرُ سالب · وإلّا الافتراض) كي لا يُعيد `inf` الإيصالَ العالقَ نفسَه.
+_GENERATION_RETRY_DELAYS: tuple[float, ...] = ai_generation.parse_preload_retry_delays(
+    os.getenv("AI_GENERATION_PRELOAD_RETRY_DELAYS")
 )
 
 
@@ -56,23 +54,23 @@ async def lifespan(app):
         **مرّةً واحدةً** عند الإقلاع. وإقلاعُ الخدمة يسابق إقلاعَ Ollama، فيقع
         `ConnectError` فيُخزَّن `{"status": "failed"}` ويبقى كذلك **إلى الأبد** —
         فيُبلِّغ `/readyz` عن فشلِ توليدٍ بينما نداءاتُ النموذج الحيّةُ تنجح.
-        إيصالُ لحظةٍ واحدةٍ قُدِّم بوصفه حالةً راهنة.
 
-        فصار الفشلُ يُعاد فحصُه بمُهَلٍ متصاعدة. والنجاحُ يُوقِف الإعادة، وأيُّ حالةٍ
-        غيرِ `failed` (مثل `not_requested`) ليست فشلاً فلا تُعاد.
+        الحلقةُ نفسُها في `ai_generation.preload_with_retry` — مُستخرَجةٌ ومحقونةُ
+        التبعيّات كي يُختبَر **ما تُشغّله الخدمة** لا نسخةٌ منه.
 
         **حدُّ صدقٍ مُعلَن:** هذا يُصلِح إيصالاً **عالقاً على فشلٍ قديم**. ولا يجعل
-        الإيصالَ مراقبةً مستمرّة: نجاحٌ مُسجَّلٌ يبقى مُسجَّلاً وإن سقط النموذجُ بعده،
-        وذاك سؤالُ فحصٍ حيٍّ لا سؤالُ إيصالِ إقلاع.
+        الإيصالَ مراقبةً مستمرّة: نجاحٌ مُسجَّلٌ يبقى مُسجَّلاً وإن سقط النموذجُ بعده.
         """
-        receipt = await ai_generation.preload_local_generation()
-        app.state.generation_startup = receipt
-        for delay in _GENERATION_RETRY_DELAYS:
-            if receipt.get("status") != "failed":
-                return
-            await asyncio.sleep(delay)
-            receipt = await ai_generation.preload_local_generation()
+
+        def record(receipt: dict) -> None:
             app.state.generation_startup = receipt
+
+        await ai_generation.preload_with_retry(
+            ai_generation.preload_local_generation,
+            delays=_GENERATION_RETRY_DELAYS,
+            sleep=asyncio.sleep,
+            on_receipt=record,
+        )
 
     app.state.generation_startup = {"status": "pending"}
     task = asyncio.create_task(preload())

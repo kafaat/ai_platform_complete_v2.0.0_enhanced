@@ -28018,11 +28018,11 @@
       ],
       "routes": [
         {
-          "value": "/v1/soil/soilgrids @ services/soil-service/routers/soil_profile.py:57",
+          "value": "/v1/soil/soilgrids @ services/soil-service/routers/soil_profile.py:59",
           "score": 22
         },
         {
-          "value": "/v1/soil/suitability @ services/soil-service/routers/soil_profile.py:46",
+          "value": "/v1/soil/suitability @ services/soil-service/routers/soil_profile.py:48",
           "score": 22
         },
         {

@@ -13,6 +13,8 @@
 
 from __future__ import annotations
 
+import asyncio
+
 import main
 import soil_science
 import soilgrids_client
@@ -62,7 +64,11 @@ async def soil_from_soilgrids(
 ):
     """خصائص تربة SoilGrids لإحداثيّة + تفسيرها (قوام + ملاءمة). fail-soft صادق."""
     main._require_service_token(x_agent_token)
-    data = soilgrids_client.fetch_soil_properties(lon, lat)
+    # الجلبُ متزامن (`httpx.Client`) والمسارُ غيرُ متزامن. نداؤه مباشرةً يحجز حلقةَ
+    # الأحداث طوالَ المهلة — وهي الآن حتّى 60 ثانية بعد رفعها لتتجاوز زمنَ ISRIC
+    # المقيس. فبعاملَي Uvicorn يكفي طلبان بطيئان لتجويع /healthz و/readyz دقيقةً
+    # كاملة (رصدَه مراجعُ #1093). فيُنقَل الجلبُ إلى خيطٍ ولا تُحجَز الحلقة.
+    data = await asyncio.to_thread(soilgrids_client.fetch_soil_properties, lon, lat)
     if data is None:
         # صدق: لم نحصل على بيانات (تعذّر وصول/تغطية) — لا نخترع قيمة.
         raise HTTPException(

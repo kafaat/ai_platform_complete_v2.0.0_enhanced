@@ -21,8 +21,10 @@
 
 from __future__ import annotations
 
+import ast
 import asyncio
 import importlib.util
+import types
 from pathlib import Path
 
 import pytest
@@ -73,76 +75,160 @@ def test_the_environment_still_overrides_the_default(monkeypatch: pytest.MonkeyP
 
 
 # ── ٢) إيصالُ التوليد يُعاد فحصُه بعد الفشل ──────────────────────────────────────
+#
+# **تصحيحٌ بعد مراجعة #1093:** كانت الصيغةُ الأولى تختبر **نسخةً محلّيّةً** من حلقة
+# الإعادة في هذا الملفّ، مع فحصٍ نصّيٍّ يُثبّت رمزَين. فتبقى خضراءَ ولو كفّت الخدمةُ
+# عن الإعادة أو عن الكتابة في ``app.state`` — الصنفُ نفسُه الذي أُغلِق في #1092.
+# صارت الحلقةُ ``ai_generation.preload_with_retry`` محقونةَ التبعيّات، و``lifespan``
+# تُناديها، وهذه الاختبارات تُشغّلها **هي** — وأحدُها يُشغّل ``lifespan`` الحقيقيّة.
+
+from services.ai_agronomist import ai_generation as G  # noqa: E402
 
 
-class _State:
-    """بديلٌ عن ``app.state`` — يحمل السمةَ التي تكتبها ``preload`` وتقرؤها ``/readyz``."""
+class _Probe:
+    """فاحصٌ مُبرمَج: يُعيد الإيصالاتِ بالترتيب ويعدّ النداءات."""
+
+    def __init__(self, receipts: list[dict]) -> None:
+        self._receipts = list(receipts)
+        self.calls = 0
+
+    async def __call__(self) -> dict:
+        self.calls += 1
+        return self._receipts.pop(0)
 
 
-async def _drive_preload(receipts: list[dict], delays: tuple[float, ...]) -> _State:
-    """يُشغّل حلقةَ الإقلاع نفسَها بمُهَلٍ صفريّة، ويُعيد الحالةَ الأخيرة.
+def _run_helper(receipts: list[dict], delays: tuple[float, ...]):
+    probe = _Probe(receipts)
+    slept: list[float] = []
+    recorded: list[dict] = []
 
-    الحلقةُ تُستنسَخ هنا بدل استيراد ``main`` كاملاً، لأنّ استيرادَه يسحب FastAPI
-    والمخازنَ وكلَّ التبعيّات. والمنطقُ المُختبَر واحدٌ حرفاً: نادِ، خزّن، وإن كانت
-    الحالةُ ``failed`` أعِد بعد مهلة.
+    async def fake_sleep(seconds: float) -> None:
+        slept.append(seconds)
+
+    final = asyncio.run(
+        G.preload_with_retry(probe, delays=delays, sleep=fake_sleep, on_receipt=recorded.append)
+    )
+    return final, probe, slept, recorded
+
+
+def test_the_production_helper_reprobes_a_boot_failure_until_it_succeeds() -> None:
+    failed = {"status": "failed", "reason": "ConnectError", "model": "m"}
+    done = {"status": "completed", "model": "m"}
+    final, probe, slept, recorded = _run_helper([failed, done], delays=(15.0, 60.0))
+    assert final == done
+    assert probe.calls == 2
+    assert slept == [15.0], "نامت بمُهلةٍ غيرِ المُجدولة أو لم تنم"
+    assert recorded == [failed, done], "كلُّ إيصالٍ يجب أن يُكتَب فور وصوله"
+
+
+def test_the_production_helper_never_reprobes_a_non_failure() -> None:
+    final, probe, slept, recorded = _run_helper([{"status": "not_requested"}], delays=(15.0,))
+    assert final == {"status": "not_requested"}
+    assert probe.calls == 1 and slept == []
+    assert recorded == [{"status": "not_requested"}]
+
+
+def test_the_production_helper_is_bounded_and_reports_the_last_measured_failure() -> None:
+    failed = {"status": "failed", "reason": "ConnectError", "model": "m"}
+    final, probe, slept, _ = _run_helper([failed, failed, failed], delays=(1.0, 2.0))
+    assert final["status"] == "failed"
+    assert probe.calls == 3, "الإعادةُ يجب أن تتوقّف عند نهاية الجدول"
+    assert slept == [1.0, 2.0], "المُهَلُ يجب أن تُحترَم بترتيبها"
+
+
+def test_the_real_lifespan_writes_the_retried_receipt_into_app_state(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """الشاهدُ الذي كان ناقصاً: ``lifespan`` الحقيقيّة، لا نسخةٌ منها.
+
+    لو كفّت ``preload`` عن مناداة المساعِد، أو عن الإعادة، أو عن الكتابة في
+    ``app.state``، لبقي الإيصالُ ``failed`` أو ``pending`` وحمرَّ هذا الاختبار.
     """
-    state = _State()
-    calls = iter(receipts)
+    pytest.importorskip("fastapi")
+    from services.ai_agronomist import main as M
 
-    async def probe() -> dict:
-        return next(calls)
-
-    receipt = await probe()
-    state.generation_startup = receipt
-    for _ in delays:
-        if receipt.get("status") != "failed":
-            return state
-        await asyncio.sleep(0)
-        receipt = await probe()
-        state.generation_startup = receipt
-    return state
-
-
-def test_a_boot_time_generation_failure_is_reprobed_not_frozen() -> None:
-    """فشلُ الإقلاع يُعاد فحصُه، فيلحق الإيصالُ بالنموذج حين يصعد."""
-    state = asyncio.run(
-        _drive_preload(
-            [
-                {"status": "failed", "reason": "ConnectError", "model": "llama3.2:3b"},
-                {"status": "completed", "model": "llama3.2:3b"},
-            ],
-            delays=(0.0, 0.0),
-        )
+    probe = _Probe(
+        [
+            {"status": "failed", "reason": "ConnectError", "model": "m"},
+            {"status": "completed", "model": "m"},
+        ]
     )
-    assert state.generation_startup["status"] == "completed"
+    monkeypatch.setattr(M.ai_generation, "preload_local_generation", probe)
+    monkeypatch.setattr(M, "_GENERATION_RETRY_DELAYS", (0.0,))
+
+    async def scenario() -> dict:
+        app = types.SimpleNamespace(state=types.SimpleNamespace())
+        async with M.lifespan(app):
+            for _ in range(400):
+                if getattr(app.state, "generation_startup", {}).get("status") == "completed":
+                    break
+                await asyncio.sleep(0.005)
+            return dict(app.state.generation_startup)
+
+    receipt = asyncio.run(scenario())
+    assert receipt == {"status": "completed", "model": "m"}
+    assert probe.calls == 2
 
 
-def test_a_non_failure_receipt_is_never_reprobed() -> None:
-    """``not_requested`` ليست فشلاً — فإعادةُ فحصِها ضجيجٌ لا إصلاح."""
-    state = asyncio.run(
-        _drive_preload(
-            [{"status": "not_requested"}],  # نداءٌ ثانٍ يرفع StopIteration لو وقع
-            delays=(0.0, 0.0),
-        )
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        pytest.param(None, G.DEFAULT_PRELOAD_RETRY_DELAYS, id="غائب ⇒ الافتراض"),
+        pytest.param("  ", G.DEFAULT_PRELOAD_RETRY_DELAYS, id="فارغ ⇒ الافتراض"),
+        pytest.param("1, 2.5,0", (1.0, 2.5, 0.0), id="صالح ⇒ كما هو"),
+        pytest.param("15,inf", G.DEFAULT_PRELOAD_RETRY_DELAYS, id="inf ⇒ كان سيُعيد الإيصالَ العالق"),
+        pytest.param("nan", G.DEFAULT_PRELOAD_RETRY_DELAYS, id="nan"),
+        pytest.param("15,-1", G.DEFAULT_PRELOAD_RETRY_DELAYS, id="سالب"),
+        pytest.param("15,abc", G.DEFAULT_PRELOAD_RETRY_DELAYS, id="غيرُ رقميّ ⇒ لا يُسقِط الاستيراد"),
+    ],
+)
+def test_the_retry_schedule_parser_rejects_what_would_recreate_the_fault(raw, expected) -> None:
+    assert G.parse_preload_retry_delays(raw) == expected
+
+
+# ── ٣) الجلبُ المتزامن لا يحجز حلقةَ أحداثِ المسار غيرِ المتزامن ─────────────────────
+#
+# رفعُ المهلة إلى 60 جعل نداءً متزامناً داخل مسارٍ ``async`` يحجز حلقةَ الأحداث دقيقةً
+# كاملة — فبعاملَي Uvicorn يكفي طلبان بطيئان لتجويع /healthz (رصده مراجعُ #1093).
+#
+# **حدُّ هذا الشاهد، صراحةً:** يفحص **بنيةَ الشيفرة الحقيقيّة** (AST) لا سلوكَها وقتَ
+# التشغيل. فتحميلُ الموجِّه يستورد ``main`` الخاصّ بـsoil-service، وهو يتصادم مع
+# وحدات ``main`` لخدماتٍ أخرى في جلسة pytest واحدة. والفحصُ البنيويُّ على الملفّ
+# الحقيقيّ ليس نسخةً منه، لكنّه لا يُثبِت أنّ الخيطَ يعمل — يُثبِت أنّ النداءَ المباشرَ
+# لم يَعُد.
+
+_SOIL_ROUTER = ROOT / "services/soil-service/routers/soil_profile.py"
+_BLOCKING_FETCH = "fetch_soil_properties"
+
+
+def _direct_blocking_calls_inside_async_defs(source: str) -> list[str]:
+    """كلُّ نداءٍ **مباشر** للجلب المتزامن داخل ``async def`` — والتمريرُ لـ``to_thread`` ليس نداءً."""
+    found: list[str] = []
+    for node in ast.walk(ast.parse(source)):
+        if not isinstance(node, ast.AsyncFunctionDef):
+            continue
+        for inner in ast.walk(node):
+            if not isinstance(inner, ast.Call):
+                continue
+            func = inner.func
+            name = func.attr if isinstance(func, ast.Attribute) else getattr(func, "id", None)
+            if name == _BLOCKING_FETCH:
+                found.append(f"{node.name}:{inner.lineno}")
+    return found
+
+
+def test_no_async_route_calls_the_blocking_soil_fetch_directly() -> None:
+    offenders = _direct_blocking_calls_inside_async_defs(_SOIL_ROUTER.read_text(encoding="utf-8"))
+    assert offenders == [], f"جلبٌ متزامنٌ يُنادى مباشرةً داخل مسارٍ غيرِ متزامن: {offenders}"
+
+
+def test_the_detector_flags_a_direct_call_and_accepts_the_thread_offload() -> None:
+    """تكذيبٌ للكاشف نفسِه — كي لا تكون خضرةُ الشجرة شهادةً على كاشفٍ لا يرى."""
+    direct = "async def r():\n    data = soilgrids_client.fetch_soil_properties(1, 2)\n"
+    offloaded = (
+        "import asyncio\n"
+        "async def r():\n"
+        "    data = await asyncio.to_thread(soilgrids_client.fetch_soil_properties, 1, 2)\n"
     )
-    assert state.generation_startup["status"] == "not_requested"
-
-
-def test_the_retry_budget_is_bounded_and_the_last_failure_is_what_is_reported() -> None:
-    """الإعادةُ محدودة؛ ولو بقي الفشلَ فالمُبلَّغ آخرُ فشلٍ مقيس لا تفاؤل."""
-    failure = {"status": "failed", "reason": "ConnectError", "model": "llama3.2:3b"}
-    state = asyncio.run(_drive_preload([failure, failure, failure], delays=(0.0, 0.0)))
-    assert state.generation_startup["status"] == "failed"
-
-
-def test_the_service_declares_a_retry_schedule_at_all() -> None:
-    """وأنّ الجدولَ موجودٌ في المصدر — لا في هذا الاختبار وحدَه.
-
-    بلا هذا يبقى الشاهدُ أعلاه يفحص نسخةً محلّيّةً من الحلقة بينما الخدمةُ لا تُعيد
-    المحاولةَ أصلاً — أي يُثبِت نفسَه لا الشجرة.
-    """
-    source = (ROOT / "services/ai_agronomist/main.py").read_text(encoding="utf-8")
-    assert "_GENERATION_RETRY_DELAYS" in source, "لا جدولَ إعادةٍ في الخدمة"
-    assert 'receipt.get("status") != "failed"' in source, (
-        "الخدمةُ لا تُنهي الإعادةَ على غير الفشل — أو لا تُعيد أصلاً"
-    )
+    assert _direct_blocking_calls_inside_async_defs(direct) == ["r:2"]
+    assert _direct_blocking_calls_inside_async_defs(offloaded) == []

@@ -2467,8 +2467,8 @@
         "services/soil-service/main.py"
       ],
       "apis": [
-        "GET /v1/soil/soilgrids @ services/soil-service/routers/soil_profile.py:58",
-        "POST /v1/soil/suitability @ services/soil-service/routers/soil_profile.py:47"
+        "GET /v1/soil/soilgrids @ services/soil-service/routers/soil_profile.py:60",
+        "POST /v1/soil/suitability @ services/soil-service/routers/soil_profile.py:49"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -3447,7 +3447,7 @@
         "POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:216",
         "POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:735",
         "POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1050",
-        "POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:398"
+        "POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:396"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -4382,7 +4382,7 @@
         "POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:633",
         "POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:684",
         "POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:523",
-        "POST /v1/approvals/approve @ services/ai_agronomist/main.py:254",
+        "POST /v1/approvals/approve @ services/ai_agronomist/main.py:252",
         "POST /v1/approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:42",
         "POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:721",
         "POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2143",
