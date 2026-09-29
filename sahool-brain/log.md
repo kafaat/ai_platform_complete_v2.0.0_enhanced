@@ -8800,3 +8800,23 @@ Railway بنى `sahool-soil-service` من `ede0d4e` تلقائيّاً (أنما
 الدماغ وحده». وهو محقّ: ادّعاءُ `verified` يحتاج دليلاً **خارج** قاعدة المعرفة، ولم أُشغّل هذا الحارسَ
 محلّيّاً (شغّلتُ `no_report_only_change_guard` فقط، وهما خطوتان في المهمّة نفسِها). أُضيف الدليلُ
 الخامُ `certification/evidence/soilgrids_live_railway_staging_20260929.json` على نمط `bcd8_…` و`wc005_…`.
+
+## [2026-09-29] railway | RW-D05: قياسُ صحّة وجاهزيّة وهويّة الخدمات الثلاث عشرة على staging
+
+أوّلُ قياسٍ حيٍّ لبند `RW-D05` في خطّة الوصول (كان محجوباً «لا أداةَ طلبٍ داخليّة»). فحصٌ
+مؤقّت (preDeploy على الزراعيّ، ثمّ أُزيل) أرسل 39 طلب GET عبر الشبكة الخاصّة عند 18:53Z.
+الدليلُ الخام: `certification/evidence/rw_d05_readiness_railway_staging_20260929.json`.
+
+- `/healthz`: **13/13** `200` · `/readyz`: **12/13** `ready` · صفرُ أخطاء نقل.
+- الوحيدُ غيرُ الجاهز: **ai-agronomist** `503 not_ready` — `guardrails=true`، `rag=false`،
+  `knowledge_graph=false`. الخدمةُ تُبلِّغ عن اعتماديّةٍ غائبةٍ حقّاً (لا نشرَ لهما على Railway)،
+  لا عيبٌ فيها. وبهذا صارت جاهزيّتُها **مقيسةً** لا «غيرَ مقيسة».
+- `/runtime-identity`: 7 `200` · decision `401` (يشترط مصادقة) · خمسٌ `404` لأنّ شيفرتَها لا
+  تُعرِّف المسار (vegetation · tts · field-management · notification · ai-agronomist).
+- الهويّاتُ متباينة: platform `eb6da9df` (فرع `deploy/`، قرارُ نقله مؤجَّلٌ للمالك) · auth `52deac58`
+  · guardrails `2a8903ab` · raster ×2 `eff473aa` · soil `ede0d4e`. أنماطُ المراقبة تبني الخدمةَ حين
+  تتغيّر مساراتُها فقط.
+
+**أثرٌ جانبيّ مُعلَن:** إطلاقُ الفحص احتاج نشراً؛ وضبطُ متغيّرٍ بقيمته نفسِها يعود `SKIPPED`، فغُيِّر
+`PYTHONUNBUFFERED` على الزراعيّ من `1` إلى `true` (مكافئٌ لبايثون). لا متغيّرَ أُضيف.
+**لم يُغطَّ:** SQL (RW-D02) · NATS (RW-D01) · تطابقُ مفتاح JWT (RW-D03) · رحلاتُ مستخدمٍ مصادَقة.

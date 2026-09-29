@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "rw-d05-readiness-railway-staging-20260929",
+  "verdict": "MEASURED",
+  "scope": "live_railway_staging_health_readiness_identity_sweep",
+  "access_plan_item": "RW-D05 / Phase 0 — fresh readiness and identity checks",
+  "source": {
+    "repository": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+    "main_head_at_measurement": "a4e75498fbb82ad6054c57799e76160db92680c8"
+  },
+  "environment": {
+    "platform": "railway",
+    "project_id": "33c50993-1110-43eb-8e92-04c15edae51e",
+    "environment_name": "staging",
+    "environment_id": "70cc51f8-b11f-4506-87b2-4b6615e472be"
+  },
+  "method": {
+    "probe_host": "sahool-ai-agronomist preDeploy command (staging-only, removed after the run)",
+    "probe_deployment_id": "2e12c92f-0e79-4055-ac64-750dcbb45109",
+    "measured_at_utc": "2026-09-29T18:53:00Z",
+    "network_path": "railway private network, http://<service>.railway.internal:<port>",
+    "requests": "GET only; 6 s timeout; three paths per service",
+    "recorded_fields": "HTTP status, body status word, runtime identity fields, ai-agronomist dependency flags; no other body content",
+    "note_on_identity_field": "runtime-identity 'service' is the value the answering process reports about itself, not the probed hostname"
+  },
+  "services": [
+    {"host": "sahool-platform", "port": 8000, "healthz": 200, "readyz": 200, "readyz_status": "ready", "runtime_identity": 200, "identity": {"service": "sahool-platform", "git_sha": "eb6da9df07653c3e28c84328d581f9bf7e73531f", "build_id": "railway-staging-eb6da9df"}},
+    {"host": "sahool-auth-main", "port": 8000, "healthz": 200, "readyz": 200, "readyz_status": "ready", "runtime_identity": 200, "identity": {"service": "auth-service", "git_sha": "52deac58088406be76b04a5216c2bddffb12cdcf", "build_id": "railway-52deac580884"}},
+    {"host": "sahool-guardrails-engine", "port": 8000, "healthz": 200, "readyz": 200, "readyz_status": "ready", "runtime_identity": 200, "identity": {"service": "guardrails-engine", "git_sha": "2a8903ab17ad474624c889ab0e2e815af8e23246", "build_id": "railway-2a8903ab17ad"}},
+    {"host": "sahool-decision-service", "port": 8160, "healthz": 200, "readyz": 200, "readyz_status": "ready", "runtime_identity": 401, "identity": null, "identity_note": "endpoint requires authentication; the probe sent none"},
+    {"host": "sahool-raster-service", "port": 8001, "healthz": 200, "readyz": 200, "readyz_status": "ready", "runtime_identity": 200, "identity": {"service": "raster-service", "git_sha": "eff473aaf232997112fd9f6739d0a216b603d94f", "build_id": "railway-eff473aaf232"}},
+    {"host": "sahool-raster-main-candidate", "port": 8001, "healthz": 200, "readyz": 200, "readyz_status": "ready", "runtime_identity": 200, "identity": {"service": "raster-service", "git_sha": "eff473aaf232997112fd9f6739d0a216b603d94f", "build_id": "railway-eff473aaf232"}},
+    {"host": "sahool-vegetation-analysis", "port": 8000, "healthz": 200, "readyz": 200, "readyz_status": "ready", "runtime_identity": 404, "identity": null, "identity_note": "the service source defines no /runtime-identity route"},
+    {"host": "sahool-tts-service", "port": 8000, "healthz": 200, "readyz": 200, "readyz_status": "ready", "runtime_identity": 404, "identity": null, "identity_note": "the service source defines no /runtime-identity route"},
+    {"host": "sahool-frontend", "port": 8080, "healthz": 200, "readyz": 200, "readyz_status": "ready", "runtime_identity": 200, "identity": {"service": "sahool-platform", "git_sha": "eb6da9df07653c3e28c84328d581f9bf7e73531f", "build_id": "railway-staging-eb6da9df"}, "identity_note": "answered by sahool-platform through the frontend proxy, not by the frontend build"},
+    {"host": "sahool-field-management-service", "port": 8000, "healthz": 200, "readyz": 200, "readyz_status": "ready", "runtime_identity": 404, "identity": null, "identity_note": "the service source defines no /runtime-identity route"},
+    {"host": "sahool-notification-agent", "port": 8123, "healthz": 200, "readyz": 200, "readyz_status": "ready", "runtime_identity": 404, "identity": null, "identity_note": "the service source defines no /runtime-identity route"},
+    {"host": "sahool-soil-service", "port": 8000, "healthz": 200, "readyz": 200, "readyz_status": "ready", "runtime_identity": 200, "identity": {"service": "soil-service", "git_sha": "ede0d4e1b726a113af736f962bf62acf5b855c5f", "build_id": "railway-ede0d4e1b726"}},
+    {"host": "sahool-ai-agronomist", "port": 8000, "healthz": 200, "readyz": 503, "readyz_status": "not_ready", "dependencies": {"guardrails": true, "knowledge_graph": false, "rag": false}, "runtime_identity": 404, "identity": null, "identity_note": "the service source defines no /runtime-identity route"}
+  ],
+  "summary": {
+    "services_probed": 13,
+    "requests": 39,
+    "healthz_200": 13,
+    "readyz_200": 12,
+    "readyz_503": ["sahool-ai-agronomist"],
+    "runtime_identity_200": 7,
+    "runtime_identity_401": ["sahool-decision-service"],
+    "runtime_identity_404": ["sahool-vegetation-analysis", "sahool-tts-service", "sahool-field-management-service", "sahool-notification-agent", "sahool-ai-agronomist"],
+    "transport_errors": 0
+  },
+  "findings": [
+    "ai-agronomist is alive but not ready: its readiness requires rag and knowledge_graph, and neither service exists in this Railway environment. This is the service reporting a real missing dependency, not a defect in the service.",
+    "sahool-platform runs eb6da9df from a deploy/ branch, not main. Its move to main is an owner decision that remains deferred.",
+    "Services run different source commits (eb6da9df, 52deac58, 2a8903ab, eff473aa, ede0d4e): watch patterns rebuild a service only when its own paths change."
+  ],
+  "boundaries": {
+    "runtime_claims": true,
+    "runtime_scope": "railway staging; one point in time; health and readiness endpoints only",
+    "not_covered": ["SQL post-migration checks (RW-D02)", "NATS handshake (RW-D01)", "JWT public-key parity (RW-D03)", "authenticated user journeys", "the ai-agronomist replacement deployment started by this probe (the measurement reached the deployment that was serving at 18:53Z)"],
+    "production_certification": "NOT_GRANTED",
+    "overall_runtime_acceptance": "NOT_ASSESSED",
+    "railway_configuration_changed_by_this_evidence": false,
+    "probe_side_effects": "The probe was a temporary preDeploy command on sahool-ai-agronomist, removed after the run. To trigger it, PYTHONUNBUFFERED on that service was changed from 1 to true, which Python treats identically; no variable was added."
+  }
+}
