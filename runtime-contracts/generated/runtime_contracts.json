@@ -2520,6 +2520,7 @@
         "total": 7
       },
       "configuration": [
+        "AGRIAI_ENGINE_URL",
         "BRAIN_DIRECT_SATELLITE_FETCH_ENABLED",
         "GUARDRAILS_URL",
         "JWT_PUBLIC_KEY",

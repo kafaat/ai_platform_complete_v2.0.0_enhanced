@@ -3138,12 +3138,12 @@ def test_three_pillars_integration():
     ).read()
     if "from api.event_upcasting import upcast" in rep and "upcast(e[" in rep:
         r.append(("\u2713", "replay: يطبّق الترقية عند إعادة البناء (المخزن append-only)"))
-    # 4. صدق RUE (لا ادّعاء WOFOST كامل)
+    # 4. صدق المحرّك (لا ادّعاء WOFOST كامل): المحاكاة في agriai والوسم منقول حرفيّاً
     cm = open(
         os.path.join(base, "services/supervisor-agent/skills/crop_model_skill.py"), encoding="utf-8"
     ).read()
-    if "RUE-Estimator" in cm and "ليس WOFOST يومي التكامل" in cm:
-        r.append(("\u2713", "صدق القلب: النموذج مُسمّى RUE-Estimator (لا WOFOST كامل)"))
+    if "deterministic_fallback" in cm and "ليس WOFOST" in cm and "provenance" in cm:
+        r.append(("\u2713", "صدق القلب: وسم المحرّك من agriai (البديل الحتميّ ليس WOFOST)"))
     return r
 
 
@@ -3200,12 +3200,12 @@ def test_governance_hardening():
     o2, _ = eu.upcast("chain.test", {"o": 1}, "1.0")
     if o1 == o2:
         r.append(("\u2713", "#4 upcast حتميّ + idempotent (حماية invariant إعادة التشغيل)"))
-    # #6 سلامة التسمية: أداة MCP لم تُكسَر، فقط type تغيّر
+    # #6 سلامة التوجيه: المحاكاة إلى مالكها agriai (أداة MCP run_wofost_simulation = 501 نهائيّ)
     cm = open(
         os.path.join(base, "services/supervisor-agent/skills/crop_model_skill.py"), encoding="utf-8"
     ).read()
-    if "run_wofost_simulation" in cm and "rue_yield_estimate" in cm:
-        r.append(("\u2713", "#6 سلامة: أداة MCP سليمة (run_wofost_simulation)، type صادق"))
+    if "/v1/simulate" in cm and "X-Agent-Token" in cm and "crop_simulation" in cm:
+        r.append(("\u2713", "#6 سلامة: المحاكاة تُوجَّه إلى agriai /v1/simulate، type صادق"))
     return r
 
 

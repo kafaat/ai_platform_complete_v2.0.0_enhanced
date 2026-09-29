@@ -106,7 +106,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 323,
+    "line": 330,
     "method": "POST",
     "path": "/v1/plan",
     "function": "plan"
@@ -114,7 +114,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 339,
+    "line": 346,
     "method": "POST",
     "path": "/v1/replay/verify",
     "function": "replay_verify"
@@ -1674,7 +1674,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/wofost_server.py",
-    "line": 316,
+    "line": 319,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -1682,7 +1682,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/wofost_server.py",
-    "line": 316,
+    "line": 319,
     "method": "GET",
     "path": "/health",
     "function": "healthz"
@@ -1690,7 +1690,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/wofost_server.py",
-    "line": 321,
+    "line": 324,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -8346,7 +8346,7 @@
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 178,
+    "line": 183,
     "method": "GET",
     "path": "/v1/agent/tools",
     "function": "list_tools"
@@ -8354,7 +8354,7 @@
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 200,
+    "line": 205,
     "method": "GET",
     "path": "/v1/agent/journal/{invocation_id}",
     "function": "get_journal_replay"
@@ -8362,7 +8362,7 @@
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 224,
+    "line": 229,
     "method": "GET",
     "path": "/v1/agent/actuator-audit",
     "function": "get_actuator_audit"

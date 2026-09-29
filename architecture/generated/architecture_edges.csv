@@ -274,6 +274,7 @@ sahool-weather-service,sahool-redis,compose-depends-on,docker-compose.v9.yml
 sahool-weather-signal-engine,sahool-migrate,compose-depends-on,docker-compose.v9.yml
 sahool-weather-signal-engine,sahool-postgres,compose-depends-on,docker-compose.v9.yml
 sahool-zlmediakit,sahool-zlmediakit-config,compose-depends-on,docker-compose.v9.yml
+supervisor-agent,agriai-engine,code-reference,services/supervisor-agent/skills/crop_model_skill.py
 supervisor-agent,guardrails,code-reference,services/supervisor-agent/main.py
 supervisor-agent,guardrails,compose-depends-on,docker-compose.light.yml
 supervisor-agent,guardrails,compose-depends-on,docker-compose.unified.yml

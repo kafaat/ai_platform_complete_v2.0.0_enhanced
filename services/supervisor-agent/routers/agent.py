@@ -139,6 +139,11 @@ async def optimize_farm(query: main.AgentQuery, user: dict = Depends(main._get_c
             rs_result, cm_result, mk_result = await asyncio.gather(rs_task, cm_task, mk_task)
     except (CircuitOpenError, MCPError, httpx.HTTPError, TimeoutError) as exc:
         return main._degraded_response(start_time, "optimization", classify_mcp_error(exc))
+    if cm_result.get("type") != "crop_simulation":
+        # _generate_scenarios يملأ الغائب بثوابت (yield=2000، water=400): محاكاة غير متاحة
+        # (بلا محصول/طقس، أو فشل agriai المُغلَق) تُصبح سيناريوهات مُختلَقة. تدهور صريح بدلها.
+        reason = (cm_result.get("structured") or {}).get("reason") or "crop_model_unavailable"
+        return main._degraded_response(start_time, "optimization", reason)
     scenarios = main._generate_scenarios(rs_result, cm_result, mk_result)
     pareto_front = main._pareto_optimal(scenarios, query.preferred_objectives)
     recommended = main._select_balanced(pareto_front, query.preferred_objectives)

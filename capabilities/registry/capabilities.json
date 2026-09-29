@@ -615,7 +615,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 17
+        "tests": 18
       }
     },
     {
@@ -3090,7 +3090,7 @@
         "GET /health @ services/actuator-service/routers/health.py:20",
         "GET /healthz @ services/actuator-service/routers/health.py:20",
         "GET /readyz @ services/actuator-service/routers/health.py:32",
-        "GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:224",
+        "GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:229",
         "GET /v1/commands @ services/actuator-service/routers/commands.py:74",
         "GET /v1/idempotency/metrics @ services/actuator-service/routers/metrics.py:18",
         "POST /api/v1/irrigation/valves @ services/sahool-platform/api/routers/irrigation.py:100",
@@ -5287,7 +5287,7 @@
       "apis": [
         "GET /api/v1/admin/security/denials @ services/sahool-platform/api/routers/security_audit.py:19",
         "GET /api/v1/calibration/{region}/audit @ services/sahool-platform/api/routers/calibration.py:636",
-        "GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:224"
+        "GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:229"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],

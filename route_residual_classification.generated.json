@@ -80,7 +80,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 323,
+      "line": 330,
       "method": "POST",
       "path": "/v1/plan",
       "function": "plan",
@@ -89,7 +89,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 339,
+      "line": 346,
       "method": "POST",
       "path": "/v1/replay/verify",
       "function": "replay_verify",

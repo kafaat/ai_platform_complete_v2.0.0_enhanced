@@ -1,6 +1,6 @@
 id,kind,incoming,outgoing,orphan,paths
 actuator-service,service,0,8,False,services/actuator-service
-agriai-engine,service,1,2,False,services/agriai-engine
+agriai-engine,service,2,2,False,services/agriai-engine
 ai-agronomist,service,0,5,False,services/ai_agronomist
 auth,service,0,3,False,services/auth
 auth-service,compose-service,5,4,False,
@@ -111,7 +111,7 @@ sam2-inference,service,0,0,True,services/sam2-inference
 scout-ingest-service,service,1,0,False,services/scout-ingest-service
 sentinel-hub-mcp,compose-service,2,0,False,
 soil-service,service,8,0,False,services/soil-service
-supervisor-agent,service,6,16,False,services/supervisor-agent
+supervisor-agent,service,6,17,False,services/supervisor-agent
 telegram-bot,compose-service,0,4,False,
 tts-service,service,0,1,False,services/tts-service
 vegetation-analysis-service,service,0,10,False,services/vegetation-analysis-service

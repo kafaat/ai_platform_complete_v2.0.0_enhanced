@@ -8556,6 +8556,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_supervisor_crop_model_agriai_routing.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_supervisor_skill_canonical_location_guard.py",
     "kind": "tests"
   },

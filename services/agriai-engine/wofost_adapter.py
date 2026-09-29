@@ -222,7 +222,9 @@ def _yield_uncertainty(
     prov = base_result.get("provenance")
     diag = base_result.get("diagnostics") or {}
 
-    is_pcse = prov == "pcse_wofost"
+    # ``_pcse_run`` يوسم ``pcse_wofost_uncalibrated`` لا ``pcse_wofost``: المساواة الحرفيّة كانت
+    # تُلصِق ``deterministic_fallback_model`` بمُخرَج PCSE حقيقيّ — وسمُ محرّكٍ كاذب في الموجِّهات.
+    is_pcse = str(prov or "").startswith("pcse_wofost")
     u = 0.12 if is_pcse else 0.25
     drivers: list[str] = [] if is_pcse else ["deterministic_fallback_model"]
 
@@ -240,7 +242,10 @@ def _yield_uncertainty(
     if not (isinstance(agromanagement, dict) and agromanagement.get("irrigation_mm") is not None):
         u += 0.03
         drivers.append("missing_irrigation_plan")
-    if not (isinstance(crop, dict) and crop):
+    # ``{"name": "wheat"}`` ليس معاملات: البديل يقرأ مفاتيح ``_CROP_DEFAULTS`` وحدها، فمحصولٌ
+    # مُسمّى بلا أيٍّ منها يُحسَب بالافتراضات نفسها ويجب أن يُسمّى كذلك (كان يُسقَط الموجِّه).
+    # مسار PCSE يأخذ معاملاته من YAMLCropDataProvider بالاسم، فلا ينطبق عليه.
+    if not is_pcse and not (isinstance(crop, dict) and any(k in crop for k in _CROP_DEFAULTS)):
         u += 0.05
         drivers.append("default_crop_params")
 
@@ -307,6 +312,17 @@ def _pcse_run(  # pragma: no cover - يتطلّب تبعيّة pcse الثقيل
       • ``WeatherDataProvider`` من السلسلة اليوميّة (لا dict مباشر).
       • ``AgroManagement`` (تقويم زراعيّ صحيح).
     المخرَج ``provenance="pcse_wofost_uncalibrated"`` (فعليّ لكن غير مُعايَر حتى SIM-GOLDEN).
+
+    **مقيس لا مُفترَض (2026-09-29، pcse 6.0.13، SIM_PCSE_ENABLED=1، عيّنة قمح ١٥٠ يوماً):
+    هذا المسار لا يعمل طرفاً لطرف بعد** — «ثبّت pcse وأشعل الراية» لا يكفي:
+      • ``YAMLCropDataProvider()`` بلا ``fpath`` يجلب ``crops.yaml`` من raw.githubusercontent.com
+        **وقت التشغيل** (ذاكرة ``~/.pcse`` تنتهي بعد ٧ أيّام) ⇒ بلا شبكة: ``PCSEError``.
+      • مع الشبكة يسقط عند ``Wofost72_WLP_FD(...)``: ``_build_agromanagement`` يُعيد dict الإدارة
+        خامّاً ⇒ ``AgroManager.initialize``: ``'str' object has no attribute 'keys'``.
+      • ``_build_weather_provider`` يُعيد **الصنف** ``WeatherDataProvider`` لا نسخة مملوءة، و``sitedata={}``
+        و``soil`` خامّ بلا معاملات WLP_FD — كلّها تنتظر الإكمال بعد تجاوز الأوّل.
+      • ``CTRAT`` في PCSE بالسنتيمتر بينما ``water_use`` في البديل بالملّيمتر — لم يُوحَّد.
+    لذلك تبقى ``SIM_PCSE_INTEGRATION_VERIFIED`` مطفأة و``pcse`` خارج requirements.
     """
     from pcse.base import ParameterProvider  # type: ignore
     from pcse.fileinput import YAMLCropDataProvider  # type: ignore

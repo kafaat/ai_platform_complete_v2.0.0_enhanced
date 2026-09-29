@@ -12,8 +12,8 @@ agriai-engine,services/agriai-engine/main.py,93,GET,/metrics,metrics,infra
 agriai-engine,services/agriai-engine/main.py,100,GET,/runtime-identity,runtime_evidence_identity,infra
 agriai-engine,services/agriai-engine/main.py,246,POST,/v1/recommend,recommend,versioned
 agriai-engine,services/agriai-engine/main.py,310,POST,/v1/simulate,simulate,versioned
-agriai-engine,services/agriai-engine/main.py,323,POST,/v1/plan,plan,versioned
-agriai-engine,services/agriai-engine/main.py,339,POST,/v1/replay/verify,replay_verify,versioned
+agriai-engine,services/agriai-engine/main.py,330,POST,/v1/plan,plan,versioned
+agriai-engine,services/agriai-engine/main.py,346,POST,/v1/replay/verify,replay_verify,versioned
 ai_agronomist,services/ai_agronomist/main.py,219,GET,/healthz,healthz,infra
 ai_agronomist,services/ai_agronomist/main.py,224,GET,/healthz/ai-provider,ai_provider_snapshot,infra
 ai_agronomist,services/ai_agronomist/main.py,232,GET,/v1/approvals/pending,list_pending_approvals,versioned
@@ -207,9 +207,9 @@ mcp_servers,services/mcp_servers/weather_server.py,368,GET,/health,healthz,infra
 mcp_servers,services/mcp_servers/weather_server.py,373,GET,/readyz,readyz,infra
 mcp_servers,services/mcp_servers/wofost_server.py,58,GET,/v1/mcp/tools,list_tools,versioned
 mcp_servers,services/mcp_servers/wofost_server.py,130,POST,/v1/mcp/tools/call,call_tool,versioned
-mcp_servers,services/mcp_servers/wofost_server.py,316,GET,/healthz,healthz,infra
-mcp_servers,services/mcp_servers/wofost_server.py,316,GET,/health,healthz,infra
-mcp_servers,services/mcp_servers/wofost_server.py,321,GET,/readyz,readyz,infra
+mcp_servers,services/mcp_servers/wofost_server.py,319,GET,/healthz,healthz,infra
+mcp_servers,services/mcp_servers/wofost_server.py,319,GET,/health,healthz,infra
+mcp_servers,services/mcp_servers/wofost_server.py,324,GET,/readyz,readyz,infra
 odoo-bridge,services/odoo-bridge/routers/catalog.py,17,GET,/v1/erp/provider,erp_provider_status,versioned
 odoo-bridge,services/odoo-bridge/routers/catalog.py,33,GET,/v1/config,get_config,versioned
 odoo-bridge,services/odoo-bridge/routers/catalog.py,50,GET,/v1/logs,get_logs,versioned
@@ -1034,9 +1034,9 @@ soil-service,services/soil-service/routers/soil_profile.py,65,POST,/v1/soil/suit
 soil-service,services/soil-service/routers/soil_profile.py,76,GET,/v1/soil/soilgrids,soil_from_soilgrids,versioned
 supervisor-agent,services/supervisor-agent/routers/agent.py,33,POST,/v1/agent/query,process_query,versioned
 supervisor-agent,services/supervisor-agent/routers/agent.py,120,POST,/v1/agent/optimize,optimize_farm,versioned
-supervisor-agent,services/supervisor-agent/routers/agent.py,178,GET,/v1/agent/tools,list_tools,versioned
-supervisor-agent,services/supervisor-agent/routers/agent.py,200,GET,/v1/agent/journal/{invocation_id},get_journal_replay,versioned
-supervisor-agent,services/supervisor-agent/routers/agent.py,224,GET,/v1/agent/actuator-audit,get_actuator_audit,versioned
+supervisor-agent,services/supervisor-agent/routers/agent.py,183,GET,/v1/agent/tools,list_tools,versioned
+supervisor-agent,services/supervisor-agent/routers/agent.py,205,GET,/v1/agent/journal/{invocation_id},get_journal_replay,versioned
+supervisor-agent,services/supervisor-agent/routers/agent.py,229,GET,/v1/agent/actuator-audit,get_actuator_audit,versioned
 supervisor-agent,services/supervisor-agent/routers/health.py,21,GET,/healthz,healthz,infra
 supervisor-agent,services/supervisor-agent/routers/health.py,21,GET,/health,healthz,infra
 supervisor-agent,services/supervisor-agent/routers/health.py,26,GET,/readyz,readyz,infra

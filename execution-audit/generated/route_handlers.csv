@@ -11,8 +11,8 @@ agriai-engine,GET,/metrics,metrics,services/agriai-engine/main.py,93
 agriai-engine,GET,/runtime-identity,runtime_evidence_identity,services/agriai-engine/main.py,100
 agriai-engine,POST,/v1/recommend,recommend,services/agriai-engine/main.py,246
 agriai-engine,POST,/v1/simulate,simulate,services/agriai-engine/main.py,310
-agriai-engine,POST,/v1/plan,plan,services/agriai-engine/main.py,323
-agriai-engine,POST,/v1/replay/verify,replay_verify,services/agriai-engine/main.py,339
+agriai-engine,POST,/v1/plan,plan,services/agriai-engine/main.py,330
+agriai-engine,POST,/v1/replay/verify,replay_verify,services/agriai-engine/main.py,346
 ai-agronomist,GET,/healthz,healthz,services/ai_agronomist/main.py,219
 ai-agronomist,GET,/healthz/ai-provider,ai_provider_snapshot,services/ai_agronomist/main.py,224
 ai-agronomist,GET,/v1/approvals/pending,list_pending_approvals,services/ai_agronomist/main.py,232
@@ -200,8 +200,8 @@ mcp-servers,GET,/healthz,healthz,services/mcp_servers/weather_server.py,368
 mcp-servers,GET,/readyz,readyz,services/mcp_servers/weather_server.py,373
 mcp-servers,GET,/v1/mcp/tools,list_tools,services/mcp_servers/wofost_server.py,58
 mcp-servers,POST,/v1/mcp/tools/call,call_tool,services/mcp_servers/wofost_server.py,130
-mcp-servers,GET,/healthz,healthz,services/mcp_servers/wofost_server.py,316
-mcp-servers,GET,/readyz,readyz,services/mcp_servers/wofost_server.py,321
+mcp-servers,GET,/healthz,healthz,services/mcp_servers/wofost_server.py,319
+mcp-servers,GET,/readyz,readyz,services/mcp_servers/wofost_server.py,324
 odoo-bridge,GET,/v1/erp/provider,erp_provider_status,services/odoo-bridge/routers/catalog.py,17
 odoo-bridge,GET,/v1/config,get_config,services/odoo-bridge/routers/catalog.py,33
 odoo-bridge,GET,/v1/logs,get_logs,services/odoo-bridge/routers/catalog.py,50
@@ -1009,9 +1009,9 @@ soil-service,POST,/v1/soil/suitability,soil_suitability,services/soil-service/ro
 soil-service,GET,/v1/soil/soilgrids,soil_from_soilgrids,services/soil-service/routers/soil_profile.py,76
 supervisor-agent,POST,/v1/agent/query,process_query,services/supervisor-agent/routers/agent.py,33
 supervisor-agent,POST,/v1/agent/optimize,optimize_farm,services/supervisor-agent/routers/agent.py,120
-supervisor-agent,GET,/v1/agent/tools,list_tools,services/supervisor-agent/routers/agent.py,178
-supervisor-agent,GET,/v1/agent/journal/{invocation_id},get_journal_replay,services/supervisor-agent/routers/agent.py,200
-supervisor-agent,GET,/v1/agent/actuator-audit,get_actuator_audit,services/supervisor-agent/routers/agent.py,224
+supervisor-agent,GET,/v1/agent/tools,list_tools,services/supervisor-agent/routers/agent.py,183
+supervisor-agent,GET,/v1/agent/journal/{invocation_id},get_journal_replay,services/supervisor-agent/routers/agent.py,205
+supervisor-agent,GET,/v1/agent/actuator-audit,get_actuator_audit,services/supervisor-agent/routers/agent.py,229
 supervisor-agent,GET,/healthz,healthz,services/supervisor-agent/routers/health.py,21
 supervisor-agent,GET,/readyz,readyz,services/supervisor-agent/routers/health.py,26
 supervisor-agent,GET,/metrics,metrics,services/supervisor-agent/routers/health.py,34

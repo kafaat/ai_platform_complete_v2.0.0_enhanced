@@ -17,7 +17,7 @@
         "services/agriai-engine"
       ],
       "kind": "service",
-      "incoming": 1,
+      "incoming": 2,
       "outgoing": 2,
       "orphan": false
     },
@@ -952,7 +952,7 @@
       ],
       "kind": "service",
       "incoming": 6,
-      "outgoing": 16,
+      "outgoing": 17,
       "orphan": false
     },
     {
@@ -2693,6 +2693,12 @@
     },
     {
       "source": "supervisor-agent",
+      "target": "agriai-engine",
+      "kind": "code-reference",
+      "evidence": "services/supervisor-agent/skills/crop_model_skill.py"
+    },
+    {
+      "source": "supervisor-agent",
       "target": "guardrails",
       "kind": "code-reference",
       "evidence": "services/supervisor-agent/main.py"
@@ -2935,11 +2941,11 @@
   "cycles": [],
   "summary": {
     "nodes": 122,
-    "edges": 315,
+    "edges": 316,
     "orphans": 5,
     "cycles": 0,
-    "code_edges": 78,
+    "code_edges": 79,
     "compose_edges": 237
   },
-  "content_sha256": "1abdae701f4c17fce1a6e296d8b8146225c8797dce072b55f0423f3c3363125c"
+  "content_sha256": "06e98a4aeed22610ebb1167e01e643cddebda7f91b637d8a3b9f07e9457a1478"
 }
