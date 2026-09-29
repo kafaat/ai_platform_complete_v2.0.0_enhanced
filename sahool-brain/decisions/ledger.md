@@ -3301,3 +3301,17 @@ Decision: preserve 033 checksum and add 034 restrictive guards, keeping the exis
 - Rationale: staging recovery exposed missing verifier material and the image's declared dependencies lacked the RSA backend. Environment configuration and image dependencies are separate acceptance gates.
 - Reference: `codex/railway-rs256-reviewed-20260928`, base `52deac58088406be76b04a5216c2bddffb12cdcf`; isolated image evidence will be attached to the repair PR.
 - Boundary: synthetic RSA/HS256 proofs are not live Railway acceptance; no database, NATS, private-key, or production changes. The v25 umbrella remains open.
+
+## 2026-09-29 — تدقيق v25 الحيّ: رفضُ توصية حقن `X-Agent-Token` لـguardrails (PR #1093)
+
+**القرار:** إصلاحُ بندَين يعيشان في الشيفرة (إيصالُ التوليد العالق · مهلةُ SoilGrids)،
+والتحقّقُ من أنّ #1 و#4 (agriai) و#6 مُصلَحةٌ سلفاً، و**رفضُ** توصية التدقيق بحقن
+التوكن في كتلة `/api/guardrails/`.
+
+**السبب:** الشجرةُ تحمل قراراً أمنيّاً مكتوباً في `nginx/nginx.v9.conf` عند الكتلة نفسِها:
+`/v1/validate` و`/v1/evaluate` خدميّتان ويجب أن تبقيا غيرَ منالتَين لعميلٍ عامّ.
+التدقيقُ قاس «غيرَ منالة» وعدَّه عطلاً؛ والشيفرةُ تقول إنّه المقصود. توصيةٌ تنظر من
+زاوية الوصول وحدَها لا تنقض قراراً أمنيّاً موثَّقاً — ونقضُه، إن أُريد، قرارُ مالك.
+
+**وما لم يُمَسّ بقرارٍ قائم:** `FEATURE_NATS_PUBLISHERS` تبقى مُطفأة (قرارُ المالك،
+مربوطٌ بـ`JETSTREAM-STREAM-TOPOLOGY-OWNED-BY-A-CONSUMER-01`).
