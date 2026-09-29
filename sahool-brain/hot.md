@@ -1297,3 +1297,5 @@ Decision: preserve 033 checksum and add 034 restrictive guards, keeping the exis
 Source-base `52deac58088406be76b04a5216c2bddffb12cdcf`; see decision `RAILWAY-GUARDRAILS-RS256-DEPENDENCY-20260928` and V25-AI-RUNTIME-LOCAL-ACCEPTANCE-01. Declare the service-image crypto dependency; keep Railway acceptance unverified.
 
 - 2026-09-28 (فوق `2a8903a`): إكمالُ شريحة هويّة الفحص بعد دمج #1075 — جردٌ يفصل *ما اشتُقّ* عن *ما تعذّر اشتقاقُه* (١٠٥ وظيفة ⇐ ١٠٩ اسماً · صفرٌ غيرُ قابل · صفرُ تصادم)، وثلاثةُ شواهدَ سلوكيّة لتوافق المستهلِك عبر `judge_site`. **والتحقّقُ الحيُّ ٦ من ١١** — والخمسةُ لم تُشغَّل ولا تُعلَن متحقَّقةً.
+
+- 2026-09-29: فرزُ تدقيق v25 الحيّ — ثلاثةٌ أُصلِحت سلفاً (#1 resolver · #4 agriai · #6 restart)، واثنان أُصلِحا الآن (إيصالُ التوليد العالق · مهلةُ SoilGrids). و**guardrails تبقى غيرَ منالةٍ علناً عمداً** خلافاً لتوصية التدقيق — قرارُ أمنٍ مكتوبٌ في الشجرة. والباقي بيئيٌّ أو قرارُ مالك (`FEATURE_NATS_PUBLISHERS` تبقى مُطفأة).

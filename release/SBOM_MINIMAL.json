@@ -11015,7 +11015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ffd7c3e7e91573283d3bfe31de93d0624627436ac8a7dd7ec794f665acf271f9"
+          "content": "d6b57c9996876be7f49c11cb1ba97795abbd21cb6ece0d99ca255148101982b7"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -29055,7 +29055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "50be1709eb172375a34f211a014c3262e040827826e36aaf457812debd7fe4e5"
+          "content": "9a06f4f0395d20b711db924336e35cceca6e5521a669a4422782fe9b382bc573"
         }
       ],
       "name": "services/soil-service/soilgrids_client.py",

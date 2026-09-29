@@ -8661,3 +8661,42 @@ measurement gap». فوظيفةٌ كهذه كانت تسقط من المقارن
 
 المرجع: `sahool-brain/gaps/registry.md` صفّ `CI-CHECK-DISPLAY-NAME-COLLISION-01` ·
 `tests_v9/test_ci_check_name_identity.py` · PR #1075 (مدموج).
+
+## 2026-09-29 — فرزُ تدقيق v25 الحيّ (2026-09-24): ما أُصلِح سلفاً · ما أُصلِح الآن · ما ليس لي
+
+**طبيعةُ المصدر:** تدقيقٌ نفّذ طلباتٍ حقيقيّةً وأوامرَ docker على المكدّس الحيّ — قياسٌ لا
+قراءةُ مصدر. فلا يُصدَّق على علّاته ولا يُرَدّ: كلُّ بندٍ قِيس على الشجرة قبل الحكم.
+
+**أُصلِح سلفاً (تحقّقتُ، ولم أُكرّر عملاً):**
+- **#6 raster-tiler بلا `restart:`** — `restart: unless-stopped` موجودٌ الآن في ملفّات
+  compose الثلاثة (`v9` · `fixed` · `unified`).
+- **#1 nginx يُثبِّت DNS المنبع عند الإقلاع** — `resolver 127.0.0.11 valid=10s` موجودٌ في
+  `nginx.v9.conf:43` و`frontend/nginx.conf:4`، والمنابعُ تحمل `resolve`.
+- **#4 agriai غيرُ منالة عبر البوّابة** — الكتلةُ تحقن الآن
+  `X-Agent-Token "${SAHOOL_AGENT_TOKEN}"` مع allowlist داخليّة.
+
+**ورفضتُ توصيةً من التدقيق عمداً:** بندُ #4 يطلب حقنَ التوكن لـ**guardrails** أيضاً.
+والشجرةُ تقول العكسَ بتعليقٍ صريح: «Do NOT inject X-Agent-Token here: /v1/validate and
+/v1/evaluate are service-only and must stay unreachable to untrusted public callers».
+فالوصولُ العامُّ إلى محرّك الحوكمة قرارُ أمنٍ لا عطل. لا أنقض قراراً أمنيّاً مكتوباً
+بتوصيةِ تدقيقٍ تنظر من زاوية الوصول وحدَها.
+
+**أُصلِح الآن (بندان يعيشان في الشيفرة):**
+- `GENERATION-RECEIPT-FROZEN-ON-A-BOOT-RACE-01` — إيصالٌ عالقٌ على فشلِ لحظةِ الإقلاع.
+- `SOIL-PROVIDER-TIMEOUT-SHORTER-THAN-THE-PROVIDER-01` — مهلةٌ أقصرُ من زمن المزوّد المقيس.
+
+**وما ليس لي — ويبقى مفتوحاً بأسبابه:**
+- **#2 `FEATURE_NATS_PUBLISHERS`** — التدقيقُ يوصي برفعها. **قرارُ المالك القائم أن تبقى
+  مُطفأة** حتّى تُغلَق `JETSTREAM-STREAM-TOPOLOGY-OWNED-BY-A-CONSUMER-01`. لم أمسّها.
+- **#3 ترقيةُ مُدوَّنة RAG من `__seed_quarantine__`** — تشغيلُ سكربتٍ على نشرٍ حيّ، لا تغييرُ
+  مستودع.
+- **#8 أوزانُ SAM2 · #7 محرّك WOFOST** — مصنوعاتٌ/تكاملٌ حقيقيّ، لا يُختلَقان من هنا.
+- **متغيّراتُ النشر** (`S3_BUCKET` · `POSTGRES_EXPORTER_DSN` · `OTEL_*` على auth ·
+  `LOCAL_AI_RAG_URL` على v9 · مفتاحُ Qdrant) — قيمُها بيئيّةٌ لا مستودعيّة، وقاعدةُ المالك
+  «لا تغييرات Railway» قائمة. الأسلاكُ موجودةٌ في compose (مثلاً
+  `DATA_SOURCE_NAME: ${POSTGRES_EXPORTER_DSN:-}`)؛ الناقصُ القيمة.
+- **VLLM_MODEL=jais-natural-farmer المعلَّق** — قائمٌ في `.env.example:241` و
+  `docker-compose.v9.yml:493`. خاملٌ ما دام `AI_PROVIDER=local`؛ تركتُه لأنّ حذفَه قرارُ
+  منتَجٍ (أيُنشَر الحاوي أم يُسقَط الخيار؟) لا تنظيفُ شيفرة.
+
+المرجع: `sahool-brain/gaps/registry.md` الصفّان أعلاه · `tests_v9/test_v25_audit_followups.py`.

@@ -82,7 +82,7 @@
     },
     {
       "kind": "app",
-      "line": 56,
+      "line": 87,
       "module": "services.ai_agronomist.main",
       "node_id": "services.ai_agronomist.main:app",
       "route_count": 13,
@@ -2631,7 +2631,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "77bafc9feb106004dce7125bd246ebbcb6d604822654434c110602213b50ceca",
+  "inventory_sha256": "ec6dfd38e8448abfa0c87813bf8a163133a504e68499e6545f422668f535f0dd",
   "orphan_candidate_count": 227,
   "orphan_candidates": [
     {
