@@ -1235,6 +1235,7 @@ async def field_timeseries(
         real = await _real_field_grid(field_id, index, date, grid)
         if real is None:
             continue
+        provenance = (real.get("indicator_product") or {}).get("provenance") or {}
         points.append(
             {
                 "datetime": str(real.get("date") or date)[:10],
@@ -1246,6 +1247,10 @@ async def field_timeseries(
                 "valid_pixel_ratio": real.get("valid_pixel_ratio"),
                 "coverage_ratio": real.get("coverage_ratio"),
                 "cloud_pct": real.get("cloud_pct"),
+                # نَسَبُ المشهد للرصد نفسِه (من ``provenance`` الشبكة لا تخميناً). النباتُ
+                # (``/v1/ndvi/current``) لا يعرض NDVI بلا مشهدٍ يُنسَب إليه، والنقطةُ لم تكن
+                # تحمله فأجاب 424 لكلّ حقل (مقيسٌ حيّاً 2026-09-29). ``None`` = لم يُسجَّل.
+                "scene_id": provenance.get("scene_id"),
             }
         )
 

@@ -197,6 +197,11 @@ def run_processing(ctx, job_id: str, req):
             "resolution_m": res_m,
             "cog_url": cog_url,  # (٤) كي يجده tilejson + شبكة المؤشّر
             "acquisition_date": req.capture_datetime,
+            # نَسَبُ المشهد على الطبقة نفسِها كما تحمله الطبقةُ المُعاد ترطيبها من القاعدة
+            # (``layer_lookup.rehydrate_field_layer_from_db``). غيابُه هنا جعل ``grid_from_cog``
+            # يُصدِر ``provenance.scene_id = None`` لكلّ طبقةٍ عولِجت في هذه العمليّة — فلا نَسَبَ
+            # مشهدٍ لرصدٍ حديث حتّى تُعاد الخدمة (مقيسٌ 2026-09-29).
+            "scene_id": req.scene_id,
             "provider": req.provider,  # مصدر الصورة (cdse/element84) — شفافيّة الأصل
             "cloud_pct": _cloud_pct,
             "cloud_cover": (_cloud_pct / 100.0) if _cloud_pct is not None else None,

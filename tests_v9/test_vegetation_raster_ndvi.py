@@ -12,8 +12,11 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
 import re
+import subprocess
+import sys
 from unittest.mock import AsyncMock
 
 import pytest
@@ -320,3 +323,152 @@ async def test_canonical_decimals_reach_the_analysis_as_numbers(veg, monkeypatch
         await veg.run_analysis("fld_new", _TENANT, "2026-09-01", "2026-09-29", season_id=season)
     assert exc.value.status_code == 424
     assert exc.value.detail == "validated real NDVI is required in production vegetation mode"
+
+
+# ── القفزة raster-service ⇒ vegetation لـ``/v1/ndvi/current`` ─────────────────────────────
+#
+# **المقيس حيّاً (2026-09-29):** ``/v1/ndvi/current`` أجاب 424 ``RASTER_RESPONSE_INVALID`` لكلّ
+# حقلٍ له NDVI حقيقيّ. المُستهلِك يقرأ ``value``/``ndvi`` والمالكُ يُصدِر ``mean``، ويشترط
+# ``scene_id`` والنقطةُ لا تحمله. ولمّا حُمِّلت النقطةُ نَسَبَها ظهر ما تحته: مسارُ CDSE كان
+# يكتب ``"<scene>:<index>"`` فتصير حزمةُ المشاهدة ``mixed_scene`` لكلّ حقلٍ عولِج به.
+#
+# المُنتِجُ هنا **مسارُ المالك الحقيقيّ كاملاً** في عمليّةٍ مستقلّة (``routers`` و``db_persist``
+# أسماءٌ تتنازعها الخدمات في جلسة pytest واحدة): ``_run_cdse_processing`` ⇒ المعالجةُ ⇒ الطبقة ⇒
+# ``field_timeseries`` و``field_indicator_observation_bundle``. المستبدَلُ حدُّ الشبكة وحدَه:
+# عميلُ CDSE يُعيد GeoTIFF حقيقيّاً لكلّ مؤشّر. بلا قاعدة (وضعٌ مُعلَن في ``field_owner_tenant``).
+
+_SCENE = "S2B_MSIL2A_20260925T073609_N0511_R092_T38PNA"
+_RASTER_PRODUCER = r"""
+import asyncio, json, os, sys
+from datetime import UTC, datetime, timedelta
+
+root, tenant, field, scene = sys.argv[1:5]
+sys.path.insert(0, os.path.join(root, "services", "raster-service"))
+sys.path.insert(0, root)
+import numpy as np
+import rasterio
+from rasterio.transform import from_bounds
+
+W, S, E, N = 44.20, 15.30, 44.21, 15.31
+GEOM = {"type": "Polygon", "coordinates": [[[W, S], [E, S], [E, N], [W, N], [W, S]]]}
+VALUES = {"ndvi": 0.1243, "ndmi": 0.05, "msi": 1.4}
+ACQUIRED = (datetime.now(UTC) - timedelta(days=3)).strftime("%Y-%m-%dT07:46:00Z")
+
+
+def geotiff(value):
+    with rasterio.MemoryFile() as mem:
+        with mem.open(driver="GTiff", height=32, width=32, count=1, dtype="float32",
+                      crs="EPSG:4326", transform=from_bounds(W, S, E, N, 32, 32),
+                      nodata=float("nan")) as dst:
+            dst.write(np.full((32, 32), value, dtype="float32"), 1)
+        return mem.read()
+
+
+class CdseNetworkBoundary:
+    def search_scenes(self, **_kw):
+        return [{"id": scene, "datetime": ACQUIRED, "cloud_cover_pct": 3.0}]
+
+    def process_index(self, *, index, **_kw):
+        return geotiff(VALUES[index])
+
+
+import cdse_client
+cdse_client.get_client = lambda: CdseNetworkBoundary()
+cdse_client.supported_indices = lambda: set(VALUES)
+import raster_api_models
+import raster_field_runtime
+from raster_security_context import REQ_TENANT
+from routers import fields
+
+raster_field_runtime._run_cdse_processing("job-producer", field, raster_api_models.ProcessCdseRequest(
+    tenant_id=tenant, indicators=list(VALUES), bbox=[W, S, E, N], geometry=GEOM))
+
+
+async def produce():
+    REQ_TENANT.set(tenant)
+    timeseries = await fields.field_timeseries(field, index="ndvi", dates="", grid=16)
+    bundle = await fields.field_indicator_observation_bundle(
+        field, indices="ndvi,moisture,msi", date="latest", grid=16,
+        x_agent_token=os.environ["SAHOOL_AGENT_TOKEN"])
+    return {"timeseries": timeseries, "bundle": bundle}
+
+
+print("PRODUCED " + json.dumps(asyncio.run(produce()), default=str))
+"""
+
+
+def _raster_owner_output(tmp_path, *, tenant: str, field: str) -> dict:
+    script = tmp_path / "raster_producer.py"
+    script.write_text(_RASTER_PRODUCER, encoding="utf-8")
+    uploads = tmp_path / "rasters"
+    uploads.mkdir()
+    env = {k: v for k, v in os.environ.items() if k not in ("DATABASE_URL", "JOBS_DATABASE_URL")}
+    env.update(RASTER_UPLOAD_DIR=str(uploads), SAHOOL_AGENT_TOKEN="producer-token")
+    run = subprocess.run(
+        [sys.executable, str(script), os.path.abspath(ROOT), tenant, field, _SCENE],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env=env,
+        timeout=180,
+        check=False,
+    )
+    produced = [ln for ln in run.stdout.splitlines() if ln.startswith("PRODUCED ")]
+    assert produced, f"مُنتِجُ الراستر لم يُنتِج (rc={run.returncode}):\n{run.stderr[-3000:]}"
+    output = json.loads(produced[-1][len("PRODUCED ") :])
+    assert output["timeseries"].get("points"), (
+        "المالكُ لم يُنتِج رصداً — الشاهدُ لا يقيس شيئاً:\n"
+        f"{json.dumps(output['timeseries'], ensure_ascii=False)[:800]}\n{run.stdout[-3000:]}"
+    )
+    return output
+
+
+class _RasterClient:
+    """يقوم مقام ``httpx.AsyncClient`` عند حدّ الشبكة وحدَه — يُعيد ردَّ المالك كما أنتجه."""
+
+    timeseries: dict = {}
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *exc):
+        return False
+
+    async def get(self, url, params=None, headers=None):
+        assert url.endswith("/timeseries") and (params or {}).get("index") == "ndvi", url
+        body = type(self).timeseries
+
+        class _Response:
+            status_code = 200
+
+            @staticmethod
+            def json():
+                return body
+
+        return _Response()
+
+
+async def test_current_ndvi_reads_the_point_the_raster_owner_produces(veg, monkeypatch, tmp_path):
+    pytest.importorskip("rasterio")
+    field = "fld_ndvi_current"
+    owner = _raster_owner_output(tmp_path, tenant=_TENANT, field=field)
+
+    # المالك: مشهدٌ واحد لكلّ المؤشّرات، ونَسَبُه على النقطة وفي الحزمة.
+    point = owner["timeseries"]["points"][-1]
+    assert point["mean"] == pytest.approx(0.1243)
+    assert point["scene_id"] == _SCENE, "النقطةُ لا تحمل نَسَبَ مشهدِها (أو تحمله بلاحقة المؤشّر)"
+    bundle = owner["bundle"]
+    assert bundle["scene_ids"] == [_SCENE] and bundle["mixed_scene"] is False, bundle["scene_ids"]
+
+    # المُستهلِك: ما أنتجه المالكُ نفسُه يصير NDVI الحاليّ — لا 424.
+    _RasterClient.timeseries = owner["timeseries"]
+    monkeypatch.setattr(veg.httpx, "AsyncClient", _RasterClient)
+    observed, code = await veg._current_ndvi_from_raster(field, tenant_id=_TENANT)
+    assert code == "OK", code
+    assert observed["value"] == pytest.approx(0.1243)
+    assert observed["scene_id"] == _SCENE
+    assert observed["observed_at"] == point["datetime"]
+    assert observed["valid_pixel_pct"] == pytest.approx(100.0)

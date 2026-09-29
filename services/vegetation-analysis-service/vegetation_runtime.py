@@ -1025,7 +1025,14 @@ async def _current_ndvi_from_raster(
         return None, "NO_VALIDATED_NDVI_ASSET"
     points.sort(key=lambda p: str(p.get("datetime") or p.get("date") or ""))
     point = points[-1]
-    value = point.get("value", point.get("ndvi"))
+    # مفتاحُ القيمة كما يُصدِره المالك: ``mean`` (نقطةُ ``/v1/fields/{id}/timeseries`` —
+    # ``datetime``/``mean``/``valid_pixel_ratio``/``coverage_ratio``/``cloud_pct``، ويقرؤها
+    # كذلك ``api.raster_service_client`` وindicators-service). كان هنا ``value``/``ndvi`` —
+    # مفتاحان لم يُصدِرهما المالكُ قطّ — فأجاب ``/v1/ndvi/current`` بـ424
+    # ``RASTER_RESPONSE_INVALID`` لكلّ حقلٍ له NDVI حقيقيّ (مقيسٌ حيّاً 2026-09-29).
+    value = point.get("mean")
+    if isinstance(value, bool):
+        return None, "RASTER_RESPONSE_INVALID"
     try:
         value = float(value)
     except (TypeError, ValueError):
@@ -1036,13 +1043,18 @@ async def _current_ndvi_from_raster(
     scene_id = point.get("scene_id") or point.get("asset_id")
     if not observed_at or not scene_id:
         return None, "RASTER_RESPONSE_INVALID"
+    # المالكُ يُصدِر النسبةَ (0..1) لا المئويّة؛ غيابُها يبقى غياباً لا صفراً.
+    valid_pixel_pct = point.get("valid_pixel_pct")
+    ratio = point.get("valid_pixel_ratio")
+    if valid_pixel_pct is None and isinstance(ratio, (int, float)) and not isinstance(ratio, bool):
+        valid_pixel_pct = round(float(ratio) * 100.0, 3) if math.isfinite(ratio) else None
     return {
         "value": value,
         "observed_at": observed_at,
         "scene_id": scene_id,
         "data_available_at": point.get("data_available_at") or data.get("generated_at"),
         "quality_score": point.get("quality_score"),
-        "valid_pixel_pct": point.get("valid_pixel_pct"),
+        "valid_pixel_pct": valid_pixel_pct,
         "algorithm_version": point.get("algorithm_version") or data.get("algorithm_version"),
         "qa_mask_version": point.get("qa_mask_version") or data.get("qa_mask_version"),
         "source": "raster-service",
